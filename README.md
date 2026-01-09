@@ -1,3 +1,3 @@
 # Salsa
 
-Salsa Website
+Salsa Website - Dance lessons and events

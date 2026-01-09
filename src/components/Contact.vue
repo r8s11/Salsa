@@ -10,23 +10,11 @@
           <form @submit.prevent="handleSubmit" class="contact-form">
             <div class="form-group">
               <label for="name">Name</label>
-              <input
-                id="name"
-                v-model="form.name"
-                type="text"
-                placeholder="Your name"
-                required
-              />
+              <input id="name" v-model="form.name" type="text" placeholder="Your name" required />
             </div>
             <div class="form-group">
               <label for="email">Email</label>
-              <input
-                id="email"
-                v-model="form.email"
-                type="email"
-                placeholder="your@email.com"
-                required
-              />
+              <input id="email" v-model="form.email" type="email" placeholder="your@email.com" required />
             </div>
             <div class="form-group">
               <label for="interest">I'm interested in...</label>
@@ -40,19 +28,9 @@
             </div>
             <div class="form-group">
               <label for="message">Message</label>
-              <textarea
-                id="message"
-                v-model="form.message"
-                placeholder=""
-                rows="4"
-                required
-              ></textarea>
+              <textarea id="message" v-model="form.message" placeholder="" rows="4" required></textarea>
             </div>
-            <button
-              type="submit"
-              class="submit-button"
-              :disabled="isSubmitting"
-            >
+            <button type="submit" class="submit-button" :disabled="isSubmitting">
               {{ submitButtonText }}
             </button>
           </form>
@@ -73,14 +51,11 @@
           <div class="contact-card" style="word-break: break-all">
             <div class="contact-icon">📧</div>
             <h3>Email</h3>
-            <a
-              href="mailto:info@SalsaSegura.com"
-              style="
+            <a href="mailto:info@SalsaSegura.com" style="
                 display: inline-block;
                 max-width: 100%;
                 overflow-wrap: break-word;
-              "
-            >
+              ">
               info@SalsaSegura.com
             </a>
           </div>
@@ -99,9 +74,6 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 
-
-const WEB3FORMS_ACCESS_KEY = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY;
-
 export default defineComponent({
   computed: {
     submitButtonText() {
@@ -113,7 +85,6 @@ export default defineComponent({
   data() {
     return {
       form: {
-        access_key:"",
         name: "",
         email: "",
         interest: "",
@@ -127,6 +98,9 @@ export default defineComponent({
     async handleSubmit() {
       this.isSubmitting = true;
 
+      const accessKey = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY;
+      console.log("Access Key:", accessKey); // Debug log
+
       const response = await fetch("https://api.web3forms.com/submit", {
         method: "POST",
         headers: {
@@ -134,7 +108,7 @@ export default defineComponent({
           Accept: "application/json",
         },
         body: JSON.stringify({
-          access_key: WEB3FORMS_ACCESS_KEY,
+          access_key: accessKey,
           name: this.form.name,
           email: this.form.email,
           interest: this.form.interest,
@@ -144,19 +118,16 @@ export default defineComponent({
 
       const result = await response.json();
       if (result.success) {
-        console.log(result);
-        console.log(WEB3FORMS_ACCESS_KEY)
+        console.log("Success:", result);
       } else {
-        console.log(result)
-        console.log(WEB3FORMS_ACCESS_KEY)
-        console.error("failed")
+        console.error("Failed:", result);
       }
 
       this.isSubmitting = false;
       this.isSubmitted = true;
 
       setTimeout(() => {
-        this.form = { access_key: "", name: "", email: "", interest: "", message: "" };
+        this.form = { name: "", email: "", interest: "", message: "" };
         this.isSubmitted = false;
       }, 3000);
     },

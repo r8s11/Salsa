@@ -149,6 +149,7 @@ export default defineComponent({
       } else {
         console.log(result)
         console.log(WEB3FORMS_ACCESS_KEY)
+        console.error("failed")
       }
 
       this.isSubmitting = false;

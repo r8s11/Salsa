@@ -22,7 +22,7 @@ function Contact() {
     setIsSubmitting(true);
 
     const accessKey = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY;
-    console.log("Access Key:", accessKey);
+    
 
     const response = await fetch("https://api.web3forms.com/submit", {
       method: "POST",
@@ -42,8 +42,6 @@ function Contact() {
     const result = await response.json();
     if (result.success) {
       console.log("Success:", result);
-    } else {
-      console.error("Failed:", result);
     }
 
     setIsSubmitting(false);

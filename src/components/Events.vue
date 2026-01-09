@@ -18,7 +18,7 @@
             <h3>{{ event.title }}</h3>
             <p class="event-location">📍 {{ event.location }}</p>
             <p class="event-time">🕐 {{ event.time }}</p>
-            <p class="event-description">{{ event.description }}</p>
+            <div class="event-description" v-html="event.description"></div>
             <a :href="event.rsvpLink" class="rsvp-button" :aria-label="`RSVP for ${event.title}`">
               RSVP Now
             </a>
@@ -40,9 +40,11 @@
 
 <script lang="ts">
 import { defineComponent, ref } from "vue";
+import fm from "front-matter";
+import { marked } from "marked";
 
 interface DanceEvent {
-  id: number;
+  id: string;
   title: string;
   type: string;
   month: string;
@@ -51,49 +53,60 @@ interface DanceEvent {
   location: string;
   description: string;
   rsvpLink: string;
+  date: Date;
+}
+
+interface EventFrontmatter {
+  title: string;
+  type: string;
+  date: string | Date;
+  time: string;
+  location: string;
+  rsvpLink: string;
 }
 
 export default defineComponent({
   name: "Events",
   setup() {
-    const upcomingEvents = ref<DanceEvent[]>([
-      {
-        id: 1,
-        title: "Beginner Salsa Pop-up",
-        type: "Pop-up Class",
-        month: "JAN",
-        day: "15",
-        time: "7:00 PM - 9:00 PM",
-        location: "Boston Community Center",
-        description:
-          "Perfect for beginners! Learn the basics of salsa in a fun, relaxed environment.",
-        rsvpLink: "#contact",
-      },
-      {
-        id: 2,
-        title: "Bachata Social Night",
-        type: "Social Dance",
-        month: "JAN",
-        day: "22",
-        time: "8:00 PM - 11:00 PM",
-        location: "Latin Vibes Lounge, Cambridge",
-        description:
-          "Social dancing with a mix of bachata and salsa. All levels welcome!",
-        rsvpLink: "#contact",
-      },
-      {
-        id: 3,
-        title: "Salsa Styling Workshop",
-        type: "Workshop",
-        month: "FEB",
-        day: "5",
-        time: "2:00 PM - 5:00 PM",
-        location: "Dance Studio 54, Somerville",
-        description:
-          "Intermediate workshop focusing on body movement, arm styling, and musicality.",
-        rsvpLink: "#contact",
-      },
-    ]);
+    // Import all markdown files from the content/events directory
+    const eventFiles = import.meta.glob('../content/events/*.md', { query: '?raw', eager: true, import: 'default' });
+    
+    const eventsList: DanceEvent[] = [];
+
+    // Helper to format date
+    const getMonthName = (d: Date) => d.toLocaleString('default', { month: 'short' }).toUpperCase();
+    const getDayNumber = (d: Date) => d.getDate().toString();
+
+    for (const path in eventFiles) {
+      const rawContent = eventFiles[path] as string;
+      const { attributes, body } = fm<EventFrontmatter>(rawContent);
+      
+      const eventDate = new Date(attributes.date);
+      
+      // Only show future events? Or all? Let's show all for now, maybe filter later.
+      // if (eventDate < new Date()) continue;
+
+      // Render markdown body to HTML
+      const htmlDescription = marked.parse(body);
+
+      eventsList.push({
+        id: path, // Use file path as unique ID
+        title: attributes.title,
+        type: attributes.type,
+        month: getMonthName(eventDate),
+        day: getDayNumber(eventDate),
+        time: attributes.time,
+        location: attributes.location,
+        description: htmlDescription as string,
+        rsvpLink: attributes.rsvpLink,
+        date: eventDate
+      });
+    }
+
+    // Sort by date (asc)
+    eventsList.sort((a, b) => a.date.getTime() - b.date.getTime());
+
+    const upcomingEvents = ref<DanceEvent[]>(eventsList);
 
     return { upcomingEvents };
   },

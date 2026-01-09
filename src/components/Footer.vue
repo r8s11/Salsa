@@ -24,8 +24,8 @@
       </div>
 
       <div class="copyright">
-        &copy; {{ currentYear }} Salsa Segura. All rights reserved. | Passionate
-        Dance Instruction
+        &copy; {{ currentYear }} Salsa Segura. All rights reserved. | Passion For
+        Dance
       </div>
     </div>
   </footer>

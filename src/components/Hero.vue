@@ -3,10 +3,8 @@
     <div class="container">
       <div class="hero-content">
         <h1>Dance with Passion!</h1>
-        <p>Private Salsa & Bachata Lessons • Pop-up Classes • Social Dance Events</p>
+        <p>Salsa & Bachata • Pop-up Classes • Social Dance Events</p>
         <div class="hero-buttons">
-          <a href="#events" class="cta-button">Upcoming Events</a>
-          <a href="#contact" class="cta-button cta-secondary">Book a Lesson</a>
         </div>
       </div>
     </div>

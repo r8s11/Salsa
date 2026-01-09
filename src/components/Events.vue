@@ -16,10 +16,33 @@
           <div class="event-details">
             <span class="event-type">{{ event.type }}</span>
             <h3>{{ event.title }}</h3>
-            <p class="event-location">📍 {{ event.location }}</p>
+            <p class="event-location">🏙️ {{ event.location }}</p>
             <p class="event-time">🕐 {{ event.time }}</p>
-            <div class="event-description" v-html="event.description"></div>
-            <a :href="event.rsvpLink" class="rsvp-button" :aria-label="`RSVP for ${event.title}`">
+            <p
+              v-if="event.address"
+              class="event-address"
+            >
+              📍
+              <a
+              :href="`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                event.address
+              )}`"
+              target="_blank"
+              rel="noopener"
+              :aria-label="`Open ${event.address} in Maps`"
+              class="event-address-link"
+              >
+              {{ event.address }}
+              </a>
+            </p>
+            <div
+            class="event-description" v-html="event.description"></div>
+            <a
+            v-if="event.rsvpLink"
+              :href="event.rsvpLink"
+              class="rsvp-button"
+              :aria-label="`RSVP for ${event.title}`"
+            >
               RSVP Now
             </a>
           </div>
@@ -27,7 +50,10 @@
       </div>
 
       <div v-if="upcomingEvents.length === 0" class="no-events">
-        <p>No upcoming events scheduled. Check back soon or follow us on Instagram for updates!</p>
+        <p>
+          No upcoming events scheduled. Check back soon or follow us on
+          Instagram for updates!
+        </p>
       </div>
 
       <div class="events-cta">
@@ -51,6 +77,7 @@ interface DanceEvent {
   day: string;
   time: string;
   location: string;
+  address: string;
   description: string;
   rsvpLink: string;
   date: Date;
@@ -62,6 +89,7 @@ interface EventFrontmatter {
   date: string | Date;
   time: string;
   location: string;
+  address: string;
   rsvpLink: string;
 }
 
@@ -69,20 +97,25 @@ export default defineComponent({
   name: "Events",
   setup() {
     // Import all markdown files from the content/events directory
-    const eventFiles = import.meta.glob('../content/events/*.md', { query: '?raw', eager: true, import: 'default' });
-    
+    const eventFiles = import.meta.glob("../content/events/*.md", {
+      query: "?raw",
+      eager: true,
+      import: "default",
+    });
+
     const eventsList: DanceEvent[] = [];
 
     // Helper to format date
-    const getMonthName = (d: Date) => d.toLocaleString('default', { month: 'short' }).toUpperCase();
+    const getMonthName = (d: Date) =>
+      d.toLocaleString("default", { month: "short" }).toUpperCase();
     const getDayNumber = (d: Date) => d.getDate().toString();
 
     for (const path in eventFiles) {
       const rawContent = eventFiles[path] as string;
       const { attributes, body } = fm<EventFrontmatter>(rawContent);
-      
+
       const eventDate = new Date(attributes.date);
-      
+
       // Only show future events? Or all? Let's show all for now, maybe filter later.
       // if (eventDate < new Date()) continue;
 
@@ -97,9 +130,10 @@ export default defineComponent({
         day: getDayNumber(eventDate),
         time: attributes.time,
         location: attributes.location,
+        address: attributes.address,
         description: htmlDescription as string,
         rsvpLink: attributes.rsvpLink,
-        date: eventDate
+        date: eventDate,
       });
     }
 
@@ -200,7 +234,7 @@ export default defineComponent({
   margin-bottom: 0.5rem;
   font-size: 1.3rem;
 }
-
+.event-address-link,
 .event-location,
 .event-time {
   font-size: 0.9rem;

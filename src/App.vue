@@ -1,16 +1,14 @@
 <template>
-  <WorkInProgress />
-  <!--
+  <!-- <WorkInProgress /> -->
+
   <Header />
   <main>
     <Hero />
     <Events />
-    <Lessons />
-    <Instructor />
     <Contact />
   </main>
   <Footer />
-  -->
+
 </template>
 
 <script lang="ts">

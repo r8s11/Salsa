@@ -2,10 +2,7 @@
   <section id="contact" class="contact">
     <div class="container">
       <h2 class="section-title">Ready to Dance?</h2>
-      <p class="contact-intro">
-        Contact me today for your free consultation and let's discuss your
-        dance goals!
-      </p>
+      <p class="contact-intro">Contact us!</p>
 
       <div class="contact-grid">
         <div class="contact-form-card">
@@ -35,10 +32,9 @@
               <label for="interest">I'm interested in...</label>
               <select id="interest" v-model="form.interest" required>
                 <option value="">Select an option</option>
-                <option value="private">Private Lessons</option>
-                <option value="couples">Couples Sessions</option>
+                <option value="corporate">Corporate Events</option>
                 <option value="popup">Pop-up Classes</option>
-                <option value="event">Hosting an Event</option>
+                <option value="event">Hosting An Event</option>
                 <option value="other">Other</option>
               </select>
             </div>
@@ -47,34 +43,46 @@
               <textarea
                 id="message"
                 v-model="form.message"
-                placeholder="Tell me about your dance goals..."
+                placeholder=""
                 rows="4"
                 required
               ></textarea>
             </div>
-            <button type="submit" class="submit-button" :disabled="isSubmitting">
+            <button
+              type="submit"
+              class="submit-button"
+              :disabled="isSubmitting"
+            >
               {{ submitButtonText }}
             </button>
           </form>
         </div>
 
         <div class="contact-info-cards">
-          <div class="contact-card">
+          <!-- <div class="contact-card">
             <div class="contact-icon">📱</div>
             <h3>Instagram</h3>
             <a
               href="https://www.instagram.com/SalsaSegura"
               target="_blank"
               rel="noopener noreferrer"
-            >
-              @SalsaSegura
+            >@SalsaSegura
             </a>
-          </div>
+          </div> -->
 
-          <div class="contact-card">
+          <div class="contact-card" style="word-break: break-all">
             <div class="contact-icon">📧</div>
             <h3>Email</h3>
-            <a href="mailto:info@SalsaSegura.com">info@SalsaSegura.com</a>
+            <a
+              href="mailto:info@SalsaSegura.com"
+              style="
+                display: inline-block;
+                max-width: 100%;
+                overflow-wrap: break-word;
+              "
+            >
+              info@SalsaSegura.com
+            </a>
           </div>
 
           <div class="contact-card">
@@ -89,44 +97,68 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, ref } from "vue";
+import { defineComponent } from "vue";
+
+
+const WEB3FORMS_ACCESS_KEY = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY;
 
 export default defineComponent({
-  name: "Contact",
-  setup() {
-    const form = ref({
-      name: "",
-      email: "",
-      interest: "",
-      message: "",
-    });
-
-    const isSubmitting = ref(false);
-    const isSubmitted = ref(false);
-
-    const submitButtonText = computed(() => {
-      if (isSubmitting.value) return "Sending...";
-      if (isSubmitted.value) return "Message Sent! ✓";
+  computed: {
+    submitButtonText() {
+      if (this.isSubmitting) return "Sending...";
+      if (this.isSubmitted) return "Message Sent! ✓";
       return "Send Message";
-    });
-
-    const handleSubmit = async () => {
-      isSubmitting.value = true;
-
-      // Simulate form submission (replace with actual form handler like Formspree)
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      isSubmitting.value = false;
-      isSubmitted.value = true;
-
-      // Reset form after delay
-      setTimeout(() => {
-        form.value = { name: "", email: "", interest: "", message: "" };
-        isSubmitted.value = false;
-      }, 3000);
+    },
+  },
+  data() {
+    return {
+      form: {
+        access_key:"",
+        name: "",
+        email: "",
+        interest: "",
+        message: "",
+      },
+      isSubmitting: false,
+      isSubmitted: false,
     };
+  },
+  methods: {
+    async handleSubmit() {
+      this.isSubmitting = true;
 
-    return { form, isSubmitting, isSubmitted, submitButtonText, handleSubmit };
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          access_key: WEB3FORMS_ACCESS_KEY,
+          name: this.form.name,
+          email: this.form.email,
+          interest: this.form.interest,
+          message: this.form.message,
+        }),
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        console.log(result);
+        console.log(WEB3FORMS_ACCESS_KEY)
+      } else {
+        console.log(result)
+        console.log(WEB3FORMS_ACCESS_KEY)
+      }
+
+      this.isSubmitting = false;
+      this.isSubmitted = true;
+
+      setTimeout(() => {
+        this.form = { access_key: "", name: "", email: "", interest: "", message: "" };
+        this.isSubmitted = false;
+      }, 3000);
+    },
   },
 });
 </script>

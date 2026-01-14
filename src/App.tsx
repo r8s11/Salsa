@@ -9,6 +9,7 @@ import Lessons from "./pages/Lessons";
 import Instructors from "./pages/Instructors";
 import ScrollToTop from "./components/ScrollToTop";
 import NotFoundPage from "./pages/NotFoundPage";
+import CalendarPage from "./pages/CalendarPage";
 
 function App() {
   // Set to true to show work in progress page
@@ -26,7 +27,7 @@ function App() {
           <Route index element={<HomePage />} />
           <Route path="about" element={<AboutPage />} />
           <Route path="contact" element={<ContactPage />} />
-          <Route path="calendar" element={<Calendar />} />
+          <Route path="calendar" element={<CalendarPage />} />
           <Route path="Lessons" element={<Lessons />} />
           <Route path="Instructors" element={<Instructors />} />
           <Route path="*" element={<NotFoundPage />} />

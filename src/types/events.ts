@@ -1,88 +1,103 @@
-import "temporal-polyfill/global"
+import "temporal-polyfill/global";
 
-export type EventType = "social" | "lass" | "workshop";
+export type EventType = "social" | "class" | "workshop";
 
 export const CALENDARS_CONFIG = {
-    social: {
-        colorName: "social",
-        lightColors: {
-            main: "#ffec42",
-            container: "#ffe4d1",
-            onContainer: "#5c2e00"
-        },
-        darkColors: {
-            main: "#ffb380",
-            container: "#8b4513",
-            onContainer: "#ffe4d1"
-        },
+  social: {
+    colorName: "social",
+    lightColors: {
+      main: "#ffec42",
+      container: "#ffe4d1",
+      onContainer: "#5c2e00",
     },
-
-}
+    darkColors: {
+      main: "#ffb380",
+      container: "#8b4513",
+      onContainer: "#ffe4d1",
+    },
+  },
+};
 
 // Schedule-X event interface
 export interface ScheduleXEvent {
-    id: string | number;
-    title: string;
-    start: Temporal.ZonedDateTime;
-    end: Temporal.ZonedDateTime;
-    calendarId: EventType;
-    location?: string;
-    description?: string;
-    //Custom properties for out app
-    addess?: string;
-    rsvpLink?: string;
+  id: string | number;
+  title: string;
+  start: Temporal.ZonedDateTime;
+  end: Temporal.ZonedDateTime;
+  calendarId: EventType;
+  location?: string;
+  description?: string;
+  //Custom properties for out app
+  address?: string;
+  rsvpLink?: string;
 }
 
 // Helper to create a ZonedDateTime for Boston Timezone
 export function bostonDateTime(
-    year: number,
-    month: number,
-    day: number,
-    hour: number,
-    minute: number = 0
-
+  year: number,
+  month: number,
+  day: number,
+  hour: number,
+  minute: number = 0
 ): Temporal.ZonedDateTime {
-
-    return Temporal.ZonedDateTime.from({
-        year,
-        month,
-        day,
-        hour,
-        minute,
-        second: 0,
-        timeZone: "America/New_York"
-    });
+  return Temporal.ZonedDateTime.from({
+    year,
+    month,
+    day,
+    hour,
+    minute,
+    second: 0,
+    timeZone: "America/New_York",
+  });
 }
 
 // Legacy DanceEvent interface (for Events.tsx compatibility)
 export interface DanceEvent {
-    id: string;
-    title: string;
-    type: string;
-    month: string;
-    day: string;
-    time: string;
-    location: string;
-    address: string;
-    description: string;
-    rsvpLink: string;
-    date: Date;
+  id: string;
+  title: string;
+  type: string;
+  month: string;
+  day: string;
+  time: string;
+  location: string;
+  address: string;
+  description: string;
+  rsvpLink: string;
+  date: Date;
 }
 
 // Convert DanceEvent to ScheduleXEvent (for future unified hook)
 export function toScheduleXEvent(
-    event: DanceEvent,
-    durationHours = 2
+  event: DanceEvent,
+  durationHours = 2
 ): ScheduleXEvent {
-    const jsDate = event.date;
-    const start = Temporal.ZonedDateTime.from({
-        year: jsDate.getFullYear(),
-        month: jsDate.getMonth() + 1, // why is this?
-        day: jsDate.getDate(),
-        hour: jsDate.getHours(),
-        minute: jsDate.getMinutes(),
-        second: 0,
-        timeZone: "America/New_York",
-    });
-    ]
+  const jsDate = event.date;
+  const start = Temporal.ZonedDateTime.from({
+    year: jsDate.getFullYear(),
+    month: jsDate.getMonth() + 1, // why is this?
+    day: jsDate.getDate(),
+    hour: jsDate.getHours(),
+    minute: jsDate.getMinutes(),
+    second: 0,
+    timeZone: "America/New_York",
+  });
+  const end = start.add({ hours: durationHours });
+
+  const calendarId: EventType = event.type.toLowerCase().includes("social")
+    ? "social"
+    : event.type.toLocaleLowerCase().includes("class")
+    ? "class"
+    : "workshop";
+
+  return {
+    id: event.id,
+    title: event.title,
+    start,
+    end,
+    calendarId,
+    location: event.location,
+    address: event.address,
+    description: event.description,
+    rsvpLink: event.rsvpLink,
+  };
 }

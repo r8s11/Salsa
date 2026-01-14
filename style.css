@@ -4,6 +4,9 @@
   box-sizing: border-box;
 }
 
+
+
+
 body {
   font-family: "Arial", sans-serif;
   line-height: 1.6;
@@ -22,7 +25,7 @@ header {
   background: linear-gradient(135deg, #ff8c42 0%, #3498db 100%);
   color: white;
   padding: 1rem 0;
-  position: fixed;
+  position: sticky;
   width: 100%;
   top: 0;
   z-index: 1000;
@@ -79,6 +82,7 @@ a.logo {
   display: flex;
   align-items: center;
   gap: 10px;
+  max-height: 200px;
 }
 
 
@@ -380,7 +384,7 @@ footer {
   }
 
   .container {
-    
+
   }
 
   .section-title {

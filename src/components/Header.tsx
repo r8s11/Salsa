@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link, NavLink } from "react-router-dom";
 
 function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -10,32 +11,72 @@ function Header() {
   return (
     <header>
       <nav className="container">
-        <div className="logo">🕺🏽Salsa Segura</div>
+        <Link to="/" className="logo" onClick={closeMenu}>
+          💃Salsa Segura🕺
+        </Link>
         <ul className={`nav-links ${mobileOpen ? "active" : ""}`}>
           <li>
-            <a href="#home" onClick={closeMenu}>
+            <NavLink
+              to="/"
+              onClick={closeMenu}
+              className={({ isActive }) => (isActive ? "active" : "")}
+            >
               Home
-            </a>
+            </NavLink>
           </li>
           <li>
-            <a href="#events" onClick={closeMenu}>
+            <NavLink
+              to={"/about"}
+              onClick={closeMenu}
+              className={({ isActive }) => (isActive ? "active" : "")}
+            >
+              About
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
+              to={"/calendar"}
+              onClick={closeMenu}
+              className={({ isActive }) => (isActive ? "active" : "")}
+            >
+              Calendar
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
+              to={"/#events"}
+              onClick={closeMenu}
+              className={() => ""}
+            >
               Events
-            </a>
+            </NavLink>
           </li>
           <li>
-            <a href="#lessons" onClick={closeMenu}>
+            <NavLink
+              to={"/lessons"}
+              onClick={closeMenu}
+              className={({ isActive }) => (isActive ? "active" : "")}
+            >
               Lessons
-            </a>
+            </NavLink>
           </li>
           <li>
-            <a href="#instructor" onClick={closeMenu}>
-              Instructor
-            </a>
+            <NavLink
+              to={"/instructors"}
+              onClick={closeMenu}
+              className={({ isActive }) => (isActive ? "active" : "")}
+            >
+              Instructors
+            </NavLink>
           </li>
           <li>
-            <a href="#contact" onClick={closeMenu}>
+            <NavLink
+              to={"/contact"}
+              onClick={closeMenu}
+              className={({ isActive }) => (isActive ? "active" : "")}
+            >
               Contact
-            </a>
+            </NavLink>
           </li>
         </ul>
         <button
@@ -43,8 +84,7 @@ function Header() {
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-expanded={mobileOpen}
           aria-label="Toggle menu"
-        >
-          <span></span>
+        > <span></span>
           <span></span>
           <span></span>
         </button>

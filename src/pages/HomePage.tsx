@@ -1,15 +1,15 @@
-import Hero from "../components/Hero";
-import Events from "../components/Events";
-import Contact from "../components/Contact";
+import Hero from "../components/Hero/Hero";
+import Events from "../components/Events/Events";
+import Contact from "../components/Contact/Contact";
 
 function HomePage() {
-    return (
-        <>
-            <Hero />
-            <Events />
-            <Contact />
-        </>
-    )
+  return (
+    <>
+      <Hero />
+      <Events />
+      <Contact />
+    </>
+  );
 }
 
 export default HomePage;

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import "./Footer.css";
 
 function Footer() {
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -48,6 +49,18 @@ function Footer() {
           Dance
         </div>
       </div>
+      <a
+        href="https://www.buymeacoffee.com/rseg"
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{ marginTop: "4px" }}
+      >
+        <img
+          src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=☕&slug=rseg&button_colour=059669&font_colour=ffffff&font_family=Poppins&outline_colour=059669&coffee_colour=FFDD00"
+          alt="Buy me a coffee"
+          style={{ height: "36px", width: "auto", borderRadius: "8px" }}
+        />
+      </a>
     </footer>
   );
 }

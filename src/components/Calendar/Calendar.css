@@ -1,0 +1,170 @@
+.calendar-container header {
+  background: revert;
+  z-index: 10;
+  color: revert;
+  position: revert;
+  box-shadow: revert;
+}
+/* Schedule-X clendar container */
+.calendar-container {
+  display: grid;
+  grid-template: auto 1fr auto / 10% 1fr 10%;
+  padding: 1.5rem;
+  max-width: 1800px;
+  margin: 0 auto;
+  min-height: calc(100dvh - 200px);
+
+}
+.title {
+  grid-column: 1/4;
+}
+.calendar-container h1 {
+  text-align: center;
+  margin: 1.5rem;
+  color: #838383;
+}
+
+/* Calendar wrapper - Schedule-X requires explicit dimentions */
+.sx-react-calendar-wrapper {
+  justify-self: center;
+  width: 100%;
+  max-width: 1200px;
+  height: 700px;
+  max-height: 80dvh;
+}
+
+/* Calendar Legend */
+.calendar-legend {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  grid-column: 1/2;
+}
+.items {
+  display: flex;
+  align-content: center;
+  align-items: center;
+  justify-items: center;
+  flex-direction: column;
+  color: #fff;
+  font-size: calc(0.9rem + 0.5vw);
+}
+
+@media (max-width: 900px) {
+  .calendar-container {
+    display: block;
+  }
+  .calendar-container h1 {
+    margin: 0;
+  }
+  .calendar-legend {
+    margin: 0;
+  }
+  .items {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+  }
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+}
+
+.legend-color.social {
+  background: #ff8c42;
+}
+.legend-color.class {
+  background: #3498db;
+}
+.legend-color.workshop {
+  background: #27ae60;
+}
+.main {
+  grid-column: 2/4;
+}
+/* Week-view: remove the left time axis and render events as a simple list per day */
+.sx-react-calendar-wrapper .sx__week-grid__time-axis,
+sx-react-calendar-wrapper .sx__week-grid__hour-text {
+  display: none !important;
+}
+
+.sx-react-calendar-wrapper .sx__week-grid {
+  padding-left: 0 !important;
+  --sx-calendar-week-grid-padding-left: 0 !important;
+}
+
+.sx-react-calendar-wrapper .sx__week-grid__date {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.sx-react-calendar-wrapper .sx__week-grid .sx__time-grid-event {
+  position: static !important;
+  width: 100% !important;
+  margin: 0 !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.sx-react-calendar-wrapper .sx__week-grid .sx__time-grid-event-inner {
+  position: relative;
+  padding: 0.5rem 0.75rem;
+}
+
+.sx-react-calendar-wrapper .sx__week-grid .sx__time-grid-event-time {
+  display: none !important;
+}
+
+.sx-react-calendar-wrapper .sx__week-grid .sx__time-grid-event-title {
+  white-space: normal;
+}
+
+.right {
+  grid-column: 3/4;
+}
+.footer {
+  grid-column: 1/4;
+}
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .calendar-container {
+    padding: 1rem;
+  }
+
+  .calendar-container h1 {
+    font-size: 1.5rem;
+  }
+
+  .sx-react-calendar-wrapper {
+    height: 500px;
+  }
+
+  .calendar-legend {
+    gap: 1rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* Custom Event Modal Styles */
+.modal-overlay {
+  position:fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+
+
+}

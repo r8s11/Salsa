@@ -1,7 +1,5 @@
-import WorkInProgress from "../components/WorkInProgress";
+import WorkInProgress from "../components/WIP/WorkInProgress";
 
 export default function Schools() {
-    return (
-        <WorkInProgress />
-    )
+  return <WorkInProgress />;
 }

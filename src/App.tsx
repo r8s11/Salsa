@@ -3,11 +3,10 @@ import MainLayout from "./layouts/MainLayout";
 import HomePage from "./pages/HomePage";
 import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
-import Calendar from "./components/Calendar";
-import WorkInProgress from "./components/WorkInProgress";
+import WorkInProgress from "./components/WIP/WorkInProgress";
 import Lessons from "./pages/Lessons";
 import Instructors from "./pages/Instructors";
-import ScrollToTop from "./components/ScrollToTop";
+import ScrollToTop from "./components/Scroll/ScrollToTop";
 import NotFoundPage from "./pages/NotFoundPage";
 import CalendarPage from "./pages/CalendarPage";
 

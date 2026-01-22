@@ -1,0 +1,327 @@
+/* ========================================
+   SALSA SEGURA - Global Stylesheet
+   Only global, shared styles. Component
+   styles are in their respective files.
+   ======================================== */
+
+/* ----------------------------------------
+   1. CSS Reset & Base Styles
+   ---------------------------------------- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Arial", sans-serif;
+  line-height: 1.6;
+  color: #333;
+  overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ----------------------------------------
+   2. Layout Utilities
+   ---------------------------------------- */
+.app-layout {
+  height: 100dvh;
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* ----------------------------------------
+   3. Shared Section Styles
+   ---------------------------------------- */
+
+/* Prevent content from hiding behind sticky header */
+section,
+main {
+  scroll-margin-top: 80px; /* Adjust based on header height */
+}
+
+/* Section Title (used across multiple components) */
+.section-title {
+  text-align: center;
+  font-size: 2.5rem;
+  margin-bottom: 3rem;
+  color: #333;
+  position: relative;
+  transition: color 0.3s ease;
+}
+
+.section-title::after {
+  content: "";
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(135deg, #ff8c42, #3498db);
+  border-radius: 2px;
+}
+
+/* Dance Styles Section (from homepage) */
+.dance-styles {
+  background: white;
+  padding: 80px 0;
+  transition: background-color 0.3s ease;
+}
+
+.styles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 3rem;
+}
+
+.style-card {
+  background: linear-gradient(135deg, #fff5e6 0%, #ffd699 100%);
+  padding: 2rem;
+  border-radius: 20px;
+  text-align: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  border: 2px solid transparent;
+}
+
+.style-card:hover {
+  transform: translateY(-10px) scale(1.02);
+  border-color: #ff8c42;
+  box-shadow: 0 15px 30px rgba(255, 140, 66, 0.3);
+}
+
+.style-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  animation: bounce 2s infinite;
+}
+
+.style-card h3 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+/* Quote */
+.quote {
+  font-style: italic;
+  font-size: 1.2rem;
+  margin: 2rem 0;
+  text-align: center;
+  opacity: 0.9;
+}
+
+/* ----------------------------------------
+   4. Contact Section (from homepage)
+   ---------------------------------------- */
+.contact {
+  background: linear-gradient(135deg, #ff8c42 0%, #3498db 100%);
+  color: white;
+  padding: 80px 0;
+}
+
+.contact-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  margin-top: 3rem;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.contact-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  padding: 2rem;
+  border-radius: 20px;
+  text-align: center;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.contact-card:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-5px);
+}
+
+.contact-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Contact Form (shared styles) */
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.contact-form input,
+.contact-form textarea {
+  padding: 12px 15px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.contact-form input::placeholder,
+.contact-form textarea::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.contact-form button {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 16px;
+}
+
+.contact-form button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+/* ----------------------------------------
+   5. Animations & Keyframes
+   ---------------------------------------- */
+@keyframes dance {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) rotate(-5deg);
+  }
+  50% {
+    transform: translate(-50%, -50%) rotate(5deg);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounce {
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+/* ----------------------------------------
+   6. Dark Mode Styles
+   ---------------------------------------- */
+.dark-mode {
+  background-color: #1a1a1a;
+  color: #e0e0e0;
+}
+
+.dark-mode .dance-styles {
+  background: #2c2c2c;
+}
+
+.dark-mode .section-title {
+  color: #e0e0e0;
+}
+
+.dark-mode .style-card {
+  background: linear-gradient(135deg, #3a3a3a 0%, #4a4a4a 100%);
+  color: #e0e0e0;
+  border-color: #555;
+}
+
+.dark-mode .style-card:hover {
+  border-color: #ff8c42;
+  box-shadow: 0 15px 30px rgba(255, 140, 66, 0.2);
+}
+
+.dark-mode .style-card h3 {
+  color: #e0e0e0;
+}
+
+.dark-mode .quote {
+  color: #b0b0b0;
+}
+
+/* ----------------------------------------
+   7. Mobile Responsive (Global)
+   ---------------------------------------- */
+@media (max-width: 985px) {
+  .section-title {
+    font-size: 2rem;
+  }
+
+  .dance-styles,
+  .contact {
+    padding: 60px 0;
+  }
+
+  .styles-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .contact-info {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .contact-form {
+    max-width: 100%;
+  }
+}

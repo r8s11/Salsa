@@ -6,7 +6,7 @@ export const CALENDARS_CONFIG = {
   social: {
     colorName: "social",
     lightColors: {
-      main: "#ffec42",
+      main: "#ff8c42",
       container: "#ffe4d1",
       onContainer: "#5c2e00",
     },
@@ -16,13 +16,39 @@ export const CALENDARS_CONFIG = {
       onContainer: "#ffe4d1",
     },
   },
+  class: {
+    colorName: "class",
+    lightColors: {
+      main: "#3498db",
+      container: "#d6eaf8",
+      onContainer: "#1a4a6e",
+    },
+    darkColors: {
+      main: "#85c1e9",
+      container: "#2471a3",
+      onContainer: "#d6eaf8",
+    },
+  },
+  workshop: {
+    colorName: "workshop",
+    lightColors: {
+      main: "#27ae60",
+      container: "#d5f5e3",
+      onContainer: "#145a32",
+    },
+    darkColors: {
+      main: "#82e0aa",
+      container: "#1e8449",
+      onContainer: "#d5f5e3",
+    },
+  },
 };
 
 // Schedule-X event interface
 export interface ScheduleXEvent {
   id: string | number;
   title: string;
-  start: Temporal.ZonedDateTime;
+  start: Temporal.ZonedDateTime ;
   end: Temporal.ZonedDateTime;
   calendarId: EventType;
   location?: string;
@@ -74,7 +100,7 @@ export function toScheduleXEvent(
   const jsDate = event.date;
   const start = Temporal.ZonedDateTime.from({
     year: jsDate.getFullYear(),
-    month: jsDate.getMonth() + 1, // why is this?
+    month: jsDate.getMonth() + 1,
     day: jsDate.getDate(),
     hour: jsDate.getHours(),
     minute: jsDate.getMinutes(),
@@ -85,7 +111,7 @@ export function toScheduleXEvent(
 
   const calendarId: EventType = event.type.toLowerCase().includes("social")
     ? "social"
-    : event.type.toLocaleLowerCase().includes("class")
+    : event.type.toLowerCase().includes("class")
     ? "class"
     : "workshop";
 

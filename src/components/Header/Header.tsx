@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
+import "./Header.css";
 
 function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -43,11 +44,7 @@ function Header() {
             </NavLink>
           </li>
           <li>
-            <NavLink
-              to={"/#events"}
-              onClick={closeMenu}
-              className={() => ""}
-            >
+            <NavLink to={"/#events"} onClick={closeMenu} className={() => ""}>
               Events
             </NavLink>
           </li>
@@ -84,7 +81,9 @@ function Header() {
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-expanded={mobileOpen}
           aria-label="Toggle menu"
-        > <span></span>
+        >
+          {""}
+          <span></span>
           <span></span>
           <span></span>
         </button>

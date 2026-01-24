@@ -59,7 +59,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
         </div>
         <div className="modal-body">
           <span className={`event-type-badge ${event.calendarId}`}>
-            {event.calendarId.toLocaleUpperCase()}
+            {event.calendarId}
           </span>
           <div>{formatDate(event.start)}</div>
           <span>Time</span>

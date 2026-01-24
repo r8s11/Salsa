@@ -54,5 +54,17 @@
 }
 .modal-body {
   padding: 1.5rem;
-  color: #fff;
+}
+
+.event-type-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.85;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.event-type-badge.social {
+  background: #ff8c42;
 }

@@ -70,6 +70,7 @@
 }
 
 .legend-color {
+  padding: 2px;
   width: 16px;
   height: 16px;
   border-radius: 4px;
@@ -151,5 +152,3 @@ sx-react-calendar-wrapper .sx__week-grid__hour-text {
     font-size: 0.8rem;
   }
 }
-
-

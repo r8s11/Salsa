@@ -885,7 +885,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
 
           {event.location && (
             <div className="event-detail">
-              <span className="event-detail-label">Location</span>
+              <span className="event-detail-label">Location: </span>
               <span className="event-detail-value">{event.location}</span>
             </div>
           )}

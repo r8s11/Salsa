@@ -22,15 +22,15 @@ import EventModal from "../EventModal/EventModal"
 const testEvents: ScheduleXEvent[] = [
   {
     id: "1",
-    title: "Test - Beginner Salsa Class",
-    start: bostonDateTime(2026, 1, 11, 14, 0),
-    end: bostonDateTime(2026, 1, 11, 15, 0),
-    calendarId: "class",
-    location: "Dance Studio Boston",
-    address: "123 Boylston St, Boston, MA 02116",
+    title: "Tambo",
+    start: bostonDateTime(2026, 1, 23, 21, 0),
+    end: bostonDateTime(2026, 1, 24, 1, 0),
+    calendarId: "social",
+    location: "Dante Alighieri Dance Hall",
+    address: "41 Hampshire St, Cambridge, MA 02139",
     description:
       "Learn the basics of salsa dancing! perfect for absolute beginners.",
-    rsvpLink: "https://example.com/rsvp",
+    rsvpLink: "https://www.tambosalsa.com/",
   },
   {
     id: "2",
@@ -85,7 +85,6 @@ export default function Calendar() {
     null
   );
 
-  const isDarkMode: boolean = localStorage.getItem("darkMode");
   const [eventsService] = useState(() => createEventsServicePlugin());
 
   const calendar = useCalendarApp({
@@ -101,14 +100,33 @@ export default function Calendar() {
     calendars: CALENDARS_CONFIG,
     plugins: [eventsService, createEventsServicePlugin()],
     selectedDate: Temporal.Now.plainDateISO(),
-    isDark: isDarkMode,
+    isDark: true,
     locale: "en-US",
+    timezone: "America/New_York",
     firstDayOfWeek: 1,
-    callbacks: {},
+    callbacks: {
+      onEventClick(calendarEvent) {
+        // Find the Full event with our custom properties
+        const fullEvent = testEvents.find((e) => e.id === calendarEvent.id);
+        if (fullEvent) {
+          setSelectedEvent(fullEvent)
+        }
+      },
+    },
   });
 
   const handleClosedModal = () =>
-  {setSelectedEvent(null)}
+  { setSelectedEvent(null) }
+
+  //close modal on ESC key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setSelectedEvent(null)
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+  }, [])
   return (
     <div className="calendar-container">
       <div className="title">

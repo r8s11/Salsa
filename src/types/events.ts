@@ -72,7 +72,6 @@ export function bostonDateTime(
     day,
     hour,
     minute,
-    second: 0,
     timeZone: "America/New_York",
   });
 }

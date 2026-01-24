@@ -1,7 +1,29 @@
+/* ========================================
+   DEPRECATED - Legacy Stylesheet
+   ========================================
+
+   This file is deprecated and kept for
+   backward compatibility only.
+
+   NEW STRUCTURE:
+   - Global styles: src/styles/global.css
+   - Component styles: src/components/*.css
+   - Page styles: src/styles.css
+
+   See Docs/CSS_ORGANIZATION.md for details
+   ======================================== */
+
+/* Redirect: Import the new global styles */
+@import "./src/styles/global.css";
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
@@ -12,17 +34,27 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* ----------------------------------------
+   2. Layout Utilities
+   ---------------------------------------- */
+.app-layout {
+  height: 100vh;
+}
+
 .container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 20px;
 }
 
+/* ----------------------------------------
+   3. Header & Navigation
+   ---------------------------------------- */
 header {
   background: linear-gradient(135deg, #ff8c42 0%, #3498db 100%);
   color: white;
   padding: 1rem 0;
-  position: fixed;
+  position: sticky;
   width: 100%;
   top: 0;
   z-index: 1000;
@@ -36,12 +68,15 @@ nav {
   align-items: center;
 }
 
-.logo {
+a.logo {
+  text-decoration: none;
+  color: inherit;
   font-size: 2rem;
   font-weight: bold;
   display: flex;
   align-items: center;
   gap: 10px;
+  max-height: 200px;
 }
 
 .nav-links {
@@ -50,19 +85,17 @@ nav {
   gap: 2rem;
 }
 
-@media (max-width: 768px) {
-  .nav-links {
-    display: none;
-  }
-}
-
 .nav-links a {
   text-decoration: none;
   color: white;
   font-weight: 500;
-  transition: all 0.3s ease;
-  padding: 5px 10px;
+  padding: 5px 7px;
   border-radius: 20px;
+}
+
+.nav-links a.active {
+  font-weight: 600;
+  border-bottom: 2px solid #ff6b35;
 }
 
 .nav-links a:hover {
@@ -70,6 +103,27 @@ nav {
   transform: translateY(-2px);
 }
 
+/* Hamburger Menu */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.hamburger span {
+  height: 3px;
+  width: 25px;
+  background: white;
+  margin-bottom: 4px;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+/* ----------------------------------------
+   4. Hero Section
+   ---------------------------------------- */
 .hero {
   background: linear-gradient(135deg, #ff8c42 0%, #3498db 50%, #2980b9 100%);
   padding: 120px 0 80px;
@@ -88,16 +142,6 @@ nav {
   left: 50%;
   transform: translate(-50%, -50%);
   animation: dance 4s ease-in-out infinite;
-}
-
-@keyframes dance {
-  0%,
-  100% {
-    transform: translate(-50%, -50%) rotate(-5deg);
-  }
-  50% {
-    transform: translate(-50%, -50%) rotate(5deg);
-  }
 }
 
 .hero-content {
@@ -119,17 +163,7 @@ nav {
   animation: fadeInUp 1s ease-out 0.3s both;
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
+/* CTA Button */
 .cta-button {
   display: inline-block;
   background: white;
@@ -172,12 +206,11 @@ nav {
   background: #f8f9fa;
 }
 
-.dance-styles {
-  background: white;
-  padding: 80px 0;
-  transition: background-color 0.3s ease;
-}
+/* ----------------------------------------
+   5. Content Sections
+   ---------------------------------------- */
 
+/* Section Title (shared) */
 .section-title {
   text-align: center;
   font-size: 2.5rem;
@@ -197,6 +230,13 @@ nav {
   height: 4px;
   background: linear-gradient(135deg, #ff8c42, #3498db);
   border-radius: 2px;
+}
+
+/* Dance Styles Section */
+.dance-styles {
+  background: white;
+  padding: 80px 0;
+  transition: background-color 0.3s ease;
 }
 
 .styles-grid {
@@ -228,146 +268,24 @@ nav {
   animation: bounce 2s infinite;
 }
 
-@keyframes bounce {
-  0%,
-  20%,
-  50%,
-  80%,
-  100% {
-    transform: translateY(0);
-  }
-  40% {
-    transform: translateY(-10px);
-  }
-  60% {
-    transform: translateY(-5px);
-  }
-}
-
 .style-card h3 {
   font-size: 1.5rem;
   margin-bottom: 1rem;
   color: #333;
 }
 
-.lessons {
-  background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
-  color: white;
-  padding: 80px 0;
-}
-
-.lessons-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
-  margin-top: 3rem;
-}
-
-.lesson-card {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  padding: 2rem;
-  border-radius: 20px;
+/* Quote */
+.quote {
+  font-style: italic;
+  font-size: 1.2rem;
+  margin: 2rem 0;
   text-align: center;
-  transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  opacity: 0.9;
 }
 
-.lesson-card:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-5px);
-}
-
-.lesson-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
-
-.instructor {
-  background: #f8f9fa;
-  padding: 80px 0;
-  transition: background-color 0.3s ease;
-}
-
-.instructor-content {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 3rem;
-  align-items: center;
-}
-
-.instructor-image {
-  text-align: center;
-}
-
-.instructor-avatar {
-  width: auto;
-  height: auto;
-  border-radius: 15px;
-  background: none;
-  display: block;
-  font-size: 6rem;
-  color: white;
-  margin: 0 auto;
-  animation: none;
-  max-width: 400px;
-}
-
-.instructor-avatar .instagram-media {
-  border-radius: 15px !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
-  transition: transform 0.3s ease;
-}
-
-.instructor-avatar .instagram-media:hover {
-  transform: scale(1.02);
-}
-
-.instructor-info h3 {
-  font-size: 2rem;
-  margin-bottom: 1rem;
-  color: #333;
-}
-
-.instructor-name {
-  font-family: "Great Vibes", cursive;
-  font-size: 4.5rem;
-  color: #ff8c42;
-  margin-bottom: 0.5rem;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-@media (max-width: 768px) {
-  .instructor-name {
-    font-size: 3rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .instructor-name {
-    font-size: 2.5rem;
-  }
-}
-
-.credentials {
-  list-style: none;
-  margin: 1rem 0;
-}
-
-.credentials li {
-  padding: 0.5rem 0;
-  position: relative;
-  padding-left: 2rem;
-}
-
-.credentials li::before {
-  content: "✓";
-  position: absolute;
-  left: 0;
-  color: #ff8c42;
-  font-weight: bold;
-}
-
+/* ----------------------------------------
+   6. Contact Section
+   ---------------------------------------- */
 .contact {
   background: linear-gradient(135deg, #ff8c42 0%, #3498db 100%);
   color: white;
@@ -404,149 +322,7 @@ nav {
   margin-bottom: 1rem;
 }
 
-footer {
-  background: #333;
-  color: white;
-  text-align: center;
-  padding: 2rem 0;
-}
-
-.quote {
-  font-style: italic;
-  font-size: 1.2rem;
-  margin: 2rem 0;
-  text-align: center;
-  opacity: 0.9;
-}
-
-@media (max-width: 768px) {
-  .hamburger {
-    display: flex;
-  }
-
-  .nav-links {
-    display: none;
-    position: absolute;
-    top: 60px;
-    right: 0;
-    left: 0;
-    width: 100%;
-    background: linear-gradient(135deg, #ff8c42 0%, #3498db 100%);
-    flex-direction: column;
-    padding: 1rem 0;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
-    z-index: 1001;
-  }
-
-  .nav-links a {
-    padding: 15px 20px;
-    border-radius: 10px;
-    margin: 5px 10px;
-    color: white;
-  }
-
-  .nav-links.active {
-    display: flex !important;
-  }
-
-  .hero {
-    padding: 100px 0 60px;
-  }
-
-  .hero h1 {
-    font-size: 2.5rem;
-  }
-
-  .hero p {
-    font-size: 1.1rem;
-  }
-
-  .hero::before {
-    font-size: 8rem;
-  }
-
-  .container {
-    padding: 0 15px;
-  }
-
-  .section-title {
-    font-size: 2rem;
-  }
-
-  .styles-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-
-  .lessons-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-
-  .instructor-content {
-    grid-template-columns: 1fr;
-    text-align: center;
-    gap: 2rem;
-  }
-
-  .instructor-avatar {
-    max-width: 300px;
-  }
-
-  .contact-info {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-
-  .contact-form {
-    max-width: 100%;
-  }
-
-  .dance-styles,
-  .lessons,
-  .instructor,
-  .contact {
-    padding: 60px 0;
-  }
-}
-
-.hamburger {
-  display: none;
-  flex-direction: column;
-  cursor: pointer;
-}
-
-.hamburger span {
-  height: 3px;
-  width: 25px;
-  background: white;
-  margin-bottom: 4px;
-  border-radius: 2px;
-  transition: all 0.3s ease;
-}
-
-/* Smooth scrolling */
-html {
-  scroll-behavior: smooth;
-}
-
-/* Loading animation */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.fade-in {
-  animation: fadeIn 0.6s ease-out forwards;
-}
-
-/* Enhanced contact form */
+/* Contact Form */
 .contact-form {
   display: flex;
   flex-direction: column;
@@ -594,8 +370,19 @@ html {
   transform: translateY(-2px);
 }
 
-/* Navigation Controls - removed since dark mode toggle moved to footer */
+/* ----------------------------------------
+   7. Footer
+   ---------------------------------------- */
+footer {
+  background: #333;
+  color: white;
+  text-align: center;
+  padding: 2rem 0;
+}
 
+/* ----------------------------------------
+   8. Dark Mode Toggle
+   ---------------------------------------- */
 .dark-mode-toggle {
   background: rgba(255, 140, 66, 0.2) !important;
   border: 2px solid rgba(255, 140, 66, 0.3) !important;
@@ -617,7 +404,64 @@ html {
   transform: scale(1.1) !important;
 }
 
-/* Dark Mode Styles */
+/* ----------------------------------------
+   9. Animations & Keyframes
+   ---------------------------------------- */
+@keyframes dance {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) rotate(-5deg);
+  }
+  50% {
+    transform: translate(-50%, -50%) rotate(5deg);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounce {
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+/* ----------------------------------------
+   10. Dark Mode Styles
+   ---------------------------------------- */
 .dark-mode {
   background-color: #1a1a1a;
   color: #e0e0e0;
@@ -671,8 +515,102 @@ html {
   color: #b0b0b0;
 }
 
-/* Dark mode mobile adjustments */
+/* ----------------------------------------
+   11. Media Queries (Mobile Responsive)
+   ---------------------------------------- */
 @media (max-width: 768px) {
+  /* Navigation */
+  .nav-links {
+    display: none;
+    position: absolute;
+    top: 60px;
+    right: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #ff8c42 0%, #3498db 100%);
+    flex-direction: column;
+    padding: 1rem 0;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+    z-index: 1001;
+  }
+
+  .nav-links a {
+    padding: 15px 20px;
+    border-radius: 10px;
+    margin: 5px 10px;
+    color: white;
+  }
+
+  .nav-links.active {
+    display: flex !important;
+  }
+
+  .hamburger {
+    display: flex;
+  }
+
+  /* Hero */
+  .hero {
+    padding: 100px 0 60px;
+  }
+
+  .hero h1 {
+    font-size: 2.5rem;
+  }
+
+  .hero p {
+    font-size: 1.1rem;
+  }
+
+  .hero::before {
+    font-size: 8rem;
+  }
+
+  /* Sections */
+  .section-title {
+    font-size: 2rem;
+  }
+
+  .dance-styles,
+  .lessons,
+  .instructor,
+  .contact {
+    padding: 60px 0;
+  }
+
+  /* Grids */
+  .styles-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .lessons-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  /* Instructor */
+  .instructor-content {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 2rem;
+  }
+
+  .instructor-avatar {
+    max-width: 300px;
+  }
+
+  /* Contact */
+  .contact-info {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .contact-form {
+    max-width: 100%;
+  }
+
+  /* Dark Mode Toggle */
   .dark-mode-toggle {
     width: 45px !important;
     height: 45px !important;

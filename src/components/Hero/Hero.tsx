@@ -1,3 +1,5 @@
+import "./Hero.css";
+
 function Hero() {
   return (
     <section id="home" className="hero">

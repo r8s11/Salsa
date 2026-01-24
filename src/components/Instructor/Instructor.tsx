@@ -1,3 +1,5 @@
+import "./Instructor.css";
+
 const credentials = [
   "8+ Years Dancing Experience",
   "Patient, Encouraging Teaching Style",

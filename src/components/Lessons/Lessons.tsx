@@ -1,3 +1,5 @@
+import "./Lessons.css";
+
 const lessons = [
   {
     icon: "👤",

@@ -1,1 +1,81 @@
-@import "../style.css";
+/* Import Global Styles */
+@import "./styles/global.css";
+
+/* Page-specific styles */
+.page-content {
+  animation: fadeIn 0.3s ease-in-out;
+  /* Prevent content from hiding behind sticky header */
+  padding-top: 0; /* Hero handles its own padding */
+}
+
+/* For pages without hero sections */
+.page-content > section:first-child:not(.hero) {
+  padding-top: 80px;
+}
+
+.about-page,
+.contact-page {
+  padding: 2rem 0;
+  min-height: 60vh;
+}
+
+.about-page h1,
+.contact-page h1 {
+  margin-bottom: 1rem;
+  color: var(--heading-color, #333);
+}
+
+.about-page h2 {
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.about-page ul {
+  list-style: none;
+  padding: 0;
+}
+
+.about-page li {
+  padding: 0.5rem 0;
+  font-size: 1.1rem;
+}
+
+/* 404 Page */
+.not-found-page {
+  text-align: center;
+  padding: 4rem 0;
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.not-found-page h1 {
+  font-size: 6rem;
+  margin: 0;
+  color: #ff6b35;
+}
+
+.not-found-page h2 {
+  margin: 0.5rem 0 1rem;
+}
+
+.not-found-page p {
+  margin-bottom: 2rem;
+  color: #777;
+}
+
+.btn-primary {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: #ff6b35;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.btn-primary:hover {
+  background: #e55a2b;
+}

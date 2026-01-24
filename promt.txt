@@ -1,0 +1,44 @@
+
+Please utilize the entire workspace(All .md files including README ) for context and take your time; there's no rush.
+
+I'm currently feeling confused and redundant in my planning, but here's my objective: I have two integrated tracks for a productive year that will overlap in certain areas. I would appreciate your assistance in combining these tracks into 1 track and planning it in detail, breaking it down into weekly tasks that I can easily add to my calendar. If necessary, please further subdivide these tasks for clarity.
+
+**Track 1 - Learning Priorities:**
+
+1. **Learn React JS, Git, and SQL** (15 weeks)
+
+   - Focus on mastering key concepts and practical applications in front-end development, version control, and database management.
+
+2. **Learn DevOps, Azure AZ-204, FastAPI, and Python** (6 months)
+
+   - Emphasize the integration of development and operations, cloud services on Azure, and building applications using FastAPI and Python.
+
+3. **Learn Russian** (1 year)
+
+   - Dedicate time each week to language acquisition, including vocabulary, grammar, and conversational practice.
+
+**Track 2 - Project Priorities:**
+
+1. **Deliver Weekly Features for Live Projects**
+
+   - I have three active projects—SalsaTD, Salsasegura, and WODCard—and I aim to implement and deliver new features weekly while simultaneously advancing my IT skills outlined in Track 1.
+
+2. **Commit to Year-long Learning Initiatives**
+
+   - This will involve not just technical skills, but also project management, effective communication, and agile methodologies.
+
+**Constraints:**
+
+1. I consider myself a slow reader, writer, and typist, which may require me to allocate extra time for each learning module and task to ensure I fully grasp the material.
+
+2. As I work full-time, time management will be crucial in balancing my professional responsibilities with my learning and project commitments.
+
+**Additional Information:**
+
+- The **DASHBOARD.md** file will be the single source of truth for tracking my progress and keeping all relevant information organized.
+
+- Please consider the most effective way to compile information about each of my projects when using Copilot for updates; this will help streamline my workflow and ensure I stay on track.
+
+- Lastly, I will need to clean up any extraneous and redundant files to maintain an organized workspace.
+
+I look forward to your guidance and support in making this year as productive and fulfilling as possible!

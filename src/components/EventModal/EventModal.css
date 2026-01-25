@@ -1,4 +1,10 @@
 /* Custom Event Modal Styles */
+:root {
+  --color-social: #ff8c42;
+  --color-class: #3498db;
+  --color-workshop: #27ae60;
+}
+
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -66,5 +72,52 @@
 }
 
 .event-type-badge.social {
-  background: #ff8c42;
+  background: var(--color-social);
+}
+.event-type-badge.class {
+  background: var(--color-class);
+  color: #fff
+}
+.event-type-badge.workshop {
+  background: var(--color-workshop);
+  color: #fff
+}
+
+.event-detail {
+  margin-bottom: 1rem;
+  color: #bdc3c7;
+}
+.event-detail-value {
+  color: #fff;
+}
+.event-description {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(52,52,219,0.3);
+  color: #bdc3c7;
+  line-height: 1.6;
+}
+.modal-footer {
+  padding: 1.5rem;
+  border-top: 1px solid rgba(52,52,219,0.3);
+}
+
+.rsvp-button {
+  display: block;
+  width: 100%;
+  padding: 1rem;
+  background: linear-gradient(135deg, #ff8c42, #e74c3c);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.rsvp-button:hover {
+  transform: translateY(-2);
+  box-shadow: 0 4px 15px rgba(255,140,66,0.4);
 }

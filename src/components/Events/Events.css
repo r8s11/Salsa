@@ -110,7 +110,7 @@
   opacity: 0.9;
 }
 
-.rsvp-button {
+/* .rsvp-button {
   display: inline-block;
   background: #ff8c42;
   color: white;
@@ -125,7 +125,7 @@
 .rsvp-button:hover {
   background: #e67e22;
   transform: scale(1.05);
-}
+} */
 
 .no-events {
   text-align: center;

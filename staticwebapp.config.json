@@ -1,0 +1,19 @@
+{
+    "navigationFallback": {
+        "rewrite": "/index.html",
+        "exclude": [
+            "*.{jpg,gif,png}",
+            "assets/*"
+        ]
+    },
+    "routes": [
+        {
+            "route": "/calendar",
+            "rewrite": "/calendar"
+        },
+        {
+            "route": ""
+        }
+
+    ]
+}

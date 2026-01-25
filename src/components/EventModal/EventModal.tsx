@@ -61,20 +61,25 @@ export default function EventModal({ event, onClose }: EventModalProps) {
           <span className={`event-type-badge ${event.calendarId}`}>
             {event.calendarId}
           </span>
-          <div>{formatDate(event.start)}</div>
-          <span>Time</span>
-          <div>
-            <span>{formatTime(event.start, event.end)}</span>
+          <div className="event-detail">
+            <span className="event-detail-label">Date: </span>
+            <span className="event-detail-value">
+              {formatDate(event.start)}
+            </span>
+            </div>
+          <div className="event-detail">
+          <span className="event-detail-label">Time: </span>
+            <span className="event-detail-value">{formatTime(event.start, event.end)}</span>
           </div>
           {event.location && (
             <div>
-              <span>Location:</span>
+              <span>Location: </span>
               <span>{event.location}</span>
             </div>
           )}
           {event.address && (
             <div className="event-detail">
-              <span className="event-detail label">Address:</span>
+              <span className="event-detail label">Address: </span>
               <span className="event-detail-value">{event.address}</span>
             </div>
           )}
@@ -86,10 +91,12 @@ export default function EventModal({ event, onClose }: EventModalProps) {
         </div>
         {event.rsvpLink && (
           <div className="modal-footer">
-                      <a href={event.rsvpLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="rsvp-button">
+            <a
+              href={event.rsvpLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rsvp-button"
+            >
               More info
             </a>
           </div>

@@ -10,10 +10,6 @@
         {
             "route": "/calendar",
             "rewrite": "/calendar"
-        },
-        {
-            "route": ""
         }
-
     ]
 }

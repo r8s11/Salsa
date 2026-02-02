@@ -1,5 +1,7 @@
 import { ScheduleXEvent } from "../../types/events";
 import "./EventModal.css";
+
+
 interface EventModalProps {
   event: ScheduleXEvent | null;
   onClose: () => void;

@@ -127,7 +127,7 @@ main {
 .contact {
   background: linear-gradient(135deg, #ff8c42 0%, #3498db 100%);
   color: white;
-  padding: 80px 0;
+  padding: 1rem 0;
 }
 
 .contact-info {

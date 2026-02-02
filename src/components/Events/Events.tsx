@@ -2,6 +2,11 @@ import { useMemo } from "react";
 import fm from "front-matter";
 import { marked } from "marked";
 import "./Events.css";
+import "../../lib/supabase"
+import { useEvents } from "../../hooks/useEvent";
+import { useSupabaseEvents } from "../../hooks/useSupabaseEvents"
+
+
 
 interface DanceEvent {
   id: string;
@@ -35,7 +40,7 @@ function Events() {
       eager: true,
       import: "default",
     });
-
+const {events, loading , error} = useSupabaseEvents()
     const eventsList: DanceEvent[] = [];
 
     // Helper to format date

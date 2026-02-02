@@ -151,4 +151,8 @@ sx-react-calendar-wrapper .sx__week-grid__hour-text {
     gap: 1rem;
     font-size: 0.8rem;
   }
+
+  .items {
+    margin-bottom: 0.5rem
+  }
 }

@@ -10,9 +10,9 @@
 
 By the end of this week, you will have:
 
-- [X] React Router installed and configured
+- [x] React Router installed and configured
 - [ ] Header with logo + professional navigation
-- [X} 3 pages working (Home/Calendar, About, Contact)
+- [ ] 3 pages working (Home/Calendar, About, Contact)
 - [ ] Footer with social links on all pages
 - [ ] Smooth page transitions with CSS animations
 
@@ -61,12 +61,18 @@ src/
 
 ## Day 1: Install React Router & Basic Setup (1.5 hours)
 
+**What you'll accomplish:**
+
+1. Install React Router package
+2. Create the pages folder structure
+3. Build 3 basic page components
+
 ### Step 1.1: Install React Router
 
 Open your terminal in the project folder and run:
 
 ```bash
-npm install react-router-dom
+bun install react-router-dom
 ```
 
 **What this does:** Adds the `react-router-dom` package which provides:
@@ -75,6 +81,28 @@ npm install react-router-dom
 - `Routes` & `Route` - Define which component shows for each URL
 - `Link` - Navigate without page reloads
 - `Outlet` - Render child routes inside layouts
+
+> 💡 **JS/TS Learning Note — npm Packages**
+>
+> **What is `npm install`?** (or `bun install`)
+> Downloads code written by others into your project's `node_modules/` folder.
+>
+> ```bash
+> bun install react-router-dom
+> #     │         └── Package name (from npmjs.com)
+> #     └── "Download and add to my project"
+> ```
+>
+> **Where does it come from?**
+>
+> - [npmjs.com](https://npmjs.com) hosts millions of packages
+> - `react-router-dom` is made by the React team
+>
+> **What happens:**
+>
+> 1. Downloads the package into `node_modules/`
+> 2. Adds it to your `package.json` dependencies
+> 3. Now you can `import` it in your code
 
 ### Step 1.2: Create the Pages Folder
 
@@ -101,6 +129,40 @@ function HomePage() {
 
 export default HomePage;
 ```
+
+> 💡 **JS/TS Learning Note — JSX Fragments**
+>
+> **What is `<>...</>`?**
+> It's called a **Fragment** — a wrapper that doesn't create an HTML element.
+>
+> ```tsx
+> // Problem: React components must return ONE element
+> return (
+>   <Hero />       // ❌ Error! Two elements at top level
+>   <Events />
+> );
+>
+> // Solution 1: Wrap in a div (creates extra HTML)
+> return (
+>   <div>
+>     <Hero />
+>     <Events />
+>   </div>
+> );
+>
+> // Solution 2: Fragment (no extra HTML)
+> return (
+>   <>
+>     <Hero />
+>     <Events />
+>   </>
+> );
+> ```
+>
+> **Why use Fragments?**
+>
+> - Keeps your HTML clean (no unnecessary `<div>` wrappers)
+> - Some CSS layouts break with extra wrapper elements
 
 **💡 Learning Note:** Page components are "containers" that compose smaller components together. They typically don't have their own styling - that stays in the child components.
 
@@ -168,17 +230,67 @@ function ContactPage() {
 export default ContactPage;
 ```
 
+> 💡 **React Learning Note — Component Structure**
+>
+> Every React component follows this pattern:
+>
+> ```tsx
+> // 1. IMPORTS at the top
+> import SomeComponent from "./SomeComponent";
+>
+> // 2. COMPONENT FUNCTION
+> function MyComponent() {
+>   // 3. HOOKS and LOGIC here
+>   const [state, setState] = useState();
+>
+>   // 4. RETURN JSX
+>   return (
+>     <div>
+>       <SomeComponent />
+>     </div>
+>   );
+> }
+>
+> // 5. EXPORT at the bottom
+> export default MyComponent;
+> ```
+>
+> **`export default` vs `export`:**
+>
+> ```tsx
+> // Default export: ONE per file, import without braces
+> export default ContactPage;
+> import ContactPage from "./ContactPage"; // ✅
+>
+> // Named export: MANY per file, import WITH braces
+> export function helper() {}
+> import { helper } from "./ContactPage"; // ✅
+> ```
+>
+> **File naming convention:**
+>
+> - Components: `PascalCase.tsx` (e.g., `ContactPage.tsx`)
+> - Hooks: `camelCase.ts` with `use` prefix (e.g., `useEvents.ts`)
+> - Utilities: `camelCase.ts` (e.g., `formatDate.ts`)
+
 ### ✅ Day 1 Checkpoint
 
 You should now have:
 
-- [X]  `react-router-dom` in your `package.json`
-- [X] `src/pages/` folder created
-- [X] 3 page files: `HomePage.tsx`, `AboutPage.tsx`, `ContactPage.tsx`
+- [x] `react-router-dom` in your `package.json`
+- [x] `src/pages/` folder created
+- [x] 3 page files: `HomePage.tsx`, `AboutPage.tsx`, `ContactPage.tsx`
 
 ---
 
 ## Day 2: Create Layout & Configure Router (2 hours)
+
+**What you'll accomplish:**
+
+1. Create the layouts folder
+2. Build MainLayout with Header/Footer wrapper
+3. Configure App.tsx with BrowserRouter and Routes
+4. Test all routes work
 
 ### Step 2.1: Create the Layouts Folder
 
@@ -209,6 +321,54 @@ function MainLayout() {
 
 export default MainLayout;
 ```
+
+> 💡 **React Learning Note — Layout Pattern**
+>
+> The **Layout Pattern** wraps pages with shared UI:
+>
+> ```
+> MainLayout
+> ├── Header (always visible)
+> ├── <Outlet /> ← Current page renders HERE
+> └── Footer (always visible)
+> ```
+>
+> **How `<Outlet />` works:**
+>
+> ```tsx
+> // When URL is "/about":
+> <MainLayout>
+>   <Header />
+>   <Outlet />   → becomes → <AboutPage />
+>   <Footer />
+> </MainLayout>
+>
+> // When URL is "/contact":
+> <MainLayout>
+>   <Header />
+>   <Outlet />   → becomes → <ContactPage />
+>   <Footer />
+> </MainLayout>
+> ```
+>
+> **Benefits:**
+>
+> - Header/Footer code written ONCE
+> - Consistent layout across all pages
+> - Easy to add sidebars, navigation, etc.
+>
+> **Without layout pattern (bad):**
+>
+> ```tsx
+> // You'd repeat Header/Footer in EVERY page
+> function AboutPage() {
+>   return (
+>     <Header />  {/* Duplicated! */}
+>     <main>...</main>
+>     <Footer />  {/* Duplicated! */}
+>   );
+> }
+> ```
 
 **💡 Learning Note:** `<Outlet />` is a placeholder. React Router replaces it with the current page's component based on the URL. This is called a **nested route pattern**.
 
@@ -270,24 +430,55 @@ Try these URLs manually in your browser:
 
 You should now have:
 
-- [X] `MainLayout.tsx` with Header, Outlet, Footer
-- [X] `App.tsx` configured with BrowserRouter and Routes
-- [X] All 3 URLs working when typed directly in browser
+- [x] `MainLayout.tsx` with Header, Outlet, Footer
+- [x] `App.tsx` configured with BrowserRouter and Routes
+- [x] All 3 URLs working when typed directly in browser
 
 ---
 
 ## Day 3: Update Header Navigation (2 hours)
 
+**What you'll accomplish:**
+
+1. Convert Header to use React Router Links
+2. Add active link styling
+3. Test navigation works without page reloads
+
 ### Step 3.1: Convert Header to Use React Router Links
 
 Replace your entire `src/components/Header.tsx` with:
 
-```tsx
+````tsx
 import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 
 function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
+
+> 💡 **JS/TS Learning Note — Boolean State**
+>
+> `useState(false)` creates a **boolean toggle** — perfect for show/hide:
+>
+> ```typescript
+> const [mobileOpen, setMobileOpen] = useState(false);
+> //     │           │                           └── Start: closed
+> //     │           └── Function to change it
+> //     └── Current state: true or false
+>
+> // Toggle: flip true ↔ false
+> setMobileOpen(!mobileOpen);
+> //            └── ! = "opposite of"
+> //            If mobileOpen is true, !mobileOpen is false
+> //            If mobileOpen is false, !mobileOpen is true
+> ```
+>
+> **Using in JSX:**
+> ```tsx
+> <ul className={mobileOpen ? "active" : ""}>
+> //              │             │        └── If false: no class
+> //              │             └── If true: add "active" class
+> //              └── Ternary operator: condition ? ifTrue : ifFalse
+> ```
 
   const closeMenu = () => {
     setMobileOpen(false);
@@ -347,7 +538,7 @@ function Header() {
 }
 
 export default Header;
-```
+````
 
 **💡 Learning Note - Link vs NavLink:**
 
@@ -357,6 +548,35 @@ export default Header;
 | `<NavLink>` | Navigation menus - provides `isActive` state for styling |
 
 `NavLink` automatically knows which page you're on, so you can highlight the current page in the menu.
+
+> 💡 **React Learning Note — Render Props Pattern**
+>
+> `NavLink`'s `className` prop accepts a **function** that receives state:
+>
+> ```tsx
+> <NavLink
+>   to="/about"
+>   className={({ isActive }) => (isActive ? "active" : "")}
+> //          └─────────────────────────────────────────────┘
+> //          This is a function, not a string!
+> >
+>
+> // The function receives an object with:
+> // { isActive: boolean, isPending: boolean }
+>
+> // Expanded version:
+> className={(props) => {
+>   console.log(props.isActive);  // true if current page
+>   return props.isActive ? "active" : "";
+> }}
+> ```
+>
+> **Why a function instead of just a string?**
+>
+> - `className="active"` → always "active"
+> - `className={fn}` → React Router calls the function with current state
+>
+> **This is called "render props"** — passing a function that returns what to render.
 
 ### Step 3.2: Add Active Link Styling
 
@@ -394,14 +614,20 @@ a.logo {
 
 You should now have:
 
-- [X] All navigation using React Router `Link`/`NavLink`
-- [X] Active page highlighted in navigation
-- [X] Logo clicking navigates to home
-- [X] Mobile menu still works
+- [x] All navigation using React Router `Link`/`NavLink`
+- [x] Active page highlighted in navigation
+- [x] Logo clicking navigates to home
+- [x] Mobile menu still works
 
 ---
 
 ## Day 4: Add Page Transitions (2 hours)
+
+**What you'll accomplish:**
+
+1. Add CSS fade-in animation for page changes
+2. Create ScrollToTop component
+3. Ensure pages scroll to top on navigation
 
 ### Step 4.1: Add CSS for Page Transitions
 
@@ -423,7 +649,50 @@ Add to your `src/styles.css`:
     transform: translateY(0);
   }
 }
+```
 
+> 💡 **CSS Learning Note — Keyframe Animations**
+>
+> CSS animations have two parts:
+>
+> **1. Define the animation (`@keyframes`):**
+>
+> ```css
+> @keyframes fadeIn {
+>   /* Name your animation */
+>   from {
+>     /* Starting state (0%) */
+>     opacity: 0; /* Invisible */
+>     transform: translateY(10px); /* 10px below */
+>   }
+>   to {
+>     /* Ending state (100%) */
+>     opacity: 1; /* Fully visible */
+>     transform: translateY(0); /* Normal position */
+>   }
+> }
+> ```
+>
+> **2. Apply it to an element:**
+>
+> ```css
+> .page-content {
+>   animation: fadeIn 0.3s ease-in-out;
+>   /*         │       │    └── Timing function (smooth start/end)
+>              │       └── Duration (0.3 seconds)
+>              └── Animation name (from @keyframes)
+>   */
+> }
+> ```
+>
+> **Common timing functions:**
+> | Value | Effect |
+> |-------|--------|
+> | `ease` | Slow start, fast middle, slow end |
+> | `ease-in-out` | Slow start AND end |
+> | `linear` | Constant speed |
+
+```css
 /* Page sections base styling */
 .about-page,
 .contact-page {
@@ -476,6 +745,72 @@ function ScrollToTop() {
 export default ScrollToTop;
 ```
 
+> 💡 **JS/TS Learning Note — useEffect Hook**
+>
+> `useEffect` runs code **after** the component renders:
+>
+> ```typescript
+> useEffect(() => {
+>   // This code runs after render
+>   window.scrollTo(0, 0); // Scroll to top
+> }, [pathname]); // Only run when pathname changes
+> //  └───────────┘
+> //  Dependency array: "Watch these values"
+> ```
+>
+> **Dependency array options:**
+> | Array | When it runs |
+> |-------|-------------|
+> | `[]` (empty) | Once, when component first appears |
+> | `[pathname]` | When `pathname` changes |
+> | `[a, b]` | When `a` OR `b` changes |
+> | (no array) | After EVERY render (usually bad!) |
+>
+> **What `useLocation()` returns:**
+>
+> ```typescript
+> const { pathname } = useLocation();
+> // pathname = "/about" or "/contact" etc.
+> // Changes when user navigates
+> ```
+>
+> **Why `return null`?**
+> This component has NO visual output — it just performs a side effect (scrolling).
+
+> 💡 **React Learning Note — "Invisible" Components**
+>
+> Not all components render visible UI! Some just provide **behavior**:
+>
+> ```tsx
+> // This component scrolls to top, but renders NOTHING
+> function ScrollToTop() {
+>   useEffect(() => {
+>     window.scrollTo(0, 0);
+>   }, [pathname]);
+>
+>   return null; // No visible output
+> }
+>
+> // Used like any other component:
+> <BrowserRouter>
+>   <ScrollToTop /> {/* Does something, shows nothing */}
+>   <Routes>...</Routes>
+> </BrowserRouter>;
+> ```
+>
+> **Common "invisible" component patterns:**
+>
+> - `<ScrollToTop />` — Scroll behavior
+> - `<AuthProvider />` — Provides auth context
+> - `<Analytics />` — Tracks page views
+> - `<ErrorBoundary />` — Catches errors in children
+>
+> **Why make it a component?**
+>
+> - Hooks can only be used inside components
+> - Easy to add/remove from the component tree
+> - Can access router context (`useLocation`)
+
 ### Step 4.3: Add ScrollToTop to App.tsx
 
 Update `src/App.tsx`:
@@ -517,12 +852,19 @@ export default App;
 You should now have:
 
 - [ ] Smooth fade-in animation on page changes
-- [X] Pages scroll to top on navigation
-- [X] Browser history (back/forward) works correctly
+- [x] Pages scroll to top on navigation
+- [x] Browser history (back/forward) works correctly
 
 ---
 
 ## Day 5: Polish & Add 404 Page (1.5 hours)
+
+**What you'll accomplish:**
+
+1. Create a 404 Not Found page
+2. Add catch-all route for unknown URLs
+3. Style the 404 page
+4. Final testing of all features
 
 ### Step 5.1: Create a 404 Not Found Page
 
@@ -571,7 +913,8 @@ function App() {
           <Route index element={<HomePage />} />
           <Route path="about" element={<AboutPage />} />
           <Route path="contact" element={<ContactPage />} />
-          <Route path="*" element={<NotFoundPage />} /> {/* Add this - catches all unknown routes */}
+          <Route path="*" element={<NotFoundPage />} />{" "}
+          {/* Add this - catches all unknown routes */}
         </Route>
       </Routes>
     </BrowserRouter>
@@ -631,23 +974,23 @@ Add to `src/styles.css`:
 
 Test everything thoroughly:
 
-- [X] **Home page** (`/`) - Shows Hero + Events
+- [x] **Home page** (`/`) - Shows Hero + Events
 - [ ] **About page** (`/about`) - Shows about content
-- [X] **Contact page** (`/contact`) - Shows contact form
-- [X] **404 page** (`/anything-random`) - Shows not found
-- [X] **Navigation** - All links work, active state shows
+- [x] **Contact page** (`/contact`) - Shows contact form
+- [x] **404 page** (`/anything-random`) - Shows not found
+- [x] **Navigation** - All links work, active state shows
 - [ ] **Logo** - Clicks back to home
-- [X] **Mobile menu** - Opens, closes, navigates correctly
+- [x] **Mobile menu** - Opens, closes, navigates correctly
 - [ ] **Page transitions** - Smooth fade-in effect
-- [X] **Scroll behavior** - Returns to top on navigation
-- [X] **Browser buttons** - Back/forward work correctly
-- [X] **Footer** - Shows on all pages, dark mode toggle works
+- [x] **Scroll behavior** - Returns to top on navigation
+- [x] **Browser buttons** - Back/forward work correctly
+- [x] **Footer** - Shows on all pages, dark mode toggle works
 
 ### ✅ Day 5 Checkpoint
 
 You should now have:
 
-- [X] 404 page catching unknown routes
+- [x] 404 page catching unknown routes
 - [ ] All features tested and working
 - [ ] Code committed to git
 

@@ -1,0 +1,169 @@
+/* ── Submit Event Page ── */
+.submit-event {
+  background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
+  color: white;
+  padding: 60px 0 80px;
+  min-height: calc(100dvh - 200px);
+}
+
+.submit-event .section-title {
+  text-align: center;
+  color: white;
+}
+
+.submit-event .section-title::after {
+  background: linear-gradient(135deg, #ff8c42, #e74c3c);
+}
+
+.submit-intro {
+  text-align: center;
+  font-size: 1.15rem;
+  margin-bottom: 2.5rem;
+  opacity: 0.9;
+  max-width: 600px;
+  margin-inline: auto;
+}
+
+/* ── Form ── */
+.submit-form {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.submit-form fieldset {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.submit-form legend {
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding: 0 0.5rem;
+  color: #ff8c42;
+}
+
+.submit-form .form-group {
+  margin-bottom: 1.25rem;
+}
+
+.submit-form .form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.submit-form .form-group input,
+.submit-form .form-group select,
+.submit-form .form-group textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.submit-form .form-group input::placeholder,
+.submit-form .form-group textarea::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.submit-form .form-group input:focus,
+.submit-form .form-group select:focus,
+.submit-form .form-group textarea:focus {
+  outline: none;
+  border-color: #ff8c42;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.submit-form .form-group select option {
+  background: #2c3e50;
+  color: white;
+}
+
+/* Two-column rows */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+/* ── Submit button ── */
+.submit-event .submit-button {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #ff8c42, #e74c3c);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 0.5rem;
+}
+
+.submit-event .submit-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(255, 140, 66, 0.4);
+}
+
+.submit-event .submit-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* ── Success card ── */
+.success-card {
+  max-width: 520px;
+  margin: 4rem auto;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  padding: 3rem 2rem;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.success-card h2 {
+  margin-bottom: 1rem;
+}
+
+.success-card p {
+  margin-bottom: 2rem;
+  line-height: 1.6;
+  opacity: 0.9;
+}
+
+/* ── Error banner ── */
+.error-banner {
+  max-width: 680px;
+  margin: 0 auto 1.5rem;
+  padding: 1rem 1.25rem;
+  background: rgba(231, 76, 60, 0.2);
+  border: 1px solid rgba(231, 76, 60, 0.5);
+  border-radius: 10px;
+  color: #e74c3c;
+  text-align: center;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .submit-form fieldset {
+    padding: 1rem;
+  }
+
+  .submit-event {
+    padding: 40px 0 60px;
+  }
+}

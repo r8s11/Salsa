@@ -4,14 +4,12 @@ const lessons = [
   {
     icon: "👤",
     title: "Private Lessons",
-    description:
-      "One-on-one personalized instruction tailored to your pace and goals.",
+    description: "One-on-one personalized instruction tailored to your pace and goals.",
   },
   {
     icon: "💕",
     title: "Couples Sessions",
-    description:
-      "Perfect for date nights, anniversaries, or just having fun together!",
+    description: "Perfect for date nights, anniversaries, or just having fun together!",
   },
   {
     icon: "🎉",
@@ -35,9 +33,7 @@ function Lessons() {
             </div>
           ))}
         </div>
-        <div className="quote">
-          "Dancing is the hidden language of the soul" - Martha Graham
-        </div>
+        <div className="quote">"Dancing is the hidden language of the soul" - Martha Graham</div>
       </div>
     </section>
   );

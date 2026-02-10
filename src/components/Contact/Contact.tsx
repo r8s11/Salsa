@@ -10,47 +10,58 @@ function Contact() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const submitButtonText = isSubmitting
     ? "Sending..."
     : isSubmitted
-    ? "Message Sent! ✓"
-    : "Send Message";
+      ? "Message Sent! ✓"
+      : "Send Message";
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
 
     const accessKey = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY;
-    
 
-    const response = await fetch("https://api.web3forms.com/submit", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({
-        access_key: accessKey,
-        name: form.name,
-        email: form.email,
-        interest: form.interest,
-        message: form.message,
-      }),
-    });
+    try {
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          access_key: accessKey,
+          name: form.name,
+          email: form.email,
+          interest: form.interest,
+          message: form.message,
+        }),
+      });
 
-    const result = await response.json();
-    if (result.success) {
-      console.log("Success:", result);
+      if (!response.ok) {
+        throw new Error("Failed to send message. Please try again.");
+      }
+
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.message || "Failed to send message. Please try again.");
+      }
+
+      setIsSubmitted(true);
+      setTimeout(() => {
+        setForm({ name: "", email: "", interest: "", message: "" });
+        setIsSubmitted(false);
+      }, 3000);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "An unexpected error occurred. Please try again.";
+      setError(message);
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-
-    setTimeout(() => {
-      setForm({ name: "", email: "", interest: "", message: "" });
-      setIsSubmitted(false);
-    }, 3000);
   };
 
   return (
@@ -62,6 +73,20 @@ function Contact() {
         <div className="contact-grid">
           <div className="contact-form-card">
             <h3>📬 Send a Message</h3>
+            {error && (
+              <div
+                style={{
+                  padding: "1rem",
+                  marginBottom: "1rem",
+                  backgroundColor: "#fee",
+                  border: "1px solid #c33",
+                  borderRadius: "8px",
+                  color: "#c33",
+                }}
+              >
+                {error}
+              </div>
+            )}
             <form onSubmit={handleSubmit} className="contact-form">
               <div className="form-group">
                 <label htmlFor="name">Name</label>
@@ -90,9 +115,7 @@ function Contact() {
                 <select
                   id="interest"
                   value={form.interest}
-                  onChange={(e) =>
-                    setForm({ ...form, interest: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, interest: e.target.value })}
                   required
                 >
                   <option value="">Select an option</option>
@@ -107,19 +130,13 @@ function Contact() {
                 <textarea
                   id="message"
                   value={form.message}
-                  onChange={(e) =>
-                    setForm({ ...form, message: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, message: e.target.value })}
                   placeholder=""
                   rows={4}
                   required
                 ></textarea>
               </div>
-              <button
-                type="submit"
-                className="submit-button"
-                disabled={isSubmitting}
-              >
+              <button type="submit" className="submit-button" disabled={isSubmitting}>
                 {submitButtonText}
               </button>
             </form>

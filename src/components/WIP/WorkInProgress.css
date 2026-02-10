@@ -1,21 +1,21 @@
+/* ── Work In Progress Page ── */
 .wip-container {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #ff8c42 0%, #3498db 100%);
+  background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
   color: white;
   text-align: center;
-  padding: 20px;
+  padding: 60px 20px;
 }
 
 .wip-container .content {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
-  padding: 3rem;
-  border-radius: 1rem;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 3rem 2rem;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   max-width: 600px;
 }
 
@@ -23,7 +23,10 @@
   font-family: "Great Vibes", cursive;
   font-size: 4rem;
   margin-bottom: 1rem;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, #ff8c42, #e74c3c);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .wip-container h2 {
@@ -41,22 +44,22 @@
 .wip-container .contact-info {
   margin-top: 2rem;
   padding-top: 2rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .wip-container a {
-  color: white;
+  color: #ff8c42;
   text-decoration: none;
-  font-weight: bold;
+  font-weight: 600;
   font-size: 1.2rem;
-  transition: opacity 0.3s;
+  transition: all 0.3s ease;
   display: inline-block;
   margin: 0.5rem 0;
 }
 
 .wip-container a:hover {
-  opacity: 0.8;
-  text-decoration: underline;
+  color: #e74c3c;
+  transform: translateY(-2px);
 }
 
 @media (max-width: 768px) {

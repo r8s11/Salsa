@@ -1,7 +1,41 @@
+// Purpose: Define event interfaces and conversion functions
+
 import "temporal-polyfill/global";
 
 export type EventType = "social" | "class" | "workshop";
 
+// Database event interface (matches Supabase schema)
+export interface DatabaseEvent {
+  id: string;
+  title: string;
+  description: string | null;
+  event_type: EventType;
+  event_date: string; //ISO timestamp from database
+  event_time: string | null;
+  location: string | null;
+  address: string | null;
+  price_type: "free" | "paid" | null;
+  price_amount: number | null;
+  rsvp_link: string | null;
+  image_url: string | null;
+  status: "approved" | "pending" | "rejected";
+  created_at: string;
+}
+
+// Schedule-X event interface
+export interface ScheduleXEvent {
+  id: string | number;
+  title: string;
+  start: string;
+  end: string;
+  calendarId: EventType;
+  location?: string;
+  description?: string;
+  //Custom properties for out app
+  address?: string;
+  rsvpLink?: string;
+}
+// Calenddar Color Configuration
 export const CALENDARS_CONFIG = {
   social: {
     colorName: "social",
@@ -44,18 +78,40 @@ export const CALENDARS_CONFIG = {
   },
 };
 
-// Schedule-X event interface
-export interface ScheduleXEvent {
-  id: string | number;
-  title: string;
-  start: Temporal.ZonedDateTime ;
-  end: Temporal.ZonedDateTime;
-  calendarId: EventType;
-  location?: string;
-  description?: string;
-  //Custom properties for out app
-  address?: string;
-  rsvpLink?: string;
+//Convert database event to Schedule-X event
+export function databaseEventToScheduleX(event: DatabaseEvent): ScheduleXEvent {
+  // Parse the ISO timestamp
+  const eventDate = new Date(event.event_date);
+
+  // Use ISO strings for reliable parsing across browsers/timezones
+  const start = formatDateTimeForScheduleX(eventDate);
+
+  // Assume 2 hours duration if not specified
+  const endDate = new Date(eventDate.getTime() + 2 * 60 * 60 * 1000);
+  const end = formatDateTimeForScheduleX(endDate);
+
+  return {
+    id: event.id,
+    title: event.title,
+    start,
+    end,
+    calendarId: event.event_type,
+    location: event.location ?? undefined,
+    description: event.description ?? undefined,
+    address: event.address ?? undefined,
+    rsvpLink: event.rsvp_link ?? undefined,
+  };
+}
+
+// Format a Date object to "YYYY-MM-DD HH:mm" (the format Schedule-X expects)
+function formatDateTimeForScheduleX(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+
+  return `${year}-${month}-${day} ${hours}:${minutes}`;
 }
 
 // Helper to create a ZonedDateTime for Boston Timezone
@@ -72,57 +128,7 @@ export function bostonDateTime(
     day,
     hour,
     minute,
-    timeZone: "America/New_York",
-  });
-}
-
-// Legacy DanceEvent interface (for Events.tsx compatibility)
-export interface DanceEvent {
-  id: string;
-  title: string;
-  type: string;
-  month: string;
-  day: string;
-  time: string;
-  location: string;
-  address: string;
-  description: string;
-  rsvpLink: string;
-  date: Date;
-}
-
-// Convert DanceEvent to ScheduleXEvent (for future unified hook)
-export function toScheduleXEvent(
-  event: DanceEvent,
-  durationHours = 2
-): ScheduleXEvent {
-  const jsDate = event.date;
-  const start = Temporal.ZonedDateTime.from({
-    year: jsDate.getFullYear(),
-    month: jsDate.getMonth() + 1,
-    day: jsDate.getDate(),
-    hour: jsDate.getHours(),
-    minute: jsDate.getMinutes(),
     second: 0,
     timeZone: "America/New_York",
   });
-  const end = start.add({ hours: durationHours });
-
-  const calendarId: EventType = event.type.toLowerCase().includes("social")
-    ? "social"
-    : event.type.toLowerCase().includes("class")
-    ? "class"
-    : "workshop";
-
-  return {
-    id: event.id,
-    title: event.title,
-    start,
-    end,
-    calendarId,
-    location: event.location,
-    address: event.address,
-    description: event.description,
-    rsvpLink: event.rsvpLink,
-  };
 }

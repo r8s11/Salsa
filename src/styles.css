@@ -9,13 +9,10 @@
 }
 
 /* For pages without hero sections */
-.page-content > section:first-child:not(.hero) {
-  padding-top: 80px;
-}
 
 .about-page,
 .contact-page {
-  padding: 2rem 0;
+  padding: 1rem 0;
   min-height: 60vh;
 }
 

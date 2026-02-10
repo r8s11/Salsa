@@ -16,6 +16,12 @@ import { ScheduleXEvent, CALENDARS_CONFIG } from "../../types/events";
 
 import EventModal from "../EventModal/EventModal";
 import { useEvents } from "../../hooks/useEvent";
+import {
+  updatePageTitle,
+  updateMetaDescription,
+  generateEventsListStructuredData,
+  injectStructuredData,
+} from "../../utils/seo";
 
 export default function Calendar() {
   const [selectedEvent, setSelectedEvent] = useState<ScheduleXEvent | null>(null);
@@ -61,6 +67,14 @@ export default function Calendar() {
     }
   };
 
+  // Update page SEO metadata
+  useEffect(() => {
+    updatePageTitle("Boston Dance Calendar - Salsa, Bachata & Latin Dance Events");
+    updateMetaDescription(
+      "Find salsa, bachata, and Latin dance events across Greater Boston. Browse our interactive calendar of classes, socials, and workshops."
+    );
+  }, []);
+
   // Push freshly fetched events into Schedule-X whenever they change.
   useEffect(() => {
     if (eventList.length === 0) return;
@@ -74,6 +88,10 @@ export default function Calendar() {
       ),
     }));
     eventsService.set(calendarEvents);
+
+    // Inject events structured data for SEO
+    const structuredData = generateEventsListStructuredData(eventList);
+    injectStructuredData(structuredData, "events-list-data");
 
     // Open event from URL parameter on first load
     const eventIdFromUrl = searchParams.get("event");

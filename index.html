@@ -10,53 +10,67 @@
     <!-- SEO Meta Tags -->
     <meta
       name="description"
-      content="Join pop-up salsa classes and social dance events "
+      content="Discover salsa, bachata, and Latin dance events across Greater Boston. Join our pop-up classes, social dances, and workshops. All levels welcome!"
     />
     <meta
       name="keywords"
-      content="Salsa, Bachata, Pop-up Classes, Social Dance, Massachusetts, Latin Dance, Dance Events"
+      content="salsa Boston, bachata Boston, Latin dance Massachusetts, salsa classes Boston, bachata lessons, social dance events, dance calendar Boston, salsa workshops, dance events near me"
     />
     <meta name="author" content="Roosevelt Segura" />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://salsasegura.com/" />
+    <meta name="theme-color" content="#2c3e50" />
+
+    <!-- Geographic Meta Tags -->
+    <meta name="geo.region" content="US-MA" />
+    <meta name="geo.placename" content="Boston" />
+    <meta name="geo.position" content="42.3601;-71.0589" />
+    <meta name="ICBM" content="42.3601, -71.0589" />
 
     <!-- Open Graph / Facebook -->
     <meta
       property="og:title"
-      content="Salsa Segura -  Salsa & Bachata "
+      content="Salsa Segura - Boston's Premier Latin Dance Events & Classes"
     />
     <meta
       property="og:description"
-      content="Join pop-up salsa classes and social dance events. All levels welcome!"
+      content="Discover salsa, bachata, and Latin dance events across Greater Boston. Join our pop-up classes, social dances, and workshops. All levels welcome!"
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://salsasegura.com/" />
     <meta property="og:image" content="https://salsasegura.com/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Salsa Segura - Latin Dance Events in Boston" />
     <meta property="og:site_name" content="Salsa Segura" />
+    <meta property="og:locale" content="en_US" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta
       name="twitter:title"
-      content="Salsa Segura - Salsa & Bachata "
+      content="Salsa Segura - Boston's Premier Latin Dance Events & Classes"
     />
     <meta
       name="twitter:description"
-      content="Salsa & Bachata. Join pop-up salsa classes and social dance events!"
+      content="Discover salsa, bachata, and Latin dance events across Greater Boston. All levels welcome!"
     />
     <meta name="twitter:image" content="https://salsasegura.com/og-image.jpg" />
+    <meta name="twitter:image:alt" content="Salsa Segura - Latin Dance Events in Boston" />
+    <meta name="twitter:site" content="@SalsaSegura" />
+    <meta name="twitter:creator" content="@SalsaSegura" />
 
-    <!-- Local Business Structured Data -->
+    <!-- Structured Data -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "LocalBusiness",
+        "@type": "DanceSchool",
         "name": "Salsa Segura",
         "image": "https://salsasegura.com/og-image.jpg",
         "@id": "https://salsasegura.com/",
         "url": "https://salsasegura.com/",
         "telephone": "+1-978-444-0922",
-        "description": "Private Salsa & Bachata lessons, pop-up classes, and social dance events in Massachusetts.",
+        "description": "Boston's premier destination for salsa, bachata, and Latin dance. Offering pop-up classes, private lessons, social dance events, and workshops across Greater Boston.",
         "address": {
           "@type": "PostalAddress",
           "addressLocality": "Boston",
@@ -68,8 +82,65 @@
           "latitude": 42.3601,
           "longitude": -71.0589
         },
-        "sameAs": ["https://www.instagram.com/SalsaSegura"],
-        "priceRange": "$$"
+        "areaServed": {
+          "@type": "GeoCircle",
+          "geoMidpoint": {
+            "@type": "GeoCoordinates",
+            "latitude": 42.3601,
+            "longitude": -71.0589
+          },
+          "geoRadius": "50000"
+        },
+        "sameAs": [
+          "https://www.instagram.com/SalsaSegura"
+        ],
+        "priceRange": "$$",
+        "knowsAbout": ["Salsa", "Bachata", "Latin Dance", "Social Dancing"],
+        "hasOfferCatalog": {
+          "@type": "OfferCatalog",
+          "name": "Dance Services",
+          "itemListElement": [
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Service",
+                "name": "Private Lessons",
+                "description": "One-on-one salsa and bachata instruction"
+              }
+            },
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Service",
+                "name": "Pop-up Classes",
+                "description": "Group dance classes throughout Boston"
+              }
+            },
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Service",
+                "name": "Social Dance Events",
+                "description": "Weekly social dancing events and socials"
+              }
+            }
+          ]
+        }
+      }
+    </script>
+
+    <!-- Website Structured Data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Salsa Segura",
+        "url": "https://salsasegura.com/",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://salsasegura.com/calendar?search={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
       }
     </script>
 

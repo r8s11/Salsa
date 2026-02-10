@@ -9,8 +9,7 @@
     "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
-    "test": "vitest",
-    "prepare": "husky"
+    "test": "vitest"
   },
   "dependencies": {
     "@schedule-x/calendar": "^4.1.0",
@@ -44,21 +43,10 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.0",
     "globals": "^17.3.0",
-    "husky": "^9.1.7",
     "jsdom": "^28.0.0",
-    "lint-staged": "^16.2.7",
     "prettier": "^3.8.1",
     "typescript": "~5.9.3",
     "vite": "^7.3.1",
     "vitest": "^4.0.18"
-  },
-  "lint-staged": {
-    "*.{ts,tsx}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "*.css": [
-      "prettier --write"
-    ]
   }
 }

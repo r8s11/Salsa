@@ -9,6 +9,7 @@ import Instructors from "./pages/Instructors";
 import ScrollToTop from "./components/Scroll/ScrollToTop";
 import NotFoundPage from "./pages/NotFoundPage";
 import CalendarPage from "./pages/CalendarPage";
+import SubmitEventPage from "./pages/SubmitEventPage";
 
 function App() {
   // Set to true to show work in progress page
@@ -27,6 +28,7 @@ function App() {
           <Route path="about" element={<AboutPage />} />
           <Route path="contact" element={<ContactPage />} />
           <Route path="calendar" element={<CalendarPage />} />
+          <Route path="submit" element={<SubmitEventPage />} />
           <Route path="Lessons" element={<Lessons />} />
           <Route path="Instructors" element={<Instructors />} />
           <Route path="*" element={<NotFoundPage />} />

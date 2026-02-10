@@ -13,6 +13,7 @@ function Footer() {
 
   useEffect(() => {
     const savedDarkMode = localStorage.getItem("darkMode") === "true";
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsDarkMode(savedDarkMode);
     document.body.classList.toggle("dark-mode", savedDarkMode);
   }, []);
@@ -21,11 +22,7 @@ function Footer() {
     <footer>
       <div className="footer-content">
         <div className="footer-links">
-          <a
-            href="https://www.instagram.com/SalsaSegura"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <a href="https://www.instagram.com/SalsaSegura" target="_blank" rel="noopener noreferrer">
             📱 Instagram
           </a>
           <a href="mailto:info@SalsaSegura.com">📧 Email</a>
@@ -35,9 +32,7 @@ function Footer() {
         <div className="dark-mode-container">
           <button
             className="dark-mode-toggle"
-            aria-label={
-              isDarkMode ? "Switch to light mode" : "Switch to dark mode"
-            }
+            aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
             onClick={toggleDarkMode}
           >
             {isDarkMode ? "☀️" : "🌙"}
@@ -45,8 +40,7 @@ function Footer() {
         </div>
 
         <div className="copyright">
-          &copy; {currentYear} Salsa Segura. All rights reserved. | Passion For
-          Dance
+          &copy; {currentYear} Salsa Segura. All rights reserved. | Passion For Dance
         </div>
       </div>
       <a

@@ -1,41 +1,67 @@
-import { useState, useEffect } from 'react';
+// Purpose: Fetch events from Supabase and convert to ScheduleXEvent format
+
+import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 import { DatabaseEvent, ScheduleXEvent, databaseEventToScheduleX } from "../types/events";
 
-
 export function useSupabaseEvents() {
-    const [events, setEvents] = useState<ScheduleXEvent[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+  // State for the events array (Starts empty)
+  const [events, setEvents] = useState<ScheduleXEvent[]>([]);
 
-    useEffect(() => {
-        async function fetchEvents() {
-            try {
-                setLoading(true);
-                setError(null);
+  // State for loading indicator (starts True because we fetch on mount)
+  const [loading, setLoading] = useState(true);
 
-                //Query Supabase for approved events
-                const { data, error: fetchError } = await supabase
-                    .from('events')
-                    .select('*')
-                    .eq('status', 'approved')
-                    .gte('event_date', new Date().toISOString()) //only future events
-                    .order('event_date', { ascending: true });
+  // State for error message (starts null because there are no errors)
+  const [error, setError] = useState<string | null>(null);
+  // useEffect runs when component mounts (empty dependency array [])
+  useEffect(() => {
+    let mounted = true;
 
-                if (fetchError) {
-                    throw fetchError;
-                }
+    // Define async function to fetch events
+    async function fetchEvents() {
+      try {
+        setLoading(true);
+        setError(null);
 
-                // convert database events to Schedule-x format
-                const ScheduleXEvents = (data as DatabaseEvent[]).map(databaseEventToScheduleX); setEvents(ScheduleXEvents);
-            } catch (err) {
-                console.error('Error fetching events from Supabase', err);
-                setError(err instanceof Error ? err.message : 'Failed to load events');
-            } finally {
-                setLoading(false);
-            }
+        const { data, error: supabaseError } = await supabase
+          .from("events")
+          .select("*")
+          .eq("status", "approved")
+          .order("event_date", { ascending: true });
+
+        // If component unmounted while fetching, don't update state
+        if (!mounted) return;
+
+        // Handle Supabase Error
+        if (supabaseError) {
+          setError(supabaseError.message);
+          return;
         }
-        fetchEvents();
-    }, []);
-    return { events, loading, error };
+        // Conver database events to Schedule-X format
+        // Data is DatabaseEvent[], we convert each to ScheduleXEvent
+        const converted: ScheduleXEvent[] = ((data as DatabaseEvent[]) || []).map(
+          databaseEventToScheduleX
+        );
+
+        setEvents(converted);
+      } catch (err) {
+        // handle unexpected errors
+        if (!mounted) return;
+        const message = err instanceof Error ? err.message : "Unknown error";
+        setError(message);
+      } finally {
+        if (mounted) {
+          // Always set loading to false when done
+          setLoading(false);
+        }
+      }
+    }
+    // call the fetch function
+    fetchEvents();
+    // cleanup function
+    return () => {
+      mounted = false;
+    };
+  }, []);
+  return { events, loading, error };
 }

@@ -57,6 +57,12 @@ This guide details the implementation of Schedule-X for SalsaSegura.com, includi
 
 ## Step 1: Install Schedule-X Packages
 
+**What you'll accomplish:**
+
+1. Install all required Schedule-X packages with Bun
+2. Add Temporal API polyfill for modern date handling
+3. Understand the purpose of each package
+
 ```bash
 bun add @schedule-x/react @schedule-x/calendar @schedule-x/theme-default @schedule-x/events-service temporal-polyfill
 ```
@@ -95,6 +101,12 @@ The `@schedule-x/` prefix is called a "scope". Scopes group related packages und
 ---
 
 ## Step 2: Create Shared Types (`/src/types/events.ts`)
+
+**What you'll accomplish:**
+
+1. Define TypeScript interfaces for events
+2. Configure color-coded calendar categories
+3. Create date/time helper functions using Temporal API
 
 ```typescript
 import "temporal-polyfill/global";
@@ -214,8 +226,8 @@ export function toScheduleXEvent(
   const calendarId: EventType = event.type.toLowerCase().includes("social")
     ? "social"
     : event.type.toLowerCase().includes("class")
-    ? "class"
-    : "workshop";
+      ? "class"
+      : "workshop";
 
   return {
     id: event.id,
@@ -422,6 +434,12 @@ This pattern is called an **adapter** or **transformer**. It's useful when:
 
 ## Step 3: Create Calendar CSS (`/src/components/Calendar.css`)
 
+**What you'll accomplish:**
+
+1. Style the calendar container with responsive dimensions
+2. Create a color-coded legend for event types
+3. Customize Schedule-X theme colors for dark mode
+
 ```css
 /* Schedule-X calendar container */
 .calendar-container {
@@ -627,7 +645,9 @@ This pattern is called an **adapter** or **transformer**. It's useful when:
   cursor: pointer;
   text-align: center;
   text-decoration: none;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .rsvp-button:hover {
@@ -733,7 +753,9 @@ Flexbox makes centering trivial — this was much harder before flexbox existed!
 
 ```css
 .rsvp-button {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .rsvp-button:hover {
@@ -799,6 +821,13 @@ If a user changes their browser's base font size (accessibility), `rem` units sc
 ---
 
 ## Step 4: Create Event Modal (`/src/components/EventModal.tsx`)
+
+**What you'll accomplish:**
+
+1. Build a custom event detail modal component
+2. Format dates and times using Temporal API
+3. Add RSVP button linking to external ticketing
+4. Handle backdrop click to close modal
 
 ```tsx
 import { ScheduleXEvent } from "../types/events";
@@ -1099,6 +1128,13 @@ These provide type safety and cross-browser consistency.
 ---
 
 ## Step 5: Rewrite Calendar Component (`/src/components/Calendar.tsx`)
+
+**What you'll accomplish:**
+
+1. Initialize Schedule-X with `useCalendarApp` hook
+2. Configure all calendar views (day, week, month grid, month agenda)
+3. Wire up event click handler to open modal
+4. Add test events for development
 
 ```tsx
 import { useState, useEffect } from "react";
@@ -1500,6 +1536,12 @@ const testEvents: ScheduleXEvent[] = [
 
 ## Step 6: Future Enhancements
 
+**What you'll accomplish:**
+
+1. Preview recurring events with the recurrence plugin
+2. Understand database integration patterns
+3. Plan for advanced features like filtering and search
+
 ### Recurring Events (Week 15)
 
 Schedule-X has a native recurrence plugin:
@@ -1512,7 +1554,7 @@ bun add @schedule-x/recurrence
 import { createRecurrencePlugin } from "@schedule-x/recurrence";
 
 // Add to plugins array
-plugins: [eventsService, createRecurrencePlugin()],
+plugins: ([eventsService, createRecurrencePlugin()],
   // Event with recurrence
   {
     id: "6",
@@ -1521,7 +1563,7 @@ plugins: [eventsService, createRecurrencePlugin()],
     end: bostonDateTime(2026, 1, 11, 15, 0),
     calendarId: "class",
     rrule: "FREQ=WEEKLY;BYDAY=SA;COUNT=10", // Every Saturday for 10 weeks
-  };
+  });
 ```
 
 ### Database Integration (Week 3)

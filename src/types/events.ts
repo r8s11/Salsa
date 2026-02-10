@@ -1,3 +1,5 @@
+// Purpose: Define event interfaces and conversion functions
+
 import "temporal-polyfill/global";
 
 export type EventType = "social" | "class" | "workshop";
@@ -12,7 +14,7 @@ export interface DatabaseEvent {
   event_time: string | null;
   location: string | null;
   address: string | null;
-  price_type: "free" | "Paid" | null;
+  price_type: "free" | "paid" | null;
   price_amount: number | null;
   rsvp_link: string | null;
   image_url: string | null;
@@ -20,6 +22,20 @@ export interface DatabaseEvent {
   created_at: string;
 }
 
+// Schedule-X event interface
+export interface ScheduleXEvent {
+  id: string | number;
+  title: string;
+  start: string;
+  end: string;
+  calendarId: EventType;
+  location?: string;
+  description?: string;
+  //Custom properties for out app
+  address?: string;
+  rsvpLink?: string;
+}
+// Calenddar Color Configuration
 export const CALENDARS_CONFIG = {
   social: {
     colorName: "social",
@@ -62,60 +78,12 @@ export const CALENDARS_CONFIG = {
   },
 };
 
-// Schedule-X event interface
-export interface ScheduleXEvent {
-  id: string | number;
-  title: string;
-  start: string;
-  end: string;
-  calendarId: EventType;
-  location?: string;
-  description?: string;
-  //Custom properties for out app
-  address?: string;
-  rsvpLink?: string;
-}
-
-// Helper to create a ZonedDateTime for Boston Timezone
-export function bostonDateTime(
-  year: number,
-  month: number,
-  day: number,
-  hour: number,
-  minute: number = 0
-): Temporal.ZonedDateTime {
-  return Temporal.ZonedDateTime.from({
-    year,
-    month,
-    day,
-    hour,
-    minute,
-    second: 0,
-    timeZone: "America/New_York",
-  });
-}
-
-// Legacy DanceEvent interface (for Events.tsx compatibility)
-export interface DanceEvent {
-  id: string;
-  title: string;
-  type: string;
-  month: string;
-  day: string;
-  time: string;
-  location: string;
-  address: string;
-  description: string;
-  rsvpLink: string;
-  date: Date;
-}
-
 //Convert database event to Schedule-X event
 export function databaseEventToScheduleX(event: DatabaseEvent): ScheduleXEvent {
   // Parse the ISO timestamp
   const eventDate = new Date(event.event_date);
 
-  // Format as "YYYY-MM-DD HH:mm"
+  // Use ISO strings for reliable parsing across browsers/timezones
   const start = formatDateTimeForScheduleX(eventDate);
 
   // Assume 2 hours duration if not specified
@@ -135,6 +103,7 @@ export function databaseEventToScheduleX(event: DatabaseEvent): ScheduleXEvent {
   };
 }
 
+// Format a Date object to "YYYY-MM-DD HH:mm" (the format Schedule-X expects)
 function formatDateTimeForScheduleX(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -143,4 +112,23 @@ function formatDateTimeForScheduleX(date: Date): string {
   const minutes = String(date.getMinutes()).padStart(2, "0");
 
   return `${year}-${month}-${day} ${hours}:${minutes}`;
+}
+
+// Helper to create a ZonedDateTime for Boston Timezone
+export function bostonDateTime(
+  year: number,
+  month: number,
+  day: number,
+  hour: number,
+  minute: number = 0
+): Temporal.ZonedDateTime {
+  return Temporal.ZonedDateTime.from({
+    year,
+    month,
+    day,
+    hour,
+    minute,
+    second: 0,
+    timeZone: "America/New_York",
+  });
 }

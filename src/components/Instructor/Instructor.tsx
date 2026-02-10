@@ -26,8 +26,8 @@ function Instructor() {
             <h2 className="instructor-name">Roosevelt Segura</h2>
             <h3>Dance Instructor</h3>
             <p>
-              With over 8 years of experience performing, I bring authentic
-              Latin dance techniques and a passion for teaching to every lesson.
+              With over 8 years of experience performing, I bring authentic Latin dance techniques
+              and a passion for teaching to every lesson.
             </p>
 
             <ul className="credentials">
@@ -37,9 +37,9 @@ function Instructor() {
             </ul>
 
             <p>
-              My teaching philosophy focuses on creating a comfortable,
-              judgment-free environment where students can learn at their own
-              pace and truly connect with the music and movement.
+              My teaching philosophy focuses on creating a comfortable, judgment-free environment
+              where students can learn at their own pace and truly connect with the music and
+              movement.
             </p>
 
             <div className="social-links">

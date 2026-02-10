@@ -21,6 +21,7 @@ nav {
 }
 
 a.logo {
+  font-family: "Great Vibes", cursive;
   text-decoration: none;
   color: inherit;
   font-size: 2rem;

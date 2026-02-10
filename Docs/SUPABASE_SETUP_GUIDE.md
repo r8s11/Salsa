@@ -47,11 +47,20 @@ Learning note: Supabase shines for projects that need standard relational modeli
 
 ## Create a Supabase project (hosted)
 
-1. Sign in to Supabase and create a new project.
-2. Choose a project name and password (this creates the DB user/password for the DB dashboard).
-3. Record the project `URL` and `anon`/`service_role` keys from the Dashboard → Project Settings → API.
+**Step-by-step:**
 
-Important: Keep the `service_role` key secret — it bypasses RLS and should only be used on trusted servers.
+1. Go to [https://supabase.com](https://supabase.com)
+2. Click "Start your project" and sign up (GitHub recommended)
+3. Click "New Project" in the dashboard
+4. Fill in project details:
+   - **Name:** Your project name (e.g., `salsasegura`)
+   - **Password:** Generate a strong password and **save it securely**
+   - **Region:** Choose closest to your users
+5. Click "Create new project" and wait ~2 minutes
+6. Go to **Settings → API** to find your keys
+7. Copy the **Project URL** and **anon public** key
+
+**Important:** Keep the `service_role` key secret — it bypasses RLS and should only be used on trusted servers.
 
 Env vars you will use:
 
@@ -63,24 +72,44 @@ Env vars you will use:
 
 ## Local development with Supabase CLI
 
-Install the Supabase CLI (official instructions at supabase.com):
+**Step-by-step to set up local development:**
 
-- macOS (Homebrew):
+1. Install the Supabase CLI:
 
-```bash
-brew install supabase/tap/supabase
-```
+   ```bash
+   # macOS (Homebrew)
+   brew install supabase/tap/supabase
+   ```
 
-- Or follow CLI install docs at https://supabase.com/docs/guides/cli
+   Or follow CLI install docs at https://supabase.com/docs/guides/cli
 
-Common CLI commands (local emulation):
+2. Login to your Supabase account:
 
-- `supabase login` — authenticate the CLI with your Supabase account.
-- `supabase init` — initialize a new local project folder (creates `supabase/` dir).
-- `supabase start` — start local Docker-based Supabase stack (Postgres, Kong, etc.).
-- `supabase stop` — stop the local stack.
-- `supabase status` — check local status.
-- `supabase functions` — manage Edge Functions (deploy, local dev).
+   ```bash
+   supabase login
+   ```
+
+3. Initialize a new local project:
+
+   ```bash
+   supabase init
+   ```
+
+4. Start the local Supabase stack:
+
+   ```bash
+   supabase start
+   ```
+
+5. When done, stop the local stack:
+   ```bash
+   supabase stop
+   ```
+
+**Common CLI commands:**
+
+- `supabase status` — Check local status
+- `supabase functions` — Manage Edge Functions
 
 Learning note: The CLI runs services in Docker for faithful local testing. Use `supabase start` to run a self-contained environment similar to hosted Supabase.
 
@@ -88,12 +117,36 @@ Learning note: The CLI runs services in Docker for faithful local testing. Use `
 
 ## Database schema, migrations, and seeds
 
-Approach options:
+**Step-by-step to create a migration:**
 
-- SQL-first: Keep plain SQL migration files under `supabase/migrations` and apply with the CLI.
-- GUI-first: Use the dashboard SQL editor then export or snapshot schema and create SQL migration files for source control.
+1. Create a `supabase/migrations` folder in your project:
 
-Example: Create a `profiles` table and enable RLS
+   ```bash
+   mkdir -p supabase/migrations
+   ```
+
+2. Create a migration file with a descriptive name:
+
+   ```bash
+   touch supabase/migrations/001_create_profiles.sql
+   ```
+
+3. Add your SQL to the migration file (see example below)
+
+4. Apply the migration locally:
+
+   ```bash
+   supabase db push
+   ```
+
+5. Or apply via the Supabase Dashboard SQL Editor for hosted projects
+
+**Approach options:**
+
+- **SQL-first:** Keep plain SQL migration files under `supabase/migrations` and apply with the CLI.
+- **GUI-first:** Use the dashboard SQL editor then export or snapshot schema and create SQL migration files for source control.
+
+**Example: Create a `profiles` table and enable RLS**
 
 ```sql
 -- 001_create_profiles.sql
@@ -108,6 +161,38 @@ create table public.profiles (
 alter table public.profiles enable row level security;
 ```
 
+> 💡 **SQL Learning Note — CREATE TABLE Syntax**
+>
+> SQL is the language for talking to databases. Here's what each part means:
+>
+> ```sql
+> create table public.profiles (
+> --           │      └── Table name
+> --           └── Schema (like a folder for tables)
+>
+>   id uuid primary key default gen_random_uuid(),
+> -- │  │    │            └── Auto-generate a unique ID
+> -- │  │    └── "This column uniquely identifies each row"
+> -- │  └── Data type: UUID (universally unique identifier)
+> -- └── Column name
+>
+>   email text unique not null,
+> --             │      └── Can't be empty/missing
+> --             └── No two rows can have the same email
+>
+>   full_name text,  -- Optional (no "not null")
+> );
+> ```
+>
+> **Common data types:**
+> | Type | Description | Example |
+> |------|-------------|---------|
+> | `text` | Any string | "Hello World" |
+> | `uuid` | Unique ID | "a1b2c3..." |
+> | `timestamptz` | Date + time + timezone | "2026-02-03 10:30:00-05" |
+> | `integer` | Whole number | 42 |
+> | `numeric(10,2)` | Decimal (10 digits, 2 after point) | 99.99 |
+
 Add a policy so users can manage their own profile:
 
 ```sql
@@ -117,6 +202,41 @@ create policy "Users can manage own profile"
   using (auth.uid() = id)
   with check (auth.uid() = id);
 ```
+
+> 💡 **SQL Learning Note — Row Level Security (RLS)**
+>
+> RLS is like a bouncer for your database — it controls who can see/edit what.
+>
+> ```sql
+> create policy "Policy name"    -- Descriptive name
+>   on public.profiles           -- Which table
+>   for all                      -- SELECT, INSERT, UPDATE, DELETE (or pick one)
+>   using (auth.uid() = id)      -- WHO can read existing rows?
+>   with check (auth.uid() = id) -- WHO can write new/changed rows?
+> ```
+>
+> **What `auth.uid()` returns:**
+>
+> - The logged-in user's ID (from their JWT token)
+> - `null` if not logged in
+>
+> **How it works:**
+>
+> ```
+> User "abc123" tries to SELECT from profiles
+> ↓
+> For each row, evaluate: auth.uid() = id
+> ↓
+> Row with id="abc123" → TRUE → User CAN see it
+> Row with id="xyz789" → FALSE → User CANNOT see it
+> ```
+>
+> **Common policy patterns:**
+> | Pattern | Use case |
+> |---------|-----------|
+> | `auth.uid() = user_id` | Users manage their own data |
+> | `true` | Anyone can read (public data) |
+> | `auth.role() = 'admin'` | Admin-only access |
 
 Learning note: Policies are enforced only when RLS is enabled. Test policies with both session-based JWTs and with the `service_role` key to ensure correctness.
 
@@ -175,6 +295,41 @@ const { data, error } = await supabase.storage
   .upload("public/user123/avatar.png", file);
 ```
 
+> 💡 **React Learning Note — Passing Data with Props**
+>
+> **Props** (properties) pass data from parent to child components:
+>
+> ```tsx
+> // Parent component
+> function ProfilePage() {
+>   const avatarUrl = "https://example.com/avatar.png";
+>   return <Avatar imageUrl={avatarUrl} size={100} />;
+>   //              └───────────────────────┘
+>   //              Props: key={value} pairs
+> }
+>
+> // Child component receives props
+> function Avatar({ imageUrl, size }) {
+>   //            └───────────────┘
+>   //            Destructure from props object
+>   return <img src={imageUrl} width={size} />;
+> }
+>
+> // With TypeScript:
+> interface AvatarProps {
+>   imageUrl: string;
+>   size: number;
+> }
+>
+> function Avatar({ imageUrl, size }: AvatarProps) {
+>   return <img src={imageUrl} width={size} />;
+> }
+> ```
+>
+> **Props are read-only!**
+> Components can't modify their props — they can only read them.
+> To change data, use state in the parent and pass it down.
+
 Learning note: For sensitive uploads or for policy-protected access, prefer generating signed URLs on the server using the `service_role` key.
 
 ---
@@ -198,6 +353,38 @@ const channel = supabase
   )
   .subscribe();
 ```
+
+> 💡 **JS/TS Learning Note — Chaining Methods**
+>
+> **Method chaining** lets you call multiple methods in a row:
+>
+> ```javascript
+> supabase
+>   .channel("public:messages")  // Returns an object with .on() method
+>   .on(...)                      // Returns an object with .subscribe() method
+>   .subscribe();                 // Starts listening
+> ```
+>
+> **It's equivalent to:**
+>
+> ```javascript
+> const step1 = supabase.channel("public:messages");
+> const step2 = step1.on(...);
+> const step3 = step2.subscribe();
+> ```
+>
+> **Callback functions:**
+>
+> ```javascript
+> .on("postgres_changes", { event: "INSERT"... }, (payload) => {
+>   console.log("New message:", payload.new);
+> })
+> //                                             └────────────────────────────┘
+> //                                             This function runs LATER,
+> //                                             when a new message is inserted
+> ```
+>
+> This is called a **callback** — code that runs when something happens.
 
 Learning note: Realtime is excellent for collaborative and live features, but consider scaling implications and use targeted channels/filters to limit unnecessary traffic.
 
@@ -246,6 +433,34 @@ SUPABASE_URL=https://xyz.supabase.co
 SUPABASE_ANON_KEY=eyJhbGciOi...
 SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOi...
 ```
+
+> 💡 **JS/TS Learning Note — Environment Variables**
+>
+> Environment variables store secrets and config **outside** your code:
+>
+> ```
+> # .env file (local development)
+> DATABASE_PASSWORD=super_secret_123
+> API_KEY=abc123xyz
+> ```
+>
+> **Accessing them in code:**
+>
+> ```javascript
+> // Node.js / Server
+> process.env.SUPABASE_URL;
+>
+> // Vite (browser)
+> import.meta.env.VITE_SUPABASE_URL; // Must start with VITE_
+> ```
+>
+> **Why `.env` files?**
+>
+> - ✅ Secrets stay out of git history
+> - ✅ Different values per environment (dev vs production)
+> - ✅ Easy to change without editing code
+>
+> **Critical:** Add `.env` to `.gitignore` so it's never committed!
 
 Learning note: Rotate `service_role` keys if they get exposed and use short-lived tokens where possible for external services.
 
@@ -303,6 +518,36 @@ await supabase.auth.signUp({ email: "me@example.com", password: "password" });
 // query
 const { data, error } = await supabase.from("profiles").select("*");
 ```
+
+> 💡 **JS/TS Learning Note — Destructuring**
+>
+> **Destructuring** extracts values from objects or arrays:
+>
+> ```javascript
+> // Without destructuring
+> const result = await supabase.from("profiles").select("*");
+> const data = result.data;
+> const error = result.error;
+>
+> // With destructuring (same thing, shorter)
+> const { data, error } = await supabase.from("profiles").select("*");
+> ```
+>
+> **More examples:**
+>
+> ```javascript
+> // Object destructuring
+> const user = { name: "Ana", age: 28 };
+> const { name, age } = user; // name = "Ana", age = 28
+>
+> // Array destructuring (useState uses this!)
+> const [first, second] = ["a", "b"]; // first = "a", second = "b"
+> const [count, setCount] = useState(0); // React!
+>
+> // Renaming while destructuring
+> const { data: profiles } = await supabase.from("profiles").select("*");
+> // profiles = the data, original name "data" not used
+> ```
 
 Server-side (Node) example for a protected operation:
 

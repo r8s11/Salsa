@@ -21,8 +21,8 @@ By the end of this phase, you will have:
 
 ## 📚 Concepts You'll Learn
 
-| Concept                               | Why It Matters                                 |
-| ------------------------------------- | ---------------------------------------------- |
+| Concept                         | Why It Matters                                 |
+| ------------------------------- | ---------------------------------------------- |
 | **Backend as a Service (BaaS)** | Build full-stack apps without managing servers |
 | **PostgreSQL**                  | Industry-standard relational database          |
 | **RESTful APIs**                | How frontend talks to backend                  |
@@ -73,13 +73,21 @@ Supabase is an **open-source Firebase alternative** that provides:
 | Manage database migrations    | ✅ Built-in migration tools |
 | Handle authentication         | ✅ Built-in auth system     |
 | Deploy and scale servers      | ✅ Hosted and auto-scaled   |
-| **Time:** Weeks         | **Time:** Hours       |
+| **Time:** Weeks               | **Time:** Hours             |
 
 **Analogy:** Building your own backend is like building a car from scratch. Supabase is like buying a Tesla - it comes with everything you need, fully assembled.
 
 ---
 
 ## Day 1: Create Supabase Account & Project (2 hours)
+
+**What you'll accomplish:**
+
+1. Sign up for Supabase
+2. Create a new project
+3. Get your API keys
+4. Set up environment variables
+5. Install the Supabase client
 
 ### Step 1.1: Sign Up for Supabase
 
@@ -94,11 +102,11 @@ Supabase is an **open-source Firebase alternative** that provides:
 
 1. Click **"New Project"**
 2. Fill in the project details:
-
    - **Name:** `salsasegura` (or your preference)
    - **Database Password:** Generate a strong password and **save it somewhere safe!**
    - **Region:** Choose closest to your users (e.g., `US East (Ohio)` for Boston)
    - **Pricing Plan:** Free (includes 500MB database, 1GB file storage, 2GB bandwidth)
+
 3. Click **"Create new project"**
 4. Wait ~2 minutes for provisioning
 
@@ -120,8 +128,8 @@ Once your project is ready:
 2. Click **"API"** under Project Settings
 3. You'll see two important keys:
 
-| Key                    | Purpose           | When to Use                  |
-| ---------------------- | ----------------- | ---------------------------- |
+| Key              | Purpose           | When to Use                  |
+| ---------------- | ----------------- | ---------------------------- |
 | **Project URL**  | Your API endpoint | All requests                 |
 | **anon public**  | Public API key    | Frontend (safe to expose)    |
 | **service_role** | Admin key         | Backend only (NEVER expose!) |
@@ -175,27 +183,57 @@ Open `.gitignore` and ensure it includes:
 In your terminal, run:
 
 ```bash
-npm install @supabase/supabase-js
+bun add @supabase/supabase-js
 ```
 
 This installs the official Supabase client library for JavaScript/TypeScript.
+
+> 💡 **JS/TS Learning Note — Package Scopes**
+>
+> Notice the `@supabase/` prefix? That's called a **scope**:
+>
+> ```bash
+> bun add @supabase/supabase-js
+> #       │          └── Package name
+> #       └── Scope (organization/author)
+> ```
+>
+> **Why scopes?**
+>
+> - Prevents name conflicts (many `utils` packages exist)
+> - Groups related packages (`@supabase/supabase-js`, `@supabase/auth-js`)
+> - Shows who maintains it (official packages)
+>
+> **Common scopes you'll see:**
+>
+> - `@supabase/...` — Supabase official
+> - `@types/...` — TypeScript type definitions
+> - `@testing-library/...` — Testing utilities
+> - `@tanstack/...` — React Query, etc.
 
 ### ✅ Day 1 Checkpoint
 
 You should now have:
 
-- [X] Supabase account created
-- [X] Project provisioned and running
-- [X] API keys saved
-- [X] `.env.local` file created with keys
-- [X] `.gitignore` protecting `.env.local`
-- [X] `@supabase/supabase-js` installed
+- [x] Supabase account created
+- [x] Project provisioned and running
+- [x] API keys saved
+- [x] `.env.local` file created with keys
+- [x] `.gitignore` protecting `.env.local`
+- [x] `@supabase/supabase-js` installed
 
 **Test:** Run `npm run dev` - your app should still work (we haven't broken anything yet!).
 
 ---
 
 ## Day 2: Design & Create Database Schema (2 hours)
+
+**What you'll accomplish:**
+
+1. Understand database schema design concepts
+2. Plan the events data model
+3. Create the events table with SQL
+4. Add test data to verify it works
 
 ### Step 2.1: Understanding Database Schema Design
 
@@ -208,20 +246,20 @@ A **database schema** is the blueprint of your database - it defines:
 
 **💡 Learning Note - Relational Database Concepts:**
 
-| Concept               | Analogy            | Example                              |
-| --------------------- | ------------------ | ------------------------------------ |
-| **Table**       | Spreadsheet        | `events` table                     |
+| Concept         | Analogy            | Example                        |
+| --------------- | ------------------ | ------------------------------ |
+| **Table**       | Spreadsheet        | `events` table                 |
 | **Column**      | Spreadsheet column | `title`, `date`, `location`    |
-| **Row**         | Spreadsheet row    | One event                            |
-| **Primary Key** | Unique ID          | `id` (identifies each row)         |
+| **Row**         | Spreadsheet row    | One event                      |
+| **Primary Key** | Unique ID          | `id` (identifies each row)     |
 | **Data Type**   | Column format      | `text`, `integer`, `timestamp` |
 
 ### Step 2.2: Event Data Model
 
 Let's design what information we need to store for each event:
 
-| Field            | Type      | Purpose                   | Required?            |
-| ---------------- | --------- | ------------------------- | -------------------- |
+| Field          | Type      | Purpose                   | Required?            |
+| -------------- | --------- | ------------------------- | -------------------- |
 | `id`           | UUID      | Unique identifier         | ✅ Auto-generated    |
 | `title`        | Text      | Event name                | ✅                   |
 | `description`  | Text      | Event details             | ❌ Optional          |
@@ -239,14 +277,14 @@ Let's design what information we need to store for each event:
 
 **💡 Learning Note - Data Types Explained:**
 
-| SQL Data Type | JavaScript Equivalent       | Example                                    |
-| ------------- | --------------------------- | ------------------------------------------ |
-| `text`      | `string`                  | `"Salsa Night"`                          |
-| `integer`   | `number` (whole)          | `42`                                     |
-| `numeric`   | `number` (decimal)        | `19.99`                                  |
-| `timestamp` | `Date`                    | `2026-01-15 20:00:00`                    |
-| `uuid`      | `string` (special format) | `"550e8400-e29b-41d4-a716-446655440000"` |
-| `boolean`   | `boolean`                 | `true` / `false`                       |
+| SQL Data Type | JavaScript Equivalent     | Example                                  |
+| ------------- | ------------------------- | ---------------------------------------- |
+| `text`        | `string`                  | `"Salsa Night"`                          |
+| `integer`     | `number` (whole)          | `42`                                     |
+| `numeric`     | `number` (decimal)        | `19.99`                                  |
+| `timestamp`   | `Date`                    | `2026-01-15 20:00:00`                    |
+| `uuid`        | `string` (special format) | `"550e8400-e29b-41d4-a716-446655440000"` |
+| `boolean`     | `boolean`                 | `true` / `false`                         |
 
 **UUID (Universally Unique Identifier):**
 A 128-bit number guaranteed to be unique. Much better than auto-incrementing integers because:
@@ -486,22 +524,45 @@ select * from events limit 10;  -- First 10 rows
 
 You should now have:
 
-- [X] Events table created with proper schema
-- [X] Indexes for performance
-- [X] Row Level Security enabled
-- [X] 3 test events inserted
-- [X] Verified data in Table Editor
+- [x] Events table created with proper schema
+- [x] Indexes for performance
+- [x] Row Level Security enabled
+- [x] 3 test events inserted
+- [x] Verified data in Table Editor
 
 ---
 
 ## Day 3: Connect React to Supabase (3 hours)
 
+**What you'll accomplish:**
+
+1. Create the Supabase client file
+2. Define TypeScript types for database
+3. Create a hook to fetch events
+4. Test the connection works
+
 ### Step 3.1: Create Supabase Client
+
+**Step-by-step:**
+
+1. Create the lib folder:
+
+   ```bash
+   mkdir -p src/lib
+   ```
+
+2. Create the supabase client file:
+
+   ```bash
+   touch src/lib/supabase.ts
+   ```
+
+3. Add the following code:
 
 Create file: `src/lib/supabase.ts`
 
 ```typescript
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from "@supabase/supabase-js";
 
 // Get environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -510,7 +571,7 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 // Validate environment variables exist
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error(
-    'Missing Supabase environment variables. Check your .env.local file.'
+    "Missing Supabase environment variables. Check your .env.local file."
   );
 }
 
@@ -523,10 +584,10 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 `import.meta.env` is how Vite exposes environment variables to your code.
 
 ```typescript
-import.meta.env.VITE_SUPABASE_URL  // Access env variable
-import.meta.env.MODE  // "development" or "production"
-import.meta.env.DEV   // true in development
-import.meta.env.PROD  // true in production
+import.meta.env.VITE_SUPABASE_URL; // Access env variable
+import.meta.env.MODE; // "development" or "production"
+import.meta.env.DEV; // true in development
+import.meta.env.PROD; // true in production
 ```
 
 **Why validate variables exist?**
@@ -536,7 +597,7 @@ If someone clones your repo without setting up `.env.local`, they'll get a clear
 
 Update `src/types/events.ts` to add database types:
 
-```typescript
+````typescript
 import 'temporal-polyfill/global';
 
 // Event types for the calendar (used as calendarId in Schedule-X)
@@ -641,6 +702,39 @@ export function databaseEventToScheduleX(event: DatabaseEvent): ScheduleXEvent {
   };
 }
 
+> 💡 **JS/TS Learning Note — `null` vs `undefined`**
+>
+> JavaScript has TWO "empty" values:
+>
+> | Value | Meaning | When you see it |
+> |-------|---------|-----------------|
+> | `null` | "Intentionally empty" | Database columns, explicit assignment |
+> | `undefined` | "Not set" | Optional properties, missing function args |
+>
+> **Why convert `null` to `undefined`?**
+> ```typescript
+> // Database returns null for empty fields
+> event.location  // null
+>
+> // But Schedule-X expects undefined for optional fields
+> location?: string;  // ? means "might be undefined"
+>
+> // So we convert:
+> event.location ?? undefined
+> //              └── If null or undefined, use undefined
+> ```
+>
+> **`??` (nullish coalescing) vs `||` (or):**
+> ```typescript
+> null ?? "default"     // "default"
+> undefined ?? "default" // "default"
+> "" ?? "default"       // "" (empty string is NOT nullish)
+> 0 ?? "default"        // 0 (zero is NOT nullish)
+>
+> "" || "default"       // "default" (empty string IS falsy)
+> 0 || "default"        // "default" (zero IS falsy)
+> ```
+
 // Helper to format Date as "YYYY-MM-DD HH:mm"
 function formatDateTimeForScheduleX(date: Date): string {
   const year = date.getFullYear();
@@ -648,6 +742,39 @@ function formatDateTimeForScheduleX(date: Date): string {
   const day = String(date.getDate()).padStart(2, '0');
   const hours = String(date.getHours()).padStart(2, '0');
   const minutes = String(date.getMinutes()).padStart(2, '0');
+
+> 💡 **JS/TS Learning Note — Date Methods & padStart**
+>
+> **Date object methods:**
+> ```typescript
+> const date = new Date('2026-02-14T19:30:00');
+>
+> date.getFullYear()   // 2026
+> date.getMonth()      // 1 (months are 0-indexed! Jan=0, Feb=1)
+> date.getDate()       // 14 (day of month)
+> date.getHours()      // 19
+> date.getMinutes()    // 30
+> ```
+>
+> **Why `getMonth() + 1`?**
+> JavaScript months start at 0 (January = 0, February = 1).
+> We add 1 to get human-friendly months.
+>
+> **`String()` conversion:**
+> ```typescript
+> String(5)           // "5" (number to string)
+> String(date.getMonth())  // "1"
+> ```
+>
+> **`padStart(2, '0')` method:**
+> Ensures the string is at least 2 characters, padding with '0' on the left:
+> ```typescript
+> "5".padStart(2, '0')   // "05"
+> "12".padStart(2, '0')  // "12" (already 2 chars, no padding)
+> "3".padStart(3, '0')   // "003"
+> ```
+>
+> This ensures dates look like `"2026-02-05"` not `"2026-2-5"`.
 
   return `${year}-${month}-${day} ${hours}:${minutes}`;
 }
@@ -670,7 +797,7 @@ export function bostonDateTime(
     timeZone: 'America/New_York',
   });
 }
-```
+````
 
 **💡 Learning Note - Type Safety:**
 
@@ -678,13 +805,13 @@ TypeScript interfaces ensure type safety between database and frontend:
 
 ```typescript
 interface DatabaseEvent {
-  event_type: EventType;  // ✅ Only 'social' | 'class' | 'workshop'
-  price_amount: number | null;  // ✅ Can be number OR null
+  event_type: EventType; // ✅ Only 'social' | 'class' | 'workshop'
+  price_amount: number | null; // ✅ Can be number OR null
 }
 
 const event: DatabaseEvent = {
-  event_type: 'party',  // ❌ TypeScript error! Not a valid EventType
-  price_amount: 'free',  // ❌ TypeScript error! Should be number or null
+  event_type: "party", // ❌ TypeScript error! Not a valid EventType
+  price_amount: "free", // ❌ TypeScript error! Should be number or null
 };
 ```
 
@@ -693,13 +820,13 @@ const event: DatabaseEvent = {
 In SQL, columns can be `NULL` (no value). TypeScript represents this as:
 
 ```typescript
-location: string | null  // Can be "Havana Club" OR null
+location: string | null; // Can be "Havana Club" OR null
 ```
 
 The `??` operator provides defaults:
 
 ```typescript
-location: event.location ?? undefined  // If null, use undefined instead
+location: event.location ?? undefined; // If null, use undefined instead
 ```
 
 ### Step 3.3: Create Supabase Events Hook
@@ -707,9 +834,13 @@ location: event.location ?? undefined  // If null, use undefined instead
 Create file: `src/hooks/useSupabaseEvents.ts`
 
 ```typescript
-import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
-import { DatabaseEvent, ScheduleXEvent, databaseEventToScheduleX } from '../types/events';
+import { useState, useEffect } from "react";
+import { supabase } from "../lib/supabase";
+import {
+  DatabaseEvent,
+  ScheduleXEvent,
+  databaseEventToScheduleX,
+} from "../types/events";
 
 export function useSupabaseEvents() {
   const [events, setEvents] = useState<ScheduleXEvent[]>([]);
@@ -718,39 +849,140 @@ export function useSupabaseEvents() {
 
   useEffect(() => {
     async function fetchEvents() {
+```
+
+> 💡 **React Learning Note — useEffect for Data Fetching**
+>
+> `useEffect` lets you perform **side effects** after render:
+>
+> ```typescript
+> useEffect(() => {
+>   // This code runs AFTER the component renders
+>   fetchData();
+> }, []); // Empty array = run only ONCE (on mount)
+> ```
+>
+> **What are "side effects"?**
+>
+> - Fetching data from APIs/databases
+> - Setting up subscriptions
+> - Changing the document title
+> - Anything that affects things OUTSIDE the component
+>
+> **The dependency array `[]`:**
+>
+> ```typescript
+> useEffect(() => {...}, []);        // Run once on mount
+> useEffect(() => {...}, [userId]);  // Run when userId changes
+> useEffect(() => {...});            // Run after EVERY render (careful!)
+> ```
+>
+> **Common data fetching pattern:**
+>
+> ```typescript
+> useEffect(() => {
+>   setLoading(true); // 1. Start loading
+>   fetchData()
+>     .then((data) => setData(data)) // 2. Save data
+>     .catch((err) => setError(err)) // 3. Handle errors
+>     .finally(() => setLoading(false)); // 4. Stop loading
+> }, []);
+> ```
+
+```typescript
       try {
         setLoading(true);
         setError(null);
 
         // Query Supabase for approved events
         const { data, error: fetchError } = await supabase
-          .from('events')
-          .select('*')
-          .eq('status', 'approved')  // Only approved events
-          .gte('event_date', new Date().toISOString())  // Only future events
-          .order('event_date', { ascending: true });
+          .from("events")
+          .select("*")
+          .eq("status", "approved") // Only approved events
+          .gte("event_date", new Date().toISOString()) // Only future events
+          .order("event_date", { ascending: true });
 
         if (fetchError) {
           throw fetchError;
         }
 
         // Convert database events to Schedule-X format
-        const scheduleXEvents = (data as DatabaseEvent[]).map(databaseEventToScheduleX);
+        const scheduleXEvents = (data as DatabaseEvent[]).map(
+          databaseEventToScheduleX
+        );
         setEvents(scheduleXEvents);
       } catch (err) {
-        console.error('Error fetching events from Supabase:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load events');
+        console.error("Error fetching events from Supabase:", err);
+        setError(err instanceof Error ? err.message : "Failed to load events");
       } finally {
         setLoading(false);
       }
     }
 
     fetchEvents();
-  }, []);  // Empty dependency array = run once on mount
+  }, []); // Empty dependency array = run once on mount
 
   return { events, loading, error };
 }
 ```
+
+> 💡 **React Learning Note — Loading/Error/Data Pattern**
+>
+> Most data-fetching components follow this pattern:
+>
+> ```tsx
+> function EventsList() {
+>   const { events, loading, error } = useSupabaseEvents();
+>
+>   // 1. Show loading state
+>   if (loading) {
+>     return <div>Loading...</div>;
+>   }
+>
+>   // 2. Show error state
+>   if (error) {
+>     return <div>Error: {error}</div>;
+>   }
+>
+>   // 3. Show empty state
+>   if (events.length === 0) {
+>     return <div>No events found</div>;
+>   }
+>
+>   // 4. Show data
+>   return (
+>     <ul>
+>       {events.map((event) => (
+>         <li key={event.id}>{event.title}</li>
+>       ))}
+>     </ul>
+>   );
+> }
+> ```
+>
+> **Why check in this order?**
+>
+> 1. While loading, we don't have data yet
+> 2. If error, something went wrong — show message
+> 3. If empty, fetch succeeded but no results
+> 4. Finally, we have data to display
+>
+> **The `key` prop:**
+> When rendering lists, React needs a unique `key` for each item:
+>
+> ```tsx
+> {
+>   events.map((event) => (
+>     <li key={event.id}>
+>       {" "}
+>       {/* ← Required! */}
+>       {event.title}
+>     </li>
+>   ));
+> }
+> ```
+>
+> This helps React efficiently update the list when items change.
 
 **💡 Learning Note - Supabase Query API:**
 
@@ -758,17 +990,17 @@ Supabase provides a JavaScript query builder that mirrors SQL:
 
 ```typescript
 await supabase
-  .from('events')              // SELECT * FROM events
-  .select('*')                 // Get all columns
-  .eq('status', 'approved')    // WHERE status = 'approved'
-  .gte('event_date', date)     // AND event_date >= date
-  .order('event_date', { ascending: true });  // ORDER BY event_date ASC
+  .from("events") // SELECT * FROM events
+  .select("*") // Get all columns
+  .eq("status", "approved") // WHERE status = 'approved'
+  .gte("event_date", date) // AND event_date >= date
+  .order("event_date", { ascending: true }); // ORDER BY event_date ASC
 ```
 
 **Common query methods:**
 
-| Method              | SQL Equivalent         | Example                                 |
-| ------------------- | ---------------------- | --------------------------------------- |
+| Method            | SQL Equivalent       | Example                               |
+| ----------------- | -------------------- | ------------------------------------- |
 | `.eq(col, val)`   | `WHERE col = val`    | `.eq('type', 'social')`               |
 | `.neq(col, val)`  | `WHERE col != val`   | `.neq('status', 'rejected')`          |
 | `.gt(col, val)`   | `WHERE col > val`    | `.gt('price', 0)`                     |
@@ -783,7 +1015,7 @@ await supabase
 **Error handling pattern:**
 
 ```typescript
-const { data, error } = await supabase.from('events').select('*');
+const { data, error } = await supabase.from("events").select("*");
 
 if (error) {
   // Handle error
@@ -875,14 +1107,21 @@ Run `npm run dev` and check the homepage. You should see your 3 test events list
 
 You should now have:
 
-- [X] Supabase client configured (`src/lib/supabase.ts`)
-- [X] Database types defined (`src/types/events.ts`)
-- [X] Custom hook to fetch events (`src/hooks/useSupabaseEvents.ts`)
-- [X] Successfully fetched and displayed events from Supabase
+- [x] Supabase client configured (`src/lib/supabase.ts`)
+- [x] Database types defined (`src/types/events.ts`)
+- [x] Custom hook to fetch events (`src/hooks/useSupabaseEvents.ts`)
+- [x] Successfully fetched and displayed events from Supabase
 
 ---
 
 ## Day 4: Combine Markdown + Database Events (2 hours)
+
+**What you'll accomplish:**
+
+1. Create a unified `useEvents` hook that combines multiple data sources
+2. Update Calendar component to use the new hook
+3. Add loading and error states to the Calendar
+4. Test the calendar with live database events
 
 ### Step 4.1: Create Unified Events Hook
 
@@ -891,14 +1130,18 @@ Now we'll create a hook that combines events from both sources.
 Create file: `src/hooks/useEvents.ts`:
 
 ```typescript
-import { useState, useEffect } from 'react';
-import { ScheduleXEvent } from '../types/events';
-import { useSupabaseEvents } from './useSupabaseEvents';
+import { useState, useEffect } from "react";
+import { ScheduleXEvent } from "../types/events";
+import { useSupabaseEvents } from "./useSupabaseEvents";
 // Import your existing markdown events hook if you have one
 // import { useMarkdownEvents } from './useMarkdownEvents';
 
 export function useEvents() {
-  const { events: supabaseEvents, loading: supabaseLoading, error: supabaseError } = useSupabaseEvents();
+  const {
+    events: supabaseEvents,
+    loading: supabaseLoading,
+    error: supabaseError,
+  } = useSupabaseEvents();
   // const { events: markdownEvents, loading: markdownLoading } = useMarkdownEvents();
 
   const [allEvents, setAllEvents] = useState<ScheduleXEvent[]>([]);
@@ -929,8 +1172,8 @@ Hooks can call other hooks! This is called **hook composition**.
 
 ```typescript
 function useEvents() {
-  const hookA = useSupabaseEvents();  // ✅ Can call hooks
-  const hookB = useMarkdownEvents();  // ✅ Can call multiple hooks
+  const hookA = useSupabaseEvents(); // ✅ Can call hooks
+  const hookB = useMarkdownEvents(); // ✅ Can call multiple hooks
 
   // Combine the results
   return { events: [...hookA.events, ...hookB.events] };
@@ -980,12 +1223,12 @@ const calendar = useCalendarApp({
     createViewMonthGrid(),
     createViewMonthAgenda(),
   ],
-  events: events,  // Use events from database instead of testEvents
+  events: events, // Use events from database instead of testEvents
   calendars: CALENDARS_CONFIG,
   plugins: [eventsService],
-  selectedDate: "2026-01-30",  // Set to a date with your test events
+  selectedDate: "2026-01-30", // Set to a date with your test events
   isDark: true,
-  locale: 'en-US',
+  locale: "en-US",
   firstDayOfWeek: 0,
   callbacks: {
     onEventClick(calendarEvent) {
@@ -1042,14 +1285,21 @@ export default function Calendar() {
 
 You should now have:
 
-- [X] Unified `useEvents` hook combining data sources
-- [X] Calendar displaying events from Supabase
-- [X] Loading and error states implemented
-- [X] Event modal working with database events
+- [x] Unified `useEvents` hook combining data sources
+- [x] Calendar displaying events from Supabase
+- [x] Loading and error states implemented
+- [x] Event modal working with database events
 
 ---
 
 ## Day 5: Add "Salsa Segura" Event Badges (2 hours)
+
+**What you'll accomplish:**
+
+1. Add a `source` column to the database to track event origins
+2. Update TypeScript types to include the new field
+3. Create a styled badge component for "Salsa Segura" events
+4. Visually distinguish your curated events from community submissions
 
 Right now, all events look the same. Let's add special badges to YOUR events (the ones you create directly).
 
@@ -1083,12 +1333,12 @@ export interface DatabaseEvent {
   event_time: string | null;
   location: string | null;
   address: string | null;
-  price_type: 'free' | 'paid' | null;
+  price_type: "free" | "paid" | null;
   price_amount: number | null;
   rsvp_link: string | null;
   image_url: string | null;
-  status: 'approved' | 'pending' | 'rejected';
-  source: 'salsasegura' | 'community';  // Add this line
+  status: "approved" | "pending" | "rejected";
+  source: "salsasegura" | "community"; // Add this line
   created_at: string;
 }
 
@@ -1102,7 +1352,7 @@ export interface ScheduleXEvent {
   description?: string;
   address?: string;
   rsvpLink?: string;
-  source?: 'salsasegura' | 'community';  // Add this line
+  source?: "salsasegura" | "community"; // Add this line
 }
 ```
 
@@ -1125,7 +1375,7 @@ export function databaseEventToScheduleX(event: DatabaseEvent): ScheduleXEvent {
     description: event.description ?? undefined,
     address: event.address ?? undefined,
     rsvpLink: event.rsvp_link ?? undefined,
-    source: event.source,  // Add this line
+    source: event.source, // Add this line
   };
 }
 ```
@@ -1183,14 +1433,21 @@ Add CSS for the badge in your `Calendar.css` or `EventModal.css`:
 
 You should now have:
 
-- [X] `source` column added to database
-- [X] Types updated to include source
-- [X] Badge displaying on your events
-- [X] Styled badge with gradient background
+- [x] `source` column added to database
+- [x] Types updated to include source
+- [x] Badge displaying on your events
+- [x] Styled badge with gradient background
 
 ---
 
 ## Day 6: Deploy with Environment Variables (1 hour)
+
+**What you'll accomplish:**
+
+1. Configure environment variables in Azure App Service
+2. Deploy your Supabase-connected app to production
+3. Test all features on your live site
+4. Verify database connectivity in production
 
 ### Step 6.1: Update Build Command (Vite Specific)
 
@@ -1207,8 +1464,8 @@ Your app is deployed on Azure. You need to add the Supabase credentials there.
 3. Under **"Application settings"**, click **"+ New application setting"**
 4. Add both variables:
 
-| Name                       | Value                     |
-| -------------------------- | ------------------------- |
+| Name                     | Value                     |
+| ------------------------ | ------------------------- |
 | `VITE_SUPABASE_URL`      | Your Supabase project URL |
 | `VITE_SUPABASE_ANON_KEY` | Your Supabase anon key    |
 
@@ -1219,12 +1476,12 @@ Your app is deployed on Azure. You need to add the Supabase credentials there.
 
 Different platforms have different ways to set environment variables:
 
-| Platform          | How to Set                                           |
-| ----------------- | ---------------------------------------------------- |
+| Platform    | How to Set                                         |
+| ----------- | -------------------------------------------------- |
 | **Azure**   | App Service → Configuration → Application settings |
-| **Vercel**  | Project Settings → Environment Variables            |
+| **Vercel**  | Project Settings → Environment Variables           |
 | **Netlify** | Site Settings → Build & Deploy → Environment       |
-| **Heroku**  | Settings → Config Vars                              |
+| **Heroku**  | Settings → Config Vars                             |
 
 ### Step 6.3: Deploy Your Code
 
@@ -1264,10 +1521,10 @@ npm run build
 
 You should now have:
 
-- [X] Environment variables configured in Azure
-- [X] Code committed and pushed
-- [X] Production site loading events from Supabase
-- [X] All features working in production
+- [x] Environment variables configured in Azure
+- [x] Code committed and pushed
+- [x] Production site loading events from Supabase
+- [x] All features working in production
 
 ---
 

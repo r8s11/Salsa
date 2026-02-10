@@ -1,6 +1,6 @@
+import React from "react";
 import { ScheduleXEvent } from "../../types/events";
 import "./EventModal.css";
-
 
 interface EventModalProps {
   event: ScheduleXEvent | null;
@@ -15,30 +15,37 @@ export default function EventModal({ event, onClose }: EventModalProps) {
     }
   };
 
-  // Format date and time from Temporal.ZoneDataTime
-  const formatDate = (dt: Temporal.ZonedDateTime) => {
-    return dt.toLocaleString("en-US", {
+  // Normalize a start/end value that may be a string or a Temporal.ZonedDateTime
+  const toDate = (val: unknown): Date => {
+    if (typeof val === "string") {
+      return new Date(val.replace(" ", "T"));
+    }
+    // Temporal.ZonedDateTime — convert via epochMilliseconds
+    if (val && typeof val === "object" && "epochMilliseconds" in val) {
+      return new Date(Number((val as { epochMilliseconds: bigint }).epochMilliseconds));
+    }
+    return new Date(String(val));
+  };
+
+  // Format date from "YYYY-MM-DD HH:mm" string
+  const formatDate = (dateVal: unknown) => {
+    const date = toDate(dateVal);
+    return date.toLocaleDateString("en-US", {
       weekday: "long",
       year: "numeric",
       month: "long",
       day: "numeric",
     });
   };
-  const formatTime = (
-    start: Temporal.ZonedDateTime,
-    end: Temporal.ZonedDateTime
-  ) => {
-    const startTime = start.toLocaleString("en-US", {
+
+  const formatTime = (startVal: unknown, endVal: unknown) => {
+    const startDate = toDate(startVal);
+    const endDate = toDate(endVal);
+    const opts: Intl.DateTimeFormatOptions = {
       hour: "numeric",
       minute: "2-digit",
-      hour12: true,
-    });
-    const endTime = end.toLocaleString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    });
-    return `${startTime} - ${endTime}`;
+    };
+    return `${startDate.toLocaleTimeString("en-US", opts)} - ${endDate.toLocaleTimeString("en-US", opts)}`;
   };
   return (
     <div
@@ -51,26 +58,18 @@ export default function EventModal({ event, onClose }: EventModalProps) {
       <div className="modal-content">
         <div className="modal-header">
           <h2 id="modal-title">{event.title}</h2>
-          <button
-            className="modal-close"
-            onClick={onClose}
-            aria-label="Close Modal"
-          >
+          <button className="modal-close" onClick={onClose} aria-label="Close Modal">
             x
           </button>
         </div>
         <div className="modal-body">
-          <span className={`event-type-badge ${event.calendarId}`}>
-            {event.calendarId}
-          </span>
+          <span className={`event-type-badge ${event.calendarId}`}>{event.calendarId}</span>
           <div className="event-detail">
             <span className="event-detail-label">Date: </span>
-            <span className="event-detail-value">
-              {formatDate(event.start)}
-            </span>
-            </div>
+            <span className="event-detail-value">{formatDate(event.start)}</span>
+          </div>
           <div className="event-detail">
-          <span className="event-detail-label">Time: </span>
+            <span className="event-detail-label">Time: </span>
             <span className="event-detail-value">{formatTime(event.start, event.end)}</span>
           </div>
           {event.location && (

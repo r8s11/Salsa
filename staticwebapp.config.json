@@ -1,12 +1,13 @@
 {
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["*.{jpg,jpeg,gif,png,svg,webp,ico,woff,woff2,ttf,eot,css,js,map}", "assets/*"]
-  },
+
+    "exclude": ["*.{jpg,jpeg,gif,png,svg,webp,ico,woff,woff2,ttf,eot,css,js,map}", "assets/*"] 
   "routes": [
     {
       "route": "/calendar",
       "rewrite": "/calendar"
+
     }
   ]
 }

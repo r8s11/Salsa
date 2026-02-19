@@ -87,7 +87,7 @@ export function databaseEventToScheduleX(event: DatabaseEvent): ScheduleXEvent {
   const start = formatDateTimeForScheduleX(eventDate);
 
   // Assume 2 hours duration if not specified
-  const endDate = new Date(eventDate.getTime() + 2 * 60 * 60 * 1000);
+  const endDate = new Date(eventDate.getTime() + 4 * 60 * 60 * 1000);
   const end = formatDateTimeForScheduleX(endDate);
 
   return {

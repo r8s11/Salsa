@@ -2,20 +2,22 @@ import { useState, useEffect } from "react";
 import "./Footer.css";
 
 function Footer() {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return localStorage.getItem("darkMode") === "true";
+  });
   const currentYear = new Date().getFullYear();
 
   const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
-    document.body.classList.toggle("dark-mode", !isDarkMode);
-    localStorage.setItem("darkMode", String(!isDarkMode));
+    const next = !isDarkMode;
+    setIsDarkMode(next);
+    document.body.classList.toggle("dark-mode", next);
+    localStorage.setItem("darkMode", String(next));
   };
 
+  // Apply dark mode class on mount (sync with initial state)
   useEffect(() => {
-    const savedDarkMode = localStorage.getItem("darkMode") === "true";
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsDarkMode(savedDarkMode);
-    document.body.classList.toggle("dark-mode", savedDarkMode);
+    document.body.classList.toggle("dark-mode", isDarkMode);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

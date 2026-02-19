@@ -80,9 +80,8 @@ function Header() {
           className="hamburger"
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-expanded={mobileOpen}
-          aria-label="Toggle menu"
+          aria-label={mobileOpen ? "Close menu" : "Open menu"}
         >
-          {""}
           <span></span>
           <span></span>
           <span></span>

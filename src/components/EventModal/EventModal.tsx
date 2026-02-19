@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { ScheduleXEvent } from "../../types/events";
 import "./EventModal.css";
 
@@ -7,6 +7,50 @@ interface EventModalProps {
   onClose: () => void;
 }
 export default function EventModal({ event, onClose }: EventModalProps) {
+  const modalRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  // Focus management: move focus into modal on open, restore on close
+  useEffect(() => {
+    if (event) {
+      previousFocusRef.current = document.activeElement as HTMLElement;
+      // Focus the close button after render
+      const closeBtn = modalRef.current?.querySelector<HTMLButtonElement>(".modal-close");
+      closeBtn?.focus();
+    } else if (previousFocusRef.current) {
+      previousFocusRef.current.focus();
+      previousFocusRef.current = null;
+    }
+  }, [event]);
+
+  // Trap focus inside modal
+  useEffect(() => {
+    if (!event || !modalRef.current) return;
+
+    const handleTab = (e: KeyboardEvent) => {
+      if (e.key !== "Tab" || !modalRef.current) return;
+
+      const focusable = modalRef.current.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    window.addEventListener("keydown", handleTab);
+    return () => window.removeEventListener("keydown", handleTab);
+  }, [event]);
+
   if (!event) return null;
 
   const handleBackdropClick = (e: React.MouseEvent) => {
@@ -54,6 +98,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
+      ref={modalRef}
     >
       <div className="modal-content">
         <div className="modal-header">
@@ -73,14 +118,14 @@ export default function EventModal({ event, onClose }: EventModalProps) {
             <span className="event-detail-value">{formatTime(event.start, event.end)}</span>
           </div>
           {event.location && (
-            <div>
-              <span>Location: </span>
-              <span>{event.location}</span>
+            <div className="event-detail">
+              <span className="event-detail-label">Location: </span>
+              <span className="event-detail-value">{event.location}</span>
             </div>
           )}
           {event.address && (
             <div className="event-detail">
-              <span className="event-detail label">Address: </span>
+              <span className="event-detail-label">Address: </span>
               <span className="event-detail-value">{event.address}</span>
             </div>
           )}

@@ -4,37 +4,17 @@
 /* Page-specific styles */
 .page-content {
   animation: fadeIn 0.3s ease-in-out;
-  /* Prevent content from hiding behind sticky header */
-  padding-top: 0; /* Hero handles its own padding */
+  padding-top: 0;
 }
 
-/* For pages without hero sections */
-
-.about-page,
-.contact-page {
-  padding: 1rem 0;
+/* Lazy loading fallback */
+.page-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   min-height: 60vh;
-}
-
-.about-page h1,
-.contact-page h1 {
-  margin-bottom: 1rem;
-  color: var(--heading-color, #333);
-}
-
-.about-page h2 {
-  margin-top: 2rem;
-  margin-bottom: 0.5rem;
-}
-
-.about-page ul {
-  list-style: none;
-  padding: 0;
-}
-
-.about-page li {
-  padding: 0.5rem 0;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
+  color: #888;
 }
 
 /* 404 Page */

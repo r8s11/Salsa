@@ -99,6 +99,8 @@ export default function SubmitEventPage() {
         price_type: form.price_type || null,
         price_amount: form.price_amount ? parseFloat(form.price_amount) : null,
         rsvp_link: form.rsvp_link || null,
+        submitter_name: form.submitter_name || null,
+        submitter_email: form.submitter_email || null,
         status: "pending", // All submissions start as pending
       });
 
@@ -146,7 +148,7 @@ export default function SubmitEventPage() {
         </p>
 
         {error && (
-          <div className="error-banner">
+          <div className="error-banner" role="alert">
             <p>❌ {error}</p>
           </div>
         )}

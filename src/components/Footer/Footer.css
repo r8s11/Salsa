@@ -33,25 +33,25 @@ footer {
   color: #ff8c42;
 }
 
-.dark-mode-toggle {
-  background: rgba(255, 140, 66, 0.2) !important;
-  border: 2px solid rgba(255, 140, 66, 0.3) !important;
-  border-radius: 50% !important;
-  width: 50px !important;
-  height: 50px !important;
-  font-size: 1.3rem !important;
-  cursor: pointer !important;
-  transition: all 0.3s ease !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  color: #ff8c42 !important;
+footer .dark-mode-toggle {
+  background: rgba(255, 140, 66, 0.2);
+  border: 2px solid rgba(255, 140, 66, 0.3);
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  font-size: 1.3rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #ff8c42;
 }
 
-.dark-mode-toggle:hover {
-  background: rgba(255, 140, 66, 0.4) !important;
-  border-color: rgba(255, 140, 66, 0.6) !important;
-  transform: scale(1.1) !important;
+footer .dark-mode-toggle:hover {
+  background: rgba(255, 140, 66, 0.4);
+  border-color: rgba(255, 140, 66, 0.6);
+  transform: scale(1.1);
 }
 
 /* Dark Mode */
@@ -67,9 +67,9 @@ footer {
     gap: 0.5rem;
   }
 
-  .dark-mode-toggle {
-    width: 45px !important;
-    height: 45px !important;
-    font-size: 1.1rem !important;
+  footer .dark-mode-toggle {
+    width: 45px;
+    height: 45px;
+    font-size: 1.1rem;
   }
 }

@@ -37,7 +37,7 @@ export function useSupabaseEvents() {
           setError(supabaseError.message);
           return;
         }
-        // Conver database events to Schedule-X format
+        // Convert database events to Schedule-X format
         // Data is DatabaseEvent[], we convert each to ScheduleXEvent
         const converted: ScheduleXEvent[] = ((data as DatabaseEvent[]) || []).map(
           databaseEventToScheduleX

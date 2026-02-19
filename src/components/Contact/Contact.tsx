@@ -74,16 +74,7 @@ function Contact() {
           <div className="contact-form-card">
             <h3>📬 Send a Message</h3>
             {error && (
-              <div
-                style={{
-                  padding: "1rem",
-                  marginBottom: "1rem",
-                  backgroundColor: "#fee",
-                  border: "1px solid #c33",
-                  borderRadius: "8px",
-                  color: "#c33",
-                }}
-              >
+              <div role="alert" className="contact-error-banner">
                 {error}
               </div>
             )}

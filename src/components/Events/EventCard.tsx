@@ -28,8 +28,22 @@ export default function EventCard({ event }: { event: ScheduleXEvent }) {
     navigate(`/calendar?event=${event.id}`);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      navigate(`/calendar?event=${event.id}`);
+    }
+  };
+
   return (
-    <article className="event-card" onClick={handleCardClick} role="button" tabIndex={0}>
+    <article
+      className="event-card"
+      onClick={handleCardClick}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={0}
+      aria-label={`${event.title} on ${weekday} ${month} ${day} at ${time}`}
+    >
       <div className="event-date">
         <span className="event-weekday">{weekday}</span>
         <span className="event-day">{day}</span>

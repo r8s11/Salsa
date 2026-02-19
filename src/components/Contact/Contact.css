@@ -94,6 +94,15 @@
   gap: 1.5rem;
 }
 
+.contact-error-banner {
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background-color: rgba(231, 76, 60, 0.15);
+  border: 1px solid rgba(231, 76, 60, 0.5);
+  border-radius: 8px;
+  color: #e74c3c;
+}
+
 .contact-card {
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);

@@ -35,7 +35,7 @@ export interface ScheduleXEvent {
   address?: string;
   rsvpLink?: string;
 }
-// Calenddar Color Configuration
+// Calendar Color Configuration
 export const CALENDARS_CONFIG = {
   social: {
     colorName: "social",

@@ -9,6 +9,7 @@ import {
 } from "@schedule-x/calendar";
 import { createEventsServicePlugin } from "@schedule-x/events-service";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import "temporal-polyfill/global";
 import "./Calendar.css";
 import "@schedule-x/theme-default/dist/index.css";
@@ -162,9 +163,9 @@ export default function Calendar() {
       {/* Submit CTA */}
       <div className="calendar-cta">
         <p>Know about an event that's missing?</p>
-        <a href="/submit" className="cta-button">
+        <Link to="/submit" className="cta-button">
           Submit an Event
-        </a>
+        </Link>
       </div>
 
       {/* Event Detail Modal */}

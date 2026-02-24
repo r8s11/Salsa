@@ -1,77 +1,118 @@
-/* ── Work In Progress Page ── */
+/* ========================================
+   Work In Progress — Noche Ardiente
+   ======================================== */
+
 .wip-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
-  color: white;
+  min-height: calc(100dvh - 68px);
+  background: var(--bg);
+  color: var(--text);
   text-align: center;
   padding: 60px 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Atmospheric glow */
+.wip-container::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -60%);
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(ellipse, rgba(196, 18, 48, 0.12) 0%, transparent 65%);
+  pointer-events: none;
 }
 
 .wip-container .content {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  padding: 3rem 2rem;
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  max-width: 600px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 3.5rem 2.5rem;
+  border-radius: var(--radius-lg);
+  max-width: 560px;
+  position: relative;
+  z-index: 1;
 }
 
-.wip-container h1 {
-  font-family: "Great Vibes", cursive;
-  font-size: 4rem;
-  margin-bottom: 1rem;
-  background: linear-gradient(135deg, #ff8c42, #e74c3c);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+/* Logo heading */
+.wip-container h1.font-great-vibes {
+  font-family: var(--font-logo);
+  font-size: 3.75rem;
+  font-weight: 400;
+  margin-bottom: 0.25rem;
+  color: var(--text);
+  letter-spacing: 0.02em;
 }
 
+/* WIP heading */
 .wip-container h2 {
-  font-size: 2rem;
-  margin-bottom: 1.5rem;
-  font-weight: 300;
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 2rem;
+}
+
+/* Divider */
+.wip-container h2::after {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 2px;
+  background: var(--red);
+  margin: 0.875rem auto 0;
 }
 
 .wip-container p {
-  font-size: 1.2rem;
-  margin-bottom: 1rem;
-  line-height: 1.6;
+  font-size: 0.95rem;
+  line-height: 1.75;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
 }
 
+/* Contact info block */
 .wip-container .contact-info {
   margin-top: 2rem;
   padding-top: 2rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  border-top: 1px solid var(--border);
+}
+
+.wip-container .contact-info p {
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 0.875rem;
 }
 
 .wip-container a {
-  color: #ff8c42;
+  color: var(--gold-light);
   text-decoration: none;
+  font-size: 0.9rem;
   font-weight: 600;
-  font-size: 1.2rem;
-  transition: all 0.3s ease;
   display: inline-block;
-  margin: 0.5rem 0;
+  margin: 0.35rem 0;
+  transition: color 0.2s ease;
 }
 
 .wip-container a:hover {
-  color: #e74c3c;
-  transform: translateY(-2px);
+  color: var(--text);
 }
 
+/* Mobile */
 @media (max-width: 768px) {
-  .wip-container h1 {
-    font-size: 3rem;
-  }
-
-  .wip-container h2 {
-    font-size: 1.5rem;
+  .wip-container h1.font-great-vibes {
+    font-size: 2.75rem;
   }
 
   .wip-container .content {
-    padding: 2rem 1rem;
+    padding: 2.25rem 1.5rem;
   }
 }

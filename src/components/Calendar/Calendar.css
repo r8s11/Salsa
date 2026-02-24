@@ -1,81 +1,80 @@
-/* ── Schedule-X dark-theme overrides ── */
-:root {
-  --sx-color-primary: #ff8c42;
-  --sx-color-on-primary: #fff;
-  --sx-color-primary-container: #3a2a1a;
-  --sx-color-on-primary-container: #ffe4d1;
-  --sx-color-secondary: #625b71;
-  --sx-color-on-secondary: #fff;
-  --sx-color-secondary-container: #2a2535;
-  --sx-color-on-secondary-container: #e8def8;
-  --sx-color-surface: #1a252f;
-  --sx-color-surface-dim: #141c24;
-  --sx-color-surface-bright: #2c3e50;
-  --sx-color-on-surface: #e0e0e0;
-  --sx-color-surface-container: #1e2b36;
-  --sx-color-surface-container-low: #1a252f;
-  --sx-color-surface-container-high: #253340;
-  --sx-color-background: #1a252f;
-  --sx-color-on-background: #e0e0e0;
-  --sx-color-outline: #5a6672;
-  --sx-color-outline-variant: #3a4550;
-  --sx-color-shadow: #000;
-  --sx-color-surface-tint: #ff8c42;
-  --sx-color-neutral: var(--sx-color-outline);
-  --sx-color-neutral-variant: var(--sx-color-outline-variant);
-  --sx-internal-color-gray-ripple-background: #2c3e50;
-  --sx-internal-color-light-gray: #1e2b36;
-  --sx-internal-color-text: #e0e0e0;
-}
+/* ========================================
+   Calendar — Noche Ardiente
+   Schedule-X theme override + page layout
+   ======================================== */
 
-/* ── Reset site header inside calendar ── */
-.calendar-page header {
-  background: revert;
-  z-index: 10;
-  color: revert;
-  position: revert;
-  box-shadow: revert;
+/* ── Schedule-X Theme: Noche Ardiente ── */
+:root {
+  --sx-color-primary:                    #C41230;
+  --sx-color-on-primary:                 #fff;
+  --sx-color-primary-container:          #2A0A10;
+  --sx-color-on-primary-container:       #FFCCD4;
+  --sx-color-secondary:                  #6B5B4E;
+  --sx-color-on-secondary:               #fff;
+  --sx-color-secondary-container:        #2A201C;
+  --sx-color-on-secondary-container:     #E8D8D0;
+  --sx-color-surface:                    #101016;
+  --sx-color-surface-dim:                #080808;
+  --sx-color-surface-bright:             #1C1C24;
+  --sx-color-on-surface:                 #F5F0E8;
+  --sx-color-surface-container:          #16161E;
+  --sx-color-surface-container-low:      #101016;
+  --sx-color-surface-container-high:     #20202A;
+  --sx-color-background:                 #101016;
+  --sx-color-on-background:              #F5F0E8;
+  --sx-color-outline:                    #3A3A45;
+  --sx-color-outline-variant:            #28282F;
+  --sx-color-shadow:                     #000;
+  --sx-color-surface-tint:               #C41230;
+  --sx-color-neutral:                    var(--sx-color-outline);
+  --sx-color-neutral-variant:            var(--sx-color-outline-variant);
+  --sx-internal-color-gray-ripple-background: #1C1C24;
+  --sx-internal-color-light-gray:        #16161E;
+  --sx-internal-color-text:              #F5F0E8;
 }
 
 /* ── Page layout ── */
 .calendar-page {
-  background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
-  color: white;
-  padding: 60px 1.5rem 80px;
-  max-width: 1400px;
+  background: var(--bg);
+  color: var(--text);
+  padding: 72px 1.5rem 100px;
   margin: 0 auto;
-  min-height: calc(100dvh - 200px);
+  min-height: calc(100dvh - 68px);
 }
 
-/* ── Header ── */
+/* ── Page Header ── */
 .calendar-header {
   text-align: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
 }
 
 .calendar-header h1 {
-  font-size: clamp(1.6rem, 3vw, 2.4rem);
-  color: #fff;
-  margin: 0 0 0.75rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 3.5vw, 2.75rem);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin: 0 0 0.5rem;
   position: relative;
   display: inline-block;
 }
 
 .calendar-header h1::after {
   content: "";
-  position: absolute;
-  bottom: -8px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60px;
+  display: block;
+  width: 40px;
   height: 3px;
-  background: linear-gradient(135deg, #ff8c42, #e74c3c);
-  border-radius: 2px;
+  background: var(--red);
+  margin: 0.75rem auto 0;
 }
 
 .calendar-subtitle {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 1.05rem;
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  font-weight: 300;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-muted);
   margin: 0.5rem 0 0;
 }
 
@@ -83,12 +82,12 @@
 .calendar-legend {
   display: flex;
   justify-content: center;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.5rem;
 }
 
 .legend-items {
   display: flex;
-  gap: 1.25rem;
+  gap: 1.75rem;
   flex-wrap: wrap;
   justify-content: center;
 }
@@ -97,64 +96,68 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 0.9rem;
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
 }
 
 .legend-dot {
-  width: 12px;
-  height: 12px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   display: inline-block;
+  flex-shrink: 0;
 }
 
-.legend-dot.social {
-  background: #ff8c42;
-}
-.legend-dot.class {
-  background: #3498db;
-}
-.legend-dot.workshop {
-  background: #27ae60;
-}
+.legend-dot.social   { background: var(--gold); }
+.legend-dot.class    { background: #3A8FD6; }
+.legend-dot.workshop { background: #2E9E66; }
 
-/* ── Loading / Error states ── */
+/* ── Loading / Error States ── */
 .calendar-status {
   text-align: center;
   padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 1rem;
-  max-width: 600px;
-  margin: 0 auto;
+  background: var(--card);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  max-width: 560px;
+  margin: 0 auto 1.5rem;
 }
 
 .calendar-error {
-  background: rgba(231, 76, 60, 0.2);
-  border: 1px solid rgba(231, 76, 60, 0.5);
-  color: #e74c3c;
+  background: var(--red-dim);
+  border-color: rgba(196, 18, 48, 0.3);
+  color: #FF8080;
 }
 
 .calendar-error button {
-  margin-top: 0.75rem;
-  padding: 10px 20px;
-  background: linear-gradient(135deg, #ff8c42, #e74c3c);
+  margin-top: 0.875rem;
+  padding: 8px 20px;
+  background: var(--red);
   color: white;
   border: none;
-  border-radius: 50px;
-  cursor: pointer;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
   font-weight: 600;
-  transition: all 0.3s ease;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s ease;
 }
 
 .calendar-error button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 20px rgba(255, 140, 66, 0.4);
+  background: var(--red-bright);
 }
 
-/* ── Calendar wrapper ── */
+/* ── Calendar Wrapper ── */
 .calendar-main {
   margin: 0 auto;
   max-width: 1200px;
@@ -162,48 +165,52 @@
 
 .sx-react-calendar-wrapper {
   width: 100%;
-  height: 700px;
-  max-height: 75dvh;
-  border-radius: 16px;
+  height: 800px;
+  max-height: 80dvh;
+  border-radius: var(--radius-md);
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
 }
 
 /* ── Submit CTA ── */
 .calendar-cta {
   text-align: center;
-  margin-top: 2.5rem;
-  padding: 2rem 1.5rem 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.9);
+  margin-top: 3rem;
+  padding: 2.5rem 1.5rem 0;
+  border-top: 1px solid var(--border);
 }
 
 .calendar-cta p {
-  margin-bottom: 1rem;
-  font-size: 1.1rem;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin-bottom: 1.25rem;
 }
 
 .calendar-cta .cta-button {
   display: inline-block;
-  padding: 14px 32px;
-  background: linear-gradient(135deg, #ff8c42, #e74c3c);
-  color: white;
-  border: none;
-  border-radius: 50px;
-  font-weight: bold;
-  font-size: 1.1rem;
+  padding: 0.9rem 2.5rem;
+  background: var(--red);
+  color: var(--text);
+  border: 2px solid var(--red);
+  border-radius: 2px;
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
   text-decoration: none;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background 0.2s ease, border-color 0.2s ease;
 }
 
 .calendar-cta .cta-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 20px rgba(255, 140, 66, 0.4);
+  background: var(--red-bright);
+  border-color: var(--red-bright);
 }
 
-/* ── Week-view tweaks ── */
+/* ── Week-view layout tweaks (unchanged functional) ── */
 .sx-react-calendar-wrapper .sx__week-grid__time-axis,
 .sx-react-calendar-wrapper .sx__week-grid__hour-text {
   display: none !important;
@@ -244,33 +251,16 @@
 /* ── Mobile ── */
 @media (max-width: 768px) {
   .calendar-page {
-    padding: 40px 0.75rem 60px;
-  }
-
-  .calendar-header h1 {
-    font-size: 1.4rem;
-  }
-
-  .calendar-subtitle {
-    font-size: 0.9rem;
+    padding: 48px 0.75rem 72px;
   }
 
   .sx-react-calendar-wrapper {
     height: 500px;
     max-height: 65dvh;
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
   }
 
   .legend-items {
-    gap: 0.75rem;
-  }
-
-  .legend-item {
-    font-size: 0.8rem;
-  }
-
-  .calendar-cta .cta-button {
-    padding: 0.65rem 1.5rem;
-    font-size: 0.95rem;
+    gap: 1rem;
   }
 }

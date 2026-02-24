@@ -1,23 +1,29 @@
-/* ── About Page ── */
+/* ========================================
+   About Page — Noche Ardiente
+   ======================================== */
+
 .about-page {
-  background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
-  color: white;
-  padding: 60px 0 80px;
-  min-height: calc(100dvh - 200px);
+  background: var(--bg);
+  color: var(--text);
+  padding: 72px 0 100px;
+  min-height: calc(100dvh - 68px);
 }
 
 .about-page .container {
-  max-width: 800px;
+  max-width: 760px;
   margin: 0 auto;
   padding: 0 1.5rem;
 }
 
 /* ── Headings ── */
 .about-page h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.25rem, 5vw, 3.25rem);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--text);
   text-align: center;
-  font-size: clamp(2rem, 4vw, 2.8rem);
-  margin-bottom: 0.75rem;
-  color: white;
+  margin-bottom: 0.5rem;
   position: relative;
   display: inline-block;
   width: 100%;
@@ -25,44 +31,66 @@
 
 .about-page h1::after {
   content: "";
-  position: absolute;
-  bottom: -12px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80px;
-  height: 4px;
-  background: linear-gradient(135deg, #ff8c42, #e74c3c);
-  border-radius: 2px;
+  display: block;
+  width: 48px;
+  height: 3px;
+  background: var(--red);
+  margin: 0.875rem auto 0;
+}
+
+/* ── Divider Rule ── */
+.about-rule {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 1.25rem auto 2.5rem;
+  max-width: 200px;
+}
+
+.about-rule-line {
+  flex: 1;
+  height: 1px;
+  background: var(--red);
+  opacity: 0.5;
+}
+
+.about-rule-diamond {
+  font-size: 0.55rem;
+  color: var(--red);
+  flex: none;
 }
 
 .about-page h2 {
-  margin-top: 2.5rem;
-  margin-bottom: 1rem;
-  font-size: 1.5rem;
-  color: #ff8c42;
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
   font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-top: 2.75rem;
+  margin-bottom: 1rem;
 }
 
 /* ── Content ── */
 .about-page p {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   line-height: 1.8;
   margin-bottom: 1.5rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(245, 240, 232, 0.85);
 }
 
 /* ── Lists ── */
 .about-page ul {
   list-style: none;
   padding: 0;
-  margin: 1rem 0 2rem;
+  margin: 0.75rem 0 2rem;
 }
 
 .about-page li {
-  padding: 0.75rem 0 0.75rem 2rem;
-  font-size: 1.1rem;
-  line-height: 1.6;
-  color: rgba(255, 255, 255, 0.9);
+  padding: 0.65rem 0 0.65rem 1.75rem;
+  font-size: 1rem;
+  line-height: 1.65;
+  color: rgba(245, 240, 232, 0.85);
   position: relative;
 }
 
@@ -72,25 +100,34 @@
   left: 0;
   top: 50%;
   transform: translateY(-50%);
-  width: 8px;
-  height: 8px;
-  background: linear-gradient(135deg, #ff8c42, #e74c3c);
+  width: 6px;
+  height: 6px;
+  background: var(--red);
   border-radius: 50%;
 }
 
-/* ── Content Sections ── */
+/* ── Content Sections (card blocks) ── */
 .about-page section {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   padding: 2rem;
   margin: 2rem 0;
+  animation: fadeInUp 0.5s ease-out both;
 }
 
-/* ── Responsive ── */
+.about-page section:nth-of-type(1) { animation-delay: 0.1s; }
+.about-page section:nth-of-type(2) { animation-delay: 0.2s; }
+.about-page section:nth-of-type(3) { animation-delay: 0.3s; }
+
+.about-page section h2 {
+  margin-top: 0;
+}
+
+/* ── Mobile ── */
 @media (max-width: 768px) {
   .about-page {
-    padding: 40px 0 60px;
+    padding: 48px 0 72px;
   }
 
   .about-page .container {
@@ -98,17 +135,7 @@
   }
 
   .about-page h1 {
-    font-size: 1.8rem;
-  }
-
-  .about-page h2 {
-    font-size: 1.3rem;
-    margin-top: 2rem;
-  }
-
-  .about-page p,
-  .about-page li {
-    font-size: 1rem;
+    font-size: 2rem;
   }
 
   .about-page section {

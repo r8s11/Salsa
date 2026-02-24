@@ -1,99 +1,259 @@
 /* ========================================
-   Hero Component Styles
+   Hero — Noche Ardiente
    ======================================== */
 
 .hero {
-  background: linear-gradient(135deg, #ff8c42 0%, #3498db 50%, #2980b9 100%);
-  padding: 120px 0 80px;
-  text-align: center;
-  color: white;
   position: relative;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
   overflow: hidden;
+  color: var(--text);
+  background: var(--bg);
 }
 
-.hero::before {
-  content: "💃🕺";
+/* ── Atmospheric Background ── */
+.hero-bg {
   position: absolute;
-  font-size: 15rem;
-  opacity: 0.1;
-  top: 50%;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Crimson spotlight from top-center */
+.hero-glow {
+  position: absolute;
+  top: -20%;
   left: 50%;
-  transform: translate(-50%, -50%);
-  animation: dance 4s ease-in-out infinite;
+  transform: translateX(-50%);
+  width: 120vw;
+  max-width: 1000px;
+  height: 800px;
+  background: radial-gradient(
+    ellipse at center top,
+    rgba(196, 18, 48, 0.2) 0%,
+    rgba(196, 18, 48, 0.06) 40%,
+    transparent 70%
+  );
+  border-radius: 50%;
+}
+
+/* Subtle dot grid */
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 36px 36px;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+}
+
+/* ── Content ── */
+.hero .container {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  padding: 2rem 24px;
 }
 
 .hero-content {
-  position: relative;
-  z-index: 2;
+  max-width: 860px;
+  margin: 0 auto;
+  text-align: center;
 }
 
+/* Eyebrow */
+.hero-eyebrow {
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  font-weight: 300;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 1.75rem;
+  animation: heroFadeUp 0.9s ease-out both;
+}
+
+/* Main heading */
 .hero h1 {
-  font-size: 3.5rem;
-  margin-bottom: 1rem;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-  animation: fadeInUp 1s ease-out;
+  font-family: var(--font-display);
+  font-size: clamp(4.5rem, 11vw, 9.5rem);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  margin-bottom: 0;
+  animation: heroFadeUp 0.9s ease-out 0.12s both;
 }
 
-.hero p {
-  font-size: 1.3rem;
-  margin-bottom: 2rem;
-  opacity: 0.9;
-  animation: fadeInUp 1s ease-out 0.3s both;
+.hero h1 em {
+  font-style: italic;
+  color: var(--red-bright);
+  display: block;
 }
 
-/* CTA Button */
-.cta-button {
-  display: inline-block;
-  background: white;
-  color: #ff8c42;
-  padding: 15px 30px;
+/* Divider rule */
+.hero-rule {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 2.25rem auto;
+  max-width: 260px;
+  animation: heroFadeUp 0.9s ease-out 0.24s both;
+}
+
+.hero-rule-line {
+  flex: 1;
+  height: 1px;
+  background: var(--red);
+  opacity: 0.7;
+}
+
+.hero-rule-diamond {
+  font-size: 0.6rem;
+  color: var(--red);
+  flex: none;
+}
+
+/* Subtitle */
+.hero-subtitle {
+  font-family: var(--font-ui);
+  font-size: clamp(0.72rem, 1.3vw, 0.9rem);
+  font-weight: 300;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 3.5rem;
+  animation: heroFadeUp 0.9s ease-out 0.36s both;
+}
+
+/* CTA buttons */
+.hero-cta {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  animation: heroFadeUp 0.9s ease-out 0.48s both;
+}
+
+.hero-btn {
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 1rem 2.75rem;
   text-decoration: none;
-  border-radius: 50px;
-  font-weight: bold;
-  font-size: 1.1rem;
-  transition: all 0.3s ease;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-  animation: fadeInUp 1s ease-out 0.6s both;
+  border-radius: 2px;
+  transition: all 0.25s ease;
   position: relative;
   overflow: hidden;
 }
 
-.cta-button::before {
-  content: "";
+.hero-btn--primary {
+  background: var(--red);
+  color: var(--text);
+  border: 2px solid var(--red);
+}
+
+.hero-btn--primary::before {
+  content: '';
   position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  transition: left 0.5s;
+  inset: 0;
+  background: var(--red-bright);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
 }
 
-.cta-button:hover::before {
-  left: 100%;
+.hero-btn--primary:hover::before {
+  transform: translateX(0);
 }
 
-.cta-button:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-  background: #f8f9fa;
+.hero-btn--primary span,
+.hero-btn--primary {
+  position: relative;
+  z-index: 1;
 }
 
-/* Mobile Styles */
+.hero-btn--outline {
+  background: transparent;
+  color: var(--text);
+  border: 2px solid var(--border-lg);
+}
+
+.hero-btn--outline:hover {
+  border-color: var(--text-muted);
+  background: rgba(245, 240, 232, 0.04);
+}
+
+/* ── Scroll Indicator ── */
+.hero-scroll {
+  position: absolute;
+  bottom: 2.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--text-dim);
+  animation: heroFadeUp 1s ease-out 1.1s both;
+  z-index: 2;
+}
+
+.hero-scroll span {
+  font-family: var(--font-ui);
+  font-size: 0.62rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+}
+
+.hero-scroll-line {
+  width: 1px;
+  height: 56px;
+  background: linear-gradient(to bottom, var(--red), transparent);
+  animation: scrollPulse 2.2s ease-in-out infinite;
+}
+
+/* ── Keyframes ── */
+@keyframes heroFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scrollPulse {
+  0%, 100% { opacity: 0.25; transform: scaleY(0.85); }
+  50%       { opacity: 0.9;  transform: scaleY(1); }
+}
+
+/* ── Mobile ── */
 @media (max-width: 768px) {
-  .hero {
-    padding: 100px 0 60px;
-  }
-
   .hero h1 {
-    font-size: 2.5rem;
+    font-size: clamp(3.5rem, 16vw, 5.5rem);
   }
 
-  .hero p {
-    font-size: 1.1rem;
+  .hero-cta {
+    flex-direction: column;
+    align-items: center;
   }
 
-  .hero::before {
-    font-size: 8rem;
+  .hero-btn {
+    width: 100%;
+    max-width: 280px;
+    text-align: center;
+  }
+
+  .hero-scroll {
+    display: none;
+  }
+
+  .hero-subtitle {
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
   }
 }

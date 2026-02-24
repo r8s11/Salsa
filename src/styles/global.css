@@ -1,13 +1,61 @@
 /* ========================================
-   SALSA SEGURA - Global Stylesheet
-   Only global, shared styles. Component
-   styles are in their respective files.
+   SALSA SEGURA — Design System
+   Noche Ardiente: Dark editorial aesthetic
    ======================================== */
 
 /* ----------------------------------------
-   1. CSS Reset & Base Styles
+   1. Design Tokens
    ---------------------------------------- */
-* {
+:root {
+  /* Backgrounds */
+  --bg:          #080808;
+  --surface:     #101016;
+  --card:        #16161E;
+  --card-hover:  #1D1D26;
+
+  /* Borders */
+  --border:      rgba(255, 255, 255, 0.06);
+  --border-md:   rgba(255, 255, 255, 0.12);
+  --border-lg:   rgba(255, 255, 255, 0.2);
+
+  /* Accent — Crimson */
+  --red:         #C41230;
+  --red-bright:  #E01540;
+  --red-dim:     rgba(196, 18, 48, 0.18);
+  --red-glow:    rgba(196, 18, 48, 0.25);
+
+  /* Accent — Gold */
+  --gold:        #C8941A;
+  --gold-light:  #E8B030;
+  --gold-dim:    rgba(200, 148, 26, 0.15);
+
+  /* Text */
+  --text:        #F5F0E8;
+  --text-muted:  #8A8580;
+  --text-dim:    #4E4E55;
+
+  /* Typography */
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-ui:      'Josefin Sans', 'Helvetica Neue', sans-serif;
+  --font-body:    'Lato', 'Helvetica Neue', sans-serif;
+  --font-logo:    'Great Vibes', cursive;
+
+  /* Header */
+  --header-bg: rgba(8, 8, 8, 0.92);
+
+  /* Spacing */
+  --section-pad: 100px 0;
+
+  /* Radius */
+  --radius-sm:   6px;
+  --radius-md:   12px;
+  --radius-lg:   20px;
+}
+
+/* ----------------------------------------
+   2. CSS Reset & Base
+   ---------------------------------------- */
+*, *::before, *::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -18,247 +66,253 @@ html {
 }
 
 body {
-  font-family: "Arial", sans-serif;
-  line-height: 1.6;
-  color: #333;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--text);
+  background-color: var(--bg);
   overflow-x: hidden;
-  transition:
-    background-color 0.3s ease,
-    color 0.3s ease;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* ----------------------------------------
-   2. Layout Utilities
+   3. Layout Utilities
    ---------------------------------------- */
 .app-layout {
-  height: 100dvh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
 }
 
 .container {
-  max-width: 1400px;
+  max-width: 1300px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 24px;
 }
 
 /* ----------------------------------------
-   3. Shared Section Styles
+   4. Section Titles (global)
    ---------------------------------------- */
-
-/* Prevent content from hiding behind sticky header */
-section,
-main {
-  scroll-margin-top: 80px; /* Adjust based on header height */
-}
-
-/* Section Title (used across multiple components) */
 .section-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 900;
+  color: var(--text);
   text-align: center;
-  font-size: 2.5rem;
   margin-bottom: 3rem;
-  color: #333;
   position: relative;
-  transition: color 0.3s ease;
+  letter-spacing: -0.02em;
 }
 
 .section-title::after {
   content: "";
-  position: absolute;
-  bottom: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80px;
-  height: 4px;
-  background: linear-gradient(135deg, #ff8c42, #3498db);
-  border-radius: 2px;
+  display: block;
+  width: 48px;
+  height: 3px;
+  background: var(--red);
+  margin: 0.75rem auto 0;
 }
 
-/* Dance Styles Section (from homepage) */
+/* ----------------------------------------
+   5. Shared Section Styles
+   ---------------------------------------- */
+section,
+main {
+  scroll-margin-top: 72px;
+}
+
+/* Dance Styles Section */
 .dance-styles {
-  background: white;
-  padding: 80px 0;
-  transition: background-color 0.3s ease;
+  background: var(--surface);
+  padding: var(--section-pad);
 }
 
 .styles-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-  margin-top: 3rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2.5rem;
 }
 
 .style-card {
-  background: linear-gradient(135deg, #fff5e6 0%, #ffd699 100%);
+  background: var(--card);
+  border: 1px solid var(--border);
   padding: 2rem;
-  border-radius: 20px;
+  border-radius: var(--radius-md);
   text-align: center;
-  transition: all 0.3s ease;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  border: 2px solid transparent;
+  transition: border-color 0.25s ease, transform 0.25s ease;
 }
 
 .style-card:hover {
-  transform: translateY(-10px) scale(1.02);
-  border-color: #ff8c42;
-  box-shadow: 0 15px 30px rgba(255, 140, 66, 0.3);
+  transform: translateY(-6px);
+  border-color: var(--red-dim);
 }
 
 .style-icon {
-  font-size: 4rem;
+  font-size: 3rem;
   margin-bottom: 1rem;
-  animation: bounce 2s infinite;
 }
 
 .style-card h3 {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-  color: #333;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  color: var(--text);
+  margin-bottom: 0.75rem;
 }
 
 /* Quote */
 .quote {
+  font-family: var(--font-display);
   font-style: italic;
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   margin: 2rem 0;
   text-align: center;
-  opacity: 0.9;
+  color: var(--text-muted);
 }
 
 /* ----------------------------------------
-   4. Contact Section (from homepage)
+   6. Contact Section (homepage strip)
    ---------------------------------------- */
 .contact {
-  background: linear-gradient(135deg, #ff8c42 0%, #3498db 100%);
-  color: white;
-  padding: 1rem 0;
+  background: var(--surface);
+  color: var(--text);
+  padding: var(--section-pad);
+  border-top: 1px solid var(--border);
+}
+
+.contact .section-title {
+  color: var(--text);
 }
 
 .contact-info {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
-  margin-top: 3rem;
-  max-width: 900px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2.5rem;
+  max-width: 800px;
   margin-left: auto;
   margin-right: auto;
 }
 
 .contact-card {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  padding: 2rem;
-  border-radius: 20px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 1.75rem;
+  border-radius: var(--radius-md);
   text-align: center;
-  transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: border-color 0.25s ease, transform 0.25s ease;
 }
 
 .contact-card:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-5px);
+  border-color: var(--red);
+  transform: translateY(-4px);
 }
 
 .contact-icon {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
 }
 
-/* Contact Form (shared styles) */
+/* Contact Form (shared) */
 .contact-form {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 14px;
 }
 
 .contact-form input,
 .contact-form textarea {
-  padding: 12px 15px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  font-size: 14px;
-  transition: all 0.3s ease;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-md);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  font-size: 0.9rem;
+  font-family: var(--font-body);
+  transition: border-color 0.25s ease;
 }
 
 .contact-form input::placeholder,
 .contact-form textarea::placeholder {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-dim);
 }
 
 .contact-form input:focus,
 .contact-form textarea:focus {
   outline: none;
-  border-color: rgba(255, 255, 255, 0.6);
-  background: rgba(255, 255, 255, 0.15);
+  border-color: var(--red);
 }
 
 .contact-form button {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 10px;
-  padding: 12px 20px;
-  font-weight: bold;
+  background: var(--red);
+  color: var(--text);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 13px 20px;
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 16px;
+  transition: background 0.2s ease;
 }
 
 .contact-form button:hover {
-  background: rgba(255, 255, 255, 0.3);
-  border-color: rgba(255, 255, 255, 0.5);
-  transform: translateY(-2px);
+  background: var(--red-bright);
 }
 
 /* ----------------------------------------
-   5. Animations & Keyframes
+   7. Buttons (shared)
    ---------------------------------------- */
-@keyframes dance {
-  0%,
-  100% {
-    transform: translate(-50%, -50%) rotate(-5deg);
-  }
-  50% {
-    transform: translate(-50%, -50%) rotate(5deg);
-  }
+.btn-primary {
+  display: inline-block;
+  padding: 0.8rem 1.75rem;
+  background: var(--red);
+  color: var(--text);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  transition: background 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--red-bright);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  z-index: -1;
+}
+
+.btn-primary:hover::before {
+  transform: translateX(0);
+}
+
+/* ----------------------------------------
+   8. Animations & Keyframes
+   ---------------------------------------- */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(32px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes bounce {
-  0%,
-  20%,
-  50%,
-  80%,
-  100% {
-    transform: translateY(0);
-  }
-  40% {
-    transform: translateY(-10px);
-  }
-  60% {
-    transform: translateY(-5px);
-  }
+  0%, 80%, 100% { transform: translateY(0); }
+  40%           { transform: translateY(-8px); }
 }
 
 .fade-in {
@@ -266,42 +320,32 @@ main {
 }
 
 /* ----------------------------------------
-   6. Dark Mode Styles
+   9. Light Mode (toggle override)
    ---------------------------------------- */
+.light-mode {
+  --bg:         #F8F5F0;
+  --surface:    #EDEAE4;
+  --card:       #FFFFFF;
+  --card-hover: #F5F2ED;
+  --border:     rgba(0, 0, 0, 0.07);
+  --border-md:  rgba(0, 0, 0, 0.14);
+  --border-lg:  rgba(0, 0, 0, 0.25);
+  --text:       #1A1A1A;
+  --text-muted: #5A5450;
+  --text-dim:   #999;
+  --header-bg:  rgba(248, 245, 240, 0.95);
+}
+
+/* Legacy dark-mode class (kept for backwards-compat) */
 .dark-mode {
-  background-color: #1a1a1a;
-  color: #e0e0e0;
-}
-
-.dark-mode .dance-styles {
-  background: #2c2c2c;
-}
-
-.dark-mode .section-title {
-  color: #e0e0e0;
-}
-
-.dark-mode .style-card {
-  background: linear-gradient(135deg, #3a3a3a 0%, #4a4a4a 100%);
-  color: #e0e0e0;
-  border-color: #555;
-}
-
-.dark-mode .style-card:hover {
-  border-color: #ff8c42;
-  box-shadow: 0 15px 30px rgba(255, 140, 66, 0.2);
-}
-
-.dark-mode .style-card h3 {
-  color: #e0e0e0;
-}
-
-.dark-mode .quote {
-  color: #b0b0b0;
+  --bg:        #080808;
+  --surface:   #101016;
+  --card:      #16161E;
+  --text:      #F5F0E8;
 }
 
 /* ----------------------------------------
-   7. Mobile Responsive (Global)
+   10. Mobile Responsive (Global)
    ---------------------------------------- */
 @media (max-width: 985px) {
   .section-title {
@@ -315,15 +359,80 @@ main {
 
   .styles-grid {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: 1rem;
   }
 
   .contact-info {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: 1rem;
   }
+}
 
-  .contact-form {
-    max-width: 100%;
+/* ----------------------------------------
+   11. Focus States (Accessibility)
+   ---------------------------------------- */
+:focus-visible {
+  outline: 2px solid var(--red-bright);
+  outline-offset: 3px;
+}
+
+button:focus-visible,
+.btn-primary:focus-visible,
+.cta-button:focus-visible,
+.submit-button:focus-visible,
+.rsvp-button:focus-visible,
+.details-button:focus-visible,
+.hero-btn:focus-visible {
+  outline: 2px solid var(--red-bright);
+  outline-offset: 2px;
+}
+
+.nav-links a:focus-visible {
+  outline: 2px solid var(--red-bright);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.event-card:focus-visible {
+  outline: 2px solid var(--red-bright);
+  outline-offset: 2px;
+  border-color: var(--red-dim);
+}
+
+a.logo:focus-visible {
+  outline: 2px solid var(--gold-light);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+.footer-links a:focus-visible {
+  outline: 2px solid var(--red-bright);
+  outline-offset: 3px;
+}
+
+.dark-mode-toggle:focus-visible {
+  outline: 2px solid var(--red-bright);
+  outline-offset: 2px;
+}
+
+.hamburger:focus-visible {
+  outline: 2px solid var(--red-bright);
+  outline-offset: 4px;
+}
+
+.light-mode :focus-visible {
+  outline-color: var(--red);
+}
+
+/* ----------------------------------------
+   12. Reduced Motion
+   ---------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

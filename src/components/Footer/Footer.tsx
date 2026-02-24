@@ -2,21 +2,21 @@ import { useState, useEffect } from "react";
 import "./Footer.css";
 
 function Footer() {
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    return localStorage.getItem("darkMode") === "true";
+  const [isLightMode, setIsLightMode] = useState(() => {
+    return localStorage.getItem("lightMode") === "true";
   });
   const currentYear = new Date().getFullYear();
 
-  const toggleDarkMode = () => {
-    const next = !isDarkMode;
-    setIsDarkMode(next);
-    document.body.classList.toggle("dark-mode", next);
-    localStorage.setItem("darkMode", String(next));
+  const toggleMode = () => {
+    const next = !isLightMode;
+    setIsLightMode(next);
+    document.body.classList.toggle("light-mode", next);
+    localStorage.setItem("lightMode", String(next));
   };
 
-  // Apply dark mode class on mount (sync with initial state)
+  // Apply class on mount
   useEffect(() => {
-    document.body.classList.toggle("dark-mode", isDarkMode);
+    document.body.classList.toggle("light-mode", isLightMode);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -25,38 +25,38 @@ function Footer() {
       <div className="footer-content">
         <div className="footer-links">
           <a href="https://www.instagram.com/SalsaSegura" target="_blank" rel="noopener noreferrer">
-            📱 Instagram
+            Instagram
           </a>
-          <a href="mailto:info@SalsaSegura.com">📧 Email</a>
-          <a href="tel:+19784440922">📞 Call</a>
+          <a href="mailto:info@SalsaSegura.com">Email</a>
+          <a href="tel:+19784440922">Call</a>
         </div>
 
         <div className="dark-mode-container">
           <button
             className="dark-mode-toggle"
-            aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
-            onClick={toggleDarkMode}
+            aria-label={isLightMode ? "Switch to dark mode" : "Switch to light mode"}
+            onClick={toggleMode}
           >
-            {isDarkMode ? "☀️" : "🌙"}
+            {isLightMode ? "🌙" : "☀️"}
           </button>
         </div>
+
+        <a
+          href="https://www.buymeacoffee.com/rseg"
+          className="bmc-link"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <img
+            src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=☕&slug=rseg&button_colour=059669&font_colour=ffffff&font_family=Poppins&outline_colour=059669&coffee_colour=FFDD00"
+            alt="Buy me a coffee"
+          />
+        </a>
 
         <div className="copyright">
           &copy; {currentYear} Salsa Segura. All rights reserved. | Passion For Dance
         </div>
       </div>
-      <a
-        href="https://www.buymeacoffee.com/rseg"
-        target="_blank"
-        rel="noopener noreferrer"
-        style={{ marginTop: "4px" }}
-      >
-        <img
-          src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=☕&slug=rseg&button_colour=059669&font_colour=ffffff&font_family=Poppins&outline_colour=059669&coffee_colour=FFDD00"
-          alt="Buy me a coffee"
-          style={{ height: "36px", width: "auto", borderRadius: "8px" }}
-        />
-      </a>
     </footer>
   );
 }

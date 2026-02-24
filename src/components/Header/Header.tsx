@@ -13,7 +13,7 @@ function Header() {
     <header>
       <nav className="container">
         <Link to="/" className="logo" onClick={closeMenu}>
-          💃Salsa Segura🕺
+          Salsa <span>Segura</span>
         </Link>
         <ul className={`nav-links ${mobileOpen ? "active" : ""}`}>
           <li>
@@ -77,7 +77,7 @@ function Header() {
           </li>
         </ul>
         <button
-          className="hamburger"
+          className={`hamburger ${mobileOpen ? "active" : ""}`}
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-expanded={mobileOpen}
           aria-label={mobileOpen ? "Close menu" : "Open menu"}

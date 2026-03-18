@@ -70,9 +70,9 @@ export default function Calendar() {
 
   // Update page SEO metadata
   useEffect(() => {
-    updatePageTitle("Boston Dance Calendar - Salsa, Bachata & Latin Dance Events");
+    updatePageTitle("Dance Calendar - Salsa, Bachata & Latin Dance Events");
     updateMetaDescription(
-      "Find salsa, bachata, and Latin dance events across Greater Boston. Browse our interactive calendar of classes, socials, and workshops."
+      "Find salsa, bachata, and Latin dance events across Greater Boston and NYC. Browse our interactive calendar of classes, socials, and workshops."
     );
   }, []);
 
@@ -120,7 +120,7 @@ export default function Calendar() {
       <div className="calendar-header">
         <h1>Boston Dance Calendar</h1>
         <p className="calendar-subtitle">
-          Salsa, bachata, and social dance events across Greater Boston
+          Salsa, bachata, and social dance events across Greater Boston & NYC
         </p>
       </div>
 

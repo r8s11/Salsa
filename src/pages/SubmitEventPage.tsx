@@ -126,8 +126,8 @@ export default function SubmitEventPage() {
           <div className="success-card">
             <h2>🎉 Event Submitted!</h2>
             <p>
-              Thank you for contributing to Boston's dance community! Your event is now pending
-              review and will appear on the calendar once approved.
+              Thank you for contributing to the dance community! Your event is now pending review
+              and will appear on the calendar once approved.
             </p>
             <button className="submit-button" onClick={() => setIsSubmitted(false)}>
               Submit Another Event
@@ -143,8 +143,8 @@ export default function SubmitEventPage() {
       <div className="container">
         <h1 className="section-title">Submit an Event</h1>
         <p className="submit-intro">
-          Know about a salsa, bachata, or dance event in Boston? Share it with the community! All
-          submissions are reviewed before appearing on the calendar.
+          Know about a salsa, bachata, or dance event in Greater Boston or NYC? Share it with the
+          community! All submissions are reviewed before appearing on the calendar.
         </p>
 
         {error && (

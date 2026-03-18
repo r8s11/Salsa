@@ -12,10 +12,11 @@ function Hero() {
 
       <div className="container">
         <div className="hero-content">
-          <p className="hero-eyebrow">Boston · MA</p>
+          <p className="hero-eyebrow">Greater Boston · NYC</p>
 
           <h1>
-            Dance with<br />
+            Dance with
+            <br />
             <em>Passion.</em>
           </h1>
 
@@ -26,12 +27,17 @@ function Hero() {
           </div>
 
           <p className="hero-subtitle">
-            Salsa &nbsp;·&nbsp; Bachata &nbsp;·&nbsp; Pop-up Classes &nbsp;·&nbsp; Social Dance Events
+            Salsa &nbsp;·&nbsp; Bachata &nbsp;·&nbsp; Pop-up Classes &nbsp;·&nbsp; Social Dance
+            Events
           </p>
 
           <div className="hero-cta">
-            <a href="#events" className="hero-btn hero-btn--primary">Explore Events</a>
-            <Link to="/calendar" className="hero-btn hero-btn--outline">View Calendar</Link>
+            <a href="#events" className="hero-btn hero-btn--primary">
+              Explore Events
+            </a>
+            <Link to="/calendar" className="hero-btn hero-btn--outline">
+              View Calendar
+            </Link>
           </div>
         </div>
       </div>

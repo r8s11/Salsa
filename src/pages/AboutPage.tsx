@@ -15,23 +15,23 @@ function AboutPage() {
         <p>
           Welcome to Salsa Segura! We are passionate about bringing the joy of Latin dance to
           everyone. Our mission is to create a welcoming community where dancers of all levels can
-          learn, grow, and connect.
+          learn, grow, and connect — whether you're in Greater Boston or New York City.
         </p>
 
         <section>
           <h2>Our Story</h2>
           <p>
             Founded with a love for Salsa and Bachata, Salsa Segura's goal is to help dancers find
-            their rhythm in the Boston social dance community. What started as a simple idea to
-            connect dancers across the city has grown into a hub for Latin dance enthusiasts
-            throughout New England.
+            their rhythm in the social dance community. What started as a simple idea to connect
+            dancers across Boston has grown into a hub for Latin dance enthusiasts across Greater
+            Boston and New York City.
           </p>
         </section>
 
         <section>
           <h2>What We Offer</h2>
           <ul>
-            <li>A hub for dancers all around the New England area</li>
+            <li>A hub for dancers across Greater Boston and NYC</li>
             <li>One-source event calendar for salsa, bachata, and Latin dance</li>
             <li>Pop-up classes and workshop listings</li>
             <li>Instructor directory to find your next teacher</li>
@@ -44,7 +44,7 @@ function AboutPage() {
           <p>
             Whether you are taking your first steps or have been dancing for years, Salsa Segura
             welcomes you. Our platform connects dancers with events, instructors, and each other
-            across Greater Boston and beyond.
+            across Greater Boston, New York City, and beyond.
           </p>
         </section>
       </div>

@@ -54,7 +54,8 @@ function Footer() {
         </a>
 
         <div className="copyright">
-          &copy; {currentYear} Salsa Segura. All rights reserved. | Passion For Dance
+          &copy; {currentYear} Salsa Segura. All rights reserved. | Greater Boston &amp; NYC |
+          Passion For Dance
         </div>
       </div>
     </footer>

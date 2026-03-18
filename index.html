@@ -1,20 +1,22 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>
-      Salsa Segura - Salsa & Bachata | Pop-up Classes & Events
-    </title>
-  <script defer src="https://cloud.umami.is/script.js" data-website-id="ee0f876a-ecb5-4200-a91a-3aa2f933db70"></script>
+    <title>Salsa Segura - Salsa & Bachata | Pop-up Classes & Events</title>
+    <script
+      defer
+      src="https://cloud.umami.is/script.js"
+      data-website-id="ee0f876a-ecb5-4200-a91a-3aa2f933db70"
+    ></script>
     <!-- SEO Meta Tags -->
     <meta
       name="description"
-      content="Discover salsa, bachata, and Latin dance events across Greater Boston. Join our pop-up classes, social dances, and workshops. All levels welcome!"
+      content="Discover salsa, bachata, and Latin dance events across Greater Boston and NYC. Join our pop-up classes, social dances, and workshops. All levels welcome!"
     />
     <meta
       name="keywords"
-      content="salsa Boston, bachata Boston, Latin dance Massachusetts, salsa classes Boston, bachata lessons, social dance events, dance calendar Boston, salsa workshops, dance events near me"
+      content="salsa Boston, bachata Boston, salsa NYC, bachata NYC, Latin dance Massachusetts, Latin dance New York, salsa classes Boston, salsa classes NYC, bachata lessons, social dance events, dance calendar Boston, dance calendar NYC, salsa workshops, dance events near me"
     />
     <meta name="author" content="Roosevelt Segura" />
     <meta name="robots" content="index, follow" />
@@ -26,22 +28,27 @@
     <meta name="geo.placename" content="Boston" />
     <meta name="geo.position" content="42.3601;-71.0589" />
     <meta name="ICBM" content="42.3601, -71.0589" />
+    <meta name="geo.region" content="US-NY" />
+    <meta name="geo.placename" content="New York" />
 
     <!-- Open Graph / Facebook -->
     <meta
       property="og:title"
-      content="Salsa Segura - Boston's Premier Latin Dance Events & Classes"
+      content="Salsa Segura - Latin Dance Events & Classes | Greater Boston & NYC"
     />
     <meta
       property="og:description"
-      content="Discover salsa, bachata, and Latin dance events across Greater Boston. Join our pop-up classes, social dances, and workshops. All levels welcome!"
+      content="Discover salsa, bachata, and Latin dance events across Greater Boston and NYC. Join our pop-up classes, social dances, and workshops. All levels welcome!"
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://salsasegura.com/" />
     <meta property="og:image" content="https://salsasegura.com/og-image.jpg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Salsa Segura - Latin Dance Events in Boston" />
+    <meta
+      property="og:image:alt"
+      content="Salsa Segura - Latin Dance Events in Greater Boston & NYC"
+    />
     <meta property="og:site_name" content="Salsa Segura" />
     <meta property="og:locale" content="en_US" />
 
@@ -49,14 +56,17 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta
       name="twitter:title"
-      content="Salsa Segura - Boston's Premier Latin Dance Events & Classes"
+      content="Salsa Segura - Latin Dance Events & Classes | Greater Boston & NYC"
     />
     <meta
       name="twitter:description"
-      content="Discover salsa, bachata, and Latin dance events across Greater Boston. All levels welcome!"
+      content="Discover salsa, bachata, and Latin dance events across Greater Boston and NYC. All levels welcome!"
     />
     <meta name="twitter:image" content="https://salsasegura.com/og-image.jpg" />
-    <meta name="twitter:image:alt" content="Salsa Segura - Latin Dance Events in Boston" />
+    <meta
+      name="twitter:image:alt"
+      content="Salsa Segura - Latin Dance Events in Greater Boston & NYC"
+    />
     <meta name="twitter:site" content="@SalsaSegura" />
     <meta name="twitter:creator" content="@SalsaSegura" />
 
@@ -70,30 +80,47 @@
         "@id": "https://salsasegura.com/",
         "url": "https://salsasegura.com/",
         "telephone": "+1-978-444-0922",
-        "description": "Boston's premier destination for salsa, bachata, and Latin dance. Offering pop-up classes, private lessons, social dance events, and workshops across Greater Boston.",
-        "address": {
-          "@type": "PostalAddress",
-          "addressLocality": "Boston",
-          "addressRegion": "MA",
-          "addressCountry": "US"
-        },
+        "description": "Your destination for salsa, bachata, and Latin dance. Offering pop-up classes, private lessons, social dance events, and workshops across Greater Boston and New York City.",
+        "address": [
+          {
+            "@type": "PostalAddress",
+            "addressLocality": "Boston",
+            "addressRegion": "MA",
+            "addressCountry": "US"
+          },
+          {
+            "@type": "PostalAddress",
+            "addressLocality": "New York",
+            "addressRegion": "NY",
+            "addressCountry": "US"
+          }
+        ],
         "geo": {
           "@type": "GeoCoordinates",
           "latitude": 42.3601,
           "longitude": -71.0589
         },
-        "areaServed": {
-          "@type": "GeoCircle",
-          "geoMidpoint": {
-            "@type": "GeoCoordinates",
-            "latitude": 42.3601,
-            "longitude": -71.0589
+        "areaServed": [
+          {
+            "@type": "GeoCircle",
+            "geoMidpoint": {
+              "@type": "GeoCoordinates",
+              "latitude": 42.3601,
+              "longitude": -71.0589
+            },
+            "geoRadius": "50000"
           },
-          "geoRadius": "50000"
-        },
-        "sameAs": [
-          "https://www.instagram.com/SalsaSegura"
+          {
+            "@type": "GeoCircle",
+            "geoMidpoint": {
+              "@type": "GeoCoordinates",
+              "latitude": 40.7128,
+              "longitude": -74.006
+            },
+            "geoRadius": "50000"
+          }
         ],
+        "sameAs": ["https://www.instagram.com/SalsaSegura"],
         "priceRange": "$$",
         "knowsAbout": ["Salsa", "Bachata", "Latin Dance", "Social Dancing"],
         "hasOfferCatalog": {

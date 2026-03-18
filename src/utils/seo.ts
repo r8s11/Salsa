@@ -8,7 +8,7 @@ export function generateEventStructuredData(event: ScheduleXEvent) {
     "@context": "https://schema.org",
     "@type": "DanceEvent",
     name: event.title,
-    description: event.description || `${event.title} - Dance event in Boston`,
+    description: event.description || `${event.title} - Dance event in Greater Boston & NYC`,
     startDate: event.start,
     endDate: event.end,
     eventStatus: "https://schema.org/EventScheduled",
@@ -19,8 +19,6 @@ export function generateEventStructuredData(event: ScheduleXEvent) {
           name: event.location,
           address: {
             "@type": "PostalAddress",
-            addressLocality: "Boston",
-            addressRegion: "MA",
             addressCountry: "US",
           },
         }
@@ -55,7 +53,7 @@ export function generateEventsListStructuredData(events: ScheduleXEvent[]) {
     "@context": "https://schema.org",
     "@type": "ItemList",
     name: "Upcoming Dance Events",
-    description: "Salsa, bachata, and Latin dance events in Greater Boston",
+    description: "Salsa, bachata, and Latin dance events in Greater Boston & NYC",
     numberOfItems: events.length,
     itemListElement: events.slice(0, 10).map((event, index) => ({
       "@type": "ListItem",

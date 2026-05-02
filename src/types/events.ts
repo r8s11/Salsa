@@ -3,6 +3,7 @@
 import "temporal-polyfill/global";
 
 export type EventType = "social" | "class" | "workshop";
+export type City = "boston" | "new-york-city";
 
 // Database event interface (matches Supabase schema)
 export interface DatabaseEvent {
@@ -19,6 +20,7 @@ export interface DatabaseEvent {
   rsvp_link: string | null;
   image_url: string | null;
   status: "approved" | "pending" | "rejected";
+  city: City;
   created_at: string;
 }
 
@@ -34,6 +36,7 @@ export interface ScheduleXEvent {
   //Custom properties for out app
   address?: string;
   rsvpLink?: string;
+  city?: City;
 }
 // Calendar Color Configuration
 export const CALENDARS_CONFIG = {
@@ -100,6 +103,7 @@ export function databaseEventToScheduleX(event: DatabaseEvent): ScheduleXEvent {
     description: event.description ?? undefined,
     address: event.address ?? undefined,
     rsvpLink: event.rsvp_link ?? undefined,
+    city: event.city,
   };
 }
 

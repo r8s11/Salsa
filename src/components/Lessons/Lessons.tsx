@@ -15,7 +15,7 @@ const lessons = [
     icon: "🎉",
     title: "Pop-up Classes",
     description:
-      "Join our community pop-up salsa classes at various locations across Greater Boston and NYC.",
+      "Community-led pop-up salsa classes at various locations across Greater Boston and NYC.",
   },
 ];
 

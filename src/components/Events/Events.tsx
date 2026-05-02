@@ -48,7 +48,8 @@ function Events() {
       <div className="container">
         <h2 className="section-title">Upcoming Events</h2>
         <p className="events-intro">
-          Join us for pop-up salsa classes and social dance events in Greater Boston and NYC!
+          Pop-up salsa classes and social dance events happening across Greater Boston and NYC —
+          come dance!
         </p>
 
         {upcomingEvents.length > 0 ? (
@@ -60,7 +61,8 @@ function Events() {
         ) : (
           <div className="no-events">
             <p>
-              No upcoming events scheduled. Check back soon or follow us on Instagram for updates!
+              No upcoming events scheduled. Check back soon, or follow @SalsaSegura on Instagram
+              for updates!
             </p>
           </div>
         )}

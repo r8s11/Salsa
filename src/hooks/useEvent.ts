@@ -1,19 +1,9 @@
-// Purpose: Wrapper hook for event data (allows future enhancements)
-//
-// Currently sourced from a live ICS feed via /api/ics (proxied to golatindance.com)
-// while the Supabase events table is still being populated.
-// To revert: swap useIcsEvents(city) → useSupabaseEvents().
+// Purpose: Wrapper hook for event data, scoped to the currently selected city.
 
 import { useCity } from "../contexts/CityContext";
-import { useIcsEvents } from "./useIcsEvents";
+import { useSupabaseEvents } from "./useSupabaseEvents";
 
 export function useEvents() {
   const { city } = useCity();
-  const { events, loading, error } = useIcsEvents(city);
-
-  return {
-    events,
-    loading,
-    error,
-  };
+  return useSupabaseEvents(city);
 }

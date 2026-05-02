@@ -1,18 +1,9 @@
 {
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": [
-      "*.{jpg,jpeg,gif,png,svg,webp,ico,woff,woff2,ttf,eot,css,js,map}",
-      "assets/*",
-      "/api/*"
-    ]
+    "exclude": ["*.{jpg,jpeg,gif,png,svg,webp,ico,woff,woff2,ttf,eot,css,js,map}", "assets/*"]
   },
   "routes": [
-    {
-      "route": "/api/ics",
-      "methods": ["GET"],
-      "allowedRoles": ["anonymous"]
-    },
     {
       "route": "/calendar",
       "rewrite": "/calendar"

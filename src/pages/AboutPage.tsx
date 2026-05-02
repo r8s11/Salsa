@@ -13,23 +13,23 @@ function AboutPage() {
         </div>
 
         <p>
-          Welcome to Salsa Segura! We are passionate about bringing the joy of Latin dance to
-          everyone. Our mission is to create a welcoming community where dancers of all levels can
-          learn, grow, and connect — whether you're in Greater Boston or New York City.
+          Welcome to Salsa Segura — a community of dancers inviting everyone into the joy of Latin
+          dance. This is a place for dancers of all levels to learn, grow, and connect, whether
+          you're in Greater Boston or New York City.
         </p>
 
         <section>
-          <h2>Our Story</h2>
+          <h2>The Story</h2>
           <p>
-            Founded with a love for Salsa and Bachata, Salsa Segura's goal is to help dancers find
-            their rhythm in the social dance community. What started as a simple idea to connect
-            dancers across Boston has grown into a hub for Latin dance enthusiasts across Greater
-            Boston and New York City.
+            Born from a love of Salsa and Bachata, Salsa Segura is a gathering place for dancers
+            finding their rhythm in the social dance community. What began as a simple idea to
+            connect dancers across Boston has grown into a hub for Latin dance enthusiasts across
+            Greater Boston and New York City.
           </p>
         </section>
 
         <section>
-          <h2>What We Offer</h2>
+          <h2>What You'll Find</h2>
           <ul>
             <li>A hub for dancers across Greater Boston and NYC</li>
             <li>One-source event calendar for salsa, bachata, and Latin dance</li>
@@ -40,10 +40,10 @@ function AboutPage() {
         </section>
 
         <section>
-          <h2>Our Community</h2>
+          <h2>A Place for Everyone</h2>
           <p>
             Whether you are taking your first steps or have been dancing for years, Salsa Segura
-            welcomes you. Our platform connects dancers with events, instructors, and each other
+            welcomes you. The community connects dancers with events, instructors, and each other
             across Greater Boston, New York City, and beyond.
           </p>
         </section>

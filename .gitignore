@@ -134,3 +134,7 @@ dist
 .local_history
 
 .claude
+
+# tsc declaration emit for config files (we don't ship .d.ts for vite.config)
+vite.config.d.ts
+*.d.ts.map

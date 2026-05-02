@@ -1,12 +1,14 @@
 import { useState, FormEvent } from "react";
 import { supabase } from "../lib/supabase";
-import type { EventType } from "../types/events";
+import type { EventType, City } from "../types/events";
+import { useCity } from "../contexts/CityContext";
 import "./SubmitEventPage.css";
 
 interface SubmitForm {
   title: string;
   description: string;
   event_type: EventType | "";
+  city: City;
   event_date: string;
   event_time: string;
   location: string;
@@ -18,10 +20,11 @@ interface SubmitForm {
   submitter_email: string;
 }
 
-const initialForm: SubmitForm = {
+const buildInitialForm = (city: City): SubmitForm => ({
   title: "",
   description: "",
   event_type: "",
+  city,
   event_date: "",
   event_time: "",
   location: "",
@@ -31,10 +34,11 @@ const initialForm: SubmitForm = {
   rsvp_link: "",
   submitter_name: "",
   submitter_email: "",
-};
+});
 
 export default function SubmitEventPage() {
-  const [form, setForm] = useState<SubmitForm>(initialForm);
+  const { city: defaultCity } = useCity();
+  const [form, setForm] = useState<SubmitForm>(() => buildInitialForm(defaultCity));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -92,6 +96,7 @@ export default function SubmitEventPage() {
         title: form.title,
         description: form.description || null,
         event_type: form.event_type,
+        city: form.city,
         event_date: eventDateTime,
         event_time: form.event_time || null,
         location: form.location || null,
@@ -110,7 +115,7 @@ export default function SubmitEventPage() {
       }
 
       setIsSubmitted(true);
-      setForm(initialForm);
+      setForm(buildInitialForm(defaultCity));
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
       setError(message);
@@ -170,19 +175,33 @@ export default function SubmitEventPage() {
               />
             </div>
 
-            <div className="form-group">
-              <label htmlFor="event_type">Event Type *</label>
-              <select
-                id="event_type"
-                value={form.event_type}
-                onChange={(e) => update("event_type", e.target.value)}
-                required
-              >
-                <option value="">Select type</option>
-                <option value="social">Social Dance</option>
-                <option value="class">Class</option>
-                <option value="workshop">Workshop</option>
-              </select>
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="event_type">Event Type *</label>
+                <select
+                  id="event_type"
+                  value={form.event_type}
+                  onChange={(e) => update("event_type", e.target.value)}
+                  required
+                >
+                  <option value="">Select type</option>
+                  <option value="social">Social Dance</option>
+                  <option value="class">Class</option>
+                  <option value="workshop">Workshop</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label htmlFor="city">City *</label>
+                <select
+                  id="city"
+                  value={form.city}
+                  onChange={(e) => update("city", e.target.value)}
+                  required
+                >
+                  <option value="boston">Boston</option>
+                  <option value="new-york-city">New York City</option>
+                </select>
+              </div>
             </div>
 
             <div className="form-row">

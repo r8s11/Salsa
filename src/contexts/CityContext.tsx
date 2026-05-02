@@ -6,8 +6,9 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import type { City } from "../types/events";
 
-export type City = "boston" | "new-york-city";
+export type { City };
 
 const STORAGE_KEY = "salsa.city";
 const VALID: readonly City[] = ["boston", "new-york-city"];

@@ -18,7 +18,7 @@ describe("App", () => {
 
   it("renders header with site name", () => {
     renderApp();
-    const logo = screen.getByRole("link", { name: /💃Salsa Segura🕺/i });
+    const logo = screen.getByRole("link", { name: /Salsa Segura/i });
     expect(logo).toBeInTheDocument();
   });
 });

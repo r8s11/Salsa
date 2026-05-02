@@ -72,7 +72,7 @@ export default function Calendar() {
   useEffect(() => {
     updatePageTitle("Dance Calendar - Salsa, Bachata & Latin Dance Events");
     updateMetaDescription(
-      "Find salsa, bachata, and Latin dance events across Greater Boston and NYC. Browse our interactive calendar of classes, socials, and workshops."
+      "Find salsa, bachata, and Latin dance events across Greater Boston and NYC. Browse the community calendar of classes, socials, and workshops."
     );
   }, []);
 

@@ -68,7 +68,7 @@ function Contact() {
     <section id="contact" className="contact">
       <div className="container">
         <h2 className="section-title">Ready to Dance?</h2>
-        <p className="contact-intro">Contact us!</p>
+        <p className="contact-intro">Get in touch — say hello, share an event, or join the floor.</p>
 
         <div className="contact-grid">
           <div className="contact-form-card">

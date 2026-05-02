@@ -1,0 +1,522 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//GO Latin Dance - ECPv6.15.18//NONSGML v1.0//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:GO Latin Dance
+X-ORIGINAL-URL:https://golatindance.com
+X-WR-CALDESC:Events for GO Latin Dance
+REFRESH-INTERVAL;VALUE=DURATION:PT1H
+X-Robots-Tag:noindex
+X-PUBLISHED-TTL:PT1H
+BEGIN:VTIMEZONE
+TZID:America/New_York
+BEGIN:DAYLIGHT
+TZOFFSETFROM:-0500
+TZOFFSETTO:-0400
+TZNAME:EDT
+DTSTART:20250309T070000
+END:DAYLIGHT
+BEGIN:STANDARD
+TZOFFSETFROM:-0400
+TZOFFSETTO:-0500
+TZNAME:EST
+DTSTART:20251102T060000
+END:STANDARD
+BEGIN:DAYLIGHT
+TZOFFSETFROM:-0500
+TZOFFSETTO:-0400
+TZNAME:EDT
+DTSTART:20260308T070000
+END:DAYLIGHT
+BEGIN:STANDARD
+TZOFFSETFROM:-0400
+TZOFFSETTO:-0500
+TZNAME:EST
+DTSTART:20261101T060000
+END:STANDARD
+BEGIN:DAYLIGHT
+TZOFFSETFROM:-0500
+TZOFFSETTO:-0400
+TZNAME:EDT
+DTSTART:20270314T070000
+END:DAYLIGHT
+BEGIN:STANDARD
+TZOFFSETFROM:-0400
+TZOFFSETTO:-0500
+TZNAME:EST
+DTSTART:20271107T060000
+END:STANDARD
+END:VTIMEZONE
+BEGIN:VEVENT
+DTSTART;TZID=America/New_York:20260502T190000
+DTEND;TZID=America/New_York:20260502T230000
+DTSTAMP:20260502T145726
+CREATED:20240301T161505Z
+LAST-MODIFIED:20260206T150847Z
+UID:10360675-1777748400-1777762800@golatindance.com
+SUMMARY:J&L Underground
+DESCRIPTION:EACH 1ST SATURDAY OF THE MONTH\nJ&L Underground Social will be bringing you a night of energy\, fun\, and the best mix of Bachata (with some sprinkles of Kizomba\, Salsa\, and Merengue ) to keep you dancing all night!\nLocation: Rumba y Timbal Studio\, 7 Temple Street\, Cambridge (YWCA)\nClass Workshop:\n7pm-8pm\nBachata Footwork Challenge (modified for all levels) OR Bachata for Beginners Crash Course\n8pm-11pm\nSocial Dancing (80% Bachata\, 20% Salsa/Merengue)\nCost:\n$15 (includes J&L Footwork Challenge Class)\nMusic: DJ Lui-G\nParking: Street Parking and Nearby Parking Lots or Central Square T Stop\nCan’t wait to bring that island feel to Boston! See you on the dancefloor!
+URL:https://golatindance.com/event/jl-underground-social-2/2026-05-02/
+LOCATION:Rumba Y Timbal Dance Studio\, 7 Temple St\, Cambridge\, MA\, 02139\, United States
+CATEGORIES:Boston
+ATTACH;FMTTYPE=image/png:https://golatindance.com/wp-content/uploads/2024/03/Screenshot-2026-02-06-100756.png
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/New_York:20260502T210000
+DTEND;TZID=America/New_York:20260503T020000
+DTSTAMP:20260502T145726
+CREATED:20240802T143631Z
+LAST-MODIFIED:20250228T173422Z
+UID:10097022-1777755600-1777773600@golatindance.com
+SUMMARY:Salsa/Bachata Saturday at Havana Club
+DESCRIPTION:Saturday Night Bachata/Salsa is Boston’s biggest bachata/salsa dance party on Saturdays featuring bachata/salsa dancing and lessons\, an amazing venue filled with 300+ welcoming salsa dancers\, an inexpensive parking garage next door\, and public transport on Mass Ave. one block away! \nVisit http://havanaclubsalsa.com/saturdays for the latest event details!
+URL:https://golatindance.com/event/salsa-bachata-saturday-at-havana-club-2-2/2026-05-02/
+LOCATION:Havana Club\, 288 Green St\, Central Sq\, Cambridge\, MA\, 02139\, United States
+CATEGORIES:Boston
+GEO:42.3646038;-71.1043268
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Havana Club 288 Green St Central Sq Cambridge MA 02139 United States;X-APPLE-RADIUS=500;X-TITLE=288 Green St\, Central Sq:geo:-71.1043268,42.3646038
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/New_York:20260503T190000
+DTEND;TZID=America/New_York:20260503T233000
+DTSTAMP:20260502T145726
+CREATED:20231020T153601Z
+LAST-MODIFIED:20250103T164313Z
+UID:10255621-1777834800-1777851000@golatindance.com
+SUMMARY:Salsa/Bachata Sunday at Havana Club
+DESCRIPTION:Bachata Sundays is Boston’s Latin Playground for social dancing on Sunday nights featuring bachata lessons and dancing\, an amazing venue\, and a cozy\, welcoming ‘house party meets social’ atmosphere. \nVisit https://havanaclubsalsa.com/sundays for the latest details!
+URL:https://golatindance.com/event/salsa-bachata-sunday-at-havana-club/2026-05-03/
+LOCATION:Havana Club\, 288 Green St\, Central Sq\, Cambridge\, MA\, 02139\, United States
+CATEGORIES:Boston
+ATTACH;FMTTYPE=image/png:https://golatindance.com/wp-content/uploads/2023/10/havana-sunday.png
+GEO:42.3646038;-71.1043268
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Havana Club 288 Green St Central Sq Cambridge MA 02139 United States;X-APPLE-RADIUS=500;X-TITLE=288 Green St\, Central Sq:geo:-71.1043268,42.3646038
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/New_York:20260504T200000
+DTEND;TZID=America/New_York:20260505T000000
+DTSTAMP:20260502T145726
+CREATED:20221202T160136Z
+LAST-MODIFIED:20231215T165309Z
+UID:10095980-1777924800-1777939200@golatindance.com
+SUMMARY:Bachata Mondays at Havana Club
+DESCRIPTION:Bachata Mondays – are always EPIC! \nJoin us (and 150+ fun dancers)! \n\n\nBachata Mondays is Boston’s hot spot for dancing on Monday nights featuring bachata (90%) and salsa (10%) dancing\, bachata lessons\, an amazing venue\, and a cozy\, welcoming ‘house party meets social’ atmosphere. \nVisit http://havanaclubsalsa.com/mondays for the latest events details!
+URL:https://golatindance.com/event/bachata-mondays-at-havana-club/2026-05-04/
+LOCATION:Havana Club\, 288 Green St\, Central Sq\, Cambridge\, MA\, 02139\, United States
+CATEGORIES:Boston
+ATTACH;FMTTYPE=image/jpeg:https://golatindance.com/wp-content/uploads/2022/12/havana-monday.jpg
+GEO:42.3646038;-71.1043268
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Havana Club 288 Green St Central Sq Cambridge MA 02139 United States;X-APPLE-RADIUS=500;X-TITLE=288 Green St\, Central Sq:geo:-71.1043268,42.3646038
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/New_York:20260505T200000
+DTEND;TZID=America/New_York:20260505T233000
+DTSTAMP:20260502T145726
+CREATED:20230505T135507Z
+LAST-MODIFIED:20230728T163059Z
+UID:10136514-1778011200-1778023800@golatindance.com
+SUMMARY:Salsa/Bachata Tuesdays at Havana Club
+DESCRIPTION:Salsa/Bachata Tuesdays is Boston’s hot spot for bachata and salsa dancing on Tuesday nights! Featuring bachata/salsa lessons with experienced\, fun teachers and a bachata/salsa dance social at an amazing venue in a cozy\, welcoming atmosphere. \nVisit http://havanaclubsalsa.com/tuesdays for the latest event details!
+URL:https://golatindance.com/event/salsa-bachata-tuesdays-at-havana-club/2026-05-05/
+LOCATION:Havana Club\, 288 Green St\, Central Sq\, Cambridge\, MA\, 02139\, United States
+CATEGORIES:Boston
+ATTACH;FMTTYPE=image/jpeg:https://golatindance.com/wp-content/uploads/2022/11/Havana-club-thursday.jpg
+GEO:42.3646038;-71.1043268
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Havana Club 288 Green St Central Sq Cambridge MA 02139 United States;X-APPLE-RADIUS=500;X-TITLE=288 Green St\, Central Sq:geo:-71.1043268,42.3646038
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/New_York:20260506T210000
+DTEND;TZID=America/New_York:20260507T000000
+DTSTAMP:20260502T145726
+CREATED:20221111T164326Z
+LAST-MODIFIED:20260130T154808Z
+UID:10096240-1778101200-1778112000@golatindance.com
+SUMMARY:Bachata Room Boston
+DESCRIPTION:Your Mid-Week Break \nSocial Dancing Every Wednesday starting at 9:00 pm. Dance. Mingle. Repeat. \nBachata Room Boston is your mid-week getaway. Join us each Wednesday at La Fábrica Central in Cambridge for beginner-friendly dance lessons\, followed by a social dancing party. \nWalk-ins welcome. No partner needed.
+URL:https://golatindance.com/event/bachata-room-boston/2026-05-06/
+LOCATION:La Fabrica Central\, 450 Massachussets\, Cambridge\, MA\, 02139\, United States
+CATEGORIES:Boston
+ATTACH;FMTTYPE=image/jpeg:https://golatindance.com/wp-content/uploads/2022/11/313379676_665007541723336_1618937492419299458_n.jpg
+GEO:42.3636218;-71.101056
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=La Fabrica Central 450 Massachussets Cambridge MA 02139 United States;X-APPLE-RADIUS=500;X-TITLE=450 Massachussets:geo:-71.101056,42.3636218
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/New_York:20260507T203000
+DTEND;TZID=America/New_York:20260508T003000
+DTSTAMP:20260502T145726
+CREATED:20221104T134143Z
+LAST-MODIFIED:20251219T160335Z
+UID:10149615-1778185800-1778200200@golatindance.com
+SUMMARY:Salsa/Bachata Thursdays at Havana Club
+DESCRIPTION:Bachata Thursdays is Boston’s hot spot for dancing on Thursday nights featuring: bachata (70%) and salsa (20%) dancing\, beginner and intermediate level bachata lessons\, an amazing venue\, and a fun night of bachata and salsa goodness! \nVisit http://havanaclubsalsa.com/thursdays for the latest event details!
+URL:https://golatindance.com/event/salsa-bachata-thursdays-at-havana-club/2026-05-07/
+LOCATION:Havana Club\, 288 Green St\, Central Sq\, Cambridge\, MA\, 02139\, United States
+CATEGORIES:Boston
+ATTACH;FMTTYPE=image/jpeg:https://golatindance.com/wp-content/uploads/2022/11/Havana-club-thursday.jpg
+GEO:42.3646038;-71.1043268
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Havana Club 288 Green St Central Sq Cambridge MA 02139 United States;X-APPLE-RADIUS=500;X-TITLE=288 Green St\, Central Sq:geo:-71.1043268,42.3646038
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/New_York:20260508T204500
+DTEND;TZID=America/New_York:20260509T010000
+DTSTAMP:20260502T145726
+CREATED:20241108T154315Z
+LAST-MODIFIED:20260227T162914Z
+UID:10369154-1778273100-1778288400@golatindance.com
+SUMMARY:Tambo Salsa/Bachata Social
+DESCRIPTION:One of your favorites places to dance salsa is Dante Alighieri Hall in Cambridge. All the music and friendly environment you like and want. Bring your dance shoes and get ready to dance the night away meeting new friends and having fun. \n– 8:45pm Salsa lesson\n– 9:30pm – 1am Music\n– Performances (on certain events)\n– Cover $20 Lesson + Party\, $15 Party only \nFree parking and full bar.\nPlease RSVP the event and INVITE YOUR friends\n$5 discount for students with ID
+URL:https://golatindance.com/event/tambo-salsa-bachata-social/2026-05-08/
+LOCATION:Dante Alighieri Society of Massachusetts\, 41 Hampshire Street\, Cambridge\, MA 02139\, Cambridge\, MA\, 02139\, United States
+CATEGORIES:Boston
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/New_York:20260508T210000
+DTEND;TZID=America/New_York:20260509T020000
+DTSTAMP:20260502T145726
+CREATED:20221104T134508Z
+LAST-MODIFIED:20230602T134419Z
+UID:10096762-1778274000-1778292000@golatindance.com
+SUMMARY:Salsa/Bachata Fridays at Havana Club
+DESCRIPTION:Friday Night Bachata/Salsa is Boston’s biggest bachata/salsa dance party featuring bachata/salsa lessons and bachata/salsa dancing\, an amazing venue filled with 300+ welcoming bachata and salsa dancers\, an inexpensive parking garage next door\, and public transport on Mass Ave. one block away! \nVisit http://havanaclubsalsa.com/fridays for the latest events details!
+URL:https://golatindance.com/event/salsa-bachata-fridays-at-havana-club/2026-05-08/
+LOCATION:Havana Club\, 288 Green St\, Central Sq\, Cambridge\, MA\, 02139\, United States
+CATEGORIES:Boston
+ATTACH;FMTTYPE=image/jpeg:https://golatindance.com/wp-content/uploads/2022/11/Havana-Club-Friday.jpg
+GEO:42.3646038;-71.1043268
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Havana Club 288 Green St Central Sq Cambridge MA 02139 United States;X-APPLE-RADIUS=500;X-TITLE=288 Green St\, Central Sq:geo:-71.1043268,42.3646038
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/New_York:20260509T210000
+DTEND;TZID=America/New_York:20260510T020000
+DTSTAMP:20260502T145726
+CREATED:20240802T143631Z
+LAST-MODIFIED:20250228T173422Z
+UID:10097023-1778360400-1778378400@golatindance.com
+SUMMARY:Salsa/Bachata Saturday at Havana Club
+DESCRIPTION:Saturday Night Bachata/Salsa is Boston’s biggest bachata/salsa dance party on Saturdays featuring bachata/salsa dancing and lessons\, an amazing venue filled with 300+ welcoming salsa dancers\, an inexpensive parking garage next door\, and public transport on Mass Ave. one block away! \nVisit http://havanaclubsalsa.com/saturdays for the latest event details!
+URL:https://golatindance.com/event/salsa-bachata-saturday-at-havana-club-2-2/2026-05-09/
+LOCATION:Havana Club\, 288 Green St\, Central Sq\, Cambridge\, MA\, 02139\, United States
+CATEGORIES:Boston
+GEO:42.3646038;-71.1043268
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Havana Club 288 Green St Central Sq Cambridge MA 02139 United States;X-APPLE-RADIUS=500;X-TITLE=288 Green St\, Central Sq:geo:-71.1043268,42.3646038
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/New_York:20260510T190000
+DTEND;TZID=America/New_York:20260510T233000
+DTSTAMP:20260502T145726
+CREATED:20231020T153601Z
+LAST-MODIFIED:20250103T164313Z
+UID:10255622-1778439600-1778455800@golatindance.com
+SUMMARY:Salsa/Bachata Sunday at Havana Club
+DESCRIPTION:Bachata Sundays is Boston’s Latin Playground for social dancing on Sunday nights featuring bachata lessons and dancing\, an amazing venue\, and a cozy\, welcoming ‘house party meets social’ atmosphere. \nVisit https://havanaclubsalsa.com/sundays for the latest details!
+URL:https://golatindance.com/event/salsa-bachata-sunday-at-havana-club/2026-05-10/
+LOCATION:Havana Club\, 288 Green St\, Central Sq\, Cambridge\, MA\, 02139\, United States
+CATEGORIES:Boston
+ATTACH;FMTTYPE=image/png:https://golatindance.com/wp-content/uploads/2023/10/havana-sunday.png
+GEO:42.3646038;-71.1043268
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Havana Club 288 Green St Central Sq Cambridge MA 02139 United States;X-APPLE-RADIUS=500;X-TITLE=288 Green St\, Central Sq:geo:-71.1043268,42.3646038
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/New_York:20260511T200000
+DTEND;TZID=America/New_York:20260512T000000
+DTSTAMP:20260502T145726
+CREATED:20221202T160136Z
+LAST-MODIFIED:20231215T165309Z
+UID:10095981-1778529600-1778544000@golatindance.com
+SUMMARY:Bachata Mondays at Havana Club
+DESCRIPTION:Bachata Mondays – are always EPIC! \nJoin us (and 150+ fun dancers)! \n\n\nBachata Mondays is Boston’s hot spot for dancing on Monday nights featuring bachata (90%) and salsa (10%) dancing\, bachata lessons\, an amazing venue\, and a cozy\, welcoming ‘house party meets social’ atmosphere. \nVisit http://havanaclubsalsa.com/mondays for the latest events details!
+URL:https://golatindance.com/event/bachata-mondays-at-havana-club/2026-05-11/
+LOCATION:Havana Club\, 288 Green St\, Central Sq\, Cambridge\, MA\, 02139\, United States
+CATEGORIES:Boston
+ATTACH;FMTTYPE=image/jpeg:https://golatindance.com/wp-content/uploads/2022/12/havana-monday.jpg
+GEO:42.3646038;-71.1043268
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Havana Club 288 Green St Central Sq Cambridge MA 02139 United States;X-APPLE-RADIUS=500;X-TITLE=288 Green St\, Central Sq:geo:-71.1043268,42.3646038
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/New_York:20260512T200000
+DTEND;TZID=America/New_York:20260512T233000
+DTSTAMP:20260502T145726
+CREATED:20230505T135507Z
+LAST-MODIFIED:20230728T163059Z
+UID:10136515-1778616000-1778628600@golatindance.com
+SUMMARY:Salsa/Bachata Tuesdays at Havana Club
+DESCRIPTION:Salsa/Bachata Tuesdays is Boston’s hot spot for bachata and salsa dancing on Tuesday nights! Featuring bachata/salsa lessons with experienced\, fun teachers and a bachata/salsa dance social at an amazing venue in a cozy\, welcoming atmosphere. \nVisit http://havanaclubsalsa.com/tuesdays for the latest event details!
+URL:https://golatindance.com/event/salsa-bachata-tuesdays-at-havana-club/2026-05-12/
+LOCATION:Havana Club\, 288 Green St\, Central Sq\, Cambridge\, MA\, 02139\, United States
+CATEGORIES:Boston
+ATTACH;FMTTYPE=image/jpeg:https://golatindance.com/wp-content/uploads/2022/11/Havana-club-thursday.jpg
+GEO:42.3646038;-71.1043268
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Havana Club 288 Green St Central Sq Cambridge MA 02139 United States;X-APPLE-RADIUS=500;X-TITLE=288 Green St\, Central Sq:geo:-71.1043268,42.3646038
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/New_York:20260513T210000
+DTEND;TZID=America/New_York:20260514T000000
+DTSTAMP:20260502T145726
+CREATED:20221111T164326Z
+LAST-MODIFIED:20260130T154808Z
+UID:10096241-1778706000-1778716800@golatindance.com
+SUMMARY:Bachata Room Boston
+DESCRIPTION:Your Mid-Week Break \nSocial Dancing Every Wednesday starting at 9:00 pm. Dance. Mingle. Repeat. \nBachata Room Boston is your mid-week getaway. Join us each Wednesday at La Fábrica Central in Cambridge for beginner-friendly dance lessons\, followed by a social dancing party. \nWalk-ins welcome. No partner needed.
+URL:https://golatindance.com/event/bachata-room-boston/2026-05-13/
+LOCATION:La Fabrica Central\, 450 Massachussets\, Cambridge\, MA\, 02139\, United States
+CATEGORIES:Boston
+ATTACH;FMTTYPE=image/jpeg:https://golatindance.com/wp-content/uploads/2022/11/313379676_665007541723336_1618937492419299458_n.jpg
+GEO:42.3636218;-71.101056
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=La Fabrica Central 450 Massachussets Cambridge MA 02139 United States;X-APPLE-RADIUS=500;X-TITLE=450 Massachussets:geo:-71.101056,42.3636218
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/New_York:20260514T203000
+DTEND;TZID=America/New_York:20260515T003000
+DTSTAMP:20260502T145726
+CREATED:20221104T134143Z
+LAST-MODIFIED:20251219T160335Z
+UID:10149616-1778790600-1778805000@golatindance.com
+SUMMARY:Salsa/Bachata Thursdays at Havana Club
+DESCRIPTION:Bachata Thursdays is Boston’s hot spot for dancing on Thursday nights featuring: bachata (70%) and salsa (20%) dancing\, beginner and intermediate level bachata lessons\, an amazing venue\, and a fun night of bachata and salsa goodness! \nVisit http://havanaclubsalsa.com/thursdays for the latest event details!
+URL:https://golatindance.com/event/salsa-bachata-thursdays-at-havana-club/2026-05-14/
+LOCATION:Havana Club\, 288 Green St\, Central Sq\, Cambridge\, MA\, 02139\, United States
+CATEGORIES:Boston
+ATTACH;FMTTYPE=image/jpeg:https://golatindance.com/wp-content/uploads/2022/11/Havana-club-thursday.jpg
+GEO:42.3646038;-71.1043268
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Havana Club 288 Green St Central Sq Cambridge MA 02139 United States;X-APPLE-RADIUS=500;X-TITLE=288 Green St\, Central Sq:geo:-71.1043268,42.3646038
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/New_York:20260515T210000
+DTEND;TZID=America/New_York:20260516T020000
+DTSTAMP:20260502T145726
+CREATED:20221104T134508Z
+LAST-MODIFIED:20230602T134419Z
+UID:10096763-1778878800-1778896800@golatindance.com
+SUMMARY:Salsa/Bachata Fridays at Havana Club
+DESCRIPTION:Friday Night Bachata/Salsa is Boston’s biggest bachata/salsa dance party featuring bachata/salsa lessons and bachata/salsa dancing\, an amazing venue filled with 300+ welcoming bachata and salsa dancers\, an inexpensive parking garage next door\, and public transport on Mass Ave. one block away! \nVisit http://havanaclubsalsa.com/fridays for the latest events details!
+URL:https://golatindance.com/event/salsa-bachata-fridays-at-havana-club/2026-05-15/
+LOCATION:Havana Club\, 288 Green St\, Central Sq\, Cambridge\, MA\, 02139\, United States
+CATEGORIES:Boston
+ATTACH;FMTTYPE=image/jpeg:https://golatindance.com/wp-content/uploads/2022/11/Havana-Club-Friday.jpg
+GEO:42.3646038;-71.1043268
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Havana Club 288 Green St Central Sq Cambridge MA 02139 United States;X-APPLE-RADIUS=500;X-TITLE=288 Green St\, Central Sq:geo:-71.1043268,42.3646038
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/New_York:20260516T210000
+DTEND;TZID=America/New_York:20260517T020000
+DTSTAMP:20260502T145726
+CREATED:20240802T143631Z
+LAST-MODIFIED:20250228T173422Z
+UID:10097024-1778965200-1778983200@golatindance.com
+SUMMARY:Salsa/Bachata Saturday at Havana Club
+DESCRIPTION:Saturday Night Bachata/Salsa is Boston’s biggest bachata/salsa dance party on Saturdays featuring bachata/salsa dancing and lessons\, an amazing venue filled with 300+ welcoming salsa dancers\, an inexpensive parking garage next door\, and public transport on Mass Ave. one block away! \nVisit http://havanaclubsalsa.com/saturdays for the latest event details!
+URL:https://golatindance.com/event/salsa-bachata-saturday-at-havana-club-2-2/2026-05-16/
+LOCATION:Havana Club\, 288 Green St\, Central Sq\, Cambridge\, MA\, 02139\, United States
+CATEGORIES:Boston
+GEO:42.3646038;-71.1043268
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Havana Club 288 Green St Central Sq Cambridge MA 02139 United States;X-APPLE-RADIUS=500;X-TITLE=288 Green St\, Central Sq:geo:-71.1043268,42.3646038
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/New_York:20260517T190000
+DTEND;TZID=America/New_York:20260517T233000
+DTSTAMP:20260502T145726
+CREATED:20231020T153601Z
+LAST-MODIFIED:20250103T164313Z
+UID:10255623-1779044400-1779060600@golatindance.com
+SUMMARY:Salsa/Bachata Sunday at Havana Club
+DESCRIPTION:Bachata Sundays is Boston’s Latin Playground for social dancing on Sunday nights featuring bachata lessons and dancing\, an amazing venue\, and a cozy\, welcoming ‘house party meets social’ atmosphere. \nVisit https://havanaclubsalsa.com/sundays for the latest details!
+URL:https://golatindance.com/event/salsa-bachata-sunday-at-havana-club/2026-05-17/
+LOCATION:Havana Club\, 288 Green St\, Central Sq\, Cambridge\, MA\, 02139\, United States
+CATEGORIES:Boston
+ATTACH;FMTTYPE=image/png:https://golatindance.com/wp-content/uploads/2023/10/havana-sunday.png
+GEO:42.3646038;-71.1043268
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Havana Club 288 Green St Central Sq Cambridge MA 02139 United States;X-APPLE-RADIUS=500;X-TITLE=288 Green St\, Central Sq:geo:-71.1043268,42.3646038
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/New_York:20260518T200000
+DTEND;TZID=America/New_York:20260519T000000
+DTSTAMP:20260502T145726
+CREATED:20221202T160136Z
+LAST-MODIFIED:20231215T165309Z
+UID:10095982-1779134400-1779148800@golatindance.com
+SUMMARY:Bachata Mondays at Havana Club
+DESCRIPTION:Bachata Mondays – are always EPIC! \nJoin us (and 150+ fun dancers)! \n\n\nBachata Mondays is Boston’s hot spot for dancing on Monday nights featuring bachata (90%) and salsa (10%) dancing\, bachata lessons\, an amazing venue\, and a cozy\, welcoming ‘house party meets social’ atmosphere. \nVisit http://havanaclubsalsa.com/mondays for the latest events details!
+URL:https://golatindance.com/event/bachata-mondays-at-havana-club/2026-05-18/
+LOCATION:Havana Club\, 288 Green St\, Central Sq\, Cambridge\, MA\, 02139\, United States
+CATEGORIES:Boston
+ATTACH;FMTTYPE=image/jpeg:https://golatindance.com/wp-content/uploads/2022/12/havana-monday.jpg
+GEO:42.3646038;-71.1043268
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Havana Club 288 Green St Central Sq Cambridge MA 02139 United States;X-APPLE-RADIUS=500;X-TITLE=288 Green St\, Central Sq:geo:-71.1043268,42.3646038
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/New_York:20260519T200000
+DTEND;TZID=America/New_York:20260519T233000
+DTSTAMP:20260502T145726
+CREATED:20230505T135507Z
+LAST-MODIFIED:20230728T163059Z
+UID:10136516-1779220800-1779233400@golatindance.com
+SUMMARY:Salsa/Bachata Tuesdays at Havana Club
+DESCRIPTION:Salsa/Bachata Tuesdays is Boston’s hot spot for bachata and salsa dancing on Tuesday nights! Featuring bachata/salsa lessons with experienced\, fun teachers and a bachata/salsa dance social at an amazing venue in a cozy\, welcoming atmosphere. \nVisit http://havanaclubsalsa.com/tuesdays for the latest event details!
+URL:https://golatindance.com/event/salsa-bachata-tuesdays-at-havana-club/2026-05-19/
+LOCATION:Havana Club\, 288 Green St\, Central Sq\, Cambridge\, MA\, 02139\, United States
+CATEGORIES:Boston
+ATTACH;FMTTYPE=image/jpeg:https://golatindance.com/wp-content/uploads/2022/11/Havana-club-thursday.jpg
+GEO:42.3646038;-71.1043268
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Havana Club 288 Green St Central Sq Cambridge MA 02139 United States;X-APPLE-RADIUS=500;X-TITLE=288 Green St\, Central Sq:geo:-71.1043268,42.3646038
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/New_York:20260520T210000
+DTEND;TZID=America/New_York:20260521T000000
+DTSTAMP:20260502T145726
+CREATED:20221111T164326Z
+LAST-MODIFIED:20260130T154808Z
+UID:10096242-1779310800-1779321600@golatindance.com
+SUMMARY:Bachata Room Boston
+DESCRIPTION:Your Mid-Week Break \nSocial Dancing Every Wednesday starting at 9:00 pm. Dance. Mingle. Repeat. \nBachata Room Boston is your mid-week getaway. Join us each Wednesday at La Fábrica Central in Cambridge for beginner-friendly dance lessons\, followed by a social dancing party. \nWalk-ins welcome. No partner needed.
+URL:https://golatindance.com/event/bachata-room-boston/2026-05-20/
+LOCATION:La Fabrica Central\, 450 Massachussets\, Cambridge\, MA\, 02139\, United States
+CATEGORIES:Boston
+ATTACH;FMTTYPE=image/jpeg:https://golatindance.com/wp-content/uploads/2022/11/313379676_665007541723336_1618937492419299458_n.jpg
+GEO:42.3636218;-71.101056
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=La Fabrica Central 450 Massachussets Cambridge MA 02139 United States;X-APPLE-RADIUS=500;X-TITLE=450 Massachussets:geo:-71.101056,42.3636218
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/New_York:20260521T203000
+DTEND;TZID=America/New_York:20260522T003000
+DTSTAMP:20260502T145726
+CREATED:20221104T134143Z
+LAST-MODIFIED:20251219T160335Z
+UID:10149617-1779395400-1779409800@golatindance.com
+SUMMARY:Salsa/Bachata Thursdays at Havana Club
+DESCRIPTION:Bachata Thursdays is Boston’s hot spot for dancing on Thursday nights featuring: bachata (70%) and salsa (20%) dancing\, beginner and intermediate level bachata lessons\, an amazing venue\, and a fun night of bachata and salsa goodness! \nVisit http://havanaclubsalsa.com/thursdays for the latest event details!
+URL:https://golatindance.com/event/salsa-bachata-thursdays-at-havana-club/2026-05-21/
+LOCATION:Havana Club\, 288 Green St\, Central Sq\, Cambridge\, MA\, 02139\, United States
+CATEGORIES:Boston
+ATTACH;FMTTYPE=image/jpeg:https://golatindance.com/wp-content/uploads/2022/11/Havana-club-thursday.jpg
+GEO:42.3646038;-71.1043268
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Havana Club 288 Green St Central Sq Cambridge MA 02139 United States;X-APPLE-RADIUS=500;X-TITLE=288 Green St\, Central Sq:geo:-71.1043268,42.3646038
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/New_York:20260522T210000
+DTEND;TZID=America/New_York:20260523T020000
+DTSTAMP:20260502T145726
+CREATED:20221104T134508Z
+LAST-MODIFIED:20230602T134419Z
+UID:10096764-1779483600-1779501600@golatindance.com
+SUMMARY:Salsa/Bachata Fridays at Havana Club
+DESCRIPTION:Friday Night Bachata/Salsa is Boston’s biggest bachata/salsa dance party featuring bachata/salsa lessons and bachata/salsa dancing\, an amazing venue filled with 300+ welcoming bachata and salsa dancers\, an inexpensive parking garage next door\, and public transport on Mass Ave. one block away! \nVisit http://havanaclubsalsa.com/fridays for the latest events details!
+URL:https://golatindance.com/event/salsa-bachata-fridays-at-havana-club/2026-05-22/
+LOCATION:Havana Club\, 288 Green St\, Central Sq\, Cambridge\, MA\, 02139\, United States
+CATEGORIES:Boston
+ATTACH;FMTTYPE=image/jpeg:https://golatindance.com/wp-content/uploads/2022/11/Havana-Club-Friday.jpg
+GEO:42.3646038;-71.1043268
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Havana Club 288 Green St Central Sq Cambridge MA 02139 United States;X-APPLE-RADIUS=500;X-TITLE=288 Green St\, Central Sq:geo:-71.1043268,42.3646038
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/New_York:20260523T210000
+DTEND;TZID=America/New_York:20260524T020000
+DTSTAMP:20260502T145726
+CREATED:20240802T143631Z
+LAST-MODIFIED:20250228T173422Z
+UID:10097025-1779570000-1779588000@golatindance.com
+SUMMARY:Salsa/Bachata Saturday at Havana Club
+DESCRIPTION:Saturday Night Bachata/Salsa is Boston’s biggest bachata/salsa dance party on Saturdays featuring bachata/salsa dancing and lessons\, an amazing venue filled with 300+ welcoming salsa dancers\, an inexpensive parking garage next door\, and public transport on Mass Ave. one block away! \nVisit http://havanaclubsalsa.com/saturdays for the latest event details!
+URL:https://golatindance.com/event/salsa-bachata-saturday-at-havana-club-2-2/2026-05-23/
+LOCATION:Havana Club\, 288 Green St\, Central Sq\, Cambridge\, MA\, 02139\, United States
+CATEGORIES:Boston
+GEO:42.3646038;-71.1043268
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Havana Club 288 Green St Central Sq Cambridge MA 02139 United States;X-APPLE-RADIUS=500;X-TITLE=288 Green St\, Central Sq:geo:-71.1043268,42.3646038
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/New_York:20260524T190000
+DTEND;TZID=America/New_York:20260524T233000
+DTSTAMP:20260502T145726
+CREATED:20231020T153601Z
+LAST-MODIFIED:20250103T164313Z
+UID:10255624-1779649200-1779665400@golatindance.com
+SUMMARY:Salsa/Bachata Sunday at Havana Club
+DESCRIPTION:Bachata Sundays is Boston’s Latin Playground for social dancing on Sunday nights featuring bachata lessons and dancing\, an amazing venue\, and a cozy\, welcoming ‘house party meets social’ atmosphere. \nVisit https://havanaclubsalsa.com/sundays for the latest details!
+URL:https://golatindance.com/event/salsa-bachata-sunday-at-havana-club/2026-05-24/
+LOCATION:Havana Club\, 288 Green St\, Central Sq\, Cambridge\, MA\, 02139\, United States
+CATEGORIES:Boston
+ATTACH;FMTTYPE=image/png:https://golatindance.com/wp-content/uploads/2023/10/havana-sunday.png
+GEO:42.3646038;-71.1043268
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Havana Club 288 Green St Central Sq Cambridge MA 02139 United States;X-APPLE-RADIUS=500;X-TITLE=288 Green St\, Central Sq:geo:-71.1043268,42.3646038
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/New_York:20260525T200000
+DTEND;TZID=America/New_York:20260526T000000
+DTSTAMP:20260502T145726
+CREATED:20221202T160136Z
+LAST-MODIFIED:20231215T165309Z
+UID:10095983-1779739200-1779753600@golatindance.com
+SUMMARY:Bachata Mondays at Havana Club
+DESCRIPTION:Bachata Mondays – are always EPIC! \nJoin us (and 150+ fun dancers)! \n\n\nBachata Mondays is Boston’s hot spot for dancing on Monday nights featuring bachata (90%) and salsa (10%) dancing\, bachata lessons\, an amazing venue\, and a cozy\, welcoming ‘house party meets social’ atmosphere. \nVisit http://havanaclubsalsa.com/mondays for the latest events details!
+URL:https://golatindance.com/event/bachata-mondays-at-havana-club/2026-05-25/
+LOCATION:Havana Club\, 288 Green St\, Central Sq\, Cambridge\, MA\, 02139\, United States
+CATEGORIES:Boston
+ATTACH;FMTTYPE=image/jpeg:https://golatindance.com/wp-content/uploads/2022/12/havana-monday.jpg
+GEO:42.3646038;-71.1043268
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Havana Club 288 Green St Central Sq Cambridge MA 02139 United States;X-APPLE-RADIUS=500;X-TITLE=288 Green St\, Central Sq:geo:-71.1043268,42.3646038
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/New_York:20260526T200000
+DTEND;TZID=America/New_York:20260526T233000
+DTSTAMP:20260502T145726
+CREATED:20230505T135507Z
+LAST-MODIFIED:20230728T163059Z
+UID:10136517-1779825600-1779838200@golatindance.com
+SUMMARY:Salsa/Bachata Tuesdays at Havana Club
+DESCRIPTION:Salsa/Bachata Tuesdays is Boston’s hot spot for bachata and salsa dancing on Tuesday nights! Featuring bachata/salsa lessons with experienced\, fun teachers and a bachata/salsa dance social at an amazing venue in a cozy\, welcoming atmosphere. \nVisit http://havanaclubsalsa.com/tuesdays for the latest event details!
+URL:https://golatindance.com/event/salsa-bachata-tuesdays-at-havana-club/2026-05-26/
+LOCATION:Havana Club\, 288 Green St\, Central Sq\, Cambridge\, MA\, 02139\, United States
+CATEGORIES:Boston
+ATTACH;FMTTYPE=image/jpeg:https://golatindance.com/wp-content/uploads/2022/11/Havana-club-thursday.jpg
+GEO:42.3646038;-71.1043268
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Havana Club 288 Green St Central Sq Cambridge MA 02139 United States;X-APPLE-RADIUS=500;X-TITLE=288 Green St\, Central Sq:geo:-71.1043268,42.3646038
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/New_York:20260527T210000
+DTEND;TZID=America/New_York:20260528T000000
+DTSTAMP:20260502T145726
+CREATED:20221111T164326Z
+LAST-MODIFIED:20260130T154808Z
+UID:10096243-1779915600-1779926400@golatindance.com
+SUMMARY:Bachata Room Boston
+DESCRIPTION:Your Mid-Week Break \nSocial Dancing Every Wednesday starting at 9:00 pm. Dance. Mingle. Repeat. \nBachata Room Boston is your mid-week getaway. Join us each Wednesday at La Fábrica Central in Cambridge for beginner-friendly dance lessons\, followed by a social dancing party. \nWalk-ins welcome. No partner needed.
+URL:https://golatindance.com/event/bachata-room-boston/2026-05-27/
+LOCATION:La Fabrica Central\, 450 Massachussets\, Cambridge\, MA\, 02139\, United States
+CATEGORIES:Boston
+ATTACH;FMTTYPE=image/jpeg:https://golatindance.com/wp-content/uploads/2022/11/313379676_665007541723336_1618937492419299458_n.jpg
+GEO:42.3636218;-71.101056
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=La Fabrica Central 450 Massachussets Cambridge MA 02139 United States;X-APPLE-RADIUS=500;X-TITLE=450 Massachussets:geo:-71.101056,42.3636218
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/New_York:20260528T203000
+DTEND;TZID=America/New_York:20260529T003000
+DTSTAMP:20260502T145726
+CREATED:20221104T134143Z
+LAST-MODIFIED:20251219T160335Z
+UID:10149618-1780000200-1780014600@golatindance.com
+SUMMARY:Salsa/Bachata Thursdays at Havana Club
+DESCRIPTION:Bachata Thursdays is Boston’s hot spot for dancing on Thursday nights featuring: bachata (70%) and salsa (20%) dancing\, beginner and intermediate level bachata lessons\, an amazing venue\, and a fun night of bachata and salsa goodness! \nVisit http://havanaclubsalsa.com/thursdays for the latest event details!
+URL:https://golatindance.com/event/salsa-bachata-thursdays-at-havana-club/2026-05-28/
+LOCATION:Havana Club\, 288 Green St\, Central Sq\, Cambridge\, MA\, 02139\, United States
+CATEGORIES:Boston
+ATTACH;FMTTYPE=image/jpeg:https://golatindance.com/wp-content/uploads/2022/11/Havana-club-thursday.jpg
+GEO:42.3646038;-71.1043268
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Havana Club 288 Green St Central Sq Cambridge MA 02139 United States;X-APPLE-RADIUS=500;X-TITLE=288 Green St\, Central Sq:geo:-71.1043268,42.3646038
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/New_York:20260529T210000
+DTEND;TZID=America/New_York:20260530T020000
+DTSTAMP:20260502T145726
+CREATED:20221104T134508Z
+LAST-MODIFIED:20230602T134419Z
+UID:10096765-1780088400-1780106400@golatindance.com
+SUMMARY:Salsa/Bachata Fridays at Havana Club
+DESCRIPTION:Friday Night Bachata/Salsa is Boston’s biggest bachata/salsa dance party featuring bachata/salsa lessons and bachata/salsa dancing\, an amazing venue filled with 300+ welcoming bachata and salsa dancers\, an inexpensive parking garage next door\, and public transport on Mass Ave. one block away! \nVisit http://havanaclubsalsa.com/fridays for the latest events details!
+URL:https://golatindance.com/event/salsa-bachata-fridays-at-havana-club/2026-05-29/
+LOCATION:Havana Club\, 288 Green St\, Central Sq\, Cambridge\, MA\, 02139\, United States
+CATEGORIES:Boston
+ATTACH;FMTTYPE=image/jpeg:https://golatindance.com/wp-content/uploads/2022/11/Havana-Club-Friday.jpg
+GEO:42.3646038;-71.1043268
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=Havana Club 288 Green St Central Sq Cambridge MA 02139 United States;X-APPLE-RADIUS=500;X-TITLE=288 Green St\, Central Sq:geo:-71.1043268,42.3646038
+END:VEVENT
+END:VCALENDAR

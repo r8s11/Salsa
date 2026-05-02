@@ -14,9 +14,11 @@
   "dependencies": {
     "@schedule-x/calendar": "^4.1.0",
     "@schedule-x/events-service": "^4.1.0",
+    "@schedule-x/ical": "^4.5.0",
     "@schedule-x/react": "^4.1.0",
     "@schedule-x/theme-default": "^4.1.0",
     "@supabase/supabase-js": "^2.95.3",
+    "ical.js": "^2.2.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-router-dom": "^7.13.0",

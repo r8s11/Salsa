@@ -91,12 +91,6 @@
   transition: border-color 0.25s ease, background 0.25s ease;
 }
 
-.light-mode .submit-form .form-group input,
-.light-mode .submit-form .form-group select,
-.light-mode .submit-form .form-group textarea {
-  background: rgba(0, 0, 0, 0.02);
-}
-
 .submit-form .form-group input::placeholder,
 .submit-form .form-group textarea::placeholder {
   color: var(--text-dim);

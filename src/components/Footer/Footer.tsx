@@ -1,24 +1,7 @@
-import { useState, useEffect } from "react";
 import "./Footer.css";
 
 function Footer() {
-  const [isLightMode, setIsLightMode] = useState(() => {
-    return localStorage.getItem("lightMode") === "true";
-  });
   const currentYear = new Date().getFullYear();
-
-  const toggleMode = () => {
-    const next = !isLightMode;
-    setIsLightMode(next);
-    document.body.classList.toggle("light-mode", next);
-    localStorage.setItem("lightMode", String(next));
-  };
-
-  // Apply class on mount
-  useEffect(() => {
-    document.body.classList.toggle("light-mode", isLightMode);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   return (
     <footer>
@@ -29,16 +12,6 @@ function Footer() {
           </a>
           <a href="mailto:info@SalsaSegura.com">Email</a>
           <a href="tel:+19784440922">Call</a>
-        </div>
-
-        <div className="dark-mode-container">
-          <button
-            className="dark-mode-toggle"
-            aria-label={isLightMode ? "Switch to dark mode" : "Switch to light mode"}
-            onClick={toggleMode}
-          >
-            {isLightMode ? "🌙" : "☀️"}
-          </button>
         </div>
 
         <a

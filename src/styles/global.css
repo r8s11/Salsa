@@ -429,11 +429,6 @@ a.logo:focus-visible {
   outline-offset: 3px;
 }
 
-.dark-mode-toggle:focus-visible {
-  outline: 2px solid var(--red-bright);
-  outline-offset: 2px;
-}
-
 .hamburger:focus-visible {
   outline: 2px solid var(--red-bright);
   outline-offset: 4px;

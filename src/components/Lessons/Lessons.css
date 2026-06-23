@@ -3,7 +3,8 @@
    ======================================== */
 
 .lessons {
-  background: white;
+  background: var(--bg);
+  color: var(--text);
   padding: 80px 0;
   transition: background-color 0.3s ease;
 }
@@ -16,19 +17,22 @@
 }
 
 .lesson-card {
-  background: linear-gradient(135deg, #fff5e6 0%, #ffd699 100%);
+  background: var(--card);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
   padding: 2rem;
-  border-radius: 20px;
   text-align: center;
   transition: all 0.3s ease;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  border: 2px solid transparent;
+  box-shadow: 0 8px 32px rgba(11, 19, 38, 0.5);
 }
 
 .lesson-card:hover {
   transform: translateY(-10px) scale(1.02);
-  border-color: #ff8c42;
-  box-shadow: 0 15px 30px rgba(255, 140, 66, 0.3);
+  border-color: var(--gold);
+  box-shadow: var(--glow-primary);
+  background: var(--card-hover);
 }
 
 .lesson-icon {
@@ -40,27 +44,7 @@
 .lesson-card h3 {
   font-size: 1.5rem;
   margin-bottom: 1rem;
-  color: #333;
-}
-
-/* Dark Mode */
-.dark-mode .lessons {
-  background: #2c2c2c;
-}
-
-.dark-mode .lesson-card {
-  background: linear-gradient(135deg, #3a3a3a 0%, #4a4a4a 100%);
-  color: #e0e0e0;
-  border-color: #555;
-}
-
-.dark-mode .lesson-card:hover {
-  border-color: #ff8c42;
-  box-shadow: 0 15px 30px rgba(255, 140, 66, 0.2);
-}
-
-.dark-mode .lesson-card h3 {
-  color: #e0e0e0;
+  color: var(--text);
 }
 
 /* Mobile Styles */

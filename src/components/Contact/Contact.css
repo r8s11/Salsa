@@ -92,7 +92,7 @@
 .form-group textarea:focus {
   outline: none;
   border-color: var(--red);
-  background: rgba(196, 18, 48, 0.04);
+  background: rgba(225, 29, 72, 0.04);
 }
 
 .form-group select {
@@ -104,7 +104,7 @@
 }
 
 .form-group select option {
-  background: #16161E;
+  background: var(--card);
   color: var(--text);
 }
 
@@ -157,7 +157,7 @@
   padding: 0.875rem 1rem;
   margin-bottom: 1.25rem;
   background: var(--red-dim);
-  border: 1px solid rgba(196, 18, 48, 0.35);
+  border: 1px solid rgba(225, 29, 72, 0.35);
   border-radius: var(--radius-sm);
   color: #FF8080;
   font-size: 0.85rem;

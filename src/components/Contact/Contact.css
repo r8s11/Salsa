@@ -39,6 +39,8 @@
 /* ── Form Card ── */
 .contact-form-card {
   background: var(--card);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
   border: 1px solid var(--border);
   padding: 2.5rem;
   border-radius: var(--radius-md);
@@ -172,6 +174,8 @@
 
 .contact-card {
   background: var(--card);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
   border: 1px solid var(--border);
   padding: 1.75rem 1.5rem;
   border-radius: var(--radius-md);

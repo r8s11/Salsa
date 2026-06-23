@@ -148,21 +148,21 @@
 }
 
 .event-type.social {
-  background: var(--gold-dim);
-  color: var(--gold-light);
-  border: 1px solid rgba(233, 195, 73, 0.25);
+  background: rgba(225, 29, 72, 0.12);
+  color: var(--red-bright);
+  border: 1px solid rgba(225, 29, 72, 0.25);
 }
 
 .event-type.class {
-  background: rgba(52, 152, 219, 0.12);
-  color: #7ABFE8;
-  border: 1px solid rgba(52, 152, 219, 0.2);
+  background: rgba(124, 147, 233, 0.12);
+  color: #9fb1f0;
+  border: 1px solid rgba(124, 147, 233, 0.25);
 }
 
 .event-type.workshop {
-  background: rgba(39, 174, 96, 0.12);
-  color: #6DD6A0;
-  border: 1px solid rgba(39, 174, 96, 0.2);
+  background: var(--gold-dim);
+  color: var(--gold-light);
+  border: 1px solid rgba(233, 195, 73, 0.25);
 }
 
 .event-time {

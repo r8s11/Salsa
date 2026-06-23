@@ -3,34 +3,34 @@
    Schedule-X theme override + page layout
    ======================================== */
 
-/* ── Schedule-X Theme: Noche Ardiente ── */
+/* ── Schedule-X Theme: Ritmo Vivo ── */
 :root {
-  --sx-color-primary:                    #C41230;
+  --sx-color-primary:                    var(--red);
   --sx-color-on-primary:                 #fff;
-  --sx-color-primary-container:          #2A0A10;
+  --sx-color-primary-container:          var(--red-dim);
   --sx-color-on-primary-container:       #FFCCD4;
   --sx-color-secondary:                  #6B5B4E;
   --sx-color-on-secondary:               #fff;
   --sx-color-secondary-container:        #2A201C;
   --sx-color-on-secondary-container:     #E8D8D0;
-  --sx-color-surface:                    #101016;
-  --sx-color-surface-dim:                #080808;
-  --sx-color-surface-bright:             #1C1C24;
-  --sx-color-on-surface:                 #F5F0E8;
-  --sx-color-surface-container:          #16161E;
-  --sx-color-surface-container-low:      #101016;
-  --sx-color-surface-container-high:     #20202A;
-  --sx-color-background:                 #101016;
-  --sx-color-on-background:              #F5F0E8;
-  --sx-color-outline:                    #3A3A45;
-  --sx-color-outline-variant:            #28282F;
+  --sx-color-surface:                    var(--surface);
+  --sx-color-surface-dim:                var(--bg);
+  --sx-color-surface-bright:             var(--surface-high);
+  --sx-color-on-surface:                 var(--text);
+  --sx-color-surface-container:          var(--card);
+  --sx-color-surface-container-low:      var(--surface);
+  --sx-color-surface-container-high:     var(--surface-high);
+  --sx-color-background:                 var(--surface);
+  --sx-color-on-background:              var(--text);
+  --sx-color-outline:                    var(--border-md);
+  --sx-color-outline-variant:            var(--border);
   --sx-color-shadow:                     #000;
-  --sx-color-surface-tint:               #C41230;
+  --sx-color-surface-tint:               var(--red);
   --sx-color-neutral:                    var(--sx-color-outline);
   --sx-color-neutral-variant:            var(--sx-color-outline-variant);
-  --sx-internal-color-gray-ripple-background: #1C1C24;
-  --sx-internal-color-light-gray:        #16161E;
-  --sx-internal-color-text:              #F5F0E8;
+  --sx-internal-color-gray-ripple-background: var(--surface-high);
+  --sx-internal-color-light-gray:        var(--card);
+  --sx-internal-color-text:              var(--text);
 }
 
 /* ── Page layout ── */
@@ -112,9 +112,9 @@
   flex-shrink: 0;
 }
 
-.legend-dot.social   { background: var(--gold); }
-.legend-dot.class    { background: #3A8FD6; }
-.legend-dot.workshop { background: #2E9E66; }
+.legend-dot.social   { background: var(--red); }
+.legend-dot.class    { background: #7c93e9; }
+.legend-dot.workshop { background: var(--gold); }
 
 /* ── Loading / Error States ── */
 .calendar-status {
@@ -133,7 +133,7 @@
 
 .calendar-error {
   background: var(--red-dim);
-  border-color: rgba(196, 18, 48, 0.3);
+  border-color: var(--red-glow);
   color: #FF8080;
 }
 

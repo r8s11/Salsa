@@ -8,48 +8,68 @@
    ---------------------------------------- */
 :root {
   /* Backgrounds */
-  --bg:          #080808;
-  --surface:     #101016;
-  --card:        #16161E;
-  --card-hover:  #1D1D26;
+  --bg:          #0b1326;
+  --surface:     #131b2e;
+  --surface-high:#171f33;
+  --card:        rgba(255, 255, 255, 0.08);
+  --card-hover:  rgba(255, 255, 255, 0.12);
 
-  /* Borders */
-  --border:      rgba(255, 255, 255, 0.06);
-  --border-md:   rgba(255, 255, 255, 0.12);
-  --border-lg:   rgba(255, 255, 255, 0.2);
+  /* Borders (glass) */
+  --border:      rgba(255, 255, 255, 0.10);
+  --border-md:   rgba(255, 255, 255, 0.16);
+  --border-lg:   rgba(255, 255, 255, 0.24);
 
-  /* Accent — Crimson */
-  --red:         #C41230;
-  --red-bright:  #E01540;
-  --red-dim:     rgba(196, 18, 48, 0.18);
-  --red-glow:    rgba(196, 18, 48, 0.25);
+  /* Accent — Rose Red (primary) */
+  --red:         #e11d48;
+  --red-bright:  #ff5874;
+  --red-dim:     rgba(225, 29, 72, 0.18);
+  --red-glow:    rgba(225, 29, 72, 0.30);
 
-  /* Accent — Gold */
-  --gold:        #C8941A;
-  --gold-light:  #E8B030;
-  --gold-dim:    rgba(200, 148, 26, 0.15);
+  /* Accent — Gold (secondary) */
+  --gold:        #e9c349;
+  --gold-light:  #ffe088;
+  --gold-dim:    rgba(233, 195, 73, 0.15);
+
+  /* Accent — Warm Orange (tertiary) */
+  --tertiary:     #ffb690;
+  --tertiary-dim: rgba(255, 182, 144, 0.15);
 
   /* Text */
-  --text:        #F5F0E8;
-  --text-muted:  #8A8580;
-  --text-dim:    #4E4E55;
+  --text:        #dae2fd;
+  --text-muted:  #e5bdbe;
+  --text-dim:    #ac8889;
 
   /* Typography */
-  --font-display: 'Playfair Display', Georgia, serif;
-  --font-ui:      'Josefin Sans', 'Helvetica Neue', sans-serif;
-  --font-body:    'Lato', 'Helvetica Neue', sans-serif;
+  --font-display: 'Epilogue', 'Helvetica Neue', sans-serif;
+  --font-ui:      'Epilogue', 'Helvetica Neue', sans-serif;
+  --font-body:    'Be Vietnam Pro', 'Helvetica Neue', sans-serif;
   --font-logo:    'Great Vibes', cursive;
 
-  /* Header */
-  --header-bg: rgba(8, 8, 8, 0.92);
+  /* Header (glass) */
+  --header-bg: rgba(11, 19, 38, 0.72);
 
-  /* Spacing */
-  --section-pad: 100px 0;
+  /* Glass & glow */
+  --glass-blur:   12px;
+  --glow-primary: 0 0 24px rgba(225, 29, 72, 0.30);
+
+  /* Spacing (4px base scale) */
+  --space-xs:  4px;
+  --space-sm:  8px;
+  --space-md:  16px;
+  --space-lg:  24px;
+  --space-xl:  40px;
+  --space-xxl: 80px;
+  --gutter:    24px;
+  --container-max: 1280px;
+  --section-pad: 80px 0;
 
   /* Radius */
-  --radius-sm:   6px;
+  --radius-sm:   4px;
+  --radius:      8px;
   --radius-md:   12px;
-  --radius-lg:   20px;
+  --radius-lg:   16px;
+  --radius-xl:   24px;
+  --radius-full: 9999px;
 }
 
 /* ----------------------------------------

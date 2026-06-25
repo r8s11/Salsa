@@ -4,8 +4,8 @@
 
 header {
   background: var(--header-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
   border-bottom: 1px solid var(--border);
   color: var(--text);
   padding: 0;
@@ -183,7 +183,9 @@ a.logo:hover {
     left: 0;
     right: 0;
     width: 100%;
-    background: rgba(8, 8, 8, 0.97);
+    background: rgba(11, 19, 38, 0.97);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
     border-bottom: 1px solid var(--border);
     flex-direction: column;
     gap: 0;

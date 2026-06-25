@@ -39,32 +39,6 @@ footer {
   color: var(--text);
 }
 
-/* Dark/Light mode toggle */
-footer .dark-mode-container {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-}
-
-footer .dark-mode-toggle {
-  background: transparent;
-  border: 1px solid var(--border-md);
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: border-color 0.2s ease, background 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-footer .dark-mode-toggle:hover {
-  border-color: var(--border-lg);
-  background: rgba(255, 255, 255, 0.04);
-}
-
 /* Buy Me a Coffee link */
 .bmc-link img {
   height: 36px;

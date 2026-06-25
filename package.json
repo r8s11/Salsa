@@ -13,6 +13,7 @@
     "import-events": "node scripts/import-ics.mjs"
   },
   "dependencies": {
+    "@google/design.md": "^0.3.0",
     "@schedule-x/calendar": "^4.1.0",
     "@schedule-x/events-service": "^4.1.0",
     "@schedule-x/react": "^4.1.0",

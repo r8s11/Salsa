@@ -9,10 +9,12 @@ create table public.events (
   location text,
   address text,
   price_type text check(price_type in ('free','paid')),
-  price_amaount numeric(10, 2),
+  price_amount numeric(10, 2),
   rsvp_link text,
   image_url text,
   status text default 'approved',
+  submitter_name text,
+  submitter_email text,
   created_at timestamp with time zone default now()
 );
 

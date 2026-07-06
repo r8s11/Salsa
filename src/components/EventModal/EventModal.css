@@ -1,5 +1,5 @@
 /* ========================================
-   Event Modal — Noche Ardiente
+   Event Modal — Ritmo Vivo
    ======================================== */
 
 :root {
@@ -56,7 +56,7 @@
 }
 
 .modal-header h2 {
-  font-family: var(--font-display, 'Playfair Display', serif);
+  font-family: var(--font-display, 'Epilogue', sans-serif);
   font-size: 1.35rem;
   font-weight: 700;
   line-height: 1.3;
@@ -96,7 +96,7 @@
   display: inline-block;
   padding: 3px 10px;
   border-radius: 2px;
-  font-family: var(--font-ui, 'Josefin Sans', sans-serif);
+  font-family: var(--font-ui, 'Epilogue', sans-serif);
   font-size: 0.65rem;
   font-weight: 600;
   letter-spacing: 0.14em;
@@ -132,7 +132,7 @@
 }
 
 .event-detail-label {
-  font-family: var(--font-ui, 'Josefin Sans', sans-serif);
+  font-family: var(--font-ui, 'Epilogue', sans-serif);
   font-size: 0.65rem;
   font-weight: 600;
   letter-spacing: 0.14em;
@@ -169,7 +169,7 @@
   color: #fff;
   border: none;
   border-radius: var(--radius-sm);
-  font-family: var(--font-ui, 'Josefin Sans', sans-serif);
+  font-family: var(--font-ui, 'Epilogue', sans-serif);
   font-size: 0.78rem;
   font-weight: 600;
   letter-spacing: 0.18em;

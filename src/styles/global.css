@@ -1,6 +1,6 @@
 /* ========================================
    SALSA SEGURA — Design System
-   Noche Ardiente: Dark editorial aesthetic
+   Ritmo Vivo: High-contrast glassmorphic aesthetic
    ======================================== */
 
 /* ----------------------------------------
@@ -325,6 +325,63 @@ main {
 
 .btn-primary:hover::before {
   transform: translateX(0);
+}
+
+/* Secondary — gold outline, fills with translucent gold on hover */
+.btn-secondary {
+  display: inline-block;
+  padding: 0.8rem 1.75rem;
+  background: transparent;
+  color: var(--gold);
+  text-decoration: none;
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-xl);
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: background 0.25s ease, color 0.25s ease;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background: var(--gold-dim);
+  color: var(--gold-light);
+}
+
+/* Ghost — pure text with a rhythmic underline reveal on hover */
+.btn-ghost {
+  display: inline-block;
+  padding: 0.8rem 0.5rem;
+  background: none;
+  border: none;
+  color: var(--text);
+  text-decoration: none;
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  position: relative;
+}
+
+.btn-ghost::after {
+  content: '';
+  position: absolute;
+  left: 0.5rem;
+  right: 0.5rem;
+  bottom: 0.35rem;
+  height: 2px;
+  background: var(--red-bright);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.25s ease;
+}
+
+.btn-ghost:hover::after {
+  transform: scaleX(1);
 }
 
 /* Dance-style chips (On1 / On2 / Cuban) */

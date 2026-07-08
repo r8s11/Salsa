@@ -138,3 +138,10 @@ dist
 # tsc declaration emit for config files (we don't ship .d.ts for vite.config)
 vite.config.d.ts
 *.d.ts.map
+
+# Design sync — generated artifacts (staged scripts, build output, machine state)
+.ds-sync/
+ds-bundle/
+.design-sync/.cache/
+.design-sync/learnings/
+.design-sync/node_modules

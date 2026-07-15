@@ -1,185 +1,293 @@
 /* ========================================
-   Event Modal — Ritmo Vivo
+   Event Modal — Tambora structure, Ritmo Vivo skin
    ======================================== */
 
-:root {
-  --color-social:   var(--red);
-  --color-class:    #7c93e9;
-  --color-workshop: var(--gold);
-}
-
-/* ── Overlay ── */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 1rem;
+  z-index: 100;
+  background: rgba(11, 19, 38, 0.62);
   backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 20px;
+  overflow-y: auto;
 }
 
-/* ── Modal ── */
 .modal-content {
+  width: 100%;
+  max-width: 900px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--glow-primary), 0 30px 60px -18px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+/* ── Poster header ── */
+.modal-poster {
+  position: relative;
+  height: 248px;
+  background-color: var(--surface-high);
+  background-image: linear-gradient(150deg, var(--surface-high), var(--red));
+  background-size: cover;
+  background-position: center;
+}
+
+.modal-poster::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(11, 19, 38, 0.82), transparent 55%);
+}
+
+.back-pill {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   background: var(--card);
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid var(--border-md, rgba(255, 255, 255, 0.12));
-  border-radius: var(--radius-md);
-  max-width: 500px;
-  width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
-  position: relative;
-  box-shadow: 0 8px 32px rgba(11, 19, 38, 0.5);
-}
-
-/* Top accent bar — color set per event type below */
-.modal-content::before {
-  content: '';
-  display: block;
-  height: 3px;
-  background: var(--red);
-  border-radius: var(--radius-md) var(--radius-md) 0 0;
-}
-
-/* ── Header ── */
-.modal-header {
-  padding: 1.5rem;
-  border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.06));
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-}
-
-.modal-header h2 {
-  font-family: var(--font-display, 'Epilogue', sans-serif);
-  font-size: 1.35rem;
-  font-weight: 700;
-  line-height: 1.3;
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius-full);
+  padding: 8px 14px;
   color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.back-pill:hover {
+  background: var(--card-hover);
+  border-color: var(--border-lg);
+}
+
+.poster-overlay {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: 18px;
+  z-index: 2;
+}
+
+.poster-overlay h2 {
+  font-family: var(--font-display);
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin: 8px 0 0;
+}
+
+.chip-social { background: var(--red-dim); color: #ffccd4; }
+.chip-class { background: rgba(124, 147, 233, 0.18); color: #dfe3ff; }
+.chip-workshop { background: var(--gold-dim); color: var(--gold-light); }
+
+/* ── Body grid ── */
+.modal-grid {
+  display: grid;
+  grid-template-columns: 1.45fr 1fr;
+}
+
+.modal-details {
+  padding: 28px;
+}
+
+.meta-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--text);
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.meta-row svg {
+  color: var(--gold);
+  flex-shrink: 0;
+}
+
+.repeat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--tertiary-dim);
+  color: var(--tertiary);
+  border-radius: var(--radius-full);
+  padding: 3px 10px;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.modal-description {
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin: 16px 0 0;
+}
+
+/* ── Gallery ── */
+.gallery {
+  margin-top: 20px;
+}
+
+.gallery-eyebrow {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0 0 10px;
+}
+
+.gallery-row {
+  display: flex;
+  gap: 8px;
+}
+
+.gallery-thumb {
+  width: 60px;
+  height: 60px;
+  border-radius: var(--radius);
+  object-fit: cover;
+}
+
+.gallery-more {
+  width: 60px;
+  height: 60px;
+  border-radius: var(--radius);
+  background: var(--card);
+  border: 1px solid var(--border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+/* ── RSVP panel ── */
+.modal-rsvp {
+  padding: 28px;
+  background: rgba(0, 0, 0, 0.22);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.price-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.price-amount {
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.price-note {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.modal-rsvp .rsvp-button,
+.modal-rsvp .ics-button {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: var(--radius-full);
+  text-align: center;
+}
+
+.reassurance {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--text-dim);
+  text-align: center;
   margin: 0;
 }
 
-.modal-close {
-  background: none;
-  border: 1px solid var(--border-md, rgba(255, 255, 255, 0.12));
-  color: var(--text-muted, #8A8580);
-  font-size: 1.1rem;
-  cursor: pointer;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+/* ── Series ── */
+.series {
+  margin-top: 8px;
+}
+
+.series h3 {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0 0 4px;
+}
+
+.series-item {
   display: flex;
   align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: all 0.2s ease;
-  line-height: 1;
-}
-
-.modal-close:hover {
-  border-color: var(--border-lg, rgba(255, 255, 255, 0.2));
+  justify-content: space-between;
+  padding: 9px 0;
+  border-top: 1px solid var(--border);
+  font-family: var(--font-body);
+  font-size: 14px;
   color: var(--text);
 }
 
-/* ── Body ── */
-.modal-body {
-  padding: 1.5rem;
-}
-
-/* Event type badge */
-.event-type-badge {
-  display: inline-block;
-  padding: 3px 10px;
-  border-radius: 2px;
-  font-family: var(--font-ui, 'Epilogue', sans-serif);
-  font-size: 0.65rem;
+.series-item a {
+  color: var(--gold);
   font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  margin-bottom: 1rem;
-}
-
-.event-type-badge.social {
-  background: rgba(225, 29, 72, 0.12);
-  color: var(--red-bright);
-  border: 1px solid rgba(225, 29, 72, 0.25);
-}
-
-.event-type-badge.class {
-  background: rgba(124, 147, 233, 0.12);
-  color: #9fb1f0;
-  border: 1px solid rgba(124, 147, 233, 0.25);
-}
-
-.event-type-badge.workshop {
-  background: var(--gold-dim);
-  color: var(--gold-light);
-  border: 1px solid rgba(233, 195, 73, 0.25);
-}
-
-/* Detail rows */
-.event-detail {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.15rem;
-  margin-bottom: 1rem;
-  font-size: 0.875rem;
-}
-
-.event-detail-label {
-  font-family: var(--font-ui, 'Epilogue', sans-serif);
-  font-size: 0.65rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--text-muted, #8A8580);
-}
-
-.event-detail-value {
-  color: var(--text);
-  font-size: 0.9rem;
-}
-
-/* Description */
-.event-description {
-  margin-top: 1.25rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid var(--border, rgba(255, 255, 255, 0.06));
-  color: var(--text-muted, #8A8580);
-  font-size: 0.9rem;
-  line-height: 1.7;
-}
-
-/* ── Footer ── */
-.modal-footer {
-  padding: 1.25rem 1.5rem 1.5rem;
-  border-top: 1px solid var(--border, rgba(255, 255, 255, 0.06));
-}
-
-.rsvp-button {
-  display: block;
-  width: 100%;
-  padding: 0.9rem;
-  background: var(--red);
-  color: #fff;
-  border: none;
-  border-radius: var(--radius-sm);
-  font-family: var(--font-ui, 'Epilogue', sans-serif);
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  cursor: pointer;
-  text-align: center;
   text-decoration: none;
-  transition: background 0.2s ease;
 }
 
-.rsvp-button:hover {
-  background: var(--red-bright);
+.series-item a:hover {
+  color: var(--gold-light);
+  text-decoration: underline;
+}
+
+/* ── Mobile ── */
+@media (max-width: 720px) {
+  .modal-overlay {
+    padding: 20px 12px;
+  }
+
+  .modal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-rsvp {
+    border-left: none;
+    border-top: 1px solid var(--border);
+  }
+
+  .modal-poster {
+    height: 200px;
+  }
+
+  .poster-overlay h2 {
+    font-size: 26px;
+  }
 }

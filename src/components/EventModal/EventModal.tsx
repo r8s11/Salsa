@@ -1,5 +1,16 @@
 import React, { useEffect, useRef } from "react";
+import {
+  ArrowLeft,
+  Calendar as CalendarIcon,
+  CalendarPlus,
+  Clock,
+  MapPin,
+  Repeat,
+  Users,
+} from "lucide-react";
 import { ScheduleXEvent } from "../../types/events";
+import { downloadIcs } from "../../utils/ics";
+import { getUpcomingSeriesDates } from "../../utils/series";
 import "./EventModal.css";
 
 interface EventModalProps {
@@ -91,6 +102,15 @@ export default function EventModal({ event, onClose }: EventModalProps) {
     };
     return `${startDate.toLocaleTimeString("en-US", opts)} - ${endDate.toLocaleTimeString("en-US", opts)}`;
   };
+
+  const isFree = event.priceType === "free" || event.priceAmount == null;
+  const priceLabel = isFree ? "Free" : `$${event.priceAmount}`;
+  const rsvpLabel = isFree ? "RSVP · Free" : "Get Tickets";
+  const seriesDates =
+    event.recurrence === "weekly" ? getUpcomingSeriesDates(event.start) : [];
+  const galleryThumbs = event.gallery?.slice(0, 4) ?? [];
+  const galleryExtra = (event.gallery?.length ?? 0) - galleryThumbs.length;
+
   return (
     <div
       className="modal-overlay"
@@ -101,52 +121,123 @@ export default function EventModal({ event, onClose }: EventModalProps) {
       ref={modalRef}
     >
       <div className="modal-content">
-        <div className="modal-header">
-          <h2 id="modal-title">{event.title}</h2>
-          <button className="modal-close" onClick={onClose} aria-label="Close Modal">
-            x
+        <div
+          className="modal-poster"
+          style={
+            event.imageUrl
+              ? { backgroundImage: `url(${event.imageUrl})` }
+              : undefined
+          }
+        >
+          <button className="modal-close back-pill" onClick={onClose}>
+            <ArrowLeft size={16} aria-hidden /> Back to calendar
           </button>
+          <div className="poster-overlay">
+            <span className={`style-chip chip-${event.calendarId}`}>
+              {event.calendarId}
+            </span>
+            <h2 id="modal-title">{event.title}</h2>
+          </div>
         </div>
-        <div className="modal-body">
-          <span className={`event-type-badge ${event.calendarId}`}>{event.calendarId}</span>
-          <div className="event-detail">
-            <span className="event-detail-label">Date: </span>
-            <span className="event-detail-value">{formatDate(event.start)}</span>
+
+        <div className="modal-grid">
+          <div className="modal-details">
+            <div className="meta-row">
+              <CalendarIcon size={18} aria-hidden />
+              <span>{formatDate(event.start)}</span>
+              {event.recurrence && (
+                <span className="repeat-pill">
+                  <Repeat size={12} aria-hidden />
+                  {event.recurrence === "weekly" ? "Repeats weekly" : "Repeats"}
+                </span>
+              )}
+            </div>
+            {event.location && (
+              <div className="meta-row">
+                <MapPin size={18} aria-hidden />
+                <span>
+                  {event.location}
+                  {event.address ? ` · ${event.address}` : ""}
+                </span>
+              </div>
+            )}
+            <div className="meta-row">
+              <Clock size={18} aria-hidden />
+              <span>{formatTime(event.start, event.end)}</span>
+            </div>
+            {event.host && (
+              <div className="meta-row">
+                <Users size={18} aria-hidden />
+                <span>with {event.host}</span>
+              </div>
+            )}
+            {event.description && (
+              <p className="modal-description">{event.description}</p>
+            )}
+            {galleryThumbs.length > 0 && (
+              <div className="gallery">
+                <h3 className="gallery-eyebrow">Photos from past nights</h3>
+                <div className="gallery-row">
+                  {galleryThumbs.map((src, index) => (
+                    <img
+                      key={src}
+                      className="gallery-thumb"
+                      src={src}
+                      alt={`Past night photo ${index + 1}`}
+                    />
+                  ))}
+                  {galleryExtra > 0 && (
+                    <span className="gallery-more">+{galleryExtra}</span>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
-          <div className="event-detail">
-            <span className="event-detail-label">Time: </span>
-            <span className="event-detail-value">{formatTime(event.start, event.end)}</span>
-          </div>
-          {event.location && (
-            <div className="event-detail">
-              <span className="event-detail-label">Location: </span>
-              <span className="event-detail-value">{event.location}</span>
+
+          <aside className="modal-rsvp">
+            <div className="price-row">
+              <span className="price-amount">{priceLabel}</span>
+              <span className="price-note">per person</span>
             </div>
-          )}
-          {event.address && (
-            <div className="event-detail">
-              <span className="event-detail-label">Address: </span>
-              <span className="event-detail-value">{event.address}</span>
-            </div>
-          )}
-          {event.description && (
-            <div className="event-description">
-              <p>{event.description}</p>
-            </div>
-          )}
+            {event.rsvpLink && (
+              <a
+                className="btn-primary rsvp-button"
+                href={event.rsvpLink}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {rsvpLabel}
+              </a>
+            )}
+            <button className="btn-secondary ics-button" onClick={() => downloadIcs(event)}>
+              <CalendarPlus size={16} aria-hidden /> Add to calendar
+            </button>
+            <p className="reassurance">
+              RSVP opens the host's page · pay at the door
+            </p>
+            {seriesDates.length > 0 && (
+              <div className="series">
+                <h3>More dates in this series</h3>
+                {seriesDates.map((date) => (
+                  <div key={date.toString()} className="series-item">
+                    <span>
+                      {date.toLocaleString("en-US", {
+                        weekday: "short",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </span>
+                    {event.rsvpLink && (
+                      <a href={event.rsvpLink} target="_blank" rel="noopener noreferrer">
+                        Reserve
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </aside>
         </div>
-        {event.rsvpLink && (
-          <div className="modal-footer">
-            <a
-              href={event.rsvpLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rsvp-button"
-            >
-              More info
-            </a>
-          </div>
-        )}
       </div>
     </div>
   );

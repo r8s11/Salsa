@@ -22,6 +22,9 @@ export interface DatabaseEvent {
   status: "approved" | "pending" | "rejected";
   city: City;
   created_at: string;
+  host: string | null;
+  recurrence: string | null;
+  gallery: string[] | null;
 }
 
 // Schedule-X event interface
@@ -37,6 +40,12 @@ export interface ScheduleXEvent {
   address?: string;
   rsvpLink?: string;
   city?: City;
+  host?: string;
+  recurrence?: string;
+  gallery?: string[];
+  imageUrl?: string;
+  priceType?: "free" | "paid";
+  priceAmount?: number;
 }
 // Calendar Color Configuration
 export const CALENDARS_CONFIG = {
@@ -80,6 +89,12 @@ export function databaseEventToScheduleX(event: DatabaseEvent): ScheduleXEvent {
     address: event.address ?? undefined,
     rsvpLink: event.rsvp_link ?? undefined,
     city: event.city,
+    host: event.host ?? undefined,
+    recurrence: event.recurrence ?? undefined,
+    gallery: event.gallery ?? undefined,
+    imageUrl: event.image_url ?? undefined,
+    priceType: event.price_type ?? undefined,
+    priceAmount: event.price_amount ?? undefined,
   };
 }
 

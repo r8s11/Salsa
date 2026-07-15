@@ -1,3 +1,4 @@
+import { describe, it, expect } from "vitest";
 import { filterEventsByType } from "./filterEvents";
 import { ScheduleXEvent } from "../types/events";
 

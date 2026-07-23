@@ -4,15 +4,15 @@
 
 **Philosophy:** Launch minimal, iterate based on real user feedback
 **URL:** www.salsasegura.com
-**Status:** Live from Week 1, Phase 1 In Progress 🔄
+**Status:** Live · Week 28 of 52 · calendar + submissions shipped, auth/moderation pending
 
 ---
 
-## Current Phase: 1 (Calendar View)
+## Current Position (July 15, 2026)
 
-**Progress:** Week 2/13 (15%)
-**Target:** 50 events, 100 users by Week 13 (March 31, 2026)
-**Current Focus:** Schedule-X calendar with color-coded events and mobile-first design
+**Done out of order:** the core calendar pipeline (weeks 1-4), type filters (part of week 8), Open Graph (week 10), plus early pieces of recurring events (W15), gallery columns (W21), and multi-city (W22) landed via the Tambora events module (PR #8) and the ICS→Supabase import pivot.
+**Skipped so far:** authentication (W5) and the moderation dashboard (W6) — approval is manual in the Supabase dashboard.
+**Current focus:** executing `plans/MODERNIZATION_BLUEPRINT.md` (dependency hygiene, CI quality gate, timezone correctness) before new features.
 
 ---
 
@@ -21,26 +21,23 @@
 ### Completed ✅
 
 - [X] React app deployed to Azure
-- [X] Markdown-based events
-- [X] Event cards displaying
-- [X] Basic styling
-- [X] Mobile responsive layout
+- [X] Schedule-X calendar with color-coded events + month/week/day/agenda views
+- [X] Supabase backend (approved-events pipeline)
+- [X] Community submissions via `/submit` (pending → manual approval)
+- [X] SEO: Open Graph, Twitter cards, Schema.org structured data
+- [X] ICS import pipeline (`npm run import-events`) + Boston/NYC city switcher
+- [X] Ritmo Vivo design migration (PR #7 — dark glassmorphism, `DESIGN.md`)
+- [X] Tambora events module (PR #8 — filters, rebuilt modal, .ics export, series dates)
 
 ### In Progress 🔄
 
-- [X] Schedule-X Calendar integration - **Week 2**
-  - [X] Color-coded events (social/class/workshop)
-  - [X] Mobile-first responsive design
-  - [X] Custom event detail modal
-  - [X] Test events for January 2026
-- [X] Month/week/day/agenda view toggle
-- [X] Multi-page structure (Header/Nav)
+- [ ] Modernization blueprint execution (`plans/MODERNIZATION_BLUEPRINT.md`)
 
 ### Next Up 📅
 
-- [ ] Database backend (Supabase) - Week 3
-- [ ] Community submissions (Beta) - Week 4
-- [ ] Authentication launch - Week 5
+- [ ] Authentication launch - Week 5 (overdue)
+- [ ] Moderation dashboard - Week 6 (overdue, guide: `ADMIN_MODERATION_GUIDE.md`)
+- [ ] Text search - Week 8 remainder
 
 ---
 
@@ -51,32 +48,32 @@
 | Week | Dates          | Deliverable                                  | Status     |
 | ---- | -------------- | -------------------------------------------- | ---------- |
 | 1    | Jan 1-7        | Basic events calendar LIVE                   | ✅ Done    |
-| 2    | Jan 8-14       | React-Big-Calendar + Multi-page              | 🔄 Current |
-| 3    | Jan 15-21      | Database backend (Supabase)                  | 📅 Planned |
-| 4    | Jan 22-28      | Community submissions (Beta)                 | 📅 Planned |
-| 5    | Jan 29 - Feb 4 | Authentication launch                        | 📅 Planned |
-| 6    | Feb 5-11       | Moderation dashboard                         | 📅 Planned |
-| 7    | Feb 12-18      | Mobile optimization                          | 📅 Planned |
-| 8    | Feb 19-25      | Search & basic filters                       | 📅 Planned |
+| 2    | Jan 8-14       | Schedule-X calendar + Multi-page             | ✅ Done    |
+| 3    | Jan 15-21      | Database backend (Supabase)                  | ✅ Done    |
+| 4    | Jan 22-28      | Community submissions (Beta)                 | ✅ Done    |
+| 5    | Jan 29 - Feb 4 | Authentication launch                        | ⚠️ Overdue |
+| 6    | Feb 5-11       | Moderation dashboard                         | ⚠️ Overdue (manual via Supabase) |
+| 7    | Feb 12-18      | Mobile optimization                          | 🔄 Partial (responsive layout done) |
+| 8    | Feb 19-25      | Search & basic filters                       | 🔄 Partial (type filters, no search) |
 | 9    | Feb 26 - Mar 4 | Email notifications                          | 📅 Planned |
-| 10   | Mar 5-11       | Social sharing (Open Graph)                  | 📅 Planned |
-| 11   | Mar 12-18      | Enhanced event pages (/events/[id])          | 📅 Planned |
+| 10   | Mar 5-11       | Social sharing (Open Graph)                  | ✅ Done    |
+| 11   | Mar 12-18      | Enhanced event pages (/events/[id])          | 🔄 Partial (modal deep-link `?event=id`) |
 | 12   | Mar 19-25      | Map view launch                              | 📅 Planned |
-| 13   | Mar 26-31      | **Milestone: 50 events, 100 users** 🎉 | 📅 Planned |
+| 13   | Mar 26-31      | **Milestone: 50 events, 100 users** 🎉 | ❌ Missed (auth never launched) |
 
 ### Quarter 2: Growth Features (Apr 1 - Jun 30)
 
 | Week | Dates          | Deliverable                                  | Status     |
 | ---- | -------------- | -------------------------------------------- | ---------- |
 | 14   | Apr 1-8        | Advanced filters (style, skill, price)       | 📅 Planned |
-| 15   | Apr 9-15       | Recurring events system                      | 📅 Planned |
+| 15   | Apr 9-15       | Recurring events system                      | 🔄 Partial (series dates + recurrence columns, PR #8) |
 | 16   | Apr 16-22      | Event categories & tags                      | 📅 Planned |
 | 17   | Apr 23-29      | User profiles enhancement                    | 📅 Planned |
 | 18   | Apr 30 - May 6 | RSVP system                                  | 📅 Planned |
 | 19   | May 7-13       | Favorites & bookmarks                        | 📅 Planned |
 | 20   | May 14-20      | Reviews & ratings                            | 📅 Planned |
-| 21   | May 21-27      | Photo gallery                                | 📅 Planned |
-| 22   | May 28 - Jun 3 | Multi-city support                           | 📅 Planned |
+| 21   | May 21-27      | Photo gallery                                | 🔄 Partial (DB columns only, no UI) |
+| 22   | May 28 - Jun 3 | Multi-city support                           | 🔄 Partial (city column + BOS/NYC switcher) |
 | 23   | Jun 4-10       | Venue profiles                               | 📅 Planned |
 | 24   | Jun 11-17      | Instructor profiles                          | 📅 Planned |
 | 25   | Jun 18-24      | Event series & courses                       | 📅 Planned |
@@ -124,9 +121,9 @@
 
 | Milestone            | Target Date  | Status     |
 | -------------------- | ------------ | ---------- |
-| 50 events, 100 users | Mar 31, 2026 | 📅 Planned |
-| 1,000 visitors/month | Jun 30, 2026 | 📅 Planned |
-| Regional expansion   | Sep 30, 2026 | 📅 Planned |
+| 50 events, 100 users | Mar 31, 2026 | ❌ Missed (auth/user accounts never launched) |
+| 1,000 visitors/month | Jun 30, 2026 | ❓ Unknown (no analytics wired) |
+| Regional expansion   | Sep 30, 2026 | 🔄 Groundwork (NYC city switcher exists) |
 | Platform v2.0        | Dec 31, 2026 | 📅 Planned |
 
 ---
@@ -150,9 +147,9 @@
 
 ## 🔗 Quick Links
 
+- [Status Summary](./STATUS_SUMMARY.md) - Current project snapshot
 - [52-Week Plan](./salsa_52week_plan.md) - Detailed weekly breakdown
-- [Phased Approach](./salsasegura_phased_approach.md) - Learning milestones
-- [Calendar Implementation](./calendar-implementation-guide.md) - React-Big-Calendar setup guide
+- [Modernization Blueprint](./plans/MODERNIZATION_BLUEPRINT.md) - Architecture audit & refactor plan
 - [Feature Requests](./Feedback.md) - Community feedback
 
 ---
@@ -169,4 +166,4 @@
 
 ---
 
-_Last Updated: January 11, 2026_
+_Last Updated: July 15, 2026_

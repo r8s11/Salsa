@@ -1,202 +1,120 @@
 # SalsaSegura.com - Project Status Summary
 
-> Generated: February 10, 2026
+> Generated: July 15, 2026 (previous snapshot: February 10, 2026)
 
 ---
 
 ## Quick Snapshot
 
-| Item               | Detail                                      |
-| ------------------ | ------------------------------------------- |
-| **URL**            | www.salsasegura.com                         |
-| **Branch**         | `dev` (main = production)                   |
-| **Phase**          | 1 — Foundation & MVP (Weeks 1-13)           |
-| **Planned Week**   | Week 6 (Feb 5-11 — Moderation Dashboard)    |
-| **Actual Progress** | Week 2-3 deliverables completed; Week 4-6 not started |
-| **Schedule**       | ~3-4 weeks behind the 52-week plan          |
-| **Last Commit**    | `bbcff10` — SEO (Feb 10, 2026)              |
-| **Codebase**       | ~1,820 lines of TypeScript/TSX              |
-| **Hosting**        | Azure Static Web Apps (GitHub Actions CI/CD)|
+| Item                | Detail                                                        |
+| ------------------- | ------------------------------------------------------------- |
+| **URL**             | [salsasegura.com](https://www.salsasegura.com)                 |
+| **Branch**          | `main` (clean working tree)                                    |
+| **Plan Position**   | Week 28 of the 52-week plan (Jul 9-15)                         |
+| **Last Merges**     | PR #8 Tambora events module (Jul 15) · PR #7 Ritmo Vivo design migration (Jul 6) |
+| **Tests**           | 38 passing across 11 files; 1 suite blocked by stale local `node_modules` (see Risks) |
+| **Hosting**         | Azure Static Web Apps (GitHub Actions CI/CD)                   |
 
 ---
 
 ## Tech Stack
 
-| Layer        | Technology                              |
-| ------------ | --------------------------------------- |
-| Framework    | React 19 + TypeScript 5.9               |
-| Build        | Vite 7.3                                |
-| Routing      | React Router DOM 7                      |
-| Calendar     | Schedule-X 4.1 (month/week/day/agenda) |
-| Backend/DB   | Supabase (PostgreSQL)                   |
-| Contact Form | Web3Forms                               |
-| Styling      | Plain CSS (component-scoped files)      |
-| Testing      | Vitest + Testing Library                |
-| Deployment   | Azure Static Web Apps via GitHub Actions|
-| Package Mgr  | npm / Bun                               |
+| Layer        | Technology                               |
+| ------------ | ---------------------------------------- |
+| Framework    | React 19 + TypeScript 5.9                |
+| Build        | Vite 7                                   |
+| Routing      | React Router DOM 7                       |
+| Calendar     | Schedule-X 4 (month/week/day/agenda)     |
+| Backend/DB   | Supabase (PostgreSQL) — client talks to Supabase directly, no API layer |
+| Datetime     | temporal-polyfill, `America/New_York`    |
+| Contact Form | Web3Forms                                |
+| Styling      | Plain component-scoped CSS — "Ritmo Vivo" design system (`DESIGN.md`, tokens in `src/styles/global.css`) |
+| Testing      | Vitest 4 + Testing Library               |
+| Deployment   | Azure Static Web Apps via GitHub Actions |
 
 ---
 
-## What's Built (Completed)
+## What's Built (as of July 2026)
 
-### Week 1 — Initial Launch ✅
-- React app deployed live to Azure
-- Markdown-based events rendering
-- Event cards with basic styling
-- Mobile-responsive layout
-- About page, Contact page
+### Core event pipeline ✅
 
-### Week 2 — Multi-Page Structure ✅
-- Schedule-X calendar integration (replaced React-Big-Calendar)
-- Color-coded event types (social=orange, class=blue, workshop=green)
-- Month / week / day / agenda view toggle
-- Custom event detail modal
-- Header + navigation menu
-- Multi-page routing (React Router)
-- Footer with social links
+- Supabase `events` table → `useSupabaseEvents` (status=approved) → `useEvent` → Schedule-X calendar
+- Community submissions via `/submit` (writes `status: "pending"`; approval is manual in the Supabase dashboard)
+- Curated import pipeline: `npm run import-events` (`scripts/import-ics.mjs`) — dry-run / insert / SQL-emit modes
+- Multi-city groundwork: `city` column (boston / new-york-city), `CityContext`, Boston/NYC switcher in Header
 
-### Week 3 — Database Backend (Partial) 🔄
-- Supabase client configured and connected
-- `useSupabaseEvents` hook pulling events from DB
-- Database schema defined (`events` table with full fields)
-- Seed SQL file exists
-- Supabase local dev environment configured
-- **Missing:** Admin event management via Supabase dashboard workflow
+### Events module redesign — "Tambora" (PR #8, merged Jul 15) ✅
 
-### Beyond the Plan (Extra Work Done)
-- **SEO:** Open Graph tags, Twitter cards, Schema.org structured data, sitemap.xml, robots.txt, geo-targeting
-- **Dance School Pages:** 5 school detail pages (SalsaYControl, LiliDance, Masacote, RumbaYTimbal, Querencia)
-- **Instructors Page:** Instructor listing route
-- **Lessons Page:** Lesson information route
-- **Event Submission Form:** `/submit` page started (~10K lines TSX)
-- **ESLint + Prettier:** Full linting and formatting pipeline
-- **404 Page:** Custom not-found route
-- **Azure SPA Config:** Proper SPA fallback routing
+- Calendar page stage header, toolbar, and event-type filters (`src/utils/filterEvents.ts`)
+- Rebuilt `EventModal` with poster header and RSVP panel
+- Client-side `.ics` download (`src/utils/ics.ts`)
+- Weekly series date derivation (`src/utils/series.ts`)
+- DB migration for host / recurrence / gallery / image / price columns
+- Spec & plan: `Docs/superpowers/specs|plans/2026-07-14-tambora-events-module*.md`
+
+### Ritmo Vivo design migration (PR #7, merged Jul 6) ✅
+
+- Full visual redesign: dark-only, high-contrast glassmorphism (spec in `DESIGN.md`)
+- Epilogue / Be Vietnam Pro / Great Vibes typography; rose/gold/periwinkle event-type color scheme
+- Light-mode toggle removed — dark-only
+- Design tokens synced to Claude Design ("Ritmo Vivo" project, `.design-sync/config.json`)
+
+### Earlier foundation ✅
+
+- Multi-page routing with lazy loading: `/`, `/about`, `/contact`, `/calendar`, `/submit`, `/lessons`, `/instructors`, 404
+- SEO: Open Graph, Twitter cards, Schema.org `DanceEvent` structured data, sitemap, robots.txt
+- Deep-linking: `/calendar?event=<id>` opens the event modal
+- Utility test coverage: `filterEvents`, `ics`, `series` (38 tests total)
 
 ---
 
-## What's NOT Built Yet
+## What's NOT Built
 
-### Overdue (per 52-week plan)
+| Feature (plan week)             | Status |
+| ------------------------------- | ------ |
+| Authentication (W5)             | Not started — `src/contexts/AuthContext.tsx` is an empty file |
+| Moderation dashboard (W6)       | Not started — approval is manual via Supabase dashboard (`Docs/ADMIN_MODERATION_GUIDE.md` is the build guide) |
+| Text search (W8)                | Not started — only type filters exist |
+| Email notifications (W9)        | Not started |
+| Enhanced event pages `/events/[id]` (W11) | Not started — modal deep-link only |
+| Map view (W12)                  | Not started |
+| Gallery UI (W20)                | DB columns exist (PR #8); no UI component |
+| Mobile app                      | Plan only (`Docs/MOBILE_APP_PLAN.md`) |
 
-| Planned Week | Deliverable                | Status       |
-| ------------ | -------------------------- | ------------ |
-| Week 4       | Community Submissions Beta | Not started  |
-| Week 5       | Authentication (signup/login) | Not started |
-| Week 6       | Moderation Dashboard       | Not started  |
-
-### Upcoming (Weeks 7-13)
-
-| Week | Deliverable                  |
-| ---- | ---------------------------- |
-| 7    | Mobile optimization          |
-| 8    | Search & basic filters       |
-| 9    | Email notifications          |
-| 10   | Social sharing (Open Graph)  |
-| 11   | Enhanced event pages (/events/[id]) |
-| 12   | Map view launch              |
-| 13   | **Milestone: 50 events, 100 users** |
-
-**Note:** Week 10 (Social Sharing / Open Graph) is partially done ahead of schedule via the SEO work.
+Dead/unrouted code: `src/pages/Schools.tsx` + 5 school detail pages are built but have **no route** in `App.tsx` (Modernization Blueprint finding A5: route or delete).
 
 ---
 
-## Open TODO Items
+## Active Plan: Modernization Blueprint
 
-From [TODO.md](./TODO.md):
-1. Make the Contact page fit all in a single view
-2. Add "See full calendar" button in Events component
+`Docs/plans/MODERNIZATION_BLUEPRINT.md` (audited 2026-07-06) — **not yet executed**. Highest-severity findings still open:
 
----
-
-## User Feedback Backlog
-
-From [Feedback.md](./Feedback.md) — 11 feature requests from real users:
-
-| #  | Request                      | Priority | Planned  |
-| -- | ---------------------------- | -------- | -------- |
-| 1  | Venue AC / quality ratings   | High     | Week 40  |
-| 2  | Event homepage redesign      | —        | Week 49  |
-| 3  | Event one-liner list view    | Medium   | Week 41  |
-| 4  | Event rating system          | Medium   | Week 20  |
-| 5  | Performance listings         | Medium   | Week 42  |
-| 6  | Workshop/class indicators    | Medium   | Week 43  |
-| 7  | Live music indicator         | Medium   | Week 44  |
-| 8  | Parking information          | Low      | Week 45  |
-| 9  | Music ratio percentage       | Low      | Week 46  |
-| 10 | DJ information               | Low      | Week 47  |
-| 11 | Peak arrival times           | Low      | Week 48  |
-
----
-
-## Project Structure
-
-```
-Salsa/
-├── src/
-│   ├── components/    # 14 component folders (Calendar, Events, Header, Hero, etc.)
-│   ├── pages/         # 8 routes + 5 school detail pages
-│   ├── hooks/         # useSupabaseEvents, useEvent, useMarkdownEvents
-│   ├── lib/           # Supabase client
-│   ├── types/         # Event interfaces & conversion utilities
-│   ├── layouts/       # MainLayout (Header + Outlet + Footer)
-│   ├── styles/        # global.css
-│   ├── utils/         # seo.ts
-│   └── App.tsx        # Router configuration
-├── supabase/          # config.toml, seed.sql
-├── Docs/              # 14+ documentation files
-├── public/            # robots.txt, sitemap.xml
-└── .github/workflows/ # Azure deployment pipeline
-```
-
----
-
-## Routes
-
-| Path           | Page              | Status |
-| -------------- | ----------------- | ------ |
-| `/`            | HomePage          | ✅     |
-| `/calendar`    | CalendarPage      | ✅     |
-| `/about`       | AboutPage         | ✅     |
-| `/contact`     | ContactPage       | ✅     |
-| `/submit`      | SubmitEventPage   | 🔄     |
-| `/Lessons`     | Lessons           | ✅     |
-| `/Instructors` | Instructors       | ✅     |
-| `/*`           | NotFoundPage      | ✅     |
-
----
-
-## Uncommitted Changes
-
-```
-Modified:  .gitignore
-Untracked: .prettierrc
-```
+1. **V1 (HIGH):** `@google/design.md@^0.3.0` in `dependencies` — unknown/suspicious package, resolved in `package-lock.json`, so it is fetched on every CI build. Remove first.
+2. **V2 (HIGH):** Dual lockfiles (`bun.lock` + `package-lock.json`) — non-deterministic builds.
+3. **V3 (HIGH):** CI deploys `main` with no lint/test gate.
+4. **V4:** Timezone conversion via legacy `Date` in `databaseEventToScheduleX` — displayed times shift for visitors outside Eastern.
 
 ---
 
 ## Key Risks & Observations
 
-1. **Schedule Gap:** ~3-4 weeks behind the 52-week plan. Weeks 4-6 (community submissions, auth, moderation) haven't started. These are critical for user growth targets.
-2. **Breadth vs Depth:** Work has gone wider (school pages, SEO, lessons, instructors) rather than deeper on the core event pipeline (submit → moderate → approve → display).
-3. **Roadmap Stale:** [ROADMAP.md](./ROADMAP.md) last updated Jan 11 — nearly a month out of date.
-4. **No Auth System:** User accounts not implemented. This blocks community submissions, RSVP, moderation, and most Phase 2 features.
-5. **No Tests Running:** Test infrastructure (Vitest + Testing Library) is set up but no meaningful test coverage exists.
-6. **.env in Repo:** The `.env` file appears to be tracked or present locally — ensure secrets aren't committed to git.
-7. **Q1 Milestone at Risk:** Target of 50 events + 100 users by Mar 31 requires auth, submissions, and moderation to be live.
+1. **Supply-chain:** `@google/design.md` ships into CI builds today (see above). Top priority.
+2. **Local dev broken:** `node_modules` is out of sync with the lockfile — `lucide-react` (used by the rebuilt `EventModal`) is not installed, so `EventModal.test.tsx` and local builds fail. Fix by removing `@google/design.md` from `package.json` **then** running `npm install`.
+3. **Schedule:** At calendar week 28, the codebase covers roughly plan weeks 1-4 + 8 (partial) + 10, plus out-of-order pieces of weeks 14/15/20/21. Auth + moderation (weeks 5-6) remain the biggest blockers for growth milestones.
+4. **Milestones:** Q1 milestone (50 events / 100 users by Mar 31) was missed — auth/user accounts never launched. Q2 milestone (1,000 visitors/month) is unmeasurable — no analytics wired.
+5. **No calendar content pipeline running:** After the ICS pivot, the calendar shows only events imported + approved by hand — intended, but requires the weekly habit of running the importer.
 
 ---
 
 ## Recommended Next Steps (Priority Order)
 
-1. **Finish Supabase integration** — ensure events fully flow from DB to calendar
-2. **Build community event submission** (Week 4) — the `/submit` page needs backend wiring
-3. **Add authentication** (Week 5) — Supabase Auth is already configured, just needs UI
-4. **Build moderation dashboard** (Week 6) — approve/reject submitted events
-5. **Update ROADMAP.md** with current actual progress
-6. **Fix open TODOs** — Contact page layout, "See full calendar" button
-7. **Commit `.prettierrc`** and clean up `.gitignore` changes
+1. **Execute Blueprint Phase 0:** remove `@google/design.md`, delete `bun.lock`, `npm install`, verify all 12 test suites pass
+2. **Add CI quality gate** (lint + test before deploy) and bump `actions/checkout`
+3. **Fix timezone conversion** with Temporal (V4) — correctness bug for non-Eastern visitors
+4. **Decide on Schools pages:** route them or delete them (A5)
+5. **Authentication → Moderation dashboard** (plan weeks 5-6) — still the critical path to community growth
+6. Update this file after each merged PR
 
 ---
 
-_Next milestone: 50 events, 100 registered users by March 31, 2026_
+_See `Docs/ROADMAP.md` for the week-by-week table and `Docs/plans/MODERNIZATION_BLUEPRINT.md` for the refactor plan._

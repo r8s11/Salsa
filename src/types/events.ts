@@ -109,21 +109,3 @@ function formatDateTimeForScheduleX(date: Date): string {
   return `${year}-${month}-${day} ${hours}:${minutes}`;
 }
 
-// Helper to create a ZonedDateTime for Boston Timezone
-export function bostonDateTime(
-  year: number,
-  month: number,
-  day: number,
-  hour: number,
-  minute: number = 0
-): Temporal.ZonedDateTime {
-  return Temporal.ZonedDateTime.from({
-    year,
-    month,
-    day,
-    hour,
-    minute,
-    second: 0,
-    timeZone: "America/New_York",
-  });
-}

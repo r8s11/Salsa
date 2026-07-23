@@ -18,6 +18,9 @@ npx vitest run src/path/to/file.test.tsx  # Run a single test file
 # Lint / Format
 npm run lint         # ESLint
 npm run format       # Prettier (src/**/*.{ts,tsx,css})
+
+# Data
+npm run import-events  # Import events from an ICS feed (scripts/import-ics.mjs; dry run by default, --insert / --sql to write)
 ```
 
 ## Environment
@@ -48,6 +51,13 @@ Supabase (events table)
 - `ScheduleXEvent` is what Schedule-X consumes; `calendarId` matches the event type (`social` | `class` | `workshop`).
 - All datetime handling uses `temporal-polyfill` with `America/New_York` timezone. Schedule-X expects the format `"YYYY-MM-DD HH:mm"`.
 - Events are displayed with color-coded calendars defined in `CALENDARS_CONFIG` (`src/types/events.ts`).
+- Events carry a `city` (`boston` | `new-york-city`); `CityContext` (`src/contexts/CityContext.tsx`) + the Header switcher select the active city.
+
+### Event utilities (`src/utils/`)
+
+- `filterEvents.ts` — `filterEventsByType` for the calendar toolbar type filters (`TypeFilter = "all" | EventType`)
+- `ics.ts` — `generateIcs` / `downloadIcs` for client-side .ics export from the event modal
+- `series.ts` — `getUpcomingSeriesDates` derives upcoming dates for weekly recurring events
 
 ### Event submission
 

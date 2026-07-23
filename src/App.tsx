@@ -11,6 +11,7 @@ const CalendarPage = lazy(() => import("./pages/CalendarPage"));
 const SubmitEventPage = lazy(() => import("./pages/SubmitEventPage"));
 const Lessons = lazy(() => import("./pages/Lessons"));
 const Instructors = lazy(() => import("./pages/Instructors"));
+const Schools = lazy(() => import("./pages/Schools"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 
 function App() {
@@ -27,6 +28,7 @@ function App() {
             <Route path="submit" element={<SubmitEventPage />} />
             <Route path="lessons" element={<Lessons />} />
             <Route path="instructors" element={<Instructors />} />
+            <Route path="schools" element={<Schools />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>

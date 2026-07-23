@@ -9,9 +9,9 @@
 
 | Field            | Value                              |
 | ---------------- | ---------------------------------- |
-| **Current Week** | Week 8 of 52                       |
-| **Current Date** | February 2026                      |
-| **Phase**        | Phase 1 – Calendar View (ongoing)  |
+| **Current Week** | Week 28 of 52                      |
+| **Current Date** | July 15, 2026                      |
+| **Phase**        | Modernization pass (blueprint) — auth & moderation still pending from Phase 1 |
 | **Next Deploy**  | _[Set your target date here]_      |
 
 ---
@@ -49,31 +49,28 @@
 
 | Field            | Value                                     |
 | ---------------- | ----------------------------------------- |
-| **Phase**        | Phase 1 – Calendar View                  |
-| **Week**         | 8 / 52                                   |
+| **Phase**        | Modernization pass + overdue Phase 1 items |
+| **Week**         | 28 / 52                                  |
 | **Deployed**     | ✅ Live on Azure                          |
-| **Detailed Plan**| [ROADMAP.md](./ROADMAP.md)               |
+| **Detailed Plan**| [ROADMAP.md](./ROADMAP.md) · [STATUS_SUMMARY.md](./STATUS_SUMMARY.md) |
 
 #### Completed ✅
 - [x] React app deployed to Azure
-- [x] Markdown-based events
-- [x] Event cards displaying
-- [x] Basic styling / mobile responsive layout
-- [x] Schedule-X Calendar integration
-- [x] Color-coded events (social/class/workshop)
-- [x] Custom event detail modal
-- [x] Month/week/day/agenda view toggle
-- [x] Multi-page structure (Header/Nav)
-- [x] Supabase database backend
+- [x] Schedule-X calendar (color-coded events, month/week/day/agenda views)
+- [x] Supabase database backend (approved-events pipeline)
+- [x] Community event submissions (`/submit` → pending → manual approval)
+- [x] SEO: Open Graph, Twitter cards, Schema.org structured data
+- [x] ICS import pipeline (`npm run import-events`) + Boston/NYC city switcher
+- [x] Ritmo Vivo design migration (PR #7 — dark glassmorphism, DESIGN.md)
+- [x] Tambora events module (PR #8 — filters, rebuilt event modal, .ics export, weekly series)
 
 #### In Progress 🔄
-- [ ] Community event submissions (Beta)
-- [ ] Search & basic filters
+- [ ] Modernization blueprint execution ([plans/MODERNIZATION_BLUEPRINT.md](./plans/MODERNIZATION_BLUEPRINT.md))
 
 #### Next Up 📅
 - [ ] Authentication (user accounts)
-- [ ] Moderation dashboard
-- [ ] Map view
+- [ ] Moderation dashboard ([ADMIN_MODERATION_GUIDE.md](./ADMIN_MODERATION_GUIDE.md))
+- [ ] Text search & map view
 
 ---
 
@@ -127,12 +124,12 @@ Use this every week before and after working:
 | ------------------------------------------------------------ | ------------------------------------ |
 | [ROADMAP.md](./ROADMAP.md)                                   | SalsaSegura 52-week roadmap          |
 | [salsa_52week_plan.md](./salsa_52week_plan.md)               | Detailed weekly deliverables         |
-| [salsasegura_phased_approach.md](./salsasegura_phased_approach.md) | Learning phases & tech stack   |
+| [STATUS_SUMMARY.md](./STATUS_SUMMARY.md)                     | Current project snapshot             |
 | [TODO.md](./TODO.md)                                         | Short-term to-dos                    |
 | [Feedback.md](./Feedback.md)                                 | Community feature requests           |
 | [MOBILE_APP_PLAN.md](./MOBILE_APP_PLAN.md)                   | Mobile app development plan          |
 
 ---
 
-_Last Updated: February 2026_
+_Last Updated: July 15, 2026_
 _Update every week — this is your single source of truth._

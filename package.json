@@ -14,11 +14,11 @@
     "import-events": "node scripts/import-ics.mjs"
   },
   "dependencies": {
-    "@schedule-x/calendar": "^4.1.0",
+    "@schedule-x/calendar": "^4.6.1",
     "@schedule-x/calendar-controls": "^4.6.1",
-    "@schedule-x/events-service": "^4.1.0",
+    "@schedule-x/events-service": "^4.6.1",
     "@schedule-x/react": "^4.1.0",
-    "@schedule-x/theme-default": "^4.1.0",
+    "@schedule-x/theme-default": "^4.6.1",
     "@supabase/supabase-js": "^2.95.3",
     "@tanstack/react-query": "^5.101.4",
     "lucide-react": "^1.24.0",

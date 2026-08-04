@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { useCity, type City } from "../../contexts/CityContext";
+import { useCity } from "../../contexts/useCity";
+import type { City } from "../../contexts/CityContext";
 import "./Header.css";
 
 function Header() {

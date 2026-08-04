@@ -1,7 +1,7 @@
 import { useState, FormEvent } from "react";
 import { submitEvent } from "../events/api/eventsRepo";
 import type { EventType } from "../../types/events";
-import { useCity } from "../../contexts/CityContext";
+import { useCity } from "../../contexts/useCity";
 import { validateSubmitForm, buildInitialForm, SubmitForm } from "./validation";
 
 export function useSubmitEventForm() {

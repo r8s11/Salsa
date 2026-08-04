@@ -15,7 +15,7 @@ import "./Calendar.css";
 import "@schedule-x/theme-default/dist/index.css";
 import { ScheduleXEvent, CALENDARS_CONFIG, City } from "../../types/events";
 import { filterEventsByType, TypeFilter } from "../../utils/filterEvents";
-import { useCity } from "../../contexts/CityContext";
+import { useCity } from "../../contexts/useCity";
 
 import EventModal from "../EventModal/EventModal";
 import { useEvents } from "../../hooks/useEvent";

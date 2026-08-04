@@ -76,6 +76,16 @@
   margin-bottom: 0.75rem;
 }
 
+.contact-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2.5rem;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 /* Contact info block */
 .wip-container .contact-info {
   margin-top: 2rem;
@@ -114,5 +124,10 @@
 
   .wip-container .content {
     padding: 2.25rem 1.5rem;
+  }
+
+  .contact-info {
+    grid-template-columns: 1fr;
+    gap: 1rem;
   }
 }

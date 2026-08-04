@@ -8,9 +8,8 @@ import globals from "globals";
 
 export default [
   {
-    ignores: ["dist/**", "node_modules/**"],
+    ignores: ["dist/**", "node_modules/**", ".claude/**"],
   },
-  js.configs.recommended,
   {
     files: ["**/*.{ts,tsx}"],
     languageOptions: {
@@ -31,6 +30,7 @@ export default [
       "react-refresh": reactRefresh,
     },
     rules: {
+      ...js.configs.recommended.rules,
       ...typescript.configs.recommended.rules,
       ...reactHooks.configs.recommended.rules,
       ...prettier.rules,

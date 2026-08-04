@@ -1,4 +1,5 @@
 // Column event_date is timestamp with time zone (timestamptz)
+import "temporal-polyfill/global";
 import { DatabaseEvent, ScheduleXEvent } from "./types";
 
 const DEFAULT_DURATION_HOURS = 4;

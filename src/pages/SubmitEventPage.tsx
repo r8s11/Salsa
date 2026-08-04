@@ -1,40 +1,9 @@
 import { useState, FormEvent } from "react";
 import { submitEvent } from "../features/events/api/eventsRepo";
-import type { EventType, City } from "../types/events";
+import type { EventType } from "../types/events";
 import { useCity } from "../contexts/CityContext";
+import { validateSubmitForm, buildInitialForm, SubmitForm } from "../features/submit-event/validation";
 import "./SubmitEventPage.css";
-
-type SubmitForm = {
-  title: string;
-  description: string;
-  event_type: EventType | "";
-  city: City;
-  event_date: string;
-  event_time: string;
-  location: string;
-  address: string;
-  price_type: "free" | "paid" | "";
-  price_amount: string;
-  rsvp_link: string;
-  submitter_name: string;
-  submitter_email: string;
-};
-
-const buildInitialForm = (city: City): SubmitForm => ({
-  title: "",
-  description: "",
-  event_type: "",
-  city,
-  event_date: "",
-  event_time: "",
-  location: "",
-  address: "",
-  price_type: "",
-  price_amount: "",
-  rsvp_link: "",
-  submitter_name: "",
-  submitter_email: "",
-});
 
 export default function SubmitEventPage() {
   const { city: defaultCity } = useCity();
@@ -46,39 +15,12 @@ export default function SubmitEventPage() {
   const update = (field: keyof SubmitForm, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
-  const validateForm = (): string | null => {
-    // Validate price amount when price type is "paid"
-    if (form.price_type === "paid") {
-      if (!form.price_amount || form.price_amount.trim() === "") {
-        return "Please enter a price amount for paid events.";
-      }
-      const price = parseFloat(form.price_amount);
-      if (isNaN(price) || price <= 0) {
-        return "Price amount must be a positive number.";
-      }
-    }
-
-    // Validate RSVP link if provided
-    if (form.rsvp_link && form.rsvp_link.trim() !== "") {
-      try {
-        const url = new URL(form.rsvp_link);
-        if (!url.protocol.startsWith("http")) {
-          return "RSVP link must be a valid HTTP or HTTPS URL.";
-        }
-      } catch {
-        return "Please enter a valid URL for the RSVP link (e.g., https://example.com).";
-      }
-    }
-
-    return null;
-  };
-
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
 
     // Validate form before submission
-    const validationError = validateForm();
+    const validationError = validateSubmitForm(form);
     if (validationError) {
       setError(validationError);
       return;
@@ -115,9 +57,7 @@ export default function SubmitEventPage() {
     } finally {
       setIsSubmitting(false);
     }
-
   };
-
   if (isSubmitted) {
     return (
       <section className="submit-event">

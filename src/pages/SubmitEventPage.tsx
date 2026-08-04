@@ -1,80 +1,17 @@
-import { useState, FormEvent } from "react";
-import { submitEvent } from "../features/events/api/eventsRepo";
-import type { EventType } from "../types/events";
-import { useCity } from "../contexts/CityContext";
-import { validateSubmitForm, buildInitialForm, SubmitForm } from "../features/submit-event/validation";
+import { useSubmitEventForm } from "../features/submit-event/useSubmitEventForm";
+import EventDetailsFieldset from "../features/submit-event/components/EventDetailsFieldset";
+import LocationFieldset from "../features/submit-event/components/LocationFieldset";
+import PricingFieldset from "../features/submit-event/components/PricingFieldset";
+import YourInfoFieldset from "../features/submit-event/components/YourInfoFieldset";
+import SuccessCard from "../features/submit-event/components/SuccessCard";
 import "./SubmitEventPage.css";
 
 export default function SubmitEventPage() {
-  const { city: defaultCity } = useCity();
-  const [form, setForm] = useState<SubmitForm>(() => buildInitialForm(defaultCity));
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { form, update, handleSubmit, isSubmitting, isSubmitted, error, resetSubmitted } =
+    useSubmitEventForm();
 
-  const update = (field: keyof SubmitForm, value: string) =>
-    setForm((prev) => ({ ...prev, [field]: value }));
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    // Validate form before submission
-    const validationError = validateSubmitForm(form);
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      // Combine date + time into an ISO timestamp
-      const eventDateTime = form.event_time
-        ? `${form.event_date}T${form.event_time}:00`
-        : `${form.event_date}T00:00:00`;
-
-      await submitEvent({
-        title: form.title,
-        description: form.description || null,
-        event_type: form.event_type as EventType,
-        city: form.city,
-        event_date: eventDateTime,
-        event_time: form.event_time || null,
-        location: form.location || null,
-        address: form.address || null,
-        price_type: (form.price_type === "free" || form.price_type === "paid") ? form.price_type : null,
-        price_amount: form.price_amount ? parseFloat(form.price_amount) : null,
-        rsvp_link: form.rsvp_link || null,
-        submitter_name: form.submitter_name || null,
-        submitter_email: form.submitter_email || null,
-      });
-      setIsSubmitted(true);
-      setForm(buildInitialForm(defaultCity));
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Unknown error";
-      setError(message);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
   if (isSubmitted) {
-    return (
-      <section className="submit-event">
-        <div className="container">
-          <div className="success-card">
-            <h2>🎉 Event Submitted!</h2>
-            <p>
-              Thank you for contributing to the dance community! Your event is now pending review
-              and will appear on the calendar once approved.
-            </p>
-            <button className="submit-button" onClick={() => setIsSubmitted(false)}>
-              Submit Another Event
-            </button>
-          </div>
-        </div>
-      </section>
-    );
+    return <SuccessCard onReset={resetSubmitted} />;
   }
 
   return (
@@ -93,185 +30,10 @@ export default function SubmitEventPage() {
         )}
 
         <form onSubmit={handleSubmit} className="submit-form">
-          {/* ── Event Details ── */}
-          <fieldset>
-            <legend>Event Details</legend>
-
-            <div className="form-group">
-              <label htmlFor="title">Event Title *</label>
-              <input
-                id="title"
-                type="text"
-                placeholder="e.g. Friday Night Salsa Social"
-                value={form.title}
-                onChange={(e) => update("title", e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="event_type">Event Type *</label>
-                <select
-                  id="event_type"
-                  value={form.event_type}
-                  onChange={(e) => update("event_type", e.target.value)}
-                  required
-                >
-                  <option value="">Select type</option>
-                  <option value="social">Social Dance</option>
-                  <option value="class">Class</option>
-                  <option value="workshop">Workshop</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label htmlFor="city">City *</label>
-                <select
-                  id="city"
-                  value={form.city}
-                  onChange={(e) => update("city", e.target.value)}
-                  required
-                >
-                  <option value="boston">Boston</option>
-                  <option value="new-york-city">New York City</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="event_date">Date *</label>
-                <input
-                  id="event_date"
-                  type="date"
-                  value={form.event_date}
-                  onChange={(e) => update("event_date", e.target.value)}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="event_time">Start Time</label>
-                <input
-                  id="event_time"
-                  type="time"
-                  value={form.event_time}
-                  onChange={(e) => update("event_time", e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="description">Description</label>
-              <textarea
-                id="description"
-                placeholder="Tell people what to expect..."
-                rows={4}
-                value={form.description}
-                onChange={(e) => update("description", e.target.value)}
-              />
-            </div>
-          </fieldset>
-
-          {/* ── Location ── */}
-          <fieldset>
-            <legend>Location</legend>
-
-            <div className="form-group">
-              <label htmlFor="location">Venue Name</label>
-              <input
-                id="location"
-                type="text"
-                placeholder="e.g. Havana Club"
-                value={form.location}
-                onChange={(e) => update("location", e.target.value)}
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="address">Address</label>
-              <input
-                id="address"
-                type="text"
-                placeholder="e.g. 288 Green St, Cambridge, MA"
-                value={form.address}
-                onChange={(e) => update("address", e.target.value)}
-              />
-            </div>
-          </fieldset>
-
-          {/* ── Pricing & Link ── */}
-          <fieldset>
-            <legend>Pricing & Link</legend>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="price_type">Price</label>
-                <select
-                  id="price_type"
-                  value={form.price_type}
-                  onChange={(e) => update("price_type", e.target.value)}
-                >
-                  <option value="">Select</option>
-                  <option value="free">Free</option>
-                  <option value="paid">Paid</option>
-                </select>
-              </div>
-
-              {form.price_type === "paid" && (
-                <div className="form-group">
-                  <label htmlFor="price_amount">Amount ($)</label>
-                  <input
-                    id="price_amount"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    placeholder="15.00"
-                    value={form.price_amount}
-                    onChange={(e) => update("price_amount", e.target.value)}
-                  />
-                </div>
-              )}
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="rsvp_link">RSVP / Event Link</label>
-              <input
-                id="rsvp_link"
-                type="url"
-                placeholder="https://..."
-                value={form.rsvp_link}
-                onChange={(e) => update("rsvp_link", e.target.value)}
-              />
-            </div>
-          </fieldset>
-
-          {/* ── Your Info ── */}
-          <fieldset>
-            <legend>Your Info</legend>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="submitter_name">Your Name</label>
-                <input
-                  id="submitter_name"
-                  type="text"
-                  placeholder="Your name"
-                  value={form.submitter_name}
-                  onChange={(e) => update("submitter_name", e.target.value)}
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="submitter_email">Your Email</label>
-                <input
-                  id="submitter_email"
-                  type="email"
-                  placeholder="your@email.com"
-                  value={form.submitter_email}
-                  onChange={(e) => update("submitter_email", e.target.value)}
-                />
-              </div>
-            </div>
-          </fieldset>
+          <EventDetailsFieldset form={form} update={update} />
+          <LocationFieldset form={form} update={update} />
+          <PricingFieldset form={form} update={update} />
+          <YourInfoFieldset form={form} update={update} />
 
           <button type="submit" className="submit-button" disabled={isSubmitting}>
             {isSubmitting ? "Submitting..." : "Submit Event"}

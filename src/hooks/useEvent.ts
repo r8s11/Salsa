@@ -1,9 +1,9 @@
 // Purpose: Wrapper hook for event data, scoped to the currently selected city.
 
 import { useCity } from "../contexts/CityContext";
-import { useSupabaseEvents } from "./useSupabaseEvents";
+import { useEventsQuery } from "../features/events/hooks/useEventsQuery";
 
 export function useEvents() {
   const { city } = useCity();
-  return useSupabaseEvents(city);
+  return useEventsQuery(city);
 }

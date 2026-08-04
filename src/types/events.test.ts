@@ -1,3 +1,4 @@
+import "temporal-polyfill/global";
 import { describe, it, expect } from "vitest";
 import { databaseEventToScheduleX, DatabaseEvent } from "./events";
 

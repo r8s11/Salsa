@@ -1,13 +1,13 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import App from "./App";
-import { CityProvider } from "./contexts/CityContext";
+import { Providers } from "./app/providers";
 
 const renderApp = () =>
   render(
-    <CityProvider>
+    <Providers>
       <App />
-    </CityProvider>
+    </Providers>
   );
 
 describe("App", () => {

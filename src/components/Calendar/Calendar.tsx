@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useCalendarApp, ScheduleXCalendar } from "@schedule-x/react";
 import {
   createViewDay,
@@ -20,11 +20,14 @@ import { useCity } from "../../contexts/CityContext";
 import EventModal from "../EventModal/EventModal";
 import { useEvents } from "../../hooks/useEvent";
 import {
-  updatePageTitle,
-  updateMetaDescription,
   generateEventsListStructuredData,
   injectStructuredData,
 } from "../../utils/seo";
+import { useDocumentMeta } from "../../shared/seo/useDocumentMeta";
+import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
+import { useEventDeepLink } from "../../features/calendar/hooks/useEventDeepLink";
+import CalendarLegend from "../../features/calendar/components/CalendarLegend";
+import CalendarStatus from "../../features/calendar/components/CalendarStatus";
 
 type CalendarView = "month-grid" | "week" | "list";
 
@@ -55,7 +58,6 @@ export default function Calendar() {
   );
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const hasLoadedFromUrl = useRef(false);
   const { city, setCity } = useCity();
 
   const { events: eventList, loading, error } = useEvents();
@@ -111,13 +113,11 @@ export default function Calendar() {
     calendarControls.setView(view);
   };
 
-  // Update page SEO metadata
-  useEffect(() => {
-    updatePageTitle("Dance Calendar - Salsa, Bachata & Latin Dance Events");
-    updateMetaDescription(
-      "Find salsa, bachata, and Latin dance events across Greater Boston and NYC. Browse the community calendar of classes, socials, and workshops."
-    );
-  }, []);
+  useDocumentMeta({
+    title: "Dance Calendar - Salsa, Bachata & Latin Dance Events",
+    description:
+      "Find salsa, bachata, and Latin dance events across Greater Boston and NYC. Browse the community calendar of classes, socials, and workshops.",
+  });
 
   // Push freshly fetched (and type-filtered) events into Schedule-X.
   useEffect(() => {
@@ -136,27 +136,13 @@ export default function Calendar() {
     // Structured data always reflects the full list, not the visual filter
     const structuredData = generateEventsListStructuredData(eventList);
     injectStructuredData(structuredData, "events-list-data");
+  }, [eventList, typeFilter, eventsService]);
 
-    // Open event from URL parameter on first load
-    const eventIdFromUrl = searchParams.get("event");
-    if (eventIdFromUrl && !hasLoadedFromUrl.current) {
-      const event = eventList.find((e) => String(e.id) === eventIdFromUrl);
-      if (event) {
-        hasLoadedFromUrl.current = true;
-        // Use setTimeout to avoid setting state during render
-        setTimeout(() => setSelectedEvent(event), 0);
-      }
-    }
-  }, [eventList, typeFilter, eventsService, searchParams]);
+  // Open event from URL parameter once events have arrived.
+  useEventDeepLink(eventList, setSelectedEvent);
 
   // Close modal on ESC key
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setSelectedEvent(null);
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  useEscapeKey(handleClosedModal);
 
   const cityLabel = city === "boston" ? "Boston" : "NYC";
   const monthTitle = visibleDate.toLocaleString("en-US", {
@@ -227,35 +213,12 @@ export default function Calendar() {
               </button>
             ))}
           </div>
-          <div className="legend-items">
-            <div className="legend-item">
-              <span className="legend-dot social" />
-              <span>Social</span>
-            </div>
-            <div className="legend-item">
-              <span className="legend-dot class" />
-              <span>Class</span>
-            </div>
-            <div className="legend-item">
-              <span className="legend-dot workshop" />
-              <span>Workshop</span>
-            </div>
-          </div>
+          <CalendarLegend />
         </div>
       </div>
 
       {/* Loading / Error states */}
-      {loading && (
-        <div className="calendar-status">
-          <p>Loading events...</p>
-        </div>
-      )}
-      {error && (
-        <div className="calendar-status calendar-error">
-          <p>Failed to load events: {error}</p>
-          <button onClick={() => window.location.reload()}>Retry</button>
-        </div>
-      )}
+      <CalendarStatus loading={loading} error={error} />
 
       {/* Schedule-X Calendar */}
       <div className="calendar-main">

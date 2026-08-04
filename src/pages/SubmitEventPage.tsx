@@ -1,10 +1,10 @@
 import { useState, FormEvent } from "react";
-import { supabase } from "../lib/supabase";
+import { submitEvent } from "../features/events/api/eventsRepo";
 import type { EventType, City } from "../types/events";
 import { useCity } from "../contexts/CityContext";
 import "./SubmitEventPage.css";
 
-interface SubmitForm {
+type SubmitForm = {
   title: string;
   description: string;
   event_type: EventType | "";
@@ -18,7 +18,7 @@ interface SubmitForm {
   rsvp_link: string;
   submitter_name: string;
   submitter_email: string;
-}
+};
 
 const buildInitialForm = (city: City): SubmitForm => ({
   title: "",
@@ -92,28 +92,21 @@ export default function SubmitEventPage() {
         ? `${form.event_date}T${form.event_time}:00`
         : `${form.event_date}T00:00:00`;
 
-      const { error: supabaseError } = await supabase.from("events").insert({
+      await submitEvent({
         title: form.title,
         description: form.description || null,
-        event_type: form.event_type,
+        event_type: form.event_type as EventType,
         city: form.city,
         event_date: eventDateTime,
         event_time: form.event_time || null,
         location: form.location || null,
         address: form.address || null,
-        price_type: form.price_type || null,
+        price_type: (form.price_type === "free" || form.price_type === "paid") ? form.price_type : null,
         price_amount: form.price_amount ? parseFloat(form.price_amount) : null,
         rsvp_link: form.rsvp_link || null,
         submitter_name: form.submitter_name || null,
         submitter_email: form.submitter_email || null,
-        status: "pending", // All submissions start as pending
       });
-
-      if (supabaseError) {
-        setError(supabaseError.message);
-        return;
-      }
-
       setIsSubmitted(true);
       setForm(buildInitialForm(defaultCity));
     } catch (err) {
@@ -122,6 +115,7 @@ export default function SubmitEventPage() {
     } finally {
       setIsSubmitting(false);
     }
+
   };
 
   if (isSubmitted) {

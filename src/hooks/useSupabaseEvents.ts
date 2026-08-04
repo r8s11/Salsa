@@ -1,14 +1,12 @@
 // Purpose: Fetch events from Supabase and convert to ScheduleXEvent format
 
 import { useState, useEffect } from "react";
-import { supabase } from "../lib/supabase";
 import {
-  DatabaseEvent,
   ScheduleXEvent,
   City,
   databaseEventToScheduleX,
 } from "../types/events";
-
+import { fetchApprovedEvents } from "../features/events/api/eventsRepo";
 export function useSupabaseEvents(city: City) {
   const [events, setEvents] = useState<ScheduleXEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,21 +20,11 @@ export function useSupabaseEvents(city: City) {
         setLoading(true);
         setError(null);
 
-        const { data, error: supabaseError } = await supabase
-          .from("events")
-          .select("*")
-          .eq("status", "approved")
-          .eq("city", city)
-          .order("event_date", { ascending: true });
+        const data = await fetchApprovedEvents(city);
 
         if (!mounted) return;
 
-        if (supabaseError) {
-          setError(supabaseError.message);
-          return;
-        }
-
-        const converted: ScheduleXEvent[] = ((data as DatabaseEvent[]) || []).map(
+        const converted: ScheduleXEvent[] = data.map(
           databaseEventToScheduleX
         );
 

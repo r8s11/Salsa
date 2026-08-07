@@ -110,6 +110,17 @@ body {
   padding: 0 24px;
 }
 
+/* Shared contact-info grid (used by WorkInProgress) */
+.contact-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2.5rem;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 /* ----------------------------------------
    4. Section Titles (global)
    ---------------------------------------- */
@@ -289,6 +300,11 @@ main {
 @media (max-width: 985px) {
   .section-title {
     font-size: 2rem;
+  }
+
+  .contact-info {
+    grid-template-columns: 1fr;
+    gap: 1rem;
   }
 }
 

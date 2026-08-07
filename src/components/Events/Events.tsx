@@ -1,24 +1,51 @@
-// Purpose: Display event cards on the homepage
-import { useMemo } from "react";
+// Purpose: Display the home page event feed — a featured event plus a
+// filterable grid of the rest of this week's floor.
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import "./Events.css";
 import { useEvents } from "../../hooks/useEvent";
 import EventCard from "./EventCard";
+import FeaturedEventCard from "./FeaturedEventCard";
+import { filterEventsByType, TypeFilter } from "../../utils/filterEvents";
+
+const FILTER_OPTIONS: { value: TypeFilter; label: string }[] = [
+  { value: "all", label: "All" },
+  { value: "social", label: "Social" },
+  { value: "class", label: "Class" },
+  { value: "workshop", label: "Workshop" },
+];
 
 function Events() {
   const { events: allEvents, loading, error } = useEvents();
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
 
-  // Only show future events, limit to 6
   const upcomingEvents = useMemo(() => {
     const now = new Date();
-    return allEvents.filter((event) => new Date(event.start.replace(" ", "T")) >= now).slice(0, 6);
+    return allEvents
+      .filter((event) => new Date(event.start.replace(" ", "T")) >= now)
+      .sort(
+        (a, b) =>
+          new Date(a.start.replace(" ", "T")).getTime() -
+          new Date(b.start.replace(" ", "T")).getTime()
+      );
   }, [allEvents]);
+
+  const featuredEvent = upcomingEvents[0] ?? null;
+  const feedSource = featuredEvent ? upcomingEvents.slice(1) : upcomingEvents;
+  const feedEvents = useMemo(
+    () => filterEventsByType(feedSource, typeFilter).slice(0, 6),
+    [feedSource, typeFilter]
+  );
+  const activeFilterLabel =
+    FILTER_OPTIONS.find((o) => o.value === typeFilter)?.label.toLowerCase() ?? "";
 
   if (loading) {
     return (
       <section id="events" className="events">
         <div className="container">
-          <h2 className="section-title">Upcoming Events</h2>
+          <div className="events-feed-header">
+            <h2 className="events-feed-title">This Week&apos;s Floor</h2>
+          </div>
           <div className="events-grid events-skeleton" aria-live="polite" aria-busy="true">
             {[1, 2, 3].map((i) => (
               <div key={i} className="event-card skeleton" aria-hidden />
@@ -33,7 +60,9 @@ function Events() {
     return (
       <section id="events" className="events">
         <div className="container">
-          <h2 className="section-title">Upcoming Events</h2>
+          <div className="events-feed-header">
+            <h2 className="events-feed-title">This Week&apos;s Floor</h2>
+          </div>
           <div className="events-error">
             <p>Failed to load events: {error}</p>
             <button onClick={() => window.location.reload()}>Try again</button>
@@ -46,24 +75,45 @@ function Events() {
   return (
     <section id="events" className="events">
       <div className="container">
-        <h2 className="section-title">Upcoming Events</h2>
-        <p className="events-intro">
-          Pop-up salsa classes and social dance events happening across Greater Boston and NYC —
-          come dance!
-        </p>
+        {featuredEvent && (
+          <div className="events-featured-wrap">
+            <h2 className="events-eyebrow">◆ Featured Tonight</h2>
+            <FeaturedEventCard event={featuredEvent} />
+          </div>
+        )}
 
-        {upcomingEvents.length > 0 ? (
-          <div className="events-grid">
-            {upcomingEvents.map((event) => (
-              <EventCard key={event.id} event={event} />
+        <div className="events-feed-header">
+          <h2 className="events-feed-title">This Week&apos;s Floor</h2>
+          <div className="feed-filters" role="group" aria-label="Filter by event type">
+            {FILTER_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                className={`feed-filter ${typeFilter === opt.value ? "feed-filter-active" : ""}`}
+                aria-pressed={typeFilter === opt.value}
+                onClick={() => setTypeFilter(opt.value)}
+              >
+                {opt.label}
+              </button>
             ))}
           </div>
-        ) : (
+        </div>
+
+        {upcomingEvents.length === 0 ? (
           <div className="no-events">
             <p>
               No upcoming events scheduled. Check back soon, or follow @SalsaSegura on Instagram
               for updates!
             </p>
+          </div>
+        ) : feedEvents.length > 0 ? (
+          <div className="events-grid">
+            {feedEvents.map((event) => (
+              <EventCard key={event.id} event={event} />
+            ))}
+          </div>
+        ) : (
+          <div className="no-events">
+            <p>No additional {activeFilterLabel} events this week. Try another filter.</p>
           </div>
         )}
 

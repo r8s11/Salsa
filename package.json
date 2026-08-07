@@ -3,6 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
+  "packageManager": "npm@11.6.2",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -13,13 +14,13 @@
     "import-events": "node scripts/import-ics.mjs"
   },
   "dependencies": {
-    "@google/design.md": "^0.3.0",
-    "@schedule-x/calendar": "^4.1.0",
+    "@schedule-x/calendar": "^4.6.1",
     "@schedule-x/calendar-controls": "^4.6.1",
-    "@schedule-x/events-service": "^4.1.0",
+    "@schedule-x/events-service": "^4.6.1",
     "@schedule-x/react": "^4.1.0",
-    "@schedule-x/theme-default": "^4.1.0",
-    "@supabase/supabase-js": "^2.95.3",
+    "@schedule-x/theme-default": "^4.6.1",
+    "@supabase/supabase-js": "^2.112.0",
+    "@tanstack/react-query": "^5.101.4",
     "lucide-react": "^1.24.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",

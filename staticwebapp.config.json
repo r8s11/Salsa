@@ -3,10 +3,10 @@
     "rewrite": "/index.html",
     "exclude": ["*.{jpg,jpeg,gif,png,svg,webp,ico,woff,woff2,ttf,eot,css,js,map}", "assets/*"]
   },
-  "routes": [
-    {
-      "route": "/calendar",
-      "rewrite": "/calendar"
-    }
-  ]
+  "globalHeaders": {
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+    "Content-Security-Policy-Report-Only": "default-src 'self'; script-src-elem 'self' https://cloud.umami.is; connect-src 'self' https://tlajzziavbnfomhfwofw.supabase.co https://api.web3forms.com https://gateway.umami.is; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com"
+  }
 }

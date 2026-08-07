@@ -1,0 +1,87 @@
+import type { EventType, City } from "../../types/events";
+
+export type SubmitForm = {
+  title: string;
+  description: string;
+  event_type: EventType | "";
+  city: City;
+  event_date: string;
+  event_time: string;
+  location: string;
+  address: string;
+  price_type: "free" | "paid" | "";
+  price_amount: string;
+  rsvp_link: string;
+  submitter_name: string;
+  submitter_email: string;
+};
+
+export const buildInitialForm = (city: City): SubmitForm => ({
+  title: "",
+  description: "",
+  event_type: "",
+  city,
+  event_date: "",
+  event_time: "",
+  location: "",
+  address: "",
+  price_type: "",
+  price_amount: "",
+  rsvp_link: "",
+  submitter_name: "",
+  submitter_email: "",
+});
+
+const TITLE_MAX_LENGTH = 120;
+const DESCRIPTION_MAX_LENGTH = 2000;
+const OTHER_TEXT_MAX_LENGTH = 300;
+
+export function validateSubmitForm(form: SubmitForm): string | null {
+  // Length caps (spam friction)
+  if (form.title.length > TITLE_MAX_LENGTH) {
+    return `Event title must be ${TITLE_MAX_LENGTH} characters or fewer.`;
+  }
+  if (form.description.length > DESCRIPTION_MAX_LENGTH) {
+    return `Description must be ${DESCRIPTION_MAX_LENGTH} characters or fewer.`;
+  }
+  if (form.location.length > OTHER_TEXT_MAX_LENGTH) {
+    return `Venue name must be ${OTHER_TEXT_MAX_LENGTH} characters or fewer.`;
+  }
+  if (form.address.length > OTHER_TEXT_MAX_LENGTH) {
+    return `Address must be ${OTHER_TEXT_MAX_LENGTH} characters or fewer.`;
+  }
+  if (form.rsvp_link.length > OTHER_TEXT_MAX_LENGTH) {
+    return `RSVP link must be ${OTHER_TEXT_MAX_LENGTH} characters or fewer.`;
+  }
+  if (form.submitter_name.length > OTHER_TEXT_MAX_LENGTH) {
+    return `Your name must be ${OTHER_TEXT_MAX_LENGTH} characters or fewer.`;
+  }
+  if (form.submitter_email.length > OTHER_TEXT_MAX_LENGTH) {
+    return `Your email must be ${OTHER_TEXT_MAX_LENGTH} characters or fewer.`;
+  }
+
+  // Validate price amount when price type is "paid"
+  if (form.price_type === "paid") {
+    if (!form.price_amount || form.price_amount.trim() === "") {
+      return "Please enter a price amount for paid events.";
+    }
+    const price = parseFloat(form.price_amount);
+    if (isNaN(price) || price <= 0) {
+      return "Price amount must be a positive number.";
+    }
+  }
+
+  // Validate RSVP link if provided
+  if (form.rsvp_link && form.rsvp_link.trim() !== "") {
+    try {
+      const url = new URL(form.rsvp_link);
+      if (!url.protocol.startsWith("http")) {
+        return "RSVP link must be a valid HTTP or HTTPS URL.";
+      }
+    } catch {
+      return "Please enter a valid URL for the RSVP link (e.g., https://example.com).";
+    }
+  }
+
+  return null;
+}

@@ -1,0 +1,45 @@
+export type EventType = "social" | "class" | "workshop";
+export type City = "boston" | "new-york-city";
+
+// Database event interface (matches Supabase schema)
+export interface DatabaseEvent {
+  id: string;
+  title: string;
+  description: string | null;
+  event_type: EventType;
+  event_date: string; //ISO timestamp from database
+  event_time: string | null;
+  location: string | null;
+  address: string | null;
+  price_type: "free" | "paid" | null;
+  price_amount: number | null;
+  rsvp_link: string | null;
+  image_url: string | null;
+  status: "approved" | "pending" | "rejected";
+  city: City;
+  created_at: string;
+  host: string | null;
+  recurrence: string | null;
+  gallery: string[] | null;
+}
+
+// Schedule-X event interface
+export interface ScheduleXEvent {
+  id: string | number;
+  title: string;
+  start: string;
+  end: string;
+  calendarId: EventType;
+  location?: string;
+  description?: string;
+  //Custom properties for out app
+  address?: string;
+  rsvpLink?: string;
+  city?: City;
+  host?: string;
+  recurrence?: string;
+  gallery?: string[];
+  imageUrl?: string;
+  priceType?: "free" | "paid";
+  priceAmount?: number;
+}

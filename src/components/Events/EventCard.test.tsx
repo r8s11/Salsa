@@ -1,0 +1,65 @@
+import { describe, it, expect, vi } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import EventCard from "./EventCard";
+import { ScheduleXEvent } from "../../types/events";
+
+const mockNavigate = vi.fn();
+vi.mock("react-router-dom", async () => {
+  const actual = await vi.importActual("react-router-dom");
+  return { ...actual, useNavigate: () => mockNavigate };
+});
+
+const baseEvent: ScheduleXEvent = {
+  id: "42",
+  title: "Rooftop Sunset Social",
+  start: "2026-07-29 19:00",
+  end: "2026-07-29 23:00",
+  calendarId: "social",
+  location: "Seaport Rooftop, Boston",
+};
+
+function renderCard(event: ScheduleXEvent) {
+  return render(
+    <MemoryRouter>
+      <EventCard event={event} />
+    </MemoryRouter>
+  );
+}
+
+describe("EventCard", () => {
+  it("renders title, day, and type chip", () => {
+    renderCard(baseEvent);
+    expect(screen.getByRole("heading", { name: "Rooftop Sunset Social" })).toBeInTheDocument();
+    expect(screen.getByText("29")).toBeInTheDocument();
+    expect(screen.getByText("Social Dance")).toBeInTheDocument();
+  });
+
+  it("shows location only when present", () => {
+    const { rerender } = renderCard(baseEvent);
+    expect(screen.getByText(/Seaport Rooftop/)).toBeInTheDocument();
+    rerender(
+      <MemoryRouter>
+        <EventCard event={{ ...baseEvent, location: undefined }} />
+      </MemoryRouter>
+    );
+    expect(screen.queryByText(/Seaport Rooftop/)).not.toBeInTheDocument();
+  });
+
+  it("navigates to the calendar deep link on click", () => {
+    renderCard(baseEvent);
+    fireEvent.click(screen.getByRole("button"));
+    expect(mockNavigate).toHaveBeenCalledWith("/calendar?event=42");
+  });
+
+  it("navigates on Enter key", () => {
+    renderCard(baseEvent);
+    fireEvent.keyDown(screen.getByRole("button"), { key: "Enter" });
+    expect(mockNavigate).toHaveBeenCalledWith("/calendar?event=42");
+  });
+
+  it("applies the class-specific thumb and chip modifier", () => {
+    renderCard({ ...baseEvent, calendarId: "class" });
+    expect(screen.getByText("Class")).toHaveClass("event-card-chip--class");
+  });
+});

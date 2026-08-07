@@ -1,24 +1,11 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import type { City } from "../types/events";
+import { CityContext } from "./cityContextObject";
 
 export type { City };
 
 const STORAGE_KEY = "salsa.city";
 const VALID: readonly City[] = ["boston", "new-york-city"];
-
-type CityContextValue = {
-  city: City;
-  setCity: (city: City) => void;
-};
-
-const CityContext = createContext<CityContextValue | undefined>(undefined);
 
 function readStoredCity(): City {
   if (typeof window === "undefined") return "boston";
@@ -42,10 +29,3 @@ export function CityProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useCity(): CityContextValue {
-  const ctx = useContext(CityContext);
-  if (!ctx) {
-    throw new Error("useCity must be used inside <CityProvider>");
-  }
-  return ctx;
-}

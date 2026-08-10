@@ -1,6 +1,6 @@
 # SalsaSegura.com - Project Status Summary
 
-> Generated: July 15, 2026 (previous snapshot: February 10, 2026) · Updated: August 10, 2026 (local Supabase dev stack + Authentication + Moderation dashboard shipped)
+> Generated: July 15, 2026 (previous snapshot: February 10, 2026) · Updated: August 11, 2026 (account-linked submissions + My Profile page + OAuth coming-soon shipped)
 
 ---
 
@@ -10,10 +10,10 @@
 | ------------------- | ------------------------------------------------------------- |
 | **URL**             | [salsasegura.com](https://www.salsasegura.com)                 |
 | **Branch**          | `ritmo-vivo-redesign`                                          |
-| **Plan Position**   | Week 28 of the 52-week plan (Jul 9-15); Modernization Blueprint fully executed; Authentication (W5) + Moderation dashboard (W6) shipped Aug 10 |
-| **Last Merges**     | Moderation dashboard at /admin (Aug 10) · Local Supabase dev stack + Supabase Auth (Aug 10) · Modernization Blueprint Steps 1-15 (Aug 4) |
+| **Plan Position**   | Week 28 of the 52-week plan (Jul 9-15); Modernization Blueprint fully executed; Authentication (W5) + Moderation dashboard (W6) shipped Aug 10; account-linked submissions + Profile page shipped Aug 11 |
+| **Last Merges**     | Account-linked submissions + My Profile page + OAuth coming-soon (Aug 11) · Moderation dashboard at /admin (Aug 10) · Local Supabase dev stack + Supabase Auth (Aug 10) · Modernization Blueprint Steps 1-15 (Aug 4) |
 | **Tests**           | 51 passing across 12 files                                      |
-| **Hosting**          | Azure Static Web Apps (GitHub Actions CI/CD, now gated on lint + test) |
+| **Hosting**          | Azure Static Web Apps (GitHub Actions CI/CD, gated on lint + test — note: this gate does not run `npm run build`/`tsc`, see Key Risks) |
 | **Local dev**        | `npx supabase start` — full local Postgres/PostgREST/Auth stack, see `.env.example` |
 
 ---
@@ -41,7 +41,8 @@
 ### Core event pipeline ✅
 
 - Supabase `events` table → `eventsRepo.fetchApprovedEvents(city)` → `useEventsQuery` (TanStack Query) → `useEvents` → Schedule-X calendar
-- Community submissions via `/submit` (writes `status: "pending"`; approval is manual in the Supabase dashboard)
+- Community submissions via `/submit` (writes `status: "pending"`, tied to the submitting account via `submitter_id`; email field is read-only/account-derived; optional weekly-recurring checkbox; approval via `/admin`)
+- `/profile`: account email, sign out, and a list of the signed-in user's own submissions with live status (Pending/Approved/Rejected) — `src/pages/ProfilePage.tsx`, `src/hooks/useMySubmissions.ts`
 - Curated import pipeline: `npm run import-events` (`scripts/import-ics.mjs`) — dry-run / insert / SQL-emit modes
 - Multi-city groundwork: `city` column (boston / new-york-city), `CityContext`, Boston/NYC switcher in Header
 
@@ -76,7 +77,7 @@
 | ------------------------------- | ------ |
 | Authentication (W5)             | **Shipped Aug 10** — email/password + Apple/Google/GitHub OAuth (`src/contexts/AuthContext.tsx`, `src/pages/SignInPage.tsx`); no role/admin concept yet — see Moderation dashboard below |
 | Moderation dashboard (W6)       | **Shipped Aug 10** — `/admin` queue with approve/reject, RLS policies, RequireAdmin guard (`src/pages/AdminPage.tsx`) |
-| Text search (W8)                | Not started — only type filters exist |
+| Account-linked submissions + My Profile | **Shipped Aug 11** — `submitter_id` column + RLS, `/profile` page, Submit Event/My Profile nav links, weekly-recurring checkbox on `/submit`, OAuth buttons disabled ("Coming soon") pending real provider credentials |
 | Email notifications (W9)        | Not started |
 | Enhanced event pages `/events/[id]` (W11) | Not started — modal deep-link only |
 | Map view (W12)                  | Not started |
@@ -108,16 +109,19 @@
 3. **Schedule:** At calendar week 28, the codebase covers roughly plan weeks 1-4 + 8 (partial) + 10, plus out-of-order pieces of weeks 14/15/20/21. Auth + moderation (weeks 5-6) remain the biggest blockers for growth milestones.
 4. **Milestones:** Q1 milestone (50 events / 100 users by Mar 31) was missed — auth/user accounts never launched. Q2 milestone (1,000 visitors/month) is unmeasurable — no analytics wired.
 5. **No calendar content pipeline running:** After the ICS pivot, the calendar shows only events imported + approved by hand — intended, but requires the weekly habit of running the importer (see risk #2 above — this is currently not happening).
+6. **CI quality gate doesn't run `npm run build`/`tsc`:** the `.github/workflows` quality job runs only `npm run lint` + `npx vitest run`. On 2026-08-10 this let a commit with a genuine missing-module build error (`PendingEventCard.tsx`/`.css` never committed — a chained-command bug during the moderation-dashboard work) land on `main` and pass the quality gate; Azure's own Oryx build caught it and failed the deploy (so production was never actually broken — it kept serving the last-good build), but the gap sat undetected on `main` for hours. Recommend adding a `tsc -b --noEmit` (or the full `npm run build`) step to the quality job.
+7. **Fixed 2026-08-11: `Calendar.tsx`'s `onEventClick` closed over a stale `eventList`.** `useCalendarApp`'s `callbacks` config is captured once at calendar-app creation (schedule-x/react never re-evaluates it), so any event created after the calendar's first mount fell back to Schedule-X's raw internal event object on click — silent for most events, but a hard crash (`start.replace is not a function`) for recurring ones, since `series.ts` assumes `start` is the app's plain string format. Pre-existing since the Tambora module (PR #8); never exercised because no event had `recurrence: "weekly"` until this plan's Task 4 added a way to set one through the live UI. Fixed via ref-mirroring (`eventListRef`); see commit history for `Calendar.tsx`.
 
 ---
 
 ## Recommended Next Steps (Priority Order)
 
 1. **Run the ICS importer** (`npm run import-events`) to get future events into the DB — the site currently shows empty event lists in production (see Key Risks #2).
-2. **Promote the Report-Only CSP to enforcing** (Step 12) once a deploy has run with zero console violations in production.
-3. **Retry the `temporal-polyfill` 1.x bump** once `@schedule-x` loosens its peer range, or migrate `convert.ts`/`Calendar.tsx`/`series.ts` off the ambient-global import pattern (see Key Risks #1).
-4. **Text search** (plan week 8) — Moderation dashboard (W6) is now done; text search is the next capability on the roadmap.
-5. Update this file after each merged PR.
+2. **Add `tsc -b --noEmit` (or `npm run build`) to the CI quality gate** — see Key Risks #6; the current gate would not have caught the 2026-08-10 missing-module incident on its own.
+3. **Promote the Report-Only CSP to enforcing** (Step 12) once a deploy has run with zero console violations in production.
+4. **Retry the `temporal-polyfill` 1.x bump** once `@schedule-x` loosens its peer range, or migrate `convert.ts`/`Calendar.tsx`/`series.ts` off the ambient-global import pattern (see Key Risks #1).
+5. **Text search** (plan week 8) — Moderation dashboard (W6) and account-linked submissions are now done; text search is the next capability on the roadmap.
+6. Update this file after each merged PR.
 
 ---
 

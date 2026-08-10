@@ -146,3 +146,6 @@ ds-bundle/
 .design-sync/.cache/
 .design-sync/learnings/
 .design-sync/node_modules
+
+# Isolated worktrees for agent-driven implementation work
+.worktrees/

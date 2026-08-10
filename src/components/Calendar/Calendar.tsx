@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useCalendarApp, ScheduleXCalendar } from "@schedule-x/react";
 import {
   createViewDay,
@@ -62,6 +62,19 @@ export default function Calendar() {
 
   const { events: eventList, loading, error } = useEvents();
 
+  // useCalendarApp's callbacks config is captured once at calendar-app
+  // creation and never re-evaluated, so onEventClick below would otherwise
+  // close over the eventList from that first render forever — any event
+  // that starts existing afterward (a fresh submission, a freshly-approved
+  // one) would never be found by the .find() below and would silently fall
+  // back to Schedule-X's own internal event shape, whose `start`/`end` are
+  // Temporal.ZonedDateTime, not the app's plain string format. Mirror the
+  // latest value into a ref so the click handler always reads current data.
+  const eventListRef = useRef(eventList);
+  useEffect(() => {
+    eventListRef.current = eventList;
+  }, [eventList]);
+
   const [eventsService] = useState(() => createEventsServicePlugin());
   const [calendarControls] = useState(() => createCalendarControlsPlugin());
 
@@ -85,7 +98,9 @@ export default function Calendar() {
     firstDayOfWeek: 1,
     callbacks: {
       onEventClick(calendarEvent) {
-        const fullEvent = eventList.find((e) => String(e.id) === String(calendarEvent.id));
+        const fullEvent = eventListRef.current.find(
+          (e) => String(e.id) === String(calendarEvent.id)
+        );
         setSelectedEvent(fullEvent ?? (calendarEvent as unknown as ScheduleXEvent));
       },
     },

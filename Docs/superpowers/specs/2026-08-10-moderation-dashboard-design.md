@@ -72,7 +72,14 @@ export function usePendingEvents() {
       queryClient.invalidateQueries({ queryKey: ["events"] }); // covers both "pending" and the public per-city keys
     },
   });
-  return { pending: query.data, isLoading: query.isPending, error: query.error, refetch: query.refetch, decide: mutation.mutate, isDeciding: mutation.isPending };
+  return {
+    pending: query.data,
+    isLoading: query.isPending,
+    error: query.error,
+    refetch: query.refetch,
+    decide: mutation.mutate,
+    isDeciding: mutation.isPending,
+  };
 }
 ```
 
@@ -89,7 +96,7 @@ One shared mutation handles both approve and reject (status is a parameter) — 
 ## Section 2 — UI components & routes
 
 - **`src/pages/AdminPage.tsx`** — composition only. `usePendingEvents()` for data; maps `pending` to `PendingEventCard`. States, following the `CalendarStatus`/`Calendar.tsx` convention (inline conditional blocks, not a shared component — there is no generic `Loading` component in this codebase): loading (`"Loading pending events..."`), error (message + retry button calling `refetch`), empty (`"No events waiting for review."`), populated (card list).
-- **`src/components/Admin/PendingEventCard.tsx` + `.css`** — one card per pending event: title, formatted date/time, submitter name/email, description, price. `PendingEventCard` operates on `DatabaseEvent` (the raw repo shape: `event_date`, `price_amount`, etc. — pending events are never routed through `convert.ts`'s `databaseEventToScheduleX`, since that's Temporal-based and scoped to approved/scheduled display). Date/time and price formatting are inlined the same way `EventModal.tsx` and `EventCard.tsx` already do it (`toLocaleDateString`/`toLocaleTimeString`, `isFree ? "Free" : `$${priceAmount}``) — there is no shared `formatMoney`/date-formatting utility in this codebase to import. Approve/Reject buttons; each disabled + spinner while `isDeciding` for *that card's* mutation is in flight — per-card, not a full-page lock (mirrors that the guide's queue can hold several pending events at once). A failed decide surfaces an inline `"Couldn't update — try again"` on that card and re-enables its buttons; other cards are unaffected.
+- **`src/components/Admin/PendingEventCard.tsx` + `.css`** — one card per pending event: title, formatted date/time, submitter name/email, description, price. `PendingEventCard` operates on `DatabaseEvent` (the raw repo shape: `event_date`, `price_amount`, etc. — pending events are never routed through `convert.ts`'s `databaseEventToScheduleX`, since that's Temporal-based and scoped to approved/scheduled display). Date/time and price formatting are inlined the same way `EventModal.tsx` and `EventCard.tsx` already do it (`toLocaleDateString`/`toLocaleTimeString`, `isFree ? "Free" : `$${priceAmount}``) — there is no shared `formatMoney`/date-formatting utility in this codebase to import. Approve/Reject buttons; each disabled + spinner while `isDeciding`for *that card's* mutation is in flight — per-card, not a full-page lock (mirrors that the guide's queue can hold several pending events at once). A failed decide surfaces an inline`"Couldn't update — try again"` on that card and re-enables its buttons; other cards are unaffected.
 - **Routing (`App.tsx`)** — one new lazy route: `<Route path="/admin" element={<RequireAdmin><AdminPage /></RequireAdmin>} />`. No `/admin/login`. No `Header`/`TabBar`-equivalent nav entry.
 
 ## Section 3 — Testing

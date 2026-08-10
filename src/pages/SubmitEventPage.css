@@ -239,3 +239,9 @@
     padding: 48px 0 72px;
   }
 }
+
+.submit-form .form-group input[readonly] {
+  background: rgba(255, 255, 255, 0.015);
+  color: var(--text-muted);
+  cursor: default;
+}

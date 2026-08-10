@@ -1,3 +1,4 @@
+import { useAuth } from "../contexts/useAuth";
 import { useSubmitEventForm } from "../features/submit-event/useSubmitEventForm";
 import EventDetailsFieldset from "../features/submit-event/components/EventDetailsFieldset";
 import LocationFieldset from "../features/submit-event/components/LocationFieldset";
@@ -7,6 +8,7 @@ import SuccessCard from "../features/submit-event/components/SuccessCard";
 import "./SubmitEventPage.css";
 
 export default function SubmitEventPage() {
+  const { user } = useAuth();
   const { form, update, handleSubmit, isSubmitting, isSubmitted, error, resetSubmitted } =
     useSubmitEventForm();
 
@@ -33,7 +35,7 @@ export default function SubmitEventPage() {
           <EventDetailsFieldset form={form} update={update} />
           <LocationFieldset form={form} update={update} />
           <PricingFieldset form={form} update={update} />
-          <YourInfoFieldset form={form} update={update} />
+          <YourInfoFieldset form={form} update={update} email={user?.email ?? ""} />
 
           <button type="submit" className="submit-button" disabled={isSubmitting}>
             {isSubmitting ? "Submitting..." : "Submit Event"}

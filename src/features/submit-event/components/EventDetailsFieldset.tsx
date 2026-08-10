@@ -73,6 +73,17 @@ export default function EventDetailsFieldset({ form, update }: Props) {
         </div>
       </div>
 
+      <div className="form-group form-group--checkbox">
+        <label>
+          <input
+            type="checkbox"
+            checked={form.recurrence === "weekly"}
+            onChange={(e) => update("recurrence", e.target.checked ? "weekly" : "")}
+          />
+          This is a weekly recurring event
+        </label>
+      </div>
+
       <div className="form-group">
         <label htmlFor="description">Description</label>
         <textarea

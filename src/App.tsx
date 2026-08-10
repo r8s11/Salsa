@@ -15,7 +15,9 @@ const Schools = lazy(() => import("./pages/Schools"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 const SignInPage = lazy(() => import("./pages/SignInPage"));
 const AuthCallback = lazy(() => import("./pages/AuthCallback"));
+const AdminPage = lazy(() => import("./pages/AdminPage"));
 import RequireAuth from "./components/Auth/RequireAuth";
+import RequireAdmin from "./components/Auth/RequireAdmin";
 
 function App() {
   return (
@@ -36,6 +38,14 @@ function App() {
                 <RequireAuth>
                   <SubmitEventPage />
                 </RequireAuth>
+              }
+            />
+            <Route
+              path="admin"
+              element={
+                <RequireAdmin>
+                  <AdminPage />
+                </RequireAdmin>
               }
             />
             <Route path="lessons" element={<Lessons />} />

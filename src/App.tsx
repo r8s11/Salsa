@@ -13,6 +13,9 @@ const Lessons = lazy(() => import("./pages/Lessons"));
 const Instructors = lazy(() => import("./pages/Instructors"));
 const Schools = lazy(() => import("./pages/Schools"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
+const SignInPage = lazy(() => import("./pages/SignInPage"));
+const AuthCallback = lazy(() => import("./pages/AuthCallback"));
+import RequireAuth from "./components/Auth/RequireAuth";
 
 function App() {
   return (
@@ -20,12 +23,21 @@ function App() {
       <ScrollToTop />
       <Suspense fallback={<div className="page-loading">Loading...</div>}>
         <Routes>
+          <Route path="/signin" element={<SignInPage />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/" element={<MainLayout />}>
             <Route index element={<HomePage />} />
             <Route path="about" element={<AboutPage />} />
             <Route path="contact" element={<ContactPage />} />
             <Route path="calendar" element={<CalendarPage />} />
-            <Route path="submit" element={<SubmitEventPage />} />
+            <Route
+              path="submit"
+              element={
+                <RequireAuth>
+                  <SubmitEventPage />
+                </RequireAuth>
+              }
+            />
             <Route path="lessons" element={<Lessons />} />
             <Route path="instructors" element={<Instructors />} />
             <Route path="schools" element={<Schools />} />

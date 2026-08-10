@@ -139,6 +139,35 @@ a.logo:hover {
   outline-offset: 2px;
 }
 
+/* Auth button */
+.auth-btn {
+  font-family: var(--font-ui);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text);
+  background: var(--red);
+  border: 1px solid var(--red);
+  border-radius: 6px;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: color 0.2s ease, background 0.2s ease;
+  white-space: nowrap;
+  margin-right: 0.5rem;
+}
+
+.auth-btn:hover {
+  color: #fff;
+  background: var(--red-bright);
+  border-color: var(--red-bright);
+}
+
+.auth-btn:focus-visible {
+  outline: 2px solid var(--red-bright);
+  outline-offset: 2px;
+}
+
 /* Hamburger */
 .hamburger {
   display: none;

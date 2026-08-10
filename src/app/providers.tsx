@@ -1,6 +1,7 @@
 import { StrictMode, type ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { CityProvider } from "../contexts/CityContext";
+import { AuthProvider } from "../contexts/AuthContext";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -15,9 +16,11 @@ export function Providers({ children }: { children: ReactNode }) {
   return (
     <StrictMode>
       <QueryClientProvider client={queryClient}>
-        <CityProvider>
-          {children}
-        </CityProvider>
+        <AuthProvider>
+          <CityProvider>
+            {children}
+          </CityProvider>
+        </AuthProvider>
       </QueryClientProvider>
     </StrictMode>
   );

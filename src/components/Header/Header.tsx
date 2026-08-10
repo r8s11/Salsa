@@ -1,12 +1,15 @@
 import { useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useCity } from "../../contexts/useCity";
+import { useAuth } from "../../contexts/useAuth";
 import type { City } from "../../contexts/CityContext";
 import "./Header.css";
 
 function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { city, setCity } = useCity();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const closeMenu = () => {
     setMobileOpen(false);
@@ -94,6 +97,19 @@ function Header() {
             </NavLink>
           </li>
         </ul>
+        <button
+          className="auth-btn"
+          onClick={async () => {
+            if (user) {
+              await signOut();
+              navigate("/");
+            } else {
+              navigate("/signin");
+            }
+          }}
+        >
+          {user ? "Sign Out" : "Sign In"}
+        </button>
         <button
           className={`hamburger ${mobileOpen ? "active" : ""}`}
           onClick={() => setMobileOpen(!mobileOpen)}

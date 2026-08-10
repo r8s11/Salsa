@@ -1,0 +1,21 @@
+# Tambora Engine (Salsa Segura frontend)
+
+services:
+  salsa:
+    build:
+      context: .
+      args:
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL:-http://host.docker.internal:54321}
+    # Use host network so the container can reach the local Supabase stack
+    # at localhost:54321. For production, set VITE_SUPABASE_URL to the remote
+    # project URL and use a reverse proxy instead.
+    network_mode: host
+    environment:
+      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL:-http://localhost:54321}
+      - VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY=${VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY}
+    restart: unless-stopped
+
+# Run with:
+#   docker compose up --build
+# Requires .env with VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY
+# (the latter is the Supabase "anon" public key, safe to expose in a SPA)

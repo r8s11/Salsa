@@ -139,10 +139,7 @@ export async function fetchPendingEvents(): Promise<DatabaseEvent[]> {
   return (data as DatabaseEvent[]) || [];
 }
 
-export async function setEventStatus(
-  id: string,
-  status: "approved" | "rejected",
-): Promise<void> {
+export async function setEventStatus(id: string, status: "approved" | "rejected"): Promise<void> {
   const { error } = await supabase.from("events").update({ status }).eq("id", id);
 
   if (error) {
@@ -213,7 +210,7 @@ export function usePendingEvents() {
     error: query.error ? query.error.message : null,
     refetch: query.refetch,
     decide: mutation.mutate,
-    decidingId: mutation.isPending ? mutation.variables?.id ?? null : null,
+    decidingId: mutation.isPending ? (mutation.variables?.id ?? null) : null,
     decideError: mutation.error ? mutation.error.message : null,
   };
 }
@@ -257,14 +254,8 @@ export type AuthContextValue = {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signInWithPassword: (
-    email: string,
-    password: string,
-  ) => Promise<{ error: Error | null }>;
-  signUp: (
-    email: string,
-    password: string,
-  ) => Promise<{ error: Error | null }>;
+  signInWithPassword: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
   signInWithOAuth: (provider: "github" | "google" | "apple") => Promise<void>;
   signOut: () => Promise<void>;
 };
@@ -278,14 +269,8 @@ export type AuthContextValue = {
   session: Session | null;
   loading: boolean;
   isAdmin: boolean;
-  signInWithPassword: (
-    email: string,
-    password: string,
-  ) => Promise<{ error: Error | null }>;
-  signUp: (
-    email: string,
-    password: string,
-  ) => Promise<{ error: Error | null }>;
+  signInWithPassword: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
   signInWithOAuth: (provider: "github" | "google" | "apple") => Promise<void>;
   signOut: () => Promise<void>;
 };
@@ -296,30 +281,30 @@ export type AuthContextValue = {
 In `src/contexts/AuthContext.tsx`, the current `value` object (end of `AuthProvider`) is:
 
 ```ts
-  const value: AuthContextValue = {
-    user,
-    session,
-    loading,
-    signInWithPassword,
-    signUp,
-    signInWithOAuth,
-    signOut,
-  };
+const value: AuthContextValue = {
+  user,
+  session,
+  loading,
+  signInWithPassword,
+  signUp,
+  signInWithOAuth,
+  signOut,
+};
 ```
 
 Change it to:
 
 ```ts
-  const value: AuthContextValue = {
-    user,
-    session,
-    loading,
-    isAdmin: user?.app_metadata?.role === "admin",
-    signInWithPassword,
-    signUp,
-    signInWithOAuth,
-    signOut,
-  };
+const value: AuthContextValue = {
+  user,
+  session,
+  loading,
+  isAdmin: user?.app_metadata?.role === "admin",
+  signInWithPassword,
+  signUp,
+  signInWithOAuth,
+  signOut,
+};
 ```
 
 No new state/effect needed — `isAdmin` is a pure derivation of `user`, which the existing `getSession`/`onAuthStateChange` effect already keeps current.
@@ -378,7 +363,7 @@ function renderAtAdmin() {
         <Route path="/signin" element={<div>Sign In Page</div>} />
         <Route path="/" element={<div>Home Page</div>} />
       </Routes>
-    </MemoryRouter>,
+    </MemoryRouter>
   );
 }
 
@@ -542,13 +527,7 @@ function formatEventDateTime(isoDate: string): string {
   return `${dateLabel} at ${timeLabel}`;
 }
 
-export default function PendingEventCard({
-  event,
-  onApprove,
-  onReject,
-  isDeciding,
-  error,
-}: Props) {
+export default function PendingEventCard({ event, onApprove, onReject, isDeciding, error }: Props) {
   const isFree = event.price_type === "free" || event.price_amount == null;
   const priceLabel = isFree ? "Free" : `$${event.price_amount}`;
   const cityLabel = event.city === "boston" ? "Boston" : "New York City";
@@ -716,7 +695,13 @@ export default function AdminPage() {
               onApprove={(id) => decide({ id, status: "approved" })}
               onReject={(id) => decide({ id, status: "rejected" })}
               isDeciding={decidingId === event.id}
-              error={decidingId === null && decideError ? null : decidingId === event.id ? decideError : null}
+              error={
+                decidingId === null && decideError
+                  ? null
+                  : decidingId === event.id
+                    ? decideError
+                    : null
+              }
             />
           ))}
         </div>
@@ -831,14 +816,14 @@ import RequireAdmin from "./components/Auth/RequireAdmin";
 The current `submit` route block inside `<Route path="/" element={<MainLayout />}>` is:
 
 ```tsx
-            <Route
-              path="submit"
-              element={
-                <RequireAuth>
-                  <SubmitEventPage />
-                </RequireAuth>
-              }
-            />
+<Route
+  path="submit"
+  element={
+    <RequireAuth>
+      <SubmitEventPage />
+    </RequireAuth>
+  }
+/>
 ```
 
 Add the admin route directly after it (still nested under `MainLayout`, matching every other authenticated route):
@@ -901,7 +886,7 @@ Expected: all three exit 0. `vitest run` should show one more test file than bef
 
 With `npx supabase status` confirming the stack is up and `npm run dev` running:
 
-1. Submit a test event via `/submit` while signed in as a *non-admin* test account (or your admin account — either works, submission doesn't check role) — confirm it lands with `status: pending` (same as before this plan).
+1. Submit a test event via `/submit` while signed in as a _non-admin_ test account (or your admin account — either works, submission doesn't check role) — confirm it lands with `status: pending` (same as before this plan).
 2. Sign in as your admin account (Task 2) and visit `/admin`. Confirm the pending event from step 1 appears in the queue with correct title/date/city/price.
 3. Click **Approve** on it. Confirm: the button shows "Working…" briefly, the card disappears from the queue, and the event now appears on `/calendar` for its city (proves the shared `["events"]` cache invalidation from Task 4 works end-to-end).
 4. Submit a second test event, go to `/admin`, click **Reject**. Confirm it disappears from the queue and does **not** appear on `/calendar`.

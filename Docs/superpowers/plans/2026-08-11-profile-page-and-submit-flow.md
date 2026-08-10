@@ -439,12 +439,7 @@ export default function YourInfoFieldset({ form, update, email }: Props) {
         </div>
         <div className="form-group">
           <label htmlFor="submitter_email">Your Email</label>
-          <input
-            id="submitter_email"
-            type="email"
-            value={email}
-            readOnly
-          />
+          <input id="submitter_email" type="email" value={email} readOnly />
         </div>
       </div>
     </fieldset>
@@ -477,7 +472,7 @@ export default function SubmitEventPage() {
 The JSX call site changes from `<YourInfoFieldset form={form} update={update} />` to:
 
 ```tsx
-          <YourInfoFieldset form={form} update={update} email={user?.email ?? ""} />
+<YourInfoFieldset form={form} update={update} email={user?.email ?? ""} />
 ```
 
 Everything else in the file (the `isSubmitted` early return, the surrounding `<section>`/`<form>` markup, the other three fieldsets) is unchanged.
@@ -638,7 +633,9 @@ export default function ProfilePage() {
                     {event.city === "boston" ? "Boston" : "New York City"}
                   </p>
                 </div>
-                <span className={`profile-submission-badge profile-submission-badge--${event.status}`}>
+                <span
+                  className={`profile-submission-badge profile-submission-badge--${event.status}`}
+                >
                   {STATUS_LABEL[event.status]}
                 </span>
               </li>
@@ -816,14 +813,14 @@ import RequireAdmin from "./components/Auth/RequireAdmin";
 The current `submit` route block is:
 
 ```tsx
-            <Route
-              path="submit"
-              element={
-                <RequireAuth>
-                  <SubmitEventPage />
-                </RequireAuth>
-              }
-            />
+<Route
+  path="submit"
+  element={
+    <RequireAuth>
+      <SubmitEventPage />
+    </RequireAuth>
+  }
+/>
 ```
 
 Add the profile route directly after it (before the `admin` route):
@@ -956,48 +953,48 @@ git commit -m "feat: add Submit Event and My Profile nav links for signed-in use
 The current OAuth buttons block in `src/components/Auth/SignInForm.tsx` is:
 
 ```tsx
-        <div className="oauth-buttons">
-          <button
-            type="button"
-            className="btn-oauth btn-apple"
-            onClick={() => signInWithOAuth("apple")}
-            disabled={loading}
-          >
-            Continue with Apple
-          </button>
-          <button
-            type="button"
-            className="btn-oauth btn-google"
-            onClick={() => signInWithOAuth("google")}
-            disabled={loading}
-          >
-            Continue with Google
-          </button>
-          <button
-            type="button"
-            className="btn-oauth btn-github"
-            onClick={() => signInWithOAuth("github")}
-            disabled={loading}
-          >
-            Continue with GitHub
-          </button>
-        </div>
+<div className="oauth-buttons">
+  <button
+    type="button"
+    className="btn-oauth btn-apple"
+    onClick={() => signInWithOAuth("apple")}
+    disabled={loading}
+  >
+    Continue with Apple
+  </button>
+  <button
+    type="button"
+    className="btn-oauth btn-google"
+    onClick={() => signInWithOAuth("google")}
+    disabled={loading}
+  >
+    Continue with Google
+  </button>
+  <button
+    type="button"
+    className="btn-oauth btn-github"
+    onClick={() => signInWithOAuth("github")}
+    disabled={loading}
+  >
+    Continue with GitHub
+  </button>
+</div>
 ```
 
 Replace it with:
 
 ```tsx
-        <div className="oauth-buttons">
-          <button type="button" className="btn-oauth btn-apple" disabled>
-            Continue with Apple (Coming soon)
-          </button>
-          <button type="button" className="btn-oauth btn-google" disabled>
-            Continue with Google (Coming soon)
-          </button>
-          <button type="button" className="btn-oauth btn-github" disabled>
-            Continue with GitHub (Coming soon)
-          </button>
-        </div>
+<div className="oauth-buttons">
+  <button type="button" className="btn-oauth btn-apple" disabled>
+    Continue with Apple (Coming soon)
+  </button>
+  <button type="button" className="btn-oauth btn-google" disabled>
+    Continue with Google (Coming soon)
+  </button>
+  <button type="button" className="btn-oauth btn-github" disabled>
+    Continue with GitHub (Coming soon)
+  </button>
+</div>
 ```
 
 - [ ] **Step 2: Remove the now-unused `signInWithOAuth` destructure**
@@ -1005,7 +1002,7 @@ Replace it with:
 The current top of the component destructures `const { signInWithPassword, signUp, signInWithOAuth, loading } = useAuth();`. Since Step 1 removed the only two call sites, change this line to:
 
 ```tsx
-  const { signInWithPassword, signUp, loading } = useAuth();
+const { signInWithPassword, signUp, loading } = useAuth();
 ```
 
 - [ ] **Step 3: Build**

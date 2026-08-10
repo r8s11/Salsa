@@ -28,13 +28,7 @@ function formatEventDateTime(isoDate: string): string {
   return `${dateLabel} at ${timeLabel}`;
 }
 
-export default function PendingEventCard({
-  event,
-  onApprove,
-  onReject,
-  isDeciding,
-  error,
-}: Props) {
+export default function PendingEventCard({ event, onApprove, onReject, isDeciding, error }: Props) {
   const isFree = event.price_type === "free" || event.price_amount == null;
   const priceLabel = isFree ? "Free" : `$${event.price_amount}`;
   const cityLabel = event.city === "boston" ? "Boston" : "New York City";

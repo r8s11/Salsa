@@ -1,0 +1,112 @@
+.profile-page {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem;
+}
+
+.profile-page-header {
+  margin-bottom: 2.5rem;
+}
+
+.profile-page-header h1 {
+  font-family: var(--font-display);
+  color: var(--text);
+  margin: 0.2rem 0 0.6rem;
+}
+
+.profile-page-email {
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin: 0 0 1rem;
+}
+
+.profile-page-submissions h2 {
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+.profile-page-status {
+  font-family: var(--font-ui);
+  color: var(--text-muted);
+  padding: 1.5rem 0;
+}
+
+.profile-page-status a {
+  color: var(--gold);
+}
+
+.profile-page-error {
+  color: var(--red-bright);
+}
+
+.profile-page-error button {
+  margin-top: 0.75rem;
+  padding: 0.5rem 1.5rem;
+  background: var(--red-dim);
+  color: var(--red-bright);
+  border: 1px solid rgba(225, 29, 72, 0.3);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-ui);
+  cursor: pointer;
+}
+
+.profile-submission-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.profile-submission-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.profile-submission-title {
+  font-family: var(--font-display);
+  color: var(--text);
+  margin: 0 0 0.25rem;
+}
+
+.profile-submission-meta {
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.profile-submission-badge {
+  flex-shrink: 0;
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.7rem;
+  border-radius: var(--radius-full);
+}
+
+.profile-submission-badge--pending {
+  background: var(--gold-dim);
+  color: var(--gold);
+}
+
+.profile-submission-badge--approved {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border-lg);
+}
+
+.profile-submission-badge--rejected {
+  background: var(--red-dim);
+  color: var(--red-bright);
+}

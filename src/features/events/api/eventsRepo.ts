@@ -15,6 +15,8 @@ export interface NewEventSubmission {
   rsvp_link: string | null;
   submitter_name: string | null;
   submitter_email: string | null;
+  submitter_id: string;
+  recurrence: "weekly" | null;
 }
 
 export async function fetchApprovedEvents(city: City): Promise<DatabaseEvent[]> {
@@ -29,6 +31,20 @@ export async function fetchApprovedEvents(city: City): Promise<DatabaseEvent[]> 
     .eq("city", city)
     .gte("event_date", floorDate)
     .order("event_date", { ascending: true });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data as DatabaseEvent[]) || [];
+}
+
+export async function fetchMySubmissions(userId: string): Promise<DatabaseEvent[]> {
+  const { data, error } = await supabase
+    .from("events")
+    .select("*")
+    .eq("submitter_id", userId)
+    .order("created_at", { ascending: false });
 
   if (error) {
     throw new Error(error.message);

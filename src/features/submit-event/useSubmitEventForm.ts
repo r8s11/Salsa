@@ -2,10 +2,12 @@ import { useState, FormEvent } from "react";
 import { submitEvent } from "../events/api/eventsRepo";
 import type { EventType } from "../../types/events";
 import { useCity } from "../../contexts/useCity";
+import { useAuth } from "../../contexts/useAuth";
 import { validateSubmitForm, buildInitialForm, SubmitForm } from "./validation";
 
 export function useSubmitEventForm() {
   const { city: defaultCity } = useCity();
+  const { user } = useAuth();
   const [form, setForm] = useState<SubmitForm>(() => buildInitialForm(defaultCity));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -46,7 +48,9 @@ export function useSubmitEventForm() {
         price_amount: form.price_amount ? parseFloat(form.price_amount) : null,
         rsvp_link: form.rsvp_link || null,
         submitter_name: form.submitter_name || null,
-        submitter_email: form.submitter_email || null,
+        submitter_email: user!.email ?? null,
+        submitter_id: user!.id,
+        recurrence: form.recurrence || null,
       });
       setIsSubmitted(true);
       setForm(buildInitialForm(defaultCity));

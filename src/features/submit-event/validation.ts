@@ -14,6 +14,7 @@ export type SubmitForm = {
   rsvp_link: string;
   submitter_name: string;
   submitter_email: string;
+  recurrence: "weekly" | "";
 };
 
 export const buildInitialForm = (city: City): SubmitForm => ({
@@ -30,6 +31,7 @@ export const buildInitialForm = (city: City): SubmitForm => ({
   rsvp_link: "",
   submitter_name: "",
   submitter_email: "",
+  recurrence: "",
 });
 
 const TITLE_MAX_LENGTH = 120;

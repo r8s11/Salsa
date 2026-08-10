@@ -3,9 +3,10 @@ import type { SubmitForm } from "../validation";
 interface Props {
   form: SubmitForm;
   update: (field: keyof SubmitForm, value: string) => void;
+  email: string;
 }
 
-export default function YourInfoFieldset({ form, update }: Props) {
+export default function YourInfoFieldset({ form, update, email }: Props) {
   return (
     <fieldset>
       <legend>Your Info</legend>
@@ -26,9 +27,8 @@ export default function YourInfoFieldset({ form, update }: Props) {
           <input
             id="submitter_email"
             type="email"
-            placeholder="your@email.com"
-            value={form.submitter_email}
-            onChange={(e) => update("submitter_email", e.target.value)}
+            value={email}
+            readOnly
           />
         </div>
       </div>

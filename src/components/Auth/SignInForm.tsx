@@ -6,7 +6,7 @@ import "./SignInForm.css";
 type Mode = "signin" | "signup";
 
 export default function SignInForm() {
-  const { signInWithPassword, signUp, signInWithOAuth, loading } = useAuth();
+  const { signInWithPassword, signUp, loading } = useAuth();
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -85,29 +85,14 @@ export default function SignInForm() {
         </div>
 
         <div className="oauth-buttons">
-          <button
-            type="button"
-            className="btn-oauth btn-apple"
-            onClick={() => signInWithOAuth("apple")}
-            disabled={loading}
-          >
-            Continue with Apple
+          <button type="button" className="btn-oauth btn-apple" disabled>
+            Continue with Apple (Coming soon)
           </button>
-          <button
-            type="button"
-            className="btn-oauth btn-google"
-            onClick={() => signInWithOAuth("google")}
-            disabled={loading}
-          >
-            Continue with Google
+          <button type="button" className="btn-oauth btn-google" disabled>
+            Continue with Google (Coming soon)
           </button>
-          <button
-            type="button"
-            className="btn-oauth btn-github"
-            onClick={() => signInWithOAuth("github")}
-            disabled={loading}
-          >
-            Continue with GitHub
+          <button type="button" className="btn-oauth btn-github" disabled>
+            Continue with GitHub (Coming soon)
           </button>
         </div>
 

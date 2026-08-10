@@ -96,6 +96,28 @@ function Header() {
               Contact
             </NavLink>
           </li>
+          {user && (
+            <li>
+              <NavLink
+                to={"/submit"}
+                onClick={closeMenu}
+                className={({ isActive }) => (isActive ? "active" : "")}
+              >
+                Submit Event
+              </NavLink>
+            </li>
+          )}
+          {user && (
+            <li>
+              <NavLink
+                to={"/profile"}
+                onClick={closeMenu}
+                className={({ isActive }) => (isActive ? "active" : "")}
+              >
+                My Profile
+              </NavLink>
+            </li>
+          )}
         </ul>
         <button
           className="auth-btn"

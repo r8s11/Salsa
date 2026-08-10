@@ -88,6 +88,8 @@ git commit -m "feat: add submitter_id column and own-submissions RLS policy"
 
 - Modify: `src/features/events/model/types.ts`
 - Modify: `src/features/events/api/eventsRepo.ts`
+- Modify: `src/features/events/model/convert.test.ts`
+- Modify: `src/types/events.test.ts`
 
 **Interfaces:**
 
@@ -170,19 +172,25 @@ export async function fetchMySubmissions(userId: string): Promise<DatabaseEvent[
 Run: `grep -rln 'from("events")' src/`
 Expected: exactly one line, `src/features/events/api/eventsRepo.ts`.
 
-- [ ] **Step 4: Build**
+- [ ] **Step 4: Fix pre-existing test fixtures broken by the new required field**
+
+`submitter_id` is now a required (non-optional) field on `DatabaseEvent`. Two pre-existing test files construct full `DatabaseEvent` literals and will fail to typecheck without it — this was missed during planning and discovered by the implementer during this task's build check.
+
+In `src/features/events/model/convert.test.ts`, the `mockEvent` factory's base object currently ends with `submitter_email: null,` (before `status: "approved",`). Add `submitter_id: null,` immediately after it.
+
+In `src/types/events.test.ts`, both `DatabaseEvent` literals ("maps properties correctly" and "maps null new fields to undefined" tests) need `submitter_id` added right after their existing `submitter_email` line — `submitter_id: null,` in both cases (neither test asserts on submitter fields, so `null` is correct for both).
+
+- [ ] **Step 5: Build**
 
 Run: `npm run build`
-Expected: this WILL fail — `useSubmitEventForm.ts`'s existing `submitEvent(...)` call is now missing the two new required `NewEventSubmission` fields. That's expected; Task 3 fixes it. Confirm the failure is exactly this (a missing-properties TS error naming `submitter_id`/`recurrence` on the `submitEvent` call in `useSubmitEventForm.ts`), not something else.
+Expected: fails — `useSubmitEventForm.ts`'s existing `submitEvent(...)` call is now missing the two new required `NewEventSubmission` fields. That's expected; Task 3 fixes it. Confirm the failure is exactly this (a missing-properties TS error naming `submitter_id`/`recurrence` on the `submitEvent` call in `useSubmitEventForm.ts`), and that it is the **only** remaining failure (the two test-fixture errors from Step 4 must be gone).
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
-git add src/features/events/model/types.ts src/features/events/api/eventsRepo.ts
+git add src/features/events/model/types.ts src/features/events/api/eventsRepo.ts src/features/events/model/convert.test.ts src/types/events.test.ts
 git commit -m "feat: add submitter_id/recurrence to event submission types, add fetchMySubmissions"
 ```
-
-(No new test file — matches every sibling function in `eventsRepo.ts`, none of which have direct test coverage today.)
 
 ---
 

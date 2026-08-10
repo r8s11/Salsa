@@ -178,7 +178,7 @@ git commit -m "feat: add fetchPendingEvents/setEventStatus to eventsRepo"
 **Interfaces:**
 
 - Consumes: `fetchPendingEvents`, `setEventStatus` from `src/features/events/api/eventsRepo.ts` (Task 3); `useQuery`/`useMutation`/`useQueryClient` from `@tanstack/react-query`.
-- Produces: `usePendingEvents(): { pending: DatabaseEvent[] | undefined; isLoading: boolean; error: string | null; refetch: () => void; decide: (args: { id: string; status: "approved" | "rejected" }) => void; decidingId: string | null; decideError: string | null }` — consumed by Task 8's `AdminPage`.
+- Produces: `usePendingEvents(): { pending: DatabaseEvent[] | undefined; isLoading: boolean; error: string | null; refetch: () => void; decide: (args: { id: string; status: "approved" | "rejected" }) => void; decidingId: string | null; decideErrorId: string | null; decideError: string | null }` — consumed by Task 8's `AdminPage`.
 
 - [ ] **Step 1: Write the hook**
 
@@ -210,13 +210,20 @@ export function usePendingEvents() {
     error: query.error ? query.error.message : null,
     refetch: query.refetch,
     decide: mutation.mutate,
+    // Gated on isPending: true only while THIS mutation call is in flight.
     decidingId: mutation.isPending ? (mutation.variables?.id ?? null) : null,
+    // Gated on isError instead: mutation.variables persists after the
+    // mutation settles (until the next mutate() call), so this stays
+    // truthy for the failing card even after isPending flips back to
+    // false — unlike decidingId, which must NOT still point at the
+    // failed card once it's no longer "in flight".
+    decideErrorId: mutation.isError ? (mutation.variables?.id ?? null) : null,
     decideError: mutation.error ? mutation.error.message : null,
   };
 }
 ```
 
-`decidingId` (rather than a plain boolean) lets `PendingEventCard` (Task 7) disable only the card currently being decided, not the whole list.
+`decidingId` (rather than a plain boolean) lets `PendingEventCard` (Task 7) disable only the card currently being decided, not the whole list. `decideErrorId` is a separate field, not reused from `decidingId`, specifically because `decidingId` goes back to `null` the instant the mutation settles (success or error) — reusing it would make a failed decide's error message unattributable to any card the moment it appears.
 
 - [ ] **Step 2: Build**
 
@@ -660,7 +667,7 @@ import PendingEventCard from "../components/Admin/PendingEventCard";
 
 export default function AdminPage() {
   const { user } = useAuth();
-  const { pending, isLoading, error, refetch, decide, decidingId, decideError } =
+  const { pending, isLoading, error, refetch, decide, decidingId, decideErrorId, decideError } =
     usePendingEvents();
 
   return (
@@ -695,13 +702,7 @@ export default function AdminPage() {
               onApprove={(id) => decide({ id, status: "approved" })}
               onReject={(id) => decide({ id, status: "rejected" })}
               isDeciding={decidingId === event.id}
-              error={
-                decidingId === null && decideError
-                  ? null
-                  : decidingId === event.id
-                    ? decideError
-                    : null
-              }
+              error={decideErrorId === event.id ? decideError : null}
             />
           ))}
         </div>
@@ -711,7 +712,7 @@ export default function AdminPage() {
 }
 ```
 
-Note the `error` prop logic on `PendingEventCard`: `decideError` is global to the one shared mutation, so it's only attributed to the card whose id matches `decidingId` at the moment of failure. Since `decidingId` resets to `null` once the mutation settles (success or error), a failed mutation's error and its `id` are captured in the same render as the mutation transitions from pending→error — `mutation.variables` (which `decidingId` reads) still holds the last attempted variables at that point, so the id/error pairing is correct on the render where the error first appears; a subsequent unrelated card action clears it naturally because a new `mutate()` call resets `mutation.error`.
+Note the `error` prop logic on `PendingEventCard`: `decideError` is global to the one shared mutation, so `decideErrorId` (Task 4) is what attributes it to the right card — it stays set to the failed card's id even after `decidingId` (and `isPending`) revert to `null`/`false` once the mutation settles. A subsequent action on any card starts a new `mutate()` call, which resets `mutation.variables`/`mutation.error` and clears both fields naturally.
 
 - [ ] **Step 2: Add page styles**
 

@@ -15,6 +15,8 @@ export interface DatabaseEvent {
   price_amount: number | null;
   rsvp_link: string | null;
   image_url: string | null;
+  submitter_name: string | null;
+  submitter_email: string | null;
   status: "approved" | "pending" | "rejected";
   city: City;
   created_at: string;

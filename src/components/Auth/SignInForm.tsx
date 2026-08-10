@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/useAuth";
 import "./SignInForm.css";
 
@@ -7,6 +8,8 @@ type Mode = "signin" | "signup";
 
 export default function SignInForm() {
   const { signInWithPassword, signUp, loading } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,7 +31,13 @@ export default function SignInForm() {
 
     if (mode === "signin") {
       const { error } = await signInWithPassword(email, password);
-      if (error) setErrorMsg(error.message);
+      if (error) {
+        setErrorMsg(error.message);
+      } else {
+        const destination =
+          typeof location.state?.from === "string" ? location.state.from : "/";
+        navigate(destination, { replace: true });
+      }
     } else {
       const { error } = await signUp(email, password);
       if (error) {

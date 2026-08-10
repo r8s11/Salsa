@@ -1,6 +1,6 @@
 # SalsaSegura.com - Project Status Summary
 
-> Generated: July 15, 2026 (previous snapshot: February 10, 2026) · Updated: August 4, 2026 (Modernization Blueprint execution, Steps 1-15)
+> Generated: July 15, 2026 (previous snapshot: February 10, 2026) · Updated: August 10, 2026 (local Supabase dev stack + Authentication shipped)
 
 ---
 
@@ -10,10 +10,11 @@
 | ------------------- | ------------------------------------------------------------- |
 | **URL**             | [salsasegura.com](https://www.salsasegura.com)                 |
 | **Branch**          | `ritmo-vivo-redesign`                                          |
-| **Plan Position**   | Week 28 of the 52-week plan (Jul 9-15); Modernization Blueprint (Docs/plans/MODERNIZATION_BLUEPRINT.md) fully executed Steps 1-15 |
-| **Last Merges**     | Modernization Blueprint Steps 1-15 (Aug 4) · PR #8 Tambora events module (Jul 15) · PR #7 Ritmo Vivo design migration (Jul 6) |
-| **Tests**           | 34 passing across 8 files                                      |
-| **Hosting**         | Azure Static Web Apps (GitHub Actions CI/CD, now gated on lint + test) |
+| **Plan Position**   | Week 28 of the 52-week plan (Jul 9-15); Modernization Blueprint (Docs/plans/MODERNIZATION_BLUEPRINT.md) fully executed Steps 1-15; Authentication (W5) shipped Aug 10 |
+| **Last Merges**     | Local Supabase dev stack + Supabase Auth (Aug 10) · Modernization Blueprint Steps 1-15 (Aug 4) · PR #8 Tambora events module (Jul 15) · PR #7 Ritmo Vivo design migration (Jul 6) |
+| **Tests**           | 47 passing across 11 files                                      |
+| **Hosting**          | Azure Static Web Apps (GitHub Actions CI/CD, now gated on lint + test) |
+| **Local dev**        | `npx supabase start` — full local Postgres/PostgREST/Auth stack, see `.env.example` |
 
 ---
 
@@ -73,7 +74,7 @@
 
 | Feature (plan week)             | Status |
 | ------------------------------- | ------ |
-| Authentication (W5)             | Not started — no auth implementation exists yet |
+| Authentication (W5)             | **Shipped Aug 10** — email/password + Apple/Google/GitHub OAuth (`src/contexts/AuthContext.tsx`, `src/pages/SignInPage.tsx`); no role/admin concept yet — see Moderation dashboard below |
 | Moderation dashboard (W6)       | Not started — approval is manual via Supabase dashboard (`Docs/ADMIN_MODERATION_GUIDE.md` is the build guide) |
 | Text search (W8)                | Not started — only type filters exist |
 | Email notifications (W9)        | Not started |
@@ -115,7 +116,7 @@
 1. **Run the ICS importer** (`npm run import-events`) to get future events into the DB — the site currently shows empty event lists in production (see Key Risks #2).
 2. **Promote the Report-Only CSP to enforcing** (Step 12) once a deploy has run with zero console violations in production.
 3. **Retry the `temporal-polyfill` 1.x bump** once `@schedule-x` loosens its peer range, or migrate `convert.ts`/`Calendar.tsx`/`series.ts` off the ambient-global import pattern (see Key Risks #1).
-4. **Authentication → Moderation dashboard** (plan weeks 5-6) — still the critical path to community growth.
+4. **Moderation dashboard** (plan week 6, guide: `Docs/ADMIN_MODERATION_GUIDE.md`) — Authentication (W5) is now done; this is the remaining critical-path item for community growth. Note the guide's admin-role design (`app_metadata.role`, dedicated `/admin` routes, `ProtectedRoute`) predates the generic `AuthContext`/`RequireAuth` that shipped Aug 10 and will need reconciling, not blind execution.
 5. Update this file after each merged PR.
 
 ---

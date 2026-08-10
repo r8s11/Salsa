@@ -4,15 +4,16 @@
 
 **Philosophy:** Launch minimal, iterate based on real user feedback
 **URL:** www.salsasegura.com
-**Status:** Live · Week 28 of 52 · calendar + submissions shipped, auth/moderation pending
+**Status:** Live · Week 28 of 52 · calendar + submissions + local dev stack + auth shipped, moderation dashboard pending
 
 ---
 
 ## Current Position (July 15, 2026)
 
 **Done out of order:** the core calendar pipeline (weeks 1-4), type filters (part of week 8), Open Graph (week 10), plus early pieces of recurring events (W15), gallery columns (W21), and multi-city (W22) landed via the Tambora events module (PR #8) and the ICS→Supabase import pivot.
-**Skipped so far:** authentication (W5) and the moderation dashboard (W6) — approval is manual in the Supabase dashboard.
-**Current focus:** executing `plans/MODERNIZATION_BLUEPRINT.md` (dependency hygiene, CI quality gate, timezone correctness) before new features.
+**Skipped so far:** the moderation dashboard (W6) — approval is still manual in the Supabase dashboard.
+**Done Aug 10:** local Supabase dev stack (`npx supabase start`) and authentication (W5, email/password + Apple/Google/GitHub OAuth) — see `Docs/STATUS_SUMMARY.md`.
+**Current focus:** moderation dashboard (`Docs/ADMIN_MODERATION_GUIDE.md`), the remaining blocker on the critical path to growth milestones.
 
 ---
 
@@ -28,14 +29,16 @@
 - [X] ICS import pipeline (`npm run import-events`) + Boston/NYC city switcher
 - [X] Ritmo Vivo design migration (PR #7 — dark glassmorphism, `DESIGN.md`)
 - [X] Tambora events module (PR #8 — filters, rebuilt modal, .ics export, series dates)
+- [X] Modernization blueprint execution (`plans/MODERNIZATION_BLUEPRINT.md`, Steps 1-15, Aug 4)
+- [X] Local Supabase dev stack (`npx supabase start`, Aug 10)
+- [X] Authentication launch (email/password + Apple/Google/GitHub OAuth, Aug 10)
 
 ### In Progress 🔄
 
-- [ ] Modernization blueprint execution (`plans/MODERNIZATION_BLUEPRINT.md`)
+- [ ] Moderation dashboard (`ADMIN_MODERATION_GUIDE.md`)
 
 ### Next Up 📅
 
-- [ ] Authentication launch - Week 5 (overdue)
 - [ ] Moderation dashboard - Week 6 (overdue, guide: `ADMIN_MODERATION_GUIDE.md`)
 - [ ] Text search - Week 8 remainder
 
@@ -51,7 +54,7 @@
 | 2    | Jan 8-14       | Schedule-X calendar + Multi-page             | ✅ Done    |
 | 3    | Jan 15-21      | Database backend (Supabase)                  | ✅ Done    |
 | 4    | Jan 22-28      | Community submissions (Beta)                 | ✅ Done    |
-| 5    | Jan 29 - Feb 4 | Authentication launch                        | ⚠️ Overdue |
+| 5    | Jan 29 - Feb 4 | Authentication launch                        | ✅ Done (Aug 10, overdue) |
 | 6    | Feb 5-11       | Moderation dashboard                         | ⚠️ Overdue (manual via Supabase) |
 | 7    | Feb 12-18      | Mobile optimization                          | 🔄 Partial (responsive layout done) |
 | 8    | Feb 19-25      | Search & basic filters                       | 🔄 Partial (type filters, no search) |
@@ -166,4 +169,4 @@
 
 ---
 
-_Last Updated: July 15, 2026_
+_Last Updated: August 10, 2026_

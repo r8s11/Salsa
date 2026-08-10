@@ -11,7 +11,10 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
     "test": "vitest",
-    "import-events": "node scripts/import-ics.mjs"
+    "import-events": "node scripts/import-ics.mjs",
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:reset": "supabase db reset"
   },
   "dependencies": {
     "@schedule-x/calendar": "^4.6.1",
@@ -45,6 +48,7 @@
     "ical.js": "^2.2.1",
     "jsdom": "^28.0.0",
     "prettier": "^3.8.1",
+    "supabase": "^2.113.0",
     "typescript": "~5.9.3",
     "vite": "^7.3.1",
     "vitest": "^4.0.18"

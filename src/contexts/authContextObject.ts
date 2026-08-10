@@ -13,7 +13,7 @@ export type AuthContextValue = {
   signUp: (
     email: string,
     password: string,
-  ) => Promise<{ error: Error | null }>;
+  ) => Promise<{ error: Error | null; session: Session | null }>;
   signInWithOAuth: (provider: "github" | "google" | "apple") => Promise<void>;
   signOut: () => Promise<void>;
 };

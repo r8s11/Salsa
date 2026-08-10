@@ -24,6 +24,12 @@ export default function SignInForm() {
     setPassword("");
   };
 
+  const redirectAfterAuth = () => {
+    const destination =
+      typeof location.state?.from === "string" ? location.state.from : "/";
+    navigate(destination, { replace: true });
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
@@ -34,14 +40,17 @@ export default function SignInForm() {
       if (error) {
         setErrorMsg(error.message);
       } else {
-        const destination =
-          typeof location.state?.from === "string" ? location.state.from : "/";
-        navigate(destination, { replace: true });
+        redirectAfterAuth();
       }
     } else {
-      const { error } = await signUp(email, password);
+      const { error, session } = await signUp(email, password);
       if (error) {
         setErrorMsg(error.message);
+      } else if (session) {
+        // Email confirmation is disabled (e.g. local dev): Supabase already
+        // signed the user in, so send them where sign-in would rather than
+        // telling them to check an email that was never sent.
+        redirectAfterAuth();
       } else {
         setMessage("Check your email for a confirmation link.");
       }

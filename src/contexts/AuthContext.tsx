@@ -48,11 +48,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (email: string, password: string) => {
       setLoading(true);
       try {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
         });
-        return { error: error as Error | null };
+        return { error: error as Error | null, session: data.session };
       } finally {
         setLoading(false);
       }

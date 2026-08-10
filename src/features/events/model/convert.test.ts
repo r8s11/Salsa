@@ -18,6 +18,7 @@ const mockEvent = (overrides: Partial<DatabaseEvent>): DatabaseEvent => ({
   image_url: null,
   submitter_name: null,
   submitter_email: null,
+  submitter_id: null,
   status: "approved",
   city: "boston",
   created_at: "2026-07-14T00:00:00Z",

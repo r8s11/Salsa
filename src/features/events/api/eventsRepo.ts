@@ -47,3 +47,25 @@ export async function submitEvent(payload: NewEventSubmission): Promise<void> {
     throw new Error(error.message);
   }
 }
+
+export async function fetchPendingEvents(): Promise<DatabaseEvent[]> {
+  const { data, error } = await supabase
+    .from("events")
+    .select("*")
+    .eq("status", "pending")
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data as DatabaseEvent[]) || [];
+}
+
+export async function setEventStatus(id: string, status: "approved" | "rejected"): Promise<void> {
+  const { error } = await supabase.from("events").update({ status }).eq("id", id);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}

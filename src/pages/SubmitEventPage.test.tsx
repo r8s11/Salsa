@@ -8,6 +8,19 @@ vi.mock("../features/events/api/eventsRepo", () => ({
   submitEvent: vi.fn(),
 }));
 
+vi.mock("../contexts/useAuth", () => ({
+  useAuth: () => ({
+    user: { id: "test-user-id", email: "test@example.com" },
+    session: null,
+    loading: false,
+    isAdmin: false,
+    signInWithPassword: vi.fn(),
+    signUp: vi.fn(),
+    signInWithOAuth: vi.fn(),
+    signOut: vi.fn(),
+  }),
+}));
+
 const renderSubmitEventPage = () =>
   render(
     <Providers>

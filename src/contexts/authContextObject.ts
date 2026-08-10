@@ -5,6 +5,7 @@ export type AuthContextValue = {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  isAdmin: boolean;
   signInWithPassword: (
     email: string,
     password: string,

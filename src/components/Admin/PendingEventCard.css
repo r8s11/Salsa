@@ -1,0 +1,52 @@
+.pending-event-card {
+  background: var(--card);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.pending-event-card h3 {
+  font-family: var(--font-display);
+  color: var(--text);
+  margin: 0 0 0.4rem;
+}
+
+.pending-event-meta {
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  color: var(--gold);
+  margin: 0 0 0.6rem;
+}
+
+.pending-event-description {
+  font-family: var(--font-body);
+  color: var(--text);
+  margin: 0 0 0.6rem;
+}
+
+.pending-event-submitter {
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 0 0 0.8rem;
+}
+
+.pending-event-error {
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  color: var(--red-bright);
+  margin: 0 0 0.8rem;
+}
+
+.pending-event-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.pending-event-actions button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}

@@ -72,7 +72,6 @@ describe("databaseEventToScheduleX", () => {
       host: null,
       recurrence: null,
       gallery: null,
-      image_url: null,
       price_amount: null,
     });
     const result = databaseEventToScheduleX(event);
@@ -83,7 +82,18 @@ describe("databaseEventToScheduleX", () => {
     expect(result.host).toBeUndefined();
     expect(result.recurrence).toBeUndefined();
     expect(result.gallery).toBeUndefined();
-    expect(result.imageUrl).toBeUndefined();
     expect(result.priceAmount).toBeUndefined();
+  });
+
+  it("falls back to a deterministic generic photo keyed by event id when image_url is null", () => {
+    const event = mockEvent({ id: "event-abc-123", image_url: null });
+    const result = databaseEventToScheduleX(event);
+    expect(result.imageUrl).toBe("https://picsum.photos/seed/event-abc-123/800/600");
+  });
+
+  it("uses the stored image_url when one is present, without falling back", () => {
+    const event = mockEvent({ image_url: "https://cdn.example.com/real-photo.jpg" });
+    const result = databaseEventToScheduleX(event);
+    expect(result.imageUrl).toBe("https://cdn.example.com/real-photo.jpg");
   });
 });

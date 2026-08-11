@@ -29,7 +29,7 @@ export function databaseEventToScheduleX(event: DatabaseEvent): ScheduleXEvent {
     host: event.host ?? undefined,
     recurrence: event.recurrence ?? undefined,
     gallery: event.gallery ?? undefined,
-    imageUrl: event.image_url ?? undefined,
+    imageUrl: event.image_url ?? `https://picsum.photos/seed/${event.id}/800/600`,
     priceType: event.price_type ?? undefined,
     priceAmount: event.price_amount ?? undefined,
   };

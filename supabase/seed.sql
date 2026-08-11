@@ -114,3 +114,24 @@ from base b, (values
 ) as v(title, description, event_type, city, day_offset, time_of_day, event_time_label,
        location, address, price_type, price_amount, rsvp_link, image_seed, status,
        submitter_name, submitter_email, contact_email, contact_instagram, contact_website);
+
+-- supabase db reset applies migrations BEFORE running this seed, so the
+-- 20260814000000_events_management_fields.sql backfill (which targets
+-- pre-existing rows) never sees these inserts. Mirror it here so local dev
+-- data matches what the same migration produces against real prod rows.
+update public.events set source_type = case
+  when submitter_email like '%@import.local' then 'imported'
+  when submitter_name in ('Salsa Segura', 'Seed Data') then 'admin'
+  else 'user_submission'
+end;
+
+update public.events
+  set dance_styles = array_remove(array[
+    case when (title || ' ' || coalesce(description, '')) ~* 'salsa|casino|rueda|on1|on2|mambo|timba' then 'salsa' end,
+    case when (title || ' ' || coalesce(description, '')) ~* 'bachata' then 'bachata' end,
+    case when (title || ' ' || coalesce(description, '')) ~* 'kizomba|urban kiz' then 'kizomba' end,
+    case when (title || ' ' || coalesce(description, '')) ~* 'merengue' then 'merengue' end,
+    case when (title || ' ' || coalesce(description, '')) ~* 'cha[ -]?cha' then 'cha-cha' end,
+    case when (title || ' ' || coalesce(description, '')) ~* 'zouk' then 'zouk' end,
+    case when (title || ' ' || coalesce(description, '')) ~* 'afro[ -]?cuban|rumba' then 'afro-cuban' end
+  ], null);

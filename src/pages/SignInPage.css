@@ -1,0 +1,84 @@
+.auth-page {
+  display: grid;
+  min-height: 100dvh;
+  padding: var(--space-lg);
+  background:
+    radial-gradient(circle at 15% 20%, var(--red-dim), transparent 32rem),
+    radial-gradient(circle at 85% 80%, var(--gold-dim), transparent 28rem),
+    var(--bg);
+}
+
+.auth-logo {
+  align-self: start;
+  color: var(--gold-light);
+  font-family: var(--font-logo);
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  line-height: 1;
+  text-decoration: none;
+}
+
+.auth-logo:focus-visible {
+  outline: 2px solid var(--gold-light);
+  outline-offset: 4px;
+}
+
+.auth-shell {
+  display: grid;
+  width: min(100%, 960px);
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: var(--space-xl);
+  align-self: center;
+  justify-self: center;
+  padding: var(--space-xl) 0;
+}
+
+.auth-story {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--space-xl);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+
+.auth-story-eyebrow {
+  margin-bottom: var(--space-md);
+  color: var(--gold);
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.auth-story h1 {
+  margin-bottom: var(--space-lg);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: clamp(2.25rem, 5vw, 3.5rem);
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 1.05;
+}
+
+.auth-story p:last-child {
+  max-width: 34rem;
+  color: var(--text-muted);
+}
+
+@media (max-width: 768px) {
+  .auth-page {
+    padding: var(--space-md);
+  }
+
+  .auth-shell {
+    grid-template-columns: 1fr;
+    gap: var(--space-lg);
+    padding: var(--space-lg) 0;
+  }
+
+  .auth-story {
+    padding: var(--space-lg);
+  }
+}

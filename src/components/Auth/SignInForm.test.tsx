@@ -20,7 +20,7 @@ describe("SignInForm", () => {
       isAdmin: false,
       signInWithPassword,
       signUp: vi.fn(),
-      signInWithOAuth: vi.fn(),
+
       signOut: vi.fn(),
     });
 
@@ -38,7 +38,7 @@ describe("SignInForm", () => {
     );
 
     await user.type(screen.getByLabelText(/email/i), "user@example.com");
-    await user.type(screen.getByLabelText(/password/i), "password123");
+    await user.type(screen.getByLabelText(/^password$/i), "password123");
     await user.click(screen.getByRole("button", { name: /^sign in$/i }));
 
     await waitFor(() => {
@@ -63,7 +63,7 @@ describe("SignInForm", () => {
       isAdmin: false,
       signInWithPassword: vi.fn(),
       signUp,
-      signInWithOAuth: vi.fn(),
+
       signOut: vi.fn(),
     });
 
@@ -82,7 +82,7 @@ describe("SignInForm", () => {
 
     await user.click(screen.getByRole("button", { name: /^sign up$/i }));
     await user.type(screen.getByLabelText(/email/i), "new@example.com");
-    await user.type(screen.getByLabelText(/password/i), "password123");
+    await user.type(screen.getByLabelText(/^password$/i), "password123");
     await user.click(screen.getByRole("button", { name: /^sign up$/i }));
 
     await waitFor(() => {
@@ -102,7 +102,7 @@ describe("SignInForm", () => {
       isAdmin: false,
       signInWithPassword: vi.fn(),
       signUp,
-      signInWithOAuth: vi.fn(),
+
       signOut: vi.fn(),
     });
 
@@ -118,7 +118,7 @@ describe("SignInForm", () => {
 
     await user.click(screen.getByRole("button", { name: /^sign up$/i }));
     await user.type(screen.getByLabelText(/email/i), "new@example.com");
-    await user.type(screen.getByLabelText(/password/i), "password123");
+    await user.type(screen.getByLabelText(/^password$/i), "password123");
     await user.click(screen.getByRole("button", { name: /^sign up$/i }));
 
     await waitFor(() => {
@@ -127,5 +127,79 @@ describe("SignInForm", () => {
       ).toBeInTheDocument();
     });
     expect(screen.queryByText("Home Page")).not.toBeInTheDocument();
+  });
+  it("removes unavailable social sign-in controls", () => {
+    vi.mocked(useAuth).mockReturnValue({
+      user: null,
+      session: null,
+      loading: false,
+      isAdmin: false,
+      signInWithPassword: vi.fn(),
+      signUp: vi.fn(),
+      signOut: vi.fn(),
+    });
+
+    render(
+      <MemoryRouter>
+        <SignInForm />
+      </MemoryRouter>,
+    );
+
+    expect(screen.queryByText(/apple|google|github|coming soon/i)).not.toBeInTheDocument();
+  });
+
+  it("reveals the password when requested", async () => {
+    vi.mocked(useAuth).mockReturnValue({
+      user: null,
+      session: null,
+      loading: false,
+      isAdmin: false,
+      signInWithPassword: vi.fn(),
+      signUp: vi.fn(),
+      signOut: vi.fn(),
+    });
+    const user = userEvent.setup();
+
+    render(
+      <MemoryRouter>
+        <SignInForm />
+      </MemoryRouter>,
+    );
+
+    const password = screen.getByLabelText(/^password$/i);
+    expect(password).toHaveAttribute("type", "password");
+
+    await user.click(screen.getByRole("button", { name: "Show password" }));
+
+    expect(password).toHaveAttribute("type", "text");
+    expect(screen.getByRole("button", { name: "Hide password" })).toBeInTheDocument();
+  });
+
+  it("switches mode headings while preserving submit semantics", async () => {
+    const signUp = vi.fn().mockResolvedValue({ error: null, session: null });
+    vi.mocked(useAuth).mockReturnValue({
+      user: null,
+      session: null,
+      loading: false,
+      isAdmin: false,
+      signInWithPassword: vi.fn(),
+      signUp,
+      signOut: vi.fn(),
+    });
+    const user = userEvent.setup();
+
+    render(
+      <MemoryRouter>
+        <SignInForm />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole("heading", { name: "Welcome back" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Sign up" }));
+    expect(screen.getByRole("heading", { name: "Create your account" })).toBeInTheDocument();
+    await user.type(screen.getByLabelText(/email/i), "new@example.com");
+    await user.type(screen.getByLabelText(/^password$/i), "password123");
+    await user.click(screen.getByRole("button", { name: /^sign up$/i }));
+    expect(signUp).toHaveBeenCalledWith("new@example.com", "password123");
   });
 });

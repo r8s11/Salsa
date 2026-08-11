@@ -16,7 +16,6 @@ vi.mock("../contexts/useAuth", () => ({
     isAdmin: false,
     signInWithPassword: vi.fn(),
     signUp: vi.fn(),
-    signInWithOAuth: vi.fn(),
     signOut: vi.fn(),
   }),
 }));

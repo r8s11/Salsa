@@ -38,7 +38,6 @@ describe("RequireAdmin", () => {
       isAdmin: false,
       signInWithPassword: vi.fn(),
       signUp: vi.fn(),
-      signInWithOAuth: vi.fn(),
       signOut: vi.fn(),
     } as AuthContextValue);
 
@@ -55,7 +54,6 @@ describe("RequireAdmin", () => {
       isAdmin: false,
       signInWithPassword: vi.fn(),
       signUp: vi.fn(),
-      signInWithOAuth: vi.fn(),
       signOut: vi.fn(),
     } as AuthContextValue);
 
@@ -72,7 +70,6 @@ describe("RequireAdmin", () => {
       isAdmin: false,
       signInWithPassword: vi.fn(),
       signUp: vi.fn(),
-      signInWithOAuth: vi.fn(),
       signOut: vi.fn(),
     } as AuthContextValue);
 
@@ -89,7 +86,6 @@ describe("RequireAdmin", () => {
       isAdmin: true,
       signInWithPassword: vi.fn(),
       signUp: vi.fn(),
-      signInWithOAuth: vi.fn(),
       signOut: vi.fn(),
     } as AuthContextValue);
 

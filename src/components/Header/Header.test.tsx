@@ -19,7 +19,6 @@ const defaultAuth = (overrides: Partial<AuthContextValue> = {}): AuthContextValu
   isAdmin: false,
   signInWithPassword: vi.fn(),
   signUp: vi.fn(),
-  signInWithOAuth: vi.fn(),
   signOut: vi.fn().mockResolvedValue(undefined),
   ...overrides,
 });

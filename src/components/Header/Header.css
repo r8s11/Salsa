@@ -231,7 +231,7 @@ a.logo:hover {
     position: fixed;
     top: 68px;
     right: 0;
-    bottom: 0;
+    height: calc(100dvh - 68px);
     left: 0;
     display: none;
     flex-direction: column;

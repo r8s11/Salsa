@@ -1,43 +1,33 @@
 .admin-page {
-  max-width: 900px;
+  max-width: 1120px;
   margin: 0 auto;
-  padding: 2.5rem 1.5rem 4rem;
+  padding: 40px 24px 64px;
 }
 
-.admin-page-header {
-  margin-bottom: 2rem;
-}
+.admin-page-header { margin-bottom: 28px; }
+.admin-page-header h1 { margin: 4px 0 8px; color: var(--text); font-family: var(--font-display); }
+.admin-page-user { margin: 0; color: var(--text-muted); font-family: var(--font-ui); font-size: 0.875rem; }
 
-.admin-page-header h1 {
-  font-family: var(--font-display);
-  color: var(--text);
-  margin: 0.2rem 0 0.4rem;
+.admin-page-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+.admin-page-metric, .admin-page-empty, .admin-page-status {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
 }
+.admin-page-metric { padding: 20px; }
+.admin-page-metric span { display: block; color: var(--text-muted); font-family: var(--font-ui); font-size: 0.875rem; }
+.admin-page-metric strong { display: block; margin-top: 8px; color: var(--gold); font-family: var(--font-display); font-size: 2rem; line-height: 1; }
+.admin-page-status, .admin-page-empty { padding: 32px; color: var(--text-muted); font-family: var(--font-ui); text-align: center; }
+.admin-page-error { color: var(--red-bright); }
+.admin-page-error p { margin-top: 0; }
+.admin-page-error button, .admin-page-empty .btn-secondary { margin-top: 12px; }
+.admin-page-empty h2 { margin: 0 0 16px; color: var(--text); font-family: var(--font-display); font-size: 1.5rem; }
+.admin-page-list { display: grid; gap: 16px; }
+.admin-page button:focus-visible, .admin-page a:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 
-.admin-page-user {
-  font-family: var(--font-ui);
-  font-size: 0.85rem;
-  color: var(--text-muted);
-}
-
-.admin-page-status {
-  font-family: var(--font-ui);
-  color: var(--text-muted);
-  padding: 2rem 0;
-  text-align: center;
-}
-
-.admin-page-error {
-  color: var(--red-bright);
-}
-
-.admin-page-error button {
-  margin-top: 0.75rem;
-  padding: 0.5rem 1.5rem;
-  background: var(--red-dim);
-  color: var(--red-bright);
-  border: 1px solid rgba(225, 29, 72, 0.3);
-  border-radius: var(--radius-sm);
-  font-family: var(--font-ui);
-  cursor: pointer;
+@media (max-width: 640px) {
+  .admin-page { padding: 32px 16px 48px; }
+  .admin-page-metrics { grid-template-columns: 1fr; gap: 12px; }
 }

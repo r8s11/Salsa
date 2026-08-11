@@ -14,7 +14,6 @@ const Instructors = lazy(() => import("./pages/Instructors"));
 const Schools = lazy(() => import("./pages/Schools"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 const SignInPage = lazy(() => import("./pages/SignInPage"));
-const AuthCallback = lazy(() => import("./pages/AuthCallback"));
 const AdminPage = lazy(() => import("./pages/AdminPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 import RequireAuth from "./components/Auth/RequireAuth";
@@ -27,7 +26,6 @@ function App() {
       <Suspense fallback={<div className="page-loading">Loading...</div>}>
         <Routes>
           <Route path="/signin" element={<SignInPage />} />
-          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/" element={<MainLayout />}>
             <Route index element={<HomePage />} />
             <Route path="about" element={<AboutPage />} />

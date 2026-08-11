@@ -16,7 +16,6 @@ vi.mock("../contexts/useAuth", () => ({
     isAdmin: false,
     signInWithPassword: vi.fn(),
     signUp: vi.fn(),
-    signInWithOAuth: vi.fn(),
     signOut: vi.fn(),
   }),
 }));
@@ -81,6 +80,36 @@ describe("SubmitEventPage", () => {
     expect(
       await screen.findByText(/Event Submitted!/i)
     ).toBeInTheDocument();
+  });
+
+  it("persists a supplied start time as its New York instant", async () => {
+    vi.mocked(eventsRepo.submitEvent).mockResolvedValueOnce();
+
+    renderSubmitEventPage();
+
+    fireEvent.change(screen.getByLabelText(/Event Title \*/i), {
+      target: { value: "Boston Summer Social" },
+    });
+    fireEvent.change(screen.getByLabelText(/Event Type \*/i), {
+      target: { value: "social" },
+    });
+    fireEvent.change(screen.getByLabelText(/Date \*/i), {
+      target: { value: "2026-08-17" },
+    });
+    fireEvent.change(screen.getByLabelText(/Start Time/i), {
+      target: { value: "20:00" },
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /Submit Event/i }));
+
+    await waitFor(() => {
+      expect(eventsRepo.submitEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          event_date: "2026-08-18T00:00:00Z",
+          event_time: "20:00",
+        })
+      );
+    });
   });
 
   it("displays an error message when submission fails", async () => {

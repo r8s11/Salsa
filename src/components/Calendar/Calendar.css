@@ -76,17 +76,17 @@
   position: relative;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 104px 24px 32px;
+  padding: 56px 24px 24px;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  gap: 24px;
+  gap: 16px;
   flex-wrap: wrap;
 }
 
 .stage-eyebrow {
   font-family: var(--font-ui);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -115,7 +115,7 @@
 .stage-controls {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
@@ -142,6 +142,13 @@
 .nav-btn:hover {
   border-color: var(--border-lg);
   background: var(--card);
+}
+
+.nav-btn:focus-visible,
+.pill:focus-visible,
+.calendar-error button:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
 }
 
 .today-btn {
@@ -195,7 +202,6 @@
   color: var(--bg);
 }
 
-/* ── Toolbar ── */
 .calendar-toolbar {
   background: var(--card);
   backdrop-filter: blur(var(--glass-blur));
@@ -207,11 +213,11 @@
 .toolbar-inner {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 16px 24px;
+  padding: 12px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
@@ -227,7 +233,7 @@
   align-items: center;
   gap: 0.4rem;
   font-family: var(--font-ui);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 400;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -243,7 +249,7 @@
 }
 
 .legend-dot.social   { background: var(--red); }
-.legend-dot.class    { background: #7c93e9; }
+.legend-dot.class    { background: var(--tertiary); }
 .legend-dot.workshop { background: var(--gold); }
 
 /* ── Loading / Error States ── */
@@ -255,7 +261,7 @@
   border: 1px solid var(--border);
   color: var(--text-muted);
   font-family: var(--font-ui);
-  font-size: 0.8rem;
+  font-size: 0.875rem;
   letter-spacing: 0.1em;
   max-width: 560px;
   margin: 0 auto 1.5rem;
@@ -264,7 +270,7 @@
 .calendar-error {
   background: var(--red-dim);
   border-color: var(--red-glow);
-  color: #FF8080;
+  color: var(--red-bright);
 }
 
 .calendar-error button {
@@ -287,7 +293,6 @@
   background: var(--red-bright);
 }
 
-/* ── Calendar Wrapper ── */
 .calendar-main {
   margin: 0 auto;
   max-width: 1200px;
@@ -301,7 +306,7 @@
   border-radius: var(--radius-md);
   overflow: hidden;
   border: 1px solid var(--border);
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 40px var(--red-glow);
 }
 
 .sx-react-calendar-wrapper .sx__calendar-header {
@@ -318,7 +323,7 @@
 
 .calendar-cta p {
   font-family: var(--font-body);
-  font-size: 0.95rem;
+  font-size: 1rem;
   color: var(--text-muted);
   margin-bottom: 1.25rem;
 }
@@ -368,22 +373,40 @@
   }
 
   .stage-inner {
-    padding: 88px 16px 24px;
+    padding: 32px 16px 20px;
+    align-items: flex-start;
   }
 
-  .toolbar-inner,
+  .stage-controls-primary,
+  .toolbar-inner {
+    width: 100%;
+  }
+
+  .toolbar-inner {
+    padding: 12px 16px;
+  }
+
+  .pill-group {
+    flex-wrap: nowrap;
+    max-width: 100%;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+  }
+
+  .pill {
+    flex: 0 0 auto;
+  }
+
   .calendar-main {
     padding-left: 12px;
     padding-right: 12px;
   }
 
   .sx-react-calendar-wrapper {
-    height: 500px;
-    max-height: 65dvh;
+    height: calc(100dvh - 260px);
+    min-height: calc(100dvh - 260px);
+    max-height: none;
     border-radius: var(--radius-sm);
-  }
-
-  .legend-items {
-    gap: 1rem;
   }
 }

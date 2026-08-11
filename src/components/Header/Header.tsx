@@ -1,146 +1,120 @@
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useCity } from "../../contexts/useCity";
 import { useAuth } from "../../contexts/useAuth";
 import type { City } from "../../contexts/CityContext";
+import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
 import "./Header.css";
+
+const PRIMARY_LINKS = [
+  { to: "/calendar", label: "Calendar" },
+  { to: "/lessons", label: "Lessons" },
+  { to: "/instructors", label: "Instructors" },
+  { to: "/about", label: "About" },
+  { to: "/contact", label: "Contact" },
+] as const;
 
 function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const accountDisclosure = useRef<HTMLDetailsElement>(null);
   const { city, setCity } = useCity();
-  const { user, signOut } = useAuth();
+  const { user, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
 
-  const closeMenu = () => {
+  const closeNavigation = useCallback(() => {
     setMobileOpen(false);
+    accountDisclosure.current?.removeAttribute("open");
+  }, []);
+
+  useEscapeKey(closeNavigation);
+
+  const selectCity = (value: City) => {
+    setCity(value);
+    closeNavigation();
   };
 
-  const cityButton = (value: City, label: string) => (
-    <button
-      type="button"
-      className={`city-switch__btn ${city === value ? "active" : ""}`}
-      onClick={() => setCity(value)}
-      aria-pressed={city === value}
-    >
-      {label}
-    </button>
+  const citySwitcher = (mobile = false) => (
+    <div className={`city-switch${mobile ? " city-switch--mobile" : ""}`} role="group" aria-label="Choose city">
+      {(["boston", "new-york-city"] as const).map((value) => (
+        <button
+          key={value}
+          type="button"
+          className={`city-switch__btn ${city === value ? "active" : ""}`}
+          onClick={() => selectCity(value)}
+          aria-pressed={city === value}
+        >
+          {value === "boston" ? "BOS" : "NYC"}
+        </button>
+      ))}
+    </div>
   );
+
+  const handleSignOut = async () => {
+    await signOut();
+    closeNavigation();
+    navigate("/");
+  };
 
   return (
     <header>
-      <nav className="container">
-        <Link to="/" className="logo" onClick={closeMenu}>
+      <nav className="container" aria-label="Main navigation">
+        <Link to="/" className="logo" onClick={closeNavigation}>
           Salsa <span>Segura</span>
         </Link>
-        <div className="city-switch" role="group" aria-label="Choose city">
-          {cityButton("boston", "BOS")}
-          {cityButton("new-york-city", "NYC")}
-        </div>
-        <ul className={`nav-links ${mobileOpen ? "active" : ""}`}>
-          <li>
-            <NavLink
-              to="/"
-              onClick={closeMenu}
-              className={({ isActive }) => (isActive ? "active" : "")}
-            >
-              Home
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
-              to={"/about"}
-              onClick={closeMenu}
-              className={({ isActive }) => (isActive ? "active" : "")}
-            >
-              About
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
-              to={"/calendar"}
-              onClick={closeMenu}
-              className={({ isActive }) => (isActive ? "active" : "")}
-            >
-              Calendar
-            </NavLink>
-          </li>
-          <li>
-            <NavLink to={"/#events"} onClick={closeMenu} className={() => ""}>
-              Events
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
-              to={"/lessons"}
-              onClick={closeMenu}
-              className={({ isActive }) => (isActive ? "active" : "")}
-            >
-              Lessons
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
-              to={"/instructors"}
-              onClick={closeMenu}
-              className={({ isActive }) => (isActive ? "active" : "")}
-            >
-              Instructors
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
-              to={"/contact"}
-              onClick={closeMenu}
-              className={({ isActive }) => (isActive ? "active" : "")}
-            >
-              Contact
-            </NavLink>
-          </li>
-          {user && (
-            <li>
-              <NavLink
-                to={"/submit"}
-                onClick={closeMenu}
-                className={({ isActive }) => (isActive ? "active" : "")}
-              >
-                Submit Event
+
+        <ul id="site-navigation" className={`nav-links ${mobileOpen ? "active" : ""}`}>
+          {PRIMARY_LINKS.map(({ to, label }) => (
+            <li key={to}>
+              <NavLink to={to} onClick={closeNavigation}>
+                {label}
               </NavLink>
             </li>
-          )}
-          {user && (
-            <li>
-              <NavLink
-                to={"/profile"}
-                onClick={closeMenu}
-                className={({ isActive }) => (isActive ? "active" : "")}
-              >
-                My Profile
-              </NavLink>
-            </li>
-          )}
+          ))}
+          <li className="mobile-nav-actions">
+            {citySwitcher(true)}
+            {user ? (
+              <>
+                <NavLink to="/submit" className="auth-btn" onClick={closeNavigation}>Submit Event</NavLink>
+                <NavLink to="/profile" onClick={closeNavigation}>My Profile</NavLink>
+                {isAdmin && <NavLink to="/admin" onClick={closeNavigation}>Admin</NavLink>}
+                <button type="button" className="drawer-sign-out" onClick={handleSignOut}>Sign Out</button>
+              </>
+            ) : (
+              <NavLink to="/signin" className="auth-btn" onClick={closeNavigation}>Sign In</NavLink>
+            )}
+          </li>
         </ul>
+
+        <div className="desktop-nav-actions">
+          {citySwitcher()}
+          {user ? (
+            <>
+              <NavLink to="/submit" className="auth-btn" onClick={closeNavigation}>Submit Event</NavLink>
+              <details ref={accountDisclosure} className="account-disclosure">
+                <summary>Account</summary>
+                <div className="account-disclosure__menu">
+                  <NavLink to="/profile" onClick={closeNavigation}>My Profile</NavLink>
+                  {isAdmin && <NavLink to="/admin" onClick={closeNavigation}>Admin</NavLink>}
+                  <button type="button" onClick={handleSignOut}>Sign Out</button>
+                </div>
+              </details>
+            </>
+          ) : (
+            <NavLink to="/signin" className="auth-btn" onClick={closeNavigation}>Sign In</NavLink>
+          )}
+        </div>
+
         <button
-          className="auth-btn"
-          onClick={async () => {
-            if (user) {
-              await signOut();
-              navigate("/");
-            } else {
-              navigate("/signin");
-            }
-          }}
-        >
-          {user ? "Sign Out" : "Sign In"}
-        </button>
-        <button
+          type="button"
           className={`hamburger ${mobileOpen ? "active" : ""}`}
-          onClick={() => setMobileOpen(!mobileOpen)}
+          onClick={() => setMobileOpen((open) => !open)}
+          aria-controls="site-navigation"
           aria-expanded={mobileOpen}
           aria-label={mobileOpen ? "Close menu" : "Open menu"}
         >
-          <span></span>
-          <span></span>
-          <span></span>
+          <span />
+          <span />
+          <span />
         </button>
       </nav>
     </header>

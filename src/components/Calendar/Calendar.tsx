@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useCalendarApp, ScheduleXCalendar } from "@schedule-x/react";
 import {
   createViewDay,
@@ -16,13 +16,9 @@ import "@schedule-x/theme-default/dist/index.css";
 import { ScheduleXEvent, CALENDARS_CONFIG, City } from "../../types/events";
 import { filterEventsByType, TypeFilter } from "../../utils/filterEvents";
 import { useCity } from "../../contexts/useCity";
-
 import EventModal from "../EventModal/EventModal";
 import { useEvents } from "../../hooks/useEvent";
-import {
-  generateEventsListStructuredData,
-  injectStructuredData,
-} from "../../utils/seo";
+import { generateEventsListStructuredData, injectStructuredData } from "../../utils/seo";
 import { useDocumentMeta } from "../../shared/seo/useDocumentMeta";
 import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
 import { useEventDeepLink } from "../../features/calendar/hooks/useEventDeepLink";
@@ -50,33 +46,32 @@ const TYPE_OPTIONS: { value: TypeFilter; label: string }[] = [
 ];
 
 export default function Calendar() {
+  const [initialCompact] = useState(() => window.matchMedia("(max-width: 768px)").matches);
   const [selectedEvent, setSelectedEvent] = useState<ScheduleXEvent | null>(null);
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
-  const [activeView, setActiveView] = useState<CalendarView>("month-grid");
+  const [isCompact, setIsCompact] = useState(initialCompact);
+  const [activeView, setActiveView] = useState<CalendarView>(
+    initialCompact ? "list" : "month-grid"
+  );
   const [visibleDate, setVisibleDate] = useState<Temporal.PlainDate>(() =>
     Temporal.Now.plainDateISO()
   );
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { city, setCity } = useCity();
-
-  const { events: eventList, loading, error } = useEvents();
-
-  // useCalendarApp's callbacks config is captured once at calendar-app
-  // creation and never re-evaluated, so onEventClick below would otherwise
-  // close over the eventList from that first render forever — any event
-  // that starts existing afterward (a fresh submission, a freshly-approved
-  // one) would never be found by the .find() below and would silently fall
-  // back to Schedule-X's own internal event shape, whose `start`/`end` are
-  // Temporal.ZonedDateTime, not the app's plain string format. Mirror the
-  // latest value into a ref so the click handler always reads current data.
+  const { events: eventList, loading, error, refetch } = useEvents();
   const eventListRef = useRef(eventList);
+  const cityParameterHandled = useRef(false);
+  const [eventsService] = useState(() => createEventsServicePlugin());
+  const [calendarControls] = useState(() => createCalendarControlsPlugin());
+  const filteredEvents = useMemo(
+    () => filterEventsByType(eventList, typeFilter),
+    [eventList, typeFilter]
+  );
+
   useEffect(() => {
     eventListRef.current = eventList;
   }, [eventList]);
-
-  const [eventsService] = useState(() => createEventsServicePlugin());
-  const [calendarControls] = useState(() => createCalendarControlsPlugin());
 
   const calendar = useCalendarApp({
     views: [
@@ -86,7 +81,7 @@ export default function Calendar() {
       createViewMonthAgenda(),
       createViewList(),
     ],
-    defaultView: "month-grid",
+    defaultView: initialCompact ? "list" : "month-grid",
     events: [],
     calendars: CALENDARS_CONFIG,
     plugins: [eventsService, calendarControls],
@@ -99,20 +94,60 @@ export default function Calendar() {
     callbacks: {
       onEventClick(calendarEvent) {
         const fullEvent = eventListRef.current.find(
-          (e) => String(e.id) === String(calendarEvent.id)
+          (item) => String(item.id) === String(calendarEvent.id)
         );
         setSelectedEvent(fullEvent ?? (calendarEvent as unknown as ScheduleXEvent));
       },
     },
   });
 
-  const handleClosedModal = () => {
-    setSelectedEvent(null);
-    // Remove event parameter from URL
-    if (searchParams.has("event")) {
-      navigate("/calendar", { replace: true });
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 768px)");
+    const handleChange = (event: MediaQueryListEvent) => {
+      const nextView: CalendarView = event.matches ? "list" : "month-grid";
+      setIsCompact(event.matches);
+      setActiveView(nextView);
+      calendarControls.setView(nextView);
+    };
+
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, [calendarControls]);
+
+  useEffect(() => {
+    if (cityParameterHandled.current) return;
+    cityParameterHandled.current = true;
+    const requestedCity = searchParams.get("city");
+    if (
+      (requestedCity === "boston" || requestedCity === "new-york-city") &&
+      requestedCity !== city
+    ) {
+      setCity(requestedCity);
     }
-  };
+  }, [city, searchParams, setCity]);
+
+  useEffect(() => {
+    eventsService.set(
+      filteredEvents.map((event) => ({
+        ...event,
+        start: Temporal.PlainDateTime.from(event.start.replace(" ", "T")).toZonedDateTime(
+          "America/New_York"
+        ),
+        end: Temporal.PlainDateTime.from(event.end.replace(" ", "T")).toZonedDateTime(
+          "America/New_York"
+        ),
+      }))
+    );
+  }, [eventsService, filteredEvents]);
+
+  useEffect(() => {
+    injectStructuredData(generateEventsListStructuredData(eventList), "events-list-data");
+  }, [eventList]);
+
+  const handleClosedModal = useCallback(() => {
+    setSelectedEvent(null);
+    if (searchParams.has("event")) navigate("/calendar", { replace: true });
+  }, [navigate, searchParams]);
 
   const goToMonth = (deltaMonths: number) => {
     const next =
@@ -133,37 +168,15 @@ export default function Calendar() {
     description:
       "Find salsa, bachata, and Latin dance events across Greater Boston and NYC. Browse the community calendar of classes, socials, and workshops.",
   });
-
-  // Push freshly fetched (and type-filtered) events into Schedule-X.
-  useEffect(() => {
-    if (eventList.length === 0) return;
-    const calendarEvents = filterEventsByType(eventList, typeFilter).map((event) => ({
-      ...event,
-      start: Temporal.PlainDateTime.from(event.start.replace(" ", "T")).toZonedDateTime(
-        "America/New_York"
-      ),
-      end: Temporal.PlainDateTime.from(event.end.replace(" ", "T")).toZonedDateTime(
-        "America/New_York"
-      ),
-    }));
-    eventsService.set(calendarEvents);
-
-    // Structured data always reflects the full list, not the visual filter
-    const structuredData = generateEventsListStructuredData(eventList);
-    injectStructuredData(structuredData, "events-list-data");
-  }, [eventList, typeFilter, eventsService]);
-
-  // Open event from URL parameter once events have arrived.
   useEventDeepLink(eventList, setSelectedEvent);
-
-  // Close modal on ESC key
   useEscapeKey(handleClosedModal);
 
   const cityLabel = city === "boston" ? "Boston" : "NYC";
-  const monthTitle = visibleDate.toLocaleString("en-US", {
-    month: "long",
-    year: "numeric",
-  });
+  const monthTitle = visibleDate.toLocaleString("en-US", { month: "long", year: "numeric" });
+  const isEmpty = !loading && !error && eventList.length === 0;
+  const hasNoMatches = !loading && !error && eventList.length > 0 && filteredEvents.length === 0;
+  const showCalendar = !loading && !error && filteredEvents.length > 0;
+  const showSubmitCta = !loading && !error && eventList.length > 0;
 
   return (
     <div className="calendar-page">
@@ -174,40 +187,15 @@ export default function Calendar() {
             <h1 className="stage-title">{monthTitle}</h1>
             <p className="stage-accent">salsa &amp; bachata, hasta la madrugada</p>
           </div>
-          <div className="stage-controls">
+          <div className="stage-controls stage-controls-primary">
             <div className="month-nav">
-              <button className="nav-btn" aria-label="Previous month" onClick={() => goToMonth(-1)}>
-                ‹
-              </button>
-              <button className="nav-btn today-btn" onClick={() => goToMonth(0)}>
-                Today
-              </button>
-              <button className="nav-btn" aria-label="Next month" onClick={() => goToMonth(1)}>
-                ›
-              </button>
+              <button className="nav-btn" aria-label="Previous month" onClick={() => goToMonth(-1)}>‹</button>
+              <button className="nav-btn today-btn" onClick={() => goToMonth(0)}>Today</button>
+              <button className="nav-btn" aria-label="Next month" onClick={() => goToMonth(1)}>›</button>
             </div>
             <div className="pill-group" role="group" aria-label="City">
               {CITY_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  className={`pill ${city === option.value ? "pill-active-city" : ""}`}
-                  aria-pressed={city === option.value}
-                  onClick={() => setCity(option.value)}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-            <div className="pill-group" role="group" aria-label="Calendar view">
-              {VIEW_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  className={`pill ${activeView === option.value ? "pill-active-view" : ""}`}
-                  aria-pressed={activeView === option.value}
-                  onClick={() => handleViewChange(option.value)}
-                >
-                  {option.label}
-                </button>
+                <button key={option.value} className={`pill ${city === option.value ? "pill-active-city" : ""}`} aria-pressed={city === option.value} onClick={() => setCity(option.value)}>{option.label}</button>
               ))}
             </div>
           </div>
@@ -218,37 +206,31 @@ export default function Calendar() {
         <div className="toolbar-inner">
           <div className="pill-group" role="group" aria-label="Filter by event type">
             {TYPE_OPTIONS.map((option) => (
-              <button
-                key={option.value}
-                className={`pill ${typeFilter === option.value ? "pill-active-type" : ""}`}
-                aria-pressed={typeFilter === option.value}
-                onClick={() => setTypeFilter(option.value)}
-              >
-                {option.label}
-              </button>
+              <button key={option.value} className={`pill ${typeFilter === option.value ? "pill-active-type" : ""}`} aria-pressed={typeFilter === option.value} onClick={() => setTypeFilter(option.value)}>{option.label}</button>
             ))}
           </div>
-          <CalendarLegend />
+          {!isCompact && (
+            <div className="pill-group" role="group" aria-label="Calendar view">
+              {VIEW_OPTIONS.map((option) => (
+                <button key={option.value} className={`pill ${activeView === option.value ? "pill-active-view" : ""}`} aria-pressed={activeView === option.value} onClick={() => handleViewChange(option.value)}>{option.label}</button>
+              ))}
+            </div>
+          )}
+          {!isCompact && <CalendarLegend />}
         </div>
       </div>
 
-      {/* Loading / Error states */}
-      <CalendarStatus loading={loading} error={error} />
+      <CalendarStatus loading={loading} error={error} isEmpty={isEmpty} hasNoMatches={hasNoMatches} cityLabel={cityLabel} onRetry={refetch} onClearFilter={() => setTypeFilter("all")} />
 
-      {/* Schedule-X Calendar */}
-      <div className="calendar-main">
-        <ScheduleXCalendar calendarApp={calendar} />
-      </div>
+      {showCalendar && <div className="calendar-main"><ScheduleXCalendar calendarApp={calendar} /></div>}
 
-      {/* Submit CTA */}
-      <div className="calendar-cta">
-        <p>Know about an event that's missing?</p>
-        <Link to="/submit" className="btn-primary">
-          Submit an Event
-        </Link>
-      </div>
+      {showSubmitCta && (
+        <div className="calendar-cta">
+          <p>Know about an event that's missing?</p>
+          <Link to="/submit" className="btn-primary">Submit an Event</Link>
+        </div>
+      )}
 
-      {/* Event Detail Modal */}
       <EventModal event={selectedEvent} onClose={handleClosedModal} />
     </div>
   );

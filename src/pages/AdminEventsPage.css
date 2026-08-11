@@ -1,0 +1,104 @@
+.admin-events-page__status {
+  color: var(--admin-text-muted);
+}
+
+.admin-events-page__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 32px;
+}
+
+.admin-events-page__empty h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: var(--admin-text-strong);
+}
+
+.admin-events-page__filters {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.admin-events-page__search-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.admin-events-page__search-input svg {
+  position: absolute;
+  left: 12px;
+  color: var(--admin-text-subtle);
+  pointer-events: none;
+}
+
+.admin-events-page__search-input .admin-input {
+  width: 100%;
+  padding-left: 36px;
+}
+
+.admin-events-page__table-card {
+  overflow: hidden;
+}
+
+.admin-events-page__table-card .admin-events-cards {
+  padding: 16px;
+}
+
+.admin-events-page__table-card .admin-events-page__pagination {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: var(--admin-surface-subtle);
+  border-top: 1px solid var(--admin-border);
+  font-size: 0.85rem;
+  color: var(--admin-text-muted);
+}
+
+.admin-events-page__pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.admin-events-page__page-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  background: var(--admin-surface);
+  color: var(--admin-text);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.admin-events-page__page-btn--active {
+  background: var(--admin-primary);
+  border-color: var(--admin-primary);
+  color: #FFFFFF;
+}
+
+@media (min-width: 1024px) {
+  .admin-events-page__filters {
+    grid-template-columns: 2fr 1fr 1fr;
+    align-items: end;
+  }
+
+  .admin-events-page__pagination {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}

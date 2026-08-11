@@ -14,7 +14,9 @@ const Instructors = lazy(() => import("./pages/Instructors"));
 const Schools = lazy(() => import("./pages/Schools"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 const SignInPage = lazy(() => import("./pages/SignInPage"));
-const AdminPage = lazy(() => import("./pages/AdminPage"));
+const AdminLayout = lazy(() => import("./layouts/AdminLayout"));
+const AdminOverviewPage = lazy(() => import("./pages/AdminOverviewPage"));
+const AdminEventsPage = lazy(() => import("./pages/AdminEventsPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 import RequireAuth from "./components/Auth/RequireAuth";
 import RequireAdmin from "./components/Auth/RequireAdmin";
@@ -26,6 +28,17 @@ function App() {
       <Suspense fallback={<div className="page-loading">Loading...</div>}>
         <Routes>
           <Route path="/signin" element={<SignInPage />} />
+          <Route
+            path="/admin"
+            element={
+              <RequireAdmin>
+                <AdminLayout />
+              </RequireAdmin>
+            }
+          >
+            <Route index element={<AdminOverviewPage />} />
+            <Route path="events" element={<AdminEventsPage />} />
+          </Route>
           <Route path="/" element={<MainLayout />}>
             <Route index element={<HomePage />} />
             <Route path="about" element={<AboutPage />} />
@@ -45,14 +58,6 @@ function App() {
                 <RequireAuth>
                   <ProfilePage />
                 </RequireAuth>
-              }
-            />
-            <Route
-              path="admin"
-              element={
-                <RequireAdmin>
-                  <AdminPage />
-                </RequireAdmin>
               }
             />
             <Route path="lessons" element={<Lessons />} />

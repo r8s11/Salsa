@@ -1,0 +1,35 @@
+.admin-confirm-dialog__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.5);
+}
+
+.admin-confirm-dialog {
+  width: 100%;
+  max-width: 420px;
+  padding: 24px;
+}
+
+.admin-confirm-dialog h2 {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: var(--admin-text-strong);
+}
+
+.admin-confirm-dialog p {
+  margin: 0 0 20px;
+  color: var(--admin-text-muted);
+  font-size: 0.9rem;
+}
+
+.admin-confirm-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}

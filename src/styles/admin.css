@@ -1,0 +1,379 @@
+/* ========================================
+   ADMIN SHELL — Light "SaaS" theme
+   Scoped entirely under .admin-shell so it never
+   leaks into the public "Electric Noir" site.
+   ======================================== */
+
+.admin-shell {
+  --admin-bg: #F8FAFC;
+  --admin-surface: #FFFFFF;
+  --admin-surface-subtle: #F8FAFC;
+  --admin-surface-high: #F1F5F9;
+  --admin-border: #E2E8F0;
+  --admin-text: #0F172A;
+  --admin-text-strong: #1E293B;
+  --admin-text-muted: #64748B;
+  --admin-text-subtle: #94A3B8;
+  --admin-nav-text: #475569;
+  --admin-primary: #E11D48;
+  --admin-primary-hover: #BE123C;
+  --admin-primary-tint: rgba(225, 29, 72, 0.04);
+  --admin-primary-ring: rgba(225, 29, 72, 0.5);
+  --admin-danger: #DC2626;
+  --admin-danger-tint: #FEF2F2;
+  --admin-radius: 8px;
+  --admin-radius-lg: 12px;
+  --admin-sidebar-w: 260px;
+  --admin-rail-w: 72px;
+  --admin-header-h: 64px;
+  --admin-content-max: 1440px;
+  --admin-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --admin-shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+
+  background: var(--admin-bg);
+  color: var(--admin-text);
+  font-family: var(--font-body);
+  min-height: 100vh;
+}
+
+/* Public Header.css bundles an unscoped `header { ... }` rule (sticky,
+   dark glass background, z-index 1000) into the shared entry chunk, which
+   otherwise leaks into every <header> here (.admin-topbar,
+   AdminPageHeader). Reset first; component selectors below carry higher
+   specificity (two classes) so they still win where they set a value. */
+.admin-shell header {
+  position: static;
+  top: auto;
+  right: auto;
+  left: auto;
+  z-index: auto;
+  width: auto;
+  padding: 0;
+  color: inherit;
+  background: none;
+  border-bottom: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* ----------------------------------------
+   Buttons
+   ---------------------------------------- */
+.admin-shell .admin-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid transparent;
+  border-radius: var(--admin-radius);
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.admin-shell .admin-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.admin-shell .admin-btn--primary {
+  background: var(--admin-primary);
+  border-color: var(--admin-primary);
+  color: #FFFFFF;
+}
+
+.admin-shell .admin-btn--primary:hover:not(:disabled) {
+  background: var(--admin-primary-hover);
+  border-color: var(--admin-primary-hover);
+}
+
+.admin-shell .admin-btn--secondary {
+  background: var(--admin-surface);
+  border-color: var(--admin-border);
+  color: var(--admin-text);
+}
+
+.admin-shell .admin-btn--secondary:hover:not(:disabled) {
+  background: var(--admin-surface-high);
+}
+
+.admin-shell .admin-btn--danger {
+  background: var(--admin-danger);
+  border-color: var(--admin-danger);
+  color: #FFFFFF;
+}
+
+.admin-shell .admin-btn--danger:hover:not(:disabled) {
+  background: #B91C1C;
+  border-color: #B91C1C;
+}
+
+.admin-shell .admin-btn--ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--admin-text-muted);
+}
+
+.admin-shell .admin-btn--ghost:hover:not(:disabled) {
+  background: var(--admin-surface-high);
+  color: var(--admin-text);
+}
+
+/* ----------------------------------------
+   Icon button
+   ---------------------------------------- */
+.admin-shell .admin-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: var(--admin-radius);
+  background: transparent;
+  color: var(--admin-text-subtle);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.admin-shell .admin-icon-btn:hover:not(:disabled) {
+  background: var(--admin-surface-high);
+  color: var(--admin-text);
+}
+
+.admin-shell .admin-icon-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.admin-shell .admin-icon-btn--danger:hover:not(:disabled) {
+  background: var(--admin-danger-tint);
+  color: var(--admin-danger);
+}
+
+/* ----------------------------------------
+   Card
+   ---------------------------------------- */
+.admin-shell .admin-card {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-lg);
+  box-shadow: var(--admin-shadow-sm);
+}
+
+/* ----------------------------------------
+   Fields
+   ---------------------------------------- */
+.admin-shell .admin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.admin-shell .admin-field label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--admin-text-strong);
+}
+
+.admin-shell .admin-input,
+.admin-shell .admin-select,
+.admin-shell .admin-textarea {
+  min-height: 40px;
+  padding: 0 12px;
+  background: var(--admin-surface-subtle);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  color: var(--admin-text);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+}
+
+.admin-shell .admin-textarea {
+  padding: 10px 12px;
+  min-height: 96px;
+  resize: vertical;
+}
+
+.admin-shell .admin-select {
+  appearance: none;
+  padding-right: 36px;
+}
+
+.admin-shell .admin-select-wrap {
+  position: relative;
+  display: flex;
+}
+
+.admin-shell .admin-select-wrap svg {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--admin-text-subtle);
+}
+
+.admin-shell .admin-input:focus-visible,
+.admin-shell .admin-select:focus-visible,
+.admin-shell .admin-textarea:focus-visible {
+  outline: 2px solid var(--admin-primary-ring);
+  outline-offset: 2px;
+}
+
+/* ----------------------------------------
+   Chips
+   ---------------------------------------- */
+.admin-shell .admin-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: #F1F5F9;
+  color: #475569;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.admin-shell .admin-chip--type {
+  background: #FFE4E6;
+  color: #BE123C;
+}
+
+/* ----------------------------------------
+   Banners
+   ---------------------------------------- */
+.admin-shell .admin-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--admin-radius);
+  border: 1px solid var(--admin-border);
+  background: var(--admin-surface-subtle);
+  color: var(--admin-text);
+  font-size: 0.9rem;
+}
+
+.admin-shell .admin-banner--error {
+  background: var(--admin-danger-tint);
+  color: #B91C1C;
+  border-color: #FECACA;
+}
+
+/* ----------------------------------------
+   Focus ring (spec §9)
+   ---------------------------------------- */
+.admin-shell button:focus-visible,
+.admin-shell a:focus-visible,
+.admin-shell [tabindex]:focus-visible {
+  outline: 2px solid var(--admin-primary);
+  outline-offset: 2px;
+}
+
+/* ----------------------------------------
+   Page header (AdminPageHeader)
+   ---------------------------------------- */
+.admin-shell .admin-page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.admin-shell .admin-page-header h1 {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--admin-text-strong);
+  margin: 0;
+}
+
+.admin-shell .admin-page-header p {
+  margin: 4px 0 0;
+  color: var(--admin-text-muted);
+  font-size: 0.95rem;
+}
+
+.admin-shell .admin-page-header__actions {
+  width: 100%;
+}
+
+.admin-shell .admin-page-header__actions .admin-btn {
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .admin-shell .admin-page-header {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+
+  .admin-shell .admin-page-header__actions {
+    width: auto;
+  }
+
+  .admin-shell .admin-page-header__actions .admin-btn {
+    width: auto;
+  }
+}
+
+/* ----------------------------------------
+   Status badge (AdminStatusBadge)
+   ---------------------------------------- */
+.admin-shell .admin-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.admin-shell .admin-status::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.admin-shell .admin-status--approved {
+  background: #ECFDF5;
+  color: #047857;
+  border-color: #A7F3D0;
+}
+
+.admin-shell .admin-status--approved::before {
+  background: #10B981;
+}
+
+.admin-shell .admin-status--pending {
+  background: #FFFBEB;
+  color: #B45309;
+  border-color: #FDE68A;
+}
+
+.admin-shell .admin-status--pending::before {
+  background: #F59E0B;
+}
+
+.admin-shell .admin-status--rejected {
+  background: #FEF2F2;
+  color: #B91C1C;
+  border-color: #FECACA;
+}
+
+.admin-shell .admin-status--rejected::before {
+  background: #EF4444;
+}

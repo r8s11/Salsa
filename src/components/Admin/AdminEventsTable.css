@@ -1,0 +1,193 @@
+.admin-events-table__scroll {
+  display: none;
+  overflow-x: auto;
+}
+
+.admin-events-table {
+  width: 100%;
+  min-width: 900px;
+  border-collapse: collapse;
+}
+
+.admin-events-table thead tr {
+  background: var(--admin-surface-subtle);
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.admin-events-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--admin-text-muted);
+}
+
+.admin-events-table tbody tr:not(.admin-events-table__error) {
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.admin-events-table tbody tr:not(.admin-events-table__error):last-child {
+  border-bottom: 0;
+}
+
+.admin-events-table tbody tr:not(.admin-events-table__error):hover {
+  background: var(--admin-surface-subtle);
+}
+
+.admin-events-table td {
+  padding: 12px 16px;
+  vertical-align: middle;
+  font-size: 0.9rem;
+  color: var(--admin-text);
+}
+
+.admin-events-table__event {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-events-table__event img {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--admin-radius);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.admin-events-table__title {
+  margin: 0 0 4px;
+  font-weight: 600;
+  color: var(--admin-text-strong);
+}
+
+.admin-events-table__chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.admin-events-table__muted {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 4px 0 0;
+  color: var(--admin-text-muted);
+  font-size: 0.8rem;
+}
+
+.admin-events-table__submitter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.admin-events-table__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--admin-surface-high);
+  color: var(--admin-text-muted);
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+.admin-events-table__truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-events-table__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.admin-events-table__error td {
+  padding: 8px 16px;
+  color: #B91C1C;
+  font-size: 0.85rem;
+  background: var(--admin-danger-tint);
+}
+
+/* ----------------------------------------
+   Mobile card stack (<768px)
+   ---------------------------------------- */
+.admin-events-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-events-cards__item {
+  padding: 16px;
+}
+
+.admin-events-cards__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.admin-events-cards__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-top: 1px solid var(--admin-border);
+  font-size: 0.85rem;
+}
+
+.admin-events-cards__label {
+  color: var(--admin-text-muted);
+}
+
+.admin-events-cards__error {
+  margin: 8px 0 0;
+  padding: 8px 12px;
+  border-radius: var(--admin-radius);
+  background: var(--admin-danger-tint);
+  color: #B91C1C;
+  font-size: 0.85rem;
+}
+
+.admin-events-cards__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.admin-events-cards__actions .admin-btn {
+  min-height: 44px;
+  flex: 1 1 auto;
+}
+
+.admin-events-table__busy-label {
+  color: var(--admin-text-muted);
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+@media (min-width: 768px) {
+  .admin-events-table__scroll {
+    display: block;
+  }
+
+  .admin-events-cards {
+    display: none;
+  }
+}

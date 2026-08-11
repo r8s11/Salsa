@@ -27,6 +27,7 @@ export function usePendingEvents() {
     decide: mutation.mutate,
     // Gated on isPending: true only while THIS mutation call is in flight.
     decidingId: mutation.isPending ? (mutation.variables?.id ?? null) : null,
+    decidingStatus: mutation.isPending ? (mutation.variables?.status ?? null) : null,
     // Gated on isError instead: mutation.variables persists after the
     // mutation settles (until the next mutate() call), so this stays
     // truthy for the failing card even after isPending flips back to

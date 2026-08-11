@@ -145,7 +145,8 @@ describe("SignInForm", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.queryByText(/apple|google|github|coming soon/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/apple|google|github/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/coming\s+soon/i)).not.toBeInTheDocument();
   });
 
   it("reveals the password when requested", async () => {

@@ -84,6 +84,12 @@ function renderPage() {
   return render(<AdminEventsPage />, { wrapper: MemoryRouter });
 }
 
+function renderAt(path: string) {
+  return render(<AdminEventsPage />, {
+    wrapper: ({ children }) => <MemoryRouter initialEntries={[path]}>{children}</MemoryRouter>,
+  });
+}
+
 function eventsTable() {
   return screen.getByRole("table");
 }
@@ -171,5 +177,66 @@ describe("AdminEventsPage", () => {
     expect(remove).not.toHaveBeenCalled();
     expect(decide).not.toHaveBeenCalled();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("initializes the status filter from ?status= and shows only matching rows", () => {
+    renderAt("/admin/events?status=pending");
+
+    expect(screen.getByLabelText("Status")).toHaveValue("pending");
+    const table = eventsTable();
+    expect(within(table).getByText("Bachata Sensual Social")).toBeInTheDocument();
+    expect(within(table).queryByText("Salsa Workshop NYC")).not.toBeInTheDocument();
+    expect(within(table).queryByText("Kizomba Class")).not.toBeInTheDocument();
+  });
+
+  it("opens the create form when ?new=1 is present", () => {
+    renderAt("/admin/events?new=1");
+
+    expect(screen.getByRole("heading", { name: "New event" })).toBeInTheDocument();
+  });
+
+  it("opens the prefilled edit form for ?edit=<uuid> once events have loaded", () => {
+    renderAt("/admin/events?edit=event-2");
+
+    expect(screen.getByRole("heading", { name: "Edit event" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Event Title *")).toHaveValue("Salsa Workshop NYC");
+  });
+
+  it("falls back to the list, without error, when ?edit references an unknown id", () => {
+    renderAt("/admin/events?edit=does-not-exist");
+
+    expect(screen.queryByRole("heading", { name: "Edit event" })).not.toBeInTheDocument();
+    expect(eventsTable()).toBeInTheDocument();
+  });
+
+  it("filters by ?flag=incomplete to only events missing venue, time, or image", () => {
+    renderAt("/admin/events?flag=incomplete");
+
+    const table = eventsTable();
+    expect(within(table).getByText("Salsa Workshop NYC")).toBeInTheDocument();
+    expect(within(table).queryByText("Bachata Sensual Social")).not.toBeInTheDocument();
+    expect(within(table).queryByText("Kizomba Class")).not.toBeInTheDocument();
+    expect(screen.getByText("Missing info")).toBeInTheDocument();
+  });
+
+  it("filters by ?flag=upcoming to approved events within the next 30 days", () => {
+    renderAt("/admin/events?flag=upcoming");
+
+    const table = eventsTable();
+    expect(within(table).getByText("Salsa Workshop NYC")).toBeInTheDocument();
+    expect(within(table).queryByText("Bachata Sensual Social")).not.toBeInTheDocument();
+    expect(screen.getByText("Next 30 days")).toBeInTheDocument();
+  });
+
+  it("dismissing the flag chip clears the filter and restores hidden rows", async () => {
+    const user = userEvent.setup();
+    renderAt("/admin/events?flag=incomplete");
+
+    expect(within(eventsTable()).queryByText("Bachata Sensual Social")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Remove filter" }));
+
+    expect(screen.queryByText("Missing info")).not.toBeInTheDocument();
+    expect(within(eventsTable()).getByText("Bachata Sensual Social")).toBeInTheDocument();
   });
 });

@@ -1,0 +1,116 @@
+.admin-metric-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  text-decoration: none;
+  color: inherit;
+}
+
+a.admin-metric-card:hover {
+  border-color: var(--admin-primary);
+}
+
+.admin-metric-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--admin-radius);
+  margin-bottom: 4px;
+}
+
+.admin-metric-card__icon--informational {
+  background: var(--admin-surface-high);
+  color: var(--admin-text-strong);
+}
+
+.admin-metric-card__icon--attention {
+  background: var(--admin-attention-tint);
+  color: var(--admin-attention-ink);
+}
+
+.admin-metric-card__value {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--admin-text-strong);
+}
+
+.admin-metric-card__value--attention {
+  color: var(--admin-attention-ink);
+}
+
+.admin-metric-card__label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--admin-text-muted);
+}
+
+.admin-metric-card__sub-label {
+  font-size: 0.8rem;
+  color: var(--admin-text-muted);
+}
+
+.admin-metric-card__action {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.admin-metric-card__action--informational {
+  color: var(--admin-primary);
+}
+
+.admin-metric-card__action--attention {
+  color: var(--admin-attention-ink);
+}
+
+.admin-metric-card__retry {
+  align-self: flex-start;
+  margin-top: 8px;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--admin-primary);
+  cursor: pointer;
+}
+
+.admin-metric-card__icon-skeleton {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--admin-radius);
+  margin-bottom: 4px;
+}
+
+.admin-metric-card__value-skeleton {
+  width: 48px;
+  height: 28px;
+}
+
+.admin-metric-card__label-skeleton {
+  width: 80px;
+  height: 11px;
+}
+
+@media (max-width: 639px) {
+  .admin-metric-card__value {
+    font-size: 24px;
+  }
+
+  .admin-metric-card__action {
+    display: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  .admin-metric-card__value {
+    font-size: 32px;
+  }
+}

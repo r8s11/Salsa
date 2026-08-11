@@ -5,22 +5,22 @@
    ======================================== */
 
 .admin-shell {
-  --admin-bg: #F8FAFC;
-  --admin-surface: #FFFFFF;
-  --admin-surface-subtle: #F8FAFC;
-  --admin-surface-high: #F1F5F9;
-  --admin-border: #E2E8F0;
-  --admin-text: #0F172A;
-  --admin-text-strong: #1E293B;
-  --admin-text-muted: #64748B;
-  --admin-text-subtle: #94A3B8;
+  --admin-bg: #f8fafc;
+  --admin-surface: #ffffff;
+  --admin-surface-subtle: #f8fafc;
+  --admin-surface-high: #f1f5f9;
+  --admin-border: #e2e8f0;
+  --admin-text: #0f172a;
+  --admin-text-strong: #1e293b;
+  --admin-text-muted: #64748b;
+  --admin-text-subtle: #94a3b8;
   --admin-nav-text: #475569;
-  --admin-primary: #E11D48;
-  --admin-primary-hover: #BE123C;
+  --admin-primary: #e11d48;
+  --admin-primary-hover: #be123c;
   --admin-primary-tint: rgba(225, 29, 72, 0.04);
   --admin-primary-ring: rgba(225, 29, 72, 0.5);
-  --admin-danger: #DC2626;
-  --admin-danger-tint: #FEF2F2;
+  --admin-danger: #dc2626;
+  --admin-danger-tint: #fef2f2;
   --admin-radius: 8px;
   --admin-radius-lg: 12px;
   --admin-sidebar-w: 260px;
@@ -29,11 +29,55 @@
   --admin-content-max: 1440px;
   --admin-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
   --admin-shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --admin-attention-tint: #fffbeb;
+  --admin-attention-ink: #b45309;
+  --admin-attention-dot: #f59e0b;
+  --admin-positive-tint: #ecfdf5;
+  --admin-positive-ink: #047857;
 
   background: var(--admin-bg);
   color: var(--admin-text);
   font-family: var(--font-body);
   min-height: 100vh;
+}
+
+.admin-shell .admin-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--admin-surface-high) 25%,
+    #e9eef5 37%,
+    var(--admin-surface-high) 63%
+  );
+  background-size: 400% 100%;
+  animation: admin-shimmer 1.4s ease-in-out infinite;
+  border-radius: var(--admin-radius);
+}
+
+@keyframes admin-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-shell .admin-skeleton {
+    animation: none;
+  }
+}
+
+.admin-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* Public Header.css bundles an unscoped `header { ... }` rule (sticky,
@@ -72,7 +116,10 @@
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .admin-shell .admin-btn:disabled {
@@ -83,7 +130,7 @@
 .admin-shell .admin-btn--primary {
   background: var(--admin-primary);
   border-color: var(--admin-primary);
-  color: #FFFFFF;
+  color: #ffffff;
 }
 
 .admin-shell .admin-btn--primary:hover:not(:disabled) {
@@ -104,12 +151,12 @@
 .admin-shell .admin-btn--danger {
   background: var(--admin-danger);
   border-color: var(--admin-danger);
-  color: #FFFFFF;
+  color: #ffffff;
 }
 
 .admin-shell .admin-btn--danger:hover:not(:disabled) {
-  background: #B91C1C;
-  border-color: #B91C1C;
+  background: #b91c1c;
+  border-color: #b91c1c;
 }
 
 .admin-shell .admin-btn--ghost {
@@ -137,7 +184,9 @@
   background: transparent;
   color: var(--admin-text-subtle);
   cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .admin-shell .admin-icon-btn:hover:not(:disabled) {
@@ -233,7 +282,7 @@
   align-items: center;
   padding: 2px 8px;
   border-radius: 9999px;
-  background: #F1F5F9;
+  background: #f1f5f9;
   color: #475569;
   font-size: 10px;
   font-weight: 700;
@@ -242,8 +291,8 @@
 }
 
 .admin-shell .admin-chip--type {
-  background: #FFE4E6;
-  color: #BE123C;
+  background: #ffe4e6;
+  color: #be123c;
 }
 
 /* ----------------------------------------
@@ -264,8 +313,8 @@
 
 .admin-shell .admin-banner--error {
   background: var(--admin-danger-tint);
-  color: #B91C1C;
-  border-color: #FECACA;
+  color: #b91c1c;
+  border-color: #fecaca;
 }
 
 /* ----------------------------------------
@@ -349,31 +398,31 @@
 }
 
 .admin-shell .admin-status--approved {
-  background: #ECFDF5;
+  background: #ecfdf5;
   color: #047857;
-  border-color: #A7F3D0;
+  border-color: #a7f3d0;
 }
 
 .admin-shell .admin-status--approved::before {
-  background: #10B981;
+  background: #10b981;
 }
 
 .admin-shell .admin-status--pending {
-  background: #FFFBEB;
-  color: #B45309;
-  border-color: #FDE68A;
+  background: #fffbeb;
+  color: #b45309;
+  border-color: #fde68a;
 }
 
 .admin-shell .admin-status--pending::before {
-  background: #F59E0B;
+  background: #f59e0b;
 }
 
 .admin-shell .admin-status--rejected {
-  background: #FEF2F2;
-  color: #B91C1C;
-  border-color: #FECACA;
+  background: #fef2f2;
+  color: #b91c1c;
+  border-color: #fecaca;
 }
 
 .admin-shell .admin-status--rejected::before {
-  background: #EF4444;
+  background: #ef4444;
 }

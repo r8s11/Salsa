@@ -1,9 +1,13 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Plus, Search, ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 import { useAdminEvents } from "../hooks/useAdminEvents";
 import { useCity } from "../contexts/useCity";
 import type { DatabaseEvent, City } from "../features/events/model/types";
+import {
+  deriveIncompleteEvents,
+  UPCOMING_WINDOW_DAYS,
+} from "../features/admin/model/overviewMetrics";
 import {
   adminFormToPayload,
   buildAdminFormFromEvent,
@@ -16,10 +20,14 @@ import AdminEventForm from "../components/Admin/AdminEventForm";
 import AdminConfirmDialog from "../components/Admin/AdminConfirmDialog";
 import "./AdminEventsPage.css";
 
-type AdminEventsView = { mode: "list" } | { mode: "create" } | { mode: "edit"; event: DatabaseEvent };
+type AdminEventsView =
+  | { mode: "list" }
+  | { mode: "create" }
+  | { mode: "edit"; event: DatabaseEvent };
 type PendingAction = { kind: "reject" | "delete"; event: DatabaseEvent } | null;
 type StatusFilter = "all" | DatabaseEvent["status"];
 type CityFilter = "all" | City;
+type FlagFilter = "upcoming" | "incomplete" | null;
 
 const PAGE_SIZE = 20;
 
@@ -44,17 +52,50 @@ export default function AdminEventsPage() {
     removeError,
   } = useAdminEvents();
 
-  const [view, setView] = useState<AdminEventsView>({ mode: "list" });
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const [view, setView] = useState<AdminEventsView>(() =>
+    searchParams.get("new") === "1" ? { mode: "create" } : { mode: "list" }
+  );
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>(() => {
+    const value = searchParams.get("status");
+    return value === "approved" || value === "pending" || value === "rejected" ? value : "all";
+  });
   const [cityFilter, setCityFilter] = useState<CityFilter>("all");
+  const [flag, setFlag] = useState<FlagFilter>(() => {
+    const value = searchParams.get("flag");
+    return value === "upcoming" || value === "incomplete" ? value : null;
+  });
   const [page, setPage] = useState(1);
 
   const events = useMemo(() => queriedEvents ?? [], [queriedEvents]);
 
+  // ?edit=<uuid> depends on events, which load asynchronously, so it can't
+  // be resolved in the useState initializer above. Adjusted during render
+  // (React's documented pattern for state derived from a changing external
+  // value) rather than in an effect, which would cost an extra render pass.
+  // `resolvedEditId` ensures this runs once per id — a match switches to
+  // edit mode; no match (deleted, or not yet loaded) silently stays on the
+  // list and is not retried once the query has settled.
+  const editId = searchParams.get("edit");
+  const [resolvedEditId, setResolvedEditId] = useState<string | null>(null);
+  if (editId && editId !== resolvedEditId && queriedEvents) {
+    setResolvedEditId(editId);
+    const event = queriedEvents.find((candidate) => candidate.id === editId);
+    if (event) setView({ mode: "edit", event });
+  }
+
   const filteredEvents = useMemo(() => {
     const trimmedSearch = search.trim().toLowerCase();
+    const now = new Date();
+    const upcomingWindowEnd = new Date(now.getTime() + UPCOMING_WINDOW_DAYS * 24 * 60 * 60 * 1000);
+    const incompleteIds =
+      flag === "incomplete"
+        ? new Set(deriveIncompleteEvents(events, now).map(({ event }) => event.id))
+        : null;
+
     return events.filter((event) => {
       const matchesSearch =
         trimmedSearch === "" ||
@@ -62,9 +103,16 @@ export default function AdminEventsPage() {
         (event.location ?? "").toLowerCase().includes(trimmedSearch);
       const matchesStatus = statusFilter === "all" || event.status === statusFilter;
       const matchesCity = cityFilter === "all" || event.city === cityFilter;
-      return matchesSearch && matchesStatus && matchesCity;
+      const eventDate = new Date(event.event_date);
+      const matchesFlag =
+        flag === null
+          ? true
+          : flag === "upcoming"
+            ? event.status === "approved" && eventDate >= now && eventDate <= upcomingWindowEnd
+            : incompleteIds !== null && incompleteIds.has(event.id);
+      return matchesSearch && matchesStatus && matchesCity && matchesFlag;
     });
-  }, [events, search, statusFilter, cityFilter]);
+  }, [events, search, statusFilter, cityFilter, flag]);
 
   const total = filteredEvents.length;
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -93,11 +141,21 @@ export default function AdminEventsPage() {
     setSearch("");
     setStatusFilter("all");
     setCityFilter("all");
+    setFlag(null);
     setPage(1);
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.delete("status");
+      next.delete("flag");
+      return next;
+    });
   };
 
   const busy = decidingId
-    ? { id: decidingId, action: decidingStatus === "approved" ? ("approve" as const) : ("reject" as const) }
+    ? {
+        id: decidingId,
+        action: decidingStatus === "approved" ? ("approve" as const) : ("reject" as const),
+      }
     : removingId
       ? { id: removingId, action: "delete" as const }
       : null;
@@ -147,7 +205,11 @@ export default function AdminEventsPage() {
         title="Events"
         description="Manage events appearing on the calendar"
         actions={
-          <button type="button" className="admin-btn admin-btn--primary" onClick={() => setView({ mode: "create" })}>
+          <button
+            type="button"
+            className="admin-btn admin-btn--primary"
+            onClick={() => setView({ mode: "create" })}
+          >
             <Plus size={16} />
             New event
           </button>
@@ -163,7 +225,11 @@ export default function AdminEventsPage() {
       {!isLoading && error && (
         <div className="admin-banner admin-banner--error" role="alert">
           <p>Couldn't load events: {error}</p>
-          <button type="button" className="admin-btn admin-btn--secondary" onClick={() => refetch()}>
+          <button
+            type="button"
+            className="admin-btn admin-btn--secondary"
+            onClick={() => refetch()}
+          >
             Retry
           </button>
         </div>
@@ -231,6 +297,28 @@ export default function AdminEventsPage() {
               </div>
             </div>
           </div>
+
+          {flag && (
+            <div className="admin-chip admin-events-page__flag-chip">
+              <span>{flag === "upcoming" ? "Next 30 days" : "Missing info"}</span>
+              <button
+                type="button"
+                className="admin-events-page__flag-chip-dismiss"
+                aria-label="Remove filter"
+                onClick={() => {
+                  setFlag(null);
+                  setPage(1);
+                  setSearchParams((prev) => {
+                    const next = new URLSearchParams(prev);
+                    next.delete("flag");
+                    return next;
+                  });
+                }}
+              >
+                ×
+              </button>
+            </div>
+          )}
 
           {total === 0 ? (
             <div className="admin-card admin-events-page__empty">

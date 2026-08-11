@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { ComponentProps } from "react";
+import { MemoryRouter } from "react-router-dom";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { DatabaseEvent } from "../../features/events/model/types";
@@ -11,7 +12,7 @@ const baseEvent: DatabaseEvent = {
   description: "A pending event",
   event_type: "social",
   event_date: "2026-08-21T00:00:00.000Z",
-  event_time: null,
+  event_time: "8:00 PM",
   location: "Dance Hall",
   address: null,
   price_type: "free",
@@ -20,11 +21,11 @@ const baseEvent: DatabaseEvent = {
   image_url: null,
   submitter_name: "Ada",
   submitter_email: "ada@salsa.test",
-  submitter_id: null,
+  submitter_id: "user-1",
   status: "pending",
   city: "boston",
   created_at: "2026-08-01T00:00:00.000Z",
-  host: null,
+  host: "DJ Cocolo",
   recurrence: null,
   gallery: null,
   contact_email: null,
@@ -38,81 +39,170 @@ const baseEvent: DatabaseEvent = {
 
 const events: DatabaseEvent[] = [
   baseEvent,
-  { ...baseEvent, id: "event-2", title: "Approved Workshop", event_type: "workshop", status: "approved" },
-  { ...baseEvent, id: "event-3", title: "Rejected Class", event_type: "class", status: "rejected" },
+  {
+    ...baseEvent,
+    id: "event-2",
+    title: "Approved Workshop",
+    event_type: "workshop",
+    status: "approved",
+  },
+  { ...baseEvent, id: "event-3", title: "Archived Class", event_type: "class", status: "archived" },
 ];
 
 function renderTable(overrides: Partial<ComponentProps<typeof AdminEventsTable>> = {}) {
-  const props = {
+  const props: ComponentProps<typeof AdminEventsTable> = {
     events,
-    onEdit: vi.fn(),
-    onApprove: vi.fn(),
-    onReject: vi.fn(),
-    onDelete: vi.fn(),
+    duplicateIds: new Set(),
+    sort: { key: "event_date", dir: "desc" },
+    onSortChange: vi.fn(),
+    onAction: vi.fn(),
     busy: null,
     errorId: null,
     error: null,
     ...overrides,
   };
-  render(<AdminEventsTable {...props} />);
+  render(
+    <MemoryRouter>
+      <AdminEventsTable {...props} />
+    </MemoryRouter>
+  );
   return props;
 }
 
-function tableRowFor(title: string) {
-  const table = screen.getByRole("table");
-  const cell = within(table).getByText(title);
-  return within(cell.closest("tr") as HTMLElement);
+function desktopRowFor(title: string) {
+  const cell = screen.getAllByRole("link", { name: title })[0];
+  return cell.closest("tr")!;
 }
 
 describe("AdminEventsTable", () => {
-  it("renders a row per event", () => {
+  it("renders the seven-column header", () => {
     renderTable();
-    const table = screen.getByRole("table");
-    // header row + one row per event
-    expect(within(table).getAllByRole("row")).toHaveLength(events.length + 1);
+    ["Event", "Date & Time", "Venue", "Organizer", "Source", "Status", "Actions"].forEach(
+      (label) => {
+        expect(screen.getAllByText(label, { selector: "th, button" }).length).toBeGreaterThan(0);
+      }
+    );
   });
 
-  it("hides Approve on an already-approved event and Reject on an already-rejected event", () => {
+  it("event title links to the edit route", () => {
     renderTable();
-
-    const approvedRow = tableRowFor("Approved Workshop");
-    expect(approvedRow.queryByRole("button", { name: "Approve event" })).not.toBeInTheDocument();
-    expect(approvedRow.getByRole("button", { name: "Reject event" })).toBeInTheDocument();
-
-    const rejectedRow = tableRowFor("Rejected Class");
-    expect(rejectedRow.queryByRole("button", { name: "Reject event" })).not.toBeInTheDocument();
-    expect(rejectedRow.getByRole("button", { name: "Approve event" })).toBeInTheDocument();
+    const links = screen.getAllByRole("link", { name: "Pending Social" });
+    expect(links[0]).toHaveAttribute("href", "/admin/events?edit=event-1");
   });
 
-  it("calls onDelete with the event id when Delete is clicked, with no inline confirm", async () => {
-    const user = userEvent.setup();
-    const props = renderTable();
-
-    const row = tableRowFor("Pending Social");
-    await user.click(row.getByRole("button", { name: "Delete event" }));
-
-    expect(props.onDelete).toHaveBeenCalledWith("event-1");
-    expect(props.onDelete).toHaveBeenCalledTimes(1);
+  it("shows 'Venue not set' and 'Time not set' for empty fields", () => {
+    renderTable({
+      events: [{ ...baseEvent, location: null, event_time: null }],
+    });
+    expect(screen.getAllByText("Venue not set").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Time not set").length).toBeGreaterThan(0);
   });
 
-  it("disables all action buttons in the busy row", () => {
-    renderTable({ busy: { id: "event-1", action: "delete" } });
-
-    const row = tableRowFor("Pending Social");
-    expect(row.getByRole("button", { name: "Edit event" })).toBeDisabled();
-    expect(row.getByRole("button", { name: "Approve event" })).toBeDisabled();
-    expect(row.getByRole("button", { name: "Reject event" })).toBeDisabled();
-    expect(row.getByRole("button", { name: "Delete event" })).toBeDisabled();
-
-    const otherRow = tableRowFor("Approved Workshop");
-    expect(otherRow.getByRole("button", { name: "Edit event" })).not.toBeDisabled();
+  it("never falls back to the submitter for Organizer", () => {
+    renderTable({ events: [{ ...baseEvent, host: null }] });
+    expect(screen.getAllByText("No organizer").length).toBeGreaterThan(0);
+    expect(screen.queryByText("Ada")).not.toBeInTheDocument();
   });
 
-  it("renders an inline error row for the failing event", () => {
+  describe("sortable headers", () => {
+    it("marks the active sort column and calls onSortChange with the clicked key", async () => {
+      const user = userEvent.setup();
+      const props = renderTable({ sort: { key: "event_date", dir: "asc" } });
+      const dateHeader = screen.getByRole("columnheader", { name: /Date & Time/ });
+      expect(dateHeader).toHaveAttribute("aria-sort", "ascending");
+
+      const eventHeader = screen.getByRole("columnheader", { name: /^Event/ });
+      expect(eventHeader).toHaveAttribute("aria-sort", "none");
+
+      await user.click(within(eventHeader).getByRole("button"));
+      expect(props.onSortChange).toHaveBeenCalledWith("title");
+    });
+  });
+
+  describe("row action menu by status", () => {
+    it("pending offers Publish, Reject, Archive but not Unpublish", async () => {
+      const user = userEvent.setup();
+      renderTable();
+      const row = desktopRowFor("Pending Social");
+      await user.click(within(row).getByRole("button", { name: "Actions for Pending Social" }));
+      const menu = screen.getByRole("menu");
+      expect(within(menu).getByRole("menuitem", { name: "Publish" })).toBeInTheDocument();
+      expect(within(menu).getByRole("menuitem", { name: "Reject" })).toBeInTheDocument();
+      expect(within(menu).getByRole("menuitem", { name: "Archive" })).toBeInTheDocument();
+      expect(within(menu).queryByRole("menuitem", { name: "Unpublish" })).not.toBeInTheDocument();
+    });
+
+    it("approved (Published) offers Unpublish and Cancel but not Publish", async () => {
+      const user = userEvent.setup();
+      renderTable();
+      const row = desktopRowFor("Approved Workshop");
+      await user.click(within(row).getByRole("button", { name: "Actions for Approved Workshop" }));
+      const menu = screen.getByRole("menu");
+      expect(within(menu).getByRole("menuitem", { name: "Unpublish" })).toBeInTheDocument();
+      expect(within(menu).getByRole("menuitem", { name: "Cancel Event" })).toBeInTheDocument();
+      expect(within(menu).queryByRole("menuitem", { name: "Publish" })).not.toBeInTheDocument();
+    });
+
+    it("archived offers Restore but not Archive, and every status offers Edit/Duplicate/Delete", async () => {
+      const user = userEvent.setup();
+      renderTable();
+      const row = desktopRowFor("Archived Class");
+      await user.click(within(row).getByRole("button", { name: "Actions for Archived Class" }));
+      const menu = screen.getByRole("menu");
+      expect(within(menu).getByRole("menuitem", { name: "Restore" })).toBeInTheDocument();
+      expect(within(menu).queryByRole("menuitem", { name: "Archive" })).not.toBeInTheDocument();
+      expect(within(menu).getByRole("menuitem", { name: "Edit" })).toBeInTheDocument();
+      expect(within(menu).getByRole("menuitem", { name: "Duplicate" })).toBeInTheDocument();
+      expect(within(menu).getByRole("menuitem", { name: "Delete" })).toBeInTheDocument();
+    });
+
+    it("selecting a menu item calls onAction with the action and the event", async () => {
+      const user = userEvent.setup();
+      const props = renderTable();
+      const row = desktopRowFor("Pending Social");
+      await user.click(within(row).getByRole("button", { name: "Actions for Pending Social" }));
+      await user.click(screen.getByRole("menuitem", { name: "Publish" }));
+      expect(props.onAction).toHaveBeenCalledWith(
+        "publish",
+        expect.objectContaining({ id: "event-1" })
+      );
+    });
+  });
+
+  it("marks archived rows with the archived row class", () => {
+    renderTable();
+    const row = desktopRowFor("Archived Class");
+    expect(row).toHaveClass("admin-events-table__row--archived");
+  });
+
+  it("shows a quality indicator only for events with issues", () => {
+    renderTable({
+      events: [
+        {
+          ...baseEvent,
+          id: "complete",
+          title: "Complete Event",
+          location: "Venue",
+          host: "Org",
+          image_url: "x",
+        },
+        { ...baseEvent, id: "incomplete", title: "Incomplete Event", location: null },
+      ],
+    });
+    const completeRow = desktopRowFor("Complete Event");
+    const incompleteRow = desktopRowFor("Incomplete Event");
+    expect(
+      within(completeRow).queryByRole("button", { name: /quality issue/ })
+    ).not.toBeInTheDocument();
+    expect(
+      within(incompleteRow).getByRole("button", { name: /quality issue/ })
+    ).toBeInTheDocument();
+  });
+
+  it("renders a row-scoped error banner only for the matching event", () => {
     renderTable({ errorId: "event-1", error: "Network error" });
-
-    const table = screen.getByRole("table");
-    const alert = within(table).getByRole("alert");
-    expect(alert).toHaveTextContent("Action failed: Network error");
+    const alerts = screen.getAllByRole("alert");
+    expect(alerts.length).toBeGreaterThan(0);
+    alerts.forEach((alert) => expect(alert).toHaveTextContent("Action failed: Network error"));
   });
 });

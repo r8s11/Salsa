@@ -56,3 +56,62 @@ export function deriveIncompleteEvents(
     .map((event) => ({ event, missing: missingFields(event) }))
     .filter(({ missing }) => missing.length > 0);
 }
+
+export type QualityIssue = "venue" | "time" | "image" | "organizer" | "description" | "pricing" | "duplicate";
+
+export const QUALITY_ISSUE_LABEL: Record<QualityIssue, string> = {
+  venue: "Missing venue",
+  time: "Missing start time",
+  image: "Missing flyer",
+  organizer: "Missing organizer",
+  description: "No description",
+  pricing: "Missing pricing",
+  duplicate: "Potential duplicate",
+};
+
+export function qualityIssues(event: DatabaseEvent, duplicateIds?: ReadonlySet<string>): QualityIssue[] {
+  const issues: QualityIssue[] = [];
+  if (!event.location?.trim()) issues.push("venue");
+  if (!event.event_time?.trim()) issues.push("time");
+  if (!event.image_url?.trim()) issues.push("image");
+  if (!event.host?.trim()) issues.push("organizer");
+  if (!event.description?.trim()) issues.push("description");
+  if (event.price_type === null) issues.push("pricing");
+  if (duplicateIds?.has(event.id)) issues.push("duplicate");
+  return issues;
+}
+
+// Flags both members of any pair sharing a case-insensitive trimmed title
+// AND location, whose event_date values are within +-24h. A weekly event
+// duplicated to next week is 7 days out and correctly not flagged; the same
+// event entered twice for one night is.
+export function findPotentialDuplicates(events: DatabaseEvent[]): Set<string> {
+  const duplicates = new Set<string>();
+  const DAY_MS = 24 * 60 * 60 * 1000;
+
+  const key = (event: DatabaseEvent) =>
+    `${event.title.trim().toLowerCase()}\u0000${(event.location ?? "").trim().toLowerCase()}`;
+
+  const byKey = new Map<string, DatabaseEvent[]>();
+  for (const event of events) {
+    const k = key(event);
+    const bucket = byKey.get(k);
+    if (bucket) bucket.push(event);
+    else byKey.set(k, [event]);
+  }
+
+  for (const bucket of byKey.values()) {
+    if (bucket.length < 2) continue;
+    for (let i = 0; i < bucket.length; i++) {
+      for (let j = i + 1; j < bucket.length; j++) {
+        const diff = Math.abs(Date.parse(bucket[i].event_date) - Date.parse(bucket[j].event_date));
+        if (diff <= DAY_MS) {
+          duplicates.add(bucket[i].id);
+          duplicates.add(bucket[j].id);
+        }
+      }
+    }
+  }
+
+  return duplicates;
+}

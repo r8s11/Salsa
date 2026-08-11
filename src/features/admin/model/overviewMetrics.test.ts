@@ -6,6 +6,8 @@ import {
   deriveOverviewMetrics,
   deriveUpcomingEvents,
   missingFields,
+  qualityIssues,
+  findPotentialDuplicates,
 } from "./overviewMetrics";
 
 const NOW = new Date("2026-08-11T12:00:00.000Z");
@@ -173,5 +175,42 @@ describe("deriveUpcomingEvents", () => {
       makeEvent({ status: "approved", event_date: daysFromNow(index + 1) }),
     );
     expect(deriveUpcomingEvents(events, NOW)).toHaveLength(8);
+  });
+});
+
+describe("qualityIssues", () => {
+  it("flags pricing when price_type is null", () => {
+    expect(qualityIssues(makeEvent({ price_type: null }))).toContain("pricing");
+  });
+
+  it("does not flag pricing when price_type is 'free'", () => {
+    expect(qualityIssues(makeEvent({ price_type: "free" }))).not.toContain("pricing");
+  });
+
+  it("flags duplicate only when the id is in the supplied duplicate set", () => {
+    const event = makeEvent();
+    expect(qualityIssues(event)).not.toContain("duplicate");
+    expect(qualityIssues(event, new Set([event.id]))).toContain("duplicate");
+  });
+});
+
+describe("findPotentialDuplicates", () => {
+  it("flags same-title-same-venue events 2 hours apart", () => {
+    const a = makeEvent({ title: "Salsa Night", location: "The Anchor", event_date: daysFromNow(5) });
+    const b = makeEvent({
+      title: "salsa night",
+      location: "the anchor",
+      event_date: new Date(Date.parse(daysFromNow(5)) + 2 * 60 * 60 * 1000).toISOString(),
+    });
+    const duplicates = findPotentialDuplicates([a, b]);
+    expect(duplicates.has(a.id)).toBe(true);
+    expect(duplicates.has(b.id)).toBe(true);
+  });
+
+  it("does not flag same-title-same-venue events 7 days apart", () => {
+    const a = makeEvent({ title: "Salsa Night", location: "The Anchor", event_date: daysFromNow(5) });
+    const b = makeEvent({ title: "Salsa Night", location: "The Anchor", event_date: daysFromNow(12) });
+    const duplicates = findPotentialDuplicates([a, b]);
+    expect(duplicates.size).toBe(0);
   });
 });

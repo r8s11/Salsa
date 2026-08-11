@@ -23,7 +23,7 @@ export default function ProfilePage() {
   const { user, signOut } = useAuth();
   const { submissions, isLoading, error, refetch } = useMySubmissions(user?.id);
   const [filter, setFilter] = useState<SubmissionFilter>("all");
-  const events = submissions ?? [];
+  const events = useMemo(() => submissions ?? [], [submissions]);
   const counts = useMemo(
     () => ({
       all: events.length,

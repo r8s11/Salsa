@@ -1,4 +1,6 @@
 import { useState, FormEvent } from "react";
+import "temporal-polyfill/global";
+
 import { submitEvent } from "../events/api/eventsRepo";
 import type { EventType } from "../../types/events";
 import { useCity } from "../../contexts/useCity";
@@ -30,9 +32,11 @@ export function useSubmitEventForm() {
     setIsSubmitting(true);
 
     try {
-      // Combine date + time into an ISO timestamp
       const eventDateTime = form.event_time
-        ? `${form.event_date}T${form.event_time}:00`
+        ? Temporal.PlainDateTime.from(`${form.event_date}T${form.event_time}:00`)
+            .toZonedDateTime("America/New_York")
+            .toInstant()
+            .toString()
         : `${form.event_date}T00:00:00`;
 
       await submitEvent({

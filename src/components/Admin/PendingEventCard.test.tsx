@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
+import type { ComponentProps } from "react";
 import type { DatabaseEvent } from "../../features/events/model/types";
 import PendingEventCard from "./PendingEventCard";
 
@@ -27,7 +28,7 @@ const event: DatabaseEvent = {
   gallery: null,
 };
 
-function renderCard(overrides: Partial<React.ComponentProps<typeof PendingEventCard>> = {}) {
+function renderCard(overrides: Partial<ComponentProps<typeof PendingEventCard>> = {}) {
   const props = {
     event,
     onApprove: vi.fn(),

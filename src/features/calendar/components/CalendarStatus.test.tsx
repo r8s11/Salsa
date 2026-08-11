@@ -1,9 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
+import type { ComponentProps } from "react";
 import CalendarStatus from "./CalendarStatus";
 
-function renderStatus(props: Partial<React.ComponentProps<typeof CalendarStatus>> = {}) {
+function renderStatus(props: Partial<ComponentProps<typeof CalendarStatus>> = {}) {
   const onRetry = vi.fn();
   const onClearFilter = vi.fn();
   render(

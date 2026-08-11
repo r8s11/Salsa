@@ -76,11 +76,11 @@
   position: relative;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 104px 24px 32px;
+  padding: 56px 24px 24px;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  gap: 24px;
+  gap: 16px;
   flex-wrap: wrap;
 }
 
@@ -115,7 +115,7 @@
 .stage-controls {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
@@ -142,6 +142,13 @@
 .nav-btn:hover {
   border-color: var(--border-lg);
   background: var(--card);
+}
+
+.nav-btn:focus-visible,
+.pill:focus-visible,
+.calendar-error button:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
 }
 
 .today-btn {
@@ -195,7 +202,6 @@
   color: var(--bg);
 }
 
-/* ── Toolbar ── */
 .calendar-toolbar {
   background: var(--card);
   backdrop-filter: blur(var(--glass-blur));
@@ -207,11 +213,11 @@
 .toolbar-inner {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 16px 24px;
+  padding: 12px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
@@ -287,7 +293,6 @@
   background: var(--red-bright);
 }
 
-/* ── Calendar Wrapper ── */
 .calendar-main {
   margin: 0 auto;
   max-width: 1200px;
@@ -368,22 +373,40 @@
   }
 
   .stage-inner {
-    padding: 88px 16px 24px;
+    padding: 32px 16px 20px;
+    align-items: flex-start;
   }
 
-  .toolbar-inner,
+  .stage-controls-primary,
+  .toolbar-inner {
+    width: 100%;
+  }
+
+  .toolbar-inner {
+    padding: 12px 16px;
+  }
+
+  .pill-group {
+    flex-wrap: nowrap;
+    max-width: 100%;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+  }
+
+  .pill {
+    flex: 0 0 auto;
+  }
+
   .calendar-main {
     padding-left: 12px;
     padding-right: 12px;
   }
 
   .sx-react-calendar-wrapper {
-    height: 500px;
-    max-height: 65dvh;
+    height: calc(100dvh - 260px);
+    min-height: calc(100dvh - 260px);
+    max-height: none;
     border-radius: var(--radius-sm);
-  }
-
-  .legend-items {
-    gap: 1rem;
   }
 }

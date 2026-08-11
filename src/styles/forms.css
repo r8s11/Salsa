@@ -1,0 +1,149 @@
+/* ========================================
+   Shared form styles — Ritmo Vivo
+   Used by SubmitEventPage and AdminEventFormPanel, both of which render
+   EventDetailsFieldset / LocationFieldset / PricingFieldset inside a
+   `.submit-form` wrapper.
+   ======================================== */
+
+/* ── Form Container ── */
+.submit-form {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+/* ── Fieldsets ── */
+.submit-form fieldset {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.75rem;
+  margin-bottom: 1.5rem;
+  background: var(--card);
+}
+
+.submit-form legend {
+  font-family: var(--font-ui);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  padding: 0 0.75rem;
+}
+
+/* ── Form Groups ── */
+.submit-form .form-group {
+  margin-bottom: 1.25rem;
+}
+
+.submit-form .form-group:last-child {
+  margin-bottom: 0;
+}
+
+.submit-form .form-group label {
+  display: block;
+  font-family: var(--font-ui);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.submit-form .form-group input,
+.submit-form .form-group select,
+.submit-form .form-group textarea {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  transition: border-color 0.25s ease, background 0.25s ease;
+}
+
+.submit-form .form-group input::placeholder,
+.submit-form .form-group textarea::placeholder {
+  color: var(--text-dim);
+}
+
+.submit-form .form-group input:focus,
+.submit-form .form-group select:focus,
+.submit-form .form-group textarea:focus {
+  outline: none;
+  border-color: var(--red);
+  background: rgba(196, 18, 48, 0.04);
+}
+
+.submit-form .form-group input[readonly] {
+  background: rgba(255, 255, 255, 0.015);
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.submit-form .form-group--checkbox label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-transform: none;
+  letter-spacing: normal;
+  font-size: 0.85rem;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.submit-form .form-group--checkbox input[type="checkbox"] {
+  width: auto;
+  cursor: pointer;
+}
+
+.submit-form .form-group select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238A8580' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  cursor: pointer;
+}
+
+.submit-form .form-group select option {
+  background: var(--card);
+  color: var(--text);
+}
+
+.submit-form .form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* Two-column rows */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+/* ── Error Banner ── */
+.error-banner {
+  max-width: 680px;
+  margin: 0 auto 1.5rem;
+  padding: 1rem 1.25rem;
+  background: var(--red-dim);
+  border: 1px solid rgba(196, 18, 48, 0.35);
+  border-radius: var(--radius-sm);
+  color: #FF8080;
+  text-align: center;
+  font-size: 0.875rem;
+}
+
+/* ── Mobile ── */
+@media (max-width: 600px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .submit-form fieldset {
+    padding: 1.25rem;
+  }
+}

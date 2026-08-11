@@ -5,6 +5,7 @@ import EventDetailsFieldset from "../../features/submit-event/components/EventDe
 import LocationFieldset from "../../features/submit-event/components/LocationFieldset";
 import PricingFieldset from "../../features/submit-event/components/PricingFieldset";
 import type { SubmitForm } from "../../features/submit-event/validation";
+import "../../styles/forms.css";
 
 interface Props {
   initial: AdminEventForm;

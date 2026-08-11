@@ -5,6 +5,7 @@ import LocationFieldset from "../features/submit-event/components/LocationFields
 import PricingFieldset from "../features/submit-event/components/PricingFieldset";
 import YourInfoFieldset from "../features/submit-event/components/YourInfoFieldset";
 import SuccessCard from "../features/submit-event/components/SuccessCard";
+import "../styles/forms.css";
 import "./SubmitEventPage.css";
 
 export default function SubmitEventPage() {

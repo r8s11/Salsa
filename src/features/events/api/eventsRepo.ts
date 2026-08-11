@@ -77,6 +77,7 @@ export async function submitEvent(payload: NewEventSubmission): Promise<void> {
   const { error } = await supabase.from("events").insert({
     ...payload,
     status: "pending",
+    source_type: "user_submission",
   });
 
   if (error) {
@@ -128,6 +129,7 @@ export async function createEventAsAdmin(
   const { error } = await supabase.from("events").insert({
     ...payload,
     status: "approved",
+    source_type: "admin",
     submitter_id: submitter.id,
     submitter_email: submitter.email,
     submitter_name: "Salsa Segura",

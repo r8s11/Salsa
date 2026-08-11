@@ -43,6 +43,10 @@ function makeEvent(overrides: Partial<DatabaseEvent> = {}): DatabaseEvent {
     contact_email: null,
     contact_instagram: null,
     contact_website: null,
+    source_type: "user_submission",
+    dance_styles: [],
+    updated_at: NOW.toISOString(),
+    cancellation_reason: null,
     ...overrides,
   };
 }

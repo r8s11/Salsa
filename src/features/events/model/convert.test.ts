@@ -28,6 +28,10 @@ const mockEvent = (overrides: Partial<DatabaseEvent>): DatabaseEvent => ({
   contact_email: null,
   contact_instagram: null,
   contact_website: null,
+  source_type: "user_submission",
+  dance_styles: [],
+  updated_at: "2026-07-01T00:00:00Z",
+  cancellation_reason: null,
   ...overrides,
 });
 

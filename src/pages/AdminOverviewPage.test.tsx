@@ -44,6 +44,10 @@ const baseEvent: DatabaseEvent = {
   contact_email: null,
   contact_instagram: null,
   contact_website: null,
+  source_type: "user_submission",
+  dance_styles: [],
+  updated_at: "2026-08-05T00:00:00.000Z",
+  cancellation_reason: null,
 };
 
 // Known fixture: 2 approved-future within 30 days (1 complete, 1 missing venue

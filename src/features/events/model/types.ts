@@ -18,7 +18,11 @@ export interface DatabaseEvent {
   submitter_name: string | null;
   submitter_email: string | null;
   submitter_id: string | null;
-  status: "approved" | "pending" | "rejected";
+  status: "draft" | "pending" | "approved" | "rejected" | "cancelled" | "archived";
+  source_type: "admin" | "user_submission" | "organizer" | "moderator" | "imported";
+  dance_styles: string[] | null;
+  updated_at: string;
+  cancellation_reason: string | null;
   city: City;
   created_at: string;
   host: string | null;

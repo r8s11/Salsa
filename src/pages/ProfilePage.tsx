@@ -7,9 +7,12 @@ import type { DatabaseEvent } from "../features/events/model/types";
 import "./ProfilePage.css";
 
 const STATUS_LABEL: Record<DatabaseEvent["status"], string> = {
+  draft: "Draft",
   pending: "Pending",
   approved: "Approved",
   rejected: "Rejected",
+  cancelled: "Cancelled",
+  archived: "Archived",
 };
 
 type SubmissionFilter = "all" | DatabaseEvent["status"];

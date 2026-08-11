@@ -30,6 +30,10 @@ describe("databaseEventToScheduleX", () => {
       contact_email: null,
       contact_instagram: null,
       contact_website: null,
+      source_type: "user_submission",
+      dance_styles: [],
+      updated_at: "2026-07-01T00:00:00Z",
+      cancellation_reason: null,
     };
     const result = databaseEventToScheduleX(event);
     expect(result.id).toBe("1");
@@ -64,6 +68,10 @@ describe("databaseEventToScheduleX", () => {
       contact_email: null,
       contact_instagram: null,
       contact_website: null,
+      source_type: "user_submission",
+      dance_styles: null,
+      updated_at: "2026-07-01T00:00:00Z",
+      cancellation_reason: null,
     };
     const result = databaseEventToScheduleX(event);
     expect(result.host).toBeUndefined();

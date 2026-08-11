@@ -99,6 +99,7 @@ function veventToRow(vevent, city) {
     rsvp_link: readString(vevent, "url"),
     image_url: readString(vevent, "attach"),
     status: "pending",
+    source_type: "imported",
     submitter_name: SOURCE_TAG,
     submitter_email: `${city}@import.local`,
   };
@@ -144,6 +145,7 @@ const COLUMNS = [
   "rsvp_link",
   "image_url",
   "status",
+  "source_type",
   "submitter_name",
   "submitter_email",
 ];

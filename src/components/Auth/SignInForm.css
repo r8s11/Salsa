@@ -46,7 +46,6 @@
 
 .auth-form input:focus-visible,
 .password-toggle:focus-visible,
-.btn-auth:focus-visible,
 .link-button:focus-visible {
   outline: 2px solid var(--gold-light);
   outline-offset: 3px;
@@ -90,32 +89,6 @@
   opacity: 0.6;
 }
 
-.btn-auth {
-  width: 100%;
-  padding: 0.8rem var(--space-lg);
-  border: 0;
-  border-radius: var(--radius-full);
-  background: var(--red);
-  box-shadow: 0 0 20px var(--red-glow);
-  color: var(--text);
-  cursor: pointer;
-  font-family: var(--font-ui);
-  font-size: 0.875rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  transition: background 0.2s ease, transform 0.2s ease;
-}
-
-.btn-auth:hover:not(:disabled) {
-  background: var(--red-bright);
-  transform: translateY(-1px);
-}
-
-.btn-auth:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
 
 .auth-error,
 .auth-message {

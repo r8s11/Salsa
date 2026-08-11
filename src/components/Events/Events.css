@@ -459,54 +459,6 @@
   margin-bottom: 0.75rem;
 }
 
-/* Re-use btn-primary for .cta-button */
-.cta-button {
-  display: inline-block;
-  font-family: var(--font-ui);
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  padding: 0.9rem 2.25rem;
-  text-decoration: none;
-  border-radius: 2px;
-  transition: all 0.25s ease;
-  background: var(--red);
-  color: var(--text);
-  border: 2px solid var(--red);
-  position: relative;
-  overflow: hidden;
-  z-index: 0;
-}
-
-.cta-button::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: var(--red-bright);
-  transform: translateX(-100%);
-  transition: transform 0.3s ease;
-  z-index: -1;
-}
-
-.cta-button:hover::before {
-  transform: translateX(0);
-}
-
-.cta-secondary {
-  background: transparent;
-  color: var(--text);
-  border: 2px solid var(--border-md);
-}
-
-.cta-secondary::before {
-  display: none;
-}
-
-.cta-secondary:hover {
-  border-color: var(--border-lg);
-  background: rgba(255, 255, 255, 0.04);
-}
 
 /* ── Mobile ── */
 @media (max-width: 768px) {

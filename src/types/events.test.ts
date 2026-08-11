@@ -27,6 +27,9 @@ describe("databaseEventToScheduleX", () => {
       host: "DJ Cocolo",
       recurrence: "weekly",
       gallery: ["a.jpg"],
+      contact_email: null,
+      contact_instagram: null,
+      contact_website: null,
     };
     const result = databaseEventToScheduleX(event);
     expect(result.id).toBe("1");
@@ -58,6 +61,9 @@ describe("databaseEventToScheduleX", () => {
       host: null,
       recurrence: null,
       gallery: null,
+      contact_email: null,
+      contact_instagram: null,
+      contact_website: null,
     };
     const result = databaseEventToScheduleX(event);
     expect(result.host).toBeUndefined();

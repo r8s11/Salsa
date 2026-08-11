@@ -159,7 +159,7 @@ For the gallery component, images should utilize the `rounded-lg` (16px) or `rou
 
 ### Buttons
 - **Primary:** Solid Rose Red (#E11D48) with white text. High-gloss finish with a subtle top-down gradient.
-- **Secondary:** Outlined in Gold (#D4AF37) with a hover state that fills with a semi-transparent gold tint.
+- **Secondary:** Outlined in Gold (#E9C349) with a hover state that fills with a semi-transparent gold tint.
 - **Ghost:** Pure text with an underline that appears on hover, mimicking the rhythm of a musical bar.
 
 ### Cards & Event Page

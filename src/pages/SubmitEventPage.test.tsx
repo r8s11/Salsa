@@ -72,7 +72,7 @@ describe("SubmitEventPage", () => {
       expect.objectContaining({
         title: "Saturday Bachata Night",
         event_type: "social",
-        event_date: "2026-08-15T00:00:00",
+        event_date: "2026-08-15T04:00:00Z",
         city: "boston",
       })
     );

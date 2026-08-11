@@ -127,7 +127,7 @@ function Contact() {
                   required
                 ></textarea>
               </div>
-              <button type="submit" className="submit-button" disabled={isSubmitting}>
+              <button type="submit" className="btn-primary btn-block" disabled={isSubmitting}>
                 {submitButtonText}
               </button>
             </form>

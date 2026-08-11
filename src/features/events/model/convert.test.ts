@@ -25,6 +25,9 @@ const mockEvent = (overrides: Partial<DatabaseEvent>): DatabaseEvent => ({
   host: null,
   recurrence: null,
   gallery: null,
+  contact_email: null,
+  contact_instagram: null,
+  contact_website: null,
   ...overrides,
 });
 

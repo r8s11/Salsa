@@ -1,11 +1,11 @@
 import { useState, FormEvent } from "react";
-import "temporal-polyfill/global";
 
 import { submitEvent } from "../events/api/eventsRepo";
 import type { EventType } from "../../types/events";
 import { useCity } from "../../contexts/useCity";
 import { useAuth } from "../../contexts/useAuth";
 import { validateSubmitForm, buildInitialForm, SubmitForm } from "./validation";
+import { toEventDateInstant } from "../events/model/eventDateTime";
 
 export function useSubmitEventForm() {
   const { city: defaultCity } = useCity();
@@ -32,12 +32,7 @@ export function useSubmitEventForm() {
     setIsSubmitting(true);
 
     try {
-      const eventDateTime = form.event_time
-        ? Temporal.PlainDateTime.from(`${form.event_date}T${form.event_time}:00`)
-            .toZonedDateTime("America/New_York")
-            .toInstant()
-            .toString()
-        : `${form.event_date}T00:00:00`;
+      const eventDateTime = toEventDateInstant(form.event_date, form.event_time);
 
       await submitEvent({
         title: form.title,

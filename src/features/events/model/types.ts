@@ -24,6 +24,9 @@ export interface DatabaseEvent {
   host: string | null;
   recurrence: string | null;
   gallery: string[] | null;
+  contact_email: string | null;
+  contact_instagram: string | null;
+  contact_website: string | null;
 }
 
 // Schedule-X event interface
@@ -35,7 +38,6 @@ export interface ScheduleXEvent {
   calendarId: EventType;
   location?: string;
   description?: string;
-  //Custom properties for out app
   address?: string;
   rsvpLink?: string;
   city?: City;
@@ -45,4 +47,7 @@ export interface ScheduleXEvent {
   imageUrl?: string;
   priceType?: "free" | "paid";
   priceAmount?: number;
+  contactEmail?: string;
+  contactInstagram?: string;
+  contactWebsite?: string;
 }

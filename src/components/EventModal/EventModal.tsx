@@ -215,6 +215,28 @@ export default function EventModal({ event, onClose }: EventModalProps) {
             <p className="reassurance">
               RSVP opens the host's page · pay at the door
             </p>
+            {(event.contactEmail || event.contactInstagram || event.contactWebsite) && (
+              <div className="contact-block">
+                <h3 className="contact-eyebrow">Contact</h3>
+                {event.contactEmail && (
+                  <a href={`mailto:${event.contactEmail}`}>{event.contactEmail}</a>
+                )}
+                {event.contactInstagram && (
+                  <a
+                    href={`https://instagram.com/${event.contactInstagram.replace(/^@/, "")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    @{event.contactInstagram.replace(/^@/, "")}
+                  </a>
+                )}
+                {event.contactWebsite && (
+                  <a href={event.contactWebsite} target="_blank" rel="noopener noreferrer">
+                    Visit website
+                  </a>
+                )}
+              </div>
+            )}
             {seriesDates.length > 0 && (
               <div className="series">
                 <h3>More dates in this series</h3>

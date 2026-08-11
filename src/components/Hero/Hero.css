@@ -123,39 +123,10 @@
 }
 
 .hero-btn {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 0.85rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   padding: 0.95rem 1.9rem;
-  text-decoration: none;
-  border-radius: var(--radius-full);
-  transition: all 0.25s ease;
+  font-size: 0.85rem;
 }
 
-.hero-btn--primary {
-  background: linear-gradient(120deg, var(--red), #c2153c);
-  color: #fff;
-  box-shadow: 0 8px 26px rgba(225, 29, 72, 0.36);
-}
-
-.hero-btn--primary:hover {
-  box-shadow: 0 12px 34px rgba(225, 29, 72, 0.55);
-  transform: translateY(-2px);
-}
-
-.hero-btn--outline {
-  background: transparent;
-  color: var(--text);
-  border: 1px solid var(--border-md);
-}
-
-.hero-btn--outline:hover {
-  color: #fff;
-  border-color: var(--red);
-  background: rgba(225, 29, 72, 0.1);
-}
 
 /* Stats */
 .hero-stats {

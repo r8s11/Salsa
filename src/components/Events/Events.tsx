@@ -118,12 +118,12 @@ function Events() {
         )}
 
         <div className="events-footer">
-          <Link to="/calendar" className="cta-button cta-secondary">
+          <Link to="/calendar" className="btn-secondary">
             View Full Calendar
           </Link>
           <div className="events-cta">
             <p>Want to host a pop-up class or private event?</p>
-            <Link to="/submit" className="cta-button">
+            <Link to="/submit" className="btn-primary">
               Submit an Event
             </Link>
           </div>

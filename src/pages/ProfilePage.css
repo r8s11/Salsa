@@ -40,14 +40,14 @@
   color: var(--gold-light);
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 1.25rem;
+  font-size: 1.5rem;
 }
 
 .profile-account-card h1 {
   margin: var(--space-xs) 0;
   color: var(--text);
   font-family: var(--font-display);
-  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-size: clamp(1.5rem, 4vw, 2rem);
 }
 
 .profile-page-email {
@@ -76,7 +76,7 @@
   color: var(--text);
   cursor: pointer;
   font-family: var(--font-ui);
-  font-size: 0.8rem;
+  font-size: 0.875rem;
   font-weight: 700;
   text-decoration: none;
 }
@@ -124,14 +124,14 @@
   display: block;
   color: var(--text-muted);
   font-family: var(--font-ui);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
 }
 
 .profile-metric strong {
   color: var(--gold-light);
   font-family: var(--font-display);
-  font-size: 1.35rem;
+  font-size: 1.5rem;
 }
 
 .profile-filter-row {
@@ -204,7 +204,7 @@
 .profile-submission-meta {
   color: var(--text-muted);
   font-family: var(--font-ui);
-  font-size: 0.8rem;
+  font-size: 0.875rem;
   text-transform: capitalize;
 }
 
@@ -219,10 +219,10 @@
 
 .profile-submission-badge {
   flex: 0 0 auto;
-  padding: 0.3rem 0.7rem;
+  padding: 0.3rem 0.75rem;
   border-radius: var(--radius-full);
   font-family: var(--font-ui);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;

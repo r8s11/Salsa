@@ -23,9 +23,29 @@ export interface EventFilters {
 export const PAGE_SIZE_OPTIONS = [25, 50, 100] as const;
 export const DEFAULT_PAGE_SIZE = 25;
 
-const CITY_LABEL: Record<City, string> = {
+export const CITY_LABEL: Record<City, string> = {
   boston: "Boston",
   "new-york-city": "New York City",
+};
+
+// The seven fixed dance-style filter values, in the order the migration's
+// backfill regex table lists them.
+export const DANCE_STYLES = [
+  { value: "salsa", label: "Salsa" },
+  { value: "bachata", label: "Bachata" },
+  { value: "kizomba", label: "Kizomba" },
+  { value: "merengue", label: "Merengue" },
+  { value: "cha-cha", label: "Cha-Cha" },
+  { value: "zouk", label: "Zouk" },
+  { value: "afro-cuban", label: "Afro-Cuban" },
+] as const;
+
+export const SOURCE_TYPE_LABEL: Record<DatabaseEvent["source_type"], string> = {
+  admin: "Admin",
+  user_submission: "User Submission",
+  organizer: "Organizer",
+  moderator: "Moderator",
+  imported: "Imported",
 };
 
 // New York calendar midnight for "today", derived from `now` so callers stay

@@ -1,0 +1,124 @@
+.admin-events-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-events-toolbar__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.admin-events-toolbar__search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 240px;
+  min-width: 200px;
+  padding: 0 10px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  background: #ffffff;
+  color: var(--admin-text-muted);
+}
+
+.admin-events-toolbar__search .admin-input {
+  flex: 1;
+  border: none;
+  padding: 8px 0;
+}
+
+.admin-events-toolbar__search .admin-input:focus-visible {
+  outline: none;
+}
+
+.admin-events-toolbar__date {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.admin-events-toolbar__date-range {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 15;
+  display: flex;
+  gap: 6px;
+  padding: 8px;
+  background: #ffffff;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  box-shadow: var(--admin-shadow-md);
+}
+
+.admin-events-toolbar__status {
+  position: relative;
+}
+
+.admin-events-toolbar__status-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 15;
+  min-width: 200px;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: #ffffff;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  box-shadow: var(--admin-shadow-md);
+}
+
+.admin-events-toolbar__status-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 4px 6px;
+  border-radius: calc(var(--admin-radius) - 2px);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.admin-events-toolbar__status-option:hover {
+  background: var(--admin-surface-high);
+}
+
+.admin-events-toolbar__more {
+  position: relative;
+}
+
+.admin-events-toolbar__more-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9999px;
+  background: var(--admin-primary);
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.admin-events-toolbar__sort-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.admin-events-toolbar__sort-label {
+  color: var(--admin-text-muted);
+  font-size: 0.875rem;
+}
+
+@media (pointer: coarse) {
+  .admin-events-toolbar__status-option {
+    min-height: 44px;
+  }
+}

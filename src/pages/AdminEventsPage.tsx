@@ -299,11 +299,11 @@ export default function AdminEventsPage() {
           </div>
 
           {flag && (
-            <div className="admin-chip admin-events-page__flag-chip">
+            <div className="admin-chip admin-filter-chip">
               <span>{flag === "upcoming" ? "Next 30 days" : "Missing info"}</span>
               <button
                 type="button"
-                className="admin-events-page__flag-chip-dismiss"
+                className="admin-filter-chip-dismiss"
                 aria-label="Remove filter"
                 onClick={() => {
                   setFlag(null);

@@ -2,34 +2,6 @@
   color: var(--admin-text-muted);
 }
 
-.admin-events-page__flag-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 12px;
-  padding: 4px 6px 4px 10px;
-}
-
-.admin-events-page__flag-chip-dismiss {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  padding: 0;
-  border: none;
-  border-radius: 9999px;
-  background: none;
-  color: inherit;
-  font-size: 12px;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.admin-events-page__flag-chip-dismiss:hover {
-  background: rgba(15, 23, 42, 0.08);
-}
-
 .admin-events-page__empty {
   display: flex;
   flex-direction: column;

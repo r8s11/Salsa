@@ -79,10 +79,10 @@ function Hero() {
           </p>
 
           <div className="hero-cta">
-            <a href="#events" className="hero-btn hero-btn--primary">
+            <a href="#events" className="btn-primary hero-btn">
               Tonight on the floor
             </a>
-            <Link to="/calendar" className="hero-btn hero-btn--outline">
+            <Link to="/calendar" className="btn-secondary hero-btn">
               Full calendar
             </Link>
           </div>

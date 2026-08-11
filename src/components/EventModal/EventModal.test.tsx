@@ -74,6 +74,46 @@ describe("EventModal", () => {
     expect(screen.getByText("+2")).toBeInTheDocument();
   });
 
+  it("renders each available public contact link", () => {
+    render(
+      <EventModal
+        event={{
+          ...baseEvent,
+          contactEmail: "hola@studioazul.test",
+          contactInstagram: "@studioazul",
+          contactWebsite: "https://example.test/mambo",
+        }}
+        onClose={() => {}}
+      />
+    );
+    expect(screen.getByRole("link", { name: "hola@studioazul.test" })).toHaveAttribute(
+      "href",
+      "mailto:hola@studioazul.test"
+    );
+    expect(screen.getByRole("link", { name: "@studioazul" })).toHaveAttribute(
+      "href",
+      "https://instagram.com/studioazul"
+    );
+    expect(screen.getByRole("link", { name: "Visit website" })).toHaveAttribute(
+      "href",
+      "https://example.test/mambo"
+    );
+  });
+
+  it("renders only the email link when other contacts are absent", () => {
+    render(
+      <EventModal event={{ ...baseEvent, contactEmail: "hola@studioazul.test" }} onClose={() => {}} />
+    );
+    expect(screen.getByRole("link", { name: "hola@studioazul.test" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /instagram/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Visit website" })).not.toBeInTheDocument();
+  });
+
+  it("omits the Contact heading when no contacts are available", () => {
+    render(<EventModal event={baseEvent} onClose={() => {}} />);
+    expect(screen.queryByRole("heading", { name: "Contact" })).not.toBeInTheDocument();
+  });
+
   it("keeps dialog semantics and closes via the back pill", () => {
     render(<EventModal event={baseEvent} onClose={() => {}} />);
     const dialog = screen.getByRole("dialog");

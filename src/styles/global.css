@@ -171,6 +171,7 @@ main {
   background: linear-gradient(180deg, #ff3d63, #e11d48);
   color: #fff;
   text-decoration: none;
+  border: 0;
   border-radius: var(--radius-xl);
   font-family: var(--font-ui);
   font-size: 0.8rem;
@@ -181,9 +182,10 @@ main {
   position: relative;
   overflow: hidden;
   z-index: 0;
+  cursor: pointer;
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
   box-shadow: var(--glow-primary);
 }
 
@@ -197,8 +199,19 @@ main {
   z-index: -1;
 }
 
-.btn-primary:hover::before {
+.btn-primary:hover:not(:disabled)::before {
   transform: translateX(0);
+}
+
+.btn-block {
+  display: block;
+  width: 100%;
+}
+
+.btn-primary:disabled,
+.btn-secondary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 /* Secondary — gold outline, fills with translucent gold on hover */
@@ -318,11 +331,9 @@ main {
 
 button:focus-visible,
 .btn-primary:focus-visible,
-.cta-button:focus-visible,
-.submit-button:focus-visible,
-.rsvp-button:focus-visible,
-.details-button:focus-visible,
-.hero-btn:focus-visible {
+.btn-secondary:focus-visible,
+.btn-ghost:focus-visible,
+.rsvp-button:focus-visible {
   outline: 2px solid var(--red-bright);
   outline-offset: 2px;
 }

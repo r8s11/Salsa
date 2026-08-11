@@ -115,44 +115,6 @@
   min-height: 110px;
 }
 
-/* Submit button */
-.submit-button {
-  width: 100%;
-  padding: 13px;
-  background: var(--red);
-  color: var(--text);
-  border: none;
-  border-radius: var(--radius-sm);
-  font-family: var(--font-ui);
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: background 0.2s ease;
-  position: relative;
-  overflow: hidden;
-  z-index: 0;
-}
-
-.submit-button::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: var(--red-bright);
-  transform: translateX(-100%);
-  transition: transform 0.3s ease;
-  z-index: -1;
-}
-
-.submit-button:hover:not(:disabled)::before {
-  transform: translateX(0);
-}
-
-.submit-button:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
 
 /* ── Error Banner ── */
 .contact-error-banner {

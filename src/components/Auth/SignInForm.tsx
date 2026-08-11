@@ -105,7 +105,7 @@ export default function SignInForm() {
           </div>
         </div>
 
-        <button type="submit" className="btn-auth" disabled={loading}>
+        <button type="submit" className="btn-primary btn-block" disabled={loading}>
           {loading ? "Please wait…" : mode === "signin" ? "Sign In" : "Sign Up"}
         </button>
       </form>

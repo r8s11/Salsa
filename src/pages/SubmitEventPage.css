@@ -145,46 +145,6 @@
   gap: 1rem;
 }
 
-/* ── Submit Button ── */
-.submit-event .submit-button {
-  display: block;
-  width: 100%;
-  padding: 14px;
-  background: var(--red);
-  color: var(--text);
-  border: none;
-  border-radius: var(--radius-sm);
-  font-family: var(--font-ui);
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: background 0.2s ease;
-  margin-top: 0.5rem;
-  position: relative;
-  overflow: hidden;
-  z-index: 0;
-}
-
-.submit-event .submit-button::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: var(--red-bright);
-  transform: translateX(-100%);
-  transition: transform 0.3s ease;
-  z-index: -1;
-}
-
-.submit-event .submit-button:hover:not(:disabled)::before {
-  transform: translateX(0);
-}
-
-.submit-event .submit-button:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
 
 /* ── Success Card ── */
 .success-card {

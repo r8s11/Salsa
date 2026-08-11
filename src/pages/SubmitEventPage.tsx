@@ -37,7 +37,7 @@ export default function SubmitEventPage() {
           <PricingFieldset form={form} update={update} />
           <YourInfoFieldset form={form} update={update} email={user?.email ?? ""} />
 
-          <button type="submit" className="submit-button" disabled={isSubmitting}>
+          <button type="submit" className="btn-primary btn-block" disabled={isSubmitting}>
             {isSubmitting ? "Submitting..." : "Submit Event"}
           </button>
         </form>

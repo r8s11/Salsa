@@ -86,6 +86,29 @@ create policy "Admins can update events"
   using ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin')
   with check ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
 
+-- Admin event management: without these, /admin cannot create or delete
+-- events on production, and events cannot carry public contact info.
+alter table public.events
+  add column if not exists contact_email text,
+  add column if not exists contact_instagram text,
+  add column if not exists contact_website text;
+
+grant delete on public.events to authenticated;
+
+drop policy if exists "Admins can delete events" on public.events;
+create policy "Admins can delete events"
+  on public.events
+  for delete
+  to authenticated
+  using ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
+
+drop policy if exists "Admins can insert events" on public.events;
+create policy "Admins can insert events"
+  on public.events
+  for insert
+  to authenticated
+  with check ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
+
 -- Without this, recently-added columns/changed policies can be invisible to
 -- the PostgREST API layer (which supabase-js talks to) for up to a minute.
 notify pgrst, 'reload schema';

@@ -31,6 +31,7 @@ const bostonApproved: DatabaseEvent = {
   price_type: "free", price_amount: null, rsvp_link: null, image_url: null,
   submitter_name: null, submitter_email: null, submitter_id: "user-1", status: "approved",
   city: "boston", created_at: "2026-08-01T00:00:00Z", host: null, recurrence: null, gallery: null,
+  contact_email: null, contact_instagram: null, contact_website: null,
 };
 const nycApproved: DatabaseEvent = { ...bostonApproved, id: "nyc-approved", title: "NYC Workshop", event_type: "workshop", city: "new-york-city" };
 const pending: DatabaseEvent = { ...bostonApproved, id: "pending", title: "Pending Class", event_type: "class", status: "pending" };

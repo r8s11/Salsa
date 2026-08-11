@@ -3,7 +3,7 @@
 
 /* Page-specific styles */
 .page-content {
-  animation: fadeIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: fadeIn 0.45s cubic-bezier(0.22, 1, 0.36, 1);
   flex: 1;
 }
 

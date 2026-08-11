@@ -86,7 +86,7 @@
 
 .stage-eyebrow {
   font-family: var(--font-ui);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -233,7 +233,7 @@
   align-items: center;
   gap: 0.4rem;
   font-family: var(--font-ui);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 400;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -249,7 +249,7 @@
 }
 
 .legend-dot.social   { background: var(--red); }
-.legend-dot.class    { background: #7c93e9; }
+.legend-dot.class    { background: var(--tertiary); }
 .legend-dot.workshop { background: var(--gold); }
 
 /* ── Loading / Error States ── */
@@ -261,7 +261,7 @@
   border: 1px solid var(--border);
   color: var(--text-muted);
   font-family: var(--font-ui);
-  font-size: 0.8rem;
+  font-size: 0.875rem;
   letter-spacing: 0.1em;
   max-width: 560px;
   margin: 0 auto 1.5rem;
@@ -270,7 +270,7 @@
 .calendar-error {
   background: var(--red-dim);
   border-color: var(--red-glow);
-  color: #FF8080;
+  color: var(--red-bright);
 }
 
 .calendar-error button {
@@ -306,7 +306,7 @@
   border-radius: var(--radius-md);
   overflow: hidden;
   border: 1px solid var(--border);
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 40px var(--red-glow);
 }
 
 .sx-react-calendar-wrapper .sx__calendar-header {
@@ -323,7 +323,7 @@
 
 .calendar-cta p {
   font-family: var(--font-body);
-  font-size: 0.95rem;
+  font-size: 1rem;
   color: var(--text-muted);
   margin-bottom: 1.25rem;
 }

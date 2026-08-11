@@ -17,7 +17,7 @@
 .pending-event-card__metadata dt { color: var(--text-muted); font-family: var(--font-ui); font-size: 0.75rem; }
 .pending-event-card__metadata dd { margin: 4px 0 0; color: var(--text); font-family: var(--font-body); overflow-wrap: anywhere; }
 .pending-event-card__description { margin: 16px 0; color: var(--text); font-family: var(--font-body); line-height: 1.6; }
-.pending-event-card__submitter { margin: 0; color: var(--text-muted); font-family: var(--font-ui); font-size: 0.813rem; }
+.pending-event-card__submitter { margin: 0; color: var(--text-muted); font-family: var(--font-ui); font-size: 0.875rem; }
 .pending-event-card__rsvp { display: inline-block; margin-top: 12px; color: var(--gold); font-family: var(--font-ui); font-size: 0.875rem; }
 .pending-event-card__error { margin: 16px 0 0; color: var(--red-bright); font-family: var(--font-ui); font-size: 0.875rem; }
 .pending-event-card__actions { display: flex; gap: 12px; margin-top: 20px; }

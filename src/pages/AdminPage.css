@@ -17,13 +17,13 @@
   -webkit-backdrop-filter: blur(var(--glass-blur));
 }
 .admin-page-metric { padding: 20px; }
-.admin-page-metric span { display: block; color: var(--text-muted); font-family: var(--font-ui); font-size: 0.813rem; }
+.admin-page-metric span { display: block; color: var(--text-muted); font-family: var(--font-ui); font-size: 0.875rem; }
 .admin-page-metric strong { display: block; margin-top: 8px; color: var(--gold); font-family: var(--font-display); font-size: 2rem; line-height: 1; }
 .admin-page-status, .admin-page-empty { padding: 32px; color: var(--text-muted); font-family: var(--font-ui); text-align: center; }
 .admin-page-error { color: var(--red-bright); }
 .admin-page-error p { margin-top: 0; }
 .admin-page-error button, .admin-page-empty .btn-secondary { margin-top: 12px; }
-.admin-page-empty h2 { margin: 0 0 16px; color: var(--text); font-family: var(--font-display); font-size: 1.25rem; }
+.admin-page-empty h2 { margin: 0 0 16px; color: var(--text); font-family: var(--font-display); font-size: 1.5rem; }
 .admin-page-list { display: grid; gap: 16px; }
 .admin-page button:focus-visible, .admin-page a:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 

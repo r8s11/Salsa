@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/useAuth";
 import "./SignInForm.css";
@@ -15,6 +16,7 @@ export default function SignInForm() {
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const toggleMode = () => {
     setMode(mode === "signin" ? "signup" : "signin");
@@ -58,32 +60,32 @@ export default function SignInForm() {
   };
 
   return (
-    <section className="auth-section">
-      <div className="auth-card">
-        <h1>{mode === "signin" ? "Sign In" : "Sign Up"}</h1>
+    <section className="auth-card">
+      <h1>{mode === "signin" ? "Welcome back" : "Create your account"}</h1>
 
-        {errorMsg && <div className="auth-error" role="alert">{errorMsg}</div>}
-        {message && <div className="auth-message" role="status">{message}</div>}
+      {errorMsg && <div className="auth-error" role="alert">{errorMsg}</div>}
+      {message && <div className="auth-message" role="status">{message}</div>}
 
-        <form onSubmit={handleSubmit} className="auth-form">
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-              disabled={loading}
-            />
-          </div>
+      <form onSubmit={handleSubmit} className="auth-form">
+        <div className="form-group">
+          <label htmlFor="email">Email</label>
+          <input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            autoComplete="email"
+            disabled={loading}
+          />
+        </div>
 
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
+        <div className="form-group">
+          <label htmlFor="password">Password</label>
+          <div className="password-field">
             <input
               id="password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -91,42 +93,35 @@ export default function SignInForm() {
               disabled={loading}
               minLength={6}
             />
+            <button
+              type="button"
+              className="password-toggle"
+              onClick={() => setShowPassword((isVisible) => !isVisible)}
+              disabled={loading}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
+            </button>
           </div>
-
-          <button type="submit" className="btn-auth" disabled={loading}>
-            {loading ? "Please wait…" : mode === "signin" ? "Sign In" : "Sign Up"}
-          </button>
-        </form>
-
-        <div className="auth-divider">
-          <span>or</span>
         </div>
 
-        <div className="oauth-buttons">
-          <button type="button" className="btn-oauth btn-apple" disabled>
-            Continue with Apple (Coming soon)
-          </button>
-          <button type="button" className="btn-oauth btn-google" disabled>
-            Continue with Google (Coming soon)
-          </button>
-          <button type="button" className="btn-oauth btn-github" disabled>
-            Continue with GitHub (Coming soon)
-          </button>
-        </div>
+        <button type="submit" className="btn-auth" disabled={loading}>
+          {loading ? "Please wait…" : mode === "signin" ? "Sign In" : "Sign Up"}
+        </button>
+      </form>
 
-        <p className="auth-toggle">
-          {mode === "signin"
-            ? "Don't have an account?"
-            : "Already have an account?"}
-          <button
-            type="button"
-            className="link-button"
-            onClick={toggleMode}
-          >
-            {mode === "signin" ? "Sign up" : "Sign in"}
-          </button>
-        </p>
-      </div>
+      <p className="auth-toggle">
+        {mode === "signin"
+          ? "Don't have an account?"
+          : "Already have an account?"}
+        <button
+          type="button"
+          className="link-button"
+          onClick={toggleMode}
+        >
+          {mode === "signin" ? "Sign up" : "Sign in"}
+        </button>
+      </p>
     </section>
   );
 }

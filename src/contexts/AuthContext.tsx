@@ -60,26 +60,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [],
   );
 
-  const signInWithOAuth = useCallback(
-    async (provider: "github" | "google" | "apple") => {
-      setLoading(true);
-      try {
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider,
-          options: {
-            redirectTo: `${window.location.origin}/auth/callback`,
-            // Apple only returns the user's name and email on the very first
-            // authorization, and only when these scopes are requested.
-            ...(provider === "apple" ? { scopes: "name email" } : {}),
-          },
-        });
-        if (error) throw error;
-      } finally {
-        setLoading(false);
-      }
-    },
-    [],
-  );
 
   const signOut = useCallback(async () => {
     setLoading(true);
@@ -97,7 +77,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isAdmin: user?.app_metadata?.role === "admin",
     signInWithPassword,
     signUp,
-    signInWithOAuth,
     signOut,
   };
 

@@ -23,3 +23,15 @@ export function fromEventDateInstant(iso: string): { date: string; time: string 
 
   return { date: `${year}-${month}-${day}`, time: `${hours}:${minutes}` };
 }
+
+// 24h "HH:MM" -> locale "h:mm AM/PM" display label. Shared by every place
+// that needs the same time-label style produced from a form field
+// (AdminEventsTable's date column, AdminDuplicateEventDialog's stamped
+// event_time on the new row).
+export function formatTimeLabel(time24: string): string {
+  const [hours, minutes] = time24.split(":").map(Number);
+  return new Date(2000, 0, 1, hours, minutes).toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}

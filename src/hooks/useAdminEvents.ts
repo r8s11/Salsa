@@ -5,8 +5,10 @@ import {
   updateEvent,
   deleteEvent,
   createEventAsAdmin,
+  duplicateEvent,
   AdminEventPayload,
 } from "../features/events/api/eventsRepo";
+import type { DatabaseEvent } from "../features/events/model/types";
 import { useAuth } from "../contexts/useAuth";
 
 export function useAdminEvents() {
@@ -18,9 +20,21 @@ export function useAdminEvents() {
     queryFn: fetchAllEvents,
   });
 
-  const decideMutation = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: "approved" | "rejected" }) =>
-      setEventStatus(id, status),
+  const changeStatusMutation = useMutation({
+    mutationFn: ({
+      id,
+      status,
+      reason,
+    }: {
+      id: string;
+      status: DatabaseEvent["status"];
+      reason?: string;
+    }) =>
+      // Only Cancel carries a reason forward; every other transition clears
+      // it so a later republish doesn't keep a stale cancellation_reason.
+      setEventStatus(id, status, {
+        cancellation_reason: status === "cancelled" ? (reason ?? null) : null,
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["events"] });
     },
@@ -43,23 +57,39 @@ export function useAdminEvents() {
     },
   });
 
+  const duplicateMutation = useMutation({
+    mutationFn: ({
+      source,
+      input,
+    }: {
+      source: DatabaseEvent;
+      input: { date: string; time: string; publish: boolean };
+    }) => duplicateEvent(source, input, { id: user!.id, email: user!.email ?? null }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["events"] });
+    },
+  });
+
   return {
     events: query.data,
     isLoading: query.isPending,
     error: query.error ? query.error.message : null,
     refetch: query.refetch,
 
-    decide: decideMutation.mutate,
+    changeStatus: changeStatusMutation.mutate,
     // Gated on isPending: true only while THIS mutation call is in flight.
-    decidingId: decideMutation.isPending ? (decideMutation.variables?.id ?? null) : null,
-    decidingStatus: decideMutation.isPending ? (decideMutation.variables?.status ?? null) : null,
+    changingStatusId: changeStatusMutation.isPending
+      ? (changeStatusMutation.variables?.id ?? null)
+      : null,
     // Gated on isError instead: mutation.variables persists after the
     // mutation settles (until the next mutate() call), so this stays
     // truthy for the failing card even after isPending flips back to
-    // false — unlike decidingId, which must NOT still point at the
+    // false — unlike changingStatusId, which must NOT still point at the
     // failed card once it's no longer "in flight".
-    decideErrorId: decideMutation.isError ? (decideMutation.variables?.id ?? null) : null,
-    decideError: decideMutation.error ? decideMutation.error.message : null,
+    changeStatusErrorId: changeStatusMutation.isError
+      ? (changeStatusMutation.variables?.id ?? null)
+      : null,
+    changeStatusError: changeStatusMutation.error ? changeStatusMutation.error.message : null,
 
     save: saveMutation.mutate,
     isSaving: saveMutation.isPending,
@@ -69,5 +99,9 @@ export function useAdminEvents() {
     removingId: removeMutation.isPending ? (removeMutation.variables ?? null) : null,
     removeErrorId: removeMutation.isError ? (removeMutation.variables ?? null) : null,
     removeError: removeMutation.error ? removeMutation.error.message : null,
+
+    duplicate: duplicateMutation.mutate,
+    isDuplicating: duplicateMutation.isPending,
+    duplicateError: duplicateMutation.error ? duplicateMutation.error.message : null,
   };
 }

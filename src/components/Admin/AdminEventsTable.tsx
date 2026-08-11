@@ -21,7 +21,7 @@ import {
   Ban,
 } from "lucide-react";
 import type { DatabaseEvent } from "../../features/events/model/types";
-import { fromEventDateInstant } from "../../features/events/model/eventDateTime";
+import { fromEventDateInstant, formatTimeLabel } from "../../features/events/model/eventDateTime";
 import { qualityIssues } from "../../features/admin/model/overviewMetrics";
 import {
   CITY_LABEL,
@@ -87,17 +87,13 @@ function titleCase(value: string): string {
 function formatDateLine(iso: string): { date: string; time: string } {
   const { date, time } = fromEventDateInstant(iso);
   const [year, month, day] = date.split("-").map(Number);
-  const [hours, minutes] = time.split(":").map(Number);
   return {
     date: new Date(year, month - 1, day).toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
       year: "numeric",
     }),
-    time: new Date(2000, 0, 1, hours, minutes).toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-    }),
+    time: formatTimeLabel(time),
   };
 }
 

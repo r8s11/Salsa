@@ -1,5 +1,6 @@
 import { supabase } from "../../../lib/supabase";
 import { DatabaseEvent, City, EventType } from "../../../types/events";
+import { toEventDateInstant, formatTimeLabel } from "../../../features/events/model/eventDateTime";
 
 export interface NewEventSubmission {
   title: string;
@@ -98,8 +99,15 @@ export async function fetchAllEvents(): Promise<DatabaseEvent[]> {
   return (data as DatabaseEvent[]) || [];
 }
 
-export async function setEventStatus(id: string, status: "approved" | "rejected"): Promise<void> {
-  const { error } = await supabase.from("events").update({ status }).eq("id", id);
+export async function setEventStatus(
+  id: string,
+  status: DatabaseEvent["status"],
+  extra?: { cancellation_reason?: string | null }
+): Promise<void> {
+  const { error } = await supabase
+    .from("events")
+    .update({ status, ...extra })
+    .eq("id", id);
 
   if (error) {
     throw new Error(error.message);
@@ -132,6 +140,43 @@ export async function createEventAsAdmin(
     source_type: "admin",
     submitter_id: submitter.id,
     submitter_email: submitter.email,
+    submitter_name: "Salsa Segura",
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+export async function duplicateEvent(
+  source: DatabaseEvent,
+  input: { date: string; time: string; publish: boolean },
+  actor: { id: string; email: string | null }
+): Promise<void> {
+  const {
+    id: _id,
+    created_at: _createdAt,
+    updated_at: _updatedAt,
+    submitter_id: _submitterId,
+    submitter_email: _submitterEmail,
+    submitter_name: _submitterName,
+    status: _status,
+    source_type: _sourceType,
+    cancellation_reason: _cancellationReason,
+    event_date: _eventDate,
+    event_time: _eventTime,
+    ...carried
+  } = source;
+
+  const { error } = await supabase.from("events").insert({
+    ...carried,
+    event_date: toEventDateInstant(input.date, input.time),
+    event_time: formatTimeLabel(input.time),
+    status: input.publish ? "approved" : "draft",
+    source_type: "admin",
+    cancellation_reason: null,
+    submitter_id: actor.id,
+    submitter_email: actor.email,
     submitter_name: "Salsa Segura",
   });
 

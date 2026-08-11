@@ -17,30 +17,31 @@
   color: var(--admin-text-strong);
 }
 
-.admin-events-page__filters {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-  padding: 16px;
+.admin-events-page__empty p {
+  margin: 0;
+  color: var(--admin-text-muted);
+}
+
+.admin-events-page__toolbar-card {
   margin-bottom: 16px;
 }
 
-.admin-events-page__search-input {
-  position: relative;
+.admin-events-page__chips {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
 }
 
-.admin-events-page__search-input svg {
-  position: absolute;
-  left: 12px;
-  color: var(--admin-text-subtle);
-  pointer-events: none;
+.admin-events-page__clear-all {
+  padding: 4px 8px;
 }
 
-.admin-events-page__search-input .admin-input {
-  width: 100%;
-  padding-left: 36px;
+.admin-events-page__result-count {
+  margin: 0 0 8px;
+  color: var(--admin-text-muted);
+  font-size: 0.85rem;
 }
 
 .admin-events-page__table-card {
@@ -51,54 +52,47 @@
   padding: 16px;
 }
 
-.admin-events-page__table-card .admin-events-page__pagination {
+/* ----------------------------------------
+   Loading skeleton — geometry matches a table row
+   ---------------------------------------- */
+.admin-events-page__skeleton {
+  padding: 16px;
+}
+
+.admin-events-page__skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+}
+
+.admin-events-page__skeleton-thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--admin-radius);
+  flex-shrink: 0;
+}
+
+.admin-events-page__skeleton-lines {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 16px;
-  background: var(--admin-surface-subtle);
-  border-top: 1px solid var(--admin-border);
-  font-size: 0.85rem;
-  color: var(--admin-text-muted);
+  gap: 8px;
+  flex: 1;
 }
 
-.admin-events-page__pagination-controls {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex-wrap: wrap;
+.admin-events-page__skeleton-line {
+  height: 12px;
+  border-radius: 4px;
+  width: 60%;
 }
 
-.admin-events-page__page-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 32px;
-  height: 32px;
-  padding: 0 8px;
-  border: 1px solid var(--admin-border);
-  border-radius: var(--admin-radius);
-  background: var(--admin-surface);
-  color: var(--admin-text);
-  font-size: 0.85rem;
-  cursor: pointer;
+.admin-events-page__skeleton-line--short {
+  width: 30%;
 }
 
-.admin-events-page__page-btn--active {
-  background: var(--admin-primary);
-  border-color: var(--admin-primary);
-  color: #ffffff;
-}
-
-@media (min-width: 1024px) {
-  .admin-events-page__filters {
-    grid-template-columns: 2fr 1fr 1fr;
-    align-items: end;
-  }
-
-  .admin-events-page__pagination {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
+.admin-events-page__skeleton-pill {
+  width: 90px;
+  height: 22px;
+  border-radius: 9999px;
+  flex-shrink: 0;
 }

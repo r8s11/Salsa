@@ -81,10 +81,13 @@ describe("PendingEventCard", () => {
     expect(screen.queryByRole("button", { name: "Approve" })).not.toBeInTheDocument();
   });
 
-  it("keeps approval available after a failed approval", () => {
-    renderCard({ error: "Database unavailable" });
+  it("keeps an approval failure classified while opening rejection confirmation", () => {
+    const { onApprove } = renderCard({ error: "Database unavailable" });
+    fireEvent.click(screen.getByRole("button", { name: "Approve" }));
+    expect(onApprove).toHaveBeenCalledWith(event.id);
+    fireEvent.click(screen.getByRole("button", { name: "Reject event" }));
     expect(screen.getByRole("alert")).toHaveTextContent("Approval failed: Database unavailable");
-    expect(screen.getByRole("button", { name: "Approve" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Confirm rejection" })).toBeEnabled();
   });
 
   it("keeps rejection confirmation open and retries a failed rejection", () => {

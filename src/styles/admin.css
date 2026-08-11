@@ -389,7 +389,13 @@
   font-weight: 600;
 }
 
-.admin-shell .admin-status::before {
+/* Quiet states: Published keeps a solid dot; Draft/Archived get a hollow
+   ring — the shape difference (not just colour) is what survives
+   greyscale and colour-blindness. Loud states (pending/rejected/cancelled)
+   render a real icon element instead and skip ::before entirely. */
+.admin-shell .admin-status--approved::before,
+.admin-shell .admin-status--draft::before,
+.admin-shell .admin-status--archived::before {
   content: "";
   width: 6px;
   height: 6px;
@@ -407,22 +413,28 @@
   background: #10b981;
 }
 
+.admin-shell .admin-status--draft,
+.admin-shell .admin-status--archived {
+  background: var(--admin-surface-high);
+  color: var(--admin-text-muted);
+  border-color: var(--admin-border);
+}
+
+.admin-shell .admin-status--draft::before,
+.admin-shell .admin-status--archived::before {
+  background: transparent;
+  border: 1.5px solid var(--admin-text-muted);
+}
+
 .admin-shell .admin-status--pending {
-  background: #fffbeb;
-  color: #b45309;
+  background: var(--admin-attention-tint);
+  color: var(--admin-attention-ink);
   border-color: #fde68a;
 }
 
-.admin-shell .admin-status--pending::before {
-  background: #f59e0b;
-}
-
-.admin-shell .admin-status--rejected {
+.admin-shell .admin-status--rejected,
+.admin-shell .admin-status--cancelled {
   background: #fef2f2;
   color: #b91c1c;
   border-color: #fecaca;
-}
-
-.admin-shell .admin-status--rejected::before {
-  background: #ef4444;
 }

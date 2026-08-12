@@ -101,7 +101,7 @@ export default function AdminUserDetailPage() {
   }, [events, submitterValue]);
 
   const upcomingOrganizerEvents = useMemo(
-    () => userEvents.filter((event) => new Date(event.event_date).getTime() >= Date.now()).length,
+    () => userEvents.filter((event) => new Date(event.event_date).getTime() >= new Date().getTime()).length,
     [userEvents]
   );
 

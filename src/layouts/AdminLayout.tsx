@@ -13,6 +13,12 @@ const SECTION_LABEL: Record<string, string> = {
   "/admin/users": "Users",
 };
 
+function sectionLabelFor(pathname: string): string {
+  if (SECTION_LABEL[pathname]) return SECTION_LABEL[pathname];
+  if (pathname.startsWith("/admin/users/")) return "Users";
+  return SECTION_LABEL["/admin"];
+}
+
 export default function AdminLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { pathname } = useLocation();
@@ -26,7 +32,7 @@ export default function AdminLayout() {
     await signOut();
   };
 
-  const sectionLabel = SECTION_LABEL[pathname] ?? SECTION_LABEL["/admin"];
+  const sectionLabel = sectionLabelFor(pathname);
   const initial = user?.email ? user.email.charAt(0).toUpperCase() : "?";
 
   return (

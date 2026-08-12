@@ -23,6 +23,19 @@ function renderLayout() {
   );
 }
 
+function renderLayoutAt(path: string) {
+  return render(
+    <MemoryRouter initialEntries={[path]}>
+      <Routes>
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<p>Dashboard content</p>} />
+          <Route path="users/:id" element={<p>Detail content</p>} />
+        </Route>
+      </Routes>
+    </MemoryRouter>
+  );
+}
+
 describe("AdminLayout", () => {
   it("toggles aria-expanded on the burger button", async () => {
     const user = userEvent.setup();
@@ -54,5 +67,10 @@ describe("AdminLayout", () => {
       expect(screen.getAllByText(label)[0]).toBeInTheDocument();
     }
     expect(screen.getAllByText("Soon").length).toBeGreaterThan(0);
+  });
+
+  it("breadcrumb reads Users on the nested detail route", () => {
+    renderLayoutAt("/admin/users/organizer-1");
+    expect(screen.getByText("Users", { selector: ".admin-breadcrumbs__current" })).toBeInTheDocument();
   });
 });

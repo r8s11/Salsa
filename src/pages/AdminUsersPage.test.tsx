@@ -28,6 +28,7 @@ const selfAdmin: AdminUserRow = {
   last_active_at: "2026-08-01T00:00:00.000Z",
   contributions: 12,
   pending_count: 2,
+  email_confirmed_at: "2026-01-01T00:00:00.000Z",
 };
 
 const organizer: AdminUserRow = {
@@ -45,6 +46,7 @@ const organizer: AdminUserRow = {
   last_active_at: "2026-07-01T00:00:00.000Z",
   contributions: 3,
   pending_count: 0,
+  email_confirmed_at: "2026-02-01T00:00:00.000Z",
 };
 
 const flaggedUser: AdminUserRow = {
@@ -62,6 +64,7 @@ const flaggedUser: AdminUserRow = {
   last_active_at: "2026-07-01T00:00:00.000Z",
   contributions: 0,
   pending_count: 0,
+  email_confirmed_at: "2026-03-01T00:00:00.000Z",
 };
 
 const suspendedUser: AdminUserRow = {
@@ -79,6 +82,7 @@ const suspendedUser: AdminUserRow = {
   last_active_at: "2026-06-01T00:00:00.000Z",
   contributions: 1,
   pending_count: 0,
+  email_confirmed_at: "2026-04-01T00:00:00.000Z",
 };
 
 const bannedUser: AdminUserRow = {
@@ -96,6 +100,7 @@ const bannedUser: AdminUserRow = {
   last_active_at: "2026-05-15T00:00:00.000Z",
   contributions: 0,
   pending_count: 0,
+  email_confirmed_at: "2026-05-01T00:00:00.000Z",
 };
 
 const guest: AdminUserRow = {
@@ -113,6 +118,7 @@ const guest: AdminUserRow = {
   last_active_at: "2026-06-05T00:00:00.000Z",
   contributions: 1,
   pending_count: 1,
+  email_confirmed_at: null,
 };
 
 const users: AdminUserRow[] = [selfAdmin, organizer, flaggedUser, suspendedUser, bannedUser, guest];

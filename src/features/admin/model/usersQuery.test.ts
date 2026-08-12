@@ -17,19 +17,20 @@ function makeRow(overrides: Partial<AdminUserRow> = {}): AdminUserRow {
   nextId += 1;
   return {
     kind: "profile",
-    id: `user-${nextId}`,
-    user_id: `user-${nextId}`,
-    email: `user${nextId}@example.com`,
-    display_name: `User ${nextId}`,
-    username: `user${nextId}`,
+    id: `u${nextId}`,
+    user_id: `u${nextId}`,
+    email: `u${nextId}@example.com`,
+    display_name: "User",
+    username: null,
     avatar_url: null,
     role: "user",
     status: "active",
     status_reason: null,
-    created_at: "2026-01-01T00:00:00.000Z",
-    last_active_at: "2026-01-01T00:00:00.000Z",
+    created_at: "2026-08-01T00:00:00.000Z",
+    last_active_at: "2026-08-01T00:00:00.000Z",
     contributions: 0,
     pending_count: 0,
+    email_confirmed_at: "2026-01-01T00:00:00.000Z",
     ...overrides,
   };
 }

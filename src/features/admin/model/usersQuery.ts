@@ -17,6 +17,7 @@ export interface AdminUserRow {
   last_active_at: string;
   contributions: number;
   pending_count: number;
+  email_confirmed_at: string | null;
 }
 
 export type UserView =

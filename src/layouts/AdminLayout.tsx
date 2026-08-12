@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useLayoutEffect, useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { ChevronRight, Menu } from "lucide-react";
 import { useAuth } from "../contexts/useAuth";
@@ -27,6 +27,13 @@ export default function AdminLayout() {
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
 
   useEscapeKey(closeDrawer);
+  useLayoutEffect(() => {
+    const pending = document.documentElement.dataset.pendingAdminTheme;
+    if (pending) {
+      document.querySelector(".admin-shell")?.setAttribute("data-theme", pending);
+      delete document.documentElement.dataset.pendingAdminTheme;
+    }
+  }, []);
 
   const handleSignOut = async () => {
     await signOut();

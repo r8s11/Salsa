@@ -168,7 +168,6 @@ function SortableHeader({
   );
 }
 
-
 function UserCell({ row, currentUserId }: { row: AdminUserRow; currentUserId: string | null }) {
   return (
     <div className="admin-users-table__user">

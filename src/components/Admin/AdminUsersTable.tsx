@@ -4,7 +4,6 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  UserRound,
   ListChecks,
   UserCog,
   Flag,
@@ -19,11 +18,11 @@ import {
   type SortDir,
   displayNameFor,
   identityLineFor,
-  initialsFor,
 } from "../../features/admin/model/usersQuery";
 import AdminRoleBadge from "./AdminRoleBadge";
 import AdminAccountStatusBadge from "./AdminAccountStatusBadge";
 import AdminActionMenu, { type ActionMenuItem } from "./AdminActionMenu";
+import AdminUserAvatar from "./AdminUserAvatar";
 import "./AdminUsersTable.css";
 
 export type UserRowAction =
@@ -169,34 +168,11 @@ function SortableHeader({
   );
 }
 
-function UserAvatar({ row }: { row: AdminUserRow }) {
-  if (row.kind === "guest") {
-    return (
-      <span
-        className="admin-users-table__avatar admin-users-table__avatar--guest"
-        aria-hidden="true"
-      >
-        <UserRound size={18} />
-      </span>
-    );
-  }
-  if (row.avatar_url) {
-    return <img src={row.avatar_url} alt="" loading="lazy" width={40} height={40} />;
-  }
-  return (
-    <span
-      className="admin-users-table__avatar admin-users-table__avatar--initials"
-      aria-hidden="true"
-    >
-      {initialsFor(row)}
-    </span>
-  );
-}
 
 function UserCell({ row, currentUserId }: { row: AdminUserRow; currentUserId: string | null }) {
   return (
     <div className="admin-users-table__user">
-      <UserAvatar row={row} />
+      <AdminUserAvatar row={row} />
       <div className="admin-users-table__user-body">
         <p className="admin-users-table__name">
           {displayNameFor(row)}
@@ -319,7 +295,7 @@ export default function AdminUsersTable({
               style={isBusy ? { opacity: 0.6 } : undefined}
             >
               <div className="admin-users-cards__head">
-                <UserAvatar row={row} />
+                <AdminUserAvatar row={row} />
                 <div className="admin-users-cards__head-body">
                   <p className="admin-users-table__name">
                     {displayNameFor(row)}

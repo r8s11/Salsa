@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useAdminUsers } from "../hooks/useAdminUsers";
+import { useAdminEvents } from "../hooks/useAdminEvents";
+import { applyFilters, type EventFilters } from "../features/admin/model/eventsQuery";
 import {
   displayNameFor,
   identityLineFor,
@@ -10,6 +12,7 @@ import {
 import AdminUserAvatar from "../components/Admin/AdminUserAvatar";
 import AdminRoleBadge from "../components/Admin/AdminRoleBadge";
 import AdminAccountStatusBadge from "../components/Admin/AdminAccountStatusBadge";
+import AdminStatusBadge from "../components/Admin/AdminStatusBadge";
 import "./AdminUserDetailPage.css";
 
 function formatDate(iso: string): string {
@@ -28,6 +31,37 @@ export default function AdminUserDetailPage() {
   const user = useMemo<AdminUserRow | undefined>(
     () => users.find((candidate) => candidate.id === id),
     [users, id]
+  );
+
+  const { events: queriedEvents } = useAdminEvents();
+  const events = useMemo(() => queriedEvents ?? [], [queriedEvents]);
+
+  const submitterValue = user?.kind === "guest" ? user.email : user?.user_id;
+
+  const userEvents = useMemo(() => {
+    if (!submitterValue) return [];
+    const filters: EventFilters = {
+      q: "",
+      from: null,
+      to: null,
+      status: [],
+      organizer: null,
+      venue: null,
+      city: null,
+      style: null,
+      source: null,
+      incompleteOnly: false,
+      submitter: submitterValue,
+    };
+    return applyFilters(events, filters, new Date())
+      .slice()
+      .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at))
+      .slice(0, 5);
+  }, [events, submitterValue]);
+
+  const upcomingOrganizerEvents = useMemo(
+    () => userEvents.filter((event) => new Date(event.event_date).getTime() >= Date.now()).length,
+    [userEvents]
   );
 
   if (isLoading) {
@@ -145,6 +179,46 @@ export default function AdminUserDetailPage() {
             <span className="admin-user-detail-page__label">Pending</span>
             <span>{user.pending_count}</span>
           </div>
+        </section>
+
+        <section className="admin-card admin-user-detail-page__moderation">
+          <h2>Moderation</h2>
+          {user.status === "active" ? (
+            <p>No moderation concerns.</p>
+          ) : (
+            <AdminAccountStatusBadge status={user.status} reason={user.status_reason} />
+          )}
+        </section>
+
+        {user.role === "organizer" && (
+          <section className="admin-card admin-user-detail-page__organizer">
+            <h2>Organizer</h2>
+            <p>
+              {displayNameFor(user)} · {upcomingOrganizerEvents} upcoming events
+            </p>
+            <Link to={`/admin/events?submitter=${encodeURIComponent(submitterValue!)}`}>
+              View Events
+            </Link>
+          </section>
+        )}
+
+        <section className="admin-card admin-user-detail-page__events">
+          <h2>Events &amp; Contributions</h2>
+          {userEvents.length === 0 ? (
+            <p>No events yet.</p>
+          ) : (
+            <ul className="admin-user-detail-page__events-list">
+              {userEvents.map((event) => (
+                <li key={event.id}>
+                  <Link to={`/admin/events?edit=${event.id}`}>{event.title}</Link>
+                  <AdminStatusBadge status={event.status} />
+                </li>
+              ))}
+            </ul>
+          )}
+          <Link to={`/admin/events?submitter=${encodeURIComponent(submitterValue ?? "")}`}>
+            View all in Events →
+          </Link>
         </section>
       </div>
     </div>

@@ -106,3 +106,31 @@
     flex: 1;
   }
 }
+
+.admin-user-detail-page__moderation,
+.admin-user-detail-page__organizer,
+.admin-user-detail-page__events {
+  padding: 20px;
+}
+
+.admin-user-detail-page__events-list {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-user-detail-page__events-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.admin-user-detail-page__events-list li:last-child {
+  border-bottom: none;
+}

@@ -26,6 +26,7 @@ function formatJoined(iso: string): string {
 }
 
 function contributionsLabel(row: AdminUserRow): string {
+  if (row.contributions === 0) return "No contributions";
   return `${row.contributions} contribution${row.contributions === 1 ? "" : "s"}`;
 }
 

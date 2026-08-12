@@ -104,6 +104,11 @@ describe("AdminEventsTable", () => {
     expect(screen.queryByText("Ada")).not.toBeInTheDocument();
   });
 
+  it("renders gracefully when event_type is null", () => {
+    renderTable({ events: [{ ...baseEvent, event_type: null as unknown as DatabaseEvent["event_type"] }] });
+    expect(screen.getAllByText("Unknown").length).toBeGreaterThan(0);
+  });
+
   describe("sortable headers", () => {
     it("marks the active sort column and calls onSortChange with the clicked key", async () => {
       const user = userEvent.setup();

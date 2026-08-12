@@ -80,7 +80,8 @@ function submitterDisplay(event: DatabaseEvent): string {
   return event.submitter_name || "Guest Submitter";
 }
 
-function titleCase(value: string): string {
+function titleCase(value: string | null | undefined): string {
+  if (!value) return "Unknown";
   return value.replace(/-/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 

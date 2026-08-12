@@ -1,0 +1,108 @@
+.admin-user-detail-page__back {
+  display: inline-block;
+  margin-bottom: 16px;
+  color: var(--admin-text-muted);
+  font-size: 0.875rem;
+  text-decoration: none;
+}
+
+.admin-user-detail-page__back:hover {
+  text-decoration: underline;
+}
+
+.admin-user-detail-page__header {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.admin-user-detail-page__header-body h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--admin-text-strong);
+}
+
+.admin-user-detail-page__identity {
+  margin: 2px 0 8px;
+  color: var(--admin-text-muted);
+}
+
+.admin-user-detail-page__identity--none {
+  font-style: italic;
+}
+
+.admin-user-detail-page__badges {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.admin-user-detail-page__joined {
+  margin: 0;
+  color: var(--admin-text-muted);
+  font-size: 0.85rem;
+}
+
+.admin-user-detail-page__body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.admin-user-detail-page__overview,
+.admin-user-detail-page__summary {
+  padding: 20px;
+}
+
+.admin-user-detail-page__overview h2,
+.admin-user-detail-page__summary h2,
+.admin-user-detail-page__moderation h2,
+.admin-user-detail-page__events h2,
+.admin-user-detail-page__organizer h2,
+.admin-user-detail-page__activity h2,
+.admin-user-detail-page__actions h2 {
+  margin: 0 0 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--admin-text-muted);
+}
+
+.admin-user-detail-page__field {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.admin-user-detail-page__field:last-child {
+  border-bottom: none;
+}
+
+.admin-user-detail-page__label {
+  color: var(--admin-text-muted);
+}
+
+.admin-user-detail-page__loading,
+.admin-user-detail-page__empty {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+@media (min-width: 1024px) {
+  .admin-user-detail-page__body {
+    flex-direction: row;
+  }
+
+  .admin-user-detail-page__overview,
+  .admin-user-detail-page__summary {
+    flex: 1;
+  }
+}

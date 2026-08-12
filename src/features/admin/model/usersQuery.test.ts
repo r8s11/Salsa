@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   applyUserFilters,
   applyUserSort,
@@ -7,6 +7,7 @@ import {
   identityLineFor,
   initialsFor,
   userViewCounts,
+  rowActionItems,
   type AdminUserRow,
   type UserFilters,
 } from "./usersQuery";
@@ -270,6 +271,73 @@ describe("applyUserSort", () => {
   });
 });
 
+describe("rowActionItems", () => {
+  const currentUserId = "self-1";
+
+  it("guest rows get only View Submissions", () => {
+    const guest = makeRow({ kind: "guest", user_id: null, id: "guest:x@y.test" });
+    const items = rowActionItems(guest, currentUserId, 2, vi.fn());
+    expect(items.map((item) => item.id)).toEqual(["view-contributions"]);
+    expect(items[0].label).toBe("View Submissions");
+  });
+
+  it("self row gets only View Contributions, regardless of status", () => {
+    const self = makeRow({ user_id: currentUserId, status: "active" });
+    const items = rowActionItems(self, currentUserId, 2, vi.fn());
+    expect(items.map((item) => item.id)).toEqual(["view-contributions"]);
+    expect(items[0].label).toBe("View Contributions");
+  });
+
+  it("the last remaining admin gets only View Contributions", () => {
+    const soleAdmin = makeRow({ user_id: "other-1", role: "admin", status: "active" });
+    const items = rowActionItems(soleAdmin, currentUserId, 1, vi.fn());
+    expect(items.map((item) => item.id)).toEqual(["view-contributions"]);
+  });
+
+  it("active status offers Change Role, Flag, Suspend, Ban", () => {
+    const active = makeRow({ user_id: "other-1", role: "user", status: "active" });
+    const items = rowActionItems(active, currentUserId, 2, vi.fn());
+    expect(items.map((item) => item.id)).toEqual([
+      "view-contributions",
+      "change-role",
+      "flag",
+      "suspend",
+      "ban",
+    ]);
+  });
+
+  it("flagged status offers Remove Flag instead of Flag", () => {
+    const flagged = makeRow({ user_id: "other-1", status: "flagged" });
+    const items = rowActionItems(flagged, currentUserId, 2, vi.fn());
+    expect(items.map((item) => item.id)).toEqual([
+      "view-contributions",
+      "change-role",
+      "unflag",
+      "suspend",
+      "ban",
+    ]);
+  });
+
+  it("suspended status offers Restore and Ban only, no Change Role", () => {
+    const suspended = makeRow({ user_id: "other-1", status: "suspended" });
+    const items = rowActionItems(suspended, currentUserId, 2, vi.fn());
+    expect(items.map((item) => item.id)).toEqual(["view-contributions", "restore", "ban"]);
+  });
+
+  it("banned status offers Restore only", () => {
+    const banned = makeRow({ user_id: "other-1", status: "banned" });
+    const items = rowActionItems(banned, currentUserId, 2, vi.fn());
+    expect(items.map((item) => item.id)).toEqual(["view-contributions", "restore"]);
+  });
+
+  it("onAction receives the action id and the row when an item is selected", () => {
+    const onAction = vi.fn();
+    const active = makeRow({ user_id: "other-1", status: "active" });
+    const items = rowActionItems(active, currentUserId, 2, onAction);
+    items.find((item) => item.id === "flag")!.onSelect();
+    expect(onAction).toHaveBeenCalledWith("flag", active);
+  });
+});
 describe("userViewCounts", () => {
   it("counts each view over the unfiltered set", () => {
     const admin = makeRow({ role: "admin" });

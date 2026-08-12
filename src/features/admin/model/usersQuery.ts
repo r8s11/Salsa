@@ -1,3 +1,6 @@
+import { ListChecks, UserCog, Flag, FlagOff, PauseCircle, Ban, RotateCcw } from "lucide-react";
+import type { ActionMenuItem } from "../../../components/Admin/AdminActionMenu";
+
 export type AccountKind = "profile" | "guest";
 export type UserRole = "user" | "moderator" | "organizer" | "admin";
 export type AccountStatus = "active" | "flagged" | "suspended" | "banned";
@@ -170,4 +173,91 @@ export function userViewCounts(rows: AdminUserRow[]): Record<UserView, number> {
     counts[view] = rows.filter(predicate).length;
   });
   return counts;
+}
+
+export type UserRowAction =
+  | "view-contributions"
+  | "change-role"
+  | "flag"
+  | "unflag"
+  | "suspend"
+  | "ban"
+  | "restore";
+
+// Row action menu contents by row identity/status — this matrix is the contract.
+export function rowActionItems(
+  user: AdminUserRow,
+  currentUserId: string | null,
+  adminCount: number,
+  onAction: (action: UserRowAction, user: AdminUserRow) => void
+): ActionMenuItem[] {
+  const viewContributions: ActionMenuItem = {
+    id: "view-contributions",
+    label: user.kind === "guest" ? "View Submissions" : "View Contributions",
+    icon: ListChecks,
+    onSelect: () => onAction("view-contributions", user),
+  };
+
+  if (user.kind === "guest") {
+    return [viewContributions];
+  }
+  if (user.user_id === currentUserId) {
+    return [viewContributions];
+  }
+  if (user.role === "admin" && adminCount <= 1) {
+    return [viewContributions];
+  }
+
+  const changeRole: ActionMenuItem = {
+    id: "change-role",
+    label: "Change Role",
+    icon: UserCog,
+    separatorBefore: true,
+    onSelect: () => onAction("change-role", user),
+  };
+  const flag: ActionMenuItem = {
+    id: "flag",
+    label: "Flag",
+    icon: Flag,
+    separatorBefore: true,
+    onSelect: () => onAction("flag", user),
+  };
+  const unflag: ActionMenuItem = {
+    id: "unflag",
+    label: "Remove Flag",
+    icon: FlagOff,
+    separatorBefore: true,
+    onSelect: () => onAction("unflag", user),
+  };
+  const suspend: ActionMenuItem = {
+    id: "suspend",
+    label: "Suspend",
+    icon: PauseCircle,
+    onSelect: () => onAction("suspend", user),
+  };
+  const ban: ActionMenuItem = {
+    id: "ban",
+    label: "Ban",
+    icon: Ban,
+    tone: "danger",
+    onSelect: () => onAction("ban", user),
+  };
+  const restore: ActionMenuItem = {
+    id: "restore",
+    label: "Restore Access",
+    icon: RotateCcw,
+    separatorBefore: true,
+    onSelect: () => onAction("restore", user),
+  };
+
+  switch (user.status) {
+    case "active":
+      return [viewContributions, changeRole, flag, suspend, ban];
+    case "flagged":
+      return [viewContributions, changeRole, unflag, suspend, ban];
+    case "suspended":
+      return [viewContributions, restore, ban];
+    case "banned":
+      return [viewContributions, restore];
+  }
 }

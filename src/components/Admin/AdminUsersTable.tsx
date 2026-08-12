@@ -1,50 +1,21 @@
 import { Fragment } from "react";
-import {
-  Mail,
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
-  ListChecks,
-  UserCog,
-  Flag,
-  FlagOff,
-  PauseCircle,
-  Ban,
-  RotateCcw,
-} from "lucide-react";
+import { Mail, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import {
   type AdminUserRow,
   type UserSortKey,
   type SortDir,
   displayNameFor,
   identityLineFor,
+  rowActionItems,
+  type UserRowAction,
 } from "../../features/admin/model/usersQuery";
+
+export type { UserRowAction } from "../../features/admin/model/usersQuery";
 import AdminRoleBadge from "./AdminRoleBadge";
 import AdminAccountStatusBadge from "./AdminAccountStatusBadge";
-import AdminActionMenu, { type ActionMenuItem } from "./AdminActionMenu";
+import AdminActionMenu from "./AdminActionMenu";
 import AdminUserAvatar from "./AdminUserAvatar";
 import "./AdminUsersTable.css";
-
-export type UserRowAction =
-  | "view-contributions"
-  | "change-role"
-  | "flag"
-  | "unflag"
-  | "suspend"
-  | "ban"
-  | "restore";
-
-interface AdminUsersTableProps {
-  users: AdminUserRow[];
-  currentUserId: string | null;
-  adminCount: number;
-  sort: { key: UserSortKey; dir: SortDir };
-  onSortChange: (key: UserSortKey) => void;
-  onAction: (action: UserRowAction, user: AdminUserRow) => void;
-  busy: { id: string; action: UserRowAction } | null;
-  errorId: string | null;
-  error: string | null;
-}
 
 function formatJoined(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", {
@@ -55,86 +26,19 @@ function formatJoined(iso: string): string {
 }
 
 function contributionsLabel(row: AdminUserRow): string {
-  if (row.contributions === 0) return "No contributions";
   return `${row.contributions} contribution${row.contributions === 1 ? "" : "s"}`;
 }
 
-// Row action menu contents by row identity/status — this matrix is the contract.
-function rowActionItems(
-  user: AdminUserRow,
-  currentUserId: string | null,
-  adminCount: number,
-  onAction: (action: UserRowAction, user: AdminUserRow) => void
-): ActionMenuItem[] {
-  const viewContributions: ActionMenuItem = {
-    id: "view-contributions",
-    label: user.kind === "guest" ? "View Submissions" : "View Contributions",
-    icon: ListChecks,
-    onSelect: () => onAction("view-contributions", user),
-  };
-
-  if (user.kind === "guest") {
-    return [viewContributions];
-  }
-  if (user.user_id === currentUserId) {
-    return [viewContributions];
-  }
-  if (user.role === "admin" && adminCount <= 1) {
-    return [viewContributions];
-  }
-
-  const changeRole: ActionMenuItem = {
-    id: "change-role",
-    label: "Change Role",
-    icon: UserCog,
-    separatorBefore: true,
-    onSelect: () => onAction("change-role", user),
-  };
-  const flag: ActionMenuItem = {
-    id: "flag",
-    label: "Flag",
-    icon: Flag,
-    separatorBefore: true,
-    onSelect: () => onAction("flag", user),
-  };
-  const unflag: ActionMenuItem = {
-    id: "unflag",
-    label: "Remove Flag",
-    icon: FlagOff,
-    separatorBefore: true,
-    onSelect: () => onAction("unflag", user),
-  };
-  const suspend: ActionMenuItem = {
-    id: "suspend",
-    label: "Suspend",
-    icon: PauseCircle,
-    onSelect: () => onAction("suspend", user),
-  };
-  const ban: ActionMenuItem = {
-    id: "ban",
-    label: "Ban",
-    icon: Ban,
-    tone: "danger",
-    onSelect: () => onAction("ban", user),
-  };
-  const restore: ActionMenuItem = {
-    id: "restore",
-    label: "Restore Access",
-    icon: RotateCcw,
-    separatorBefore: true,
-    onSelect: () => onAction("restore", user),
-  };
-
-  switch (user.status) {
-    case "active":
-      return [viewContributions, changeRole, flag, suspend, ban];
-    case "flagged":
-      return [viewContributions, changeRole, unflag, suspend, ban];
-    case "suspended":
-      return [viewContributions, restore, ban];
-    case "banned":
-      return [viewContributions, restore];
-  }
+interface AdminUsersTableProps {
+  users: AdminUserRow[];
+  currentUserId: string | null;
+  adminCount: number;
+  sort: { key: UserSortKey; dir: SortDir };
+  onSortChange: (key: UserSortKey) => void;
+  onAction: (action: UserRowAction, user: AdminUserRow) => void;
+  busy?: { id: string; action: UserRowAction } | null;
+  errorId?: string | null;
+  error?: string | null;
 }
 
 function SortableHeader({

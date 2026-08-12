@@ -8,74 +8,76 @@
    ---------------------------------------- */
 :root {
   /* Backgrounds */
-  --bg:          #0b1326;
-  --surface:     #131b2e;
-  --surface-high:#171f33;
-  --card:        rgba(255, 255, 255, 0.08);
-  --card-hover:  rgba(255, 255, 255, 0.12);
+  --bg: #0b1326;
+  --surface: #131b2e;
+  --surface-high: #171f33;
+  --card: rgba(255, 255, 255, 0.08);
+  --card-hover: rgba(255, 255, 255, 0.12);
 
   /* Borders (glass) */
-  --border:      rgba(255, 255, 255, 0.10);
-  --border-md:   rgba(255, 255, 255, 0.16);
-  --border-lg:   rgba(255, 255, 255, 0.24);
+  --border: rgba(255, 255, 255, 0.1);
+  --border-md: rgba(255, 255, 255, 0.16);
+  --border-lg: rgba(255, 255, 255, 0.24);
 
   /* Accent — Rose Red (primary) */
-  --red:         #e11d48;
-  --red-bright:  #ff5874;
-  --red-dim:     rgba(225, 29, 72, 0.18);
-  --red-glow:    rgba(225, 29, 72, 0.30);
+  --red: #e11d48;
+  --red-bright: #ff5874;
+  --red-dim: rgba(225, 29, 72, 0.18);
+  --red-glow: rgba(225, 29, 72, 0.3);
 
   /* Accent — Gold (secondary) */
-  --gold:        #e9c349;
-  --gold-light:  #ffe088;
-  --gold-dim:    rgba(233, 195, 73, 0.15);
+  --gold: #e9c349;
+  --gold-light: #ffe088;
+  --gold-dim: rgba(233, 195, 73, 0.15);
 
   /* Accent — Warm Orange (tertiary) */
-  --tertiary:     #ffb690;
+  --tertiary: #ffb690;
   --tertiary-dim: rgba(255, 182, 144, 0.15);
 
   /* Text */
-  --text:        #dae2fd;
-  --text-muted:  #e5bdbe;
-  --text-dim:    #ac8889;
+  --text: #dae2fd;
+  --text-muted: #e5bdbe;
+  --text-dim: #ac8889;
 
   /* Typography */
-  --font-display: 'Epilogue', 'Helvetica Neue', sans-serif;
-  --font-ui:      'Epilogue', 'Helvetica Neue', sans-serif;
-  --font-body:    'Be Vietnam Pro', 'Helvetica Neue', sans-serif;
-  --font-logo:    'Great Vibes', cursive;
+  --font-display: "Epilogue", "Helvetica Neue", sans-serif;
+  --font-ui: "Epilogue", "Helvetica Neue", sans-serif;
+  --font-body: "Be Vietnam Pro", "Helvetica Neue", sans-serif;
+  --font-logo: "Great Vibes", cursive;
 
   /* Header (glass) */
   --header-bg: rgba(11, 19, 38, 0.72);
 
   /* Glass & glow */
-  --glass-blur:   12px;
-  --glow-primary: 0 0 24px rgba(225, 29, 72, 0.30);
+  --glass-blur: 12px;
+  --glow-primary: 0 0 24px rgba(225, 29, 72, 0.3);
 
   /* Spacing (4px base scale) */
-  --space-xs:  4px;
-  --space-sm:  8px;
-  --space-md:  16px;
-  --space-lg:  24px;
-  --space-xl:  40px;
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 40px;
   --space-xxl: 80px;
-  --gutter:    24px;
+  --gutter: 24px;
   --container-max: 1280px;
   --section-pad: 80px 0;
 
   /* Radius */
-  --radius-sm:   4px;
-  --radius:      8px;
-  --radius-md:   12px;
-  --radius-lg:   16px;
-  --radius-xl:   24px;
+  --radius-sm: 4px;
+  --radius: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
   --radius-full: 9999px;
 }
 
 /* ----------------------------------------
    2. CSS Reset & Base
    ---------------------------------------- */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -190,7 +192,7 @@ main {
 }
 
 .btn-primary::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   background: var(--red-bright);
@@ -209,7 +211,8 @@ main {
 }
 
 .btn-primary:disabled,
-.btn-secondary:disabled {
+.btn-secondary:disabled,
+.btn-danger:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
@@ -228,7 +231,9 @@ main {
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  transition: background 0.25s ease, color 0.25s ease;
+  transition:
+    background 0.25s ease,
+    color 0.25s ease;
   cursor: pointer;
 }
 
@@ -254,8 +259,33 @@ main {
   position: relative;
 }
 
+/* Danger — red outline, destructive actions */
+.btn-danger {
+  display: inline-block;
+  padding: 0.8rem 1.75rem;
+  background: transparent;
+  color: var(--red-bright);
+  text-decoration: none;
+  border: 1px solid var(--red-bright);
+  border-radius: var(--radius-xl);
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition:
+    background 0.25s ease,
+    color 0.25s ease;
+  cursor: pointer;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: var(--red-dim);
+  color: var(--red-bright);
+}
+
 .btn-ghost::after {
-  content: '';
+  content: "";
   position: absolute;
   left: 0.5rem;
   right: 0.5rem;
@@ -289,18 +319,36 @@ main {
    8. Animations & Keyframes
    ---------------------------------------- */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(32px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(32px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes bounce {
-  0%, 80%, 100% { transform: translateY(0); }
-  40%           { transform: translateY(-8px); }
+  0%,
+  80%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-8px);
+  }
 }
 
 .fade-in {
@@ -332,6 +380,7 @@ main {
 button:focus-visible,
 .btn-primary:focus-visible,
 .btn-secondary:focus-visible,
+.btn-danger:focus-visible,
 .btn-ghost:focus-visible,
 .rsvp-button:focus-visible {
   outline: 2px solid var(--red-bright);

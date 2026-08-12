@@ -7,8 +7,8 @@ const DEFAULT_DURATION_HOURS = 4;
 // Convert database event to Schedule-X event
 export function databaseEventToScheduleX(event: DatabaseEvent): ScheduleXEvent {
   // Parse as Instant and convert to New York time
-  const zdt = Temporal.Instant.from(event.event_date).toZonedDateTimeISO('America/New_York');
-  
+  const zdt = Temporal.Instant.from(event.event_date).toZonedDateTimeISO("America/New_York");
+
   const start = formatDateTime(zdt);
 
   // Add duration
@@ -32,6 +32,7 @@ export function databaseEventToScheduleX(event: DatabaseEvent): ScheduleXEvent {
     contactEmail: event.contact_email ?? undefined,
     contactInstagram: event.contact_instagram ?? undefined,
     contactWebsite: event.contact_website ?? undefined,
+    danceStyles: event.dance_styles ?? undefined,
     imageUrl: event.image_url ?? `https://picsum.photos/seed/${event.id}/800/600`,
     priceType: event.price_type ?? undefined,
     priceAmount: event.price_amount ?? undefined,

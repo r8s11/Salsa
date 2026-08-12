@@ -1,8 +1,10 @@
 import "temporal-polyfill/global";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../contexts/useAuth";
 import { useMySubmissions } from "../hooks/useMySubmissions";
+import { withdrawSubmission } from "../features/events/api/eventsRepo";
 import type { DatabaseEvent } from "../features/events/model/types";
 import "./ProfilePage.css";
 
@@ -24,6 +26,7 @@ function formatSubmissionDate(isoDate: string): string {
 
 export default function ProfilePage() {
   const { user, signOut } = useAuth();
+  const queryClient = useQueryClient();
   const { submissions, isLoading, error, refetch } = useMySubmissions(user?.id);
   const [filter, setFilter] = useState<SubmissionFilter>("all");
   const events = useMemo(() => submissions ?? [], [submissions]);
@@ -47,6 +50,29 @@ export default function ProfilePage() {
     { value: "rejected", label: "Rejected", count: counts.rejected },
   ];
 
+  const withdrawMutation = useMutation({
+    mutationFn: (id: string) => withdrawSubmission(id, user!.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["events", "mine", user?.id] });
+    },
+  });
+
+  const handleWithdraw = (event: DatabaseEvent) => {
+    if (
+      window.confirm(
+        `Withdraw "${event.title}"? This will permanently delete the submission and cannot be undone.`
+      )
+    ) {
+      withdrawMutation.mutate(event.id);
+    }
+  };
+
+  const canEdit = (event: DatabaseEvent): boolean =>
+    event.status === "pending" || event.status === "rejected";
+  const canWithdraw = (event: DatabaseEvent): boolean => event.status === "pending";
+  const isWithdrawing = (event: DatabaseEvent): boolean =>
+    withdrawMutation.isPending && withdrawMutation.variables === event.id;
+
   return (
     <main className="profile-page">
       <header className="profile-account-card">
@@ -63,8 +89,12 @@ export default function ProfilePage() {
           </div>
         </div>
         <div className="profile-account-actions">
-          <Link className="btn-primary" to="/submit">Submit an Event</Link>
-          <Link className="btn-secondary" to="/calendar">View Calendar</Link>
+          <Link className="btn-primary" to="/submit">
+            Submit an Event
+          </Link>
+          <Link className="btn-secondary" to="/calendar">
+            View Calendar
+          </Link>
           <button type="button" className="btn-secondary" onClick={() => signOut()}>
             Sign Out
           </button>
@@ -89,12 +119,18 @@ export default function ProfilePage() {
           )}
         </div>
 
-        {isLoading && <p className="profile-page-status" role="status">Loading your submissions...</p>}
+        {isLoading && (
+          <p className="profile-page-status" role="status">
+            Loading your submissions...
+          </p>
+        )}
 
         {error && (
           <div className="profile-page-status profile-page-error" role="alert">
             <p>Couldn't load your submissions: {error}</p>
-            <button type="button" onClick={() => refetch()}>Retry</button>
+            <button type="button" onClick={() => refetch()}>
+              Retry
+            </button>
           </div>
         )}
 
@@ -106,7 +142,11 @@ export default function ProfilePage() {
 
         {!isLoading && !error && events.length > 0 && (
           <>
-            <div className="profile-filter-row" role="group" aria-label="Filter submissions by status">
+            <div
+              className="profile-filter-row"
+              role="group"
+              aria-label="Filter submissions by status"
+            >
               {filters.map(({ value, label, count }) => (
                 <button
                   type="button"
@@ -134,11 +174,35 @@ export default function ProfilePage() {
                       </p>
                     </div>
                     <div className="profile-submission-actions">
-                      <span className={`profile-submission-badge profile-submission-badge--${event.status}`}>
+                      <span
+                        className={`profile-submission-badge profile-submission-badge--${event.status}`}
+                      >
                         {STATUS_LABEL[event.status]}
                       </span>
+                      {canEdit(event) && (
+                        <Link
+                          to={`/profile/edit/${event.id}`}
+                          className="profile-action-link"
+                          aria-label={`Edit ${event.title}`}
+                        >
+                          Edit
+                        </Link>
+                      )}
                       {event.status === "approved" && (
-                        <Link to={`/calendar?event=${event.id}&city=${event.city}`}>View on calendar</Link>
+                        <Link to={`/calendar?event=${event.id}&city=${event.city}`}>
+                          View on calendar
+                        </Link>
+                      )}
+                      {canWithdraw(event) && (
+                        <button
+                          type="button"
+                          className="profile-action-link profile-action-link--destructive"
+                          aria-label={`Withdraw ${event.title}`}
+                          disabled={isWithdrawing(event)}
+                          onClick={() => handleWithdraw(event)}
+                        >
+                          {isWithdrawing(event) ? "Withdrawing…" : "Withdraw"}
+                        </button>
                       )}
                     </div>
                   </li>

@@ -1,8 +1,18 @@
 import type { SubmitForm } from "../validation";
 
+const DANCE_STYLE_OPTIONS = [
+  { value: "salsa", label: "Salsa" },
+  { value: "bachata", label: "Bachata" },
+  { value: "kizomba", label: "Kizomba" },
+  { value: "merengue", label: "Merengue" },
+  { value: "cha-cha", label: "Cha-Cha" },
+  { value: "zouk", label: "Zouk" },
+  { value: "afro-cuban", label: "Afro-Cuban" },
+] as const;
+
 interface Props {
   form: SubmitForm;
-  update: (field: keyof SubmitForm, value: string) => void;
+  update: (field: keyof SubmitForm, value: string | string[]) => void;
 }
 
 export default function EventDetailsFieldset({ form, update }: Props) {
@@ -82,6 +92,32 @@ export default function EventDetailsFieldset({ form, update }: Props) {
           />
           This is a weekly recurring event
         </label>
+      </div>
+
+      <div className="form-group">
+        <label>Dance Styles</label>
+        <div className="form-dance-styles-grid">
+          {DANCE_STYLE_OPTIONS.map((style) => {
+            const checked = form.dance_styles.includes(style.value);
+            return (
+              <label key={style.value} className="form-dance-style-chip">
+                <input
+                  type="checkbox"
+                  value={style.value}
+                  checked={checked}
+                  onChange={() => {
+                    const current = form.dance_styles;
+                    const updated = checked
+                      ? current.filter((s) => s !== style.value)
+                      : [...current, style.value];
+                    update("dance_styles", updated);
+                  }}
+                />
+                {style.label}
+              </label>
+            );
+          })}
+        </div>
       </div>
 
       <div className="form-group">

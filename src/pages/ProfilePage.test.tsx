@@ -15,10 +15,23 @@ const mocks = vi.hoisted(() => ({
     isLoading: false,
     error: null as string | null,
   },
+  mutateWithdraw: vi.fn(),
+  invalidateQueries: vi.fn(),
 }));
 
 vi.mock("../contexts/useAuth", () => ({
   useAuth: () => ({ ...mocks.auth, signOut: mocks.signOut }),
+}));
+
+vi.mock("@tanstack/react-query", () => ({
+  useMutation: () => ({
+    mutate: mocks.mutateWithdraw,
+    isPending: false,
+    variables: undefined,
+  }),
+  useQueryClient: () => ({
+    invalidateQueries: mocks.invalidateQueries,
+  }),
 }));
 
 vi.mock("../hooks/useMySubmissions", () => ({
@@ -26,35 +39,87 @@ vi.mock("../hooks/useMySubmissions", () => ({
 }));
 
 const bostonApproved: DatabaseEvent = {
-  id: "boston-approved", title: "Boston Social", description: null, event_type: "social",
-  event_date: "2026-08-20T20:00:00Z", event_time: null, location: null, address: null,
-  price_type: "free", price_amount: null, rsvp_link: null, image_url: null,
-  submitter_name: null, submitter_email: null, submitter_id: "user-1", status: "approved",
-  city: "boston", created_at: "2026-08-01T00:00:00Z", host: null, recurrence: null, gallery: null,
-  contact_email: null, contact_instagram: null, contact_website: null,
-  source_type: "user_submission", dance_styles: [], updated_at: "2026-08-01T00:00:00Z", cancellation_reason: null,
+  id: "boston-approved",
+  title: "Boston Social",
+  description: null,
+  event_type: "social",
+  event_date: "2026-08-20T20:00:00Z",
+  event_time: null,
+  location: null,
+  address: null,
+  price_type: "free",
+  price_amount: null,
+  rsvp_link: null,
+  image_url: null,
+  submitter_name: null,
+  submitter_email: null,
+  submitter_id: "user-1",
+  status: "approved",
+  city: "boston",
+  created_at: "2026-08-01T00:00:00Z",
+  host: null,
+  recurrence: null,
+  gallery: null,
+  contact_email: null,
+  contact_instagram: null,
+  contact_website: null,
+  source_type: "user_submission",
+  dance_styles: [],
+  updated_at: "2026-08-01T00:00:00Z",
+  cancellation_reason: null,
 };
-const nycApproved: DatabaseEvent = { ...bostonApproved, id: "nyc-approved", title: "NYC Workshop", event_type: "workshop", city: "new-york-city" };
-const pending: DatabaseEvent = { ...bostonApproved, id: "pending", title: "Pending Class", event_type: "class", status: "pending" };
-const rejected: DatabaseEvent = { ...bostonApproved, id: "rejected", title: "Rejected Social", status: "rejected" };
+const nycApproved: DatabaseEvent = {
+  ...bostonApproved,
+  id: "nyc-approved",
+  title: "NYC Workshop",
+  event_type: "workshop",
+  city: "new-york-city",
+};
+const pending: DatabaseEvent = {
+  ...bostonApproved,
+  id: "pending",
+  title: "Pending Class",
+  event_type: "class",
+  status: "pending",
+};
+const rejected: DatabaseEvent = {
+  ...bostonApproved,
+  id: "rejected",
+  title: "Rejected Social",
+  status: "rejected",
+};
 
 function renderPage() {
-  return render(<MemoryRouter><ProfilePage /></MemoryRouter>);
+  return render(
+    <MemoryRouter>
+      <ProfilePage />
+    </MemoryRouter>
+  );
 }
 
 describe("ProfilePage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.auth.user = { id: "user-1", email: "dancer@example.com" };
-    mocks.submissions = { submissions: [bostonApproved, nycApproved, pending, rejected], isLoading: false, error: null };
+    mocks.submissions = {
+      submissions: [bostonApproved, nycApproved, pending, rejected],
+      isLoading: false,
+      error: null,
+    };
   });
 
   it("shows account identity and account actions", () => {
     renderPage();
 
     expect(screen.getByText("dancer@example.com")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Submit an Event" })).toHaveAttribute("href", "/submit");
-    expect(screen.getByRole("link", { name: "View Calendar" })).toHaveAttribute("href", "/calendar");
+    expect(screen.getByRole("link", { name: "Submit an Event" })).toHaveAttribute(
+      "href",
+      "/submit"
+    );
+    expect(screen.getByRole("link", { name: "View Calendar" })).toHaveAttribute(
+      "href",
+      "/calendar"
+    );
     fireEvent.click(screen.getByRole("button", { name: "Sign Out" }));
     expect(mocks.signOut).toHaveBeenCalledOnce();
   });
@@ -65,13 +130,21 @@ describe("ProfilePage", () => {
     expect(screen.getByText("Loading your submissions...")).toBeInTheDocument();
 
     mocks.submissions = { submissions: undefined, isLoading: false, error: "Network error" };
-    rerender(<MemoryRouter><ProfilePage /></MemoryRouter>);
+    rerender(
+      <MemoryRouter>
+        <ProfilePage />
+      </MemoryRouter>
+    );
     expect(screen.getByText("Couldn't load your submissions: Network error")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Retry" }));
     expect(mocks.refetch).toHaveBeenCalledOnce();
 
     mocks.submissions = { submissions: [], isLoading: false, error: null };
-    rerender(<MemoryRouter><ProfilePage /></MemoryRouter>);
+    rerender(
+      <MemoryRouter>
+        <ProfilePage />
+      </MemoryRouter>
+    );
     expect(screen.getByText(/You haven't submitted any events yet\./)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Submit one" })).toHaveAttribute("href", "/submit");
   });
@@ -80,12 +153,18 @@ describe("ProfilePage", () => {
     renderPage();
 
     expect(screen.getByRole("button", { name: "All 4" })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByRole("button", { name: "Pending 1" })).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByRole("button", { name: "Pending 1" })).toHaveAttribute(
+      "aria-pressed",
+      "false"
+    );
     expect(screen.getByRole("button", { name: "Approved 2" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Rejected 1" })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Pending 1" }));
-    expect(screen.getByRole("button", { name: "Pending 1" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Pending 1" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
     expect(screen.getByText("Pending Class")).toBeInTheDocument();
     expect(screen.queryByText("Boston Social")).not.toBeInTheDocument();
 
@@ -109,5 +188,42 @@ describe("ProfilePage", () => {
     const links = screen.getAllByRole("link", { name: "View on calendar" });
     expect(links[0]).toHaveAttribute("href", "/calendar?event=boston-approved&city=boston");
     expect(links[1]).toHaveAttribute("href", "/calendar?event=nyc-approved&city=new-york-city");
+  });
+
+  it("shows Edit link for pending and rejected submissions", () => {
+    renderPage();
+
+    expect(screen.getByRole("link", { name: "Edit Pending Class" })).toHaveAttribute(
+      "href",
+      "/profile/edit/pending"
+    );
+    expect(screen.getByRole("link", { name: "Edit Rejected Social" })).toHaveAttribute(
+      "href",
+      "/profile/edit/rejected"
+    );
+  });
+
+  it("does not show Edit link for approved submissions", () => {
+    renderPage();
+
+    expect(screen.queryByRole("link", { name: "Edit Boston Social" })).not.toBeInTheDocument();
+  });
+
+  it("shows Withdraw button for pending submissions and calls mutate on confirm", () => {
+    renderPage();
+
+    const withdrawBtn = screen.getByRole("button", { name: "Withdraw Pending Class" });
+    expect(withdrawBtn).toBeInTheDocument();
+
+    window.confirm = vi.fn(() => true);
+    fireEvent.click(withdrawBtn);
+
+    expect(mocks.mutateWithdraw).toHaveBeenCalledWith("pending");
+  });
+
+  it("does not show Withdraw button for rejected submissions", () => {
+    renderPage();
+
+    expect(screen.queryByRole("button", { name: /Withdraw Rejected/ })).not.toBeInTheDocument();
   });
 });

@@ -180,6 +180,29 @@ export default function AdminEventForm({
         </div>
 
         <div className="admin-field">
+          <label>Dance Styles</label>
+          <p className="admin-form__helper">
+            Select all that apply ({DANCE_STYLE_OPTIONS.length} available)
+          </p>
+          <div className="admin-dance-styles-grid">
+            {DANCE_STYLE_OPTIONS.map((style) => {
+              const checked = (form.dance_styles ?? []).includes(style.value);
+              return (
+                <label key={style.value} className="admin-dance-style-chip">
+                  <input
+                    type="checkbox"
+                    value={style.value}
+                    checked={checked}
+                    onChange={() => toggleDanceStyle(style.value)}
+                  />
+                  {style.label}
+                </label>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="admin-field">
           <label htmlFor="description">Description</label>
           <textarea
             id="description"
@@ -292,9 +315,19 @@ export default function AdminEventForm({
             type="url"
             className="admin-input"
             placeholder="https://..."
+            maxLength={IMAGE_URL_MAX_LENGTH}
             value={form.image_url}
             onChange={(event) => update("image_url", event.target.value)}
           />
+          {form.image_url && isValidImageUrl(form.image_url) && (
+            <div className="admin-image-preview">
+              <img
+                src={form.image_url}
+                alt="Event flyer preview"
+                className="admin-image-preview__img"
+              />
+            </div>
+          )}
         </div>
       </fieldset>
 

@@ -251,6 +251,36 @@
   outline-offset: 3px;
 }
 
+/* ── Submission action links ── */
+.profile-action-link {
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.profile-action-link:hover {
+  border-color: var(--gold);
+  color: var(--gold-light);
+}
+
+.profile-action-link--destructive:hover {
+  border-color: var(--red);
+  color: var(--red-bright);
+}
+
+.profile-action-link:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 @media (max-width: 640px) {
   .profile-page {
     padding: var(--space-lg) var(--space-md) var(--space-xl);

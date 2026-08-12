@@ -22,7 +22,9 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
-  box-shadow: var(--glow-primary), 0 30px 60px -18px rgba(0, 0, 0, 0.5);
+  box-shadow:
+    var(--glow-primary),
+    0 30px 60px -18px rgba(0, 0, 0, 0.5);
   overflow: hidden;
 }
 
@@ -62,7 +64,9 @@
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .back-pill:hover {
@@ -88,9 +92,18 @@
   margin: 8px 0 0;
 }
 
-.chip-social { background: var(--red-dim); color: #ffccd4; }
-.chip-class { background: rgba(124, 147, 233, 0.18); color: #dfe3ff; }
-.chip-workshop { background: var(--gold-dim); color: var(--gold-light); }
+.chip-social {
+  background: var(--red-dim);
+  color: #ffccd4;
+}
+.chip-class {
+  background: rgba(124, 147, 233, 0.18);
+  color: #dfe3ff;
+}
+.chip-workshop {
+  background: var(--gold-dim);
+  color: var(--gold-light);
+}
 
 /* ── Body grid ── */
 .modal-grid {
@@ -116,6 +129,12 @@
 .meta-row svg {
   color: var(--gold);
   flex-shrink: 0;
+}
+
+.dance-styles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .repeat-pill {

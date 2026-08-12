@@ -54,4 +54,5 @@ export interface ScheduleXEvent {
   contactEmail?: string;
   contactInstagram?: string;
   contactWebsite?: string;
+  danceStyles?: string[];
 }

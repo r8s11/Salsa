@@ -19,6 +19,7 @@ const AdminLayout = lazy(() => import("./layouts/AdminLayout"));
 const AdminOverviewPage = lazy(() => import("./pages/AdminOverviewPage"));
 const AdminEventsPage = lazy(() => import("./pages/AdminEventsPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+const UserEventEditPage = lazy(() => import("./pages/UserEventEditPage"));
 import RequireAuth from "./components/Auth/RequireAuth";
 import RequireAdmin from "./components/Auth/RequireAdmin";
 
@@ -59,6 +60,14 @@ function App() {
                 element={
                   <RequireAuth>
                     <ProfilePage />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="profile/edit/:eventId"
+                element={
+                  <RequireAuth>
+                    <UserEventEditPage />
                   </RequireAuth>
                 }
               />

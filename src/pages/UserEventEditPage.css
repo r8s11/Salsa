@@ -1,0 +1,77 @@
+/* ========================================
+   User Event Edit Page — extends Ritmo Vivo form styles
+   ======================================== */
+
+.user-edit-page {
+  background: var(--bg);
+  color: var(--text);
+  padding: var(--space-xxl) 0;
+  min-height: calc(100dvh - 68px);
+}
+
+.user-edit-page .section-title {
+  color: var(--text);
+}
+
+.user-edit-page__status {
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  margin-bottom: var(--space-lg);
+}
+
+.user-edit-page__actions {
+  display: flex;
+  gap: var(--space-sm);
+  margin-top: var(--space-lg);
+}
+
+.user-edit-page__actions .btn-primary,
+.user-edit-page__actions .btn-secondary {
+  flex: 1;
+}
+
+/* ── Withdraw confirmation dialog ── */
+.user-withdraw-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(11, 19, 38, 0.62);
+}
+
+.user-withdraw-dialog {
+  width: 100%;
+  max-width: 420px;
+  padding: 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+}
+
+.user-withdraw-dialog h2 {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: var(--text-dim);
+}
+
+.user-withdraw-dialog p {
+  margin: 0 0 20px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.user-withdraw-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+@media (max-width: 600px) {
+  .user-edit-page__actions {
+    flex-direction: column;
+  }
+}

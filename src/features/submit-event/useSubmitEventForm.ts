@@ -15,7 +15,7 @@ export function useSubmitEventForm() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const update = (field: keyof SubmitForm, value: string) =>
+  const update = (field: keyof SubmitForm, value: string | string[]) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
   const handleSubmit = async (e: FormEvent) => {
@@ -43,7 +43,8 @@ export function useSubmitEventForm() {
         event_time: form.event_time || null,
         location: form.location || null,
         address: form.address || null,
-        price_type: (form.price_type === "free" || form.price_type === "paid") ? form.price_type : null,
+        price_type:
+          form.price_type === "free" || form.price_type === "paid" ? form.price_type : null,
         price_amount: form.price_amount ? parseFloat(form.price_amount) : null,
         rsvp_link: form.rsvp_link || null,
         submitter_name: form.submitter_name || null,

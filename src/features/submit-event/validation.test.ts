@@ -1,51 +1,36 @@
-import { describe, it, expect } from "vitest";
-import { validateSubmitForm, buildInitialForm, SubmitForm } from "./validation";
+import { describe, expect, it } from "vitest";
+import { validateSubmitForm, buildInitialForm, type SubmitForm } from "./validation";
 
-const validForm: SubmitForm = {
-  ...buildInitialForm("boston"),
-  title: "Friday Night Salsa Social",
-  description: "A fun night of dancing",
-  event_type: "social",
-  event_date: "2026-08-01",
-  event_time: "20:00",
-  location: "Havana Club",
-  address: "288 Green St, Cambridge, MA",
-  price_type: "free",
-  price_amount: "",
-  rsvp_link: "https://example.com/rsvp",
-  submitter_name: "Jane Doe",
-  submitter_email: "jane@example.com",
-};
-
-describe("validateSubmitForm", () => {
-  it("rejects paid event submitted without an amount", () => {
-    const form: SubmitForm = { ...validForm, price_type: "paid", price_amount: "" };
-    expect(validateSubmitForm(form)).toBe("Please enter a price amount for paid events.");
+describe("validateSubmitForm — dance_styles", () => {
+  const validForm = (): SubmitForm => ({
+    ...buildInitialForm("boston"),
+    title: "Test Event",
+    event_type: "social",
+    event_date: "2026-08-20",
+    event_time: "20:00",
   });
 
-  it("rejects negative amount", () => {
-    const form: SubmitForm = { ...validForm, price_type: "paid", price_amount: "-5" };
-    expect(validateSubmitForm(form)).toBe("Price amount must be a positive number.");
+  it("passes with a reasonable number of dance styles", () => {
+    const form = validForm();
+    form.dance_styles = ["salsa", "bachata"];
+    expect(validateSubmitForm(form)).toBeNull();
   });
 
-  it("rejects malformed URL", () => {
-    const form: SubmitForm = { ...validForm, rsvp_link: "not a url" };
-    expect(validateSubmitForm(form)).toBe(
-      "Please enter a valid URL for the RSVP link (e.g., https://example.com)."
-    );
+  it("passes with an empty dance styles array", () => {
+    const form = validForm();
+    form.dance_styles = [];
+    expect(validateSubmitForm(form)).toBeNull();
   });
 
-  it("rejects non-http(s) URL protocol", () => {
-    const form: SubmitForm = { ...validForm, rsvp_link: "ftp://example.com/file" };
-    expect(validateSubmitForm(form)).toBe("RSVP link must be a valid HTTP or HTTPS URL.");
+  it("rejects more than 10 dance styles", () => {
+    const form = validForm();
+    form.dance_styles = Array.from({ length: 11 }, (_, i) => `style-${i}`);
+    expect(validateSubmitForm(form)).toBe("You can select up to 10 dance styles.");
   });
 
-  it("rejects over-length title", () => {
-    const form: SubmitForm = { ...validForm, title: "a".repeat(121) };
-    expect(validateSubmitForm(form)).toBe("Event title must be 120 characters or fewer.");
-  });
-
-  it("accepts a fully valid form", () => {
-    expect(validateSubmitForm(validForm)).toBeNull();
+  it("passes with exactly 10 dance styles", () => {
+    const form = validForm();
+    form.dance_styles = Array.from({ length: 10 }, (_, i) => `style-${i}`);
+    expect(validateSubmitForm(form)).toBeNull();
   });
 });

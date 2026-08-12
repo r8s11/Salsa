@@ -106,8 +106,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
   const isFree = event.priceType === "free" || event.priceAmount == null;
   const priceLabel = isFree ? "Free" : `$${event.priceAmount}`;
   const rsvpLabel = isFree ? "RSVP · Free" : "Get Tickets";
-  const seriesDates =
-    event.recurrence === "weekly" ? getUpcomingSeriesDates(event.start) : [];
+  const seriesDates = event.recurrence === "weekly" ? getUpcomingSeriesDates(event.start) : [];
   const galleryThumbs = event.gallery?.slice(0, 4) ?? [];
   const galleryExtra = (event.gallery?.length ?? 0) - galleryThumbs.length;
 
@@ -123,19 +122,13 @@ export default function EventModal({ event, onClose }: EventModalProps) {
       <div className="modal-content">
         <div
           className="modal-poster"
-          style={
-            event.imageUrl
-              ? { backgroundImage: `url(${event.imageUrl})` }
-              : undefined
-          }
+          style={event.imageUrl ? { backgroundImage: `url(${event.imageUrl})` } : undefined}
         >
           <button className="modal-close back-pill" onClick={onClose}>
             <ArrowLeft size={16} aria-hidden /> Back to calendar
           </button>
           <div className="poster-overlay">
-            <span className={`style-chip chip-${event.calendarId}`}>
-              {event.calendarId}
-            </span>
+            <span className={`style-chip chip-${event.calendarId}`}>{event.calendarId}</span>
             <h2 id="modal-title">{event.title}</h2>
           </div>
         </div>
@@ -171,9 +164,18 @@ export default function EventModal({ event, onClose }: EventModalProps) {
                 <span>with {event.host}</span>
               </div>
             )}
-            {event.description && (
-              <p className="modal-description">{event.description}</p>
+            {event.danceStyles && event.danceStyles.length > 0 && (
+              <div className="meta-row">
+                <span className="dance-styles">
+                  {event.danceStyles.map((style) => (
+                    <span key={style} className="style-chip">
+                      {style}
+                    </span>
+                  ))}
+                </span>
+              </div>
             )}
+            {event.description && <p className="modal-description">{event.description}</p>}
             {galleryThumbs.length > 0 && (
               <div className="gallery">
                 <h3 className="gallery-eyebrow">Photos from past nights</h3>
@@ -186,9 +188,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
                       alt={`Past night photo ${index + 1}`}
                     />
                   ))}
-                  {galleryExtra > 0 && (
-                    <span className="gallery-more">+{galleryExtra}</span>
-                  )}
+                  {galleryExtra > 0 && <span className="gallery-more">+{galleryExtra}</span>}
                 </div>
               </div>
             )}
@@ -212,9 +212,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
             <button className="btn-secondary ics-button" onClick={() => downloadIcs(event)}>
               <CalendarPlus size={16} aria-hidden /> Add to calendar
             </button>
-            <p className="reassurance">
-              RSVP opens the host's page · pay at the door
-            </p>
+            <p className="reassurance">RSVP opens the host's page · pay at the door</p>
             {(event.contactEmail || event.contactInstagram || event.contactWebsite) && (
               <div className="contact-block">
                 <h3 className="contact-eyebrow">Contact</h3>

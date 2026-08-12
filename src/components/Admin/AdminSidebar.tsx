@@ -8,6 +8,8 @@ import {
   MapPin,
   Tag,
   Settings,
+  ChevronLeft,
+  ChevronRight as ChevronRightIcon,
 } from "lucide-react";
 import type { ComponentType } from "react";
 import "./AdminSidebar.css";
@@ -15,6 +17,8 @@ import "./AdminSidebar.css";
 interface AdminSidebarProps {
   variant: "fixed" | "drawer";
   onNavigate?: () => void;
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 type NavItem = {
@@ -33,15 +37,28 @@ const NAV_ITEMS: NavItem[] = [
   { group: "Platform", label: "Tags", icon: Tag, built: false },
   { group: "System", label: "Settings", icon: Settings, built: false },
 ];
-const NAV_ITEMS_WITH_GROUP_FLAG = NAV_ITEMS.reduce<{ item: NavItem; showGroup: boolean }[]>((acc, item) => {
-  const previous = acc[acc.length - 1];
-  const showGroup = !previous || previous.item.group !== item.group;
-  return [...acc, { item, showGroup }];
-}, []);
+const NAV_ITEMS_WITH_GROUP_FLAG = NAV_ITEMS.reduce<{ item: NavItem; showGroup: boolean }[]>(
+  (acc, item) => {
+    const previous = acc[acc.length - 1];
+    const showGroup = !previous || previous.item.group !== item.group;
+    return [...acc, { item, showGroup }];
+  },
+  []
+);
 
-export default function AdminSidebar({ variant, onNavigate }: AdminSidebarProps) {
+export default function AdminSidebar({
+  variant,
+  onNavigate,
+  collapsed = false,
+  onToggleCollapse,
+}: AdminSidebarProps) {
   return (
-    <nav aria-label="Admin" className="admin-sidebar" data-variant={variant}>
+    <nav
+      aria-label="Admin"
+      className="admin-sidebar"
+      data-variant={variant}
+      data-collapsed={collapsed}
+    >
       <div className="admin-sidebar__brand">SalsaSegura</div>
       <div className="admin-sidebar__scroll">
         {NAV_ITEMS_WITH_GROUP_FLAG.map(({ item, showGroup }) => {
@@ -55,14 +72,20 @@ export default function AdminSidebar({ variant, onNavigate }: AdminSidebarProps)
                   to={item.to}
                   end={item.to === "/admin"}
                   onClick={() => onNavigate?.()}
-                  className={({ isActive }) => `admin-nav__link${isActive ? " admin-nav__link--active" : ""}`}
+                  className={({ isActive }) =>
+                    `admin-nav__link${isActive ? " admin-nav__link--active" : ""}`
+                  }
                   title={item.label}
                 >
                   <Icon size={18} />
                   <span className="admin-nav__label">{item.label}</span>
                 </NavLink>
               ) : (
-                <span className="admin-nav__link admin-nav__link--disabled" aria-disabled="true" title={item.label}>
+                <span
+                  className="admin-nav__link admin-nav__link--disabled"
+                  aria-disabled="true"
+                  title={item.label}
+                >
                   <Icon size={18} />
                   <span className="admin-nav__label">{item.label}</span>
                   <span className="admin-nav__soon">Soon</span>
@@ -72,6 +95,17 @@ export default function AdminSidebar({ variant, onNavigate }: AdminSidebarProps)
           );
         })}
       </div>
+      {variant === "fixed" && onToggleCollapse && (
+        <button
+          type="button"
+          className="admin-sidebar__collapse-toggle"
+          onClick={onToggleCollapse}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {collapsed ? <ChevronRightIcon size={16} /> : <ChevronLeft size={16} />}
+          <span className="admin-nav__label">{collapsed ? "Expand" : "Collapse"}</span>
+        </button>
+      )}
     </nav>
   );
 }

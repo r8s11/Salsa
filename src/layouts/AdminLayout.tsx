@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { ChevronRight, Menu } from "lucide-react";
 import { useAuth } from "../contexts/useAuth";
@@ -7,6 +7,12 @@ import { useEscapeKey } from "../features/calendar/hooks/useEscapeKey";
 import AdminSidebar from "../components/Admin/AdminSidebar";
 import "../styles/admin.css";
 import "./AdminLayout.css";
+
+const COLLAPSE_STORAGE_KEY = "admin-sidebar-collapsed";
+
+function readStoredCollapsed(): boolean {
+  return window.localStorage.getItem(COLLAPSE_STORAGE_KEY) === "true";
+}
 
 const SECTION_LABEL: Record<string, string> = {
   "/admin": "Dashboard",
@@ -22,6 +28,7 @@ function sectionLabelFor(pathname: string): string {
 
 export default function AdminLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(readStoredCollapsed);
   const { pathname } = useLocation();
   const { user, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
@@ -29,6 +36,10 @@ export default function AdminLayout() {
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
 
   useEscapeKey(closeDrawer);
+
+  useEffect(() => {
+    window.localStorage.setItem(COLLAPSE_STORAGE_KEY, String(sidebarCollapsed));
+  }, [sidebarCollapsed]);
   useLayoutEffect(() => {
     const pending = document.documentElement.dataset.pendingAdminTheme;
     if (pending) {
@@ -46,7 +57,11 @@ export default function AdminLayout() {
 
   return (
     <div className="admin-shell">
-      <AdminSidebar variant="fixed" />
+      <AdminSidebar
+        variant="fixed"
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed((value) => !value)}
+      />
       <div className="admin-drawer" data-open={drawerOpen}>
         <div className="admin-drawer__backdrop" onClick={closeDrawer} />
         <AdminSidebar variant="drawer" onNavigate={closeDrawer} />

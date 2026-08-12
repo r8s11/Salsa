@@ -144,3 +144,68 @@
     padding: 10px 12px;
   }
 }
+
+/* ----------------------------------------
+   ≥1024px, user-collapsed — same rail treatment the automatic
+   768-1023px breakpoint already uses, available on user request.
+   ---------------------------------------- */
+@media (min-width: 1024px) {
+  .admin-sidebar[data-variant="fixed"][data-collapsed="true"] .admin-nav__label,
+  .admin-sidebar[data-variant="fixed"][data-collapsed="true"] .admin-nav__group,
+  .admin-sidebar[data-variant="fixed"][data-collapsed="true"] .admin-nav__soon {
+    display: none;
+  }
+
+  .admin-sidebar[data-variant="fixed"][data-collapsed="true"] .admin-sidebar__brand {
+    justify-content: center;
+    padding: 0;
+    font-size: 0;
+  }
+
+  .admin-sidebar[data-variant="fixed"][data-collapsed="true"] .admin-sidebar__brand::before {
+    content: "S";
+    font-size: 1.2rem;
+  }
+
+  .admin-sidebar[data-variant="fixed"][data-collapsed="true"] .admin-nav__link {
+    justify-content: center;
+    padding: 10px;
+  }
+}
+
+.admin-sidebar__collapse-toggle {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .admin-sidebar__collapse-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 12px 20px;
+    border: none;
+    border-top: 1px solid var(--admin-divider);
+    background: transparent;
+    color: var(--admin-nav-text);
+    font-family: var(--font-ui);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+  }
+
+  .admin-sidebar__collapse-toggle:hover {
+    background: var(--admin-surface-secondary);
+  }
+
+  .admin-sidebar[data-collapsed="true"] .admin-sidebar__collapse-toggle {
+    justify-content: center;
+    padding: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-sidebar__collapse-toggle {
+    transition: none;
+  }
+}

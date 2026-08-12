@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import AdminLayout from "./AdminLayout";
@@ -95,9 +95,10 @@ describe("AdminLayout", () => {
   it("account menu shows Appearance with System checked by default", async () => {
     const user = userEvent.setup();
     renderLayout();
-    await user.click(screen.getByRole("button", { name: "Account menu" }));
-    await user.click(screen.getByText("Appearance"));
-    const systemOption = screen.getByRole("radio", { name: "System" });
+    const topbar = within(document.querySelector(".admin-topbar") as HTMLElement);
+    await user.click(topbar.getByRole("button", { name: "Account menu" }));
+    await user.click(topbar.getByText("Appearance"));
+    const systemOption = topbar.getByRole("radio", { name: "System" });
     expect(systemOption).toBeChecked();
   });
 
@@ -106,9 +107,10 @@ describe("AdminLayout", () => {
     vi.mocked(useTheme).mockReturnValue({ theme: "system", effectiveTheme: "light", setTheme });
     const user = userEvent.setup();
     renderLayout();
-    await user.click(screen.getByRole("button", { name: "Account menu" }));
-    await user.click(screen.getByText("Appearance"));
-    await user.click(screen.getByRole("radio", { name: "Dark" }));
+    const topbar = within(document.querySelector(".admin-topbar") as HTMLElement);
+    await user.click(topbar.getByRole("button", { name: "Account menu" }));
+    await user.click(topbar.getByText("Appearance"));
+    await user.click(topbar.getByRole("radio", { name: "Dark" }));
     expect(setTheme).toHaveBeenCalledWith("dark");
   });
 

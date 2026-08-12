@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import type { AdminUserRow } from "../features/admin/model/usersQuery";
 import type { DatabaseEvent } from "../features/events/model/types";
@@ -12,6 +13,16 @@ vi.mock("../hooks/useAdminEvents", () => ({ useAdminEvents }));
 vi.mock("../contexts/useAuth", () => ({
   useAuth: () => ({ user: { id: "self-1" }, isAdmin: true }),
 }));
+
+const { useUserAuditLog } = vi.hoisted(() => ({ useUserAuditLog: vi.fn() }));
+vi.mock("../hooks/useUserAuditLog", () => ({ useUserAuditLog }));
+
+const auditDefaultState = {
+  entries: [],
+  isLoading: false,
+  error: null,
+  refetch: vi.fn(),
+};
 
 const organizer: AdminUserRow = {
   kind: "profile",
@@ -130,6 +141,7 @@ describe("AdminUserDetailPage", () => {
   beforeEach(() => {
     vi.mocked(useAdminUsers).mockReturnValue({ ...defaultState });
     vi.mocked(useAdminEvents).mockReturnValue({ ...eventsDefaultState });
+    vi.mocked(useUserAuditLog).mockReturnValue({ ...auditDefaultState });
   });
 
   it("shows a registered user's identity header, badges, and account overview", () => {
@@ -186,5 +198,51 @@ describe("AdminUserDetailPage", () => {
 
     renderAt("guest:vince@salsa.test");
     expect(screen.queryByRole("link", { name: "View Events" })).not.toBeInTheDocument();
+  });
+
+  it("renders audit log entries newest-first with an actor label", () => {
+    vi.mocked(useUserAuditLog).mockReturnValue({
+      ...auditDefaultState,
+      entries: [
+        {
+          id: "log-1",
+          actor_id: "self-1",
+          action: "user.role_changed",
+          entity_type: "profile",
+          entity_id: "organizer-1",
+          metadata: { to_role: "organizer" },
+          created_at: "2026-08-11T00:00:00.000Z",
+        },
+      ],
+    });
+    renderAt("organizer-1");
+    expect(screen.getByText(/Role changed to Organizer/)).toBeInTheDocument();
+  });
+
+  it("the self row's Administrative Actions has no Change Role/Suspend/Ban and shows the sole-admin banner when applicable", () => {
+    vi.mocked(useAdminUsers).mockReturnValue({
+      ...defaultState,
+      users: [{ ...organizer, id: "self-1", user_id: "self-1", role: "admin" }],
+    });
+    renderAt("self-1");
+    expect(screen.getByText("You are the only administrator.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Change Role" })).not.toBeInTheDocument();
+  });
+
+  it("Change Role from Administrative Actions opens the dialog and calls setRole", async () => {
+    const user = userEvent.setup();
+    const setRole = vi.fn();
+    vi.mocked(useAdminUsers).mockReturnValue({ ...defaultState, setRole });
+    renderAt("organizer-1");
+
+    await user.click(screen.getByRole("button", { name: "Change Role" }));
+    const dialog = screen.getByRole("dialog");
+    await user.selectOptions(within(dialog).getByLabelText("New role"), "moderator");
+    await user.click(within(dialog).getByRole("button", { name: "Change Role" }));
+
+    expect(setRole).toHaveBeenCalledWith(
+      { id: "organizer-1", role: "moderator" },
+      expect.anything()
+    );
   });
 });

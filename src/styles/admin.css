@@ -9,6 +9,7 @@
   --admin-surface: #ffffff;
   --admin-surface-elevated: #ffffff;
   --admin-surface-secondary: #f1f5f9;
+  --admin-surface-subtle: #f8fafc;
   --admin-text-primary: #0f172a;
   --admin-text-strong: #1e293b;
   --admin-text-secondary: #64748b;
@@ -60,6 +61,7 @@
   --admin-surface: #171a20;
   --admin-surface-elevated: #1e2229;
   --admin-surface-secondary: #20242c;
+  --admin-surface-subtle: #191d24;
   --admin-text-primary: #f1f5f9;
   --admin-text-strong: #ffffff;
   --admin-text-secondary: #94a3b8;
@@ -288,7 +290,7 @@
 .admin-shell .admin-textarea {
   min-height: 40px;
   padding: 0 12px;
-  background: var(--admin-surface-secondary);
+  background: var(--admin-surface-subtle);
   border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius);
   color: var(--admin-text-primary);
@@ -387,7 +389,7 @@
   padding: 12px 16px;
   border-radius: var(--admin-radius);
   border: 1px solid var(--admin-border);
-  background: var(--admin-surface-secondary);
+  background: var(--admin-surface-subtle);
   color: var(--admin-text-primary);
   font-size: 0.9rem;
 }

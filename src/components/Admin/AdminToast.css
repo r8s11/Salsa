@@ -1,0 +1,60 @@
+.admin-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--admin-radius);
+  background: var(--admin-surface-elevated);
+  border: 1px solid var(--admin-border);
+  box-shadow: var(--admin-shadow-md);
+  color: var(--admin-text-primary);
+  font-size: 0.875rem;
+  max-width: 360px;
+  animation: admin-toast-in 0.15s ease;
+}
+
+.admin-toast__message {
+  flex: 1;
+}
+
+.admin-toast--success svg:first-child {
+  color: var(--admin-success);
+}
+
+.admin-toast--error svg:first-child {
+  color: var(--admin-danger);
+}
+
+.admin-toast--info svg:first-child {
+  color: var(--admin-information);
+}
+
+@keyframes admin-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-toast {
+    animation: none;
+  }
+}
+
+@media (max-width: 639px) {
+  .admin-toast {
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    max-width: none;
+  }
+}

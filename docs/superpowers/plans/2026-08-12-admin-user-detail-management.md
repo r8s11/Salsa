@@ -1060,9 +1060,6 @@ export default function AdminUserDetailPage() {
     );
   }
 
-  const isSelf = user.user_id === authUser?.id;
-  const isLastAdmin = user.role === "admin" && adminCount <= 1;
-
   return (
     <div className="admin-user-detail-page">
       <Link to="/admin/users" className="admin-user-detail-page__back">
@@ -1154,8 +1151,6 @@ export default function AdminUserDetailPage() {
   );
 }
 ```
-
-(`isSelf`/`isLastAdmin` are computed here but unused until Task 8 wires Administrative Actions — leave them declared; they will be consumed in that task's edit to this same function body. If ESLint's `no-unused-vars` complains at this intermediate step, prefix with `_isSelf`/`_isLastAdmin` temporarily is NOT acceptable per this codebase's lint config — instead, Task 8's edit happens in the same session before any lint run, so this is fine as a within-task intermediate state; Task 9's final lint run is what must be clean, and by then Task 8 has consumed both variables.)
 
 - [ ] **Step 4: Create the CSS file**
 
@@ -1715,7 +1710,7 @@ Add, after the early-return guards (`if (isLoading) ...`, `if (error) ...`, `if 
   const onlyAdminBanner = isSelf && isLastAdmin;
 ```
 
-(This replaces the placeholder `isSelf`/`isLastAdmin` declarations from Task 6 if they were left in a different position — consolidate to one declaration, here, after the guards, since `user` is guaranteed non-null at this point and the guest-avoidance in `rowActionItems` already handles guests without needing a separate guest check here.)
+(`user` is guaranteed non-null at this point since it's placed after the early-return guards; the guest-avoidance in `rowActionItems` already handles guests without needing a separate guest check here.)
 
 Add two more sections to the JSX, after the Events & Contributions section:
 

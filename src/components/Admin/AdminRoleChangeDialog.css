@@ -1,0 +1,66 @@
+.admin-role-change-dialog__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.5);
+}
+
+.admin-role-change-dialog {
+  width: 100%;
+  max-width: 420px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.admin-role-change-dialog h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: var(--admin-text-strong);
+}
+
+.admin-role-change-dialog__label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--admin-text-muted);
+  margin-bottom: 4px;
+}
+
+.admin-role-change-dialog__current {
+  margin: 0;
+  font-weight: 600;
+  color: var(--admin-text-strong);
+}
+
+.admin-role-change-dialog__consequence {
+  margin: 0;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--admin-surface-high);
+  color: var(--admin-text-muted);
+  font-size: 0.85rem;
+}
+
+.admin-role-change-dialog__effect {
+  margin: 0;
+  color: var(--admin-text-muted);
+  font-size: 0.8rem;
+}
+
+.admin-role-change-dialog .admin-field__error {
+  color: var(--admin-danger);
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+.admin-role-change-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}

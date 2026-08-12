@@ -121,6 +121,8 @@ export default function AdminOverviewPage() {
             subLabel="Registered"
             icon={Users}
             tone="informational"
+            to="/admin/users"
+            actionLabel="Manage"
             isLoading={isUserCountLoading}
             onRetry={refetchUserCount}
           />

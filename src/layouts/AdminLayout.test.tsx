@@ -38,17 +38,18 @@ describe("AdminLayout", () => {
     expect(burger).toHaveAttribute("aria-expanded", "false");
   });
 
-  it("exposes Dashboard and Events as links", () => {
+  it("exposes Dashboard, Events, and Users as links", () => {
     renderLayout();
 
     expect(screen.getAllByRole("link", { name: "Dashboard" })[0]).toHaveAttribute("href", "/admin");
     expect(screen.getAllByRole("link", { name: "Events" })[0]).toHaveAttribute("href", "/admin/events");
+    expect(screen.getAllByRole("link", { name: "Users" })[0]).toHaveAttribute("href", "/admin/users");
   });
 
   it("shows unbuilt sections as disabled with a Soon badge, not links", () => {
     renderLayout();
 
-    for (const label of ["Users", "Event Submissions", "Organizer Requests", "Venues", "Tags", "Settings"]) {
+    for (const label of ["Event Submissions", "Organizer Requests", "Venues", "Tags", "Settings"]) {
       expect(screen.queryAllByRole("link", { name: label })).toHaveLength(0);
       expect(screen.getAllByText(label)[0]).toBeInTheDocument();
     }

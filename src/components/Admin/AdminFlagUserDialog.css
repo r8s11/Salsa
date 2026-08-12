@@ -1,4 +1,4 @@
-.admin-confirm-dialog__overlay {
+.admin-flag-user-dialog__overlay {
   position: fixed;
   inset: 0;
   z-index: 70;
@@ -9,32 +9,35 @@
   background: rgba(15, 23, 42, 0.5);
 }
 
-.admin-confirm-dialog {
+.admin-flag-user-dialog {
   width: 100%;
   max-width: 420px;
   padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.admin-confirm-dialog h2 {
-  margin: 0 0 8px;
+.admin-flag-user-dialog h2 {
+  margin: 0;
   font-family: var(--font-display);
   font-size: 1.25rem;
   color: var(--admin-text-strong);
 }
 
-.admin-confirm-dialog p {
-  margin: 0 0 20px;
+.admin-flag-user-dialog p {
+  margin: 0;
   color: var(--admin-text-muted);
   font-size: 0.9rem;
 }
 
-.admin-confirm-dialog .admin-field__error {
+.admin-flag-user-dialog .admin-field__error {
   color: var(--admin-danger);
   font-size: 0.8rem;
-  margin-top: 4px;
+  margin: 0;
 }
 
-.admin-confirm-dialog__actions {
+.admin-flag-user-dialog__actions {
   display: flex;
   justify-content: flex-end;
   gap: 12px;

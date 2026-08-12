@@ -10,6 +10,7 @@ import "./AdminLayout.css";
 const SECTION_LABEL: Record<string, string> = {
   "/admin": "Dashboard",
   "/admin/events": "Events",
+  "/admin/users": "Users",
 };
 
 export default function AdminLayout() {

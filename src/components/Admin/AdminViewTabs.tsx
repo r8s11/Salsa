@@ -1,32 +1,34 @@
 import { useRef, type KeyboardEvent } from "react";
-import type { EventView } from "../../features/admin/model/eventsQuery";
 import "./AdminViewTabs.css";
 
-interface AdminViewTabsProps {
-  active: EventView;
-  counts: Record<EventView, number>;
-  onChange: (view: EventView) => void;
+interface AdminViewTabsProps<V extends string> {
+  views: { view: V; label: string }[];
+  active: V;
+  counts: Record<V, number>;
+  panelId: string;
+  ariaLabel: string;
+  selectId: string;
+  selectLabel: string;
+  onChange: (view: V) => void;
 }
 
-// Order and labels are fixed by the spec.
-const VIEWS: { view: EventView; label: string }[] = [
-  { view: "all", label: "All Events" },
-  { view: "upcoming", label: "Upcoming" },
-  { view: "drafts", label: "Drafts" },
-  { view: "pending", label: "Pending Review" },
-  { view: "published", label: "Published" },
-  { view: "cancelled", label: "Cancelled" },
-  { view: "archived", label: "Archived" },
-];
-
-export default function AdminViewTabs({ active, counts, onChange }: AdminViewTabsProps) {
+export default function AdminViewTabs<V extends string>({
+  views,
+  active,
+  counts,
+  panelId,
+  ariaLabel,
+  selectId,
+  selectLabel,
+  onChange,
+}: AdminViewTabsProps<V>) {
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const focusTab = (index: number) => {
-    const count = VIEWS.length;
+    const count = views.length;
     const next = ((index % count) + count) % count;
     tabRefs.current[next]?.focus();
-    onChange(VIEWS[next].view);
+    onChange(views[next].view);
   };
 
   const handleKeyDown = (event: KeyboardEvent, index: number) => {
@@ -41,14 +43,14 @@ export default function AdminViewTabs({ active, counts, onChange }: AdminViewTab
       focusTab(0);
     } else if (event.key === "End") {
       event.preventDefault();
-      focusTab(VIEWS.length - 1);
+      focusTab(views.length - 1);
     }
   };
 
   return (
     <>
-      <div className="admin-view-tabs" role="tablist" aria-label="Event views">
-        {VIEWS.map(({ view, label }, index) => {
+      <div className="admin-view-tabs" role="tablist" aria-label={ariaLabel}>
+        {views.map(({ view, label }, index) => {
           const isActive = view === active;
           const count = counts[view];
           return (
@@ -58,7 +60,7 @@ export default function AdminViewTabs({ active, counts, onChange }: AdminViewTab
               role="tab"
               id={`admin-view-tab-${view}`}
               aria-selected={isActive}
-              aria-controls="admin-events-tabpanel"
+              aria-controls={panelId}
               tabIndex={isActive ? 0 : -1}
               ref={(el) => {
                 tabRefs.current[index] = el;
@@ -74,16 +76,16 @@ export default function AdminViewTabs({ active, counts, onChange }: AdminViewTab
         })}
       </div>
 
-      <label className="admin-view-tabs__select-label" htmlFor="admin-view-tabs-select">
-        Event view
+      <label className="admin-view-tabs__select-label" htmlFor={selectId}>
+        {selectLabel}
       </label>
       <select
-        id="admin-view-tabs-select"
+        id={selectId}
         className="admin-select admin-view-tabs__select"
         value={active}
-        onChange={(event) => onChange(event.target.value as EventView)}
+        onChange={(event) => onChange(event.target.value as V)}
       >
-        {VIEWS.map(({ view, label }) => (
+        {views.map(({ view, label }) => (
           <option key={view} value={view}>
             {label} ({counts[view]})
           </option>

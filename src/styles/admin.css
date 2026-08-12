@@ -465,3 +465,85 @@
   color: #b91c1c;
   border-color: #fecaca;
 }
+
+/* ----------------------------------------
+   Role badge (AdminRoleBadge)
+   ---------------------------------------- */
+.admin-shell .admin-role {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.admin-shell .admin-role--user,
+.admin-shell .admin-role--guest {
+  color: var(--admin-text-muted);
+  font-weight: 400;
+}
+
+.admin-shell .admin-role--organizer,
+.admin-shell .admin-role--moderator,
+.admin-shell .admin-role--admin {
+  padding: 2px 10px;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+}
+
+.admin-shell .admin-role--organizer {
+  color: var(--admin-text-strong);
+  border-color: var(--admin-border);
+  background: var(--admin-surface);
+}
+
+.admin-shell .admin-role--moderator {
+  color: #4338ca;
+  border-color: #c7d2fe;
+  background: #eef2ff;
+}
+
+.admin-shell .admin-role--admin {
+  color: var(--admin-primary);
+  border-color: #fecdd3;
+  background: var(--admin-primary-tint);
+  font-weight: 700;
+}
+
+/* ----------------------------------------
+   Account status badge (AdminAccountStatusBadge)
+   Shares the .admin-status base rule above; modifiers are prefixed
+   `account-` so they never collide with the event-status vocabulary.
+   ---------------------------------------- */
+.admin-shell .admin-status--account-active::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: #10b981;
+}
+
+.admin-shell .admin-status--account-active {
+  background: #ecfdf5;
+  color: #047857;
+  border-color: #a7f3d0;
+}
+
+.admin-shell .admin-status--account-flagged {
+  background: var(--admin-attention-tint);
+  color: var(--admin-attention-ink);
+  border-color: #fde68a;
+}
+
+.admin-shell .admin-status--account-suspended {
+  background: #fef2f2;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+.admin-shell .admin-status--account-banned {
+  background: #b91c1c;
+  color: #fff;
+  border-color: #b91c1c;
+}

@@ -9,6 +9,7 @@ interface AdminConfirmDialogProps {
   isBusy: boolean;
   tone?: "danger" | "neutral";
   reasonField?: { label: string; placeholder?: string; required?: boolean };
+  error?: string | null;
   onConfirm: (reason?: string) => void;
   onCancel: () => void;
 }
@@ -20,18 +21,29 @@ export default function AdminConfirmDialog({
   isBusy,
   tone = "danger",
   reasonField,
+  error,
   onConfirm,
   onCancel,
 }: AdminConfirmDialogProps) {
   const titleId = useId();
   const reasonId = useId();
   const confirmRef = useRef<HTMLButtonElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const previouslyFocusedRef = useRef<Element | null>(null);
   const [reason, setReason] = useState("");
+  const [showRequiredError, setShowRequiredError] = useState(false);
 
   useEscapeKey(onCancel);
 
   useEffect(() => {
+    previouslyFocusedRef.current = document.activeElement;
     confirmRef.current?.focus();
+    return () => {
+      const previouslyFocused = previouslyFocusedRef.current;
+      if (previouslyFocused instanceof HTMLElement) {
+        previouslyFocused.focus();
+      }
+    };
   }, []);
 
   const handleConfirm = () => {
@@ -40,6 +52,12 @@ export default function AdminConfirmDialog({
       return;
     }
     const trimmed = reason.trim();
+    if (reasonField.required && trimmed === "") {
+      setShowRequiredError(true);
+      textareaRef.current?.focus();
+      return;
+    }
+    setShowRequiredError(false);
     onConfirm(trimmed === "" ? undefined : trimmed);
   };
 
@@ -59,13 +77,24 @@ export default function AdminConfirmDialog({
             <label htmlFor={reasonId}>{reasonField.label}</label>
             <textarea
               id={reasonId}
+              ref={textareaRef}
               className="admin-textarea"
               placeholder={reasonField.placeholder}
               required={reasonField.required}
               value={reason}
               onChange={(event) => setReason(event.target.value)}
             />
+            {reasonField.required && showRequiredError && (
+              <p className="admin-field__error" role="alert">
+                A reason is required.
+              </p>
+            )}
           </div>
+        )}
+        {error && (
+          <p className="admin-field__error" role="alert">
+            {error}
+          </p>
         )}
         <div className="admin-confirm-dialog__actions">
           <button

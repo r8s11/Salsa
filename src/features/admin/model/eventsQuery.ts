@@ -18,7 +18,19 @@ export interface EventFilters {
   style: string | null;
   source: DatabaseEvent["source_type"] | null;
   incompleteOnly: boolean;
+  submitter: string | null;
 }
+
+// Order and labels are fixed by the spec.
+export const EVENT_VIEWS: { view: EventView; label: string }[] = [
+  { view: "all", label: "All Events" },
+  { view: "upcoming", label: "Upcoming" },
+  { view: "drafts", label: "Drafts" },
+  { view: "pending", label: "Pending Review" },
+  { view: "published", label: "Published" },
+  { view: "cancelled", label: "Cancelled" },
+  { view: "archived", label: "Archived" },
+];
 
 export const PAGE_SIZE_OPTIONS = [25, 50, 100] as const;
 export const DEFAULT_PAGE_SIZE = 25;
@@ -85,7 +97,14 @@ export function applyFilters(events: DatabaseEvent[], filters: EventFilters, _no
   return events.filter((event) => {
     if (q) {
       const cityLabel = CITY_LABEL[event.city];
-      const haystack = [event.title, event.location, event.host, event.submitter_name, cityLabel]
+      const haystack = [
+        event.title,
+        event.location,
+        event.host,
+        event.submitter_name,
+        event.submitter_email,
+        cityLabel,
+      ]
         .filter((value): value is string => Boolean(value))
         .join(" ")
         .toLowerCase();
@@ -109,6 +128,14 @@ export function applyFilters(events: DatabaseEvent[], filters: EventFilters, _no
     if (filters.style && !event.dance_styles?.includes(filters.style)) return false;
 
     if (filters.source && event.source_type !== filters.source) return false;
+
+    if (filters.submitter) {
+      const needle = filters.submitter.toLowerCase();
+      const matches =
+        event.submitter_id === filters.submitter ||
+        event.submitter_email?.toLowerCase() === needle;
+      if (!matches) return false;
+    }
 
     if (filters.incompleteOnly && qualityIssues(event).length === 0) return false;
 

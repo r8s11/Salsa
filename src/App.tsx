@@ -18,6 +18,7 @@ const SignInPage = lazy(() => import("./pages/SignInPage"));
 const AdminLayout = lazy(() => import("./layouts/AdminLayout"));
 const AdminOverviewPage = lazy(() => import("./pages/AdminOverviewPage"));
 const AdminEventsPage = lazy(() => import("./pages/AdminEventsPage"));
+const AdminUsersPage = lazy(() => import("./pages/AdminUsersPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const UserEventEditPage = lazy(() => import("./pages/UserEventEditPage"));
 import RequireAuth from "./components/Auth/RequireAuth";
@@ -41,6 +42,7 @@ function App() {
             >
               <Route index element={<AdminOverviewPage />} />
               <Route path="events" element={<AdminEventsPage />} />
+              <Route path="users" element={<AdminUsersPage />} />
             </Route>
             <Route path="/" element={<MainLayout />}>
               <Route index element={<HomePage />} />

@@ -53,6 +53,7 @@ const baseFilters: EventFilters = {
   style: null,
   source: null,
   incompleteOnly: false,
+  submitter: null,
 };
 
 describe("applyView", () => {
@@ -110,6 +111,33 @@ describe("applyFilters", () => {
     const approved = makeEvent({ status: "approved" });
     expect(applyFilters([pending, approved], { ...baseFilters, status: ["pending"] }, NOW)).toEqual([pending]);
     expect(applyFilters([pending, approved], baseFilters, NOW)).toEqual([pending, approved]);
+  });
+});
+
+describe("applyFilters — submitter", () => {
+  it("matches by submitter_id", () => {
+    const mine = makeEvent({ submitter_id: "user-1", submitter_email: "other@salsa.test" });
+    const theirs = makeEvent({ submitter_id: "user-2", submitter_email: "another@salsa.test" });
+    const result = applyFilters([mine, theirs], { ...baseFilters, submitter: "user-1" }, NOW);
+    expect(result).toEqual([mine]);
+  });
+
+  it("matches by submitter_email case-insensitively for guest rows", () => {
+    const guest = makeEvent({ submitter_id: null, submitter_email: "Guest@Salsa.test" });
+    const other = makeEvent({ submitter_id: null, submitter_email: "someoneelse@salsa.test" });
+    const result = applyFilters([guest, other], { ...baseFilters, submitter: "guest@salsa.test" }, NOW);
+    expect(result).toEqual([guest]);
+  });
+
+  it("excludes events that match neither submitter_id nor submitter_email", () => {
+    const mine = makeEvent({ submitter_id: "user-1", submitter_email: "mine@salsa.test" });
+    const result = applyFilters([mine], { ...baseFilters, submitter: "user-2" }, NOW);
+    expect(result).toEqual([]);
+  });
+
+  it("null submitter filter matches everything", () => {
+    const events = [makeEvent(), makeEvent()];
+    expect(applyFilters(events, baseFilters, NOW)).toEqual(events);
   });
 });
 

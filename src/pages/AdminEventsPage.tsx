@@ -16,6 +16,7 @@ import {
   SOURCE_TYPE_LABEL,
   DEFAULT_PAGE_SIZE,
   PAGE_SIZE_OPTIONS,
+  EVENT_VIEWS,
   type EventFilters,
   type EventView,
   type SortDir,
@@ -131,6 +132,7 @@ function parseFilters(searchParams: URLSearchParams): EventFilters {
     // ?flag=incomplete Overview link keeps working — flag=upcoming (view)
     // and flag=incomplete (this filter) are the only two values ever set.
     incompleteOnly: searchParams.get("flag") === "incomplete",
+    submitter: searchParams.get("submitter"),
   };
 }
 
@@ -272,6 +274,7 @@ export default function AdminEventsPage() {
       style: nextFilters.style,
       source: nextFilters.source,
       flag: nextFilters.incompleteOnly ? "incomplete" : null,
+      submitter: nextFilters.submitter,
     });
   };
 
@@ -287,6 +290,7 @@ export default function AdminEventsPage() {
       style: null,
       source: null,
       flag: null,
+      submitter: null,
     });
   };
 
@@ -352,6 +356,22 @@ export default function AdminEventsPage() {
       key: "venue",
       label: filters.venue,
       onRemove: () => updateParams({ venue: null }),
+    });
+  }
+  if (filters.submitter) {
+    const needle = filters.submitter.toLowerCase();
+    const matched = events.find(
+      (event) => event.submitter_id === filters.submitter || event.submitter_email?.toLowerCase() === needle
+    );
+    const matchedName = matched
+      ? matched.submitter_id === null
+        ? matched.submitter_name || "Guest Submitter"
+        : matched.submitter_name || "this account"
+      : null;
+    chips.push({
+      key: "submitter",
+      label: matchedName ? `Submitted by ${matchedName}` : "Submitted by this account",
+      onRemove: () => updateParams({ submitter: null }),
     });
   }
   if (filters.city) {
@@ -513,7 +533,16 @@ export default function AdminEventsPage() {
 
       {!error && (
         <>
-          <AdminViewTabs active={view} counts={counts} onChange={handleViewChange} />
+          <AdminViewTabs
+            views={EVENT_VIEWS}
+            active={view}
+            counts={counts}
+            panelId="admin-events-tabpanel"
+            ariaLabel="Event views"
+            selectId="admin-view-tabs-select"
+            selectLabel="Event view"
+            onChange={handleViewChange}
+          />
 
           <div className="admin-card admin-events-page__toolbar-card">
             <AdminEventsToolbar

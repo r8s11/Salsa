@@ -308,6 +308,7 @@ In `src/styles/admin.css`, replace the current token block (lines 7-42: `.admin-
   --admin-surface-elevated: #ffffff;
   --admin-surface-secondary: #f1f5f9;
   --admin-text-primary: #0f172a;
+  --admin-text-strong: #1e293b;
   --admin-text-secondary: #64748b;
   --admin-text-muted: #64748b;
   --admin-text-subtle: #94a3b8;
@@ -358,6 +359,7 @@ In `src/styles/admin.css`, replace the current token block (lines 7-42: `.admin-
   --admin-surface-elevated: #1e2229;
   --admin-surface-secondary: #20242c;
   --admin-text-primary: #f1f5f9;
+  --admin-text-strong: #ffffff;
   --admin-text-secondary: #94a3b8;
   --admin-text-muted: #94a3b8;
   --admin-text-subtle: #64748b;
@@ -404,7 +406,6 @@ Read the full current `src/styles/admin.css` (549 lines) and replace every occur
 | `--admin-surface-subtle` | `--admin-surface-secondary` |
 | `--admin-surface-high` | `--admin-surface-secondary` |
 | `--admin-text` | `--admin-text-primary` |
-| `--admin-text-strong` | `--admin-text-primary` |
 | `--admin-primary` | `--admin-brand` |
 | `--admin-primary-hover` | `--admin-brand-hover` |
 | `--admin-primary-tint` | `--admin-brand-tint` |
@@ -415,7 +416,7 @@ Read the full current `src/styles/admin.css` (549 lines) and replace every occur
 | `--admin-positive-tint` | `--admin-success-tint` |
 | `--admin-positive-ink` | `--admin-success` |
 
-(`--admin-surface` and `--admin-danger`/`--admin-danger-tint` keep their names — only the ones in the table above change. `--admin-text-strong` and `--admin-text` BOTH map to the new single `--admin-text-primary` — this is an intentional consolidation the design doc's token list implies, since the old codebase had two near-identical "strong text" tokens with no real distinction; verify nothing depended on them actually differing before collapsing, by checking whether `--admin-text` and `--admin-text-strong` were ever set to different literal values anywhere — they were not, both were `#0f172a`/`#1e293b` respectively in the old block, which ARE different. Re-check: `--admin-text: #0f172a` and `--admin-text-strong: #1e293b` are two distinct near-black shades. Do NOT collapse them — instead map `--admin-text` → `--admin-text-primary` (`#0f172a`) and keep `--admin-text-strong` as its own token, added to the new list as `--admin-text-strong: #1e293b` in both the light block and a dark equivalent `#ffffff`. Add this one extra token to Step 1's block that isn't in the design doc's own list — the design doc's token list was written before this exact discrepancy was noticed; this is a legitimate, small correction to make during implementation, not a deviation to ask about.)
+(`--admin-surface` and `--admin-danger`/`--admin-danger-tint` keep their names — only the ones in the table above change. `--admin-text-strong` keeps its own name and is NOT collapsed into `--admin-text-primary` — Step 1 already defines it as a distinct token in both the light block (`#1e293b`) and the dark block (`#ffffff`), since the two source values (`#0f172a` vs `#1e293b`) are genuinely different shades and merging them would be a silent, unrequested visual change to every element currently using `--admin-text-strong`. Every existing `var(--admin-text-strong)` call site keeps that exact variable name after this rename — only `var(--admin-text)` call sites change to `var(--admin-text-primary)`.)
 
 Additionally replace the two literal hex values still inline in this file after Step 1 removes them from the root block:
 - Skeleton gradient (`admin-shell .admin-skeleton`, currently `#e9eef5` mid-stop) → `var(--admin-skeleton-highlight)`.

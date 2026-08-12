@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
@@ -44,5 +44,52 @@ describe("AdminSidebar collapse", () => {
   it("nav links carry a title attribute for collapsed-state tooltips", () => {
     renderSidebar({ collapsed: true, onToggleCollapse: vi.fn() });
     expect(screen.getByRole("link", { name: /dashboard/i })).toHaveAttribute("title", "Dashboard");
+  });
+});
+
+const { useAuth } = vi.hoisted(() => ({ useAuth: vi.fn() }));
+vi.mock("../../contexts/useAuth", () => ({ useAuth }));
+const { useTheme } = vi.hoisted(() => ({ useTheme: vi.fn() }));
+vi.mock("../../contexts/useTheme", () => ({ useTheme }));
+
+beforeEach(() => {
+  vi.mocked(useAuth).mockReturnValue({ user: null, signOut: vi.fn() });
+  vi.mocked(useTheme).mockReturnValue({
+    theme: "system",
+    effectiveTheme: "light",
+    setTheme: vi.fn(),
+  });
+});
+
+describe("AdminSidebar drawer account block", () => {
+  beforeEach(() => {
+    vi.mocked(useAuth).mockReturnValue({
+      user: { email: "admin@salsa.test" },
+      signOut: vi.fn(),
+    });
+    vi.mocked(useTheme).mockReturnValue({
+      theme: "system",
+      effectiveTheme: "light",
+      setTheme: vi.fn(),
+    });
+  });
+
+  it("drawer variant renders Appearance and Sign Out", () => {
+    render(
+      <MemoryRouter>
+        <AdminSidebar variant="drawer" />
+      </MemoryRouter>
+    );
+    expect(screen.getByText("Appearance")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Sign out" })).toBeInTheDocument();
+  });
+
+  it("fixed variant does not render the account block", () => {
+    render(
+      <MemoryRouter>
+        <AdminSidebar variant="fixed" collapsed={false} onToggleCollapse={vi.fn()} />
+      </MemoryRouter>
+    );
+    expect(screen.queryByRole("button", { name: "Sign out" })).not.toBeInTheDocument();
   });
 });

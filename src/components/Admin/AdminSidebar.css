@@ -21,6 +21,8 @@
 }
 
 .admin-sidebar__scroll {
+  display: flex;
+  flex-direction: column;
   flex: 1;
   overflow-y: auto;
   padding: 12px 8px;
@@ -208,4 +210,51 @@
   .admin-sidebar__collapse-toggle {
     transition: none;
   }
+}
+
+.admin-sidebar__account {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--admin-divider);
+}
+
+.admin-sidebar__account-email {
+  padding: 4px 20px;
+  color: var(--admin-text-subtle);
+  font-size: 0.8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-sidebar__appearance summary {
+  padding: 8px 20px;
+  cursor: pointer;
+  color: var(--admin-nav-text);
+  font-size: 0.9rem;
+  list-style: none;
+}
+
+.admin-sidebar__appearance summary::-webkit-details-marker {
+  display: none;
+}
+
+.admin-sidebar__account a,
+.admin-sidebar__account button {
+  display: block;
+  width: 100%;
+  padding: 8px 20px;
+  border: none;
+  background: transparent;
+  color: var(--admin-nav-text);
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.admin-sidebar__account a:hover,
+.admin-sidebar__account button:hover {
+  background: var(--admin-surface-secondary);
 }

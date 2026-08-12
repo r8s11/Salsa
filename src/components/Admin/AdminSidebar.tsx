@@ -12,6 +12,8 @@ import {
   ChevronRight as ChevronRightIcon,
 } from "lucide-react";
 import type { ComponentType } from "react";
+import { useAuth } from "../../contexts/useAuth";
+import { useTheme } from "../../contexts/useTheme";
 import "./AdminSidebar.css";
 
 interface AdminSidebarProps {
@@ -52,6 +54,13 @@ export default function AdminSidebar({
   collapsed = false,
   onToggleCollapse,
 }: AdminSidebarProps) {
+  const { user, signOut } = useAuth();
+  const { theme, setTheme } = useTheme();
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
+
   return (
     <nav
       aria-label="Admin"
@@ -94,6 +103,36 @@ export default function AdminSidebar({
             </div>
           );
         })}
+        {variant === "drawer" && (
+          <div className="admin-sidebar__account">
+            {user?.email && <p className="admin-sidebar__account-email">{user.email}</p>}
+            <details className="admin-sidebar__appearance">
+              <summary>Appearance</summary>
+              <fieldset className="admin-account__theme-options">
+                <legend className="admin-visually-hidden">Choose theme appearance</legend>
+                {(["system", "light", "dark"] as const).map((option) => (
+                  <label key={option} className="admin-account__theme-option">
+                    <input
+                      type="radio"
+                      name="admin-sidebar-theme"
+                      value={option}
+                      checked={theme === option}
+                      onChange={() => setTheme(option)}
+                      aria-label={
+                        option === "system" ? "System" : option === "light" ? "Light" : "Dark"
+                      }
+                    />
+                    {option === "system" ? "System" : option === "light" ? "Light" : "Dark"}
+                  </label>
+                ))}
+              </fieldset>
+            </details>
+            <a href="/">View site</a>
+            <button type="button" onClick={handleSignOut}>
+              Sign out
+            </button>
+          </div>
+        )}
       </div>
       {variant === "fixed" && onToggleCollapse && (
         <button

@@ -1,4 +1,5 @@
 import { Fragment } from "react";
+import { Link } from "react-router-dom";
 import { Mail, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import {
   type AdminUserRow,
@@ -79,7 +80,7 @@ function UserCell({ row, currentUserId }: { row: AdminUserRow; currentUserId: st
       <AdminUserAvatar row={row} />
       <div className="admin-users-table__user-body">
         <p className="admin-users-table__name">
-          {displayNameFor(row)}
+          <Link to={`/admin/users/${row.id}`}>{displayNameFor(row)}</Link>
           {row.user_id === currentUserId && <span className="admin-chip">You</span>}
         </p>
         <p
@@ -202,7 +203,7 @@ export default function AdminUsersTable({
                 <AdminUserAvatar row={row} />
                 <div className="admin-users-cards__head-body">
                   <p className="admin-users-table__name">
-                    {displayNameFor(row)}
+                    <Link to={`/admin/users/${row.id}`}>{displayNameFor(row)}</Link>
                     {row.user_id === currentUserId && <span className="admin-chip">You</span>}
                   </p>
                   <p

@@ -92,6 +92,15 @@
   color: var(--admin-text-strong);
 }
 
+.admin-users-table__name a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.admin-users-table__name a:hover {
+  text-decoration: underline;
+}
+
 .admin-users-table__identity {
   margin: 2px 0 0;
   color: var(--admin-text-muted);

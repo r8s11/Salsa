@@ -9,6 +9,7 @@ export type AdminEventForm = SubmitForm & {
   contact_email: string;
   contact_instagram: string;
   contact_website: string;
+  dance_styles: string[];
 };
 
 const HOST_MAX_LENGTH = 300;
@@ -22,6 +23,7 @@ export function buildEmptyAdminForm(city: City): AdminEventForm {
     contact_email: "",
     contact_instagram: "",
     contact_website: "",
+    dance_styles: [],
   };
 }
 
@@ -48,6 +50,7 @@ export function buildAdminFormFromEvent(event: DatabaseEvent): AdminEventForm {
     contact_email: event.contact_email ?? "",
     contact_instagram: event.contact_instagram ?? "",
     contact_website: event.contact_website ?? "",
+    dance_styles: event.dance_styles ?? [],
   };
 }
 
@@ -70,6 +73,7 @@ export function adminFormToPayload(form: AdminEventForm): AdminEventPayload {
     contact_email: form.contact_email || null,
     contact_instagram: form.contact_instagram || null,
     contact_website: form.contact_website || null,
+    dance_styles: form.dance_styles.length > 0 ? form.dance_styles : null,
   };
 }
 

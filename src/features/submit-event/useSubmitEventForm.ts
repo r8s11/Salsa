@@ -50,6 +50,7 @@ export function useSubmitEventForm() {
         submitter_email: user!.email ?? null,
         submitter_id: user!.id,
         recurrence: form.recurrence || null,
+        dance_styles: form.dance_styles.length > 0 ? form.dance_styles : null,
       });
       setIsSubmitted(true);
       setForm(buildInitialForm(defaultCity));

@@ -15,6 +15,28 @@ interface AdminEventFormProps {
   onCancel: () => void;
 }
 
+const DANCE_STYLE_OPTIONS = [
+  { value: "salsa", label: "Salsa" },
+  { value: "bachata", label: "Bachata" },
+  { value: "kizomba", label: "Kizomba" },
+  { value: "merengue", label: "Merengue" },
+  { value: "cha-cha", label: "Cha-Cha" },
+  { value: "zouk", label: "Zouk" },
+  { value: "afro-cuban", label: "Afro-Cuban" },
+];
+
+const IMAGE_URL_MAX_LENGTH = 2000;
+
+function isValidImageUrl(value: string): boolean {
+  if (!value.trim()) return true;
+  try {
+    new URL(value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export default function AdminEventForm({
   initial,
   heading,
@@ -30,6 +52,19 @@ export default function AdminEventForm({
   const update = (field: keyof AdminEventFormValues, value: string) => {
     setForm((previous) => ({ ...previous, [field]: value }));
     setValidationError(null);
+  };
+
+  const updateDanceStyles = (styles: string[]) => {
+    setForm((previous) => ({ ...previous, dance_styles: styles }));
+    setValidationError(null);
+  };
+
+  const toggleDanceStyle = (style: string) => {
+    const current = form.dance_styles ?? [];
+    const updated = current.includes(style)
+      ? current.filter((s) => s !== style)
+      : [...current, style];
+    updateDanceStyles(updated);
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {

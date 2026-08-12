@@ -15,6 +15,7 @@ export type SubmitForm = {
   submitter_name: string;
   submitter_email: string;
   recurrence: "weekly" | "";
+  dance_styles: string[];
 };
 
 export const buildInitialForm = (city: City): SubmitForm => ({
@@ -32,11 +33,13 @@ export const buildInitialForm = (city: City): SubmitForm => ({
   submitter_name: "",
   submitter_email: "",
   recurrence: "",
+  dance_styles: [],
 });
 
 const TITLE_MAX_LENGTH = 120;
 const DESCRIPTION_MAX_LENGTH = 2000;
 const OTHER_TEXT_MAX_LENGTH = 300;
+const DANCE_STYLES_MAX_COUNT = 10;
 
 export function validateSubmitForm(form: SubmitForm): string | null {
   // Length caps (spam friction)
@@ -71,6 +74,11 @@ export function validateSubmitForm(form: SubmitForm): string | null {
     if (isNaN(price) || price <= 0) {
       return "Price amount must be a positive number.";
     }
+  }
+
+  // Validate dance styles count
+  if (form.dance_styles.length > DANCE_STYLES_MAX_COUNT) {
+    return `You can select up to ${DANCE_STYLES_MAX_COUNT} dance styles.`;
   }
 
   // Validate RSVP link if provided

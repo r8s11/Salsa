@@ -42,7 +42,7 @@
   margin: 0;
   padding: 12px;
   border-radius: 8px;
-  background: var(--admin-surface-high);
+  background: var(--admin-surface-secondary);
   color: var(--admin-text-muted);
   font-size: 0.85rem;
 }

@@ -43,8 +43,8 @@
   width: 24px;
   height: 24px;
   border-radius: 9999px;
-  background: var(--admin-positive-tint);
-  color: var(--admin-positive-ink);
+  background: var(--admin-success-tint);
+  color: var(--admin-success);
 }
 
 .admin-needs-attention__row-skeleton {
@@ -65,24 +65,24 @@
 }
 
 .admin-needs-attention__pill--action {
-  background: var(--admin-attention-tint);
-  color: var(--admin-attention-ink);
+  background: var(--admin-warning-tint);
+  color: var(--admin-warning);
 }
 
 .admin-needs-attention__pill--suggested {
-  background: var(--admin-surface-high);
+  background: var(--admin-surface-secondary);
   color: var(--admin-text-muted);
 }
 
 .admin-needs-attention__message {
   flex: 1;
-  color: var(--admin-text);
+  color: var(--admin-text-primary);
   font-size: 0.9rem;
 }
 
 .admin-needs-attention__action {
   flex-shrink: 0;
-  color: var(--admin-primary);
+  color: var(--admin-brand);
   font-weight: 600;
   font-size: 0.85rem;
   text-decoration: none;

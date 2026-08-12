@@ -50,12 +50,12 @@
   }
 
   .admin-view-tabs__tab:hover {
-    color: var(--admin-text);
+    color: var(--admin-text-primary);
   }
 
   .admin-view-tabs__tab--active {
     color: var(--admin-text-strong);
-    border-bottom-color: var(--admin-primary);
+    border-bottom-color: var(--admin-brand);
     font-weight: 600;
   }
 
@@ -66,14 +66,14 @@
   .admin-view-tabs__count {
     padding: 1px 7px;
     border-radius: 9999px;
-    background: var(--admin-surface-high);
+    background: var(--admin-surface-secondary);
     color: var(--admin-text-muted);
     font-size: 0.75rem;
     font-weight: 600;
   }
 
   .admin-view-tabs__tab--active .admin-view-tabs__count {
-    background: var(--admin-primary-ring);
-    color: var(--admin-primary);
+    background: var(--admin-brand-ring);
+    color: var(--admin-brand);
   }
 }

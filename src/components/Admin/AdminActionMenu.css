@@ -12,7 +12,7 @@
   margin: 0;
   padding: 4px;
   list-style: none;
-  background: #ffffff;
+  background: var(--admin-surface-elevated);
   border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius);
   box-shadow: var(--admin-shadow-md);
@@ -33,7 +33,7 @@
   border: none;
   border-radius: calc(var(--admin-radius) - 2px);
   background: transparent;
-  color: var(--admin-text);
+  color: var(--admin-text-primary);
   font-size: 0.875rem;
   text-align: left;
   cursor: pointer;
@@ -41,7 +41,7 @@
 
 .admin-action-menu__item:hover,
 .admin-action-menu__item:focus-visible {
-  background: var(--admin-surface-high);
+  background: var(--admin-surface-secondary);
 }
 
 .admin-action-menu__item--danger {

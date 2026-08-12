@@ -40,7 +40,7 @@
   padding: 12px 16px;
   vertical-align: middle;
   font-size: 0.9rem;
-  color: var(--admin-text);
+  color: var(--admin-text-primary);
 }
 
 .admin-events-table__event {
@@ -91,7 +91,7 @@
 
 .admin-events-table__error td {
   padding: 8px 16px;
-  color: #b91c1c;
+  color: var(--admin-danger-strong);
   font-size: 0.85rem;
   background: var(--admin-danger-tint);
 }
@@ -138,7 +138,7 @@
   padding: 8px 12px;
   border-radius: var(--admin-radius);
   background: var(--admin-danger-tint);
-  color: #b91c1c;
+  color: var(--admin-danger-strong);
   font-size: 0.85rem;
 }
 

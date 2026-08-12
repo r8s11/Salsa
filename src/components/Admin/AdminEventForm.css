@@ -45,7 +45,7 @@
   align-items: center;
   gap: 8px;
   font-weight: 500;
-  color: var(--admin-text);
+  color: var(--admin-text-primary);
 }
 
 .admin-form__actions {
@@ -75,7 +75,7 @@
   border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius);
   background: var(--admin-surface-subtle);
-  color: var(--admin-text);
+  color: var(--admin-text-primary);
   font-size: 0.85rem;
   cursor: pointer;
   transition:
@@ -84,8 +84,8 @@
 }
 
 .admin-dance-style-chip:hover {
-  background: var(--admin-surface-high);
-  border-color: var(--admin-border-md, #cbd5e1);
+  background: var(--admin-surface-secondary);
+  border-color: var(--admin-border-md);
 }
 
 .admin-dance-style-chip input[type="checkbox"] {

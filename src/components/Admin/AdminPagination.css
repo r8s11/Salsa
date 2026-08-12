@@ -38,15 +38,15 @@
   padding: 0 8px;
   border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius);
-  background: #ffffff;
-  color: var(--admin-text);
+  background: var(--admin-surface-elevated);
+  color: var(--admin-text-primary);
   font-size: 0.85rem;
   cursor: pointer;
 }
 
 .admin-pagination__page-btn--active {
-  background: var(--admin-primary);
-  border-color: var(--admin-primary);
+  background: var(--admin-brand);
+  border-color: var(--admin-brand);
   color: #ffffff;
 }
 

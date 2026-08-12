@@ -8,7 +8,7 @@
 }
 
 a.admin-metric-card:hover {
-  border-color: var(--admin-primary);
+  border-color: var(--admin-brand);
 }
 
 .admin-metric-card__icon {
@@ -22,13 +22,13 @@ a.admin-metric-card:hover {
 }
 
 .admin-metric-card__icon--informational {
-  background: var(--admin-surface-high);
+  background: var(--admin-surface-secondary);
   color: var(--admin-text-strong);
 }
 
 .admin-metric-card__icon--attention {
-  background: var(--admin-attention-tint);
-  color: var(--admin-attention-ink);
+  background: var(--admin-warning-tint);
+  color: var(--admin-warning);
 }
 
 .admin-metric-card__value {
@@ -40,7 +40,7 @@ a.admin-metric-card:hover {
 }
 
 .admin-metric-card__value--attention {
-  color: var(--admin-attention-ink);
+  color: var(--admin-warning);
 }
 
 .admin-metric-card__label {
@@ -63,11 +63,11 @@ a.admin-metric-card:hover {
 }
 
 .admin-metric-card__action--informational {
-  color: var(--admin-primary);
+  color: var(--admin-brand);
 }
 
 .admin-metric-card__action--attention {
-  color: var(--admin-attention-ink);
+  color: var(--admin-warning);
 }
 
 .admin-metric-card__retry {
@@ -78,7 +78,7 @@ a.admin-metric-card:hover {
   background: none;
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--admin-primary);
+  color: var(--admin-brand);
   cursor: pointer;
 }
 

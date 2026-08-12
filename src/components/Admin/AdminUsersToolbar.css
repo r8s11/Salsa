@@ -20,7 +20,7 @@
   padding: 0 10px;
   border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius);
-  background: #ffffff;
+  background: var(--admin-surface-elevated);
   color: var(--admin-text-muted);
 }
 
@@ -47,7 +47,7 @@
   margin: 0;
   padding: 6px;
   list-style: none;
-  background: #ffffff;
+  background: var(--admin-surface-elevated);
   border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius);
   box-shadow: var(--admin-shadow-md);
@@ -65,7 +65,7 @@
 }
 
 .admin-users-toolbar__role-option:hover {
-  background: var(--admin-surface-high);
+  background: var(--admin-surface-secondary);
 }
 
 .admin-users-toolbar__status {
@@ -81,7 +81,7 @@
   margin: 0;
   padding: 6px;
   list-style: none;
-  background: #ffffff;
+  background: var(--admin-surface-elevated);
   border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius);
   box-shadow: var(--admin-shadow-md);
@@ -99,7 +99,7 @@
 }
 
 .admin-users-toolbar__status-option:hover {
-  background: var(--admin-surface-high);
+  background: var(--admin-surface-secondary);
 }
 
 .admin-users-toolbar__more {
@@ -114,7 +114,7 @@
   height: 18px;
   padding: 0 5px;
   border-radius: 9999px;
-  background: var(--admin-primary);
+  background: var(--admin-brand);
   color: #ffffff;
   font-size: 0.7rem;
   font-weight: 700;

@@ -2,6 +2,7 @@ import { useCallback, useLayoutEffect, useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { ChevronRight, Menu } from "lucide-react";
 import { useAuth } from "../contexts/useAuth";
+import { useTheme } from "../contexts/useTheme";
 import { useEscapeKey } from "../features/calendar/hooks/useEscapeKey";
 import AdminSidebar from "../components/Admin/AdminSidebar";
 import "../styles/admin.css";
@@ -23,6 +24,7 @@ export default function AdminLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { pathname } = useLocation();
   const { user, signOut } = useAuth();
+  const { theme, setTheme } = useTheme();
 
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
 
@@ -69,11 +71,42 @@ export default function AdminLayout() {
         </div>
 
         <details className="admin-account">
-          <summary className="admin-account__trigger" aria-label="Account menu">
+          <summary className="admin-account__trigger" role="button" aria-label="Account menu">
             <span className="admin-account__avatar">{initial}</span>
           </summary>
           <div className="admin-account__menu">
-            {user?.email && <p className="admin-account__email">{user.email}</p>}
+            {user?.email && (
+              <div className="admin-account__identity">
+                <p className="admin-account__email">{user.email}</p>
+              </div>
+            )}
+            <details className="admin-account__appearance">
+              <summary>
+                Appearance
+                <ChevronRight size={14} />
+              </summary>
+              <fieldset className="admin-account__theme-options">
+                <legend className="admin-visually-hidden">Choose theme appearance</legend>
+                {(["system", "light", "dark"] as const).map((option) => (
+                  <label key={option} className="admin-account__theme-option">
+                    <input
+                      type="radio"
+                      name="admin-theme"
+                      value={option}
+                      checked={theme === option}
+                      onChange={() => setTheme(option)}
+                      aria-label={
+                        option === "system" ? "System" : option === "light" ? "Light" : "Dark"
+                      }
+                    />
+                    {option === "system" ? "System" : option === "light" ? "Light" : "Dark"}
+                  </label>
+                ))}
+              </fieldset>
+            </details>
+            <span className="admin-account__inert-row" aria-disabled="true">
+              Account
+            </span>
             <Link to="/">View site</Link>
             <button type="button" onClick={handleSignOut}>
               Sign out

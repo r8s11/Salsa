@@ -238,3 +238,59 @@
     margin-left: var(--admin-sidebar-w);
   }
 }
+
+.admin-account__identity {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--admin-divider);
+  margin-bottom: 4px;
+}
+
+.admin-account__appearance {
+  position: relative;
+}
+
+.admin-account__appearance summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  cursor: pointer;
+  color: var(--admin-text-primary);
+  font-size: 0.9rem;
+  list-style: none;
+}
+
+.admin-account__appearance summary::-webkit-details-marker {
+  display: none;
+}
+
+.admin-account__appearance summary:hover {
+  background: var(--admin-surface-secondary);
+}
+
+.admin-account__theme-options {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 12px 8px 24px;
+  border: none;
+  margin: 0;
+}
+
+.admin-account__theme-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 0.85rem;
+  color: var(--admin-text-primary);
+  cursor: pointer;
+}
+
+.admin-account__inert-row {
+  display: block;
+  padding: 8px 12px;
+  color: var(--admin-text-subtle);
+  font-size: 0.9rem;
+  cursor: not-allowed;
+}

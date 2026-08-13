@@ -2,10 +2,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import SubmitEventPage from "./SubmitEventPage";
 import { Providers } from "../app/providers";
-import * as eventsRepo from "../features/events/api/eventsRepo";
+import * as submissionsRepo from "../features/admin/api/submissionsRepo";
 
-vi.mock("../features/events/api/eventsRepo", () => ({
-  submitEvent: vi.fn(),
+vi.mock("../features/events/api/eventsRepo", () => ({}));
+
+vi.mock("../features/admin/api/submissionsRepo", () => ({
+  createSubmission: vi.fn(),
 }));
 
 vi.mock("../contexts/useAuth", () => ({
@@ -48,7 +50,7 @@ describe("SubmitEventPage", () => {
   });
 
   it("submits the form successfully and displays success card", async () => {
-    vi.mocked(eventsRepo.submitEvent).mockResolvedValueOnce();
+    vi.mocked(submissionsRepo.createSubmission).mockResolvedValueOnce();
 
     renderSubmitEventPage();
 
@@ -65,10 +67,10 @@ describe("SubmitEventPage", () => {
     fireEvent.click(screen.getByRole("button", { name: /Submit Event/i }));
 
     await waitFor(() => {
-      expect(eventsRepo.submitEvent).toHaveBeenCalledTimes(1);
+      expect(submissionsRepo.createSubmission).toHaveBeenCalledTimes(1);
     });
 
-    expect(eventsRepo.submitEvent).toHaveBeenCalledWith(
+    expect(submissionsRepo.createSubmission).toHaveBeenCalledWith(
       expect.objectContaining({
         title: "Saturday Bachata Night",
         event_type: "social",
@@ -83,7 +85,7 @@ describe("SubmitEventPage", () => {
   });
 
   it("persists a supplied start time as its New York instant", async () => {
-    vi.mocked(eventsRepo.submitEvent).mockResolvedValueOnce();
+    vi.mocked(submissionsRepo.createSubmission).mockResolvedValueOnce();
 
     renderSubmitEventPage();
 
@@ -103,7 +105,7 @@ describe("SubmitEventPage", () => {
     fireEvent.click(screen.getByRole("button", { name: /Submit Event/i }));
 
     await waitFor(() => {
-      expect(eventsRepo.submitEvent).toHaveBeenCalledWith(
+      expect(submissionsRepo.createSubmission).toHaveBeenCalledWith(
         expect.objectContaining({
           event_date: "2026-08-18T00:00:00Z",
           event_time: "20:00",
@@ -113,7 +115,7 @@ describe("SubmitEventPage", () => {
   });
 
   it("displays an error message when submission fails", async () => {
-    vi.mocked(eventsRepo.submitEvent).mockRejectedValueOnce(
+    vi.mocked(submissionsRepo.createSubmission).mockRejectedValueOnce(
       new Error("Network connection error")
     );
 
@@ -137,7 +139,7 @@ describe("SubmitEventPage", () => {
   });
 
   it("allows resetting the form from success card to submit another event", async () => {
-    vi.mocked(eventsRepo.submitEvent).mockResolvedValueOnce();
+    vi.mocked(submissionsRepo.createSubmission).mockResolvedValueOnce();
 
     renderSubmitEventPage();
 

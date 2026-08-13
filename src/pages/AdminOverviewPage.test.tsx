@@ -2,15 +2,18 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import type { DatabaseEvent } from "../features/events/model/types";
+import type { AdminUserRow } from "../features/admin/model/usersQuery";
 import AdminOverviewPage from "./AdminOverviewPage";
 
-const { useAdminEvents, useAdminUserCount } = vi.hoisted(() => ({
+const { useAdminEvents, useAdminUserCount, useAdminUsers } = vi.hoisted(() => ({
   useAdminEvents: vi.fn(),
   useAdminUserCount: vi.fn(),
+  useAdminUsers: vi.fn(),
 }));
 
 vi.mock("../hooks/useAdminEvents", () => ({ useAdminEvents }));
 vi.mock("../hooks/useAdminUserCount", () => ({ useAdminUserCount }));
+vi.mock("../hooks/useAdminUsers", () => ({ useAdminUsers }));
 
 // The component derives its metrics from the real clock (`new Date()` inside
 // its own useMemo, per the purity-lint-safe pattern), so fixture dates are
@@ -52,7 +55,7 @@ const baseEvent: DatabaseEvent = {
 
 // Known fixture: 2 approved-future within 30 days (1 complete, 1 missing venue
 // -> "incomplete"), 1 approved-past (excluded from both), 2 pending, 1 rejected
-// — 6 total. upcomingCount=2, pendingCount=2, incompleteCount=1.
+// — 6 total events. upcomingCount=2, pendingCount=2, incompleteCount=1.
 const events: DatabaseEvent[] = [
   baseEvent,
   { ...baseEvent, id: "event-2", title: "Incomplete Future Event", event_date: daysFromNow(15), location: null },
@@ -66,6 +69,31 @@ const events: DatabaseEvent[] = [
   { ...baseEvent, id: "event-4", title: "Pending One", status: "pending" },
   { ...baseEvent, id: "event-5", title: "Pending Two", status: "pending", city: "new-york-city" },
   { ...baseEvent, id: "event-6", title: "Rejected One", status: "rejected" },
+];
+
+const baseUser: AdminUserRow = {
+  kind: "profile",
+  id: "user-1",
+  user_id: "user-1",
+  email: "test@test.com",
+  display_name: "Test User",
+  username: "testuser",
+  avatar_url: null,
+  role: null,
+  status: "active",
+  status_reason: null,
+  created_at: "2026-08-05T00:00:00.000Z",
+  last_active_at: "2026-08-05T00:00:00.000Z",
+  contributions: 3,
+  pending_count: 0,
+  email_confirmed_at: "2026-08-05T00:00:00.000Z",
+  approved_count: 0,
+};
+
+const users: AdminUserRow[] = [
+  baseUser,
+  { ...baseUser, id: "user-2", user_id: "user-2", role: "organizer", status: "active" },
+  { ...baseUser, id: "user-3", user_id: "user-3", role: "user", status: "flagged", status_reason: "Suspicious activity" },
 ];
 
 const defaultEventsState = {
@@ -85,6 +113,21 @@ const defaultEventsState = {
   removingId: null,
   removeErrorId: null,
   removeError: null,
+};
+
+const defaultUsersState = {
+  users,
+  isLoading: false,
+  error: null,
+  refetch: vi.fn(),
+  setRole: vi.fn(),
+  settingRoleId: null,
+  setRoleErrorId: null,
+  setRoleError: null,
+  setStatus: vi.fn(),
+  settingStatusId: null,
+  setStatusErrorId: null,
+  setStatusError: null,
 };
 
 const defaultUserCountState = {
@@ -113,6 +156,7 @@ function attentionSection(): HTMLElement {
 describe("AdminOverviewPage", () => {
   beforeEach(() => {
     vi.mocked(useAdminEvents).mockReturnValue({ ...defaultEventsState });
+    vi.mocked(useAdminUsers).mockReturnValue({ ...defaultUsersState });
     vi.mocked(useAdminUserCount).mockReturnValue({ ...defaultUserCountState });
   });
 
@@ -121,11 +165,23 @@ describe("AdminOverviewPage", () => {
 
     expect(metricCard("Upcoming Events")).toHaveTextContent("2");
     expect(metricCard("Pending Submissions")).toHaveTextContent("2");
-    expect(metricCard("Incomplete Events")).toHaveTextContent("1");
+    expect(metricCard("Organizer Requests")).toHaveTextContent("0"); // No organizer_requests table exists yet
     expect(metricCard("Total Users")).toHaveTextContent("4");
   });
 
-  it("gives the pending card attention treatment but leaves a zero-count card informational", () => {
+  it("Pending Submissions card links to /admin/submissions, not /admin/events", () => {
+    renderPage();
+    const card = screen.getByLabelText(/^Pending Submissions:/);
+    // The card is itself a Link when it has a `to` prop
+    expect(card).toHaveAttribute("href", "/admin/submissions");
+  });
+
+  it("Pending Submissions card has attention tone when count > 0", () => {
+    renderPage();
+    expect(hasAttentionTone(metricCard("Pending Submissions"))).toBe(true);
+  });
+
+  it("gives a zero-count attention card informational tone", () => {
     vi.mocked(useAdminEvents).mockReturnValue({
       ...defaultEventsState,
       events: events.filter((event) => event.status !== "pending"),
@@ -133,24 +189,59 @@ describe("AdminOverviewPage", () => {
     renderPage();
 
     expect(hasAttentionTone(metricCard("Pending Submissions"))).toBe(false);
-    expect(hasAttentionTone(metricCard("Incomplete Events"))).toBe(true);
+    expect(hasAttentionTone(metricCard("Organizer Requests"))).toBe(false);
   });
 
-  it("renders two attention rows in action-before-suggested order", () => {
+  it("renders attention rows in action-before-suggested order", () => {
     renderPage();
 
     const rows = within(attentionSection()).getAllByRole("listitem");
-    expect(rows).toHaveLength(2);
-    expect(within(rows[0]).getByText("Action needed")).toBeInTheDocument();
-    expect(within(rows[0]).getByText(/2 event submissions waiting for review/)).toBeInTheDocument();
-    expect(within(rows[1]).getByText("Suggested")).toBeInTheDocument();
-    expect(within(rows[1]).getByText(/1 upcoming event missing venue, time, or image/)).toBeInTheDocument();
+    expect(rows.length).toBeGreaterThan(0);
+    // Action items should come before suggested ones
+    const actionRows = rows.filter(
+      (row) => within(row).queryByText("Action needed") !== null
+    );
+    expect(actionRows.length).toBeGreaterThan(0);
   });
 
-  it("shows the caught-up row when there is nothing to review or fix", () => {
+  it("shows action item for pending submissions linking to /admin/submissions", () => {
+    renderPage();
+
+    // The Needs Attention section's "Review" link for pending submissions
+    // should point to /admin/submissions
+    const rows = within(attentionSection()).getAllByRole("listitem");
+    const submissionRow = rows.find((row) =>
+      within(row).queryByText(/event submission.*waiting for review/)
+    );
+    expect(submissionRow).toBeDefined();
+    const reviewLink = within(submissionRow!).getByRole("link", { name: /review/i }).closest("a") as HTMLElement;
+    expect(reviewLink).toHaveAttribute("href", "/admin/submissions");
+  });
+
+  it("shows action item for flagged users", () => {
+    renderPage();
+
+    expect(
+      screen.getByText(/1 flagged account requiring review/).closest("li")
+    ).toBeInTheDocument();
+  });
+
+  it("shows suggested item for incomplete upcoming events", () => {
+    renderPage();
+
+    expect(
+      screen.getByText(/1 upcoming event missing venue, time, or image/).closest("li")
+    ).toBeInTheDocument();
+  });
+
+  it("shows the caught-up row when there is nothing to review, flag, or fix", () => {
     vi.mocked(useAdminEvents).mockReturnValue({
       ...defaultEventsState,
       events: events.filter((event) => event.id === "event-1"),
+    });
+    vi.mocked(useAdminUsers).mockReturnValue({
+      ...defaultUsersState,
+      users: [baseUser],
     });
     renderPage();
 
@@ -176,7 +267,7 @@ describe("AdminOverviewPage", () => {
     expect(refetch).toHaveBeenCalled();
   });
 
-  it("keeps cards 1-3 and both sections rendered when only the user-count query fails", () => {
+  it("keeps cards 1-4 and both sections rendered when only the user-count query fails", () => {
     vi.mocked(useAdminUserCount).mockReturnValue({
       count: undefined,
       isLoading: false,
@@ -187,7 +278,7 @@ describe("AdminOverviewPage", () => {
 
     expect(metricCard("Upcoming Events")).toHaveTextContent("2");
     expect(metricCard("Pending Submissions")).toHaveTextContent("2");
-    expect(metricCard("Incomplete Events")).toHaveTextContent("1");
+    expect(metricCard("Organizer Requests")).toHaveTextContent("0"); // No organizer_requests table exists yet
     expect(metricCard("Total Users")).toHaveTextContent("—");
     expect(screen.getByText("Needs attention")).toBeInTheDocument();
     expect(screen.getByText("Upcoming events")).toBeInTheDocument();

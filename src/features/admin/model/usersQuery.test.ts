@@ -32,6 +32,7 @@ function makeRow(overrides: Partial<AdminUserRow> = {}): AdminUserRow {
     contributions: 0,
     pending_count: 0,
     email_confirmed_at: "2026-01-01T00:00:00.000Z",
+    approved_count: 0,
     ...overrides,
   };
 }

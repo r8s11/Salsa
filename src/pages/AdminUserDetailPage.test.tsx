@@ -40,6 +40,7 @@ const organizer: AdminUserRow = {
   contributions: 3,
   pending_count: 0,
   email_confirmed_at: "2026-02-01T00:00:00.000Z",
+  approved_count: 0,
 };
 
 const publishedEvent: DatabaseEvent = {
@@ -110,6 +111,7 @@ const guest: AdminUserRow = {
   contributions: 1,
   pending_count: 1,
   email_confirmed_at: null,
+  approved_count: 0,
 };
 
 const defaultState = {

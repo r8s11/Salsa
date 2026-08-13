@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { DatabaseEvent } from "../../events/model/types";
+import type { AdminUserRow } from "../model/usersQuery";
 import {
   UPCOMING_WINDOW_DAYS,
   deriveIncompleteEvents,
@@ -49,6 +50,29 @@ function makeEvent(overrides: Partial<DatabaseEvent> = {}): DatabaseEvent {
     dance_styles: [],
     updated_at: NOW.toISOString(),
     cancellation_reason: null,
+    ...overrides,
+  };
+}
+
+function makeUser(overrides: Partial<AdminUserRow> = {}): AdminUserRow {
+  nextId += 1;
+  return {
+    kind: "profile",
+    id: `user-${nextId}`,
+    user_id: `user-${nextId}`,
+    email: `user${nextId}@test.com`,
+    display_name: `User ${nextId}`,
+    username: `user${nextId}`,
+    avatar_url: null,
+    role: null,
+    status: "active",
+    status_reason: null,
+    created_at: NOW.toISOString(),
+    last_active_at: NOW.toISOString(),
+    contributions: 0,
+    pending_count: 0,
+    email_confirmed_at: NOW.toISOString(),
+    approved_count: 0,
     ...overrides,
   };
 }
@@ -145,6 +169,41 @@ describe("deriveOverviewMetrics — totalCount", () => {
   it("counts every event regardless of status", () => {
     const events = [makeEvent({ status: "approved" }), makeEvent({ status: "pending" }), makeEvent({ status: "rejected" })];
     expect(deriveOverviewMetrics(events, NOW).totalCount).toBe(3);
+  });
+});
+
+describe("deriveOverviewMetrics — organizerRequestCount", () => {
+  it("is always 0 — no organizer_requests table exists yet", () => {
+    const events = [makeEvent({ status: "approved" })];
+    expect(deriveOverviewMetrics(events, NOW).organizerRequestCount).toBe(0);
+  });
+
+  it("remains 0 even with organizer-role users, since those are already approved", () => {
+    const users = [
+      makeUser({ role: "organizer" }),
+      makeUser({ role: "organizer" }),
+      makeUser({ role: "user" }),
+    ];
+    expect(deriveOverviewMetrics([], NOW, users).organizerRequestCount).toBe(0);
+  });
+});
+
+describe("deriveOverviewMetrics — flaggedUserCount", () => {
+  it("defaults to 0 when no users are provided", () => {
+    const events = [makeEvent({ status: "approved" })];
+    expect(deriveOverviewMetrics(events, NOW).flaggedUserCount).toBe(0);
+  });
+
+  it("counts only users with status 'flagged'", () => {
+    const users = [
+      makeUser({ status: "flagged" }),
+      makeUser({ status: "flagged" }),
+      makeUser({ status: "flagged" }),
+      makeUser({ status: "active" }),
+      makeUser({ status: "suspended" }),
+      makeUser({ status: "banned" }),
+    ];
+    expect(deriveOverviewMetrics([], NOW, users).flaggedUserCount).toBe(3);
   });
 });
 

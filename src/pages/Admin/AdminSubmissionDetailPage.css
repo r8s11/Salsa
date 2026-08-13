@@ -1,0 +1,12 @@
+.admin-submission-detail-page {
+  padding: 2rem;
+}
+
+.admin-submission-detail-page__header {
+  margin-bottom: 2rem;
+}
+
+.admin-submission-detail-page__body {
+  display: grid;
+  gap: 1rem;
+}

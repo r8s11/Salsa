@@ -62,6 +62,22 @@ export async function fetchApprovedEvents(city: City): Promise<DatabaseEvent[]> 
   return (data as DatabaseEvent[]) || [];
 }
 
+export async function fetchMyApprovedEvents(userId: string): Promise<DatabaseEvent[]> {
+  const { data, error } = await supabase
+    .from("events")
+    .select("*")
+    .eq("submitter_id", userId)
+    .eq("status", "approved")
+    .order("event_date", { ascending: true });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data as DatabaseEvent[]) || [];
+}
+
+
 export async function fetchMySubmissions(userId: string): Promise<DatabaseEvent[]> {
   const { data, error } = await supabase
     .from("events")
@@ -76,17 +92,6 @@ export async function fetchMySubmissions(userId: string): Promise<DatabaseEvent[
   return (data as DatabaseEvent[]) || [];
 }
 
-export async function submitEvent(payload: NewEventSubmission): Promise<void> {
-  const { error } = await supabase.from("events").insert({
-    ...payload,
-    status: "pending",
-    source_type: "user_submission",
-  });
-
-  if (error) {
-    throw new Error(error.message);
-  }
-}
 
 export async function fetchAllEvents(): Promise<DatabaseEvent[]> {
   const { data, error } = await supabase

@@ -1,6 +1,6 @@
 import { useState, FormEvent } from "react";
 
-import { submitEvent } from "../events/api/eventsRepo";
+import { createSubmission } from "../admin/api/submissionsRepo";
 import type { EventType } from "../../types/events";
 import { useCity } from "../../contexts/useCity";
 import { useAuth } from "../../contexts/useAuth";
@@ -21,8 +21,8 @@ export function useSubmitEventForm() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
-
     // Validate form before submission
+
     const validationError = validateSubmitForm(form);
     if (validationError) {
       setError(validationError);
@@ -30,11 +30,9 @@ export function useSubmitEventForm() {
     }
 
     setIsSubmitting(true);
-
     try {
       const eventDateTime = toEventDateInstant(form.event_date, form.event_time);
-
-      await submitEvent({
+      await createSubmission({
         title: form.title,
         description: form.description || null,
         event_type: form.event_type as EventType,
@@ -51,12 +49,13 @@ export function useSubmitEventForm() {
         submitter_email: user!.email ?? null,
         submitter_id: user!.id,
         recurrence: form.recurrence || null,
-        dance_styles: form.dance_styles.length > 0 ? form.dance_styles : null,
+        dance_styles: form.dance_styles.length > 0 ? form.dance_styles : [],
       });
       setIsSubmitted(true);
       setForm(buildInitialForm(defaultCity));
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
+      console.log("error", message);
       setError(message);
     } finally {
       setIsSubmitting(false);

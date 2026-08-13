@@ -1,4 +1,5 @@
 import type { DatabaseEvent } from "../../events/model/types";
+import type { AdminUserRow } from "../model/usersQuery";
 
 export const UPCOMING_WINDOW_DAYS = 30;
 export const UPCOMING_LIST_LIMIT = 8;
@@ -9,6 +10,8 @@ export interface OverviewMetrics {
   upcomingCount: number;
   pendingCount: number;
   incompleteCount: number;
+  organizerRequestCount: number;
+  flaggedUserCount: number;
   totalCount: number;
 }
 
@@ -24,7 +27,11 @@ export function missingFields(event: DatabaseEvent): MissingField[] {
   return missing;
 }
 
-export function deriveOverviewMetrics(events: DatabaseEvent[], now: Date): OverviewMetrics {
+export function deriveOverviewMetrics(
+  events: DatabaseEvent[],
+  now: Date,
+  users: AdminUserRow[] = []
+): OverviewMetrics {
   const windowEnd = daysFromNow(now, UPCOMING_WINDOW_DAYS);
 
   const upcomingCount = events.filter((event) => {
@@ -37,7 +44,16 @@ export function deriveOverviewMetrics(events: DatabaseEvent[], now: Date): Overv
 
   const incompleteCount = deriveIncompleteEvents(events, now).length;
 
-  return { upcomingCount, pendingCount, incompleteCount, totalCount: events.length };
+  // Phase 21/26: Organizer approval requires a dedicated organizer_requests
+  // table (Recommended Later per phase6-admin-user-detail-management.md).
+  // Until that table exists, there are no pending organizer requests to
+  // surface. The Overview card labeled "Organizer Requests" should therefore
+  // report 0 rather than counting existing organizers — counting approved
+  // organizers as "requests" would misrepresent the data on the card.
+  const organizerRequestCount = 0;
+  const flaggedUserCount = users.filter((u) => u.status === "flagged").length;
+
+  return { upcomingCount, pendingCount, incompleteCount, organizerRequestCount, flaggedUserCount, totalCount: events.length };
 }
 
 export function deriveUpcomingEvents(events: DatabaseEvent[], now: Date): DatabaseEvent[] {

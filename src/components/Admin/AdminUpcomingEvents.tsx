@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import type { DatabaseEvent } from "../../features/events/model/types";
 import { fromEventDateInstant } from "../../features/events/model/eventDateTime";
+import { submitterDisplay } from "../../features/admin/model/eventsQuery";
 import AdminStatusBadge from "./AdminStatusBadge";
 import "./AdminUpcomingEvents.css";
 
@@ -130,7 +131,7 @@ export default function AdminUpcomingEvents({
                       <VenueCell event={event} />
                     </td>
                     <td className="admin-upcoming__col--organizer">
-                      {event.host ?? event.submitter_name ?? "—"}
+                      {event.host ?? submitterDisplay(event) ?? "—"}
                     </td>
                     <td>
                       <AdminStatusBadge status={event.status} />
@@ -164,7 +165,7 @@ export default function AdminUpcomingEvents({
                 </div>
                 <div className="admin-upcoming__card-row">
                   <span className="admin-upcoming__card-label">Organizer</span>
-                  <span>{event.host ?? event.submitter_name ?? "—"}</span>
+                  <span>{event.host ?? submitterDisplay(event) ?? "—"}</span>
                 </div>
               </li>
             ))}

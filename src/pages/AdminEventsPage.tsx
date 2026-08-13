@@ -95,11 +95,14 @@ const STATUS_LABEL: Record<DatabaseEvent["status"], string> = {
 };
 
 // flag=upcoming normalizes to view=upcoming (Phase 2 back-compat); an
-// explicit ?view= always wins.
+// explicit ?view= always wins. /admin/submissions is a dedicated route that
+// defaults to the pending view.
 function parseView(searchParams: URLSearchParams): EventView {
   const raw = searchParams.get("view");
   if (raw && VALID_VIEWS.includes(raw as EventView)) return raw as EventView;
   if (searchParams.get("flag") === "upcoming") return "upcoming";
+  // /admin/submissions route — default to pending review view
+  if (window.location.pathname === "/admin/submissions") return "pending";
   return "upcoming";
 }
 

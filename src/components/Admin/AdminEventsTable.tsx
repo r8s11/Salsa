@@ -26,6 +26,7 @@ import { qualityIssues } from "../../features/admin/model/overviewMetrics";
 import {
   CITY_LABEL,
   SOURCE_TYPE_LABEL,
+  submitterDisplay,
   type SortDir,
   type SortKey,
 } from "../../features/admin/model/eventsQuery";
@@ -63,22 +64,6 @@ const SOURCE_ICON: Record<DatabaseEvent["source_type"], typeof Shield> = {
   moderator: ShieldCheck,
   imported: Download,
 };
-
-// Names the write sites stamp instead of a real submitter — resolve to the
-// Source label rather than exposing an internal system label as a person.
-const INTERNAL_SUBMITTER_MARKERS = new Set([
-  "Salsa Segura",
-  "Seed Data",
-  "ICS import (golatindance.com)",
-]);
-
-function submitterDisplay(event: DatabaseEvent): string {
-  if (event.submitter_id === null) return "Guest Submitter";
-  if (event.submitter_name && INTERNAL_SUBMITTER_MARKERS.has(event.submitter_name)) {
-    return SOURCE_TYPE_LABEL[event.source_type];
-  }
-  return event.submitter_name || "Guest Submitter";
-}
 
 function titleCase(value: string | null | undefined): string {
   if (!value) return "Unknown";

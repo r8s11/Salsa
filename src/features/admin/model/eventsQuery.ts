@@ -60,6 +60,24 @@ export const SOURCE_TYPE_LABEL: Record<DatabaseEvent["source_type"], string> = {
   imported: "Imported",
 };
 
+// Names the write sites stamp instead of a real submitter — resolve to the
+// Source label rather than exposing an internal system label as a person.
+const INTERNAL_SUBMITTER_MARKERS = new Set([
+  "Salsa Segura",
+  "Seed Data",
+  "ICS import (golatindance.com)",
+]);
+
+// Returns a safe display name for an event's submitter, hiding private emails
+// and magic-link-only submitters behind a neutral label.
+export function submitterDisplay(event: DatabaseEvent): string {
+  if (event.submitter_id === null) return "Guest Submitter";
+  if (event.submitter_name && INTERNAL_SUBMITTER_MARKERS.has(event.submitter_name)) {
+    return SOURCE_TYPE_LABEL[event.source_type];
+  }
+  return event.submitter_name || "Guest Submitter";
+}
+
 // New York calendar midnight for "today", derived from `now` so callers stay
 // pure and testable with a frozen clock.
 function startOfTodayMs(now: Date): number {

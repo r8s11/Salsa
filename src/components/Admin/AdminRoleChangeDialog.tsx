@@ -23,7 +23,7 @@ const CONSEQUENCE_COPY: Record<UserRole, string> = {
   moderator:
     "Moderators can review, edit, approve, and reject user-submitted events. They cannot approve Organizer requests.",
   organizer:
-    "Organizers can publish and manage their own events without review. Granting Organizer here is a direct role change, not the approval of a submitted request.",
+    "This is a direct role change, not the approval of a submitted request. The user will be able to: create events, publish their own events directly, edit and cancel their own events, manage attendee-related event information, and manage their organizer/brand presence. They will not receive Moderator or Admin permissions.",
   admin:
     "Admins have full access, including user management and role changes. Grant this sparingly.",
 };

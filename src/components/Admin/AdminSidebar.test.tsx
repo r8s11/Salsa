@@ -51,6 +51,9 @@ const { useAuth } = vi.hoisted(() => ({ useAuth: vi.fn() }));
 vi.mock("../../contexts/useAuth", () => ({ useAuth }));
 const { useTheme } = vi.hoisted(() => ({ useTheme: vi.fn() }));
 vi.mock("../../contexts/useTheme", () => ({ useTheme }));
+vi.mock("../../features/admin/hooks/useOrganizerRequests", () => ({
+  useOrganizerRequests: vi.fn(() => ({ pendingCount: 0, pendingCountLoading: false, pendingCountError: null })),
+}));
 
 beforeEach(() => {
   vi.mocked(useAuth).mockReturnValue({ user: null, signOut: vi.fn() });

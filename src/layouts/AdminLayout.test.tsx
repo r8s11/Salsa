@@ -4,7 +4,9 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import AdminLayout from "./AdminLayout";
 const { useTheme } = vi.hoisted(() => ({ useTheme: vi.fn() }));
+const useOrganizerRequests = vi.hoisted(() => vi.fn());
 vi.mock("../contexts/useTheme", () => ({ useTheme }));
+vi.mock("../features/admin/hooks/useOrganizerRequests", () => ({ useOrganizerRequests }));
 
 vi.mock("../contexts/useAuth", () => ({
   useAuth: () => ({
@@ -45,6 +47,11 @@ describe("AdminLayout", () => {
       effectiveTheme: "light",
       setTheme: vi.fn(),
     });
+    vi.mocked(useOrganizerRequests).mockReturnValue({
+      pendingCount: 0,
+      pendingCountLoading: false,
+      pendingCountError: null,
+    });
   });
 
   it("toggles aria-expanded on the burger button", async () => {
@@ -61,7 +68,7 @@ describe("AdminLayout", () => {
     expect(burger).toHaveAttribute("aria-expanded", "false");
   });
 
-  it("exposes Dashboard, Events, and Users as links", () => {
+  it("exposes Dashboard, Events, Users, and Organizer Requests as links", () => {
     renderLayout();
 
     expect(screen.getAllByRole("link", { name: "Dashboard" })[0]).toHaveAttribute("href", "/admin");
@@ -73,12 +80,17 @@ describe("AdminLayout", () => {
       "href",
       "/admin/users"
     );
+    expect(screen.getAllByRole("link", { name: "Organizer Requests" })[0]).toHaveAttribute(
+      "href",
+      "/admin/organizer-requests"
+    );
   });
 
   it("shows unbuilt sections as disabled with a Soon badge, not links", () => {
     renderLayout();
 
-    for (const label of ["Event Submissions", "Organizer Requests", "Venues", "Tags", "Settings"]) {
+    expect(screen.getAllByRole("link", { name: "Event Submissions" }).length).toBeGreaterThan(0);
+    for (const label of ["Venues", "Tags", "Settings"]) {
       expect(screen.queryAllByRole("link", { name: label })).toHaveLength(0);
       expect(screen.getAllByText(label)[0]).toBeInTheDocument();
     }

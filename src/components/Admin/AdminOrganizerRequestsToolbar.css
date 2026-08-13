@@ -1,0 +1,100 @@
+.admin-organizer-requests-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.admin-organizer-requests-toolbar__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.admin-organizer-requests-toolbar__search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 180px;
+}
+
+.admin-organizer-requests-toolbar__search svg {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--admin-text-subtle);
+  pointer-events: none;
+}
+
+.admin-organizer-requests-toolbar__search input {
+  padding-left: 36px;
+}
+
+.admin-organizer-requests-toolbar__type {
+  position: relative;
+  display: inline-block;
+}
+
+.admin-organizer-requests-toolbar__type-panel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 200px;
+  padding: 6px;
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-lg);
+  box-shadow: var(--admin-shadow-md);
+}
+
+.admin-organizer-requests-toolbar__type-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: var(--admin-radius);
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.admin-organizer-requests-toolbar__type-option:hover {
+  background: var(--admin-surface-secondary);
+}
+
+.admin-organizer-requests-toolbar__more {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.admin-organizer-requests-toolbar__more-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 9999px;
+  background: var(--admin-brand);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.admin-organizer-requests-toolbar__sort-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-organizer-requests-toolbar__sort-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--admin-text-strong);
+}

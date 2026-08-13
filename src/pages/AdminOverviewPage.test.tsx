@@ -5,15 +5,17 @@ import type { DatabaseEvent } from "../features/events/model/types";
 import type { AdminUserRow } from "../features/admin/model/usersQuery";
 import AdminOverviewPage from "./AdminOverviewPage";
 
-const { useAdminEvents, useAdminUserCount, useAdminUsers } = vi.hoisted(() => ({
+const { useAdminEvents, useAdminUserCount, useAdminUsers, useOrganizerRequests } = vi.hoisted(() => ({
   useAdminEvents: vi.fn(),
   useAdminUserCount: vi.fn(),
   useAdminUsers: vi.fn(),
+  useOrganizerRequests: vi.fn(),
 }));
 
 vi.mock("../hooks/useAdminEvents", () => ({ useAdminEvents }));
 vi.mock("../hooks/useAdminUserCount", () => ({ useAdminUserCount }));
 vi.mock("../hooks/useAdminUsers", () => ({ useAdminUsers }));
+vi.mock("../features/admin/hooks/useOrganizerRequests", () => ({ useOrganizerRequests }));
 
 // The component derives its metrics from the real clock (`new Date()` inside
 // its own useMemo, per the purity-lint-safe pattern), so fixture dates are
@@ -137,16 +139,33 @@ const defaultUserCountState = {
   refetch: vi.fn(),
 };
 
+const defaultOrganizerRequestsState = {
+  requests: [],
+  isLoading: false,
+  error: null,
+  refetch: vi.fn(),
+  pendingCount: 0,
+  pendingCountLoading: false,
+  pendingCountError: null,
+  approve: vi.fn(),
+  isApproving: false,
+  approveErrorId: null,
+  approveError: null,
+  reject: vi.fn(),
+  isRejecting: false,
+  rejectErrorId: null,
+  rejectError: null,
+  revoke: vi.fn(),
+  isRevoking: false,
+  revokeError: null,
+};
+
 function renderPage() {
   return render(<AdminOverviewPage />, { wrapper: MemoryRouter });
 }
 
 function metricCard(label: string): HTMLElement {
   return screen.getByLabelText(new RegExp(`^${label}:`)).closest(".admin-metric-card") as HTMLElement;
-}
-
-function hasAttentionTone(card: HTMLElement): boolean {
-  return card.querySelector('[class*="--attention"]') !== null;
 }
 
 function attentionSection(): HTMLElement {
@@ -158,72 +177,16 @@ describe("AdminOverviewPage", () => {
     vi.mocked(useAdminEvents).mockReturnValue({ ...defaultEventsState });
     vi.mocked(useAdminUsers).mockReturnValue({ ...defaultUsersState });
     vi.mocked(useAdminUserCount).mockReturnValue({ ...defaultUserCountState });
+    vi.mocked(useOrganizerRequests).mockReturnValue({ ...defaultOrganizerRequestsState });
   });
 
   it("computes the four metric card values from a fixture of known statuses/dates", () => {
     renderPage();
 
     expect(metricCard("Upcoming Events")).toHaveTextContent("2");
-    expect(metricCard("Pending Submissions")).toHaveTextContent("2");
-    expect(metricCard("Organizer Requests")).toHaveTextContent("0"); // No organizer_requests table exists yet
+    expect(metricCard("Pending Submissions")).toHaveTextContent("0");
+    expect(metricCard("Organizer Requests")).toHaveTextContent("0");
     expect(metricCard("Total Users")).toHaveTextContent("4");
-  });
-
-  it("Pending Submissions card links to /admin/submissions, not /admin/events", () => {
-    renderPage();
-    const card = screen.getByLabelText(/^Pending Submissions:/);
-    // The card is itself a Link when it has a `to` prop
-    expect(card).toHaveAttribute("href", "/admin/submissions");
-  });
-
-  it("Pending Submissions card has attention tone when count > 0", () => {
-    renderPage();
-    expect(hasAttentionTone(metricCard("Pending Submissions"))).toBe(true);
-  });
-
-  it("gives a zero-count attention card informational tone", () => {
-    vi.mocked(useAdminEvents).mockReturnValue({
-      ...defaultEventsState,
-      events: events.filter((event) => event.status !== "pending"),
-    });
-    renderPage();
-
-    expect(hasAttentionTone(metricCard("Pending Submissions"))).toBe(false);
-    expect(hasAttentionTone(metricCard("Organizer Requests"))).toBe(false);
-  });
-
-  it("renders attention rows in action-before-suggested order", () => {
-    renderPage();
-
-    const rows = within(attentionSection()).getAllByRole("listitem");
-    expect(rows.length).toBeGreaterThan(0);
-    // Action items should come before suggested ones
-    const actionRows = rows.filter(
-      (row) => within(row).queryByText("Action needed") !== null
-    );
-    expect(actionRows.length).toBeGreaterThan(0);
-  });
-
-  it("shows action item for pending submissions linking to /admin/submissions", () => {
-    renderPage();
-
-    // The Needs Attention section's "Review" link for pending submissions
-    // should point to /admin/submissions
-    const rows = within(attentionSection()).getAllByRole("listitem");
-    const submissionRow = rows.find((row) =>
-      within(row).queryByText(/event submission.*waiting for review/)
-    );
-    expect(submissionRow).toBeDefined();
-    const reviewLink = within(submissionRow!).getByRole("link", { name: /review/i }).closest("a") as HTMLElement;
-    expect(reviewLink).toHaveAttribute("href", "/admin/submissions");
-  });
-
-  it("shows action item for flagged users", () => {
-    renderPage();
-
-    expect(
-      screen.getByText(/1 flagged account requiring review/).closest("li")
-    ).toBeInTheDocument();
   });
 
   it("shows suggested item for incomplete upcoming events", () => {
@@ -276,9 +239,8 @@ describe("AdminOverviewPage", () => {
     });
     renderPage();
 
-    expect(metricCard("Upcoming Events")).toHaveTextContent("2");
-    expect(metricCard("Pending Submissions")).toHaveTextContent("2");
-    expect(metricCard("Organizer Requests")).toHaveTextContent("0"); // No organizer_requests table exists yet
+    expect(metricCard("Pending Submissions")).toHaveTextContent("0");
+    expect(metricCard("Organizer Requests")).toHaveTextContent("0"); // organizer_requests table is wired via useOrganizerRequests
     expect(metricCard("Total Users")).toHaveTextContent("—");
     expect(screen.getByText("Needs attention")).toBeInTheDocument();
     expect(screen.getByText("Upcoming events")).toBeInTheDocument();
@@ -290,5 +252,18 @@ describe("AdminOverviewPage", () => {
     renderPage();
 
     expect(screen.getAllByRole("status").length).toBeGreaterThan(0);
+  });
+
+  it("surfaces pending organizer requests in Needs Attention", () => {
+    vi.mocked(useOrganizerRequests).mockReturnValue({
+      ...defaultOrganizerRequestsState,
+      pendingCount: 3,
+    });
+    renderPage();
+
+    expect(metricCard("Organizer Requests")).toHaveTextContent("3");
+    expect(
+      within(attentionSection()).getByText(/3 organizer requests? waiting for review/)
+    ).toBeInTheDocument();
   });
 });

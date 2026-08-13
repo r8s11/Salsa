@@ -1,0 +1,95 @@
+.admin-organizer-requests-page__toolbar-card {
+  padding: 16px;
+}
+
+.admin-organizer-requests-page__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--admin-border);
+}
+
+.admin-organizer-requests-page__clear-all {
+  margin-left: auto;
+}
+
+.admin-organizer-requests-page__result-count {
+  margin: 0 16px 12px;
+  font-size: 0.85rem;
+  color: var(--admin-text-muted);
+}
+
+.admin-organizer-requests-page__table-card {
+  padding: 0;
+  border-radius: 0;
+  border: none;
+  border-top: 1px solid var(--admin-border);
+}
+
+.admin-organizer-requests-page__skeleton {
+  padding: 16px;
+}
+
+.admin-organizer-requests-page__skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.admin-organizer-requests-page__skeleton-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.admin-organizer-requests-page__skeleton-lines {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.admin-organizer-requests-page__skeleton-line {
+  height: 14px;
+  border-radius: 2px;
+}
+
+.admin-organizer-requests-page__skeleton-line--short {
+  width: 60%;
+}
+
+.admin-organizer-requests-page__skeleton-pill {
+  width: 80px;
+  height: 16px;
+  border-radius: 9999px;
+  margin-left: auto;
+}
+
+.admin-organizer-requests-page__status {
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+  color: var(--admin-text-muted);
+}
+
+.admin-organizer-requests-page__empty {
+  padding: 48px;
+  text-align: center;
+}
+
+.admin-organizer-requests-page__empty h2 {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: var(--admin-text-strong);
+}
+
+.admin-organizer-requests-page__empty p {
+  margin: 0;
+  color: var(--admin-text-muted);
+}
+
+/* Reuse admin-skeleton + admin-chip from the shared styles */

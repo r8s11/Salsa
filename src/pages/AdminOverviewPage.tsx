@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { useAdminEvents } from "../hooks/useAdminEvents";
 import { useAdminUserCount } from "../hooks/useAdminUserCount";
 import { useAdminUsers } from "../hooks/useAdminUsers";
+import { useOrganizerRequests } from "../features/admin/hooks/useOrganizerRequests";
 import {
   deriveOverviewMetrics,
   deriveUpcomingEvents,
@@ -24,6 +25,7 @@ export default function AdminOverviewPage() {
     error: userCountError,
     refetch: refetchUserCount,
   } = useAdminUserCount();
+  const { pendingCount: organizerPendingCount } = useOrganizerRequests();
 
   const events = useMemo(() => queried ?? [], [queried]);
   const users = useMemo(() => queriedUsers ?? [], [queriedUsers]);
@@ -32,7 +34,7 @@ export default function AdminOverviewPage() {
     // Kept inside useMemo — calling `new Date()` in the render body trips
     // react-hooks/purity, which already fired on this file once.
     const now = new Date();
-    const metrics = deriveOverviewMetrics(events, now, 0, users);
+    const metrics = deriveOverviewMetrics(events, now, 0, 0, users, organizerPendingCount ?? 0);
     const upcoming = deriveUpcomingEvents(events, now);
     const todayLabel = now.toLocaleDateString("en-US", {
       weekday: "long",
@@ -54,13 +56,17 @@ export default function AdminOverviewPage() {
       });
     }
 
-    // Organizer requests: Phase 21/26 requires a dedicated organizer_requests
-    // table for pending approval tracking. That table does not exist yet
-    // (see Docs/plans/phase6-admin-user-detail-management.md, "Recommended
-    // Later"). Until it does, there are no organizer requests to surface in
-    // Needs Attention — showing existing organizers here would conflate
-    // "already approved" with "awaiting review".
-
+    // Actionable: organizer requests awaiting approval
+    if (metrics.organizerRequestCount > 0) {
+      const n = metrics.organizerRequestCount;
+      attentionItems.push({
+        id: "organizer-requests",
+        severity: "action",
+        message: `${n} organizer request${n === 1 ? "" : "s"} waiting for review`,
+        actionLabel: "Review",
+        to: "/admin/organizer-requests",
+      });
+    }
     // Actionable: flagged accounts requiring review
     if (metrics.flaggedUserCount > 0) {
       const n = metrics.flaggedUserCount;
@@ -86,7 +92,7 @@ export default function AdminOverviewPage() {
     }
 
     return { metrics, attentionItems, upcoming, todayLabel };
-  }, [events, users]);
+  }, [events, users, organizerPendingCount]);
 
   return (
     <>
@@ -136,7 +142,7 @@ export default function AdminOverviewPage() {
             subLabel="Awaiting approval"
             icon={UserCheck}
             tone={metrics.organizerRequestCount > 0 ? "attention" : "informational"}
-            to="/admin/users"
+            to="/admin/organizer-requests"
             actionLabel={metrics.organizerRequestCount > 0 ? "Review" : "View"}
             isLoading={isUsersLoading}
             onRetry={refetchUsers}

@@ -94,13 +94,29 @@
   text-transform: uppercase;
 }
 
+.admin-nav__badge {
+  margin-left: 6px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 9999px;
+  background: var(--admin-brand);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* ----------------------------------------
    ≥768px icon rail — labels/groups/badges hidden
    ---------------------------------------- */
 @media (min-width: 768px) {
   .admin-sidebar[data-variant="fixed"] .admin-nav__label,
   .admin-sidebar[data-variant="fixed"] .admin-nav__group,
-  .admin-sidebar[data-variant="fixed"] .admin-nav__soon {
+  .admin-sidebar[data-variant="fixed"] .admin-nav__soon,
+  .admin-sidebar[data-variant="fixed"] .admin-nav__badge {
     display: none;
   }
 
@@ -154,7 +170,8 @@
 @media (min-width: 1024px) {
   .admin-sidebar[data-variant="fixed"][data-collapsed="true"] .admin-nav__label,
   .admin-sidebar[data-variant="fixed"][data-collapsed="true"] .admin-nav__group,
-  .admin-sidebar[data-variant="fixed"][data-collapsed="true"] .admin-nav__soon {
+  .admin-sidebar[data-variant="fixed"][data-collapsed="true"] .admin-nav__soon,
+  .admin-sidebar[data-variant="fixed"][data-collapsed="true"] .admin-nav__badge {
     display: none;
   }
 

@@ -562,6 +562,35 @@
 }
 
 /* ----------------------------------------
+   Organizer request status badge (AdminRequestStatusBadge)
+   Prefixed `--request-` to avoid colliding with event-status
+   / account-status modifiers.
+   ---------------------------------------- */
+.admin-shell .admin-status--request-pending {
+  background: var(--admin-warning-tint);
+  color: var(--admin-warning);
+  border-color: var(--admin-warning-border);
+}
+.admin-shell .admin-status--request-approved {
+  background: var(--admin-success-tint);
+  color: var(--admin-success-strong);
+  border-color: var(--admin-success-border);
+}
+.admin-shell .admin-status--request-approved::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--admin-success-strong);
+}
+.admin-shell .admin-status--request-rejected {
+  background: var(--admin-danger-tint);
+  color: var(--admin-danger-strong);
+  border-color: var(--admin-danger-border);
+}
+
+/* ----------------------------------------
    Role badge (AdminRoleBadge)
    ---------------------------------------- */
 .admin-shell .admin-role {

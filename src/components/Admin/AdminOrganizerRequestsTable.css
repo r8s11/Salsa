@@ -1,0 +1,169 @@
+.admin-organizer-requests-table__scroll {
+  overflow-x: auto;
+}
+
+.admin-organizer-requests-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.admin-organizer-requests-table th {
+  text-align: left;
+  padding: 10px 12px;
+  background: var(--admin-surface-secondary);
+  border-bottom: 1px solid var(--admin-border);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--admin-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.admin-organizer-requests-table td {
+  padding: 12px 12px;
+  border-bottom: 1px solid var(--admin-border);
+  vertical-align: top;
+}
+
+.admin-organizer-requests-table__sort-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  cursor: pointer;
+}
+
+.admin-organizer-requests-table__sort-btn:hover {
+  color: var(--admin-text-primary);
+}
+
+.admin-organizer-requests-table__title {
+  font-weight: 600;
+  color: var(--admin-text-strong);
+  text-decoration: none;
+}
+
+.admin-organizer-requests-table__title:hover {
+  text-decoration: underline;
+}
+
+.admin-organizer-requests-table__identity {
+  margin: 2px 0 0;
+  font-size: 0.8rem;
+  color: var(--admin-text-muted);
+}
+
+.admin-organizer-requests-table__muted {
+  color: var(--admin-text-muted);
+  font-size: 0.8rem;
+}
+
+.admin-organizer-requests-table__existing-badge {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--admin-information);
+  background: var(--admin-information-tint);
+  border: 1px solid var(--admin-information-border);
+  border-radius: 9999px;
+  padding: 0 8px;
+}
+
+.admin-organizer-requests-table__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.admin-organizer-requests-table__error {
+  background: var(--admin-danger-tint);
+}
+
+/* Columns */
+.admin-organizer-requests-table__col--brand {
+  min-width: 200px;
+}
+.admin-organizer-requests-table__col--type {
+  min-width: 120px;
+}
+
+/* Card list (mobile) */
+.admin-organizer-requests-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.admin-organizer-requests-cards__item {
+  padding: 16px;
+}
+
+.admin-organizer-requests-cards__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.admin-organizer-requests-cards__head-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-organizer-requests-cards__head .admin-organizer-requests-table__title {
+  display: block;
+  margin-bottom: 2px;
+}
+
+.admin-organizer-requests-cards__label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--admin-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.admin-organizer-requests-cards__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.admin-organizer-requests-cards__row:last-child {
+  border-bottom: none;
+}
+
+.admin-organizer-requests-cards__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.admin-organizer-requests-cards__error {
+  margin-top: 8px;
+  font-size: 0.8rem;
+}
+
+/* The table-only card list hides on desktop; the table scrolls. */
+@media (min-width: 768px) {
+  .admin-organizer-requests-cards {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .admin-organizer-requests-table__scroll {
+    display: none;
+  }
+}

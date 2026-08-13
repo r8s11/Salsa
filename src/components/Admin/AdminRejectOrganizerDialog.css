@@ -1,0 +1,82 @@
+.admin-reject-organizer-dialog__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: var(--admin-overlay);
+}
+
+.admin-reject-organizer-dialog {
+  width: 100%;
+  max-width: 480px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.admin-reject-organizer-dialog__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.admin-reject-organizer-dialog__header h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: var(--admin-text-strong);
+}
+
+.admin-reject-organizer-dialog__explanation {
+  margin: 0;
+  color: var(--admin-text-muted);
+  font-size: 0.9rem;
+}
+
+.admin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.admin-field__error {
+  color: var(--admin-danger);
+  font-size: 0.8rem;
+  margin-top: 4px;
+}
+
+.admin-select {
+  padding: 6px 10px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  background: var(--admin-surface);
+  color: var(--admin-text-strong);
+  font-size: 0.9rem;
+}
+
+.admin-textarea {
+  padding: 8px 10px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  background: var(--admin-surface);
+  color: var(--admin-text-strong);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  resize: vertical;
+}
+
+.admin-reject-organizer-dialog__body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.admin-reject-organizer-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}

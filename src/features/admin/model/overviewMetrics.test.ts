@@ -107,7 +107,7 @@ describe("missingFields", () => {
 describe("deriveOverviewMetrics — upcomingCount", () => {
   it("returns correct count", () => {
     const events = [makeEvent({ event_date: daysFromNow(1) })];
-    const metrics = deriveOverviewMetrics(events, NOW, 0, []);
+    const metrics = deriveOverviewMetrics(events, NOW, 0, 0, []);
     expect(metrics.upcomingCount).toBe(1);
   });
 });
@@ -115,7 +115,7 @@ describe("deriveOverviewMetrics — upcomingCount", () => {
 describe("deriveOverviewMetrics — pendingCount", () => {
   it("returns correct count", () => {
     const events = [makeEvent({ status: "pending" })];
-    const metrics = deriveOverviewMetrics(events, NOW, 0, []);
+    const metrics = deriveOverviewMetrics(events, NOW, 0, 1, []);
     expect(metrics.pendingCount).toBe(1);
   });
 });
@@ -123,7 +123,7 @@ describe("deriveOverviewMetrics — pendingCount", () => {
 describe("deriveOverviewMetrics — incompleteCount", () => {
   it("returns correct count", () => {
     const events = [makeEvent({ location: "" })];
-    const metrics = deriveOverviewMetrics(events, NOW, 0, []);
+    const metrics = deriveOverviewMetrics(events, NOW, 0, 0, []);
     expect(metrics.incompleteCount).toBe(1);
   });
 });
@@ -131,14 +131,19 @@ describe("deriveOverviewMetrics — incompleteCount", () => {
 describe("deriveOverviewMetrics — totalCount", () => {
   it("returns correct count", () => {
     const events = [makeEvent()];
-    const metrics = deriveOverviewMetrics(events, NOW, 0, []);
+    const metrics = deriveOverviewMetrics(events, NOW, 0, 0, []);
     expect(metrics.totalCount).toBe(1);
   });
 });
 
 describe("deriveOverviewMetrics — organizerRequestCount", () => {
-  it("returns 0", () => {
-    const metrics = deriveOverviewMetrics([], NOW, 0, []);
+  it("returns the count passed through", () => {
+    const metrics = deriveOverviewMetrics([], NOW, 0, 0, [], 3);
+    expect(metrics.organizerRequestCount).toBe(3);
+  });
+
+  it("defaults to 0", () => {
+    const metrics = deriveOverviewMetrics([], NOW, 0, 0, []);
     expect(metrics.organizerRequestCount).toBe(0);
   });
 });
@@ -146,7 +151,7 @@ describe("deriveOverviewMetrics — organizerRequestCount", () => {
 describe("deriveOverviewMetrics — flaggedUserCount", () => {
   it("returns correct count", () => {
     const users = [makeUser({ flagged: true })];
-    const metrics = deriveOverviewMetrics([], NOW, 0, users);
+    const metrics = deriveOverviewMetrics([], NOW, 0, 0, users);
     expect(metrics.flaggedUserCount).toBe(1);
   });
 });

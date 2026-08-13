@@ -14,6 +14,7 @@ import {
 import type { ComponentType } from "react";
 import { useAuth } from "../../contexts/useAuth";
 import { useTheme } from "../../contexts/useTheme";
+import { useOrganizerRequests } from "../../features/admin/hooks/useOrganizerRequests";
 import "./AdminSidebar.css";
 
 interface AdminSidebarProps {
@@ -27,6 +28,7 @@ type NavItem = {
   label: string;
   icon: ComponentType<{ size?: number }>;
   group: string;
+  badge?: number | null;
 } & ({ to: string; built: true } | { to?: undefined; built: false });
 
 const NAV_ITEMS: NavItem[] = [
@@ -34,7 +36,7 @@ const NAV_ITEMS: NavItem[] = [
   { group: "Management", label: "Events", icon: CalendarDays, to: "/admin/events", built: true },
   { group: "Management", label: "Users", icon: Users, to: "/admin/users", built: true },
   { group: "Review", label: "Event Submissions", icon: ClipboardCheck, to: "/admin/submissions", built: true },
-  { group: "Review", label: "Organizer Requests", icon: UserPlus, built: false },
+  { group: "Review", label: "Organizer Requests", icon: UserPlus, to: "/admin/organizer-requests", built: true },
   { group: "Platform", label: "Venues", icon: MapPin, built: false },
   { group: "Platform", label: "Tags", icon: Tag, built: false },
   { group: "System", label: "Settings", icon: Settings, built: false },
@@ -56,6 +58,7 @@ export default function AdminSidebar({
 }: AdminSidebarProps) {
   const { user, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
+  const { pendingCount } = useOrganizerRequests();
 
   const handleSignOut = async () => {
     await signOut();
@@ -72,6 +75,8 @@ export default function AdminSidebar({
       <div className="admin-sidebar__scroll">
         {NAV_ITEMS_WITH_GROUP_FLAG.map(({ item, showGroup }) => {
           const Icon = item.icon;
+          const isOrganizerRequests = item.to === "/admin/organizer-requests";
+          const badge = isOrganizerRequests ? pendingCount : null;
 
           return (
             <div key={item.label} className="admin-nav__item-wrap">
@@ -88,6 +93,11 @@ export default function AdminSidebar({
                 >
                   <Icon size={18} />
                   <span className="admin-nav__label">{item.label}</span>
+                  {badge !== null && badge !== undefined && badge > 0 && (
+                    <span className="admin-nav__badge" aria-label={`${badge} pending organizer requests`}>
+                      {badge}
+                    </span>
+                  )}
                 </NavLink>
               ) : (
                 <span

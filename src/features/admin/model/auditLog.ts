@@ -34,6 +34,22 @@ export function auditLogLabelFor(entry: AuditLogRow): string {
       return `Account banned${reasonSuffix(metadata)}`;
     case "user.restored":
       return "Access restored";
+    case "submission.created":
+      return "Submission received";
+    case "submission.review_started":
+      return "Review started";
+    case "submission.edited":
+      return `${(metadata.fields as string[])?.join(', ') ?? 'Fields'} corrected`;
+    case "submission.approved":
+      return "Approved";
+    case "submission.rejected":
+      return `Rejected — ${metadata.rejection_reason ?? 'Unknown'}`;
+    case "submission.marked_duplicate":
+      return "Marked as duplicate";
+    case "submission.reopened":
+      return "Reopened";
+    case "submission.withdrawn":
+      return "Withdrawn by submitter";
     default:
       return entry.action;
   }

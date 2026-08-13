@@ -2,24 +2,6 @@ import { supabase } from "../../../lib/supabase";
 import { DatabaseEvent, City, EventType } from "../../../types/events";
 import { toEventDateInstant, formatTimeLabel } from "../../../features/events/model/eventDateTime";
 
-export interface NewEventSubmission {
-  title: string;
-  description: string | null;
-  event_type: EventType;
-  city: City;
-  event_date: string;
-  event_time: string | null;
-  location: string | null;
-  address: string | null;
-  price_type: "free" | "paid" | null;
-  price_amount: number | null;
-  rsvp_link: string | null;
-  submitter_name: string | null;
-  submitter_email: string | null;
-  submitter_id: string;
-  recurrence: "weekly" | null;
-  dance_styles: string[] | null;
-}
 
 export interface AdminEventPayload {
   title: string;
@@ -40,6 +22,7 @@ export interface AdminEventPayload {
   contact_instagram: string | null;
   contact_website: string | null;
   dance_styles: string[] | null;
+  venue_id: string | null;
 }
 
 export async function fetchApprovedEvents(city: City): Promise<DatabaseEvent[]> {
@@ -192,54 +175,11 @@ export async function duplicateEvent(
   }
 }
 
-export interface UserEventPayload {
-  title: string;
-  description: string | null;
-  event_type: EventType;
-  city: City;
-  event_date: string;
-  event_time: string | null;
-  location: string | null;
-  address: string | null;
-  price_type: "free" | "paid" | null;
-  price_amount: number | null;
-  rsvp_link: string | null;
-  recurrence: "weekly" | null;
-  dance_styles: string[] | null;
-}
 
 // Allows the original submitter to update their own event, but only while it
 // is still pending or has been rejected (not yet approved/published). Uses a
 // Postgres RBAC filter so the database enforces ownership at the row level.
-export async function updateEventForUser(
-  id: string,
-  payload: UserEventPayload,
-  userId: string
-): Promise<void> {
-  const { error } = await supabase
-    .from("events")
-    .update(payload)
-    .eq("id", id)
-    .eq("submitter_id", userId)
-    .in("status", ["pending", "rejected"]);
-
-  if (error) {
-    throw new Error(error.message);
-  }
-}
 
 // Allows the original submitter to recall (soft-delete) their own event
 // while it is still pending. Recalled events are hard-removed so the user
 // can re-submit cleanly; this cannot be called on approved events.
-export async function withdrawSubmission(id: string, userId: string): Promise<void> {
-  const { error } = await supabase
-    .from("events")
-    .delete()
-    .eq("id", id)
-    .eq("submitter_id", userId)
-    .eq("status", "pending");
-
-  if (error) {
-    throw new Error(error.message);
-  }
-}

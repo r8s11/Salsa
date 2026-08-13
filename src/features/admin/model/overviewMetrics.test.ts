@@ -21,7 +21,7 @@ let nextId = 0;
 
 function makeEvent(overrides: Partial<DatabaseEvent> = {}): DatabaseEvent {
   nextId += 1;
-  return {
+  const base: DatabaseEvent = {
     id: `event-${nextId}`,
     title: `Event ${nextId}`,
     description: null,
@@ -50,8 +50,13 @@ function makeEvent(overrides: Partial<DatabaseEvent> = {}): DatabaseEvent {
     dance_styles: [],
     updated_at: NOW.toISOString(),
     cancellation_reason: null,
-    ...overrides,
+    venue_id: null,
   };
+  // Filter out undefined values so `venue_id` stays `string | null` when not overridden
+  const filtered = Object.fromEntries(
+    Object.entries(overrides).filter(([, value]) => value !== undefined)
+  ) as Partial<DatabaseEvent>;
+  return { ...base, ...filtered };
 }
 
 function makeUser(overrides: Partial<AdminUserRow> = {}): AdminUserRow {

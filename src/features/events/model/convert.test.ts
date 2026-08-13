@@ -32,6 +32,7 @@ const mockEvent = (overrides: Partial<DatabaseEvent>): DatabaseEvent => ({
   dance_styles: [],
   updated_at: "2026-07-01T00:00:00Z",
   cancellation_reason: null,
+  venue_id: null,
   ...overrides,
 });
 

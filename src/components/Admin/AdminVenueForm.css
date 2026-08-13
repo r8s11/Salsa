@@ -1,0 +1,44 @@
+.admin-venue-form__duplicate-list {
+  list-style: none;
+  margin: 8px 0 4px 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.admin-venue-form__duplicate-list li {
+  padding: 6px 8px;
+  border-left: 2px solid var(--admin-warning-border);
+  background: var(--admin-warning-tint);
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.admin-venue-form__address-confirmation {
+  margin-top: 16px;
+}
+
+.admin-venue-form__confirmation-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px dashed var(--admin-border);
+  border-radius: 6px;
+  background: var(--admin-surface);
+  font-size: 0.85rem;
+}
+
+.admin-venue-form__confirmation-address {
+  color: var(--admin-text-strong);
+}
+
+.admin-venue-form__confirmation-tz {
+  color: var(--admin-text-subtle);
+  font-size: 0.8rem;
+}
+
+.admin-venue-form__confirmation-card strong {
+  font-weight: 600;
+}

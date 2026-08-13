@@ -11,7 +11,8 @@ const mocks = vi.hoisted(() => ({
     user: { id: "user-1", email: "dancer@example.com" } as { id: string; email: string } | null,
   },
   submissions: {
-    submissions: undefined as DatabaseEvent[] | undefined,
+    submissions: [] as DatabaseEvent[],
+    approvedEvents: [] as DatabaseEvent[],
     isLoading: false,
     error: null as string | null,
   },
@@ -67,6 +68,7 @@ const bostonApproved: DatabaseEvent = {
   dance_styles: [],
   updated_at: "2026-08-01T00:00:00Z",
   cancellation_reason: null,
+  venue_id: null,
 };
 const nycApproved: DatabaseEvent = {
   ...bostonApproved,

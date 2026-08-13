@@ -31,6 +31,7 @@ export interface DatabaseEvent {
   contact_email: string | null;
   contact_instagram: string | null;
   contact_website: string | null;
+  venue_id: string | null;
 }
 
 // Schedule-X event interface

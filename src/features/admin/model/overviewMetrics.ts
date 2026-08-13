@@ -13,6 +13,8 @@ export interface OverviewMetrics {
   incompleteCount: number;
   organizerRequestCount: number;
   flaggedUserCount: number;
+  venueCount: number;
+  archivedVenueCount: number;
   totalCount: number;
 }
 
@@ -34,7 +36,9 @@ export function deriveOverviewMetrics(
   submissionCount: number = 0,
   pendingSubmissionCount: number = 0,
   users: AdminUserRow[] = [],
-  organizerRequestCount: number = 0
+  organizerRequestCount: number = 0,
+  venueCount: number = 0,
+  archivedVenueCount: number = 0
 ): OverviewMetrics {
   return {
     upcomingCount: deriveUpcomingEvents(events, now).length,
@@ -43,6 +47,8 @@ export function deriveOverviewMetrics(
     incompleteCount: deriveIncompleteEvents(events, now).length,
     organizerRequestCount,
     flaggedUserCount: users.filter((u) => u.flagged).length,
+    venueCount,
+    archivedVenueCount,
     totalCount: events.length,
   };
 }

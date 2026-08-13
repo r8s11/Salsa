@@ -35,6 +35,7 @@ const baseEvent: DatabaseEvent = {
   dance_styles: [],
   updated_at: "2026-08-01T00:00:00.000Z",
   cancellation_reason: null,
+  venue_id: null,
 };
 
 const events: DatabaseEvent[] = [

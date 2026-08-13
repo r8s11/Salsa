@@ -108,3 +108,64 @@
   border-radius: var(--admin-radius);
   object-fit: cover;
 }
+
+/* ── Venue combobox in the Location fieldset ── */
+.admin-event-form__venue-selected {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-event-form__venue-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.admin-event-form__venue-combobox-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.admin-event-form__venue-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  max-height: 220px;
+  margin: 0;
+  padding: 4px;
+  overflow-y: auto;
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border-md);
+  border-radius: var(--admin-radius);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  list-style: none;
+}
+
+.admin-event-form__venue-result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 10px;
+  text-align: left;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.admin-event-form__venue-result:hover {
+  background: var(--admin-surface-secondary);
+}
+
+.admin-event-form__venue-result strong {
+  display: block;
+  font-weight: 600;
+}
+
+.admin-event-form__venue-warning {
+  font-size: 1.1rem;
+}

@@ -5,17 +5,19 @@ import type { DatabaseEvent } from "../features/events/model/types";
 import type { AdminUserRow } from "../features/admin/model/usersQuery";
 import AdminOverviewPage from "./AdminOverviewPage";
 
-const { useAdminEvents, useAdminUserCount, useAdminUsers, useOrganizerRequests } = vi.hoisted(() => ({
+const { useAdminEvents, useAdminUserCount, useAdminUsers, useOrganizerRequests, useAdminVenues } = vi.hoisted(() => ({
   useAdminEvents: vi.fn(),
   useAdminUserCount: vi.fn(),
   useAdminUsers: vi.fn(),
   useOrganizerRequests: vi.fn(),
+  useAdminVenues: vi.fn(),
 }));
 
 vi.mock("../hooks/useAdminEvents", () => ({ useAdminEvents }));
 vi.mock("../hooks/useAdminUserCount", () => ({ useAdminUserCount }));
 vi.mock("../hooks/useAdminUsers", () => ({ useAdminUsers }));
 vi.mock("../features/admin/hooks/useOrganizerRequests", () => ({ useOrganizerRequests }));
+vi.mock("../features/admin/hooks/useAdminVenues", () => ({ useAdminVenues }));
 
 // The component derives its metrics from the real clock (`new Date()` inside
 // its own useMemo, per the purity-lint-safe pattern), so fixture dates are
@@ -53,6 +55,7 @@ const baseEvent: DatabaseEvent = {
   dance_styles: [],
   updated_at: "2026-08-05T00:00:00.000Z",
   cancellation_reason: null,
+  venue_id: null,
 };
 
 // Known fixture: 2 approved-future within 30 days (1 complete, 1 missing venue
@@ -178,14 +181,16 @@ describe("AdminOverviewPage", () => {
     vi.mocked(useAdminUsers).mockReturnValue({ ...defaultUsersState });
     vi.mocked(useAdminUserCount).mockReturnValue({ ...defaultUserCountState });
     vi.mocked(useOrganizerRequests).mockReturnValue({ ...defaultOrganizerRequestsState });
+  vi.mocked(useAdminVenues).mockReturnValue({ venues: [], isLoading: false, error: null, refetch: vi.fn() });
   });
 
-  it("computes the four metric card values from a fixture of known statuses/dates", () => {
+  it("computes the five metric card values from a fixture of known statuses/dates", () => {
     renderPage();
 
     expect(metricCard("Upcoming Events")).toHaveTextContent("2");
     expect(metricCard("Pending Submissions")).toHaveTextContent("0");
     expect(metricCard("Organizer Requests")).toHaveTextContent("0");
+    expect(metricCard("Total Venues")).toHaveTextContent("0");
     expect(metricCard("Total Users")).toHaveTextContent("4");
   });
 
@@ -230,7 +235,7 @@ describe("AdminOverviewPage", () => {
     expect(refetch).toHaveBeenCalled();
   });
 
-  it("keeps cards 1-4 and both sections rendered when only the user-count query fails", () => {
+  it("keeps cards 1-5 and both sections rendered when only the user-count query fails", () => {
     vi.mocked(useAdminUserCount).mockReturnValue({
       count: undefined,
       isLoading: false,

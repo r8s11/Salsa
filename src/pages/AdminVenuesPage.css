@@ -1,0 +1,85 @@
+.admin-venues-page__toolbar-card {
+  margin: 12px 0 0 0;
+}
+
+.admin-venues-page__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--admin-divider);
+}
+
+.admin-venues-page__clear-all {
+  margin-left: auto;
+}
+
+.admin-venues-page__result-count {
+  margin: 8px 0 0 0;
+  font-size: 0.85rem;
+  color: var(--admin-muted);
+  padding: 0 4px;
+}
+
+.admin-venues-page__table-card {
+  margin: 0;
+}
+
+.admin-venues-page__skeleton,
+.admin-venues-page__empty {
+  padding: 24px;
+  text-align: center;
+}
+
+.admin-venues-page__skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+}
+
+.admin-venues-page__skeleton-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.admin-venues-page__skeleton-line {
+  height: 12px;
+  width: 100%;
+  max-width: 200px;
+}
+
+.admin-venues-page__skeleton-line--short {
+  max-width: 100px;
+}
+
+.admin-venues-page__skeleton-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
+
+.admin-venues-page__skeleton-pill {
+  width: 60px;
+  height: 20px;
+  border-radius: 10px;
+  margin-left: auto;
+}
+
+.admin-venues-page__status {
+  margin: 0 0 8px 0;
+  font-size: 0.9rem;
+}
+
+.admin-venues-page__empty h2 {
+  margin: 0 0 8px 0;
+}
+
+.admin-venues-page__empty p {
+  margin: 0;
+  color: var(--admin-muted);
+}

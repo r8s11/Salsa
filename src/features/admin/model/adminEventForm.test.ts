@@ -31,6 +31,7 @@ const baseEvent: DatabaseEvent = {
   submitter_email: null,
   submitter_id: null,
   cancellation_reason: null,
+  venue_id: null,
 };
 
 describe("adminEventForm model", () => {

@@ -72,6 +72,7 @@ const publishedEvent: DatabaseEvent = {
   contact_email: null,
   contact_instagram: null,
   contact_website: null,
+  venue_id: null,
 };
 
 const eventsDefaultState = {

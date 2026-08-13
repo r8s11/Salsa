@@ -9,7 +9,7 @@ let nextId = 0;
 
 function makeEvent(overrides: Partial<DatabaseEvent> = {}): DatabaseEvent {
   nextId += 1;
-  return {
+  const base: DatabaseEvent = {
     id: `event-${nextId}`,
     title: `Event ${nextId}`,
     description: "A great event.",
@@ -38,8 +38,12 @@ function makeEvent(overrides: Partial<DatabaseEvent> = {}): DatabaseEvent {
     dance_styles: ["salsa"],
     updated_at: "2026-08-01T00:00:00.000Z",
     cancellation_reason: null,
-    ...overrides,
+    venue_id: null,
   };
+  const filtered = Object.fromEntries(
+    Object.entries(overrides).filter(([, value]) => value !== undefined)
+  ) as Partial<DatabaseEvent>;
+  return { ...base, ...filtered };
 }
 
 const baseFilters: EventFilters = {

@@ -50,6 +50,18 @@ export function auditLogLabelFor(entry: AuditLogRow): string {
       return "Reopened";
     case "submission.withdrawn":
       return "Withdrawn by submitter";
+    case "venue.created":
+      return "Venue created";
+    case "venue.updated":
+      return `Venue updated${(metadata.fields as string[])?.length ? ` — ${(metadata.fields as string[]).join(', ')}` : ''}`;
+    case "venue.archived":
+      return "Venue archived";
+    case "venue.restored":
+      return "Venue restored";
+    case "venue.deleted":
+      return "Venue deleted";
+    case "venue.merged":
+      return `Venue merged into ${metadata.kept_name ?? "another venue"}`;
     default:
       return entry.action;
   }

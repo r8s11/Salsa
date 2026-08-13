@@ -1,9 +1,10 @@
 import { useMemo } from "react";
-import { CalendarDays, ClipboardCheck, Users, Plus, UserCheck } from "lucide-react";
+import { CalendarDays, ClipboardCheck, Users, Plus, UserCheck, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAdminEvents } from "../hooks/useAdminEvents";
 import { useAdminUserCount } from "../hooks/useAdminUserCount";
 import { useAdminUsers } from "../hooks/useAdminUsers";
+import { useAdminVenues } from "../features/admin/hooks/useAdminVenues";
 import { useOrganizerRequests } from "../features/admin/hooks/useOrganizerRequests";
 import {
   deriveOverviewMetrics,
@@ -26,6 +27,7 @@ export default function AdminOverviewPage() {
     refetch: refetchUserCount,
   } = useAdminUserCount();
   const { pendingCount: organizerPendingCount } = useOrganizerRequests();
+  const { venues: allVenues = [] } = useAdminVenues();
 
   const events = useMemo(() => queried ?? [], [queried]);
   const users = useMemo(() => queriedUsers ?? [], [queriedUsers]);
@@ -34,7 +36,16 @@ export default function AdminOverviewPage() {
     // Kept inside useMemo — calling `new Date()` in the render body trips
     // react-hooks/purity, which already fired on this file once.
     const now = new Date();
-    const metrics = deriveOverviewMetrics(events, now, 0, 0, users, organizerPendingCount ?? 0);
+    const metrics = deriveOverviewMetrics(
+      events,
+      now,
+      0,
+      0,
+      users,
+      organizerPendingCount ?? 0,
+      allVenues.filter((v) => v.status !== "archived").length,
+      allVenues.filter((v) => v.status === "archived").length
+    );
     const upcoming = deriveUpcomingEvents(events, now);
     const todayLabel = now.toLocaleDateString("en-US", {
       weekday: "long",
@@ -92,7 +103,7 @@ export default function AdminOverviewPage() {
     }
 
     return { metrics, attentionItems, upcoming, todayLabel };
-  }, [events, users, organizerPendingCount]);
+  }, [events, users, organizerPendingCount, allVenues]);
 
   return (
     <>
@@ -146,6 +157,17 @@ export default function AdminOverviewPage() {
             actionLabel={metrics.organizerRequestCount > 0 ? "Review" : "View"}
             isLoading={isUsersLoading}
             onRetry={refetchUsers}
+          />
+          <AdminMetricCard
+            label="Total Venues"
+            value={metrics.venueCount}
+            subLabel="Active venues"
+            icon={MapPin}
+            tone="informational"
+            to="/admin/venues"
+            actionLabel="Manage"
+            isLoading={isLoading}
+            onRetry={refetch}
           />
           <AdminMetricCard
             label="Total Users"

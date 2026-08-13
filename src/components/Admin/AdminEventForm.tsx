@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { FormEvent } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, MapPin, X } from "lucide-react";
 import type { AdminEventForm as AdminEventFormValues } from "../../features/admin/model/adminEventForm";
 import { validateAdminEventForm } from "../../features/admin/model/adminEventForm";
+import { venueDisplayAddress } from "../../features/admin/model/venuesQuery";
+import { useVenueCombobox } from "../../features/admin/hooks/useVenueCombobox";
+import type { VenueRow } from "../../features/admin/model/venuesQuery";
 import "./AdminEventForm.css";
 
 interface AdminEventFormProps {
@@ -48,9 +51,40 @@ export default function AdminEventForm({
 }: AdminEventFormProps) {
   const [form, setForm] = useState<AdminEventFormValues>(initial);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const venueCombobox = useVenueCombobox(form.venue_id);
+
+  // Sync the combobox selection when the form's venue_id changes externally
+  // (e.g. the user clears the venue, or the form is reset with new initial data).
+  useEffect(() => {
+    if (form.venue_id && form.venue_id !== venueCombobox.selectedId) {
+      // Find the venue in existing results or search if needed
+      const existing = venueCombobox.results.find((v) => v.id === form.venue_id);
+      if (existing) venueCombobox.selectVenue(existing);
+    }
+    if (!form.venue_id && venueCombobox.selectedId) {
+      venueCombobox.clearVenue();
+    }
+  }, [form.venue_id]);
 
   const update = (field: keyof AdminEventFormValues, value: string) => {
     setForm((previous) => ({ ...previous, [field]: value }));
+    setValidationError(null);
+  };
+
+  const handleVenueSelect = (venue: VenueRow) => {
+    venueCombobox.selectVenue(venue);
+    setForm((previous) => ({
+      ...previous,
+      venue_id: venue.id,
+      location: venue.name,
+      address: venueDisplayAddress(venue) || venue.address_line1 || "",
+    }));
+    setValidationError(null);
+  };
+
+  const handleVenueClear = () => {
+    venueCombobox.clearVenue();
+    setForm((previous) => ({ ...previous, venue_id: "", location: "", address: "" }));
     setValidationError(null);
   };
 
@@ -217,6 +251,75 @@ export default function AdminEventForm({
 
       <fieldset className="admin-form__fieldset">
         <legend>Location</legend>
+
+        {venueCombobox.selectedId ? (
+          <div className="admin-field admin-event-form__venue-selected">
+            <div className="admin-event-form__venue-info">
+              <MapPin size={16} />
+              <div>
+                <strong>{venueCombobox.selectedName}</strong>
+                {venueCombobox.selectedAddress && (
+                  <p className="admin-form__helper">{venueCombobox.selectedAddress}</p>
+                )}
+              </div>
+            </div>
+            <button
+              type="button"
+              className="admin-icon-btn"
+              aria-label="Change venue"
+              onClick={handleVenueClear}
+            >
+              <X size={14} />
+            </button>
+          </div>
+        ) : (
+          <div className="admin-field admin-event-form__venue-combobox">
+            <label htmlFor="venue-search">Venue</label>
+            <div className="admin-event-form__venue-combobox-wrap">
+              <input
+                id="venue-search"
+                type="search"
+                className="admin-input"
+                placeholder="Search for a venue…"
+                value={venueCombobox.query}
+                onChange={(e) => venueCombobox.setQuery(e.target.value)}
+                onFocus={() => venueCombobox.setIsOpen(true)}
+                aria-autocomplete="list"
+                aria-expanded={venueCombobox.isOpen}
+                aria-controls="venue-results"
+              />
+              {venueCombobox.isOpen && venueCombobox.results.length > 0 && (
+                <ul
+                  id="venue-results"
+                  className="admin-event-form__venue-results"
+                  role="listbox"
+                >
+                  {venueCombobox.results.map((venue) => (
+                    <li key={venue.id} role="option">
+                      <button
+                        type="button"
+                        className="admin-event-form__venue-result"
+                        onClick={() => handleVenueSelect(venue)}
+                      >
+                        <div>
+                          <strong>{venue.name}</strong>
+                          <p className="admin-form__helper">
+                            {venueDisplayAddress(venue) || "No address"}
+                          </p>
+                        </div>
+                        {venue.quality_issues && venue.quality_issues.length > 0 && (
+                          <span className="admin-event-form__venue-warning" aria-label="Quality issues">
+                            ⚠
+                          </span>
+                        )}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        )}
 
         <div className="admin-field">
           <label htmlFor="location">Venue Name</label>

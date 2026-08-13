@@ -1,0 +1,156 @@
+.admin-venues-table__scroll {
+  overflow-x: auto;
+}
+
+.admin-venues-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.admin-venues-table th,
+.admin-venues-table td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--admin-border);
+  vertical-align: middle;
+}
+
+.admin-venues-table th {
+  background: var(--admin-surface-secondary);
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--admin-text-muted);
+}
+
+.admin-venues-table__sort-btn {
+  background: none;
+  border: none;
+  color: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 0;
+}
+
+.admin-venues-table__sort-btn:hover {
+  color: var(--admin-text-strong);
+}
+
+.admin-venues-table__title {
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--admin-brand);
+}
+
+.admin-venues-table__title:hover {
+  text-decoration: underline;
+}
+
+.admin-venues-table__identity {
+  font-size: 0.8rem;
+  color: var(--admin-text-muted);
+  margin: 2px 0 0 0;
+}
+
+.admin-venues-table__muted {
+  color: var(--admin-text-subtle);
+  font-style: italic;
+}
+
+.admin-venues-table__error {
+  background: var(--admin-danger-tint);
+}
+
+.admin-venues-table__col--city {
+  white-space: nowrap;
+}
+
+.admin-venues-table__col--address {
+  color: var(--admin-text-muted);
+  font-size: 0.85rem;
+}
+
+.admin-venues-table__col--upcoming {
+  text-align: right;
+}
+
+.admin-venues-table__col--upcoming span {
+  font-weight: 500;
+}
+
+.admin-venues-table__col--actions {
+  text-align: right;
+  padding-right: 0;
+}
+
+/* Mobile card list — mirrors admin-organizer-requests-cards__item */
+.admin-venues-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: none;
+}
+
+.admin-venues-cards__item {
+  padding: 16px;
+  border: 1px solid var(--admin-border);
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.admin-venues-cards__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.admin-venues-cards__icon {
+  color: var(--admin-text-muted);
+  flex-shrink: 0;
+}
+
+.admin-venues-cards__head-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-venues-cards__row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 0.85rem;
+}
+
+.admin-venues-cards__label {
+  color: var(--admin-text-muted);
+  font-weight: 500;
+}
+
+.admin-venues-cards__error {
+  color: var(--admin-danger-strong);
+  font-size: 0.85rem;
+  margin: 8px 0 0 0;
+}
+
+.admin-venues-cards__actions {
+  margin-top: 12px;
+  text-align: right;
+  padding-top: 8px;
+  border-top: 1px solid var(--admin-border);
+}
+
+/* Show cards on narrow viewports, table on wider */
+@media (max-width: 768px) {
+  .admin-venues-table__scroll {
+    display: none;
+  }
+  .admin-venues-cards {
+    display: block;
+  }
+}

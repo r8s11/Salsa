@@ -75,6 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     session,
     loading,
     isAdmin: user?.app_metadata?.role === "admin",
+    isModerator: user?.app_metadata?.role === "moderator" || user?.app_metadata?.role === "admin",
     signInWithPassword,
     signUp,
     signOut,

@@ -8,6 +8,20 @@ export interface QualityGap {
   tier: QualityTier;
 }
 
+export const QUALITY_ISSUE_LABEL: Record<string, string> = {
+  title: 'Event title',
+  event_date: 'Event date',
+  city: 'City',
+  event_type: 'Event type',
+  location: 'Venue/location',
+  event_time: 'Start time',
+  description: 'Description',
+  image_url: 'Flyer image',
+  host: 'Organizer/Host',
+  price_type: 'Pricing',
+  dance_styles: 'Dance styles'
+};
+
 export function checkSubmissionQuality(submission: EventSubmission): QualityGap[] {
   const data = getEffectiveEventData(submission);
   const gaps: QualityGap[] = [];

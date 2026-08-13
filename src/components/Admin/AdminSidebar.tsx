@@ -33,7 +33,7 @@ const NAV_ITEMS: NavItem[] = [
   { group: "Overview", label: "Dashboard", icon: LayoutDashboard, to: "/admin", built: true },
   { group: "Management", label: "Events", icon: CalendarDays, to: "/admin/events", built: true },
   { group: "Management", label: "Users", icon: Users, to: "/admin/users", built: true },
-  { group: "Review", label: "Event Submissions", icon: ClipboardCheck, built: false },
+  { group: "Review", label: "Event Submissions", icon: ClipboardCheck, to: "/admin/submissions", built: true },
   { group: "Review", label: "Organizer Requests", icon: UserPlus, built: false },
   { group: "Platform", label: "Venues", icon: MapPin, built: false },
   { group: "Platform", label: "Tags", icon: Tag, built: false },

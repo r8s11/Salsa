@@ -9,6 +9,7 @@ export type MissingField = "venue" | "time" | "image";
 export interface OverviewMetrics {
   upcomingCount: number;
   pendingCount: number;
+  submissionCount: number;
   incompleteCount: number;
   organizerRequestCount: number;
   flaggedUserCount: number;
@@ -30,30 +31,18 @@ export function missingFields(event: DatabaseEvent): MissingField[] {
 export function deriveOverviewMetrics(
   events: DatabaseEvent[],
   now: Date,
+  submissionCount: number = 0,
   users: AdminUserRow[] = []
 ): OverviewMetrics {
-  const windowEnd = daysFromNow(now, UPCOMING_WINDOW_DAYS);
-
-  const upcomingCount = events.filter((event) => {
-    if (event.status !== "approved") return false;
-    const eventDate = new Date(event.event_date);
-    return eventDate >= now && eventDate <= windowEnd;
-  }).length;
-
-  const pendingCount = events.filter((event) => event.status === "pending").length;
-
-  const incompleteCount = deriveIncompleteEvents(events, now).length;
-
-  // Phase 21/26: Organizer approval requires a dedicated organizer_requests
-  // table (Recommended Later per phase6-admin-user-detail-management.md).
-  // Until that table exists, there are no pending organizer requests to
-  // surface. The Overview card labeled "Organizer Requests" should therefore
-  // report 0 rather than counting existing organizers — counting approved
-  // organizers as "requests" would misrepresent the data on the card.
-  const organizerRequestCount = 0;
-  const flaggedUserCount = users.filter((u) => u.status === "flagged").length;
-
-  return { upcomingCount, pendingCount, incompleteCount, organizerRequestCount, flaggedUserCount, totalCount: events.length };
+  return {
+    upcomingCount: deriveUpcomingEvents(events, now).length,
+    pendingCount: events.filter((e) => e.status === "pending").length,
+    submissionCount,
+    incompleteCount: deriveIncompleteEvents(events, now).length,
+    organizerRequestCount: 0,
+    flaggedUserCount: users.filter((u) => u.flagged).length,
+    totalCount: events.length,
+  };
 }
 
 export function deriveUpcomingEvents(events: DatabaseEvent[], now: Date): DatabaseEvent[] {

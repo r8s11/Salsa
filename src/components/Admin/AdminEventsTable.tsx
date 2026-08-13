@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import type { DatabaseEvent } from "../../features/events/model/types";
 import { fromEventDateInstant, formatTimeLabel } from "../../features/events/model/eventDateTime";
-import { qualityIssues } from "../../features/admin/model/overviewMetrics";
+import { qualityIssues, QUALITY_ISSUE_LABEL } from "../../features/admin/model/overviewMetrics";
 import {
   CITY_LABEL,
   SOURCE_TYPE_LABEL,
@@ -224,6 +224,7 @@ function EventCell({
         {issues.length > 0 && (
           <AdminQualityBadge
             issues={issues}
+            labelFor={(issue) => QUALITY_ISSUE_LABEL[issue]}
             eventTitle={event.title}
             cancellationReason={event.cancellation_reason}
           />
@@ -361,6 +362,7 @@ export default function AdminEventsTable({
               </div>
               <AdminQualityBadge
                 issues={qualityIssues(event, duplicateIds)}
+                labelFor={(issue) => QUALITY_ISSUE_LABEL[issue]}
                 eventTitle={event.title}
                 cancellationReason={event.cancellation_reason}
               />

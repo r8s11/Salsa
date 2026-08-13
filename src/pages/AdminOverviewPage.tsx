@@ -32,7 +32,7 @@ export default function AdminOverviewPage() {
     // Kept inside useMemo — calling `new Date()` in the render body trips
     // react-hooks/purity, which already fired on this file once.
     const now = new Date();
-    const metrics = deriveOverviewMetrics(events, now, users);
+    const metrics = deriveOverviewMetrics(events, now, 0, users);
     const upcoming = deriveUpcomingEvents(events, now);
     const todayLabel = now.toLocaleDateString("en-US", {
       weekday: "long",

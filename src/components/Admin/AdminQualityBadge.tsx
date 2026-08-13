@@ -3,17 +3,19 @@ import { TriangleAlert } from "lucide-react";
 import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
 import { QUALITY_ISSUE_LABEL, type QualityIssue } from "../../features/admin/model/overviewMetrics";
 
-interface AdminQualityBadgeProps {
-  issues: QualityIssue[];
+interface AdminQualityBadgeProps<T extends string> {
+  issues: T[];
+  labelFor: (issue: T) => string;
   eventTitle: string;
   cancellationReason?: string | null;
 }
 
-export default function AdminQualityBadge({
+export default function AdminQualityBadge<T extends string>({
   issues,
+  labelFor,
   eventTitle,
   cancellationReason,
-}: AdminQualityBadgeProps) {
+}: AdminQualityBadgeProps<T>) {
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -47,7 +49,7 @@ export default function AdminQualityBadge({
         onClick={() => setOpen((value) => !value)}
       >
         <TriangleAlert size={12} />
-        {QUALITY_ISSUE_LABEL[first]}
+        {labelFor(first)}
         {rest.length > 0 && ` +${rest.length}`}
       </button>
 
@@ -59,7 +61,7 @@ export default function AdminQualityBadge({
         >
           <ul>
             {issues.map((issue) => (
-              <li key={issue}>{QUALITY_ISSUE_LABEL[issue]}</li>
+              <li key={issue}>{labelFor(issue)}</li>
             ))}
           </ul>
           {cancellationReason && (

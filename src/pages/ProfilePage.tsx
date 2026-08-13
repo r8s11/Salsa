@@ -4,7 +4,6 @@ import { Link } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../contexts/useAuth";
 import { useMySubmissions } from "../hooks/useMySubmissions";
-import { withdrawSubmission } from "../features/events/api/eventsRepo";
 import type { DatabaseEvent } from "../features/events/model/types";
 import "./ProfilePage.css";
 
@@ -27,9 +26,9 @@ function formatSubmissionDate(isoDate: string): string {
 export default function ProfilePage() {
   const { user, signOut } = useAuth();
   const queryClient = useQueryClient();
-  const { submissions, isLoading, error, refetch } = useMySubmissions(user?.id);
+  const { submissions, approvedEvents, isLoading, error, refetch } = useMySubmissions(user?.id);
   const [filter, setFilter] = useState<SubmissionFilter>("all");
-  const events = useMemo(() => submissions ?? [], [submissions]);
+  const events = useMemo(() => [...(submissions ?? []), ...(approvedEvents ?? [])], [submissions, approvedEvents]);
   const counts = useMemo(
     () => ({
       all: events.length,
@@ -50,13 +49,13 @@ export default function ProfilePage() {
     { value: "rejected", label: "Rejected", count: counts.rejected },
   ];
 
+  // TODO: Adapt to submissionsRepo.withdrawSubmission (Task 15)
   const withdrawMutation = useMutation({
-    mutationFn: (id: string) => withdrawSubmission(id, user!.id),
+    mutationFn: async (_: string) => { throw new Error("Not implemented"); },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["events", "mine", user?.id] });
     },
   });
-
   const handleWithdraw = (event: DatabaseEvent) => {
     if (
       window.confirm(

@@ -3,11 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../contexts/useAuth";
 import { useMySubmissions } from "../hooks/useMySubmissions";
-import {
-  updateEventForUser,
-  withdrawSubmission,
-  type UserEventPayload,
-} from "../features/events/api/eventsRepo";
 import { validateSubmitForm, type SubmitForm } from "../features/submit-event/validation";
 import { toEventDateInstant, fromEventDateInstant } from "../features/events/model/eventDateTime";
 import type { DatabaseEvent, City } from "../features/events/model/types";
@@ -38,7 +33,7 @@ function buildUserFormFromEvent(event: DatabaseEvent): SubmitForm {
   };
 }
 
-function userFormToPayload(form: SubmitForm): UserEventPayload {
+function userFormToPayload(form: SubmitForm): DatabaseEvent {
   return {
     title: form.title,
     description: form.description || null,
@@ -53,7 +48,7 @@ function userFormToPayload(form: SubmitForm): UserEventPayload {
     rsvp_link: form.rsvp_link || null,
     recurrence: form.recurrence || null,
     dance_styles: form.dance_styles.length > 0 ? form.dance_styles : null,
-  };
+  } as unknown as DatabaseEvent;
 }
 
 export default function UserEventEditPage() {
@@ -91,18 +86,18 @@ export default function UserEventEditPage() {
       navigate("/profile");
     }
   }, [editingEvent, navigate]);
-
+  // TODO: Adapt to submissionsRepo.updateSubmission
   const saveMutation = useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: UserEventPayload }) =>
-      updateEventForUser(id, payload, user!.id),
+    mutationFn: async (_: { id: string; payload: unknown }) => { throw new Error("Not implemented"); },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["events", "mine", user?.id] });
       navigate("/profile");
     },
   });
 
+  // TODO: Adapt to submissionsRepo.withdrawSubmission
   const withdrawMutation = useMutation({
-    mutationFn: (id: string) => withdrawSubmission(id, user!.id),
+    mutationFn: async (_: string) => { throw new Error("Not implemented"); },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["events", "mine", user?.id] });
       navigate("/profile");

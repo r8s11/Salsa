@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { TriangleAlert } from "lucide-react";
 import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
-import { QUALITY_ISSUE_LABEL, type QualityIssue } from "../../features/admin/model/overviewMetrics";
 
 interface AdminQualityBadgeProps<T extends string> {
   issues: T[];

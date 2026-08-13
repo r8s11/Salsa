@@ -18,9 +18,6 @@ export interface OverviewMetrics {
   totalCount: number;
 }
 
-function daysFromNow(now: Date, days: number): Date {
-  return new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
-}
 
 export function missingFields(event: DatabaseEvent): MissingField[] {
   const missing: MissingField[] = [];
@@ -46,7 +43,7 @@ export function deriveOverviewMetrics(
     submissionCount,
     incompleteCount: deriveIncompleteEvents(events, now).length,
     organizerRequestCount,
-    flaggedUserCount: users.filter((u) => u.flagged).length,
+    flaggedUserCount: users.filter((u) => u.status === "flagged").length,
     venueCount,
     archivedVenueCount,
     totalCount: events.length,

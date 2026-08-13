@@ -18,6 +18,7 @@ describe("SignInForm", () => {
       session: null,
       loading: false,
       isAdmin: false,
+      isModerator: false,
       signInWithPassword,
       signUp: vi.fn(),
 
@@ -61,6 +62,7 @@ describe("SignInForm", () => {
       session: null,
       loading: false,
       isAdmin: false,
+      isModerator: false,
       signInWithPassword: vi.fn(),
       signUp,
 
@@ -100,6 +102,7 @@ describe("SignInForm", () => {
       session: null,
       loading: false,
       isAdmin: false,
+      isModerator: false,
       signInWithPassword: vi.fn(),
       signUp,
 
@@ -134,6 +137,7 @@ describe("SignInForm", () => {
       session: null,
       loading: false,
       isAdmin: false,
+      isModerator: false,
       signInWithPassword: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
@@ -155,6 +159,7 @@ describe("SignInForm", () => {
       session: null,
       loading: false,
       isAdmin: false,
+      isModerator: false,
       signInWithPassword: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
@@ -183,6 +188,7 @@ describe("SignInForm", () => {
       session: null,
       loading: false,
       isAdmin: false,
+      isModerator: false,
       signInWithPassword: vi.fn(),
       signUp,
       signOut: vi.fn(),

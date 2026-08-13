@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import type { DatabaseEvent } from "../../events/model/types";
 import type { AdminUserRow } from "../model/usersQuery";
 import {
-  UPCOMING_WINDOW_DAYS,
   deriveIncompleteEvents,
   deriveOverviewMetrics,
   deriveUpcomingEvents,
@@ -155,7 +154,7 @@ describe("deriveOverviewMetrics — organizerRequestCount", () => {
 
 describe("deriveOverviewMetrics — flaggedUserCount", () => {
   it("returns correct count", () => {
-    const users = [makeUser({ flagged: true })];
+    const users = [makeUser({ status: "flagged" })];
     const metrics = deriveOverviewMetrics([], NOW, 0, 0, users);
     expect(metrics.flaggedUserCount).toBe(1);
   });

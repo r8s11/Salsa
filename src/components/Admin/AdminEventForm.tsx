@@ -52,19 +52,19 @@ export default function AdminEventForm({
   const [form, setForm] = useState<AdminEventFormValues>(initial);
   const [validationError, setValidationError] = useState<string | null>(null);
   const venueCombobox = useVenueCombobox(form.venue_id);
+  const { clearVenue, results, selectVenue, selectedId } = venueCombobox;
 
   // Sync the combobox selection when the form's venue_id changes externally
   // (e.g. the user clears the venue, or the form is reset with new initial data).
   useEffect(() => {
-    if (form.venue_id && form.venue_id !== venueCombobox.selectedId) {
-      // Find the venue in existing results or search if needed
-      const existing = venueCombobox.results.find((v) => v.id === form.venue_id);
-      if (existing) venueCombobox.selectVenue(existing);
+    if (form.venue_id && form.venue_id !== selectedId) {
+      const existing = results.find((v) => v.id === form.venue_id);
+      if (existing) selectVenue(existing);
     }
-    if (!form.venue_id && venueCombobox.selectedId) {
-      venueCombobox.clearVenue();
+    if (!form.venue_id && selectedId) {
+      clearVenue();
     }
-  }, [form.venue_id]);
+  }, [clearVenue, form.venue_id, results, selectVenue, selectedId]);
 
   const update = (field: keyof AdminEventFormValues, value: string) => {
     setForm((previous) => ({ ...previous, [field]: value }));

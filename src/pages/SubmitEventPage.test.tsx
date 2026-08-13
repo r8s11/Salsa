@@ -1,8 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import type { SubmissionRecord } from "../features/admin/api/submissionsRepo";
+import * as submissionsRepo from "../features/admin/api/submissionsRepo";
 import SubmitEventPage from "./SubmitEventPage";
 import { Providers } from "../app/providers";
-import * as submissionsRepo from "../features/admin/api/submissionsRepo";
 
 vi.mock("../features/events/api/eventsRepo", () => ({}));
 
@@ -50,7 +51,7 @@ describe("SubmitEventPage", () => {
   });
 
   it("submits the form successfully and displays success card", async () => {
-    vi.mocked(submissionsRepo.createSubmission).mockResolvedValueOnce();
+    vi.mocked(submissionsRepo.createSubmission).mockResolvedValueOnce({} as SubmissionRecord);
 
     renderSubmitEventPage();
 
@@ -85,7 +86,7 @@ describe("SubmitEventPage", () => {
   });
 
   it("persists a supplied start time as its New York instant", async () => {
-    vi.mocked(submissionsRepo.createSubmission).mockResolvedValueOnce();
+    vi.mocked(submissionsRepo.createSubmission).mockResolvedValueOnce({} as SubmissionRecord);
 
     renderSubmitEventPage();
 
@@ -139,7 +140,7 @@ describe("SubmitEventPage", () => {
   });
 
   it("allows resetting the form from success card to submit another event", async () => {
-    vi.mocked(submissionsRepo.createSubmission).mockResolvedValueOnce();
+    vi.mocked(submissionsRepo.createSubmission).mockResolvedValueOnce({} as SubmissionRecord);
 
     renderSubmitEventPage();
 

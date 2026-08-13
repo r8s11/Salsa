@@ -1,7 +1,5 @@
-import { Fragment } from "react";
-import { Link } from "react-router-dom";
-import { Clock, User, Mail, ShieldAlert } from "lucide-react";
-import { type EventSubmission } from "../../../features/admin/model/submissions";
+import { Clock, User, Mail } from "lucide-react";
+import { type EventSubmission } from "../../features/admin/model/submissions";
 import AdminStatusBadge from "./AdminStatusBadge";
 import AdminActionMenu from "./AdminActionMenu";
 import "./AdminSubmissionsTable.css";
@@ -48,7 +46,6 @@ export default function AdminSubmissionsTable({
   submissions,
   onAction,
   busy,
-  errorId,
   error,
 }: AdminSubmissionsTableProps) {
   return (

@@ -1,9 +1,8 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
+import { MemoryRouter } from "react-router-dom";
 import AdminSubmissionsPage from "./AdminSubmissionsPage";
 import { useAdminSubmissions } from "../../hooks/useAdminSubmissions";
-import { MemoryRouter } from "react-router-dom";
-import type { Mock } from "vitest";
 
 vi.mock("../../hooks/useAdminSubmissions");
 

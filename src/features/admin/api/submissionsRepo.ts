@@ -1,18 +1,70 @@
-import { supabase } from '../../../lib/supabase';
-import { Database } from '../../../types/supabase';
-
-type EventSubmission = Database['public']['Tables']['event_submissions']['Row'];
+import { supabase } from "../../../lib/supabase";
+import type { EventSubmission } from "../model/submissions";
 
 export interface SubmissionUpdate {
-  status?: EventSubmission['status'];
-  edited_data?: Record<string, any>;
-  rejection_reason?: EventSubmission['rejection_reason'];
+  status?: EventSubmission["status"];
+  edited_data?: Record<string, unknown>;
+  rejection_reason?: EventSubmission["rejection_reason"];
   rejection_message?: string;
   internal_note?: string;
   duplicate_of_event_id?: string | null;
   approved_event_id?: string | null;
 }
 
+export type SubmissionCreate = {
+  submitter_id: string | null;
+  submitter_email: string | null;
+  submitter_name: string | null;
+  title: string;
+  description: string | null;
+  event_type: string;
+  city: string;
+  event_date: string;
+  event_time: string | null;
+  location: string | null;
+  address: string | null;
+  price_type: string | null;
+  price_amount: number | null;
+  rsvp_link: string | null;
+  recurrence: string | null;
+  dance_styles: string[];
+};
+
+export type SubmissionRecord = EventSubmission;
+
+
+export async function createSubmission(submission: SubmissionCreate) {
+  const {
+    submitter_id,
+    submitter_email,
+    submitter_name,
+    ...submitted_data
+  } = submission;
+
+  const { data, error } = await supabase
+    .from("event_submissions")
+    .insert({
+      submitter_id,
+      submitter_email,
+      submitter_name,
+      status: "pending",
+      submitted_data,
+      edited_data: null,
+      reviewed_by: null,
+      reviewed_at: null,
+      rejection_reason: null,
+      rejection_message: null,
+      internal_note: null,
+      duplicate_of_event_id: null,
+      dismissed_duplicate_ids: [],
+      approved_event_id: null,
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
 export const submissionsRepo = {
   async getPendingSubmissions() {
     const { data, error } = await supabase
@@ -47,4 +99,6 @@ export const submissionsRepo = {
     if (error) throw error;
     return data;
   },
+
+  createSubmission,
 };

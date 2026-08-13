@@ -1,4 +1,4 @@
-import { TriangleAlert, CheckCircle, Info } from "lucide-react";
+import { TriangleAlert, CheckCircle } from "lucide-react";
 import { QualityGap, QUALITY_ISSUE_LABEL } from "../../../features/admin/model/quality";
 
 interface AdminSubmissionQualityPanelProps {

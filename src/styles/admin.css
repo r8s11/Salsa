@@ -591,6 +591,35 @@
 }
 
 /* ----------------------------------------
+   Venue status badge (AdminVenueStatusBadge)
+   Prefixed `--venue-` to avoid colliding with event-status,
+   account-status, or request-status modifiers.
+   ---------------------------------------- */
+.admin-shell .admin-status--venue-active {
+  background: var(--admin-success-tint);
+  color: var(--admin-success-strong);
+  border-color: var(--admin-success-border);
+}
+.admin-shell .admin-status--venue-active::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--admin-success-strong);
+}
+.admin-shell .admin-status--venue-needs_review {
+  background: var(--admin-warning-tint);
+  color: var(--admin-warning);
+  border-color: var(--admin-warning-border);
+}
+.admin-shell .admin-status--venue-archived {
+  background: var(--admin-surface-secondary);
+  color: var(--admin-text-subtle);
+  border-color: var(--admin-border);
+}
+
+/* ----------------------------------------
    Role badge (AdminRoleBadge)
    ---------------------------------------- */
 .admin-shell .admin-role {

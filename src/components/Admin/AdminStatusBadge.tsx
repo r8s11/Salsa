@@ -1,25 +1,31 @@
-import { Clock, CircleX, Ban } from "lucide-react";
+import { Ban, CircleX, Clock } from "lucide-react";
 import type { DatabaseEvent } from "../../features/events/model/types";
+import type { SubmissionStatus } from "../../features/admin/model/submissions";
 
-const STATUS_LABEL: Record<DatabaseEvent["status"], string> = {
+type AdminStatus = DatabaseEvent["status"] | SubmissionStatus;
+
+const STATUS_LABEL: Record<AdminStatus, string> = {
   draft: "Draft",
   pending: "Pending Approval",
+  in_review: "In Review",
+  needs_information: "Needs Information",
   approved: "Published",
   rejected: "Rejected",
+  withdrawn: "Withdrawn",
   cancelled: "Cancelled",
   archived: "Archived",
 };
 
-// Three redundant signals per badge (text + shape + tint) so colour is
-// never the only carrier. Quiet states keep the CSS ::before dot/ring;
-// loud states swap it for a real icon element, which survives greyscale.
-const STATUS_ICON: Partial<Record<DatabaseEvent["status"], typeof Clock>> = {
+const STATUS_ICON: Partial<Record<AdminStatus, typeof Clock>> = {
   pending: Clock,
+  in_review: Clock,
+  needs_information: Clock,
   rejected: CircleX,
+  withdrawn: CircleX,
   cancelled: Ban,
 };
 
-export default function AdminStatusBadge({ status }: { status: DatabaseEvent["status"] }) {
+export default function AdminStatusBadge({ status }: { status: AdminStatus }) {
   const Icon = STATUS_ICON[status];
 
   return (

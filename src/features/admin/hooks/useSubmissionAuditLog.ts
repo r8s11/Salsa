@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { submissionAuditLogRepo } from './submissionAuditLogRepo';
+import { submissionAuditLogRepo } from '../api/submissionAuditLogRepo';
 
 export function useSubmissionAuditLog(submissionId: string) {
   return useQuery({

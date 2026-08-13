@@ -1,5 +1,5 @@
-import type { DuplicateCandidate } from "../../../../features/submissions/model/submissions";
-import type { DatabaseEvent } from "../../../../features/events/model/types";
+import type { DuplicateCandidate } from "../../../features/admin/model/submissions";
+import type { DatabaseEvent } from "../../../features/events/model/types";
 import "./AdminDuplicateCheckPanel.css";
 
 interface AdminDuplicateCheckPanelProps {

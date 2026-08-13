@@ -1,12 +1,16 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import AdminSubmissionsTable, { type SubmissionRowAction } from "../../components/Admin/AdminSubmissionsTable";
-import AdminSubmissionsFilterDrawer, { type SubmissionFilters } from "../../components/Admin/AdminSubmissionsFilterDrawer";
+import AdminSubmissionsTable, {
+  type SubmissionRowAction,
+} from "../../components/Admin/AdminSubmissionsTable";
+import AdminSubmissionsFilterDrawer, {
+  type SubmissionFilters,
+} from "../../components/Admin/AdminSubmissionsFilterDrawer";
 import { useAdminSubmissions } from "../../hooks/useAdminSubmissions";
 import { type EventSubmission } from "../../features/admin/model/submissions";
+import "../../styles/admin.css";
 
 export default function AdminSubmissionsPage() {
-  const { submissions, isLoading, error, updateSubmission } = useAdminSubmissions();
+  const { submissions, isLoading, updateSubmission } = useAdminSubmissions();
   const [filters, setFilters] = useState<SubmissionFilters>({ status: null, submitter_name: null });
   const [drawerOpen, setDrawerOpen] = useState(false);
 

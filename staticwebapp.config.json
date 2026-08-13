@@ -7,6 +7,6 @@
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "strict-origin-when-cross-origin",
     "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
-    "Content-Security-Policy-Report-Only": "default-src 'self'; script-src-elem 'self' https://cloud.umami.is; connect-src 'self' https://tlajzziavbnfomhfwofw.supabase.co https://api.web3forms.com https://gateway.umami.is; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com"
+    "Content-Security-Policy-Report-Only": "default-src 'self'; script-src-elem 'self' https://cloud.umami.is 'sha256-keKhg9tgg6TB8xQLAOeB3Sk7TFMlpTwtZSBcDfroFeI='; connect-src 'self' https://tlajzziavbnfomhfwofw.supabase.co https://api.web3forms.com https://gateway.umami.is; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com"
   }
 }

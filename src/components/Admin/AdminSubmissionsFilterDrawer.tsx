@@ -8,7 +8,7 @@ export interface SubmissionFilters {
   submitter_name: string | null;
 }
 
-export const SUBMISSION_STATUS_LABELS: Record<SubmissionStatus, string> = {
+const SUBMISSION_STATUS_LABELS: Record<SubmissionStatus, string> = {
   pending: "Pending",
   in_review: "In Review",
   needs_information: "Needs Information",

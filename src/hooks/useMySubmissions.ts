@@ -1,17 +1,27 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchMySubmissions } from "../features/events/api/eventsRepo";
+import { fetchMySubmissions, fetchMyApprovedEvents } from "../features/events/api/eventsRepo";
 
 export function useMySubmissions(userId: string | undefined) {
-  const query = useQuery({
-    queryKey: ["events", "mine", userId],
+  const submissionsQuery = useQuery({
+    queryKey: ["submissions", "mine", userId],
     queryFn: () => fetchMySubmissions(userId!),
     enabled: !!userId,
   });
 
+  const approvedQuery = useQuery({
+    queryKey: ["approved-events", "mine", userId],
+    queryFn: () => fetchMyApprovedEvents(userId!),
+    enabled: !!userId,
+  });
+
   return {
-    submissions: query.data,
-    isLoading: query.isPending,
-    error: query.error ? query.error.message : null,
-    refetch: query.refetch,
+    submissions: submissionsQuery.data ?? [],
+    approvedEvents: approvedQuery.data ?? [],
+    isLoading: submissionsQuery.isPending || approvedQuery.isPending,
+    error: submissionsQuery.error?.message || approvedQuery.error?.message || null,
+    refetch: () => {
+      submissionsQuery.refetch();
+      approvedQuery.refetch();
+    },
   };
 }

@@ -104,7 +104,8 @@ describe("ProfilePage", () => {
     vi.clearAllMocks();
     mocks.auth.user = { id: "user-1", email: "dancer@example.com" };
     mocks.submissions = {
-      submissions: [bostonApproved, nycApproved, pending, rejected],
+      submissions: [pending, rejected],
+      approvedEvents: [bostonApproved, nycApproved],
       isLoading: false,
       error: null,
     };
@@ -127,11 +128,11 @@ describe("ProfilePage", () => {
   });
 
   it("shows loading, load error retry, and the global empty submission CTA", () => {
-    mocks.submissions = { submissions: undefined, isLoading: true, error: null };
+    mocks.submissions = { submissions: [], approvedEvents: [], isLoading: true, error: null };
     const { rerender } = renderPage();
     expect(screen.getByText("Loading your submissions...")).toBeInTheDocument();
 
-    mocks.submissions = { submissions: undefined, isLoading: false, error: "Network error" };
+    mocks.submissions = { submissions: [], approvedEvents: [], isLoading: false, error: "Network error" };
     rerender(
       <MemoryRouter>
         <ProfilePage />
@@ -141,7 +142,7 @@ describe("ProfilePage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Retry" }));
     expect(mocks.refetch).toHaveBeenCalledOnce();
 
-    mocks.submissions = { submissions: [], isLoading: false, error: null };
+    mocks.submissions = { submissions: [], approvedEvents: [], isLoading: false, error: null };
     rerender(
       <MemoryRouter>
         <ProfilePage />
@@ -176,7 +177,7 @@ describe("ProfilePage", () => {
   });
 
   it("keeps filters available and names an empty selected status", () => {
-    mocks.submissions = { submissions: [pending], isLoading: false, error: null };
+    mocks.submissions = { submissions: [pending], approvedEvents: [], isLoading: false, error: null };
     renderPage();
 
     fireEvent.click(screen.getByRole("button", { name: "Approved 0" }));

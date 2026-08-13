@@ -1,0 +1,58 @@
+.admin-submissions-table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.admin-submissions-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.admin-submissions-table th {
+  text-align: left;
+  padding: 0.75rem;
+  border-bottom: 2px solid var(--border-color);
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.admin-submissions-table td {
+  padding: 1rem 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.submission-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.submission-title {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.submission-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.submission-meta span {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.actions-col {
+  text-align: right;
+}
+
+.date-col {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}

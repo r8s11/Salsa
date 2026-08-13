@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { searchVenues } from "../api/venuesRepo";
 import type { VenueRow } from "../model/venuesQuery";
 import { venueDisplayAddress } from "../model/venuesQuery";
@@ -31,20 +31,20 @@ export function useVenueCombobox(initialValue: string = "") {
     return () => clearTimeout(timer);
   }, [query]);
 
-  const selectVenue = (venue: VenueRow) => {
+  const selectVenue = useCallback((venue: VenueRow) => {
     setSelectedId(venue.id);
     setSelectedName(venue.name);
     setSelectedAddress(venueDisplayAddress(venue) || "");
     setQuery("");
     setIsOpen(false);
-  };
+  }, []);
 
-  const clearVenue = () => {
+  const clearVenue = useCallback(() => {
     setSelectedId("");
     setSelectedName("");
     setSelectedAddress("");
     setQuery("");
-  };
+  }, []);
 
   return {
     query,

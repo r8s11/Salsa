@@ -30,40 +30,28 @@ export type SubmissionCreate = {
   dance_styles: string[];
 };
 
-export type SubmissionRecord = EventSubmission;
-
 
 export async function createSubmission(submission: SubmissionCreate) {
-  const {
+  const { submitter_id, submitter_email, submitter_name, ...submitted_data } = submission;
+
+  const { error } = await supabase.from("event_submissions").insert({
     submitter_id,
     submitter_email,
     submitter_name,
-    ...submitted_data
-  } = submission;
-
-  const { data, error } = await supabase
-    .from("event_submissions")
-    .insert({
-      submitter_id,
-      submitter_email,
-      submitter_name,
-      status: "pending",
-      submitted_data,
-      edited_data: null,
-      reviewed_by: null,
-      reviewed_at: null,
-      rejection_reason: null,
-      rejection_message: null,
-      internal_note: null,
-      duplicate_of_event_id: null,
-      dismissed_duplicate_ids: [],
-      approved_event_id: null,
-    })
-    .select()
-    .single();
+    status: "pending",
+    submitted_data,
+    edited_data: null,
+    reviewed_by: null,
+    reviewed_at: null,
+    rejection_reason: null,
+    rejection_message: null,
+    internal_note: null,
+    duplicate_of_event_id: null,
+    dismissed_duplicate_ids: [],
+    approved_event_id: null,
+  });
 
   if (error) throw error;
-  return data;
 }
 export const submissionsRepo = {
   async getPendingSubmissions() {

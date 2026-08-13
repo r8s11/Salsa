@@ -46,8 +46,8 @@ export function useSubmitEventForm() {
         price_amount: form.price_amount ? parseFloat(form.price_amount) : null,
         rsvp_link: form.rsvp_link || null,
         submitter_name: form.submitter_name || null,
-        submitter_email: user!.email ?? null,
-        submitter_id: user!.id,
+        submitter_email: user?.email ?? (form.submitter_email || null),
+        submitter_id: user?.id ?? null,
         recurrence: form.recurrence || null,
         dance_styles: form.dance_styles.length > 0 ? form.dance_styles : [],
       });

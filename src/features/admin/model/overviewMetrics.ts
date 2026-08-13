@@ -32,11 +32,12 @@ export function deriveOverviewMetrics(
   events: DatabaseEvent[],
   now: Date,
   submissionCount: number = 0,
+  pendingSubmissionCount: number = 0,
   users: AdminUserRow[] = []
 ): OverviewMetrics {
   return {
     upcomingCount: deriveUpcomingEvents(events, now).length,
-    pendingCount: events.filter((e) => e.status === "pending").length,
+    pendingCount: pendingSubmissionCount,
     submissionCount,
     incompleteCount: deriveIncompleteEvents(events, now).length,
     organizerRequestCount: 0,

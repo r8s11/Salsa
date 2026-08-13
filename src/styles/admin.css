@@ -521,6 +521,45 @@
   color: var(--admin-danger-strong);
   border-color: var(--admin-danger-border);
 }
+/* ----------------------------------------
+   Submission status badge (AdminSubmissionStatusBadge)
+   ---------------------------------------- */
+.admin-shell .admin-status--submission-pending,
+.admin-shell .admin-status--submission-in_review,
+.admin-shell .admin-status--submission-needs_information {
+  background: var(--admin-warning-tint);
+  color: var(--admin-warning);
+  border-color: var(--admin-warning-border);
+}
+
+.admin-shell .admin-status--submission-approved {
+  background: var(--admin-success-tint);
+  color: var(--admin-success);
+  border-color: var(--admin-success-border);
+}
+
+.admin-shell .admin-status--submission-rejected {
+  background: var(--admin-danger-tint);
+  color: var(--admin-danger-strong);
+  border-color: var(--admin-danger-border);
+}
+
+.admin-shell .admin-status--submission-withdrawn {
+  background: var(--admin-surface-secondary);
+  color: var(--admin-text-muted);
+  border-color: var(--admin-border);
+}
+/* ----------------------------------------
+   Submission status badge (AdminSubmissionStatusBadge)
+   ---------------------------------------- */
+.admin-shell .admin-status--submission-pending,
+.admin-shell .admin-status--submission-in_review,
+.admin-shell .admin-status--submission-needs_information,
+.admin-shell .admin-status--submission-approved,
+.admin-shell .admin-status--submission-rejected,
+.admin-shell .admin-status--submission-withdrawn {
+  /* Reuse existing .admin-status styles */
+}
 
 /* ----------------------------------------
    Role badge (AdminRoleBadge)

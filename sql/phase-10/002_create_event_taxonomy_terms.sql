@@ -8,7 +8,20 @@ create table if not exists public.event_taxonomy_terms (
 );
 create index if not exists event_taxonomy_terms_term_event_idx on public.event_taxonomy_terms (taxonomy_term_id, event_id);
 alter table public.event_taxonomy_terms enable row level security;
-grant select, insert, delete on public.event_taxonomy_terms to authenticated;
+grant select on public.event_taxonomy_terms to anon, authenticated;
+grant insert, delete on public.event_taxonomy_terms to authenticated;
+drop policy if exists "Public approved event taxonomy is readable" on public.event_taxonomy_terms;
+create policy "Public approved event taxonomy is readable"
+  on public.event_taxonomy_terms for select to anon, authenticated
+  using (
+    exists (
+      select 1 from public.events event
+      join public.taxonomy_terms term on term.id = event_taxonomy_terms.taxonomy_term_id
+      where event.id = event_taxonomy_terms.event_id
+        and event.status = 'approved'
+        and term.status = 'active'
+    )
+  );
 drop policy if exists "Moderators read event taxonomy terms" on public.event_taxonomy_terms;
 create policy "Moderators read event taxonomy terms" on public.event_taxonomy_terms for select to authenticated using (public.is_moderator());
 drop policy if exists "Moderators manage event taxonomy terms" on public.event_taxonomy_terms;

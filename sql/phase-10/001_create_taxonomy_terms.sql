@@ -47,7 +47,13 @@ create trigger taxonomy_terms_set_updated_at
   for each row execute function public.set_updated_at();
 
 alter table public.taxonomy_terms enable row level security;
-grant select, insert, update, delete on public.taxonomy_terms to authenticated;
+grant select on public.taxonomy_terms to anon, authenticated;
+grant insert, update, delete on public.taxonomy_terms to authenticated;
+
+drop policy if exists "Public active taxonomy terms are readable" on public.taxonomy_terms;
+create policy "Public active taxonomy terms are readable"
+  on public.taxonomy_terms for select to anon, authenticated
+  using (status = 'active');
 
 drop policy if exists "Moderators read taxonomy terms" on public.taxonomy_terms;
 create policy "Moderators read taxonomy terms"

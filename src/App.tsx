@@ -24,6 +24,9 @@ const AdminOrganizerRequestsPage = lazy(() => import("./pages/AdminOrganizerRequ
 const AdminOrganizerRequestDetailPage = lazy(() => import("./pages/AdminOrganizerRequestDetailPage"));
 const AdminVenuesPage = lazy(() => import("./pages/AdminVenuesPage"));
 const AdminVenueDetailPage = lazy(() => import("./pages/AdminVenueDetailPage"));
+const AdminTagsPage = lazy(() => import("./pages/AdminTagsPage"));
+const AdminTaxonomyNewPage = lazy(() => import("./pages/AdminTaxonomyNewPage"));
+const AdminTaxonomyDetailPage = lazy(() => import("./pages/AdminTaxonomyDetailPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const UserEventEditPage = lazy(() => import("./pages/UserEventEditPage"));
 import RequireAuth from "./components/Auth/RequireAuth";
@@ -54,6 +57,9 @@ function App() {
               <Route path="organizer-requests/:id" element={<AdminOrganizerRequestDetailPage />} />
               <Route path="venues" element={<AdminVenuesPage />} />
               <Route path="venues/:id" element={<AdminVenueDetailPage />} />
+              <Route path="tags" element={<AdminTagsPage />} />
+              <Route path="tags/new" element={<AdminTaxonomyNewPage />} />
+              <Route path="tags/:id" element={<AdminTaxonomyDetailPage />} />
             </Route>
             <Route path="/" element={<MainLayout />}>
               <Route index element={<HomePage />} />

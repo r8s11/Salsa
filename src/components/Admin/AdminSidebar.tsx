@@ -38,7 +38,7 @@ const NAV_ITEMS: NavItem[] = [
   { group: "Review", label: "Event Submissions", icon: ClipboardCheck, to: "/admin/submissions", built: true },
   { group: "Review", label: "Organizer Requests", icon: UserPlus, to: "/admin/organizer-requests", built: true },
   { group: "Platform", label: "Venues", icon: MapPin, to: "/admin/venues", built: true },
-  { group: "Platform", label: "Tags", icon: Tag, built: false },
+  { group: "Platform", label: "Tags", icon: Tag, to: "/admin/tags", built: true },
   { group: "System", label: "Settings", icon: Settings, built: false },
 ];
 const NAV_ITEMS_WITH_GROUP_FLAG = NAV_ITEMS.reduce<{ item: NavItem; showGroup: boolean }[]>(

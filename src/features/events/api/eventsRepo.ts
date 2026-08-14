@@ -168,10 +168,11 @@ export async function duplicateEvent(
     cancellation_reason: _cancellationReason,
     event_date: _eventDate,
     event_time: _eventTime,
+    taxonomy_term_ids: taxonomyTermIds = [],
     ...carried
   } = source;
 
-  const { error } = await supabase.from("events").insert({
+  const { data, error } = await supabase.from("events").insert({
     ...carried,
     event_date: toEventDateInstant(input.date, input.time),
     event_time: formatTimeLabel(input.time),
@@ -181,14 +182,10 @@ export async function duplicateEvent(
     submitter_id: actor.id,
     submitter_email: actor.email,
     submitter_name: "Salsa Segura",
-  });
-
-  if (error) {
-    throw new Error(error.message);
-  }
+  }).select("id").single();
+  if (error) throw new Error(error.message);
+  await replaceEventTaxonomyTerms(data.id, taxonomyTermIds);
 }
-
-
 // Allows the original submitter to update their own event, but only while it
 // is still pending or has been rejected (not yet approved/published). Uses a
 // Postgres RBAC filter so the database enforces ownership at the row level.

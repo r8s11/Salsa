@@ -21,8 +21,14 @@ export interface AdminEventPayload {
   contact_email: string | null;
   contact_instagram: string | null;
   contact_website: string | null;
+  taxonomy_term_ids?: string[];
   dance_styles: string[] | null;
   venue_id: string | null;
+}
+
+async function replaceEventTaxonomyTerms(eventId: string, taxonomyTermIds: string[]): Promise<void> {
+  const { error } = await supabase.rpc("replace_event_taxonomy_terms", { p_event_id: eventId, p_taxonomy_term_ids: taxonomyTermIds });
+  if (error) throw new Error(error.message);
 }
 
 type EventWithTaxonomy = DatabaseEvent & { event_taxonomy_terms?: { taxonomy_term_id: string }[] };
@@ -114,11 +120,10 @@ export async function setEventStatus(
 }
 
 export async function updateEvent(id: string, payload: AdminEventPayload): Promise<void> {
-  const { error } = await supabase.from("events").update(payload).eq("id", id);
-
-  if (error) {
-    throw new Error(error.message);
-  }
+  const { taxonomy_term_ids = [], ...eventPayload } = payload;
+  const { error } = await supabase.from("events").update(eventPayload).eq("id", id);
+  if (error) throw new Error(error.message);
+  await replaceEventTaxonomyTerms(id, taxonomy_term_ids);
 }
 
 export async function deleteEvent(id: string): Promise<void> {

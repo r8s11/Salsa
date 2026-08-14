@@ -24,6 +24,18 @@ describe("AdminMergeTaxonomyDialog", () => {
     rerender(<><button type="button">Open merge</button><AdminMergeTaxonomyDialog source={source} candidates={[wrongCategory, keep]} onClose={onClose} onMerge={vi.fn()} /></>);
     expect(screen.getByRole("combobox")).toHaveValue("keep");
     await user.keyboard("{Escape}");
+    expect(onClose).toHaveBeenCalledOnce();
     expect(screen.getByRole("button", { name: "Open merge" })).toHaveFocus();
+  });
+
+  it("contains Tab navigation", async () => {
+    const user = userEvent.setup();
+    render(<AdminMergeTaxonomyDialog source={source} candidates={[keep]} onClose={vi.fn()} onMerge={vi.fn()} />);
+    const merge = screen.getByRole("button", { name: "Merge terms" });
+    merge.focus();
+    await user.keyboard("{Tab}");
+    expect(screen.getByRole("combobox")).toHaveFocus();
+    await user.keyboard("{Shift>}{Tab}{/Shift}");
+    expect(merge).toHaveFocus();
   });
 });

@@ -73,7 +73,7 @@ export async function fetchMyApprovedEvents(userId: string): Promise<DatabaseEve
 export async function fetchMySubmissions(userId: string): Promise<DatabaseEvent[]> {
   const { data, error } = await supabase
     .from("events")
-    .select("*")
+    .select("*, event_taxonomy_terms(taxonomy_term_id)")
     .eq("submitter_id", userId)
     .order("created_at", { ascending: false });
 
@@ -81,21 +81,21 @@ export async function fetchMySubmissions(userId: string): Promise<DatabaseEvent[
     throw new Error(error.message);
   }
 
-  return (data as DatabaseEvent[]) || [];
+  return projectEventTaxonomy(data as EventWithTaxonomy[] | null);
 }
 
 
 export async function fetchAllEvents(): Promise<DatabaseEvent[]> {
   const { data, error } = await supabase
     .from("events")
-    .select("*")
+    .select("*, event_taxonomy_terms(taxonomy_term_id)")
     .order("event_date", { ascending: false });
 
   if (error) {
     throw new Error(error.message);
   }
 
-  return (data as DatabaseEvent[]) || [];
+  return projectEventTaxonomy(data as EventWithTaxonomy[] | null);
 }
 
 export async function setEventStatus(

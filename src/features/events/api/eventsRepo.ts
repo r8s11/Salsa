@@ -25,6 +25,15 @@ export interface AdminEventPayload {
   venue_id: string | null;
 }
 
+type EventWithTaxonomy = DatabaseEvent & { event_taxonomy_terms?: { taxonomy_term_id: string }[] };
+
+function projectEventTaxonomy(rows: EventWithTaxonomy[] | null): DatabaseEvent[] {
+  return (rows ?? []).map(({ event_taxonomy_terms, ...event }) => ({
+    ...event,
+    taxonomy_term_ids: event_taxonomy_terms?.map(({ taxonomy_term_id }) => taxonomy_term_id) ?? [],
+  }));
+}
+
 export async function fetchApprovedEvents(city: City): Promise<DatabaseEvent[]> {
   const today = new Date();
   today.setDate(today.getDate() - 1);
@@ -32,7 +41,7 @@ export async function fetchApprovedEvents(city: City): Promise<DatabaseEvent[]> 
 
   const { data, error } = await supabase
     .from("events")
-    .select("*")
+    .select("*, event_taxonomy_terms(taxonomy_term_id)")
     .eq("status", "approved")
     .eq("city", city)
     .gte("event_date", floorDate)
@@ -42,13 +51,13 @@ export async function fetchApprovedEvents(city: City): Promise<DatabaseEvent[]> 
     throw new Error(error.message);
   }
 
-  return (data as DatabaseEvent[]) || [];
+  return projectEventTaxonomy(data as EventWithTaxonomy[] | null);
 }
 
 export async function fetchMyApprovedEvents(userId: string): Promise<DatabaseEvent[]> {
   const { data, error } = await supabase
     .from("events")
-    .select("*")
+    .select("*, event_taxonomy_terms(taxonomy_term_id)")
     .eq("submitter_id", userId)
     .eq("status", "approved")
     .order("event_date", { ascending: true });
@@ -57,7 +66,7 @@ export async function fetchMyApprovedEvents(userId: string): Promise<DatabaseEve
     throw new Error(error.message);
   }
 
-  return (data as DatabaseEvent[]) || [];
+  return projectEventTaxonomy(data as EventWithTaxonomy[] | null);
 }
 
 

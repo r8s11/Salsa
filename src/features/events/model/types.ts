@@ -21,6 +21,7 @@ export interface DatabaseEvent {
   status: "draft" | "pending" | "approved" | "rejected" | "cancelled" | "archived";
   source_type: "admin" | "user_submission" | "organizer" | "moderator" | "imported";
   dance_styles: string[] | null;
+  taxonomy_term_ids?: string[];
   updated_at: string;
   cancellation_reason: string | null;
   city: City;

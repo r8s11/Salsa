@@ -29,15 +29,15 @@ function buildUserFormFromEvent(event: DatabaseEvent): SubmitForm {
     submitter_name: event.submitter_name ?? "",
     submitter_email: event.submitter_email ?? "",
     recurrence: event.recurrence === "weekly" ? "weekly" : "",
-    dance_styles: event.dance_styles ?? [],
+    dance_styles: event.taxonomy_terms.filter((term) => term.category === "dance_style").map((term) => term.slug),
   };
 }
 
-function userFormToPayload(form: SubmitForm): DatabaseEvent {
+function userFormToPayload(form: SubmitForm): Record<string, unknown> {
   return {
     title: form.title,
     description: form.description || null,
-    event_type: form.event_type as DatabaseEvent["event_type"],
+    event_type: form.event_type,
     city: form.city as City,
     event_date: toEventDateInstant(form.event_date, form.event_time),
     event_time: form.event_time || null,
@@ -47,8 +47,8 @@ function userFormToPayload(form: SubmitForm): DatabaseEvent {
     price_amount: form.price_amount ? parseFloat(form.price_amount) : null,
     rsvp_link: form.rsvp_link || null,
     recurrence: form.recurrence || null,
-    dance_styles: form.dance_styles.length > 0 ? form.dance_styles : null,
-  } as unknown as DatabaseEvent;
+    dance_styles: form.dance_styles,
+  };
 }
 
 export default function UserEventEditPage() {

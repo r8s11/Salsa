@@ -491,6 +491,7 @@ export default function AdminEventsPage() {
     return (
       <AdminEventForm
         initial={isEdit ? buildAdminFormFromEvent(formView.event) : buildEmptyAdminForm(city)}
+        initialTaxonomyTerms={isEdit ? formView.event.taxonomy_terms : []}
         heading={isEdit ? "Edit event" : "New event"}
         submitLabel={isEdit ? "Save changes" : "Create event"}
         isSaving={isSaving}

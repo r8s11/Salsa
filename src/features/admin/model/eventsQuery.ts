@@ -143,7 +143,7 @@ export function applyFilters(events: DatabaseEvent[], filters: EventFilters, _no
 
     if (filters.city && event.city !== filters.city) return false;
 
-    if (filters.style && !event.dance_styles?.includes(filters.style)) return false;
+    if (filters.style && !event.taxonomy_terms.some((term) => term.category === "dance_style" && term.slug === filters.style)) return false;
 
     if (filters.source && event.source_type !== filters.source) return false;
 

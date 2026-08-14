@@ -66,3 +66,11 @@ export async function mergeTaxonomyTerms(keepId: string, mergeId: string): Promi
   const { error } = await supabase.rpc("merge_taxonomy_terms", { p_keep_id: keepId, p_merge_id: mergeId });
   if (error) throw new Error(`Failed to merge taxonomy terms: ${error.message}`);
 }
+
+export async function replaceEventTaxonomyTerms(eventId: string, taxonomyTermIds: string[]): Promise<void> {
+  const { error } = await supabase.rpc("replace_event_taxonomy_terms", {
+    p_event_id: eventId,
+    p_taxonomy_term_ids: taxonomyTermIds,
+  });
+  if (error) throw new Error(`Failed to save event taxonomy terms: ${error.message}`);
+}

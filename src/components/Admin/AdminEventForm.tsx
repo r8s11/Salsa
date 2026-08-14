@@ -1,14 +1,18 @@
+import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import type { FormEvent } from "react";
 import { ChevronDown, MapPin, X } from "lucide-react";
 import type { AdminEventForm as AdminEventFormValues } from "../../features/admin/model/adminEventForm";
+import type { EventTaxonomyTerm } from "../../features/events/model/types";
 import { validateAdminEventForm } from "../../features/admin/model/adminEventForm";
 import { venueDisplayAddress } from "../../features/admin/model/venuesQuery";
 import { useVenueCombobox } from "../../features/admin/hooks/useVenueCombobox";
+import { useActiveTaxonomyTerms } from "../../features/admin/hooks/useAdminTaxonomy";
 import type { VenueRow } from "../../features/admin/model/venuesQuery";
 import "./AdminEventForm.css";
 
 interface AdminEventFormProps {
+  initialTaxonomyTerms?: EventTaxonomyTerm[];
   initial: AdminEventFormValues;
   heading: string;
   submitLabel: string;
@@ -18,15 +22,6 @@ interface AdminEventFormProps {
   onCancel: () => void;
 }
 
-const DANCE_STYLE_OPTIONS = [
-  { value: "salsa", label: "Salsa" },
-  { value: "bachata", label: "Bachata" },
-  { value: "kizomba", label: "Kizomba" },
-  { value: "merengue", label: "Merengue" },
-  { value: "cha-cha", label: "Cha-Cha" },
-  { value: "zouk", label: "Zouk" },
-  { value: "afro-cuban", label: "Afro-Cuban" },
-];
 
 const IMAGE_URL_MAX_LENGTH = 2000;
 
@@ -42,6 +37,7 @@ function isValidImageUrl(value: string): boolean {
 
 export default function AdminEventForm({
   initial,
+  initialTaxonomyTerms = [],
   heading,
   submitLabel,
   isSaving,
@@ -53,6 +49,11 @@ export default function AdminEventForm({
   const [validationError, setValidationError] = useState<string | null>(null);
   const venueCombobox = useVenueCombobox(form.venue_id);
   const { clearVenue, results, selectVenue, selectedId } = venueCombobox;
+  const danceStyles = useActiveTaxonomyTerms("dance_style");
+  const eventAttributes = useActiveTaxonomyTerms("event_attribute");
+  const archivedAttachments = initialTaxonomyTerms.filter(
+    (term) => term.status !== "active" && form.taxonomy_term_ids.includes(term.id),
+  );
 
   // Sync the combobox selection when the form's venue_id changes externally
   // (e.g. the user clears the venue, or the form is reset with new initial data).
@@ -88,17 +89,13 @@ export default function AdminEventForm({
     setValidationError(null);
   };
 
-  const updateDanceStyles = (styles: string[]) => {
-    setForm((previous) => ({ ...previous, dance_styles: styles }));
+  const toggleTaxonomyTerm = (termId: string) => {
+    const current = form.taxonomy_term_ids;
+    const updated = current.includes(termId)
+      ? current.filter((id) => id !== termId)
+      : [...current, termId];
+    setForm((previous) => ({ ...previous, taxonomy_term_ids: updated }));
     setValidationError(null);
-  };
-
-  const toggleDanceStyle = (style: string) => {
-    const current = form.dance_styles ?? [];
-    const updated = current.includes(style)
-      ? current.filter((s) => s !== style)
-      : [...current, style];
-    updateDanceStyles(updated);
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -213,28 +210,43 @@ export default function AdminEventForm({
           </label>
         </div>
 
-        <div className="admin-field">
-          <label>Dance Styles</label>
-          <p className="admin-form__helper">
-            Select all that apply ({DANCE_STYLE_OPTIONS.length} available)
-          </p>
-          <div className="admin-dance-styles-grid">
-            {DANCE_STYLE_OPTIONS.map((style) => {
-              const checked = (form.dance_styles ?? []).includes(style.value);
-              return (
-                <label key={style.value} className="admin-dance-style-chip">
-                  <input
-                    type="checkbox"
-                    value={style.value}
-                    checked={checked}
-                    onChange={() => toggleDanceStyle(style.value)}
-                  />
-                  {style.label}
-                </label>
-              );
-            })}
+        {archivedAttachments.length > 0 && (
+          <div className="admin-banner">
+            <strong>Archived existing terms</strong>
+            <ul>{archivedAttachments.map((term) => <li key={term.id}>{term.name} (Archived)</li>)}</ul>
           </div>
-        </div>
+        )}
+
+        {[
+          { legend: "Dance Styles", category: "dance_style", query: danceStyles, empty: "No active dance styles available" },
+          { legend: "Event Attributes", category: "event_attribute", query: eventAttributes, empty: "No active event attributes available" },
+        ].map(({ legend, category, query, empty }) => (
+          <fieldset className="admin-form__fieldset" key={category}>
+            <legend>{legend}</legend>
+            {query.isLoading ? (
+              <p>Loading {legend.toLowerCase()}…</p>
+            ) : query.error ? (
+              <p role="alert">{query.error}</p>
+            ) : query.terms.length === 0 ? (
+              <p>{empty}</p>
+            ) : (
+              <div className="admin-dance-styles-grid">
+                {query.terms.map((term) => (
+                  <label key={term.id} className="admin-dance-style-chip">
+                    <input
+                      type="checkbox"
+                      value={term.id}
+                      checked={form.taxonomy_term_ids.includes(term.id)}
+                      onChange={() => toggleTaxonomyTerm(term.id)}
+                    />
+                    {term.name}
+                  </label>
+                ))}
+              </div>
+            )}
+            <Link to={`/admin/tags/new?category=${category}`}>Create term</Link>
+          </fieldset>
+        ))}
 
         <div className="admin-field">
           <label htmlFor="description">Description</label>

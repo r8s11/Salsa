@@ -23,7 +23,8 @@ const baseEvent: DatabaseEvent = {
   contact_instagram: "@host",
   contact_website: "https://host.com",
   source_type: "admin",
-  dance_styles: ["salsa", "bachata"],
+  taxonomy_terms: [],
+  taxonomy_term_ids: ["salsa-id", "bachata-id"],
   created_at: "2026-08-01T00:00:00Z",
   updated_at: "2026-08-01T00:00:00Z",
   status: "approved",
@@ -35,34 +36,17 @@ const baseEvent: DatabaseEvent = {
 };
 
 describe("adminEventForm model", () => {
-  it("buildEmptyAdminForm initializes dance_styles as an empty array", () => {
-    const form = buildEmptyAdminForm("boston");
-    expect(form.dance_styles).toEqual([]);
+  it("buildEmptyAdminForm initializes taxonomy_term_ids as an empty array", () => {
+    expect(buildEmptyAdminForm("boston").taxonomy_term_ids).toEqual([]);
   });
 
-  it("buildAdminFormFromEvent maps dance_styles from the event", () => {
-    const form = buildAdminFormFromEvent(baseEvent);
-    expect(form.dance_styles).toEqual(["salsa", "bachata"]);
+  it("buildAdminFormFromEvent maps taxonomy term IDs from the event", () => {
+    expect(buildAdminFormFromEvent(baseEvent).taxonomy_term_ids).toEqual(["salsa-id", "bachata-id"]);
   });
 
-  it("buildAdminFormFromEvent handles null dance_styles", () => {
-    const event: DatabaseEvent = { ...baseEvent, dance_styles: null };
-    const form = buildAdminFormFromEvent(event);
-    expect(form.dance_styles).toEqual([]);
-  });
-
-  it("adminFormToPayload serializes non-empty dance_styles", () => {
-    const form = buildAdminFormFromEvent(baseEvent);
-    const payload = adminFormToPayload(form);
-    expect(payload.dance_styles).toEqual(["salsa", "bachata"]);
-  });
-
-  it("adminFormToPayload serializes empty dance_styles as null", () => {
-    const form = buildEmptyAdminForm("boston");
-    // Provide valid date/time so toEventDateInstant doesn't throw
-    form.event_date = "2026-08-20";
-    form.event_time = "20:00";
-    const payload = adminFormToPayload(form);
-    expect(payload.dance_styles).toBeNull();
+  it("adminFormToPayload carries selected taxonomy term IDs", () => {
+    const payload = adminFormToPayload(buildAdminFormFromEvent(baseEvent));
+    expect(payload.taxonomy_term_ids).toEqual(["salsa-id", "bachata-id"]);
+    expect(payload).not.toHaveProperty("dance_styles");
   });
 });

@@ -29,7 +29,8 @@ const mockEvent = (overrides: Partial<DatabaseEvent>): DatabaseEvent => ({
   contact_instagram: null,
   contact_website: null,
   source_type: "user_submission",
-  dance_styles: [],
+  taxonomy_term_ids: [],
+  taxonomy_terms: [],
   updated_at: "2026-07-01T00:00:00Z",
   cancellation_reason: null,
   venue_id: null,
@@ -104,4 +105,15 @@ describe("databaseEventToScheduleX", () => {
     const result = databaseEventToScheduleX(event);
     expect(result.imageUrl).toBe("https://cdn.example.com/real-photo.jpg");
   });
+  it("projects canonical dance-style term names", () => {
+    const event = mockEvent({
+      taxonomy_term_ids: ["salsa-id", "outdoor-id"],
+      taxonomy_terms: [
+        { id: "salsa-id", name: "Salsa", slug: "salsa", category: "dance_style", status: "active" },
+        { id: "outdoor-id", name: "Outdoor", slug: "outdoor", category: "event_attribute", status: "active" },
+      ],
+    });
+    expect(databaseEventToScheduleX(event).danceStyles).toEqual(["Salsa"]);
+  });
+
 });

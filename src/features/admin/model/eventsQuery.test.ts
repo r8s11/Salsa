@@ -35,7 +35,8 @@ function makeEvent(overrides: Partial<DatabaseEvent> = {}): DatabaseEvent {
     contact_instagram: null,
     contact_website: null,
     source_type: "admin",
-    dance_styles: ["salsa"],
+    taxonomy_term_ids: ["salsa-id"],
+    taxonomy_terms: [{ id: "salsa-id", name: "Salsa", slug: "salsa", category: "dance_style", status: "active" }],
     updated_at: "2026-08-01T00:00:00.000Z",
     cancellation_reason: null,
     venue_id: null,
@@ -59,6 +60,17 @@ const baseFilters: EventFilters = {
   incompleteOnly: false,
   submitter: null,
 };
+
+describe("taxonomy filtering", () => {
+  it("filters event dance styles by canonical term slug", () => {
+    const salsa = makeEvent();
+    const bachata = makeEvent({
+      taxonomy_term_ids: ["bachata-id"],
+      taxonomy_terms: [{ id: "bachata-id", name: "Bachata", slug: "bachata", category: "dance_style", status: "active" }],
+    });
+    expect(applyFilters([salsa, bachata], { ...baseFilters, style: "salsa" }, NOW)).toEqual([salsa]);
+  });
+});
 
 describe("applyView", () => {
   it("all excludes archived but includes cancelled", () => {

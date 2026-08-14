@@ -1,6 +1,7 @@
 import { supabase } from "../../../lib/supabase";
 import { DatabaseEvent, City, EventType } from "../../../types/events";
 import { toEventDateInstant, formatTimeLabel } from "../../../features/events/model/eventDateTime";
+import { replaceEventTaxonomyTerms } from "../../admin/api/taxonomyRepo";
 
 
 export interface AdminEventPayload {
@@ -21,22 +22,23 @@ export interface AdminEventPayload {
   contact_email: string | null;
   contact_instagram: string | null;
   contact_website: string | null;
-  taxonomy_term_ids?: string[];
-  dance_styles: string[] | null;
+  taxonomy_term_ids: string[];
   venue_id: string | null;
 }
 
-async function replaceEventTaxonomyTerms(eventId: string, taxonomyTermIds: string[]): Promise<void> {
-  const { error } = await supabase.rpc("replace_event_taxonomy_terms", { p_event_id: eventId, p_taxonomy_term_ids: taxonomyTermIds });
-  if (error) throw new Error(error.message);
-}
 
-type EventWithTaxonomy = DatabaseEvent & { event_taxonomy_terms?: { taxonomy_term_id: string }[] };
+type EventWithTaxonomy = Omit<DatabaseEvent, "taxonomy_term_ids" | "taxonomy_terms"> & {
+  event_taxonomy_terms?: {
+    taxonomy_term_id: string;
+    taxonomy_terms: DatabaseEvent["taxonomy_terms"][number] | null;
+  }[];
+};
 
 function projectEventTaxonomy(rows: EventWithTaxonomy[] | null): DatabaseEvent[] {
   return (rows ?? []).map(({ event_taxonomy_terms, ...event }) => ({
     ...event,
     taxonomy_term_ids: event_taxonomy_terms?.map(({ taxonomy_term_id }) => taxonomy_term_id) ?? [],
+    taxonomy_terms: event_taxonomy_terms?.flatMap(({ taxonomy_terms }) => taxonomy_terms ? [taxonomy_terms] : []) ?? [],
   }));
 }
 
@@ -44,63 +46,44 @@ export async function fetchApprovedEvents(city: City): Promise<DatabaseEvent[]> 
   const today = new Date();
   today.setDate(today.getDate() - 1);
   const floorDate = today.toISOString();
-
   const { data, error } = await supabase
     .from("events")
-    .select("*, event_taxonomy_terms(taxonomy_term_id)")
+    .select("*, event_taxonomy_terms(taxonomy_term_id, taxonomy_terms(id, name, slug, category, status))")
     .eq("status", "approved")
     .eq("city", city)
     .gte("event_date", floorDate)
     .order("event_date", { ascending: true });
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
+  if (error) throw new Error(error.message);
   return projectEventTaxonomy(data as EventWithTaxonomy[] | null);
 }
 
 export async function fetchMyApprovedEvents(userId: string): Promise<DatabaseEvent[]> {
   const { data, error } = await supabase
     .from("events")
-    .select("*, event_taxonomy_terms(taxonomy_term_id)")
+    .select("*, event_taxonomy_terms(taxonomy_term_id, taxonomy_terms(id, name, slug, category, status))")
     .eq("submitter_id", userId)
     .eq("status", "approved")
     .order("event_date", { ascending: true });
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
+  if (error) throw new Error(error.message);
   return projectEventTaxonomy(data as EventWithTaxonomy[] | null);
 }
-
 
 export async function fetchMySubmissions(userId: string): Promise<DatabaseEvent[]> {
   const { data, error } = await supabase
     .from("events")
-    .select("*, event_taxonomy_terms(taxonomy_term_id)")
+    .select("*, event_taxonomy_terms(taxonomy_term_id, taxonomy_terms(id, name, slug, category, status))")
     .eq("submitter_id", userId)
     .order("created_at", { ascending: false });
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
+  if (error) throw new Error(error.message);
   return projectEventTaxonomy(data as EventWithTaxonomy[] | null);
 }
-
 
 export async function fetchAllEvents(): Promise<DatabaseEvent[]> {
   const { data, error } = await supabase
     .from("events")
-    .select("*, event_taxonomy_terms(taxonomy_term_id)")
+    .select("*, event_taxonomy_terms(taxonomy_term_id, taxonomy_terms(id, name, slug, category, status))")
     .order("event_date", { ascending: false });
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
+  if (error) throw new Error(error.message);
   return projectEventTaxonomy(data as EventWithTaxonomy[] | null);
 }
 
@@ -169,6 +152,7 @@ export async function duplicateEvent(
     event_date: _eventDate,
     event_time: _eventTime,
     taxonomy_term_ids: taxonomyTermIds = [],
+    taxonomy_terms: _taxonomyTerms,
     ...carried
   } = source;
 

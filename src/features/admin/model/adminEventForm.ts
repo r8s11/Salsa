@@ -1,15 +1,16 @@
 import type { EventType, City, DatabaseEvent } from "../../../types/events";
-import { SubmitForm, buildInitialForm, validateSubmitForm } from "../../submit-event/validation";
+import { buildInitialForm, validateSubmitForm } from "../../submit-event/validation";
+import type { SubmitForm } from "../../submit-event/validation";
 import { toEventDateInstant, fromEventDateInstant } from "../../events/model/eventDateTime";
 import type { AdminEventPayload } from "../../events/api/eventsRepo";
 
-export type AdminEventForm = SubmitForm & {
+export type AdminEventForm = Omit<SubmitForm, "dance_styles"> & {
   host: string;
   image_url: string;
   contact_email: string;
   contact_instagram: string;
   contact_website: string;
-  dance_styles: string[];
+  taxonomy_term_ids: string[];
   venue_id: string;
 };
 
@@ -24,7 +25,7 @@ export function buildEmptyAdminForm(city: City): AdminEventForm {
     contact_email: "",
     contact_instagram: "",
     contact_website: "",
-    dance_styles: [],
+    taxonomy_term_ids: [],
     venue_id: "",
   };
 }
@@ -52,7 +53,7 @@ export function buildAdminFormFromEvent(event: DatabaseEvent): AdminEventForm {
     contact_email: event.contact_email ?? "",
     contact_instagram: event.contact_instagram ?? "",
     contact_website: event.contact_website ?? "",
-    dance_styles: event.dance_styles ?? [],
+    taxonomy_term_ids: event.taxonomy_term_ids ?? [],
     venue_id: event.venue_id ?? "",
   };
 }
@@ -76,13 +77,13 @@ export function adminFormToPayload(form: AdminEventForm): AdminEventPayload {
     contact_email: form.contact_email || null,
     contact_instagram: form.contact_instagram || null,
     contact_website: form.contact_website || null,
-    dance_styles: form.dance_styles.length > 0 ? form.dance_styles : null,
+    taxonomy_term_ids: form.taxonomy_term_ids,
     venue_id: form.venue_id || null,
   };
 }
 
 export function validateAdminEventForm(form: AdminEventForm): string | null {
-  const submitFormError = validateSubmitForm(form);
+  const submitFormError = validateSubmitForm({ ...form, dance_styles: [] });
   if (submitFormError) {
     return submitFormError;
   }

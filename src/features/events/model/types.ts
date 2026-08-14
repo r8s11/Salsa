@@ -1,6 +1,14 @@
 export type EventType = "social" | "class" | "workshop";
 export type City = "boston" | "new-york-city";
 
+
+export interface EventTaxonomyTerm {
+  id: string;
+  name: string;
+  slug: string;
+  category: "dance_style" | "event_attribute";
+  status: "active" | "needs_review" | "archived";
+}
 // Database event interface (matches Supabase schema)
 export interface DatabaseEvent {
   id: string;
@@ -20,8 +28,8 @@ export interface DatabaseEvent {
   submitter_id: string | null;
   status: "draft" | "pending" | "approved" | "rejected" | "cancelled" | "archived";
   source_type: "admin" | "user_submission" | "organizer" | "moderator" | "imported";
-  dance_styles: string[] | null;
-  taxonomy_term_ids?: string[];
+  taxonomy_term_ids: string[];
+  taxonomy_terms: EventTaxonomyTerm[];
   updated_at: string;
   cancellation_reason: string | null;
   city: City;

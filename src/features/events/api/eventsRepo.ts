@@ -138,18 +138,17 @@ export async function createEventAsAdmin(
   payload: AdminEventPayload,
   submitter: { id: string; email: string | null }
 ): Promise<void> {
-  const { error } = await supabase.from("events").insert({
-    ...payload,
+  const { taxonomy_term_ids = [], ...eventPayload } = payload;
+  const { data, error } = await supabase.from("events").insert({
+    ...eventPayload,
     status: "approved",
     source_type: "admin",
     submitter_id: submitter.id,
     submitter_email: submitter.email,
     submitter_name: "Salsa Segura",
-  });
-
-  if (error) {
-    throw new Error(error.message);
-  }
+  }).select("id").single();
+  if (error) throw new Error(error.message);
+  await replaceEventTaxonomyTerms(data.id, taxonomy_term_ids);
 }
 
 export async function duplicateEvent(

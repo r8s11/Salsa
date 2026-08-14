@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createSubmission, submissionsRepo } from "./submissionsRepo";
+import { approveSubmissionWithTaxonomy, createSubmission, submissionsRepo } from "./submissionsRepo";
 import { supabase } from "../../../lib/supabase";
 
 const queryBuilder = {
@@ -10,10 +10,12 @@ const queryBuilder = {
   insert: vi.fn().mockResolvedValue({ error: null }),
   single: vi.fn().mockResolvedValue({ data: {}, error: null }),
 };
+const { rpc } = vi.hoisted(() => ({ rpc: vi.fn() }));
 
 vi.mock("../../../lib/supabase", () => ({
   supabase: {
     from: vi.fn(() => queryBuilder),
+    rpc,
   },
 }));
 
@@ -69,5 +71,14 @@ describe("submissionsRepo", () => {
       }),
     );
     expect(queryBuilder.select).not.toHaveBeenCalled();
+  });
+
+  it("approves through the atomic taxonomy RPC", async () => {
+    rpc.mockResolvedValue({ data: "event-id", error: null });
+    await expect(approveSubmissionWithTaxonomy("submission-id", ["salsa-id"])).resolves.toBe("event-id");
+    expect(rpc).toHaveBeenCalledWith("approve_event_submission", {
+      p_submission_id: "submission-id",
+      p_taxonomy_term_ids: ["salsa-id"],
+    });
   });
 });

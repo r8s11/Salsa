@@ -53,6 +53,18 @@ export async function createSubmission(submission: SubmissionCreate) {
 
   if (error) throw error;
 }
+
+export async function approveSubmissionWithTaxonomy(
+  submissionId: string,
+  taxonomyTermIds: string[],
+): Promise<string> {
+  const { data, error } = await supabase.rpc("approve_event_submission", {
+    p_submission_id: submissionId,
+    p_taxonomy_term_ids: taxonomyTermIds,
+  });
+  if (error) throw new Error(`Failed to approve submission: ${error.message}`);
+  return data as string;
+}
 export const submissionsRepo = {
   async getPendingSubmissions() {
     const { data, error } = await supabase
@@ -89,4 +101,5 @@ export const submissionsRepo = {
   },
 
   createSubmission,
+  approveSubmissionWithTaxonomy,
 };

@@ -18,6 +18,16 @@ export function useAdminSubmissions() {
     },
   });
 
+  const approveMutation = useMutation({
+    mutationFn: ({ submissionId, taxonomyTermIds }: { submissionId: string; taxonomyTermIds: string[] }) =>
+      submissionsRepo.approveSubmissionWithTaxonomy(submissionId, taxonomyTermIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["submissions"] });
+      queryClient.invalidateQueries({ queryKey: ["events"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "taxonomy"] });
+    },
+  });
+
   return {
     submissions: (query.data ?? []) as EventSubmission[],
     isLoading: query.isLoading,
@@ -25,5 +35,8 @@ export function useAdminSubmissions() {
     updateSubmission: updateMutation.mutate,
     isUpdating: updateMutation.isPending,
     updateError: updateMutation.error,
+    approveSubmissionWithTaxonomy: approveMutation.mutate,
+    isApproving: approveMutation.isPending,
+    approveError: approveMutation.error,
   };
 }

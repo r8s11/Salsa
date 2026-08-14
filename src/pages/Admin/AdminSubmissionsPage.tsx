@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import AdminSubmissionsTable, {
   type SubmissionRowAction,
 } from "../../components/Admin/AdminSubmissionsTable";
@@ -10,6 +11,7 @@ import { type EventSubmission } from "../../features/admin/model/submissions";
 import "../../styles/admin.css";
 
 export default function AdminSubmissionsPage() {
+  const navigate = useNavigate();
   const { submissions, isLoading, updateSubmission } = useAdminSubmissions();
   const [filters, setFilters] = useState<SubmissionFilters>({ status: null, submitter_name: null });
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -17,13 +19,13 @@ export default function AdminSubmissionsPage() {
   const handleAction = (action: SubmissionRowAction, submission: EventSubmission) => {
     switch (action) {
       case "approve":
-        updateSubmission({ id: submission.id, update: { status: "approved" } });
+        navigate(`/admin/submissions/${submission.id}`);
         break;
       case "reject":
         updateSubmission({ id: submission.id, update: { status: "rejected" } });
         break;
       case "view":
-        // Navigate to detail page
+        navigate(`/admin/submissions/${submission.id}`);
         break;
     }
   };

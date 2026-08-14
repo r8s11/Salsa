@@ -27,6 +27,8 @@ const AdminVenueDetailPage = lazy(() => import("./pages/AdminVenueDetailPage"));
 const AdminTagsPage = lazy(() => import("./pages/AdminTagsPage"));
 const AdminTaxonomyNewPage = lazy(() => import("./pages/AdminTaxonomyNewPage"));
 const AdminTaxonomyDetailPage = lazy(() => import("./pages/AdminTaxonomyDetailPage"));
+const AdminSubmissionsPage = lazy(() => import("./pages/Admin/AdminSubmissionsPage"));
+const AdminSubmissionDetailPage = lazy(() => import("./pages/Admin/AdminSubmissionDetailPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const UserEventEditPage = lazy(() => import("./pages/UserEventEditPage"));
 import RequireAuth from "./components/Auth/RequireAuth";
@@ -50,7 +52,8 @@ function App() {
             >
               <Route index element={<AdminOverviewPage />} />
               <Route path="events" element={<AdminEventsPage />} />
-              <Route path="submissions" element={<AdminEventsPage />} />
+              <Route path="submissions" element={<AdminSubmissionsPage />} />
+              <Route path="submissions/:id" element={<AdminSubmissionDetailPage />} />
               <Route path="users" element={<AdminUsersPage />} />
               <Route path="users/:id" element={<AdminUserDetailPage />} />
               <Route path="organizer-requests" element={<AdminOrganizerRequestsPage />} />

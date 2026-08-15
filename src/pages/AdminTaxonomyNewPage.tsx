@@ -1,7 +1,7 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
-import AdminTaxonomyForm, { EMPTY_TAXONOMY_FORM } from "../components/Admin/AdminTaxonomyForm";
+import AdminTaxonomyForm from "../components/Admin/AdminTaxonomyForm";
 import { useAdminTaxonomy } from "../features/admin/hooks/useAdminTaxonomy";
-import { DEFAULT_TAXONOMY_FILTERS, type TaxonomyCategory } from "../features/admin/model/taxonomy";
+import { DEFAULT_TAXONOMY_FILTERS, EMPTY_TAXONOMY_FORM, type TaxonomyCategory } from "../features/admin/model/taxonomy";
 
 export default function AdminTaxonomyNewPage() {
   const navigate = useNavigate();

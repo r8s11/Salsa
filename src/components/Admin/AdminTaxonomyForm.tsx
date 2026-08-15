@@ -1,14 +1,14 @@
 import { useState } from "react";
+import type { FormEvent } from "react";
 import { slugifyTaxonomyName, validateTaxonomyForm, type TaxonomyForm } from "../../features/admin/model/taxonomy";
 
-export const EMPTY_TAXONOMY_FORM: TaxonomyForm = { name: "", category: "dance_style", slug: "", description: "", display_order: 0, status: "active" };
 
 export default function AdminTaxonomyForm({ initial, submitLabel, usageCount = 0, isSaving, onSubmit, onCancel }: { initial: TaxonomyForm; submitLabel: string; usageCount?: number; isSaving?: boolean; onSubmit: (form: TaxonomyForm) => void; onCancel: () => void }) {
   const [form, setForm] = useState(initial);
   const [slugEdited, setSlugEdited] = useState(Boolean(initial.slug));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const update = <K extends keyof TaxonomyForm>(key: K, value: TaxonomyForm[K]) => setForm((current) => ({ ...current, [key]: value }));
-  const submit = (event: React.FormEvent) => {
+  const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const next = validateTaxonomyForm(form);
     setErrors(next);

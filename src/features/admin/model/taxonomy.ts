@@ -18,6 +18,15 @@ export type TaxonomyForm = {
   status: TaxonomyStatus;
 };
 
+export const EMPTY_TAXONOMY_FORM: TaxonomyForm = {
+  name: "",
+  category: "dance_style",
+  slug: "",
+  description: "",
+  display_order: 0,
+  status: "active",
+};
+
 export type TaxonomyValidationErrors = Partial<Record<"name" | "slug", string>>;
 
 export type TaxonomyTerm = {

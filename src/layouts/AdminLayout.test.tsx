@@ -90,14 +90,12 @@ describe("AdminLayout", () => {
     );
   });
 
-  it("shows unbuilt sections as disabled with a Soon badge, not links", () => {
+  it("links built taxonomy and keeps Settings disabled", () => {
     renderLayout();
-
     expect(screen.getAllByRole("link", { name: "Event Submissions" }).length).toBeGreaterThan(0);
-    for (const label of ["Tags", "Settings"]) {
-      expect(screen.queryAllByRole("link", { name: label })).toHaveLength(0);
-      expect(screen.getAllByText(label)[0]).toBeInTheDocument();
-    }
+    expect(screen.getAllByRole("link", { name: "Tags" })[0]).toHaveAttribute("href", "/admin/tags");
+    expect(screen.queryAllByRole("link", { name: "Settings" })).toHaveLength(0);
+    expect(screen.getAllByText("Settings")[0]).toBeInTheDocument();
     expect(screen.getAllByText("Soon").length).toBeGreaterThan(0);
   });
 

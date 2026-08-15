@@ -3,4 +3,4 @@
 -- and the verification query in 004 shows matching relationship counts.
 -- Do not combine this file with schema creation or the data migration.
 
-alter table public.events drop column dance_styles;
+alter table public.events drop column if exists dance_styles;

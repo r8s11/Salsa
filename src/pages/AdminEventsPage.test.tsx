@@ -13,6 +13,10 @@ vi.mock("../contexts/useCity", () => ({
   useCity: () => ({ city: "boston", setCity: vi.fn() }),
 }));
 
+vi.mock("../features/admin/hooks/useAdminTaxonomy", () => ({
+  useActiveTaxonomyTerms: () => ({ terms: [], isLoading: false, error: null }),
+}));
+
 function daysFromNow(days: number): string {
   return new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
 }

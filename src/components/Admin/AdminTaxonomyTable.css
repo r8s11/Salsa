@@ -1,0 +1,18 @@
+.admin-taxonomy-table__scroll {
+  overflow-x: auto;
+}
+
+.admin-taxonomy-table__cards {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .admin-taxonomy-table__scroll {
+    display: none;
+  }
+
+  .admin-taxonomy-table__cards {
+    display: grid;
+    gap: 12px;
+  }
+}

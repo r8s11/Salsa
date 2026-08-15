@@ -46,6 +46,52 @@ create trigger taxonomy_terms_set_updated_at
   before update on public.taxonomy_terms
   for each row execute function public.set_updated_at();
 
+-- Consistent with the established events audit trail. This records direct
+-- admin create/edit/archive/restore/delete mutations; the merge RPC records
+-- its relationship reassignment separately in 002.
+create or replace function public.log_taxonomy_term_change()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_action text;
+  v_term taxonomy_terms%rowtype;
+begin
+  v_term := case when tg_op = 'DELETE' then old else new end;
+  v_action := case
+    when tg_op = 'INSERT' then 'taxonomy.created'
+    when tg_op = 'DELETE' then 'taxonomy.deleted'
+    when old.status is distinct from new.status then 'taxonomy.status_changed'
+    else 'taxonomy.updated'
+  end;
+
+  insert into public.audit_logs (actor_id, action, entity_type, entity_id, metadata)
+  values (
+    auth.uid(),
+    v_action,
+    'taxonomy_term',
+    v_term.id,
+    jsonb_build_object(
+      'name', v_term.name,
+      'slug', v_term.slug,
+      'category', v_term.category,
+      'from_status', case when tg_op = 'UPDATE' then old.status else null end,
+      'to_status', case when tg_op = 'DELETE' then null else new.status end
+    )
+  );
+
+  return case when tg_op = 'DELETE' then old else new end;
+end;
+$$;
+revoke execute on function public.log_taxonomy_term_change() from public, anon;
+
+drop trigger if exists taxonomy_terms_audit_log on public.taxonomy_terms;
+create trigger taxonomy_terms_audit_log
+  after insert or update or delete on public.taxonomy_terms
+  for each row execute function public.log_taxonomy_term_change();
+
 alter table public.taxonomy_terms enable row level security;
 grant select on public.taxonomy_terms to anon, authenticated;
 grant insert, update, delete on public.taxonomy_terms to authenticated;

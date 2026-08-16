@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { MemoryRouter, useLocation } from "react-router-dom";
-import { describe, expect, it, vi } from "vitest";
+import { MemoryRouter, useLocation, useNavigate } from "react-router-dom";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import AdminTagsPage from "./AdminTagsPage";
 
 vi.mock("../features/admin/hooks/useAdminTaxonomy", () => ({
@@ -24,7 +24,20 @@ function LocationProbe() {
   );
 }
 
+function NavigationProbe() {
+  const navigate = useNavigate();
+  return (
+    <button type="button" onClick={() => navigate("/admin/tags?q=Bachata")}>
+      Load Bachata
+    </button>
+  );
+}
+
 describe("AdminTagsPage", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("shows the taxonomy directory and add-term route", () => {
     render(
       <MemoryRouter>
@@ -56,5 +69,24 @@ describe("AdminTagsPage", () => {
     await waitFor(() =>
       expect(screen.getByTestId("location")).toHaveTextContent("/admin/tags?q=Outdoor")
     );
+  });
+
+  it("does not let a stale search timer overwrite external navigation", () => {
+    vi.useFakeTimers();
+    render(
+      <MemoryRouter initialEntries={["/admin/tags"]}>
+        <AdminTagsPage />
+        <LocationProbe />
+        <NavigationProbe />
+      </MemoryRouter>
+    );
+
+    fireEvent.change(screen.getByRole("textbox", { name: "Search taxonomy" }), {
+      target: { value: "Outdoor" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Load Bachata" }));
+    act(() => vi.advanceTimersByTime(250));
+
+    expect(screen.getByTestId("location")).toHaveTextContent("/admin/tags?q=Bachata");
   });
 });

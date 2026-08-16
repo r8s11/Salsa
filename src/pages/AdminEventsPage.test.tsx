@@ -1,8 +1,10 @@
+import "temporal-polyfill/global";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import type { DatabaseEvent } from "../features/events/model/types";
+import { fromEventDateInstant } from "../features/events/model/eventDateTime";
 import AdminEventsPage from "./AdminEventsPage";
 
 const { useAdminEvents } = vi.hoisted(() => ({ useAdminEvents: vi.fn() }));
@@ -350,10 +352,8 @@ describe("AdminEventsPage", () => {
     await user.click(within(menu).getByRole("menuitem", { name: "Duplicate" }));
 
     const dialog = screen.getByRole("dialog", { name: /Duplicate/ });
-    const original = new Date(baseEvent.event_date);
-    const expected = new Date(original.getTime() + 7 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .slice(0, 10);
+    const original = fromEventDateInstant(baseEvent.event_date);
+    const expected = Temporal.PlainDate.from(original.date).add({ weeks: 1 }).toString();
     expect(within(dialog).getByLabelText("Date")).toHaveValue(expected);
 
     await user.click(within(dialog).getByRole("button", { name: "Duplicate event" }));

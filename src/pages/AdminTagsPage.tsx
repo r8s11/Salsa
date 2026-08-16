@@ -42,9 +42,11 @@ function paramsFromFilters(filters: TaxonomyFilters): URLSearchParams {
 export default function AdminTagsPage() {
   const [params, setParams] = useSearchParams();
   const filters = filtersFromParams(params);
+  const paramsKey = params.toString();
   const [search, setSearch] = useState(filters.search);
   const [searchParam, setSearchParam] = useState(filters.search);
   const searchTimer = useRef<number | undefined>(undefined);
+  const latestParamsKey = useRef(paramsKey);
   const { terms, isLoading, error, archive, restore, remove } = useAdminTaxonomy(filters);
   if (filters.search !== searchParam) {
     setSearchParam(filters.search);
@@ -56,11 +58,16 @@ export default function AdminTagsPage() {
     },
     []
   );
+  useEffect(() => {
+    latestParamsKey.current = paramsKey;
+  }, [paramsKey]);
   const setFilters = (next: TaxonomyFilters) => {
     if (next.search !== search) {
       setSearch(next.search);
       window.clearTimeout(searchTimer.current);
+      const scheduledParamsKey = paramsKey;
       searchTimer.current = window.setTimeout(() => {
+        if (latestParamsKey.current !== scheduledParamsKey) return;
         setParams(paramsFromFilters(next), { replace: true });
         searchTimer.current = undefined;
       }, 250);

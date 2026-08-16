@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAdminUsers } from "../hooks/useAdminUsers";
+import AdminUserForm from "../components/Admin/AdminUserForm";
 import { useAuth } from "../contexts/useAuth";
 import {
   applyUserView,
@@ -121,6 +122,9 @@ export default function AdminUsersPage() {
     settingStatusId,
     statusErrorId,
     statusError,
+    createUser,
+    isCreating,
+    createError,
   } = useAdminUsers();
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -128,6 +132,7 @@ export default function AdminUsersPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [lastRowAction, setLastRowAction] = useState<UserRowAction | null>(null);
   const [announcement, setAnnouncement] = useState("");
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   const users = useMemo(() => queriedUsers ?? [], [queriedUsers]);
 
@@ -352,6 +357,15 @@ export default function AdminUsersPage() {
       <AdminPageHeader
         title="Users"
         description="Manage SalsaSegura accounts, roles, and account status."
+        actions={
+          <button
+            type="button"
+            className="admin-btn admin-btn--primary"
+            onClick={() => setShowCreateDialog(true)}
+          >
+            Add User
+          </button>
+        }
       />
 
       <p role="status" className="admin-visually-hidden">
@@ -584,6 +598,22 @@ export default function AdminUsersPage() {
           error={statusErrorId === pendingAction.user.id ? statusError : null}
           onConfirm={() => confirmStatusChange("active", "Flag removed")}
           onCancel={closeDialog}
+        />
+      )}
+
+      {showCreateDialog && (
+        <AdminUserForm
+          isBusy={isCreating}
+          error={createError}
+          onSubmit={(params) => {
+            createUser(params, {
+              onSuccess: () => {
+                setShowCreateDialog(false);
+                setAnnouncement("User invited successfully.");
+              },
+            });
+          }}
+          onCancel={() => setShowCreateDialog(false)}
         />
       )}
     </>

@@ -35,3 +35,19 @@ export async function setUserStatus(
   });
   if (error) throw new Error(error.message);
 }
+
+export interface CreateUserParams {
+  email: string;
+  display_name?: string;
+  role?: UserRole;
+}
+
+export async function createUser(userData: CreateUserParams): Promise<AdminUserRow> {
+  const { data, error } = await supabase.rpc("admin_invite_user", {
+    p_email: userData.email,
+    p_display_name: userData.display_name || null,
+    p_role: userData.role || "user",
+  });
+  if (error) throw new Error(error.message);
+  return data as AdminUserRow;
+}

@@ -142,6 +142,9 @@ const defaultState = {
   settingStatusId: null,
   statusErrorId: null,
   statusError: null,
+  createUser: vi.fn(),
+  isCreating: false,
+  createError: null,
 };
 
 function renderPage() {
@@ -309,5 +312,26 @@ describe("AdminUsersPage", () => {
     ).toBeGreaterThan(0);
     expect(screen.getAllByText("Roosevelt Segura").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Flagged Person").length).toBeGreaterThan(0);
+  });
+
+  it("Add User button opens a dialog that invites a new user", async () => {
+    const user = userEvent.setup();
+    const createUser = vi.fn();
+    vi.mocked(useAdminUsers).mockReturnValue({ ...defaultState, createUser });
+    renderPage();
+
+    await user.click(screen.getByRole("button", { name: "Add User" }));
+
+    const dialog = screen.getByRole("dialog", { name: "Add User" });
+    await user.type(
+      within(dialog).getByLabelText("Email"),
+      "newuser@salsa.test"
+    );
+    await user.click(within(dialog).getByRole("button", { name: "Invite User" }));
+
+    expect(createUser).toHaveBeenCalledWith(
+      { email: "newuser@salsa.test", display_name: undefined, role: "user" },
+      expect.anything()
+    );
   });
 });

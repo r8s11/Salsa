@@ -1,5 +1,6 @@
 import { useAuth } from "../contexts/useAuth";
 import { useSubmitEventForm } from "../features/submit-event/useSubmitEventForm";
+import { useSubmissionAccess } from "../features/submit-event/useSubmissionAccess";
 import EventDetailsFieldset from "../features/submit-event/components/EventDetailsFieldset";
 import LocationFieldset from "../features/submit-event/components/LocationFieldset";
 import PricingFieldset from "../features/submit-event/components/PricingFieldset";
@@ -12,6 +13,7 @@ export default function SubmitEventPage() {
   const { user } = useAuth();
   const { form, update, handleSubmit, isSubmitting, isSubmitted, error, resetSubmitted } =
     useSubmitEventForm();
+  const submissionAccess = useSubmissionAccess(Boolean(user));
 
   if (isSubmitted) {
     return <SuccessCard onReset={resetSubmitted} />;
@@ -32,16 +34,26 @@ export default function SubmitEventPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="submit-form">
-          <EventDetailsFieldset form={form} update={update} />
-          <LocationFieldset form={form} update={update} />
-          <PricingFieldset form={form} update={update} />
-          <YourInfoFieldset form={form} update={update} email={user?.email ?? ""} />
+        {submissionAccess.isLoading ? (
+          <p role="status">Checking whether submissions are open…</p>
+        ) : submissionAccess.error ? (
+          <div className="error-banner" role="alert">
+            <p>❌ Event submissions are currently unavailable. Please try again later.</p>
+          </div>
+        ) : !submissionAccess.canSubmit ? (
+          <p className="submit-intro">Event submissions are currently closed.</p>
+        ) : (
+          <form onSubmit={handleSubmit} className="submit-form">
+            <EventDetailsFieldset form={form} update={update} />
+            <LocationFieldset form={form} update={update} />
+            <PricingFieldset form={form} update={update} />
+            <YourInfoFieldset form={form} update={update} email={user?.email ?? ""} />
 
-          <button type="submit" className="btn-primary btn-block" disabled={isSubmitting}>
-            {isSubmitting ? "Submitting..." : "Submit Event"}
-          </button>
-        </form>
+            <button type="submit" className="btn-primary btn-block" disabled={isSubmitting}>
+              {isSubmitting ? "Submitting..." : "Submit Event"}
+            </button>
+          </form>
+        )}
       </div>
     </section>
   );

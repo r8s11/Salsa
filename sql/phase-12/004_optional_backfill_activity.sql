@@ -1,0 +1,34 @@
+-- Phase 12 — optional backfill of null actor_id values.
+-- OPTIONAL. Review before running. This UPDATEs existing audit_logs rows.
+--
+-- WHY: The audit triggers in 20260813000100 and 20260817000000 stamp
+-- auth.uid() as actor_id. Rows inserted by system processes (e.g. auto-archive
+-- cron jobs, or triggers that call auth.uid() when the caller is an anon/
+-- service role) may have actor_id = NULL. The Activity UI treats NULL as
+-- "SalsaSegura System", so this backfill is NOT required for correctness —
+-- it is purely for historical completeness.
+--
+-- SAFETY: Idempotent (guards on actor_id IS NULL). Only backfills rows
+-- where metadata contains enough context to attribute the action. If you
+-- cannot determine the actor, leave the row as NULL so it shows as System.
+
+-- Example backfill pattern (UNCOMMENT and adapt per environment):
+--
+-- -- Submission approvals: the trigger already stores reviewed_by in metadata.
+-- update public.audit_logs
+--   set actor_id = (metadata->>'reviewed_by')::uuid
+-- where action = 'submission.approved'
+--   and actor_id is null
+--   and metadata ? 'reviewed_by'
+--   and (metadata->>'reviewed_by') ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$';
+--
+-- -- Platform settings updates stamped by the BEFORE trigger already set
+-- -- updated_by — if that's null, the system performed the change.
+-- -- Leave those as NULL (System).
+
+-- Check your exposure before running:
+-- select count(*) from public.audit_logs where actor_id is null;
+-- select action, count(*) from public.audit_logs where actor_id is null group by action;
+
+-- If you run the example backfill above, then:
+-- select count(*) from public.audit_logs where actor_id is null;

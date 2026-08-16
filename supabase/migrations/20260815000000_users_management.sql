@@ -189,7 +189,6 @@ create function public.account_is_active(p_user_id uuid)
 returns boolean
 language sql
 stable
-security definer
 set search_path = public
 as $$
   select coalesce((select status = 'active' from public.profiles where id = p_user_id), true);
@@ -200,10 +199,12 @@ alter policy "Anon can submit pending events" on public.events
               and submitter_id is not distinct from auth.uid()
               and public.account_is_active(auth.uid()));
 
-revoke execute on function public.admin_user_directory()                          from public;
-revoke execute on function public.admin_set_user_role(uuid, text)                 from public;
-revoke execute on function public.admin_set_user_status(uuid, text, text)         from public;
+revoke execute on function public.admin_user_directory()                          from public, anon;
+revoke execute on function public.admin_set_user_role(uuid, text)                 from public, anon;
+revoke execute on function public.admin_set_user_status(uuid, text, text)         from public, anon;
 revoke execute on function public.account_is_active(uuid)                         from public;
+-- account_is_active is SECURITY INVOKER (safe for anon to call), but admin
+-- functions must never be callable without authentication.
 grant  execute on function public.admin_user_directory()                          to authenticated;
 grant  execute on function public.admin_set_user_role(uuid, text)                 to authenticated;
 grant  execute on function public.admin_set_user_status(uuid, text, text)         to authenticated;

@@ -1,0 +1,214 @@
+.admin-shell .admin-settings {
+  max-width: 920px;
+}
+
+.admin-shell .admin-settings__nav {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  overflow-x: auto;
+}
+
+.admin-shell .admin-settings__mobile-nav {
+  display: none;
+}
+
+.admin-shell .admin-settings__nav a {
+  color: var(--admin-text-secondary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 8px 12px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.admin-shell .admin-settings__nav a:hover,
+.admin-shell .admin-settings__nav a:focus-visible {
+  color: var(--admin-brand-hover);
+  text-decoration: underline;
+}
+
+.admin-shell .admin-settings__card {
+  margin-bottom: 20px;
+  padding: 24px;
+}
+
+.admin-shell .admin-settings__card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.admin-shell .admin-settings__card h2 {
+  color: var(--admin-text-strong);
+  font-size: 1.15rem;
+  margin: 0;
+}
+
+.admin-shell .admin-settings__card-header p,
+.admin-shell .admin-settings__switch p,
+.admin-shell .admin-settings__boundary p {
+  color: var(--admin-text-secondary);
+  margin: 6px 0 0;
+}
+
+.admin-shell .admin-settings__readonly-label {
+  color: var(--admin-text-primary);
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.admin-shell .admin-settings__readonly-value {
+  color: var(--admin-text-secondary);
+  margin: 6px 0 0;
+}
+
+.admin-shell .admin-settings__actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.admin-shell .admin-settings__dirty {
+  align-items: center;
+  color: var(--admin-warning);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.admin-shell .admin-settings__dirty p {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.admin-shell .admin-settings__changed-at {
+  color: var(--admin-text-muted);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.admin-shell .admin-settings__status {
+  background: var(--admin-danger-tint);
+  border: 1px solid var(--admin-danger-border);
+  border-radius: 999px;
+  color: var(--admin-danger-strong);
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 5px 10px;
+  white-space: nowrap;
+}
+
+.admin-shell .admin-settings__status--open {
+  background: var(--admin-success-tint);
+  border-color: var(--admin-success-border);
+  color: var(--admin-success);
+}
+
+.admin-shell .admin-settings__switch {
+  align-items: center;
+  border-top: 1px solid var(--admin-divider);
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px 0;
+}
+
+.admin-shell .admin-settings__switch label {
+  color: var(--admin-text-primary);
+  font-weight: 600;
+}
+
+.admin-shell .admin-settings__switch small {
+  color: var(--admin-text-muted);
+  display: block;
+  margin-top: 8px;
+}
+
+.admin-shell .admin-settings__switch input {
+  accent-color: var(--admin-brand);
+  cursor: pointer;
+  flex: 0 0 auto;
+  height: 24px;
+  width: 44px;
+}
+
+.admin-shell .admin-settings__skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--admin-surface-secondary) 25%,
+    var(--admin-skeleton-highlight) 37%,
+    var(--admin-surface-secondary) 63%
+  );
+  background-size: 400% 100%;
+  border-radius: var(--admin-radius);
+  height: 180px;
+  margin-bottom: 20px;
+}
+
+.admin-shell .admin-settings__error {
+  margin-top: 24px;
+  padding: 24px;
+}
+
+.admin-shell .admin-settings__boundary {
+  margin-bottom: 20px;
+  padding: 24px;
+}
+
+@media (max-width: 767px) {
+  .admin-shell .admin-settings__card {
+    padding: 18px;
+  }
+
+  .admin-shell .admin-settings__card-header,
+  .admin-shell .admin-settings__switch {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-shell .admin-settings__switch input {
+    align-self: flex-start;
+  }
+}
+
+@media (min-width: 1024px) {
+  .admin-shell .admin-settings {
+    max-width: 1120px;
+  }
+
+  .admin-shell .admin-settings__nav {
+    float: left;
+    flex-direction: column;
+    position: sticky;
+    top: 24px;
+    width: 180px;
+  }
+
+  .admin-shell .admin-settings__card,
+  .admin-shell .admin-settings__boundary {
+    margin-left: 204px;
+  }
+}
+
+@media (max-width: 767px) {
+  .admin-shell .admin-settings__nav {
+    display: none;
+  }
+
+  .admin-shell .admin-settings__mobile-nav {
+    color: var(--admin-text-primary);
+    display: grid;
+    font-size: 0.9rem;
+    font-weight: 600;
+    gap: 6px;
+    margin-bottom: 20px;
+  }
+}

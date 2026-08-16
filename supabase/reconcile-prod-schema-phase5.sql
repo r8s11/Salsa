@@ -87,6 +87,9 @@ begin
 end;
 $$;
 
+-- Trigger functions are not safe to call via RPC — revoke from public/anon.
+revoke execute on function public.handle_new_user() from public, anon;
+
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
@@ -95,6 +98,8 @@ create trigger on_auth_user_created
 create or replace function public.set_updated_at()
 returns trigger
 language plpgsql
+security definer
+set search_path = public
 as $$
 begin
   new.updated_at = now();
@@ -244,6 +249,9 @@ drop trigger if exists events_audit_log on public.events;
 create trigger events_audit_log
   after insert or update or delete on public.events
   for each row execute function public.log_event_change();
+
+-- Trigger functions are not safe to call via RPC — revoke from public/anon.
+revoke execute on function public.log_event_change() from public, anon;
 
 -- ============================================================
 -- 4. dashboard_indexes (20260813000200) — already idempotent locally;
@@ -454,7 +462,6 @@ create or replace function public.account_is_active(p_user_id uuid)
 returns boolean
 language sql
 stable
-security definer
 set search_path = public
 as $$
   select coalesce((select status = 'active' from public.profiles where id = p_user_id), true);
@@ -474,14 +481,24 @@ create policy "Anon can submit pending events"
               and submitter_id is not distinct from auth.uid()
               and public.account_is_active(auth.uid()));
 
-revoke execute on function public.admin_user_directory()                          from public;
-revoke execute on function public.admin_set_user_role(uuid, text)                 from public;
-revoke execute on function public.admin_set_user_status(uuid, text, text)         from public;
+revoke execute on function public.admin_user_directory()                          from public, anon;
+revoke execute on function public.admin_set_user_role(uuid, text)                 from public, anon;
+revoke execute on function public.admin_set_user_status(uuid, text, text)         from public, anon;
 revoke execute on function public.account_is_active(uuid)                         from public;
+-- account_is_active is SECURITY INVOKER (safe for anon to call), but admin
+-- functions must never be callable without authentication.
 grant  execute on function public.admin_user_directory()                          to authenticated;
 grant  execute on function public.admin_set_user_role(uuid, text)                 to authenticated;
 grant  execute on function public.admin_set_user_status(uuid, text, text)         to authenticated;
 grant  execute on function public.account_is_active(uuid)                         to anon, authenticated;
+
+-- ============================================================
+-- Security hardening: ensure anon cannot SELECT from audit_logs
+-- or profiles (production may have drifted from migration grants).
+-- events IS intentionally readable by anon (public calendar).
+-- ============================================================
+revoke select on public.audit_logs from anon;
+revoke select on public.profiles   from anon;
 
 -- Without this, recently-added columns/functions/policies can be invisible
 -- to the PostgREST API layer (which supabase-js talks to) for up to a minute.

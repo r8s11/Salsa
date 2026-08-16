@@ -10,7 +10,9 @@ vi.mock("../features/admin/hooks/useOrganizerRequests", () => ({ useOrganizerReq
 
 vi.mock("../contexts/useAuth", () => ({
   useAuth: () => ({
-    user: { id: "admin-1", email: "moderator@salsa.test" },
+    user: { id: "admin-1", email: "admin@salsa.test" },
+    isAdmin: true,
+    isModerator: true,
     signOut: vi.fn(),
   }),
 }));
@@ -90,13 +92,14 @@ describe("AdminLayout", () => {
     );
   });
 
-  it("links built taxonomy and keeps Settings disabled", () => {
+  it("links built taxonomy and Settings", () => {
     renderLayout();
     expect(screen.getAllByRole("link", { name: "Event Submissions" }).length).toBeGreaterThan(0);
     expect(screen.getAllByRole("link", { name: "Tags" })[0]).toHaveAttribute("href", "/admin/tags");
-    expect(screen.queryAllByRole("link", { name: "Settings" })).toHaveLength(0);
-    expect(screen.getAllByText("Settings")[0]).toBeInTheDocument();
-    expect(screen.getAllByText("Soon").length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("link", { name: "Settings" })[0]).toHaveAttribute(
+      "href",
+      "/admin/settings"
+    );
   });
 
   it("breadcrumb reads Users on the nested detail route", () => {

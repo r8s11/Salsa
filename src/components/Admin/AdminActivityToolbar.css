@@ -1,0 +1,113 @@
+.admin-activity-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-activity-toolbar__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.admin-activity-toolbar__search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 240px;
+  min-width: 200px;
+  padding: 0 10px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  background: var(--admin-surface-elevated);
+  color: var(--admin-text-muted);
+}
+
+.admin-activity-toolbar__search .admin-input {
+  flex: 1;
+  border: none;
+  padding: 8px 0;
+}
+
+.admin-activity-toolbar__search .admin-input:focus-visible {
+  outline: none;
+}
+
+.admin-activity-toolbar__date {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.admin-activity-toolbar__date input {
+  width: 140px;
+}
+
+.admin-activity-toolbar__category {
+  position: relative;
+}
+
+.admin-activity-toolbar__category-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 15;
+  min-width: 200px;
+  padding: 6px;
+  list-style: none;
+  background: var(--admin-surface-elevated);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  box-shadow: var(--admin-shadow-md);
+}
+
+.admin-activity-toolbar__category-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 4px 6px;
+  border-radius: calc(var(--admin-radius) - 2px);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.admin-activity-toolbar__category-option:hover {
+  background: var(--admin-surface-secondary);
+}
+
+.admin-activity-toolbar__more {
+  position: relative;
+}
+
+.admin-activity-toolbar__more-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9999px;
+  background: var(--admin-brand);
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.admin-activity-toolbar__sort-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.admin-activity-toolbar__sort-label {
+  color: var(--admin-text-muted);
+  font-size: 0.875rem;
+}
+
+@media (pointer: coarse) {
+  .admin-activity-toolbar__category-option {
+    min-height: 44px;
+  }
+}

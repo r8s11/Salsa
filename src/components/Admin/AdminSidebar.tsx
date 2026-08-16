@@ -8,6 +8,8 @@ import {
   MapPin,
   Tag,
   Settings,
+  Activity,
+  BarChart3,
   ChevronLeft,
   ChevronRight as ChevronRightIcon,
 } from "lucide-react";
@@ -35,20 +37,33 @@ const NAV_ITEMS: NavItem[] = [
   { group: "Overview", label: "Dashboard", icon: LayoutDashboard, to: "/admin", built: true },
   { group: "Management", label: "Events", icon: CalendarDays, to: "/admin/events", built: true },
   { group: "Management", label: "Users", icon: Users, to: "/admin/users", built: true },
-  { group: "Review", label: "Event Submissions", icon: ClipboardCheck, to: "/admin/submissions", built: true },
-  { group: "Review", label: "Organizer Requests", icon: UserPlus, to: "/admin/organizer-requests", built: true },
+  {
+    group: "Review",
+    label: "Event Submissions",
+    icon: ClipboardCheck,
+    to: "/admin/submissions",
+    built: true,
+  },
+  {
+    group: "Review",
+    label: "Organizer Requests",
+    icon: UserPlus,
+    to: "/admin/organizer-requests",
+    built: true,
+  },
   { group: "Platform", label: "Venues", icon: MapPin, to: "/admin/venues", built: true },
   { group: "Platform", label: "Tags", icon: Tag, to: "/admin/tags", built: true },
-  { group: "System", label: "Settings", icon: Settings, built: false },
+  { group: "Management", label: "Activity", icon: Activity, to: "/admin/activity", built: true },
+  { group: "Insights", label: "Analytics", icon: BarChart3, to: "/admin/analytics", built: true },
+  { group: "System", label: "Settings", icon: Settings, to: "/admin/settings", built: true },
 ];
-const NAV_ITEMS_WITH_GROUP_FLAG = NAV_ITEMS.reduce<{ item: NavItem; showGroup: boolean }[]>(
-  (acc, item) => {
+function itemsWithGroupFlags(items: NavItem[]) {
+  return items.reduce<{ item: NavItem; showGroup: boolean }[]>((acc, item) => {
     const previous = acc[acc.length - 1];
     const showGroup = !previous || previous.item.group !== item.group;
     return [...acc, { item, showGroup }];
-  },
-  []
-);
+  }, []);
+}
 
 export default function AdminSidebar({
   variant,
@@ -56,9 +71,12 @@ export default function AdminSidebar({
   collapsed = false,
   onToggleCollapse,
 }: AdminSidebarProps) {
-  const { user, signOut } = useAuth();
+  const { user, signOut, isAdmin } = useAuth();
   const { theme, setTheme } = useTheme();
   const { pendingCount } = useOrganizerRequests();
+  const navItems = itemsWithGroupFlags(
+    NAV_ITEMS.filter((item) => item.label !== "Settings" || isAdmin)
+  );
 
   const handleSignOut = async () => {
     await signOut();
@@ -73,7 +91,7 @@ export default function AdminSidebar({
     >
       <div className="admin-sidebar__brand">SalsaSegura</div>
       <div className="admin-sidebar__scroll">
-        {NAV_ITEMS_WITH_GROUP_FLAG.map(({ item, showGroup }) => {
+        {navItems.map(({ item, showGroup }) => {
           const Icon = item.icon;
           const isOrganizerRequests = item.to === "/admin/organizer-requests";
           const badge = isOrganizerRequests ? pendingCount : null;
@@ -94,7 +112,10 @@ export default function AdminSidebar({
                   <Icon size={18} />
                   <span className="admin-nav__label">{item.label}</span>
                   {badge !== null && badge !== undefined && badge > 0 && (
-                    <span className="admin-nav__badge" aria-label={`${badge} pending organizer requests`}>
+                    <span
+                      className="admin-nav__badge"
+                      aria-label={`${badge} pending organizer requests`}
+                    >
                       {badge}
                     </span>
                   )}

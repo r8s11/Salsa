@@ -52,7 +52,11 @@ vi.mock("../../contexts/useAuth", () => ({ useAuth }));
 const { useTheme } = vi.hoisted(() => ({ useTheme: vi.fn() }));
 vi.mock("../../contexts/useTheme", () => ({ useTheme }));
 vi.mock("../../features/admin/hooks/useOrganizerRequests", () => ({
-  useOrganizerRequests: vi.fn(() => ({ pendingCount: 0, pendingCountLoading: false, pendingCountError: null })),
+  useOrganizerRequests: vi.fn(() => ({
+    pendingCount: 0,
+    pendingCountLoading: false,
+    pendingCountError: null,
+  })),
 }));
 
 beforeEach(() => {
@@ -94,5 +98,37 @@ describe("AdminSidebar drawer account block", () => {
       </MemoryRouter>
     );
     expect(screen.queryByRole("button", { name: "Sign out" })).not.toBeInTheDocument();
+  });
+});
+
+describe("AdminSidebar settings navigation", () => {
+  it("renders Settings as an admin-only link", () => {
+    vi.mocked(useAuth).mockReturnValue({
+      user: { email: "admin@salsa.test" },
+      isAdmin: true,
+      isModerator: true,
+      signOut: vi.fn(),
+    });
+
+    renderSidebar();
+
+    expect(screen.getByRole("link", { name: "Settings" })).toHaveAttribute(
+      "href",
+      "/admin/settings"
+    );
+  });
+
+  it("does not render Settings for moderators", () => {
+    vi.mocked(useAuth).mockReturnValue({
+      user: { email: "moderator@salsa.test" },
+      isAdmin: false,
+      isModerator: true,
+      signOut: vi.fn(),
+    });
+
+    renderSidebar();
+
+    expect(screen.queryByRole("link", { name: "Settings" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Settings")).not.toBeInTheDocument();
   });
 });

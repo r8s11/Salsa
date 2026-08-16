@@ -8,8 +8,10 @@ import { fromEventDateInstant } from "../features/events/model/eventDateTime";
 import AdminEventsPage from "./AdminEventsPage";
 
 const { useAdminEvents } = vi.hoisted(() => ({ useAdminEvents: vi.fn() }));
+const { usePlatformSettings } = vi.hoisted(() => ({ usePlatformSettings: vi.fn() }));
 
 vi.mock("../hooks/useAdminEvents", () => ({ useAdminEvents }));
+vi.mock("../features/admin/hooks/usePlatformSettings", () => ({ usePlatformSettings }));
 
 vi.mock("../contexts/useCity", () => ({
   useCity: () => ({ city: "boston", setCity: vi.fn() }),
@@ -144,6 +146,13 @@ async function openRowMenu(user: ReturnType<typeof userEvent.setup>, title: stri
 describe("AdminEventsPage", () => {
   beforeEach(() => {
     vi.mocked(useAdminEvents).mockReturnValue({ ...defaultState });
+    vi.mocked(usePlatformSettings).mockReturnValue({
+      settings: null,
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+      update: {},
+    });
   });
 
   it("opens an empty form when Create Event is clicked", async () => {
@@ -154,6 +163,22 @@ describe("AdminEventsPage", () => {
 
     expect(screen.getByRole("heading", { name: "New event" })).toBeInTheDocument();
     expect(screen.getByLabelText("Event Title *")).toHaveValue("");
+  });
+
+  it("uses the platform default city for a new event", async () => {
+    vi.mocked(usePlatformSettings).mockReturnValue({
+      settings: { default_city: "new-york-city" },
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+      update: {},
+    });
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.click(screen.getByRole("button", { name: /Create Event/i }));
+
+    expect(screen.getByLabelText("City *")).toHaveValue("new-york-city");
   });
 
   it("opens a prefilled form when Edit is chosen from the row menu", async () => {

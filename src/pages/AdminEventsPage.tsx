@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { Plus } from "lucide-react";
 import { useAdminEvents } from "../hooks/useAdminEvents";
 import { useCity } from "../contexts/useCity";
+import { usePlatformSettings } from "../features/admin/hooks/usePlatformSettings";
 import type { DatabaseEvent, City } from "../features/events/model/types";
 import { findPotentialDuplicates } from "../features/admin/model/overviewMetrics";
 import {
@@ -175,6 +176,7 @@ interface FilterChip {
 
 export default function AdminEventsPage() {
   const { city } = useCity();
+  const { settings: platformSettings, isLoading: platformSettingsLoading } = usePlatformSettings();
   const {
     events: queriedEvents,
     isLoading,
@@ -364,7 +366,8 @@ export default function AdminEventsPage() {
   if (filters.submitter) {
     const needle = filters.submitter.toLowerCase();
     const matched = events.find(
-      (event) => event.submitter_id === filters.submitter || event.submitter_email?.toLowerCase() === needle
+      (event) =>
+        event.submitter_id === filters.submitter || event.submitter_email?.toLowerCase() === needle
     );
     const matchedName = matched
       ? matched.submitter_id === null
@@ -488,9 +491,20 @@ export default function AdminEventsPage() {
 
   if (formView.mode !== "list") {
     const isEdit = formView.mode === "edit";
+    if (!isEdit && platformSettingsLoading) {
+      return (
+        <section className="admin-page" aria-busy="true">
+          <div className="admin-skeleton" />
+        </section>
+      );
+    }
     return (
       <AdminEventForm
-        initial={isEdit ? buildAdminFormFromEvent(formView.event) : buildEmptyAdminForm(city)}
+        initial={
+          isEdit
+            ? buildAdminFormFromEvent(formView.event)
+            : buildEmptyAdminForm(platformSettings?.default_city ?? city)
+        }
         initialTaxonomyTerms={isEdit ? formView.event.taxonomy_terms : []}
         heading={isEdit ? "Edit event" : "New event"}
         submitLabel={isEdit ? "Save changes" : "Create event"}

@@ -11,7 +11,7 @@ begin
   end if;
   if not exists (select 1 from pg_constraint where conrelid = 'public.platform_settings'::regclass and conname = 'platform_settings_name_check') then
     alter table public.platform_settings
-      add constraint platform_settings_name_check check (btrim(platform_name) <> '');
+      add constraint platform_settings_name_check check (char_length(btrim(platform_name)) between 2 and 80);
   end if;
   if not exists (select 1 from pg_constraint where conrelid = 'public.platform_settings'::regclass and conname = 'platform_settings_site_url_check') then
     alter table public.platform_settings
@@ -43,7 +43,10 @@ begin
   end if;
   if not exists (select 1 from pg_constraint where conrelid = 'public.platform_settings'::regclass and conname = 'platform_settings_duration_check') then
     alter table public.platform_settings
-      add constraint platform_settings_duration_check check (default_event_duration_minutes between 30 and 720);
+      add constraint platform_settings_duration_check check (
+        default_event_duration_minutes between 30 and 720
+        and mod(default_event_duration_minutes, 30) = 0
+      );
   end if;
 end;
 $$;

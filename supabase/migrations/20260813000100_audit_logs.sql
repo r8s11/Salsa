@@ -80,6 +80,9 @@ create trigger events_audit_log
   after insert or update or delete on public.events
   for each row execute function public.log_event_change();
 
+-- Trigger functions are not safe to call via RPC — revoke from public/anon.
+revoke execute on function public.log_event_change() from public, anon;
+
 alter table public.audit_logs enable row level security;
 
 -- Grants sit below policies — without grant select, RLS policy is never evaluated.

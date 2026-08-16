@@ -55,7 +55,6 @@ export function useSubmitEventForm() {
       setForm(buildInitialForm(defaultCity));
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
-      console.log("error", message);
       setError(message);
     } finally {
       setIsSubmitting(false);

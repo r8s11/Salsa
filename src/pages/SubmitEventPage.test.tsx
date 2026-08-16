@@ -2,13 +2,16 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import * as submissionsRepo from "../features/admin/api/submissionsRepo";
 import SubmitEventPage from "./SubmitEventPage";
-import { Providers } from "../app/providers";
+import { CityProvider } from "../contexts/CityContext";
+const { useSubmissionAccess } = vi.hoisted(() => ({ useSubmissionAccess: vi.fn() }));
 
 vi.mock("../features/events/api/eventsRepo", () => ({}));
 
 vi.mock("../features/admin/api/submissionsRepo", () => ({
   createSubmission: vi.fn(),
 }));
+
+vi.mock("../features/submit-event/useSubmissionAccess", () => ({ useSubmissionAccess }));
 
 vi.mock("../contexts/useAuth", () => ({
   useAuth: () => ({
@@ -24,22 +27,25 @@ vi.mock("../contexts/useAuth", () => ({
 
 const renderSubmitEventPage = () =>
   render(
-    <Providers>
+    <CityProvider>
       <SubmitEventPage />
-    </Providers>
+    </CityProvider>
   );
 
 describe("SubmitEventPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(useSubmissionAccess).mockReturnValue({
+      isLoading: false,
+      canSubmit: true,
+      error: null,
+    });
   });
 
   it("renders the event submission form", () => {
     renderSubmitEventPage();
 
-    expect(
-      screen.getByRole("heading", { name: /Submit an Event/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /Submit an Event/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/Event Title \*/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Event Type \*/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/City \*/i)).toBeInTheDocument();
@@ -47,6 +53,19 @@ describe("SubmitEventPage", () => {
     expect(screen.getByLabelText(/Venue Name/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Price/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Your Name/i)).toBeInTheDocument();
+  });
+
+  it("replaces the form with a closed-state message when registered submissions are disabled", () => {
+    vi.mocked(useSubmissionAccess).mockReturnValue({
+      isLoading: false,
+      canSubmit: false,
+      error: null,
+    });
+
+    renderSubmitEventPage();
+
+    expect(screen.getByText("Event submissions are currently closed.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Submit Event/i })).not.toBeInTheDocument();
   });
 
   it("submits the form successfully and displays success card", async () => {
@@ -79,9 +98,7 @@ describe("SubmitEventPage", () => {
       })
     );
 
-    expect(
-      await screen.findByText(/Event Submitted!/i)
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/Event Submitted!/i)).toBeInTheDocument();
   });
 
   it("persists a supplied start time as its New York instant", async () => {
@@ -133,9 +150,7 @@ describe("SubmitEventPage", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /Submit Event/i }));
 
-    expect(
-      await screen.findByText(/❌ Network connection error/i)
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/❌ Network connection error/i)).toBeInTheDocument();
   });
 
   it("allows resetting the form from success card to submit another event", async () => {
@@ -160,11 +175,7 @@ describe("SubmitEventPage", () => {
     });
     fireEvent.click(resetButton);
 
-    expect(
-      screen.getByRole("heading", { name: /Submit an Event/i })
-    ).toBeInTheDocument();
-    expect(
-      (screen.getByLabelText(/Event Title \*/i) as HTMLInputElement).value
-    ).toBe("");
+    expect(screen.getByRole("heading", { name: /Submit an Event/i })).toBeInTheDocument();
+    expect((screen.getByLabelText(/Event Title \*/i) as HTMLInputElement).value).toBe("");
   });
 });

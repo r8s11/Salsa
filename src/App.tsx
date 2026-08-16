@@ -21,7 +21,9 @@ const AdminEventsPage = lazy(() => import("./pages/AdminEventsPage"));
 const AdminUsersPage = lazy(() => import("./pages/AdminUsersPage"));
 const AdminUserDetailPage = lazy(() => import("./pages/AdminUserDetailPage"));
 const AdminOrganizerRequestsPage = lazy(() => import("./pages/AdminOrganizerRequestsPage"));
-const AdminOrganizerRequestDetailPage = lazy(() => import("./pages/AdminOrganizerRequestDetailPage"));
+const AdminOrganizerRequestDetailPage = lazy(
+  () => import("./pages/AdminOrganizerRequestDetailPage")
+);
 const AdminVenuesPage = lazy(() => import("./pages/AdminVenuesPage"));
 const AdminVenueDetailPage = lazy(() => import("./pages/AdminVenueDetailPage"));
 const AdminTagsPage = lazy(() => import("./pages/AdminTagsPage"));
@@ -29,6 +31,10 @@ const AdminTaxonomyNewPage = lazy(() => import("./pages/AdminTaxonomyNewPage"));
 const AdminTaxonomyDetailPage = lazy(() => import("./pages/AdminTaxonomyDetailPage"));
 const AdminSubmissionsPage = lazy(() => import("./pages/Admin/AdminSubmissionsPage"));
 const AdminSubmissionDetailPage = lazy(() => import("./pages/Admin/AdminSubmissionDetailPage"));
+const AdminSettingsPage = lazy(() => import("./pages/AdminSettingsPage"));
+const AdminActivityPage = lazy(() => import("./pages/AdminActivityPage"));
+const AdminActivityDetailPage = lazy(() => import("./pages/AdminActivityDetailPage"));
+const AdminAnalyticsPage = lazy(() => import("./pages/AdminAnalyticsPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const UserEventEditPage = lazy(() => import("./pages/UserEventEditPage"));
 import RequireAuth from "./components/Auth/RequireAuth";
@@ -63,20 +69,17 @@ function App() {
               <Route path="tags" element={<AdminTagsPage />} />
               <Route path="tags/new" element={<AdminTaxonomyNewPage />} />
               <Route path="tags/:id" element={<AdminTaxonomyDetailPage />} />
+              <Route path="settings" element={<AdminSettingsPage />} />
+              <Route path="activity" element={<AdminActivityPage />} />
+              <Route path="activity/:id" element={<AdminActivityDetailPage />} />
+              <Route path="analytics" element={<AdminAnalyticsPage />} />
             </Route>
             <Route path="/" element={<MainLayout />}>
               <Route index element={<HomePage />} />
               <Route path="about" element={<AboutPage />} />
               <Route path="contact" element={<ContactPage />} />
               <Route path="calendar" element={<CalendarPage />} />
-              <Route
-                path="submit"
-                element={
-                  <RequireAuth>
-                    <SubmitEventPage />
-                  </RequireAuth>
-                }
-              />
+              <Route path="submit" element={<SubmitEventPage />} />
               <Route
                 path="profile"
                 element={

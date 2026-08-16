@@ -113,3 +113,6 @@ begin
   return new;
 end;
 $$;
+
+-- Trigger functions are not safe to call via RPC — revoke from public/anon.
+revoke execute on function public.log_event_change() from public, anon;

@@ -54,7 +54,7 @@ as $$
   select coalesce(auth.jwt() -> 'app_metadata' ->> 'role', '') in ('admin', 'moderator');
 $$;
 
-revoke execute on function public.is_moderator() from public;
+revoke execute on function public.is_moderator() from public, anon;
 grant  execute on function public.is_moderator() to authenticated;
 
 -- ============================================================
@@ -254,6 +254,9 @@ create trigger event_submissions_audit_log
   after insert or update on public.event_submissions
   for each row execute function public.log_submission_change();
 
+-- Trigger functions are not safe to call via RPC — revoke from public/anon.
+revoke execute on function public.log_submission_change() from public, anon;
+
 -- ============================================================
 -- 4. admin_user_directory() — add approved_count (and email_confirmed_at
 --    from Phase 6, so this script is safe against Phase 5 drift)
@@ -342,8 +345,16 @@ begin
 end;
 $$;
 
-revoke execute on function public.admin_user_directory() from public;
+revoke execute on function public.admin_user_directory() from public, anon;
 grant  execute on function public.admin_user_directory() to authenticated;
+
+-- ============================================================
+-- Security hardening: ensure anon cannot SELECT from audit_logs
+-- or profiles (production may have drifted from migration grants).
+-- events IS intentionally readable by anon (public calendar).
+-- ============================================================
+revoke select on public.audit_logs from anon;
+revoke select on public.profiles   from anon;
 
 -- Without this, recently-added columns/functions/policies can be invisible
 -- to the PostgREST API layer (which supabase-js talks to) for up to a minute.

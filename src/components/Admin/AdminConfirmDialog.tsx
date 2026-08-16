@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
+import type { KeyboardEvent } from "react";
 import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
 import "./AdminConfirmDialog.css";
 
@@ -8,6 +9,7 @@ interface AdminConfirmDialogProps {
   confirmLabel: string;
   isBusy: boolean;
   tone?: "danger" | "neutral";
+  initialFocus?: "cancel" | "confirm";
   reasonField?: { label: string; placeholder?: string; required?: boolean };
   error?: string | null;
   onConfirm: (reason?: string) => void;
@@ -20,6 +22,7 @@ export default function AdminConfirmDialog({
   confirmLabel,
   isBusy,
   tone = "danger",
+  initialFocus = "confirm",
   reasonField,
   error,
   onConfirm,
@@ -27,8 +30,10 @@ export default function AdminConfirmDialog({
 }: AdminConfirmDialogProps) {
   const titleId = useId();
   const reasonId = useId();
+  const cancelRef = useRef<HTMLButtonElement>(null);
   const confirmRef = useRef<HTMLButtonElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
   const previouslyFocusedRef = useRef<Element | null>(null);
   const [reason, setReason] = useState("");
   const [showRequiredError, setShowRequiredError] = useState(false);
@@ -37,14 +42,14 @@ export default function AdminConfirmDialog({
 
   useEffect(() => {
     previouslyFocusedRef.current = document.activeElement;
-    confirmRef.current?.focus();
+    (initialFocus === "cancel" ? cancelRef : confirmRef).current?.focus();
     return () => {
       const previouslyFocused = previouslyFocusedRef.current;
       if (previouslyFocused instanceof HTMLElement) {
         previouslyFocused.focus();
       }
     };
-  }, []);
+  }, [initialFocus]);
 
   const handleConfirm = () => {
     if (!reasonField) {
@@ -61,6 +66,25 @@ export default function AdminConfirmDialog({
     onConfirm(trimmed === "" ? undefined : trimmed);
   };
 
+  const trapFocus = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== "Tab") return;
+
+    const focusable = dialogRef.current?.querySelectorAll<HTMLElement>(
+      "button:not([disabled]), textarea:not([disabled])"
+    );
+    if (!focusable || focusable.length === 0) return;
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
+
   return (
     <div className="admin-confirm-dialog__overlay" onClick={onCancel}>
       <div
@@ -68,6 +92,8 @@ export default function AdminConfirmDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
+        ref={dialogRef}
+        onKeyDown={trapFocus}
         onClick={(event) => event.stopPropagation()}
       >
         <h2 id={titleId}>{title}</h2>
@@ -100,6 +126,7 @@ export default function AdminConfirmDialog({
           <button
             type="button"
             className="admin-btn admin-btn--secondary"
+            ref={cancelRef}
             onClick={onCancel}
             disabled={isBusy}
           >

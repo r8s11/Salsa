@@ -1,0 +1,48 @@
+.admin-analytics-page__metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+@media (min-width: 1024px) {
+  .admin-analytics-page__metrics-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.admin-analytics-page__metric-card {
+  cursor: pointer;
+}
+
+.admin-analytics-page__metric-card:hover .admin-metric-card {
+  border-color: var(--admin-brand);
+}
+
+.admin-analytics-page__charts {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.admin-analytics-page__recent {
+  padding: 20px;
+}
+
+.admin-analytics-page__recent h2 {
+  margin-top: 0;
+  font-size: 1.1rem;
+  color: var(--admin-text-strong);
+}
+
+.admin-analytics-page__empty {
+  padding: 16px;
+  color: var(--admin-text-muted);
+  font-size: 0.9rem;
+}
+
+.admin-analytics-page__loading {
+  padding: 16px;
+  color: var(--admin-text-muted);
+}

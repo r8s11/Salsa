@@ -46,9 +46,14 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
+-- Trigger functions are not safe to call via RPC — revoke from public/anon.
+revoke execute on function public.handle_new_user() from public, anon;
+
 create function public.set_updated_at()
 returns trigger
 language plpgsql
+security definer
+set search_path = public
 as $$
 begin
   new.updated_at = now();

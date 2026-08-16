@@ -1,0 +1,123 @@
+.admin-activity-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.admin-activity-page__chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  background: var(--admin-surface-secondary);
+  color: var(--admin-text-primary);
+  font-size: 0.8rem;
+}
+
+.admin-filter-chip-dismiss {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--admin-text-muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.admin-filter-chip-dismiss:hover {
+  color: var(--admin-text-strong);
+}
+
+.admin-activity-page__clear-all {
+  margin-left: auto;
+}
+
+.admin-activity-page__result-count {
+  margin: 0 0 12px;
+  font-size: 0.875rem;
+  color: var(--admin-text-muted);
+}
+
+.admin-activity-page__table-card {
+  overflow: hidden;
+}
+
+.admin-activity-page__status {
+  padding: 16px 20px;
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--admin-text-muted);
+}
+
+.admin-activity-page__skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.admin-activity-page__skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.admin-activity-page__skeleton-row:last-child {
+  border-bottom: 0;
+}
+
+.admin-skeleton {
+  display: block;
+  height: 16px;
+  border-radius: 4px;
+  background: var(--admin-surface-subtle);
+  animation: admin-skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.admin-activity-page__skeleton-line {
+  width: 60%;
+  flex: 1;
+}
+
+.admin-activity-page__skeleton-line--short {
+  width: 20%;
+}
+
+@keyframes admin-skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.admin-activity-page__empty {
+  padding: 64px 24px;
+  text-align: center;
+}
+
+.admin-activity-page__empty h2 {
+  margin: 0 0 8px;
+  font-size: 1.25rem;
+  color: var(--admin-text-muted);
+}
+
+.admin-activity-page__empty p {
+  margin: 0;
+  color: var(--admin-text-subtle);
+}

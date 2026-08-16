@@ -1,0 +1,187 @@
+.admin-activity-table__scroll {
+  display: block;
+  overflow-x: auto;
+}
+
+.admin-activity-table {
+  width: 100%;
+  min-width: 0;
+  border-collapse: collapse;
+}
+
+.admin-activity-table thead tr {
+  background: var(--admin-surface-subtle);
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.admin-activity-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--admin-text-muted);
+}
+
+.admin-activity-table tbody tr {
+  border-bottom: 1px solid var(--admin-border);
+  transition: background-color 0.15s ease;
+}
+
+.admin-activity-table tbody tr:last-child {
+  border-bottom: 0;
+}
+
+.admin-activity-table tbody tr:hover {
+  background: var(--admin-surface-subtle);
+}
+
+.admin-activity-table td {
+  padding: 12px 16px;
+  vertical-align: middle;
+  font-size: 0.9rem;
+  color: var(--admin-text-primary);
+}
+
+/* Action cell — the primary label */
+.admin-activity-table__action-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: var(--admin-text-strong);
+  font-weight: 500;
+}
+
+.admin-activity-table__action-link:hover {
+  text-decoration: underline;
+}
+
+.admin-activity-table__action-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+  background: var(--admin-surface-secondary);
+  color: var(--admin-text-muted);
+  flex-shrink: 0;
+}
+
+.admin-activity-table__action--sensitive {
+  font-weight: 600;
+}
+
+/* Sensitive rows get a left accent border */
+.admin-activity-table__row--sensitive {
+  border-left: 3px solid var(--admin-danger);
+}
+
+.admin-activity-table__row--sensitive td {
+  padding-left: 9px;
+}
+
+/* Target cell */
+.admin-activity-table__target {
+  color: var(--admin-text-strong);
+  font-weight: 500;
+}
+
+.admin-activity-table__entity-id {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.75rem;
+  color: var(--admin-text-subtle);
+  font-weight: 400;
+}
+
+/* Actor cell */
+.admin-activity-table__actor {
+  color: var(--admin-text-muted);
+  font-size: 0.875rem;
+}
+
+/* Empty state */
+.admin-activity-table__empty {
+  padding: 48px;
+  text-align: center;
+}
+
+.admin-activity-table__empty p {
+  color: var(--admin-text-muted);
+  margin: 8px 0 0;
+}
+
+/* ----------------------------------------
+   Category chips — reuse admin-chip with category color variants
+   ---------------------------------------- */
+.admin-activity-table__category {
+  display: inline-block;
+}
+
+/* ----------------------------------------
+   Mobile card stack (<768px)
+   ---------------------------------------- */
+.admin-activity-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-activity-cards__item {
+  padding: 16px;
+  border-left: none;
+  border-right: none;
+}
+
+.admin-activity-cards__item--sensitive {
+  border-left: 3px solid var(--admin-danger);
+}
+
+.admin-activity-cards__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.admin-activity-cards__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-top: 1px solid var(--admin-border);
+  font-size: 0.85rem;
+}
+
+.admin-activity-cards__label {
+  color: var(--admin-text-muted);
+}
+
+.admin-activity-cards__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.admin-activity-cards__actions .admin-btn {
+  min-height: 44px;
+  flex: 1 1 auto;
+}
+
+@media (min-width: 768px) {
+  .admin-activity-cards {
+    display: none;
+  }
+
+  .admin-activity-table__entity-id {
+    display: inline;
+  }
+}

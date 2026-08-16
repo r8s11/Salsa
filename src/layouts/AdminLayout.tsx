@@ -22,6 +22,9 @@ const SECTION_LABEL: Record<string, string> = {
   "/admin/organizer-requests": "Organizer Requests",
   "/admin/venues": "Venues",
   "/admin/tags": "Tags",
+  "/admin/activity": "Activity",
+  "/admin/analytics": "Analytics",
+  "/admin/settings": "Settings",
 };
 
 function sectionLabelFor(pathname: string): string {
@@ -30,6 +33,8 @@ function sectionLabelFor(pathname: string): string {
   if (pathname.startsWith("/admin/organizer-requests/")) return "Organizer Requests";
   if (pathname.startsWith("/admin/venues/")) return "Venues";
   if (pathname.startsWith("/admin/tags/")) return "Tags";
+  if (pathname.startsWith("/admin/activity/")) return "Activity";
+  if (pathname.startsWith("/admin/analytics")) return "Analytics";
   return SECTION_LABEL["/admin"];
 }
 

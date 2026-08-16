@@ -34,7 +34,11 @@ function Header() {
   };
 
   const citySwitcher = (mobile = false) => (
-    <div className={`city-switch${mobile ? " city-switch--mobile" : ""}`} role="group" aria-label="Choose city">
+    <div
+      className={`city-switch${mobile ? " city-switch--mobile" : ""}`}
+      role="group"
+      aria-label="Choose city"
+    >
       {(["boston", "new-york-city"] as const).map((value) => (
         <button
           key={value}
@@ -74,13 +78,30 @@ function Header() {
             {citySwitcher(true)}
             {user ? (
               <>
-                <NavLink to="/submit" className="auth-btn" onClick={closeNavigation}>Submit Event</NavLink>
-                <NavLink to="/profile" onClick={closeNavigation}>My Profile</NavLink>
-                {isAdmin && <NavLink to="/admin" onClick={closeNavigation}>Admin</NavLink>}
-                <button type="button" className="drawer-sign-out" onClick={handleSignOut}>Sign Out</button>
+                <NavLink to="/submit" className="auth-btn" onClick={closeNavigation}>
+                  Submit Event
+                </NavLink>
+                <NavLink to="/profile" onClick={closeNavigation}>
+                  My Profile
+                </NavLink>
+                {isAdmin && (
+                  <NavLink to="/admin" onClick={closeNavigation}>
+                    Admin
+                  </NavLink>
+                )}
+                <button type="button" className="drawer-sign-out" onClick={handleSignOut}>
+                  Sign Out
+                </button>
               </>
             ) : (
-              <NavLink to="/signin" className="auth-btn" onClick={closeNavigation}>Sign In</NavLink>
+              <>
+                <NavLink to="/submit" className="auth-btn" onClick={closeNavigation}>
+                  Submit Event
+                </NavLink>
+                <NavLink to="/signin" className="auth-btn" onClick={closeNavigation}>
+                  Sign In
+                </NavLink>
+              </>
             )}
           </li>
         </ul>
@@ -89,18 +110,35 @@ function Header() {
           {citySwitcher()}
           {user ? (
             <>
-              <NavLink to="/submit" className="auth-btn" onClick={closeNavigation}>Submit Event</NavLink>
+              <NavLink to="/submit" className="auth-btn" onClick={closeNavigation}>
+                Submit Event
+              </NavLink>
               <details ref={accountDisclosure} className="account-disclosure">
                 <summary>Account</summary>
                 <div className="account-disclosure__menu">
-                  <NavLink to="/profile" onClick={closeNavigation}>My Profile</NavLink>
-                  {isAdmin && <NavLink to="/admin" onClick={closeNavigation}>Admin</NavLink>}
-                  <button type="button" onClick={handleSignOut}>Sign Out</button>
+                  <NavLink to="/profile" onClick={closeNavigation}>
+                    My Profile
+                  </NavLink>
+                  {isAdmin && (
+                    <NavLink to="/admin" onClick={closeNavigation}>
+                      Admin
+                    </NavLink>
+                  )}
+                  <button type="button" onClick={handleSignOut}>
+                    Sign Out
+                  </button>
                 </div>
               </details>
             </>
           ) : (
-            <NavLink to="/signin" className="auth-btn" onClick={closeNavigation}>Sign In</NavLink>
+            <>
+              <NavLink to="/submit" className="auth-btn" onClick={closeNavigation}>
+                Submit Event
+              </NavLink>
+              <NavLink to="/signin" className="auth-btn" onClick={closeNavigation}>
+                Sign In
+              </NavLink>
+            </>
           )}
         </div>
 

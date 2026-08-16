@@ -150,3 +150,5 @@ ds-bundle/
 # Isolated worktrees for agent-driven implementation work
 .worktrees/
 .superpowers/
+
+Comprehensive*/

@@ -1,0 +1,123 @@
+.admin-analytics-filters {
+  margin-bottom: 24px;
+}
+
+.admin-analytics-filters__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.admin-analytics-filters__pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.admin-analytics-filters__pill {
+  padding: 6px 14px;
+  border: 1px solid var(--admin-border);
+  border-radius: 9999px;
+  background: var(--admin-surface-secondary);
+  color: var(--admin-text-primary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.admin-analytics-filters__pill--active {
+  background: var(--admin-brand);
+  color: #ffffff;
+  border-color: var(--admin-brand);
+}
+
+.admin-analytics-filters__pill:hover {
+  background: var(--admin-surface-elevated);
+}
+
+.admin-analytics-filters__pill--active:hover {
+  background: var(--admin-brand-hover);
+}
+
+.admin-analytics-filters__dates {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-analytics-filters__date-label {
+  display: none;
+}
+
+.admin-analytics-filters__date-input {
+  width: 130px;
+  padding: 6px 8px;
+  font-size: 0.875rem;
+}
+
+.admin-analytics-filters__granularity {
+  position: relative;
+  display: inline-block;
+}
+
+.admin-analytics-filters__granularity-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+}
+
+.admin-analytics-filters__granularity-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 20;
+  min-width: 140px;
+  padding: 4px;
+  background: var(--admin-surface-elevated);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  box-shadow: var(--admin-shadow-md);
+}
+
+.admin-analytics-filters__granularity-option {
+  display: block;
+  width: 100%;
+  padding: 6px 10px;
+  text-align: left;
+  border: none;
+  background: transparent;
+  border-radius: calc(var(--admin-radius) - 2px);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.admin-analytics-filters__granularity-option:hover {
+  background: var(--admin-surface-secondary);
+}
+
+.admin-analytics-filters__granularity-option--selected {
+  font-weight: 600;
+  color: var(--admin-brand);
+}
+
+.admin-analytics-filters__range-hint {
+  margin-top: 4px;
+  font-size: 0.8rem;
+  color: var(--admin-text-muted);
+}
+
+@media (pointer: coarse) {
+  .admin-analytics-filters__row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-analytics-filters__date-input {
+    width: 100%;
+  }
+}

@@ -27,8 +27,10 @@ export default function YourInfoFieldset({ form, update, email }: Props) {
           <input
             id="submitter_email"
             type="email"
-            value={email}
-            readOnly
+            value={email || form.submitter_email}
+            readOnly={email !== ""}
+            required={email === ""}
+            onChange={(event) => update("submitter_email", event.target.value)}
           />
         </div>
       </div>

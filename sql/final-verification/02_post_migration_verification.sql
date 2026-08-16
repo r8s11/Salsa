@@ -49,8 +49,8 @@ ORDER BY tablename, indexname;
 \echo ''
 \echo '--- 4. Analytics RPC grants (should NOT include public or anon) ---'
 SELECT p.proname AS function_name,
-       r.grantee_rolename AS grantee,
-       r.privilege_type
+       grantee_role.rolname AS grantee,
+       'EXECUTE' AS privilege_type
 FROM pg_proc p
 JOIN pg_namespace n ON n.oid = p.pronamespace
 JOIN LATERAL aclexplode(p.proacl) AS r(grantor_oid, grantee_oid, privileges, privileges_granted_by)
@@ -58,22 +58,18 @@ JOIN LATERAL aclexplode(p.proacl) AS r(grantor_oid, grantee_oid, privileges, pri
 JOIN pg_roles grantee_role ON grantee_role.oid = r.grantee_oid
 WHERE n.nspname = 'public'
   AND p.proname IN ('admin_analytics_metrics', 'admin_analytics_timeseries')
-ORDER BY p.proname, r.grantee_oid;
+ORDER BY p.proname, grantee_role.rolname;
 
 \echo ''
 \echo '--- 5. All RPCs are SECURITY DEFINER with set search_path = public ---'
 SELECT p.proname,
-       p.secdef AS security_definer,
-       (SELECT cfg FROM pg_db_role_setting WHERE setdatabase = 0 AND setrole = 0 LIMIT 1) AS db_default,
-       array_agg(pc.option_name || '=' || pc.option_value) AS function_config
+       p.prosecdef AS security_definer,
+       pg_get_functiondef(p.oid) AS function_def
 FROM pg_proc p
 JOIN pg_namespace n ON n.oid = p.pronamespace
-LEFT JOIN LATERAL (
-  SELECT unnest(config) AS cfg
-) AS c ON true
 WHERE n.nspname = 'public'
   AND p.proname IN ('admin_audit_log', 'admin_analytics_metrics', 'admin_analytics_timeseries')
-GROUP BY p.proname, p.secdef;
+ORDER BY p.proname;
 
 \echo ''
 \echo '--- 6. Smoke-test analytics metrics RPC ---'

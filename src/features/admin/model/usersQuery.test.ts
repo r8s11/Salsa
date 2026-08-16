@@ -277,27 +277,27 @@ describe("rowActionItems", () => {
 
   it("guest rows get only View Submissions", () => {
     const guest = makeRow({ kind: "guest", user_id: null, id: "guest:x@y.test" });
-    const items = rowActionItems(guest, currentUserId, 2, vi.fn());
+    const items = rowActionItems(guest, currentUserId, 2, false, vi.fn());
     expect(items.map((item) => item.id)).toEqual(["view-contributions"]);
     expect(items[0].label).toBe("View Submissions");
   });
 
   it("self row gets only View Contributions, regardless of status", () => {
     const self = makeRow({ user_id: currentUserId, status: "active" });
-    const items = rowActionItems(self, currentUserId, 2, vi.fn());
+    const items = rowActionItems(self, currentUserId, 2, false, vi.fn());
     expect(items.map((item) => item.id)).toEqual(["view-contributions"]);
     expect(items[0].label).toBe("View Contributions");
   });
 
   it("the last remaining admin gets only View Contributions", () => {
     const soleAdmin = makeRow({ user_id: "other-1", role: "admin", status: "active" });
-    const items = rowActionItems(soleAdmin, currentUserId, 1, vi.fn());
+    const items = rowActionItems(soleAdmin, currentUserId, 1, false, vi.fn());
     expect(items.map((item) => item.id)).toEqual(["view-contributions"]);
   });
 
-  it("active status offers Change Role, Flag, Suspend, Ban", () => {
+  it("active status offers Change Role, Flag, Suspend, Ban (admin)", () => {
     const active = makeRow({ user_id: "other-1", role: "user", status: "active" });
-    const items = rowActionItems(active, currentUserId, 2, vi.fn());
+    const items = rowActionItems(active, currentUserId, 2, true, vi.fn());
     expect(items.map((item) => item.id)).toEqual([
       "view-contributions",
       "change-role",
@@ -307,9 +307,20 @@ describe("rowActionItems", () => {
     ]);
   });
 
-  it("flagged status offers Remove Flag instead of Flag", () => {
+  it("active status offers Flag, Suspend, Ban but no Change Role (moderator)", () => {
+    const active = makeRow({ user_id: "other-1", role: "user", status: "active" });
+    const items = rowActionItems(active, currentUserId, 2, false, vi.fn());
+    expect(items.map((item) => item.id)).toEqual([
+      "view-contributions",
+      "flag",
+      "suspend",
+      "ban",
+    ]);
+  });
+
+  it("flagged status offers Remove Flag instead of Flag (admin)", () => {
     const flagged = makeRow({ user_id: "other-1", status: "flagged" });
-    const items = rowActionItems(flagged, currentUserId, 2, vi.fn());
+    const items = rowActionItems(flagged, currentUserId, 2, true, vi.fn());
     expect(items.map((item) => item.id)).toEqual([
       "view-contributions",
       "change-role",
@@ -319,22 +330,33 @@ describe("rowActionItems", () => {
     ]);
   });
 
+  it("flagged status offers Remove Flag, no Change Role (moderator)", () => {
+    const flagged = makeRow({ user_id: "other-1", status: "flagged" });
+    const items = rowActionItems(flagged, currentUserId, 2, false, vi.fn());
+    expect(items.map((item) => item.id)).toEqual([
+      "view-contributions",
+      "unflag",
+      "suspend",
+      "ban",
+    ]);
+  });
+
   it("suspended status offers Restore and Ban only, no Change Role", () => {
     const suspended = makeRow({ user_id: "other-1", status: "suspended" });
-    const items = rowActionItems(suspended, currentUserId, 2, vi.fn());
+    const items = rowActionItems(suspended, currentUserId, 2, true, vi.fn());
     expect(items.map((item) => item.id)).toEqual(["view-contributions", "restore", "ban"]);
   });
 
   it("banned status offers Restore only", () => {
     const banned = makeRow({ user_id: "other-1", status: "banned" });
-    const items = rowActionItems(banned, currentUserId, 2, vi.fn());
+    const items = rowActionItems(banned, currentUserId, 2, true, vi.fn());
     expect(items.map((item) => item.id)).toEqual(["view-contributions", "restore"]);
   });
 
   it("onAction receives the action id and the row when an item is selected", () => {
     const onAction = vi.fn();
     const active = makeRow({ user_id: "other-1", status: "active" });
-    const items = rowActionItems(active, currentUserId, 2, onAction);
+    const items = rowActionItems(active, currentUserId, 2, true, onAction);
     items.find((item) => item.id === "flag")!.onSelect();
     expect(onAction).toHaveBeenCalledWith("flag", active);
   });

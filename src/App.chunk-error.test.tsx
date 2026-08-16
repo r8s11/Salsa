@@ -8,6 +8,10 @@ vi.mock("./components/Auth/RequireAdmin", () => ({
   default: ({ children }: { children: ReactNode }) => children,
 }));
 
+vi.mock("./components/Auth/RequireReviewer", () => ({
+  default: ({ children }: { children: ReactNode }) => children,
+}));
+
 vi.mock("./layouts/AdminLayout", () => {
   throw new TypeError("Failed to fetch dynamically imported module");
 });

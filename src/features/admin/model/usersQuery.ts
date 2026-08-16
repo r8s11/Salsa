@@ -190,6 +190,7 @@ export function rowActionItems(
   user: AdminUserRow,
   currentUserId: string | null,
   adminCount: number,
+  isAdmin: boolean,
   onAction: (action: UserRowAction, user: AdminUserRow) => void
 ): ActionMenuItem[] {
   const viewContributions: ActionMenuItem = {
@@ -253,9 +254,9 @@ export function rowActionItems(
 
   switch (user.status) {
     case "active":
-      return [viewContributions, changeRole, flag, suspend, ban];
+      return [viewContributions, ...(isAdmin ? [changeRole] : []), flag, suspend, ban];
     case "flagged":
-      return [viewContributions, changeRole, unflag, suspend, ban];
+      return [viewContributions, ...(isAdmin ? [changeRole] : []), unflag, suspend, ban];
     case "suspended":
       return [viewContributions, restore, ban];
     case "banned":

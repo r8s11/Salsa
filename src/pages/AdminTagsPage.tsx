@@ -1,32 +1,35 @@
-import { useEffect, useRef, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
-import AdminTaxonomyTable from "../components/Admin/AdminTaxonomyTable";
+import { useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
+import AdminPageHeader from "../components/Admin/AdminPageHeader";
+import AdminViewTabs from "../components/Admin/AdminViewTabs";
 import AdminTaxonomyToolbar from "../components/Admin/AdminTaxonomyToolbar";
+import AdminTaxonomyTable from "../components/Admin/AdminTaxonomyTable";
 import { useAdminTaxonomy } from "../features/admin/hooks/useAdminTaxonomy";
-import { type TaxonomyFilters, type TaxonomyView } from "../features/admin/model/taxonomy";
+import {
+  DEFAULT_TAXONOMY_FILTERS,
+  applyTaxonomyView,
+  applyTaxonomyFilters,
+  taxonomyViewCounts,
+  TAXONOMY_VIEWS,
+  type TaxonomyFilters,
+} from "../features/admin/model/taxonomy";
+import "./AdminTagsPage.css";
 
-function filtersFromParams(params: URLSearchParams): TaxonomyFilters {
-  const category = params.get("category");
-  const status = params.get("status");
-  const view = params.get("view");
+function parseFilters(searchParams: URLSearchParams): TaxonomyFilters {
+  const category = searchParams.get("category");
+  const status = searchParams.get("status");
+  const rawView = searchParams.get("view");
   return {
-    search: params.get("q") ?? "",
-    category: category === "dance_style" || category === "event_attribute" ? category : null,
+    search: searchParams.get("q") ?? "",
+    category:
+      category === "dance_style" || category === "event_attribute"
+        ? category
+        : null,
     status:
-      status === "active" || status === "needs_review" || status === "archived" ? status : null,
-    view: (
-      [
-        "all",
-        "active",
-        "dance_styles",
-        "attributes",
-        "unused",
-        "needs_review",
-        "archived",
-      ] as TaxonomyView[]
-    ).includes(view as TaxonomyView)
-      ? (view as TaxonomyView)
-      : "all",
+      status === "active" || status === "needs_review" || status === "archived"
+        ? status
+        : null,
+    view: (rawView ?? "all") as TaxonomyFilters["view"],
   };
 }
 
@@ -35,74 +38,147 @@ function paramsFromFilters(filters: TaxonomyFilters): URLSearchParams {
   if (filters.search) output.set("q", filters.search);
   if (filters.category) output.set("category", filters.category);
   if (filters.status) output.set("status", filters.status);
-  if (filters.view !== "all") output.set("view", filters.view);
+  if (filters.view) output.set("view", filters.view);
   return output;
 }
 
 export default function AdminTagsPage() {
   const [params, setParams] = useSearchParams();
-  const filters = filtersFromParams(params);
-  const paramsKey = params.toString();
-  const [search, setSearch] = useState(filters.search);
-  const [searchParam, setSearchParam] = useState(filters.search);
-  const searchTimer = useRef<number | undefined>(undefined);
-  const latestParamsKey = useRef(paramsKey);
-  const { terms, isLoading, error, archive, restore, remove } = useAdminTaxonomy(filters);
-  if (filters.search !== searchParam) {
-    setSearchParam(filters.search);
-    setSearch(filters.search);
-  }
-  useEffect(
-    () => () => {
-      window.clearTimeout(searchTimer.current);
-    },
-    []
+  const urlFilters = parseFilters(params);
+  const { terms, isLoading, error, archive, restore, remove } =
+    useAdminTaxonomy(urlFilters);
+
+  const viewableTerms = useMemo(
+    () => applyTaxonomyView(terms ?? [], urlFilters.view),
+    [terms, urlFilters.view]
   );
-  useEffect(() => {
-    latestParamsKey.current = paramsKey;
-  }, [paramsKey]);
-  const setFilters = (next: TaxonomyFilters) => {
-    if (next.search !== search) {
-      setSearch(next.search);
-      window.clearTimeout(searchTimer.current);
-      const scheduledParamsKey = paramsKey;
-      searchTimer.current = window.setTimeout(() => {
-        if (latestParamsKey.current !== scheduledParamsKey) return;
-        setParams(paramsFromFilters(next), { replace: true });
-        searchTimer.current = undefined;
-      }, 250);
-      return;
-    }
-    window.clearTimeout(searchTimer.current);
-    searchTimer.current = undefined;
-    setParams(paramsFromFilters(next));
+
+  const filteredTerms = useMemo(
+    () => applyTaxonomyFilters(viewableTerms, urlFilters),
+    [viewableTerms, urlFilters]
+  );
+
+  const counts = useMemo(() => taxonomyViewCounts(terms ?? []), [terms]);
+
+  const updateFilters = (next: TaxonomyFilters) => {
+    setParams(paramsFromFilters(next), { replace: true });
   };
+
+  const clearAllFilters = () => {
+    setParams(paramsFromFilters(DEFAULT_TAXONOMY_FILTERS), { replace: true });
+  };
+
+  const hasActiveFilters =
+    urlFilters.search.length > 0 ||
+    urlFilters.category !== null ||
+    urlFilters.status !== null;
+
+  const emptyMessage =
+    hasActiveFilters && filteredTerms.length === 0
+      ? "No taxonomy terms match these filters."
+      : terms?.length === 0
+        ? "No taxonomy terms yet."
+        : null;
+
   return (
-    <section className="admin-page">
-      <header className="admin-page__header">
-        <div>
-          <h1>Tags &amp; Taxonomy</h1>
-          <p>Manage how SalsaSegura classifies events.</p>
+    <>
+      <AdminPageHeader
+        title="Tags &amp; Taxonomy"
+        description="Manage how SalsaSegura classifies events."
+        actions={
+          <a href="/admin/tags/new" className="admin-btn admin-btn--primary">
+            Add term
+          </a>
+        }
+      />
+
+      {!isLoading && error && (
+        <div className="admin-banner admin-banner--error" role="alert">
+          <p>We couldn&apos;t load taxonomy terms.</p>
+          <button
+            type="button"
+            className="admin-btn admin-btn--secondary"
+            onClick={() => window.location.reload()}
+          >
+            Try Again
+          </button>
         </div>
-        <Link className="admin-btn" to="/admin/tags/new">
-          Add term
-        </Link>
-      </header>
-      <AdminTaxonomyToolbar filters={{ ...filters, search }} onFiltersChange={setFilters} />
-      {isLoading ? (
-        <p>Loading taxonomy terms…</p>
-      ) : error ? (
-        <p role="alert">{error}</p>
-      ) : terms.length === 0 ? (
-        <p>No taxonomy terms match these filters.</p>
-      ) : (
-        <AdminTaxonomyTable
-          terms={terms}
-          onArchive={(id) => archive.mutate(id)}
-          onRestore={(id) => restore.mutate(id)}
-          onDelete={(id) => remove.mutate(id)}
-        />
       )}
-    </section>
+
+      {!error && (
+        <>
+          <AdminViewTabs
+            views={TAXONOMY_VIEWS}
+            active={urlFilters.view}
+            counts={counts}
+            panelId="admin-taxonomy-tabpanel"
+            ariaLabel="Taxonomy views"
+            selectId="admin-taxonomy-view-select"
+            selectLabel="Taxonomy view"
+            onChange={(view) => updateFilters({ ...urlFilters, view })}
+          />
+
+          <div className="admin-card admin-tags-page__toolbar-card">
+            <AdminTaxonomyToolbar
+              filters={urlFilters}
+              onFiltersChange={updateFilters}
+            />
+            {hasActiveFilters && (
+              <button
+                type="button"
+                className="admin-btn admin-btn--ghost admin-tags-page__clear-all"
+                onClick={clearAllFilters}
+              >
+                Clear all filters
+              </button>
+            )}
+          </div>
+
+          <p className="admin-tags-page__result-count" role="status">
+            {filteredTerms.length} term{filteredTerms.length === 1 ? "" : "s"}
+          </p>
+
+          <div
+            className="admin-card admin-tags-page__table-card"
+            id="admin-taxonomy-tabpanel"
+            role="region"
+            aria-label="Taxonomy terms"
+          >
+            {isLoading ? (
+              <div className="admin-tags-page__skeleton" aria-busy="true">
+                <p role="status" className="admin-tags-page__status">
+                  Loading taxonomy terms…
+                </p>
+              </div>
+            ) : emptyMessage ? (
+              <div className="admin-tags-page__empty">
+                <h2>{emptyMessage}</h2>
+                {!hasActiveFilters && (
+                  <a href="/admin/tags/new" className="admin-btn admin-btn--primary">
+                    Add first term
+                  </a>
+                )}
+                {hasActiveFilters && (
+                  <button
+                    type="button"
+                    className="admin-btn admin-btn--ghost"
+                    onClick={clearAllFilters}
+                  >
+                    Clear Filters
+                  </button>
+                )}
+              </div>
+            ) : (
+              <AdminTaxonomyTable
+                terms={filteredTerms}
+                onArchive={(id) => archive.mutate(id)}
+                onRestore={(id) => restore.mutate(id)}
+                onDelete={(id) => remove.mutate(id)}
+              />
+            )}
+          </div>
+        </>
+      )}
+    </>
   );
 }

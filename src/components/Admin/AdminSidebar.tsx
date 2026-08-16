@@ -30,17 +30,19 @@ type NavItem = {
   label: string;
   icon: ComponentType<{ size?: number }>;
   group: string;
+  roles: ("admin" | "moderator")[];
   badge?: number | null;
 } & ({ to: string; built: true } | { to?: undefined; built: false });
 
 const NAV_ITEMS: NavItem[] = [
-  { group: "Overview", label: "Dashboard", icon: LayoutDashboard, to: "/admin", built: true },
-  { group: "Management", label: "Events", icon: CalendarDays, to: "/admin/events", built: true },
-  { group: "Management", label: "Users", icon: Users, to: "/admin/users", built: true },
+  { group: "Overview", label: "Dashboard", icon: LayoutDashboard, roles: ["admin", "moderator"], to: "/admin", built: true },
+  { group: "Management", label: "Events", icon: CalendarDays, roles: ["admin", "moderator"], to: "/admin/events", built: true },
+  { group: "Management", label: "Users", icon: Users, roles: ["admin"], to: "/admin/users", built: true },
   {
     group: "Review",
     label: "Event Submissions",
     icon: ClipboardCheck,
+    roles: ["admin", "moderator"],
     to: "/admin/submissions",
     built: true,
   },
@@ -48,14 +50,15 @@ const NAV_ITEMS: NavItem[] = [
     group: "Review",
     label: "Organizer Requests",
     icon: UserPlus,
+    roles: ["admin"],
     to: "/admin/organizer-requests",
     built: true,
   },
-  { group: "Platform", label: "Venues", icon: MapPin, to: "/admin/venues", built: true },
-  { group: "Platform", label: "Tags", icon: Tag, to: "/admin/tags", built: true },
-  { group: "Management", label: "Activity", icon: Activity, to: "/admin/activity", built: true },
-  { group: "Insights", label: "Analytics", icon: BarChart3, to: "/admin/analytics", built: true },
-  { group: "System", label: "Settings", icon: Settings, to: "/admin/settings", built: true },
+  { group: "Platform", label: "Venues", icon: MapPin, roles: ["admin"], to: "/admin/venues", built: true },
+  { group: "Platform", label: "Tags", icon: Tag, roles: ["admin", "moderator"], to: "/admin/tags", built: true },
+  { group: "Management", label: "Activity", icon: Activity, roles: ["admin"], to: "/admin/activity", built: true },
+  { group: "Insights", label: "Analytics", icon: BarChart3, roles: ["admin"], to: "/admin/analytics", built: true },
+  { group: "System", label: "Settings", icon: Settings, roles: ["admin"], to: "/admin/settings", built: true },
 ];
 function itemsWithGroupFlags(items: NavItem[]) {
   return items.reduce<{ item: NavItem; showGroup: boolean }[]>((acc, item) => {
@@ -71,11 +74,13 @@ export default function AdminSidebar({
   collapsed = false,
   onToggleCollapse,
 }: AdminSidebarProps) {
-  const { user, signOut, isAdmin } = useAuth();
+  const { user, signOut, isAdmin, isModerator } = useAuth();
   const { theme, setTheme } = useTheme();
   const { pendingCount } = useOrganizerRequests();
   const navItems = itemsWithGroupFlags(
-    NAV_ITEMS.filter((item) => item.label !== "Settings" || isAdmin)
+    NAV_ITEMS.filter((item) =>
+      isAdmin ? item.roles.includes("admin") : isModerator ? item.roles.includes("moderator") : false
+    )
   );
 
   const handleSignOut = async () => {

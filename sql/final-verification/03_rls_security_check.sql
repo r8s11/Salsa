@@ -18,7 +18,7 @@
 \echo '--- 1. SECURITY DEFINER status + config for admin functions ---'
 SELECT
   p.proname AS function_name,
-  p.secdef AS is_security_definer,
+  p.prosecdef AS is_security_definer,
   CASE WHEN p.proconfig IS NOT NULL THEN 'Yes' ELSE 'No' END AS has_config,
   p.proconfig AS config_raw
 FROM pg_proc p
@@ -43,7 +43,7 @@ ORDER BY p.proname;
 
 \echo ''
 \echo '--- 2. All non-admin trigger functions are not exposed to public/anon ---'
-SELECT p.proname AS function_name, r.grantee_rolename AS grantee
+SELECT p.proname AS function_name, grantee_role.rolname AS grantee
 FROM pg_proc p
 JOIN pg_namespace n ON n.oid = p.pronamespace
 JOIN LATERAL aclexplode(p.proacl) AS r(grantor_oid, grantee_oid, privileges, privileges_granted_by)
@@ -68,10 +68,12 @@ WHERE n.nspname = 'public'
   AND c.relname = 'audit_logs';
 
 -- Check audit_logs policies
-SELECT polname, polpermissive, polroles
-FROM pg_policy
-WHERE schemaname = 'public' AND tablename = 'audit_logs'
-ORDER BY polname;
+SELECT p.polname, p.polpermissive, n.nspname AS schema_name, c.relname AS table_name
+FROM pg_policy p
+JOIN pg_class c ON c.oid = p.polrelid
+JOIN pg_namespace n ON n.oid = c.relnamespace
+WHERE n.nspname = 'public' AND c.relname = 'audit_logs'
+ORDER BY p.polname;
 
 \echo ''
 \echo '--- 4. Verify no function grants to public/anon for admin functions ---'

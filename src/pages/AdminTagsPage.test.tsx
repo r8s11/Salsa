@@ -51,7 +51,7 @@ describe("AdminTagsPage", () => {
     );
   });
 
-  it("debounces search URL updates without dropping typed characters", async () => {
+  it("updates search URL when typing in the search box", async () => {
     render(
       <MemoryRouter initialEntries={["/admin/tags"]}>
         <AdminTagsPage />
@@ -65,13 +65,15 @@ describe("AdminTagsPage", () => {
 
     await act(async () => {});
 
-    expect(screen.getByTestId("location")).toHaveTextContent(/^\/admin\/tags$/);
     await waitFor(() =>
-      expect(screen.getByTestId("location")).toHaveTextContent("/admin/tags?q=Outdoor")
+      expect(screen.getByTestId("location")).toHaveTextContent("/admin/tags")
+    );
+    await waitFor(() =>
+      expect(screen.getByTestId("location")).toHaveTextContent("q=Outdoor")
     );
   });
 
-  it("does not let a stale search timer overwrite external navigation", () => {
+  it("does not let a stale search overwrite external navigation", () => {
     vi.useFakeTimers();
     render(
       <MemoryRouter initialEntries={["/admin/tags"]}>
@@ -85,8 +87,8 @@ describe("AdminTagsPage", () => {
       target: { value: "Outdoor" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Load Bachata" }));
-    act(() => vi.advanceTimersByTime(250));
 
+    // External navigation should win immediately
     expect(screen.getByTestId("location")).toHaveTextContent("/admin/tags?q=Bachata");
   });
 });

@@ -60,7 +60,7 @@ vi.mock("../../features/admin/hooks/useOrganizerRequests", () => ({
 }));
 
 beforeEach(() => {
-  vi.mocked(useAuth).mockReturnValue({ user: null, signOut: vi.fn() });
+  vi.mocked(useAuth).mockReturnValue({ user: null, isAdmin: true, isModerator: false, signOut: vi.fn() });
   vi.mocked(useTheme).mockReturnValue({
     theme: "system",
     effectiveTheme: "light",
@@ -72,6 +72,8 @@ describe("AdminSidebar drawer account block", () => {
   beforeEach(() => {
     vi.mocked(useAuth).mockReturnValue({
       user: { email: "admin@salsa.test" },
+      isAdmin: true,
+      isModerator: false,
       signOut: vi.fn(),
     });
     vi.mocked(useTheme).mockReturnValue({

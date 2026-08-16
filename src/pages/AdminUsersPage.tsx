@@ -106,7 +106,7 @@ function formatShortDate(yyyyMmDd: string): string {
 }
 
 export default function AdminUsersPage() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
   const {
     users: queriedUsers,
@@ -482,6 +482,7 @@ export default function AdminUsersPage() {
                   users={pagedUsers}
                   currentUserId={user?.id ?? null}
                   adminCount={adminCount}
+                  isAdmin={isAdmin}
                   sort={sort}
                   onSortChange={handleTableSortChange}
                   onAction={handleRowAction}

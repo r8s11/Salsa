@@ -39,6 +39,7 @@ const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const UserEventEditPage = lazy(() => import("./pages/UserEventEditPage"));
 import RequireAuth from "./components/Auth/RequireAuth";
 import RequireAdmin from "./components/Auth/RequireAdmin";
+import RequireReviewer from "./components/Auth/RequireReviewer";
 
 function App() {
   return (
@@ -51,28 +52,68 @@ function App() {
             <Route
               path="/admin"
               element={
-                <RequireAdmin>
+                <RequireReviewer>
                   <AdminLayout />
-                </RequireAdmin>
+                </RequireReviewer>
               }
             >
               <Route index element={<AdminOverviewPage />} />
               <Route path="events" element={<AdminEventsPage />} />
               <Route path="submissions" element={<AdminSubmissionsPage />} />
               <Route path="submissions/:id" element={<AdminSubmissionDetailPage />} />
-              <Route path="users" element={<AdminUsersPage />} />
-              <Route path="users/:id" element={<AdminUserDetailPage />} />
-              <Route path="organizer-requests" element={<AdminOrganizerRequestsPage />} />
-              <Route path="organizer-requests/:id" element={<AdminOrganizerRequestDetailPage />} />
-              <Route path="venues" element={<AdminVenuesPage />} />
-              <Route path="venues/:id" element={<AdminVenueDetailPage />} />
               <Route path="tags" element={<AdminTagsPage />} />
               <Route path="tags/new" element={<AdminTaxonomyNewPage />} />
               <Route path="tags/:id" element={<AdminTaxonomyDetailPage />} />
-              <Route path="settings" element={<AdminSettingsPage />} />
-              <Route path="activity" element={<AdminActivityPage />} />
-              <Route path="activity/:id" element={<AdminActivityDetailPage />} />
-              <Route path="analytics" element={<AdminAnalyticsPage />} />
+              <Route path="users" element={
+                <RequireAdmin>
+                  <AdminUsersPage />
+                </RequireAdmin>
+              } />
+              <Route path="users/:id" element={
+                <RequireAdmin>
+                  <AdminUserDetailPage />
+                </RequireAdmin>
+              } />
+              <Route path="organizer-requests" element={
+                <RequireAdmin>
+                  <AdminOrganizerRequestsPage />
+                </RequireAdmin>
+              } />
+              <Route path="organizer-requests/:id" element={
+                <RequireAdmin>
+                  <AdminOrganizerRequestDetailPage />
+                </RequireAdmin>
+              } />
+              <Route path="venues" element={
+                <RequireAdmin>
+                  <AdminVenuesPage />
+                </RequireAdmin>
+              } />
+              <Route path="venues/:id" element={
+                <RequireAdmin>
+                  <AdminVenueDetailPage />
+                </RequireAdmin>
+              } />
+              <Route path="settings" element={
+                <RequireAdmin>
+                  <AdminSettingsPage />
+                </RequireAdmin>
+              } />
+              <Route path="activity" element={
+                <RequireAdmin>
+                  <AdminActivityPage />
+                </RequireAdmin>
+              } />
+              <Route path="activity/:id" element={
+                <RequireAdmin>
+                  <AdminActivityDetailPage />
+                </RequireAdmin>
+              } />
+              <Route path="analytics" element={
+                <RequireAdmin>
+                  <AdminAnalyticsPage />
+                </RequireAdmin>
+              } />
             </Route>
             <Route path="/" element={<MainLayout />}>
               <Route index element={<HomePage />} />

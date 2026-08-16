@@ -24,7 +24,7 @@ SELECT routine_name,
          SELECT 1 FROM information_schema.parameters p
          WHERE p.specific_schema = 'public'
            AND p.specific_name = r.specific_name
-           AND p.parameter_position = 1
+           AND p.ordinal_position = 1
        ) AS has_params
 FROM information_schema.routines r
 WHERE r.routine_schema = 'public'
@@ -94,36 +94,34 @@ SELECT coalesce(auth.jwt() -> 'app_metadata' ->> 'role', 'none') AS current_role
 \echo ''
 \echo '--- 9. Admin functions granted to authenticated only ---'
 SELECT p.proname AS function_name,
-       r.grantee,
-       r.privilege_type
+       grantee_role.rolname AS grantee,
+       'EXECUTE' AS privilege_type
 FROM pg_proc p
 JOIN pg_namespace n ON n.oid = p.pronamespace
-LEFT JOIN aclexplode(p.proacl) AS r(grantor, grantee, privileges, privileges_granted_by)
+LEFT JOIN aclexplode(p.proacl) AS r(grantor_oid, grantee_oid, privileges, privileges_granted_by)
   ON true
+LEFT JOIN pg_roles grantee_role ON grantee_role.oid = r.grantee_oid
 WHERE n.nspname = 'public'
   AND p.proname IN ('admin_audit_log', 'admin_analytics_metrics', 'admin_analytics_timeseries',
                      'admin_user_directory', 'admin_set_user_role', 'admin_set_user_status')
-  AND r.grantee IN (
-    (SELECT oid FROM pg_roles WHERE rolname = 'public'),
-    (SELECT oid FROM pg_roles WHERE rolname = 'anon'),
-    (SELECT oid FROM pg_roles WHERE rolname = 'authenticated')
-  )
-ORDER BY p.proname, r.grantee;
+  AND grantee_role.rolname IN ('public', 'anon', 'authenticated')
+ORDER BY p.proname, grantee_role.rolname;
 
 \echo ''
 \echo '--- 10. Trigger functions not exposed to public/anon ---'
-SELECT proname, r.grantee, r.privilege_type
+SELECT p.proname AS function_name, grantee_role.rolname AS grantee
 FROM pg_proc p
 JOIN pg_namespace n ON n.oid = p.pronamespace
-LEFT JOIN aclexplode(p.proacl) AS r(grantor, grantee, privileges, privileges_granted_by)
+LEFT JOIN aclexplode(p.proacl) AS r(grantor_oid, grantee_oid, privileges, privileges_granted_by)
   ON true
+LEFT JOIN pg_roles grantee_role ON grantee_role.oid = r.grantee_oid
 WHERE n.nspname = 'public'
   AND p.proname IN ('log_event_change', 'log_submission_change', 'log_user_change', 'set_updated_at')
-  AND r.grantee IN (
+  AND r.grantee_oid IN (
     (SELECT oid FROM pg_roles WHERE rolname = 'public'),
     (SELECT oid FROM pg_roles WHERE rolname = 'anon')
   )
-ORDER BY proname;
+ORDER BY p.proname;
 
 -- Expected: no rows returned for trigger functions granted to public/anon
 

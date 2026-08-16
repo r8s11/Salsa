@@ -1,0 +1,56 @@
+.admin-tags-page__toolbar-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+}
+
+.admin-tags-page__clear-all {
+  margin-left: auto;
+}
+
+.admin-tags-page__result-count {
+  margin: 0 16px 8px;
+  font-size: 0.875rem;
+  color: var(--admin-text-muted);
+}
+
+.admin-tags-page__table-card {
+  margin: 0 16px 16px;
+}
+
+.admin-tags-page__skeleton {
+  padding: 16px;
+}
+
+.admin-tags-page__status {
+  font-size: 0.875rem;
+  color: var(--admin-text-muted);
+}
+
+.admin-tags-page__empty {
+  padding: 32px 16px;
+  text-align: center;
+}
+
+.admin-tags-page__empty h2 {
+  margin: 0 0 8px;
+  font-size: 1.25rem;
+}
+
+.admin-tags-page__empty p {
+  margin: 0 0 16px;
+  color: var(--admin-text-muted);
+}
+
+@media (max-width: 768px) {
+  .admin-tags-page__toolbar-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-tags-page__clear-all {
+    width: 100%;
+  }
+}

@@ -33,7 +33,7 @@ function formatDate(iso: string): string {
 
 export default function AdminUserDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { user: authUser } = useAuth();
+  const { user: authUser, isAdmin } = useAuth();
   const navigate = useNavigate();
   const {
     users: queriedUsers,
@@ -339,7 +339,7 @@ export default function AdminUserDetailPage() {
             </div>
           ) : (
             <div className="admin-user-detail-page__action-buttons">
-              {rowActionItems(user, authUser?.id ?? null, adminCount, handleAction).map((item) => (
+              {rowActionItems(user, authUser?.id ?? null, adminCount, isAdmin, handleAction).map((item) => (
                 <button
                   key={item.id}
                   type="button"

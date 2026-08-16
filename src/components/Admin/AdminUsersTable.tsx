@@ -35,6 +35,7 @@ interface AdminUsersTableProps {
   users: AdminUserRow[];
   currentUserId: string | null;
   adminCount: number;
+  isAdmin: boolean;
   sort: { key: UserSortKey; dir: SortDir };
   onSortChange: (key: UserSortKey) => void;
   onAction: (action: UserRowAction, user: AdminUserRow) => void;
@@ -104,6 +105,7 @@ export default function AdminUsersTable({
   users,
   currentUserId,
   adminCount,
+  isAdmin,
   sort,
   onSortChange,
   onAction,
@@ -170,7 +172,7 @@ export default function AdminUsersTable({
                     <td>
                       <AdminActionMenu
                         label={`Actions for ${displayNameFor(row)}`}
-                        items={rowActionItems(row, currentUserId, adminCount, onAction)}
+                        items={rowActionItems(row, currentUserId, adminCount, isAdmin, onAction)}
                         disabled={isBusy}
                       />
                     </td>
@@ -241,7 +243,7 @@ export default function AdminUsersTable({
               <div className="admin-users-cards__actions">
                 <AdminActionMenu
                   label={`Actions for ${displayNameFor(row)}`}
-                  items={rowActionItems(row, currentUserId, adminCount, onAction)}
+                  items={rowActionItems(row, currentUserId, adminCount, isAdmin, onAction)}
                   disabled={isBusy}
                 />
               </div>

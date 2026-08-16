@@ -60,6 +60,76 @@ export const DEFAULT_TAXONOMY_FILTERS: TaxonomyFilters = {
   view: "all",
 };
 
+export const TAXONOMY_VIEWS: { view: TaxonomyView; label: string }[] = [
+  { view: "all", label: "All" },
+  { view: "active", label: "Active" },
+  { view: "dance_styles", label: "Dance Styles" },
+  { view: "attributes", label: "Attributes" },
+  { view: "unused", label: "Unused" },
+  { view: "needs_review", label: "Needs Review" },
+  { view: "archived", label: "Archived" },
+];
+
+export function applyTaxonomyView(terms: TaxonomyTerm[], view: TaxonomyView): TaxonomyTerm[] {
+  switch (view) {
+    case "active":
+      return terms.filter((t) => t.status === "active");
+    case "dance_styles":
+      return terms.filter((t) => t.category === "dance_style");
+    case "attributes":
+      return terms.filter((t) => t.category === "event_attribute");
+    case "unused":
+      return terms.filter((t) => t.usage_count === 0);
+    case "needs_review":
+      return terms.filter((t) => t.status === "needs_review");
+    case "archived":
+      return terms.filter((t) => t.status === "archived");
+    default:
+      return terms;
+  }
+}
+
+export function applyTaxonomyFilters(
+  terms: TaxonomyTerm[],
+  filters: TaxonomyFilters
+): TaxonomyTerm[] {
+  return terms.filter((term) => {
+    if (filters.search) {
+      const q = filters.search.toLowerCase();
+      if (
+        !term.name.toLowerCase().includes(q) &&
+        !term.slug.toLowerCase().includes(q)
+      ) {
+        return false;
+      }
+    }
+    if (filters.category && term.category !== filters.category) return false;
+    if (filters.status && term.status !== filters.status) return false;
+    return true;
+  });
+}
+
+export function taxonomyViewCounts(terms: TaxonomyTerm[]): Record<TaxonomyView, number> {
+  const counts: Record<TaxonomyView, number> = {
+    all: terms.length,
+    active: 0,
+    dance_styles: 0,
+    attributes: 0,
+    unused: 0,
+    needs_review: 0,
+    archived: 0,
+  };
+  for (const term of terms) {
+    if (term.status === "active") counts.active++;
+    if (term.category === "dance_style") counts.dance_styles++;
+    if (term.category === "event_attribute") counts.attributes++;
+    if (term.usage_count === 0) counts.unused++;
+    if (term.status === "needs_review") counts.needs_review++;
+    if (term.status === "archived") counts.archived++;
+  }
+  return counts;
+}
+
 export function normalizeTaxonomyName(name: string): string {
   return name.normalize("NFKC").trim().toLocaleLowerCase("en-US");
 }

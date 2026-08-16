@@ -32,6 +32,7 @@ WHERE n.nspname = 'public'
     'admin_user_directory',
     'admin_set_user_role',
     'admin_set_user_status',
+    'admin_invite_user',
     'is_moderator',
     'account_is_active'
   )
@@ -88,7 +89,8 @@ JOIN LATERAL aclexplode(p.proacl) AS acl(grantor_oid, grantee_oid, privileges, p
 JOIN pg_roles grantee_role ON grantee_role.oid = acl.grantee_oid
 WHERE n.nspname = 'public'
   AND p.proname IN ('admin_audit_log', 'admin_analytics_metrics', 'admin_analytics_timeseries',
-                     'admin_user_directory', 'admin_set_user_role', 'admin_set_user_status')
+                     'admin_user_directory', 'admin_set_user_role', 'admin_set_user_status',
+                     'admin_invite_user')
   AND grantee_role.rolname IN ('public', 'anon')
 ORDER BY p.proname, grantee_role.rolname;
 
@@ -103,7 +105,9 @@ SELECT p.proname,
 FROM pg_proc p
 JOIN pg_namespace n ON n.oid = p.pronamespace
 WHERE n.nspname = 'public'
-  AND p.proname IN ('admin_audit_log', 'admin_analytics_metrics', 'admin_analytics_timeseries')
+  AND p.proname IN ('admin_audit_log', 'admin_analytics_metrics', 'admin_analytics_timeseries',
+                     'admin_user_directory', 'admin_set_user_role', 'admin_set_user_status',
+                     'admin_invite_user')
 ORDER BY p.proname;
 
 \echo ''

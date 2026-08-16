@@ -32,6 +32,7 @@ WHERE r.routine_schema = 'public'
     'admin_audit_log', 'category_of',
     'admin_analytics_metrics', 'admin_analytics_timeseries',
     'admin_user_directory', 'admin_set_user_role', 'admin_set_user_status',
+    'admin_invite_user',
     'is_moderator', 'account_is_active',
     'log_event_change', 'log_submission_change', 'log_user_change',
     'set_updated_at'
@@ -103,7 +104,8 @@ LEFT JOIN aclexplode(p.proacl) AS r(grantor_oid, grantee_oid, privileges, privil
 LEFT JOIN pg_roles grantee_role ON grantee_role.oid = r.grantee_oid
 WHERE n.nspname = 'public'
   AND p.proname IN ('admin_audit_log', 'admin_analytics_metrics', 'admin_analytics_timeseries',
-                     'admin_user_directory', 'admin_set_user_role', 'admin_set_user_status')
+                     'admin_user_directory', 'admin_set_user_role', 'admin_set_user_status',
+                     'admin_invite_user')
   AND grantee_role.rolname IN ('public', 'anon', 'authenticated')
 ORDER BY p.proname, grantee_role.rolname;
 

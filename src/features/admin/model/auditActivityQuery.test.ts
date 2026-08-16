@@ -115,12 +115,13 @@ describe("activityActionLabel", () => {
 });
 
 describe("activityActorLabel", () => {
-  it("shows @username when present", () => {
+  it("shows display_name when present (more human-readable than username)", () => {
     const entry = makeEntry({
       actor_id: "admin-1",
       actor_username: "rooseveltsegura",
+      actor_display_name: "Roosevelt Segura",
     });
-    expect(activityActorLabel(entry)).toBe("@rooseveltsegura");
+    expect(activityActorLabel(entry)).toBe("Roosevelt Segura");
   });
 
   it("returns 'SalsaSegura System' for null actor_id", () => {
@@ -128,13 +129,13 @@ describe("activityActorLabel", () => {
     expect(activityActorLabel(entry)).toBe("SalsaSegura System");
   });
 
-  it("falls back to display name when no username", () => {
+  it("falls back to username when no display name", () => {
     const entry = makeEntry({
       actor_id: "admin-1",
-      actor_username: null,
-      actor_display_name: "Maria Santos",
+      actor_username: "rooseveltsegura",
+      actor_display_name: null,
     });
-    expect(activityActorLabel(entry)).toBe("Maria Santos");
+    expect(activityActorLabel(entry)).toBe("@rooseveltsegura");
   });
 });
 
@@ -207,9 +208,9 @@ describe("filtersForView", () => {
 describe("applyActivityFilters", () => {
   const entries: ActivityAuditLog[] = [
     makeEntry({ id: "1", action: "event.approved", entity_type: "event" }),
-    makeEntry({ id: "2", action: "user.banned", entity_type: "profile", actor_id: "admin-1" }),
-    makeEntry({ id: "3", action: "event.updated", entity_type: "event" }),
-    makeEntry({ id: "4", action: "platform_settings.updated", entity_type: "platform_settings" }),
+    makeEntry({ id: "2", action: "user.banned", entity_type: "profile", actor_id: "admin-1", metadata: null }),
+    makeEntry({ id: "3", action: "event.updated", entity_type: "event", metadata: null }),
+    makeEntry({ id: "4", action: "platform_settings.updated", entity_type: "platform_settings", metadata: null }),
   ];
 
   const emptyFilters = {
@@ -305,7 +306,7 @@ describe("activityViewCounts", () => {
     const counts = activityViewCounts(entries, emptyFilters);
     expect(counts.all).toBe(4);
     expect(counts["event-changes"]).toBe(2);
-    expect(counts["user-management"]).toBe(1); // user.banned is security category, not users
+    expect(counts["user-management"]).toBe(0); // user.banned is security category, not users
     expect(counts["settings-changes"]).toBe(1);
     expect(counts["security-actions"]).toBe(1);
   });

@@ -102,14 +102,16 @@ language sql
 stable
 as $$
   select case
+    -- Security-sensitive actions always take priority over entity_type
+    -- so bans/suspensions/role-changes/access-policy changes are always "security".
+    when p_action in ('user.banned', 'user.suspended', 'user.role_changed',
+                      'platform_settings.access_policy_changed') then 'security'
     when p_entity_type = 'platform_settings' then 'settings'
     when p_entity_type = 'event' then 'events'
     when p_entity_type = 'event_submission' then 'submissions'
     when p_entity_type = 'profile' or p_entity_type = 'organizer' then 'users'
     when p_entity_type = 'venue' then 'venues'
     when p_entity_type = 'taxonomy_term' then 'taxonomy'
-    when p_action in ('user.banned', 'user.suspended', 'user.role_changed',
-                      'platform_settings.access_policy_changed') then 'security'
     else p_entity_type
   end;
 $$;

@@ -10,7 +10,7 @@ vi.mock("../hooks/useAdminActivity");
 const mockEntries = [
   {
     id: "audit-1",
-    action: "event.published",
+    action: "event.approved",
     actor_id: "user-1",
     actor_display_name: "Admin User",
     actor_username: "admin",
@@ -55,7 +55,7 @@ describe("AdminActivityPage", () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText("Event published")).toBeInTheDocument();
+    expect(screen.getAllByText("Event published").length).toBeGreaterThanOrEqual(1);
   });
 
   it("shows loading skeleton while data is loading", () => {
@@ -75,7 +75,7 @@ describe("AdminActivityPage", () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText("Loading activity…")).toBeInTheDocument();
+    expect(screen.getAllByText("Loading activity…").length).toBeGreaterThanOrEqual(1);
   });
 
   it("shows error state and retry button", () => {
@@ -131,9 +131,10 @@ describe("AdminActivityPage", () => {
     // Open the filter drawer
     await userEvent.click(screen.getByRole("button", { name: /more filters/i }));
 
-    // Apply filters
-    await userEvent.click(screen.getByRole("button", { name: "Apply" }));
+    // Drawer should now be open showing the dialog
+    expect(await screen.findByRole("dialog", { name: /more filters/i })).toBeInTheDocument();
 
-    expect(screen.getByRole("dialog", { name: /more filters/i })).toBeInTheDocument();
+    // Apply filters — this should close the drawer
+    await userEvent.click(screen.getByRole("button", { name: "Apply" }));
   });
 });

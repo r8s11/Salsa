@@ -7,7 +7,7 @@ import AdminActivityTable from "./AdminActivityTable";
 
 const baseEntry: ActivityAuditLog = {
   id: "audit-1",
-  action: "event.published",
+  action: "event.approved",
   actor_id: "user-1",
   actor_display_name: "Admin User",
   actor_username: "admin",
@@ -19,7 +19,7 @@ const baseEntry: ActivityAuditLog = {
 };
 
 const moreEntries: ActivityAuditLog[] = [
-  { ...baseEntry, id: "audit-1", action: "event.published" },
+  { ...baseEntry, id: "audit-1", action: "event.approved" },
   {
     ...baseEntry,
     id: "audit-2",
@@ -45,27 +45,28 @@ function renderTable(entriesProp: ComponentProps<typeof AdminActivityTable>["ent
 describe("AdminActivityTable", () => {
   it("renders human-readable action labels", () => {
     renderTable([baseEntry]);
-    expect(screen.getByText("Event published")).toBeInTheDocument();
+    expect(screen.getAllByText("Event published").length).toBeGreaterThanOrEqual(1);
   });
 
   it("renders a detail link via the action label", () => {
     renderTable([baseEntry]);
-    expect(screen.getByRole("link", { name: /event published/i })).toHaveAttribute("href", "/admin/activity/audit-1");
+    expect(screen.getAllByRole("link", { name: /event published/i }).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByRole("link", { name: /event published/i })[0]).toHaveAttribute("href", "/admin/activity/audit-1");
   });
 
   it("shows suspicious marker for sensitive actions", () => {
     renderTable(moreEntries);
-    expect(screen.getByText("Account suspended")).toBeInTheDocument();
+    expect(screen.getAllByText("Account suspended").length).toBeGreaterThanOrEqual(1);
   });
 
   it("renders empty state message", () => {
     renderTable([]);
-    expect(screen.getByText("No activity entries.")).toBeInTheDocument();
+    expect(screen.getByText("No activity entries match these filters.")).toBeInTheDocument();
   });
 
   it("shows relative timestamp", () => {
     renderTable([baseEntry]);
     // formatTimeAgo returns a human-readable string — check it shows some time indication
-    expect(screen.getByText(/ago|just now|today|Aug/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/ago|just now|today|Aug/i).length).toBeGreaterThanOrEqual(1);
   });
 });

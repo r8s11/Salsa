@@ -93,16 +93,19 @@ const ACTION_SECURITY_SET = new Set([
 /**
  * Derives the Activity category from an audit entry.
  * Mirrors the SQL `category_of()` function — keep both in sync.
+ * Security-sensitive actions always take priority so bans/suspensions/
+ * role-changes/access-policy changes are always categorized as "security"
+ * regardless of entity_type.
  */
 export function categoryOf(entry: ActivityAuditLog): ActivityCategory {
   const { entity_type, action } = entry;
+  if (ACTION_SECURITY_SET.has(action)) return "security";
   if (entity_type === "platform_settings") return "settings";
   if (entity_type === "event") return "events";
   if (entity_type === "event_submission") return "submissions";
   if (entity_type === "profile" || entity_type === "organizer") return "users";
   if (entity_type === "venue") return "venues";
   if (entity_type === "taxonomy_term") return "taxonomy";
-  if (ACTION_SECURITY_SET.has(action)) return "security";
   return "events";
 }
 
@@ -249,9 +252,10 @@ export function activityActionLabel(
 /** Human-readable label for the actor (or "System" for null). */
 export function activityActorLabel(entry: ActivityAuditLog): string {
   if (!entry.actor_id) return "SalsaSegura System";
-  // Prefer username when present, otherwise display name.
-  if (entry.actor_username) return `@${entry.actor_username}`;
+  // Prefer display name when present (more human-readable than username),
+  // then fall back to username.
   if (entry.actor_display_name) return entry.actor_display_name;
+  if (entry.actor_username) return `@${entry.actor_username}`;
   return "Unknown admin";
 }
 

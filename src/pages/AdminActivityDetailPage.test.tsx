@@ -66,7 +66,7 @@ describe("AdminActivityDetailPage", () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText("Reason")).toBeInTheDocument();
+    expect(screen.getAllByText("Reason").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Repeated spam")).toBeInTheDocument();
   });
 

@@ -152,3 +152,6 @@ ds-bundle/
 .superpowers/
 
 Comprehensive*/
+
+# codebase-memory-mcp local index cache
+.codebase-memory/

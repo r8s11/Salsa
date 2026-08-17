@@ -4,17 +4,16 @@
 
 **Philosophy:** Launch minimal, iterate based on real user feedback
 **URL:** www.salsasegura.com
-**Status:** Live · Week 28 of 52 · calendar + submissions + local dev stack + auth + moderation dashboard shipped
+**Status:** Live · Week 28 of 52 · calendar + submissions + local dev stack + auth shipped. The full `/admin` dashboard (Phases 1-14 — events, users, submissions, organizer requests, venues, taxonomy, settings, audit log, analytics) shipped and **closed out Aug 17, 2026**, well beyond this 52-week plan's original "moderation dashboard" (Week 6) scope — see `Docs/STATUS_SUMMARY.md` and `SALSASEGURA_ADMIN_CLOSEOUT.md`.
 
 ---
 
-## Current Position (July 15, 2026)
+## Current Position (August 17, 2026)
 
 **Done out of order:** the core calendar pipeline (weeks 1-4), type filters (part of week 8), Open Graph (week 10), plus early pieces of recurring events (W15), gallery columns (W21), and multi-city (W22) landed via the Tambora events module (PR #8) and the ICS→Supabase import pivot.
-**Done Aug 10:** local Supabase dev stack (`npx supabase start`), authentication (W5, email/password + Apple/Google/GitHub OAuth), and the moderation dashboard (W6, `/admin` queue with approve/reject).
-**Current focus:** text search & basic filters (Week 8 remainder).
-
----
+**Done Aug 10-11:** local Supabase dev stack, authentication (W5, email/password + Apple/Google/GitHub OAuth), moderation dashboard (W6), account-linked submissions + `/profile`, and the Rhythm Console UI refresh (Header/Sign-in/Admin/Profile/Calendar).
+**Done Aug 11-17 (beyond the original plan):** full Admin Dashboard, Phases 1-14 — closed out, READY TO CLOSE per `SALSASEGURA_ADMIN_CLOSEOUT.md`.
+**Current focus:** text search & basic filters (Week 8 remainder) — the only unstarted item blocking further roadmap progress; nothing else is in flight.
 
 ## 📊 Progress Overview
 
@@ -32,6 +31,8 @@
 - [X] Local Supabase dev stack (`npx supabase start`, Aug 10)
 - [X] Authentication launch (email/password + Apple/Google/GitHub OAuth, Aug 10)
 - [X] Moderation dashboard (`/admin` queue with approve/reject, Aug 10)
+- [X] Rhythm Console UI refresh — Header/Sign-in/Admin/Profile/Calendar (Aug 11)
+- [X] Full Admin Dashboard, Phases 1-14 — events, users, submissions, organizer requests, venues, taxonomy, settings, audit log, analytics (Aug 11-17, closed out — beyond original Week 6 scope, see `SALSASEGURA_ADMIN_CLOSEOUT.md`)
 
 ### In Progress 🔄
 
@@ -39,8 +40,9 @@
 
 ### Next Up 📅
 
-- [ ] Moderation dashboard - Week 6 (overdue, guide: `ADMIN_MODERATION_GUIDE.md`)
-- [ ] Text search - Week 8 remainder
+- [ ] Text search - Week 8 remainder (the only item actively next; Week 6 moderation dashboard is done, superseded by the full Admin Dashboard above)
+- [ ] Email notifications - Week 9
+- [ ] Enhanced event pages `/events/[id]` - Week 11 (currently modal deep-link only)
 
 ---
 
@@ -55,7 +57,7 @@
 | 3    | Jan 15-21      | Database backend (Supabase)                  | ✅ Done    |
 | 4    | Jan 22-28      | Community submissions (Beta)                 | ✅ Done    |
 | 5    | Jan 29 - Feb 4 | Authentication launch                        | ✅ Done (Aug 10, overdue) |
-| 6    | Feb 5-11       | Moderation dashboard                         | ✅ Done (Aug 10, overdue) |
+| 6    | Feb 5-11       | Moderation dashboard                         | ✅ Done (Aug 10, overdue) — superseded Aug 17 by full Admin Dashboard (Phases 1-14, `SALSASEGURA_ADMIN_CLOSEOUT.md`) |
 | 7    | Feb 12-18      | Mobile optimization                          | 🔄 Partial (responsive layout done) |
 | 8    | Feb 19-25      | Search & basic filters                       | 🔄 Partial (type filters, no search) |
 | 9    | Feb 26 - Mar 4 | Email notifications                          | 📅 Planned |
@@ -169,4 +171,4 @@
 
 ---
 
-_Last Updated: August 10, 2026_
+_Last Updated: August 17, 2026_

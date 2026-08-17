@@ -1,18 +1,18 @@
 # SalsaSegura.com - Project Status Summary
 
-> Generated: July 15, 2026 (previous snapshot: February 10, 2026) · Updated: August 11, 2026 (account-linked submissions + My Profile page + OAuth coming-soon shipped)
+> Generated: July 15, 2026 (previous snapshot: February 10, 2026) · Updated: August 17, 2026 (Admin Dashboard Phases 1-14 closed out; docs reconciled with `main`)
 
 ---
 
 ## Quick Snapshot
 
 | Item                | Detail                                                        |
-| ------------------- | ------------------------------------------------------------- |
+| ------------------- | --------------------------------------------------------------- |
 | **URL**             | [salsasegura.com](https://www.salsasegura.com)                 |
-| **Branch**          | `ritmo-vivo-redesign`                                          |
-| **Plan Position**   | Week 28 of the 52-week plan (Jul 9-15); Modernization Blueprint fully executed; Authentication (W5) + Moderation dashboard (W6) shipped Aug 10; account-linked submissions + Profile page shipped Aug 11 |
-| **Last Merges**     | Account-linked submissions + My Profile page + OAuth coming-soon (Aug 11) · Moderation dashboard at /admin (Aug 10) · Local Supabase dev stack + Supabase Auth (Aug 10) · Modernization Blueprint Steps 1-15 (Aug 4) |
-| **Tests**           | 51 passing across 12 files                                      |
+| **Branch**          | `main`                                                          |
+| **Plan Position**   | Public-facing roadmap: Week 28 of 52 (text search & basic filters, Week 8, still the open item). Separately, the full `/admin` dashboard (Phases 1-14) shipped and closed out Aug 11-17 — see "Admin Dashboard" below, not tracked on the 52-week plan. |
+| **Last Merges**     | `admin_invite_user` RPC (Phase 14, Aug 17) · Admin Dashboard Phase 14 final verification/closeout (Aug 17) · Phases 1-13 (shell/theme, overview, events, users, submissions, organizer requests, venues, taxonomy, settings, audit log, analytics) · Rhythm Console UI refresh — Header/Sign-in/Admin/Profile/Calendar (Aug 11, `main`@`0edbe82`) |
+| **Tests**           | 444 passing across 82 files (full suite, verified Aug 17)       |
 | **Hosting**          | Azure Static Web Apps (GitHub Actions CI/CD, gated on lint + test — note: this gate does not run `npm run build`/`tsc`, see Key Risks) |
 | **Local dev**        | `npx supabase start` — full local Postgres/PostgREST/Auth stack, see `.env.example` |
 
@@ -36,7 +36,7 @@
 
 ---
 
-## What's Built (as of July 2026)
+## What's Built (as of Aug 17, 2026)
 
 ### Core event pipeline ✅
 
@@ -45,6 +45,17 @@
 - `/profile`: account email, sign out, and a list of the signed-in user's own submissions with live status (Pending/Approved/Rejected) — `src/pages/ProfilePage.tsx`, `src/hooks/useMySubmissions.ts`
 - Curated import pipeline: `npm run import-events` (`scripts/import-ics.mjs`) — dry-run / insert / SQL-emit modes
 - Multi-city groundwork: `city` column (boston / new-york-city), `CityContext`, Boston/NYC switcher in Header
+
+### Admin Dashboard — Phases 1-14 (Aug 11-17) ✅ CLOSED OUT
+
+Full `/admin/*` surface, see `SALSASEGURA_ADMIN_CLOSEOUT.md` for the complete architecture record:
+
+- Shell/theme (light/dark/system), overview metrics, events CRUD (`AdminEventForm`, venue combobox, recurrence)
+- Users directory + role management (`admin_user_directory`, `admin_set_user_role`/`admin_set_user_status` RPCs, sole-admin protection)
+- Event submission review queue, organizer request review, venues management (dedupe + merge workflow, `events.venue_id` FK)
+- Tags/taxonomy (controlled vocabulary), platform settings, audit log (`admin_audit_log` RPC, before/after diffs), analytics (metric cards + trend charts)
+- RBAC via `auth.jwt() -> app_metadata -> role` (not `profiles.role`, display-only); role hierarchy `user → organizer → moderator → admin`
+- Recommendation: READY TO CLOSE — no critical gaps; see closeout doc §6/§7 for non-blocking follow-ups (Activity cache-key, hardcoded `limit: 25`, audit-detail actor enrichment, `audit_log_view` grants)
 
 ### Events module redesign — "Tambora" (PR #8, merged Jul 15) ✅
 
@@ -75,22 +86,29 @@
 
 | Feature (plan week)             | Status |
 | ------------------------------- | ------ |
-| Authentication (W5)             | **Shipped Aug 10** — email/password + Apple/Google/GitHub OAuth (`src/contexts/AuthContext.tsx`, `src/pages/SignInPage.tsx`); no role/admin concept yet — see Moderation dashboard below |
-| Moderation dashboard (W6)       | **Shipped Aug 10** — `/admin` queue with approve/reject, RLS policies, RequireAdmin guard (`src/pages/AdminPage.tsx`) |
-| Account-linked submissions + My Profile | **Shipped Aug 11** — `submitter_id` column + RLS, `/profile` page, Submit Event/My Profile nav links, weekly-recurring checkbox on `/submit`, OAuth buttons disabled ("Coming soon") pending real provider credentials |
+| Authentication (W5)             | **Shipped Aug 10** — email/password + Apple/Google/GitHub OAuth. OAuth buttons removed in the Aug 11 UI refresh (`main`@`0edbe82`) pending real provider credentials — no dead "Coming soon" UI remains |
+| Moderation dashboard (W6)       | **Superseded by the full Admin Dashboard (Phases 1-14, closed out Aug 17)** — see above; original `/admin` approve/reject queue evolved into the complete admin surface |
+| Account-linked submissions + My Profile | **Shipped Aug 11**, refreshed in the Rhythm Console UI pass same day — `submitter_id` column + RLS, `/profile` page with account header, filterable submission list, city-qualified deep links |
 | Email notifications (W9)        | Not started |
 | Enhanced event pages `/events/[id]` (W11) | Not started — modal deep-link only |
 | Map view (W12)                  | Not started |
+| Text search & filters (W8)      | Not started — still the open item on the public-facing roadmap, see `Docs/ROADMAP.md` |
 | Gallery UI (W20)                | DB columns exist (PR #8); no UI component |
 | Mobile app                      | Plan only (`Docs/MOBILE_APP_PLAN.md`) |
-
-`src/pages/Schools.tsx` + 5 school detail pages are routed at `/schools` (Modernization Blueprint finding A5 resolved).
+| Recurring events edit (This/This-and-future/Series) | Deferred — closeout doc §8, basic recurrence renders but admin edit workflows don't distinguish scope |
+| Organizer membership model      | Deferred — `organizer_members`/`organizers` tables, closeout doc §8 |
+| RSVP tracking                   | Deferred — current "RSVPs" analytics metric counts events with an RSVP link, not actual responses |
 
 ---
 
-## Active Plan: Modernization Blueprint
+## Active Plan
 
-`Docs/plans/MODERNIZATION_BLUEPRINT.md` (audited 2026-07-06) — **all 15 steps executed** (Aug 4, 2026). Summary:
+The Modernization Blueprint (`Docs/plans/MODERNIZATION_BLUEPRINT.md`, audited 2026-07-06) — **all 15 steps executed** (Aug 4, 2026) — and the Admin Dashboard (Phases 1-14, `SALSASEGURA_ADMIN_CLOSEOUT.md`) — **closed out** (Aug 17, 2026) — are both complete. Neither has an active successor plan document; the only tracked open items are:
+
+- The public-facing 52-week roadmap (`Docs/ROADMAP.md`), currently sitting at Week 8 (text search & filters)
+- The non-blocking follow-ups listed in `SALSASEGURA_ADMIN_CLOSEOUT.md` §6-§8 (Activity cache-key, hardcoded page size, audit actor enrichment, `audit_log_view` grants, recurring-event edit scope, organizer membership model, RSVP tracking)
+
+Modernization Blueprint summary (for reference):
 
 1. **Steps 1-3 (substrate):** removed `@google/design.md`, deleted `bun.lock`, added `packageManager`/`.nvmrc`, added a CI `quality` job (lint + vitest, gates deploy), deleted dead `AuthContext.tsx`, routed `/schools`.
 2. **Steps 4-8 (domain core + data layer):** split `src/types/events.ts` into `src/features/events/model/{types,convert,calendarsConfig}.ts` (re-export shim kept for compat); made timezone conversion explicit via `Temporal.Instant` → `America/New_York` (was implicit legacy `Date` — V4 fixed); added `convert.test.ts`; centralized all Supabase event I/O behind `eventsRepo.ts` with a server-side date floor; adopted TanStack Query (`useEventsQuery`), eliminating the Home↔Calendar double-fetch.
@@ -111,6 +129,7 @@
 5. **No calendar content pipeline running:** After the ICS pivot, the calendar shows only events imported + approved by hand — intended, but requires the weekly habit of running the importer (see risk #2 above — this is currently not happening).
 6. **CI quality gate doesn't run `npm run build`/`tsc`:** the `.github/workflows` quality job runs only `npm run lint` + `npx vitest run`. On 2026-08-10 this let a commit with a genuine missing-module build error (`PendingEventCard.tsx`/`.css` never committed — a chained-command bug during the moderation-dashboard work) land on `main` and pass the quality gate; Azure's own Oryx build caught it and failed the deploy (so production was never actually broken — it kept serving the last-good build), but the gap sat undetected on `main` for hours. Recommend adding a `tsc -b --noEmit` (or the full `npm run build`) step to the quality job.
 7. **Fixed 2026-08-11: `Calendar.tsx`'s `onEventClick` closed over a stale `eventList`.** `useCalendarApp`'s `callbacks` config is captured once at calendar-app creation (schedule-x/react never re-evaluates it), so any event created after the calendar's first mount fell back to Schedule-X's raw internal event object on click — silent for most events, but a hard crash (`start.replace is not a function`) for recurring ones, since `series.ts` assumes `start` is the app's plain string format. Pre-existing since the Tambora module (PR #8); never exercised because no event had `recurrence: "weekly"` until this plan's Task 4 added a way to set one through the live UI. Fixed via ref-mirroring (`eventListRef`); see commit history for `Calendar.tsx`.
+8. **Fixed 2026-08-17: Phase 12 Activity test failures resolved.** The 12 `applyActivityFilters` search-logic failures noted in earlier snapshots and in `SALSASEGURA_ADMIN_CLOSEOUT.md` §6 are fixed as of commit `04ab284` ("full test suite green") — full suite is 444/444 passing, not 429/441.
 
 ---
 
@@ -120,8 +139,9 @@
 2. **Add `tsc -b --noEmit` (or `npm run build`) to the CI quality gate** — see Key Risks #6; the current gate would not have caught the 2026-08-10 missing-module incident on its own.
 3. **Promote the Report-Only CSP to enforcing** (Step 12) once a deploy has run with zero console violations in production.
 4. **Retry the `temporal-polyfill` 1.x bump** once `@schedule-x` loosens its peer range, or migrate `convert.ts`/`Calendar.tsx`/`series.ts` off the ambient-global import pattern (see Key Risks #1).
-5. **Text search** (plan week 8) — Moderation dashboard (W6) and account-linked submissions are now done; text search is the next capability on the roadmap.
-6. Update this file after each merged PR.
+5. **Text search** (plan week 8) — the next capability on the public-facing roadmap; nothing else is blocking it.
+6. **Work the Admin Dashboard non-blocking follow-ups** (`SALSASEGURA_ADMIN_CLOSEOUT.md` §6-§8) as a low-priority batch: `useAdminActivity` query-key determinism, `AdminActivityPage` hardcoded `limit: 25`/placeholder `presetCounts`, audit-detail actor enrichment gap, explicit `audit_log_view` grant.
+7. Update this file after each merged PR — this snapshot drifted roughly a week behind `main` before this reconciliation (Aug 17, 2026).
 
 ---
 

@@ -3,6 +3,8 @@
 > **Phase 14 — Final Verification, QA & Project Closure**
 > This document consolidates all work from Phases 1–13 into a coherent closeout.
 
+> **Addendum (Aug 17, 2026):** the 12 Phase 12 Activity test failures referenced in §6/§10 below and the resulting `429/441` figure were fixed by commit `04ab284` ("full test suite green"), landed after this document was written. Current suite: **444/444 passing**. Left the historical body below unedited; see `Docs/STATUS_SUMMARY.md` for the reconciled current state.
+
 ---
 
 ## 1. What Was Completed

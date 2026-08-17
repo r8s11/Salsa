@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import AdminPageHeader from "../components/Admin/AdminPageHeader";
 import AdminActivityToolbar from "../components/Admin/AdminActivityToolbar";
@@ -11,6 +11,7 @@ import {
   CATEGORY_LABEL,
   PAGE_SIZE_OPTIONS,
   DEFAULT_PAGE_SIZE,
+  activityViewCounts,
   type ActivityAuditLog,
   type ActivityView,
   type ActivitySortKey,
@@ -65,17 +66,6 @@ interface FilterChip {
 export default function AdminActivityPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { entries, total, isLoading, error, refetch } = useAdminActivity({
-    limit: 25,
-    offset: 0,
-    q: null,
-    category: null,
-    action: null,
-    actor_id: null,
-    entity_type: null,
-    from: null,
-    to: null,
-  });
 
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -84,7 +74,6 @@ export default function AdminActivityPage() {
   const page = parsePage(searchParams);
   const size = parseSize(searchParams);
   const filters = parseFilters(searchParams);
-  const currentEntries = entries ?? [];
 
   // Build RPC params based on URL filters
   const rpcParams = useMemo(
@@ -102,11 +91,8 @@ export default function AdminActivityPage() {
     [filters, size, page]
   );
 
-  // Refetch when RPC params change
-  useEffect(() => {
-    refetch();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rpcParams]);
+  const { entries, total, isLoading, error, refetch } = useAdminActivity(rpcParams);
+  const currentEntries = useMemo(() => entries ?? [], [entries]);
 
   const updateParams = (patch: Record<string, string | null>, resetPage = true) => {
     setSearchParams((prev) => {
@@ -195,14 +181,12 @@ export default function AdminActivityPage() {
   const fromIdx = total === 0 ? 0 : pageStart + 1;
   const toIdx = Math.min(pageStart + size, total);
 
-  // Preset counts — server-paginated so we approximate from the current page.
-  const presetCounts = useMemo(() => {
-    const counts = {} as Record<ActivityView, number>;
-    (ACTIVITY_VIEWS as { view: ActivityView }[]).forEach(({ view }) => {
-      counts[view] = 0;
-    });
-    return counts;
-  }, []);
+  // Preset counts — server-paginated, so these approximate from the entries
+  // on the current page/filter response rather than the full table.
+  const presetCounts = useMemo(
+    () => activityViewCounts(currentEntries, filters),
+    [currentEntries, filters]
+  );
 
   return (
     <>

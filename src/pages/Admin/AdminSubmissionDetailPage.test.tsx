@@ -84,4 +84,48 @@ describe("AdminSubmissionDetailPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Approve submission" }));
     expect(approveSubmissionWithTaxonomy).toHaveBeenCalledWith({ submissionId: "sub-1", taxonomyTermIds: ["salsa-on2-id"] }, expect.anything());
   });
+
+  it("opens the reject dialog and submits rejection via updateSubmission", async () => {
+    const updateSubmission = vi.fn();
+    vi.mocked(useActiveTaxonomyTerms).mockReturnValue({ terms: [], isLoading: false, error: null });
+    vi.mocked(useAdminSubmissions.useAdminSubmissions).mockReturnValue({
+      submissions: [mockSubmission],
+      isLoading: false,
+      error: null,
+      updateSubmission,
+      isUpdating: false,
+      updateError: null,
+      approveSubmissionWithTaxonomy: vi.fn(),
+      isApproving: false,
+      approveError: null,
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/admin/submissions/sub-1"]}>
+        <Routes>
+          <Route path="/admin/submissions/:id" element={<AdminSubmissionDetailPage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: "Reject submission" }));
+    await userEvent.type(
+      screen.getByRole("textbox", { name: /Message to submitter/i }),
+      "Not enough info.",
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Reject" }));
+
+    expect(updateSubmission).toHaveBeenCalledWith(
+      {
+        id: "sub-1",
+        update: {
+          status: "rejected",
+          rejection_reason: "duplicate",
+          rejection_message: "Not enough info.",
+          internal_note: undefined,
+        },
+      },
+      expect.anything(),
+    );
+  });
 });

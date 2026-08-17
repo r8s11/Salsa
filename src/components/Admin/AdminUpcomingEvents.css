@@ -17,7 +17,7 @@
 }
 
 .admin-upcoming__view-all {
-  color: var(--admin-brand);
+  color: var(--admin-brand-text);
   font-weight: 600;
   font-size: 0.85rem;
   text-decoration: none;

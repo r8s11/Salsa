@@ -102,7 +102,7 @@
 
 .admin-analytics-filters__granularity-option--selected {
   font-weight: 600;
-  color: var(--admin-brand);
+  color: var(--admin-brand-text);
 }
 
 .admin-analytics-filters__range-hint {

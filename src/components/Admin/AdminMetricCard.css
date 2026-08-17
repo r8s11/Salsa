@@ -63,7 +63,7 @@ a.admin-metric-card:hover {
 }
 
 .admin-metric-card__action--informational {
-  color: var(--admin-brand);
+  color: var(--admin-brand-text);
 }
 
 .admin-metric-card__action--attention {
@@ -78,7 +78,7 @@ a.admin-metric-card:hover {
   background: none;
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--admin-brand);
+  color: var(--admin-brand-text);
   cursor: pointer;
 }
 

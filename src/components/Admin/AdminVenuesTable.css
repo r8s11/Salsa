@@ -44,7 +44,7 @@
 .admin-venues-table__title {
   font-weight: 600;
   text-decoration: none;
-  color: var(--admin-brand);
+  color: var(--admin-brand-text);
 }
 
 .admin-venues-table__title:hover {

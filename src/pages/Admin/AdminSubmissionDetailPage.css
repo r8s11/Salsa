@@ -10,3 +10,8 @@
   display: grid;
   gap: 1rem;
 }
+
+.admin-submission-detail-page__actions {
+  display: flex;
+  gap: 12px;
+}

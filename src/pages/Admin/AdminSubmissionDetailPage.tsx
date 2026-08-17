@@ -2,13 +2,26 @@ import { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useActiveTaxonomyTerms } from "../../features/admin/hooks/useAdminTaxonomy";
 import { useAdminSubmissions } from "../../hooks/useAdminSubmissions";
+import AdminRejectSubmissionDialog from "../../components/Admin/AdminRejectSubmissionDialog";
+import type { EventSubmission } from "../../features/admin/model/submissions";
 import "./AdminSubmissionDetailPage.css";
 
 export default function AdminSubmissionDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [taxonomyTermIds, setTaxonomyTermIds] = useState<string[]>([]);
-  const { submissions, isLoading, error, approveSubmissionWithTaxonomy, isApproving, approveError } = useAdminSubmissions();
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const {
+    submissions,
+    isLoading,
+    error,
+    approveSubmissionWithTaxonomy,
+    isApproving,
+    approveError,
+    updateSubmission,
+    isUpdating,
+    updateError,
+  } = useAdminSubmissions();
   const danceStyles = useActiveTaxonomyTerms("dance_style");
   const submission = useMemo(() => submissions.find((item) => item.id === id), [submissions, id]);
 
@@ -25,6 +38,20 @@ export default function AdminSubmissionDetailPage() {
   const approve = () => {
     approveSubmissionWithTaxonomy(
       { submissionId: submission.id, taxonomyTermIds },
+      { onSuccess: () => navigate("/admin/submissions") },
+    );
+  };
+  const reject = (reason: string, message: string, note: string) => {
+    updateSubmission(
+      {
+        id: submission.id,
+        update: {
+          status: "rejected",
+          rejection_reason: reason as EventSubmission["rejection_reason"],
+          rejection_message: message || undefined,
+          internal_note: note || undefined,
+        },
+      },
       { onSuccess: () => navigate("/admin/submissions") },
     );
   };
@@ -54,10 +81,24 @@ export default function AdminSubmissionDetailPage() {
           ))}
         </fieldset>
         {approveError && <p role="alert">{approveError instanceof Error ? approveError.message : "Approval failed"}</p>}
-        <button type="button" className="admin-btn admin-btn--primary" disabled={isApproving || danceStyles.isLoading} onClick={approve}>
-          {isApproving ? "Approving…" : "Approve submission"}
-        </button>
+        {updateError && <p role="alert">{updateError instanceof Error ? updateError.message : "Rejection failed"}</p>}
+        <div className="admin-submission-detail-page__actions">
+          <button type="button" className="admin-btn admin-btn--primary" disabled={isApproving || isUpdating || danceStyles.isLoading} onClick={approve}>
+            {isApproving ? "Approving…" : "Approve submission"}
+          </button>
+          <button type="button" className="admin-btn admin-btn--danger" disabled={isApproving || isUpdating} onClick={() => setRejectDialogOpen(true)}>
+            Reject submission
+          </button>
+        </div>
       </div>
+      {rejectDialogOpen && (
+        <AdminRejectSubmissionDialog
+          submissionId={submission.id}
+          isBusy={isUpdating}
+          onConfirm={reject}
+          onCancel={() => setRejectDialogOpen(false)}
+        />
+      )}
     </div>
   );
 }

@@ -18,6 +18,11 @@
   --admin-nav-text: #475569;
   --admin-brand: #e11d48;
   --admin-brand-hover: #be123c;
+  /* Small-text-on-dark-surface variant. --admin-brand stays the fixed
+     button/border fill (its dark value is unchanged so white button
+     labels keep 4.7:1 contrast); this token is for standalone link/badge
+     TEXT only, which needs a brighter rose to clear 4.5:1 in dark mode. */
+  --admin-brand-text: #e11d48;
   --admin-brand-tint: rgba(225, 29, 72, 0.04);
   --admin-brand-ring: rgba(225, 29, 72, 0.5);
   --admin-danger: #dc2626;
@@ -70,6 +75,7 @@
   --admin-nav-text: #cbd5e1;
   --admin-brand: #e11d48;
   --admin-brand-hover: #f43f5e;
+  --admin-brand-text: #fb7185;
   --admin-brand-tint: rgba(225, 29, 72, 0.12);
   --admin-brand-ring: rgba(225, 29, 72, 0.6);
   --admin-danger: #f87171;
@@ -657,7 +663,7 @@
 }
 
 .admin-shell .admin-role--admin {
-  color: var(--admin-brand);
+  color: var(--admin-brand-text);
   border-color: var(--admin-danger-border);
   background: var(--admin-brand-tint);
   font-weight: 700;

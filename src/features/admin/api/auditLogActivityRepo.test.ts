@@ -1,30 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 import { fetchActivityLogs, fetchActivityLog } from "./auditLogActivityRepo";
 
-// Mock supabase — we only care that the right RPC/table is called with the right params.
+// Mock supabase — we only care that the right RPC is called with the right params.
 const mockRpc = vi.fn();
-const mockFrom = vi.fn();
-const mockSelect = vi.fn();
-const mockEq = vi.fn();
-const mockSingle = vi.fn();
 
 vi.mock("../../../lib/supabase", () => ({
   supabase: {
     rpc: (...args: unknown[]) => mockRpc(...args),
-    from: (...args: unknown[]) => {
-      mockFrom(...args);
-      return {
-        select: (...args: unknown[]) => {
-          mockSelect(...args);
-          return {
-            eq: (...args: unknown[]) => {
-              mockEq(...args);
-              return { maybeSingle: () => mockSingle() };
-            },
-          };
-        },
-      };
-    },
   },
 }));
 
@@ -111,28 +93,29 @@ describe("fetchActivityLogs", () => {
 });
 
 describe("fetchActivityLog", () => {
-  it("queries audit_logs by id and maps the row", async () => {
+  it("queries admin_audit_log_detail and maps the enriched row", async () => {
     const fakeRow = {
       id: "log-1",
       actor_id: "admin-1",
+      actor_display_name: "Admin User",
+      actor_username: "admin",
+      actor_avatar_url: null,
       action: "user.banned",
       entity_type: "profile",
       entity_id: "user-1",
       metadata: { reason: "spam" },
       created_at: "2026-08-14T14:00:00Z",
     };
-    mockSingle.mockResolvedValueOnce({ data: fakeRow, error: null });
+    mockRpc.mockResolvedValueOnce({ data: [fakeRow], error: null });
 
     const result = await fetchActivityLog("log-1");
 
-    expect(mockFrom).toHaveBeenCalledWith("audit_logs");
-    expect(mockSelect).toHaveBeenCalledWith("*");
-    expect(mockEq).toHaveBeenCalledWith("id", "log-1");
+    expect(mockRpc).toHaveBeenCalledWith("admin_audit_log_detail", { p_id: "log-1" });
     expect(result).toEqual({
       id: "log-1",
       actor_id: "admin-1",
-      actor_display_name: null,
-      actor_username: null,
+      actor_display_name: "Admin User",
+      actor_username: "admin",
       actor_avatar_url: null,
       action: "user.banned",
       entity_type: "profile",
@@ -143,8 +126,13 @@ describe("fetchActivityLog", () => {
   });
 
   it("returns null when the entry does not exist", async () => {
-    mockSingle.mockResolvedValueOnce({ data: null, error: null });
+    mockRpc.mockResolvedValueOnce({ data: [], error: null });
     const result = await fetchActivityLog("nonexistent");
     expect(result).toBeNull();
+  });
+
+  it("throws when the RPC returns an error", async () => {
+    mockRpc.mockResolvedValueOnce({ data: null, error: { message: "admin role required" } });
+    await expect(fetchActivityLog("log-1")).rejects.toThrow("admin role required");
   });
 });

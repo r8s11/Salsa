@@ -138,7 +138,7 @@
   height: 32px;
   border-radius: 50%;
   background: var(--admin-brand-tint);
-  color: var(--admin-brand);
+  color: var(--admin-brand-text);
   font-weight: 700;
   font-size: 0.85rem;
 }

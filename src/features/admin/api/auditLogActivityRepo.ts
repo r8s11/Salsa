@@ -86,25 +86,22 @@ export async function fetchActivityLogs(
 // ---------------------------------------------------------------------------
 
 export async function fetchActivityLog(id: string): Promise<ActivityAuditLog | null> {
-  const { data, error } = await supabase
-    .from("audit_logs")
-    .select("*")
-    .eq("id", id)
-    .maybeSingle();
+  const { data, error } = await supabase.rpc("admin_audit_log_detail", { p_id: id });
 
   if (error) throw new Error(error.message);
-  if (!data) return null;
+  const row = data?.[0] as AuditRpcRow | undefined;
+  if (!row) return null;
 
   return {
-    id: data.id,
-    actor_id: data.actor_id,
-    actor_display_name: null,
-    actor_username: null,
-    actor_avatar_url: null,
-    action: data.action,
-    entity_type: data.entity_type,
-    entity_id: data.entity_id,
-    metadata: data.metadata,
-    created_at: data.created_at,
+    id: row.id,
+    actor_id: row.actor_id,
+    actor_display_name: row.actor_display_name,
+    actor_username: row.actor_username,
+    actor_avatar_url: row.actor_avatar_url,
+    action: row.action,
+    entity_type: row.entity_type,
+    entity_id: row.entity_id,
+    metadata: row.metadata,
+    created_at: row.created_at,
   };
 }

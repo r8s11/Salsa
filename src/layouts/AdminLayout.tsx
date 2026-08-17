@@ -29,6 +29,7 @@ const SECTION_LABEL: Record<string, string> = {
 
 function sectionLabelFor(pathname: string): string {
   if (SECTION_LABEL[pathname]) return SECTION_LABEL[pathname];
+  if (pathname.startsWith("/admin/events/")) return "Events";
   if (pathname.startsWith("/admin/users/")) return "Users";
   if (pathname.startsWith("/admin/organizer-requests/")) return "Organizer Requests";
   if (pathname.startsWith("/admin/venues/")) return "Venues";

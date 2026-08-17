@@ -14,8 +14,8 @@ export type AdminEventForm = Omit<SubmitForm, "dance_styles"> & {
   venue_id: string;
 };
 
-const HOST_MAX_LENGTH = 300;
-const INSTAGRAM_MAX_LENGTH = 100;
+export const HOST_MAX_LENGTH = 300;
+export const INSTAGRAM_MAX_LENGTH = 100;
 
 export function buildEmptyAdminForm(city: City): AdminEventForm {
   return {

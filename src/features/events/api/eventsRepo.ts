@@ -24,6 +24,8 @@ export interface AdminEventPayload {
   contact_website: string | null;
   taxonomy_term_ids: string[];
   venue_id: string | null;
+  /** Optional — the manual admin form doesn't manage this field; CSV import does. */
+  gallery?: string[] | null;
 }
 
 

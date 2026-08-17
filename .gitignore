@@ -135,6 +135,8 @@ dist
 .local_history
 
 .claude
+.agents/
+skills-lock.json
 
 # tsc declaration emit for config files (we don't ship .d.ts for vite.config)
 vite.config.d.ts

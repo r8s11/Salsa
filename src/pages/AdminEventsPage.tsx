@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { Link, useSearchParams } from "react-router-dom";
+import { Plus, Upload } from "lucide-react";
 import { useAdminEvents } from "../hooks/useAdminEvents";
 import { useCity } from "../contexts/useCity";
 import { usePlatformSettings } from "../features/admin/hooks/usePlatformSettings";
@@ -525,14 +525,20 @@ export default function AdminEventsPage() {
         title="Events"
         description="Manage events appearing on the SalsaSegura calendar."
         actions={
-          <button
-            type="button"
-            className="admin-btn admin-btn--primary"
-            onClick={() => setFormView({ mode: "create" })}
-          >
-            <Plus size={16} />
-            Create Event
-          </button>
+          <>
+            <Link to="/admin/events/import" className="admin-btn admin-btn--secondary">
+              <Upload size={16} />
+              Import Events
+            </Link>
+            <button
+              type="button"
+              className="admin-btn admin-btn--primary"
+              onClick={() => setFormView({ mode: "create" })}
+            >
+              <Plus size={16} />
+              Create Event
+            </button>
+          </>
         }
       />
 

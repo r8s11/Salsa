@@ -29,6 +29,7 @@ const AdminVenueDetailPage = lazy(() => import("./pages/AdminVenueDetailPage"));
 const AdminTagsPage = lazy(() => import("./pages/AdminTagsPage"));
 const AdminTaxonomyNewPage = lazy(() => import("./pages/AdminTaxonomyNewPage"));
 const AdminTaxonomyDetailPage = lazy(() => import("./pages/AdminTaxonomyDetailPage"));
+const AdminImportEventsPage = lazy(() => import("./pages/AdminImportEventsPage"));
 const AdminSubmissionsPage = lazy(() => import("./pages/Admin/AdminSubmissionsPage"));
 const AdminSubmissionDetailPage = lazy(() => import("./pages/Admin/AdminSubmissionDetailPage"));
 const AdminSettingsPage = lazy(() => import("./pages/AdminSettingsPage"));
@@ -59,6 +60,7 @@ function App() {
             >
               <Route index element={<AdminOverviewPage />} />
               <Route path="events" element={<AdminEventsPage />} />
+              <Route path="events/import" element={<AdminImportEventsPage />} />
               <Route path="submissions" element={<AdminSubmissionsPage />} />
               <Route path="submissions/:id" element={<AdminSubmissionDetailPage />} />
               <Route path="tags" element={<AdminTagsPage />} />

@@ -36,10 +36,10 @@ export const buildInitialForm = (city: City): SubmitForm => ({
   dance_styles: [],
 });
 
-const TITLE_MAX_LENGTH = 120;
-const DESCRIPTION_MAX_LENGTH = 2000;
-const OTHER_TEXT_MAX_LENGTH = 300;
-const DANCE_STYLES_MAX_COUNT = 10;
+export const TITLE_MAX_LENGTH = 120;
+export const DESCRIPTION_MAX_LENGTH = 2000;
+export const OTHER_TEXT_MAX_LENGTH = 300;
+export const DANCE_STYLES_MAX_COUNT = 10;
 
 export function validateSubmitForm(form: SubmitForm): string | null {
   // Length caps (spam friction)

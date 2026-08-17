@@ -11,7 +11,10 @@ export default defineConfig({
     exclude: [
       "**/node_modules/**",
       "**/dist/**",
+      // Agent-tooling directories: not app code, and their tests use Node's
+      // built-in node:test runner, which vitest can't bundle.
       ".claude/**",
+      ".agents/**",
     ],
   },
 });

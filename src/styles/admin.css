@@ -442,6 +442,9 @@
 
 .admin-shell .admin-page-header__actions {
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .admin-shell .admin-page-header__actions .admin-btn {
@@ -457,6 +460,7 @@
 
   .admin-shell .admin-page-header__actions {
     width: auto;
+    flex-direction: row;
   }
 
   .admin-shell .admin-page-header__actions .admin-btn {

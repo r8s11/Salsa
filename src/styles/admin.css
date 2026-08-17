@@ -630,6 +630,30 @@
 }
 
 /* ----------------------------------------
+   CSV import row status (AdminImportEventsPage)
+   Prefixed `--import-` to avoid colliding with event-status,
+   account-status, request-status, or venue-status modifiers. These
+   describe a CSV row's validation state, not an event's lifecycle.
+   ---------------------------------------- */
+.admin-shell .admin-status--import-valid {
+  background: var(--admin-success-tint);
+  color: var(--admin-success);
+  border-color: var(--admin-success-border);
+}
+
+.admin-shell .admin-status--import-warning {
+  background: var(--admin-warning-tint);
+  color: var(--admin-warning);
+  border-color: var(--admin-warning-border);
+}
+
+.admin-shell .admin-status--import-invalid {
+  background: var(--admin-danger-tint);
+  color: var(--admin-danger-strong);
+  border-color: var(--admin-danger-border);
+}
+
+/* ----------------------------------------
    Role badge (AdminRoleBadge)
    ---------------------------------------- */
 .admin-shell .admin-role {

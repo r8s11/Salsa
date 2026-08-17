@@ -225,9 +225,13 @@ describe("AdminImportEventsPage — validation review", () => {
       })
     );
     renderPage();
-    expect(screen.getByText("event_time: Must use 24-hour HH:MM format.")).toBeInTheDocument();
-    expect(screen.getByText("Invalid")).toBeInTheDocument();
-    expect(screen.getByText("7")).toBeInTheDocument();
+    // The page renders a desktop table and a mobile card stack for the same
+    // rows (the established admin dual-layout pattern). jsdom applies no CSS,
+    // so both are present — scope to the table, as AdminEventsTable's tests do.
+    const table = within(screen.getByRole("table"));
+    expect(table.getByText("event_time: Must use 24-hour HH:MM format.")).toBeInTheDocument();
+    expect(table.getByText("Invalid")).toBeInTheDocument();
+    expect(table.getByText("7")).toBeInTheDocument();
   });
 
   it("offers an error-rows CSV download only when there are invalid rows", () => {
@@ -268,8 +272,9 @@ describe("AdminImportEventsPage — validation review", () => {
     );
     renderPage();
 
-    expect(screen.getByText(/Possible duplicate/)).toBeInTheDocument();
-    const checkbox = screen.getByRole("checkbox", { name: /Import anyway/ });
+    const table = within(screen.getByRole("table"));
+    expect(table.getByText(/Possible duplicate/)).toBeInTheDocument();
+    const checkbox = table.getByRole("checkbox", { name: /Import anyway/ });
     expect(checkbox).not.toBeChecked();
     await userEvent.click(checkbox);
     expect(toggleIncludeDuplicate).toHaveBeenCalledWith(2);

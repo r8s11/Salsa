@@ -141,12 +141,12 @@
   align-items: center;
   justify-content: center;
   padding: 16px;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--admin-overlay);
 }
 
 .admin-venue-detail-page__form-container {
   background: var(--admin-surface);
-  border-radius: 8px;
+  border-radius: var(--admin-radius);
   max-width: 600px;
   width: 100%;
   max-height: 90vh;

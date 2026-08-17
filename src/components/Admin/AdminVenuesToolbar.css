@@ -45,7 +45,7 @@
   background: var(--admin-surface);
   border: 1px solid var(--admin-border);
   border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--admin-shadow-md);
 }
 
 .admin-venues-toolbar__status-panel li {

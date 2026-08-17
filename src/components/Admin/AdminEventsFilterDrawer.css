@@ -4,7 +4,7 @@
   z-index: 40;
   display: flex;
   justify-content: flex-end;
-  background: rgba(15, 23, 42, 0.35);
+  background: var(--admin-overlay);
 }
 
 .admin-events-filter-drawer {

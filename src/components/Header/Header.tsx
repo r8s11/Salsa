@@ -4,6 +4,7 @@ import { useCity } from "../../contexts/useCity";
 import { useAuth } from "../../contexts/useAuth";
 import type { City } from "../../contexts/CityContext";
 import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
+import SalsaSeguraLogo from "../brand/SalsaSeguraLogo";
 import "./Header.css";
 
 const PRIMARY_LINKS = [
@@ -63,7 +64,7 @@ function Header() {
     <header>
       <nav className="container" aria-label="Main navigation">
         <Link to="/" className="logo" onClick={closeNavigation}>
-          Salsa <span>Segura</span>
+          <SalsaSeguraLogo variant="full" size="lg" tone="brand" />
         </Link>
 
         <ul id="site-navigation" className={`nav-links ${mobileOpen ? "active" : ""}`}>

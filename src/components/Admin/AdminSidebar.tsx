@@ -17,6 +17,7 @@ import type { ComponentType } from "react";
 import { useAuth } from "../../contexts/useAuth";
 import { useTheme } from "../../contexts/useTheme";
 import { useOrganizerRequests } from "../../features/admin/hooks/useOrganizerRequests";
+import SalsaSeguraLogo from "../brand/SalsaSeguraLogo";
 import "./AdminSidebar.css";
 
 interface AdminSidebarProps {
@@ -75,7 +76,7 @@ export default function AdminSidebar({
   onToggleCollapse,
 }: AdminSidebarProps) {
   const { user, signOut, isAdmin, isModerator } = useAuth();
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, effectiveTheme } = useTheme();
   const { pendingCount } = useOrganizerRequests();
   const navItems = itemsWithGroupFlags(
     NAV_ITEMS.filter((item) =>
@@ -94,7 +95,9 @@ export default function AdminSidebar({
       data-variant={variant}
       data-collapsed={collapsed}
     >
-      <div className="admin-sidebar__brand">SalsaSegura</div>
+      <div className="admin-sidebar__brand">
+        <SalsaSeguraLogo variant="full" size="md" tone={effectiveTheme === "dark" ? "white" : "brand"} />
+      </div>
       <div className="admin-sidebar__scroll">
         {navItems.map(({ item, showGroup }) => {
           const Icon = item.icon;

@@ -1,12 +1,13 @@
 import { Link } from "react-router-dom";
 import SignInForm from "../components/Auth/SignInForm";
+import SalsaSeguraLogo from "../components/brand/SalsaSeguraLogo";
 import "./SignInPage.css";
 
 export default function SignInPage() {
   return (
     <main className="auth-page">
       <Link className="auth-logo" to="/" aria-label="Salsa Segura home">
-        Salsa Segura
+        <SalsaSeguraLogo variant="full" size="lg" tone="brand" />
       </Link>
       <div className="auth-shell">
         <section className="auth-story" aria-labelledby="auth-story-heading">

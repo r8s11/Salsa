@@ -1,0 +1,32 @@
+.ss-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  line-height: 1;
+}
+
+.ss-logo__mark {
+  display: block;
+  width: auto;
+  flex-shrink: 0;
+}
+
+.ss-logo--sm .ss-logo__mark {
+  height: 24px;
+}
+
+.ss-logo--md .ss-logo__mark {
+  height: 32px;
+}
+
+.ss-logo--lg .ss-logo__mark {
+  height: 44px;
+}
+
+.ss-logo__wordmark {
+  white-space: nowrap;
+  /* Intentionally no font-family/size/color here — inherits from whatever
+     container renders the logo (Header's .logo, SignInPage's .auth-logo,
+     AdminSidebar's .admin-sidebar__brand), so each context keeps its own
+     existing typography exactly as before this component existed. */
+}

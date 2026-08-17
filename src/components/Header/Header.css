@@ -28,7 +28,6 @@ a.logo {
   text-decoration: none;
 }
 
-a.logo span,
 a.logo:hover {
   color: var(--gold-light);
 }

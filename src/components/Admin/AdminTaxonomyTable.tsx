@@ -20,7 +20,7 @@ export default function AdminTaxonomyTable({
   onDelete: (id: string) => void;
 }) {
   const action = (term: TaxonomyTerm) => (
-    <div className="admin-table__actions">
+    <div className="admin-taxonomy-table__actions">
       {term.status === "archived" ? (
         <button
           type="button"
@@ -53,7 +53,7 @@ export default function AdminTaxonomyTable({
   return (
     <>
       <div className="admin-taxonomy-table__scroll">
-        <table className="admin-table">
+        <table className="admin-taxonomy-table">
           <thead>
             <tr>
               <th>Name</th>
@@ -89,7 +89,7 @@ export default function AdminTaxonomyTable({
         </table>
       </div>
       <div
-        className="admin-mobile-list admin-taxonomy-table__cards"
+        className="admin-taxonomy-cards admin-taxonomy-table__cards"
         aria-label="Taxonomy terms mobile list"
       >
         {terms.map((term) => (

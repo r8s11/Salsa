@@ -12,10 +12,10 @@
 --   4. Are granted only to authenticated (not public or anon)
 -- =====================================================================
 
-\echo '=== SalsaSegura Admin — Phase 14 RLS / Security Verification ==='
+-- === SalsaSegura Admin — Phase 14 RLS / Security Verification ===
 
 -- 1. Security definer + function config for all admin RPCs
-\echo '--- 1. SECURITY DEFINER status + config for admin functions ---'
+-- --- 1. SECURITY DEFINER status + config for admin functions ---
 SELECT
   p.proname AS function_name,
   p.prosecdef AS is_security_definer,
@@ -42,8 +42,7 @@ ORDER BY p.proname;
 -- and config_raw should include "search_path=public"
 -- (is_moderator and account_is_active are SECURITY INVOKER — that's correct by design)
 
-\echo ''
-\echo '--- 2. All non-admin trigger functions are not exposed to public/anon ---'
+-- --- 2. All non-admin trigger functions are not exposed to public/anon ---
 SELECT p.proname AS function_name, grantee_role.rolname AS grantee
 FROM pg_proc p
 JOIN pg_namespace n ON n.oid = p.pronamespace
@@ -57,8 +56,7 @@ WHERE n.nspname = 'public'
 
 -- Expected: zero rows returned. Trigger functions should NOT be callable via RPC.
 
-\echo ''
-\echo '--- 3. Audit table RLS + policy check ---'
+-- --- 3. Audit table RLS + policy check ---
 SELECT
   c.relname AS table_name,
   c.relrowsecurity AS rls_enabled,
@@ -76,8 +74,7 @@ JOIN pg_namespace n ON n.oid = c.relnamespace
 WHERE n.nspname = 'public' AND c.relname = 'audit_logs'
 ORDER BY p.polname;
 
-\echo ''
-\echo '--- 4. Verify no function grants to public/anon for admin functions ---'
+-- --- 4. Verify no function grants to public/anon for admin functions ---
 SELECT
   p.proname AS function_name,
   grantee_role.rolname AS grantee,
@@ -96,8 +93,7 @@ ORDER BY p.proname, grantee_role.rolname;
 
 -- Expected: zero rows returned. Admin functions must NOT be executable by public/anon.
 
-\echo ''
-\echo '--- 5. Verify function source contains admin role check ---'
+-- --- 5. Verify function source contains admin role check ---
 -- Each admin RPC should have the auth.jwt() role check in its body:
 -- if coalesce(auth.jwt() -> 'app_metadata' ->> 'role', '') <> 'admin' then
 SELECT p.proname,
@@ -110,8 +106,7 @@ WHERE n.nspname = 'public'
                      'admin_invite_user')
 ORDER BY p.proname;
 
-\echo ''
-\echo '--- 6. Verify audit_log_view does not expose sensitive columns ---'
+-- --- 6. Verify audit_log_view does not expose sensitive columns ---
 SELECT column_name, data_type
 FROM information_schema.columns
 WHERE table_schema = 'public'
@@ -121,5 +116,4 @@ ORDER BY ordinal_position;
 -- Should NOT contain before_state, after_state, or reason (PII) if the view
 -- is meant to be a safe read-only enrichment of audit_logs for listing.
 
-\echo ''
-\echo '=== Security Verification Complete ==='
+-- === Security Verification Complete ===

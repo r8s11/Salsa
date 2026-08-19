@@ -1,6 +1,6 @@
 -- Read-only diagnostic — no inserts/updates/deletes/DDL. Safe to run against
 -- production. Checks whether reconcile-prod-schema.sql (the pre-existing,
--- separate events-admin gap noted in reconcile-prod-schema-phase5.sql's
+-- separate events-admin gap noted in reconcile-prod-schema.sql's
 -- header) was ever applied.
 
 select

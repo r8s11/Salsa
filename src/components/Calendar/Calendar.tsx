@@ -15,6 +15,7 @@ import "./Calendar.css";
 import "@schedule-x/theme-default/dist/index.css";
 import { ScheduleXEvent, CALENDARS_CONFIG, City } from "../../types/events";
 import { filterEventsByType, TypeFilter } from "../../utils/filterEvents";
+import { getUpcomingSeriesDates } from "../../utils/series";
 import { useCity } from "../../contexts/useCity";
 import EventModal from "../EventModal/EventModal";
 import { useEvents } from "../../hooks/useEvent";
@@ -68,6 +69,39 @@ export default function Calendar() {
     () => filterEventsByType(eventList, typeFilter),
     [eventList, typeFilter]
   );
+
+  const expandedEvents = useMemo(() => {
+    const now = Temporal.Now.zonedDateTimeISO();
+    const cutoff = now.add({ weeks: 12 });
+    const expanded: ScheduleXEvent[] = [];
+
+    for (const event of filteredEvents) {
+      expanded.push(event);
+
+      if (event.recurrence !== "weekly") continue;
+
+      const originalStart = Temporal.PlainDateTime.from(event.start.replace(" ", "T"));
+      const originalEnd = Temporal.PlainDateTime.from(event.end.replace(" ", "T"));
+      const durationMinutes = originalEnd.since(originalStart).total({ unit: "minutes" });
+      const upcomingDates = getUpcomingSeriesDates(event.start, 12);
+
+      for (const futureDate of upcomingDates) {
+        const futureZdt = futureDate.toZonedDateTime("America/New_York");
+        if (Temporal.PlainDateTime.compare(futureZdt, cutoff.toPlainDateTime()) > 0) break;
+
+        const endDate = futureDate.add({ minutes: Math.round(durationMinutes) });
+
+        expanded.push({
+          ...event,
+          id: `${event.id}-w${upcomingDates.indexOf(futureDate) + 1}`,
+          start: futureDate.toString().replace("T", " "),
+          end: endDate.toString().replace("T", " "),
+        });
+      }
+    }
+
+    return expanded;
+  }, [filteredEvents]);
 
   useEffect(() => {
     eventListRef.current = eventList;
@@ -128,7 +162,7 @@ export default function Calendar() {
 
   useEffect(() => {
     eventsService.set(
-      filteredEvents.map((event) => ({
+      expandedEvents.map((event) => ({
         ...event,
         start: Temporal.PlainDateTime.from(event.start.replace(" ", "T")).toZonedDateTime(
           "America/New_York"
@@ -138,7 +172,7 @@ export default function Calendar() {
         ),
       }))
     );
-  }, [eventsService, filteredEvents]);
+  }, [eventsService, expandedEvents]);
 
   useEffect(() => {
     injectStructuredData(generateEventsListStructuredData(eventList), "events-list-data");
@@ -175,7 +209,7 @@ export default function Calendar() {
   const monthTitle = visibleDate.toLocaleString("en-US", { month: "long", year: "numeric" });
   const isEmpty = !loading && !error && eventList.length === 0;
   const hasNoMatches = !loading && !error && eventList.length > 0 && filteredEvents.length === 0;
-  const showCalendar = !loading && !error && filteredEvents.length > 0;
+  const showCalendar = !loading && !error && expandedEvents.length > 0;
   const showSubmitCta = !loading && !error && eventList.length > 0;
 
   return (

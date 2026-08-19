@@ -1,11 +1,6 @@
--- Phase 14 — admin_invite_user RPC
--- Adds the ability for an admin to invite a new user from the Users page.
--- This function creates an auth.users row + matching profiles row,
--- and logs the action to audit_logs.
---
--- Run this AFTER 20260815000000_users_management.sql has been applied.
--- SECURITY: This RPC is SECURITY DEFINER and admin-gated via auth.jwt().
+-- === Phase 14 — admin_invite_user RPC ===
 
+-- --- 1. Core tables present ---
 create or replace function public.admin_invite_user(
   p_email        text,
   p_display_name text default null,

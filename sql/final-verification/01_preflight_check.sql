@@ -5,10 +5,9 @@
 -- This script does NOT modify any data or schema. It only reads.
 -- =====================================================================
 
-\echo '=== SalsaSegura Admin — Phase 14 Preflight Check ==='
+-- === SalsaSegura Admin — Phase 14 Preflight Check ===
 
-\echo ''
-\echo '--- 1. Core tables present ---'
+-- --- 1. Core tables present ---
 SELECT tbl, EXISTS(SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name=tbl) AS exists
 FROM (VALUES
   ('events'), ('event_submissions'), ('profiles'), ('audit_logs'),
@@ -17,8 +16,7 @@ FROM (VALUES
 ) AS v(tbl)
 ORDER BY tbl;
 
-\echo ''
-\echo '--- 2. Admin RPC functions present ---'
+-- --- 2. Admin RPC functions present ---
 SELECT routine_name,
        EXISTS(
          SELECT 1 FROM information_schema.parameters p
@@ -39,8 +37,7 @@ WHERE r.routine_schema = 'public'
   )
 ORDER BY routine_name;
 
-\echo ''
-\echo '--- 3. Audit log columns present ---'
+-- --- 3. Audit log columns present ---
 SELECT col, EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='audit_logs' AND column_name=col) AS exists
 FROM (VALUES
   ('id'), ('actor_id'), ('action'), ('entity_type'), ('entity_id'),
@@ -49,8 +46,7 @@ FROM (VALUES
 ) AS v(col)
 ORDER BY col;
 
-\echo ''
-\echo '--- 4. Platform settings columns present ---'
+-- --- 4. Platform settings columns present ---
 SELECT col, EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='platform_settings' AND column_name=col) AS exists
 FROM (VALUES
   ('singleton'), ('platform_name'), ('public_site_url'), ('support_email'),
@@ -61,8 +57,7 @@ FROM (VALUES
 ) AS v(col)
 ORDER BY col;
 
-\echo ''
-\echo '--- 5. Analytics prerequisite columns ---'
+-- --- 5. Analytics prerequisite columns ---
 SELECT col, tbl, EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name=tbl AND column_name=col) AS exists
 FROM (VALUES
   ('event_date', 'events'), ('status', 'events'), ('rsvp_link', 'events'),
@@ -71,14 +66,12 @@ FROM (VALUES
 ) AS v(col, tbl)
 ORDER BY tbl, col;
 
-\echo ''
-\echo '--- 6. NULL submitted_at count (determines if backfill needed) ---'
+-- --- 6. NULL submitted_at count (determines if backfill needed) ---
 SELECT count(*) AS null_submitted_at_count
 FROM public.event_submissions
 WHERE submitted_at IS NULL;
 
-\echo ''
-\echo '--- 7. RLS enabled on key tables ---'
+-- --- 7. RLS enabled on key tables ---
 SELECT relname AS table_name,
        relrowsecurity AS rls_enabled,
        relforcerowsecurity AS force_rls
@@ -88,12 +81,10 @@ WHERE n.nspname = 'public'
   AND c.relname IN ('events', 'event_submissions', 'profiles', 'audit_logs', 'venues')
 ORDER BY relname;
 
-\echo ''
-\echo '--- 8. Current user role ---'
+-- --- 8. Current user role ---
 SELECT coalesce(auth.jwt() -> 'app_metadata' ->> 'role', 'none') AS current_role;
 
-\echo ''
-\echo '--- 9. Admin functions granted to authenticated only ---'
+-- --- 9. Admin functions granted to authenticated only ---
 SELECT p.proname AS function_name,
        grantee_role.rolname AS grantee,
        'EXECUTE' AS privilege_type
@@ -109,8 +100,7 @@ WHERE n.nspname = 'public'
   AND grantee_role.rolname IN ('public', 'anon', 'authenticated')
 ORDER BY p.proname, grantee_role.rolname;
 
-\echo ''
-\echo '--- 10. Trigger functions not exposed to public/anon ---'
+-- --- 10. Trigger functions not exposed to public/anon ---
 SELECT p.proname AS function_name, grantee_role.rolname AS grantee
 FROM pg_proc p
 JOIN pg_namespace n ON n.oid = p.pronamespace
@@ -127,5 +117,4 @@ ORDER BY p.proname;
 
 -- Expected: no rows returned for trigger functions granted to public/anon
 
-\echo ''
-\echo '=== Preflight Check Complete ==='
+-- === Preflight Check Complete ===

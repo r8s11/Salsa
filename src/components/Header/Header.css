@@ -241,7 +241,7 @@ a.logo:hover {
     margin: 0;
     padding: var(--space-md) var(--gutter);
     overflow-y: auto;
-    background: var(--background);
+    background: var(--bg);
   }
 
   .nav-links.active { display: flex; }

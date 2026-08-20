@@ -216,4 +216,17 @@ describe("Header", () => {
     expect(within(account).getByRole("button", { name: "Sign Out" })).toBeInTheDocument();
     expect(within(city).getByRole("button", { name: "NYC" })).toHaveAttribute("aria-pressed", "true");
   });
+  it("uses rose-red CTA only for Submit Event and quiet secondary style for Sign In", async () => {
+    vi.mocked(useAuth).mockReturnValue(defaultAuth());
+    vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
+    const user = userEvent.setup();
+    renderHeader();
+
+    await user.click(screen.getByRole("button", { name: "Open menu" }));
+    const drawer = document.getElementById("site-navigation") as HTMLElement;
+    const account = within(drawer).getByRole("region", { name: "Account" });
+
+    expect(within(account).getByRole("link", { name: "Submit Event" })).toHaveClass("auth-btn");
+    expect(within(account).getByRole("link", { name: "Sign In" })).not.toHaveClass("auth-btn");
+  });
 });

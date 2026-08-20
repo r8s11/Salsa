@@ -97,7 +97,7 @@ function Header() {
                   <NavLink to="/submit" className="auth-btn" onClick={closeNavigation}>
                     Submit Event
                   </NavLink>
-                  <NavLink to="/signin" className="auth-btn" onClick={closeNavigation}>Sign In</NavLink>
+                  <NavLink to="/signin" onClick={closeNavigation}>Sign In</NavLink>
                 </>
               )}
             </section>

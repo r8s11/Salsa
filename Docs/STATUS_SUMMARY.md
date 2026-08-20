@@ -1,6 +1,6 @@
 # SalsaSegura.com - Project Status Summary
 
-> Generated: July 15, 2026 (previous snapshot: February 10, 2026) · Updated: August 17, 2026 (Admin Dashboard Phases 1-14 closed out; docs reconciled with `main`)
+> Generated: July 15, 2026 (previous snapshot: February 10, 2026) · Updated: August 20, 2026 (Admin Dashboard Phases 1-14 closed out; docs reconciled with `main`; redesign scope documented)
 
 ---
 
@@ -72,6 +72,19 @@ Full `/admin/*` surface, see `SALSASEGURA_ADMIN_CLOSEOUT.md` for the complete ar
 - Epilogue / Be Vietnam Pro / Great Vibes typography; rose/gold/periwinkle event-type color scheme
 - Light-mode toggle removed — dark-only
 - Design tokens synced to Claude Design ("Ritmo Vivo" project, `.design-sync/config.json`)
+
+### Comprehensive redesign scope (`Comprehensive redesign scope/`) ✅
+
+Canonical design source for the public site and admin dashboard. Contains:
+
+- **Brand assets:** full logo package (PNGs at 32–1024 px, monochrome variants, app icons, print PDF)
+- **Design system:** `DESIGN.md` (colors, typography, spacing, glassmorphism tokens), `ritmo_salsa_admin_phase_1_specification.md` (admin UX rationale, shell spec, sidebar hierarchy, responsive behavior)
+- **DeCanvas mockups:** `Salsa Segura - Redesign.dc.html` (canonical — inline styles become real CSS classes), standalone bundle, current-site snapshot
+- **Tailwind admin mockups** (`uploads/`): 6 HTML pages — Events Management, Organizer My Events, Moderator Dashboard, Overview variants (dark + light themes). Self-contained, open-in-browser previews
+- **Extracted CSS** (`src-css/`): design-system CSS for Header, Hero, Calendar, Events, EventModal, Footer, Contact, AboutPage, SubmitEventPage, WorkInProgress, global tokens
+- **Project code exports** (`uploads/`): `AdminLayout.tsx`, `AdminLayout.css`, `AdminLayout.test.tsx`, `MainLayout.tsx` — mirrors of `src/layouts/`, kept as design-tool reference
+- **Screenshots** (`shots/`): 15 preview images of the redesigned views
+- **Design tool runtime** (`_ds/`, `support.js`, `image-slot.js`): DeCanvas bundle and helpers
 
 ### Earlier foundation ✅
 

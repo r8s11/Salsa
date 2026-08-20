@@ -8,13 +8,13 @@ import {
   MapPin,
   Tag,
   Settings,
-  Activity,
-  BarChart3,
   ChevronLeft,
   ChevronRight as ChevronRightIcon,
+  Upload,
 } from "lucide-react";
 import type { ComponentType } from "react";
 import { useAuth } from "../../contexts/useAuth";
+import type { UserRole } from "../../contexts/authContextObject";
 import { useTheme } from "../../contexts/useTheme";
 import { useOrganizerRequests } from "../../features/admin/hooks/useOrganizerRequests";
 import SalsaSeguraLogo from "../brand/SalsaSeguraLogo";
@@ -30,41 +30,99 @@ interface AdminSidebarProps {
 type NavItem = {
   label: string;
   icon: ComponentType<{ size?: number }>;
-  group: string;
-  roles: ("admin" | "moderator")[];
+  to: string;
+  end?: boolean;
+  roles: UserRole[];
+  section?: string;
   badge?: number | null;
-} & ({ to: string; built: true } | { to?: undefined; built: false });
+};
 
-const NAV_ITEMS: NavItem[] = [
-  { group: "Overview", label: "Dashboard", icon: LayoutDashboard, roles: ["admin", "moderator"], to: "/admin", built: true },
-  { group: "Management", label: "Events", icon: CalendarDays, roles: ["admin", "moderator"], to: "/admin/events", built: true },
-  { group: "Management", label: "Users", icon: Users, roles: ["admin"], to: "/admin/users", built: true },
+type NavSection = {
+  title: string;
+  items: NavItem[];
+  roles: UserRole[];
+};
+
+const NAV_SECTIONS: NavSection[] = [
+  // ── Admin ──────────────────────────────────────────────
   {
-    group: "Review",
-    label: "Event Submissions",
-    icon: ClipboardCheck,
+    title: "Overview",
+    roles: ["admin", "moderator", "organizer"],
+    items: [
+      {
+        label: "Dashboard",
+        icon: LayoutDashboard,
+        to: "/admin",
+        end: true,
+        roles: ["admin", "moderator", "organizer"],
+      },
+    ],
+  },
+  {
+    title: "Management",
+    roles: ["admin", "moderator", "organizer"],
+    items: [
+      { label: "Events", icon: CalendarDays, to: "/admin/events", roles: ["admin"] },
+      {
+        label: "Bulk Upload",
+        icon: Upload,
+        to: "/admin/events/import",
+        roles: ["admin", "organizer"],
+      },
+      { label: "Users", icon: Users, to: "/admin/users", roles: ["admin"] },
+    ],
+  },
+  {
+    title: "Review",
     roles: ["admin", "moderator"],
-    to: "/admin/submissions",
-    built: true,
+    items: [
+      {
+        label: "Event Submissions",
+        icon: ClipboardCheck,
+        to: "/admin/submissions",
+        roles: ["admin", "moderator"],
+      },
+      {
+        label: "Organizer Requests",
+        icon: UserPlus,
+        to: "/admin/organizer-requests",
+        roles: ["admin", "moderator"],
+      },
+    ],
   },
   {
-    group: "Review",
-    label: "Organizer Requests",
-    icon: UserPlus,
+    title: "Platform",
     roles: ["admin"],
-    to: "/admin/organizer-requests",
-    built: true,
+    items: [
+      { label: "Venues", icon: MapPin, to: "/admin/venues", roles: ["admin"] },
+      { label: "Tags", icon: Tag, to: "/admin/tags", roles: ["admin", "moderator"] },
+    ],
   },
-  { group: "Platform", label: "Venues", icon: MapPin, roles: ["admin"], to: "/admin/venues", built: true },
-  { group: "Platform", label: "Tags", icon: Tag, roles: ["admin", "moderator"], to: "/admin/tags", built: true },
-  { group: "Management", label: "Activity", icon: Activity, roles: ["admin"], to: "/admin/activity", built: true },
-  { group: "Insights", label: "Analytics", icon: BarChart3, roles: ["admin"], to: "/admin/analytics", built: true },
-  { group: "System", label: "Settings", icon: Settings, roles: ["admin"], to: "/admin/settings", built: true },
+  {
+    title: "System",
+    roles: ["admin"],
+    items: [{ label: "Settings", icon: Settings, to: "/admin/settings", roles: ["admin"] }],
+  },
 ];
-function itemsWithGroupFlags(items: NavItem[]) {
+
+function navItemsForRole(role: UserRole | null): NavItem[] {
+  const activeRoles: UserRole[] = role === null ? [] : [role];
+  const roleSet = new Set(activeRoles);
+  // A user with role "admin" also qualifies for moderator-scoped items.
+  if (role === "admin") roleSet.add("moderator");
+  return NAV_SECTIONS.filter((section) =>
+    activeRoles.some((r) => section.roles.includes(r))
+  ).flatMap((section) =>
+    section.items
+      .filter((item) => item.roles.some((r) => roleSet.has(r)))
+      .map((item) => ({ ...item, section: section.title }))
+  );
+}
+
+function itemsWithGroupFlags(items: NavItem[]): { item: NavItem; showGroup: boolean }[] {
   return items.reduce<{ item: NavItem; showGroup: boolean }[]>((acc, item) => {
     const previous = acc[acc.length - 1];
-    const showGroup = !previous || previous.item.group !== item.group;
+    const showGroup = !previous || previous.item.section !== item.section;
     return [...acc, { item, showGroup }];
   }, []);
 }
@@ -75,14 +133,10 @@ export default function AdminSidebar({
   collapsed = false,
   onToggleCollapse,
 }: AdminSidebarProps) {
-  const { user, signOut, isAdmin, isModerator } = useAuth();
+  const { user, role, signOut } = useAuth();
   const { theme, setTheme, effectiveTheme } = useTheme();
   const { pendingCount } = useOrganizerRequests();
-  const navItems = itemsWithGroupFlags(
-    NAV_ITEMS.filter((item) =>
-      isAdmin ? item.roles.includes("admin") : isModerator ? item.roles.includes("moderator") : false
-    )
-  );
+  const navItems = itemsWithGroupFlags(navItemsForRole(role));
 
   const handleSignOut = async () => {
     await signOut();
@@ -96,7 +150,11 @@ export default function AdminSidebar({
       data-collapsed={collapsed}
     >
       <div className="admin-sidebar__brand">
-        <SalsaSeguraLogo variant="full" size="md" tone={effectiveTheme === "dark" ? "white" : "brand"} />
+        <SalsaSeguraLogo
+          variant="full"
+          size="md"
+          tone={effectiveTheme === "dark" ? "white" : "brand"}
+        />
       </div>
       <div className="admin-sidebar__scroll">
         {navItems.map(({ item, showGroup }) => {
@@ -105,74 +163,62 @@ export default function AdminSidebar({
           const badge = isOrganizerRequests ? pendingCount : null;
 
           return (
-            <div key={item.label} className="admin-nav__item-wrap">
-              {showGroup && <span className="admin-nav__group">{item.group}</span>}
-              {item.built ? (
-                <NavLink
-                  to={item.to}
-                  end={item.to === "/admin"}
-                  onClick={() => onNavigate?.()}
-                  className={({ isActive }) =>
-                    `admin-nav__link${isActive ? " admin-nav__link--active" : ""}`
-                  }
-                  title={item.label}
-                >
-                  <Icon size={18} />
-                  <span className="admin-nav__label">{item.label}</span>
-                  {badge !== null && badge !== undefined && badge > 0 && (
-                    <span
-                      className="admin-nav__badge"
-                      aria-label={`${badge} pending organizer requests`}
-                    >
-                      {badge}
-                    </span>
-                  )}
-                </NavLink>
-              ) : (
-                <span
-                  className="admin-nav__link admin-nav__link--disabled"
-                  aria-disabled="true"
-                  title={item.label}
-                >
-                  <Icon size={18} />
-                  <span className="admin-nav__label">{item.label}</span>
-                  <span className="admin-nav__soon">Soon</span>
-                </span>
-              )}
+            <div key={item.to} className="admin-nav__item-wrap">
+              {showGroup && <span className="admin-nav__group">{item.section}</span>}
+              <NavLink
+                to={item.to}
+                end={item.end}
+                onClick={() => onNavigate?.()}
+                className={({ isActive }) =>
+                  `admin-nav__link${isActive ? " admin-nav__link--active" : ""}`
+                }
+                title={item.label}
+              >
+                <Icon size={18} />
+                <span className="admin-nav__label">{item.label}</span>
+                {badge !== null && badge !== undefined && badge > 0 && (
+                  <span
+                    className="admin-nav__badge"
+                    aria-label={`${badge} pending organizer requests`}
+                  >
+                    {badge}
+                  </span>
+                )}
+              </NavLink>
             </div>
           );
         })}
-        {variant === "drawer" && (
-          <div className="admin-sidebar__account">
-            {user?.email && <p className="admin-sidebar__account-email">{user.email}</p>}
-            <details className="admin-sidebar__appearance">
-              <summary>Appearance</summary>
-              <fieldset className="admin-account__theme-options">
-                <legend className="admin-visually-hidden">Choose theme appearance</legend>
-                {(["system", "light", "dark"] as const).map((option) => (
-                  <label key={option} className="admin-account__theme-option">
-                    <input
-                      type="radio"
-                      name="admin-sidebar-theme"
-                      value={option}
-                      checked={theme === option}
-                      onChange={() => setTheme(option)}
-                      aria-label={
-                        option === "system" ? "System" : option === "light" ? "Light" : "Dark"
-                      }
-                    />
-                    {option === "system" ? "System" : option === "light" ? "Light" : "Dark"}
-                  </label>
-                ))}
-              </fieldset>
-            </details>
-            <a href="/">View site</a>
-            <button type="button" onClick={handleSignOut}>
-              Sign out
-            </button>
-          </div>
-        )}
       </div>
+      {variant === "drawer" && (
+        <div className="admin-sidebar__account">
+          {user?.email && <p className="admin-sidebar__account-email">{user.email}</p>}
+          <details className="admin-sidebar__appearance">
+            <summary>Appearance</summary>
+            <fieldset className="admin-account__theme-options">
+              <legend className="admin-visually-hidden">Choose theme appearance</legend>
+              {(["system", "light", "dark"] as const).map((option) => (
+                <label key={option} className="admin-account__theme-option">
+                  <input
+                    type="radio"
+                    name="admin-sidebar-theme"
+                    value={option}
+                    checked={theme === option}
+                    onChange={() => setTheme(option)}
+                    aria-label={
+                      option === "system" ? "System" : option === "light" ? "Light" : "Dark"
+                    }
+                  />
+                  {option === "system" ? "System" : option === "light" ? "Light" : "Dark"}
+                </label>
+              ))}
+            </fieldset>
+          </details>
+          <a href="/">View site</a>
+          <button type="button" onClick={handleSignOut}>
+            Sign out
+          </button>
+        </div>
+      )}
       {variant === "fixed" && onToggleCollapse && (
         <button
           type="button"

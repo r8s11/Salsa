@@ -11,6 +11,7 @@ vi.mock("../features/admin/hooks/useOrganizerRequests", () => ({ useOrganizerReq
 vi.mock("../contexts/useAuth", () => ({
   useAuth: () => ({
     user: { id: "admin-1", email: "admin@salsa.test" },
+    role: "admin",
     isAdmin: true,
     isModerator: true,
     signOut: vi.fn(),
@@ -106,6 +107,13 @@ describe("AdminLayout", () => {
     renderLayoutAt("/admin/users/organizer-1");
     expect(
       screen.getByText("Users", { selector: ".admin-breadcrumbs__current" })
+    ).toBeInTheDocument();
+  });
+
+  it("breadcrumb on dashboard route reads 'Admin · Dashboard'", () => {
+    renderLayout();
+    expect(
+      screen.getByText("Admin · Dashboard", { selector: ".admin-breadcrumbs__crumb" })
     ).toBeInTheDocument();
   });
 

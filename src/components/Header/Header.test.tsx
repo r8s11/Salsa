@@ -16,8 +16,10 @@ const defaultAuth = (overrides: Partial<AuthContextValue> = {}): AuthContextValu
   user: null,
   session: null,
   loading: false,
+  role: null,
   isAdmin: false,
   isModerator: false,
+  isOrganizer: false,
   signInWithPassword: vi.fn(),
   signUp: vi.fn(),
   signOut: vi.fn().mockResolvedValue(undefined),
@@ -28,9 +30,17 @@ function renderHeader() {
   return render(
     <MemoryRouter initialEntries={["/"]}>
       <Routes>
-        <Route path="*" element={<><Header /><main>Destination</main></>} />
+        <Route
+          path="*"
+          element={
+            <>
+              <Header />
+              <main>Destination</main>
+            </>
+          }
+        />
       </Routes>
-    </MemoryRouter>,
+    </MemoryRouter>
   );
 }
 
@@ -51,7 +61,7 @@ describe("Header", () => {
     expect(screen.getAllByRole("link", { name: "Sign In" })[0]).toHaveAttribute("href", "/signin");
   });
 
-  it("renders member account disclosure without Admin", () => {
+  it("renders member account disclosure without Dashboard", () => {
     vi.mocked(useAuth).mockReturnValue(defaultAuth({ user: { id: "member" } as User }));
     vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
 
@@ -59,19 +69,28 @@ describe("Header", () => {
 
     const account = screen.getByText("Account").closest("details");
     expect(account).toBeInTheDocument();
-    expect(screen.getAllByRole("link", { name: "Submit Event" })[0]).toHaveAttribute("href", "/submit");
-    expect(within(account as HTMLElement).getByRole("link", { name: "My Profile" })).toHaveAttribute("href", "/profile");
-    expect(within(account as HTMLElement).getByRole("button", { name: "Sign Out" })).toBeInTheDocument();
-    expect(screen.queryAllByRole("link", { name: "Admin" })).toHaveLength(0);
+    expect(screen.getAllByRole("link", { name: "Submit Event" })[0]).toHaveAttribute(
+      "href",
+      "/submit"
+    );
+    expect(
+      within(account as HTMLElement).getByRole("link", { name: "My Profile" })
+    ).toHaveAttribute("href", "/profile");
+    expect(
+      within(account as HTMLElement).getByRole("button", { name: "Sign Out" })
+    ).toBeInTheDocument();
+    expect(screen.queryAllByRole("link", { name: "Dashboard" })).toHaveLength(0);
   });
 
-  it("renders Admin only for admins", () => {
-    vi.mocked(useAuth).mockReturnValue(defaultAuth({ user: { id: "admin" } as User, isAdmin: true }));
+  it("renders Dashboard for reviewers (admin or moderator)", () => {
+    vi.mocked(useAuth).mockReturnValue(
+      defaultAuth({ user: { id: "admin" } as User, isAdmin: true, isModerator: true })
+    );
     vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
 
     renderHeader();
 
-    expect(screen.getAllByRole("link", { name: "Admin" })[0]).toHaveAttribute("href", "/admin");
+    expect(screen.getAllByRole("link", { name: "Dashboard" })[0]).toHaveAttribute("href", "/admin");
   });
 
   it("opens and closes the drawer after a navigation link", async () => {
@@ -81,9 +100,15 @@ describe("Header", () => {
     renderHeader();
 
     await user.click(screen.getByRole("button", { name: "Open menu" }));
-    expect(screen.getByRole("button", { name: "Close menu" })).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("button", { name: "Close menu" })).toHaveAttribute(
+      "aria-expanded",
+      "true"
+    );
     await user.click(screen.getByRole("link", { name: "Calendar" }));
-    expect(screen.getByRole("button", { name: "Open menu" })).toHaveAttribute("aria-expanded", "false");
+    expect(screen.getByRole("button", { name: "Open menu" })).toHaveAttribute(
+      "aria-expanded",
+      "false"
+    );
   });
 
   it("closes the drawer after a guest action", async () => {
@@ -93,24 +118,48 @@ describe("Header", () => {
     renderHeader();
 
     await user.click(screen.getByRole("button", { name: "Open menu" }));
-    await user.click(within(document.getElementById("site-navigation") as HTMLElement).getByRole("link", { name: "Sign In" }));
-    expect(screen.getByRole("button", { name: "Open menu" })).toHaveAttribute("aria-expanded", "false");
+    await user.click(
+      within(document.getElementById("site-navigation") as HTMLElement).getByRole("link", {
+        name: "Sign In",
+      })
+    );
+    expect(screen.getByRole("button", { name: "Open menu" })).toHaveAttribute(
+      "aria-expanded",
+      "false"
+    );
   });
 
   it("awaits member sign out and closes the drawer", async () => {
     let resolveSignOut: (() => void) | undefined;
-    const signOut = vi.fn(() => new Promise<void>((resolve) => { resolveSignOut = resolve; }));
+    const signOut = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveSignOut = resolve;
+        })
+    );
     vi.mocked(useAuth).mockReturnValue(defaultAuth({ user: { id: "member" } as User, signOut }));
     vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
     const user = userEvent.setup();
     renderHeader();
 
     await user.click(screen.getByRole("button", { name: "Open menu" }));
-    await user.click(within(document.getElementById("site-navigation") as HTMLElement).getByRole("button", { name: "Sign Out" }));
+    await user.click(
+      within(document.getElementById("site-navigation") as HTMLElement).getByRole("button", {
+        name: "Sign Out",
+      })
+    );
     expect(signOut).toHaveBeenCalledOnce();
-    expect(screen.getByRole("button", { name: "Close menu" })).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("button", { name: "Close menu" })).toHaveAttribute(
+      "aria-expanded",
+      "true"
+    );
     resolveSignOut?.();
-    await waitFor(() => expect(screen.getByRole("button", { name: "Open menu" })).toHaveAttribute("aria-expanded", "false"));
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Open menu" })).toHaveAttribute(
+        "aria-expanded",
+        "false"
+      )
+    );
   });
 
   it("closes the drawer with Escape", async () => {
@@ -121,6 +170,9 @@ describe("Header", () => {
 
     await user.click(screen.getByRole("button", { name: "Open menu" }));
     await user.keyboard("{Escape}");
-    expect(screen.getByRole("button", { name: "Open menu" })).toHaveAttribute("aria-expanded", "false");
+    expect(screen.getByRole("button", { name: "Open menu" })).toHaveAttribute(
+      "aria-expanded",
+      "false"
+    );
   });
 });

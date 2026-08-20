@@ -19,7 +19,7 @@ function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const accountDisclosure = useRef<HTMLDetailsElement>(null);
   const { city, setCity } = useCity();
-  const { user, isAdmin, signOut } = useAuth();
+  const { user, isModerator, signOut } = useAuth();
   const navigate = useNavigate();
 
   const closeNavigation = useCallback(() => {
@@ -85,9 +85,9 @@ function Header() {
                 <NavLink to="/profile" onClick={closeNavigation}>
                   My Profile
                 </NavLink>
-                {isAdmin && (
+                {isModerator && (
                   <NavLink to="/admin" onClick={closeNavigation}>
-                    Admin
+                    Dashboard
                   </NavLink>
                 )}
                 <button type="button" className="drawer-sign-out" onClick={handleSignOut}>
@@ -120,9 +120,9 @@ function Header() {
                   <NavLink to="/profile" onClick={closeNavigation}>
                     My Profile
                   </NavLink>
-                  {isAdmin && (
+                  {isModerator && (
                     <NavLink to="/admin" onClick={closeNavigation}>
-                      Admin
+                      Dashboard
                     </NavLink>
                   )}
                   <button type="button" onClick={handleSignOut}>

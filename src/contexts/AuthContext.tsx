@@ -4,6 +4,15 @@ import { supabase } from "../lib/supabase";
 import { AuthContext } from "./authContextObject";
 import type { AuthContextValue } from "./authContextObject";
 
+import type { UserRole } from "./authContextObject";
+
+function roleFromUser(user: User | null): UserRole | null {
+  const role = user?.app_metadata?.role;
+  if (role === "admin" || role === "moderator" || role === "organizer") {
+    return role;
+  }
+  return null;
+}
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -31,35 +40,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signInWithPassword = useCallback(
-    async (email: string, password: string) => {
-      setLoading(true);
-      try {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        return { error: error as Error | null };
-      } finally {
-        setLoading(false);
-      }
-    },
-    [],
-  );
+  const signInWithPassword = useCallback(async (email: string, password: string) => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      return { error: error as Error | null };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const signUp = useCallback(
-    async (email: string, password: string) => {
-      setLoading(true);
-      try {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-        });
-        return { error: error as Error | null, session: data.session };
-      } finally {
-        setLoading(false);
-      }
-    },
-    [],
-  );
-
+  const signUp = useCallback(async (email: string, password: string) => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+      return { error: error as Error | null, session: data.session };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const signOut = useCallback(async () => {
     setLoading(true);
@@ -70,12 +72,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const role = roleFromUser(user);
   const value: AuthContextValue = {
     user,
     session,
     loading,
-    isAdmin: user?.app_metadata?.role === "admin",
-    isModerator: user?.app_metadata?.role === "moderator" || user?.app_metadata?.role === "admin",
+    role,
+    isAdmin: role === "admin",
+    isModerator: role === "admin" || role === "moderator",
+    isOrganizer: role === "organizer",
     signInWithPassword,
     signUp,
     signOut,

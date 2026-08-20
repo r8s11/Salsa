@@ -60,7 +60,13 @@ vi.mock("../../features/admin/hooks/useOrganizerRequests", () => ({
 }));
 
 beforeEach(() => {
-  vi.mocked(useAuth).mockReturnValue({ user: null, isAdmin: true, isModerator: false, signOut: vi.fn() });
+  vi.mocked(useAuth).mockReturnValue({
+    user: null,
+    role: "admin",
+    isAdmin: true,
+    isModerator: false,
+    signOut: vi.fn(),
+  });
   vi.mocked(useTheme).mockReturnValue({
     theme: "system",
     effectiveTheme: "light",
@@ -72,6 +78,7 @@ describe("AdminSidebar drawer account block", () => {
   beforeEach(() => {
     vi.mocked(useAuth).mockReturnValue({
       user: { email: "admin@salsa.test" },
+      role: "admin",
       isAdmin: true,
       isModerator: false,
       signOut: vi.fn(),
@@ -107,6 +114,7 @@ describe("AdminSidebar settings navigation", () => {
   it("renders Settings as an admin-only link", () => {
     vi.mocked(useAuth).mockReturnValue({
       user: { email: "admin@salsa.test" },
+      role: "admin",
       isAdmin: true,
       isModerator: true,
       signOut: vi.fn(),
@@ -123,6 +131,7 @@ describe("AdminSidebar settings navigation", () => {
   it("does not render Settings for moderators", () => {
     vi.mocked(useAuth).mockReturnValue({
       user: { email: "moderator@salsa.test" },
+      role: "moderator",
       isAdmin: false,
       isModerator: true,
       signOut: vi.fn(),

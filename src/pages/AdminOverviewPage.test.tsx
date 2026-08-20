@@ -5,19 +5,23 @@ import type { DatabaseEvent } from "../features/events/model/types";
 import type { AdminUserRow } from "../features/admin/model/usersQuery";
 import AdminOverviewPage from "./AdminOverviewPage";
 
-const { useAdminEvents, useAdminUserCount, useAdminUsers, useOrganizerRequests, useAdminVenues } = vi.hoisted(() => ({
-  useAdminEvents: vi.fn(),
-  useAdminUserCount: vi.fn(),
-  useAdminUsers: vi.fn(),
-  useOrganizerRequests: vi.fn(),
-  useAdminVenues: vi.fn(),
-}));
+const { useAdminEvents, useAdminUserCount, useAdminUsers, useOrganizerRequests, useAdminVenues } =
+  vi.hoisted(() => ({
+    useAdminEvents: vi.fn(),
+    useAdminUserCount: vi.fn(),
+    useAdminUsers: vi.fn(),
+    useOrganizerRequests: vi.fn(),
+    useAdminVenues: vi.fn(),
+  }));
+
+const { useAuth } = vi.hoisted(() => ({ useAuth: vi.fn() }));
 
 vi.mock("../hooks/useAdminEvents", () => ({ useAdminEvents }));
 vi.mock("../hooks/useAdminUserCount", () => ({ useAdminUserCount }));
 vi.mock("../hooks/useAdminUsers", () => ({ useAdminUsers }));
 vi.mock("../features/admin/hooks/useOrganizerRequests", () => ({ useOrganizerRequests }));
 vi.mock("../features/admin/hooks/useAdminVenues", () => ({ useAdminVenues }));
+vi.mock("../contexts/useAuth", () => ({ useAuth }));
 
 // The component derives its metrics from the real clock (`new Date()` inside
 // its own useMemo, per the purity-lint-safe pattern), so fixture dates are
@@ -64,7 +68,13 @@ const baseEvent: DatabaseEvent = {
 // — 6 total events. upcomingCount=2, pendingCount=2, incompleteCount=1.
 const events: DatabaseEvent[] = [
   baseEvent,
-  { ...baseEvent, id: "event-2", title: "Incomplete Future Event", event_date: daysFromNow(15), location: null },
+  {
+    ...baseEvent,
+    id: "event-2",
+    title: "Incomplete Future Event",
+    event_date: daysFromNow(15),
+    location: null,
+  },
   {
     ...baseEvent,
     id: "event-3",
@@ -99,7 +109,14 @@ const baseUser: AdminUserRow = {
 const users: AdminUserRow[] = [
   baseUser,
   { ...baseUser, id: "user-2", user_id: "user-2", role: "organizer", status: "active" },
-  { ...baseUser, id: "user-3", user_id: "user-3", role: "user", status: "flagged", status_reason: "Suspicious activity" },
+  {
+    ...baseUser,
+    id: "user-3",
+    user_id: "user-3",
+    role: "user",
+    status: "flagged",
+    status_reason: "Suspicious activity",
+  },
 ];
 
 const defaultEventsState = {
@@ -169,7 +186,9 @@ function renderPage() {
 }
 
 function metricCard(label: string): HTMLElement {
-  return screen.getByLabelText(new RegExp(`^${label}:`)).closest(".admin-metric-card") as HTMLElement;
+  return screen
+    .getByLabelText(new RegExp(`^${label}:`))
+    .closest(".admin-metric-card") as HTMLElement;
 }
 
 function attentionSection(): HTMLElement {
@@ -178,11 +197,17 @@ function attentionSection(): HTMLElement {
 
 describe("AdminOverviewPage", () => {
   beforeEach(() => {
+    vi.mocked(useAuth).mockReturnValue({ role: "admin" } as any);
     vi.mocked(useAdminEvents).mockReturnValue({ ...defaultEventsState });
     vi.mocked(useAdminUsers).mockReturnValue({ ...defaultUsersState });
     vi.mocked(useAdminUserCount).mockReturnValue({ ...defaultUserCountState });
     vi.mocked(useOrganizerRequests).mockReturnValue({ ...defaultOrganizerRequestsState });
-  vi.mocked(useAdminVenues).mockReturnValue({ venues: [], isLoading: false, error: null, refetch: vi.fn() });
+    vi.mocked(useAdminVenues).mockReturnValue({
+      venues: [],
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
   });
 
   it("computes the five metric card values from a fixture of known statuses/dates", () => {
@@ -254,7 +279,11 @@ describe("AdminOverviewPage", () => {
   });
 
   it("shows a loading status while fetching", () => {
-    vi.mocked(useAdminEvents).mockReturnValue({ ...defaultEventsState, isLoading: true, events: undefined });
+    vi.mocked(useAdminEvents).mockReturnValue({
+      ...defaultEventsState,
+      isLoading: true,
+      events: undefined,
+    });
     renderPage();
 
     expect(screen.getAllByRole("status").length).toBeGreaterThan(0);
@@ -271,5 +300,42 @@ describe("AdminOverviewPage", () => {
     expect(
       within(attentionSection()).getByText(/3 organizer requests? waiting for review/)
     ).toBeInTheDocument();
+  });
+
+  it("renders the moderator dashboard with moderation KPIs when role is moderator", () => {
+    vi.mocked(useAuth).mockReturnValue({ role: "moderator" } as any);
+    renderPage();
+
+    expect(screen.getByRole("heading", { name: "Moderator Dashboard" })).toBeInTheDocument();
+    expect(metricCard("Flagged Users")).toBeInTheDocument();
+    expect(metricCard("Pending Submissions")).toBeInTheDocument();
+    expect(metricCard("Organizer Requests")).toBeInTheDocument();
+    expect(metricCard("Upcoming Events")).toBeInTheDocument();
+    // Moderator dashboard does not show Total Users (admin-only)
+    expect(screen.queryByText("Total Users")).not.toBeInTheDocument();
+  });
+
+  it("renders the organizer dashboard with event KPIs when role is organizer", () => {
+    vi.mocked(useAuth).mockReturnValue({ role: "organizer" } as any);
+    renderPage();
+
+    expect(screen.getByRole("heading", { name: "Organizer Dashboard" })).toBeInTheDocument();
+    expect(metricCard("Total Events")).toBeInTheDocument();
+    expect(metricCard("Upcoming Events")).toBeInTheDocument();
+    expect(metricCard("Pending Submissions")).toBeInTheDocument();
+    expect(metricCard("Incomplete Events")).toBeInTheDocument();
+    // Organizer dashboard does not show Total Users or Flagged Users
+    expect(screen.queryByText("Total Users")).not.toBeInTheDocument();
+    expect(screen.queryByText("Flagged Users")).not.toBeInTheDocument();
+  });
+
+  it("renders the full admin dashboard by default (admin role)", () => {
+    vi.mocked(useAuth).mockReturnValue({ role: "admin" } as any);
+    renderPage();
+
+    expect(screen.getByRole("heading", { name: "Overview" })).toBeInTheDocument();
+    expect(metricCard("Total Users")).toBeInTheDocument();
+    expect(screen.getByText("Needs attention")).toBeInTheDocument();
+    expect(screen.getByText("Upcoming events")).toBeInTheDocument();
   });
 });

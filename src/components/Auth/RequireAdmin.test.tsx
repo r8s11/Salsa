@@ -25,7 +25,7 @@ function renderAtAdmin() {
         <Route path="/signin" element={<div>Sign In Page</div>} />
         <Route path="/" element={<div>Home Page</div>} />
       </Routes>
-    </MemoryRouter>,
+    </MemoryRouter>
   );
 }
 
@@ -37,6 +37,8 @@ describe("RequireAdmin", () => {
       loading: true,
       isAdmin: false,
       isModerator: false,
+      isOrganizer: false,
+      role: null,
       signInWithPassword: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
@@ -54,6 +56,8 @@ describe("RequireAdmin", () => {
       loading: false,
       isAdmin: false,
       isModerator: false,
+      isOrganizer: false,
+      role: null,
       signInWithPassword: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
@@ -71,6 +75,8 @@ describe("RequireAdmin", () => {
       loading: false,
       isAdmin: false,
       isModerator: false,
+      isOrganizer: false,
+      role: null,
       signInWithPassword: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
@@ -88,6 +94,8 @@ describe("RequireAdmin", () => {
       loading: false,
       isAdmin: true,
       isModerator: true,
+      isOrganizer: false,
+      role: "admin",
       signInWithPassword: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),

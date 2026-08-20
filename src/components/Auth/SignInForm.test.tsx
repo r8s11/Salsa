@@ -9,7 +9,6 @@ vi.mock("../../contexts/useAuth", () => ({
   useAuth: vi.fn(),
 }));
 
-
 describe("SignInForm", () => {
   it("redirects to the requested page after successful sign-in", async () => {
     const signInWithPassword = vi.fn().mockResolvedValue({ error: null });
@@ -19,6 +18,8 @@ describe("SignInForm", () => {
       loading: false,
       isAdmin: false,
       isModerator: false,
+      isOrganizer: false,
+      role: null,
       signInWithPassword,
       signUp: vi.fn(),
 
@@ -27,15 +28,13 @@ describe("SignInForm", () => {
 
     const user = userEvent.setup();
     render(
-      <MemoryRouter
-        initialEntries={[{ pathname: "/signin", state: { from: "/submit" } }]}
-      >
+      <MemoryRouter initialEntries={[{ pathname: "/signin", state: { from: "/submit" } }]}>
         <Routes>
           <Route path="/signin" element={<SignInForm />} />
           <Route path="/submit" element={<div>Submit Event Page</div>} />
           <Route path="/" element={<div>Home Page</div>} />
         </Routes>
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     await user.type(screen.getByLabelText(/email/i), "user@example.com");
@@ -63,6 +62,8 @@ describe("SignInForm", () => {
       loading: false,
       isAdmin: false,
       isModerator: false,
+      isOrganizer: false,
+      role: null,
       signInWithPassword: vi.fn(),
       signUp,
 
@@ -71,15 +72,13 @@ describe("SignInForm", () => {
 
     const user = userEvent.setup();
     render(
-      <MemoryRouter
-        initialEntries={[{ pathname: "/signin", state: { from: "/submit" } }]}
-      >
+      <MemoryRouter initialEntries={[{ pathname: "/signin", state: { from: "/submit" } }]}>
         <Routes>
           <Route path="/signin" element={<SignInForm />} />
           <Route path="/submit" element={<div>Submit Event Page</div>} />
           <Route path="/" element={<div>Home Page</div>} />
         </Routes>
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     await user.click(screen.getByRole("button", { name: /^sign up$/i }));
@@ -103,6 +102,8 @@ describe("SignInForm", () => {
       loading: false,
       isAdmin: false,
       isModerator: false,
+      isOrganizer: false,
+      role: null,
       signInWithPassword: vi.fn(),
       signUp,
 
@@ -116,7 +117,7 @@ describe("SignInForm", () => {
           <Route path="/signin" element={<SignInForm />} />
           <Route path="/" element={<div>Home Page</div>} />
         </Routes>
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     await user.click(screen.getByRole("button", { name: /^sign up$/i }));
@@ -125,9 +126,7 @@ describe("SignInForm", () => {
     await user.click(screen.getByRole("button", { name: /^sign up$/i }));
 
     await waitFor(() => {
-      expect(
-        screen.getByText("Check your email for a confirmation link."),
-      ).toBeInTheDocument();
+      expect(screen.getByText("Check your email for a confirmation link.")).toBeInTheDocument();
     });
     expect(screen.queryByText("Home Page")).not.toBeInTheDocument();
   });
@@ -138,6 +137,8 @@ describe("SignInForm", () => {
       loading: false,
       isAdmin: false,
       isModerator: false,
+      isOrganizer: false,
+      role: null,
       signInWithPassword: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
@@ -146,7 +147,7 @@ describe("SignInForm", () => {
     render(
       <MemoryRouter>
         <SignInForm />
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     expect(screen.queryByText(/apple|google|github/i)).not.toBeInTheDocument();
@@ -160,6 +161,8 @@ describe("SignInForm", () => {
       loading: false,
       isAdmin: false,
       isModerator: false,
+      isOrganizer: false,
+      role: null,
       signInWithPassword: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
@@ -169,7 +172,7 @@ describe("SignInForm", () => {
     render(
       <MemoryRouter>
         <SignInForm />
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     const password = screen.getByLabelText(/^password$/i);
@@ -189,6 +192,8 @@ describe("SignInForm", () => {
       loading: false,
       isAdmin: false,
       isModerator: false,
+      isOrganizer: false,
+      role: null,
       signInWithPassword: vi.fn(),
       signUp,
       signOut: vi.fn(),
@@ -198,7 +203,7 @@ describe("SignInForm", () => {
     render(
       <MemoryRouter>
         <SignInForm />
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     expect(screen.getByRole("heading", { name: "Welcome back" })).toBeInTheDocument();

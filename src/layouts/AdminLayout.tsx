@@ -43,7 +43,7 @@ export default function AdminLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(readStoredCollapsed);
   const { pathname } = useLocation();
-  const { user, signOut } = useAuth();
+  const { user, role, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
 
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
@@ -66,6 +66,9 @@ export default function AdminLayout() {
   };
 
   const sectionLabel = sectionLabelFor(pathname);
+  const rolePrefix =
+    role === "moderator" ? "Moderator" : role === "organizer" ? "Organizer" : "Admin";
+  const breadcrumbLabel = pathname === "/admin" ? `${rolePrefix} · ${sectionLabel}` : sectionLabel;
   const initial = user?.email ? user.email.charAt(0).toUpperCase() : "?";
 
   return (
@@ -92,9 +95,19 @@ export default function AdminLayout() {
             <Menu size={20} />
           </button>
           <nav className="admin-breadcrumbs" aria-label="Breadcrumb">
-            <span className="admin-breadcrumbs__crumb">Admin</span>
-            <ChevronRight size={14} className="admin-breadcrumbs__sep" />
-            <span className="admin-breadcrumbs__current">{sectionLabel}</span>
+            {pathname !== "/admin" && (
+              <>
+                <span className="admin-breadcrumbs__crumb">{rolePrefix}</span>
+                <ChevronRight size={14} className="admin-breadcrumbs__sep" />
+              </>
+            )}
+            <span className="admin-breadcrumbs__crumb">{breadcrumbLabel}</span>
+            {pathname !== "/admin" && (
+              <>
+                <ChevronRight size={14} className="admin-breadcrumbs__sep" />
+                <span className="admin-breadcrumbs__current">{sectionLabel}</span>
+              </>
+            )}
           </nav>
         </div>
 

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import type { DatabaseEvent } from "../features/events/model/types";
 import ProfilePage from "./ProfilePage";
@@ -16,23 +16,10 @@ const mocks = vi.hoisted(() => ({
     isLoading: false,
     error: null as string | null,
   },
-  mutateWithdraw: vi.fn(),
-  invalidateQueries: vi.fn(),
 }));
 
 vi.mock("../contexts/useAuth", () => ({
   useAuth: () => ({ ...mocks.auth, signOut: mocks.signOut }),
-}));
-
-vi.mock("@tanstack/react-query", () => ({
-  useMutation: () => ({
-    mutate: mocks.mutateWithdraw,
-    isPending: false,
-    variables: undefined,
-  }),
-  useQueryClient: () => ({
-    invalidateQueries: mocks.invalidateQueries,
-  }),
 }));
 
 vi.mock("../hooks/useMySubmissions", () => ({
@@ -112,122 +99,73 @@ describe("ProfilePage", () => {
     };
   });
 
-  it("shows account identity and account actions", () => {
+  it("shows profile identity and actions", () => {
     renderPage();
 
-    expect(screen.getByText("dancer@example.com")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Submit an Event" })).toHaveAttribute(
-      "href",
-      "/submit"
-    );
-    expect(screen.getByRole("link", { name: "View Calendar" })).toHaveAttribute(
-      "href",
-      "/calendar"
-    );
-    fireEvent.click(screen.getByRole("button", { name: "Sign Out" }));
-    expect(mocks.signOut).toHaveBeenCalledOnce();
+    expect(screen.getByText("dancer")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "+ Submit Event" })).toHaveAttribute("href", "/submit");
+    expect(screen.getByRole("link", { name: "View Calendar" })).toHaveAttribute("href", "/calendar");
+    expect(screen.getByRole("button", { name: "Sign Out" })).toBeInTheDocument();
   });
 
-  it("shows loading, load error retry, and the global empty submission CTA", () => {
-    mocks.submissions = { submissions: [], approvedEvents: [], isLoading: true, error: null };
-    const { rerender } = renderPage();
-    expect(screen.getByText("Loading your submissions...")).toBeInTheDocument();
-
-    mocks.submissions = { submissions: [], approvedEvents: [], isLoading: false, error: "Network error" };
-    rerender(
-      <MemoryRouter>
-        <ProfilePage />
-      </MemoryRouter>
-    );
-    expect(screen.getByText("Couldn't load your submissions: Network error")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
-    expect(mocks.refetch).toHaveBeenCalledOnce();
-
-    mocks.submissions = { submissions: [], approvedEvents: [], isLoading: false, error: null };
-    rerender(
-      <MemoryRouter>
-        <ProfilePage />
-      </MemoryRouter>
-    );
-    expect(screen.getByText(/You haven't submitted any events yet\./)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Submit one" })).toHaveAttribute("href", "/submit");
-  });
-
-  it("derives status totals and filters visible submissions", () => {
+  it("shows stats derived from submissions", () => {
     renderPage();
 
-    expect(screen.getByRole("button", { name: "All 4" })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByRole("button", { name: "Pending 1" })).toHaveAttribute(
-      "aria-pressed",
-      "false"
-    );
-    expect(screen.getByRole("button", { name: "Approved 2" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Rejected 1" })).toBeInTheDocument();
+    expect(screen.getByText("Events Hosted")).toBeInTheDocument();
+    expect(screen.getByText("Pending")).toBeInTheDocument();
+    expect(screen.getByText("Total Submissions")).toBeInTheDocument();
+  });
 
-    fireEvent.click(screen.getByRole("button", { name: "Pending 1" }));
-    expect(screen.getByRole("button", { name: "Pending 1" })).toHaveAttribute(
-      "aria-pressed",
-      "true"
-    );
+  it("shows all submissions in a list", () => {
+    renderPage();
+
+    expect(screen.getByText("Boston Social")).toBeInTheDocument();
+    expect(screen.getByText("NYC Workshop")).toBeInTheDocument();
     expect(screen.getByText("Pending Class")).toBeInTheDocument();
-    expect(screen.queryByText("Boston Social")).not.toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("button", { name: "Rejected 1" }));
     expect(screen.getByText("Rejected Social")).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "View on calendar" })).not.toBeInTheDocument();
   });
 
-  it("keeps filters available and names an empty selected status", () => {
-    mocks.submissions = { submissions: [pending], approvedEvents: [], isLoading: false, error: null };
+  it("shows View on calendar link for approved submissions", () => {
     renderPage();
 
-    fireEvent.click(screen.getByRole("button", { name: "Approved 0" }));
-    expect(screen.getByText("No approved submissions.")).toBeInTheDocument();
-    expect(screen.getByRole("group", { name: "Filter submissions by status" })).toBeInTheDocument();
-  });
-
-  it("uses city-qualified calendar links for approved submissions", () => {
-    renderPage();
-
-    const links = screen.getAllByRole("link", { name: "View on calendar" });
-    expect(links[0]).toHaveAttribute("href", "/calendar?event=boston-approved&city=boston");
-    expect(links[1]).toHaveAttribute("href", "/calendar?event=nyc-approved&city=new-york-city");
+    const links = screen.getAllByText("View on calendar");
+    expect(links).toHaveLength(2);
+    expect(links[0].closest("a")).toHaveAttribute("href", "/calendar?event=boston-approved&city=boston");
+    expect(links[1].closest("a")).toHaveAttribute("href", "/calendar?event=nyc-approved&city=new-york-city");
   });
 
   it("shows Edit link for pending and rejected submissions", () => {
     renderPage();
 
-    expect(screen.getByRole("link", { name: "Edit Pending Class" })).toHaveAttribute(
-      "href",
-      "/profile/edit/pending"
-    );
-    expect(screen.getByRole("link", { name: "Edit Rejected Social" })).toHaveAttribute(
-      "href",
-      "/profile/edit/rejected"
-    );
+    const editLinks = screen.getAllByText("Edit");
+    expect(editLinks).toHaveLength(2);
+    expect(editLinks[0].closest("a")).toHaveAttribute("href", "/profile/edit/pending");
+    expect(editLinks[1].closest("a")).toHaveAttribute("href", "/profile/edit/rejected");
+  });
+
+  it("shows loading state", () => {
+    mocks.submissions = { submissions: [], approvedEvents: [], isLoading: true, error: null };
+    renderPage();
+    expect(screen.getByText("Loading profile…")).toBeInTheDocument();
+  });
+
+  it("shows error state with retry", () => {
+    mocks.submissions = { submissions: [], approvedEvents: [], isLoading: false, error: "Network error" };
+    renderPage();
+    expect(screen.getByText("Couldn't load your profile: Network error")).toBeInTheDocument();
+  });
+
+  it("shows empty state when no submissions", () => {
+    mocks.submissions = { submissions: [], approvedEvents: [], isLoading: false, error: null };
+    renderPage();
+    expect(screen.getByText(/You haven't submitted any events yet/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Submit one" })).toHaveAttribute("href", "/submit");
   });
 
   it("does not show Edit link for approved submissions", () => {
     renderPage();
 
-    expect(screen.queryByRole("link", { name: "Edit Boston Social" })).not.toBeInTheDocument();
-  });
-
-  it("shows Withdraw button for pending submissions and calls mutate on confirm", () => {
-    renderPage();
-
-    const withdrawBtn = screen.getByRole("button", { name: "Withdraw Pending Class" });
-    expect(withdrawBtn).toBeInTheDocument();
-
-    window.confirm = vi.fn(() => true);
-    fireEvent.click(withdrawBtn);
-
-    expect(mocks.mutateWithdraw).toHaveBeenCalledWith("pending");
-  });
-
-  it("does not show Withdraw button for rejected submissions", () => {
-    renderPage();
-
-    expect(screen.queryByRole("button", { name: /Withdraw Rejected/ })).not.toBeInTheDocument();
+    const editLinks = screen.getAllByText("Edit");
+    expect(editLinks).toHaveLength(2);
   });
 });

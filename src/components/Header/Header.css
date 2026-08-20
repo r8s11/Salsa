@@ -241,10 +241,7 @@ a.logo:hover {
     margin: 0;
     padding: var(--space-md) var(--gutter);
     overflow-y: auto;
-    background: var(--header-bg);
-    border-top: 1px solid var(--border);
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
+    background: var(--background);
   }
 
   .nav-links.active { display: flex; }

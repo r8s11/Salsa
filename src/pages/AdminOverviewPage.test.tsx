@@ -3,6 +3,7 @@ import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import type { DatabaseEvent } from "../features/events/model/types";
 import type { AdminUserRow } from "../features/admin/model/usersQuery";
+import type { AuthContextValue } from "../contexts/authContextObject";
 import AdminOverviewPage from "./AdminOverviewPage";
 
 const { useAdminEvents, useAdminUserCount, useAdminUsers, useOrganizerRequests, useAdminVenues } =
@@ -28,6 +29,21 @@ vi.mock("../contexts/useAuth", () => ({ useAuth }));
 // relative to test-run time rather than hardcoded.
 function daysFromNow(days: number): string {
   return new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+}
+
+function authState(role: AuthContextValue["role"]): AuthContextValue {
+  return {
+    user: null,
+    session: null,
+    loading: false,
+    role,
+    isAdmin: role === "admin",
+    isModerator: role === "moderator",
+    isOrganizer: role === "organizer",
+    signInWithPassword: vi.fn(),
+    signUp: vi.fn(),
+    signOut: vi.fn().mockResolvedValue(undefined),
+  };
 }
 
 const baseEvent: DatabaseEvent = {
@@ -197,7 +213,7 @@ function attentionSection(): HTMLElement {
 
 describe("AdminOverviewPage", () => {
   beforeEach(() => {
-    vi.mocked(useAuth).mockReturnValue({ role: "admin" } as any);
+    vi.mocked(useAuth).mockReturnValue(authState("admin"));
     vi.mocked(useAdminEvents).mockReturnValue({ ...defaultEventsState });
     vi.mocked(useAdminUsers).mockReturnValue({ ...defaultUsersState });
     vi.mocked(useAdminUserCount).mockReturnValue({ ...defaultUserCountState });
@@ -303,7 +319,7 @@ describe("AdminOverviewPage", () => {
   });
 
   it("renders the moderator dashboard with moderation KPIs when role is moderator", () => {
-    vi.mocked(useAuth).mockReturnValue({ role: "moderator" } as any);
+    vi.mocked(useAuth).mockReturnValue(authState("moderator"));
     renderPage();
 
     expect(screen.getByRole("heading", { name: "Moderator Dashboard" })).toBeInTheDocument();
@@ -316,7 +332,7 @@ describe("AdminOverviewPage", () => {
   });
 
   it("renders the organizer dashboard with event KPIs when role is organizer", () => {
-    vi.mocked(useAuth).mockReturnValue({ role: "organizer" } as any);
+    vi.mocked(useAuth).mockReturnValue(authState("organizer"));
     renderPage();
 
     expect(screen.getByRole("heading", { name: "Organizer Dashboard" })).toBeInTheDocument();
@@ -330,7 +346,7 @@ describe("AdminOverviewPage", () => {
   });
 
   it("renders the full admin dashboard by default (admin role)", () => {
-    vi.mocked(useAuth).mockReturnValue({ role: "admin" } as any);
+    vi.mocked(useAuth).mockReturnValue(authState("admin"));
     renderPage();
 
     expect(screen.getByRole("heading", { name: "Overview" })).toBeInTheDocument();

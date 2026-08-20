@@ -42,12 +42,32 @@ export interface CreateUserParams {
   role?: UserRole;
 }
 
-export async function createUser(userData: CreateUserParams): Promise<AdminUserRow> {
+/**
+ * The row returned by admin_invite_user. `temp_password` is generated inside the
+ * RPC, returned exactly once, and never stored in plaintext — the admin has to
+ * hand it to the new account holder out of band. There is no invite email: the
+ * app is statically hosted and the Supabase project has no custom SMTP.
+ */
+export interface InvitedUser {
+  id: string;
+  email: string;
+  display_name: string | null;
+  username: string | null;
+  role: UserRole;
+  status: AccountStatus;
+  created_at: string;
+  temp_password: string;
+}
+
+export async function createUser(userData: CreateUserParams): Promise<InvitedUser> {
   const { data, error } = await supabase.rpc("admin_invite_user", {
     p_email: userData.email,
     p_display_name: userData.display_name || null,
     p_role: userData.role || "user",
   });
   if (error) throw new Error(error.message);
-  return data as AdminUserRow;
+  // admin_invite_user is RETURNS TABLE, so PostgREST yields a single-row array.
+  const row = (data as InvitedUser[] | null)?.[0];
+  if (!row) throw new Error("The account was not created. Please try again.");
+  return row;
 }

@@ -21,6 +21,7 @@ import {
   type UserView,
   type SortDir,
 } from "../features/admin/model/usersQuery";
+import type { InvitedUser } from "../features/admin/api/profilesRepo";
 import { PAGE_SIZE_OPTIONS, DEFAULT_PAGE_SIZE } from "../features/admin/model/eventsQuery";
 import AdminPageHeader from "../components/Admin/AdminPageHeader";
 import AdminViewTabs from "../components/Admin/AdminViewTabs";
@@ -133,6 +134,7 @@ export default function AdminUsersPage() {
   const [lastRowAction, setLastRowAction] = useState<UserRowAction | null>(null);
   const [announcement, setAnnouncement] = useState("");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [createdUser, setCreatedUser] = useState<InvitedUser | null>(null);
 
   const users = useMemo(() => queriedUsers ?? [], [queriedUsers]);
 
@@ -601,19 +603,26 @@ export default function AdminUsersPage() {
         />
       )}
 
-      {showCreateDialog && (
+      {(showCreateDialog || createdUser) && (
         <AdminUserForm
           isBusy={isCreating}
           error={createError}
+          created={createdUser}
           onSubmit={(params) => {
             createUser(params, {
-              onSuccess: () => {
+              onSuccess: (invited) => {
                 setShowCreateDialog(false);
-                setAnnouncement("User invited successfully.");
+                setCreatedUser(invited);
+                setAnnouncement(
+                  `${invited.email} created as ${ROLE_LABEL[invited.role]}.`
+                );
               },
             });
           }}
-          onCancel={() => setShowCreateDialog(false)}
+          onCancel={() => {
+            setShowCreateDialog(false);
+            setCreatedUser(null);
+          }}
         />
       )}
     </>

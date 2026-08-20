@@ -314,7 +314,7 @@ describe("AdminUsersPage", () => {
     expect(screen.getAllByText("Flagged Person").length).toBeGreaterThan(0);
   });
 
-  it("Add User button opens a dialog that invites a new user", async () => {
+  it("Add User button opens a dialog that creates a new user with the chosen role", async () => {
     const user = userEvent.setup();
     const createUser = vi.fn();
     vi.mocked(useAdminUsers).mockReturnValue({ ...defaultState, createUser });
@@ -325,13 +325,44 @@ describe("AdminUsersPage", () => {
     const dialog = screen.getByRole("dialog", { name: "Add User" });
     await user.type(
       within(dialog).getByLabelText("Email"),
-      "newuser@salsa.test"
+      "newmod@salsa.test"
     );
-    await user.click(within(dialog).getByRole("button", { name: "Invite User" }));
+    await user.selectOptions(within(dialog).getByLabelText("Role"), "moderator");
+    await user.click(within(dialog).getByRole("button", { name: "Create account" }));
 
     expect(createUser).toHaveBeenCalledWith(
-      { email: "newuser@salsa.test", display_name: undefined, role: "user" },
+      { email: "newmod@salsa.test", display_name: undefined, role: "moderator" },
       expect.anything()
     );
+  });
+
+  it("shows the temporary password once the account is created", async () => {
+    const user = userEvent.setup();
+    const createUser = vi.fn((_params, options) =>
+      options.onSuccess({
+        id: "new-user-1",
+        email: "newmod@salsa.test",
+        display_name: null,
+        username: null,
+        role: "moderator",
+        status: "active",
+        created_at: "2026-08-20T00:00:00Z",
+        temp_password: "Tmp123456789abc",
+      })
+    );
+    vi.mocked(useAdminUsers).mockReturnValue({ ...defaultState, createUser });
+    renderPage();
+
+    await user.click(screen.getByRole("button", { name: "Add User" }));
+    const dialog = screen.getByRole("dialog", { name: "Add User" });
+    await user.type(within(dialog).getByLabelText("Email"), "newmod@salsa.test");
+    await user.click(within(dialog).getByRole("button", { name: "Create account" }));
+
+    const result = screen.getByRole("dialog", { name: "Account created" });
+    expect(within(result).getByText("Tmp123456789abc")).toBeInTheDocument();
+    expect(within(result).getByText("newmod@salsa.test")).toBeInTheDocument();
+
+    await user.click(within(result).getByRole("button", { name: "Done" }));
+    expect(screen.queryByRole("dialog", { name: "Account created" })).not.toBeInTheDocument();
   });
 });

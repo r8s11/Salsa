@@ -1,29 +1,29 @@
--- === Phase 14 — admin_invite_user RPC (corrected) ===
+-- Fix public.admin_invite_user — it could never create a user.
 --
--- Supersedes the original Phase 14 script, which could never create a user.
--- Apply this against the hosted project; it replaces one function and touches
--- no tables, no data and no RLS policy. Identical to
--- supabase/migrations/20260820000000_fix_admin_invite_user.sql.
---
--- Defects this corrects, in the order they fired:
---   1. INSERT named a column `app_metadata` that does not exist on auth.users
---      (the real column is raw_app_meta_data)                        -> 42703.
---   2. `set search_path = public` left crypt()/gen_salt() unresolvable,
---      because pgcrypto lives in the `extensions` schema             -> 42883.
+-- Defects in 20260815000000_users_management.sql, in the order they fired:
+--   1. INSERT listed a column `app_metadata` that does not exist on auth.users
+--      (the real column is raw_app_meta_data) -> 42703 on every call.
+--   2. `set search_path = public` made crypt()/gen_salt() unresolvable: pgcrypto
+--      lives in the `extensions` schema -> 42883. Now schema-qualified.
 --   3. The AFTER INSERT trigger auth.users -> public.handle_new_user() already
 --      inserts the profile row, so the function's own plain INSERT into
---      public.profiles collided with profiles_pkey                   -> 23505.
+--      public.profiles hit profiles_pkey -> 23505. Now ON CONFLICT DO UPDATE.
 --   4. raw_user_meta_data used key `name`, but handle_new_user() reads
 --      `display_name`, so the trigger fell back to the email local-part.
---   5. aud and the GoTrue token columns were left NULL, which breaks sign-in
---      with "converting NULL to string is unsupported".
---   6. No auth.identities row linked the email provider to the account.
+--   5. aud and the GoTrue token columns (confirmation_token, recovery_token,
+--      email_change, email_change_token_new/current, reauthentication_token)
+--      were left NULL. GoTrue scans those into Go strings; NULL breaks
+--      sign-in with "converting NULL to string is unsupported". Now ''.
+--   6. No auth.identities row was created, so the email provider was not
+--      linked to the account.
 --
--- Access model: Azure Static Web Apps gives no server runtime and the project
--- has no custom SMTP ([auth.email.smtp] disabled, email_sent = 2/hour), so
--- auth.admin.inviteUserByEmail is unavailable. The function provisions a
--- confirmed account with a generated temporary password and returns it once to
--- the calling admin. Only the bcrypt hash is stored.
+-- Access model: this project is hosted on Azure Static Web Apps (no server
+-- runtime) and has no custom SMTP (supabase/config.toml leaves
+-- [auth.email.smtp] disabled, auth.rate_limit.email_sent = 2/hour), so a real
+-- invite email via auth.admin.inviteUserByEmail is not available. The function
+-- therefore provisions a confirmed account with a generated temporary password
+-- and returns it once to the calling admin to hand over out of band. It is
+-- never stored in plaintext — only the bcrypt hash lands in auth.users.
 --
 -- The return signature gains temp_password, so the old function must be
 -- dropped: CREATE OR REPLACE cannot change OUT parameters.

@@ -37,6 +37,32 @@
   margin-top: 16px;
 }
 
+.admin-user-form__creds {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  margin: 0 0 16px;
+  font-size: 0.875rem;
+}
+
+.admin-user-form__creds dt {
+  color: var(--admin-text-muted);
+}
+
+.admin-user-form__creds dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.admin-user-form__creds code {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--admin-surface-subtle, rgba(127, 127, 127, 0.12));
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9375rem;
+  user-select: all;
+}
+
 .admin-field__error {
   color: var(--admin-danger, #dc2626);
 }

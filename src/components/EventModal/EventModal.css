@@ -316,8 +316,39 @@
   text-decoration: underline;
 }
 
+/* ── Sticky close (X) button ── */
+.modal-close-x {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius-full);
+  background: var(--card);
+  color: var(--text);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.modal-close-x:hover {
+  background: var(--card-hover);
+  border-color: var(--border-lg);
+  color: var(--red-bright);
+}
+
 /* ── Mobile ── */
 @media (max-width: 720px) {
+  .modal-close-x {
+    display: inline-flex;
+  }
+
   .modal-overlay {
     padding: 20px 12px;
   }

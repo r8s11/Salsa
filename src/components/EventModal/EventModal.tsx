@@ -7,9 +7,10 @@ import {
   MapPin,
   Repeat,
   Users,
+  X,
 } from "lucide-react";
 import { ScheduleXEvent } from "../../types/events";
-import { downloadIcs } from "../../utils/ics";
+import { downloadIcs, mapsUrl, googleCalendarUrl } from "../../utils/ics";
 import { getUpcomingSeriesDates } from "../../utils/series";
 import "./EventModal.css";
 
@@ -120,6 +121,9 @@ export default function EventModal({ event, onClose }: EventModalProps) {
       ref={modalRef}
     >
       <div className="modal-content">
+        <button type="button" className="modal-close-x" aria-label="Close" onClick={onClose}>
+          <X size={20} aria-hidden />
+        </button>
         <div
           className="modal-poster"
           style={event.imageUrl ? { backgroundImage: `url(${event.imageUrl})` } : undefined}
@@ -149,8 +153,22 @@ export default function EventModal({ event, onClose }: EventModalProps) {
               <div className="meta-row">
                 <MapPin size={18} aria-hidden />
                 <span>
-                  {event.location}
-                  {event.address ? ` · ${event.address}` : ""}
+                  {(() => {
+                    const url = mapsUrl(event);
+                    const label = `${event.location}${event.address ? ` · ${event.address}` : ""}`;
+                    return url ? (
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`Open ${label} in Maps`}
+                      >
+                        {label}
+                      </a>
+                    ) : (
+                      <span>{label}</span>
+                    );
+                  })()}
                 </span>
               </div>
             )}
@@ -209,9 +227,24 @@ export default function EventModal({ event, onClose }: EventModalProps) {
                 {rsvpLabel}
               </a>
             )}
-            <button className="btn-secondary ics-button" onClick={() => downloadIcs(event)}>
-              <CalendarPlus size={16} aria-hidden /> Add to calendar
-            </button>
+            {(() => {
+              const calUrl = googleCalendarUrl(event);
+              return calUrl ? (
+                <a
+                  className="btn-secondary ics-button"
+                  href={calUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Add to calendar"
+                >
+                  <CalendarPlus size={16} aria-hidden /> Add to calendar
+                </a>
+              ) : (
+                <button className="btn-secondary ics-button" onClick={() => downloadIcs(event)}>
+                  <CalendarPlus size={16} aria-hidden /> Add to calendar
+                </button>
+              );
+            })()}
             <p className="reassurance">RSVP opens the host's page · pay at the door</p>
             {(event.contactEmail || event.contactInstagram || event.contactWebsite) && (
               <div className="contact-block">

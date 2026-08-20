@@ -76,34 +76,31 @@ function Header() {
             </li>
           ))}
           <li className="mobile-nav-actions">
-            {citySwitcher(true)}
-            {user ? (
-              <>
-                <NavLink to="/submit" className="auth-btn" onClick={closeNavigation}>
-                  Submit Event
-                </NavLink>
-                <NavLink to="/profile" onClick={closeNavigation}>
-                  My Profile
-                </NavLink>
-                {isModerator && (
-                  <NavLink to="/admin" onClick={closeNavigation}>
-                    Dashboard
+            <span className="mobile-nav__context">Explore Salsa Segura</span>
+            <section className="mobile-nav__city" aria-labelledby="mobile-nav-city-label">
+              <span id="mobile-nav-city-label" className="mobile-nav__label">Your city</span>
+              {citySwitcher(true)}
+            </section>
+            <section className="mobile-nav__account" aria-labelledby="mobile-nav-account-label">
+              <span id="mobile-nav-account-label" className="mobile-nav__label">Account</span>
+              {user ? (
+                <>
+                  <NavLink to="/submit" className="auth-btn" onClick={closeNavigation}>
+                    Submit Event
                   </NavLink>
-                )}
-                <button type="button" className="drawer-sign-out" onClick={handleSignOut}>
-                  Sign Out
-                </button>
-              </>
-            ) : (
-              <>
-                <NavLink to="/submit" className="auth-btn" onClick={closeNavigation}>
-                  Submit Event
-                </NavLink>
-                <NavLink to="/signin" className="auth-btn" onClick={closeNavigation}>
-                  Sign In
-                </NavLink>
-              </>
-            )}
+                  <NavLink to="/profile" onClick={closeNavigation}>My Profile</NavLink>
+                  {isModerator && <NavLink to="/admin" onClick={closeNavigation}>Dashboard</NavLink>}
+                  <button type="button" className="drawer-sign-out" onClick={handleSignOut}>Sign Out</button>
+                </>
+              ) : (
+                <>
+                  <NavLink to="/submit" className="auth-btn" onClick={closeNavigation}>
+                    Submit Event
+                  </NavLink>
+                  <NavLink to="/signin" className="auth-btn" onClick={closeNavigation}>Sign In</NavLink>
+                </>
+              )}
+            </section>
           </li>
         </ul>
 

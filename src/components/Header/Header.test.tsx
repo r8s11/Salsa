@@ -67,7 +67,7 @@ describe("Header", () => {
 
     renderHeader();
 
-    const account = screen.getByText("Account").closest("details");
+    const account = within(screen.getByRole("banner")).getAllByText("Account").find(el => el.tagName === "SUMMARY")?.closest("details");
     expect(account).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: "Submit Event" })[0]).toHaveAttribute(
       "href",
@@ -174,5 +174,46 @@ describe("Header", () => {
       "aria-expanded",
       "false"
     );
+  });
+  it("groups signed-out mobile navigation into destinations, city, and account actions", async () => {
+    vi.mocked(useAuth).mockReturnValue(defaultAuth());
+    vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
+    const user = userEvent.setup();
+    renderHeader();
+
+    await user.click(screen.getByRole("button", { name: "Open menu" }));
+    const drawer = document.getElementById("site-navigation") as HTMLElement;
+    const city = within(drawer).getByRole("region", { name: "Your city" });
+    const account = within(drawer).getByRole("region", { name: "Account" });
+
+    expect(within(drawer).getByText("Explore Salsa Segura")).toBeInTheDocument();
+    expect(within(account).getByRole("link", { name: "Submit Event" })).toHaveClass("auth-btn");
+    expect(within(account).getByRole("link", { name: "Sign In" })).toHaveAttribute("href", "/signin");
+    expect(within(city).getByRole("button", { name: "BOS" })).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("keeps member and moderator actions inside the mobile account group", async () => {
+    vi.mocked(useAuth).mockReturnValue(
+      defaultAuth({ user: { id: "moderator" } as User, isModerator: true })
+    );
+    vi.mocked(useCity).mockReturnValue({ city: "new-york-city", setCity });
+    const user = userEvent.setup();
+    renderHeader();
+
+    await user.click(screen.getByRole("button", { name: "Open menu" }));
+    const drawer = document.getElementById("site-navigation") as HTMLElement;
+    const account = within(drawer).getByRole("region", { name: "Account" });
+    const city = within(drawer).getByRole("region", { name: "Your city" });
+
+    expect(within(account).getByRole("link", { name: "My Profile" })).toHaveAttribute(
+      "href",
+      "/profile"
+    );
+    expect(within(account).getByRole("link", { name: "Dashboard" })).toHaveAttribute(
+      "href",
+      "/admin"
+    );
+    expect(within(account).getByRole("button", { name: "Sign Out" })).toBeInTheDocument();
+    expect(within(city).getByRole("button", { name: "NYC" })).toHaveAttribute("aria-pressed", "true");
   });
 });

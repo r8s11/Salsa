@@ -160,6 +160,13 @@ describe("AdminUserDetailPage", () => {
     expect(screen.getByText("Verified")).toBeInTheDocument();
   });
 
+  it("renders the back link at the top of the page", () => {
+    renderAt("organizer-1");
+    const backLink = screen.getByRole("link", { name: "← Users" });
+    const header = screen.getByRole("banner");
+    expect(backLink.compareDocumentPosition(header)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+
   it("groups account intelligence and operational controls into labelled regions", () => {
     renderAt("organizer-1");
 

@@ -172,6 +172,10 @@ export default function AdminUserDetailPage() {
 
   return (
     <div className="admin-user-detail-page">
+      <Link to="/admin/users" className="admin-user-detail-page__back">
+        ← Users
+      </Link>
+
       <header className="admin-user-detail-page__header admin-card">
         <div className="admin-user-detail-page__eyebrow">User profile</div>
         <AdminUserAvatar row={user} size={64} />
@@ -355,9 +359,6 @@ export default function AdminUserDetailPage() {
         </aside>
       </div>
 
-      <Link to="/admin/users" className="admin-user-detail-page__back">
-        ← Users
-      </Link>
 
 
       {pendingAction?.kind === "role" && (

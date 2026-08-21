@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 
 // Get environment variables
-const supabaseURL =
+export const supabaseURL =
   import.meta.env.VITE_SUPABASE_URL ||
   "https://placeholder-project.supabase.co";
 const supabaseDefaultKey =

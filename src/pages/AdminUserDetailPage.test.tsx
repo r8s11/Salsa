@@ -160,6 +160,19 @@ describe("AdminUserDetailPage", () => {
     expect(screen.getByText("Verified")).toBeInTheDocument();
   });
 
+  it("groups account intelligence and operational controls into labelled regions", () => {
+    renderAt("organizer-1");
+
+    const account = screen.getByRole("region", { name: "Account and activity" });
+    const operations = screen.getByRole("complementary", { name: "Account operations" });
+
+    expect(within(account).getByText("maria@salsa.test")).toBeInTheDocument();
+    expect(within(account).getByText("Contributions")).toBeInTheDocument();
+    expect(within(operations).getByRole("heading", { name: "Moderation" })).toBeInTheDocument();
+    expect(within(operations).getByRole("heading", { name: "Administrative Actions" })).toBeInTheDocument();
+    expect(within(operations).getByRole("link", { name: "View Events" })).toBeInTheDocument();
+  });
+
   it("shows a guest's magic-link presentation with no role badge", () => {
     renderAt("guest:vince@salsa.test");
 

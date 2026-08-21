@@ -172,11 +172,8 @@ export default function AdminUserDetailPage() {
 
   return (
     <div className="admin-user-detail-page">
-      <Link to="/admin/users" className="admin-user-detail-page__back">
-        ← Users
-      </Link>
-
-      <header className="admin-user-detail-page__header">
+      <header className="admin-user-detail-page__header admin-card">
+        <div className="admin-user-detail-page__eyebrow">User profile</div>
         <AdminUserAvatar row={user} size={64} />
         <div className="admin-user-detail-page__header-body">
           <h1>{displayNameFor(user)}</h1>
@@ -185,178 +182,183 @@ export default function AdminUserDetailPage() {
             <AdminRoleBadge role={user.role} />
             <AdminAccountStatusBadge status={user.status} reason={user.status_reason} />
           </div>
-          <p className="admin-user-detail-page__joined">
-            {user.kind === "guest" ? "First activity" : "Joined"} {formatDate(user.created_at)}
-          </p>
         </div>
       </header>
 
-      <div className="admin-user-detail-page__body">
-        <section className="admin-card admin-user-detail-page__overview">
-          <h2>Account</h2>
-          {user.kind === "profile" ? (
-            <>
-              <div className="admin-user-detail-page__field">
-                <span className="admin-user-detail-page__label">Email</span>
-                <span>
-                  {user.email}{" "}
-                  <span className="admin-chip">
-                    {user.email_confirmed_at ? "Verified" : "Unverified"}
+      <div className="admin-user-detail-page__layout">
+        <main className="admin-user-detail-page__main">
+          <section
+            className="admin-card admin-user-detail-page__account-intelligence"
+            aria-labelledby="account-activity-heading"
+          >
+            <h2 id="account-activity-heading">Account and activity</h2>
+            {user.kind === "profile" ? (
+              <>
+                <div className="admin-user-detail-page__field">
+                  <span className="admin-user-detail-page__label">Email</span>
+                  <span>
+                    {user.email}{" "}
+                    <span className="admin-chip">
+                      {user.email_confirmed_at ? "Verified" : "Unverified"}
+                    </span>
                   </span>
-                </span>
-              </div>
-              <div className="admin-user-detail-page__field">
-                <span className="admin-user-detail-page__label">Username</span>
-                <span>{user.username ? `@${user.username}` : "No username set"}</span>
-              </div>
-              <div className="admin-user-detail-page__field">
-                <span className="admin-user-detail-page__label">Account Type</span>
-                <span>Registered User</span>
-              </div>
-              <div className="admin-user-detail-page__field">
-                <span className="admin-user-detail-page__label">Role</span>
-                <span>{ROLE_LABEL[user.role!]}</span>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="admin-user-detail-page__field">
-                <span className="admin-user-detail-page__label">Username</span>
-                <span>—</span>
-              </div>
-              <div className="admin-user-detail-page__field">
-                <span className="admin-user-detail-page__label">Public Profile</span>
-                <span>None</span>
-              </div>
-              <div className="admin-user-detail-page__field">
-                <span className="admin-user-detail-page__label">Account Type</span>
-                <span>Magic-Link Submitter</span>
-              </div>
-              <div className="admin-user-detail-page__field">
-                <span className="admin-user-detail-page__label">Email</span>
-                <span>
-                  {user.email}{" "}
-                  <span className="admin-chip">
-                    {user.email_confirmed_at ? "Verified" : "Unverified"}
+                </div>
+                <div className="admin-user-detail-page__field">
+                  <span className="admin-user-detail-page__label">Username</span>
+                  <span>{user.username ? `@${user.username}` : "No username set"}</span>
+                </div>
+                <div className="admin-user-detail-page__field">
+                  <span className="admin-user-detail-page__label">Account Type</span>
+                  <span>Registered User</span>
+                </div>
+                <div className="admin-user-detail-page__field">
+                  <span className="admin-user-detail-page__label">Role</span>
+                  <span>{ROLE_LABEL[user.role!]}</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="admin-user-detail-page__field">
+                  <span className="admin-user-detail-page__label">Username</span>
+                  <span>—</span>
+                </div>
+                <div className="admin-user-detail-page__field">
+                  <span className="admin-user-detail-page__label">Public Profile</span>
+                  <span>None</span>
+                </div>
+                <div className="admin-user-detail-page__field">
+                  <span className="admin-user-detail-page__label">Account Type</span>
+                  <span>Magic-Link Submitter</span>
+                </div>
+                <div className="admin-user-detail-page__field">
+                  <span className="admin-user-detail-page__label">Email</span>
+                  <span>
+                    {user.email}{" "}
+                    <span className="admin-chip">
+                      {user.email_confirmed_at ? "Verified" : "Unverified"}
+                    </span>
                   </span>
-                </span>
-              </div>
-            </>
-          )}
-        </section>
+                </div>
+              </>
+            )}
+            <div className="admin-user-detail-page__field">
+              <span className="admin-user-detail-page__label">Contributions</span>
+              <span>{user.contributions}</span>
+            </div>
+            <div className="admin-user-detail-page__field">
+              <span className="admin-user-detail-page__label">Pending</span>
+              <span>{user.pending_count}</span>
+            </div>
+          </section>
 
-        <section className="admin-card admin-user-detail-page__summary">
-          <h2>Activity Summary</h2>
-          <div className="admin-user-detail-page__field">
-            <span className="admin-user-detail-page__label">Contributions</span>
-            <span>{user.contributions}</span>
-          </div>
-          <div className="admin-user-detail-page__field">
-            <span className="admin-user-detail-page__label">Pending</span>
-            <span>{user.pending_count}</span>
-          </div>
-        </section>
-
-        <section className="admin-card admin-user-detail-page__moderation">
-          <h2>Moderation</h2>
-          {user.status === "active" ? (
-            <p>No moderation concerns.</p>
-          ) : (
-            <AdminAccountStatusBadge status={user.status} reason={user.status_reason} />
-          )}
-        </section>
-
-        {user.role === "organizer" && (
-          <section className="admin-card admin-user-detail-page__organizer">
-            <h2>Organizer</h2>
-            <p>
-              {displayNameFor(user)} · {upcomingOrganizerEvents} upcoming events
-            </p>
-            <Link to={`/admin/events?submitter=${encodeURIComponent(submitterValue!)}`}>
-              View Events
+          <section className="admin-card admin-user-detail-page__events">
+            <h2>Events &amp; Contributions</h2>
+            {userEvents.length === 0 ? (
+              <p>No events yet.</p>
+            ) : (
+              <ul className="admin-user-detail-page__events-list">
+                {userEvents.map((event) => (
+                  <li key={event.id}>
+                    <Link to={`/admin/events?edit=${event.id}`}>{event.title}</Link>
+                    <AdminStatusBadge status={event.status} />
+                  </li>
+                ))}
+              </ul>
+            )}
+            <Link to={`/admin/events?submitter=${encodeURIComponent(submitterValue ?? "")}`}>
+              View all in Events →
             </Link>
           </section>
-        )}
 
-        <section className="admin-card admin-user-detail-page__events">
-          <h2>Events &amp; Contributions</h2>
-          {userEvents.length === 0 ? (
-            <p>No events yet.</p>
-          ) : (
-            <ul className="admin-user-detail-page__events-list">
-              {userEvents.map((event) => (
-                <li key={event.id}>
-                  <Link to={`/admin/events?edit=${event.id}`}>{event.title}</Link>
-                  <AdminStatusBadge status={event.status} />
-                </li>
-              ))}
-            </ul>
-          )}
-          <Link to={`/admin/events?submitter=${encodeURIComponent(submitterValue ?? "")}`}>
-            View all in Events →
-          </Link>
-        </section>
-
-        <section className="admin-card admin-user-detail-page__activity">
-          <h2>Activity</h2>
-          {isAuditLoading ? (
-            <p role="status">Loading activity…</p>
-          ) : auditError ? (
-            <div>
-              <p role="alert">We couldn&apos;t load account activity.</p>
-              <button
-                type="button"
-                className="admin-btn admin-btn--secondary"
-                onClick={() => refetchAudit()}
-              >
-                Try Again
-              </button>
-            </div>
-          ) : !auditEntries || auditEntries.length === 0 ? (
-            <p>No activity recorded yet.</p>
-          ) : (
-            <ol className="admin-user-detail-page__timeline">
-              {auditEntries.map((entry) => (
-                <li key={entry.id}>
-                  <span className="admin-user-detail-page__timeline-date">
-                    {formatDate(entry.created_at)}
-                  </span>
-                  <span>
-                    {auditLogLabelFor(entry)} by {actorLabelFor(entry.actor_id, users)}
-                  </span>
-                </li>
-              ))}
-            </ol>
-          )}
-        </section>
-
-        <section className="admin-card admin-user-detail-page__actions">
-          <h2>Administrative Actions</h2>
-          {onlyAdminBanner ? (
-            <div className="admin-banner">
-              <p>You are the only administrator.</p>
-              <p>Add another Admin before removing your Admin role.</p>
-            </div>
-          ) : (
-            <div className="admin-user-detail-page__action-buttons">
-              {rowActionItems(user, authUser?.id ?? null, adminCount, isAdmin, handleAction).map((item) => (
+          <section className="admin-card admin-user-detail-page__activity">
+            <h2>Activity</h2>
+            {isAuditLoading ? (
+              <p role="status">Loading activity…</p>
+            ) : auditError ? (
+              <div>
+                <p role="alert">We couldn&apos;t load account activity.</p>
                 <button
-                  key={item.id}
                   type="button"
-                  className={
-                    item.tone === "danger"
-                      ? "admin-btn admin-btn--danger"
-                      : "admin-btn admin-btn--secondary"
-                  }
-                  onClick={item.onSelect}
+                  className="admin-btn admin-btn--secondary"
+                  onClick={() => refetchAudit()}
                 >
-                  {item.label}
+                  Try Again
                 </button>
-              ))}
-            </div>
+              </div>
+            ) : !auditEntries || auditEntries.length === 0 ? (
+              <p>No activity recorded yet.</p>
+            ) : (
+              <ol className="admin-user-detail-page__timeline">
+                {auditEntries.map((entry) => (
+                  <li key={entry.id}>
+                    <span className="admin-user-detail-page__timeline-date">
+                      {formatDate(entry.created_at)}
+                    </span>
+                    <span>
+                      {auditLogLabelFor(entry)} by {actorLabelFor(entry.actor_id, users)}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </section>
+        </main>
+
+        <aside className="admin-user-detail-page__side-rail" aria-label="Account operations">
+          <section className="admin-card admin-user-detail-page__moderation">
+            <h2>Moderation</h2>
+            {user.status === "active" ? (
+              <p>No moderation concerns.</p>
+            ) : (
+              <AdminAccountStatusBadge status={user.status} reason={user.status_reason} />
+            )}
+          </section>
+
+          {user.role === "organizer" && (
+            <section className="admin-card admin-user-detail-page__organizer">
+              <h2>Organizer</h2>
+              <p>
+                {displayNameFor(user)} · {upcomingOrganizerEvents} upcoming events
+              </p>
+              <Link to={`/admin/events?submitter=${encodeURIComponent(submitterValue!)}`}>
+                View Events
+              </Link>
+            </section>
           )}
-        </section>
+
+          <section className="admin-card admin-user-detail-page__actions">
+            <h2>Administrative Actions</h2>
+            {onlyAdminBanner ? (
+              <div className="admin-banner">
+                <p>You are the only administrator.</p>
+                <p>Add another Admin before removing your Admin role.</p>
+              </div>
+            ) : (
+              <div className="admin-user-detail-page__action-buttons">
+                {rowActionItems(user, authUser?.id ?? null, adminCount, isAdmin, handleAction).map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={
+                      item.tone === "danger"
+                        ? "admin-btn admin-btn--danger"
+                        : "admin-btn admin-btn--secondary"
+                    }
+                    onClick={item.onSelect}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </section>
+        </aside>
       </div>
+
+      <Link to="/admin/users" className="admin-user-detail-page__back">
+        ← Users
+      </Link>
+
 
       {pendingAction?.kind === "role" && (
         <AdminRoleChangeDialog

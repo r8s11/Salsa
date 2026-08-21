@@ -256,19 +256,29 @@ git commit -m "feat: let submitters replace pending event flyers"
 **Files:**
 - Modify: `src/components/Admin/AdminEventForm.tsx:14-497`
 - Modify: `src/components/Admin/AdminEventForm.test.tsx:1-160`
-- Modify: `src/pages/AdminEventsPage.tsx:484-515`
+- Modify: `src/pages/AdminEventsPage.tsx:1-515`
 - Modify: `src/pages/AdminEventsPage.test.tsx`
+- Modify: `src/hooks/useAdminEvents.ts:43-106`
 
 **Interfaces:**
-- Consumes: `EventFlyerField` and `uploadEventFlyer`.
-- Changes: `AdminEventFormProps` gains optional `eventId?: string` and `flyerOwnerId?: string`; file selection is available only when both identify an existing event.
+- Consumes: `EventFlyerField`, `uploadEventFlyer`, and `removeEventFlyer`.
+- Changes: `AdminEventFormProps` gains optional `eventId?: string` and `onSubmit(form: AdminEventFormValues, flyer: File | null): Promise<void>`.
+- Changes: `useAdminEvents()` exposes `saveAsync: saveMutation.mutateAsync` alongside the existing `save` function.
 
 - [ ] **Step 1: Write failing admin-form tests**
 
 ```tsx
 it("offers flyer replacement for an existing event", () => {
-  render(<MemoryRouter><AdminEventForm {...baseProps} eventId="event-1" flyerOwnerId="owner-1" /></MemoryRouter>);
+  render(<MemoryRouter><AdminEventForm {...baseProps} eventId="event-1" /></MemoryRouter>);
   expect(screen.getByLabelText("Event flyer")).toBeEnabled();
+});
+
+it("passes the selected flyer to the async edit submit handler", async () => {
+  const onSubmit = vi.fn().mockResolvedValue(undefined);
+  render(<MemoryRouter><AdminEventForm {...baseProps} eventId="event-1" onSubmit={onSubmit} /></MemoryRouter>);
+  await userEvent.upload(screen.getByLabelText("Event flyer"), new File(["png"], "flyer.png", { type: "image/png" }));
+  await userEvent.click(screen.getByRole("button", { name: /save event/i }));
+  await waitFor(() => expect(onSubmit).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ name: "flyer.png" })));
 });
 
 it("keeps URL entry available when creating a new event", () => {
@@ -282,24 +292,26 @@ it("keeps URL entry available when creating a new event", () => {
 
 Run: `npx vitest run src/components/Admin/AdminEventForm.test.tsx`
 
-Expected: FAIL because the new props/field are absent.
+Expected: FAIL because the new props/field and selected-file callback do not exist.
 
-- [ ] **Step 3: Add admin edit upload sequencing**
+- [ ] **Step 3: Make the form collect, not persist, flyer files**
 
-For existing events, hold the selected file in `AdminEventForm`; before `onSubmit`, upload using `flyerOwnerId` and `eventId`, then submit the same `AdminEventFormValues` shape with its `image_url` updated to the returned URL. On upload failure, render the existing error banner and do not call `onSubmit`. After successful page save, safely remove only the replaced bucket URL. Keep the URL input for new event creation because it has no persisted event ID/path yet.
+For existing events, render `EventFlyerField`, retain its `File | null` in `AdminEventForm`, and await `onSubmit(form, selectedFlyer)` only after the existing form validation succeeds. If that promise rejects, render its message through the existing error banner and leave form/file state intact. Keep the URL input for new-event creation because it has no persisted event ID/path yet. The form must not upload or delete Storage objects itself.
 
-Pass `eventId={formView.event.id}` and `flyerOwnerId={formView.event.submitter_id ?? user?.id ?? ""}` only in the edit branch of `AdminEventsPage`. Ensure the page’s existing save failure is routed back into the form error prop.
+- [ ] **Step 4: Persist admin replacements transactionally at the page boundary**
 
-- [ ] **Step 4: Run admin-focused tests**
+Expose `saveAsync` from `useAdminEvents`. In `AdminEventsPage`, make `submitForm` async. For an existing event with a selected flyer, call `uploadEventFlyer({ file, ownerId: formView.event.submitter_id ?? currentUser.id, eventId: formView.event.id })`, replace `image_url` in `adminFormToPayload(form)`, await `saveAsync({ id, payload })`, then call `removeEventFlyer(formView.event.image_url)` only after the event mutation resolves. If save rejects after upload, best-effort remove only the new uploaded URL, then rethrow so the form’s banner shows the save error. For new events or no selected file, preserve the current save payload and behavior. Obtain `currentUser` from the existing auth context in the page; do not derive it from a form field.
 
-Run: `npx vitest run src/components/Admin/AdminEventForm.test.tsx src/pages/AdminEventsPage.test.tsx`
+- [ ] **Step 5: Run admin-focused tests**
 
-Expected: PASS, including existing edit upload and unchanged new-event URL behavior.
+Run: `npx vitest run src/components/Admin/AdminEventForm.test.tsx src/pages/AdminEventsPage.test.tsx src/hooks/useAdminEvents.test.ts`
 
-- [ ] **Step 5: Commit**
+Expected: PASS, including existing edit upload, save-before-old-delete ordering, rejected-save cleanup, and unchanged new-event URL behavior.
+
+- [ ] **Step 6: Commit**
 
 ```bash
-git add src/components/Admin/AdminEventForm.tsx src/components/Admin/AdminEventForm.test.tsx src/pages/AdminEventsPage.tsx src/pages/AdminEventsPage.test.tsx
+git add src/components/Admin/AdminEventForm.tsx src/components/Admin/AdminEventForm.test.tsx src/pages/AdminEventsPage.tsx src/pages/AdminEventsPage.test.tsx src/hooks/useAdminEvents.ts src/hooks/useAdminEvents.test.ts
 git commit -m "feat: support flyer replacement in admin editor"
 ```
 

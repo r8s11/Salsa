@@ -1,5 +1,4 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
 import { ScheduleXEvent } from "../../types/events";
 
 const TYPE_LABELS: Record<string, string> = {
@@ -8,8 +7,13 @@ const TYPE_LABELS: Record<string, string> = {
   workshop: "Workshop",
 };
 
-export default function FeaturedEventCard({ event }: { event: ScheduleXEvent }) {
-  const navigate = useNavigate();
+export default function FeaturedEventCard({
+  event,
+  onSelect,
+}: {
+  event: ScheduleXEvent;
+  onSelect: (event: ScheduleXEvent) => void;
+}) {
   const startDate = new Date(event.start.replace(" ", "T"));
 
   const weekday = startDate.toLocaleDateString("en-US", { weekday: "short" }).toUpperCase();
@@ -21,7 +25,7 @@ export default function FeaturedEventCard({ event }: { event: ScheduleXEvent }) 
     hour12: true,
   });
 
-  const openDetail = () => navigate(`/calendar?event=${event.id}`);
+  const openDetail = () => onSelect(event);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" || e.key === " ") {

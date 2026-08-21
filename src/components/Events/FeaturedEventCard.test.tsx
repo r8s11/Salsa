@@ -20,10 +20,10 @@ const baseEvent: ScheduleXEvent = {
   description: "Two floors of salsa and bachata with rotating DJs.",
 };
 
-function renderCard(event: ScheduleXEvent) {
+function renderCard(event: ScheduleXEvent, onSelect = vi.fn()) {
   return render(
     <MemoryRouter>
-      <FeaturedEventCard event={event} />
+      <FeaturedEventCard event={event} onSelect={onSelect} />
     </MemoryRouter>
   );
 }
@@ -44,10 +44,11 @@ describe("FeaturedEventCard", () => {
     expect(screen.queryByText(/rotating DJs/)).not.toBeInTheDocument();
   });
 
-  it("navigates to the calendar deep link on click", () => {
-    renderCard(baseEvent);
+  it("selects the featured event on click", () => {
+    const onSelect = vi.fn();
+    renderCard(baseEvent, onSelect);
     fireEvent.click(screen.getByRole("button"));
-    expect(mockNavigate).toHaveBeenCalledWith("/calendar?event=7");
+    expect(onSelect).toHaveBeenCalledWith(baseEvent);
   });
 
   it("applies the workshop media modifier for workshop events", () => {

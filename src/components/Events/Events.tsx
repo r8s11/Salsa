@@ -6,7 +6,9 @@ import "./Events.css";
 import { useEvents } from "../../hooks/useEvent";
 import EventCard from "./EventCard";
 import FeaturedEventCard from "./FeaturedEventCard";
+import EventModal from "../EventModal/EventModal";
 import { filterEventsByType, TypeFilter } from "../../utils/filterEvents";
+import type { ScheduleXEvent } from "../../types/events";
 
 const FILTER_OPTIONS: { value: TypeFilter; label: string }[] = [
   { value: "all", label: "All" },
@@ -18,6 +20,7 @@ const FILTER_OPTIONS: { value: TypeFilter; label: string }[] = [
 function Events() {
   const { events: allEvents, loading, error } = useEvents();
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
+  const [selectedEvent, setSelectedEvent] = useState<ScheduleXEvent | null>(null);
 
   const upcomingEvents = useMemo(() => {
     const now = new Date();
@@ -73,12 +76,13 @@ function Events() {
   }
 
   return (
-    <section id="events" className="events">
+    <>
+      <section id="events" className="events">
       <div className="container">
         {featuredEvent && (
           <div className="events-featured-wrap">
             <h2 className="events-eyebrow">◆ Featured Tonight</h2>
-            <FeaturedEventCard event={featuredEvent} />
+            <FeaturedEventCard event={featuredEvent} onSelect={setSelectedEvent} />
           </div>
         )}
 
@@ -108,7 +112,7 @@ function Events() {
         ) : feedEvents.length > 0 ? (
           <div className="events-grid">
             {feedEvents.map((event) => (
-              <EventCard key={event.id} event={event} />
+              <EventCard key={event.id} event={event} onSelect={setSelectedEvent} />
             ))}
           </div>
         ) : (
@@ -129,7 +133,9 @@ function Events() {
           </div>
         </div>
       </div>
-    </section>
+      </section>
+      <EventModal event={selectedEvent} onClose={() => setSelectedEvent(null)} />
+    </>
   );
 }
 

@@ -19,10 +19,10 @@ const baseEvent: ScheduleXEvent = {
   location: "Seaport Rooftop, Boston",
 };
 
-function renderCard(event: ScheduleXEvent) {
+function renderCard(event: ScheduleXEvent, onSelect = vi.fn()) {
   return render(
     <MemoryRouter>
-      <EventCard event={event} />
+      <EventCard event={event} onSelect={onSelect} />
     </MemoryRouter>
   );
 }
@@ -46,16 +46,18 @@ describe("EventCard", () => {
     expect(screen.queryByText(/Seaport Rooftop/)).not.toBeInTheDocument();
   });
 
-  it("navigates to the calendar deep link on click", () => {
-    renderCard(baseEvent);
+  it("selects the event on click", () => {
+    const onSelect = vi.fn();
+    renderCard(baseEvent, onSelect);
     fireEvent.click(screen.getByRole("button"));
-    expect(mockNavigate).toHaveBeenCalledWith("/calendar?event=42");
+    expect(onSelect).toHaveBeenCalledWith(baseEvent);
   });
 
-  it("navigates on Enter key", () => {
-    renderCard(baseEvent);
+  it("selects the event on Enter key", () => {
+    const onSelect = vi.fn();
+    renderCard(baseEvent, onSelect);
     fireEvent.keyDown(screen.getByRole("button"), { key: "Enter" });
-    expect(mockNavigate).toHaveBeenCalledWith("/calendar?event=42");
+    expect(onSelect).toHaveBeenCalledWith(baseEvent);
   });
 
   it("applies the class-specific thumb and chip modifier", () => {

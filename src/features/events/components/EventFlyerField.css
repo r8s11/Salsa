@@ -1,0 +1,49 @@
+.event-flyer-field {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.event-flyer-field > label {
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.event-flyer-field__helper {
+  margin: 0;
+  color: var(--text-dim);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+}
+
+.event-flyer-field__preview {
+  width: min(100%, 360px);
+  max-height: 240px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  object-fit: cover;
+}
+
+.event-flyer-field input[type="file"] {
+  width: 100%;
+  padding: 0.7rem;
+  border: 1px dashed var(--border-md);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font: inherit;
+}
+
+.event-flyer-field input[type="file"]:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.event-flyer-field [role="alert"] {
+  margin: 0;
+  color: var(--red-bright);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+}

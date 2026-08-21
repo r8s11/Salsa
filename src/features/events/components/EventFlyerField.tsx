@@ -1,5 +1,6 @@
 import { ChangeEvent, useEffect, useState } from "react";
 import { validateEventFlyer } from "../api/eventFlyers";
+import "./EventFlyerField.css";
 
 type EventFlyerFieldProps = {
   currentUrl: string | null;

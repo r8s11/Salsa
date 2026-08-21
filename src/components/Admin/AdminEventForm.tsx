@@ -9,6 +9,7 @@ import { venueDisplayAddress } from "../../features/admin/model/venuesQuery";
 import { useVenueCombobox } from "../../features/admin/hooks/useVenueCombobox";
 import { useActiveTaxonomyTerms } from "../../features/admin/hooks/useAdminTaxonomy";
 import type { VenueRow } from "../../features/admin/model/venuesQuery";
+import EventFlyerField from "../../features/events/components/EventFlyerField";
 import "./AdminEventForm.css";
 
 interface AdminEventFormProps {
@@ -18,7 +19,8 @@ interface AdminEventFormProps {
   submitLabel: string;
   isSaving: boolean;
   error: string | null;
-  onSubmit: (form: AdminEventFormValues) => void;
+  eventId?: string;
+  onSubmit: (form: AdminEventFormValues, flyer: File | null) => void | Promise<void>;
   onCancel: () => void;
 }
 
@@ -42,11 +44,14 @@ export default function AdminEventForm({
   submitLabel,
   isSaving,
   error,
+  eventId,
   onSubmit,
   onCancel,
 }: AdminEventFormProps) {
   const [form, setForm] = useState<AdminEventFormValues>(initial);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedFlyer, setSelectedFlyer] = useState<File | null>(null);
   const venueCombobox = useVenueCombobox(form.venue_id);
   const { clearVenue, results, selectVenue, selectedId } = venueCombobox;
   const danceStyles = useActiveTaxonomyTerms("dance_style");
@@ -98,16 +103,29 @@ export default function AdminEventForm({
     setValidationError(null);
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (isSaving || isSubmitting) return;
+
     const nextError = validateAdminEventForm(form);
     if (nextError) {
       setValidationError(nextError);
       return;
     }
-    onSubmit(form);
+
+    setIsSubmitting(true);
+    try {
+      await onSubmit(form, selectedFlyer);
+    } catch (submissionError) {
+      setValidationError(
+        submissionError instanceof Error ? submissionError.message : "Unable to save event."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
+  const isBusy = isSaving || isSubmitting;
   const bannerMessage = validationError || error;
 
   return (
@@ -444,6 +462,14 @@ export default function AdminEventForm({
             </div>
           )}
         </div>
+        {eventId && (
+          <EventFlyerField
+            currentUrl={form.image_url || null}
+            file={selectedFlyer}
+            onFileChange={setSelectedFlyer}
+            disabled={isBusy}
+          />
+        )}
       </fieldset>
 
       <fieldset className="admin-form__fieldset">
@@ -487,10 +513,15 @@ export default function AdminEventForm({
       </fieldset>
 
       <div className="admin-form__actions">
-        <button type="submit" className="admin-btn admin-btn--primary" disabled={isSaving}>
-          {isSaving ? "Saving…" : submitLabel}
+        <button type="submit" className="admin-btn admin-btn--primary" disabled={isBusy}>
+          {isBusy ? "Saving…" : submitLabel}
         </button>
-        <button type="button" className="admin-btn admin-btn--secondary" onClick={onCancel}>
+        <button
+          type="button"
+          className="admin-btn admin-btn--secondary"
+          onClick={onCancel}
+          disabled={isBusy}
+        >
           Cancel
         </button>
       </div>

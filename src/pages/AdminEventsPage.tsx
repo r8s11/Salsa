@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Plus, Upload } from "lucide-react";
 import { useAdminEvents } from "../hooks/useAdminEvents";
+import { removeEventFlyer, uploadEventFlyer } from "../features/events/api/eventFlyers";
 import { useCity } from "../contexts/useCity";
 import { usePlatformSettings } from "../features/admin/hooks/usePlatformSettings";
 import type { DatabaseEvent, City } from "../features/events/model/types";
@@ -186,7 +187,7 @@ export default function AdminEventsPage() {
     changingStatusId,
     changeStatusErrorId,
     changeStatusError,
-    save,
+    saveAsync,
     isSaving,
     saveError,
     remove,
@@ -481,12 +482,43 @@ export default function AdminEventsPage() {
       ? removingId === pendingAction.event.id
       : changingStatusId === pendingAction?.event.id;
 
-  const submitForm = (form: AdminEventFormValues) => {
+  const submitForm = async (form: AdminEventFormValues, flyer: File | null) => {
     const id = formView.mode === "edit" ? formView.event.id : null;
-    save(
-      { id, payload: adminFormToPayload(form) },
-      { onSuccess: () => setFormView({ mode: "list" }) }
-    );
+    const previousFlyerUrl = formView.mode === "edit" ? formView.event.image_url : null;
+    let uploadedFlyerUrl: string | null = null;
+
+    try {
+      const payload = adminFormToPayload(form);
+      if (flyer && formView.mode === "edit") {
+        const uploadedFlyer = await uploadEventFlyer({
+          file: flyer,
+          ownerId: formView.event.submitter_id ?? "admin",
+          eventId: formView.event.id,
+        });
+        uploadedFlyerUrl = uploadedFlyer.url;
+        payload.image_url = uploadedFlyer.url;
+      }
+
+      await saveAsync({ id, payload });
+    } catch (submissionError) {
+      if (uploadedFlyerUrl) {
+        try {
+          await removeEventFlyer(uploadedFlyerUrl);
+        } catch {
+          // Preserve the primary upload/save error for the administrator.
+        }
+      }
+      throw submissionError;
+    }
+
+    if (uploadedFlyerUrl && previousFlyerUrl) {
+      try {
+        await removeEventFlyer(previousFlyerUrl);
+      } catch {
+        // The new flyer is persisted; stale-object cleanup is best effort.
+      }
+    }
+    setFormView({ mode: "list" });
   };
 
   if (formView.mode !== "list") {
@@ -510,6 +542,7 @@ export default function AdminEventsPage() {
         submitLabel={isEdit ? "Save changes" : "Create event"}
         isSaving={isSaving}
         error={saveError}
+        eventId={isEdit ? formView.event.id : undefined}
         onSubmit={submitForm}
         onCancel={() => setFormView({ mode: "list" })}
       />

@@ -1,6 +1,6 @@
 import "temporal-polyfill/global";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import type { DatabaseEvent } from "../features/events/model/types";
@@ -9,9 +9,31 @@ import AdminEventsPage from "./AdminEventsPage";
 
 const { useAdminEvents } = vi.hoisted(() => ({ useAdminEvents: vi.fn() }));
 const { usePlatformSettings } = vi.hoisted(() => ({ usePlatformSettings: vi.fn() }));
+const { uploadEventFlyer, removeEventFlyer } = vi.hoisted(() => ({
+  uploadEventFlyer: vi.fn(),
+  removeEventFlyer: vi.fn(),
+}));
 
 vi.mock("../hooks/useAdminEvents", () => ({ useAdminEvents }));
 vi.mock("../features/admin/hooks/usePlatformSettings", () => ({ usePlatformSettings }));
+vi.mock("../features/events/api/eventFlyers", () => ({ uploadEventFlyer, removeEventFlyer }));
+vi.mock("../features/events/components/EventFlyerField", () => ({
+  default: function MockEventFlyerField({
+    onFileChange,
+  }: {
+    onFileChange: (file: File | null) => void;
+  }) {
+    return (
+      <label>
+        Event flyer
+        <input
+          type="file"
+          onChange={(event) => onFileChange(event.target.files?.[0] ?? null)}
+        />
+      </label>
+    );
+  },
+}));
 
 vi.mock("../contexts/useCity", () => ({
   useCity: () => ({ city: "boston", setCity: vi.fn() }),
@@ -106,6 +128,7 @@ const defaultState = {
   changeStatusErrorId: null,
   changeStatusError: null,
   save: vi.fn(),
+  saveAsync: vi.fn(),
   isSaving: false,
   saveError: null,
   remove: vi.fn(),
@@ -190,6 +213,38 @@ describe("AdminEventsPage", () => {
 
     expect(screen.getByRole("heading", { name: "Edit event" })).toBeInTheDocument();
     expect(screen.getByLabelText("Event Title *")).toHaveValue("Bachata Sensual Social");
+    expect(screen.getByLabelText("Event flyer")).toBeInTheDocument();
+  });
+
+  it("uploads an admin replacement before saving its returned flyer URL", async () => {
+    const user = userEvent.setup();
+    const saveAsync = vi.fn().mockResolvedValue(undefined);
+    vi.mocked(useAdminEvents).mockReturnValue({ ...defaultState, saveAsync });
+    uploadEventFlyer.mockResolvedValue({
+      path: "user-1/event-1/flyer.png",
+      url: "https://project.supabase.co/new-flyer.png",
+    });
+    renderPage();
+
+    const menu = await openRowMenu(user, "Bachata Sensual Social");
+    await user.click(within(menu).getByRole("menuitem", { name: "Edit" }));
+    await user.upload(
+      screen.getByLabelText("Event flyer"),
+      new File(["png"], "flyer.png", { type: "image/png" })
+    );
+    await user.click(screen.getByRole("button", { name: "Save changes" }));
+
+    await waitFor(() => {
+      expect(saveAsync).toHaveBeenCalledWith({
+        id: "event-1",
+        payload: expect.objectContaining({ image_url: "https://project.supabase.co/new-flyer.png" }),
+      });
+    });
+    expect(uploadEventFlyer).toHaveBeenCalledWith({
+      file: expect.objectContaining({ name: "flyer.png" }),
+      ownerId: "user-1",
+      eventId: "event-1",
+    });
   });
 
   it("confirms delete through the dialog and calls remove with the event id", async () => {

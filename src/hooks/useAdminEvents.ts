@@ -92,6 +92,7 @@ export function useAdminEvents() {
     changeStatusError: changeStatusMutation.error ? changeStatusMutation.error.message : null,
 
     save: saveMutation.mutate,
+    saveAsync: saveMutation.mutateAsync,
     isSaving: saveMutation.isPending,
     saveError: saveMutation.error ? saveMutation.error.message : null,
 

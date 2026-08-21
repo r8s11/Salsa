@@ -40,7 +40,7 @@ describe("EventCard", () => {
     expect(screen.getByText(/Seaport Rooftop/)).toBeInTheDocument();
     rerender(
       <MemoryRouter>
-        <EventCard event={{ ...baseEvent, location: undefined }} />
+        <EventCard event={{ ...baseEvent, location: undefined }} onSelect={vi.fn()} />
       </MemoryRouter>
     );
     expect(screen.queryByText(/Seaport Rooftop/)).not.toBeInTheDocument();

@@ -330,7 +330,7 @@
   padding: 1rem 1.05rem 1.1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.35rem;
   flex: 1;
 }
 
@@ -350,7 +350,6 @@
   font-family: var(--font-body);
   font-size: 0.8rem;
   color: var(--text-dim);
-  margin-top: auto;
 }
 
 .event-card-location {

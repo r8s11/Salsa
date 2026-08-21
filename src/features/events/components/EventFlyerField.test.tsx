@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import EventFlyerField from "./EventFlyerField";
@@ -37,5 +37,19 @@ describe("EventFlyerField", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent(/JPEG, PNG, or WebP/i);
     expect(onFileChange).not.toHaveBeenCalled();
+  });
+
+  it("reports a flyer preview load failure", async () => {
+    render(
+      <EventFlyerField
+        currentUrl="https://example.com/missing-flyer.jpg"
+        file={null}
+        onFileChange={vi.fn()}
+      />
+    );
+
+    fireEvent.error(screen.getByAltText("Event flyer preview"));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/couldn't load/i);
   });
 });

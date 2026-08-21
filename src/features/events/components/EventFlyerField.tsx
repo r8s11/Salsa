@@ -16,9 +16,11 @@ export default function EventFlyerField({
   disabled = false,
 }: EventFlyerFieldProps) {
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [previewError, setPreviewError] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
+    setPreviewError(false);
     if (!file) {
       setPreviewUrl(null);
       return;
@@ -33,6 +35,7 @@ export default function EventFlyerField({
     const nextFile = event.target.files?.[0] ?? null;
     if (!nextFile) {
       setValidationError(null);
+      setPreviewError(false);
       onFileChange(null);
       return;
     }
@@ -45,6 +48,7 @@ export default function EventFlyerField({
     }
 
     setValidationError(null);
+    setPreviewError(false);
     onFileChange(nextFile);
   };
 
@@ -54,8 +58,13 @@ export default function EventFlyerField({
     <div className="event-flyer-field">
       <label htmlFor="event-flyer">Event flyer</label>
       <p className="event-flyer-field__helper">JPEG, PNG, or WebP · up to 5 MB</p>
-      {imageUrl && (
-        <img className="event-flyer-field__preview" src={imageUrl} alt="Event flyer preview" />
+      {imageUrl && !previewError && (
+        <img
+          className="event-flyer-field__preview"
+          src={imageUrl}
+          alt="Event flyer preview"
+          onError={() => setPreviewError(true)}
+        />
       )}
       <input
         id="event-flyer"
@@ -64,7 +73,11 @@ export default function EventFlyerField({
         onChange={handleChange}
         disabled={disabled}
       />
-      {validationError && <p role="alert">{validationError}</p>}
+      {(validationError || previewError) && (
+        <p role="alert">
+          {validationError ?? "The current flyer couldn't load. Choose a replacement image."}
+        </p>
+      )}
     </div>
   );
 }

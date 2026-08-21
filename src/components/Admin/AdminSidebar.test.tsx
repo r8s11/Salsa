@@ -47,6 +47,14 @@ describe("AdminSidebar collapse", () => {
   });
 });
 
+describe("AdminSidebar public brand navigation", () => {
+  it("links the Salsa Segura brand to the public homepage", () => {
+    renderSidebar();
+
+    expect(screen.getByRole("link", { name: "Salsa Segura" })).toHaveAttribute("href", "/");
+  });
+});
+
 const { useAuth } = vi.hoisted(() => ({ useAuth: vi.fn() }));
 vi.mock("../../contexts/useAuth", () => ({ useAuth }));
 const { useTheme } = vi.hoisted(() => ({ useTheme: vi.fn() }));

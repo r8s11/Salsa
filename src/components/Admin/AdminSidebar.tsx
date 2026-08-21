@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
   CalendarDays,
@@ -149,13 +149,13 @@ export default function AdminSidebar({
       data-variant={variant}
       data-collapsed={collapsed}
     >
-      <div className="admin-sidebar__brand">
+      <Link className="admin-sidebar__brand" to="/" onClick={() => onNavigate?.()}>
         <SalsaSeguraLogo
           variant="full"
           size="md"
           tone={effectiveTheme === "dark" ? "white" : "brand"}
         />
-      </div>
+      </Link>
       <div className="admin-sidebar__scroll">
         {navItems.map(({ item, showGroup }) => {
           const Icon = item.icon;

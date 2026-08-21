@@ -122,7 +122,7 @@
   font-family: var(--font-body);
   font-size: 15px;
   color: var(--text);
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   flex-wrap: wrap;
 }
 
@@ -131,10 +131,15 @@
   flex-shrink: 0;
 }
 
+.meta-row > span:not(.repeat-pill) {
+  flex: 1;
+  min-width: 0;
+}
+
 .dance-styles {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 5px;
 }
 
 .repeat-pill {
@@ -157,7 +162,7 @@
   font-size: 15px;
   color: var(--text-muted);
   line-height: 1.6;
-  margin: 16px 0 0;
+  margin: 10px 0 0;
 }
 
 /* ── Gallery ── */

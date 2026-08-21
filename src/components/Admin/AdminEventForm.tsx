@@ -465,7 +465,6 @@ export default function AdminEventForm({
         {eventId && (
           <EventFlyerField
             currentUrl={form.image_url || null}
-            file={selectedFlyer}
             onFileChange={setSelectedFlyer}
             disabled={isBusy}
           />

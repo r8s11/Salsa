@@ -255,8 +255,8 @@ export default function UserEventEditPage() {
             <LocationFieldset form={form} update={update} />
             <PricingFieldset form={form} update={update} />
             <EventFlyerField
+              key={editingEvent.image_url}
               currentUrl={editingEvent.image_url}
-              file={selectedFlyer}
               onFileChange={setSelectedFlyer}
               disabled={isSaving}
             />

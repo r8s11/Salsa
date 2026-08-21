@@ -225,8 +225,15 @@ export default function UserEventEditPage() {
 
   return (
     <main className="user-edit-page">
-      <div className="container">
-        <h1 className="section-title">Edit Your Event</h1>
+      <div className="container user-edit-page__content">
+        <header className="user-edit-page__header">
+          <span className="user-edit-page__eyebrow">◆ Community</span>
+          <h1>Edit event</h1>
+          <p>
+            Update your event details. Changes stay in review until they are ready for the public
+            calendar.
+          </p>
+        </header>
 
         {!isEditable && (
           <div className="error-banner" role="alert">
@@ -250,31 +257,27 @@ export default function UserEventEditPage() {
         )}
 
         {isEditable && (
-          <form onSubmit={handleSubmit} className="submit-form">
+          <form onSubmit={handleSubmit} className="submit-form user-edit-page__form">
             <EventDetailsFieldset form={form} update={update} />
             <LocationFieldset form={form} update={update} />
             <PricingFieldset form={form} update={update} />
-            <EventFlyerField
-              key={editingEvent.image_url}
-              currentUrl={editingEvent.image_url}
-              onFileChange={setSelectedFlyer}
-              disabled={isSaving}
-            />
+            <section className="user-edit-page__flyer" aria-labelledby="event-flyer-heading">
+              <div>
+                <h2 id="event-flyer-heading">Event artwork</h2>
+                <p>Use a clear poster or banner so dancers recognize the night at a glance.</p>
+              </div>
+              <EventFlyerField
+                key={editingEvent.image_url}
+                currentUrl={editingEvent.image_url}
+                onFileChange={setSelectedFlyer}
+                disabled={isSaving}
+              />
+            </section>
 
             <div className="user-edit-page__actions">
               <button type="submit" className="btn-primary" disabled={isSaving || !isEditable}>
                 {isSaving ? "Saving…" : "Save changes"}
               </button>
-              {canWithdraw && (
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  onClick={() => setShowWithdrawConfirm(true)}
-                  disabled={isSaving}
-                >
-                  Withdraw submission
-                </button>
-              )}
               <button
                 type="button"
                 className="btn-secondary"
@@ -283,6 +286,16 @@ export default function UserEventEditPage() {
               >
                 Cancel
               </button>
+              {canWithdraw && (
+                <button
+                  type="button"
+                  className="user-edit-page__withdraw"
+                  onClick={() => setShowWithdrawConfirm(true)}
+                  disabled={isSaving}
+                >
+                  Withdraw submission
+                </button>
+              )}
             </div>
           </form>
         )}

@@ -141,10 +141,7 @@ vi.mock("../features/events/components/EventFlyerField", () => ({
     return (
       <label>
         Event flyer
-        <input
-          type="file"
-          onChange={(event) => onFileChange(event.target.files?.[0] ?? null)}
-        />
+        <input type="file" onChange={(event) => onFileChange(event.target.files?.[0] ?? null)} />
       </label>
     );
   },
@@ -199,10 +196,9 @@ function renderPage() {
   );
 }
 
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
+beforeEach(() => {
+  vi.clearAllMocks();
+});
 describe("UserEventEditPage save flow", () => {
   it("calls updateEventForUser with the event id and transformed payload on save", async () => {
     mocks.useMySubmissions.mockReturnValue({
@@ -235,6 +231,21 @@ describe("UserEventEditPage save flow", () => {
     expect(payloadArg).not.toHaveProperty("status");
     expect(payloadArg).not.toHaveProperty("source_type");
     expect(payloadArg).not.toHaveProperty("submitter_id");
+  });
+
+  it("uses the reference authoring header and review guidance", async () => {
+    mocks.useMySubmissions.mockReturnValue({
+      submissions: [pendingEvent],
+      approvedEvents: [],
+      isLoading: false,
+      error: null,
+    });
+
+    renderPage();
+
+    expect(await screen.findByRole("heading", { name: "Edit event" })).toBeInTheDocument();
+    expect(screen.getByText(/changes stay in review/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Event artwork" })).toBeInTheDocument();
   });
 
   it("uploads a selected flyer before persisting its URL", async () => {

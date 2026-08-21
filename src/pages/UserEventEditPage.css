@@ -3,31 +3,137 @@
    ======================================== */
 
 .user-edit-page {
+  min-height: calc(100dvh - 68px);
+  padding: 56px 0 90px;
   background: var(--bg);
   color: var(--text);
-  padding: var(--space-xxl) 0;
-  min-height: calc(100dvh - 68px);
 }
 
-.user-edit-page .section-title {
+.user-edit-page__content {
+  max-width: 720px;
+}
+
+.user-edit-page__header {
+  max-width: 48rem;
+  margin-bottom: 32px;
+}
+
+.user-edit-page__eyebrow {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--tertiary);
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.user-edit-page__header h1 {
+  margin: 0;
   color: var(--text);
+  font-family: var(--font-display);
+  font-size: clamp(2.125rem, 5vw, 3.25rem);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1;
 }
 
-.user-edit-page__status {
+.user-edit-page__header p {
+  max-width: 44ch;
+  margin: 12px 0 0;
+  color: var(--text-dim);
+  font-family: var(--font-body);
+  font-size: 0.94rem;
+  line-height: 1.6;
+}
+
+.user-edit-page__form {
+  max-width: none;
+  margin: 0;
+  gap: 20px;
+}
+
+.user-edit-page__form fieldset {
+  margin-bottom: 0;
+  padding: 1.4rem;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+
+.user-edit-page__flyer {
+  display: grid;
+  gap: 16px;
+  padding: 1.4rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+
+.user-edit-page__flyer h2 {
+  margin: 0;
+  color: var(--tertiary);
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.user-edit-page__flyer > div > p {
+  margin: 7px 0 0;
+  color: var(--text-dim);
+  font-family: var(--font-body);
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.user-edit-page__status,
+.user-edit-page__success {
+  margin: 0 0 20px;
   color: var(--text-muted);
-  font-family: var(--font-ui);
-  margin-bottom: var(--space-lg);
+  font-family: var(--font-body);
+}
+
+.user-edit-page__success {
+  color: var(--tertiary);
 }
 
 .user-edit-page__actions {
   display: flex;
-  gap: var(--space-sm);
-  margin-top: var(--space-lg);
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
 }
 
 .user-edit-page__actions .btn-primary,
 .user-edit-page__actions .btn-secondary {
-  flex: 1;
+  flex: 0 0 auto;
+}
+
+.user-edit-page__withdraw {
+  margin-left: auto;
+  padding: 10px 0;
+  border: 0;
+  background: transparent;
+  color: var(--red-bright);
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.user-edit-page__withdraw:hover {
+  color: var(--text);
+}
+
+.user-edit-page__withdraw:focus-visible {
+  outline: 2px solid var(--red-bright);
+  outline-offset: 4px;
+  border-radius: var(--radius-sm);
 }
 
 /* ── Withdraw confirmation dialog ── */
@@ -71,7 +177,34 @@
 }
 
 @media (max-width: 600px) {
+  .user-edit-page {
+    padding: 42px 0 72px;
+  }
+
+  .user-edit-page__header {
+    margin-bottom: 26px;
+  }
+
+  .user-edit-page__form fieldset,
+  .user-edit-page__flyer {
+    padding: 1.2rem;
+  }
+
   .user-edit-page__actions {
+    align-items: stretch;
     flex-direction: column;
+  }
+
+  .user-edit-page__actions .btn-primary,
+  .user-edit-page__actions .btn-secondary,
+  .user-edit-page__withdraw {
+    width: 100%;
+  }
+
+  .user-edit-page__withdraw {
+    margin-left: 0;
+    padding: 12px;
+    border: 1px solid rgba(225, 29, 72, 0.35);
+    border-radius: var(--radius-sm);
   }
 }

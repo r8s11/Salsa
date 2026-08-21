@@ -6,6 +6,13 @@ import { useMySubmissions } from "../hooks/useMySubmissions";
 import { validateSubmitForm, type SubmitForm } from "../features/submit-event/validation";
 import { toEventDateInstant, fromEventDateInstant } from "../features/events/model/eventDateTime";
 import type { DatabaseEvent, City } from "../features/events/model/types";
+import {
+  updateEventForUser,
+  type UserEventUpdatePayload,
+  deleteEventForUser,
+} from "../features/events/api/eventsRepo";
+import { removeEventFlyer, uploadEventFlyer } from "../features/events/api/eventFlyers";
+import EventFlyerField from "../features/events/components/EventFlyerField";
 import EventDetailsFieldset from "../features/submit-event/components/EventDetailsFieldset";
 import LocationFieldset from "../features/submit-event/components/LocationFieldset";
 import PricingFieldset from "../features/submit-event/components/PricingFieldset";
@@ -29,15 +36,17 @@ function buildUserFormFromEvent(event: DatabaseEvent): SubmitForm {
     submitter_name: event.submitter_name ?? "",
     submitter_email: event.submitter_email ?? "",
     recurrence: event.recurrence === "weekly" ? "weekly" : "",
-    dance_styles: event.taxonomy_terms.filter((term) => term.category === "dance_style").map((term) => term.slug),
+    dance_styles: event.taxonomy_terms
+      .filter((term) => term.category === "dance_style")
+      .map((term) => term.slug),
   };
 }
 
-function userFormToPayload(form: SubmitForm): Record<string, unknown> {
+function userFormToPayload(form: SubmitForm): UserEventUpdatePayload {
   return {
     title: form.title,
     description: form.description || null,
-    event_type: form.event_type,
+    event_type: form.event_type as UserEventUpdatePayload["event_type"],
     city: form.city as City,
     event_date: toEventDateInstant(form.event_date, form.event_time),
     event_time: form.event_time || null,
@@ -62,6 +71,8 @@ export default function UserEventEditPage() {
   const [showWithdrawConfirm, setShowWithdrawConfirm] = useState(false);
   const [form, setForm] = useState<SubmitForm | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
+  const [selectedFlyer, setSelectedFlyer] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   const update = (field: keyof SubmitForm, value: string | string[]) =>
@@ -86,20 +97,22 @@ export default function UserEventEditPage() {
       navigate("/profile");
     }
   }, [editingEvent, navigate]);
-  // TODO: Adapt to submissionsRepo.updateSubmission
   const saveMutation = useMutation({
-    mutationFn: async (_: { id: string; payload: unknown }) => { throw new Error("Not implemented"); },
+    mutationFn: ({ id, payload }: { id: string; payload: UserEventUpdatePayload }) =>
+      updateEventForUser(id, payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["events", "mine", user?.id] });
-      navigate("/profile");
+      queryClient.invalidateQueries({ queryKey: ["submissions", "mine", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["approved-events", "mine", user?.id] });
     },
   });
 
-  // TODO: Adapt to submissionsRepo.withdrawSubmission
+  // Allows the original submitter to withdraw (hard-delete) their own event
+  // while it is still pending. The RLS DELETE policy enforces
+  // submitter_id = auth.uid() AND status = 'pending' at the database layer.
   const withdrawMutation = useMutation({
-    mutationFn: async (_: string) => { throw new Error("Not implemented"); },
+    mutationFn: deleteEventForUser,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["events", "mine", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["submissions", "mine", user?.id] });
       navigate("/profile");
     },
   });
@@ -107,7 +120,8 @@ export default function UserEventEditPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setSaveError(null);
-    if (!form || !editingEvent) return;
+    setSaveSuccess(null);
+    if (!form || !editingEvent || !user) return;
 
     const validationError = validateSubmitForm(form);
     if (validationError) {
@@ -115,15 +129,49 @@ export default function UserEventEditPage() {
       return;
     }
 
+    const previousFlyerUrl = editingEvent.image_url;
+    let uploadedFlyerUrl: string | null = null;
     setIsSaving(true);
     try {
       const payload = userFormToPayload(form);
+      if (selectedFlyer) {
+        const uploadedFlyer = await uploadEventFlyer({
+          file: selectedFlyer,
+          ownerId: user.id,
+          eventId: editingEvent.id,
+        });
+        uploadedFlyerUrl = uploadedFlyer.url;
+        payload.image_url = uploadedFlyer.url;
+      }
+
       await saveMutation.mutateAsync({ id: editingEvent.id, payload });
     } catch (err) {
+      if (uploadedFlyerUrl) {
+        try {
+          await removeEventFlyer(uploadedFlyerUrl);
+        } catch {
+          // Preserve the primary save/upload error for the organizer.
+        }
+      }
       const message = err instanceof Error ? err.message : "Unknown error";
       setSaveError(message);
+      return;
     } finally {
       setIsSaving(false);
+    }
+
+    if (uploadedFlyerUrl) {
+      setEditingEvent((event) => (event ? { ...event, image_url: uploadedFlyerUrl } : event));
+      setSelectedFlyer(null);
+    }
+    setSaveSuccess("Changes saved.");
+
+    if (uploadedFlyerUrl && previousFlyerUrl) {
+      try {
+        await removeEventFlyer(previousFlyerUrl);
+      } catch {
+        // The new flyer is already persisted; stale-object cleanup is best effort.
+      }
     }
   };
 
@@ -195,11 +243,23 @@ export default function UserEventEditPage() {
           </div>
         )}
 
+        {saveSuccess && (
+          <p className="user-edit-page__success" role="status">
+            {saveSuccess}
+          </p>
+        )}
+
         {isEditable && (
           <form onSubmit={handleSubmit} className="submit-form">
             <EventDetailsFieldset form={form} update={update} />
             <LocationFieldset form={form} update={update} />
             <PricingFieldset form={form} update={update} />
+            <EventFlyerField
+              currentUrl={editingEvent.image_url}
+              file={selectedFlyer}
+              onFileChange={setSelectedFlyer}
+              disabled={isSaving}
+            />
 
             <div className="user-edit-page__actions">
               <button type="submit" className="btn-primary" disabled={isSaving || !isEditable}>

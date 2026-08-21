@@ -3,7 +3,6 @@ import { DatabaseEvent, City, EventType } from "../../../types/events";
 import { toEventDateInstant, formatTimeLabel } from "../../../features/events/model/eventDateTime";
 import { replaceEventTaxonomyTerms } from "../../admin/api/taxonomyRepo";
 
-
 export interface AdminEventPayload {
   title: string;
   description: string | null;
@@ -28,7 +27,6 @@ export interface AdminEventPayload {
   gallery?: string[] | null;
 }
 
-
 type EventWithTaxonomy = Omit<DatabaseEvent, "taxonomy_term_ids" | "taxonomy_terms"> & {
   event_taxonomy_terms?: {
     taxonomy_term_id: string;
@@ -40,7 +38,10 @@ function projectEventTaxonomy(rows: EventWithTaxonomy[] | null): DatabaseEvent[]
   return (rows ?? []).map(({ event_taxonomy_terms, ...event }) => ({
     ...event,
     taxonomy_term_ids: event_taxonomy_terms?.map(({ taxonomy_term_id }) => taxonomy_term_id) ?? [],
-    taxonomy_terms: event_taxonomy_terms?.flatMap(({ taxonomy_terms }) => taxonomy_terms ? [taxonomy_terms] : []) ?? [],
+    taxonomy_terms:
+      event_taxonomy_terms?.flatMap(({ taxonomy_terms }) =>
+        taxonomy_terms ? [taxonomy_terms] : []
+      ) ?? [],
   }));
 }
 
@@ -50,7 +51,9 @@ export async function fetchApprovedEvents(city: City): Promise<DatabaseEvent[]> 
   const floorDate = today.toISOString();
   const { data, error } = await supabase
     .from("events")
-    .select("*, event_taxonomy_terms(taxonomy_term_id, taxonomy_terms(id, name, slug, category, status))")
+    .select(
+      "*, event_taxonomy_terms(taxonomy_term_id, taxonomy_terms(id, name, slug, category, status))"
+    )
     .eq("status", "approved")
     .eq("city", city)
     .gte("event_date", floorDate)
@@ -62,7 +65,9 @@ export async function fetchApprovedEvents(city: City): Promise<DatabaseEvent[]> 
 export async function fetchMyApprovedEvents(userId: string): Promise<DatabaseEvent[]> {
   const { data, error } = await supabase
     .from("events")
-    .select("*, event_taxonomy_terms(taxonomy_term_id, taxonomy_terms(id, name, slug, category, status))")
+    .select(
+      "*, event_taxonomy_terms(taxonomy_term_id, taxonomy_terms(id, name, slug, category, status))"
+    )
     .eq("submitter_id", userId)
     .eq("status", "approved")
     .order("event_date", { ascending: true });
@@ -73,7 +78,9 @@ export async function fetchMyApprovedEvents(userId: string): Promise<DatabaseEve
 export async function fetchMySubmissions(userId: string): Promise<DatabaseEvent[]> {
   const { data, error } = await supabase
     .from("events")
-    .select("*, event_taxonomy_terms(taxonomy_term_id, taxonomy_terms(id, name, slug, category, status))")
+    .select(
+      "*, event_taxonomy_terms(taxonomy_term_id, taxonomy_terms(id, name, slug, category, status))"
+    )
     .eq("submitter_id", userId)
     .order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
@@ -83,7 +90,9 @@ export async function fetchMySubmissions(userId: string): Promise<DatabaseEvent[
 export async function fetchAllEvents(): Promise<DatabaseEvent[]> {
   const { data, error } = await supabase
     .from("events")
-    .select("*, event_taxonomy_terms(taxonomy_term_id, taxonomy_terms(id, name, slug, category, status))")
+    .select(
+      "*, event_taxonomy_terms(taxonomy_term_id, taxonomy_terms(id, name, slug, category, status))"
+    )
     .order("event_date", { ascending: false });
   if (error) throw new Error(error.message);
   return projectEventTaxonomy(data as EventWithTaxonomy[] | null);
@@ -111,6 +120,64 @@ export async function updateEvent(id: string, payload: AdminEventPayload): Promi
   await replaceEventTaxonomyTerms(id, taxonomy_term_ids);
 }
 
+// Fields a submitter may edit on their own pending/rejected event.
+// Everything excluded here (status, source_type, submitter_*, host,
+// contact_*, venue_id, gallery) is admin/moderator-only or immutable after
+// submission. The RLS UPDATE policy on events enforces the ownership + status
+// guard at the database layer; this type documents and enforces the boundary
+// at the TypeScript layer too.
+export type UserEventUpdatePayload = {
+  title: string;
+  description?: string | null;
+  event_type: EventType;
+  city: City;
+  event_date: string;
+  event_time?: string | null;
+  location?: string | null;
+  address?: string | null;
+  price_type?: "free" | "paid" | null;
+  price_amount?: number | null;
+  rsvp_link?: string | null;
+  recurrence?: "weekly" | null;
+  dance_styles?: string[];
+  image_url?: string | null;
+};
+
+/**
+ * Allows the original submitter to edit their own event while it is still
+ * pending or has been rejected (not yet approved/published). The RLS UPDATE
+ * policy on `events` enforces `submitter_id = auth.uid()` AND
+ * `status IN ('pending', 'rejected')` — the database is the source of truth
+ * for the ownership guard, not just the frontend check.
+ */
+export async function updateEventForUser(
+  id: string,
+  payload: UserEventUpdatePayload
+): Promise<void> {
+  const updatePayload: UserEventUpdatePayload = {
+    title: payload.title,
+    description: payload.description ?? null,
+    event_type: payload.event_type,
+    city: payload.city,
+    event_date: payload.event_date,
+    event_time: payload.event_time ?? null,
+    location: payload.location ?? null,
+    address: payload.address ?? null,
+    price_type: payload.price_type ?? null,
+    price_amount: payload.price_amount ?? null,
+    rsvp_link: payload.rsvp_link ?? null,
+    recurrence: payload.recurrence ?? null,
+    dance_styles: payload.dance_styles ?? [],
+  };
+  if (payload.image_url !== undefined) {
+    updatePayload.image_url = payload.image_url;
+  }
+
+  const { error } = await supabase.from("events").update(updatePayload).eq("id", id);
+
+  if (error) throw new Error(error.message);
+}
+
 export async function deleteEvent(id: string): Promise<void> {
   const { error } = await supabase.from("events").delete().eq("id", id);
 
@@ -119,19 +186,34 @@ export async function deleteEvent(id: string): Promise<void> {
   }
 }
 
+/**
+ * Allows the original submitter to withdraw (hard-delete) their own event
+ * while it is still pending. The RLS DELETE policy enforces
+ * `submitter_id = auth.uid() AND status = 'pending'` at the database layer.
+ */
+export async function deleteEventForUser(id: string): Promise<void> {
+  const { error } = await supabase.from("events").delete().eq("id", id);
+
+  if (error) throw new Error(error.message);
+}
+
 export async function createEventAsAdmin(
   payload: AdminEventPayload,
   submitter: { id: string; email: string | null }
 ): Promise<void> {
   const { taxonomy_term_ids = [], ...eventPayload } = payload;
-  const { data, error } = await supabase.from("events").insert({
-    ...eventPayload,
-    status: "approved",
-    source_type: "admin",
-    submitter_id: submitter.id,
-    submitter_email: submitter.email,
-    submitter_name: "Salsa Segura",
-  }).select("id").single();
+  const { data, error } = await supabase
+    .from("events")
+    .insert({
+      ...eventPayload,
+      status: "approved",
+      source_type: "admin",
+      submitter_id: submitter.id,
+      submitter_email: submitter.email,
+      submitter_name: "Salsa Segura",
+    })
+    .select("id")
+    .single();
   if (error) throw new Error(error.message);
   await replaceEventTaxonomyTerms(data.id, taxonomy_term_ids);
 }
@@ -158,24 +240,21 @@ export async function duplicateEvent(
     ...carried
   } = source;
 
-  const { data, error } = await supabase.from("events").insert({
-    ...carried,
-    event_date: toEventDateInstant(input.date, input.time),
-    event_time: formatTimeLabel(input.time),
-    status: input.publish ? "approved" : "draft",
-    source_type: "admin",
-    cancellation_reason: null,
-    submitter_id: actor.id,
-    submitter_email: actor.email,
-    submitter_name: "Salsa Segura",
-  }).select("id").single();
+  const { data, error } = await supabase
+    .from("events")
+    .insert({
+      ...carried,
+      event_date: toEventDateInstant(input.date, input.time),
+      event_time: formatTimeLabel(input.time),
+      status: input.publish ? "approved" : "draft",
+      source_type: "admin",
+      cancellation_reason: null,
+      submitter_id: actor.id,
+      submitter_email: actor.email,
+      submitter_name: "Salsa Segura",
+    })
+    .select("id")
+    .single();
   if (error) throw new Error(error.message);
   await replaceEventTaxonomyTerms(data.id, taxonomyTermIds);
 }
-// Allows the original submitter to update their own event, but only while it
-// is still pending or has been rejected (not yet approved/published). Uses a
-// Postgres RBAC filter so the database enforces ownership at the row level.
-
-// Allows the original submitter to recall (soft-delete) their own event
-// while it is still pending. Recalled events are hard-removed so the user
-// can re-submit cleanly; this cannot be called on approved events.

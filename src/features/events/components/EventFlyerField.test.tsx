@@ -7,7 +7,7 @@ describe("EventFlyerField", () => {
   it("labels the picker and reports a selected supported flyer", async () => {
     const user = userEvent.setup();
     const onFileChange = vi.fn();
-    render(<EventFlyerField currentUrl={null} file={null} onFileChange={onFileChange} />);
+    render(<EventFlyerField currentUrl={null} onFileChange={onFileChange} />);
 
     await user.upload(
       screen.getByLabelText("Event flyer"),
@@ -19,13 +19,26 @@ describe("EventFlyerField", () => {
     );
   });
 
+  it("clears a selected file when its local preview fails", async () => {
+    const user = userEvent.setup();
+    const onFileChange = vi.fn();
+    render(<EventFlyerField currentUrl={null} onFileChange={onFileChange} />);
+
+    await user.upload(
+      screen.getByLabelText("Event flyer"),
+      new File(["png"], "broken-preview.png", { type: "image/png" })
+    );
+    fireEvent.error(screen.getByAltText("Event flyer preview"));
+
+    expect(onFileChange).toHaveBeenLastCalledWith(null);
+  });
+
   it("rejects unsupported files without changing the selection", async () => {
     const user = userEvent.setup({ applyAccept: false });
     const onFileChange = vi.fn();
     render(
       <EventFlyerField
         currentUrl="https://example.com/current-flyer.jpg"
-        file={null}
         onFileChange={onFileChange}
       />
     );
@@ -43,7 +56,6 @@ describe("EventFlyerField", () => {
     render(
       <EventFlyerField
         currentUrl="https://example.com/missing-flyer.jpg"
-        file={null}
         onFileChange={vi.fn()}
       />
     );

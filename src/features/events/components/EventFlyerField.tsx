@@ -4,14 +4,12 @@ import "./EventFlyerField.css";
 
 type EventFlyerFieldProps = {
   currentUrl: string | null;
-  file: File | null;
   onFileChange: (file: File | null) => void;
   disabled?: boolean;
 };
 
 export default function EventFlyerField({
   currentUrl,
-  file,
   onFileChange,
   disabled = false,
 }: EventFlyerFieldProps) {
@@ -19,23 +17,21 @@ export default function EventFlyerField({
   const [previewError, setPreviewError] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  useEffect(() => {
-    setPreviewError(false);
-    if (!file) {
-      setPreviewUrl(null);
-      return;
-    }
-
-    const objectUrl = URL.createObjectURL(file);
-    setPreviewUrl(objectUrl);
-    return () => URL.revokeObjectURL(objectUrl);
-  }, [file]);
+  useEffect(
+    () => () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    },
+    [previewUrl]
+  );
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const nextFile = event.target.files?.[0] ?? null;
     if (!nextFile) {
       setValidationError(null);
       setPreviewError(false);
+      setPreviewUrl(null);
       onFileChange(null);
       return;
     }
@@ -49,6 +45,7 @@ export default function EventFlyerField({
 
     setValidationError(null);
     setPreviewError(false);
+    setPreviewUrl(URL.createObjectURL(nextFile));
     onFileChange(nextFile);
   };
 
@@ -63,7 +60,14 @@ export default function EventFlyerField({
           className="event-flyer-field__preview"
           src={imageUrl}
           alt="Event flyer preview"
-          onError={() => setPreviewError(true)}
+          onError={() => {
+            setPreviewError(true);
+            if (previewUrl) {
+              URL.revokeObjectURL(previewUrl);
+              setPreviewUrl(null);
+              onFileChange(null);
+            }
+          }}
         />
       )}
       <input

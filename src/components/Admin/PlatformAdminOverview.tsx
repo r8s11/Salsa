@@ -12,7 +12,7 @@ import {
 } from "../../features/admin/model/overviewMetrics";
 import AdminPageHeader from "../Admin/AdminPageHeader";
 import AdminMetricCard from "../Admin/AdminMetricCard";
-import AdminNeedsAttention from "../Admin/AdminNeedsAttention";
+import AdminNeedsAttention, { AttentionItem } from "../Admin/AdminNeedsAttention";
 import AdminUpcomingEvents from "../Admin/AdminUpcomingEvents";
 import "../../pages/AdminOverviewPage.css";
 
@@ -55,7 +55,7 @@ export default function PlatformAdminOverview() {
       day: "numeric",
     });
 
-    const attentionItems = [];
+    const attentionItems: AttentionItem[] = [];
 
     // Actionable: event submissions awaiting review
     if (metrics.pendingCount > 0) {

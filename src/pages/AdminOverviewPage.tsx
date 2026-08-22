@@ -3,6 +3,7 @@ import { useAuth } from "../contexts/useAuth";
 import HostDashboard from "../components/Host/HostDashboard";
 import ModeratorOverview from "../components/Moderator/ModeratorOverview";
 import PlatformAdminOverview from "../components/Admin/PlatformAdminOverview";
+import { AttentionItem } from "../components/Admin/AdminNeedsAttention";
 import { useAdminEvents } from "../hooks/useAdminEvents";
 import { useAdminUsers } from "../hooks/useAdminUsers";
 import { useAdminVenues } from "../features/admin/hooks/useAdminVenues";
@@ -53,7 +54,7 @@ function ModeratorOverviewWrapper() {
       day: "numeric",
     });
 
-    const attentionItems = [];
+    const attentionItems: AttentionItem[] = [];
     if (metrics.pendingCount > 0) {
       attentionItems.push({
         id: "pending-submissions",

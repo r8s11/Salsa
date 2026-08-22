@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/useAuth";
 import { useMySubmissions } from "../hooks/useMySubmissions";
 import { deriveHostEventRows } from "../features/host/model/hostEvents";
 import { Link } from "react-router-dom";

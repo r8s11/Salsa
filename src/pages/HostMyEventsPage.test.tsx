@@ -7,7 +7,7 @@ import { BrowserRouter } from "react-router-dom";
 const { useAuth } = vi.hoisted(() => ({ useAuth: vi.fn() }));
 const { useMySubmissions } = vi.hoisted(() => ({ useMySubmissions: vi.fn() }));
 
-vi.mock("../contexts/AuthContext", () => ({ useAuth }));
+vi.mock("../contexts/useAuth", () => ({ useAuth }));
 vi.mock("../hooks/useMySubmissions", () => ({ useMySubmissions }));
 
 const ownerPending = { title: "Pending Event", id: "pending-1", status: "pending", isEditable: true, date: "2026-08-30", venue: "Venue A", city: "boston" };

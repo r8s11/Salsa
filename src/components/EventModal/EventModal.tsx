@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import {
   ArrowLeft,
-  Calendar as CalendarIcon,
   CalendarPlus,
   Clock,
   MapPin,

@@ -4,7 +4,6 @@ import HostDashboard from "../components/Host/HostDashboard";
 import ModeratorOverview from "../components/Moderator/ModeratorOverview";
 import PlatformAdminOverview from "../components/Admin/PlatformAdminOverview";
 import { useAdminEvents } from "../hooks/useAdminEvents";
-import { useAdminUserCount } from "../hooks/useAdminUserCount";
 import { useAdminUsers } from "../hooks/useAdminUsers";
 import { useAdminVenues } from "../features/admin/hooks/useAdminVenues";
 import { useOrganizerRequests } from "../features/admin/hooks/useOrganizerRequests";

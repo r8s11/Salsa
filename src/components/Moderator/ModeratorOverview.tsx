@@ -5,6 +5,7 @@ import AdminMetricCard from "../Admin/AdminMetricCard";
 import AdminNeedsAttention from "../Admin/AdminNeedsAttention";
 import type { OverviewMetrics } from "../../features/admin/model/overviewMetrics";
 import AdminUpcomingEvents from "../Admin/AdminUpcomingEvents";
+import type { DatabaseEvent } from "../../features/events/model/types";
 
 
 

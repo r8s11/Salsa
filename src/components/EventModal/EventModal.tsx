@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import {
   ArrowLeft,
-  Calendar as CalendarIcon,
   CalendarPlus,
   Clock,
   MapPin,
@@ -132,50 +131,46 @@ export default function EventModal({ event, onClose }: EventModalProps) {
             <ArrowLeft size={16} aria-hidden /> Back to calendar
           </button>
           <div className="poster-overlay">
-            <span className={`style-chip chip-${event.calendarId}`}>{event.calendarId}</span>
+            <div className="quick-look-header">
+              <span className={`style-chip chip-${event.calendarId}`}>{event.calendarId}</span>
+              <span className="quick-look-date">{formatDate(event.start)}</span>
+            </div>
             <h2 id="modal-title">{event.title}</h2>
+          </div>
+        </div>
+
+        <div className="quick-facts">
+          <div className="fact">
+            <Clock size={16} aria-hidden />
+            <span>{formatTime(event.start, event.end)}</span>
+          </div>
+          {event.location && (
+            <div className="fact">
+              <MapPin size={16} aria-hidden />
+              <span>
+                {(() => {
+                  const url = mapsUrl(event);
+                  const label = `${event.location}${event.address ? ` · ${event.address}` : ""}`;
+                  return url ? (
+                    <a href={url} target="_blank" rel="noopener noreferrer" aria-label={`Open ${label} in Maps`}>{label}</a>
+                  ) : <span>{label}</span>;
+                })()}
+              </span>
+            </div>
+          )}
+          <div className="fact">
+            <span className="price-tag">{priceLabel}</span>
           </div>
         </div>
 
         <div className="modal-grid">
           <div className="modal-details">
-            <div className="meta-row">
-              <CalendarIcon size={18} aria-hidden />
-              <span>{formatDate(event.start)}</span>
-              {event.recurrence && (
-                <span className="repeat-pill">
-                  <Repeat size={12} aria-hidden />
-                  {event.recurrence === "weekly" ? "Repeats weekly" : "Repeats"}
-                </span>
-              )}
-            </div>
-            {event.location && (
+            {event.recurrence && (
               <div className="meta-row">
-                <MapPin size={18} aria-hidden />
-                <span>
-                  {(() => {
-                    const url = mapsUrl(event);
-                    const label = `${event.location}${event.address ? ` · ${event.address}` : ""}`;
-                    return url ? (
-                      <a
-                        href={url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label={`Open ${label} in Maps`}
-                      >
-                        {label}
-                      </a>
-                    ) : (
-                      <span>{label}</span>
-                    );
-                  })()}
-                </span>
+                <Repeat size={18} aria-hidden />
+                <span>{event.recurrence === "weekly" ? "Repeats weekly" : "Repeats"}</span>
               </div>
             )}
-            <div className="meta-row">
-              <Clock size={18} aria-hidden />
-              <span>{formatTime(event.start, event.end)}</span>
-            </div>
             {event.host && (
               <div className="meta-row">
                 <Users size={18} aria-hidden />
@@ -186,9 +181,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
               <div className="meta-row">
                 <span className="dance-styles">
                   {event.danceStyles.map((style) => (
-                    <span key={style} className="style-chip">
-                      {style}
-                    </span>
+                    <span key={style} className="style-chip">{style}</span>
                   ))}
                 </span>
               </div>
@@ -211,12 +204,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
               </div>
             )}
           </div>
-
           <aside className="modal-rsvp">
-            <div className="price-row">
-              <span className="price-amount">{priceLabel}</span>
-              <span className="price-note">per person</span>
-            </div>
             {event.rsvpLink && (
               <a
                 className="btn-primary rsvp-button"

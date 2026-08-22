@@ -1,9 +1,10 @@
 import { useMemo } from "react";
-import { CalendarDays, ClipboardCheck, Users, Plus, MapPin, AlertTriangle } from "lucide-react";
-import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/useAuth";
+import HostDashboard from "../components/Host/HostDashboard";
+import ModeratorOverview from "../components/Moderator/ModeratorOverview";
+import PlatformAdminOverview from "../components/Admin/PlatformAdminOverview";
+import { AttentionItem } from "../components/Admin/AdminNeedsAttention";
 import { useAdminEvents } from "../hooks/useAdminEvents";
-import { useAdminUserCount } from "../hooks/useAdminUserCount";
 import { useAdminUsers } from "../hooks/useAdminUsers";
 import { useAdminVenues } from "../features/admin/hooks/useAdminVenues";
 import { useOrganizerRequests } from "../features/admin/hooks/useOrganizerRequests";
@@ -11,15 +12,16 @@ import {
   deriveOverviewMetrics,
   deriveUpcomingEvents,
 } from "../features/admin/model/overviewMetrics";
-import type { AttentionItem } from "../components/Admin/AdminNeedsAttention";
-import AdminPageHeader from "../components/Admin/AdminPageHeader";
-import AdminMetricCard from "../components/Admin/AdminMetricCard";
-import AdminNeedsAttention from "../components/Admin/AdminNeedsAttention";
-import AdminUpcomingEvents from "../components/Admin/AdminUpcomingEvents";
-import "./AdminOverviewPage.css";
+
 
 export default function AdminOverviewPage() {
   const { role } = useAuth();
+  if (role === "organizer") return <HostDashboard />;
+  if (role === "moderator") return <ModeratorOverviewWrapper />;
+  return <PlatformAdminOverview />;
+}
+
+function ModeratorOverviewWrapper() {
   const { events: queried, isLoading, error, refetch } = useAdminEvents();
   const {
     users: queriedUsers,
@@ -27,12 +29,6 @@ export default function AdminOverviewPage() {
     error: usersError,
     refetch: refetchUsers,
   } = useAdminUsers();
-  const {
-    count: userCount,
-    isLoading: isUserCountLoading,
-    error: userCountError,
-    refetch: refetchUserCount,
-  } = useAdminUserCount();
   const { pendingCount: organizerPendingCount } = useOrganizerRequests();
   const { venues: allVenues = [] } = useAdminVenues();
 
@@ -40,8 +36,6 @@ export default function AdminOverviewPage() {
   const users = useMemo(() => queriedUsers ?? [], [queriedUsers]);
 
   const { metrics, attentionItems, upcoming, todayLabel } = useMemo(() => {
-    // Kept inside useMemo — calling `new Date()` in the render body trips
-    // react-hooks/purity, which already fired on this file once.
     const now = new Date();
     const metrics = deriveOverviewMetrics(
       events,
@@ -61,50 +55,38 @@ export default function AdminOverviewPage() {
     });
 
     const attentionItems: AttentionItem[] = [];
-
-    // Actionable: event submissions awaiting review (links to dedicated route)
     if (metrics.pendingCount > 0) {
-      const n = metrics.pendingCount;
       attentionItems.push({
         id: "pending-submissions",
         severity: "action",
-        message: `${n} event submission${n === 1 ? "" : "s"} waiting for review`,
+        message: `${metrics.pendingCount} event submission${metrics.pendingCount === 1 ? "" : "s"} waiting for review`,
         actionLabel: "Review",
         to: "/admin/submissions",
       });
     }
-
-    // Actionable: organizer requests awaiting approval
     if (metrics.organizerRequestCount > 0) {
-      const n = metrics.organizerRequestCount;
       attentionItems.push({
         id: "organizer-requests",
         severity: "action",
-        message: `${n} organizer request${n === 1 ? "" : "s"} waiting for review`,
+        message: `${metrics.organizerRequestCount} organizer request${metrics.organizerRequestCount === 1 ? "" : "s"} waiting for review`,
         actionLabel: "Review",
         to: "/admin/organizer-requests",
       });
     }
-
-    // Actionable: flagged accounts requiring review
     if (metrics.flaggedUserCount > 0) {
-      const n = metrics.flaggedUserCount;
       attentionItems.push({
         id: "flagged-users",
         severity: "action",
-        message: `${n} flagged account${n === 1 ? "" : "s"} requiring review`,
+        message: `${metrics.flaggedUserCount} flagged account${metrics.flaggedUserCount === 1 ? "" : "s"} requiring review`,
         actionLabel: "Review",
         to: "/admin/users?status=flagged",
       });
     }
-
-    // Suggested: upcoming events with important missing information
     if (metrics.incompleteCount > 0) {
-      const n = metrics.incompleteCount;
       attentionItems.push({
         id: "incomplete",
         severity: "suggested",
-        message: `${n} upcoming event${n === 1 ? "" : "s"} missing venue, time, or image`,
+        message: `${metrics.incompleteCount} upcoming event${metrics.incompleteCount === 1 ? "" : "s"} missing venue, time, or image`,
         actionLabel: "Fix",
         to: "/admin/events?flag=incomplete",
       });
@@ -113,293 +95,18 @@ export default function AdminOverviewPage() {
     return { metrics, attentionItems, upcoming, todayLabel };
   }, [events, users, organizerPendingCount, allVenues]);
 
-  if (role === "moderator") {
-    return renderModeratorDashboard(
-      isLoading,
-      isUsersLoading,
-      error,
-      usersError,
-      metrics,
-      attentionItems,
-      upcoming,
-      todayLabel,
-      refetch,
-      refetchUsers
-    );
-  }
-
-  if (role === "organizer") {
-    return renderOrganizerDashboard(isLoading, error, metrics, upcoming, todayLabel, refetch);
-  }
-
-  // ── Default: Admin dashboard (full platform overview) ──
   return (
-    <>
-      <AdminPageHeader
-        title="Overview"
-        description={`Here's what's happening with SalsaSegura. · ${todayLabel}`}
-        actions={
-          <Link to="/admin/events?new=1" className="admin-btn admin-btn--primary">
-            <Plus size={18} /> Create Event
-          </Link>
-        }
-      />
-
-      {(isLoading || isUserCountLoading || isUsersLoading) && (
-        <p role="status" className="admin-overview-page__status">
-          Loading overview…
-        </p>
-      )}
-
-      <div className="admin-overview-page__body">
-        <div className="admin-overview-page__metrics">
-          <AdminMetricCard
-            label="Upcoming Events"
-            value={error ? null : metrics.upcomingCount}
-            subLabel="Published · Next 30 days"
-            icon={CalendarDays}
-            tone="informational"
-            to="/admin/events?flag=upcoming"
-            actionLabel="View events"
-            isLoading={isLoading}
-            onRetry={refetch}
-          />
-          <AdminMetricCard
-            label="Pending Submissions"
-            value={error ? null : metrics.pendingCount}
-            subLabel="Awaiting review"
-            icon={ClipboardCheck}
-            tone="attention"
-            to="/admin/submissions"
-            actionLabel="Review"
-            isLoading={isLoading}
-            onRetry={refetch}
-          />
-          <AdminMetricCard
-            label="Organizer Requests"
-            value={usersError ? null : metrics.organizerRequestCount}
-            subLabel="Awaiting approval"
-            icon={Users}
-            tone={metrics.organizerRequestCount > 0 ? "attention" : "informational"}
-            to="/admin/organizer-requests"
-            actionLabel={metrics.organizerRequestCount > 0 ? "Review" : "View"}
-            isLoading={isUsersLoading}
-            onRetry={refetchUsers}
-          />
-          <AdminMetricCard
-            label="Total Venues"
-            value={metrics.venueCount}
-            subLabel="Active venues"
-            icon={MapPin}
-            tone="informational"
-            to="/admin/venues"
-            actionLabel="Manage"
-            isLoading={isLoading}
-            onRetry={refetch}
-          />
-          <AdminMetricCard
-            label="Total Users"
-            value={userCountError ? null : (userCount ?? 0)}
-            subLabel="Registered"
-            icon={Users}
-            tone="informational"
-            to="/admin/users"
-            actionLabel="Manage"
-            isLoading={isUserCountLoading}
-            onRetry={refetchUserCount}
-          />
-        </div>
-
-        <AdminNeedsAttention
-          items={attentionItems}
-          isLoading={isLoading || isUsersLoading}
-          error={error ?? usersError}
-          onRetry={refetch}
-        />
-
-        <AdminUpcomingEvents
-          events={upcoming}
-          isLoading={isLoading}
-          error={error}
-          onRetry={refetch}
-        />
-      </div>
-    </>
-  );
-}
-
-function renderModeratorDashboard(
-  isLoading: boolean,
-  isUsersLoading: boolean,
-  error: string | null,
-  usersError: string | null,
-  metrics: ReturnType<typeof deriveOverviewMetrics>,
-  attentionItems: AttentionItem[],
-  upcoming: ReturnType<typeof deriveUpcomingEvents>,
-  todayLabel: string,
-  refetch: () => void,
-  refetchUsers: () => void
-) {
-  return (
-    <>
-      <AdminPageHeader
-        title="Moderator Dashboard"
-        description={`Regional review queue · ${todayLabel}`}
-      />
-
-      {(isLoading || isUsersLoading) && (
-        <p role="status" className="admin-overview-page__status">
-          Loading overview…
-        </p>
-      )}
-
-      <div className="admin-overview-page__body">
-        <div className="admin-overview-page__metrics">
-          <AdminMetricCard
-            label="Pending Submissions"
-            value={error ? null : metrics.pendingCount}
-            subLabel="Awaiting review"
-            icon={ClipboardCheck}
-            tone="attention"
-            to="/admin/submissions"
-            actionLabel="Review"
-            isLoading={isLoading}
-            onRetry={refetch}
-          />
-          <AdminMetricCard
-            label="Organizer Requests"
-            value={usersError ? null : metrics.organizerRequestCount}
-            subLabel="Awaiting approval"
-            icon={Users}
-            tone={metrics.organizerRequestCount > 0 ? "attention" : "informational"}
-            to="/admin/organizer-requests"
-            actionLabel={metrics.organizerRequestCount > 0 ? "Review" : "View"}
-            isLoading={isUsersLoading}
-            onRetry={refetchUsers}
-          />
-          <AdminMetricCard
-            label="Flagged Users"
-            value={usersError ? null : metrics.flaggedUserCount}
-            subLabel="Requires attention"
-            icon={AlertTriangle}
-            tone={metrics.flaggedUserCount > 0 ? "attention" : "informational"}
-            to="/admin/users?status=flagged"
-            actionLabel="Review"
-            isLoading={isUsersLoading}
-            onRetry={refetchUsers}
-          />
-          <AdminMetricCard
-            label="Upcoming Events"
-            value={error ? null : metrics.upcomingCount}
-            subLabel="Published · Next 30 days"
-            icon={CalendarDays}
-            tone="informational"
-            to="/admin/events?flag=upcoming"
-            actionLabel="View events"
-            isLoading={isLoading}
-            onRetry={refetch}
-          />
-        </div>
-
-        <AdminNeedsAttention
-          items={attentionItems}
-          isLoading={isLoading || isUsersLoading}
-          error={error ?? usersError}
-          onRetry={refetch}
-        />
-
-        <AdminUpcomingEvents
-          events={upcoming}
-          isLoading={isLoading}
-          error={error}
-          onRetry={refetch}
-        />
-      </div>
-    </>
-  );
-}
-
-function renderOrganizerDashboard(
-  isLoading: boolean,
-  error: string | null,
-  metrics: ReturnType<typeof deriveOverviewMetrics>,
-  upcoming: ReturnType<typeof deriveUpcomingEvents>,
-  todayLabel: string,
-  refetch: () => void
-) {
-  return (
-    <>
-      <AdminPageHeader
-        title="Organizer Dashboard"
-        description={`Your events overview · ${todayLabel}`}
-        actions={
-          <Link to="/admin/events?new=1" className="admin-btn admin-btn--primary">
-            <Plus size={18} /> Create Event
-          </Link>
-        }
-      />
-
-      {isLoading && (
-        <p role="status" className="admin-overview-page__status">
-          Loading overview…
-        </p>
-      )}
-
-      <div className="admin-overview-page__body">
-        <div className="admin-overview-page__metrics">
-          <AdminMetricCard
-            label="Upcoming Events"
-            value={error ? null : metrics.upcomingCount}
-            subLabel="Published · Next 30 days"
-            icon={CalendarDays}
-            tone="informational"
-            to="/admin/events?flag=upcoming"
-            actionLabel="View events"
-            isLoading={isLoading}
-            onRetry={refetch}
-          />
-          <AdminMetricCard
-            label="Pending Submissions"
-            value={error ? null : metrics.pendingCount}
-            subLabel="Awaiting review"
-            icon={ClipboardCheck}
-            tone={metrics.pendingCount > 0 ? "attention" : "informational"}
-            to="/admin/submissions"
-            actionLabel="Review"
-            isLoading={isLoading}
-            onRetry={refetch}
-          />
-          <AdminMetricCard
-            label="Incomplete Events"
-            value={error ? null : metrics.incompleteCount}
-            subLabel="Missing info"
-            icon={AlertTriangle}
-            tone={metrics.incompleteCount > 0 ? "attention" : "informational"}
-            to="/admin/events?flag=incomplete"
-            actionLabel="Fix"
-            isLoading={isLoading}
-            onRetry={refetch}
-          />
-          <AdminMetricCard
-            label="Total Events"
-            value={error ? null : metrics.totalCount}
-            subLabel="All time"
-            icon={CalendarDays}
-            tone="informational"
-            to="/admin/events"
-            actionLabel="Manage"
-            isLoading={isLoading}
-            onRetry={refetch}
-          />
-        </div>
-
-        <AdminUpcomingEvents
-          events={upcoming}
-          isLoading={isLoading}
-          error={error}
-          onRetry={refetch}
-        />
-      </div>
-    </>
+    <ModeratorOverview
+      isLoading={isLoading}
+      isUsersLoading={isUsersLoading}
+      error={error}
+      usersError={usersError}
+      metrics={metrics}
+      attentionItems={attentionItems}
+      upcoming={upcoming}
+      todayLabel={todayLabel}
+      refetch={refetch}
+      refetchUsers={refetchUsers}
+    />
   );
 }

@@ -16,6 +16,13 @@ const { useAdminEvents, useAdminUserCount, useAdminUsers, useOrganizerRequests, 
   }));
 
 const { useAuth } = vi.hoisted(() => ({ useAuth: vi.fn() }));
+const { useMySubmissions } = vi.hoisted(() => ({ useMySubmissions: vi.fn() }));
+vi.mock("../hooks/useMySubmissions", () => ({ useMySubmissions }));
+
+const ownerPending = { id: "pending-1", title: "Pending Event", status: "pending", event_date: "2026-08-30T10:00:00Z" };
+const ownerApproved = { id: "approved-1", title: "Approved Event", status: "approved", event_date: "2026-09-01T10:00:00Z" };
+const platformOnlyEvent = { id: "platform-1", title: "Platform Event", status: "approved", event_date: "2026-09-02T10:00:00Z" };
+
 
 vi.mock("../hooks/useAdminEvents", () => ({ useAdminEvents }));
 vi.mock("../hooks/useAdminUserCount", () => ({ useAdminUserCount }));
@@ -211,6 +218,38 @@ function attentionSection(): HTMLElement {
   return screen.getByText("Needs attention").closest("section") as HTMLElement;
 }
 
+describe("HostDashboard", () => {
+  it("renders the organizer role as Host and excludes platform events", async () => {
+    vi.mocked(useAuth).mockReturnValue(authState("organizer"));
+    vi.mocked(useMySubmissions).mockReturnValue({
+      submissions: [ownerPending],
+      approvedEvents: [ownerApproved],
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+
+    renderPage();
+
+    expect(await screen.findByRole("heading", { name: "Host dashboard" })).toBeInTheDocument();
+    expect(screen.getByText(ownerApproved.title)).toBeInTheDocument();
+    expect(screen.queryByText(platformOnlyEvent.title)).not.toBeInTheDocument();
+  });
+
+  it("renders a useful no-next-event state", async () => {
+    vi.mocked(useAuth).mockReturnValue(authState("organizer"));
+    vi.mocked(useMySubmissions).mockReturnValue({
+      submissions: [],
+      approvedEvents: [],
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+    renderPage();
+    expect(await screen.findByText(/no upcoming events yet/i)).toBeInTheDocument();
+  });
+});
+
 describe("AdminOverviewPage", () => {
   beforeEach(() => {
     vi.mocked(useAuth).mockReturnValue(authState("admin"));
@@ -335,14 +374,12 @@ describe("AdminOverviewPage", () => {
     vi.mocked(useAuth).mockReturnValue(authState("organizer"));
     renderPage();
 
-    expect(screen.getByRole("heading", { name: "Organizer Dashboard" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Host dashboard" })).toBeInTheDocument();
     expect(metricCard("Total Events")).toBeInTheDocument();
     expect(metricCard("Upcoming Events")).toBeInTheDocument();
-    expect(metricCard("Pending Submissions")).toBeInTheDocument();
-    expect(metricCard("Incomplete Events")).toBeInTheDocument();
+    expect(metricCard("Awaiting Review")).toBeInTheDocument();
     // Organizer dashboard does not show Total Users or Flagged Users
     expect(screen.queryByText("Total Users")).not.toBeInTheDocument();
-    expect(screen.queryByText("Flagged Users")).not.toBeInTheDocument();
   });
 
   it("renders the full admin dashboard by default (admin role)", () => {

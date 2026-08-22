@@ -160,3 +160,29 @@ describe("EventModal", () => {
     expect(screen.queryByRole("link", { name: /add to calendar/i })).not.toBeInTheDocument();
   });
 });
+
+  describe("quick-look region", () => {
+    const classEvent: ScheduleXEvent = {
+      id: "2",
+      title: "Beginner Salsa Class",
+      start: "2026-08-24 19:00",
+      end: "2026-08-24 23:00",
+      calendarId: "class",
+      location: "Dance Studio A",
+      priceType: "free",
+    };
+
+    it("shows date, type, title, time, venue, and price in the quick-look region", () => {
+      render(<EventModal event={classEvent} onClose={vi.fn()} />);
+      expect(screen.getByText(/Monday, August 24, 2026/i)).toBeInTheDocument();
+      expect(screen.getByText("class")).toBeInTheDocument();
+      expect(screen.getByText("Beginner Salsa Class")).toBeInTheDocument();
+      expect(screen.getByText(/7:00 PM - 11:00 PM/i)).toBeInTheDocument();
+      expect(screen.getByText("Free")).toBeInTheDocument();
+    });
+
+    it("does not invent class metadata that is absent from the event", () => {
+      render(<EventModal event={{ ...classEvent, location: "Dance Studio A" }} onClose={vi.fn()} />);
+      expect(screen.queryByText(/Expected level|Teacher|Class length/i)).not.toBeInTheDocument();
+    });
+  });

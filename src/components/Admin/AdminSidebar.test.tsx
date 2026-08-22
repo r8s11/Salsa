@@ -151,3 +151,14 @@ describe("AdminSidebar settings navigation", () => {
     expect(screen.queryByText("Settings")).not.toBeInTheDocument();
   });
 });
+describe("AdminSidebar organizer navigation", () => {
+  it("shows My Events, Host Dashboard, and Host Bulk Upload for organizers", () => {
+    vi.mocked(useAuth).mockReturnValue({ role: "organizer" });
+    renderSidebar();
+    expect(screen.getByText("My Events")).toBeInTheDocument();
+    expect(screen.getByText("Host Dashboard")).toBeInTheDocument();
+    expect(screen.getByText("Host Bulk Upload")).toBeInTheDocument();
+    expect(screen.queryByText("Dashboard")).not.toBeInTheDocument();
+    expect(screen.queryByText("Bulk Upload")).not.toBeInTheDocument();
+  });
+});

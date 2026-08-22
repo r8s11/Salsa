@@ -1,0 +1,49 @@
+.host-my-events__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.host-my-events__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.host-my-events__table th, .host-my-events__table td {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+@media (max-width: 640px) {
+  .host-my-events__table thead {
+    display: none;
+  }
+  .host-my-events__table tr {
+    display: block;
+    margin-bottom: 1rem;
+    border: 1px solid #ccc;
+    padding: 1rem;
+  }
+  .host-my-events__table td {
+    display: block;
+    text-align: right;
+  }
+  .host-my-events__table td::before {
+    content: attr(data-label);
+    float: left;
+    font-weight: bold;
+  }
+}
+
+.host-my-events__cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.host-my-events__card {
+  border: 1px solid #ccc;
+  padding: 16px;
+  border-radius: 8px;
+}

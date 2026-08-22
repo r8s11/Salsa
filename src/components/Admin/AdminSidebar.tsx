@@ -63,6 +63,7 @@ const NAV_SECTIONS: NavSection[] = [
     roles: ["admin", "moderator", "organizer"],
     items: [
       { label: "Events", icon: CalendarDays, to: "/admin/events", roles: ["admin"] },
+      { label: "My Events", icon: CalendarDays, to: "/admin/host/events", roles: ["organizer"] },
       {
         label: "Bulk Upload",
         icon: Upload,
@@ -115,7 +116,14 @@ function navItemsForRole(role: UserRole | null): NavItem[] {
   ).flatMap((section) =>
     section.items
       .filter((item) => item.roles.some((r) => roleSet.has(r)))
-      .map((item) => ({ ...item, section: section.title }))
+      .map((item) => {
+        let label = item.label;
+        if (role === "organizer") {
+          if (label === "Dashboard") label = "Host Dashboard";
+          if (label === "Bulk Upload") label = "Host Bulk Upload";
+        }
+        return { ...item, label, section: section.title };
+      })
   );
 }
 

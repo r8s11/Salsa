@@ -2,7 +2,7 @@
 
 ## Context
 
-The handoff bundle is visual and interaction authority for SalsaSegura’s event browsing and former organizer experience. It is not production code: its Host pages are populated by demo constants and link to routes/data that do not exist. This phase adopts the visual language and information hierarchy only where the existing product can supply truthful data.
+The handoff bundle is visual and interaction authority for SalsaSegura’s event browsing and former organizer experience. It is not production code: its Host pages are populated by demo constants and link to routes/data that do not exist. This phase adopts the visual language and information hierarchy only where the existing product can supply truthful data. **Host is the product-facing name for the existing Event Organizer role; it is not a new role, user type, or schema relationship. Admin remains the website-administrator role.**
 
 ## Grounded state of the codebase
 
@@ -11,19 +11,19 @@ The handoff bundle is visual and interaction authority for SalsaSegura’s event
 | Homepage + Calendar event selection | Both use the shared accessible `EventModal`; Calendar also supports `?event=` deep links. | Restyle and preserve this modal; do not create the handoff’s duplicate quick-modal component. |
 | Public event page | No `/events/:id` or `/events/:slug` route exists. | Do not add a handoff “Full details” action that would be dead. |
 | Event data | Events provide type, title, date/time, venue/address, price, description, host, dance styles, gallery, contact, and RSVP. | Surface only these facts. Teacher, level, length, lineup, capacity, attendance, DJ, and task data are unavailable. |
-| Organizer role | `/admin` renders an organizer dashboard through `AdminOverviewPage`, but it obtains platform-wide events via `useAdminEvents()`. | Replace organizer-only view with signed-in owner data from the existing `useMySubmissions()` query. |
+| Host (existing `organizer` role) | `/admin` renders an organizer dashboard through `AdminOverviewPage`, but it obtains platform-wide events via `useAdminEvents()`. | Replace its owner-only view with signed-in owner data from the existing `useMySubmissions()` query and present it as Host. |
 | Event editing | `/profile/edit/:eventId` is owner-scoped and pending/rejected-only. | Host event actions must route there only for editable statuses; approved events keep the Calendar detail route. |
 | Admin shell | `AdminLayout` and `AdminSidebar` already supply the rail, breadcrumb, account menu, theme, mobile drawer, and responsive tokens. | Extend this shell rather than importing the handoff’s parallel `DashboardShell`. |
 
 ## Core architecture decision
 
-Keep `/admin` as the authenticated Host shell, but make its organizer-role content owner-scoped and label it **Host** throughout. Add a single host-events child route inside that existing shell. Event browsing retains the shared `EventModal` and adopts the handoff’s quick-look hierarchy without inventing a new event-detail route.
+Keep `/admin` as the shared authenticated shell. Its existing `organizer` role is labeled **Host** for all organizer-facing UI and remains owner-scoped; its existing `admin` role remains the website administrator and keeps platform-wide administration. Add a single Host-events child route inside that shell. Event browsing retains the shared `EventModal` and adopts the handoff’s quick-look hierarchy without inventing a new event-detail route.
 
 | Decision | Benefit | Cost/ripple |
 | --- | --- | --- |
 | Reuse `EventModal` | Preserves keyboard/focus behavior and all current integrations. | Targeted markup/CSS refinement instead of copying `QuickEventModal`. |
-| Owner query for Host | Prevents platform-wide data leaking into the Host overview. | Add host-specific derived metrics and loading/error states. |
-| `/admin/host/events` | Gives Host a real My Events surface without a second shell. | Add route, page, route test, and sidebar labels. |
+| Owner query for Host | Prevents platform-wide data leaking into the Event Organizer/Host overview. | Add host-specific derived metrics and loading/error states. |
+| `/admin/host/events` | Gives the existing organizer role a real Host My Events surface without a second shell or role. | Add route, page, route test, and organizer-role sidebar labels. |
 | Truthful fields only | Avoids demo registrations, capacity, tasks, or DJ claims. | Handoff’s richer blocks remain excluded. |
 
 ## Deliverables
@@ -37,7 +37,7 @@ Keep `/admin` as the authenticated Host shell, but make its organizer-role conte
 
 ### 2. Host dashboard
 
-- Rename organizer labels to Host in the organizer-role dashboard, rail, and account switch context.
+- Present the existing `organizer` role as Host in its dashboard, rail, and account-switch context; leave the `admin` role’s website-administrator labels and permissions unchanged.
 - Query only the signed-in owner’s pending/rejected submissions and approved events.
 - Lead with the nearest non-terminal owner event when one exists: date, status, title, time, venue, and truthful action.
 - Derive owner-only counts for upcoming, pending/review, and total events.

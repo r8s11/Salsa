@@ -21,13 +21,16 @@ export function hostEventAction(event: DatabaseEvent): { label: string; to: stri
   };
 }
 export function deriveHostEventRows(events: DatabaseEvent[], _now: Date): HostEventRow[] {
-  const withInstant = events.map((e) => ({
-    event: e,
-    dateLabel: deriveDateLabel(e.event_date),
-    statusLabel: e.status.charAt(0).toUpperCase() + e.status.slice(1),
-    action: hostEventAction(e),
-    sortKey: parseEventInstant(e.event_date),
-  }));
+  const withInstant = events.map((e) => {
+    const instant = parseEventInstant(e.event_date);
+    return {
+      event: e,
+      dateLabel: deriveDateLabel(instant),
+      statusLabel: e.status.charAt(0).toUpperCase() + e.status.slice(1),
+      action: hostEventAction(e),
+      sortKey: instant?.epochMilliseconds ?? null,
+    };
+  });
 
   return withInstant
     .sort((a, b) => {
@@ -39,17 +42,20 @@ export function deriveHostEventRows(events: DatabaseEvent[], _now: Date): HostEv
     .map(({ sortKey: _sortKey, ...row }) => row);
 }
 
-function parseEventInstant(eventDate: string): number | null {
-  const timestamp = new Date(eventDate).getTime();
-  return Number.isNaN(timestamp) ? null : timestamp;
+function parseEventInstant(eventDate: string): Temporal.Instant | null {
+  try {
+    return Temporal.Instant.from(eventDate);
+  } catch {
+    return null;
+  }
 }
 
-function deriveDateLabel(eventDate: string): string {
-  if (parseEventInstant(eventDate) === null) {
+function deriveDateLabel(instant: Temporal.Instant | null): string {
+  if (instant === null) {
     return "Date unavailable";
   }
 
-  const { date, time } = fromEventDateInstant(eventDate);
+  const { date, time } = fromEventDateInstant(instant.toString());
   const [year, month, day] = date.split("-").map(Number);
   const displayDate = new Date(year, month - 1, day).toLocaleDateString("en-US", {
     month: "long",
@@ -62,10 +68,16 @@ function deriveDateLabel(eventDate: string): string {
 }
 
 export function findNextHostEvent(events: DatabaseEvent[], now: Date): DatabaseEvent | null {
-  const futureEvents = events.filter((e) => {
-    const d = new Date(e.event_date);
-    return d > now && e.status !== "cancelled" && e.status !== "archived";
-  });
+  const nowTimestamp = now.getTime();
+  const futureEvents = events
+    .map((event) => ({ event, instant: parseEventInstant(event.event_date) }))
+    .filter(
+      ({ event, instant }) =>
+        instant !== null &&
+        instant.epochMilliseconds > nowTimestamp &&
+        event.status !== "cancelled" &&
+        event.status !== "archived"
+    );
   if (futureEvents.length === 0) return null;
-  return futureEvents.sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime())[0];
+  return futureEvents.sort((a, b) => a.instant!.epochMilliseconds - b.instant!.epochMilliseconds)[0].event;
 }

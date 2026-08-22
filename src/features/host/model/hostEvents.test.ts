@@ -87,4 +87,15 @@ describe("hostEvents", () => {
     expect(rows.map((r) => r.event.id)).toEqual(["next-approved", "undated"]);
     expect(rows[1].dateLabel).toBe("Date unavailable");
   });
+
+  it("labels non-instant and invalid ISO dates unavailable without throwing", () => {
+    const rows = deriveHostEventRows(
+      [
+        { ...baseEvent, id: "date-only", event_date: "2026-08-22" },
+        { ...baseEvent, id: "invalid-date", event_date: "2026-02-30T20:00:00Z" },
+      ],
+      now
+    );
+    expect(rows.map((row) => row.dateLabel)).toEqual(["Date unavailable", "Date unavailable"]);
+  });
 });

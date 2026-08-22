@@ -20,31 +20,45 @@ export function hostEventAction(event: DatabaseEvent): { label: string; to: stri
     to: `/calendar?event=${event.id}&city=${event.city}`,
   };
 }
-export function deriveHostEventRows(events: DatabaseEvent[], now: Date): HostEventRow[] {
-  return events
-    .map((e) => {
-      const { date, time } = fromEventDateInstant(e.event_date);
-      const displayDate = new Date(date).toLocaleDateString("en-US", {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-      });
-      const displayTime = formatTimeLabel(time);
-      
-      return {
-        event: e,
-        dateLabel: `${displayDate} at ${displayTime}`,
-        statusLabel: e.status.charAt(0).toUpperCase() + e.status.slice(1),
-        action: hostEventAction(e),
-      };
-    })
+export function deriveHostEventRows(events: DatabaseEvent[], _now: Date): HostEventRow[] {
+  const withInstant = events.map((e) => ({
+    event: e,
+    dateLabel: deriveDateLabel(e.event_date),
+    statusLabel: e.status.charAt(0).toUpperCase() + e.status.slice(1),
+    action: hostEventAction(e),
+    sortKey: parseEventInstant(e.event_date),
+  }));
+
+  return withInstant
     .sort((a, b) => {
-      const aDate = new Date(a.event.event_date).getTime();
-      const bDate = new Date(b.event.event_date).getTime();
-      if (isNaN(aDate)) return 1;
-      if (isNaN(bDate)) return -1;
-      return aDate - bDate;
-    });
+      if (a.sortKey === null && b.sortKey === null) return 0;
+      if (a.sortKey === null) return 1;
+      if (b.sortKey === null) return -1;
+      return a.sortKey - b.sortKey;
+    })
+    .map(({ sortKey: _sortKey, ...row }) => row);
+}
+
+function parseEventInstant(eventDate: string): number | null {
+  const timestamp = new Date(eventDate).getTime();
+  return Number.isNaN(timestamp) ? null : timestamp;
+}
+
+function deriveDateLabel(eventDate: string): string {
+  if (parseEventInstant(eventDate) === null) {
+    return "Date unavailable";
+  }
+
+  const { date, time } = fromEventDateInstant(eventDate);
+  const [year, month, day] = date.split("-").map(Number);
+  const displayDate = new Date(year, month - 1, day).toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+  const displayTime = formatTimeLabel(time);
+
+  return `${displayDate} at ${displayTime}`;
 }
 
 export function findNextHostEvent(events: DatabaseEvent[], now: Date): DatabaseEvent | null {

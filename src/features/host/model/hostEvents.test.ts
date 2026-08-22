@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { DatabaseEvent } from "../../events/model/types";
-import { hostEventAction, findNextHostEvent } from "./hostEvents";
+import { hostEventAction, findNextHostEvent, deriveHostEventRows } from "./hostEvents";
 
 const baseEvent: DatabaseEvent = {
   id: "test",
@@ -57,5 +57,34 @@ describe("hostEvents", () => {
 
   it("selects the nearest non-terminal future event as next", () => {
     expect(findNextHostEvent([pastApproved, cancelledFuture, nextApproved], now)?.id).toBe("next-approved");
+  });
+
+
+  it("derives date and status labels for a Host event row", () => {
+    const [row] = deriveHostEventRows(
+      [{ ...baseEvent, id: "labeled", event_date: "2026-08-18T00:00:00Z", status: "approved" }],
+      now
+    );
+    expect(row.event.id).toBe("labeled");
+    expect(row.dateLabel).toBe("August 17, 2026 at 8:00 PM");
+    expect(row.statusLabel).toBe("Approved");
+    expect(row.action).toEqual({ label: "View event", to: "/calendar?event=labeled&city=boston" });
+  });
+
+  it("sorts Host event rows by event date ascending", () => {
+    const rows = deriveHostEventRows([nextApproved, pastApproved, cancelledFuture], now);
+    expect(rows.map((r) => r.event.id)).toEqual(["past-approved", "cancelled-future", "next-approved"]);
+  });
+
+  it("excludes archived events from being selected as next", () => {
+    const archivedFuture: DatabaseEvent = { ...baseEvent, id: "archived-future", event_date: "2026-08-25T20:00:00Z", status: "archived" };
+    expect(findNextHostEvent([archivedFuture, nextApproved], now)?.id).toBe("next-approved");
+  });
+
+  it("sorts undated or invalid event dates last, without a placeholder date label", () => {
+    const undated: DatabaseEvent = { ...baseEvent, id: "undated", event_date: "" };
+    const rows = deriveHostEventRows([nextApproved, undated], now);
+    expect(rows.map((r) => r.event.id)).toEqual(["next-approved", "undated"]);
+    expect(rows[1].dateLabel).toBe("Date unavailable");
   });
 });

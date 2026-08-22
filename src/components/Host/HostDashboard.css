@@ -1,0 +1,6 @@
+.host-dashboard { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem 3rem; }
+.host-dashboard__state, .host-dashboard__empty, .host-dashboard__next, .host-dashboard__events { background: var(--admin-surface, #fff); border: 1px solid var(--admin-border, #e5e7eb); border-radius: 12px; padding: 1.5rem; margin-top: 1.5rem; }
+.host-dashboard__next h2, .host-dashboard__empty h2, .host-dashboard__events h2 { margin-top: 0; }
+.host-dashboard__next h3, .host-dashboard__events h3 { margin-bottom: .25rem; }
+.host-dashboard__events article { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 0; border-top: 1px solid var(--admin-border, #e5e7eb); }
+.host-dashboard__events p { margin: 0; color: var(--admin-muted, #6b7280); }

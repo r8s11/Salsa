@@ -37,6 +37,38 @@
   background-size: cover;
   background-position: center;
 }
+/* ── Quick look header & facts ── */
+.quick-look-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.quick-look-date {
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.quick-facts {
+  display: flex;
+  padding: 16px 28px;
+  gap: 20px;
+  background: var(--color-bg-subtle);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.fact {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9em;
+}
+
+.price-tag {
+  font-weight: 600;
+  color: var(--color-accent);
+}
 
 .modal-poster::after {
   content: "";

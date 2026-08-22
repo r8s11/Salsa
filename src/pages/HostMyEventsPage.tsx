@@ -41,7 +41,7 @@ export default function HostMyEventsPage() {
             <div key={row.event.id} className="host-my-events__card">
               <h3>{row.event.title}</h3>
               <p><strong>Status:</strong> {row.statusLabel}</p>
-              <p><strong>Venue:</strong> {row.event.venue_id || "N/A"}</p>
+              <p><strong>Venue:</strong> {row.event.location || "Venue not set"}</p>
               <div className="host-my-events__actions">
                  <Link to={row.action.to}>{row.action.label}</Link>
               </div>
@@ -64,7 +64,7 @@ export default function HostMyEventsPage() {
               <tr key={row.event.id}>
                 <td data-label="Title">{row.event.title}</td>
                 <td data-label="Date">{row.dateLabel}</td>
-                <td data-label="Venue">{row.event.venue_id || "N/A"}</td>
+                <td data-label="Venue">{row.event.location || "Venue not set"}</td>
                 <td data-label="Status">{row.statusLabel}</td>
                 <td data-label="Action">
                   <Link to={row.action.to}>{row.action.label}</Link>

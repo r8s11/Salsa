@@ -48,4 +48,17 @@ describe("HostMyEventsPage", () => {
     expect(await screen.findByRole("link", { name: "Edit event" })).toHaveAttribute("href", "/profile/edit/pending-1");
     expect(screen.getByRole("link", { name: "View event" })).toHaveAttribute("href", "/calendar?event=approved-1&city=boston");
   });
+  it("renders location or 'Venue not set' fallback", async () => {
+    const eventWithLocation = { title: "With Loc", id: "loc-1", status: "approved", location: "Grand Ballroom", city: "boston" };
+    const eventWithoutLocation = { title: "No Loc", id: "loc-2", status: "approved", location: null, city: "boston" };
+    vi.mocked(useMySubmissions).mockReturnValue({ submissions: [eventWithLocation, eventWithoutLocation] });
+    render(
+        <BrowserRouter>
+            <HostMyEventsPage />
+        </BrowserRouter>
+    );
+    
+    expect(await screen.findByText("Grand Ballroom")).toBeInTheDocument();
+    expect(screen.getByText("Venue not set")).toBeInTheDocument();
+  });
 });

@@ -58,6 +58,13 @@
   border-bottom: 1px solid var(--color-border);
 }
 
+@media (max-width: 640px) {
+  .quick-facts {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
 .fact {
   display: flex;
   align-items: center;

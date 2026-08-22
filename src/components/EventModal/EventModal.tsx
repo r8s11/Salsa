@@ -206,7 +206,6 @@ export default function EventModal({ event, onClose }: EventModalProps) {
             )}
           </div>
           <aside className="modal-rsvp">
-          {/* price moved to quick-facts */}
             {event.rsvpLink && (
               <a
                 className="btn-primary rsvp-button"

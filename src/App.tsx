@@ -37,6 +37,7 @@ const AdminActivityPage = lazy(() => import("./pages/AdminActivityPage"));
 const AdminActivityDetailPage = lazy(() => import("./pages/AdminActivityDetailPage"));
 const AdminAnalyticsPage = lazy(() => import("./pages/AdminAnalyticsPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+const HostMyEventsPage = lazy(() => import("./pages/HostMyEventsPage"));
 const UserEventEditPage = lazy(() => import("./pages/UserEventEditPage"));
 import RequireAuth from "./components/Auth/RequireAuth";
 import RequireAdmin from "./components/Auth/RequireAdmin";
@@ -60,6 +61,7 @@ function App() {
             >
               <Route index element={<AdminOverviewPage />} />
               <Route path="events" element={<AdminEventsPage />} />
+              <Route path="host/events" element={<HostMyEventsPage />} />
               <Route path="events/import" element={<AdminImportEventsPage />} />
               <Route path="submissions" element={<AdminSubmissionsPage />} />
               <Route path="submissions/:id" element={<AdminSubmissionDetailPage />} />

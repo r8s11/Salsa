@@ -70,3 +70,8 @@ git branch -d feature/core-ui-refresh   # merged branch deleted
 ## Nothing outstanding
 
 Every phase of the execution plan (`local://salsa-core-ui-refresh-plan.md`) is done: all five workstreams implemented, tested, and reviewed; both integration bugs (lint, event-time) found and fixed with evidence; the full repository gate (lint/test/build/tsc/Impeccable) green on the merged result; the complete authenticated end-to-end browser proof from the plan's Verification section executed and passed; verification records cleaned up; final whole-branch review clean; branch merged and deleted.
+
+## Round 1: Host Venue Rendering Fix
+
+- **Fix** (`f114311`) — In `HostMyEventsPage.tsx`, updated the venue rendering logic from `venue_id || "N/A"` to `location || "Venue not set"`, replacing the database ID display with the human-readable event location field, ensuring consistent UX with appropriate fallback text.
+- **Verified** — Added a focused test case in `HostMyEventsPage.test.tsx` ensuring that events with `location` render the location and events with `null` `location` render the fallback string "Venue not set". Confirmed all `HostMyEventsPage.test.tsx` tests pass.

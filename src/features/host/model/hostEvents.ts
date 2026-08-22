@@ -1,3 +1,4 @@
+import { fromEventDateInstant, formatTimeLabel } from "../../events/model/eventDateTime";
 import { DatabaseEvent } from "../../events/model/types";
 
 export interface HostEventRow {
@@ -20,7 +21,30 @@ export function hostEventAction(event: DatabaseEvent): { label: string; to: stri
   };
 }
 export function deriveHostEventRows(events: DatabaseEvent[], now: Date): HostEventRow[] {
-  return []; // Placeholder
+  return events
+    .map((e) => {
+      const { date, time } = fromEventDateInstant(e.event_date);
+      const displayDate = new Date(date).toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      });
+      const displayTime = formatTimeLabel(time);
+      
+      return {
+        event: e,
+        dateLabel: `${displayDate} at ${displayTime}`,
+        statusLabel: e.status.charAt(0).toUpperCase() + e.status.slice(1),
+        action: hostEventAction(e),
+      };
+    })
+    .sort((a, b) => {
+      const aDate = new Date(a.event.event_date).getTime();
+      const bDate = new Date(b.event.event_date).getTime();
+      if (isNaN(aDate)) return 1;
+      if (isNaN(bDate)) return -1;
+      return aDate - bDate;
+    });
 }
 
 export function findNextHostEvent(events: DatabaseEvent[], now: Date): DatabaseEvent | null {

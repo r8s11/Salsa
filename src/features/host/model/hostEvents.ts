@@ -20,7 +20,18 @@ export function hostEventAction(event: DatabaseEvent): { label: string; to: stri
     to: `/calendar?event=${event.id}&city=${event.city}`,
   };
 }
-export function deriveHostEventRows(events: DatabaseEvent[], _now: Date): HostEventRow[] {
+
+/** Terminal statuses never count as upcoming and are never "next". */
+function isTerminal(event: DatabaseEvent): boolean {
+  return event.status === "cancelled" || event.status === "archived";
+}
+
+export function isUpcomingHostEvent(event: DatabaseEvent, now: Date): boolean {
+  const instant = parseEventInstant(event.event_date);
+  return instant !== null && instant.epochMilliseconds > now.getTime() && !isTerminal(event);
+}
+
+export function deriveHostEventRows(events: DatabaseEvent[]): HostEventRow[] {
   const withInstant = events.map((e) => {
     const instant = parseEventInstant(e.event_date);
     return {
@@ -68,16 +79,15 @@ function deriveDateLabel(instant: Temporal.Instant | null): string {
 }
 
 export function findNextHostEvent(events: DatabaseEvent[], now: Date): DatabaseEvent | null {
-  const nowTimestamp = now.getTime();
-  const futureEvents = events
+  const upcoming = events
     .map((event) => ({ event, instant: parseEventInstant(event.event_date) }))
     .filter(
-      ({ event, instant }) =>
-        instant !== null &&
-        instant.epochMilliseconds > nowTimestamp &&
-        event.status !== "cancelled" &&
-        event.status !== "archived"
-    );
-  if (futureEvents.length === 0) return null;
-  return futureEvents.sort((a, b) => a.instant!.epochMilliseconds - b.instant!.epochMilliseconds)[0].event;
+      (candidate): candidate is { event: DatabaseEvent; instant: Temporal.Instant } =>
+        candidate.instant !== null &&
+        candidate.instant.epochMilliseconds > now.getTime() &&
+        !isTerminal(candidate.event)
+    )
+    .sort((a, b) => a.instant.epochMilliseconds - b.instant.epochMilliseconds);
+
+  return upcoming[0]?.event ?? null;
 }

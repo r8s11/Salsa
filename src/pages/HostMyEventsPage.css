@@ -1,8 +1,104 @@
-.host-my-events__header {
+.host-my-events__toolbar {
+  display: inline-flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  padding: 4px;
+  border: 1px solid var(--admin-border);
+  border-radius: 999px;
+}
+
+.host-my-events__view {
+  padding: 7px 16px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--admin-text-muted);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.host-my-events__view--active {
+  background: var(--admin-surface-raised, var(--admin-border));
+  color: var(--admin-text);
+}
+
+.host-my-events__view:focus-visible {
+  outline: 2px solid var(--admin-accent, var(--admin-text));
+  outline-offset: 2px;
+}
+
+.host-my-events__status {
+  color: var(--admin-text-muted);
+}
+
+.host-my-events__empty {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+  padding: 24px;
+}
+
+.host-my-events__empty p {
+  margin: 0;
+  color: var(--admin-text-muted);
+}
+
+.host-my-events__cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.host-my-events__card {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+}
+
+.host-my-events__card-title {
+  margin: 0;
+  color: var(--admin-text);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.host-my-events__facts {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.host-my-events__facts dt {
+  color: var(--admin-text-muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.host-my-events__facts dd {
+  margin: 2px 0 0;
+  color: var(--admin-text);
+  font-size: 0.88rem;
+}
+
+.host-my-events__action {
+  align-self: flex-start;
+  color: var(--admin-accent, var(--admin-text));
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.host-my-events__action:hover {
+  text-decoration: underline;
 }
 
 .host-my-events__table {
@@ -10,40 +106,66 @@
   border-collapse: collapse;
 }
 
-.host-my-events__table th, .host-my-events__table td {
+.host-my-events__table th,
+.host-my-events__table td {
   padding: 12px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--admin-border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.host-my-events__table th {
+  color: var(--admin-text-muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.host-my-events__table td {
+  color: var(--admin-text);
+  font-size: 0.88rem;
 }
 
 @media (max-width: 640px) {
   .host-my-events__table thead {
-    display: none;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
+
   .host-my-events__table tr {
     display: block;
-    margin-bottom: 1rem;
-    border: 1px solid #ccc;
-    padding: 1rem;
+    margin-bottom: 12px;
+    padding: 6px 14px;
+    border: 1px solid var(--admin-border);
+    border-radius: 12px;
   }
+
   .host-my-events__table td {
-    display: block;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 8px 0;
+    border-bottom: none;
     text-align: right;
   }
+
+  .host-my-events__table td + td {
+    border-top: 1px solid var(--admin-border);
+  }
+
   .host-my-events__table td::before {
     content: attr(data-label);
-    float: left;
-    font-weight: bold;
+    color: var(--admin-text-muted);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-align: left;
   }
-}
-
-.host-my-events__cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 16px;
-}
-
-.host-my-events__card {
-  border: 1px solid #ccc;
-  padding: 16px;
-  border-radius: 8px;
 }

@@ -19,11 +19,6 @@ const { useAuth } = vi.hoisted(() => ({ useAuth: vi.fn() }));
 const { useMySubmissions } = vi.hoisted(() => ({ useMySubmissions: vi.fn() }));
 vi.mock("../hooks/useMySubmissions", () => ({ useMySubmissions }));
 
-const ownerPending = { id: "pending-1", title: "Pending Event", status: "pending", event_date: "2026-08-30T10:00:00Z" };
-const ownerApproved = { id: "approved-1", title: "Approved Event", status: "approved", event_date: "2026-09-01T10:00:00Z" };
-const platformOnlyEvent = { id: "platform-1", title: "Platform Event", status: "approved", event_date: "2026-09-02T10:00:00Z" };
-
-
 vi.mock("../hooks/useAdminEvents", () => ({ useAdminEvents }));
 vi.mock("../hooks/useAdminUserCount", () => ({ useAdminUserCount }));
 vi.mock("../hooks/useAdminUsers", () => ({ useAdminUsers }));
@@ -218,37 +213,8 @@ function attentionSection(): HTMLElement {
   return screen.getByText("Needs attention").closest("section") as HTMLElement;
 }
 
-describe("HostDashboard", () => {
-  it("renders the organizer role as Host and excludes platform events", async () => {
-    vi.mocked(useAuth).mockReturnValue(authState("organizer"));
-    vi.mocked(useMySubmissions).mockReturnValue({
-      submissions: [ownerPending],
-      approvedEvents: [ownerApproved],
-      isLoading: false,
-      error: null,
-      refetch: vi.fn(),
-    });
-
-    renderPage();
-
-    expect(await screen.findByRole("heading", { name: "Host dashboard" })).toBeInTheDocument();
-    expect(screen.getByText(ownerApproved.title)).toBeInTheDocument();
-    expect(screen.queryByText(platformOnlyEvent.title)).not.toBeInTheDocument();
-  });
-
-  it("renders a useful no-next-event state", async () => {
-    vi.mocked(useAuth).mockReturnValue(authState("organizer"));
-    vi.mocked(useMySubmissions).mockReturnValue({
-      submissions: [],
-      approvedEvents: [],
-      isLoading: false,
-      error: null,
-      refetch: vi.fn(),
-    });
-    renderPage();
-    expect(await screen.findByText(/no upcoming events yet/i)).toBeInTheDocument();
-  });
-});
+// Host (organizer) coverage lives in src/components/Host/HostDashboard.test.tsx:
+// RequireReviewer keeps that role out of /admin entirely.
 
 describe("AdminOverviewPage", () => {
   beforeEach(() => {
@@ -370,16 +336,11 @@ describe("AdminOverviewPage", () => {
     expect(screen.queryByText("Total Users")).not.toBeInTheDocument();
   });
 
-  it("renders the organizer dashboard with event KPIs when role is organizer", () => {
+  it("never renders a Host surface for a role that cannot reach /admin", () => {
     vi.mocked(useAuth).mockReturnValue(authState("organizer"));
     renderPage();
 
-    expect(screen.getByRole("heading", { name: "Host dashboard" })).toBeInTheDocument();
-    expect(metricCard("Total Events")).toBeInTheDocument();
-    expect(metricCard("Upcoming Events")).toBeInTheDocument();
-    expect(metricCard("Awaiting Review")).toBeInTheDocument();
-    // Organizer dashboard does not show Total Users or Flagged Users
-    expect(screen.queryByText("Total Users")).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Host dashboard" })).not.toBeInTheDocument();
   });
 
   it("renders the full admin dashboard by default (admin role)", () => {

@@ -151,14 +151,16 @@ describe("AdminSidebar settings navigation", () => {
     expect(screen.queryByText("Settings")).not.toBeInTheDocument();
   });
 });
-describe("AdminSidebar organizer navigation", () => {
-  it("shows My Events, Host Dashboard, and Host Bulk Upload for organizers", () => {
+describe("AdminSidebar Host navigation", () => {
+  it("points the organizer role at the guarded Host routes", () => {
     vi.mocked(useAuth).mockReturnValue({ role: "organizer" });
     renderSidebar();
-    expect(screen.getByText("My Events")).toBeInTheDocument();
-    expect(screen.getByText("Host Dashboard")).toBeInTheDocument();
-    expect(screen.getByText("Host Bulk Upload")).toBeInTheDocument();
+
+    expect(screen.getByRole("link", { name: "Host Dashboard" })).toHaveAttribute("href", "/host");
+    expect(screen.getByRole("link", { name: "My Events" })).toHaveAttribute("href", "/host/events");
+    // Admin-only platform surfaces stay behind RequireReviewer.
     expect(screen.queryByText("Dashboard")).not.toBeInTheDocument();
     expect(screen.queryByText("Bulk Upload")).not.toBeInTheDocument();
+    expect(screen.queryByText("Events")).not.toBeInTheDocument();
   });
 });

@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { useAuth } from "../contexts/useAuth";
-import HostDashboard from "../components/Host/HostDashboard";
 import ModeratorOverview from "../components/Moderator/ModeratorOverview";
 import PlatformAdminOverview from "../components/Admin/PlatformAdminOverview";
 import { AttentionItem } from "../components/Admin/AdminNeedsAttention";
@@ -13,10 +12,10 @@ import {
   deriveUpcomingEvents,
 } from "../features/admin/model/overviewMetrics";
 
-
+// Host (the organizer role) never reaches /admin: RequireReviewer admits only
+// admin and moderator. Host surfaces live under /host behind RequireOrganizer.
 export default function AdminOverviewPage() {
   const { role } = useAuth();
-  if (role === "organizer") return <HostDashboard />;
   if (role === "moderator") return <ModeratorOverviewWrapper />;
   return <PlatformAdminOverview />;
 }

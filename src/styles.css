@@ -7,6 +7,12 @@
   flex: 1;
 }
 
+@media (max-width: 640px) {
+  .page-content {
+    padding-bottom: calc(56px + env(safe-area-inset-bottom));
+  }
+}
+
 /* Lazy loading fallback */
 .page-loading {
   display: flex;

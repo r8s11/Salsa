@@ -1,6 +1,7 @@
 import { Outlet } from "react-router-dom";
 import Header from "../components/Header/Header";
 import Footer from "../components/Footer/Footer";
+import MobileTabBar from "../components/MobileTabBar/MobileTabBar";
 
 function MainLayout() {
   return (
@@ -12,6 +13,7 @@ function MainLayout() {
         </main>
         <Footer />
       </div>
+      <MobileTabBar />
     </>
   );
 }

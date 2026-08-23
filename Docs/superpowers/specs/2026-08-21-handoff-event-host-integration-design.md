@@ -13,17 +13,19 @@ The handoff bundle is visual and interaction authority for SalsaSegura’s event
 | Event data | Events provide type, title, date/time, venue/address, price, description, host, dance styles, gallery, contact, and RSVP. | Surface only these facts. Teacher, level, length, lineup, capacity, attendance, DJ, and task data are unavailable. |
 | Host (existing `organizer` role) | `/admin` renders an organizer dashboard through `AdminOverviewPage`, but it obtains platform-wide events via `useAdminEvents()`. | Replace its owner-only view with signed-in owner data from the existing `useMySubmissions()` query and present it as Host. |
 | Event editing | `/profile/edit/:eventId` is owner-scoped and pending/rejected-only. | Host event actions must route there only for editable statuses; approved events keep the Calendar detail route. |
-| Admin shell | `AdminLayout` and `AdminSidebar` already supply the rail, breadcrumb, account menu, theme, mobile drawer, and responsive tokens. | Extend this shell rather than importing the handoff’s parallel `DashboardShell`. |
+| Admin shell | `AdminLayout` and `AdminSidebar` supply the rail, breadcrumb, account menu, theme, mobile drawer, and responsive tokens. `/admin` itself is wrapped in `RequireReviewer`, whose `isModerator` predicate admits only admin and moderator. | Reuse the shell, but Host cannot live under `/admin`: that guard redirects organizers away. |
 
 ## Core architecture decision
 
-Keep `/admin` as the shared authenticated shell. Its existing `organizer` role is labeled **Host** for all organizer-facing UI and remains owner-scoped; its existing `admin` role remains the website administrator and keeps platform-wide administration. Add a single Host-events child route inside that shell. Event browsing retains the shared `EventModal` and adopts the handoff’s quick-look hierarchy without inventing a new event-detail route.
+Reuse `AdminLayout` as the shell for both areas, but keep their authorization separate. `/admin` stays behind `RequireReviewer` for the website-administrator and moderator roles. Host — the existing `organizer` role — gets `/host` and `/host/events` behind a new `RequireOrganizer` guard, so no platform-wide admin route is widened to reach it. Event browsing retains the shared `EventModal` and adopts the handoff's quick-look hierarchy without inventing a new public event-detail route.
+
+**Correction to an earlier draft of this spec:** it assumed organizers could already reach `/admin` and therefore excluded `/host/*` routes. That assumption was false — `RequireReviewer` excludes organizers — so a `/admin/host/events` child route was unreachable for every Host. Widening the reviewer guard was rejected because it would also expose `/admin/events`, `/admin/events/import`, `/admin/submissions`, and `/admin/tags` to organizers.
 
 | Decision | Benefit | Cost/ripple |
 | --- | --- | --- |
 | Reuse `EventModal` | Preserves keyboard/focus behavior and all current integrations. | Targeted markup/CSS refinement instead of copying `QuickEventModal`. |
 | Owner query for Host | Prevents platform-wide data leaking into the Event Organizer/Host overview. | Add host-specific derived metrics and loading/error states. |
-| `/admin/host/events` | Gives the existing organizer role a real Host My Events surface without a second shell or role. | Add route, page, route test, and organizer-role sidebar labels. |
+| `/host` + `/host/events` behind `RequireOrganizer` | Gives the existing organizer role reachable Host surfaces without widening admin authorization. | Adds one guard component, two routes, and organizer-only sidebar links. |
 | Truthful fields only | Avoids demo registrations, capacity, tasks, or DJ claims. | Handoff’s richer blocks remain excluded. |
 
 ## Deliverables
@@ -45,7 +47,7 @@ Keep `/admin` as the shared authenticated shell. Its existing `organizer` role i
 
 ### 3. Host My Events
 
-- Add `/admin/host/events` within `AdminLayout`.
+- Add `/host` (dashboard) and `/host/events` (My Events) as `AdminLayout` children behind `RequireOrganizer`.
 - Provide Cards/Table control with real title, date, venue, status, and contextual action.
 - Use the existing event dates/statuses; no registration/capacity columns.
 - Pending/rejected rows link to `/profile/edit/:eventId`; approved rows link to `/calendar?event=:id&city=:city`.
@@ -54,7 +56,7 @@ Keep `/admin` as the shared authenticated shell. Its existing `organizer` role i
 ### 4. Explicit exclusions
 
 - No public event-detail route, registrations, capacity, door mode, attendee lists, host tasks, DJ workflows, lineup management, or analytics.
-- No `DashboardShell`, demo data, `/host/*` routes, or handoff CSS variable namespace.
+- No `DashboardShell`, demo data, or handoff CSS variable namespace.
 - No event schema/RLS/storage change.
 
 ## Interaction wireframe

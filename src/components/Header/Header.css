@@ -256,3 +256,9 @@ a.logo:hover {
   .mobile-nav__account > a:not(.auth-btn):hover, .drawer-sign-out:hover { color: var(--text); background: var(--card); }
   .mobile-nav-actions .auth-btn { width: 100%; display: flex; justify-content: center; }
 }
+
+@media (max-width: 640px) {
+  header nav {
+    padding-top: env(safe-area-inset-top);
+  }
+}

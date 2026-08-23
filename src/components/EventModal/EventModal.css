@@ -164,6 +164,14 @@
   margin-bottom: 8px;
   flex-wrap: wrap;
 }
+.address-link {
+  color: var(--text-link, inherit);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.address-link:hover {
+  color: var(--text-link-hover, var(--primary));
+}
 
 .meta-row svg {
   color: var(--gold);

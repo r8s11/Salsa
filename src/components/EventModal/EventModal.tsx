@@ -170,6 +170,28 @@ export default function EventModal({ event, onClose }: EventModalProps) {
                 <Repeat size={18} aria-hidden />
                 <span>{event.recurrence === "weekly" ? "Repeats weekly" : "Repeats"}</span>
               </div>
+              <div className="meta-row">
+                <MapPin size={18} aria-hidden />
+                <span>
+                  {(() => {
+                    const url = mapsUrl(event);
+                    const label = `${event.location}${event.address ? ` · ${event.address}` : ""}`;
+                    return url ? (
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="address-link"
+                        aria-label={`Open ${label} in Maps`}
+                      >
+                        {label}
+                      </a>
+                    ) : (
+                      <span>{label}</span>
+                    );
+                  })()}
+                </span>
+              </div>
             )}
             {event.host && (
               <div className="meta-row">

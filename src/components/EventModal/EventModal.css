@@ -302,13 +302,23 @@
 .modal-rsvp .rsvp-button,
 .modal-rsvp .ics-button,
 .modal-rsvp .modal-full-details,
-.poster-toggle-btn {
+.modal-rsvp .poster-toggle-btn {
   width: 100%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   text-align: center;
+  /* <button> defaults to line-height: normal; anchors inherit the body's.
+     Inherit explicitly so both element types render the same height. */
+  line-height: inherit;
+}
+
+/* .btn-primary has no border while .btn-secondary carries a 1px gold one;
+   match the box height so all four actions line up. */
+.modal-rsvp .rsvp-button,
+.modal-mobile-actions .rsvp-button {
+  border: 1px solid transparent;
 }
 
 .reassurance {
@@ -592,9 +602,10 @@
 
   /* ── Sticky mobile action bar ── */
   .modal-mobile-actions {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     flex-shrink: 0;
-    gap: 10px;
+    gap: 8px;
     padding: 12px 16px;
     padding-bottom: max(12px, env(safe-area-inset-bottom));
     background: var(--surface);
@@ -602,28 +613,26 @@
     box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.3);
   }
 
-  .modal-mobile-actions .rsvp-button {
-    flex: 1.4;
-    font-size: 0.75rem;
-    padding: 0.7rem 1rem;
+  /* The Share button is wrapped in a section div for the desktop sidebar;
+   * dissolve it so the button itself becomes a grid cell. */
+  .modal-mobile-actions .poster-download-section {
+    display: contents;
   }
 
+  .modal-mobile-actions .rsvp-button,
   .modal-mobile-actions .ics-button,
   .modal-mobile-actions .modal-full-details,
   .modal-mobile-actions .poster-toggle-btn {
-    flex: 1;
-    font-size: 0.7rem;
-    padding: 0.7rem 0.6rem;
-    white-space: nowrap;
-  }
-
-  .modal-mobile-actions .poster-download-section {
-    flex: 1;
-    margin-top: 0;
-  }
-
-  .modal-mobile-actions .poster-toggle-btn {
     width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.7rem;
+    padding: 0.7rem 0.4rem;
+    white-space: nowrap;
+    line-height: inherit;
+    text-align: center;
   }
 
   .modal-mobile-actions .reassurance {
@@ -651,16 +660,12 @@
     gap: 6px;
   }
 
-  .modal-mobile-actions .rsvp-button {
-    font-size: 0.72rem;
-    padding: 0.65rem 0.75rem;
-  }
-
+  .modal-mobile-actions .rsvp-button,
   .modal-mobile-actions .ics-button,
   .modal-mobile-actions .modal-full-details,
   .modal-mobile-actions .poster-toggle-btn {
     font-size: 0.68rem;
-    padding: 0.65rem 0.5rem;
+    padding: 0.65rem 0.3rem;
   }
 
   .modal-mobile-extras {

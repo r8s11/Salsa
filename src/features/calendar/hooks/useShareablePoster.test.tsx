@@ -89,6 +89,6 @@ describe("useShareablePoster", () => {
       expect.objectContaining({ onImageErrorHandler: expect.any(Function) })
     );
     const options = vi.mocked(toBlob).mock.calls[0][1];
-    expect(() => options?.onImageErrorHandler?.("", "img", "load")).not.toThrow();
+    expect(() => options?.onImageErrorHandler?.("", "img", 0)).not.toThrow();
   });
 });

@@ -95,7 +95,11 @@ export default function HostMyEventsPage() {
                     </div>
                     <div>
                       <dt>Status</dt>
-                      <dd>{row.statusLabel}</dd>
+                      <dd>
+                        <span className={`host-dashboard__status host-dashboard__status--${row.event.status}`}>
+                          {row.statusLabel}
+                        </span>
+                      </dd>
                     </div>
                   </dl>
                   <Link className="host-my-events__action" to={row.action.to}>
@@ -124,7 +128,11 @@ export default function HostMyEventsPage() {
                     <td data-label="Event">{row.event.title}</td>
                     <td data-label="Date">{row.dateLabel}</td>
                     <td data-label="Venue">{row.event.location || "Venue not set"}</td>
-                    <td data-label="Status">{row.statusLabel}</td>
+                    <td data-label="Status">
+                      <span className={`host-dashboard__status host-dashboard__status--${row.event.status}`}>
+                        {row.statusLabel}
+                      </span>
+                    </td>
                     <td data-label="Action">
                       <Link className="host-my-events__action" to={row.action.to}>
                         {row.action.label}

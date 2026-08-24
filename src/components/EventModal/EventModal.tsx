@@ -327,7 +327,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
               )}
               {event.danceStyles && event.danceStyles.length > 0 && (
                 <div className="meta-row">
-                  <span className="dance-styles">
+                  <span className="modal-style-chips">
                     {event.danceStyles.map((style) => (
                       <span key={style} className="style-chip">
                         {style}

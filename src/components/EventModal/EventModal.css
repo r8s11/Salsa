@@ -195,13 +195,13 @@
   min-width: 0;
 }
 
-.dance-styles {
+.modal-style-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
 }
 
-.meta-row:has(.dance-styles) {
+.meta-row:has(.modal-style-chips) {
   margin-bottom: 2px;
 }
 

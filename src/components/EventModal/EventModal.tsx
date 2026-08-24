@@ -69,6 +69,10 @@ export default function EventModal({ event, onClose }: EventModalProps) {
     return () => window.removeEventListener("keydown", handleTab);
   }, [event]);
 
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [showPosterOptions, setShowPosterOptions] = useState(false);
+  const { ensureContainer, captureAndDownload } = useShareablePoster();
+
   if (!event) return null;
 
   const handleBackdropClick = (e: React.MouseEvent) => {
@@ -118,9 +122,6 @@ export default function EventModal({ event, onClose }: EventModalProps) {
   const galleryExtra = (event.gallery?.length ?? 0) - galleryThumbs.length;
 
   // ── Poster download ──
-  const [isDownloading, setIsDownloading] = useState(false);
-  const [showPosterOptions, setShowPosterOptions] = useState(false);
-  const { ensureContainer, captureAndDownload } = useShareablePoster();
 
   const handleDownloadPoster = async (format: PosterFormat) => {
     if (isDownloading || !event) return;

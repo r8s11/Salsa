@@ -148,6 +148,10 @@
   color: var(--gold-light);
 }
 
+.modal-content .style-chip {
+  padding: 3px 8px;
+}
+
 /* ── Scrollable body ── */
 .modal-body {
   /* On desktop this just passes through; on mobile it becomes scrollable */
@@ -195,7 +199,11 @@
 .dance-styles {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 4px;
+}
+
+.meta-row:has(.dance-styles) {
+  margin-bottom: 2px;
 }
 
 .repeat-pill {

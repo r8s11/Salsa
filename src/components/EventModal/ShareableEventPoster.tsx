@@ -2,21 +2,16 @@ import { Clock, MapPin } from "lucide-react";
 import { ScheduleXEvent } from "../../types/events";
 import "./ShareableEventPoster.css";
 
-export type PosterFormat = "square" | "portrait";
-
 interface ShareableEventPosterProps {
   event: ScheduleXEvent;
-  format: PosterFormat;
+  imageUrl?: string;
 }
 
 /**
  * Renders a social-media-optimized event poster.
- * Designed for 1080×1080 (square — Instagram post) or
- * 1080×1920 (portrait — Instagram Story / TikTok).
+ * Designed for 1080×1080 (square — Instagram post).
  */
-export default function ShareableEventPoster({ event, format }: ShareableEventPosterProps) {
-  const formatClass = format === "portrait" ? "poster-portrait" : "poster-square";
-
+export default function ShareableEventPoster({ event, imageUrl }: ShareableEventPosterProps) {
   const toDate = (val: unknown): Date => {
     if (typeof val === "string") {
       return new Date(val.replace(" ", "T"));
@@ -54,17 +49,17 @@ export default function ShareableEventPoster({ event, format }: ShareableEventPo
   const priceLabel = isFree ? "FREE" : `$${event.priceAmount}`;
 
   return (
-    <div className={`shareable-poster ${formatClass}`}>
+    <div className="shareable-poster poster-square">
       {/* Background layer */}
       <div className="poster-bg">
-        {event.imageUrl ? (
-          <img className="poster-bg-img" src={event.imageUrl} alt="" crossOrigin="anonymous" />
+        {imageUrl ? (
+          <img className="poster-bg-img" src={imageUrl} alt="" crossOrigin="anonymous" />
         ) : null}
         <div className="poster-bg-gradient" />
       </div>
 
       {/* Content layer */}
-      <div className={`poster-content${!event.imageUrl ? " poster-no-image" : ""}`}>
+      <div className="poster-content">
         {/* Top strip */}
         <div className="poster-top">
           <span className="poster-brand">Salsa Segura</span>

@@ -8,8 +8,6 @@ import {
   Image as ImageIcon,
   MapPin,
   Repeat,
-  RectangleVertical,
-  Square,
   Users,
   X,
 } from "lucide-react";
@@ -17,7 +15,8 @@ import { ScheduleXEvent } from "../../types/events";
 import { downloadIcs, mapsUrl, googleCalendarUrl } from "../../utils/ics";
 import { getUpcomingSeriesDates } from "../../utils/series";
 import { useShareablePoster } from "../../features/calendar/hooks/useShareablePoster";
-import ShareableEventPoster, { PosterFormat } from "./ShareableEventPoster";
+import ShareableEventPoster from "./ShareableEventPoster";
+import { resolveEventModalImage } from "./eventModalImage";
 import "./EventModal.css";
 
 interface EventModalProps {
@@ -70,8 +69,8 @@ export default function EventModal({ event, onClose }: EventModalProps) {
   }, [event]);
 
   const [isDownloading, setIsDownloading] = useState(false);
-  const [showPosterOptions, setShowPosterOptions] = useState(false);
-  const { ensureContainer, captureAndDownload } = useShareablePoster();
+  const { ensureContainer, capturePoster, posterFilename, downloadPoster, removeTarget } =
+    useShareablePoster();
 
   if (!event) return null;
 
@@ -120,24 +119,39 @@ export default function EventModal({ event, onClose }: EventModalProps) {
   const seriesDates = event.recurrence === "weekly" ? getUpcomingSeriesDates(event.start) : [];
   const galleryThumbs = event.gallery?.slice(0, 4) ?? [];
   const galleryExtra = (event.gallery?.length ?? 0) - galleryThumbs.length;
+  const resolvedImageUrl = resolveEventModalImage(event);
 
-  // ── Poster download ──
+  // ── Poster sharing ──
 
-  const handleDownloadPoster = async (format: PosterFormat) => {
+  const handleSharePoster = async () => {
     if (isDownloading || !event) return;
     setIsDownloading(true);
-    setShowPosterOptions(false);
+    let root: ReturnType<typeof createRoot> | null = null;
     try {
       const container = ensureContainer();
-      const root = createRoot(container);
-      root.render(<ShareableEventPoster event={event} format={format} />);
+      root = createRoot(container);
+      root.render(<ShareableEventPoster event={event} imageUrl={resolvedImageUrl} />);
       // Wait for the poster to render before capturing
       await new Promise((resolve) => setTimeout(resolve, 300));
-      await captureAndDownload(event, container, format);
-      root.unmount();
+      const poster = await capturePoster(container);
+      const file = new File([poster], posterFilename(event), { type: "image/png" });
+
+      if (navigator.canShare?.({ files: [file] })) {
+        try {
+          await navigator.share({ title: event.title, files: [file] });
+        } catch (err) {
+          if (!(err instanceof DOMException && err.name === "AbortError")) {
+            console.error("Failed to share poster:", err);
+          }
+        }
+      } else {
+        downloadPoster(event, poster);
+      }
     } catch (err) {
-      console.error("Failed to download poster:", err);
+      console.error("Failed to share poster:", err);
     } finally {
+      root?.unmount();
+      removeTarget();
       setIsDownloading(false);
     }
   };
@@ -164,36 +178,16 @@ export default function EventModal({ event, onClose }: EventModalProps) {
         Full details
       </Link>
 
-      {/* Shareable Poster Download */}
+      {/* Shareable Poster */}
       <div className="poster-download-section">
-        {!showPosterOptions ? (
-          <button
-            className="btn-secondary poster-toggle-btn"
-            onClick={() => setShowPosterOptions(true)}
-            disabled={isDownloading}
-          >
-            <ImageIcon size={16} aria-hidden />
-            {isDownloading ? "Generating…" : "Download Poster"}
-          </button>
-        ) : (
-          <div className="poster-format-options">
-            <span className="poster-format-label">Format:</span>
-            <button
-              className="btn-secondary poster-format-btn"
-              onClick={() => handleDownloadPoster("square")}
-              disabled={isDownloading}
-            >
-              <Square size={16} aria-hidden /> 1:1
-            </button>
-            <button
-              className="btn-secondary poster-format-btn"
-              onClick={() => handleDownloadPoster("portrait")}
-              disabled={isDownloading}
-            >
-              <RectangleVertical size={16} aria-hidden /> 9:16
-            </button>
-          </div>
-        )}
+        <button
+          className="btn-secondary poster-toggle-btn"
+          onClick={handleSharePoster}
+          disabled={isDownloading}
+        >
+          <ImageIcon size={16} aria-hidden />
+          {isDownloading ? "Generating…" : "Share"}
+        </button>
       </div>
 
       {/* Add to Calendar */}
@@ -238,10 +232,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
         </button>
 
         {/* ── Poster header ── */}
-        <div
-          className="modal-poster"
-          style={event.imageUrl ? { backgroundImage: `url(${event.imageUrl})` } : undefined}
-        >
+        <div className="modal-poster" style={{ backgroundImage: `url(${resolvedImageUrl})` }}>
           <button className="modal-close back-pill" onClick={onClose}>
             <ArrowLeft size={16} aria-hidden /> Back to calendar
           </button>
@@ -272,6 +263,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
                       href={url}
                       target="_blank"
                       rel="noopener noreferrer"
+                      className="address-link"
                       aria-label={`Open ${label} in Maps`}
                     >
                       {label}

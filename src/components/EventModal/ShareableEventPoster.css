@@ -1,6 +1,6 @@
 /* ========================================
    Shareable Event Poster
-   Optimized for Instagram (1080×1080) & TikTok/Stories (1080×1920)
+   Single 1080×1080 output (Instagram post)
    ======================================== */
 
 .shareable-poster {
@@ -14,15 +14,10 @@
   background: var(--bg);
 }
 
-/* ── Aspect ratio variants ── */
+/* ── Square (1080×1080) ── */
 .shareable-poster.poster-square {
   width: 1080px;
   height: 1080px;
-}
-
-.shareable-poster.poster-portrait {
-  width: 1080px;
-  height: 1920px;
 }
 
 /* ── Poster image layer ── */
@@ -58,10 +53,6 @@
   flex-direction: column;
   flex: 1;
   padding: 64px;
-}
-
-.poster-content.poster-no-image {
-  background: linear-gradient(160deg, #0f1a30 0%, #131b2e 30%, var(--red) 140%);
 }
 
 /* ── Top strip: brand + type chip ── */
@@ -174,32 +165,6 @@
   font-weight: 500;
   color: var(--text-dim);
   letter-spacing: 0.04em;
-}
-
-/* ── Portrait variant overrides ── */
-.poster-portrait .poster-content {
-  padding: 80px 72px;
-}
-
-.poster-portrait .poster-title {
-  font-size: 88px;
-}
-
-.poster-portrait .poster-date {
-  font-size: 32px;
-}
-
-.poster-portrait .poster-meta {
-  font-size: 30px;
-}
-
-.poster-portrait .poster-brand {
-  font-size: 52px;
-}
-
-.poster-portrait .poster-chip {
-  font-size: 26px;
-  padding: 14px 32px;
 }
 
 /* ── Hidden off-screen rendering container ── */

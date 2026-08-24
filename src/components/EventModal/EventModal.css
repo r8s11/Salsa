@@ -179,8 +179,7 @@
 }
 .address-link {
   color: var(--text-link, inherit);
-  text-decoration: underline;
-  text-underline-offset: 4px;
+  text-decoration: none;
 }
 .address-link:hover {
   color: var(--text-link-hover, var(--primary));
@@ -302,8 +301,7 @@
 
 .modal-rsvp .rsvp-button,
 .modal-rsvp .ics-button,
-.poster-toggle-btn,
-.poster-format-btn {
+.poster-toggle-btn {
   width: 100%;
   display: inline-flex;
   align-items: center;
@@ -320,29 +318,12 @@
   margin: 0;
 }
 
-/* ── Shareable Poster Download ── */
+/* ── Shareable Poster ── */
 .poster-download-section {
   margin-top: 4px;
 }
 
-.poster-format-options {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.poster-format-label {
-  font-family: var(--font-ui);
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: -2px;
-}
-
-.poster-toggle-btn:hover,
-.poster-format-btn:hover {
+.poster-toggle-btn:hover {
   color: var(--text);
 }
 
@@ -370,6 +351,7 @@
   font-family: var(--font-ui);
   font-size: 0.875rem;
   overflow-wrap: anywhere;
+  text-decoration: none;
 }
 
 .contact-block a:focus-visible {
@@ -626,8 +608,7 @@
   }
 
   .modal-mobile-actions .ics-button,
-  .modal-mobile-actions .poster-toggle-btn,
-  .modal-mobile-actions .poster-format-btn {
+  .modal-mobile-actions .poster-toggle-btn {
     flex: 1;
     font-size: 0.7rem;
     padding: 0.7rem 0.6rem;
@@ -641,15 +622,6 @@
 
   .modal-mobile-actions .poster-toggle-btn {
     width: 100%;
-  }
-
-  .modal-mobile-actions .poster-format-options {
-    gap: 6px;
-  }
-
-  .modal-mobile-actions .poster-format-btn {
-    font-size: 0.68rem;
-    padding: 0.6rem 0.5rem;
   }
 
   .modal-mobile-actions .reassurance {

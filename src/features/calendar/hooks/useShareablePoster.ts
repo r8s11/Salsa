@@ -1,11 +1,21 @@
 import { useCallback, useRef } from "react";
-import { toPng } from "html-to-image";
+import { toBlob } from "html-to-image";
 import { ScheduleXEvent } from "../../../types/events";
 
 /**
- * Hook that manages an off-screen poster-render target and exposes a
- * `downloadPoster` callback.  Call `downloadPoster(event, format)`
- * whenever the user requests an export.
+ * Slugify for the poster filename.
+ */
+function slugify(text: string) {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+/**
+ * Hook that manages an off-screen poster-render target and exposes
+ * operations to capture the mounted poster as a PNG blob, name it, and
+ * download it as a fallback when native sharing isn't available.
  */
 export function useShareablePoster() {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -32,53 +42,54 @@ export function useShareablePoster() {
   }, []);
 
   /**
-   * Slugify for the download filename.
+   * Captures the poster mounted inside `container` as a PNG blob.
    */
-  const slugify = useCallback((text: string) => {
-    return text
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "");
+  const capturePoster = useCallback(async (container: HTMLElement): Promise<Blob> => {
+    // html-to-image needs the element to be in the layout flow.
+    // The .poster-render-target class keeps it at left:-9999px so it's
+    // rendered (with correct font metrics, images loaded) but invisible.
+    const posterEl = container.firstElementChild as HTMLElement | null;
+    if (!posterEl) {
+      throw new Error("Poster element not found in container");
+    }
+
+    const blob = await toBlob(posterEl, {
+      quality: 1,
+      pixelRatio: 1,
+      cacheBust: true,
+    });
+
+    if (!blob) {
+      throw new Error("Poster image could not be created");
+    }
+
+    return blob;
   }, []);
 
   /**
-   * Downloads the event poster as a PNG.
-   *
-   * @param event       The event to render in the poster.
-   * @param container   The DOM element containing the mounted poster.
-   * @param format      "square" (1080×1080) or "portrait" (1080×1920).
+   * Returns the normalized filename shared by native sharing and download.
    */
-  const captureAndDownload = useCallback(
-    async (event: ScheduleXEvent, container: HTMLElement, format: "square" | "portrait") => {
-      // html-to-image needs the element to be in the layout flow.
-      // The .poster-render-target class keeps it at left:-9999px so it's
-      // rendered (with correct font metrics, images loaded) but invisible.
-      const posterEl = container.firstElementChild as HTMLElement | null;
-      if (!posterEl) {
-        throw new Error("Poster element not found in container");
-      }
+  const posterFilename = useCallback((event: ScheduleXEvent) => {
+    return `salsa-segura-${slugify(event.title)}.png`;
+  }, []);
 
-      // Wait a tick so fonts / images have a chance to paint.
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      const dataUrl = await toPng(posterEl, {
-        quality: 1,
-        pixelRatio: 1,
-        cacheBust: true,
-      });
-
+  /**
+   * Downloads the poster PNG using the shared filename convention.
+   */
+  const downloadPoster = useCallback(
+    (event: ScheduleXEvent, poster: Blob) => {
+      const filename = posterFilename(event);
+      const url = URL.createObjectURL(poster);
       const anchor = document.createElement("a");
-      anchor.href = dataUrl;
-      anchor.download = `salsa-segura-${slugify(event.title)}-${format}.png`;
+      anchor.href = url;
+      anchor.download = filename;
       document.body.appendChild(anchor);
       anchor.click();
       anchor.remove();
-
-      // Clean up the off-screen target after download.
-      removeTarget();
+      URL.revokeObjectURL(url);
     },
-    [slugify, removeTarget]
+    [posterFilename]
   );
 
-  return { ensureContainer, captureAndDownload, removeTarget };
+  return { ensureContainer, capturePoster, posterFilename, downloadPoster, removeTarget };
 }

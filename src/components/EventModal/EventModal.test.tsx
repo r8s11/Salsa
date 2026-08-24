@@ -1,9 +1,36 @@
 import type { ReactElement } from "react";
-import { describe, it, expect, vi } from "vitest";
-import { render as rtlRender, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render as rtlRender, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import EventModal from "./EventModal";
 import { ScheduleXEvent } from "../../types/events";
+
+const {
+  mockEnsureContainer,
+  mockCapturePoster,
+  mockPosterFilename,
+  mockDownloadPoster,
+  mockRemoveTarget,
+} = vi.hoisted(() => ({
+  mockEnsureContainer: vi.fn(),
+  mockCapturePoster: vi.fn(),
+  mockPosterFilename: vi.fn(
+    (event: { title: string }) =>
+      `salsa-segura-${event.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.png`
+  ),
+  mockDownloadPoster: vi.fn(),
+  mockRemoveTarget: vi.fn(),
+}));
+
+vi.mock("../../features/calendar/hooks/useShareablePoster", () => ({
+  useShareablePoster: () => ({
+    ensureContainer: mockEnsureContainer,
+    capturePoster: mockCapturePoster,
+    posterFilename: mockPosterFilename,
+    downloadPoster: mockDownloadPoster,
+    removeTarget: mockRemoveTarget,
+  }),
+}));
 
 const render = (ui: ReactElement) => rtlRender(ui, { wrapper: MemoryRouter });
 
@@ -104,10 +131,16 @@ describe("EventModal", () => {
     const emailLinks = screen.getAllByRole("link", { name: "hola@studioazul.test" });
     expect(emailLinks.length).toBeGreaterThanOrEqual(1);
     expect(emailLinks[0]).toHaveAttribute("href", "mailto:hola@studioazul.test");
+    for (const link of emailLinks) {
+      expect(link.closest(".contact-block")).not.toBeNull();
+    }
 
     const igLinks = screen.getAllByRole("link", { name: "@studioazul" });
     expect(igLinks.length).toBeGreaterThanOrEqual(1);
     expect(igLinks[0]).toHaveAttribute("href", "https://instagram.com/studioazul");
+    for (const link of igLinks) {
+      expect(link.closest(".contact-block")).not.toBeNull();
+    }
 
     const webLinks = screen.getAllByRole("link", { name: "Visit website" });
     expect(webLinks.length).toBeGreaterThanOrEqual(1);
@@ -150,7 +183,7 @@ describe("EventModal", () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it("renders the venue as a Maps link when location is present", () => {
+  it("renders the venue as a Maps link styled with address-link when location is present", () => {
     render(<EventModal event={baseEvent} onClose={() => {}} />);
     const link = screen.getByLabelText(/Open .* in Maps/i);
     expect(link).toHaveAttribute(
@@ -159,6 +192,20 @@ describe("EventModal", () => {
     );
     expect(link).toHaveAttribute("target", "_blank");
     expect(link).toHaveAttribute("rel", "noopener noreferrer");
+    expect(link).toHaveClass("address-link");
+  });
+
+  it("styles both the quick-facts and recurring-metadata Maps links as address-link", () => {
+    render(<EventModal event={{ ...baseEvent, recurrence: "weekly" }} onClose={() => {}} />);
+    const links = screen.getAllByLabelText(/Open .* in Maps/i);
+    expect(links).toHaveLength(2);
+    for (const link of links) {
+      expect(link).toHaveClass("address-link");
+      expect(link).toHaveAttribute(
+        "href",
+        expect.stringContaining("https://maps.google.com/maps?q=")
+      );
+    }
   });
 
   it("renders 'Add to calendar' as a Google Calendar link that opens the calendar", () => {
@@ -203,5 +250,109 @@ describe("quick-look region", () => {
   it("does not invent class metadata that is absent from the event", () => {
     render(<EventModal event={{ ...classEvent, location: "Dance Studio A" }} onClose={vi.fn()} />);
     expect(screen.queryByText(/Expected level|Teacher|Class length/i)).not.toBeInTheDocument();
+  });
+});
+
+describe("share poster", () => {
+  beforeEach(() => {
+    mockEnsureContainer.mockReset();
+    mockEnsureContainer.mockImplementation(() => document.createElement("div"));
+    mockCapturePoster.mockReset();
+    mockPosterFilename.mockReset();
+    mockPosterFilename.mockImplementation(
+      (event: { title: string }) =>
+        `salsa-segura-${event.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.png`
+    );
+    mockDownloadPoster.mockReset();
+    mockRemoveTarget.mockReset();
+  });
+
+  afterEach(() => {
+    Reflect.deleteProperty(navigator, "canShare");
+    Reflect.deleteProperty(navigator, "share");
+  });
+
+  it("renders a single Share action in both action regions with no format-picker remnants", () => {
+    render(<EventModal event={baseEvent} onClose={() => {}} />);
+    expect(screen.getAllByRole("button", { name: "Share" })).toHaveLength(2);
+    expect(screen.queryByText(/download poster/i)).not.toBeInTheDocument();
+    expect(screen.queryByText("1:1")).not.toBeInTheDocument();
+    expect(screen.queryByText("9:16")).not.toBeInTheDocument();
+  });
+
+  it("shares a single square PNG File with event-title metadata when native file sharing is available", async () => {
+    const shareSpy = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "canShare", { value: vi.fn(() => true), configurable: true });
+    Object.defineProperty(navigator, "share", { value: shareSpy, configurable: true });
+    mockCapturePoster.mockImplementation(async (container: HTMLElement) => {
+      expect(container.firstElementChild).toHaveClass("shareable-poster", "poster-square");
+      return new Blob(["poster"], { type: "image/png" });
+    });
+
+    render(<EventModal event={baseEvent} onClose={() => {}} />);
+    const [shareButton] = screen.getAllByRole("button", { name: "Share" });
+    fireEvent.click(shareButton);
+
+    await waitFor(() => expect(shareSpy).toHaveBeenCalledTimes(1));
+    const [{ title, files }] = shareSpy.mock.calls[0];
+    expect(title).toBe(baseEvent.title);
+    expect(files).toHaveLength(1);
+    expect(files[0]).toBeInstanceOf(File);
+    expect(files[0].type).toBe("image/png");
+    expect(files[0].name).toBe("salsa-segura-test-social.png");
+    expect(mockDownloadPoster).not.toHaveBeenCalled();
+
+    await waitFor(() => expect(mockRemoveTarget).toHaveBeenCalled());
+    expect(shareButton).not.toBeDisabled();
+  });
+
+  it("downloads the poster PNG directly when native file sharing is unavailable", async () => {
+    const shareSpy = vi.fn();
+    Object.defineProperty(navigator, "share", { value: shareSpy, configurable: true });
+    const blob = new Blob(["poster"], { type: "image/png" });
+    mockCapturePoster.mockResolvedValue(blob);
+
+    render(<EventModal event={baseEvent} onClose={() => {}} />);
+    const [shareButton] = screen.getAllByRole("button", { name: "Share" });
+    fireEvent.click(shareButton);
+
+    await waitFor(() => expect(mockDownloadPoster).toHaveBeenCalledTimes(1));
+    expect(mockDownloadPoster).toHaveBeenCalledWith(baseEvent, blob);
+    expect(shareSpy).not.toHaveBeenCalled();
+    await waitFor(() => expect(mockRemoveTarget).toHaveBeenCalled());
+    expect(shareButton).not.toBeDisabled();
+  });
+
+  it("clears the generating state without a fallback download when the user cancels the native share sheet", async () => {
+    Object.defineProperty(navigator, "canShare", { value: vi.fn(() => true), configurable: true });
+    const abortError = new DOMException("cancelled", "AbortError");
+    Object.defineProperty(navigator, "share", {
+      value: vi.fn().mockRejectedValue(abortError),
+      configurable: true,
+    });
+    mockCapturePoster.mockResolvedValue(new Blob(["poster"], { type: "image/png" }));
+
+    render(<EventModal event={baseEvent} onClose={() => {}} />);
+    const [shareButton] = screen.getAllByRole("button", { name: "Share" });
+    fireEvent.click(shareButton);
+
+    await waitFor(() => expect(shareButton).not.toBeDisabled());
+    expect(mockDownloadPoster).not.toHaveBeenCalled();
+    expect(mockRemoveTarget).toHaveBeenCalled();
+  });
+
+  it("clears the generating state and removes the render target when poster capture fails", async () => {
+    mockCapturePoster.mockRejectedValue(new Error("Poster image could not be created"));
+    const shareSpy = vi.fn();
+    Object.defineProperty(navigator, "share", { value: shareSpy, configurable: true });
+
+    render(<EventModal event={baseEvent} onClose={() => {}} />);
+    const [shareButton] = screen.getAllByRole("button", { name: "Share" });
+    fireEvent.click(shareButton);
+
+    await waitFor(() => expect(shareButton).not.toBeDisabled());
+    expect(shareSpy).not.toHaveBeenCalled();
+    expect(mockDownloadPoster).not.toHaveBeenCalled();
+    expect(mockRemoveTarget).toHaveBeenCalled();
   });
 });

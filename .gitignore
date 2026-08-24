@@ -142,12 +142,21 @@ skills-lock.json
 vite.config.d.ts
 *.d.ts.map
 
-# Design sync — generated artifacts (staged scripts, build output, machine state)
+# Design sync — tool-managed handoff sync target (see .design-sync/config.json).
+# Only the curated config/tokens/docs below are versioned; the rest of the
+# directory (uploads, handoff snapshots, shots, bundled previews) is
+# regenerated on every re-sync and is never imported or built.
 .ds-sync/
 ds-bundle/
-.design-sync/.cache/
-.design-sync/learnings/
-.design-sync/node_modules
+.design-sync/*
+!.design-sync/NOTES.md
+!.design-sync/config.json
+!.design-sync/conventions.md
+!.design-sync/styles-with-fonts.css
+!.design-sync/tokens-entry.ts
+
+# Local scratch output (import-run error dumps, ad-hoc data files)
+devthings/
 
 # Isolated worktrees for agent-driven implementation work
 .worktrees/

@@ -1,7 +1,11 @@
+import type { ReactElement } from "react";
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render as rtlRender, screen, fireEvent } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import EventModal from "./EventModal";
 import { ScheduleXEvent } from "../../types/events";
+
+const render = (ui: ReactElement) => rtlRender(ui, { wrapper: MemoryRouter });
 
 const baseEvent: ScheduleXEvent = {
   id: "1",
@@ -27,6 +31,16 @@ describe("EventModal", () => {
     const links = screen.getAllByRole("link", { name: /get tickets/i });
     expect(links.length).toBeGreaterThanOrEqual(1);
     expect(links[0]).toHaveAttribute("href", "https://example.com/rsvp");
+  });
+
+  it("links to the event detail page and closes the quick look", () => {
+    const onClose = vi.fn();
+    render(<EventModal event={baseEvent} onClose={onClose} />);
+
+    const details = screen.getAllByRole("link", { name: "Full details" })[0];
+    expect(details).toHaveAttribute("href", "/events/1");
+    fireEvent.click(details);
+    expect(onClose).toHaveBeenCalledOnce();
   });
 
   it("shows 'Free' and 'RSVP · Free' for a free event", () => {

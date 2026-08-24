@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { createRoot } from "react-dom/client";
+import { Link } from "react-router-dom";
 import {
   ArrowLeft,
   CalendarPlus,
@@ -153,6 +153,10 @@ export default function EventModal({ event, onClose }: EventModalProps) {
           {rsvpLabel}
         </a>
       )}
+
+      <Link className="btn-secondary modal-full-details" to={`/events/${event.id}`} onClick={onClose}>
+        Full details
+      </Link>
 
       {/* Shareable Poster Download */}
       <div className="poster-download-section">

@@ -8,7 +8,10 @@ import globals from "globals";
 
 export default [
   {
-    ignores: ["dist/**", "node_modules/**", ".claude/**"],
+    // .design-sync is a tool-managed handoff directory (see .design-sync/config.json).
+    // Its contents are regenerated on re-sync, are not imported by src/, and are not
+    // built — linting them reports on code we neither own nor ship.
+    ignores: ["dist/**", "node_modules/**", ".claude/**", ".design-sync/**"],
   },
   {
     files: ["**/*.{ts,tsx}"],
@@ -45,6 +48,15 @@ export default [
           varsIgnorePattern: "^_",
         },
       ],
+    },
+  },
+  {
+    // Supabase Edge Functions run on Deno, not in the browser.
+    files: ["supabase/functions/**/*.ts"],
+    languageOptions: {
+      globals: {
+        Deno: "readonly",
+      },
     },
   },
 ];

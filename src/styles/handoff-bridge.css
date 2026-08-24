@@ -1,0 +1,23 @@
+@import "../../.design-sync/handoff/styles/theme.css";
+
+:root {
+  --ss-bg: var(--bg);
+  --ss-surface: var(--surface);
+  --ss-surface-high: var(--surface-high);
+  --ss-red: var(--red);
+  --ss-red-bright: var(--red-bright);
+  --ss-red-dim: var(--red-dim);
+  --ss-gold: var(--gold);
+  --ss-gold-light: var(--gold-light);
+  --ss-tertiary: var(--tertiary);
+  --ss-text: var(--text);
+  --ss-text-muted: var(--text-muted);
+  --ss-text-dim: var(--text-dim);
+  --ss-border: var(--border);
+  --ss-border-md: var(--border-md);
+  --ss-font-display: var(--font-display);
+  --ss-font-body: var(--font-body);
+  --ss-font-logo: var(--font-logo);
+  --ss-radius: var(--radius);
+  --ss-radius-sm: var(--radius-sm);
+}

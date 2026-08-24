@@ -1,4 +1,3 @@
-import React from "react";
 import { Clock, MapPin } from "lucide-react";
 import { ScheduleXEvent } from "../../types/events";
 import "./ShareableEventPoster.css";

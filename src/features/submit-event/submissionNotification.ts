@@ -7,10 +7,10 @@ import "temporal-polyfill/global";
 
 function escapeHtml(value: string): string {
   return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
 export function buildSubmissionNotificationEmail(
@@ -45,20 +45,20 @@ export function buildSubmissionNotificationEmail(
       "When",
       [dateLabel, timeLabel].filter(Boolean).join(" at "),
     ],
-    ...(submission.recurrence ? ([["Recurs", submission.recurrence]] as const) : []),
-    ...(submission.location ? ([["Location", submission.location]] as const) : []),
-    ...(submission.address ? ([["Address", submission.address]] as const) : []),
-    ...(priceLabel ? ([["Price", priceLabel]] as const) : []),
-    ...(submission.rsvp_link ? ([["RSVP", submission.rsvp_link]] as const) : []),
+    ...(submission.recurrence ? [["Recurs", submission.recurrence] as [string, string]] : []),
+    ...(submission.location ? [["Location", submission.location] as [string, string]] : []),
+    ...(submission.address ? [["Address", submission.address] as [string, string]] : []),
+    ...(priceLabel ? [["Price", priceLabel] as [string, string]] : []),
+    ...(submission.rsvp_link ? [["RSVP", submission.rsvp_link] as [string, string]] : []),
     ...(submission.dance_styles.length > 0
-      ? ([["Styles", submission.dance_styles.join(", ")]] as const)
+      ? [["Styles", submission.dance_styles.join(", ")] as [string, string]]
       : []),
     ...(submission.description
-      ? ([["Description", submission.description]] as const)
+      ? [["Description", submission.description] as [string, string]]
       : []),
     ["Submitter", submission.submitter_name ?? "(anonymous)"],
     ...(submission.submitter_email
-      ? ([["Submitter email", submission.submitter_email]] as const)
+      ? [["Submitter email", submission.submitter_email] as [string, string]]
       : []),
   ];
 

@@ -1,6 +1,6 @@
 import type { ReactElement } from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render as rtlRender, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render as rtlRender, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import EventModal from "./EventModal";
 import { ScheduleXEvent } from "../../types/events";
@@ -374,5 +374,49 @@ describe("share poster", () => {
     expect(shareSpy).not.toHaveBeenCalled();
     expect(mockDownloadPoster).not.toHaveBeenCalled();
     expect(mockRemoveTarget).toHaveBeenCalled();
+  });
+});
+
+describe("copy event link", () => {
+  afterEach(() => {
+    Reflect.deleteProperty(navigator, "clipboard");
+  });
+  it("copies the event URL to the clipboard and shows Copied feedback", async () => {
+    vi.useFakeTimers();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
+
+    render(<EventModal event={baseEvent} onClose={() => {}} />);
+    const copyButtons = screen.getAllByRole("button", { name: "Copy event link" });
+    expect(copyButtons).toHaveLength(2);
+    await act(async () => {
+      fireEvent.click(copyButtons[0]);
+    });
+
+    expect(writeText).toHaveBeenCalledTimes(1);
+    expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/events/1`);
+    expect(copyButtons[0]).toHaveTextContent("Copied");
+
+    act(() => {
+      vi.advanceTimersByTime(2000);
+    });
+    expect(copyButtons[0]).toHaveTextContent("Copy link");
+    vi.useRealTimers();
+  });
+
+  it("keeps the Copy link label when the clipboard write fails", async () => {
+    const writeText = vi.fn().mockRejectedValue(new Error("denied"));
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
+
+    render(<EventModal event={baseEvent} onClose={() => {}} />);
+    const [copyButton] = screen.getAllByRole("button", { name: "Copy event link" });
+    await act(async () => {
+      fireEvent.click(copyButton);
+    });
+
+    expect(writeText).toHaveBeenCalledTimes(1);
+    expect(copyButton).toHaveTextContent("Copy link");
+    errorSpy.mockRestore();
   });
 });

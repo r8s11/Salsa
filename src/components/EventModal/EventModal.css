@@ -302,7 +302,8 @@
 .modal-rsvp .rsvp-button,
 .modal-rsvp .ics-button,
 .modal-rsvp .modal-full-details,
-.modal-rsvp .poster-toggle-btn {
+.modal-rsvp .poster-toggle-btn,
+.modal-rsvp .copy-link-btn {
   width: 100%;
   display: inline-flex;
   align-items: center;
@@ -622,7 +623,8 @@
   .modal-mobile-actions .rsvp-button,
   .modal-mobile-actions .ics-button,
   .modal-mobile-actions .modal-full-details,
-  .modal-mobile-actions .poster-toggle-btn {
+  .modal-mobile-actions .poster-toggle-btn,
+  .modal-mobile-actions .copy-link-btn {
     width: 100%;
     display: inline-flex;
     align-items: center;
@@ -633,6 +635,11 @@
     white-space: nowrap;
     line-height: inherit;
     text-align: center;
+  }
+
+  /* Fifth action spans the full row so the 2x2 grid stays balanced. */
+  .modal-mobile-actions .copy-link-btn {
+    grid-column: 1 / -1;
   }
 
   .modal-mobile-actions .reassurance {
@@ -663,7 +670,8 @@
   .modal-mobile-actions .rsvp-button,
   .modal-mobile-actions .ics-button,
   .modal-mobile-actions .modal-full-details,
-  .modal-mobile-actions .poster-toggle-btn {
+  .modal-mobile-actions .poster-toggle-btn,
+  .modal-mobile-actions .copy-link-btn {
     font-size: 0.68rem;
     padding: 0.65rem 0.3rem;
   }

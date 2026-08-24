@@ -5,6 +5,7 @@ import {
   ArrowLeft,
   CalendarPlus,
   Clock,
+  Link2,
   MapPin,
   Repeat,
   Share2,
@@ -74,8 +75,30 @@ export default function EventModal({ event, onClose }: EventModalProps) {
   });
 
   const [isDownloading, setIsDownloading] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const copiedTimerRef = useRef<number | null>(null);
   const { ensureContainer, capturePoster, posterFilename, downloadPoster, removeTarget } =
     useShareablePoster();
+
+  // Clear the "Copied" feedback timer on close/unmount.
+  useEffect(() => {
+    return () => {
+      if (copiedTimerRef.current !== null) window.clearTimeout(copiedTimerRef.current);
+    };
+  }, []);
+
+  const handleCopyLink = async () => {
+    if (!event) return;
+    const url = `${window.location.origin}/events/${event.id}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      if (copiedTimerRef.current !== null) window.clearTimeout(copiedTimerRef.current);
+      copiedTimerRef.current = window.setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy event link:", err);
+    }
+  };
 
   if (!event) return null;
 
@@ -214,6 +237,15 @@ export default function EventModal({ event, onClose }: EventModalProps) {
           </button>
         );
       })()}
+      {/* Copy Event Link */}
+      <button
+        className="btn-secondary copy-link-btn"
+        onClick={handleCopyLink}
+        aria-label="Copy event link"
+      >
+        <Link2 size={16} aria-hidden />
+        {copied ? "Copied" : "Copy link"}
+      </button>
 
       {inSidebar && <p className="reassurance">RSVP opens the host's page · pay at the door</p>}
     </>

@@ -1,0 +1,4 @@
+/* Handoff theme file - placeholders for handoff requirements */
+:root {
+  /* Handoff components expect these to exist. Aliased in handoff-bridge.css */
+}

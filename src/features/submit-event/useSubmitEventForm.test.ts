@@ -2,10 +2,15 @@ import type { FormEvent } from "react";
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createSubmission } from "../admin/api/submissionsRepo";
+import { notifyAdminsOfNewSubmission } from "./submissionNotification";
 import { useSubmitEventForm } from "./useSubmitEventForm";
 
 vi.mock("../admin/api/submissionsRepo", () => ({
   createSubmission: vi.fn(),
+}));
+
+vi.mock("./submissionNotification", () => ({
+  notifyAdminsOfNewSubmission: vi.fn(),
 }));
 
 vi.mock("../../contexts/useCity", () => ({
@@ -43,6 +48,9 @@ describe("useSubmitEventForm", () => {
       expect.objectContaining({
         dance_styles: [],
       }),
+    );
+    expect(notifyAdminsOfNewSubmission).toHaveBeenCalledWith(
+      expect.objectContaining({ dance_styles: [] }),
     );
   });
 

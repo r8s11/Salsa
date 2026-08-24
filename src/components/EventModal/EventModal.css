@@ -1,5 +1,7 @@
 /* ========================================
    Event Modal — Tambora structure, Ritmo Vivo skin
+   Desktop: centered card with two-column grid
+   Mobile:  full-bleed bottom sheet with sticky CTA bar
    ======================================== */
 
 .modal-overlay {
@@ -17,6 +19,7 @@
 }
 
 .modal-content {
+  position: relative;
   width: 100%;
   max-width: 900px;
   background: var(--surface);
@@ -28,6 +31,11 @@
   overflow: hidden;
 }
 
+/* ── Drag handle (mobile only) ── */
+.modal-drag-handle {
+  display: none;
+}
+
 /* ── Poster header ── */
 .modal-poster {
   position: relative;
@@ -37,6 +45,14 @@
   background-size: cover;
   background-position: center;
 }
+
+.modal-poster::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(11, 19, 38, 0.82), transparent 55%);
+}
+
 /* ── Quick look header & facts ── */
 .quick-look-header {
   display: flex;
@@ -58,13 +74,6 @@
   border-bottom: 1px solid var(--color-border);
 }
 
-@media (max-width: 640px) {
-  .quick-facts {
-    padding-left: 16px;
-    padding-right: 16px;
-  }
-}
-
 .fact {
   display: flex;
   align-items: center;
@@ -77,13 +86,7 @@
   color: var(--color-accent);
 }
 
-.modal-poster::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, rgba(11, 19, 38, 0.82), transparent 55%);
-}
-
+/* ── Back-pill button ── */
 .back-pill {
   position: absolute;
   top: 16px;
@@ -131,6 +134,7 @@
   margin: 8px 0 0;
 }
 
+/* ── Calendar type chips ── */
 .chip-social {
   background: var(--red-dim);
   color: #ffccd4;
@@ -144,7 +148,12 @@
   color: var(--gold-light);
 }
 
-/* ── Body grid ── */
+/* ── Scrollable body ── */
+.modal-body {
+  /* On desktop this just passes through; on mobile it becomes scrollable */
+}
+
+/* ── Body grid (desktop two-column) ── */
 .modal-grid {
   display: grid;
   grid-template-columns: 1.45fr 1fr;
@@ -254,7 +263,7 @@
   color: var(--text-muted);
 }
 
-/* ── RSVP panel ── */
+/* ── Desktop RSVP sidebar ── */
 .modal-rsvp {
   padding: 28px;
   background: rgba(0, 0, 0, 0.22);
@@ -284,7 +293,9 @@
 }
 
 .modal-rsvp .rsvp-button,
-.modal-rsvp .ics-button {
+.modal-rsvp .ics-button,
+.poster-toggle-btn,
+.poster-format-btn {
   width: 100%;
   display: inline-flex;
   align-items: center;
@@ -301,6 +312,33 @@
   margin: 0;
 }
 
+/* ── Shareable Poster Download ── */
+.poster-download-section {
+  margin-top: 4px;
+}
+
+.poster-format-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.poster-format-label {
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: -2px;
+}
+
+.poster-toggle-btn:hover,
+.poster-format-btn:hover {
+  color: var(--text);
+}
+
+/* ── Contact block ── */
 .contact-block {
   display: grid;
   gap: 8px;
@@ -368,6 +406,16 @@
   text-decoration: underline;
 }
 
+/* ── Mobile extras (hidden on desktop, shown on mobile) ── */
+.modal-mobile-extras {
+  display: none;
+}
+
+/* ── Mobile sticky action bar (hidden on desktop) ── */
+.modal-mobile-actions {
+  display: none;
+}
+
 /* ── Sticky close (X) button ── */
 .modal-close-x {
   position: absolute;
@@ -395,30 +443,242 @@
   color: var(--red-bright);
 }
 
-/* ── Mobile ── */
+/* ========================================
+   MOBILE — Bottom sheet redesign
+   ======================================== */
 @media (max-width: 720px) {
+  /* ── Overlay: flush to edges, sheet slides up from bottom ── */
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+    overflow-y: hidden;
+  }
+
+  /* ── Sheet: rounded top corners, fills 92% of viewport height ── */
+  .modal-content {
+    max-width: none;
+    border-radius: 20px 20px 0 0;
+    border-bottom: none;
+    max-height: 92dvh;
+    display: flex;
+    flex-direction: column;
+    animation: modalSlideUp 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  @keyframes modalSlideUp {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  /* ── Drag handle ── */
+  .modal-drag-handle {
+    display: block;
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 12;
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border-md);
+  }
+
+  /* ── Close X — always visible top-right, over poster ── */
   .modal-close-x {
     display: inline-flex;
+    top: 8px;
+    right: 12px;
+    z-index: 12;
   }
 
-  .modal-overlay {
-    padding: 20px 12px;
+  /* ── Back pill — hidden on mobile (X button replaces it) ── */
+  .back-pill {
+    display: none;
   }
 
+  /* ── Poster — taller, full-bleed into top corners ── */
+  .modal-poster {
+    height: 240px;
+    border-radius: 20px 20px 0 0;
+    flex-shrink: 0;
+  }
+
+  .poster-overlay {
+    left: 20px;
+    right: 20px;
+    bottom: 14px;
+  }
+
+  .poster-overlay h2 {
+    font-size: 24px;
+    line-height: 1.1;
+  }
+
+  .quick-look-header {
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .quick-look-date {
+    font-size: 0.8rem;
+  }
+
+  /* ── Quick facts — compact, wrapped row ── */
+  .quick-facts {
+    padding: 12px 20px;
+    gap: 12px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    font-size: 0.85em;
+  }
+
+  .quick-facts .fact {
+    font-size: 0.82em;
+    white-space: nowrap;
+  }
+
+  .quick-facts .fact a {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 160px;
+  }
+
+  /* ── Scrollable body ── */
+  .modal-body {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+  }
+
+  /* ── Single-column grid ── */
   .modal-grid {
     grid-template-columns: 1fr;
   }
 
-  .modal-rsvp {
-    border-left: none;
-    border-top: 1px solid var(--border);
+  .modal-details {
+    padding: 20px 20px 8px;
   }
 
+  /* ── Sidebar — hidden on mobile ── */
+  .modal-rsvp {
+    display: none;
+  }
+
+  /* ── Mobile extras (contacts, series — shown inline) ── */
+  .modal-mobile-extras {
+    display: block;
+    padding: 8px 20px 16px;
+  }
+
+  .modal-mobile-extras .contact-block {
+    margin-top: 12px;
+    padding-top: 12px;
+  }
+
+  .modal-mobile-extras .contact-block a {
+    font-size: 0.9rem;
+    padding: 6px 0;
+  }
+
+  .modal-mobile-extras .series {
+    margin-top: 14px;
+  }
+
+  .modal-mobile-extras .series-item {
+    font-size: 15px;
+    padding: 10px 0;
+  }
+
+  /* ── Sticky mobile action bar ── */
+  .modal-mobile-actions {
+    display: flex;
+    flex-shrink: 0;
+    gap: 10px;
+    padding: 12px 16px;
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.3);
+  }
+
+  .modal-mobile-actions .rsvp-button {
+    flex: 1.4;
+    font-size: 0.75rem;
+    padding: 0.7rem 1rem;
+  }
+
+  .modal-mobile-actions .ics-button,
+  .modal-mobile-actions .poster-toggle-btn,
+  .modal-mobile-actions .poster-format-btn {
+    flex: 1;
+    font-size: 0.7rem;
+    padding: 0.7rem 0.6rem;
+    white-space: nowrap;
+  }
+
+  .modal-mobile-actions .poster-download-section {
+    flex: 1;
+    margin-top: 0;
+  }
+
+  .modal-mobile-actions .poster-toggle-btn {
+    width: 100%;
+  }
+
+  .modal-mobile-actions .poster-format-options {
+    gap: 6px;
+  }
+
+  .modal-mobile-actions .poster-format-btn {
+    font-size: 0.68rem;
+    padding: 0.6rem 0.5rem;
+  }
+
+  .modal-mobile-actions .reassurance {
+    display: none;
+  }
+}
+
+/* ── Small phones (≤400px) — tighter spacing ── */
+@media (max-width: 400px) {
   .modal-poster {
     height: 200px;
   }
 
   .poster-overlay h2 {
-    font-size: 26px;
+    font-size: 20px;
+  }
+
+  .modal-details {
+    padding: 16px 16px 4px;
+  }
+
+  .modal-mobile-actions {
+    padding: 10px 12px;
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+    gap: 6px;
+  }
+
+  .modal-mobile-actions .rsvp-button {
+    font-size: 0.72rem;
+    padding: 0.65rem 0.75rem;
+  }
+
+  .modal-mobile-actions .ics-button,
+  .modal-mobile-actions .poster-toggle-btn {
+    font-size: 0.68rem;
+    padding: 0.65rem 0.5rem;
+  }
+
+  .modal-mobile-extras {
+    padding-left: 16px;
+    padding-right: 16px;
   }
 }

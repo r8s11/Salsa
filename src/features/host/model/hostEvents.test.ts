@@ -133,4 +133,21 @@ describe("hostEvents", () => {
     expect(isUpcomingHostEvent(cancelledFuture, now)).toBe(false);
     expect(isUpcomingHostEvent({ ...baseEvent, id: "undated", event_date: "" }, now)).toBe(false);
   });
+
+  it("derives rows with correct date and status labels", () => {
+    const events: DatabaseEvent[] = [
+      { ...baseEvent, event_date: "2026-08-22T20:00:00Z", status: "pending" },
+    ];
+    const rows = deriveHostEventRows(events);
+    expect(rows[0].dateLabel).toBe("August 22, 2026 at 4:00 PM");
+    expect(rows[0].statusLabel).toBe("Pending");
+  });
+
+  it("sorts rows ascending by date, with undated last", () => {
+    const e1: DatabaseEvent = { ...baseEvent, id: "e1", event_date: "2026-08-23T20:00:00Z" };
+    const e2: DatabaseEvent = { ...baseEvent, id: "e2", event_date: "2026-08-22T20:00:00Z" };
+    const e3: DatabaseEvent = { ...baseEvent, id: "e3", event_date: "invalid-date" };
+    const rows = deriveHostEventRows([e1, e2, e3]);
+    expect(rows.map((r) => r.event.id)).toEqual(["e2", "e1", "e3"]);
+  });
 });

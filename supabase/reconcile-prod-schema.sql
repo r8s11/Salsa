@@ -1847,6 +1847,17 @@ create policy "Anon can submit pending events"
               and submitter_id is not distinct from auth.uid()
               and public.account_is_active(auth.uid()));
 
+-- Submitter UPDATE/DELETE: edit while pending/rejected, withdraw while alone pending.
+drop policy if exists "Submitters update own pending or rejected events" on public.events;
+create policy "Submitters update own pending or rejected events"
+  on public.events for update to authenticated
+  using (submitter_id = auth.uid() and status in ('pending', 'rejected'))
+  with check (submitter_id = auth.uid() and status in ('pending', 'rejected'));
+drop policy if exists "Submitters can withdraw own pending events" on public.events;
+create policy "Submitters can withdraw own pending events"
+  on public.events for delete to authenticated
+  using (submitter_id = auth.uid() and status = 'pending');
+
 -- profiles
 alter table public.profiles enable row level security;
 

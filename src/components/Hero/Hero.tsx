@@ -65,9 +65,9 @@ function Hero() {
           </div>
 
           <h1 className="hero-heading">
-            <span className="hero-heading-line">Find your</span>
+            <span className="hero-heading-line">Find Your</span>
             <span className="hero-heading-line">
-              <span className="hero-heading-accent">rhythm</span>
+              <span className="hero-heading-accent">Rhythm</span>
               <span className="hero-heading-dot">.</span>
             </span>
           </h1>

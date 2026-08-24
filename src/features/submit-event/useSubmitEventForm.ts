@@ -1,11 +1,12 @@
 import { useState, FormEvent } from "react";
 
-import { createSubmission } from "../admin/api/submissionsRepo";
+import { createSubmission, SubmissionCreate } from "../admin/api/submissionsRepo";
 import type { EventType } from "../../types/events";
 import { useCity } from "../../contexts/useCity";
 import { useAuth } from "../../contexts/useAuth";
 import { validateSubmitForm, buildInitialForm, SubmitForm } from "./validation";
 import { toEventDateInstant } from "../events/model/eventDateTime";
+import { notifyAdminsOfNewSubmission } from "./submissionNotification";
 
 export function useSubmitEventForm() {
   const { city: defaultCity } = useCity();
@@ -32,7 +33,7 @@ export function useSubmitEventForm() {
     setIsSubmitting(true);
     try {
       const eventDateTime = toEventDateInstant(form.event_date, form.event_time);
-      await createSubmission({
+      const submission: SubmissionCreate = {
         title: form.title,
         description: form.description || null,
         event_type: form.event_type as EventType,
@@ -50,7 +51,9 @@ export function useSubmitEventForm() {
         submitter_id: user?.id ?? null,
         recurrence: form.recurrence || null,
         dance_styles: form.dance_styles.length > 0 ? form.dance_styles : [],
-      });
+      };
+      await createSubmission(submission);
+      void notifyAdminsOfNewSubmission(submission);
       setIsSubmitted(true);
       setForm(buildInitialForm(defaultCity));
     } catch (err) {

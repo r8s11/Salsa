@@ -62,12 +62,9 @@
   justify-content: space-between;
 }
 
-.poster-brand {
-  font-family: var(--font-logo), cursive;
-  font-size: 42px;
-  color: var(--gold);
-  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
-  letter-spacing: 0.02em;
+.poster-brand-mark .ss-logo__mark {
+  height: 56px;
+  filter: drop-shadow(0 2px 12px rgba(0, 0, 0, 0.5));
 }
 
 .poster-chip {

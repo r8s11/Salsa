@@ -1,5 +1,6 @@
 import { Clock, MapPin } from "lucide-react";
 import { ScheduleXEvent } from "../../types/events";
+import SalsaSeguraLogo from "../brand/SalsaSeguraLogo";
 import "./ShareableEventPoster.css";
 
 interface ShareableEventPosterProps {
@@ -62,7 +63,12 @@ export default function ShareableEventPoster({ event, imageUrl }: ShareableEvent
       <div className="poster-content">
         {/* Top strip */}
         <div className="poster-top">
-          <span className="poster-brand">Salsa Segura</span>
+          <SalsaSeguraLogo
+            variant="mark"
+            tone="white"
+            className="poster-brand-mark"
+            ariaLabel="Salsa Segura"
+          />
           <span className="poster-chip">{event.calendarId}</span>
         </div>
 

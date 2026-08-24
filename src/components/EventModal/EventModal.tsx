@@ -5,9 +5,9 @@ import {
   ArrowLeft,
   CalendarPlus,
   Clock,
-  Image as ImageIcon,
   MapPin,
   Repeat,
+  Share2,
   Users,
   X,
 } from "lucide-react";
@@ -15,6 +15,7 @@ import { ScheduleXEvent } from "../../types/events";
 import { downloadIcs, mapsUrl, googleCalendarUrl } from "../../utils/ics";
 import { getUpcomingSeriesDates } from "../../utils/series";
 import { useShareablePoster } from "../../features/calendar/hooks/useShareablePoster";
+import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
 import ShareableEventPoster from "./ShareableEventPoster";
 import { resolveEventModalImage } from "./eventModalImage";
 import "./EventModal.css";
@@ -67,6 +68,10 @@ export default function EventModal({ event, onClose }: EventModalProps) {
     window.addEventListener("keydown", handleTab);
     return () => window.removeEventListener("keydown", handleTab);
   }, [event]);
+
+  useEscapeKey(() => {
+    if (event) onClose();
+  });
 
   const [isDownloading, setIsDownloading] = useState(false);
   const { ensureContainer, capturePoster, posterFilename, downloadPoster, removeTarget } =
@@ -185,7 +190,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
           onClick={handleSharePoster}
           disabled={isDownloading}
         >
-          <ImageIcon size={16} aria-hidden />
+          <Share2 size={16} aria-hidden />
           {isDownloading ? "Generating…" : "Share"}
         </button>
       </div>
@@ -342,6 +347,9 @@ export default function EventModal({ event, onClose }: EventModalProps) {
                         className="gallery-thumb"
                         src={src}
                         alt={`Past night photo ${index + 1}`}
+                        width={60}
+                        height={60}
+                        loading="lazy"
                       />
                     ))}
                     {galleryExtra > 0 && <span className="gallery-more">+{galleryExtra}</span>}

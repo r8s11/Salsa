@@ -112,7 +112,13 @@ describe("EventModal", () => {
     const gallery = ["a.jpg", "b.jpg", "c.jpg", "d.jpg", "e.jpg", "f.jpg"];
     rerender(<EventModal event={{ ...baseEvent, gallery }} onClose={() => {}} />);
     expect(screen.getByText(/photos from past nights/i)).toBeInTheDocument();
-    expect(screen.getAllByRole("img")).toHaveLength(4);
+    const thumbs = screen.getAllByRole("img");
+    expect(thumbs).toHaveLength(4);
+    for (const thumb of thumbs) {
+      expect(thumb).toHaveAttribute("width", "60");
+      expect(thumb).toHaveAttribute("height", "60");
+      expect(thumb).toHaveAttribute("loading", "lazy");
+    }
     expect(screen.getByText("+2")).toBeInTheDocument();
   });
 
@@ -181,6 +187,20 @@ describe("EventModal", () => {
     expect(closeBtn).toBeInTheDocument();
     fireEvent.click(closeBtn);
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("closes when the Escape key is pressed", () => {
+    const onClose = vi.fn();
+    render(<EventModal event={baseEvent} onClose={onClose} />);
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not call onClose on Escape when no event is open", () => {
+    const onClose = vi.fn();
+    render(<EventModal event={null} onClose={onClose} />);
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(onClose).not.toHaveBeenCalled();
   });
 
   it("renders the venue as a Maps link styled with address-link when location is present", () => {

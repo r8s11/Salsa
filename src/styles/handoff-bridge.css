@@ -1,5 +1,3 @@
-@import "../../.design-sync/handoff/styles/theme.css";
-
 :root {
   --ss-bg: var(--bg);
   --ss-surface: var(--surface);
@@ -18,6 +16,6 @@
   --ss-font-display: var(--font-display);
   --ss-font-body: var(--font-body);
   --ss-font-logo: var(--font-logo);
-  --ss-radius: var(--radius);
-  --ss-radius-sm: var(--radius-sm);
+  --ss-radius: var(--radius-lg);
+  --ss-radius-sm: var(--radius-md);
 }

@@ -604,11 +604,11 @@
   /* ── Sticky mobile action bar ── */
   .modal-mobile-actions {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     flex-shrink: 0;
     gap: 8px;
-    padding: 12px 16px;
-    padding-bottom: max(12px, env(safe-area-inset-bottom));
+    padding: 10px 16px;
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
     background: var(--surface);
     border-top: 1px solid var(--border);
     box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.3);
@@ -631,15 +631,10 @@
     justify-content: center;
     gap: 8px;
     font-size: 0.7rem;
-    padding: 0.7rem 0.4rem;
+    padding: 0.6rem 0.4rem;
     white-space: nowrap;
     line-height: inherit;
     text-align: center;
-  }
-
-  /* Fifth action spans the full row so the 2x2 grid stays balanced. */
-  .modal-mobile-actions .copy-link-btn {
-    grid-column: 1 / -1;
   }
 
   .modal-mobile-actions .reassurance {
@@ -673,7 +668,7 @@
   .modal-mobile-actions .poster-toggle-btn,
   .modal-mobile-actions .copy-link-btn {
     font-size: 0.68rem;
-    padding: 0.65rem 0.3rem;
+    padding: 0.55rem 0.3rem;
   }
 
   .modal-mobile-extras {

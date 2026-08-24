@@ -145,6 +145,7 @@
 .admin-events-cards__actions {
   display: flex;
   flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 8px;
   margin-top: 12px;
 }
@@ -184,6 +185,13 @@
 
 .admin-events-table__row--archived {
   opacity: 0.72;
+}
+
+@media (max-width: 260px) {
+  .admin-events-cards .admin-action-menu__panel {
+    width: min(180px, calc(100vw - 40px));
+    min-width: 0;
+  }
 }
 
 @media (min-width: 768px) {

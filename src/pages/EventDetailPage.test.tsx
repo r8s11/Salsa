@@ -87,6 +87,16 @@ describe("EventDetailPage", () => {
     expect(screen.queryByText(/attendance|capacity|registration/i)).not.toBeInTheDocument();
   });
 
+  it("separates hero navigation from the event title and facts", async () => {
+    renderPage();
+    const title = await screen.findByRole("heading", { name: "Havana Nights" });
+    const heroContent = title.closest(".event-page__hero-content");
+
+    if (!heroContent) throw new Error("Expected the event hero content container.");
+
+    expect(heroContent).not.toContainElement(screen.getByRole("link", { name: /the calendar/i }));
+  });
+
   it("uses the existing not-found treatment when no approved event exists", async () => {
     vi.mocked(fetchApprovedEventById).mockResolvedValue(null);
     renderPage();

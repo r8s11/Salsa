@@ -12,6 +12,8 @@ import type { VenueRow } from "../model/venuesQuery";
 import { venueDisplayAddress } from "../model/venuesQuery";
 import EventFlyerField from "../../events/components/EventFlyerField";
 
+import "./AdminEventEditor.css";
+
 type Props = {
   initial: AdminEventForm;
   initialTaxonomyTerms: EventTaxonomyTerm[];
@@ -85,7 +87,7 @@ export default function AdminEventEditor({
   };
 
   return (
-    <form className="admin-form" onSubmit={submit}>
+    <form className="admin-form admin-event-editor" onSubmit={submit}>
       <div className="admin-form__header">
         <h2>{heading}</h2>
       </div>
@@ -173,13 +175,6 @@ export default function AdminEventEditor({
                 }
               />
             </label>
-            {form.image_url && (
-              <img
-                src={form.image_url}
-                alt="Event flyer preview"
-                className="admin-image-preview__img"
-              />
-            )}
             {eventId && (
               <EventFlyerField
                 currentUrl={form.image_url || null}

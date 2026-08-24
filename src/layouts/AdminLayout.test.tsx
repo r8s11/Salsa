@@ -71,6 +71,19 @@ describe("AdminLayout", () => {
     expect(burger).toHaveAttribute("aria-expanded", "false");
   });
 
+  it("provides a close control inside the mobile navigation drawer", async () => {
+    const user = userEvent.setup();
+    renderLayout();
+
+    await user.click(screen.getByRole("button", { name: "Open navigation" }));
+    await user.click(screen.getByRole("button", { name: "Close navigation" }));
+
+    expect(screen.getByRole("button", { name: "Open navigation" })).toHaveAttribute(
+      "aria-expanded",
+      "false"
+    );
+  });
+
   it("exposes Dashboard, Events, Users, Organizer Requests, and Venues as links", () => {
     renderLayout();
 

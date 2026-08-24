@@ -32,9 +32,16 @@
   padding: clamp(24px, 5vw, 72px);
   background: linear-gradient(0deg, rgba(11, 19, 38, 0.96), rgba(11, 19, 38, 0.12));
 }
+.event-page__hero-content {
+  display: grid;
+  gap: 12px;
+  align-items: start;
+}
+
 .event-page__back {
-  display: inline-block;
-  margin-bottom: 48px;
+  display: inline-flex;
+  width: fit-content;
+  margin-bottom: clamp(24px, 4vw, 48px);
   color: var(--text);
   font-size: 0.875rem;
 }
@@ -55,6 +62,10 @@
   border-color: var(--red);
   color: white;
 }
+.event-page__hero-content .event-page__badge {
+  justify-self: start;
+}
+
 .event-page h1 {
   max-width: 840px;
   margin: 12px 0;
@@ -62,6 +73,10 @@
   font-size: clamp(2rem, 5vw, 4.5rem);
   line-height: 1.05;
 }
+.event-page__hero-content h1 {
+  margin: 0;
+}
+
 .event-page__hero-facts,
 .event-page__actions,
 .event-page__chips {
@@ -151,12 +166,19 @@
 .event-page__details {
   align-self: start;
   display: grid;
-  gap: 20px;
-  padding: 24px;
+  gap: 16px;
+  padding: 0;
+  background: transparent;
+}
+.event-page__details > div {
+  display: grid;
+  gap: 8px;
+  padding: 20px;
   border: 1px solid var(--border-md);
   border-radius: var(--radius-lg);
   background: var(--surface);
 }
+
 .event-page__details h2 {
   margin: 0;
 }
@@ -179,6 +201,15 @@
   margin-top: 7px;
   color: var(--gold-light);
 }
+.event-page__calendar-link {
+  box-sizing: border-box;
+  width: 100%;
+  justify-content: center;
+  margin-top: 0;
+  border: 1px solid var(--border-md);
+  background: var(--surface);
+}
+
 .event-page__gallery {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -203,6 +234,10 @@
   }
 }
 @media (max-width: 640px) {
+  .event-page {
+    padding-bottom: calc(110px + env(safe-area-inset-bottom));
+  }
+
   .event-page__body {
     padding-inline: 16px;
   }
@@ -211,9 +246,15 @@
   }
   .event-page__hero-overlay {
     padding: 20px 16px;
+    background: linear-gradient(
+      0deg,
+      rgba(11, 19, 38, 0.98),
+      rgba(11, 19, 38, 0.88) 60%,
+      rgba(11, 19, 38, 0.28)
+    );
   }
   .event-page__back {
-    margin-bottom: 32px;
+    margin-bottom: 24px;
   }
   .event-page__strip {
     flex-direction: column;

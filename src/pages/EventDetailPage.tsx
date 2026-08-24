@@ -97,18 +97,20 @@ export default function EventDetailPage() {
           <Link className="event-page__back" to="/calendar">
             ← The calendar
           </Link>
-          <span className="event-page__badge">{event.event_type}</span>
-          <h1>{event.title}</h1>
-          <div className="event-page__hero-facts">
-            <span>
-              <Clock3 size={16} aria-hidden="true" /> {formatDate(scheduleEvent.start)} ·{" "}
-              {formatTime(scheduleEvent.start)}
-            </span>
-            {event.location && (
+          <div className="event-page__hero-content">
+            <span className="event-page__badge">{event.event_type}</span>
+            <h1>{event.title}</h1>
+            <div className="event-page__hero-facts">
               <span>
-                <MapPin size={16} aria-hidden="true" /> {event.location}
+                <Clock3 size={16} aria-hidden="true" /> {formatDate(scheduleEvent.start)} ·{" "}
+                {formatTime(scheduleEvent.start)}
               </span>
-            )}
+              {event.location && (
+                <span>
+                  <MapPin size={16} aria-hidden="true" /> {event.location}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </header>

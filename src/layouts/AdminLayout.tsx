@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { ChevronRight, Menu } from "lucide-react";
+import { ChevronRight, Menu, X } from "lucide-react";
 import { useAuth } from "../contexts/useAuth";
 import { useTheme } from "../contexts/useTheme";
 import { useEscapeKey } from "../features/calendar/hooks/useEscapeKey";
@@ -80,7 +80,22 @@ export default function AdminLayout() {
       />
       <div className="admin-drawer" data-open={drawerOpen}>
         <div className="admin-drawer__backdrop" onClick={closeDrawer} />
-        <AdminSidebar variant="drawer" onNavigate={closeDrawer} />
+        <div
+          className="admin-drawer__panel"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Navigation"
+        >
+          <button
+            type="button"
+            className="admin-drawer__close"
+            onClick={closeDrawer}
+            aria-label="Close navigation"
+          >
+            <X size={20} aria-hidden="true" />
+          </button>
+          <AdminSidebar variant="drawer" onNavigate={closeDrawer} />
+        </div>
       </div>
 
       <header className="admin-topbar">

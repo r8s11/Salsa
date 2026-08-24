@@ -301,6 +301,7 @@
 
 .modal-rsvp .rsvp-button,
 .modal-rsvp .ics-button,
+.modal-rsvp .modal-full-details,
 .poster-toggle-btn {
   width: 100%;
   display: inline-flex;
@@ -608,6 +609,7 @@
   }
 
   .modal-mobile-actions .ics-button,
+  .modal-mobile-actions .modal-full-details,
   .modal-mobile-actions .poster-toggle-btn {
     flex: 1;
     font-size: 0.7rem;
@@ -655,6 +657,7 @@
   }
 
   .modal-mobile-actions .ics-button,
+  .modal-mobile-actions .modal-full-details,
   .modal-mobile-actions .poster-toggle-btn {
     font-size: 0.68rem;
     padding: 0.65rem 0.5rem;

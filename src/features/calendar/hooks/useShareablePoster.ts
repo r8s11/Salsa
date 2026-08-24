@@ -57,6 +57,11 @@ export function useShareablePoster() {
       quality: 1,
       pixelRatio: 1,
       cacheBust: true,
+      // A flyer hosted without CORS headers (e.g. legacy imported image URLs)
+      // cannot be inlined; without this handler html-to-image rejects the
+      // entire capture, so the share action silently does nothing. Degrade
+      // to a poster without the photo instead of failing outright.
+      onImageErrorHandler: () => undefined,
     });
 
     if (!blob) {

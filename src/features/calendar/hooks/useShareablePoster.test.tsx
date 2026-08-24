@@ -75,4 +75,20 @@ describe("useShareablePoster", () => {
 
     createElementSpy.mockRestore();
   });
+
+  it("passes an onImageErrorHandler so a broken flyer degrades instead of failing the capture", async () => {
+    vi.mocked(toBlob).mockResolvedValue(new Blob(["poster"], { type: "image/png" }));
+    const { result } = renderHook(() => useShareablePoster());
+    const container = result.current.ensureContainer();
+    container.appendChild(document.createElement("div"));
+
+    await result.current.capturePoster(container);
+
+    expect(toBlob).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ onImageErrorHandler: expect.any(Function) })
+    );
+    const options = vi.mocked(toBlob).mock.calls[0][1];
+    expect(() => options?.onImageErrorHandler?.("", "img", "load")).not.toThrow();
+  });
 });

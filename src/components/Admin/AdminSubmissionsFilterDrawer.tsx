@@ -17,7 +17,14 @@ const SUBMISSION_STATUS_LABELS: Record<SubmissionStatus, string> = {
   withdrawn: "Withdrawn",
 };
 
-const STATUSES: SubmissionStatus[] = ["pending", "in_review", "needs_information", "approved", "rejected", "withdrawn"];
+const STATUSES: SubmissionStatus[] = [
+  "pending",
+  "in_review",
+  "needs_information",
+  "approved",
+  "rejected",
+  "withdrawn",
+];
 
 const EMPTY_FILTERS: SubmissionFilters = {
   status: null,
@@ -67,7 +74,10 @@ export default function AdminSubmissionsFilterDrawer({
   };
 
   const submitters = useMemo(
-    () => Array.from(new Set(submissions.map((s) => s.submitter_name).filter((v): v is string => Boolean(v)))).sort(),
+    () =>
+      Array.from(
+        new Set(submissions.map((s) => s.submitter_name).filter((v): v is string => Boolean(v)))
+      ).sort(),
     [submissions]
   );
 
@@ -87,7 +97,12 @@ export default function AdminSubmissionsFilterDrawer({
       >
         <div className="admin-events-filter-drawer__header">
           <h2>Filters</h2>
-          <button type="button" className="admin-icon-btn" aria-label="Close filters" onClick={onClose}>
+          <button
+            type="button"
+            className="admin-icon-btn"
+            aria-label="Close filters"
+            onClick={onClose}
+          >
             <X size={18} />
           </button>
         </div>
@@ -100,7 +115,10 @@ export default function AdminSubmissionsFilterDrawer({
               className="admin-select"
               value={filters.status ?? ""}
               onChange={(event) =>
-                onFiltersChange({ ...filters, status: (event.target.value as SubmissionStatus) || null })
+                onFiltersChange({
+                  ...filters,
+                  status: (event.target.value as SubmissionStatus) || null,
+                })
               }
             >
               <option value="">Any status</option>
@@ -118,7 +136,9 @@ export default function AdminSubmissionsFilterDrawer({
               id="admin-filter-submitter"
               className="admin-select"
               value={filters.submitter_name ?? ""}
-              onChange={(event) => onFiltersChange({ ...filters, submitter_name: event.target.value || null })}
+              onChange={(event) =>
+                onFiltersChange({ ...filters, submitter_name: event.target.value || null })
+              }
             >
               <option value="">Any submitter</option>
               {submitters.map((name) => (

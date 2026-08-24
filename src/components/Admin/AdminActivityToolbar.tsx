@@ -1,7 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { Search, SlidersHorizontal, ChevronDown } from "lucide-react";
 import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
-import { ACTIVITY_VIEWS, CATEGORY_LABEL, type ActivityCategory, type ActivitySortKey, type ActivityView, type ActivityFilters } from "../../features/admin/model/auditActivityQuery";
+import {
+  ACTIVITY_VIEWS,
+  CATEGORY_LABEL,
+  type ActivityCategory,
+  type ActivitySortKey,
+  type ActivityView,
+  type ActivityFilters,
+} from "../../features/admin/model/auditActivityQuery";
 import AdminViewTabs from "./AdminViewTabs";
 import "./AdminActivityToolbar.css";
 
@@ -59,10 +66,7 @@ export default function AdminActivityToolbar({
   useEffect(() => {
     if (!categoryOpen) return;
     const handlePointerDown = (event: PointerEvent) => {
-      if (
-        categoryWrapRef.current &&
-        !categoryWrapRef.current.contains(event.target as Node)
-      ) {
+      if (categoryWrapRef.current && !categoryWrapRef.current.contains(event.target as Node)) {
         setCategoryOpen(false);
       }
     };

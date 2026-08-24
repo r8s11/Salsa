@@ -39,7 +39,9 @@
     letter-spacing: 0.08em;
     text-decoration: none;
     text-transform: uppercase;
-    transition: color 0.18s ease, background 0.18s ease;
+    transition:
+      color 0.18s ease,
+      background 0.18s ease;
   }
 
   .mobile-tab-bar__tab:hover {

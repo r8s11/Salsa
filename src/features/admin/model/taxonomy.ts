@@ -96,10 +96,7 @@ export function applyTaxonomyFilters(
   return terms.filter((term) => {
     if (filters.search) {
       const q = filters.search.toLowerCase();
-      if (
-        !term.name.toLowerCase().includes(q) &&
-        !term.slug.toLowerCase().includes(q)
-      ) {
+      if (!term.name.toLowerCase().includes(q) && !term.slug.toLowerCase().includes(q)) {
         return false;
       }
     }

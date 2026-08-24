@@ -1,30 +1,58 @@
-import { useState, FormEvent } from "react";
-
-import { createSubmission, SubmissionCreate } from "../admin/api/submissionsRepo";
-import type { EventType } from "../../types/events";
+import type { FormEvent } from "react";
+import { useState } from "react";
+import { createSubmission } from "../admin/api/submissionsRepo";
 import { useCity } from "../../contexts/useCity";
 import { useAuth } from "../../contexts/useAuth";
-import { validateSubmitForm, buildInitialForm, SubmitForm } from "./validation";
-import { toEventDateInstant } from "../events/model/eventDateTime";
+import { buildInitialForm, validateSubmitForm } from "./validation";
 import { notifyAdminsOfNewSubmission } from "./submissionNotification";
+import type { EventFormDraft } from "../events/components/EventForm";
+import { draftToSubmission } from "../events/components/EventForm";
+
+function buildSubmitDraft(city: EventFormDraft["city"]): EventFormDraft {
+  return {
+    ...buildInitialForm(city),
+    venue_id: "",
+    image_url: "",
+    host: "",
+    contact_email: "",
+    contact_instagram: "",
+    contact_website: "",
+    taxonomy_term_ids: [],
+  };
+}
 
 export function useSubmitEventForm() {
   const { city: defaultCity } = useCity();
   const { user } = useAuth();
-  const [form, setForm] = useState<SubmitForm>(() => buildInitialForm(defaultCity));
+  const [form, setForm] = useState<EventFormDraft>(() => buildSubmitDraft(defaultCity));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const update = (field: keyof SubmitForm, value: string | string[]) =>
-    setForm((prev) => ({ ...prev, [field]: value }));
+  const update = <K extends keyof EventFormDraft>(field: K, value: EventFormDraft[K]) =>
+    setForm((previous) => ({ ...previous, [field]: value }));
+  const onChange = (draft: EventFormDraft) => setForm(draft);
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
     setError(null);
-    // Validate form before submission
-
-    const validationError = validateSubmitForm(form);
+    const validationError = validateSubmitForm({
+      title: form.title,
+      description: form.description,
+      event_type: form.event_type,
+      city: form.city,
+      event_date: form.event_date,
+      event_time: form.event_time,
+      location: form.location,
+      address: form.address,
+      price_type: form.price_type,
+      price_amount: form.price_amount,
+      rsvp_link: form.rsvp_link,
+      submitter_name: form.submitter_name,
+      submitter_email: form.submitter_email,
+      recurrence: form.recurrence,
+      dance_styles: form.dance_styles,
+    });
     if (validationError) {
       setError(validationError);
       return;
@@ -32,33 +60,16 @@ export function useSubmitEventForm() {
 
     setIsSubmitting(true);
     try {
-      const eventDateTime = toEventDateInstant(form.event_date, form.event_time);
-      const submission: SubmissionCreate = {
-        title: form.title,
-        description: form.description || null,
-        event_type: form.event_type as EventType,
-        city: form.city,
-        event_date: eventDateTime,
-        event_time: form.event_time || null,
-        location: form.location || null,
-        address: form.address || null,
-        price_type:
-          form.price_type === "free" || form.price_type === "paid" ? form.price_type : null,
-        price_amount: form.price_amount ? parseFloat(form.price_amount) : null,
-        rsvp_link: form.rsvp_link || null,
-        submitter_name: form.submitter_name || null,
-        submitter_email: user?.email ?? (form.submitter_email || null),
-        submitter_id: user?.id ?? null,
-        recurrence: form.recurrence || null,
-        dance_styles: form.dance_styles.length > 0 ? form.dance_styles : [],
-      };
+      const submission = draftToSubmission(
+        form,
+        user ? { id: user.id, email: user.email ?? null } : null
+      );
       await createSubmission(submission);
       void notifyAdminsOfNewSubmission(submission);
       setIsSubmitted(true);
-      setForm(buildInitialForm(defaultCity));
+      setForm(buildSubmitDraft(defaultCity));
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Unknown error";
-      setError(message);
+      setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setIsSubmitting(false);
     }
@@ -66,5 +77,5 @@ export function useSubmitEventForm() {
 
   const resetSubmitted = () => setIsSubmitted(false);
 
-  return { form, update, handleSubmit, isSubmitting, isSubmitted, error, resetSubmitted };
+  return { form, update, onChange, handleSubmit, isSubmitting, isSubmitted, error, resetSubmitted };
 }

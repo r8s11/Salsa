@@ -30,7 +30,6 @@ export type SubmissionCreate = {
   dance_styles: string[];
 };
 
-
 export async function createSubmission(submission: SubmissionCreate) {
   const { submitter_id, submitter_email, submitter_name, ...submitted_data } = submission;
 
@@ -56,7 +55,7 @@ export async function createSubmission(submission: SubmissionCreate) {
 
 export async function approveSubmissionWithTaxonomy(
   submissionId: string,
-  taxonomyTermIds: string[],
+  taxonomyTermIds: string[]
 ): Promise<string> {
   const { data, error } = await supabase.rpc("approve_event_submission", {
     p_submission_id: submissionId,
@@ -68,10 +67,10 @@ export async function approveSubmissionWithTaxonomy(
 export const submissionsRepo = {
   async getPendingSubmissions() {
     const { data, error } = await supabase
-      .from('event_submissions')
-      .select('*')
-      .eq('status', 'pending')
-      .order('submitted_at', { ascending: false });
+      .from("event_submissions")
+      .select("*")
+      .eq("status", "pending")
+      .order("submitted_at", { ascending: false });
 
     if (error) throw error;
     return data;
@@ -79,9 +78,9 @@ export const submissionsRepo = {
 
   async getSubmissionById(id: string) {
     const { data, error } = await supabase
-      .from('event_submissions')
-      .select('*')
-      .eq('id', id)
+      .from("event_submissions")
+      .select("*")
+      .eq("id", id)
       .single();
 
     if (error) throw error;
@@ -90,9 +89,9 @@ export const submissionsRepo = {
 
   async updateSubmission(id: string, update: SubmissionUpdate) {
     const { data, error } = await supabase
-      .from('event_submissions')
+      .from("event_submissions")
       .update(update)
-      .eq('id', id)
+      .eq("id", id)
       .select()
       .single();
 

@@ -345,7 +345,8 @@ export default function AdminUsersPage() {
     return targetUser.username ? `@${targetUser.username}` : targetUser.display_name || "Account";
   }
 
-  const isRoleDialogBusy = pendingAction?.kind === "role" && settingRoleId === pendingAction.user.id;
+  const isRoleDialogBusy =
+    pendingAction?.kind === "role" && settingRoleId === pendingAction.user.id;
   const isStatusDialogBusy =
     pendingAction !== null &&
     pendingAction.kind !== "role" &&
@@ -377,7 +378,11 @@ export default function AdminUsersPage() {
       {!isLoading && error && (
         <div className="admin-banner admin-banner--error" role="alert">
           <p>We couldn&apos;t load users.</p>
-          <button type="button" className="admin-btn admin-btn--secondary" onClick={() => refetch()}>
+          <button
+            type="button"
+            className="admin-btn admin-btn--secondary"
+            onClick={() => refetch()}
+          >
             Try Again
           </button>
         </div>
@@ -468,7 +473,11 @@ export default function AdminUsersPage() {
             ) : total === 0 && !noFiltersActive ? (
               <div className="admin-users-page__empty">
                 <h2>No users match these filters.</h2>
-                <button type="button" className="admin-btn admin-btn--ghost" onClick={clearAllFilters}>
+                <button
+                  type="button"
+                  className="admin-btn admin-btn--ghost"
+                  onClick={clearAllFilters}
+                >
                   Clear Filters
                 </button>
               </div>
@@ -558,7 +567,13 @@ export default function AdminUsersPage() {
           reasonField={{ label: "Reason (optional)", required: false }}
           isBusy={isStatusDialogBusy}
           error={statusErrorId === pendingAction.user.id ? statusError : null}
-          onConfirm={(reason) => confirmStatusChange("suspended", `${identityLabel(pendingAction.user)} suspended`, reason)}
+          onConfirm={(reason) =>
+            confirmStatusChange(
+              "suspended",
+              `${identityLabel(pendingAction.user)} suspended`,
+              reason
+            )
+          }
           onCancel={closeDialog}
         />
       )}
@@ -572,7 +587,9 @@ export default function AdminUsersPage() {
           reasonField={{ label: "Reason", required: true }}
           isBusy={isStatusDialogBusy}
           error={statusErrorId === pendingAction.user.id ? statusError : null}
-          onConfirm={(reason) => confirmStatusChange("banned", `${identityLabel(pendingAction.user)} banned`, reason)}
+          onConfirm={(reason) =>
+            confirmStatusChange("banned", `${identityLabel(pendingAction.user)} banned`, reason)
+          }
           onCancel={closeDialog}
         />
       )}
@@ -585,7 +602,9 @@ export default function AdminUsersPage() {
           tone="neutral"
           isBusy={isStatusDialogBusy}
           error={statusErrorId === pendingAction.user.id ? statusError : null}
-          onConfirm={() => confirmStatusChange("active", `${identityLabel(pendingAction.user)} restored`)}
+          onConfirm={() =>
+            confirmStatusChange("active", `${identityLabel(pendingAction.user)} restored`)
+          }
           onCancel={closeDialog}
         />
       )}
@@ -613,9 +632,7 @@ export default function AdminUsersPage() {
               onSuccess: (invited) => {
                 setShowCreateDialog(false);
                 setCreatedUser(invited);
-                setAnnouncement(
-                  `${invited.email} created as ${ROLE_LABEL[invited.role]}.`
-                );
+                setAnnouncement(`${invited.email} created as ${ROLE_LABEL[invited.role]}.`);
               },
             });
           }}

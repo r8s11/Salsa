@@ -18,7 +18,6 @@ export interface OverviewMetrics {
   totalCount: number;
 }
 
-
 export function missingFields(event: DatabaseEvent): MissingField[] {
   const missing: MissingField[] = [];
   if (!event.location?.trim()) missing.push("venue");
@@ -67,7 +66,14 @@ export function deriveIncompleteEvents(
     .filter(({ missing }) => missing.length > 0);
 }
 
-export type QualityIssue = "venue" | "time" | "image" | "organizer" | "description" | "pricing" | "duplicate";
+export type QualityIssue =
+  | "venue"
+  | "time"
+  | "image"
+  | "organizer"
+  | "description"
+  | "pricing"
+  | "duplicate";
 
 export const QUALITY_ISSUE_LABEL: Record<QualityIssue, string> = {
   venue: "Missing venue",
@@ -79,7 +85,10 @@ export const QUALITY_ISSUE_LABEL: Record<QualityIssue, string> = {
   duplicate: "Potential duplicate",
 };
 
-export function qualityIssues(event: DatabaseEvent, duplicateIds?: ReadonlySet<string>): QualityIssue[] {
+export function qualityIssues(
+  event: DatabaseEvent,
+  duplicateIds?: ReadonlySet<string>
+): QualityIssue[] {
   const issues: QualityIssue[] = [];
   if (!event.location?.trim()) issues.push("venue");
   if (!event.event_time?.trim()) issues.push("time");

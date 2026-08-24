@@ -1,8 +1,6 @@
 /* ========================================
    Shared form styles — Ritmo Vivo
-   Used by SubmitEventPage and AdminEventFormPanel, both of which render
-   EventDetailsFieldset / LocationFieldset / PricingFieldset inside a
-   `.submit-form` wrapper.
+   Used by public event authoring surfaces.
    ======================================== */
 
 /* ── Form Container ── */

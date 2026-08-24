@@ -33,7 +33,12 @@ describe("parseCsvFile — file-level checks", () => {
 
   it("rejects a file over the row cap", async () => {
     const rows = Array.from({ length: CSV_MAX_ROWS + 1 }, (_, i) =>
-      rowFor({ title: `Event ${i}`, event_type: "social", event_date: "2026-09-15", city: "boston" })
+      rowFor({
+        title: `Event ${i}`,
+        event_type: "social",
+        event_date: "2026-09-15",
+        city: "boston",
+      })
     );
     const result = await parseCsvFile(csvFile(`${HEADER}\n${rows.join("\n")}\n`));
     expect(result.ok).toBe(false);
@@ -51,7 +56,9 @@ describe("parseCsvFile — column detection", () => {
 
   it("flags unexpected columns without blocking the import", async () => {
     const result = await parseCsvFile(
-      csvFile(`${HEADER},surprise\n${rowFor({ title: "Salsa", event_type: "social", event_date: "2026-09-15", city: "boston" })},junk\n`)
+      csvFile(
+        `${HEADER},surprise\n${rowFor({ title: "Salsa", event_type: "social", event_date: "2026-09-15", city: "boston" })},junk\n`
+      )
     );
     expect(result.ok).toBe(true);
     expect(result.unexpectedColumns).toEqual(["surprise"]);
@@ -61,7 +68,9 @@ describe("parseCsvFile — column detection", () => {
 describe("parseCsvFile — CSV syntax handling", () => {
   it("parses a valid file into keyed rows", async () => {
     const result = await parseCsvFile(
-      csvFile(`${HEADER}\n${rowFor({ title: "Salsa Social", event_type: "social", event_date: "2026-09-15", city: "boston" })}\n`)
+      csvFile(
+        `${HEADER}\n${rowFor({ title: "Salsa Social", event_type: "social", event_date: "2026-09-15", city: "boston" })}\n`
+      )
     );
     expect(result.ok).toBe(true);
     expect(result.rows).toHaveLength(1);
@@ -70,7 +79,9 @@ describe("parseCsvFile — CSV syntax handling", () => {
 
   it("keeps commas inside quoted fields intact", async () => {
     const result = await parseCsvFile(
-      csvFile(`title,event_type,event_date,city,address\n"Salsa Social","social","2026-09-15","boston","100 Main St, Boston, MA"\n`)
+      csvFile(
+        `title,event_type,event_date,city,address\n"Salsa Social","social","2026-09-15","boston","100 Main St, Boston, MA"\n`
+      )
     );
     expect(result.ok).toBe(true);
     expect(result.rows[0].address).toBe("100 Main St, Boston, MA");
@@ -102,7 +113,9 @@ describe("parseCsvFile — CSV syntax handling", () => {
 
   it("reads UTF-8 characters correctly", async () => {
     const result = await parseCsvFile(
-      csvFile(`title,event_type,event_date,city\nBachata Sensual — Café Niño,social,2026-09-15,boston\n`)
+      csvFile(
+        `title,event_type,event_date,city\nBachata Sensual — Café Niño,social,2026-09-15,boston\n`
+      )
     );
     expect(result.ok).toBe(true);
     expect(result.rows[0].title).toBe("Bachata Sensual — Café Niño");

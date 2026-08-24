@@ -34,10 +34,14 @@ function formatEventTime(event: DatabaseEvent): string {
 
 function eventTypeLabel(type: DatabaseEvent["event_type"]): string {
   switch (type) {
-    case "social": return "Social";
-    case "class": return "Class";
-    case "workshop": return "Workshop";
-    default: return type;
+    case "social":
+      return "Social";
+    case "class":
+      return "Class";
+    case "workshop":
+      return "Workshop";
+    default:
+      return type;
   }
 }
 
@@ -45,7 +49,10 @@ export default function ProfilePage() {
   const { user, signOut } = useAuth();
   const { submissions, approvedEvents, isLoading, error, refetch } = useMySubmissions(user?.id);
 
-  const allEvents = useMemo(() => [...(submissions ?? []), ...(approvedEvents ?? [])], [submissions, approvedEvents]);
+  const allEvents = useMemo(
+    () => [...(submissions ?? []), ...(approvedEvents ?? [])],
+    [submissions, approvedEvents]
+  );
 
   const stats = useMemo(() => {
     const approved = allEvents.filter((e) => e.status === "approved");
@@ -57,10 +64,10 @@ export default function ProfilePage() {
     };
   }, [allEvents]);
 
-
-
   const userName =
-    (user?.user_metadata as Record<string, unknown> | null | undefined)?.full_name as string | undefined ||
+    ((user?.user_metadata as Record<string, unknown> | null | undefined)?.full_name as
+      | string
+      | undefined) ||
     user?.email?.split("@")[0] ||
     "Dancer";
 
@@ -84,7 +91,9 @@ export default function ProfilePage() {
       <main className="profile-page">
         <div className="profile-page-status profile-page-error" role="alert">
           <p>Couldn't load your profile: {error}</p>
-          <button type="button" onClick={() => refetch()}>Retry</button>
+          <button type="button" onClick={() => refetch()}>
+            Retry
+          </button>
         </div>
       </main>
     );
@@ -107,9 +116,7 @@ export default function ProfilePage() {
 
         <div className="profile-identity">
           <h1 className="profile-name">{userName}</h1>
-          {memberSince && (
-            <p className="profile-member-since">Member since {memberSince}</p>
-          )}
+          {memberSince && <p className="profile-member-since">Member since {memberSince}</p>}
         </div>
 
         <div className="profile-actions">
@@ -119,7 +126,11 @@ export default function ProfilePage() {
           <Link className="profile-action-btn profile-action-btn--outline" to="/calendar">
             View Calendar
           </Link>
-          <button type="button" className="profile-action-btn profile-action-btn--outline" onClick={() => signOut()}>
+          <button
+            type="button"
+            className="profile-action-btn profile-action-btn--outline"
+            onClick={() => signOut()}
+          >
             Sign Out
           </button>
         </div>
@@ -153,8 +164,7 @@ export default function ProfilePage() {
 
         {allEvents.length === 0 && !isLoading && (
           <p className="profile-empty">
-            You haven't submitted any events yet.{" "}
-            <Link to="/submit">Submit one</Link>.
+            You haven't submitted any events yet. <Link to="/submit">Submit one</Link>.
           </p>
         )}
 
@@ -164,12 +174,15 @@ export default function ProfilePage() {
               <div key={event.id} className="profile-submission-row">
                 <div className="profile-submission-date-block">
                   <span className="profile-submission-day">{formatEventDay(event.event_date)}</span>
-                  <span className="profile-submission-month">{formatEventMonth(event.event_date)}</span>
+                  <span className="profile-submission-month">
+                    {formatEventMonth(event.event_date)}
+                  </span>
                 </div>
                 <div className="profile-submission-info">
                   <h3 className="profile-submission-title">{event.title}</h3>
                   <p className="profile-submission-meta">
-                    {eventTypeLabel(event.event_type)} · {formatEventWeekday(event.event_date)}, {formatEventDate(event.event_date)} · {formatEventTime(event)}
+                    {eventTypeLabel(event.event_type)} · {formatEventWeekday(event.event_date)},{" "}
+                    {formatEventDate(event.event_date)} · {formatEventTime(event)}
                   </p>
                   <p className="profile-submission-location">
                     {event.city === "boston" ? "Boston" : "New York City"}
@@ -177,7 +190,9 @@ export default function ProfilePage() {
                   </p>
                 </div>
                 <div className="profile-submission-right">
-                  <span className={`profile-submission-badge profile-submission-badge--${event.status}`}>
+                  <span
+                    className={`profile-submission-badge profile-submission-badge--${event.status}`}
+                  >
                     {event.status}
                   </span>
                   <div className="profile-submission-links">
@@ -190,10 +205,7 @@ export default function ProfilePage() {
                       </Link>
                     )}
                     {(event.status === "pending" || event.status === "rejected") && (
-                      <Link
-                        to={`/profile/edit/${event.id}`}
-                        className="profile-submission-link"
-                      >
+                      <Link to={`/profile/edit/${event.id}`} className="profile-submission-link">
                         Edit
                       </Link>
                     )}

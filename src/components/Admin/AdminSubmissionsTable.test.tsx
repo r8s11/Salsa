@@ -44,7 +44,7 @@ const submissions: EventSubmission[] = [
 function renderTable(overrides: Partial<ComponentProps<typeof AdminSubmissionsTable>> = {}) {
   const onAction = vi.fn();
   const utils = render(
-    <AdminSubmissionsTable submissions={submissions} onAction={onAction} {...overrides} />,
+    <AdminSubmissionsTable submissions={submissions} onAction={onAction} {...overrides} />
   );
   return { ...utils, onAction };
 }

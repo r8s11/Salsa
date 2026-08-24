@@ -32,6 +32,9 @@ const renderSubmitEventPage = () =>
     </CityProvider>
   );
 
+const chooseEventType = (name: "Social" | "Class" | "Workshop") =>
+  fireEvent.click(screen.getByRole("button", { name }));
+
 describe("SubmitEventPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -47,11 +50,11 @@ describe("SubmitEventPage", () => {
 
     expect(screen.getByRole("heading", { name: /Submit an Event/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/Event Title \*/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Event Type \*/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/City \*/i)).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: /Event type/i })).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: /City/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/Date \*/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Venue Name/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Price/i)).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: /Price/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/Your Name/i)).toBeInTheDocument();
   });
 
@@ -76,9 +79,7 @@ describe("SubmitEventPage", () => {
     fireEvent.change(screen.getByLabelText(/Event Title \*/i), {
       target: { value: "Saturday Bachata Night" },
     });
-    fireEvent.change(screen.getByLabelText(/Event Type \*/i), {
-      target: { value: "social" },
-    });
+    chooseEventType("Social");
     fireEvent.change(screen.getByLabelText(/Date \*/i), {
       target: { value: "2026-08-15" },
     });
@@ -109,9 +110,7 @@ describe("SubmitEventPage", () => {
     fireEvent.change(screen.getByLabelText(/Event Title \*/i), {
       target: { value: "Boston Summer Social" },
     });
-    fireEvent.change(screen.getByLabelText(/Event Type \*/i), {
-      target: { value: "social" },
-    });
+    chooseEventType("Social");
     fireEvent.change(screen.getByLabelText(/Date \*/i), {
       target: { value: "2026-08-17" },
     });
@@ -141,9 +140,7 @@ describe("SubmitEventPage", () => {
     fireEvent.change(screen.getByLabelText(/Event Title \*/i), {
       target: { value: "Salsa in the Park" },
     });
-    fireEvent.change(screen.getByLabelText(/Event Type \*/i), {
-      target: { value: "social" },
-    });
+    chooseEventType("Social");
     fireEvent.change(screen.getByLabelText(/Date \*/i), {
       target: { value: "2026-08-20" },
     });
@@ -161,9 +158,7 @@ describe("SubmitEventPage", () => {
     fireEvent.change(screen.getByLabelText(/Event Title \*/i), {
       target: { value: "Mambo Workshop" },
     });
-    fireEvent.change(screen.getByLabelText(/Event Type \*/i), {
-      target: { value: "workshop" },
-    });
+    chooseEventType("Workshop");
     fireEvent.change(screen.getByLabelText(/Date \*/i), {
       target: { value: "2026-08-25" },
     });

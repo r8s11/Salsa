@@ -156,7 +156,11 @@ export default function EventModal({ event, onClose }: EventModalProps) {
         </a>
       )}
 
-      <Link className="btn-secondary modal-full-details" to={`/events/${event.id}`} onClick={onClose}>
+      <Link
+        className="btn-secondary modal-full-details"
+        to={`/events/${event.id}`}
+        onClick={onClose}
+      >
         Full details
       </Link>
 
@@ -212,9 +216,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
         );
       })()}
 
-      {inSidebar && (
-        <p className="reassurance">RSVP opens the host's page · pay at the door</p>
-      )}
+      {inSidebar && <p className="reassurance">RSVP opens the host's page · pay at the door</p>}
     </>
   );
 
@@ -266,8 +268,17 @@ export default function EventModal({ event, onClose }: EventModalProps) {
                   const url = mapsUrl(event);
                   const label = `${event.location}${event.address ? ` · ${event.address}` : ""}`;
                   return url ? (
-                    <a href={url} target="_blank" rel="noopener noreferrer" aria-label={`Open ${label} in Maps`}>{label}</a>
-                  ) : <span>{label}</span>;
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`Open ${label} in Maps`}
+                    >
+                      {label}
+                    </a>
+                  ) : (
+                    <span>{label}</span>
+                  );
                 })()}
               </span>
             </div>
@@ -283,32 +294,32 @@ export default function EventModal({ event, onClose }: EventModalProps) {
             <div className="modal-details">
               {event.recurrence && (
                 <>
-                <div className="meta-row">
-                  <Repeat size={18} aria-hidden />
-                  <span>{event.recurrence === "weekly" ? "Repeats weekly" : "Repeats"}</span>
-                </div>
-                <div className="meta-row">
-                  <MapPin size={18} aria-hidden />
-                  <span>
-                    {(() => {
-                      const url = mapsUrl(event);
-                      const label = `${event.location}${event.address ? ` · ${event.address}` : ""}`;
-                      return url ? (
-                        <a
-                          href={url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="address-link"
-                          aria-label={`Open ${label} in Maps`}
-                        >
-                          {label}
-                        </a>
-                      ) : (
-                        <span>{label}</span>
-                      );
-                    })()}
-                  </span>
-                </div>
+                  <div className="meta-row">
+                    <Repeat size={18} aria-hidden />
+                    <span>{event.recurrence === "weekly" ? "Repeats weekly" : "Repeats"}</span>
+                  </div>
+                  <div className="meta-row">
+                    <MapPin size={18} aria-hidden />
+                    <span>
+                      {(() => {
+                        const url = mapsUrl(event);
+                        const label = `${event.location}${event.address ? ` · ${event.address}` : ""}`;
+                        return url ? (
+                          <a
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="address-link"
+                            aria-label={`Open ${label} in Maps`}
+                          >
+                            {label}
+                          </a>
+                        ) : (
+                          <span>{label}</span>
+                        );
+                      })()}
+                    </span>
+                  </div>
                 </>
               )}
               {event.host && (
@@ -321,7 +332,9 @@ export default function EventModal({ event, onClose }: EventModalProps) {
                 <div className="meta-row">
                   <span className="dance-styles">
                     {event.danceStyles.map((style) => (
-                      <span key={style} className="style-chip">{style}</span>
+                      <span key={style} className="style-chip">
+                        {style}
+                      </span>
                     ))}
                   </span>
                 </div>
@@ -444,9 +457,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
         </div>
 
         {/* ── Mobile sticky action bar ── */}
-        <div className="modal-mobile-actions">
-          {renderActions(false)}
-        </div>
+        <div className="modal-mobile-actions">{renderActions(false)}</div>
       </div>
     </div>
   );

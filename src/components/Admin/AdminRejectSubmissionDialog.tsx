@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import './AdminRejectSubmissionDialog.css';
+import { useState } from "react";
+import "./AdminRejectSubmissionDialog.css";
 
 interface AdminRejectSubmissionDialogProps {
   submissionId: string;
@@ -9,14 +9,14 @@ interface AdminRejectSubmissionDialogProps {
 }
 
 const REASONS = [
-  'duplicate',
-  'missing_information',
-  'invalid_venue',
-  'cannot_verify',
-  'spam',
-  'inappropriate',
-  'out_of_scope',
-  'other',
+  "duplicate",
+  "missing_information",
+  "invalid_venue",
+  "cannot_verify",
+  "spam",
+  "inappropriate",
+  "out_of_scope",
+  "other",
 ] as const;
 
 export default function AdminRejectSubmissionDialog({
@@ -26,10 +26,10 @@ export default function AdminRejectSubmissionDialog({
   onCancel,
 }: AdminRejectSubmissionDialogProps) {
   const [reason, setReason] = useState<string>(REASONS[0]);
-  const [message, setMessage] = useState('');
-  const [note, setNote] = useState('');
+  const [message, setMessage] = useState("");
+  const [note, setNote] = useState("");
 
-  const confirmDisabled = isBusy || (reason === 'other' && note.trim() === '');
+  const confirmDisabled = isBusy || (reason === "other" && note.trim() === "");
 
   return (
     <div className="admin-reject-submission-dialog__overlay" onClick={onCancel}>

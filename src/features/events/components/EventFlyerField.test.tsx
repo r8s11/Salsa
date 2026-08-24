@@ -54,10 +54,7 @@ describe("EventFlyerField", () => {
 
   it("reports a flyer preview load failure", async () => {
     render(
-      <EventFlyerField
-        currentUrl="https://example.com/missing-flyer.jpg"
-        onFileChange={vi.fn()}
-      />
+      <EventFlyerField currentUrl="https://example.com/missing-flyer.jpg" onFileChange={vi.fn()} />
     );
 
     fireEvent.error(screen.getByAltText("Event flyer preview"));

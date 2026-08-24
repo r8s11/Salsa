@@ -1,10 +1,5 @@
 import { supabase } from "../../../lib/supabase";
-import type {
-  VenueRow,
-  VenueDetailRow,
-  VenueForm,
-  VenueStatus,
-} from "../model/venuesQuery";
+import type { VenueRow, VenueDetailRow, VenueForm, VenueStatus } from "../model/venuesQuery";
 import type { AuditLogRow } from "../model/auditLog";
 
 /**
@@ -68,11 +63,7 @@ export async function createVenue(form: VenueForm): Promise<VenueDetailRow> {
     phone: form.phone.trim() || null,
     timezone: form.timezone.trim() || null,
   };
-  const { data, error } = await supabase
-    .from("venues")
-    .insert(payload)
-    .select()
-    .single();
+  const { data, error } = await supabase.from("venues").insert(payload).select().single();
   if (error) throw new Error(`Failed to create venue: ${error.message}`);
   // Re-fetch as detail to get quality_issues + upcoming_count
   return fetchVenueDetail(data.id);
@@ -92,10 +83,7 @@ export async function updateVenue(id: string, form: VenueForm): Promise<VenueDet
     phone: form.phone.trim() || null,
     timezone: form.timezone.trim() || null,
   };
-  const { error } = await supabase
-    .from("venues")
-    .update(payload)
-    .eq("id", id);
+  const { error } = await supabase.from("venues").update(payload).eq("id", id);
   if (error) throw new Error(`Failed to update venue: ${error.message}`);
   return fetchVenueDetail(id);
 }
@@ -110,11 +98,11 @@ export async function archiveVenue(id: string): Promise<void> {
 }
 
 /** Restore an archived venue to its prior status — defaults to active. */
-export async function restoreVenue(id: string, targetStatus: VenueStatus = "active"): Promise<void> {
-  const { error } = await supabase
-    .from("venues")
-    .update({ status: targetStatus })
-    .eq("id", id);
+export async function restoreVenue(
+  id: string,
+  targetStatus: VenueStatus = "active"
+): Promise<void> {
+  const { error } = await supabase.from("venues").update({ status: targetStatus }).eq("id", id);
   if (error) throw new Error(`Failed to restore venue: ${error.message}`);
 }
 
@@ -139,10 +127,7 @@ export async function mergeVenues(keepId: string, mergeId: string): Promise<void
  * No cascade deletion.
  */
 export async function deleteVenue(id: string): Promise<void> {
-  const { error } = await supabase
-    .from("venues")
-    .delete()
-    .eq("id", id);
+  const { error } = await supabase.from("venues").delete().eq("id", id);
   if (error) throw new Error(`Failed to delete venue: ${error.message}`);
 }
 

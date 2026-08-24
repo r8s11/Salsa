@@ -73,12 +73,18 @@ describe("validateCsvRow — required fields", () => {
 describe("validateCsvRow — dates and times", () => {
   it("rejects a non-ISO date", () => {
     const result = validate({ event_date: "09/15/2026" });
-    expect(result.errors).toContainEqual({ field: "event_date", message: "Must use YYYY-MM-DD format." });
+    expect(result.errors).toContainEqual({
+      field: "event_date",
+      message: "Must use YYYY-MM-DD format.",
+    });
   });
 
   it("rejects a 12-hour time", () => {
     const result = validate({ event_time: "8:00 PM" });
-    expect(result.errors).toContainEqual({ field: "event_time", message: "Must use 24-hour HH:MM format." });
+    expect(result.errors).toContainEqual({
+      field: "event_time",
+      message: "Must use 24-hour HH:MM format.",
+    });
   });
 
   it("rejects an out-of-range hour", () => {
@@ -201,7 +207,10 @@ describe("validateCsvRow — recurrence and length caps", () => {
 
   it("rejects an unsupported recurrence value", () => {
     const result = validate({ recurrence: "monthly" });
-    expect(result.errors).toContainEqual({ field: "recurrence", message: "Must be weekly, or blank." });
+    expect(result.errors).toContainEqual({
+      field: "recurrence",
+      message: "Must be weekly, or blank.",
+    });
   });
 
   it("enforces the same title cap the manual form uses", () => {

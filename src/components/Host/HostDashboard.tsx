@@ -111,7 +111,9 @@ export default function HostDashboard() {
                 {nextRow.event.location || "Venue not set"}
               </p>
               <div className="host-dashboard__next-actions">
-                <span className={`host-dashboard__status host-dashboard__status--${nextRow.event.status}`}>
+                <span
+                  className={`host-dashboard__status host-dashboard__status--${nextRow.event.status}`}
+                >
                   {nextRow.statusLabel}
                 </span>
                 <Link className="admin-btn admin-btn--secondary" to={nextRow.action.to}>
@@ -150,7 +152,9 @@ export default function HostDashboard() {
                         {row.dateLabel} · {row.event.location || "Venue not set"}
                       </p>
                     </div>
-                    <span className={`host-dashboard__status host-dashboard__status--${row.event.status}`}>
+                    <span
+                      className={`host-dashboard__status host-dashboard__status--${row.event.status}`}
+                    >
                       {row.statusLabel}
                     </span>
                     <Link className="host-dashboard__row-action" to={row.action.to}>

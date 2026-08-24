@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
-import { approveSubmissionWithTaxonomy, createSubmission, submissionsRepo } from "./submissionsRepo";
+import {
+  approveSubmissionWithTaxonomy,
+  createSubmission,
+  submissionsRepo,
+} from "./submissionsRepo";
 import { supabase } from "../../../lib/supabase";
 
 const queryBuilder = {
@@ -68,14 +72,16 @@ describe("submissionsRepo", () => {
           title: "Public Salsa Night",
           city: "boston",
         }),
-      }),
+      })
     );
     expect(queryBuilder.select).not.toHaveBeenCalled();
   });
 
   it("approves through the atomic taxonomy RPC", async () => {
     rpc.mockResolvedValue({ data: "event-id", error: null });
-    await expect(approveSubmissionWithTaxonomy("submission-id", ["salsa-id"])).resolves.toBe("event-id");
+    await expect(approveSubmissionWithTaxonomy("submission-id", ["salsa-id"])).resolves.toBe(
+      "event-id"
+    );
     expect(rpc).toHaveBeenCalledWith("approve_event_submission", {
       p_submission_id: "submission-id",
       p_taxonomy_term_ids: ["salsa-id"],

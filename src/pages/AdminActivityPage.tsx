@@ -32,7 +32,7 @@ function parseFilters(searchParams: URLSearchParams): ActivityFilters {
   const from = searchParams.get("from");
   const to = searchParams.get("to");
   const categoryRaw = searchParams.get("category");
-  const category = categoryRaw ? [categoryRaw] as ActivityCategory[] : [];
+  const category = categoryRaw ? ([categoryRaw] as ActivityCategory[]) : [];
   const actionRaw = searchParams.get("action");
   const action = actionRaw ? [actionRaw] : [];
   const actor = searchParams.get("actor");
@@ -147,11 +147,23 @@ export default function AdminActivityPage() {
     });
   }
   if (filters.actor)
-    chips.push({ key: "actor", label: `Actor ${filters.actor.slice(0, 8)}`, onRemove: () => updateParams({ actor: null }) });
+    chips.push({
+      key: "actor",
+      label: `Actor ${filters.actor.slice(0, 8)}`,
+      onRemove: () => updateParams({ actor: null }),
+    });
   if (filters.from)
-    chips.push({ key: "from", label: `From ${filters.from}`, onRemove: () => updateParams({ from: null }) });
+    chips.push({
+      key: "from",
+      label: `From ${filters.from}`,
+      onRemove: () => updateParams({ from: null }),
+    });
   if (filters.to)
-    chips.push({ key: "to", label: `To ${filters.to}`, onRemove: () => updateParams({ to: null }) });
+    chips.push({
+      key: "to",
+      label: `To ${filters.to}`,
+      onRemove: () => updateParams({ to: null }),
+    });
 
   const clearAllFilters = () => {
     updateParams({
@@ -202,7 +214,11 @@ export default function AdminActivityPage() {
       {!isLoading && isError && (
         <div className="admin-banner admin-banner--error" role="alert">
           <p>We couldn&apos;t load activity.</p>
-          <button type="button" className="admin-btn admin-btn--secondary" onClick={() => refetch()}>
+          <button
+            type="button"
+            className="admin-btn admin-btn--secondary"
+            onClick={() => refetch()}
+          >
             Try Again
           </button>
         </div>
@@ -277,11 +293,7 @@ export default function AdminActivityPage() {
                   Loading activity…
                 </p>
                 {Array.from({ length: 6 }, (_, index) => (
-                  <div
-                    key={index}
-                    className="admin-activity-page__skeleton-row"
-                    aria-hidden="true"
-                  >
+                  <div key={index} className="admin-activity-page__skeleton-row" aria-hidden="true">
                     <span className="admin-skeleton admin-activity-page__skeleton-line" />
                     <span className="admin-skeleton admin-activity-page__skeleton-line admin-activity-page__skeleton-line--short" />
                   </div>

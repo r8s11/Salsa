@@ -24,9 +24,7 @@ describe("AdminSubmitterPanel", () => {
       approved_count: 7,
     };
 
-    render(
-      <AdminSubmitterPanel submitter={{ user, previousSubmissionsCount: 7 }} />,
-    );
+    render(<AdminSubmitterPanel submitter={{ user, previousSubmissionsCount: 7 }} />);
 
     expect(screen.getByText("Maria Santos")).toBeDefined();
     expect(screen.getByText("@mariasalsa")).toBeDefined();

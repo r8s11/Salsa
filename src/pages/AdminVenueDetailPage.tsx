@@ -1,6 +1,11 @@
 import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { useAdminVenues, useAdminVenue, useVenueEventCount, useVenueAuditLog } from "../features/admin/hooks/useAdminVenues";
+import {
+  useAdminVenues,
+  useAdminVenue,
+  useVenueEventCount,
+  useVenueAuditLog,
+} from "../features/admin/hooks/useAdminVenues";
 import { useAdminEvents } from "../hooks/useAdminEvents";
 import {
   venueDisplayAddress,
@@ -156,7 +161,9 @@ export default function AdminVenueDetailPage() {
       <header className="admin-venue-detail-page__header">
         <div className="admin-venue-detail-page__header-body">
           <h1>{v.name}</h1>
-          <p className="admin-venue-detail-page__address">{venueDisplayAddress(v) || "No address"}</p>
+          <p className="admin-venue-detail-page__address">
+            {venueDisplayAddress(v) || "No address"}
+          </p>
           <div className="admin-venue-detail-page__badges">
             <AdminVenueStatusBadge status={v.status} />
             {qualityIssues.length > 0 && (
@@ -228,7 +235,12 @@ export default function AdminVenueDetailPage() {
             <div className="admin-venue-detail-page__field">
               <span className="admin-venue-detail-page__label">Website</span>
               <span>
-                <a href={v.website} target="_blank" rel="noopener noreferrer" aria-label={`Visit ${v.name} website (opens in new window)`}>
+                <a
+                  href={v.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Visit ${v.name} website (opens in new window)`}
+                >
                   {v.website} ↗
                 </a>
               </span>
@@ -300,7 +312,10 @@ export default function AdminVenueDetailPage() {
 
         {/* 4. Upcoming Events */}
         <section className="admin-card admin-venue-detail-page__upcoming">
-          <h2>Upcoming Events <span className="admin-venue-detail-page__count">({upcomingEvents.length})</span></h2>
+          <h2>
+            Upcoming Events{" "}
+            <span className="admin-venue-detail-page__count">({upcomingEvents.length})</span>
+          </h2>
           {upcomingEvents.length === 0 ? (
             <p>No upcoming events at this venue.</p>
           ) : (
@@ -319,7 +334,10 @@ export default function AdminVenueDetailPage() {
 
         {/* 5. Past Events */}
         <section className="admin-card admin-venue-detail-page__past">
-          <h2>Past Events <span className="admin-venue-detail-page__count">({pastEvents.length})</span></h2>
+          <h2>
+            Past Events{" "}
+            <span className="admin-venue-detail-page__count">({pastEvents.length})</span>
+          </h2>
           {pastEvents.length === 0 ? (
             <p>No past events at this venue.</p>
           ) : (
@@ -373,17 +391,13 @@ export default function AdminVenueDetailPage() {
         {/* 7. Notes */}
         <section className="admin-card admin-venue-detail-page__notes">
           <h2>Notes</h2>
-          <p className="admin-venue-detail-page__muted">
-            No moderator notes for this venue.
-          </p>
+          <p className="admin-venue-detail-page__muted">No moderator notes for this venue.</p>
         </section>
 
         {/* 8. Potential Duplicates */}
         <section className="admin-card admin-venue-detail-page__related">
           <h2>Potential Duplicates</h2>
-          <p className="admin-venue-detail-page__muted">
-            No potential duplicates detected.
-          </p>
+          <p className="admin-venue-detail-page__muted">No potential duplicates detected.</p>
         </section>
       </div>
 
@@ -398,7 +412,9 @@ export default function AdminVenueDetailPage() {
               <h3>Archive Venue</h3>
               <p className="admin-venue-detail-page__muted">
                 Archived venues will not appear in event submission forms.
-                {eventCount ? ` ${eventCount} event${eventCount === 1 ? "" : "s"} currently reference this venue.` : ""}
+                {eventCount
+                  ? ` ${eventCount} event${eventCount === 1 ? "" : "s"} currently reference this venue.`
+                  : ""}
               </p>
               <button
                 type="button"
@@ -450,7 +466,9 @@ export default function AdminVenueDetailPage() {
             Permanently removes this venue. Cannot be undone.
             {eventCount ? (
               <span className="admin-venue-detail-page__danger">
-                {" "}{eventCount} event{eventCount === 1 ? "" : "s"} reference this venue — you cannot delete it until they are updated.
+                {" "}
+                {eventCount} event{eventCount === 1 ? "" : "s"} reference this venue — you cannot
+                delete it until they are updated.
               </span>
             ) : null}
           </p>
@@ -568,10 +586,7 @@ export default function AdminVenueDetailPage() {
 
 // Inline action menu items for the header — mirrors venueActionItems but
 // includes "Restore" for archived venues.
-function venueActionItemsFor(
-  onAction: (action: VenueAction) => void,
-  isArchived: boolean
-) {
+function venueActionItemsFor(onAction: (action: VenueAction) => void, isArchived: boolean) {
   const items = [];
   if (!isArchived) {
     items.push({

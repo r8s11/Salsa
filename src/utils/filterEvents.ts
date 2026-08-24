@@ -4,9 +4,6 @@ import { EventType, ScheduleXEvent } from "../types/events";
 
 export type TypeFilter = "all" | EventType;
 
-export function filterEventsByType(
-  events: ScheduleXEvent[],
-  filter: TypeFilter
-): ScheduleXEvent[] {
+export function filterEventsByType(events: ScheduleXEvent[], filter: TypeFilter): ScheduleXEvent[] {
   return filter === "all" ? events : events.filter((e) => e.calendarId === filter);
 }

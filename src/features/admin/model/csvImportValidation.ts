@@ -1,6 +1,6 @@
 import type { EventTaxonomyTerm } from "../../events/model/types";
 import type { AdminEventForm } from "./adminEventForm";
-import { adminFormToPayload, HOST_MAX_LENGTH, INSTAGRAM_MAX_LENGTH } from "./adminEventForm";
+import { HOST_MAX_LENGTH, INSTAGRAM_MAX_LENGTH } from "./adminEventForm";
 import {
   DANCE_STYLES_MAX_COUNT,
   DESCRIPTION_MAX_LENGTH,
@@ -8,11 +8,10 @@ import {
   TITLE_MAX_LENGTH,
 } from "../../submit-event/validation";
 import type { AdminEventPayload } from "../../events/api/eventsRepo";
+import { draftToAdminPayload } from "../../events/components/EventForm";
 
-// Mirrors AdminEventForm.tsx's own IMAGE_URL_MAX_LENGTH (that component
-// only uses it for inline UI feedback, not a hard submit gate — CSV import
-// enforces it as a real validation rule since there's no live character
-// counter to lean on instead).
+// The manual editor validates image URLs inline; CSV import applies the same
+// maximum length because it has no live character feedback.
 const IMAGE_URL_MAX_LENGTH = 2000;
 
 const EVENT_TYPES: Record<string, true> = { social: true, class: true, workshop: true };
@@ -144,13 +143,22 @@ export function validateCsvRow(
     errors.push({ field: "event_time", message: "Must use 24-hour HH:MM format." });
 
   if (description.length > DESCRIPTION_MAX_LENGTH)
-    errors.push({ field: "description", message: `Must be ${DESCRIPTION_MAX_LENGTH} characters or fewer.` });
+    errors.push({
+      field: "description",
+      message: `Must be ${DESCRIPTION_MAX_LENGTH} characters or fewer.`,
+    });
 
   if (location.length > OTHER_TEXT_MAX_LENGTH)
-    errors.push({ field: "location", message: `Must be ${OTHER_TEXT_MAX_LENGTH} characters or fewer.` });
+    errors.push({
+      field: "location",
+      message: `Must be ${OTHER_TEXT_MAX_LENGTH} characters or fewer.`,
+    });
 
   if (address.length > OTHER_TEXT_MAX_LENGTH)
-    errors.push({ field: "address", message: `Must be ${OTHER_TEXT_MAX_LENGTH} characters or fewer.` });
+    errors.push({
+      field: "address",
+      message: `Must be ${OTHER_TEXT_MAX_LENGTH} characters or fewer.`,
+    });
 
   if (!PRICE_TYPES[priceType])
     errors.push({ field: "price_type", message: "Must be one of: free, paid (or blank)." });
@@ -166,7 +174,10 @@ export function validateCsvRow(
 
   if (rsvpLink) {
     if (rsvpLink.length > OTHER_TEXT_MAX_LENGTH)
-      errors.push({ field: "rsvp_link", message: `Must be ${OTHER_TEXT_MAX_LENGTH} characters or fewer.` });
+      errors.push({
+        field: "rsvp_link",
+        message: `Must be ${OTHER_TEXT_MAX_LENGTH} characters or fewer.`,
+      });
     else if (!isValidUrl(rsvpLink))
       errors.push({ field: "rsvp_link", message: "Must be a valid http:// or https:// URL." });
   }
@@ -176,7 +187,10 @@ export function validateCsvRow(
 
   if (imageUrl) {
     if (imageUrl.length > IMAGE_URL_MAX_LENGTH)
-      errors.push({ field: "image_url", message: `Must be ${IMAGE_URL_MAX_LENGTH} characters or fewer.` });
+      errors.push({
+        field: "image_url",
+        message: `Must be ${IMAGE_URL_MAX_LENGTH} characters or fewer.`,
+      });
     else if (!isValidUrl(imageUrl))
       errors.push({ field: "image_url", message: "Must be a valid http:// or https:// URL." });
   }
@@ -188,14 +202,20 @@ export function validateCsvRow(
     errors.push({ field: "contact_email", message: "Must be a valid email address." });
 
   if (contactInstagram.length > INSTAGRAM_MAX_LENGTH)
-    errors.push({ field: "contact_instagram", message: `Must be ${INSTAGRAM_MAX_LENGTH} characters or fewer.` });
+    errors.push({
+      field: "contact_instagram",
+      message: `Must be ${INSTAGRAM_MAX_LENGTH} characters or fewer.`,
+    });
 
   if (contactWebsite && !isValidUrl(contactWebsite))
     errors.push({ field: "contact_website", message: "Must be a valid http:// or https:// URL." });
 
   const danceStyleNames = splitList(raw.dance_styles ?? "");
   if (danceStyleNames.length > DANCE_STYLES_MAX_COUNT)
-    errors.push({ field: "dance_styles", message: `Up to ${DANCE_STYLES_MAX_COUNT} styles allowed.` });
+    errors.push({
+      field: "dance_styles",
+      message: `Up to ${DANCE_STYLES_MAX_COUNT} styles allowed.`,
+    });
   const danceStyleIds = resolveTermIds(danceStyleNames, danceStyleTerms, "dance_styles", warnings);
 
   const eventAttributeNames = splitList(raw.event_attributes ?? "");
@@ -209,7 +229,10 @@ export function validateCsvRow(
   const galleryUrls = splitList(raw.gallery ?? "");
   const invalidGalleryUrls = galleryUrls.filter((url) => !isValidUrl(url));
   if (invalidGalleryUrls.length > 0)
-    errors.push({ field: "gallery", message: `Not a valid URL: ${invalidGalleryUrls.join(", ")}.` });
+    errors.push({
+      field: "gallery",
+      message: `Not a valid URL: ${invalidGalleryUrls.join(", ")}.`,
+    });
 
   let payload: AdminEventPayload | null = null;
   if (errors.length === 0) {
@@ -228,6 +251,7 @@ export function validateCsvRow(
       submitter_name: "",
       submitter_email: "",
       recurrence: recurrence === "weekly" ? "weekly" : "",
+      dance_styles: [],
       host,
       image_url: imageUrl,
       contact_email: contactEmail,
@@ -236,7 +260,10 @@ export function validateCsvRow(
       taxonomy_term_ids: [...danceStyleIds, ...eventAttributeIds],
       venue_id: "",
     };
-    payload = { ...adminFormToPayload(form), gallery: galleryUrls.length > 0 ? galleryUrls : null };
+    payload = {
+      ...draftToAdminPayload(form),
+      gallery: galleryUrls.length > 0 ? galleryUrls : null,
+    };
   }
 
   return {

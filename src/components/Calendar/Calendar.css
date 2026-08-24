@@ -5,32 +5,32 @@
 
 /* ── Schedule-X Theme: Ritmo Vivo ── */
 :root {
-  --sx-color-primary:                    var(--red);
-  --sx-color-on-primary:                 #fff;
-  --sx-color-primary-container:          var(--red-dim);
-  --sx-color-on-primary-container:       #FFCCD4;
-  --sx-color-secondary:                  #6B5B4E;
-  --sx-color-on-secondary:               #fff;
-  --sx-color-secondary-container:        #2A201C;
-  --sx-color-on-secondary-container:     #E8D8D0;
-  --sx-color-surface:                    var(--surface);
-  --sx-color-surface-dim:                var(--bg);
-  --sx-color-surface-bright:             var(--surface-high);
-  --sx-color-on-surface:                 var(--text);
-  --sx-color-surface-container:          var(--card);
-  --sx-color-surface-container-low:      var(--surface);
-  --sx-color-surface-container-high:     var(--surface-high);
-  --sx-color-background:                 var(--surface);
-  --sx-color-on-background:              var(--text);
-  --sx-color-outline:                    var(--border-md);
-  --sx-color-outline-variant:            var(--border);
-  --sx-color-shadow:                     #000;
-  --sx-color-surface-tint:               var(--red);
-  --sx-color-neutral:                    var(--sx-color-outline);
-  --sx-color-neutral-variant:            var(--sx-color-outline-variant);
+  --sx-color-primary: var(--red);
+  --sx-color-on-primary: #fff;
+  --sx-color-primary-container: var(--red-dim);
+  --sx-color-on-primary-container: #ffccd4;
+  --sx-color-secondary: #6b5b4e;
+  --sx-color-on-secondary: #fff;
+  --sx-color-secondary-container: #2a201c;
+  --sx-color-on-secondary-container: #e8d8d0;
+  --sx-color-surface: var(--surface);
+  --sx-color-surface-dim: var(--bg);
+  --sx-color-surface-bright: var(--surface-high);
+  --sx-color-on-surface: var(--text);
+  --sx-color-surface-container: var(--card);
+  --sx-color-surface-container-low: var(--surface);
+  --sx-color-surface-container-high: var(--surface-high);
+  --sx-color-background: var(--surface);
+  --sx-color-on-background: var(--text);
+  --sx-color-outline: var(--border-md);
+  --sx-color-outline-variant: var(--border);
+  --sx-color-shadow: #000;
+  --sx-color-surface-tint: var(--red);
+  --sx-color-neutral: var(--sx-color-outline);
+  --sx-color-neutral-variant: var(--sx-color-outline-variant);
   --sx-internal-color-gray-ripple-background: var(--surface-high);
-  --sx-internal-color-light-gray:        var(--card);
-  --sx-internal-color-text:              var(--text);
+  --sx-internal-color-light-gray: var(--card);
+  --sx-internal-color-text: var(--text);
 }
 
 /* ── Page layout ── */
@@ -136,7 +136,9 @@
   font-size: 1.1rem;
   line-height: 1;
   cursor: pointer;
-  transition: border-color 0.2s ease, background 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
 }
 
 .nav-btn:hover {
@@ -181,7 +183,10 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .pill:hover {
@@ -248,9 +253,15 @@
   flex-shrink: 0;
 }
 
-.legend-dot.social   { background: var(--red); }
-.legend-dot.class    { background: var(--tertiary); }
-.legend-dot.workshop { background: var(--gold); }
+.legend-dot.social {
+  background: var(--red);
+}
+.legend-dot.class {
+  background: var(--tertiary);
+}
+.legend-dot.workshop {
+  background: var(--gold);
+}
 
 /* ── Loading / Error States ── */
 .calendar-status {

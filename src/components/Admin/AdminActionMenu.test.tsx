@@ -7,7 +7,13 @@ function makeItems(onSelect: (id: string) => void): ActionMenuItem[] {
   return [
     { id: "edit", label: "Edit", onSelect: () => onSelect("edit") },
     { id: "duplicate", label: "Duplicate", onSelect: () => onSelect("duplicate") },
-    { id: "delete", label: "Delete", tone: "danger", separatorBefore: true, onSelect: () => onSelect("delete") },
+    {
+      id: "delete",
+      label: "Delete",
+      tone: "danger",
+      separatorBefore: true,
+      onSelect: () => onSelect("delete"),
+    },
   ];
 }
 

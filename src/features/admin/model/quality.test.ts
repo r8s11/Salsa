@@ -2,9 +2,7 @@ import { describe, expect, it } from "vitest";
 import { checkSubmissionQuality } from "./quality";
 import type { EventSubmission } from "./submissions";
 
-function makeSubmission(
-  submittedData: EventSubmission["submitted_data"],
-): EventSubmission {
+function makeSubmission(submittedData: EventSubmission["submitted_data"]): EventSubmission {
   return {
     id: "sub-1",
     submitter_id: "user-1",

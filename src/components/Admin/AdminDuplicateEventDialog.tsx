@@ -89,24 +89,40 @@ export default function AdminDuplicateEventDialog({
         </div>
 
         <div className="admin-duplicate-dialog__quick-set">
-          <button type="button" className="admin-btn admin-btn--secondary" onClick={() => applyQuickSet("1week")}>
+          <button
+            type="button"
+            className="admin-btn admin-btn--secondary"
+            onClick={() => applyQuickSet("1week")}
+          >
             +1 week
           </button>
-          <button type="button" className="admin-btn admin-btn--secondary" onClick={() => applyQuickSet("2weeks")}>
+          <button
+            type="button"
+            className="admin-btn admin-btn--secondary"
+            onClick={() => applyQuickSet("2weeks")}
+          >
             +2 weeks
           </button>
-          <button type="button" className="admin-btn admin-btn--secondary" onClick={() => applyQuickSet("1month")}>
+          <button
+            type="button"
+            className="admin-btn admin-btn--secondary"
+            onClick={() => applyQuickSet("1month")}
+          >
             +1 month
           </button>
         </div>
 
         <p className="admin-duplicate-dialog__copied">
-          Copied unchanged: title, venue, address, organizer, description, pricing, dance styles, contact details,
-          flyer.
+          Copied unchanged: title, venue, address, organizer, description, pricing, dance styles,
+          contact details, flyer.
         </p>
 
         <label className="admin-duplicate-dialog__publish">
-          <input type="checkbox" checked={publish} onChange={(changeEvent) => setPublish(changeEvent.target.checked)} />
+          <input
+            type="checkbox"
+            checked={publish}
+            onChange={(changeEvent) => setPublish(changeEvent.target.checked)}
+          />
           Publish immediately
         </label>
 
@@ -117,7 +133,12 @@ export default function AdminDuplicateEventDialog({
         )}
 
         <div className="admin-duplicate-dialog__actions">
-          <button type="button" className="admin-btn admin-btn--secondary" onClick={onCancel} disabled={isBusy}>
+          <button
+            type="button"
+            className="admin-btn admin-btn--secondary"
+            onClick={onCancel}
+            disabled={isBusy}
+          >
             Cancel
           </button>
           <button

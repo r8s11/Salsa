@@ -49,11 +49,7 @@ export function useShareablePoster() {
    * @param format      "square" (1080×1080) or "portrait" (1080×1920).
    */
   const captureAndDownload = useCallback(
-    async (
-      event: ScheduleXEvent,
-      container: HTMLElement,
-      format: "square" | "portrait"
-    ) => {
+    async (event: ScheduleXEvent, container: HTMLElement, format: "square" | "portrait") => {
       // html-to-image needs the element to be in the layout flow.
       // The .poster-render-target class keeps it at left:-9999px so it's
       // rendered (with correct font metrics, images loaded) but invisible.

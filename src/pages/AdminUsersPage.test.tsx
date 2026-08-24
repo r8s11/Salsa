@@ -162,9 +162,7 @@ function usersTable() {
 }
 
 function desktopRowFor(name: string) {
-  return within(
-    within(usersTable()).getByText(name).closest("tr") as HTMLElement
-  );
+  return within(within(usersTable()).getByText(name).closest("tr") as HTMLElement);
 }
 
 async function openRowMenu(user: ReturnType<typeof userEvent.setup>, name: string) {
@@ -323,10 +321,7 @@ describe("AdminUsersPage", () => {
     await user.click(screen.getByRole("button", { name: "Add User" }));
 
     const dialog = screen.getByRole("dialog", { name: "Add User" });
-    await user.type(
-      within(dialog).getByLabelText("Email"),
-      "newmod@salsa.test"
-    );
+    await user.type(within(dialog).getByLabelText("Email"), "newmod@salsa.test");
     await user.selectOptions(within(dialog).getByLabelText("Role"), "moderator");
     await user.click(within(dialog).getByRole("button", { name: "Create account" }));
 

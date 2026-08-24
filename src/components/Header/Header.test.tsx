@@ -67,7 +67,10 @@ describe("Header", () => {
 
     renderHeader();
 
-    const account = within(screen.getByRole("banner")).getAllByText("Account").find(el => el.tagName === "SUMMARY")?.closest("details");
+    const account = within(screen.getByRole("banner"))
+      .getAllByText("Account")
+      .find((el) => el.tagName === "SUMMARY")
+      ?.closest("details");
     expect(account).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: "Submit Event" })[0]).toHaveAttribute(
       "href",
@@ -188,8 +191,14 @@ describe("Header", () => {
 
     expect(within(drawer).getByText("Explore Salsa Segura")).toBeInTheDocument();
     expect(within(account).getByRole("link", { name: "Submit Event" })).toHaveClass("auth-btn");
-    expect(within(account).getByRole("link", { name: "Sign In" })).toHaveAttribute("href", "/signin");
-    expect(within(city).getByRole("button", { name: "BOS" })).toHaveAttribute("aria-pressed", "true");
+    expect(within(account).getByRole("link", { name: "Sign In" })).toHaveAttribute(
+      "href",
+      "/signin"
+    );
+    expect(within(city).getByRole("button", { name: "BOS" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
   });
 
   it("keeps member and moderator actions inside the mobile account group", async () => {
@@ -214,7 +223,10 @@ describe("Header", () => {
       "/admin"
     );
     expect(within(account).getByRole("button", { name: "Sign Out" })).toBeInTheDocument();
-    expect(within(city).getByRole("button", { name: "NYC" })).toHaveAttribute("aria-pressed", "true");
+    expect(within(city).getByRole("button", { name: "NYC" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
   });
   it("uses rose-red CTA only for Submit Event and quiet secondary style for Sign In", async () => {
     vi.mocked(useAuth).mockReturnValue(defaultAuth());

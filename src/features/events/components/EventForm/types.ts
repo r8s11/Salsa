@@ -1,7 +1,7 @@
-import type { SubmissionCreate } from "../../admin/api/submissionsRepo";
-import type { UserEventUpdatePayload } from "../api/eventsRepo";
-import { toEventDateInstant } from "./eventDateTime";
-import type { City, EventType } from "./types";
+import type { City, EventType } from "../../model/types";
+import { toEventDateInstant } from "../../model/eventDateTime";
+import type { SubmissionCreate } from "../../../admin/api/submissionsRepo";
+import type { AdminEventPayload, UserEventUpdatePayload } from "../../api/eventsRepo";
 
 export type EventFormDraft = {
   title: string;
@@ -28,6 +28,42 @@ export type EventFormDraft = {
   taxonomy_term_ids: string[];
 };
 
+export type EventFormCapabilities = {
+  styles: "slug-chips" | "taxonomy-chips" | "none";
+  attributes: boolean;
+  venue: "free-text" | "combobox";
+  flyer: boolean;
+  hostAndContact: boolean;
+  submitterInfo: boolean;
+};
+
+export const CAPABILITIES: Record<"submit" | "organizerEdit" | "admin", EventFormCapabilities> = {
+  submit: {
+    styles: "slug-chips",
+    attributes: false,
+    venue: "free-text",
+    flyer: false,
+    hostAndContact: false,
+    submitterInfo: true,
+  },
+  organizerEdit: {
+    styles: "slug-chips",
+    attributes: false,
+    venue: "free-text",
+    flyer: true,
+    hostAndContact: false,
+    submitterInfo: false,
+  },
+  admin: {
+    styles: "taxonomy-chips",
+    attributes: true,
+    venue: "combobox",
+    flyer: true,
+    hostAndContact: true,
+    submitterInfo: false,
+  },
+};
+
 type Actor = { id: string; email: string | null } | null;
 
 function priceAmount(draft: EventFormDraft): number | null {
@@ -43,7 +79,7 @@ export function draftToSubmission(draft: EventFormDraft, actor: Actor): Submissi
     submitter_name: draft.submitter_name || null,
     title: draft.title,
     description: draft.description || null,
-    event_type: draft.event_type,
+    event_type: draft.event_type as EventType,
     city: draft.city,
     event_date: toEventDateInstant(draft.event_date, draft.event_time),
     event_time: draft.event_time || null,
@@ -61,7 +97,7 @@ export function draftToUserPayload(draft: EventFormDraft): UserEventUpdatePayloa
   return {
     title: draft.title,
     description: draft.description || null,
-    event_type: draft.event_type,
+    event_type: draft.event_type as EventType,
     city: draft.city,
     event_date: toEventDateInstant(draft.event_date, draft.event_time),
     event_time: draft.event_time || null,
@@ -73,5 +109,29 @@ export function draftToUserPayload(draft: EventFormDraft): UserEventUpdatePayloa
     recurrence: draft.recurrence || null,
     dance_styles: draft.dance_styles,
     image_url: draft.image_url || null,
+  };
+}
+
+export function draftToAdminPayload(draft: EventFormDraft): AdminEventPayload {
+  return {
+    title: draft.title,
+    description: draft.description || null,
+    event_type: draft.event_type as EventType,
+    city: draft.city,
+    event_date: toEventDateInstant(draft.event_date, draft.event_time),
+    event_time: draft.event_time || null,
+    location: draft.location || null,
+    address: draft.address || null,
+    price_type: draft.price_type || null,
+    price_amount: priceAmount(draft),
+    rsvp_link: draft.rsvp_link || null,
+    recurrence: draft.recurrence || null,
+    host: draft.host || null,
+    image_url: draft.image_url || null,
+    contact_email: draft.contact_email || null,
+    contact_instagram: draft.contact_instagram || null,
+    contact_website: draft.contact_website || null,
+    taxonomy_term_ids: draft.taxonomy_term_ids,
+    venue_id: draft.venue_id || null,
   };
 }

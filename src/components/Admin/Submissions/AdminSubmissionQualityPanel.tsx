@@ -31,7 +31,9 @@ export default function AdminSubmissionQualityPanel({ gaps }: AdminSubmissionQua
           <h4>Required</h4>
           <ul>
             {required.map((gap) => (
-              <li key={gap.issue} className="text-red-600">{QUALITY_ISSUE_LABEL[gap.issue]}</li>
+              <li key={gap.issue} className="text-red-600">
+                {QUALITY_ISSUE_LABEL[gap.issue]}
+              </li>
             ))}
           </ul>
         </section>

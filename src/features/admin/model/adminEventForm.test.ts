@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { buildEmptyAdminForm, buildAdminFormFromEvent, adminFormToPayload } from "./adminEventForm";
+import { buildEmptyAdminForm, buildAdminFormFromEvent } from "./adminEventForm";
 import type { DatabaseEvent } from "../../events/model/types";
+import { draftToAdminPayload } from "../../events/components/EventForm";
 
 const baseEvent: DatabaseEvent = {
   id: "event-1",
@@ -41,11 +42,14 @@ describe("adminEventForm model", () => {
   });
 
   it("buildAdminFormFromEvent maps taxonomy term IDs from the event", () => {
-    expect(buildAdminFormFromEvent(baseEvent).taxonomy_term_ids).toEqual(["salsa-id", "bachata-id"]);
+    expect(buildAdminFormFromEvent(baseEvent).taxonomy_term_ids).toEqual([
+      "salsa-id",
+      "bachata-id",
+    ]);
   });
 
-  it("adminFormToPayload carries selected taxonomy term IDs", () => {
-    const payload = adminFormToPayload(buildAdminFormFromEvent(baseEvent));
+  it("draftToAdminPayload carries selected taxonomy term IDs", () => {
+    const payload = draftToAdminPayload(buildAdminFormFromEvent(baseEvent));
     expect(payload.taxonomy_term_ids).toEqual(["salsa-id", "bachata-id"]);
     expect(payload).not.toHaveProperty("dance_styles");
   });

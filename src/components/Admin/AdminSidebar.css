@@ -177,7 +177,9 @@
     padding: 0;
   }
 
-  .admin-sidebar[data-variant="fixed"][data-collapsed="true"] .admin-sidebar__brand .ss-logo__wordmark {
+  .admin-sidebar[data-variant="fixed"][data-collapsed="true"]
+    .admin-sidebar__brand
+    .ss-logo__wordmark {
     display: none;
   }
 

@@ -25,21 +25,34 @@ export default function AdminDuplicateCheckPanel({
           <li key={candidate.event.id} className="admin-duplicate-check-panel__item">
             <div className="admin-duplicate-check-panel__info">
               <h4>{candidate.event.title}</h4>
-              <p className="admin-duplicate-check-panel__confidence">Confidence: {candidate.confidence}</p>
+              <p className="admin-duplicate-check-panel__confidence">
+                Confidence: {candidate.confidence}
+              </p>
               <ul className="admin-duplicate-check-panel__signals">
                 {candidate.signals.map((signal) => (
-                  <li key={signal} className="admin-badge">{signal}</li>
+                  <li key={signal} className="admin-badge">
+                    {signal}
+                  </li>
                 ))}
               </ul>
             </div>
             <div className="admin-duplicate-check-panel__actions">
-              <button className="admin-btn admin-btn--secondary" onClick={() => onViewEvent(candidate.event)}>
+              <button
+                className="admin-btn admin-btn--secondary"
+                onClick={() => onViewEvent(candidate.event)}
+              >
                 View Existing
               </button>
-              <button className="admin-btn admin-btn--secondary" onClick={() => onNotADuplicate(candidate.event)}>
+              <button
+                className="admin-btn admin-btn--secondary"
+                onClick={() => onNotADuplicate(candidate.event)}
+              >
                 Not a Duplicate
               </button>
-              <button className="admin-btn admin-btn--danger" onClick={() => onRejectAsDuplicate(candidate.event)}>
+              <button
+                className="admin-btn admin-btn--danger"
+                onClick={() => onRejectAsDuplicate(candidate.event)}
+              >
                 Reject as Duplicate
               </button>
             </div>

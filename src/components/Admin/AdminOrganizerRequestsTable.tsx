@@ -1,10 +1,6 @@
 import { Fragment } from "react";
 import { Link } from "react-router-dom";
-import {
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
-} from "lucide-react";
+import { ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import type { OrganizerRequestRow } from "../../features/admin/model/organizerRequestsQuery";
 import {
   displayNameFor,
@@ -185,9 +181,7 @@ export default function AdminOrganizerRequestsTable({
                     <td className="admin-organizer-requests-table__col--type">
                       <TypeCell request={request} />
                     </td>
-                    <td>
-                      {formatDate(request.created_at)}
-                    </td>
+                    <td>{formatDate(request.created_at)}</td>
                     <td>
                       <p>{request.applicant_contributions} submissions</p>
                       <p className="admin-organizer-requests-table__muted">
@@ -268,7 +262,9 @@ export default function AdminOrganizerRequestsTable({
               <div className="admin-organizer-requests-cards__row">
                 <span className="admin-organizer-requests-cards__label">Event Activity</span>
                 <span>
-                  {request.applicant_contributions} submission{request.applicant_contributions === 1 ? "" : "s"} · {request.applicant_approved_count} approved
+                  {request.applicant_contributions} submission
+                  {request.applicant_contributions === 1 ? "" : "s"} ·{" "}
+                  {request.applicant_approved_count} approved
                 </span>
               </div>
               {errorId === request.id && error && (

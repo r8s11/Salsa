@@ -35,15 +35,10 @@ export interface SendEmailResult {
  *   4. In production (supabase.com), set the secret in the dashboard:
  *      Project Settings → Functions → Secrets → RESEND_API_KEY
  */
-export async function sendEmail(
-  payload: SendEmailPayload,
-): Promise<SendEmailResult> {
-  const { data, error } = await supabase.functions.invoke<SendEmailResult>(
-    "send-email",
-    {
-      body: payload,
-    },
-  );
+export async function sendEmail(payload: SendEmailPayload): Promise<SendEmailResult> {
+  const { data, error } = await supabase.functions.invoke<SendEmailResult>("send-email", {
+    body: payload,
+  });
 
   if (error) {
     return { success: false, error: error.message };

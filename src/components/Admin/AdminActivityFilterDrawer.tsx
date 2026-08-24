@@ -152,10 +152,7 @@ export default function AdminActivityFilterDrawer({
           <fieldset className="admin-activity-filter-drawer__category-group">
             <legend>Category</legend>
             {CATEGORY_OPTIONS.map((option) => (
-              <label
-                key={option}
-                className="admin-activity-filter-drawer__category-option"
-              >
+              <label key={option} className="admin-activity-filter-drawer__category-option">
                 <input
                   type="checkbox"
                   checked={filters.category.includes(option)}
@@ -169,10 +166,7 @@ export default function AdminActivityFilterDrawer({
           <fieldset className="admin-activity-filter-drawer__action-group">
             <legend>Action (optional — narrows further)</legend>
             {ACTION_OPTIONS.map((option) => (
-              <label
-                key={option.value}
-                className="admin-activity-filter-drawer__action-option"
-              >
+              <label key={option.value} className="admin-activity-filter-drawer__action-option">
                 <input
                   type="checkbox"
                   checked={filters.action.includes(option.value)}
@@ -186,10 +180,7 @@ export default function AdminActivityFilterDrawer({
           <fieldset className="admin-activity-filter-drawer__target-group">
             <legend>Target type</legend>
             {TARGET_TYPE_OPTIONS.map((option) => (
-              <label
-                key={option.value}
-                className="admin-activity-filter-drawer__target-option"
-              >
+              <label key={option.value} className="admin-activity-filter-drawer__target-option">
                 <input
                   type="checkbox"
                   checked={filters.targetType.includes(option.value)}

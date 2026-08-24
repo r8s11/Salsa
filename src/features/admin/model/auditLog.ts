@@ -39,11 +39,11 @@ export function auditLogLabelFor(entry: AuditLogRow): string {
     case "submission.review_started":
       return "Review started";
     case "submission.edited":
-      return `${(metadata.fields as string[])?.join(', ') ?? 'Fields'} corrected`;
+      return `${(metadata.fields as string[])?.join(", ") ?? "Fields"} corrected`;
     case "submission.approved":
       return "Approved";
     case "submission.rejected":
-      return `Rejected — ${metadata.rejection_reason ?? 'Unknown'}`;
+      return `Rejected — ${metadata.rejection_reason ?? "Unknown"}`;
     case "submission.marked_duplicate":
       return "Marked as duplicate";
     case "submission.reopened":
@@ -53,7 +53,7 @@ export function auditLogLabelFor(entry: AuditLogRow): string {
     case "venue.created":
       return "Venue created";
     case "venue.updated":
-      return `Venue updated${(metadata.fields as string[])?.length ? ` — ${(metadata.fields as string[]).join(', ')}` : ''}`;
+      return `Venue updated${(metadata.fields as string[])?.length ? ` — ${(metadata.fields as string[]).join(", ")}` : ""}`;
     case "venue.archived":
       return "Venue archived";
     case "venue.restored":

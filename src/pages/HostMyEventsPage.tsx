@@ -96,7 +96,9 @@ export default function HostMyEventsPage() {
                     <div>
                       <dt>Status</dt>
                       <dd>
-                        <span className={`host-dashboard__status host-dashboard__status--${row.event.status}`}>
+                        <span
+                          className={`host-dashboard__status host-dashboard__status--${row.event.status}`}
+                        >
                           {row.statusLabel}
                         </span>
                       </dd>
@@ -129,7 +131,9 @@ export default function HostMyEventsPage() {
                     <td data-label="Date">{row.dateLabel}</td>
                     <td data-label="Venue">{row.event.location || "Venue not set"}</td>
                     <td data-label="Status">
-                      <span className={`host-dashboard__status host-dashboard__status--${row.event.status}`}>
+                      <span
+                        className={`host-dashboard__status host-dashboard__status--${row.event.status}`}
+                      >
                         {row.statusLabel}
                       </span>
                     </td>

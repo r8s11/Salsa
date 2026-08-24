@@ -134,9 +134,7 @@ export function isSensitiveAction(action: string): boolean {
  * This is the single source of the audit-timeline vocabulary shown in
  * the Activity list and detail pages.
  */
-export function activityActionLabel(
-  entry: ActivityAuditLog
-): string {
+export function activityActionLabel(entry: ActivityAuditLog): string {
   const metadata = entry.metadata ?? {};
   const { action } = entry;
 
@@ -150,9 +148,7 @@ export function activityActionLabel(
       return "Event rejected";
     case "event.status_changed": {
       const toStatus = metadata.to_status as string | undefined;
-      return toStatus
-        ? `Event status changed to ${toStatus}`
-        : "Event status changed";
+      return toStatus ? `Event status changed to ${toStatus}` : "Event status changed";
     }
     case "event.updated":
       return "Event updated";
@@ -311,9 +307,11 @@ export function formatActivityDate(iso: string): string {
 // ---------------------------------------------------------------------------
 
 /** Maps a preset view to the raw filters it applies. */
-export function filtersForView(
-  view: ActivityView
-): { category: ActivityCategory[]; action: string[]; entity_type: string[] } {
+export function filtersForView(view: ActivityView): {
+  category: ActivityCategory[];
+  action: string[];
+  entity_type: string[];
+} {
   switch (view) {
     case "all":
       return { category: [], action: [], entity_type: [] };
@@ -391,10 +389,8 @@ export function applyActivityFilters(
 
     // --- Category / action / target-type (from preset or drawer) ---
     const category = categoryOf(entry);
-    if (viewFilters.category.length > 0 && !viewFilters.category.includes(category))
-      return false;
-    if (viewFilters.action.length > 0 && !viewFilters.action.includes(entry.action))
-      return false;
+    if (viewFilters.category.length > 0 && !viewFilters.category.includes(category)) return false;
+    if (viewFilters.action.length > 0 && !viewFilters.action.includes(entry.action)) return false;
     if (viewFilters.entity_type.length > 0 && !viewFilters.entity_type.includes(entry.entity_type))
       return false;
 
@@ -453,8 +449,7 @@ export function activityViewCounts(
         const cat = categoryOf(entry);
         if (!viewFilters.category.includes(cat)) return false;
       }
-      if (viewFilters.action.length > 0 && !viewFilters.action.includes(entry.action))
-        return false;
+      if (viewFilters.action.length > 0 && !viewFilters.action.includes(entry.action)) return false;
       if (
         viewFilters.entity_type.length > 0 &&
         !viewFilters.entity_type.includes(entry.entity_type)

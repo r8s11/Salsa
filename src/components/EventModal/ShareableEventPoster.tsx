@@ -14,21 +14,15 @@ interface ShareableEventPosterProps {
  * Designed for 1080×1080 (square — Instagram post) or
  * 1080×1920 (portrait — Instagram Story / TikTok).
  */
-export default function ShareableEventPoster({
-  event,
-  format,
-}: ShareableEventPosterProps) {
-  const formatClass =
-    format === "portrait" ? "poster-portrait" : "poster-square";
+export default function ShareableEventPoster({ event, format }: ShareableEventPosterProps) {
+  const formatClass = format === "portrait" ? "poster-portrait" : "poster-square";
 
   const toDate = (val: unknown): Date => {
     if (typeof val === "string") {
       return new Date(val.replace(" ", "T"));
     }
     if (val && typeof val === "object" && "epochMilliseconds" in val) {
-      return new Date(
-        Number((val as { epochMilliseconds: bigint }).epochMilliseconds)
-      );
+      return new Date(Number((val as { epochMilliseconds: bigint }).epochMilliseconds));
     }
     return new Date(String(val));
   };
@@ -64,12 +58,7 @@ export default function ShareableEventPoster({
       {/* Background layer */}
       <div className="poster-bg">
         {event.imageUrl ? (
-          <img
-            className="poster-bg-img"
-            src={event.imageUrl}
-            alt=""
-            crossOrigin="anonymous"
-          />
+          <img className="poster-bg-img" src={event.imageUrl} alt="" crossOrigin="anonymous" />
         ) : null}
         <div className="poster-bg-gradient" />
       </div>

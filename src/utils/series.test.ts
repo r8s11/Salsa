@@ -18,9 +18,6 @@ describe("getUpcomingSeriesDates", () => {
   it("preserves wall-clock time across the DST boundary", () => {
     const dates = getUpcomingSeriesDates("2026-10-31 20:00", 2);
     // DST ends 2026-11-01; wall time must stay 20:00
-    expect(dates.map((d) => d.toString())).toEqual([
-      "2026-11-07T20:00:00",
-      "2026-11-14T20:00:00",
-    ]);
+    expect(dates.map((d) => d.toString())).toEqual(["2026-11-07T20:00:00", "2026-11-14T20:00:00"]);
   });
 });

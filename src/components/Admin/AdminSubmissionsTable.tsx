@@ -26,7 +26,7 @@ function SubmissionCell({ submission }: { submission: EventSubmission }) {
   return (
     <div className="submission-cell">
       <div className="submission-title">
-        {submission.submitted_data?.title as string || "Untitled Event"}
+        {(submission.submitted_data?.title as string) || "Untitled Event"}
       </div>
       <div className="submission-meta">
         <span className="submitter">
@@ -79,9 +79,21 @@ export default function AdminSubmissionsTable({
                 <AdminActionMenu
                   label={`Actions for ${submission.submitted_data?.title || "submission"}`}
                   items={[
-                    { id: "view", label: "View Details", onSelect: () => onAction("view", submission) },
-                    { id: "approve", label: "Approve", onSelect: () => onAction("approve", submission) },
-                    { id: "reject", label: "Reject", onSelect: () => onAction("reject", submission) },
+                    {
+                      id: "view",
+                      label: "View Details",
+                      onSelect: () => onAction("view", submission),
+                    },
+                    {
+                      id: "approve",
+                      label: "Approve",
+                      onSelect: () => onAction("approve", submission),
+                    },
+                    {
+                      id: "reject",
+                      label: "Reject",
+                      onSelect: () => onAction("reject", submission),
+                    },
                   ]}
                 />
               </td>

@@ -65,18 +65,20 @@ export async function fetchActivityLogs(
   // We return entries.length as a lower-bound; the page component computes
   // total from the directory query or a separate count call if needed.
   return {
-    entries: rows.map((row): ActivityAuditLog => ({
-      id: row.id,
-      actor_id: row.actor_id,
-      actor_display_name: row.actor_display_name,
-      actor_username: row.actor_username,
-      actor_avatar_url: row.actor_avatar_url,
-      action: row.action,
-      entity_type: row.entity_type,
-      entity_id: row.entity_id,
-      metadata: row.metadata,
-      created_at: row.created_at,
-    })),
+    entries: rows.map(
+      (row): ActivityAuditLog => ({
+        id: row.id,
+        actor_id: row.actor_id,
+        actor_display_name: row.actor_display_name,
+        actor_username: row.actor_username,
+        actor_avatar_url: row.actor_avatar_url,
+        action: row.action,
+        entity_type: row.entity_type,
+        entity_id: row.entity_id,
+        metadata: row.metadata,
+        created_at: row.created_at,
+      })
+    ),
     total: rows.length,
   };
 }

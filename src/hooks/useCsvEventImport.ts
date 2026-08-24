@@ -3,8 +3,15 @@ import { useAuth } from "../contexts/useAuth";
 import { useActiveTaxonomyTerms } from "../features/admin/hooks/useAdminTaxonomy";
 import { parseCsvFile } from "../features/admin/model/csvImportParse";
 import { validateCsvRow, type CsvRowResult } from "../features/admin/model/csvImportValidation";
-import { findCsvRowDuplicates, type CsvDuplicateMatch } from "../features/admin/model/csvImportDuplicates";
-import { importCsvRows, resolveVenueIdByName, type ImportBatchSummary } from "../features/admin/api/csvImportRepo";
+import {
+  findCsvRowDuplicates,
+  type CsvDuplicateMatch,
+} from "../features/admin/model/csvImportDuplicates";
+import {
+  importCsvRows,
+  resolveVenueIdByName,
+  type ImportBatchSummary,
+} from "../features/admin/api/csvImportRepo";
 import { fetchAllEvents } from "../features/events/api/eventsRepo";
 
 export interface CsvRowWithDuplicates extends CsvRowResult {
@@ -98,7 +105,10 @@ export function useCsvEventImport(): CsvEventImportState {
             ...row,
             warnings: [
               ...row.warnings,
-              { field: "venue_name", message: `No existing venue matched "${row.venueName}" — imported using location/address text only.` },
+              {
+                field: "venue_name",
+                message: `No existing venue matched "${row.venueName}" — imported using location/address text only.`,
+              },
             ],
             status: row.status === "valid" ? ("warning" as const) : row.status,
           };
@@ -114,7 +124,10 @@ export function useCsvEventImport(): CsvEventImportState {
           duplicates,
           warnings: [
             ...row.warnings,
-            { field: "duplicate", message: `Possible duplicate — matches an existing event: "${duplicates[0].event.title}".` },
+            {
+              field: "duplicate",
+              message: `Possible duplicate — matches an existing event: "${duplicates[0].event.title}".`,
+            },
           ],
           status: row.status === "valid" ? ("warning" as const) : row.status,
         };

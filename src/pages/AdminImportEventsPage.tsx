@@ -117,7 +117,11 @@ export default function AdminImportEventsPage() {
           <li>Review the events it detected.</li>
           <li>Import.</li>
         </ol>
-        <button type="button" className="admin-btn admin-btn--primary" onClick={() => downloadCsv("salsasegura-event-import-template.csv", buildCsvTemplate())}>
+        <button
+          type="button"
+          className="admin-btn admin-btn--primary"
+          onClick={() => downloadCsv("salsasegura-event-import-template.csv", buildCsvTemplate())}
+        >
           Download CSV Template
         </button>
         <div className="admin-import-page__rules">
@@ -141,8 +145,8 @@ export default function AdminImportEventsPage() {
             <strong>Blank cells are fine</strong> for every optional column.
           </p>
           <p>
-            <strong>Maximum {CSV_MAX_ROWS} event rows</strong> per upload — split larger batches into
-            multiple files.
+            <strong>Maximum {CSV_MAX_ROWS} event rows</strong> per upload — split larger batches
+            into multiple files.
           </p>
         </div>
       </section>

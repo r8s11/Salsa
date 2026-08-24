@@ -15,20 +15,16 @@ function escapeHtml(value: string): string {
 
 export function buildSubmissionNotificationEmail(
   submission: SubmissionCreate,
-  settings: Pick<PlatformSettings, "platform_name" | "support_email">,
+  settings: Pick<PlatformSettings, "platform_name" | "support_email">
 ): SendEmailPayload {
-  const zdt = Temporal.Instant.from(submission.event_date).toZonedDateTimeISO(
-    "America/New_York",
-  );
+  const zdt = Temporal.Instant.from(submission.event_date).toZonedDateTimeISO("America/New_York");
   const dateLabel = zdt.toLocaleString("en-US", {
     weekday: "long",
     month: "long",
     day: "numeric",
     year: "numeric",
   });
-  const timeLabel = submission.event_time
-    ? `${formatTimeLabel(submission.event_time)} ET`
-    : null;
+  const timeLabel = submission.event_time ? `${formatTimeLabel(submission.event_time)} ET` : null;
 
   const priceLabel =
     submission.price_type === "free"
@@ -41,10 +37,7 @@ export function buildSubmissionNotificationEmail(
     ["Event", submission.title],
     ["Type", submission.event_type],
     ["City", submission.city],
-    [
-      "When",
-      [dateLabel, timeLabel].filter(Boolean).join(" at "),
-    ],
+    ["When", [dateLabel, timeLabel].filter(Boolean).join(" at ")],
     ...(submission.recurrence ? [["Recurs", submission.recurrence] as [string, string]] : []),
     ...(submission.location ? [["Location", submission.location] as [string, string]] : []),
     ...(submission.address ? [["Address", submission.address] as [string, string]] : []),
@@ -68,7 +61,7 @@ export function buildSubmissionNotificationEmail(
 ${rows
   .map(
     ([label, value]) =>
-      `<tr><td><strong>${escapeHtml(label)}</strong></td><td>${escapeHtml(value)}</td></tr>`,
+      `<tr><td><strong>${escapeHtml(label)}</strong></td><td>${escapeHtml(value)}</td></tr>`
   )
   .join("\n")}
 </table>
@@ -88,9 +81,7 @@ ${rows
  * Fire-and-forget admin notification after a successful submission.
  * Never throws — an email failure must not affect the submission result.
  */
-export async function notifyAdminsOfNewSubmission(
-  submission: SubmissionCreate,
-): Promise<void> {
+export async function notifyAdminsOfNewSubmission(submission: SubmissionCreate): Promise<void> {
   try {
     const settings = await fetchPlatformSettings();
     const payload = buildSubmissionNotificationEmail(submission, settings);

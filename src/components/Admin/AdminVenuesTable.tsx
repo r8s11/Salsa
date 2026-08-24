@@ -1,12 +1,12 @@
 import { Fragment } from "react";
 import { Link } from "react-router-dom";
-import {
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
-  MapPin,
-} from "lucide-react";
-import type { VenueRow, VenueSort, SortDir, VenueAction } from "../../features/admin/model/venuesQuery";
+import { ArrowUpDown, ArrowUp, ArrowDown, MapPin } from "lucide-react";
+import type {
+  VenueRow,
+  VenueSort,
+  SortDir,
+  VenueAction,
+} from "../../features/admin/model/venuesQuery";
 import { venueActionItems, venueDisplayAddress } from "../../features/admin/model/venuesQuery";
 import AdminVenueStatusBadge from "./AdminVenueStatusBadge";
 import AdminActionMenu from "./AdminActionMenu";
@@ -98,10 +98,7 @@ export default function AdminVenuesTable({
                 <Fragment key={venue.id}>
                   <tr style={isBusy ? { opacity: 0.6 } : undefined}>
                     <td>
-                      <Link
-                        to={`/admin/venues/${venue.id}`}
-                        className="admin-venues-table__title"
-                      >
+                      <Link to={`/admin/venues/${venue.id}`} className="admin-venues-table__title">
                         {venue.name}
                       </Link>
                       {qualityIssues && qualityIssues.length > 0 && (
@@ -168,10 +165,7 @@ export default function AdminVenuesTable({
               <div className="admin-venues-cards__head">
                 <MapPin size={18} className="admin-venues-cards__icon" />
                 <div className="admin-venues-cards__head-body">
-                  <Link
-                    to={`/admin/venues/${venue.id}`}
-                    className="admin-venues-table__title"
-                  >
+                  <Link to={`/admin/venues/${venue.id}`} className="admin-venues-table__title">
                     {venue.name}
                   </Link>
                   <p className="admin-venues-table__identity">

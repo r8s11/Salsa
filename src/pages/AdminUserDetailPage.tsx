@@ -101,7 +101,9 @@ export default function AdminUserDetailPage() {
   }, [events, submitterValue]);
 
   const upcomingOrganizerEvents = useMemo(
-    () => userEvents.filter((event) => new Date(event.event_date).getTime() >= new Date().getTime()).length,
+    () =>
+      userEvents.filter((event) => new Date(event.event_date).getTime() >= new Date().getTime())
+        .length,
     [userEvents]
   );
 
@@ -339,27 +341,27 @@ export default function AdminUserDetailPage() {
               </div>
             ) : (
               <div className="admin-user-detail-page__action-buttons">
-                {rowActionItems(user, authUser?.id ?? null, adminCount, isAdmin, handleAction).map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    className={
-                      item.tone === "danger"
-                        ? "admin-btn admin-btn--danger"
-                        : "admin-btn admin-btn--secondary"
-                    }
-                    onClick={item.onSelect}
-                  >
-                    {item.label}
-                  </button>
-                ))}
+                {rowActionItems(user, authUser?.id ?? null, adminCount, isAdmin, handleAction).map(
+                  (item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      className={
+                        item.tone === "danger"
+                          ? "admin-btn admin-btn--danger"
+                          : "admin-btn admin-btn--secondary"
+                      }
+                      onClick={item.onSelect}
+                    >
+                      {item.label}
+                    </button>
+                  )
+                )}
               </div>
             )}
           </section>
         </aside>
       </div>
-
-
 
       {pendingAction?.kind === "role" && (
         <AdminRoleChangeDialog

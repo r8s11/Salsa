@@ -1,0 +1,128 @@
+.event-form {
+  display: grid;
+  gap: var(--space-lg);
+}
+
+.event-form__section {
+  display: grid;
+  gap: var(--space-sm);
+  padding: var(--space-lg);
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+
+.event-form__section h2 {
+  margin: 0 0 var(--space-xs);
+  font: 700 0.8rem var(--font-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.event-form label {
+  display: grid;
+  gap: 6px;
+  font: 700 0.72rem var(--font-display);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.event-form__field {
+  display: grid;
+  gap: 6px;
+}
+
+.event-form__label {
+  font: 700 0.72rem var(--font-display);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.event-form input,
+.event-form select,
+.event-form textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius-md);
+  background: var(--surface-high);
+  color: var(--text);
+  font: 400 0.9rem var(--font-body);
+}
+
+.event-form textarea {
+  min-height: 112px;
+  resize: vertical;
+}
+
+.event-form input:focus,
+.event-form select:focus,
+.event-form textarea:focus {
+  outline: 2px solid var(--red);
+  outline-offset: 1px;
+}
+
+.event-form__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.event-form__chips button {
+  padding: 7px 11px;
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--text);
+  font: 700 0.75rem var(--font-display);
+  cursor: pointer;
+}
+
+.event-form__chips button[aria-pressed="true"] {
+  border-color: var(--red);
+  background: var(--red);
+  color: var(--surface);
+}
+
+.event-form__segmented {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.event-form__segmented button {
+  padding: 7px 11px;
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--text);
+  font: 700 0.75rem var(--font-display);
+  cursor: pointer;
+}
+
+.event-form__segmented button[aria-pressed="true"] {
+  border-color: var(--red);
+  background: var(--red);
+  color: var(--surface);
+}
+
+.event-form__check {
+  display: flex !important;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+}
+
+.event-form__check input {
+  width: auto;
+}
+
+.event-form__taxonomy {
+  display: grid;
+  gap: var(--space-sm);
+}

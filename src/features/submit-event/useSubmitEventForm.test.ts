@@ -47,10 +47,10 @@ describe("useSubmitEventForm", () => {
     expect(createSubmission).toHaveBeenCalledWith(
       expect.objectContaining({
         dance_styles: [],
-      }),
+      })
     );
     expect(notifyAdminsOfNewSubmission).toHaveBeenCalledWith(
-      expect.objectContaining({ dance_styles: [] }),
+      expect.objectContaining({ dance_styles: [] })
     );
   });
 
@@ -74,7 +74,7 @@ describe("useSubmitEventForm", () => {
       expect.objectContaining({
         submitter_id: null,
         submitter_email: null,
-      }),
+      })
     );
   });
 });

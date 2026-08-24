@@ -18,23 +18,43 @@ vi.mock("@schedule-x/react", () => ({
   ScheduleXCalendar: () => <div data-testid="schedule-x-calendar" />,
 }));
 vi.mock("@schedule-x/calendar", () => ({
-  createViewDay: vi.fn(), createViewWeek: vi.fn(), createViewMonthGrid: vi.fn(),
-  createViewMonthAgenda: vi.fn(), createViewList: vi.fn(),
+  createViewDay: vi.fn(),
+  createViewWeek: vi.fn(),
+  createViewMonthGrid: vi.fn(),
+  createViewMonthAgenda: vi.fn(),
+  createViewList: vi.fn(),
 }));
 vi.mock("@schedule-x/events-service", () => ({ createEventsServicePlugin: () => eventsService }));
-vi.mock("@schedule-x/calendar-controls", () => ({ createCalendarControlsPlugin: () => calendarControls }));
+vi.mock("@schedule-x/calendar-controls", () => ({
+  createCalendarControlsPlugin: () => calendarControls,
+}));
 vi.mock("../../hooks/useEvent", () => ({ useEvents: () => useEvents() }));
 vi.mock("../../contexts/useCity", () => ({ useCity: () => ({ city, setCity }) }));
 vi.mock("../../features/calendar/hooks/useEventDeepLink", () => ({ useEventDeepLink: vi.fn() }));
 vi.mock("../../features/calendar/hooks/useEscapeKey", () => ({ useEscapeKey: vi.fn() }));
 vi.mock("../../shared/seo/useDocumentMeta", () => ({ useDocumentMeta: vi.fn() }));
-vi.mock("../../utils/seo", () => ({ generateEventsListStructuredData: vi.fn(() => ({})), injectStructuredData: vi.fn() }));
+vi.mock("../../utils/seo", () => ({
+  generateEventsListStructuredData: vi.fn(() => ({})),
+  injectStructuredData: vi.fn(),
+}));
 vi.mock("../EventModal/EventModal", () => ({ default: () => null }));
 
-const event = { id: "event-1", title: "Boston Social", start: "2026-08-14 20:00", end: "2026-08-14 23:00", calendarId: "social" as const, location: "Dance Hall", priceType: "free" as const };
+const event = {
+  id: "event-1",
+  title: "Boston Social",
+  start: "2026-08-14 20:00",
+  end: "2026-08-14 23:00",
+  calendarId: "social" as const,
+  location: "Dance Hall",
+  priceType: "free" as const,
+};
 
 function renderCalendar(path = "/calendar") {
-  return render(<MemoryRouter initialEntries={[path]}><Calendar /></MemoryRouter>);
+  return render(
+    <MemoryRouter initialEntries={[path]}>
+      <Calendar />
+    </MemoryRouter>
+  );
 }
 
 beforeEach(() => {
@@ -44,9 +64,13 @@ beforeEach(() => {
   mediaListener = undefined;
   removeMediaListener = vi.fn();
   window.matchMedia = vi.fn().mockImplementation(() => ({
-    get matches() { return compact; },
+    get matches() {
+      return compact;
+    },
     media: "(max-width: 768px)",
-    addEventListener: (_: string, listener: (event: MediaQueryListEvent) => void) => { mediaListener = listener; },
+    addEventListener: (_: string, listener: (event: MediaQueryListEvent) => void) => {
+      mediaListener = listener;
+    },
     removeEventListener: removeMediaListener,
   }));
   useEvents.mockReturnValue({ events: [event], loading: false, error: null, refetch: vi.fn() });
@@ -55,7 +79,9 @@ beforeEach(() => {
 describe("Calendar", () => {
   it("starts desktop Schedule-X in month grid and offers desktop view controls", () => {
     renderCalendar();
-    expect(useCalendarApp).toHaveBeenCalledWith(expect.objectContaining({ defaultView: "month-grid" }));
+    expect(useCalendarApp).toHaveBeenCalledWith(
+      expect.objectContaining({ defaultView: "month-grid" })
+    );
     expect(screen.getByRole("button", { name: "Month" })).toBeInTheDocument();
     expect(screen.getByTestId("schedule-x-calendar")).toBeInTheDocument();
   });
@@ -100,7 +126,11 @@ describe("Calendar", () => {
     fireEvent.click(screen.getByRole("button", { name: "Retry" }));
     expect(refetch).toHaveBeenCalledOnce();
     useEvents.mockReturnValue({ events: [], loading: false, error: null, refetch });
-    rerender(<MemoryRouter><Calendar /></MemoryRouter>);
+    rerender(
+      <MemoryRouter>
+        <Calendar />
+      </MemoryRouter>
+    );
     expect(screen.getByText("No upcoming events in Boston yet.")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Submit an Event" })).toBeInTheDocument();
     expect(screen.queryByTestId("schedule-x-calendar")).not.toBeInTheDocument();
@@ -108,10 +138,16 @@ describe("Calendar", () => {
 
   it("switches views in response to media-query changes and unsubscribes", () => {
     const { unmount } = renderCalendar();
-    act(() => { compact = true; mediaListener?.({ matches: true } as MediaQueryListEvent); });
+    act(() => {
+      compact = true;
+      mediaListener?.({ matches: true } as MediaQueryListEvent);
+    });
     expect(calendarControls.setView).toHaveBeenLastCalledWith("list");
     expect(screen.queryByRole("button", { name: "Month" })).not.toBeInTheDocument();
-    act(() => { compact = false; mediaListener?.({ matches: false } as MediaQueryListEvent); });
+    act(() => {
+      compact = false;
+      mediaListener?.({ matches: false } as MediaQueryListEvent);
+    });
     expect(calendarControls.setView).toHaveBeenLastCalledWith("month-grid");
     expect(screen.getByRole("button", { name: "Month" })).toBeInTheDocument();
     unmount();

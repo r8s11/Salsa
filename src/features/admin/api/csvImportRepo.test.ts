@@ -123,7 +123,9 @@ describe("importCsvRows", () => {
   it("isolates a failed row so the rest of the batch still imports", async () => {
     mockEventResult
       .mockReturnValueOnce(Promise.resolve({ data: { id: "new-1" }, error: null }))
-      .mockReturnValueOnce(Promise.resolve({ data: null, error: { message: "constraint violation" } }))
+      .mockReturnValueOnce(
+        Promise.resolve({ data: null, error: { message: "constraint violation" } })
+      )
       .mockReturnValueOnce(Promise.resolve({ data: { id: "new-3" }, error: null }));
 
     const summary = await importCsvRows(
@@ -186,7 +188,13 @@ describe("importCsvRows", () => {
 
   it("reports totals against the whole file, not just the imported subset", async () => {
     mockEventResult.mockReturnValue(Promise.resolve({ data: { id: "new-1" }, error: null }));
-    const summary = await importCsvRows([{ rowNumber: 2, payload: payload() }], IMPORTER, "b.csv", 10, 4);
+    const summary = await importCsvRows(
+      [{ rowNumber: 2, payload: payload() }],
+      IMPORTER,
+      "b.csv",
+      10,
+      4
+    );
     expect(summary.totalRows).toBe(10);
   });
 });

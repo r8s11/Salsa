@@ -81,7 +81,9 @@
   color: var(--text);
   font-family: var(--font-body);
   font-size: 0.9rem;
-  transition: border-color 0.25s ease, background 0.25s ease;
+  transition:
+    border-color 0.25s ease,
+    background 0.25s ease;
 }
 
 .form-group input::placeholder,
@@ -115,7 +117,6 @@
   min-height: 110px;
 }
 
-
 /* ── Error Banner ── */
 .contact-error-banner {
   padding: 0.875rem 1rem;
@@ -123,7 +124,7 @@
   background: var(--red-dim);
   border: 1px solid rgba(225, 29, 72, 0.35);
   border-radius: var(--radius-sm);
-  color: #FF8080;
+  color: #ff8080;
   font-size: 0.85rem;
 }
 
@@ -142,7 +143,9 @@
   padding: 1.75rem 1.5rem;
   border-radius: var(--radius-md);
   text-align: center;
-  transition: border-color 0.25s ease, transform 0.25s ease;
+  transition:
+    border-color 0.25s ease,
+    transform 0.25s ease;
 }
 
 .contact-card:hover {
@@ -178,7 +181,6 @@
 
 /* ── Mobile ── */
 @media (max-width: 768px) {
-
   .contact-grid {
     grid-template-columns: 1fr;
   }
@@ -198,4 +200,3 @@
     min-width: 140px;
   }
 }
-

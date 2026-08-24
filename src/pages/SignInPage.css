@@ -4,8 +4,7 @@
   padding: var(--space-lg);
   background:
     radial-gradient(circle at 15% 20%, var(--red-dim), transparent 32rem),
-    radial-gradient(circle at 85% 80%, var(--gold-dim), transparent 28rem),
-    var(--bg);
+    radial-gradient(circle at 85% 80%, var(--gold-dim), transparent 28rem), var(--bg);
 }
 
 .auth-logo {

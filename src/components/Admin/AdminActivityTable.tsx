@@ -87,15 +87,15 @@ export default function AdminActivityTable({
                       <span className="admin-activity-table__action-icon">
                         <Icon size={16} />
                       </span>
-                      <span className={isSensitive ? "admin-activity-table__action--sensitive" : ""}>
+                      <span
+                        className={isSensitive ? "admin-activity-table__action--sensitive" : ""}
+                      >
                         {activityActionLabel(entry)}
                       </span>
                     </a>
                   </td>
                   <td>
-                    <span className="admin-activity-table__target">
-                      {targetName}
-                    </span>
+                    <span className="admin-activity-table__target">{targetName}</span>
                     {entry.entity_id && (
                       <span className="admin-activity-table__entity-id">
                         #{(entry.entity_id || "").slice(0, 8)}
@@ -103,9 +103,7 @@ export default function AdminActivityTable({
                     )}
                   </td>
                   <td>
-                    <span className="admin-activity-table__actor">
-                      {activityActorLabel(entry)}
-                    </span>
+                    <span className="admin-activity-table__actor">{activityActorLabel(entry)}</span>
                   </td>
                   <td>
                     <span className={`admin-chip admin-chip--${CATEGORY_LABEL[category]}`}>
@@ -130,8 +128,7 @@ export default function AdminActivityTable({
           const category = categoryOf(entry);
           const isSensitive = isSensitiveAction(entry.action);
           const Icon = isSensitive ? SENSITIVE_ICON : (CATEGORY_ICON[category] ?? STATUS_ICON);
-          const targetName =
-            targetDisplayMap[entry.entity_id ?? ""] ?? activityTargetLabel(entry);
+          const targetName = targetDisplayMap[entry.entity_id ?? ""] ?? activityTargetLabel(entry);
 
           return (
             <li
@@ -164,15 +161,11 @@ export default function AdminActivityTable({
               </div>
               <div className="admin-activity-cards__row">
                 <span className="admin-activity-cards__label">Target</span>
-                <span className="admin-activity-table__target">
-                  {targetName}
-                </span>
+                <span className="admin-activity-table__target">{targetName}</span>
               </div>
               <div className="admin-activity-cards__row">
                 <span className="admin-activity-cards__label">Actor</span>
-                <span className="admin-activity-table__actor">
-                  {activityActorLabel(entry)}
-                </span>
+                <span className="admin-activity-table__actor">{activityActorLabel(entry)}</span>
               </div>
               {entry.metadata &&
                 typeof entry.metadata.reason === "string" &&

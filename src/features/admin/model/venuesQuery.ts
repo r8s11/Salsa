@@ -95,7 +95,12 @@ export const VENUE_VIEWS: { view: VenueView; label: string }[] = [
   { view: "archived", label: "Archived" },
 ];
 
-export const VENUE_SORT_OPTIONS: { value: string; key: VenueSort["key"]; dir: SortDir; label: string }[] = [
+export const VENUE_SORT_OPTIONS: {
+  value: string;
+  key: VenueSort["key"];
+  dir: SortDir;
+  label: string;
+}[] = [
   { value: "name-asc", key: "name", dir: "asc", label: "Name A–Z" },
   { value: "name-desc", key: "name", dir: "desc", label: "Name Z–A" },
   { value: "city-asc", key: "city", dir: "asc", label: "City A–Z" },
@@ -198,8 +203,14 @@ export function validateVenueForm(form: VenueForm): string | null {
 }
 
 export function venueDisplayAddress(row: VenueRow): string {
-  const parts = [row.address_line1, row.address_line2, row.city, row.state_region, row.postal_code, row.country]
-    .filter((part) => part != null && part.trim() !== "");
+  const parts = [
+    row.address_line1,
+    row.address_line2,
+    row.city,
+    row.state_region,
+    row.postal_code,
+    row.country,
+  ].filter((part) => part != null && part.trim() !== "");
   return parts.join(", ");
 }
 
@@ -300,7 +311,10 @@ export function applyVenueFilters(venues: VenueRow[], filters: VenueFilters): Ve
     }
     if (filters.city.length > 0 && (venue.city == null || !filters.city.includes(venue.city)))
       return false;
-    if (filters.state.length > 0 && (venue.state_region == null || !filters.state.includes(venue.state_region)))
+    if (
+      filters.state.length > 0 &&
+      (venue.state_region == null || !filters.state.includes(venue.state_region))
+    )
       return false;
     if (filters.status.length > 0 && !filters.status.includes(venue.status)) return false;
     if (filters.has_upcoming === true && venue.upcoming_count === 0) return false;
@@ -343,7 +357,7 @@ export function venueViewCounts(venues: VenueRow[]): Record<VenueView, number> {
 export function parseSortUrlParam(value: string | null): VenueSort | null {
   if (!value) return null;
   const [key, dir] = value.split("-") as [VenueSort["key"]?, SortDir?];
-  if (!key || !dir || dir !== "asc" && dir !== "desc") return null;
+  if (!key || !dir || (dir !== "asc" && dir !== "desc")) return null;
   if (!["name", "city", "upcoming", "updated"].includes(key)) return null;
   return { key, dir };
 }

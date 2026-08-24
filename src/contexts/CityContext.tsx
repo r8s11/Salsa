@@ -22,10 +22,5 @@ export function CityProvider({ children }: { children: ReactNode }) {
 
   const setCity = useCallback((next: City) => setCityState(next), []);
 
-  return (
-    <CityContext.Provider value={{ city, setCity }}>
-      {children}
-    </CityContext.Provider>
-  );
+  return <CityContext.Provider value={{ city, setCity }}>{children}</CityContext.Provider>;
 }
-

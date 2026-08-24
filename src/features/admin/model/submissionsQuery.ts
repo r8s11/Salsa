@@ -25,7 +25,9 @@ export async function updateSubmission(id: string, updates: Partial<EventSubmiss
   return data as EventSubmission;
 }
 
-export async function createSubmission(submission: Omit<EventSubmission, 'id' | 'created_at' | 'updated_at'>) {
+export async function createSubmission(
+  submission: Omit<EventSubmission, "id" | "created_at" | "updated_at">
+) {
   const { data, error } = await supabase
     .from("event_submissions")
     .insert(submission)

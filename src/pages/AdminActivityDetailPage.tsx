@@ -30,7 +30,11 @@ export default function AdminActivityDetailPage() {
     return (
       <div className="admin-activity-detail-page__error" role="alert">
         <p>We couldn&apos;t load this activity entry.</p>
-        <button type="button" className="admin-btn admin-btn--secondary" onClick={() => navigate("/admin/activity")}>
+        <button
+          type="button"
+          className="admin-btn admin-btn--secondary"
+          onClick={() => navigate("/admin/activity")}
+        >
           Back to Activity
         </button>
       </div>
@@ -69,7 +73,10 @@ export default function AdminActivityDetailPage() {
         relatedRecordLink = { label: "View Event", href: `/admin/events?edit=${entry.entity_id}` };
         break;
       case "event_submission":
-        relatedRecordLink = { label: "View Submission", href: `/admin/submissions/${entry.entity_id}` };
+        relatedRecordLink = {
+          label: "View Submission",
+          href: `/admin/submissions/${entry.entity_id}`,
+        };
         break;
       case "profile":
         relatedRecordLink = { label: "View User", href: `/admin/users/${entry.entity_id}` };
@@ -97,7 +104,9 @@ export default function AdminActivityDetailPage() {
     entry.action === "user.flagged";
 
   return (
-    <div className={`admin-activity-detail-page ${isSensitive ? "admin-activity-detail-page--sensitive" : ""}`}>
+    <div
+      className={`admin-activity-detail-page ${isSensitive ? "admin-activity-detail-page--sensitive" : ""}`}
+    >
       <Link to="/admin/activity" className="admin-activity-detail-page__back">
         ← Activity
       </Link>
@@ -143,7 +152,9 @@ export default function AdminActivityDetailPage() {
         </section>
 
         {/* Reason / Notes (only when present) */}
-        {(metaString("reason") || metaString("internal_note") || metaString("rejection_reason")) && (
+        {(metaString("reason") ||
+          metaString("internal_note") ||
+          metaString("rejection_reason")) && (
           <section className="admin-activity-detail-page__card admin-card">
             <h2>Reason</h2>
             {metaString("reason") && (
@@ -218,7 +229,8 @@ export default function AdminActivityDetailPage() {
                   })
                   .map(([key, afterVal]) => {
                     const beforeVal = beforeState?.[key];
-                    const beforeStr = beforeVal !== undefined ? String(JSON.stringify(beforeVal)) : "—";
+                    const beforeStr =
+                      beforeVal !== undefined ? String(JSON.stringify(beforeVal)) : "—";
                     const afterStr = String(JSON.stringify(afterVal));
                     return (
                       <tr key={key}>
@@ -269,7 +281,10 @@ export default function AdminActivityDetailPage() {
       {hasModerationReason && entry.entity_type === "profile" && entry.entity_id && (
         <section className="admin-activity-detail-page__card admin-card">
           <h2>Moderation History</h2>
-          <Link to={`/admin/users/${entry.entity_id}?tab=activity`} className="admin-btn admin-btn--secondary">
+          <Link
+            to={`/admin/users/${entry.entity_id}?tab=activity`}
+            className="admin-btn admin-btn--secondary"
+          >
             View Moderation History
           </Link>
         </section>

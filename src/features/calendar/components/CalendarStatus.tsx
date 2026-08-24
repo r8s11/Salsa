@@ -20,7 +20,11 @@ export default function CalendarStatus({
   onClearFilter,
 }: Props) {
   if (loading) {
-    return <div className="calendar-status" role="status">Loading events…</div>;
+    return (
+      <div className="calendar-status" role="status">
+        Loading events…
+      </div>
+    );
   }
 
   if (error) {
@@ -36,7 +40,9 @@ export default function CalendarStatus({
     return (
       <div className="calendar-status" role="status">
         <p>No upcoming events in {cityLabel} yet.</p>
-        <Link to="/submit" className="btn-primary">Submit an Event</Link>
+        <Link to="/submit" className="btn-primary">
+          Submit an Event
+        </Link>
       </div>
     );
   }

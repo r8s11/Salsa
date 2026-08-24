@@ -176,7 +176,9 @@ describe("AdminUserDetailPage", () => {
     expect(within(account).getByText("maria@salsa.test")).toBeInTheDocument();
     expect(within(account).getByText("Contributions")).toBeInTheDocument();
     expect(within(operations).getByRole("heading", { name: "Moderation" })).toBeInTheDocument();
-    expect(within(operations).getByRole("heading", { name: "Administrative Actions" })).toBeInTheDocument();
+    expect(
+      within(operations).getByRole("heading", { name: "Administrative Actions" })
+    ).toBeInTheDocument();
     expect(within(operations).getByRole("link", { name: "View Events" })).toBeInTheDocument();
   });
 

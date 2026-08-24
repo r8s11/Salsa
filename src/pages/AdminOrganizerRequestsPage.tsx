@@ -160,9 +160,7 @@ export default function AdminOrganizerRequestsPage() {
 
   const handleTableSortChange = (key: string) => {
     const dir = sort.key === key ? (sort.dir === "asc" ? "desc" : "asc") : "desc";
-    const option = REQUEST_SORT_OPTIONS.find(
-      (o) => o.key === key && o.dir === dir
-    );
+    const option = REQUEST_SORT_OPTIONS.find((o) => o.key === key && o.dir === dir);
     updateParams({ sort: option?.value ?? null }, false);
   };
 
@@ -263,7 +261,11 @@ export default function AdminOrganizerRequestsPage() {
       {!isLoading && isError && (
         <div className="admin-banner admin-banner--error" role="alert">
           <p>We couldn&apos;t load organizer requests.</p>
-          <button type="button" className="admin-btn admin-btn--secondary" onClick={() => refetch()}>
+          <button
+            type="button"
+            className="admin-btn admin-btn--secondary"
+            onClick={() => refetch()}
+          >
             Try Again
           </button>
         </div>
@@ -358,7 +360,11 @@ export default function AdminOrganizerRequestsPage() {
             ) : total === 0 && !noFiltersActive ? (
               <div className="admin-organizer-requests-page__empty">
                 <h2>No requests match these filters.</h2>
-                <button type="button" className="admin-btn admin-btn--ghost" onClick={clearAllFilters}>
+                <button
+                  type="button"
+                  className="admin-btn admin-btn--ghost"
+                  onClick={clearAllFilters}
+                >
                   Clear Filters
                 </button>
               </div>
@@ -400,7 +406,7 @@ export default function AdminOrganizerRequestsPage() {
           The table's action menu routes here for approval. */}
       {pendingAction?.kind === "approve" && (
         <AdminConfirmDialog
-          title={`Approve organizer access for ${pendingAction.request.applicant_username ? `@${pendingAction.request.applicant_username}` : pendingAction.request.proposed_name ?? "this organizer"}?`}
+          title={`Approve organizer access for ${pendingAction.request.applicant_username ? `@${pendingAction.request.applicant_username}` : (pendingAction.request.proposed_name ?? "this organizer")}?`}
           body="This person will be able to create and publish their own events, edit and cancel them, and manage an organizer brand. They will NOT receive Moderator or Admin permissions."
           confirmLabel="Approve Organizer"
           isBusy={isApproving}

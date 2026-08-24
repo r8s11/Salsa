@@ -27,8 +27,7 @@ export default function SignInForm() {
   };
 
   const redirectAfterAuth = () => {
-    const destination =
-      typeof location.state?.from === "string" ? location.state.from : "/";
+    const destination = typeof location.state?.from === "string" ? location.state.from : "/";
     navigate(destination, { replace: true });
   };
 
@@ -63,8 +62,16 @@ export default function SignInForm() {
     <section className="auth-card">
       <h1>{mode === "signin" ? "Welcome back" : "Create your account"}</h1>
 
-      {errorMsg && <div className="auth-error" role="alert">{errorMsg}</div>}
-      {message && <div className="auth-message" role="status">{message}</div>}
+      {errorMsg && (
+        <div className="auth-error" role="alert">
+          {errorMsg}
+        </div>
+      )}
+      {message && (
+        <div className="auth-message" role="status">
+          {message}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="auth-form">
         <div className="form-group">
@@ -111,14 +118,8 @@ export default function SignInForm() {
       </form>
 
       <p className="auth-toggle">
-        {mode === "signin"
-          ? "Don't have an account?"
-          : "Already have an account?"}
-        <button
-          type="button"
-          className="link-button"
-          onClick={toggleMode}
-        >
+        {mode === "signin" ? "Don't have an account?" : "Already have an account?"}
+        <button type="button" className="link-button" onClick={toggleMode}>
           {mode === "signin" ? "Sign up" : "Sign in"}
         </button>
       </p>

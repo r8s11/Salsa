@@ -7,7 +7,7 @@ describe("AdminSubmissionsFilterDrawer", () => {
     const onClose = vi.fn();
     const onFiltersChange = vi.fn();
     render(
-      <AdminSubmissionsFilterDrawer 
+      <AdminSubmissionsFilterDrawer
         open={true}
         submissions={[]}
         filters={{ status: null, submitter_name: null }}

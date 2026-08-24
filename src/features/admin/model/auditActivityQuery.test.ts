@@ -39,15 +39,30 @@ describe("categoryOf", () => {
   });
 
   it("maps platform_settings entity_type to settings", () => {
-    expect(categoryOf(makeEntry({ entity_type: "platform_settings", action: "platform_settings.updated" }))).toBe("settings");
+    expect(
+      categoryOf(
+        makeEntry({ entity_type: "platform_settings", action: "platform_settings.updated" })
+      )
+    ).toBe("settings");
   });
 
   it("flags specific actions as security even when entity_type is profile", () => {
-    expect(categoryOf(makeEntry({ entity_type: "profile", action: "user.role_changed" }))).toBe("security");
-    expect(categoryOf(makeEntry({ entity_type: "profile", action: "user.banned" }))).toBe("security");
-    expect(categoryOf(makeEntry({ entity_type: "profile", action: "user.suspended" }))).toBe("security");
+    expect(categoryOf(makeEntry({ entity_type: "profile", action: "user.role_changed" }))).toBe(
+      "security"
+    );
+    expect(categoryOf(makeEntry({ entity_type: "profile", action: "user.banned" }))).toBe(
+      "security"
+    );
+    expect(categoryOf(makeEntry({ entity_type: "profile", action: "user.suspended" }))).toBe(
+      "security"
+    );
     expect(
-      categoryOf(makeEntry({ entity_type: "platform_settings", action: "platform_settings.access_policy_changed" }))
+      categoryOf(
+        makeEntry({
+          entity_type: "platform_settings",
+          action: "platform_settings.access_policy_changed",
+        })
+      )
     ).toBe("security");
   });
 });
@@ -208,9 +223,20 @@ describe("filtersForView", () => {
 describe("applyActivityFilters", () => {
   const entries: ActivityAuditLog[] = [
     makeEntry({ id: "1", action: "event.approved", entity_type: "event" }),
-    makeEntry({ id: "2", action: "user.banned", entity_type: "profile", actor_id: "admin-1", metadata: null }),
+    makeEntry({
+      id: "2",
+      action: "user.banned",
+      entity_type: "profile",
+      actor_id: "admin-1",
+      metadata: null,
+    }),
     makeEntry({ id: "3", action: "event.updated", entity_type: "event", metadata: null }),
-    makeEntry({ id: "4", action: "platform_settings.updated", entity_type: "platform_settings", metadata: null }),
+    makeEntry({
+      id: "4",
+      action: "platform_settings.updated",
+      entity_type: "platform_settings",
+      metadata: null,
+    }),
   ];
 
   const emptyFilters = {
@@ -253,7 +279,13 @@ describe("applyActivityFilters", () => {
   });
 
   it("filters by search query across metadata", () => {
-    const result = applyActivityFilters(entries, { ...emptyFilters, q: "anchor" }, "all", null, null);
+    const result = applyActivityFilters(
+      entries,
+      { ...emptyFilters, q: "anchor" },
+      "all",
+      null,
+      null
+    );
     // entry 1 has metadata.title "Salsa at the Anchor"
     expect(result).toHaveLength(1);
     expect(result[0].id).toBe("1");

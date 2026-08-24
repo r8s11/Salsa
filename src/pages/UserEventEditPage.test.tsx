@@ -27,107 +27,6 @@ vi.mock("../contexts/useAuth", () => ({
   useAuth: () => ({ ...mocks.auth, loading: false }),
 }));
 
-// Mock the form sub-components so the test focuses on the save wiring,
-// not the field rendering (which is already covered by AdminEventForm tests).
-vi.mock("../features/submit-event/components/EventDetailsFieldset", () => ({
-  default: function MockEventDetailsFieldset({
-    form,
-    update,
-  }: {
-    form: Record<string, unknown>;
-    update: (field: string, value: unknown) => void;
-  }) {
-    return (
-      <fieldset>
-        <label>
-          Event Title *
-          <input
-            id="title"
-            value={form.title as string}
-            onChange={(e) => update("title", e.target.value)}
-          />
-        </label>
-        <label>
-          Event Type *
-          <select
-            value={form.event_type as string}
-            onChange={(e) => update("event_type", e.target.value)}
-          >
-            <option value="">Select type</option>
-            <option value="social">Social</option>
-          </select>
-        </label>
-        <label>
-          City *
-          <select value={form.city as string} onChange={(e) => update("city", e.target.value)}>
-            <option value="boston">Boston</option>
-          </select>
-        </label>
-        <label>
-          Date *
-          <input
-            id="event_date"
-            type="date"
-            value={form.event_date as string}
-            onChange={(e) => update("event_date", e.target.value)}
-          />
-        </label>
-        <label>
-          Start Time
-          <input
-            id="event_time"
-            type="time"
-            value={form.event_time as string}
-            onChange={(e) => update("event_time", e.target.value)}
-          />
-        </label>
-      </fieldset>
-    );
-  },
-}));
-vi.mock("../features/submit-event/components/LocationFieldset", () => ({
-  default: function MockLocationFieldset({
-    form,
-    update,
-  }: {
-    form: Record<string, unknown>;
-    update: (field: string, value: unknown) => void;
-  }) {
-    return (
-      <fieldset>
-        <label>
-          Venue Name
-          <input
-            value={form.location as string}
-            onChange={(e) => update("location", e.target.value)}
-          />
-        </label>
-      </fieldset>
-    );
-  },
-}));
-vi.mock("../features/submit-event/components/PricingFieldset", () => ({
-  default: function MockPricingFieldset({
-    form,
-    update,
-  }: {
-    form: Record<string, unknown>;
-    update: (field: string, value: unknown) => void;
-  }) {
-    return (
-      <fieldset>
-        <label>
-          Price
-          <input
-            value={form.price_type as string}
-            onChange={(e) => update("price_type", e.target.value)}
-          />
-        </label>
-      </fieldset>
-    );
-  },
-}));
-
 vi.mock("../features/events/api/eventFlyers", () => ({
   uploadEventFlyer: mocks.uploadEventFlyer,
   removeEventFlyer: mocks.removeEventFlyer,
@@ -245,7 +144,7 @@ describe("UserEventEditPage save flow", () => {
 
     expect(await screen.findByRole("heading", { name: "Edit event" })).toBeInTheDocument();
     expect(screen.getByText(/changes stay in review/i)).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Event artwork" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Artwork" })).toBeInTheDocument();
   });
 
   it("uploads a selected flyer before persisting its URL", async () => {

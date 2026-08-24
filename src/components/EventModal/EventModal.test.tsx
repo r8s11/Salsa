@@ -1,7 +1,11 @@
+import type { ReactElement } from "react";
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render as rtlRender, screen, fireEvent } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import EventModal from "./EventModal";
 import { ScheduleXEvent } from "../../types/events";
+
+const render = (ui: ReactElement) => rtlRender(ui, { wrapper: MemoryRouter });
 
 const baseEvent: ScheduleXEvent = {
   id: "1",
@@ -27,6 +31,16 @@ describe("EventModal", () => {
     const links = screen.getAllByRole("link", { name: /get tickets/i });
     expect(links.length).toBeGreaterThanOrEqual(1);
     expect(links[0]).toHaveAttribute("href", "https://example.com/rsvp");
+  });
+
+  it("links to the event detail page and closes the quick look", () => {
+    const onClose = vi.fn();
+    render(<EventModal event={baseEvent} onClose={onClose} />);
+
+    const details = screen.getAllByRole("link", { name: "Full details" })[0];
+    expect(details).toHaveAttribute("href", "/events/1");
+    fireEvent.click(details);
+    expect(onClose).toHaveBeenCalledOnce();
   });
 
   it("shows 'Free' and 'RSVP · Free' for a free event", () => {
@@ -166,28 +180,28 @@ describe("EventModal", () => {
   });
 });
 
-  describe("quick-look region", () => {
-    const classEvent: ScheduleXEvent = {
-      id: "2",
-      title: "Beginner Salsa Class",
-      start: "2026-08-24 19:00",
-      end: "2026-08-24 23:00",
-      calendarId: "class",
-      location: "Dance Studio A",
-      priceType: "free",
-    };
+describe("quick-look region", () => {
+  const classEvent: ScheduleXEvent = {
+    id: "2",
+    title: "Beginner Salsa Class",
+    start: "2026-08-24 19:00",
+    end: "2026-08-24 23:00",
+    calendarId: "class",
+    location: "Dance Studio A",
+    priceType: "free",
+  };
 
-    it("shows date, type, title, time, venue, and price in the quick-look region", () => {
-      render(<EventModal event={classEvent} onClose={vi.fn()} />);
-      expect(screen.getByText(/Monday, August 24, 2026/i)).toBeInTheDocument();
-      expect(screen.getByText("class")).toBeInTheDocument();
-      expect(screen.getByText("Beginner Salsa Class")).toBeInTheDocument();
-      expect(screen.getByText(/7:00 PM - 11:00 PM/i)).toBeInTheDocument();
-      expect(screen.getByText("Free")).toBeInTheDocument();
-    });
-
-    it("does not invent class metadata that is absent from the event", () => {
-      render(<EventModal event={{ ...classEvent, location: "Dance Studio A" }} onClose={vi.fn()} />);
-      expect(screen.queryByText(/Expected level|Teacher|Class length/i)).not.toBeInTheDocument();
-    });
+  it("shows date, type, title, time, venue, and price in the quick-look region", () => {
+    render(<EventModal event={classEvent} onClose={vi.fn()} />);
+    expect(screen.getByText(/Monday, August 24, 2026/i)).toBeInTheDocument();
+    expect(screen.getByText("class")).toBeInTheDocument();
+    expect(screen.getByText("Beginner Salsa Class")).toBeInTheDocument();
+    expect(screen.getByText(/7:00 PM - 11:00 PM/i)).toBeInTheDocument();
+    expect(screen.getByText("Free")).toBeInTheDocument();
   });
+
+  it("does not invent class metadata that is absent from the event", () => {
+    render(<EventModal event={{ ...classEvent, location: "Dance Studio A" }} onClose={vi.fn()} />);
+    expect(screen.queryByText(/Expected level|Teacher|Class length/i)).not.toBeInTheDocument();
+  });
+});

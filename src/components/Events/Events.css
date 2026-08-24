@@ -239,12 +239,24 @@
   animation: fadeInUp 0.4s ease-out both;
 }
 
-.events-grid .event-card:nth-child(1) { animation-delay: 0s; }
-.events-grid .event-card:nth-child(2) { animation-delay: 0.07s; }
-.events-grid .event-card:nth-child(3) { animation-delay: 0.14s; }
-.events-grid .event-card:nth-child(4) { animation-delay: 0.21s; }
-.events-grid .event-card:nth-child(5) { animation-delay: 0.28s; }
-.events-grid .event-card:nth-child(6) { animation-delay: 0.35s; }
+.events-grid .event-card:nth-child(1) {
+  animation-delay: 0s;
+}
+.events-grid .event-card:nth-child(2) {
+  animation-delay: 0.07s;
+}
+.events-grid .event-card:nth-child(3) {
+  animation-delay: 0.14s;
+}
+.events-grid .event-card:nth-child(4) {
+  animation-delay: 0.21s;
+}
+.events-grid .event-card:nth-child(5) {
+  animation-delay: 0.28s;
+}
+.events-grid .event-card:nth-child(6) {
+  animation-delay: 0.35s;
+}
 
 /* ── Thumb ── */
 .event-card-thumb {
@@ -418,17 +430,21 @@
   height: 260px;
   background: linear-gradient(
     90deg,
-    var(--card)           25%,
-    rgba(255,255,255,0.04) 50%,
-    var(--card)           75%
+    var(--card) 25%,
+    rgba(255, 255, 255, 0.04) 50%,
+    var(--card) 75%
   );
   background-size: 200% 100%;
   animation: shimmer 1.6s ease-in-out infinite;
 }
 
 @keyframes shimmer {
-  0%   { background-position:  200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 /* ── No Events ── */
@@ -483,7 +499,7 @@
 }
 
 .cta-button::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   background: var(--red-bright);
@@ -495,7 +511,6 @@
 .cta-button:hover::before {
   transform: translateX(0);
 }
-
 
 /* ── Mobile ── */
 @media (max-width: 768px) {

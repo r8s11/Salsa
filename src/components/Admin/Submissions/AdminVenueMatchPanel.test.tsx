@@ -67,7 +67,7 @@ describe("AdminVenueMatchPanel", () => {
         submission={makeSubmission("New Place")}
         existingEvents={[]}
         onUseVenue={() => {}}
-      />,
+      />
     );
     expect(screen.getByText(/New venue — will be recorded as free text/)).toBeDefined();
   });
@@ -79,7 +79,7 @@ describe("AdminVenueMatchPanel", () => {
         submission={makeSubmission("Havana Club")}
         existingEvents={[mockExistingEvent]}
         onUseVenue={handleUseVenue}
-      />,
+      />
     );
 
     expect(screen.getByText(/Exact venue match found/)).toBeDefined();

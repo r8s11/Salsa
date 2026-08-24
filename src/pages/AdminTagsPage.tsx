@@ -21,14 +21,9 @@ function parseFilters(searchParams: URLSearchParams): TaxonomyFilters {
   const rawView = searchParams.get("view");
   return {
     search: searchParams.get("q") ?? "",
-    category:
-      category === "dance_style" || category === "event_attribute"
-        ? category
-        : null,
+    category: category === "dance_style" || category === "event_attribute" ? category : null,
     status:
-      status === "active" || status === "needs_review" || status === "archived"
-        ? status
-        : null,
+      status === "active" || status === "needs_review" || status === "archived" ? status : null,
     view: (rawView ?? "all") as TaxonomyFilters["view"],
   };
 }
@@ -45,8 +40,7 @@ function paramsFromFilters(filters: TaxonomyFilters): URLSearchParams {
 export default function AdminTagsPage() {
   const [params, setParams] = useSearchParams();
   const urlFilters = parseFilters(params);
-  const { terms, isLoading, error, archive, restore, remove } =
-    useAdminTaxonomy(urlFilters);
+  const { terms, isLoading, error, archive, restore, remove } = useAdminTaxonomy(urlFilters);
 
   const viewableTerms = useMemo(
     () => applyTaxonomyView(terms ?? [], urlFilters.view),
@@ -69,9 +63,7 @@ export default function AdminTagsPage() {
   };
 
   const hasActiveFilters =
-    urlFilters.search.length > 0 ||
-    urlFilters.category !== null ||
-    urlFilters.status !== null;
+    urlFilters.search.length > 0 || urlFilters.category !== null || urlFilters.status !== null;
 
   const emptyMessage =
     hasActiveFilters && filteredTerms.length === 0
@@ -119,10 +111,7 @@ export default function AdminTagsPage() {
           />
 
           <div className="admin-card admin-tags-page__toolbar-card">
-            <AdminTaxonomyToolbar
-              filters={urlFilters}
-              onFiltersChange={updateFilters}
-            />
+            <AdminTaxonomyToolbar filters={urlFilters} onFiltersChange={updateFilters} />
             {hasActiveFilters && (
               <button
                 type="button"

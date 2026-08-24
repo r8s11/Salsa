@@ -40,14 +40,11 @@ export default function AdminSubmissionsPage() {
     <div className="admin-submissions-page">
       <h1>Submissions</h1>
       <button onClick={() => setDrawerOpen(true)}>Filters</button>
-      
+
       {isLoading ? (
         <p>Loading…</p>
       ) : (
-        <AdminSubmissionsTable 
-          submissions={filteredSubmissions} 
-          onAction={handleAction} 
-        />
+        <AdminSubmissionsTable submissions={filteredSubmissions} onAction={handleAction} />
       )}
 
       <AdminSubmissionsFilterDrawer

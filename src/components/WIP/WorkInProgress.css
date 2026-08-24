@@ -17,7 +17,7 @@
 
 /* Atmospheric glow */
 .wip-container::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 50%;
   left: 50%;
@@ -61,7 +61,7 @@
 
 /* Divider */
 .wip-container h2::after {
-  content: '';
+  content: "";
   display: block;
   width: 40px;
   height: 2px;

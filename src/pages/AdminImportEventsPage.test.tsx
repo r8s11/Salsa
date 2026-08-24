@@ -259,9 +259,18 @@ describe("AdminImportEventsPage — validation review", () => {
         rows: [
           reviewingRow({
             status: "warning",
-            warnings: [{ field: "duplicate", message: 'Possible duplicate — matches an existing event: "Salsa Social".' }],
+            warnings: [
+              {
+                field: "duplicate",
+                message: 'Possible duplicate — matches an existing event: "Salsa Social".',
+              },
+            ],
             duplicates: [
-              { event: existingEvent("Salsa Social"), signals: ["same-date", "similar-title"], confidence: "medium" },
+              {
+                event: existingEvent("Salsa Social"),
+                signals: ["same-date", "similar-title"],
+                confidence: "medium",
+              },
             ],
           }),
         ],
@@ -358,7 +367,9 @@ describe("AdminImportEventsPage — results", () => {
           totalRows: 28,
           createdCount: 25,
           failedCount: 1,
-          rows: [{ rowNumber: 9, title: "Broken One", outcome: "failed", error: "constraint violation" }],
+          rows: [
+            { rowNumber: 9, title: "Broken One", outcome: "failed", error: "constraint violation" },
+          ],
         },
       })
     );
@@ -414,7 +425,10 @@ describe("AdminImportEventsPage — results", () => {
     );
     renderPage();
     await waitFor(() => {
-      expect(screen.getByRole("link", { name: "View Events" })).toHaveAttribute("href", "/admin/events");
+      expect(screen.getByRole("link", { name: "View Events" })).toHaveAttribute(
+        "href",
+        "/admin/events"
+      );
     });
   });
 });

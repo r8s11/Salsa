@@ -59,10 +59,7 @@ describe("MobileTabBar", () => {
     vi.mocked(useAuth).mockReturnValue(defaultAuth());
     renderTabBar("/calendar");
 
-    expect(screen.getByRole("link", { name: "Calendar" })).toHaveAttribute(
-      "aria-current",
-      "page"
-    );
+    expect(screen.getByRole("link", { name: "Calendar" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: "Home" })).not.toHaveAttribute("aria-current");
   });
 });

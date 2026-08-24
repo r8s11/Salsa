@@ -8,14 +8,16 @@ import * as submissionsQuery from "../model/submissionsQuery";
 
 vi.mock("../model/submissionsQuery");
 
-describe('useAdminSubmissions', () => {
+describe("useAdminSubmissions", () => {
   const queryClient = new QueryClient();
   const wrapper = ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 
-  it('calls updateSubmission with rejected status and rejection fields', async () => {
-    const mockUpdate = vi.spyOn(submissionsQuery, "updateSubmission").mockResolvedValue({} as EventSubmission);
+  it("calls updateSubmission with rejected status and rejection fields", async () => {
+    const mockUpdate = vi
+      .spyOn(submissionsQuery, "updateSubmission")
+      .mockResolvedValue({} as EventSubmission);
     const { result } = renderHook(() => useAdminSubmissions(), { wrapper });
 
     await result.current.rejectSubmission({
@@ -32,7 +34,7 @@ describe('useAdminSubmissions', () => {
         rejection_reason: "spam",
         rejection_message: "This is spam.",
         internal_note: "Found spammy content.",
-      }),
+      })
     );
   });
 });

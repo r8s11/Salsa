@@ -8,7 +8,10 @@ interface AdminImportDropzoneProps {
   disabled?: boolean;
 }
 
-export default function AdminImportDropzone({ onFileSelected, disabled = false }: AdminImportDropzoneProps) {
+export default function AdminImportDropzone({
+  onFileSelected,
+  disabled = false,
+}: AdminImportDropzoneProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 

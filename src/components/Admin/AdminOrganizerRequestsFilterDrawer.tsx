@@ -6,10 +6,7 @@ import {
   type OrganizerType,
   type RequestFilters,
 } from "../../features/admin/model/organizerRequestsQuery";
-import {
-  ACCOUNT_STATUS_LABEL,
-  type AccountStatus,
-} from "../../features/admin/model/usersQuery";
+import { ACCOUNT_STATUS_LABEL, type AccountStatus } from "../../features/admin/model/usersQuery";
 import "./AdminOrganizerRequestsFilterDrawer.css";
 
 const EMPTY_FILTERS: Pick<RequestFilters, "type" | "accountStatus" | "from" | "to"> = {
@@ -117,10 +114,7 @@ export default function AdminOrganizerRequestsFilterDrawer({
           <fieldset className="admin-organizer-requests-filter-drawer__type-group">
             <legend>Organizer Type</legend>
             {typeOptions.map((option) => (
-              <label
-                key={option}
-                className="admin-organizer-requests-filter-drawer__type-option"
-              >
+              <label key={option} className="admin-organizer-requests-filter-drawer__type-option">
                 <input
                   type="checkbox"
                   checked={filters.type.includes(option)}
@@ -134,10 +128,7 @@ export default function AdminOrganizerRequestsFilterDrawer({
           <fieldset className="admin-organizer-requests-filter-drawer__status-group">
             <legend>Account Status</legend>
             {statusOptions.map((option) => (
-              <label
-                key={option}
-                className="admin-organizer-requests-filter-drawer__status-option"
-              >
+              <label key={option} className="admin-organizer-requests-filter-drawer__status-option">
                 <input
                   type="checkbox"
                   checked={filters.accountStatus.includes(option)}
@@ -155,7 +146,9 @@ export default function AdminOrganizerRequestsFilterDrawer({
               type="date"
               className="admin-input"
               value={filters.from ?? ""}
-              onChange={(event) => onFiltersChange({ ...filters, from: event.target.value || null })}
+              onChange={(event) =>
+                onFiltersChange({ ...filters, from: event.target.value || null })
+              }
             />
           </div>
 

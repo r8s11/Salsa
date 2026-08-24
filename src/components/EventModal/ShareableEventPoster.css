@@ -61,12 +61,7 @@
 }
 
 .poster-content.poster-no-image {
-  background: linear-gradient(
-    160deg,
-    #0f1a30 0%,
-    #131b2e 30%,
-    var(--red) 140%
-  );
+  background: linear-gradient(160deg, #0f1a30 0%, #131b2e 30%, var(--red) 140%);
 }
 
 /* ── Top strip: brand + type chip ── */

@@ -104,7 +104,10 @@ describe("ProfilePage", () => {
 
     expect(screen.getByText("dancer")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "+ Submit Event" })).toHaveAttribute("href", "/submit");
-    expect(screen.getByRole("link", { name: "View Calendar" })).toHaveAttribute("href", "/calendar");
+    expect(screen.getByRole("link", { name: "View Calendar" })).toHaveAttribute(
+      "href",
+      "/calendar"
+    );
     expect(screen.getByRole("button", { name: "Sign Out" })).toBeInTheDocument();
   });
 
@@ -130,8 +133,14 @@ describe("ProfilePage", () => {
 
     const links = screen.getAllByText("View on calendar");
     expect(links).toHaveLength(2);
-    expect(links[0].closest("a")).toHaveAttribute("href", "/calendar?event=boston-approved&city=boston");
-    expect(links[1].closest("a")).toHaveAttribute("href", "/calendar?event=nyc-approved&city=new-york-city");
+    expect(links[0].closest("a")).toHaveAttribute(
+      "href",
+      "/calendar?event=boston-approved&city=boston"
+    );
+    expect(links[1].closest("a")).toHaveAttribute(
+      "href",
+      "/calendar?event=nyc-approved&city=new-york-city"
+    );
   });
 
   it("shows Edit link for pending and rejected submissions", () => {
@@ -150,7 +159,12 @@ describe("ProfilePage", () => {
   });
 
   it("shows error state with retry", () => {
-    mocks.submissions = { submissions: [], approvedEvents: [], isLoading: false, error: "Network error" };
+    mocks.submissions = {
+      submissions: [],
+      approvedEvents: [],
+      isLoading: false,
+      error: "Network error",
+    };
     renderPage();
     expect(screen.getByText("Couldn't load your profile: Network error")).toBeInTheDocument();
   });

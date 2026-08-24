@@ -188,11 +188,7 @@ describe("parseSeries", () => {
 
   it("filters out malformed data points", () => {
     const raw = {
-      events_by_week: [
-        { label: "Aug 4", value: 12 },
-        { foo: "bar" },
-        null,
-      ],
+      events_by_week: [{ label: "Aug 4", value: 12 }, { foo: "bar" }, null],
       submissions_by_week: [],
     };
 

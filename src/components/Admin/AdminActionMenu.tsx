@@ -1,4 +1,11 @@
-import { useEffect, useLayoutEffect, useRef, useState, type ComponentType, type KeyboardEvent } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ComponentType,
+  type KeyboardEvent,
+} from "react";
 import { MoreHorizontal } from "lucide-react";
 import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
 import "./AdminActionMenu.css";
@@ -115,7 +122,9 @@ export default function AdminActionMenu({ label, items, disabled }: AdminActionM
                 role="none"
                 className={item.separatorBefore ? "admin-action-menu__separator-before" : undefined}
               >
-                {item.separatorBefore && <hr role="separator" className="admin-action-menu__separator" />}
+                {item.separatorBefore && (
+                  <hr role="separator" className="admin-action-menu__separator" />
+                )}
                 <button
                   type="button"
                   role="menuitem"

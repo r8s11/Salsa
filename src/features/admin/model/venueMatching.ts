@@ -3,7 +3,7 @@ import { DatabaseEvent } from "../../events/model/types";
 import { getEffectiveEventData } from "./submissionForm";
 
 export interface VenueMatch {
-  match: 'exact' | 'fuzzy';
+  match: "exact" | "fuzzy";
   existingEvent: DatabaseEvent;
 }
 
@@ -13,7 +13,7 @@ export function findVenueMatch(
 ): VenueMatch | null {
   const submissionData = getEffectiveEventData(submission);
   const location = (submissionData.location as string)?.trim().toLowerCase();
-  
+
   if (!location) return null;
 
   for (const event of existingEvents) {
@@ -21,12 +21,12 @@ export function findVenueMatch(
     if (!existingLocation) continue;
 
     if (location === existingLocation) {
-      return { match: 'exact', existingEvent: event };
+      return { match: "exact", existingEvent: event };
     }
 
     // Jaccard similarity > 0.6
     if (jaccardSimilarity(location, existingLocation) > 0.6) {
-      return { match: 'fuzzy', existingEvent: event };
+      return { match: "fuzzy", existingEvent: event };
     }
   }
 
@@ -36,7 +36,7 @@ export function findVenueMatch(
 function jaccardSimilarity(a: string, b: string): number {
   const setA = new Set(a.split(/\s+/));
   const setB = new Set(b.split(/\s+/));
-  const intersection = new Set([...setA].filter(x => setB.has(x)));
+  const intersection = new Set([...setA].filter((x) => setB.has(x)));
   const union = new Set([...setA, ...setB]);
   return intersection.size / union.size;
 }

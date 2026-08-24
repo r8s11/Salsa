@@ -1,14 +1,24 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { RejectionReason } from '../model/submissions';
-import { updateSubmission } from '../model/submissionsQuery';
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { RejectionReason } from "../model/submissions";
+import { updateSubmission } from "../model/submissionsQuery";
 
 export function useAdminSubmissions() {
   const queryClient = useQueryClient();
 
   const rejectMutation = useMutation({
-    mutationFn: ({ id, reason, message, note }: { id: string; reason: RejectionReason; message: string; note: string }) => {
+    mutationFn: ({
+      id,
+      reason,
+      message,
+      note,
+    }: {
+      id: string;
+      reason: RejectionReason;
+      message: string;
+      note: string;
+    }) => {
       return updateSubmission(id, {
-        status: 'rejected',
+        status: "rejected",
         rejection_reason: reason,
         rejection_message: message,
         internal_note: note,
@@ -16,7 +26,7 @@ export function useAdminSubmissions() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['submissions'] });
+      queryClient.invalidateQueries({ queryKey: ["submissions"] });
     },
   });
 

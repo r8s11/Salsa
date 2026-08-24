@@ -99,9 +99,7 @@ export default function AdminVenueForm({
               </li>
             ))}
           </ul>
-          <p className="admin-form__helper">
-            Review these matches before creating a new venue.
-          </p>
+          <p className="admin-form__helper">Review these matches before creating a new venue.</p>
         </div>
       )}
 
@@ -252,7 +250,14 @@ export default function AdminVenueForm({
             <div className="admin-venue-form__confirmation-card">
               <strong>{form.name || "Venue Name"}</strong>
               <span className="admin-venue-form__confirmation-address">
-                {[form.address_line1, form.address_line2, form.city, form.state_region, form.postal_code, form.country]
+                {[
+                  form.address_line1,
+                  form.address_line2,
+                  form.city,
+                  form.state_region,
+                  form.postal_code,
+                  form.country,
+                ]
                   .filter((part) => part && part.trim())
                   .join(", ")}
               </span>

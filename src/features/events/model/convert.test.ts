@@ -110,10 +110,15 @@ describe("databaseEventToScheduleX", () => {
       taxonomy_term_ids: ["salsa-id", "outdoor-id"],
       taxonomy_terms: [
         { id: "salsa-id", name: "Salsa", slug: "salsa", category: "dance_style", status: "active" },
-        { id: "outdoor-id", name: "Outdoor", slug: "outdoor", category: "event_attribute", status: "active" },
+        {
+          id: "outdoor-id",
+          name: "Outdoor",
+          slug: "outdoor",
+          category: "event_attribute",
+          status: "active",
+        },
       ],
     });
     expect(databaseEventToScheduleX(event).danceStyles).toEqual(["Salsa"]);
   });
-
 });

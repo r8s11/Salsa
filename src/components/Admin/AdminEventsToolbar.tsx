@@ -35,9 +35,15 @@ function resolvePreset(preset: DatePreset, now: Date): { from: string | null; to
     case "today":
       return { from: today, to: today };
     case "next7":
-      return { from: today, to: toDateInputValue(new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)) };
+      return {
+        from: today,
+        to: toDateInputValue(new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)),
+      };
     case "next30":
-      return { from: today, to: toDateInputValue(new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)) };
+      return {
+        from: today,
+        to: toDateInputValue(new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)),
+      };
     case "past":
       return { from: null, to: toDateInputValue(new Date(now.getTime() - 24 * 60 * 60 * 1000)) };
     case "any":
@@ -81,9 +87,12 @@ export default function AdminEventsToolbar({
       onFiltersChange({ ...filters, q: value });
     }, 200);
   };
-  useEffect(() => () => {
-    clearTimeout(debounceRef.current ?? undefined);
-  }, []);
+  useEffect(
+    () => () => {
+      clearTimeout(debounceRef.current ?? undefined);
+    },
+    []
+  );
 
   const [datePreset, setDatePreset] = useState<DatePreset>(() =>
     filters.from === null && filters.to === null ? "any" : "custom"
@@ -165,14 +174,18 @@ export default function AdminEventsToolbar({
                 className="admin-input"
                 aria-label="From date"
                 value={filters.from ?? ""}
-                onChange={(event) => onFiltersChange({ ...filters, from: event.target.value || null })}
+                onChange={(event) =>
+                  onFiltersChange({ ...filters, from: event.target.value || null })
+                }
               />
               <input
                 type="date"
                 className="admin-input"
                 aria-label="To date"
                 value={filters.to ?? ""}
-                onChange={(event) => onFiltersChange({ ...filters, to: event.target.value || null })}
+                onChange={(event) =>
+                  onFiltersChange({ ...filters, to: event.target.value || null })
+                }
               />
             </div>
           )}
@@ -190,7 +203,11 @@ export default function AdminEventsToolbar({
             <ChevronDown size={14} />
           </button>
           {statusOpen && (
-            <ul className="admin-events-toolbar__status-panel" role="menu" aria-label="Filter by status">
+            <ul
+              className="admin-events-toolbar__status-panel"
+              role="menu"
+              aria-label="Filter by status"
+            >
               {STATUS_OPTIONS.map((option) => (
                 <li key={option.value} role="none">
                   <label className="admin-events-toolbar__status-option">
@@ -229,7 +246,9 @@ export default function AdminEventsToolbar({
             id="admin-events-sort"
             className="admin-select"
             value={sort.key}
-            onChange={(event) => onSortChange({ key: event.target.value as SortKey, dir: sort.dir })}
+            onChange={(event) =>
+              onSortChange({ key: event.target.value as SortKey, dir: sort.dir })
+            }
           >
             {SORT_OPTIONS.map((option) => (
               <option key={option.key} value={option.key}>

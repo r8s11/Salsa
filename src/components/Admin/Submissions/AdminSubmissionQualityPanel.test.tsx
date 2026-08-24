@@ -19,10 +19,10 @@ describe("AdminSubmissionQualityPanel", () => {
 
     expect(screen.getByText(/Required/i)).toBeInTheDocument();
     expect(screen.getByText(/Event title/i)).toBeInTheDocument();
-    
+
     expect(screen.getByText(/Recommended/i)).toBeInTheDocument();
     expect(screen.getByText(/Venue\/location/i)).toBeInTheDocument();
-    
+
     expect(screen.getByText(/Optional/i)).toBeInTheDocument();
     expect(screen.getByText(/Organizer\/Host/i)).toBeInTheDocument();
   });

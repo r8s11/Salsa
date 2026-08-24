@@ -26,10 +26,7 @@ vi.mock("../features/events/components/EventFlyerField", () => ({
     return (
       <label>
         Event flyer
-        <input
-          type="file"
-          onChange={(event) => onFileChange(event.target.files?.[0] ?? null)}
-        />
+        <input type="file" onChange={(event) => onFileChange(event.target.files?.[0] ?? null)} />
       </label>
     );
   },
@@ -201,7 +198,10 @@ describe("AdminEventsPage", () => {
 
     await user.click(screen.getByRole("button", { name: /Create Event/i }));
 
-    expect(screen.getByLabelText("City *")).toHaveValue("new-york-city");
+    expect(screen.getByRole("button", { name: "New York City" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
   });
 
   it("opens a prefilled form when Edit is chosen from the row menu", async () => {
@@ -237,7 +237,9 @@ describe("AdminEventsPage", () => {
     await waitFor(() => {
       expect(saveAsync).toHaveBeenCalledWith({
         id: "event-1",
-        payload: expect.objectContaining({ image_url: "https://project.supabase.co/new-flyer.png" }),
+        payload: expect.objectContaining({
+          image_url: "https://project.supabase.co/new-flyer.png",
+        }),
       });
     });
     expect(uploadEventFlyer).toHaveBeenCalledWith({

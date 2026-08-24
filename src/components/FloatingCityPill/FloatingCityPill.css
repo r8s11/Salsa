@@ -35,7 +35,9 @@
   font-size: 0.68rem;
   letter-spacing: 0.05em;
   cursor: pointer;
-  transition: color 0.18s ease, background 0.18s ease;
+  transition:
+    color 0.18s ease,
+    background 0.18s ease;
 }
 
 .floating-city-pill__btn:hover {

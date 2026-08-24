@@ -15,7 +15,12 @@ describe("AdminTaxonomyToolbar", () => {
 
   it("clears all active filters", async () => {
     const onFiltersChange = vi.fn();
-    render(<AdminTaxonomyToolbar filters={{ ...filters, search: "salsa", status: "active" }} onFiltersChange={onFiltersChange} />);
+    render(
+      <AdminTaxonomyToolbar
+        filters={{ ...filters, search: "salsa", status: "active" }}
+        onFiltersChange={onFiltersChange}
+      />
+    );
     await userEvent.click(screen.getByRole("button", { name: "Clear all filters" }));
     expect(onFiltersChange).toHaveBeenCalledWith(filters);
   });

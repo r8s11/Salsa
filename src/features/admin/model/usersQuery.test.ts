@@ -310,12 +310,7 @@ describe("rowActionItems", () => {
   it("active status offers Flag, Suspend, Ban but no Change Role (moderator)", () => {
     const active = makeRow({ user_id: "other-1", role: "user", status: "active" });
     const items = rowActionItems(active, currentUserId, 2, false, vi.fn());
-    expect(items.map((item) => item.id)).toEqual([
-      "view-contributions",
-      "flag",
-      "suspend",
-      "ban",
-    ]);
+    expect(items.map((item) => item.id)).toEqual(["view-contributions", "flag", "suspend", "ban"]);
   });
 
   it("flagged status offers Remove Flag instead of Flag (admin)", () => {

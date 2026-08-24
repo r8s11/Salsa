@@ -175,7 +175,10 @@ main {
   padding: 2rem;
   border-radius: var(--radius-lg);
   text-align: center;
-  transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+  transition:
+    border-color 0.25s ease,
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
 .style-card:hover {
@@ -228,7 +231,10 @@ main {
   padding: 1.75rem;
   border-radius: var(--radius-lg);
   text-align: center;
-  transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+  transition:
+    border-color 0.25s ease,
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
 .contact-card:hover {

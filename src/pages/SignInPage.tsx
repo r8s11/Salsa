@@ -14,8 +14,7 @@ export default function SignInPage() {
           <p className="auth-story-eyebrow">Salsa Segura account</p>
           <h1 id="auth-story-heading">Your city. Your rhythm. Your calendar.</h1>
           <p>
-            Sign in to submit events, track moderation status, and help keep
-            the dance floor moving.
+            Sign in to submit events, track moderation status, and help keep the dance floor moving.
           </p>
         </section>
         <SignInForm />

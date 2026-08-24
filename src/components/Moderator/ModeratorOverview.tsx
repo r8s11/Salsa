@@ -7,8 +7,6 @@ import type { OverviewMetrics } from "../../features/admin/model/overviewMetrics
 import AdminUpcomingEvents from "../Admin/AdminUpcomingEvents";
 import type { DatabaseEvent } from "../../features/events/model/types";
 
-
-
 interface Props {
   isLoading: boolean;
   isUsersLoading: boolean;

@@ -4,7 +4,7 @@ import type { EventSubmission } from "./submissions";
 
 function makeSubmission(
   submittedData: EventSubmission["submitted_data"],
-  editedData: EventSubmission["edited_data"] = null,
+  editedData: EventSubmission["edited_data"] = null
 ): EventSubmission {
   return {
     id: "sub-1",
@@ -38,7 +38,7 @@ describe("getEffectiveEventData", () => {
   it("should merge edits when they exist", () => {
     const submission = makeSubmission(
       { title: "Test Event", location: "Old Venue" },
-      { location: "New Venue" },
+      { location: "New Venue" }
     );
 
     expect(getEffectiveEventData(submission)).toEqual({

@@ -107,7 +107,9 @@ describe("AdminEventsTable", () => {
   });
 
   it("renders gracefully when event_type is null", () => {
-    renderTable({ events: [{ ...baseEvent, event_type: null as unknown as DatabaseEvent["event_type"] }] });
+    renderTable({
+      events: [{ ...baseEvent, event_type: null as unknown as DatabaseEvent["event_type"] }],
+    });
     expect(screen.getAllByText("Unknown").length).toBeGreaterThan(0);
   });
 

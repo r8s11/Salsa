@@ -6,6 +6,7 @@ import { removeEventFlyer, uploadEventFlyer } from "../features/events/api/event
 import { useCity } from "../contexts/useCity";
 import { usePlatformSettings } from "../features/admin/hooks/usePlatformSettings";
 import type { DatabaseEvent, City } from "../features/events/model/types";
+import { draftToAdminPayload } from "../features/events/components/EventForm";
 import { findPotentialDuplicates } from "../features/admin/model/overviewMetrics";
 import {
   applyView,
@@ -25,7 +26,6 @@ import {
   type SortKey,
 } from "../features/admin/model/eventsQuery";
 import {
-  adminFormToPayload,
   buildAdminFormFromEvent,
   buildEmptyAdminForm,
 } from "../features/admin/model/adminEventForm";
@@ -36,7 +36,7 @@ import AdminEventsToolbar from "../components/Admin/AdminEventsToolbar";
 import AdminEventsFilterDrawer from "../components/Admin/AdminEventsFilterDrawer";
 import AdminEventsTable, { type RowAction } from "../components/Admin/AdminEventsTable";
 import AdminPagination from "../components/Admin/AdminPagination";
-import AdminEventForm from "../components/Admin/AdminEventForm";
+import AdminEventEditor from "../features/admin/components/AdminEventEditor";
 import AdminConfirmDialog from "../components/Admin/AdminConfirmDialog";
 import AdminDuplicateEventDialog from "../components/Admin/AdminDuplicateEventDialog";
 import "./AdminEventsPage.css";
@@ -488,7 +488,7 @@ export default function AdminEventsPage() {
     let uploadedFlyerUrl: string | null = null;
 
     try {
-      const payload = adminFormToPayload(form);
+      const payload = draftToAdminPayload(form);
       if (flyer && formView.mode === "edit") {
         const uploadedFlyer = await uploadEventFlyer({
           file: flyer,
@@ -531,7 +531,7 @@ export default function AdminEventsPage() {
       );
     }
     return (
-      <AdminEventForm
+      <AdminEventEditor
         initial={
           isEdit
             ? buildAdminFormFromEvent(formView.event)

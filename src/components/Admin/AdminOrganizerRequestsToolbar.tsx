@@ -152,13 +152,18 @@ export default function AdminOrganizerRequestsToolbar({
           <SlidersHorizontal size={14} />
           More Filters
           {drawerFilterCount > 0 && (
-            <span className="admin-organizer-requests-toolbar__more-count">{drawerFilterCount}</span>
+            <span className="admin-organizer-requests-toolbar__more-count">
+              {drawerFilterCount}
+            </span>
           )}
         </button>
       </div>
 
       <div className="admin-organizer-requests-toolbar__sort-row">
-        <label className="admin-organizer-requests-toolbar__sort-label" htmlFor="admin-organizer-requests-sort">
+        <label
+          className="admin-organizer-requests-toolbar__sort-label"
+          htmlFor="admin-organizer-requests-sort"
+        >
           Sort:
         </label>
         <div className="admin-select-wrap">

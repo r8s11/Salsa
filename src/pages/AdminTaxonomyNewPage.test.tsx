@@ -9,7 +9,11 @@ vi.mock("../features/admin/hooks/useAdminTaxonomy", () => ({
 
 describe("AdminTaxonomyNewPage", () => {
   it("honors the category query parameter", () => {
-    render(<MemoryRouter initialEntries={["/admin/tags/new?category=event_attribute"]}><AdminTaxonomyNewPage /></MemoryRouter>);
+    render(
+      <MemoryRouter initialEntries={["/admin/tags/new?category=event_attribute"]}>
+        <AdminTaxonomyNewPage />
+      </MemoryRouter>
+    );
     expect(screen.getByRole("heading", { name: "Add taxonomy term" })).toBeVisible();
     expect(screen.getByLabelText("Category *")).toHaveValue("event_attribute");
   });

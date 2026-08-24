@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { useOrganizerRequests, useOrganizerRequest } from "../features/admin/hooks/useOrganizerRequests";
-import { useAdminEvents } from "../hooks/useAdminEvents";
 import {
-  applyFilters,
-  type EventFilters,
-} from "../features/admin/model/eventsQuery";
+  useOrganizerRequests,
+  useOrganizerRequest,
+} from "../features/admin/hooks/useOrganizerRequests";
+import { useAdminEvents } from "../hooks/useAdminEvents";
+import { applyFilters, type EventFilters } from "../features/admin/model/eventsQuery";
 import {
   displayNameFor,
   identityLineFor,
@@ -69,11 +69,7 @@ function applicantRow(request: OrganizerRequestRow): AdminUserRow {
   };
 }
 
-type PendingAction =
-  | { kind: "approve" }
-  | { kind: "reject" }
-  | { kind: "revoke" }
-  | null;
+type PendingAction = { kind: "approve" } | { kind: "reject" } | { kind: "revoke" } | null;
 
 export default function AdminOrganizerRequestDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -166,9 +162,18 @@ export default function AdminOrganizerRequestDetailPage() {
       .slice(0, 5);
   }, [resolvedRequest, events]);
 
-  const approvedCount = useMemo(() => applicantEvents.filter((e) => e.status === "approved").length, [applicantEvents]);
-  const pendingCount = useMemo(() => applicantEvents.filter((e) => e.status === "pending").length, [applicantEvents]);
-  const rejectedCount = useMemo(() => applicantEvents.filter((e) => e.status === "rejected").length, [applicantEvents]);
+  const approvedCount = useMemo(
+    () => applicantEvents.filter((e) => e.status === "approved").length,
+    [applicantEvents]
+  );
+  const pendingCount = useMemo(
+    () => applicantEvents.filter((e) => e.status === "pending").length,
+    [applicantEvents]
+  );
+  const rejectedCount = useMemo(
+    () => applicantEvents.filter((e) => e.status === "rejected").length,
+    [applicantEvents]
+  );
 
   const requestHistory = useMemo(() => {
     if (!resolvedRequest || !directoryRequests) return [];
@@ -251,7 +256,8 @@ export default function AdminOrganizerRequestDetailPage() {
             <AdminRequestStatusBadge status={req.status} />
           </div>
           <p className="admin-organizer-request-detail-page__joined">
-            {applicant!.kind === "guest" ? "First activity" : "Joined"} {formatDate(applicant!.created_at)}
+            {applicant!.kind === "guest" ? "First activity" : "Joined"}{" "}
+            {formatDate(applicant!.created_at)}
           </p>
           {hasModerationConcern && (
             <p className="admin-organizer-request-detail-page__moderation-banner">
@@ -286,7 +292,9 @@ export default function AdminOrganizerRequestDetailPage() {
           </div>
           <div className="admin-organizer-request-detail-page__field">
             <span className="admin-organizer-request-detail-page__label">Account Type</span>
-            <span>{applicant!.kind === "profile" ? "Registered User" : "Magic-Link Submitter"}</span>
+            <span>
+              {applicant!.kind === "profile" ? "Registered User" : "Magic-Link Submitter"}
+            </span>
           </div>
           <div className="admin-organizer-request-detail-page__field">
             <span className="admin-organizer-request-detail-page__label">Role</span>
@@ -471,7 +479,9 @@ export default function AdminOrganizerRequestDetailPage() {
                     <td>{prior.reviewed_by ? `@${prior.reviewed_by}` : "—"}</td>
                     <td>
                       {prior.rejection_reason_code
-                        ? REJECTION_REASON_LABEL[prior.rejection_reason_code as RejectionReasonCode] || prior.rejection_reason_code
+                        ? REJECTION_REASON_LABEL[
+                            prior.rejection_reason_code as RejectionReasonCode
+                          ] || prior.rejection_reason_code
                         : "—"}
                     </td>
                   </tr>

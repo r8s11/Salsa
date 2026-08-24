@@ -43,10 +43,7 @@ export function useOrganizerRequests() {
   };
 
   const approveMutation = useMutation({
-    mutationFn: ({
-      id,
-      internal_note,
-    }: { id: string; internal_note?: string | null }) =>
+    mutationFn: ({ id, internal_note }: { id: string; internal_note?: string | null }) =>
       approveOrganizerRequest(id, {
         reviewer_id: user!.id,
         internal_note,
@@ -76,10 +73,7 @@ export function useOrganizerRequests() {
   });
 
   const revokeMutation = useMutation({
-    mutationFn: ({
-      organizer_id,
-      reason,
-    }: { organizer_id: string; reason?: string | null }) =>
+    mutationFn: ({ organizer_id, reason }: { organizer_id: string; reason?: string | null }) =>
       revokeOrganizerAccess({
         organizer_id,
         reviewer_id: user!.id,

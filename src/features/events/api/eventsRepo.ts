@@ -62,6 +62,20 @@ export async function fetchApprovedEvents(city: City): Promise<DatabaseEvent[]> 
   return projectEventTaxonomy(data as EventWithTaxonomy[] | null);
 }
 
+export async function fetchApprovedEventById(id: string): Promise<DatabaseEvent | null> {
+  const { data, error } = await supabase
+    .from("events")
+    .select(
+      "*, event_taxonomy_terms(taxonomy_term_id, taxonomy_terms(id, name, slug, category, status))"
+    )
+    .eq("id", id)
+    .eq("status", "approved")
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  return projectEventTaxonomy(data ? [data as EventWithTaxonomy] : null)[0] ?? null;
+}
+
 export async function fetchMyApprovedEvents(userId: string): Promise<DatabaseEvent[]> {
   const { data, error } = await supabase
     .from("events")

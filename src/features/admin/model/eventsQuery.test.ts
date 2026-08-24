@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import type { DatabaseEvent } from "../../events/model/types";
-import { applyView, applyFilters, applySort, defaultSortFor, viewCounts, type EventFilters } from "./eventsQuery";
+import {
+  applyView,
+  applyFilters,
+  applySort,
+  defaultSortFor,
+  viewCounts,
+  type EventFilters,
+} from "./eventsQuery";
 
 // Frozen clock: 2026-08-11T16:00:00 UTC == 2026-08-11T12:00:00 America/New_York (EDT, UTC-4).
 const NOW = new Date("2026-08-11T16:00:00.000Z");
@@ -36,7 +43,9 @@ function makeEvent(overrides: Partial<DatabaseEvent> = {}): DatabaseEvent {
     contact_website: null,
     source_type: "admin",
     taxonomy_term_ids: ["salsa-id"],
-    taxonomy_terms: [{ id: "salsa-id", name: "Salsa", slug: "salsa", category: "dance_style", status: "active" }],
+    taxonomy_terms: [
+      { id: "salsa-id", name: "Salsa", slug: "salsa", category: "dance_style", status: "active" },
+    ],
     updated_at: "2026-08-01T00:00:00.000Z",
     cancellation_reason: null,
     venue_id: null,
@@ -66,9 +75,19 @@ describe("taxonomy filtering", () => {
     const salsa = makeEvent();
     const bachata = makeEvent({
       taxonomy_term_ids: ["bachata-id"],
-      taxonomy_terms: [{ id: "bachata-id", name: "Bachata", slug: "bachata", category: "dance_style", status: "active" }],
+      taxonomy_terms: [
+        {
+          id: "bachata-id",
+          name: "Bachata",
+          slug: "bachata",
+          category: "dance_style",
+          status: "active",
+        },
+      ],
     });
-    expect(applyFilters([salsa, bachata], { ...baseFilters, style: "salsa" }, NOW)).toEqual([salsa]);
+    expect(applyFilters([salsa, bachata], { ...baseFilters, style: "salsa" }, NOW)).toEqual([
+      salsa,
+    ]);
   });
 });
 
@@ -94,7 +113,10 @@ describe("applyView", () => {
   });
 
   it("an event one minute before startOfToday does not count as upcoming", () => {
-    const beforeMidnight = makeEvent({ status: "approved", event_date: "2026-08-11T03:59:00.000Z" });
+    const beforeMidnight = makeEvent({
+      status: "approved",
+      event_date: "2026-08-11T03:59:00.000Z",
+    });
     expect(applyView([beforeMidnight], "upcoming", NOW)).toEqual([]);
   });
 });
@@ -103,9 +125,17 @@ describe("applyFilters", () => {
   it("from/to bound by New York calendar date — a 9pm event whose UTC date rolls to the next day", () => {
     // 2026-08-15T21:00 America/New_York (EDT, UTC-4) == 2026-08-16T01:00Z.
     const nightEvent = makeEvent({ event_date: "2026-08-16T01:00:00.000Z" });
-    const inRange = applyFilters([nightEvent], { ...baseFilters, from: "2026-08-15", to: "2026-08-15" }, NOW);
+    const inRange = applyFilters(
+      [nightEvent],
+      { ...baseFilters, from: "2026-08-15", to: "2026-08-15" },
+      NOW
+    );
     expect(inRange).toEqual([nightEvent]);
-    const outOfRange = applyFilters([nightEvent], { ...baseFilters, from: "2026-08-16", to: "2026-08-16" }, NOW);
+    const outOfRange = applyFilters(
+      [nightEvent],
+      { ...baseFilters, from: "2026-08-16", to: "2026-08-16" },
+      NOW
+    );
     expect(outOfRange).toEqual([]);
   });
 
@@ -118,14 +148,20 @@ describe("applyFilters", () => {
   it("incompleteOnly matches events with at least one quality issue", () => {
     const complete = makeEvent();
     const incomplete = makeEvent({ location: null });
-    const result = applyFilters([complete, incomplete], { ...baseFilters, incompleteOnly: true }, NOW);
+    const result = applyFilters(
+      [complete, incomplete],
+      { ...baseFilters, incompleteOnly: true },
+      NOW
+    );
     expect(result).toEqual([incomplete]);
   });
 
   it("status filter is a membership check; empty array matches everything", () => {
     const pending = makeEvent({ status: "pending" });
     const approved = makeEvent({ status: "approved" });
-    expect(applyFilters([pending, approved], { ...baseFilters, status: ["pending"] }, NOW)).toEqual([pending]);
+    expect(applyFilters([pending, approved], { ...baseFilters, status: ["pending"] }, NOW)).toEqual(
+      [pending]
+    );
     expect(applyFilters([pending, approved], baseFilters, NOW)).toEqual([pending, approved]);
   });
 });
@@ -141,7 +177,11 @@ describe("applyFilters — submitter", () => {
   it("matches by submitter_email case-insensitively for guest rows", () => {
     const guest = makeEvent({ submitter_id: null, submitter_email: "Guest@Salsa.test" });
     const other = makeEvent({ submitter_id: null, submitter_email: "someoneelse@salsa.test" });
-    const result = applyFilters([guest, other], { ...baseFilters, submitter: "guest@salsa.test" }, NOW);
+    const result = applyFilters(
+      [guest, other],
+      { ...baseFilters, submitter: "guest@salsa.test" },
+      NOW
+    );
     expect(result).toEqual([guest]);
   });
 

@@ -8,7 +8,13 @@ import * as taxonomyRepo from "../api/taxonomyRepo";
 vi.mock("../api/taxonomyRepo");
 
 function wrapper({ children }: { children: React.ReactNode }) {
-  return <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>{children}</QueryClientProvider>;
+  return (
+    <QueryClientProvider
+      client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
+    >
+      {children}
+    </QueryClientProvider>
+  );
 }
 
 const filters = { search: "", category: null, status: null, view: "all" as const };

@@ -1,7 +1,6 @@
 export type EventType = "social" | "class" | "workshop";
 export type City = "boston" | "new-york-city";
 
-
 export interface EventTaxonomyTerm {
   id: string;
   name: string;

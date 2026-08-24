@@ -1,5 +1,8 @@
 import type { RequestStatus } from "../../features/admin/model/organizerRequestsQuery";
-import { REQUEST_STATUS_LABEL, REQUEST_STATUS_ICON } from "../../features/admin/model/organizerRequestsQuery";
+import {
+  REQUEST_STATUS_LABEL,
+  REQUEST_STATUS_ICON,
+} from "../../features/admin/model/organizerRequestsQuery";
 
 // Reuses the `.admin-status` base rule from styles/admin.css.
 // The request-specific modifiers are prefixed `--request-` so they can't

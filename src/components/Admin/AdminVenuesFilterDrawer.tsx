@@ -173,18 +173,10 @@ export default function AdminVenuesFilterDrawer({
         </div>
 
         <div className="admin-venues-filter-drawer__actions">
-          <button
-            type="button"
-            className="admin-btn admin-btn--secondary"
-            onClick={onClear}
-          >
+          <button type="button" className="admin-btn admin-btn--secondary" onClick={onClear}>
             Clear All
           </button>
-          <button
-            type="button"
-            className="admin-btn admin-btn--primary"
-            onClick={onApply}
-          >
+          <button type="button" className="admin-btn admin-btn--primary" onClick={onApply}>
             Apply
           </button>
         </div>

@@ -53,14 +53,6 @@ export default function AdminAnalyticsPage() {
     to: toParam ? new Date(toParam) : defaultRange.to,
   });
 
-  // Sync when range pill changes (only if no custom dates in URL)
-  useEffect(() => {
-    if (!fromParam && !toParam) {
-      const dr = dateRangeFor(range);
-      setDateRange({ from: dr.from, to: dr.to });
-    }
-  }, [range, fromParam, toParam]);
-
   // Granularity
   const defaultGranularity = granularityForRange(range);
   const [granularity, setGranularity] = useState<Granularity>(
@@ -79,12 +71,11 @@ export default function AdminAnalyticsPage() {
     setSearchParams(next, { replace: true });
   }, [range, granularity, dateRange, setSearchParams]);
 
-  // Auto-switch granularity when range changes
-  useEffect(() => {
-    setGranularity(granularityForRange(range));
-  }, [range]);
-
-  const handleRangeChange = (next: TimeRange) => setRange(next);
+  const handleRangeChange = (next: TimeRange) => {
+    setRange(next);
+    if (!fromParam && !toParam) setDateRange(dateRangeFor(next));
+    setGranularity(granularityForRange(next));
+  };
   const handleGranularityChange = (next: Granularity) => setGranularity(next);
 
   const handleCustomRange = (from: string, to: string) => {

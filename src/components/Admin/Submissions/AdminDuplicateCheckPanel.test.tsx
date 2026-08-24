@@ -55,7 +55,7 @@ describe("AdminDuplicateCheckPanel", () => {
         onViewEvent={onViewEvent}
         onNotADuplicate={onNotADuplicate}
         onRejectAsDuplicate={onRejectAsDuplicate}
-      />,
+      />
     );
 
     expect(screen.getByText("Salsa Night")).toBeInTheDocument();
@@ -75,7 +75,7 @@ describe("AdminDuplicateCheckPanel", () => {
         onViewEvent={onViewEvent}
         onNotADuplicate={onNotADuplicate}
         onRejectAsDuplicate={onRejectAsDuplicate}
-      />,
+      />
     );
 
     fireEvent.click(screen.getByText("View Existing"));

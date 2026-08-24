@@ -1,6 +1,9 @@
 /* Import Global Styles */
 @import "./styles/global.css";
 
+/* Handoff token bridge — maps --ss-* to existing --* tokens */
+@import "./styles/handoff-bridge.css";
+
 /* Page-specific styles */
 .page-content {
   animation: fadeIn 0.45s cubic-bezier(0.22, 1, 0.36, 1);

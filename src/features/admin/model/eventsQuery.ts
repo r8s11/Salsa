@@ -3,7 +3,14 @@ import type { City, DatabaseEvent } from "../../events/model/types";
 import { fromEventDateInstant } from "../../events/model/eventDateTime";
 import { qualityIssues } from "./overviewMetrics";
 
-export type EventView = "all" | "upcoming" | "drafts" | "pending" | "published" | "cancelled" | "archived";
+export type EventView =
+  | "all"
+  | "upcoming"
+  | "drafts"
+  | "pending"
+  | "published"
+  | "cancelled"
+  | "archived";
 export type SortKey = "event_date" | "created_at" | "updated_at" | "title";
 export type SortDir = "asc" | "desc";
 
@@ -84,24 +91,24 @@ function startOfTodayMs(now: Date): number {
   return Temporal.Instant.fromEpochMilliseconds(now.getTime())
     .toZonedDateTimeISO("America/New_York")
     .startOfDay()
-    .toInstant()
-    .epochMilliseconds;
+    .toInstant().epochMilliseconds;
 }
 
-const VIEW_PREDICATES: Record<EventView, (event: DatabaseEvent, startOfToday: number) => boolean> = {
-  all: (event) => event.status !== "archived",
-  upcoming: (event, startOfToday) =>
-    Date.parse(event.event_date) >= startOfToday &&
-    (event.status === "draft" ||
-      event.status === "pending" ||
-      event.status === "approved" ||
-      event.status === "cancelled"),
-  drafts: (event) => event.status === "draft",
-  pending: (event) => event.status === "pending",
-  published: (event) => event.status === "approved",
-  cancelled: (event) => event.status === "cancelled",
-  archived: (event) => event.status === "archived",
-};
+const VIEW_PREDICATES: Record<EventView, (event: DatabaseEvent, startOfToday: number) => boolean> =
+  {
+    all: (event) => event.status !== "archived",
+    upcoming: (event, startOfToday) =>
+      Date.parse(event.event_date) >= startOfToday &&
+      (event.status === "draft" ||
+        event.status === "pending" ||
+        event.status === "approved" ||
+        event.status === "cancelled"),
+    drafts: (event) => event.status === "draft",
+    pending: (event) => event.status === "pending",
+    published: (event) => event.status === "approved",
+    cancelled: (event) => event.status === "cancelled",
+    archived: (event) => event.status === "archived",
+  };
 
 export function applyView(events: DatabaseEvent[], view: EventView, now: Date): DatabaseEvent[] {
   const startOfToday = startOfTodayMs(now);
@@ -109,7 +116,11 @@ export function applyView(events: DatabaseEvent[], view: EventView, now: Date): 
   return events.filter((event) => predicate(event, startOfToday));
 }
 
-export function applyFilters(events: DatabaseEvent[], filters: EventFilters, _now: Date): DatabaseEvent[] {
+export function applyFilters(
+  events: DatabaseEvent[],
+  filters: EventFilters,
+  _now: Date
+): DatabaseEvent[] {
   const q = filters.q.trim().toLowerCase();
 
   return events.filter((event) => {
@@ -143,15 +154,20 @@ export function applyFilters(events: DatabaseEvent[], filters: EventFilters, _no
 
     if (filters.city && event.city !== filters.city) return false;
 
-    if (filters.style && !event.taxonomy_terms.some((term) => term.category === "dance_style" && term.slug === filters.style)) return false;
+    if (
+      filters.style &&
+      !event.taxonomy_terms.some(
+        (term) => term.category === "dance_style" && term.slug === filters.style
+      )
+    )
+      return false;
 
     if (filters.source && event.source_type !== filters.source) return false;
 
     if (filters.submitter) {
       const needle = filters.submitter.toLowerCase();
       const matches =
-        event.submitter_id === filters.submitter ||
-        event.submitter_email?.toLowerCase() === needle;
+        event.submitter_id === filters.submitter || event.submitter_email?.toLowerCase() === needle;
       if (!matches) return false;
     }
 
@@ -178,7 +194,9 @@ export function applySort(events: DatabaseEvent[], key: SortKey, dir: SortDir): 
 }
 
 export function defaultSortFor(view: EventView): { key: SortKey; dir: SortDir } {
-  return view === "upcoming" ? { key: "event_date", dir: "asc" } : { key: "event_date", dir: "desc" };
+  return view === "upcoming"
+    ? { key: "event_date", dir: "asc" }
+    : { key: "event_date", dir: "desc" };
 }
 
 export function viewCounts(events: DatabaseEvent[], now: Date): Record<EventView, number> {

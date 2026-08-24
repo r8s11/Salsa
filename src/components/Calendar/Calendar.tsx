@@ -185,9 +185,7 @@ export default function Calendar() {
 
   const goToMonth = (deltaMonths: number) => {
     const next =
-      deltaMonths === 0
-        ? Temporal.Now.plainDateISO()
-        : visibleDate.add({ months: deltaMonths });
+      deltaMonths === 0 ? Temporal.Now.plainDateISO() : visibleDate.add({ months: deltaMonths });
     setVisibleDate(next);
     calendarControls.setDate(next);
   };
@@ -223,13 +221,26 @@ export default function Calendar() {
           </div>
           <div className="stage-controls stage-controls-primary">
             <div className="month-nav">
-              <button className="nav-btn" aria-label="Previous month" onClick={() => goToMonth(-1)}>‹</button>
-              <button className="nav-btn today-btn" onClick={() => goToMonth(0)}>Today</button>
-              <button className="nav-btn" aria-label="Next month" onClick={() => goToMonth(1)}>›</button>
+              <button className="nav-btn" aria-label="Previous month" onClick={() => goToMonth(-1)}>
+                ‹
+              </button>
+              <button className="nav-btn today-btn" onClick={() => goToMonth(0)}>
+                Today
+              </button>
+              <button className="nav-btn" aria-label="Next month" onClick={() => goToMonth(1)}>
+                ›
+              </button>
             </div>
             <div className="pill-group" role="group" aria-label="City">
               {CITY_OPTIONS.map((option) => (
-                <button key={option.value} className={`pill ${city === option.value ? "pill-active-city" : ""}`} aria-pressed={city === option.value} onClick={() => setCity(option.value)}>{option.label}</button>
+                <button
+                  key={option.value}
+                  className={`pill ${city === option.value ? "pill-active-city" : ""}`}
+                  aria-pressed={city === option.value}
+                  onClick={() => setCity(option.value)}
+                >
+                  {option.label}
+                </button>
               ))}
             </div>
           </div>
@@ -240,13 +251,27 @@ export default function Calendar() {
         <div className="toolbar-inner">
           <div className="pill-group" role="group" aria-label="Filter by event type">
             {TYPE_OPTIONS.map((option) => (
-              <button key={option.value} className={`pill ${typeFilter === option.value ? "pill-active-type" : ""}`} aria-pressed={typeFilter === option.value} onClick={() => setTypeFilter(option.value)}>{option.label}</button>
+              <button
+                key={option.value}
+                className={`pill ${typeFilter === option.value ? "pill-active-type" : ""}`}
+                aria-pressed={typeFilter === option.value}
+                onClick={() => setTypeFilter(option.value)}
+              >
+                {option.label}
+              </button>
             ))}
           </div>
           {!isCompact && (
             <div className="pill-group" role="group" aria-label="Calendar view">
               {VIEW_OPTIONS.map((option) => (
-                <button key={option.value} className={`pill ${activeView === option.value ? "pill-active-view" : ""}`} aria-pressed={activeView === option.value} onClick={() => handleViewChange(option.value)}>{option.label}</button>
+                <button
+                  key={option.value}
+                  className={`pill ${activeView === option.value ? "pill-active-view" : ""}`}
+                  aria-pressed={activeView === option.value}
+                  onClick={() => handleViewChange(option.value)}
+                >
+                  {option.label}
+                </button>
               ))}
             </div>
           )}
@@ -254,14 +279,28 @@ export default function Calendar() {
         </div>
       </div>
 
-      <CalendarStatus loading={loading} error={error} isEmpty={isEmpty} hasNoMatches={hasNoMatches} cityLabel={cityLabel} onRetry={refetch} onClearFilter={() => setTypeFilter("all")} />
+      <CalendarStatus
+        loading={loading}
+        error={error}
+        isEmpty={isEmpty}
+        hasNoMatches={hasNoMatches}
+        cityLabel={cityLabel}
+        onRetry={refetch}
+        onClearFilter={() => setTypeFilter("all")}
+      />
 
-      {showCalendar && <div className="calendar-main"><ScheduleXCalendar calendarApp={calendar} /></div>}
+      {showCalendar && (
+        <div className="calendar-main">
+          <ScheduleXCalendar calendarApp={calendar} />
+        </div>
+      )}
 
       {showSubmitCta && (
         <div className="calendar-cta">
           <p>Know about an event that's missing?</p>
-          <Link to="/submit" className="btn-primary">Submit an Event</Link>
+          <Link to="/submit" className="btn-primary">
+            Submit an Event
+          </Link>
         </div>
       )}
 

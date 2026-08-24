@@ -16,8 +16,14 @@ const mockMetrics = {
 };
 
 const mockSeries = {
-  events: [{ label: "Aug 4", value: 12 }, { label: "Aug 11", value: 15 }],
-  submissions: [{ label: "Aug 4", value: 3 }, { label: "Aug 11", value: 5 }],
+  events: [
+    { label: "Aug 4", value: 12 },
+    { label: "Aug 11", value: 15 },
+  ],
+  submissions: [
+    { label: "Aug 4", value: 3 },
+    { label: "Aug 11", value: 5 },
+  ],
 };
 
 describe("AdminAnalyticsPage", () => {

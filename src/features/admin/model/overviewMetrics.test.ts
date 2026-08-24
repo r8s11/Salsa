@@ -101,11 +101,9 @@ describe("missingFields", () => {
   });
 
   it("accumulates every missing field in order", () => {
-    expect(missingFields(makeEvent({ location: null, event_time: null, image_url: null }))).toEqual([
-      "venue",
-      "time",
-      "image",
-    ]);
+    expect(missingFields(makeEvent({ location: null, event_time: null, image_url: null }))).toEqual(
+      ["venue", "time", "image"]
+    );
   });
 });
 
@@ -185,7 +183,7 @@ describe("deriveUpcomingEvents", () => {
 
   it("slices to the list limit", () => {
     const events = Array.from({ length: 12 }, (_, index) =>
-      makeEvent({ status: "approved", event_date: daysFromNow(index + 1) }),
+      makeEvent({ status: "approved", event_date: daysFromNow(index + 1) })
     );
     expect(deriveUpcomingEvents(events, NOW)).toHaveLength(8);
   });
@@ -209,7 +207,11 @@ describe("qualityIssues", () => {
 
 describe("findPotentialDuplicates", () => {
   it("flags same-title-same-venue events 2 hours apart", () => {
-    const a = makeEvent({ title: "Salsa Night", location: "The Anchor", event_date: daysFromNow(5) });
+    const a = makeEvent({
+      title: "Salsa Night",
+      location: "The Anchor",
+      event_date: daysFromNow(5),
+    });
     const b = makeEvent({
       title: "salsa night",
       location: "the anchor",
@@ -221,8 +223,16 @@ describe("findPotentialDuplicates", () => {
   });
 
   it("does not flag same-title-same-venue events 7 days apart", () => {
-    const a = makeEvent({ title: "Salsa Night", location: "The Anchor", event_date: daysFromNow(5) });
-    const b = makeEvent({ title: "Salsa Night", location: "The Anchor", event_date: daysFromNow(12) });
+    const a = makeEvent({
+      title: "Salsa Night",
+      location: "The Anchor",
+      event_date: daysFromNow(5),
+    });
+    const b = makeEvent({
+      title: "Salsa Night",
+      location: "The Anchor",
+      event_date: daysFromNow(12),
+    });
     const duplicates = findPotentialDuplicates([a, b]);
     expect(duplicates.size).toBe(0);
   });

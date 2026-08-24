@@ -78,61 +78,61 @@ function Events() {
   return (
     <>
       <section id="events" className="events">
-      <div className="container">
-        {featuredEvent && (
-          <div className="events-featured-wrap">
-            <h2 className="events-eyebrow">◆ Featured Tonight</h2>
-            <FeaturedEventCard event={featuredEvent} onSelect={setSelectedEvent} />
-          </div>
-        )}
+        <div className="container">
+          {featuredEvent && (
+            <div className="events-featured-wrap">
+              <h2 className="events-eyebrow">◆ Featured Tonight</h2>
+              <FeaturedEventCard event={featuredEvent} onSelect={setSelectedEvent} />
+            </div>
+          )}
 
-        <div className="events-feed-header">
-          <h2 className="events-feed-title">This Week&apos;s Floor</h2>
-          <div className="feed-filters" role="group" aria-label="Filter by event type">
-            {FILTER_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                className={`feed-filter ${typeFilter === opt.value ? "feed-filter-active" : ""}`}
-                aria-pressed={typeFilter === opt.value}
-                onClick={() => setTypeFilter(opt.value)}
-              >
-                {opt.label}
-              </button>
-            ))}
+          <div className="events-feed-header">
+            <h2 className="events-feed-title">This Week&apos;s Floor</h2>
+            <div className="feed-filters" role="group" aria-label="Filter by event type">
+              {FILTER_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  className={`feed-filter ${typeFilter === opt.value ? "feed-filter-active" : ""}`}
+                  aria-pressed={typeFilter === opt.value}
+                  onClick={() => setTypeFilter(opt.value)}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
 
-        {upcomingEvents.length === 0 ? (
-          <div className="no-events">
-            <p>
-              No upcoming events scheduled. Check back soon, or follow @SalsaSegura on Instagram
-              for updates!
-            </p>
-          </div>
-        ) : feedEvents.length > 0 ? (
-          <div className="events-grid">
-            {feedEvents.map((event) => (
-              <EventCard key={event.id} event={event} onSelect={setSelectedEvent} />
-            ))}
-          </div>
-        ) : (
-          <div className="no-events">
-            <p>No additional {activeFilterLabel} events this week. Try another filter.</p>
-          </div>
-        )}
+          {upcomingEvents.length === 0 ? (
+            <div className="no-events">
+              <p>
+                No upcoming events scheduled. Check back soon, or follow @SalsaSegura on Instagram
+                for updates!
+              </p>
+            </div>
+          ) : feedEvents.length > 0 ? (
+            <div className="events-grid">
+              {feedEvents.map((event) => (
+                <EventCard key={event.id} event={event} onSelect={setSelectedEvent} />
+              ))}
+            </div>
+          ) : (
+            <div className="no-events">
+              <p>No additional {activeFilterLabel} events this week. Try another filter.</p>
+            </div>
+          )}
 
-        <div className="events-footer">
-          <Link to="/calendar" className="btn-secondary">
-            View Full Calendar
-          </Link>
-          <div className="events-cta">
-            <p>Want to host a pop-up class or private event?</p>
-            <Link to="/submit" className="btn-primary">
-              Submit an Event
+          <div className="events-footer">
+            <Link to="/calendar" className="btn-secondary">
+              View Full Calendar
             </Link>
+            <div className="events-cta">
+              <p>Want to host a pop-up class or private event?</p>
+              <Link to="/submit" className="btn-primary">
+                Submit an Event
+              </Link>
+            </div>
           </div>
         </div>
-      </div>
       </section>
       <EventModal event={selectedEvent} onClose={() => setSelectedEvent(null)} />
     </>

@@ -108,10 +108,7 @@
 
 .host-my-events__table th,
 .host-my-events__table td {
-  padding: 12px;
-  border-bottom: 1px solid var(--admin-border);
-  text-align: left;
-  vertical-align: top;
+  padding: 8px 12px;
 }
 
 .host-my-events__table th {

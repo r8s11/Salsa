@@ -11,7 +11,13 @@ import {
 import "./AdminEventsFilterDrawer.css";
 
 const CITIES: City[] = ["boston", "new-york-city"];
-const SOURCES: DatabaseEvent["source_type"][] = ["admin", "user_submission", "organizer", "moderator", "imported"];
+const SOURCES: DatabaseEvent["source_type"][] = [
+  "admin",
+  "user_submission",
+  "organizer",
+  "moderator",
+  "imported",
+];
 
 const EMPTY_FILTERS: Pick<EventFilters, "organizer" | "venue" | "style" | "city" | "source"> = {
   organizer: null,
@@ -65,11 +71,21 @@ export default function AdminEventsFilterDrawer({
   };
 
   const organizers = useMemo(
-    () => Array.from(new Set(events.map((event) => event.host).filter((value): value is string => Boolean(value)))).sort(),
+    () =>
+      Array.from(
+        new Set(
+          events.map((event) => event.host).filter((value): value is string => Boolean(value))
+        )
+      ).sort(),
     [events]
   );
   const venues = useMemo(
-    () => Array.from(new Set(events.map((event) => event.location).filter((value): value is string => Boolean(value)))).sort(),
+    () =>
+      Array.from(
+        new Set(
+          events.map((event) => event.location).filter((value): value is string => Boolean(value))
+        )
+      ).sort(),
     [events]
   );
 
@@ -89,7 +105,12 @@ export default function AdminEventsFilterDrawer({
       >
         <div className="admin-events-filter-drawer__header">
           <h2>More Filters</h2>
-          <button type="button" className="admin-icon-btn" aria-label="Close filters" onClick={onClose}>
+          <button
+            type="button"
+            className="admin-icon-btn"
+            aria-label="Close filters"
+            onClick={onClose}
+          >
             <X size={18} />
           </button>
         </div>
@@ -101,7 +122,9 @@ export default function AdminEventsFilterDrawer({
               id="admin-filter-organizer"
               className="admin-select"
               value={filters.organizer ?? ""}
-              onChange={(event) => onFiltersChange({ ...filters, organizer: event.target.value || null })}
+              onChange={(event) =>
+                onFiltersChange({ ...filters, organizer: event.target.value || null })
+              }
             >
               <option value="">Any organizer</option>
               {organizers.map((organizer) => (
@@ -118,7 +141,9 @@ export default function AdminEventsFilterDrawer({
               id="admin-filter-venue"
               className="admin-select"
               value={filters.venue ?? ""}
-              onChange={(event) => onFiltersChange({ ...filters, venue: event.target.value || null })}
+              onChange={(event) =>
+                onFiltersChange({ ...filters, venue: event.target.value || null })
+              }
             >
               <option value="">Any venue</option>
               {venues.map((venue) => (
@@ -135,7 +160,9 @@ export default function AdminEventsFilterDrawer({
               id="admin-filter-style"
               className="admin-select"
               value={filters.style ?? ""}
-              onChange={(event) => onFiltersChange({ ...filters, style: event.target.value || null })}
+              onChange={(event) =>
+                onFiltersChange({ ...filters, style: event.target.value || null })
+              }
             >
               <option value="">Any style</option>
               {DANCE_STYLES.map((style) => (
@@ -152,7 +179,9 @@ export default function AdminEventsFilterDrawer({
               id="admin-filter-city"
               className="admin-select"
               value={filters.city ?? ""}
-              onChange={(event) => onFiltersChange({ ...filters, city: (event.target.value as City) || null })}
+              onChange={(event) =>
+                onFiltersChange({ ...filters, city: (event.target.value as City) || null })
+              }
             >
               <option value="">Any city</option>
               {CITIES.map((city) => (
@@ -170,7 +199,10 @@ export default function AdminEventsFilterDrawer({
               className="admin-select"
               value={filters.source ?? ""}
               onChange={(event) =>
-                onFiltersChange({ ...filters, source: (event.target.value as DatabaseEvent["source_type"]) || null })
+                onFiltersChange({
+                  ...filters,
+                  source: (event.target.value as DatabaseEvent["source_type"]) || null,
+                })
               }
             >
               <option value="">Any source</option>

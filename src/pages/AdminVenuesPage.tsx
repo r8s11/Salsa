@@ -39,7 +39,7 @@ function parseFilters(searchParams: URLSearchParams): VenueFilters {
   const city = searchParams.get("city") ? [searchParams.get("city")!] : [];
   const state = searchParams.get("state") ? [searchParams.get("state")!] : [];
   const statusRaw = searchParams.get("status");
-  const status = statusRaw ? [statusRaw] as VenueStatus[] : [];
+  const status = statusRaw ? ([statusRaw] as VenueStatus[]) : [];
   const hasUpcoming = searchParams.get("has_upcoming");
   return {
     q,
@@ -73,9 +73,7 @@ interface FilterChip {
   onRemove: () => void;
 }
 
-type PendingAction =
-  | { kind: "archive"; venue: VenueRow }
-  | null;
+type PendingAction = { kind: "archive"; venue: VenueRow } | null;
 
 export default function AdminVenuesPage() {
   const {
@@ -149,19 +147,23 @@ export default function AdminVenuesPage() {
   };
 
   const clearAllFilters = () => {
-    updateParams({ q: null, city: null, state: null, status: null, has_upcoming: null, view: "all" });
+    updateParams({
+      q: null,
+      city: null,
+      state: null,
+      status: null,
+      has_upcoming: null,
+      view: "all",
+    });
   };
 
   const handleToolbarSortChange = (nextSort: VenueSort) => {
-    const option = VENUE_SORT_OPTIONS.find(
-      (o) => o.key === nextSort.key && o.dir === nextSort.dir
-    );
+    const option = VENUE_SORT_OPTIONS.find((o) => o.key === nextSort.key && o.dir === nextSort.dir);
     updateParams({ sort: option?.value ?? null }, false);
   };
 
   const handleTableSortChange = (key: string) => {
-    const dir: "asc" | "desc" =
-      sort.key === key ? (sort.dir === "asc" ? "desc" : "asc") : "desc";
+    const dir: "asc" | "desc" = sort.key === key ? (sort.dir === "asc" ? "desc" : "asc") : "desc";
     const option = VENUE_SORT_OPTIONS.find((o) => o.key === key && o.dir === dir);
     updateParams({ sort: option?.value ?? null }, false);
   };
@@ -200,10 +202,12 @@ export default function AdminVenuesPage() {
   if (filters.status.length > 0) {
     chips.push({
       key: "status",
-      label: filters.status.map((s) => {
-        const entry = VENUE_VIEWS.find((o) => o.view === s);
-        return entry ? entry.label : s;
-      }).join(", "),
+      label: filters.status
+        .map((s) => {
+          const entry = VENUE_VIEWS.find((o) => o.view === s);
+          return entry ? entry.label : s;
+        })
+        .join(", "),
       onRemove: () => updateParams({ status: null }),
     });
   }
@@ -261,7 +265,11 @@ export default function AdminVenuesPage() {
       {!isLoading && isError && (
         <div className="admin-banner admin-banner--error" role="alert">
           <p>We couldn&apos;t load venues.</p>
-          <button type="button" className="admin-btn admin-btn--secondary" onClick={() => refetch()}>
+          <button
+            type="button"
+            className="admin-btn admin-btn--secondary"
+            onClick={() => refetch()}
+          >
             Try Again
           </button>
         </div>
@@ -326,11 +334,7 @@ export default function AdminVenuesPage() {
                   Loading venues…
                 </p>
                 {Array.from({ length: 6 }, (_, index) => (
-                  <div
-                    key={index}
-                    className="admin-venues-page__skeleton-row"
-                    aria-hidden="true"
-                  >
+                  <div key={index} className="admin-venues-page__skeleton-row" aria-hidden="true">
                     <span className="admin-skeleton admin-venues-page__skeleton-avatar" />
                     <span className="admin-venues-page__skeleton-lines">
                       <span className="admin-skeleton admin-venues-page__skeleton-line" />
@@ -348,7 +352,11 @@ export default function AdminVenuesPage() {
             ) : total === 0 && !noFiltersActive ? (
               <div className="admin-venues-page__empty">
                 <h2>No venues match these filters.</h2>
-                <button type="button" className="admin-btn admin-btn--ghost" onClick={clearAllFilters}>
+                <button
+                  type="button"
+                  className="admin-btn admin-btn--ghost"
+                  onClick={clearAllFilters}
+                >
                   Clear Filters
                 </button>
               </div>

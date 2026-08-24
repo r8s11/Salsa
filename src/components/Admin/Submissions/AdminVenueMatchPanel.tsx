@@ -15,13 +15,15 @@ export default function AdminVenueMatchPanel({ submission, existingEvents, onUse
     <div className="admin-card">
       <h3 className="admin-text-lg font-semibold mb-4">Venue Matching</h3>
       {!match ? (
-        <div className="text-sm text-gray-500">
-          New venue — will be recorded as free text.
-        </div>
+        <div className="text-sm text-gray-500">New venue — will be recorded as free text.</div>
       ) : (
         <div className="space-y-4">
-          <div className={`admin-match-status ${match.match === 'exact' ? 'text-green-600' : 'text-yellow-600'}`}>
-            {match.match === 'exact' ? '✓ Exact venue match found' : '⚠ Potential venue match found'}
+          <div
+            className={`admin-match-status ${match.match === "exact" ? "text-green-600" : "text-yellow-600"}`}
+          >
+            {match.match === "exact"
+              ? "✓ Exact venue match found"
+              : "⚠ Potential venue match found"}
           </div>
           <div className="bg-gray-50 p-3 rounded text-sm">
             <div className="font-medium text-gray-700">Existing venue:</div>

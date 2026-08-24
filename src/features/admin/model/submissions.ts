@@ -1,20 +1,20 @@
-export type SubmissionStatus = 
-  | 'pending' 
-  | 'in_review' 
-  | 'needs_information' 
-  | 'approved' 
-  | 'rejected' 
-  | 'withdrawn';
+export type SubmissionStatus =
+  | "pending"
+  | "in_review"
+  | "needs_information"
+  | "approved"
+  | "rejected"
+  | "withdrawn";
 
-export type RejectionReason = 
-  | 'duplicate'
-  | 'missing_information'
-  | 'invalid_venue'
-  | 'cannot_verify'
-  | 'spam'
-  | 'inappropriate'
-  | 'out_of_scope'
-  | 'other';
+export type RejectionReason =
+  | "duplicate"
+  | "missing_information"
+  | "invalid_venue"
+  | "cannot_verify"
+  | "spam"
+  | "inappropriate"
+  | "out_of_scope"
+  | "other";
 
 export interface EventSubmission {
   id: string;
@@ -37,12 +37,12 @@ export interface EventSubmission {
   updated_at: string;
 }
 
-export type DuplicateSignal = 'same-venue' | 'same-date' | 'similar-title' | 'same-organizer';
+export type DuplicateSignal = "same-venue" | "same-date" | "similar-title" | "same-organizer";
 
 import { DatabaseEvent } from "../../events/model/types";
 
 export interface DuplicateCandidate {
   event: DatabaseEvent;
   signals: DuplicateSignal[];
-  confidence: 'high' | 'medium';
+  confidence: "high" | "medium";
 }

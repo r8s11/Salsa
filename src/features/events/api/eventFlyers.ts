@@ -61,10 +61,7 @@ export async function removeEventFlyer(url: string): Promise<void> {
     return;
   }
 
-  if (
-    parsedUrl.origin !== supabaseURL ||
-    !parsedUrl.pathname.startsWith(PUBLIC_OBJECT_PATH)
-  ) {
+  if (parsedUrl.origin !== supabaseURL || !parsedUrl.pathname.startsWith(PUBLIC_OBJECT_PATH)) {
     return;
   }
 

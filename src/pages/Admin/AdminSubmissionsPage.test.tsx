@@ -41,7 +41,7 @@ describe("AdminSubmissionsPage", () => {
           <Route path="/admin/submissions" element={<AdminSubmissionsPage />} />
           <Route path="/admin/submissions/:id" element={<h1>Submission detail</h1>} />
         </Routes>
-      </MemoryRouter>,
+      </MemoryRouter>
     );
     await userEvent.click(screen.getByRole("button", { name: /Actions for submission/i }));
     await userEvent.click(screen.getByRole("menuitem", { name: "View Details" }));

@@ -137,7 +137,12 @@ export const REQUEST_VIEWS: { view: RequestView; label: string }[] = [
   { view: "all", label: "All Requests" },
 ];
 
-export const REQUEST_SORT_OPTIONS: { value: string; key: "requested" | "name" | "brand"; dir: SortDir; label: string }[] = [
+export const REQUEST_SORT_OPTIONS: {
+  value: string;
+  key: "requested" | "name" | "brand";
+  dir: SortDir;
+  label: string;
+}[] = [
   { value: "requested-desc", key: "requested", dir: "desc", label: "Newest" },
   { value: "requested-asc", key: "requested", dir: "asc", label: "Oldest" },
   { value: "name-asc", key: "name", dir: "asc", label: "Applicant Name" },
@@ -209,7 +214,10 @@ export function requestActionItems(
 
 // ---- View / filter / sort application (client-side, same shape as Phase 5/6) ----
 
-export function applyRequestView(requests: OrganizerRequestRow[], view: RequestView): OrganizerRequestRow[] {
+export function applyRequestView(
+  requests: OrganizerRequestRow[],
+  view: RequestView
+): OrganizerRequestRow[] {
   switch (view) {
     case "pending":
       return requests.filter((r) => r.status === "pending");
@@ -222,7 +230,10 @@ export function applyRequestView(requests: OrganizerRequestRow[], view: RequestV
   }
 }
 
-export function applyRequestFilters(requests: OrganizerRequestRow[], filters: RequestFilters): OrganizerRequestRow[] {
+export function applyRequestFilters(
+  requests: OrganizerRequestRow[],
+  filters: RequestFilters
+): OrganizerRequestRow[] {
   const q = filters.q.trim().toLowerCase();
   return requests.filter((request) => {
     if (q) {
@@ -237,9 +248,16 @@ export function applyRequestFilters(requests: OrganizerRequestRow[], filters: Re
         .toLowerCase();
       if (!haystack.includes(q)) return false;
     }
-    if (filters.type.length > 0 && (request.organizer_type === null || !filters.type.includes(request.organizer_type)))
+    if (
+      filters.type.length > 0 &&
+      (request.organizer_type === null || !filters.type.includes(request.organizer_type))
+    )
       return false;
-    if (filters.accountStatus.length > 0 && !filters.accountStatus.includes(request.applicant_status)) return false;
+    if (
+      filters.accountStatus.length > 0 &&
+      !filters.accountStatus.includes(request.applicant_status)
+    )
+      return false;
     if (filters.from || filters.to) {
       const d = request.created_at.slice(0, 10);
       if (filters.from && d < filters.from) return false;
@@ -265,9 +283,13 @@ export function applyRequestSort(
               undefined,
               { sensitivity: "base" }
             )
-          : (a.request.proposed_name ?? "").localeCompare(b.request.proposed_name ?? "", undefined, {
-              sensitivity: "base",
-            });
+          : (a.request.proposed_name ?? "").localeCompare(
+              b.request.proposed_name ?? "",
+              undefined,
+              {
+                sensitivity: "base",
+              }
+            );
     if (cmp !== 0) return dir === "asc" ? cmp : -cmp;
     return a.index - b.index;
   });

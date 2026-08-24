@@ -65,12 +65,8 @@ describe("AdminTagsPage", () => {
 
     await act(async () => {});
 
-    await waitFor(() =>
-      expect(screen.getByTestId("location")).toHaveTextContent("/admin/tags")
-    );
-    await waitFor(() =>
-      expect(screen.getByTestId("location")).toHaveTextContent("q=Outdoor")
-    );
+    await waitFor(() => expect(screen.getByTestId("location")).toHaveTextContent("/admin/tags"));
+    await waitFor(() => expect(screen.getByTestId("location")).toHaveTextContent("q=Outdoor"));
   });
 
   it("does not let a stale search overwrite external navigation", () => {

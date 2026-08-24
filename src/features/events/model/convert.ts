@@ -32,7 +32,9 @@ export function databaseEventToScheduleX(event: DatabaseEvent): ScheduleXEvent {
     contactEmail: event.contact_email ?? undefined,
     contactInstagram: event.contact_instagram ?? undefined,
     contactWebsite: event.contact_website ?? undefined,
-    danceStyles: event.taxonomy_terms.filter((term) => term.category === "dance_style").map((term) => term.name),
+    danceStyles: event.taxonomy_terms
+      .filter((term) => term.category === "dance_style")
+      .map((term) => term.name),
     imageUrl: event.image_url ?? `https://picsum.photos/seed/${event.id}/800/600`,
     priceType: event.price_type ?? undefined,
     priceAmount: event.price_amount ?? undefined,

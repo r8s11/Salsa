@@ -44,7 +44,10 @@ describe("CalendarStatus", () => {
     renderStatus({ isEmpty: true, cityLabel: "NYC" });
 
     expect(screen.getByRole("status")).toHaveTextContent("No upcoming events in NYC yet.");
-    expect(screen.getByRole("link", { name: "Submit an Event" })).toHaveAttribute("href", "/submit");
+    expect(screen.getByRole("link", { name: "Submit an Event" })).toHaveAttribute(
+      "href",
+      "/submit"
+    );
   });
 
   it("renders filtered empty state and clears the filter", () => {

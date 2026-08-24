@@ -1,12 +1,18 @@
 import "temporal-polyfill/global";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DatabaseEvent } from "../model/types";
-import { duplicateEvent, updateEventForUser, deleteEventForUser } from "./eventsRepo";
+import {
+  deleteEventForUser,
+  duplicateEvent,
+  fetchApprovedEventById,
+  updateEventForUser,
+} from "./eventsRepo";
 
 const mocks = vi.hoisted(() => ({
   insert: vi.fn(),
   update: vi.fn(),
   delete: vi.fn(),
+  maybeSingle: vi.fn(),
   replaceEventTaxonomyTerms: vi.fn(),
 }));
 
@@ -17,6 +23,7 @@ const queryBuilder = {
   select: vi.fn().mockReturnThis(),
   eq: vi.fn().mockReturnThis(),
   single: vi.fn(),
+  maybeSingle: mocks.maybeSingle,
 };
 
 vi.mock("../../../lib/supabase", () => ({
@@ -82,6 +89,41 @@ describe("eventsRepo taxonomy persistence", () => {
     expect(inserted).not.toHaveProperty("taxonomy_term_ids");
     expect(inserted).not.toHaveProperty("taxonomy_terms");
     expect(mocks.replaceEventTaxonomyTerms).toHaveBeenCalledWith("copy-id", ["salsa-id"]);
+  });
+});
+
+describe("fetchApprovedEventById", () => {
+  beforeEach(() => {
+    queryBuilder.select.mockClear();
+    queryBuilder.eq.mockClear();
+    mocks.maybeSingle.mockReset();
+  });
+
+  it("queries only the requested approved event and projects taxonomy", async () => {
+    mocks.maybeSingle.mockResolvedValue({
+      data: {
+        ...source,
+        event_taxonomy_terms: [
+          { taxonomy_term_id: "salsa-id", taxonomy_terms: source.taxonomy_terms[0] },
+        ],
+      },
+      error: null,
+    });
+
+    await expect(fetchApprovedEventById("source-id")).resolves.toMatchObject({
+      id: "source-id",
+      taxonomy_term_ids: ["salsa-id"],
+      taxonomy_terms: source.taxonomy_terms,
+    });
+
+    expect(queryBuilder.eq).toHaveBeenNthCalledWith(1, "id", "source-id");
+    expect(queryBuilder.eq).toHaveBeenNthCalledWith(2, "status", "approved");
+  });
+
+  it("returns null when the approved event is absent", async () => {
+    mocks.maybeSingle.mockResolvedValue({ data: null, error: null });
+
+    await expect(fetchApprovedEventById("missing")).resolves.toBeNull();
   });
 });
 

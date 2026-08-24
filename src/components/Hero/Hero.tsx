@@ -74,8 +74,7 @@ function Hero() {
 
           <p className="hero-subtitle">
             Every salsa &amp; bachata social, pop-up class, and workshop across{" "}
-            <span className="hero-subtitle-city">{cityLabel}</span> — one place, always on the
-            beat.
+            <span className="hero-subtitle-city">{cityLabel}</span> — one place, always on the beat.
           </p>
 
           <div className="hero-cta">

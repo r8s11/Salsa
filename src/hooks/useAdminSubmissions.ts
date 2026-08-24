@@ -19,8 +19,13 @@ export function useAdminSubmissions() {
   });
 
   const approveMutation = useMutation({
-    mutationFn: ({ submissionId, taxonomyTermIds }: { submissionId: string; taxonomyTermIds: string[] }) =>
-      submissionsRepo.approveSubmissionWithTaxonomy(submissionId, taxonomyTermIds),
+    mutationFn: ({
+      submissionId,
+      taxonomyTermIds,
+    }: {
+      submissionId: string;
+      taxonomyTermIds: string[];
+    }) => submissionsRepo.approveSubmissionWithTaxonomy(submissionId, taxonomyTermIds),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["submissions"] });
       queryClient.invalidateQueries({ queryKey: ["events"] });

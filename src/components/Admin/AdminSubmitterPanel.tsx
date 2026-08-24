@@ -1,6 +1,10 @@
 import AdminUserAvatar from "./AdminUserAvatar";
 import AdminRoleBadge from "./AdminRoleBadge";
-import { displayNameFor, identityLineFor, type AdminUserRow } from "../../features/admin/model/usersQuery";
+import {
+  displayNameFor,
+  identityLineFor,
+  type AdminUserRow,
+} from "../../features/admin/model/usersQuery";
 
 interface Submitter {
   user: AdminUserRow;
@@ -24,10 +28,14 @@ export default function AdminSubmitterPanel({ submitter }: { submitter: Submitte
             <AdminRoleBadge role={submitter.user.role} />
           )}
           <div className="text-sm text-gray-500">
-            {submitter.previousSubmissionsCount} previous submission{submitter.previousSubmissionsCount !== 1 ? 's' : ''}
+            {submitter.previousSubmissionsCount} previous submission
+            {submitter.previousSubmissionsCount !== 1 ? "s" : ""}
           </div>
           <div className="text-xs text-gray-400 mt-1">{submitter.user.email}</div>
-          <a href={`/admin/users/${isGuest ? `guest:${submitter.user.email}` : submitter.user.user_id}`} className="text-sm text-blue-500 hover:underline mt-2 block">
+          <a
+            href={`/admin/users/${isGuest ? `guest:${submitter.user.email}` : submitter.user.user_id}`}
+            className="text-sm text-blue-500 hover:underline mt-2 block"
+          >
             {isGuest ? "View submitter" : "View full profile"} →
           </a>
         </div>

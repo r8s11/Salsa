@@ -34,7 +34,9 @@ const moreEntries: ActivityAuditLog[] = [
   },
 ];
 
-function renderTable(entriesProp: ComponentProps<typeof AdminActivityTable>["entries"] = moreEntries) {
+function renderTable(
+  entriesProp: ComponentProps<typeof AdminActivityTable>["entries"] = moreEntries
+) {
   return render(
     <MemoryRouter>
       <AdminActivityTable entries={entriesProp} targetDisplayMap={{}} onViewDetail={vi.fn()} />
@@ -50,8 +52,13 @@ describe("AdminActivityTable", () => {
 
   it("renders a detail link via the action label", () => {
     renderTable([baseEntry]);
-    expect(screen.getAllByRole("link", { name: /event published/i }).length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByRole("link", { name: /event published/i })[0]).toHaveAttribute("href", "/admin/activity/audit-1");
+    expect(screen.getAllByRole("link", { name: /event published/i }).length).toBeGreaterThanOrEqual(
+      1
+    );
+    expect(screen.getAllByRole("link", { name: /event published/i })[0]).toHaveAttribute(
+      "href",
+      "/admin/activity/audit-1"
+    );
   });
 
   it("shows suspicious marker for sensitive actions", () => {

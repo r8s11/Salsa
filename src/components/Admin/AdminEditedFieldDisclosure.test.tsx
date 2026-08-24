@@ -5,11 +5,7 @@ import AdminEditedFieldDisclosure from "./AdminEditedFieldDisclosure";
 describe("AdminEditedFieldDisclosure", () => {
   it("renders value and toggle button", () => {
     render(
-      <AdminEditedFieldDisclosure
-        label="Venue"
-        value="Havana Club"
-        originalValue="Havanna Club"
-      />
+      <AdminEditedFieldDisclosure label="Venue" value="Havana Club" originalValue="Havanna Club" />
     );
     expect(screen.getByText("Venue")).toBeDefined();
     expect(screen.getByText("Havana Club")).toBeDefined();
@@ -18,11 +14,7 @@ describe("AdminEditedFieldDisclosure", () => {
 
   it("toggles original value visibility", () => {
     render(
-      <AdminEditedFieldDisclosure
-        label="Venue"
-        value="Havana Club"
-        originalValue="Havanna Club"
-      />
+      <AdminEditedFieldDisclosure label="Venue" value="Havana Club" originalValue="Havanna Club" />
     );
     const button = screen.getByRole("button");
     fireEvent.click(button);

@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
-export default function AdminEditedFieldDisclosure({ 
-  label, 
-  value, 
-  originalValue 
-}: { 
-  label: string; 
-  value: string; 
-  originalValue: string 
+export default function AdminEditedFieldDisclosure({
+  label,
+  value,
+  originalValue,
+}: {
+  label: string;
+  value: string;
+  originalValue: string;
 }) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -16,7 +16,7 @@ export default function AdminEditedFieldDisclosure({
     <div className="admin-field">
       <div className="flex items-center justify-between">
         <label className="font-medium">{label}</label>
-        <button 
+        <button
           onClick={() => setIsOpen(!isOpen)}
           className="admin-chip flex items-center gap-1"
           aria-expanded={isOpen}

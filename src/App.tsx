@@ -10,6 +10,7 @@ const AboutPage = lazy(() => import("./pages/AboutPage"));
 const ContactPage = lazy(() => import("./pages/ContactPage"));
 const CalendarPage = lazy(() => import("./pages/CalendarPage"));
 const SubmitEventPage = lazy(() => import("./pages/SubmitEventPage"));
+const EventDetailPage = lazy(() => import("./pages/EventDetailPage"));
 const Lessons = lazy(() => import("./pages/Lessons"));
 const Instructors = lazy(() => import("./pages/Instructors"));
 const Schools = lazy(() => import("./pages/Schools"));
@@ -167,6 +168,7 @@ function App() {
               <Route path="contact" element={<ContactPage />} />
               <Route path="calendar" element={<CalendarPage />} />
               <Route path="submit" element={<SubmitEventPage />} />
+              <Route path="events/:id" element={<EventDetailPage />} />
               <Route
                 path="profile"
                 element={

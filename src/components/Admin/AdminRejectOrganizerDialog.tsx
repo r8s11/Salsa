@@ -105,9 +105,7 @@ export default function AdminRejectOrganizerDialog({
           </div>
 
           <div className="admin-field">
-            <label htmlFor="admin-reject-applicant-message">
-              Message to Applicant (Optional)
-            </label>
+            <label htmlFor="admin-reject-applicant-message">Message to Applicant (Optional)</label>
             <textarea
               id="admin-reject-applicant-message"
               className="admin-textarea"
@@ -120,9 +118,7 @@ export default function AdminRejectOrganizerDialog({
           </div>
 
           <div className="admin-field">
-            <label htmlFor="admin-reject-internal-note">
-              Internal Admin Note (Optional)
-            </label>
+            <label htmlFor="admin-reject-internal-note">Internal Admin Note (Optional)</label>
             <textarea
               id="admin-reject-internal-note"
               className="admin-textarea"

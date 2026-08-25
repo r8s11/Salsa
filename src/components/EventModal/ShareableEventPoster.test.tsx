@@ -1,0 +1,29 @@
+import { render, screen, within } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+import type { ScheduleXEvent } from "../../types/events";
+import ShareableEventPoster from "./ShareableEventPoster";
+
+const event: ScheduleXEvent = {
+  id: "event-1",
+  title: "Live Band Latin Night at PKL",
+  start: "2026-08-29 21:00",
+  end: "2026-08-30 01:00",
+  calendarId: "social",
+  location: "South Boston",
+  priceType: "paid",
+  priceAmount: 25,
+};
+
+describe("ShareableEventPoster", () => {
+  it("renders a Story-native poster with type and event details in its safe content region", () => {
+    render(<ShareableEventPoster event={event} />);
+
+    const poster = screen.getByRole("img", {
+      name: "Instagram Story poster for Live Band Latin Night at PKL",
+    });
+
+    expect(poster).toHaveClass("poster-story");
+    expect(within(poster).getByText("social")).toBeInTheDocument();
+    expect(within(poster).getByRole("heading", { name: event.title })).toBeInTheDocument();
+  });
+});

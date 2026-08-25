@@ -300,12 +300,12 @@ describe("share poster", () => {
     expect(screen.queryByText("9:16")).not.toBeInTheDocument();
   });
 
-  it("shares a single square PNG File with event-title metadata when native file sharing is available", async () => {
+  it("shares a single Story PNG File with event-title metadata when native file sharing is available", async () => {
     const shareSpy = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, "canShare", { value: vi.fn(() => true), configurable: true });
     Object.defineProperty(navigator, "share", { value: shareSpy, configurable: true });
     mockCapturePoster.mockImplementation(async (container: HTMLElement) => {
-      expect(container.firstElementChild).toHaveClass("shareable-poster", "poster-square");
+      expect(container.firstElementChild).toHaveClass("shareable-poster", "poster-story");
       return new Blob(["poster"], { type: "image/png" });
     });
 

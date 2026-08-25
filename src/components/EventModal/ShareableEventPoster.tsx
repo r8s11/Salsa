@@ -9,8 +9,8 @@ interface ShareableEventPosterProps {
 }
 
 /**
- * Renders a social-media-optimized event poster.
- * Designed for 1080×1080 (square — Instagram post).
+ * Renders a Story-native social-media event poster.
+ * Designed for 1080×1920 Instagram Stories.
  */
 export default function ShareableEventPoster({ event, imageUrl }: ShareableEventPosterProps) {
   const toDate = (val: unknown): Date => {
@@ -50,7 +50,11 @@ export default function ShareableEventPoster({ event, imageUrl }: ShareableEvent
   const priceLabel = isFree ? "FREE" : `$${event.priceAmount}`;
 
   return (
-    <div className="shareable-poster poster-square">
+    <div
+      className="shareable-poster poster-story"
+      role="img"
+      aria-label={`Instagram Story poster for ${event.title}`}
+    >
       {/* Background layer */}
       <div className="poster-bg">
         {imageUrl ? (
@@ -69,7 +73,6 @@ export default function ShareableEventPoster({ event, imageUrl }: ShareableEvent
             className="poster-brand-mark"
             ariaLabel="Salsa Segura"
           />
-          <span className="poster-chip">{event.calendarId}</span>
         </div>
 
         {/* Spacer */}
@@ -77,6 +80,7 @@ export default function ShareableEventPoster({ event, imageUrl }: ShareableEvent
 
         {/* Bottom details */}
         <div className="poster-bottom">
+          <span className="poster-chip">{event.calendarId}</span>
           <p className="poster-date">{formatPosterDate(event.start)}</p>
           <h1 className="poster-title">{event.title}</h1>
 

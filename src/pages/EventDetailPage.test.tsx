@@ -4,10 +4,13 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DatabaseEvent } from "../features/events/model/types";
-import { fetchApprovedEventById } from "../features/events/api/eventsRepo";
+import { fetchApprovedEventById, fetchApprovedEvents } from "../features/events/api/eventsRepo";
 import EventDetailPage from "./EventDetailPage";
 
-vi.mock("../features/events/api/eventsRepo", () => ({ fetchApprovedEventById: vi.fn() }));
+vi.mock("../features/events/api/eventsRepo", () => ({
+  fetchApprovedEventById: vi.fn(),
+  fetchApprovedEvents: vi.fn(),
+}));
 
 const event: DatabaseEvent = {
   id: "event-1",
@@ -50,6 +53,20 @@ const event: DatabaseEvent = {
   contact_website: "https://example.com",
   venue_id: null,
 };
+const withinWeek: DatabaseEvent = {
+  ...event,
+  id: "event-2",
+  title: "Within Week",
+  event_date: "2026-10-26T01:00:00Z",
+};
+
+const fallback: DatabaseEvent = {
+  ...event,
+  id: "event-3",
+  title: "Fallback Event",
+  event_date: "2026-11-05T01:00:00Z",
+};
+
 
 function renderPage() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -65,7 +82,10 @@ function renderPage() {
 }
 
 describe("EventDetailPage", () => {
-  beforeEach(() => vi.mocked(fetchApprovedEventById).mockResolvedValue(event));
+  beforeEach(() => {
+    vi.mocked(fetchApprovedEventById).mockResolvedValue(event);
+    vi.mocked(fetchApprovedEvents).mockResolvedValue([event]);
+  });
 
   it("renders only real approved-event details and existing action links", async () => {
     renderPage();
@@ -102,4 +122,25 @@ describe("EventDetailPage", () => {
     renderPage();
     expect(await screen.findByRole("heading", { name: "404" })).toBeInTheDocument();
   });
+  it("renders selected same-city related event links after event detail content", async () => {
+    vi.mocked(fetchApprovedEvents).mockResolvedValue([event, withinWeek, fallback]);
+    renderPage();
+
+    expect(
+      await screen.findByRole("heading", { name: "More this week in Greater Boston" })
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /within week/i })).toHaveAttribute(
+      "href",
+      `/events/${withinWeek.id}`
+    );
+  });
+
+  it("omits related-events strip when city query fails or selects no events", async () => {
+    vi.mocked(fetchApprovedEvents).mockRejectedValue(new Error("offline"));
+    renderPage();
+
+    await screen.findByRole("heading", { name: "Havana Nights" });
+    expect(screen.queryByRole("region", { name: /more/i })).not.toBeInTheDocument();
+  });
+
 });

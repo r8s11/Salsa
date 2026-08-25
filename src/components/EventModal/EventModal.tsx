@@ -15,7 +15,10 @@ import {
 import { ScheduleXEvent } from "../../types/events";
 import { downloadIcs, mapsUrl, googleCalendarUrl } from "../../utils/ics";
 import { getUpcomingSeriesDates } from "../../utils/series";
-import { useShareablePoster } from "../../features/calendar/hooks/useShareablePoster";
+import {
+  resolvePosterImage,
+  useShareablePoster,
+} from "../../features/calendar/hooks/useShareablePoster";
 import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
 import ShareableEventPoster from "./ShareableEventPoster";
 import { resolveEventModalImage } from "./eventModalImage";
@@ -25,6 +28,40 @@ interface EventModalProps {
   event: ScheduleXEvent | null;
   onClose: () => void;
 }
+
+// Normalize a start/end value that may be a string or a Temporal.ZonedDateTime
+const toDate = (val: unknown): Date => {
+  if (typeof val === "string") {
+    return new Date(val.replace(" ", "T"));
+  }
+  // Temporal.ZonedDateTime — convert via epochMilliseconds
+  if (val && typeof val === "object" && "epochMilliseconds" in val) {
+    return new Date(Number((val as { epochMilliseconds: bigint }).epochMilliseconds));
+  }
+  return new Date(String(val));
+};
+
+// Format date from "YYYY-MM-DD HH:mm" string
+const formatDate = (dateVal: unknown) => {
+  const date = toDate(dateVal);
+  return date.toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
+
+const formatTime = (startVal: unknown, endVal: unknown) => {
+  const startDate = toDate(startVal);
+  const endDate = toDate(endVal);
+  const opts: Intl.DateTimeFormatOptions = {
+    hour: "numeric",
+    minute: "2-digit",
+  };
+  return `${startDate.toLocaleTimeString("en-US", opts)} - ${endDate.toLocaleTimeString("en-US", opts)}`;
+};
+
 export default function EventModal({ event, onClose }: EventModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
@@ -108,39 +145,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
     }
   };
 
-  // Normalize a start/end value that may be a string or a Temporal.ZonedDateTime
-  const toDate = (val: unknown): Date => {
-    if (typeof val === "string") {
-      return new Date(val.replace(" ", "T"));
-    }
-    // Temporal.ZonedDateTime — convert via epochMilliseconds
-    if (val && typeof val === "object" && "epochMilliseconds" in val) {
-      return new Date(Number((val as { epochMilliseconds: bigint }).epochMilliseconds));
-    }
-    return new Date(String(val));
-  };
-
-  // Format date from "YYYY-MM-DD HH:mm" string
-  const formatDate = (dateVal: unknown) => {
-    const date = toDate(dateVal);
-    return date.toLocaleDateString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
-  const formatTime = (startVal: unknown, endVal: unknown) => {
-    const startDate = toDate(startVal);
-    const endDate = toDate(endVal);
-    const opts: Intl.DateTimeFormatOptions = {
-      hour: "numeric",
-      minute: "2-digit",
-    };
-    return `${startDate.toLocaleTimeString("en-US", opts)} - ${endDate.toLocaleTimeString("en-US", opts)}`;
-  };
-
+  // ── Shared action buttons (used in desktop sidebar + mobile sticky bar) ──
   const isFree = event.priceType === "free" || event.priceAmount == null;
   const priceLabel = isFree ? "Free" : `$${event.priceAmount}`;
   const rsvpLabel = isFree ? "RSVP · Free" : "Get Tickets";
@@ -148,6 +153,73 @@ export default function EventModal({ event, onClose }: EventModalProps) {
   const galleryThumbs = event.gallery?.slice(0, 4) ?? [];
   const galleryExtra = (event.gallery?.length ?? 0) - galleryThumbs.length;
   const resolvedImageUrl = resolveEventModalImage(event);
+
+  const hasContacts = !!(event.contactEmail || event.contactInstagram || event.contactWebsite);
+  const locationLabel = `${event.location}${event.address ? ` · ${event.address}` : ""}`;
+  const locationUrl = mapsUrl(event);
+
+  // Location link, rendered identically in quick facts and meta rows
+  const renderLocationLink = () =>
+    locationUrl ? (
+      <a
+        href={locationUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="address-link"
+        aria-label={`Open ${locationLabel} in Maps`}
+      >
+        {locationLabel}
+      </a>
+    ) : (
+      <span>{locationLabel}</span>
+    );
+
+  // Contact block, rendered identically in desktop sidebar and mobile extras
+  const renderContactBlock = () =>
+    hasContacts ? (
+      <div className="contact-block">
+        <h3 className="contact-eyebrow">Contact</h3>
+        {event.contactEmail && <a href={`mailto:${event.contactEmail}`}>{event.contactEmail}</a>}
+        {event.contactInstagram && (
+          <a
+            href={`https://instagram.com/${event.contactInstagram.replace(/^@/, "")}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            @{event.contactInstagram.replace(/^@/, "")}
+          </a>
+        )}
+        {event.contactWebsite && (
+          <a href={event.contactWebsite} target="_blank" rel="noopener noreferrer">
+            Visit website
+          </a>
+        )}
+      </div>
+    ) : null;
+
+  // Series dates list, rendered identically in desktop sidebar and mobile extras
+  const renderSeries = () =>
+    seriesDates.length > 0 ? (
+      <div className="series">
+        <h3>More dates in this series</h3>
+        {seriesDates.map((date) => (
+          <div key={date.toString()} className="series-item">
+            <span>
+              {date.toLocaleString("en-US", {
+                weekday: "short",
+                month: "short",
+                day: "numeric",
+              })}
+            </span>
+            {event.rsvpLink && (
+              <a href={event.rsvpLink} target="_blank" rel="noopener noreferrer">
+                Reserve
+              </a>
+            )}
+          </div>
+        ))}
+      </div>
+    ) : null;
 
   // ── Poster sharing ──
 
@@ -157,8 +229,11 @@ export default function EventModal({ event, onClose }: EventModalProps) {
     let root: ReturnType<typeof createRoot> | null = null;
     try {
       const container = ensureContainer();
+      // Inline the flyer before rendering: the capture cannot fetch a
+      // cross-origin image, so an un-inlined flyer yields a photo-less poster.
+      const posterImageUrl = await resolvePosterImage(resolvedImageUrl);
       root = createRoot(container);
-      root.render(<ShareableEventPoster event={event} imageUrl={resolvedImageUrl} />);
+      root.render(<ShareableEventPoster event={event} imageUrl={posterImageUrl ?? undefined} />);
       // Wait for the poster to render before capturing
       await new Promise((resolve) => setTimeout(resolve, 300));
       const poster = await capturePoster(container);
@@ -291,25 +366,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
           {event.location && (
             <div className="fact">
               <MapPin size={16} aria-hidden />
-              <span>
-                {(() => {
-                  const url = mapsUrl(event);
-                  const label = `${event.location}${event.address ? ` · ${event.address}` : ""}`;
-                  return url ? (
-                    <a
-                      href={url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="address-link"
-                      aria-label={`Open ${label} in Maps`}
-                    >
-                      {label}
-                    </a>
-                  ) : (
-                    <span>{label}</span>
-                  );
-                })()}
-              </span>
+              <span>{renderLocationLink()}</span>
             </div>
           )}
           <div className="fact">
@@ -329,25 +386,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
                   </div>
                   <div className="meta-row">
                     <MapPin size={18} aria-hidden />
-                    <span>
-                      {(() => {
-                        const url = mapsUrl(event);
-                        const label = `${event.location}${event.address ? ` · ${event.address}` : ""}`;
-                        return url ? (
-                          <a
-                            href={url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="address-link"
-                            aria-label={`Open ${label} in Maps`}
-                          >
-                            {label}
-                          </a>
-                        ) : (
-                          <span>{label}</span>
-                        );
-                      })()}
-                    </span>
+                    <span>{renderLocationLink()}</span>
                   </div>
                 </>
               )}
@@ -394,97 +433,15 @@ export default function EventModal({ event, onClose }: EventModalProps) {
             <aside className="modal-rsvp">
               {renderActions(true)}
 
-              {(event.contactEmail || event.contactInstagram || event.contactWebsite) && (
-                <div className="contact-block">
-                  <h3 className="contact-eyebrow">Contact</h3>
-                  {event.contactEmail && (
-                    <a href={`mailto:${event.contactEmail}`}>{event.contactEmail}</a>
-                  )}
-                  {event.contactInstagram && (
-                    <a
-                      href={`https://instagram.com/${event.contactInstagram.replace(/^@/, "")}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      @{event.contactInstagram.replace(/^@/, "")}
-                    </a>
-                  )}
-                  {event.contactWebsite && (
-                    <a href={event.contactWebsite} target="_blank" rel="noopener noreferrer">
-                      Visit website
-                    </a>
-                  )}
-                </div>
-              )}
-              {seriesDates.length > 0 && (
-                <div className="series">
-                  <h3>More dates in this series</h3>
-                  {seriesDates.map((date) => (
-                    <div key={date.toString()} className="series-item">
-                      <span>
-                        {date.toLocaleString("en-US", {
-                          weekday: "short",
-                          month: "short",
-                          day: "numeric",
-                        })}
-                      </span>
-                      {event.rsvpLink && (
-                        <a href={event.rsvpLink} target="_blank" rel="noopener noreferrer">
-                          Reserve
-                        </a>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
+              {renderContactBlock()}
+              {renderSeries()}
             </aside>
           </div>
 
           {/* Additional content shown inline on mobile (hidden in desktop sidebar) */}
           <div className="modal-mobile-extras">
-            {(event.contactEmail || event.contactInstagram || event.contactWebsite) && (
-              <div className="contact-block">
-                <h3 className="contact-eyebrow">Contact</h3>
-                {event.contactEmail && (
-                  <a href={`mailto:${event.contactEmail}`}>{event.contactEmail}</a>
-                )}
-                {event.contactInstagram && (
-                  <a
-                    href={`https://instagram.com/${event.contactInstagram.replace(/^@/, "")}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    @{event.contactInstagram.replace(/^@/, "")}
-                  </a>
-                )}
-                {event.contactWebsite && (
-                  <a href={event.contactWebsite} target="_blank" rel="noopener noreferrer">
-                    Visit website
-                  </a>
-                )}
-              </div>
-            )}
-            {seriesDates.length > 0 && (
-              <div className="series">
-                <h3>More dates in this series</h3>
-                {seriesDates.map((date) => (
-                  <div key={date.toString()} className="series-item">
-                    <span>
-                      {date.toLocaleString("en-US", {
-                        weekday: "short",
-                        month: "short",
-                        day: "numeric",
-                      })}
-                    </span>
-                    {event.rsvpLink && (
-                      <a href={event.rsvpLink} target="_blank" rel="noopener noreferrer">
-                        Reserve
-                      </a>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
+            {renderContactBlock()}
+            {renderSeries()}
           </div>
         </div>
 

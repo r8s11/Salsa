@@ -109,7 +109,7 @@ describe("EventDetailPage", () => {
 
     // Sidebar cards
     expect(screen.getByText("Hosted by")).toBeInTheDocument();
-    expect(screen.getByText("Carlos")).toBeInTheDocument();
+    expect(screen.getAllByText("Carlos").length).toBeGreaterThan(0);
     expect(screen.getByText("Where")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /open map/i })).toHaveAttribute(
       "href",
@@ -119,6 +119,21 @@ describe("EventDetailPage", () => {
     expect(screen.getByRole("button", { name: "Copy link" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Instagram" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "WhatsApp" })).toBeInTheDocument();
+  });
+
+  it("shows the host in the cover facts on every tab", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByRole("heading", { name: "Havana Nights" });
+
+    const facts = document.querySelector(".event-page__facts");
+    if (!facts) throw new Error("Expected the cover fact row.");
+    expect(facts).toHaveTextContent("Carlos");
+
+    // The sidebar "Hosted by" card only renders on the About tab, so the
+    // cover fact row is what keeps the host visible on the album tab too.
+    await user.click(screen.getByRole("tab", { name: /photo album/i }));
+    expect(document.querySelector(".event-page__facts")).toHaveTextContent("Carlos");
   });
 
   it("shows styles and tags as chips on the About tab", async () => {

@@ -13,6 +13,40 @@ function slugify(text: string) {
 }
 
 /**
+ * Resolves a flyer URL to an inline data URL so the poster capture never
+ * depends on the image host's CORS headers.
+ *
+ * html-to-image inlines `<img>` sources by fetching them during capture, and
+ * the poster's `<img>` previously carried `crossOrigin="anonymous"` — against a
+ * host that sends no `Access-Control-Allow-Origin`, the element fails to load
+ * at all and the capture silently produced a poster with no photo. Fetching the
+ * bytes ourselves and handing the poster a data URL removes the cross-origin
+ * load from the capture entirely. Returns null when the flyer cannot be read,
+ * so callers fall back to the designed gradient rather than an empty frame.
+ */
+export async function resolvePosterImage(url: string | undefined): Promise<string | null> {
+  if (!url) return null;
+  if (url.startsWith("data:")) return url;
+
+  try {
+    const response = await fetch(url, { mode: "cors", cache: "no-store" });
+    if (!response.ok) return null;
+
+    // Promise constructor rather than Promise.withResolvers: this project
+    // targets ES2020 (tsconfig lib), where withResolvers does not exist.
+    const blob = await response.blob();
+    return await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(new Error("Could not read flyer image"));
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Hook that manages an off-screen poster-render target and exposes
  * operations to capture the mounted poster as a PNG blob, name it, and
  * download it as a fallback when native sharing isn't available.
@@ -56,11 +90,11 @@ export function useShareablePoster() {
     const blob = await toBlob(posterEl, {
       quality: 1,
       pixelRatio: 1,
-      cacheBust: true,
-      // A flyer hosted without CORS headers (e.g. legacy imported image URLs)
-      // cannot be inlined; without this handler html-to-image rejects the
-      // entire capture, so the share action silently does nothing. Degrade
-      // to a poster without the photo instead of failing outright.
+      // No cacheBust: the flyer is already inlined as a data URL by
+      // resolvePosterImage, and busting the cache only forces needless
+      // re-fetches of same-origin assets.
+      // A flyer that still cannot be inlined (unreadable host) degrades to a
+      // poster without the photo instead of rejecting the whole capture.
       onImageErrorHandler: () => undefined,
     });
 
@@ -83,18 +117,24 @@ export function useShareablePoster() {
    */
   const downloadPoster = useCallback(
     (event: ScheduleXEvent, poster: Blob) => {
-      const filename = posterFilename(event);
       const url = URL.createObjectURL(poster);
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = filename;
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = posterFilename(event);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
       URL.revokeObjectURL(url);
     },
     [posterFilename]
   );
 
-  return { ensureContainer, capturePoster, posterFilename, downloadPoster, removeTarget };
+  return {
+    ensureContainer,
+    capturePoster,
+    posterFilename,
+    downloadPoster,
+    removeTarget,
+    resolvePosterImage,
+  };
 }

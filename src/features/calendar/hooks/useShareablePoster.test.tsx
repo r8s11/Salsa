@@ -1,7 +1,7 @@
 import { renderHook, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { toBlob } from "html-to-image";
-import { useShareablePoster } from "./useShareablePoster";
+import { resolvePosterImage, useShareablePoster } from "./useShareablePoster";
 import { ScheduleXEvent } from "../../../types/events";
 
 vi.mock("html-to-image", () => ({
@@ -54,9 +54,7 @@ describe("useShareablePoster", () => {
     const { result } = renderHook(() => useShareablePoster());
     const poster = new Blob(["poster"], { type: "image/png" });
 
-    expect(result.current.posterFilename(testEvent)).toBe(
-      "salsa-segura-beginner-salsa-night.png"
-    );
+    expect(result.current.posterFilename(testEvent)).toBe("salsa-segura-beginner-salsa-night.png");
 
     const clickSpy = vi.fn();
     const realCreateElement = document.createElement.bind(document);
@@ -90,5 +88,33 @@ describe("useShareablePoster", () => {
     );
     const options = vi.mocked(toBlob).mock.calls[0][1];
     expect(() => options?.onImageErrorHandler?.("", "img", 0)).not.toThrow();
+  });
+
+  describe("resolvePosterImage", () => {
+    afterEach(() => {
+      Reflect.deleteProperty(globalThis, "fetch");
+    });
+
+    it("inlines a remote flyer as a data URL so the capture needs no CORS fetch", async () => {
+      const bytes = new Blob(["flyer-bytes"], { type: "image/png" });
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, blob: async () => bytes }));
+
+      const inlined = await resolvePosterImage("https://cdn.example.com/flyer.png");
+
+      expect(inlined).toMatch(/^data:image\/png;base64,/);
+    });
+
+    it("returns null when the flyer host refuses the fetch, so the poster falls back", async () => {
+      vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("CORS blocked")));
+
+      expect(await resolvePosterImage("https://cdn.example.com/flyer.png")).toBeNull();
+    });
+
+    it("passes through an existing data URL and ignores a missing flyer", async () => {
+      expect(await resolvePosterImage("data:image/png;base64,AAAA")).toBe(
+        "data:image/png;base64,AAAA"
+      );
+      expect(await resolvePosterImage(undefined)).toBeNull();
+    });
   });
 });

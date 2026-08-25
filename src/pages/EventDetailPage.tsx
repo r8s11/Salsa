@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { CalendarPlus, Clock3, ExternalLink, MapPin } from "lucide-react";
+import { CalendarPlus, Clock3, ExternalLink, MapPin, Users } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { RelatedEventsStrip } from "../components/Events/RelatedEventsStrip";
 import { fetchApprovedEventById, fetchApprovedEvents } from "../features/events/api/eventsRepo";
@@ -146,6 +146,11 @@ export default function EventDetailPage() {
             {event.location && (
               <span>
                 <MapPin size={16} aria-hidden="true" /> {event.location}
+              </span>
+            )}
+            {event.host && (
+              <span>
+                <Users size={16} aria-hidden="true" /> {event.host}
               </span>
             )}
           </div>

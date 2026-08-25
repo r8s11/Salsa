@@ -57,9 +57,7 @@ export default function ShareableEventPoster({ event, imageUrl }: ShareableEvent
     >
       {/* Background layer */}
       <div className="poster-bg">
-        {imageUrl ? (
-          <img className="poster-bg-img" src={imageUrl} alt="" crossOrigin="anonymous" />
-        ) : null}
+        {imageUrl ? <img className="poster-bg-img" src={imageUrl} alt="" /> : null}
         <div className="poster-bg-gradient" />
       </div>
 

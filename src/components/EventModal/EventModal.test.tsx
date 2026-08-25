@@ -11,6 +11,7 @@ const {
   mockPosterFilename,
   mockDownloadPoster,
   mockRemoveTarget,
+  mockResolvePosterImage,
 } = vi.hoisted(() => ({
   mockEnsureContainer: vi.fn(),
   mockCapturePoster: vi.fn(),
@@ -20,9 +21,11 @@ const {
   ),
   mockDownloadPoster: vi.fn(),
   mockRemoveTarget: vi.fn(),
+  mockResolvePosterImage: vi.fn(async (url?: string) => url ?? null),
 }));
 
 vi.mock("../../features/calendar/hooks/useShareablePoster", () => ({
+  resolvePosterImage: mockResolvePosterImage,
   useShareablePoster: () => ({
     ensureContainer: mockEnsureContainer,
     capturePoster: mockCapturePoster,

@@ -90,11 +90,17 @@ export function useShareablePoster() {
     const blob = await toBlob(posterEl, {
       quality: 1,
       pixelRatio: 1,
-      // No cacheBust: the flyer is already inlined as a data URL by
-      // resolvePosterImage, and busting the cache only forces needless
-      // re-fetches of same-origin assets.
-      // A flyer that still cannot be inlined (unreadable host) degrades to a
-      // poster without the photo instead of rejecting the whole capture.
+      // Google Fonts is a cross-origin stylesheet. Browsers correctly block
+      // `CSSStyleSheet.cssRules`; html-to-image logs one SecurityError per
+      // capture while trying to inline it. The Story poster already declares
+      // system fallbacks, so skip this unsupported scan rather than emitting
+      // noisy console errors or aborting capture.
+      skipFonts: true,
+      // No cacheBust: flyer is already inlined as a data URL by
+      // resolvePosterImage, and busting cache only forces needless re-fetches
+      // of same-origin assets.
+      // Flyer still cannot be inlined (unreadable host) degrades to a poster
+      // without photo instead of rejecting whole capture.
       onImageErrorHandler: () => undefined,
     });
 

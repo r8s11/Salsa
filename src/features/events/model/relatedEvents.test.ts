@@ -47,7 +47,7 @@ describe('selectRelatedEvents', () => {
 
     const selection = selectRelatedEvents(current, [current, sameDay, withinWeek, beyondWeek, otherCity]);
 
-    expect(selection.events.map((event) => event.id)).toEqual([sameDay.id, withinWeek.id]);
+    expect(selection.events.map((event) => event.id)).toEqual([sameDay.id, withinWeek.id, beyondWeek.id]);
     expect(selection.hasStrictWindowEvents).toBe(true);
   });
 
@@ -123,5 +123,19 @@ describe('selectRelatedEvents', () => {
     const valid = makeEvent({ id: 'valid', city: 'boston' as City, event_date: '2026-08-25T12:00:00.000Z' });
     const selection = selectRelatedEvents(current, [invalid, valid]);
     expect(selection.events.map((e) => e.id)).toEqual([valid.id]);
+  });
+  it('backfills with beyond-window events when strict events are fewer than 3', () => {
+    const currentTime = Date.parse(current.event_date);
+    // One event within 7 days (strict)
+    const strict = makeEvent({ id: 'strict', city: 'boston' as City, event_date: new Date(currentTime + 24 * 3600000).toISOString() }); // 1 day later
+    // Two events beyond 7 days
+    const beyondFirst = makeEvent({ id: 'beyondFirst', city: 'boston' as City, event_date: new Date(currentTime + 8 * 24 * 3600000).toISOString() }); // 8 days later
+    const beyondSecond = makeEvent({ id: 'beyondSecond', city: 'boston' as City, event_date: new Date(currentTime + 9 * 24 * 3600000).toISOString() }); // 9 days later
+    // Ensure beyondFirst is earlier than beyondSecond
+    const selection = selectRelatedEvents(current, [current, strict, beyondSecond, beyondFirst]);
+
+    // We expect: strict, beyondFirst, beyondSecond (chronological order)
+    expect(selection.events.map((e) => e.id)).toEqual([strict.id, beyondFirst.id, beyondSecond.id]);
+    expect(selection.hasStrictWindowEvents).toBe(true);
   });
 });

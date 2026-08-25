@@ -31,15 +31,13 @@ export function selectRelatedEvents(
   const sortedStrict = strict.sort((a, b) => Date.parse(a.event_date) - Date.parse(b.event_date));
   const sortedBeyond = beyond.sort((a, b) => Date.parse(a.event_date) - Date.parse(b.event_date));
 
-  let events: DatabaseEvent[];
-  if (sortedStrict.length > 0) {
-    events = sortedStrict.slice(0, 3);
-  } else {
-    events = sortedBeyond.slice(0, 3);
-  }
+  const strictTake = sortedStrict.slice(0, 3);
+  const beyondTake = sortedBeyond.slice(0, 3 - strictTake.length);
+  const events = [...strictTake, ...beyondTake];
+  const hasStrictWindowEvents = strictTake.length > 0;
 
   return {
     events,
-    hasStrictWindowEvents: sortedStrict.length > 0,
+    hasStrictWindowEvents,
   };
 }

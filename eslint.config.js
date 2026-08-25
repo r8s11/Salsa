@@ -8,10 +8,11 @@ import globals from "globals";
 
 export default [
   {
-    // .design-sync is a tool-managed handoff directory (see .design-sync/config.json).
-    // Its contents are regenerated on re-sync, are not imported by src/, and are not
-    // built — linting them reports on code we neither own nor ship.
-    ignores: ["dist/**", "node_modules/**", ".claude/**", ".design-sync/**"],
+    // .design-sync and design/ are tool-managed handoff directories (see
+    // .design-sync/config.json). Their contents are regenerated on re-sync, are not
+    // imported by src/, and are not built — linting them reports on code we neither
+    // own nor ship.
+    ignores: ["dist/**", "node_modules/**", ".claude/**", ".design-sync/**", "design/**"],
   },
   {
     files: ["**/*.{ts,tsx}"],
@@ -37,10 +38,7 @@ export default [
       ...typescript.configs.recommended.rules,
       ...reactHooks.configs.recommended.rules,
       ...prettier.rules,
-      "react-refresh/only-export-components": [
-        "warn",
-        { allowConstantExport: true },
-      ],
+      "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
       "@typescript-eslint/no-unused-vars": [
         "warn",
         {

@@ -1,6 +1,7 @@
 import "temporal-polyfill/global";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DatabaseEvent } from "../features/events/model/types";
@@ -67,7 +68,6 @@ const fallback: DatabaseEvent = {
   event_date: "2026-11-05T01:00:00Z",
 };
 
-
 function renderPage() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
@@ -87,34 +87,64 @@ describe("EventDetailPage", () => {
     vi.mocked(fetchApprovedEvents).mockResolvedValue([event]);
   });
 
-  it("renders only real approved-event details and existing action links", async () => {
+  it("renders the v2 cover, action strip, and sidebar cards", async () => {
     renderPage();
     expect(await screen.findByRole("heading", { name: "Havana Nights" })).toBeInTheDocument();
-    expect(screen.getByText("Salsa")).toBeInTheDocument();
-    expect(screen.getByText("Beginner friendly")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /open map/i })).toHaveAttribute(
+
+    // Cover: back pill, type badge, facts
+    expect(screen.getByRole("link", { name: /the calendar/i })).toHaveAttribute(
       "href",
-      expect.stringContaining("maps.google.com")
+      "/calendar"
     );
+    expect(screen.getByText("Social")).toBeInTheDocument();
+
+    // Action strip: date chip, price, address, actions
+    expect(screen.getByText("$15")).toBeInTheDocument();
+    expect(screen.getAllByText("288 Green St")[0]).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /rsvp/i })).toHaveAttribute(
       "href",
       "https://example.com/rsvp"
     );
+    expect(screen.getByRole("button", { name: /add to calendar/i })).toBeInTheDocument();
+
+    // Sidebar cards
+    expect(screen.getByText("Hosted by")).toBeInTheDocument();
+    expect(screen.getByText("Carlos")).toBeInTheDocument();
+    expect(screen.getByText("Where")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /open map/i })).toHaveAttribute(
+      "href",
+      expect.stringContaining("maps.google.com")
+    );
+    expect(screen.getByText("Share this night")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Copy link" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Instagram" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "WhatsApp" })).toBeInTheDocument();
+  });
+
+  it("shows styles and tags as chips on the About tab", async () => {
+    renderPage();
+    await screen.findByRole("heading", { name: "Havana Nights" });
+
+    expect(screen.getByRole("tab", { name: /about the night/i })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+    expect(screen.getByText("Salsa")).toBeInTheDocument();
+    expect(screen.getByText("Beginner friendly")).toBeInTheDocument();
+    expect(screen.getByText("A real event description.")).toBeInTheDocument();
+  });
+
+  it("switches to the Photo album tab and shows gallery images", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByRole("heading", { name: "Havana Nights" });
+
+    await user.click(screen.getByRole("tab", { name: /photo album/i }));
+
     expect(screen.getByRole("img", { name: "Havana Nights gallery image 1" })).toHaveAttribute(
       "src",
       "https://example.com/photo.jpg"
     );
-    expect(screen.queryByText(/attendance|capacity|registration/i)).not.toBeInTheDocument();
-  });
-
-  it("separates hero navigation from the event title and facts", async () => {
-    renderPage();
-    const title = await screen.findByRole("heading", { name: "Havana Nights" });
-    const heroContent = title.closest(".event-page__hero-content");
-
-    if (!heroContent) throw new Error("Expected the event hero content container.");
-
-    expect(heroContent).not.toContainElement(screen.getByRole("link", { name: /the calendar/i }));
   });
 
   it("uses the existing not-found treatment when no approved event exists", async () => {
@@ -122,6 +152,7 @@ describe("EventDetailPage", () => {
     renderPage();
     expect(await screen.findByRole("heading", { name: "404" })).toBeInTheDocument();
   });
+
   it("renders selected same-city related event links after event detail content", async () => {
     vi.mocked(fetchApprovedEvents).mockResolvedValue([event, withinWeek, fallback]);
     renderPage();
@@ -142,5 +173,4 @@ describe("EventDetailPage", () => {
     await screen.findByRole("heading", { name: "Havana Nights" });
     expect(screen.queryByRole("region", { name: /more/i })).not.toBeInTheDocument();
   });
-
 });

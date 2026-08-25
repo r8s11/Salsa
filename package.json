@@ -11,6 +11,7 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
     "test": "vitest",
+    "liner-search:example": "node scripts/liner-search-example.mjs",
     "import-events": "node scripts/import-ics.mjs",
     "db:start": "supabase start",
     "db:stop": "supabase stop",

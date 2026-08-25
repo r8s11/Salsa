@@ -1,7 +1,47 @@
+.host-my-events__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.host-my-events__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.host-my-events__filter {
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  background: var(--admin-surface);
+  color: var(--admin-text-muted);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.host-my-events__filter--active {
+  border-color: var(--admin-brand);
+  background: var(--admin-brand-tint);
+  color: var(--admin-brand-text);
+}
+
+.host-my-events__filter:focus-visible,
+.host-my-events__view:focus-visible {
+  outline: 2px solid var(--admin-brand-ring);
+  outline-offset: 2px;
+}
+
 .host-my-events__toolbar {
   display: inline-flex;
   gap: 4px;
-  margin-bottom: 16px;
+  margin-bottom: 0;
   padding: 4px;
   border: 1px solid var(--admin-border);
   border-radius: 999px;
@@ -20,13 +60,8 @@
 }
 
 .host-my-events__view--active {
-  background: var(--admin-surface-raised, var(--admin-border));
-  color: var(--admin-text);
-}
-
-.host-my-events__view:focus-visible {
-  outline: 2px solid var(--admin-accent, var(--admin-text));
-  outline-offset: 2px;
+  background: var(--admin-surface-secondary);
+  color: var(--admin-text-strong);
 }
 
 .host-my-events__status {
@@ -61,9 +96,18 @@
   padding: 18px;
 }
 
+.host-my-events__date {
+  margin: 0;
+  color: var(--admin-text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
 .host-my-events__card-title {
   margin: 0;
-  color: var(--admin-text);
+  color: var(--admin-text-strong);
   font-size: 1rem;
   font-weight: 700;
 }
@@ -84,13 +128,13 @@
 
 .host-my-events__facts dd {
   margin: 2px 0 0;
-  color: var(--admin-text);
+  color: var(--admin-text-primary);
   font-size: 0.88rem;
 }
 
 .host-my-events__action {
   align-self: flex-start;
-  color: var(--admin-accent, var(--admin-text));
+  color: var(--admin-brand-text);
   font-size: 0.82rem;
   font-weight: 600;
   text-decoration: none;

@@ -25,6 +25,8 @@ const SECTION_LABEL: Record<string, string> = {
   "/admin/activity": "Activity",
   "/admin/analytics": "Analytics",
   "/admin/settings": "Settings",
+  "/host": "Host · Dashboard",
+  "/host/events": "Host · My Events",
 };
 
 function sectionLabelFor(pathname: string): string {
@@ -64,11 +66,15 @@ export default function AdminLayout() {
   const handleSignOut = async () => {
     await signOut();
   };
-
   const sectionLabel = sectionLabelFor(pathname);
   const rolePrefix =
     role === "moderator" ? "Moderator" : role === "organizer" ? "Organizer" : "Admin";
-  const breadcrumbLabel = pathname === "/admin" ? `${rolePrefix} · ${sectionLabel}` : sectionLabel;
+  const isHostRoute = pathname === "/host" || pathname.startsWith("/host/");
+  const breadcrumbLabel = isHostRoute
+    ? sectionLabel
+    : pathname === "/admin"
+      ? `${rolePrefix} · ${sectionLabel}`
+      : sectionLabel;
   const initial = user?.email ? user.email.charAt(0).toUpperCase() : "?";
 
   return (
@@ -110,14 +116,14 @@ export default function AdminLayout() {
             <Menu size={20} />
           </button>
           <nav className="admin-breadcrumbs" aria-label="Breadcrumb">
-            {pathname !== "/admin" && (
+            {!isHostRoute && pathname !== "/admin" && (
               <>
                 <span className="admin-breadcrumbs__crumb">{rolePrefix}</span>
                 <ChevronRight size={14} className="admin-breadcrumbs__sep" />
               </>
             )}
             <span className="admin-breadcrumbs__crumb">{breadcrumbLabel}</span>
-            {pathname !== "/admin" && (
+            {!isHostRoute && pathname !== "/admin" && (
               <>
                 <ChevronRight size={14} className="admin-breadcrumbs__sep" />
                 <span className="admin-breadcrumbs__current">{sectionLabel}</span>

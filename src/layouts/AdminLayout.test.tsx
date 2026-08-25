@@ -130,6 +130,22 @@ describe("AdminLayout", () => {
     ).toBeInTheDocument();
   });
 
+  it("uses Host-aware breadcrumbs without changing the Admin dashboard label", () => {
+    render(
+      <MemoryRouter initialEntries={["/host/events"]}>
+        <Routes>
+          <Route path="/host" element={<AdminLayout />}>
+            <Route path="events" element={<p>Host events</p>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    );
+
+    expect(
+      screen.getByText("Host · My Events", { selector: ".admin-breadcrumbs__crumb" })
+    ).toBeInTheDocument();
+  });
+
   it("account menu shows Appearance with System checked by default", async () => {
     const user = userEvent.setup();
     renderLayout();

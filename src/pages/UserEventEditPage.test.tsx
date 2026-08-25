@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
   removeEventFlyer: vi.fn(),
   auth: {
     user: { id: "user-1", email: "dancer@example.com" } as { id: string; email: string } | null,
+    isOrganizer: false,
   },
 }));
 
@@ -96,7 +97,8 @@ function renderPage() {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
+  mocks.auth.isOrganizer = false;
 });
 describe("UserEventEditPage save flow", () => {
   it("calls updateEventForUser with the event id and transformed payload on save", async () => {
@@ -308,5 +310,243 @@ describe("UserEventEditPage withdraw flow", () => {
     await waitFor(() => {
       expect(mocks.deleteEventForUser).not.toHaveBeenCalled();
     });
+  });
+});
+
+const rejectedEvent: DatabaseEvent = {
+  ...pendingEvent,
+  id: "rejected-event-id",
+  status: "rejected",
+};
+const approvedEvent: DatabaseEvent = {
+  ...pendingEvent,
+  id: "approved-event-id",
+  status: "approved",
+};
+
+function renderPageFor(eventId: string) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={[`/profile/edit/${eventId}`]}>
+        <Routes>
+          <Route path="/profile/edit/:eventId" element={<UserEventEditPage />} />
+          <Route path="/profile" element={<div>Profile page</div>} />
+          <Route path="/host/events" element={<div>Host My Events page</div>} />
+        </Routes>
+      </MemoryRouter>
+    </QueryClientProvider>
+  );
+}
+
+describe("UserEventEditPage organizer context", () => {
+  it("shows the Host eyebrow and pending-review heading for an organizer editing a pending event", async () => {
+    mocks.auth.isOrganizer = true;
+    mocks.useMySubmissions.mockReturnValue({
+      submissions: [pendingEvent],
+      approvedEvents: [],
+      isLoading: false,
+      error: null,
+    });
+
+    renderPageFor("pending-event-id");
+
+    expect(await screen.findByText("Host · Edit Event")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Edit event submission" })).toBeInTheDocument();
+    expect(screen.getByText("Pending")).toBeInTheDocument();
+  });
+
+  it("shows revise copy and the Rejected status for an organizer editing a rejected event", async () => {
+    mocks.auth.isOrganizer = true;
+    mocks.useMySubmissions.mockReturnValue({
+      submissions: [rejectedEvent],
+      approvedEvents: [],
+      isLoading: false,
+      error: null,
+    });
+
+    renderPageFor("rejected-event-id");
+
+    expect(
+      await screen.findByRole("heading", { name: "Revise event submission" })
+    ).toBeInTheDocument();
+    expect(screen.getByText("Rejected")).toBeInTheDocument();
+  });
+
+  it("keeps the existing community heading for a non-organizer", async () => {
+    mocks.useMySubmissions.mockReturnValue({
+      submissions: [pendingEvent],
+      approvedEvents: [],
+      isLoading: false,
+      error: null,
+    });
+
+    renderPageFor("pending-event-id");
+
+    expect(await screen.findByRole("heading", { name: "Edit event" })).toBeInTheDocument();
+    expect(screen.queryByText("Host · Edit Event")).not.toBeInTheDocument();
+  });
+
+  it("returns an organizer to My Events on Cancel", async () => {
+    mocks.auth.isOrganizer = true;
+    mocks.useMySubmissions.mockReturnValue({
+      submissions: [pendingEvent],
+      approvedEvents: [],
+      isLoading: false,
+      error: null,
+    });
+
+    renderPageFor("pending-event-id");
+
+    await screen.findByDisplayValue("Pending Event");
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+    expect(await screen.findByText("Host My Events page")).toBeInTheDocument();
+  });
+
+  it("keeps the Profile destination for a non-organizer on Cancel", async () => {
+    mocks.useMySubmissions.mockReturnValue({
+      submissions: [pendingEvent],
+      approvedEvents: [],
+      isLoading: false,
+      error: null,
+    });
+
+    renderPageFor("pending-event-id");
+
+    await screen.findByDisplayValue("Pending Event");
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+    expect(await screen.findByText("Profile page")).toBeInTheDocument();
+  });
+
+  it("redirects an organizer viewing a stale approved event to My Events", async () => {
+    mocks.auth.isOrganizer = true;
+    mocks.useMySubmissions.mockReturnValue({
+      submissions: [approvedEvent],
+      approvedEvents: [],
+      isLoading: false,
+      error: null,
+    });
+
+    renderPageFor("approved-event-id");
+
+    expect(await screen.findByText("Host My Events page")).toBeInTheDocument();
+  });
+});
+
+describe("UserEventEditPage withdrawal safety", () => {
+  it("disables the confirm button and shows a pending label while withdrawal is in flight", async () => {
+    mocks.useMySubmissions.mockReturnValue({
+      submissions: [pendingEvent],
+      approvedEvents: [],
+      isLoading: false,
+      error: null,
+    });
+    let resolveDelete: (() => void) | undefined;
+    mocks.deleteEventForUser.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveDelete = resolve;
+        })
+    );
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+
+    renderPage();
+    await screen.findByDisplayValue("Pending Event");
+    fireEvent.click(screen.getByRole("button", { name: /^Withdraw submission$/ }));
+    const allButtons = await screen.findAllByRole("button", { name: /Withdraw submission/i });
+    fireEvent.click(allButtons[1]);
+
+    await waitFor(() => expect(mocks.deleteEventForUser).toHaveBeenCalledTimes(1));
+    const pendingButton = await screen.findByRole("button", { name: /Withdrawing/i });
+    expect(pendingButton).toBeDisabled();
+
+    resolveDelete?.();
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  });
+
+  it("shows an accessible error and preserves the form when withdrawal fails", async () => {
+    mocks.useMySubmissions.mockReturnValue({
+      submissions: [pendingEvent],
+      approvedEvents: [],
+      isLoading: false,
+      error: null,
+    });
+    mocks.deleteEventForUser.mockRejectedValueOnce(new Error("Withdrawal network error"));
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+
+    renderPage();
+    await screen.findByDisplayValue("Pending Event");
+    fireEvent.click(screen.getByRole("button", { name: /^Withdraw submission$/ }));
+    const allButtons = await screen.findAllByRole("button", { name: /Withdraw submission/i });
+    fireEvent.click(allButtons[1]);
+
+    expect(await screen.findByText(/❌ Withdrawal network error/i)).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Pending Event")).toBeInTheDocument();
+  });
+});
+
+describe("UserEventEditPage unsaved-change protection", () => {
+  it("warns before unload once a field has changed", async () => {
+    mocks.useMySubmissions.mockReturnValue({
+      submissions: [pendingEvent],
+      approvedEvents: [],
+      isLoading: false,
+      error: null,
+    });
+
+    renderPage();
+    const titleInput = await screen.findByDisplayValue("Pending Event");
+    fireEvent.change(titleInput, { target: { value: "Changed Title" } });
+
+    const event = new Event("beforeunload", { cancelable: true });
+    const preventDefault = vi.spyOn(event, "preventDefault");
+    window.dispatchEvent(event);
+
+    expect(preventDefault).toHaveBeenCalled();
+  });
+
+  it("does not warn before unload when nothing has changed", async () => {
+    mocks.useMySubmissions.mockReturnValue({
+      submissions: [pendingEvent],
+      approvedEvents: [],
+      isLoading: false,
+      error: null,
+    });
+
+    renderPage();
+    await screen.findByDisplayValue("Pending Event");
+
+    const event = new Event("beforeunload", { cancelable: true });
+    const preventDefault = vi.spyOn(event, "preventDefault");
+    window.dispatchEvent(event);
+
+    expect(preventDefault).not.toHaveBeenCalled();
+  });
+
+  it("clears the unsaved-change warning after a successful save", async () => {
+    mocks.useMySubmissions.mockReturnValue({
+      submissions: [pendingEvent],
+      approvedEvents: [],
+      isLoading: false,
+      error: null,
+    });
+    mocks.updateEventForUser.mockResolvedValueOnce(undefined);
+
+    renderPage();
+    const titleInput = await screen.findByDisplayValue("Pending Event");
+    fireEvent.change(titleInput, { target: { value: "Changed Title" } });
+    fireEvent.click(screen.getByRole("button", { name: /Save changes/i }));
+
+    await screen.findByRole("status");
+
+    const event = new Event("beforeunload", { cancelable: true });
+    const preventDefault = vi.spyOn(event, "preventDefault");
+    window.dispatchEvent(event);
+
+    expect(preventDefault).not.toHaveBeenCalled();
   });
 });

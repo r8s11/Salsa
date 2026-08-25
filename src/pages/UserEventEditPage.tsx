@@ -4,7 +4,11 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../contexts/useAuth";
 import type { DatabaseEvent } from "../features/events/model/types";
-import { deleteEventForUser, updateEventForUser } from "../features/events/api/eventsRepo";
+import {
+  deleteEventForUser,
+  updateEventForUser,
+  type UserEventUpdatePayload,
+} from "../features/events/api/eventsRepo";
 import { removeEventFlyer, uploadEventFlyer } from "../features/events/api/eventFlyers";
 import EventForm, {
   CAPABILITIES,
@@ -48,33 +52,86 @@ function buildUserDraft(event: DatabaseEvent): EventFormDraft {
   };
 }
 
+// Status-specific heading/copy shown only to Organizers (Host workspace
+// context). Non-Organizer community submitters keep the existing generic
+// copy unchanged — this table intentionally has no "approved" entry because
+// the existing redirect effect below navigates away before it would render.
+const ORGANIZER_STATUS_COPY: Partial<
+  Record<DatabaseEvent["status"], { heading: string; description: string }>
+> = {
+  pending: {
+    heading: "Edit event submission",
+    description: "Update the details of your event while it is being reviewed.",
+  },
+  rejected: {
+    heading: "Revise event submission",
+    description: "Review the feedback, update the event, and save your changes.",
+  },
+};
+
+function statusLabel(status: DatabaseEvent["status"]): string {
+  return status.charAt(0).toUpperCase() + status.slice(1);
+}
+
 export default function UserEventEditPage() {
-  const { user } = useAuth();
+  const { user, isOrganizer } = useAuth();
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { submissions, isLoading, error: loadError } = useMySubmissions(user?.id);
   const editingEvent = submissions?.find((candidate) => candidate.id === eventId) ?? null;
+  // Organizers return to their Host workspace; everyone else keeps the
+  // existing community Profile destination.
+  const returnPath = isOrganizer ? "/host/events" : "/profile";
   const [drafts, setDrafts] = useState<Record<string, EventFormDraft>>({});
   const form = editingEvent ? (drafts[editingEvent.id] ?? buildUserDraft(editingEvent)) : null;
   const [showWithdrawConfirm, setShowWithdrawConfirm] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
+  const [withdrawError, setWithdrawError] = useState<string | null>(null);
   const [selectedFlyer, setSelectedFlyer] = useState<File | null>(null);
   const [savedFlyerUrl, setSavedFlyerUrl] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  // Snapshot of the loaded (unedited) draft, captured once per event id.
+  // Comparing the live form against it — plus a pending flyer selection —
+  // is what "unsaved changes" means on this page.
+  const [pristineSnapshot, setPristineSnapshot] = useState<string | null>(null);
+  const isDirty =
+    pristineSnapshot !== null &&
+    (JSON.stringify(form) !== pristineSnapshot || selectedFlyer !== null);
 
   useEffect(() => {
-    if (eventId && submissions && !editingEvent) navigate("/profile");
-  }, [editingEvent, eventId, navigate, submissions]);
+    if (eventId && submissions && !editingEvent) navigate(returnPath);
+  }, [editingEvent, eventId, navigate, submissions, returnPath]);
 
   useEffect(() => {
     if (editingEvent && editingEvent.status !== "pending" && editingEvent.status !== "rejected")
-      navigate("/profile");
-  }, [editingEvent, navigate]);
+      navigate(returnPath);
+  }, [editingEvent, navigate, returnPath]);
+
+  useEffect(() => {
+    if (editingEvent) {
+      setPristineSnapshot(JSON.stringify(buildUserDraft(editingEvent)));
+    }
+    // Re-snapshot only when the edited event changes identity, not on every
+    // background refetch of the same event (which would silently clear a
+    // Host's in-progress edits).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editingEvent?.id]);
+
+  // Only warns once the event has loaded and the Host/submitter has
+  // unsaved input — never before data loads, never on a clean form.
+  useEffect(() => {
+    if (!isEditableStatus(editingEvent) || !isDirty) return;
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [editingEvent, isDirty]);
 
   const saveMutation = useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: ReturnType<typeof draftToUserPayload> }) =>
+    mutationFn: ({ id, payload }: { id: string; payload: UserEventUpdatePayload }) =>
       updateEventForUser(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["submissions", "mine", user?.id] });
@@ -85,7 +142,7 @@ export default function UserEventEditPage() {
     mutationFn: deleteEventForUser,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["submissions", "mine", user?.id] });
-      navigate("/profile");
+      navigate(returnPath);
     },
   });
 
@@ -150,6 +207,9 @@ export default function UserEventEditPage() {
       setSelectedFlyer(null);
     }
     setSaveSuccess("Changes saved.");
+    // A successful save is the new "unsaved changes" baseline — clears the
+    // beforeunload warning until the Host edits again.
+    setPristineSnapshot(JSON.stringify(form));
     if (uploadedFlyerUrl && previousFlyerUrl) {
       try {
         await removeEventFlyer(previousFlyerUrl);
@@ -160,13 +220,19 @@ export default function UserEventEditPage() {
   };
 
   const handleWithdraw = async () => {
-    if (!editingEvent) return;
+    if (!editingEvent || withdrawMutation.isPending) return;
     if (
       window.confirm(
         `Withdraw "${editingEvent.title}"? This will permanently delete the submission and cannot be undone.`
       )
-    )
-      await withdrawMutation.mutateAsync(editingEvent.id);
+    ) {
+      setWithdrawError(null);
+      try {
+        await withdrawMutation.mutateAsync(editingEvent.id);
+      } catch (error) {
+        setWithdrawError(error instanceof Error ? error.message : "Unknown error");
+      }
+    }
   };
 
   if (!user) {
@@ -195,16 +261,35 @@ export default function UserEventEditPage() {
   const isEditable = editingEvent.status === "pending" || editingEvent.status === "rejected";
   const canWithdraw = editingEvent.status === "pending";
   const flyerUrl = savedFlyerUrl ?? editingEvent.image_url;
+  const organizerCopy = ORGANIZER_STATUS_COPY[editingEvent.status];
   return (
     <main className="user-edit-page">
       <div className="container user-edit-page__content">
         <header className="user-edit-page__header">
-          <span className="user-edit-page__eyebrow">◆ Community</span>
-          <h1>Edit event</h1>
-          <p>
-            Update your event details. Changes stay in review until they are ready for the public
-            calendar.
-          </p>
+          {isOrganizer ? (
+            <>
+              <span className="user-edit-page__eyebrow">Host · Edit Event</span>
+              <div className="user-edit-page__title-row">
+                <h1>{organizerCopy?.heading ?? "Event submission"}</h1>
+                <span className="user-edit-page__status-badge">
+                  {statusLabel(editingEvent.status)}
+                </span>
+              </div>
+              <p>
+                {organizerCopy?.description ??
+                  "This submission's current review status is shown below."}
+              </p>
+            </>
+          ) : (
+            <>
+              <span className="user-edit-page__eyebrow">◆ Community</span>
+              <h1>Edit event</h1>
+              <p>
+                Update your event details. Changes stay in review until they are ready for the
+                public calendar.
+              </p>
+            </>
+          )}
         </header>
         {!isEditable && (
           <div className="error-banner" role="alert">
@@ -217,6 +302,11 @@ export default function UserEventEditPage() {
         {saveError && (
           <div className="error-banner" role="alert">
             <p>❌ {saveError}</p>
+          </div>
+        )}
+        {withdrawError && (
+          <div className="error-banner" role="alert">
+            <p>❌ {withdrawError}</p>
           </div>
         )}
         {saveSuccess && (
@@ -246,7 +336,7 @@ export default function UserEventEditPage() {
               <button
                 type="button"
                 className="btn-secondary"
-                onClick={() => navigate("/profile")}
+                onClick={() => navigate(returnPath)}
                 disabled={isSaving}
               >
                 Cancel
@@ -278,19 +368,23 @@ export default function UserEventEditPage() {
               aria-labelledby="withdraw-title"
             >
               <h2 id="withdraw-title">Withdraw submission?</h2>
-              <p>
-                "{editingEvent.title}" will be permanently deleted. This action cannot be undone.
-              </p>
+              <p>This removes "{editingEvent.title}" from review and cannot be undone.</p>
               <div className="user-withdraw-dialog__actions">
                 <button
                   type="button"
                   className="btn-secondary"
                   onClick={() => setShowWithdrawConfirm(false)}
+                  disabled={withdrawMutation.isPending}
                 >
                   Cancel
                 </button>
-                <button type="button" className="btn-danger" onClick={handleWithdraw}>
-                  Withdraw submission
+                <button
+                  type="button"
+                  className="btn-danger"
+                  onClick={handleWithdraw}
+                  disabled={withdrawMutation.isPending}
+                >
+                  {withdrawMutation.isPending ? "Withdrawing…" : "Withdraw submission"}
                 </button>
               </div>
             </div>
@@ -299,4 +393,8 @@ export default function UserEventEditPage() {
       </div>
     </main>
   );
+}
+
+function isEditableStatus(event: DatabaseEvent | null): boolean {
+  return event?.status === "pending" || event?.status === "rejected";
 }

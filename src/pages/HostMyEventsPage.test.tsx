@@ -107,6 +107,16 @@ describe("HostMyEventsPage", () => {
     expect(within(table).getByText("Approved Event")).toBeInTheDocument();
   });
 
+  it("filters real events by their database status", async () => {
+    const user = userEvent.setup();
+    renderHostEvents();
+
+    await user.click(await screen.findByRole("button", { name: "Pending" }));
+
+    expect(screen.getByText("Pending Event")).toBeInTheDocument();
+    expect(screen.queryByText("Approved Event")).not.toBeInTheDocument();
+  });
+
   it("labels every table cell for the mobile card layout", async () => {
     const user = userEvent.setup();
     renderHostEvents();

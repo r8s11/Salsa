@@ -13,6 +13,17 @@
   color: var(--text);
 }
 
+.submit-event__eyebrow {
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
 .submit-intro {
   font-family: var(--font-ui);
   font-size: 0.8rem;

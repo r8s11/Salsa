@@ -103,6 +103,17 @@ describe("HostDashboard", () => {
     expect(next).toHaveTextContent("Approved");
   });
 
+  it("frames the real next event in the Host workspace", async () => {
+    renderDashboard();
+
+    expect(await screen.findByText("Host workspace")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Welcome back" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Submit an event" })).toHaveAttribute(
+      "href",
+      "/submit"
+    );
+  });
+
   it("counts only the owner's upcoming and pending events", async () => {
     renderDashboard();
 
@@ -172,7 +183,7 @@ describe("RequireOrganizer", () => {
     });
     renderGuardedHost();
 
-    expect(await screen.findByRole("heading", { name: "Host dashboard" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Welcome back" })).toBeInTheDocument();
   });
 
   it("keeps admins and moderators out of the owner-scoped Host area", async () => {

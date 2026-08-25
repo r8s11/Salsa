@@ -1,3 +1,15 @@
+.host-dashboard__intro {
+  margin-bottom: 24px;
+}
+
+.host-dashboard__intro .admin-page-header {
+  margin-bottom: 0;
+}
+
+.host-dashboard__intro .host-dashboard__eyebrow {
+  margin-bottom: 8px;
+}
+
 .host-dashboard__eyebrow {
   margin: 0;
   color: var(--admin-text-muted);
@@ -20,8 +32,7 @@
 }
 
 .host-dashboard__next-title {
-  margin: 0;
-  color: var(--admin-text);
+  color: var(--admin-text-strong);
   font-size: 1.35rem;
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -52,28 +63,28 @@
 .host-dashboard__status {
   font-size: 0.75rem;
   padding: 4px 8px;
-  border-radius: var(--radius-full);
+  border-radius: var(--admin-radius);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .host-dashboard__status--approved {
-  color: var(--gold);
-  background: var(--gold-dim);
+  color: var(--admin-success);
+  background: var(--admin-success-tint);
 }
 
 .host-dashboard__status--pending,
 .host-dashboard__status--draft {
-  color: var(--tertiary);
-  background: var(--tertiary-dim);
+  color: var(--admin-warning);
+  background: var(--admin-warning-tint);
 }
 
 .host-dashboard__status--rejected,
 .host-dashboard__status--cancelled,
 .host-dashboard__status--archived {
-  color: var(--text-dim);
-  background: var(--card);
+  color: var(--admin-text-muted);
+  background: var(--admin-surface-secondary);
 }
 
 .host-dashboard__events-head {
@@ -85,7 +96,7 @@
 }
 
 .host-dashboard__all {
-  color: var(--admin-accent, var(--admin-text));
+  color: var(--admin-brand-text);
   font-size: 0.8rem;
   font-weight: 600;
   text-decoration: none;
@@ -117,7 +128,7 @@
 
 .host-dashboard__row-title {
   margin: 0;
-  color: var(--admin-text);
+  color: var(--admin-text-strong);
   font-size: 0.98rem;
   font-weight: 600;
 }
@@ -129,7 +140,7 @@
 }
 
 .host-dashboard__row-action {
-  color: var(--admin-accent, var(--admin-text));
+  color: var(--admin-brand-text);
   font-size: 0.82rem;
   font-weight: 600;
   text-decoration: none;

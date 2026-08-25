@@ -39,15 +39,18 @@ export default function HostDashboard() {
 
   return (
     <>
-      <AdminPageHeader
-        title="Host dashboard"
-        description="Every event you submitted or published, in one place."
-        actions={
-          <Link to="/submit" className="admin-btn admin-btn--primary">
-            Submit an event
-          </Link>
-        }
-      />
+      <div className="host-dashboard__intro">
+        <p className="host-dashboard__eyebrow">Host workspace</p>
+        <AdminPageHeader
+          title="Welcome back"
+          description="Your submitted and published events, with next steps that match their status."
+          actions={
+            <Link to="/submit" className="admin-btn admin-btn--primary">
+              Submit an event
+            </Link>
+          }
+        />
+      </div>
 
       {error && (
         <div className="admin-banner admin-banner--error" role="alert">

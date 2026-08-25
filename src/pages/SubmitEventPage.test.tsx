@@ -4,6 +4,7 @@ import * as submissionsRepo from "../features/admin/api/submissionsRepo";
 import SubmitEventPage from "./SubmitEventPage";
 import { CityProvider } from "../contexts/CityContext";
 const { useSubmissionAccess } = vi.hoisted(() => ({ useSubmissionAccess: vi.fn() }));
+const { useAuth } = vi.hoisted(() => ({ useAuth: vi.fn() }));
 
 vi.mock("../features/events/api/eventsRepo", () => ({}));
 
@@ -13,17 +14,7 @@ vi.mock("../features/admin/api/submissionsRepo", () => ({
 
 vi.mock("../features/submit-event/useSubmissionAccess", () => ({ useSubmissionAccess }));
 
-vi.mock("../contexts/useAuth", () => ({
-  useAuth: () => ({
-    user: { id: "test-user-id", email: "test@example.com" },
-    session: null,
-    loading: false,
-    isAdmin: false,
-    signInWithPassword: vi.fn(),
-    signUp: vi.fn(),
-    signOut: vi.fn(),
-  }),
-}));
+vi.mock("../contexts/useAuth", () => ({ useAuth }));
 
 const renderSubmitEventPage = () =>
   render(
@@ -42,6 +33,16 @@ describe("SubmitEventPage", () => {
       isLoading: false,
       canSubmit: true,
       error: null,
+    });
+    vi.mocked(useAuth).mockReturnValue({
+      user: { id: "test-user-id", email: "test@example.com" },
+      session: null,
+      loading: false,
+      isAdmin: false,
+      isOrganizer: false,
+      signInWithPassword: vi.fn(),
+      signUp: vi.fn(),
+      signOut: vi.fn(),
     });
   });
 
@@ -172,5 +173,109 @@ describe("SubmitEventPage", () => {
 
     expect(screen.getByRole("heading", { name: /Submit an Event/i })).toBeInTheDocument();
     expect((screen.getByLabelText(/Event Title \*/i) as HTMLInputElement).value).toBe("");
+  });
+
+  it("shows the Host workspace heading and a truthful review notice for an approved organizer", () => {
+    vi.mocked(useAuth).mockReturnValue({
+      user: { id: "host-1", email: "host@example.com" },
+      session: null,
+      loading: false,
+      isAdmin: false,
+      isOrganizer: true,
+      signInWithPassword: vi.fn(),
+      signUp: vi.fn(),
+      signOut: vi.fn(),
+    });
+
+    renderSubmitEventPage();
+
+    expect(screen.getByText("Host · Create Event")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Create a new event" })).toBeInTheDocument();
+    expect(
+      screen.getByText(/goes through moderation review before it appears on the calendar/i)
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Submit for review" })).toBeInTheDocument();
+  });
+
+  it("keeps the public submission heading and button label for a non-organizer visitor", () => {
+    renderSubmitEventPage();
+
+    expect(screen.queryByText("Host · Create Event")).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Submit an Event" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Submit Event" })).toBeInTheDocument();
+  });
+
+  it("preserves entered form data after a failed organizer submission", async () => {
+    vi.mocked(useAuth).mockReturnValue({
+      user: { id: "host-1", email: "host@example.com" },
+      session: null,
+      loading: false,
+      isAdmin: false,
+      isOrganizer: true,
+      signInWithPassword: vi.fn(),
+      signUp: vi.fn(),
+      signOut: vi.fn(),
+    });
+    vi.mocked(submissionsRepo.createSubmission).mockRejectedValueOnce(new Error("Network error"));
+
+    renderSubmitEventPage();
+
+    fireEvent.change(screen.getByLabelText(/Event Title \*/i), {
+      target: { value: "Havana Nights Social" },
+    });
+    chooseEventType("Social");
+    fireEvent.change(screen.getByLabelText(/Date \*/i), { target: { value: "2026-09-01" } });
+
+    fireEvent.click(screen.getByRole("button", { name: "Submit for review" }));
+
+    expect(await screen.findByText(/❌ Network error/i)).toBeInTheDocument();
+    expect((screen.getByLabelText(/Event Title \*/i) as HTMLInputElement).value).toBe(
+      "Havana Nights Social"
+    );
+  });
+
+  it("warns before an unload while the organizer has unsaved input", () => {
+    vi.mocked(useAuth).mockReturnValue({
+      user: { id: "host-1", email: "host@example.com" },
+      session: null,
+      loading: false,
+      isAdmin: false,
+      isOrganizer: true,
+      signInWithPassword: vi.fn(),
+      signUp: vi.fn(),
+      signOut: vi.fn(),
+    });
+
+    renderSubmitEventPage();
+    fireEvent.change(screen.getByLabelText(/Event Title \*/i), {
+      target: { value: "Havana Nights Social" },
+    });
+
+    const event = new Event("beforeunload", { cancelable: true });
+    const preventDefault = vi.spyOn(event, "preventDefault");
+    window.dispatchEvent(event);
+
+    expect(preventDefault).toHaveBeenCalled();
+  });
+
+  it("does not warn before an unload when the organizer form is untouched", () => {
+    vi.mocked(useAuth).mockReturnValue({
+      user: { id: "host-1", email: "host@example.com" },
+      session: null,
+      loading: false,
+      isAdmin: false,
+      isOrganizer: true,
+      signInWithPassword: vi.fn(),
+      signUp: vi.fn(),
+      signOut: vi.fn(),
+    });
+
+    renderSubmitEventPage();
+
+    const event = new Event("beforeunload", { cancelable: true });
+    const preventDefault = vi.spyOn(event, "preventDefault");
+    window.dispatchEvent(event);
+
+    expect(preventDefault).not.toHaveBeenCalled();
   });
 });

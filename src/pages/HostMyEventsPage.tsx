@@ -7,16 +7,26 @@ import AdminPageHeader from "../components/Admin/AdminPageHeader";
 import "./HostMyEventsPage.css";
 
 type HostEventsView = "cards" | "table";
+type HostStatusFilter = "all" | "approved" | "pending" | "rejected" | "draft";
 
 const VIEWS: { value: HostEventsView; label: string }[] = [
   { value: "cards", label: "Cards" },
   { value: "table", label: "Table" },
 ];
 
+const STATUS_FILTERS: { value: HostStatusFilter; label: string }[] = [
+  { value: "all", label: "All" },
+  { value: "approved", label: "Approved" },
+  { value: "pending", label: "Pending" },
+  { value: "rejected", label: "Rejected" },
+  { value: "draft", label: "Drafts" },
+];
+
 export default function HostMyEventsPage() {
   const { user } = useAuth();
   const { submissions, approvedEvents, isLoading, error, refetch } = useMySubmissions(user?.id);
   const [view, setView] = useState<HostEventsView>("cards");
+  const [statusFilter, setStatusFilter] = useState<HostStatusFilter>("all");
 
   const rows = useMemo(() => {
     const byId = new Map(
@@ -24,6 +34,8 @@ export default function HostMyEventsPage() {
     );
     return deriveHostEventRows([...byId.values()]);
   }, [submissions, approvedEvents]);
+  const filteredRows =
+    statusFilter === "all" ? rows : rows.filter((row) => row.event.status === statusFilter);
 
   return (
     <>
@@ -48,20 +60,37 @@ export default function HostMyEventsPage() {
 
       {!error && (
         <>
-          <div className="host-my-events__toolbar" role="group" aria-label="Event view">
-            {VIEWS.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                className={`host-my-events__view${
-                  view === option.value ? " host-my-events__view--active" : ""
-                }`}
-                aria-pressed={view === option.value}
-                onClick={() => setView(option.value)}
-              >
-                {option.label}
-              </button>
-            ))}
+          <div className="host-my-events__controls">
+            <div className="host-my-events__filters" role="group" aria-label="Event status">
+              {STATUS_FILTERS.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={`host-my-events__filter${
+                    statusFilter === option.value ? " host-my-events__filter--active" : ""
+                  }`}
+                  aria-pressed={statusFilter === option.value}
+                  onClick={() => setStatusFilter(option.value)}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            <div className="host-my-events__toolbar" role="group" aria-label="Event view">
+              {VIEWS.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={`host-my-events__view${
+                    view === option.value ? " host-my-events__view--active" : ""
+                  }`}
+                  aria-pressed={view === option.value}
+                  onClick={() => setView(option.value)}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {isLoading && (
@@ -79,16 +108,13 @@ export default function HostMyEventsPage() {
             </div>
           )}
 
-          {!isLoading && rows.length > 0 && view === "cards" && (
+          {!isLoading && filteredRows.length > 0 && view === "cards" && (
             <ul className="host-my-events__cards">
-              {rows.map((row) => (
+              {filteredRows.map((row) => (
                 <li key={row.event.id} className="admin-card host-my-events__card">
+                  <p className="host-my-events__date">{row.dateLabel}</p>
                   <h2 className="host-my-events__card-title">{row.event.title}</h2>
                   <dl className="host-my-events__facts">
-                    <div>
-                      <dt>Date</dt>
-                      <dd>{row.dateLabel}</dd>
-                    </div>
                     <div>
                       <dt>Venue</dt>
                       <dd>{row.event.location || "Venue not set"}</dd>
@@ -112,7 +138,7 @@ export default function HostMyEventsPage() {
             </ul>
           )}
 
-          {!isLoading && rows.length > 0 && view === "table" && (
+          {!isLoading && filteredRows.length > 0 && view === "table" && (
             <table className="host-my-events__table">
               <caption className="admin-visually-hidden">Your events</caption>
               <thead>
@@ -125,7 +151,7 @@ export default function HostMyEventsPage() {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((row) => (
+                {filteredRows.map((row) => (
                   <tr key={row.event.id}>
                     <td data-label="Event">{row.event.title}</td>
                     <td data-label="Date">{row.dateLabel}</td>
@@ -146,6 +172,11 @@ export default function HostMyEventsPage() {
                 ))}
               </tbody>
             </table>
+          )}
+          {!isLoading && rows.length > 0 && filteredRows.length === 0 && (
+            <div className="admin-card host-my-events__empty">
+              <p>No {statusFilter} events found.</p>
+            </div>
           )}
         </>
       )}

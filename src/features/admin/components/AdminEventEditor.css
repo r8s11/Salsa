@@ -92,9 +92,7 @@
 }
 
 .admin-shell .admin-event-editor .event-form__taxonomy input[type="checkbox"] {
-  width: auto;
   margin: 0;
-  accent-color: var(--admin-brand);
 }
 
 .admin-shell .admin-event-editor .event-flyer-field__preview {
@@ -135,8 +133,9 @@
   }
 
   .admin-shell .admin-event-editor .admin-form__actions {
-    bottom: max(12px, env(safe-area-inset-bottom));
+    position: static;
     flex-direction: column;
+    margin-top: 8px;
   }
 
   .admin-shell .admin-event-editor .admin-form__actions .admin-btn {

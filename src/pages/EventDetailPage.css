@@ -30,7 +30,12 @@
   position: relative;
   z-index: 1;
   padding: clamp(24px, 5vw, 72px);
-  background: linear-gradient(0deg, rgba(11, 19, 38, 0.96), rgba(11, 19, 38, 0.12));
+  background: linear-gradient(
+    0deg,
+    rgba(11, 19, 38, 0.96),
+    rgba(11, 19, 38, 0.85) 55%,
+    rgba(11, 19, 38, 0.72)
+  );
 }
 .event-page__hero-content {
   display: grid;
@@ -249,8 +254,8 @@
     background: linear-gradient(
       0deg,
       rgba(11, 19, 38, 0.98),
-      rgba(11, 19, 38, 0.88) 60%,
-      rgba(11, 19, 38, 0.28)
+      rgba(11, 19, 38, 0.9) 55%,
+      rgba(11, 19, 38, 0.78)
     );
   }
   .event-page__back {

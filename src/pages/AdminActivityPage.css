@@ -51,7 +51,13 @@
 }
 
 .admin-activity-page__table-card {
-  overflow: hidden;
+  position: relative;
+}
+
+@media (min-width: 768px) {
+  .admin-activity-page__table-card {
+    overflow: hidden;
+  }
 }
 
 .admin-activity-page__status {

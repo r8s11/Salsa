@@ -52,6 +52,7 @@
   background: var(--surface-high);
   color: var(--text);
   font: 400 0.9rem var(--font-body);
+  text-align: left;
 }
 
 .event-form textarea {
@@ -120,6 +121,11 @@
 
 .event-form__check input {
   width: auto;
+}
+
+.event-form input[type="checkbox"] {
+  width: auto;
+  accent-color: var(--admin-brand, var(--red));
 }
 
 .event-form__taxonomy {

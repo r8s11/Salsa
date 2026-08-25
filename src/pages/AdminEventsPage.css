@@ -45,7 +45,13 @@
 }
 
 .admin-events-page__table-card {
-  overflow: hidden;
+  position: relative;
+}
+
+@media (min-width: 768px) {
+  .admin-events-page__table-card {
+    overflow: hidden;
+  }
 }
 
 .admin-events-page__table-card .admin-events-cards {

@@ -45,7 +45,13 @@
 }
 
 .admin-users-page__table-card {
-  overflow: hidden;
+  position: relative;
+}
+
+@media (min-width: 768px) {
+  .admin-users-page__table-card {
+    overflow: hidden;
+  }
 }
 
 .admin-users-page__table-card .admin-users-cards {

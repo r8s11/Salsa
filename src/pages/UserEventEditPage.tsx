@@ -92,10 +92,16 @@ export default function UserEventEditPage() {
   const [selectedFlyer, setSelectedFlyer] = useState<File | null>(null);
   const [savedFlyerUrl, setSavedFlyerUrl] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  // Snapshot of the loaded (unedited) draft, captured once per event id.
-  // Comparing the live form against it — plus a pending flyer selection —
-  // is what "unsaved changes" means on this page.
+  // Snapshot of the loaded (unedited) draft, captured once per event id via
+  // the "adjust state during render" pattern (not an effect) — React's
+  // documented way to derive state from a prop change without a spurious
+  // extra render pass: https://react.dev/learn/you-might-not-need-an-effect
+  const [pristineSnapshotId, setPristineSnapshotId] = useState<string | null>(null);
   const [pristineSnapshot, setPristineSnapshot] = useState<string | null>(null);
+  if (editingEvent && editingEvent.id !== pristineSnapshotId) {
+    setPristineSnapshotId(editingEvent.id);
+    setPristineSnapshot(JSON.stringify(buildUserDraft(editingEvent)));
+  }
   const isDirty =
     pristineSnapshot !== null &&
     (JSON.stringify(form) !== pristineSnapshot || selectedFlyer !== null);
@@ -108,16 +114,6 @@ export default function UserEventEditPage() {
     if (editingEvent && editingEvent.status !== "pending" && editingEvent.status !== "rejected")
       navigate(returnPath);
   }, [editingEvent, navigate, returnPath]);
-
-  useEffect(() => {
-    if (editingEvent) {
-      setPristineSnapshot(JSON.stringify(buildUserDraft(editingEvent)));
-    }
-    // Re-snapshot only when the edited event changes identity, not on every
-    // background refetch of the same event (which would silently clear a
-    // Host's in-progress edits).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editingEvent?.id]);
 
   // Only warns once the event has loaded and the Host/submitter has
   // unsaved input — never before data loads, never on a clean form.

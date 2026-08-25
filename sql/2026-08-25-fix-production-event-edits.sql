@@ -13,6 +13,10 @@
 -- or on the follow-up taxonomy write.
 --
 -- Safe to run more than once: every statement is additive and guarded
+--
+-- IMPORTANT: Run sql/2026-08-25-repair-event-edit-taxonomy.sql immediately
+-- afterward. That follow-up installs replace_event_taxonomy_terms(), the RPC
+-- the app calls after updating an event row.
 -- (create table if not exists / add column if not exists / drop-then-add for
 -- constraints and policies). Nothing is dropped and no row data is deleted.
 -- =====================================================================

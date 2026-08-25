@@ -49,10 +49,18 @@ create or replace view public.audit_log_view as
   from public.audit_logs a
   left join public.profiles p_roles on p_roles.id = a.actor_id;
 
--- Grant view SELECT to authenticated (defense-in-depth alongside the RPC).
--- The RPC is SECURITY DEFINER and does the real admin-role gate.
-revoke select on public.audit_log_view from public, anon;
-grant select on public.audit_log_view to authenticated;
+-- security_invoker: without it the view runs as its owner (postgres) and
+-- bypasses RLS on audit_logs and profiles entirely. Flagged as ERROR by the
+-- Supabase linter (0010_security_definer_view).
+alter view public.audit_log_view set (security_invoker = on);
+
+-- No client role gets SELECT on this view. The admin Activity UI reads the
+-- audit log through admin_audit_log() / admin_audit_log_detail(), which are
+-- SECURITY DEFINER and gate on the admin role internally. Granting the view
+-- to `authenticated` previously let any signed-in user read every audit
+-- entry (before_state, after_state, reason, actor identity) and skip that
+-- gate completely.
+revoke select on public.audit_log_view from public, anon, authenticated;
 
 -- -----------------------------------------------------------------
 -- 3. Helper function: category_of — maps action/entity_type to a category label

@@ -1,8 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { CalendarPlus, Clock3, ExternalLink, MapPin } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
-import { fetchApprovedEventById } from "../features/events/api/eventsRepo";
+import { RelatedEventsStrip } from "../components/Events/RelatedEventsStrip";
+import {
+  fetchApprovedEventById,
+  fetchApprovedEvents,
+} from "../features/events/api/eventsRepo";
 import { databaseEventToScheduleX } from "../features/events/model/convert";
+import { selectRelatedEvents } from "../features/events/model/relatedEvents";
 import { downloadIcs, googleCalendarUrl, mapsUrl } from "../utils/ics";
 import { getUpcomingSeriesDates } from "../utils/series";
 import NotFoundPage from "./NotFoundPage";
@@ -52,6 +57,12 @@ export default function EventDetailPage() {
     enabled: Boolean(id),
   });
 
+  const relatedEventsQuery = useQuery({
+    queryKey: ["events", "approved", event?.city],
+    queryFn: () => fetchApprovedEvents(event!.city),
+    enabled: Boolean(event?.city),
+  });
+
   if (isLoading)
     return (
       <main className="event-page event-page--status" role="status">
@@ -68,6 +79,10 @@ export default function EventDetailPage() {
   if (!event) return <NotFoundPage />;
 
   const scheduleEvent = databaseEventToScheduleX(event);
+  const relatedSelection = relatedEventsQuery.data
+    ? selectRelatedEvents(event, relatedEventsQuery.data)
+    : { events: [], hasStrictWindowEvents: false };
+
   const mapHref = mapsUrl(scheduleEvent);
   const calendarHref = googleCalendarUrl(scheduleEvent);
   const styles = event.taxonomy_terms.filter((term) => term.category === "dance_style");
@@ -252,6 +267,11 @@ export default function EventDetailPage() {
           </aside>
         </div>
       </div>
+      <RelatedEventsStrip
+        events={relatedSelection.events}
+        city={event.city}
+        hasStrictWindowEvents={relatedSelection.hasStrictWindowEvents}
+      />
     </main>
   );
 }

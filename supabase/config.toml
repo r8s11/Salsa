@@ -149,7 +149,7 @@ enabled = true
 # in emails.
 site_url = "http://127.0.0.1:3000"
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-additional_redirect_urls = ["http://127.0.0.1:3000", "http://localhost:5173/auth/callback"]
+additional_redirect_urls = ["http://127.0.0.1:3000", "http://localhost:5173/auth/callback", "http://localhost:5173/auth/invite"]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
 # JWT issuer URL. If not set, defaults to the local API URL (http://127.0.0.1:<port>/auth/v1).
@@ -172,6 +172,11 @@ minimum_password_length = 6
 # Passwords that do not meet the following requirements will be rejected as weak. Supported values
 # are: `letters_digits`, `lower_upper_letters_digits`, `lower_upper_letters_digits_symbols`
 password_requirements = ""
+
+[auth.hook.send_email]
+enabled = true
+uri = "http://host.docker.internal:54321/functions/v1/send-auth-email"
+secrets = "env(SEND_EMAIL_HOOK_SECRET)"
 
 [auth.rate_limit]
 # Number of emails that can be sent per hour. Requires auth.email.smtp to be enabled.
@@ -382,3 +387,14 @@ s3_region = "env(S3_REGION)"
 s3_access_key = "env(S3_ACCESS_KEY)"
 # Configures AWS_SECRET_ACCESS_KEY for S3 bucket
 s3_secret_key = "env(S3_SECRET_KEY)"
+
+[functions.invite-organizer]
+# Gateway JWT verification is intentionally disabled here: this function performs its own
+# internal caller-JWT validation against the trusted `app_metadata.role` claim (see
+# supabase/functions/invite-organizer/index.ts). That internal check is the SOLE enforcement
+# point for this function's authorization -- do not assume the gateway enforces auth, and do
+# not remove the internal check without replacing it with equivalent protection.
+verify_jwt = false
+
+[functions.send-auth-email]
+verify_jwt = false

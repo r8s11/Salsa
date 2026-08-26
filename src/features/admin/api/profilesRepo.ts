@@ -1,3 +1,4 @@
+import { FunctionsHttpError } from "@supabase/supabase-js";
 import { supabase } from "../../../lib/supabase";
 import type { AccountStatus, AdminUserRow, UserRole } from "../model/usersQuery";
 
@@ -36,10 +37,13 @@ export async function setUserStatus(
   if (error) throw new Error(error.message);
 }
 
+export type InviteDelivery = "email_invitation" | "temporary_password";
+
 export interface CreateUserParams {
   email: string;
   display_name?: string;
   role?: UserRole;
+  delivery?: InviteDelivery;
 }
 
 /**
@@ -70,4 +74,82 @@ export async function createUser(userData: CreateUserParams): Promise<InvitedUse
   const row = (data as InvitedUser[] | null)?.[0];
   if (!row) throw new Error("The account was not created. Please try again.");
   return row;
+}
+
+/**
+ * Result of `invite-organizer`. The Edge Function only ever confirms the
+ * identifiers it created — `display_name`/`status`/`created_at` are filled
+ * in client-side because nothing else in the response is a credential or
+ * secret. There is no temporary password in this branch: the recipient sets
+ * their own password by accepting the email invite.
+ */
+export type CreatedAccount =
+  | {
+      delivery: "email_invitation";
+      id: string;
+      email: string;
+      role: "organizer";
+      display_name: string | null;
+      status: "active";
+      created_at: string;
+    }
+  | ({ delivery: "temporary_password" } & InvitedUser);
+
+interface InviteOrganizerFunctionResponse {
+  delivery: "email_invitation";
+  userId: string;
+  email: string;
+}
+
+/**
+ * Invites an organizer by email through the `invite-organizer` Edge
+ * Function. The function authenticates the caller and provisions the
+ * profile/role server-side; the client sends only the recipient's email and
+ * optional display name — no role, redirect, or token fields.
+ */
+export async function inviteOrganizerByEmail(
+  email: string,
+  displayName?: string
+): Promise<CreatedAccount> {
+  const { data, error } = await supabase.functions.invoke<InviteOrganizerFunctionResponse>(
+    "invite-organizer",
+    { body: { email, displayName } }
+  );
+  if (error) {
+    let message = error.message;
+    if (error instanceof FunctionsHttpError) {
+      try {
+        const body = (await error.context.json()) as { error?: string } | null;
+        if (body?.error) message = body.error;
+      } catch {
+        // Response body wasn't JSON; fall back to the generic message.
+      }
+    }
+    throw new Error(message);
+  }
+  if (!data) throw new Error("The invitation was not sent. Please try again.");
+  return {
+    delivery: "email_invitation",
+    id: data.userId,
+    email: data.email,
+    role: "organizer",
+    display_name: displayName?.trim() || null,
+    status: "active",
+    created_at: new Date().toISOString(),
+  };
+}
+
+/**
+ * Delivery-aware account creation used by the Admin "create user" flow.
+ * Organizer accounts default to a real email invitation; every other role
+ * (and Organizer with an explicit temporary-password fallback) keeps using
+ * `admin_invite_user`, unchanged.
+ */
+export async function createUserAccount(userData: CreateUserParams): Promise<CreatedAccount> {
+  const wantsEmailInvite = userData.role === "organizer" && userData.delivery !== "temporary_password";
+  if (wantsEmailInvite) {
+    return inviteOrganizerByEmail(userData.email, userData.display_name);
+  }
+  const invited = await createUser(userData);
+  return { delivery: "temporary_password", ...invited };
 }

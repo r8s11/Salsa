@@ -17,6 +17,7 @@ const Schools = lazy(() => import("./pages/Schools"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 const SignInPage = lazy(() => import("./pages/SignInPage"));
 const AuthCallback = lazy(() => import("./components/Auth/AuthCallback"));
+const InviteActivationPage = lazy(() => import("./components/Auth/InviteActivationPage"));
 const AdminLayout = lazy(() => import("./layouts/AdminLayout"));
 const AdminOverviewPage = lazy(() => import("./pages/AdminOverviewPage"));
 const AdminEventsPage = lazy(() => import("./pages/AdminEventsPage"));
@@ -57,6 +58,7 @@ function App() {
           <Routes>
             <Route path="/signin" element={<SignInPage />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/auth/invite" element={<InviteActivationPage />} />
             <Route
               path="/admin"
               element={

@@ -16,6 +16,7 @@ const Instructors = lazy(() => import("./pages/Instructors"));
 const Schools = lazy(() => import("./pages/Schools"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 const SignInPage = lazy(() => import("./pages/SignInPage"));
+const AuthCallback = lazy(() => import("./components/Auth/AuthCallback"));
 const AdminLayout = lazy(() => import("./layouts/AdminLayout"));
 const AdminOverviewPage = lazy(() => import("./pages/AdminOverviewPage"));
 const AdminEventsPage = lazy(() => import("./pages/AdminEventsPage"));
@@ -40,6 +41,7 @@ const AdminAnalyticsPage = lazy(() => import("./pages/AdminAnalyticsPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const HostMyEventsPage = lazy(() => import("./pages/HostMyEventsPage"));
 const HostDashboard = lazy(() => import("./components/Host/HostDashboard"));
+const HostEventDetailPage = lazy(() => import("./pages/HostEventDetailPage"));
 const UserEventEditPage = lazy(() => import("./pages/UserEventEditPage"));
 import RequireAuth from "./components/Auth/RequireAuth";
 import RequireAdmin from "./components/Auth/RequireAdmin";
@@ -54,6 +56,7 @@ function App() {
         <Suspense fallback={<div className="page-loading">Loading...</div>}>
           <Routes>
             <Route path="/signin" element={<SignInPage />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
             <Route
               path="/admin"
               element={
@@ -161,6 +164,7 @@ function App() {
             >
               <Route index element={<HostDashboard />} />
               <Route path="events" element={<HostMyEventsPage />} />
+              <Route path="events/:eventId" element={<HostEventDetailPage />} />
             </Route>
             <Route path="/" element={<MainLayout />}>
               <Route index element={<HomePage />} />

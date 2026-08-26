@@ -40,6 +40,12 @@ export interface DatabaseEvent {
   contact_instagram: string | null;
   contact_website: string | null;
   venue_id: string | null;
+
+  /**
+   * Present only for a pending/rejected event_submission projected into the
+   * shared Host lifecycle view. Canonical events leave this undefined.
+   */
+  submission_id?: string;
 }
 
 // Schedule-X event interface

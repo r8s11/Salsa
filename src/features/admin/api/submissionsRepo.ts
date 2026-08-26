@@ -53,6 +53,47 @@ export async function createSubmission(submission: SubmissionCreate) {
   if (error) throw error;
 }
 
+/**
+ * Owner-visible moderation records that can still be edited. RLS remains the
+ * authority; the explicit user filter documents the intended lifecycle and
+ * avoids downloading withdrawn/approved history into Host screens.
+ */
+export async function fetchOwnEventSubmissions(userId: string): Promise<EventSubmission[]> {
+  const { data, error } = await supabase
+    .from("event_submissions")
+    .select("*")
+    .eq("submitter_id", userId)
+    .in("status", ["pending", "rejected"])
+    .order("submitted_at", { ascending: false });
+  if (error) throw new Error(`Failed to load your submissions: ${error.message}`);
+  return (data ?? []) as EventSubmission[];
+}
+
+async function requireUpdatedOwnerSubmission(
+  id: string,
+  update: { edited_data?: Record<string, unknown>; status?: "withdrawn" }
+): Promise<void> {
+  const { data, error } = await supabase
+    .from("event_submissions")
+    .update(update)
+    .eq("id", id)
+    .select("id")
+    .maybeSingle();
+  if (error) throw new Error(`Failed to update submission: ${error.message}`);
+  if (!data) throw new Error("Submission could not be updated.");
+}
+
+export async function updateOwnEventSubmission(
+  id: string,
+  editedData: Record<string, unknown>
+): Promise<void> {
+  await requireUpdatedOwnerSubmission(id, { edited_data: editedData });
+}
+
+export async function withdrawOwnEventSubmission(id: string): Promise<void> {
+  await requireUpdatedOwnerSubmission(id, { status: "withdrawn" });
+}
+
 export async function approveSubmissionWithTaxonomy(
   submissionId: string,
   taxonomyTermIds: string[]

@@ -37,7 +37,10 @@ export type EventFormCapabilities = {
   submitterInfo: boolean;
 };
 
-export const CAPABILITIES: Record<"submit" | "organizerEdit" | "admin", EventFormCapabilities> = {
+export const CAPABILITIES: Record<
+  "submit" | "organizerEdit" | "organizerSubmissionEdit" | "admin",
+  EventFormCapabilities
+> = {
   submit: {
     styles: "slug-chips",
     attributes: false,
@@ -51,6 +54,17 @@ export const CAPABILITIES: Record<"submit" | "organizerEdit" | "admin", EventFor
     attributes: false,
     venue: "free-text",
     flyer: true,
+    hostAndContact: false,
+    submitterInfo: false,
+  },
+  // A moderation submission has no canonical event id yet. Storage policy
+  // paths are event-id based, so pre-approval flyer upload remains unavailable
+  // instead of pretending the image will survive approval.
+  organizerSubmissionEdit: {
+    styles: "slug-chips",
+    attributes: false,
+    venue: "free-text",
+    flyer: false,
     hostAndContact: false,
     submitterInfo: false,
   },

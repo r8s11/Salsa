@@ -1,0 +1,67 @@
+.event-share-controls {
+  display: grid;
+  gap: 12px;
+}
+
+.event-share-controls h2 {
+  margin: 0;
+  color: var(--admin-text-strong);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.event-share-controls__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.event-share-controls__actions .admin-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.event-share-controls__destinations {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.event-share-controls__destinations a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--admin-brand-text);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.event-share-controls__destinations a:hover {
+  text-decoration: underline;
+}
+
+.event-share-controls__feedback {
+  margin: 0;
+  color: var(--admin-text-primary);
+  font-size: 0.85rem;
+}
+
+.event-share-controls--compact {
+  display: inline-flex;
+}
+
+.event-share-controls--compact .event-share-controls__actions {
+  gap: 6px;
+}
+
+@media (max-width: 480px) {
+  .event-share-controls__actions .admin-btn {
+    flex: 1 1 100%;
+  }
+
+  .event-share-controls--compact .event-share-controls__actions .admin-btn {
+    flex: 0 1 auto;
+  }
+}

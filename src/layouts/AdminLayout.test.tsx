@@ -146,6 +146,22 @@ describe("AdminLayout", () => {
     ).toBeInTheDocument();
   });
 
+  it("labels the Host event detail route", () => {
+    render(
+      <MemoryRouter initialEntries={["/host/events/abc-123"]}>
+        <Routes>
+          <Route path="/host" element={<AdminLayout />}>
+            <Route path="events/:eventId" element={<p>Host event detail</p>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    );
+
+    expect(
+      screen.getByText("Host · Event Details", { selector: ".admin-breadcrumbs__crumb" })
+    ).toBeInTheDocument();
+  });
+
   it("account menu shows Appearance with System checked by default", async () => {
     const user = userEvent.setup();
     renderLayout();

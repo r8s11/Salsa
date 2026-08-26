@@ -9,6 +9,10 @@ import {
   updateEventForUser,
   type UserEventUpdatePayload,
 } from "../features/events/api/eventsRepo";
+import {
+  updateOwnEventSubmission,
+  withdrawOwnEventSubmission,
+} from "../features/admin/api/submissionsRepo";
 import { removeEventFlyer, uploadEventFlyer } from "../features/events/api/eventFlyers";
 import EventForm, {
   CAPABILITIES,
@@ -73,6 +77,11 @@ function statusLabel(status: DatabaseEvent["status"]): string {
   return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
+function submissionEditedData(payload: UserEventUpdatePayload): Record<string, unknown> {
+  const { image_url: _imageUrl, ...editedData } = payload;
+  return editedData;
+}
+
 export default function UserEventEditPage() {
   const { user, isOrganizer } = useAuth();
   const { eventId } = useParams<{ eventId: string }>();
@@ -107,8 +116,8 @@ export default function UserEventEditPage() {
     (JSON.stringify(form) !== pristineSnapshot || selectedFlyer !== null);
 
   useEffect(() => {
-    if (eventId && submissions && !editingEvent) navigate(returnPath);
-  }, [editingEvent, eventId, navigate, submissions, returnPath]);
+    if (!isLoading && eventId && submissions && !editingEvent) navigate(returnPath);
+  }, [editingEvent, eventId, isLoading, navigate, submissions, returnPath]);
 
   useEffect(() => {
     if (editingEvent && editingEvent.status !== "pending" && editingEvent.status !== "rejected")
@@ -127,17 +136,30 @@ export default function UserEventEditPage() {
   }, [editingEvent, isDirty]);
 
   const saveMutation = useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: UserEventUpdatePayload }) =>
-      updateEventForUser(id, payload),
+    mutationFn: async ({ event, payload }: { event: DatabaseEvent; payload: UserEventUpdatePayload }) => {
+      if (event.submission_id) {
+        await updateOwnEventSubmission(event.submission_id, submissionEditedData(payload));
+        return;
+      }
+      await updateEventForUser(event.id, payload);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["submissions", "mine", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["event-submissions", "mine", user?.id] });
       queryClient.invalidateQueries({ queryKey: ["approved-events", "mine", user?.id] });
     },
   });
   const withdrawMutation = useMutation({
-    mutationFn: deleteEventForUser,
+    mutationFn: async (event: DatabaseEvent) => {
+      if (event.submission_id) {
+        await withdrawOwnEventSubmission(event.submission_id);
+        return;
+      }
+      await deleteEventForUser(event.id);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["submissions", "mine", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["event-submissions", "mine", user?.id] });
       navigate(returnPath);
     },
   });
@@ -169,12 +191,13 @@ export default function UserEventEditPage() {
       return;
     }
 
+    const supportsFlyer = !editingEvent.submission_id;
     const previousFlyerUrl = savedFlyerUrl ?? editingEvent.image_url;
     let uploadedFlyerUrl: string | null = null;
     setIsSaving(true);
     try {
       const payload = draftToUserPayload(form);
-      if (selectedFlyer) {
+      if (selectedFlyer && supportsFlyer) {
         const uploadedFlyer = await uploadEventFlyer({
           file: selectedFlyer,
           ownerId: user.id,
@@ -183,7 +206,7 @@ export default function UserEventEditPage() {
         uploadedFlyerUrl = uploadedFlyer.url;
         payload.image_url = uploadedFlyer.url;
       }
-      await saveMutation.mutateAsync({ id: editingEvent.id, payload });
+      await saveMutation.mutateAsync({ event: editingEvent, payload });
     } catch (error) {
       if (uploadedFlyerUrl) {
         try {
@@ -224,7 +247,7 @@ export default function UserEventEditPage() {
     ) {
       setWithdrawError(null);
       try {
-        await withdrawMutation.mutateAsync(editingEvent.id);
+        await withdrawMutation.mutateAsync(editingEvent);
       } catch (error) {
         setWithdrawError(error instanceof Error ? error.message : "Unknown error");
       }
@@ -315,15 +338,21 @@ export default function UserEventEditPage() {
             <EventForm
               draft={form}
               onChange={(next) => setDrafts((current) => ({ ...current, [editingEvent.id]: next }))}
-              capabilities={CAPABILITIES.organizerEdit}
-              renderFlyerField={() => (
-                <EventFlyerField
-                  key={flyerUrl}
-                  currentUrl={flyerUrl}
-                  onFileChange={setSelectedFlyer}
-                  disabled={isSaving}
-                />
-              )}
+              capabilities={
+                editingEvent.submission_id
+                  ? CAPABILITIES.organizerSubmissionEdit
+                  : CAPABILITIES.organizerEdit
+              }
+              renderFlyerField={() =>
+                !editingEvent.submission_id ? (
+                  <EventFlyerField
+                    key={flyerUrl}
+                    currentUrl={flyerUrl}
+                    onFileChange={setSelectedFlyer}
+                    disabled={isSaving}
+                  />
+                ) : null
+              }
             />
             <div className="user-edit-page__actions">
               <button type="submit" className="btn-primary" disabled={isSaving}>

@@ -59,6 +59,13 @@ const ownerApproved: DatabaseEvent = {
   title: "Approved Event",
 };
 
+const ownerPastApproved: DatabaseEvent = {
+  ...baseEvent,
+  id: "past-approved-1",
+  title: "Past Approved Event",
+  event_date: "2020-08-01T20:00:00Z",
+};
+
 type OwnerEventState = {
   submissions: DatabaseEvent[];
   approvedEvents: DatabaseEvent[];
@@ -117,6 +124,34 @@ describe("HostMyEventsPage", () => {
     expect(screen.queryByText("Approved Event")).not.toBeInTheDocument();
   });
 
+  it("filters supported Upcoming and Past views from real event dates", async () => {
+    vi.mocked(useMySubmissions).mockReturnValue({
+      submissions: [ownerPending],
+      approvedEvents: [ownerApproved, ownerPastApproved],
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+    const user = userEvent.setup();
+    renderHostEvents();
+
+    await user.click(await screen.findByRole("button", { name: "Upcoming" }));
+    expect(screen.getByText("Pending Event")).toBeInTheDocument();
+    expect(screen.getByText("Approved Event")).toBeInTheDocument();
+    expect(screen.queryByText("Past Approved Event")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Past" }));
+    expect(screen.getByText("Past Approved Event")).toBeInTheDocument();
+    expect(screen.queryByText("Pending Event")).not.toBeInTheDocument();
+  });
+
+  it("shows compact sharing only for approved events", async () => {
+    renderHostEvents();
+
+    expect(await screen.findByRole("button", { name: "Share event" })).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "Share event" })).toHaveLength(1);
+  });
+
   it("labels every table cell for the mobile card layout", async () => {
     const user = userEvent.setup();
     renderHostEvents();
@@ -133,13 +168,38 @@ describe("HostMyEventsPage", () => {
   it("links editable and published events to their existing destinations", async () => {
     renderHostEvents();
 
-    expect(await screen.findByRole("link", { name: "Edit event" })).toHaveAttribute(
+    expect(await screen.findByRole("link", { name: "Edit submission" })).toHaveAttribute(
       "href",
       "/profile/edit/pending-1"
     );
-    expect(screen.getByRole("link", { name: "View event" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "View public event" })).toHaveAttribute(
       "href",
-      "/calendar?event=approved-1&city=boston"
+      "/events/approved-1"
+    );
+  });
+
+  it("links each card title to its Host detail page", async () => {
+    renderHostEvents();
+
+    expect(await screen.findByRole("link", { name: "Pending Event" })).toHaveAttribute(
+      "href",
+      "/host/events/pending-1"
+    );
+    expect(screen.getByRole("link", { name: "Approved Event" })).toHaveAttribute(
+      "href",
+      "/host/events/approved-1"
+    );
+  });
+
+  it("links each table row title to its Host detail page", async () => {
+    const user = userEvent.setup();
+    renderHostEvents();
+
+    await user.click(screen.getByRole("button", { name: "Table" }));
+
+    expect(screen.getByRole("link", { name: "Pending Event" })).toHaveAttribute(
+      "href",
+      "/host/events/pending-1"
     );
   });
 

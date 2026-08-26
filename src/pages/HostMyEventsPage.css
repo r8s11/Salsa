@@ -112,6 +112,17 @@
   font-weight: 700;
 }
 
+.host-my-events__card-title a,
+.host-my-events__table td[data-label="Event"] a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.host-my-events__card-title a:hover,
+.host-my-events__table td[data-label="Event"] a:hover {
+  text-decoration: underline;
+}
+
 .host-my-events__facts {
   display: grid;
   gap: 8px;
@@ -143,6 +154,14 @@
 
 .host-my-events__action:hover {
   text-decoration: underline;
+}
+
+.host-my-events__card-actions,
+.host-my-events__table-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
 }
 
 .host-my-events__table {

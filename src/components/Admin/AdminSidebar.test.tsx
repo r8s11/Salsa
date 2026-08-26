@@ -163,4 +163,15 @@ describe("AdminSidebar Host navigation", () => {
     expect(screen.queryByText("Bulk Upload")).not.toBeInTheDocument();
     expect(screen.queryByText("Events")).not.toBeInTheDocument();
   });
+
+  it("keeps My Events active on the nested Host event detail route", () => {
+    vi.mocked(useAuth).mockReturnValue({ role: "organizer" });
+    render(
+      <MemoryRouter initialEntries={["/host/events/abc-123"]}>
+        <AdminSidebar variant="fixed" />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByRole("link", { name: "My Events" })).toHaveClass("admin-nav__link--active");
+  });
 });

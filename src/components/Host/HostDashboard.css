@@ -38,6 +38,17 @@
   letter-spacing: -0.01em;
 }
 
+.host-dashboard__next-title a,
+.host-dashboard__row-title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.host-dashboard__next-title a:hover,
+.host-dashboard__row-title a:hover {
+  text-decoration: underline;
+}
+
 .host-dashboard__next-venue {
   display: flex;
   align-items: center;

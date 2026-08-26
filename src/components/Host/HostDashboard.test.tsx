@@ -121,17 +121,51 @@ describe("HostDashboard", () => {
     expect(screen.getByLabelText(/Awaiting Review: 1\./)).toBeInTheDocument();
     expect(screen.getByLabelText(/Total Events: 3\./)).toBeInTheDocument();
   });
-  it("routes pending events to the owner editor and published events to the calendar", async () => {
+
+  it("counts rejected owner submissions that require revision", async () => {
+    mockOwnerEvents({
+      submissions: [{ ...laterPending, id: "rejected-1", status: "rejected" }],
+      approvedEvents: [nextApproved],
+    });
+    renderDashboard();
+
+    expect(await screen.findByLabelText(/Requires Revision: 1\./)).toBeInTheDocument();
+  });
+  it("routes pending events to the owner editor and published events to their public page", async () => {
     renderDashboard();
 
     const others = within(await screen.findByLabelText("Your other events"));
-    expect(others.getByRole("link", { name: "Edit event" })).toHaveAttribute(
+    expect(others.getByRole("link", { name: "Edit submission" })).toHaveAttribute(
       "href",
       "/profile/edit/later-pending"
     );
-    expect(others.getByRole("link", { name: "View event" })).toHaveAttribute(
+    expect(others.getByRole("link", { name: "View public event" })).toHaveAttribute(
       "href",
-      "/calendar?event=past-approved&city=boston"
+      "/events/past-approved"
+    );
+  });
+
+  it("links the next event's title to its Host detail page", async () => {
+    renderDashboard();
+
+    const next = await screen.findByLabelText("Next event");
+    expect(within(next).getByRole("link", { name: "Rooftop Social" })).toHaveAttribute(
+      "href",
+      "/host/events/next-approved"
+    );
+  });
+
+  it("links other event titles to their Host detail pages", async () => {
+    renderDashboard();
+
+    const others = within(await screen.findByLabelText("Your other events"));
+    expect(others.getByRole("link", { name: "Mambo Workshop" })).toHaveAttribute(
+      "href",
+      "/host/events/later-pending"
+    );
+    expect(others.getByRole("link", { name: "Old Social" })).toHaveAttribute(
+      "href",
+      "/host/events/past-approved"
     );
   });
 

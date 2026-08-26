@@ -9,6 +9,8 @@ const mocks = vi.hoisted(() => ({
   useMySubmissions: vi.fn(),
   updateEventForUser: vi.fn(),
   deleteEventForUser: vi.fn(),
+  updateOwnEventSubmission: vi.fn(),
+  withdrawOwnEventSubmission: vi.fn(),
   uploadEventFlyer: vi.fn(),
   removeEventFlyer: vi.fn(),
   auth: {
@@ -23,6 +25,10 @@ vi.mock("../hooks/useMySubmissions", () => ({
 vi.mock("../features/events/api/eventsRepo", () => ({
   updateEventForUser: mocks.updateEventForUser,
   deleteEventForUser: mocks.deleteEventForUser,
+}));
+vi.mock("../features/admin/api/submissionsRepo", () => ({
+  updateOwnEventSubmission: mocks.updateOwnEventSubmission,
+  withdrawOwnEventSubmission: mocks.withdrawOwnEventSubmission,
 }));
 vi.mock("../contexts/useAuth", () => ({
   useAuth: () => ({ ...mocks.auth, loading: false }),
@@ -80,6 +86,13 @@ const pendingEvent: DatabaseEvent = {
   venue_id: null,
 };
 
+const pendingSubmissionEvent: DatabaseEvent = {
+  ...pendingEvent,
+  id: "submission-id",
+  submission_id: "submission-id",
+  image_url: null,
+};
+
 function renderPage() {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
@@ -101,7 +114,7 @@ beforeEach(() => {
   mocks.auth.isOrganizer = false;
 });
 describe("UserEventEditPage save flow", () => {
-  it("calls updateEventForUser with the event id and transformed payload on save", async () => {
+  it("calls updateEventForUser with event id and transformed payload on legacy event save", async () => {
     mocks.useMySubmissions.mockReturnValue({
       submissions: [pendingEvent],
       approvedEvents: [],
@@ -112,9 +125,9 @@ describe("UserEventEditPage save flow", () => {
 
     renderPage();
 
-    const titleInput = await screen.findByDisplayValue("Pending Event");
-    fireEvent.change(titleInput, { target: { value: "Updated Title" } });
-
+    fireEvent.change(await screen.findByDisplayValue("Pending Event"), {
+      target: { value: "Updated Title" },
+    });
     fireEvent.click(screen.getByRole("button", { name: /Save changes/i }));
 
     await waitFor(() => {
@@ -128,10 +141,35 @@ describe("UserEventEditPage save flow", () => {
       event_type: "social",
       city: "boston",
     });
-    // The payload must NOT include admin-only / immutable fields
     expect(payloadArg).not.toHaveProperty("status");
     expect(payloadArg).not.toHaveProperty("source_type");
     expect(payloadArg).not.toHaveProperty("submitter_id");
+  });
+
+  it("saves a projected moderation submission through edited_data, not canonical events", async () => {
+    mocks.useMySubmissions.mockReturnValue({
+      submissions: [pendingSubmissionEvent],
+      approvedEvents: [],
+      isLoading: false,
+      error: null,
+    });
+    mocks.updateOwnEventSubmission.mockResolvedValueOnce(undefined);
+
+    renderPageFor("submission-id");
+
+    fireEvent.change(await screen.findByDisplayValue("Pending Event"), {
+      target: { value: "Revised submission title" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Save changes/i }));
+
+    await waitFor(() => {
+      expect(mocks.updateOwnEventSubmission).toHaveBeenCalledWith(
+        "submission-id",
+        expect.objectContaining({ title: "Revised submission title" })
+      );
+    });
+    expect(mocks.updateEventForUser).not.toHaveBeenCalled();
+    expect(screen.queryByLabelText("Event flyer")).not.toBeInTheDocument();
   });
 
   it("uses the reference authoring header and review guidance", async () => {
@@ -310,6 +348,29 @@ describe("UserEventEditPage withdraw flow", () => {
     await waitFor(() => {
       expect(mocks.deleteEventForUser).not.toHaveBeenCalled();
     });
+  });
+
+  it("withdraws a projected moderation submission through status=withdrawn", async () => {
+    mocks.useMySubmissions.mockReturnValue({
+      submissions: [pendingSubmissionEvent],
+      approvedEvents: [],
+      isLoading: false,
+      error: null,
+    });
+    mocks.withdrawOwnEventSubmission.mockResolvedValueOnce(undefined);
+    vi.spyOn(window, "confirm").mockReturnValueOnce(true);
+
+    renderPageFor("submission-id");
+
+    await screen.findByDisplayValue("Pending Event");
+    fireEvent.click(screen.getByRole("button", { name: /^Withdraw submission$/ }));
+    const controls = await screen.findAllByRole("button", { name: /Withdraw submission/i });
+    fireEvent.click(controls[1]);
+
+    await waitFor(() => {
+      expect(mocks.withdrawOwnEventSubmission).toHaveBeenCalledWith("submission-id");
+    });
+    expect(mocks.deleteEventForUser).not.toHaveBeenCalled();
   });
 });
 

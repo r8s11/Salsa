@@ -2,16 +2,21 @@ import { describe, expect, it, vi } from "vitest";
 import {
   approveSubmissionWithTaxonomy,
   createSubmission,
+  fetchOwnEventSubmissions,
   submissionsRepo,
+  updateOwnEventSubmission,
+  withdrawOwnEventSubmission,
 } from "./submissionsRepo";
 import { supabase } from "../../../lib/supabase";
 
 const queryBuilder = {
   select: vi.fn().mockReturnThis(),
   eq: vi.fn().mockReturnThis(),
+  in: vi.fn().mockReturnThis(),
   order: vi.fn().mockReturnThis(),
   update: vi.fn().mockReturnThis(),
   insert: vi.fn().mockResolvedValue({ error: null }),
+  maybeSingle: vi.fn().mockResolvedValue({ data: { id: "submission-id" }, error: null }),
   single: vi.fn().mockResolvedValue({ data: {}, error: null }),
 };
 const { rpc } = vi.hoisted(() => ({ rpc: vi.fn() }));
@@ -24,19 +29,41 @@ vi.mock("../../../lib/supabase", () => ({
 }));
 
 describe("submissionsRepo", () => {
-  it("should fetch pending submissions", async () => {
+  it("fetches pending submissions", async () => {
     await submissionsRepo.getPendingSubmissions();
     expect(supabase.from).toHaveBeenCalledWith("event_submissions");
   });
 
-  it("should fetch submission by id", async () => {
+  it("fetches submission by id", async () => {
     await submissionsRepo.getSubmissionById("123");
     expect(supabase.from).toHaveBeenCalledWith("event_submissions");
   });
 
-  it("should update submission", async () => {
+  it("updates submission as a reviewer", async () => {
     await submissionsRepo.updateSubmission("123", { status: "approved" });
     expect(supabase.from).toHaveBeenCalledWith("event_submissions");
+  });
+
+  it("fetches only owner-editable lifecycle submissions", async () => {
+    await fetchOwnEventSubmissions("owner-1");
+
+    expect(supabase.from).toHaveBeenCalledWith("event_submissions");
+    expect(queryBuilder.eq).toHaveBeenCalledWith("submitter_id", "owner-1");
+    expect(queryBuilder.in).toHaveBeenCalledWith("status", ["pending", "rejected"]);
+  });
+
+  it("persists only edited_data for an owner submission", async () => {
+    await updateOwnEventSubmission("submission-1", { title: "Revised title" });
+
+    expect(queryBuilder.update).toHaveBeenCalledWith({ edited_data: { title: "Revised title" } });
+    expect(queryBuilder.eq).toHaveBeenCalledWith("id", "submission-1");
+  });
+
+  it("withdraws through status=withdrawn instead of deleting history", async () => {
+    await withdrawOwnEventSubmission("submission-1");
+
+    expect(queryBuilder.update).toHaveBeenCalledWith({ status: "withdrawn" });
+    expect(queryBuilder.eq).toHaveBeenCalledWith("id", "submission-1");
   });
 
   it("inserts public submissions without requesting returned rows", async () => {
@@ -77,7 +104,7 @@ describe("submissionsRepo", () => {
     expect(queryBuilder.select).not.toHaveBeenCalled();
   });
 
-  it("approves through the atomic taxonomy RPC", async () => {
+  it("approves through atomic taxonomy RPC", async () => {
     rpc.mockResolvedValue({ data: "event-id", error: null });
     await expect(approveSubmissionWithTaxonomy("submission-id", ["salsa-id"])).resolves.toBe(
       "event-id"

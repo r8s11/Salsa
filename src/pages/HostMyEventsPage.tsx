@@ -2,12 +2,13 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/useAuth";
 import { useMySubmissions } from "../hooks/useMySubmissions";
-import { deriveHostEventRows } from "../features/host/model/hostEvents";
+import { deriveHostEventRows, isUpcomingHostEvent } from "../features/host/model/hostEvents";
 import AdminPageHeader from "../components/Admin/AdminPageHeader";
+import EventShareControls from "../features/events/components/EventShareControls";
 import "./HostMyEventsPage.css";
 
 type HostEventsView = "cards" | "table";
-type HostStatusFilter = "all" | "approved" | "pending" | "rejected" | "draft";
+type HostStatusFilter = "all" | "upcoming" | "pending" | "rejected" | "approved" | "past";
 
 const VIEWS: { value: HostEventsView; label: string }[] = [
   { value: "cards", label: "Cards" },
@@ -16,10 +17,11 @@ const VIEWS: { value: HostEventsView; label: string }[] = [
 
 const STATUS_FILTERS: { value: HostStatusFilter; label: string }[] = [
   { value: "all", label: "All" },
-  { value: "approved", label: "Approved" },
+  { value: "upcoming", label: "Upcoming" },
   { value: "pending", label: "Pending" },
   { value: "rejected", label: "Rejected" },
-  { value: "draft", label: "Drafts" },
+  { value: "approved", label: "Approved" },
+  { value: "past", label: "Past" },
 ];
 
 export default function HostMyEventsPage() {
@@ -27,6 +29,7 @@ export default function HostMyEventsPage() {
   const { submissions, approvedEvents, isLoading, error, refetch } = useMySubmissions(user?.id);
   const [view, setView] = useState<HostEventsView>("cards");
   const [statusFilter, setStatusFilter] = useState<HostStatusFilter>("all");
+  const [filterNow] = useState(() => new Date());
 
   const rows = useMemo(() => {
     const byId = new Map(
@@ -34,8 +37,22 @@ export default function HostMyEventsPage() {
     );
     return deriveHostEventRows([...byId.values()]);
   }, [submissions, approvedEvents]);
-  const filteredRows =
-    statusFilter === "all" ? rows : rows.filter((row) => row.event.status === statusFilter);
+  const filteredRows = useMemo(() => {
+    if (statusFilter === "all") return rows;
+    if (statusFilter === "upcoming") {
+      return rows.filter((row) => isUpcomingHostEvent(row.event, filterNow));
+    }
+    if (statusFilter === "past") {
+      return rows.filter((row) => {
+        try {
+          return Temporal.Instant.from(row.event.event_date).epochMilliseconds <= filterNow.getTime();
+        } catch {
+          return false;
+        }
+      });
+    }
+    return rows.filter((row) => row.event.status === statusFilter);
+  }, [filterNow, rows, statusFilter]);
 
   return (
     <>
@@ -113,7 +130,9 @@ export default function HostMyEventsPage() {
               {filteredRows.map((row) => (
                 <li key={row.event.id} className="admin-card host-my-events__card">
                   <p className="host-my-events__date">{row.dateLabel}</p>
-                  <h2 className="host-my-events__card-title">{row.event.title}</h2>
+                  <h2 className="host-my-events__card-title">
+                    <Link to={`/host/events/${row.event.id}`}>{row.event.title}</Link>
+                  </h2>
                   <dl className="host-my-events__facts">
                     <div>
                       <dt>Venue</dt>
@@ -130,9 +149,20 @@ export default function HostMyEventsPage() {
                       </dd>
                     </div>
                   </dl>
-                  <Link className="host-my-events__action" to={row.action.to}>
-                    {row.action.label}
-                  </Link>
+                  <div className="host-my-events__card-actions">
+                    <Link className="host-my-events__action" to={row.action.to}>
+                      {row.action.label}
+                    </Link>
+                    {row.event.status === "approved" && (
+                      <EventShareControls
+                        compact
+                        eventId={row.event.id}
+                        title={row.event.title}
+                        dateLabel={row.dateLabel}
+                        location={row.event.location}
+                      />
+                    )}
+                  </div>
                 </li>
               ))}
             </ul>
@@ -153,7 +183,9 @@ export default function HostMyEventsPage() {
               <tbody>
                 {filteredRows.map((row) => (
                   <tr key={row.event.id}>
-                    <td data-label="Event">{row.event.title}</td>
+                    <td data-label="Event">
+                      <Link to={`/host/events/${row.event.id}`}>{row.event.title}</Link>
+                    </td>
                     <td data-label="Date">{row.dateLabel}</td>
                     <td data-label="Venue">{row.event.location || "Venue not set"}</td>
                     <td data-label="Status">
@@ -164,9 +196,20 @@ export default function HostMyEventsPage() {
                       </span>
                     </td>
                     <td data-label="Action">
-                      <Link className="host-my-events__action" to={row.action.to}>
-                        {row.action.label}
-                      </Link>
+                      <div className="host-my-events__table-actions">
+                        <Link className="host-my-events__action" to={row.action.to}>
+                          {row.action.label}
+                        </Link>
+                        {row.event.status === "approved" && (
+                          <EventShareControls
+                            compact
+                            eventId={row.event.id}
+                            title={row.event.title}
+                            dateLabel={row.dateLabel}
+                            location={row.event.location}
+                          />
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}

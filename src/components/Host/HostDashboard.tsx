@@ -18,7 +18,7 @@ export default function HostDashboard() {
 
   // `new Date()` stays inside useMemo — calling it in the render body trips
   // react-hooks/purity, the same constraint AdminOverviewPage documents.
-  const { rows, nextRow, upcomingCount, pendingCount } = useMemo(() => {
+  const { rows, nextRow, upcomingCount, pendingCount, rejectedCount } = useMemo(() => {
     const now = new Date();
     const byId = new Map(
       [...submissions, ...approvedEvents].map((event) => [event.id, event] as const)
@@ -32,6 +32,7 @@ export default function HostDashboard() {
       nextRow: next ? (derived.find((row) => row.event.id === next.id) ?? null) : null,
       upcomingCount: owned.filter((event) => isUpcomingHostEvent(event, now)).length,
       pendingCount: owned.filter((event) => event.status === "pending").length,
+      rejectedCount: owned.filter((event) => event.status === "rejected").length,
     };
   }, [submissions, approvedEvents]);
 
@@ -94,6 +95,16 @@ export default function HostDashboard() {
               actionLabel="Manage"
               isLoading={isLoading}
             />
+            <AdminMetricCard
+              label="Requires Revision"
+              value={rejectedCount}
+              subLabel="Rejected submissions"
+              icon={ClipboardCheck}
+              tone="attention"
+              to="/host/events"
+              actionLabel="Revise"
+              isLoading={isLoading}
+            />
           </div>
 
           {isLoading && (
@@ -108,7 +119,9 @@ export default function HostDashboard() {
                 Next event
               </h2>
               <p className="host-dashboard__next-date">{nextRow.dateLabel}</p>
-              <h3 className="host-dashboard__next-title">{nextRow.event.title}</h3>
+              <h3 className="host-dashboard__next-title">
+                <Link to={`/host/events/${nextRow.event.id}`}>{nextRow.event.title}</Link>
+              </h3>
               <p className="host-dashboard__next-venue">
                 <MapPin size={15} aria-hidden />
                 {nextRow.event.location || "Venue not set"}
@@ -150,7 +163,9 @@ export default function HostDashboard() {
                 {otherRows.map((row) => (
                   <li key={row.event.id} className="host-dashboard__row">
                     <div className="host-dashboard__row-main">
-                      <h3 className="host-dashboard__row-title">{row.event.title}</h3>
+                      <h3 className="host-dashboard__row-title">
+                        <Link to={`/host/events/${row.event.id}`}>{row.event.title}</Link>
+                      </h3>
                       <p className="host-dashboard__row-meta">
                         {row.dateLabel} · {row.event.location || "Venue not set"}
                       </p>

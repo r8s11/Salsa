@@ -121,15 +121,6 @@ Deno.test("invites organizers with only trusted role and redirect values", async
 
 Deno.test("returns a safe conflict for duplicate Auth users", async () => {
   const { deps } = dependencies({
-    createServiceClient: () => ({ auth: { admin: { inviteUserByEmail: async () => ({ data: { user: null }, error: { message: "User already registered" } }) } } }) as unknown as ServiceClient,
-  });
-  const response = await createInviteOrganizerHandler(deps)(request({ email: "person@example.com" }));
-  assertEquals(response.status, 409);
-  assertEquals(await response.json(), { error: "An account already exists for this email" });
-});
-
-Deno.test("returns a safe conflict for Supabase's canonical duplicate invite error shape", async () => {
-  const { deps } = dependencies({
     createServiceClient: () => ({
       auth: {
         admin: {

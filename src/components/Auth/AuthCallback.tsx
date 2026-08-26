@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
+import { roleFromUser } from "../../contexts/authContextObject";
+import { resolveAuthorizedDestination } from "../../lib/authDestination";
 import "./AuthCallback.css";
 
 /**
@@ -53,8 +55,9 @@ export default function AuthCallback() {
           return;
         }
 
-        // Successful confirmation lands on home. Future phases can expand this.
-        navigate("/", { replace: true });
+        // Route to a role-appropriate destination after confirmation.
+        const role = roleFromUser(session.user);
+        navigate(resolveAuthorizedDestination(role), { replace: true });
       } catch (err) {
         console.warn("Auth callback failed:", err);
         if (!cancelled) setError("unknown");

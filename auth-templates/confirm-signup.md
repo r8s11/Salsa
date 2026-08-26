@@ -42,4 +42,4 @@ Confirm your SalsaSegura account
 
 - Tone: friendly, minimal, dance-focused, no marketing copy beyond the product name.
 - The `emailRedirectTo` configured in Phase 2 ensures the confirmation link lands at `https://www.salsasegura.com/auth/callback` (and `http://localhost:5173/auth/callback` locally).
-- Once the user clicks the link, `/auth/callback` exchanges the code, confirms the session, and navigates to `/`.
+- Once the user clicks the link, `/auth/callback` exchanges the code, confirms the session, and navigates to a role-appropriate destination (`/host` for organizers, `/admin` for admins/moderators, `/profile` otherwise).

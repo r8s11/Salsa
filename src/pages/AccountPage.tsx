@@ -177,6 +177,17 @@ export default function AccountPage() {
           </div>
         </section>
       )}
+
+      {!isLoading && !error && profile && identity && (
+        <section
+          className="account-page__card account-page__notifications"
+          aria-labelledby="account-notifications-heading"
+        >
+          <h2 id="account-notifications-heading">Email &amp; notifications</h2>
+          <p>Required account and security emails are always sent to your account email.</p>
+          <p>Optional email preferences aren&rsquo;t available yet.</p>
+        </section>
+      )}
     </main>
   );
 }

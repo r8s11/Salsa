@@ -258,4 +258,47 @@ describe("AccountPage", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("Account suspended");
     expect(screen.getByRole("link", { name: "Open Host Dashboard" })).toHaveAttribute("href", "/host");
   });
+
+  it("renders a truthful, non-interactive Email & notifications section", () => {
+    mocks.profile.profile = baseProfile();
+    renderPage();
+
+    expect(
+      screen.getByRole("heading", { level: 2, name: "Email & notifications" })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/required account and security emails are always sent/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/optional email preferences aren.t available yet/i)
+    ).toBeInTheDocument();
+  });
+
+  it("never renders a notification toggle, switch, or fake save affordance", () => {
+    mocks.profile.profile = baseProfile();
+    renderPage();
+
+    expect(screen.queryByRole("switch")).not.toBeInTheDocument();
+    expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+    expect(screen.queryByText(/preferences saved/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /save/i })).not.toBeInTheDocument();
+  });
+
+  it("does not render the notifications section before profile loading completes", () => {
+    mocks.profile.isLoading = true;
+    renderPage();
+
+    expect(
+      screen.queryByRole("heading", { level: 2, name: "Email & notifications" })
+    ).not.toBeInTheDocument();
+  });
+
+  it("does not render the notifications section when the profile row is missing", () => {
+    mocks.profile.profile = null;
+    renderPage();
+
+    expect(
+      screen.queryByRole("heading", { level: 2, name: "Email & notifications" })
+    ).not.toBeInTheDocument();
+  });
 });

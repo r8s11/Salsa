@@ -3,6 +3,14 @@ import type { User, Session } from "@supabase/supabase-js";
 
 export type UserRole = "admin" | "moderator" | "organizer";
 
+export function roleFromUser(user: User | null): UserRole | null {
+  const role = user?.app_metadata?.role;
+  if (role === "admin" || role === "moderator" || role === "organizer") {
+    return role;
+  }
+  return null;
+}
+
 export type AuthContextValue = {
   user: User | null;
   session: Session | null;

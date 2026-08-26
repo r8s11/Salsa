@@ -1,18 +1,9 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import type { User, Session } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
-import { AuthContext } from "./authContextObject";
+import { AuthContext, roleFromUser } from "./authContextObject";
 import type { AuthContextValue } from "./authContextObject";
 
-import type { UserRole } from "./authContextObject";
-
-function roleFromUser(user: User | null): UserRole | null {
-  const role = user?.app_metadata?.role;
-  if (role === "admin" || role === "moderator" || role === "organizer") {
-    return role;
-  }
-  return null;
-}
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);

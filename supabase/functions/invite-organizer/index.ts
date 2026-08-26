@@ -1,5 +1,4 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { json } from "https://esm.sh/@supabase/functions-js@0.5.0/src/utilities.ts";
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import {
   inviteRedirectUrl,
@@ -9,6 +8,10 @@ import {
   type EmailInviteSuccess,
   type InviteOrganizerRequest,
 } from "../_shared/invitation.ts";
+
+function json(data: unknown, status = 200): Response {
+  return new Response(JSON.stringify(data), { status, headers: { "Content-Type": "application/json" } });
+}
 
 type User = { id: string; app_metadata?: Record<string, unknown> | null };
 type AuthError = { message?: string; msg?: string; code?: string; error_code?: string };

@@ -1,3 +1,4 @@
+import { StrictMode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -67,6 +68,16 @@ describe("InviteActivationPage", () => {
     expect(mocks.exchangeCodeForSession).not.toHaveBeenCalled();
   });
 
+  it("shows an accessible error for hash-fragment callback errors (GoTrue's real redirect shape)", async () => {
+    setCallbackUrl(
+      "/auth/invite#error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired"
+    );
+    renderPage();
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/invalid|expired|already been used/i);
+    expect(mocks.setSession).not.toHaveBeenCalled();
+  });
+
   it("exchanges a PKCE code exactly once and shows organizer password setup", async () => {
     setCallbackUrl("/auth/invite?code=pkce-code");
     mocks.exchangeCodeForSession.mockResolvedValue({ data: { session: {}, user: null }, error: null });
@@ -115,6 +126,28 @@ describe("InviteActivationPage", () => {
     await expectOrganizerForm();
     expect(mocks.verifyOtp).toHaveBeenCalledTimes(1);
     expect(mocks.verifyOtp).toHaveBeenCalledWith({ token_hash: "hash-value", type: "invite" });
+  });
+
+  it("still completes and reaches organizer setup under React StrictMode's double-invoked effects", async () => {
+    setCallbackUrl("/auth/invite#access_token=access&refresh_token=refresh");
+    mocks.setSession.mockResolvedValue({ data: { session: {}, user: null }, error: null });
+    mocks.getSession.mockResolvedValue({ data: { session: { user: userWithRole("organizer") } }, error: null });
+    mocks.getUser.mockResolvedValue({ data: { user: userWithRole("organizer") }, error: null });
+
+    render(
+      <StrictMode>
+        <MemoryRouter initialEntries={["/auth/invite"]}>
+          <Routes>
+            <Route path="/auth/invite" element={<InviteActivationPage />} />
+            <Route path="/signin" element={<div>Sign in page</div>} />
+            <Route path="/host" element={<div>Host dashboard</div>} />
+          </Routes>
+        </MemoryRouter>
+      </StrictMode>
+    );
+
+    await expectOrganizerForm();
+    expect(mocks.setSession).toHaveBeenCalledTimes(1);
   });
 
   it("does not consume a reused or invalid callback more than once", async () => {

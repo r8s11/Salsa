@@ -40,19 +40,22 @@ export default function InviteActivationPage() {
     if (consumedRef.current) return;
     consumedRef.current = true;
 
-    let cancelled = false;
-
     const complete = async () => {
       try {
         const params = new URLSearchParams(window.location.search);
-        const errorParam = params.get("error_description") ?? params.get("error");
+        const hashParams = new URLSearchParams(window.location.hash.slice(1));
+        const errorParam =
+          params.get("error_description") ??
+          params.get("error") ??
+          hashParams.get("error_description") ??
+          hashParams.get("error");
         const code = params.get("code");
         const tokenHash = params.get("token_hash");
         const type = params.get("type");
 
         if (errorParam) {
           console.warn("Invite callback returned an error:", errorParam);
-          if (!cancelled) setError("invalid");
+          setError("invalid");
           return;
         }
 
@@ -60,7 +63,7 @@ export default function InviteActivationPage() {
           const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
           if (exchangeError) {
             console.warn("Invite code exchange failed:", exchangeError.message);
-            if (!cancelled) setError("invalid");
+            setError("invalid");
             return;
           }
         } else if (tokenHash && type === "invite") {
@@ -70,11 +73,10 @@ export default function InviteActivationPage() {
           });
           if (verifyError) {
             console.warn("Invite token hash verification failed:", verifyError.message);
-            if (!cancelled) setError("invalid");
+            setError("invalid");
             return;
           }
         } else {
-          const hashParams = new URLSearchParams(window.location.hash.slice(1));
           const accessToken = hashParams.get("access_token");
           const refreshToken = hashParams.get("refresh_token");
           if (accessToken && refreshToken) {
@@ -84,26 +86,23 @@ export default function InviteActivationPage() {
             });
             if (setSessionError) {
               console.warn("Invite hash session failed:", setSessionError.message);
-              if (!cancelled) setError("invalid");
+              setError("invalid");
               return;
             }
           }
         }
 
-        if (cancelled) return;
-
         const {
           data: { session },
         } = await supabase.auth.getSession();
         if (!session) {
-          if (!cancelled) setError("invalid");
+          setError("invalid");
           return;
         }
 
         const {
           data: { user },
         } = await supabase.auth.getUser();
-        if (cancelled) return;
 
         const role = roleFromUser(user);
         if (role !== "organizer") {
@@ -114,16 +113,13 @@ export default function InviteActivationPage() {
         setShowSetup(true);
       } catch (err) {
         console.warn("Invite activation failed:", err);
-        if (!cancelled) setError("unknown");
+        setError("unknown");
       } finally {
-        if (!cancelled) setProcessing(false);
+        setProcessing(false);
       }
     };
 
     void complete();
-    return () => {
-      cancelled = true;
-    };
   }, [navigate]);
 
   const handleSubmit = async (e: FormEvent) => {

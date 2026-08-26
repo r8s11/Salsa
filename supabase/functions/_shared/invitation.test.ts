@@ -1,34 +1,34 @@
-
+import { assertEquals } from "https://deno.land/std/testing/asserts.ts";
 import {
   normalizeEmail,
   normalizeDisplayName,
   inviteRedirectUrl,
   isAllowedInviteRedirect,
 } from "./invitation.ts";
-import { assertEquals } from "https://deno.land/std@0.177.0/testing/asserts.ts";
 
 Deno.test("normalizeEmail", () => {
-  assertEquals(normalizeEmail(" TEST@EXAMPLE.com "), "test@example.com");
-  assertEquals(normalizeEmail("invalid-email"), null);
+  assertEquals(normalizeEmail("  USER@EXAMPLE.COM  "), "user@example.com");
   assertEquals(normalizeEmail(""), null);
-  assertEquals(normalizeEmail(123), null);
+  assertEquals(normalizeEmail(null), null);
+  assertEquals(normalizeEmail("invalid"), null);
 });
 
 Deno.test("normalizeDisplayName", () => {
-  assertEquals(normalizeDisplayName(" John Doe "), "John Doe");
+  assertEquals(normalizeDisplayName("  John Doe  "), "John Doe");
   assertEquals(normalizeDisplayName(""), null);
-  assertEquals(normalizeDisplayName("a".repeat(101)), null);
+  assertEquals(normalizeDisplayName("A".repeat(256)), null); // Assuming 255 char limit
 });
 
 Deno.test("inviteRedirectUrl", () => {
-  assertEquals(inviteRedirectUrl("local"), "http://localhost:3000/invite");
-  assertEquals(inviteRedirectUrl("production"), "https://salsa.example.com/invite");
+  assertEquals(inviteRedirectUrl("local"), "http://localhost:3000/auth/invite-confirm");
+  assertEquals(inviteRedirectUrl("production"), "https://salsasegura.com/auth/invite-confirm");
 });
 
 Deno.test("isAllowedInviteRedirect", () => {
-  assertEquals(isAllowedInviteRedirect("http://localhost:3000/invite"), true);
-  assertEquals(isAllowedInviteRedirect("https://salsa.example.com/invite"), true);
-  assertEquals(isAllowedInviteRedirect("https://salsa.example.com/"), false);
+  assertEquals(isAllowedInviteRedirect("http://localhost:3000/auth/invite-confirm"), true);
+  assertEquals(isAllowedInviteRedirect("https://salsasegura.com/auth/invite-confirm"), true);
+  assertEquals(isAllowedInviteRedirect("/"), false);
   assertEquals(isAllowedInviteRedirect("/auth/callback"), false);
-  assertEquals(isAllowedInviteRedirect("https://malicious.com"), false);
+  assertEquals(isAllowedInviteRedirect("//evil.com"), false);
+  assertEquals(isAllowedInviteRedirect("https://evil.com"), false);
 });

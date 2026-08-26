@@ -72,3 +72,24 @@
     padding: 16px;
   }
 }
+
+.admin-user-form__delivery {
+  border: 0;
+  padding: 0;
+  margin: 0 0 16px;
+}
+
+.admin-user-form__delivery legend {
+  padding: 0;
+  margin-bottom: 4px;
+  font-size: 0.875rem;
+  color: var(--admin-text-muted);
+}
+
+.admin-user-form__radio {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9375rem;
+  margin-bottom: 4px;
+}

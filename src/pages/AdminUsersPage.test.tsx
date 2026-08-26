@@ -360,4 +360,43 @@ describe("AdminUsersPage", () => {
     await user.click(within(result).getByRole("button", { name: "Done" }));
     expect(screen.queryByRole("dialog", { name: "Account created" })).not.toBeInTheDocument();
   });
+  it("shows an email invitation success without any temporary password for Organizer", async () => {
+    const user = userEvent.setup();
+    const createUser = vi.fn((_params, options) =>
+      options.onSuccess({
+        delivery: "email_invitation",
+        id: "new-organizer-1",
+        email: "maria@salsa.test",
+        role: "organizer",
+        display_name: "Maria Santos",
+        status: "active",
+        created_at: "2026-08-20T00:00:00Z",
+      })
+    );
+    vi.mocked(useAdminUsers).mockReturnValue({ ...defaultState, createUser });
+    renderPage();
+
+    await user.click(screen.getByRole("button", { name: "Add User" }));
+    const dialog = screen.getByRole("dialog", { name: "Add User" });
+    await user.type(within(dialog).getByLabelText("Email"), "maria@salsa.test");
+    await user.selectOptions(within(dialog).getByLabelText("Role"), "organizer");
+    await user.click(within(dialog).getByRole("button", { name: "Create account" }));
+
+    expect(createUser).toHaveBeenCalledWith(
+      {
+        email: "maria@salsa.test",
+        display_name: undefined,
+        role: "organizer",
+        delivery: "email_invitation",
+      },
+      expect.anything()
+    );
+
+    const result = screen.getByRole("dialog", { name: "Account created" });
+    expect(within(result).getByText(/invitation was sent/i)).toBeInTheDocument();
+    expect(within(result).queryByText(/temporary password/i)).not.toBeInTheDocument();
+
+    await user.click(within(result).getByRole("button", { name: "Done" }));
+    expect(screen.queryByRole("dialog", { name: "Account created" })).not.toBeInTheDocument();
+  });
 });

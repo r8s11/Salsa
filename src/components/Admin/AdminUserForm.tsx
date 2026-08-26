@@ -2,14 +2,18 @@ import { useId, useState } from "react";
 import type { FormEvent } from "react";
 import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
 import { ROLE_LABEL, type UserRole } from "../../features/admin/model/usersQuery";
-import type { CreateUserParams, InvitedUser } from "../../features/admin/api/profilesRepo";
+import type {
+  CreateUserParams,
+  CreatedAccount,
+  InviteDelivery,
+} from "../../features/admin/api/profilesRepo";
 import "./AdminUserForm.css";
 
 interface AdminUserFormProps {
   isBusy: boolean;
   error: string | null;
   /** Set once the account exists; switches the dialog to the handoff view. */
-  created: InvitedUser | null;
+  created: CreatedAccount | null;
   onSubmit: (params: CreateUserParams) => void;
   onCancel: () => void;
 }
@@ -28,6 +32,7 @@ export default function AdminUserForm({
   const [email, setEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [role, setRole] = useState<UserRole>("user");
+  const [delivery, setDelivery] = useState<InviteDelivery>("email_invitation");
 
   useEscapeKey(onCancel);
 
@@ -38,6 +43,7 @@ export default function AdminUserForm({
       email: email.trim(),
       display_name: displayName.trim() || undefined,
       role,
+      ...(role === "organizer" ? { delivery } : {}),
     });
   };
 
@@ -53,7 +59,11 @@ export default function AdminUserForm({
         <h2 id={titleId}>{created ? "Account created" : "Add User"}</h2>
 
         {created ? (
-          <AdminUserCredentials created={created} onDone={onCancel} />
+          created.delivery === "email_invitation" ? (
+            <AdminEmailInviteSent created={created} onDone={onCancel} />
+          ) : (
+            <AdminUserCredentials created={created} onDone={onCancel} />
+          )
         ) : (
           <form onSubmit={handleSubmit}>
             <div className="admin-field">
@@ -98,9 +108,36 @@ export default function AdminUserForm({
               </select>
             </div>
 
+            {role === "organizer" && (
+              <fieldset className="admin-field admin-user-form__delivery">
+                <legend>Delivery</legend>
+                <label className="admin-user-form__radio">
+                  <input
+                    type="radio"
+                    name="admin-user-form-delivery"
+                    value="email_invitation"
+                    checked={delivery === "email_invitation"}
+                    onChange={() => setDelivery("email_invitation")}
+                  />
+                  Email invitation
+                </label>
+                <label className="admin-user-form__radio">
+                  <input
+                    type="radio"
+                    name="admin-user-form-delivery"
+                    value="temporary_password"
+                    checked={delivery === "temporary_password"}
+                    onChange={() => setDelivery("temporary_password")}
+                  />
+                  Temporary password
+                </label>
+              </fieldset>
+            )}
+
             <p className="admin-user-form__hint">
-              No email is sent. The account is created immediately with a temporary password shown
-              once on the next step — pass it to the account holder.
+              {role === "organizer" && delivery === "email_invitation"
+                ? "The recipient gets an email to accept the invitation and set their own password. No password is shown here."
+                : "No email is sent. The account is created immediately with a temporary password shown once on the next step — pass it to the account holder."}
             </p>
 
             {error && (
@@ -133,7 +170,13 @@ export default function AdminUserForm({
   );
 }
 
-function AdminUserCredentials({ created, onDone }: { created: InvitedUser; onDone: () => void }) {
+function AdminUserCredentials({
+  created,
+  onDone,
+}: {
+  created: Extract<CreatedAccount, { delivery: "temporary_password" }>;
+  onDone: () => void;
+}) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -161,6 +204,29 @@ function AdminUserCredentials({ created, onDone }: { created: InvitedUser; onDon
         <button type="button" className="admin-btn admin-btn--secondary" onClick={handleCopy}>
           {copied ? "Copied" : "Copy credentials"}
         </button>
+        <button type="button" className="admin-btn admin-btn--primary" onClick={onDone}>
+          Done
+        </button>
+      </div>
+    </>
+  );
+}
+
+function AdminEmailInviteSent({
+  created,
+  onDone,
+}: {
+  created: Extract<CreatedAccount, { delivery: "email_invitation" }>;
+  onDone: () => void;
+}) {
+  return (
+    <>
+      <p className="admin-user-form__hint">
+        An invitation was sent to {created.email}. They&rsquo;ll accept it and set their own
+        password to sign in as {ROLE_LABEL[created.role]} &mdash; no credentials to hand off.
+      </p>
+
+      <div className="admin-user-form__actions">
         <button type="button" className="admin-btn admin-btn--primary" onClick={onDone}>
           Done
         </button>

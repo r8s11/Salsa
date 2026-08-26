@@ -3,7 +3,7 @@ import {
   fetchUserDirectory,
   setUserRole,
   setUserStatus,
-  createUser,
+  createUserAccount,
 } from "../features/admin/api/profilesRepo";
 import type { AccountStatus, UserRole } from "../features/admin/model/usersQuery";
 
@@ -40,7 +40,7 @@ export function useAdminUsers() {
   });
 
   const createMutation = useMutation({
-    mutationFn: createUser,
+    mutationFn: createUserAccount,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
       queryClient.invalidateQueries({ queryKey: ["profiles", "count"] });

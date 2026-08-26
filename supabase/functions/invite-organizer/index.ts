@@ -11,7 +11,8 @@ import {
 } from "../_shared/invitation.ts";
 
 type User = { id: string; app_metadata?: Record<string, unknown> | null };
-type AuthResult<T> = { data: T; error: { message?: string } | null };
+type AuthError = { message?: string; code?: string };
+type AuthResult<T> = { data: T; error: AuthError | null };
 type TableResult = { error: { message?: string } | null };
 
 type CallerClient = {
@@ -42,6 +43,17 @@ export type InviteOrganizerDependencies = {
 
 function error(message: string, status: number): Response {
   return json({ error: message }, status);
+}
+
+function isDuplicateInviteError(authError: AuthError | null): boolean {
+  if (!authError) return false;
+
+  const code = authError.code?.toLowerCase();
+  if (code === "email_exists" || code === "user_already_exists" || code === "user_already_registered") {
+    return true;
+  }
+
+  return /\b(?:user|account)\s+(?:already\s+)?(?:exists|registered)\b/i.test(authError.message ?? "");
 }
 
 function runtimeDependencies(): InviteOrganizerDependencies {
@@ -109,17 +121,21 @@ export function createInviteOrganizerHandler(dependencies: InviteOrganizerDepend
       return error("Invitation service is unavailable", 500);
     }
 
-    let body: InviteOrganizerRequest;
+    let body: unknown;
     try {
       body = await request.json();
     } catch {
       return error("Invalid JSON body", 400);
     }
 
-    const email = normalizeEmail(body.email);
+    if (typeof body !== "object" || body === null || Array.isArray(body)) {
+      return error("A valid email address is required", 400);
+    }
+    const invite = body as InviteOrganizerRequest;
+    const email = normalizeEmail(invite.email);
     if (!email) return error("A valid email address is required", 400);
-    const displayName = body.displayName === undefined ? null : normalizeDisplayName(body.displayName);
-    if (body.displayName !== undefined && !displayName) return error("Display name is invalid", 400);
+    const displayName = invite.displayName === undefined ? null : normalizeDisplayName(invite.displayName);
+    if (invite.displayName !== undefined && !displayName) return error("Display name is invalid", 400);
 
     let service: ServiceClient;
     try {
@@ -140,7 +156,11 @@ export function createInviteOrganizerHandler(dependencies: InviteOrganizerDepend
       return error("Unable to send invitation; please try again", 500);
     }
     if (invitation.error || !invitation.data.user) {
-      return error("An account already exists for this email", 409);
+      if (isDuplicateInviteError(invitation.error)) {
+        return error("An account already exists for this email", 409);
+      }
+      dependencies.log("invite-organizer Auth invitation failed", { userId: caller.id });
+      return error("Unable to send invitation; please try again", 500);
     }
 
     const invited = invitation.data.user;
@@ -168,6 +188,7 @@ export function createInviteOrganizerHandler(dependencies: InviteOrganizerDepend
       if (!audit || audit.error) throw new Error("Could not write invitation audit record");
     } catch {
       dependencies.log("invite-organizer provisioning failed", { userId: invited.id });
+      await compensate(service, invited.id, dependencies.log);
       return error("Unable to send invitation; please try again", 500);
     }
 

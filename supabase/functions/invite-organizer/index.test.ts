@@ -90,6 +90,17 @@ Deno.test("rejects malformed email addresses", async () => {
   assertEquals((await createInviteOrganizerHandler(deps)(request({ email: "not-an-email" }))).status, 400);
 });
 
+Deno.test("rejects valid JSON bodies that are not objects", async () => {
+  const { deps } = dependencies();
+  const handler = createInviteOrganizerHandler(deps);
+
+  for (const body of [null, [], "person@example.com", 42, true]) {
+    const response = await handler(request(body));
+    assertEquals(response.status, 400);
+    assertEquals(await response.json(), { error: "A valid email address is required" });
+  }
+});
+
 Deno.test("invites organizers with only trusted role and redirect values", async () => {
   const { deps, calls } = dependencies();
   const response = await createInviteOrganizerHandler(deps)(request({
@@ -115,6 +126,24 @@ Deno.test("returns a safe conflict for duplicate Auth users", async () => {
   const response = await createInviteOrganizerHandler(deps)(request({ email: "person@example.com" }));
   assertEquals(response.status, 409);
   assertEquals(await response.json(), { error: "An account already exists for this email" });
+});
+
+Deno.test("returns a safe retryable error for non-duplicate Auth failures", async () => {
+  const { deps } = dependencies({
+    createServiceClient: () => ({
+      auth: {
+        admin: {
+          inviteUserByEmail: async () => ({
+            data: { user: null },
+            error: { message: "rate limit exceeded", code: "over_request_rate_limit" },
+          }),
+        },
+      },
+    }) as unknown as ServiceClient,
+  });
+  const response = await createInviteOrganizerHandler(deps)(request({ email: "person@example.com" }));
+  assertEquals(response.status, 500);
+  assertEquals(await response.json(), { error: "Unable to send invitation; please try again" });
 });
 
 Deno.test("rolls back profile and Auth user after post-create failure without leaking secrets", async () => {

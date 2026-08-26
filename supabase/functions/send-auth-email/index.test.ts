@@ -93,13 +93,30 @@ Deno.test("sends invite mail using token_hash and the exact redirect URL", async
 });
 
 for (const [action, subjectFragment] of [["signup", "Confirm"], ["magiclink", "Sign in"], ["recovery", "Reset"]] as const) {
-  Deno.test(`sends the ${action} email template`, async () => {
+  Deno.test(`sends the ${action} email template with its verification URL`, async () => {
     const { deps, sent } = dependencies();
-    const response = await createSendAuthEmailHandler(deps)(signedRequest({ token_hash: "hash", redirect_to: "https://app.example/auth/callback", email_action_type: action }));
+    const response = await createSendAuthEmailHandler(deps)(signedRequest({
+      token_hash: "hash+/=",
+      redirect_to: "https://app.example/auth/callback?flow=email",
+      email_action_type: action,
+    }));
     assertEquals(response.status, 200);
     assertStringIncludes(sent[0].subject, subjectFragment);
+    assertStringIncludes(
+      sent[0].html,
+      `https://project.supabase.co/auth/v1/verify?token=hash%2B%2F%3D&type=${action}&redirect_to=https%3A%2F%2Fapp.example%2Fauth%2Fcallback%3Fflow%3Demail`,
+    );
   });
 }
+
+Deno.test("rejects a Resend response with no delivery data", async () => {
+  const unavailable = dependencies({ resend: { emails: { send: async () => ({ data: null, error: null }) } } });
+  await error(await createSendAuthEmailHandler(unavailable.deps)(signedRequest({
+    token_hash: "hash",
+    redirect_to: "https://app.example",
+    email_action_type: "invite",
+  })));
+});
 
 Deno.test("rejects unsupported action types and Resend failures", async () => {
   const unsupported = dependencies();

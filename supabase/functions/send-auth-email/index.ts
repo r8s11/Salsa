@@ -92,7 +92,7 @@ export function createSendAuthEmailHandler(deps: SendAuthEmailDependencies) {
     const content = template(payload.email_data.email_action_type, url);
     try {
       const result = await deps.resend.emails.send({ from: deps.from, to: payload.user.email, ...content });
-      if (result.error) return unauthorized();
+      if (result.error || result.data == null) return unauthorized();
     } catch {
       return unauthorized();
     }

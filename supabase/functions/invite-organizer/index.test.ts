@@ -184,7 +184,7 @@ Deno.test("rolls back when profile or audit provisioning fails", async () => {
       createServiceClient: () => ({
         auth: { admin: {
           inviteUserByEmail: async () => ({ data: { user: { id: "organizer-id", app_metadata: {} } }, error: null }),
-          updateUserById: async () => ({ data: { user: { id: "organizer-id" }, error: null }),
+          updateUserById: async () => ({ data: { user: { id: "organizer-id" } }, error: null }),
           deleteUser: async (id: string) => { calls.push({ name: "delete-user", value: id }); return { error: null }; },
         } },
         from: (table: string) => ({

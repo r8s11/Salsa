@@ -56,6 +56,7 @@ describe("SignInForm", () => {
     const signUp = vi.fn().mockResolvedValue({
       error: null,
       session: { access_token: "t", user: { id: "u1" } },
+      user: { id: "u1", app_metadata: {} },
     });
     vi.mocked(useAuth).mockReturnValue({
       user: null,
@@ -92,6 +93,206 @@ describe("SignInForm", () => {
       expect(screen.getByText("Submit Event Page")).toBeInTheDocument();
     });
     expect(signUp).toHaveBeenCalledWith("new@example.com", "password123");
+  });
+
+  it("redirects an Organizer with no intended route to /host", async () => {
+    const signInWithPassword = vi.fn().mockResolvedValue({
+      error: null,
+      user: { id: "u1", app_metadata: { role: "organizer" } },
+    });
+    vi.mocked(useAuth).mockReturnValue({
+      user: null,
+      session: null,
+      loading: false,
+      isAdmin: false,
+      isModerator: false,
+      isOrganizer: false,
+      role: null,
+      signInWithPassword,
+      resendConfirmation: vi.fn(),
+      signUp: vi.fn(),
+      signOut: vi.fn(),
+    });
+
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter initialEntries={[{ pathname: "/signin" }]}>
+        <Routes>
+          <Route path="/signin" element={<SignInForm />} />
+          <Route path="/host" element={<div>Host Dashboard</div>} />
+          <Route path="/" element={<div>Home Page</div>} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await user.type(screen.getByLabelText(/email/i), "organizer@example.com");
+    await user.type(screen.getByLabelText(/^password$/i), "password123");
+    await user.click(screen.getByRole("button", { name: /^sign in$/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Host Dashboard")).toBeInTheDocument();
+    });
+  });
+
+  it("redirects an Admin or Moderator with no intended route to /admin", async () => {
+    const signInWithPassword = vi.fn().mockResolvedValue({
+      error: null,
+      user: { id: "u2", app_metadata: { role: "moderator" } },
+    });
+    vi.mocked(useAuth).mockReturnValue({
+      user: null,
+      session: null,
+      loading: false,
+      isAdmin: false,
+      isModerator: false,
+      isOrganizer: false,
+      role: null,
+      signInWithPassword,
+      resendConfirmation: vi.fn(),
+      signUp: vi.fn(),
+      signOut: vi.fn(),
+    });
+
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter initialEntries={[{ pathname: "/signin" }]}>
+        <Routes>
+          <Route path="/signin" element={<SignInForm />} />
+          <Route path="/admin" element={<div>Admin Dashboard</div>} />
+          <Route path="/" element={<div>Home Page</div>} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await user.type(screen.getByLabelText(/email/i), "mod@example.com");
+    await user.type(screen.getByLabelText(/^password$/i), "password123");
+    await user.click(screen.getByRole("button", { name: /^sign in$/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Admin Dashboard")).toBeInTheDocument();
+    });
+  });
+
+  it("redirects a regular user with no intended route to /profile", async () => {
+    const signInWithPassword = vi.fn().mockResolvedValue({
+      error: null,
+      user: { id: "u3", app_metadata: {} },
+    });
+    vi.mocked(useAuth).mockReturnValue({
+      user: null,
+      session: null,
+      loading: false,
+      isAdmin: false,
+      isModerator: false,
+      isOrganizer: false,
+      role: null,
+      signInWithPassword,
+      resendConfirmation: vi.fn(),
+      signUp: vi.fn(),
+      signOut: vi.fn(),
+    });
+
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter initialEntries={[{ pathname: "/signin" }]}>
+        <Routes>
+          <Route path="/signin" element={<SignInForm />} />
+          <Route path="/profile" element={<div>Profile Page</div>} />
+          <Route path="/" element={<div>Home Page</div>} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await user.type(screen.getByLabelText(/email/i), "user@example.com");
+    await user.type(screen.getByLabelText(/^password$/i), "password123");
+    await user.click(screen.getByRole("button", { name: /^sign in$/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Profile Page")).toBeInTheDocument();
+    });
+  });
+
+  it("preserves a valid internal intended route over the role default", async () => {
+    const signInWithPassword = vi.fn().mockResolvedValue({
+      error: null,
+      user: { id: "u4", app_metadata: { role: "organizer" } },
+    });
+    vi.mocked(useAuth).mockReturnValue({
+      user: null,
+      session: null,
+      loading: false,
+      isAdmin: false,
+      isModerator: false,
+      isOrganizer: false,
+      role: null,
+      signInWithPassword,
+      resendConfirmation: vi.fn(),
+      signUp: vi.fn(),
+      signOut: vi.fn(),
+    });
+
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter
+        initialEntries={[{ pathname: "/signin", state: { from: "/host/events/abc" } }]}
+      >
+        <Routes>
+          <Route path="/signin" element={<SignInForm />} />
+          <Route path="/host/events/abc" element={<div>Event Detail Page</div>} />
+          <Route path="/host" element={<div>Host Dashboard</div>} />
+          <Route path="/" element={<div>Home Page</div>} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await user.type(screen.getByLabelText(/email/i), "organizer@example.com");
+    await user.type(screen.getByLabelText(/^password$/i), "password123");
+    await user.click(screen.getByRole("button", { name: /^sign in$/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Event Detail Page")).toBeInTheDocument();
+    });
+  });
+
+  it("falls back to the role-appropriate destination when the intended route is external", async () => {
+    const signInWithPassword = vi.fn().mockResolvedValue({
+      error: null,
+      user: { id: "u5", app_metadata: { role: "organizer" } },
+    });
+    vi.mocked(useAuth).mockReturnValue({
+      user: null,
+      session: null,
+      loading: false,
+      isAdmin: false,
+      isModerator: false,
+      isOrganizer: false,
+      role: null,
+      signInWithPassword,
+      resendConfirmation: vi.fn(),
+      signUp: vi.fn(),
+      signOut: vi.fn(),
+    });
+
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter
+        initialEntries={[{ pathname: "/signin", state: { from: "https://evil.com" } }]}
+      >
+        <Routes>
+          <Route path="/signin" element={<SignInForm />} />
+          <Route path="/host" element={<div>Host Dashboard</div>} />
+          <Route path="/" element={<div>Home Page</div>} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await user.type(screen.getByLabelText(/email/i), "organizer@example.com");
+    await user.type(screen.getByLabelText(/^password$/i), "password123");
+    await user.click(screen.getByRole("button", { name: /^sign in$/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Host Dashboard")).toBeInTheDocument();
+    });
   });
 
   it("shows a confirmation message after signup when no session is returned", async () => {

@@ -1,8 +1,11 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import type { User } from "@supabase/supabase-js";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/useAuth";
+import { roleFromUser } from "../../contexts/authContextObject";
+import { resolveAuthorizedDestination, isSafeInternalPath } from "../../lib/authDestination";
 import "./SignInForm.css";
 
 type Mode = "signin" | "signup";
@@ -43,8 +46,10 @@ export default function SignInForm() {
     }
   };
 
-  const redirectAfterAuth = () => {
-    const destination = typeof location.state?.from === "string" ? location.state.from : "/";
+  const redirectAfterAuth = (user: User | null) => {
+    const role = roleFromUser(user);
+    const from = location.state?.from;
+    const destination = isSafeInternalPath(from) ? from : resolveAuthorizedDestination(role);
     navigate(destination, { replace: true });
   };
 
@@ -54,23 +59,23 @@ export default function SignInForm() {
     setMessage(null);
 
     if (mode === "signin") {
-      const { error } = await signInWithPassword(email, password);
+      const { error, user } = await signInWithPassword(email, password);
       if (error) {
         setErrorMsg(friendlyAuthError(error.message));
         // Unconfirmed accounts get a recovery path instead of a dead end.
         setShowResend(/email not confirmed/i.test(error.message));
       } else {
-        redirectAfterAuth();
+        redirectAfterAuth(user);
       }
     } else {
-      const { error, session } = await signUp(email, password);
+      const { error, session, user } = await signUp(email, password);
       if (error) {
         setErrorMsg(friendlyAuthError(error.message));
       } else if (session) {
         // Email confirmation is disabled (e.g. local dev): Supabase already
         // signed the user in, so send them where sign-in would rather than
         // telling them to check an email that was never sent.
-        redirectAfterAuth();
+        redirectAfterAuth(user);
       } else {
         setMessage(
           "Check your email — we sent a confirmation link to finish creating your account."

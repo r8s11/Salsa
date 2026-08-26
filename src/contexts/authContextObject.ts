@@ -19,12 +19,15 @@ export type AuthContextValue = {
   isAdmin: boolean;
   isModerator: boolean;
   isOrganizer: boolean;
-  signInWithPassword: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signInWithPassword: (
+    email: string,
+    password: string
+  ) => Promise<{ error: Error | null; user: User | null }>;
   resendConfirmation: (email: string) => Promise<{ error: Error | null }>;
   signUp: (
     email: string,
     password: string
-  ) => Promise<{ error: Error | null; session: Session | null }>;
+  ) => Promise<{ error: Error | null; session: Session | null; user: User | null }>;
   signOut: () => Promise<void>;
 };
 

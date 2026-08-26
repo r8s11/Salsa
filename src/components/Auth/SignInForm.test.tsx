@@ -11,7 +11,7 @@ vi.mock("../../contexts/useAuth", () => ({
 
 describe("SignInForm", () => {
   it("redirects to the requested page after successful sign-in", async () => {
-    const signInWithPassword = vi.fn().mockResolvedValue({ error: null });
+    const signInWithPassword = vi.fn().mockResolvedValue({ error: null, user: null });
     vi.mocked(useAuth).mockReturnValue({
       user: null,
       session: null,

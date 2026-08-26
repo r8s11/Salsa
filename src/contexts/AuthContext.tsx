@@ -34,8 +34,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signInWithPassword = useCallback(async (email: string, password: string) => {
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      return { error: error as Error | null };
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (!error) {
+        setSession(data.session);
+        setUser(data.user);
+      }
+      return { error: error as Error | null, user: data.user };
     } finally {
       setLoading(false);
     }
@@ -52,7 +56,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
-      return { error: error as Error | null, session: data.session };
+      const freshUser = data.session?.user ?? null;
+      if (!error) {
+        setSession(data.session);
+        setUser(freshUser);
+      }
+      return { error: error as Error | null, session: data.session, user: freshUser };
     } finally {
       setLoading(false);
     }

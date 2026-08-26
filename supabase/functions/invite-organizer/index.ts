@@ -11,7 +11,7 @@ import {
 } from "../_shared/invitation.ts";
 
 type User = { id: string; app_metadata?: Record<string, unknown> | null };
-type AuthError = { message?: string; code?: string };
+type AuthError = { message?: string; msg?: string; code?: string; error_code?: string };
 type AuthResult<T> = { data: T; error: AuthError | null };
 type TableResult = { error: { message?: string } | null };
 
@@ -48,12 +48,19 @@ function error(message: string, status: number): Response {
 function isDuplicateInviteError(authError: AuthError | null): boolean {
   if (!authError) return false;
 
-  const code = authError.code?.toLowerCase();
-  if (code === "email_exists" || code === "user_already_exists" || code === "user_already_registered") {
+  const duplicateCode = "email_exists";
+  if (
+    authError.code?.toLowerCase() === duplicateCode ||
+    authError.error_code?.toLowerCase() === duplicateCode
+  ) {
     return true;
   }
 
-  return /\b(?:user|account)\s+(?:already\s+)?(?:exists|registered)\b/i.test(authError.message ?? "");
+  const duplicateMessage = "a user with this email address has already been registered";
+  return (
+    authError.message?.toLowerCase() === duplicateMessage ||
+    authError.msg?.toLowerCase() === duplicateMessage
+  );
 }
 
 function runtimeDependencies(): InviteOrganizerDependencies {

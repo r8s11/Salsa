@@ -128,6 +128,27 @@ Deno.test("returns a safe conflict for duplicate Auth users", async () => {
   assertEquals(await response.json(), { error: "An account already exists for this email" });
 });
 
+Deno.test("returns a safe conflict for Supabase's canonical duplicate invite error shape", async () => {
+  const { deps } = dependencies({
+    createServiceClient: () => ({
+      auth: {
+        admin: {
+          inviteUserByEmail: async () => ({
+            data: { user: null },
+            error: {
+              error_code: "email_exists",
+              msg: "A user with this email address has already been registered",
+            },
+          }),
+        },
+      },
+    }) as unknown as ServiceClient,
+  });
+  const response = await createInviteOrganizerHandler(deps)(request({ email: "person@example.com" }));
+  assertEquals(response.status, 409);
+  assertEquals(await response.json(), { error: "An account already exists for this email" });
+});
+
 Deno.test("returns a safe retryable error for non-duplicate Auth failures", async () => {
   const { deps } = dependencies({
     createServiceClient: () => ({

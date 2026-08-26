@@ -76,6 +76,11 @@ describe("InviteActivationPage", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent(/invalid|expired|already been used/i);
     expect(mocks.setSession).not.toHaveBeenCalled();
+    // A hash-carried error must short-circuit before any session lookup. Without
+    // hash parsing, this exact URL falls through to the no-session fallback path
+    // instead (which happens to render the same visible text), silently calling
+    // getSession() along the way — assert that never happens here.
+    expect(mocks.getSession).not.toHaveBeenCalled();
   });
 
   it("exchanges a PKCE code exactly once and shows organizer password setup", async () => {

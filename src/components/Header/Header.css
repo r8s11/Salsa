@@ -187,6 +187,54 @@ a.logo:hover {
   -webkit-backdrop-filter: blur(var(--glass-blur));
 }
 
+.account-disclosure__dashboards {
+  display: grid;
+  gap: 2px;
+  margin-bottom: var(--space-sm);
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--border-md);
+}
+
+.account-disclosure__dashboards-label,
+.mobile-nav__dashboards-label {
+  padding: 0 var(--space-sm);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+}
+
+.account-disclosure__dashboards a,
+.mobile-nav__dashboards a {
+  padding: var(--space-sm);
+  color: var(--text-muted);
+  text-align: left;
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  border-left: 3px solid transparent;
+}
+
+.account-disclosure__dashboards a:hover,
+.mobile-nav__dashboards a:hover {
+  color: var(--text);
+  background: var(--card);
+}
+
+.account-disclosure__dashboards a.active,
+.mobile-nav__dashboards a.active {
+  border-left-color: var(--gold);
+  background: var(--gold-dim);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.mobile-nav__dashboards {
+  display: grid;
+  gap: 2px;
+  margin-bottom: var(--space-sm);
+}
+
 .account-disclosure__menu a,
 .account-disclosure__menu button,
 .drawer-sign-out {
@@ -249,6 +297,8 @@ a.logo:hover {
 .account-disclosure summary:focus-visible,
 .account-disclosure__menu a:focus-visible,
 .account-disclosure__menu button:focus-visible,
+.account-disclosure__dashboards a:focus-visible,
+.mobile-nav__dashboards a:focus-visible,
 .drawer-sign-out:focus-visible,
 .hamburger:focus-visible {
   outline: 2px solid var(--gold-light);

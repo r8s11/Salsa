@@ -19,8 +19,13 @@ function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const accountDisclosure = useRef<HTMLDetailsElement>(null);
   const { city, setCity } = useCity();
-  const { user, isModerator, signOut } = useAuth();
+  const { user, isModerator, isAdmin, isOrganizer, signOut } = useAuth();
   const navigate = useNavigate();
+
+  const dashboardLinks: ReadonlyArray<{ to: string; label: string }> = [
+    ...(isOrganizer ? [{ to: "/host", label: "Host Dashboard" }] : []),
+    ...(isAdmin || isModerator ? [{ to: "/admin", label: "Dashboard" }] : []),
+  ];
 
   const closeNavigation = useCallback(() => {
     setMobileOpen(false);
@@ -92,14 +97,19 @@ function Header() {
                   <NavLink to="/submit" className="auth-btn" onClick={closeNavigation}>
                     Submit Event
                   </NavLink>
+                  {dashboardLinks.length > 0 && (
+                    <div className="mobile-nav__dashboards">
+                      <span className="mobile-nav__dashboards-label">Dashboards</span>
+                      {dashboardLinks.map(({ to, label }) => (
+                        <NavLink key={to} to={to} onClick={closeNavigation}>
+                          {label}
+                        </NavLink>
+                      ))}
+                    </div>
+                  )}
                   <NavLink to="/profile" onClick={closeNavigation}>
                     My Profile
                   </NavLink>
-                  {isModerator && (
-                    <NavLink to="/admin" onClick={closeNavigation}>
-                      Dashboard
-                    </NavLink>
-                  )}
                   <button type="button" className="drawer-sign-out" onClick={handleSignOut}>
                     Sign Out
                   </button>
@@ -128,14 +138,19 @@ function Header() {
               <details ref={accountDisclosure} className="account-disclosure">
                 <summary>Account</summary>
                 <div className="account-disclosure__menu">
+                  {dashboardLinks.length > 0 && (
+                    <div className="account-disclosure__dashboards">
+                      <span className="account-disclosure__dashboards-label">Dashboards</span>
+                      {dashboardLinks.map(({ to, label }) => (
+                        <NavLink key={to} to={to} onClick={closeNavigation}>
+                          {label}
+                        </NavLink>
+                      ))}
+                    </div>
+                  )}
                   <NavLink to="/profile" onClick={closeNavigation}>
                     My Profile
                   </NavLink>
-                  {isModerator && (
-                    <NavLink to="/admin" onClick={closeNavigation}>
-                      Dashboard
-                    </NavLink>
-                  )}
                   <button type="button" onClick={handleSignOut}>
                     Sign Out
                   </button>

@@ -97,6 +97,97 @@ describe("Header", () => {
     expect(screen.getAllByRole("link", { name: "Dashboard" })[0]).toHaveAttribute("href", "/admin");
   });
 
+  it("renders no DASHBOARDS section for a guest", () => {
+    vi.mocked(useAuth).mockReturnValue(defaultAuth());
+    vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
+
+    renderHeader();
+
+    expect(screen.queryByText("Dashboards")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Host Dashboard" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Dashboard" })).not.toBeInTheDocument();
+  });
+
+  it("renders no DASHBOARDS section for a regular authenticated user with no role", () => {
+    vi.mocked(useAuth).mockReturnValue(defaultAuth({ user: { id: "member" } as User }));
+    vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
+
+    renderHeader();
+
+    expect(screen.queryByText("Dashboards")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Host Dashboard" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Dashboard" })).not.toBeInTheDocument();
+  });
+
+  it("renders Host Dashboard for organizers in both desktop and mobile blocks", async () => {
+    vi.mocked(useAuth).mockReturnValue(
+      defaultAuth({ user: { id: "organizer" } as User, isOrganizer: true })
+    );
+    vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
+    const user = userEvent.setup();
+    renderHeader();
+
+    const desktopAccount = within(screen.getByRole("banner"))
+      .getAllByText("Account")
+      .find((el) => el.tagName === "SUMMARY")
+      ?.closest("details") as HTMLElement;
+    expect(within(desktopAccount).getByRole("link", { name: "Host Dashboard" })).toHaveAttribute(
+      "href",
+      "/host"
+    );
+
+    await user.click(screen.getByRole("button", { name: "Open menu" }));
+    const drawer = document.getElementById("site-navigation") as HTMLElement;
+    const mobileAccount = within(drawer).getByRole("region", { name: "Account" });
+    expect(within(mobileAccount).getByRole("link", { name: "Host Dashboard" })).toHaveAttribute(
+      "href",
+      "/host"
+    );
+  });
+
+  it("removes dashboard links after sign out", async () => {
+    let resolveSignOut: (() => void) | undefined;
+    const signOut = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveSignOut = resolve;
+        })
+    );
+    vi.mocked(useAuth).mockReturnValue(
+      defaultAuth({ user: { id: "moderator" } as User, isModerator: true, signOut })
+    );
+    vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
+    const user = userEvent.setup();
+    const { rerender } = renderHeader();
+
+    expect(screen.getAllByRole("link", { name: "Dashboard" }).length).toBeGreaterThan(0);
+
+    await user.click(screen.getAllByRole("button", { name: "Sign Out" })[0]);
+    expect(signOut).toHaveBeenCalledOnce();
+    resolveSignOut?.();
+
+    vi.mocked(useAuth).mockReturnValue(defaultAuth());
+    rerender(
+      <MemoryRouter initialEntries={["/"]}>
+        <Routes>
+          <Route
+            path="*"
+            element={
+              <>
+                <Header />
+                <main>Destination</main>
+              </>
+            }
+          />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() =>
+      expect(screen.queryByRole("link", { name: "Dashboard" })).not.toBeInTheDocument()
+    );
+  });
+
   it("opens and closes the drawer after a navigation link", async () => {
     vi.mocked(useAuth).mockReturnValue(defaultAuth());
     vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });

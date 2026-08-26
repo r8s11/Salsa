@@ -16,11 +16,27 @@ Deno.test("normalizeEmail trims and lowercases a valid address", () => {
   assertEquals(normalizeEmail("  Organizer@Example.COM "), "organizer@example.com");
 });
 
-Deno.test("normalizeEmail rejects empty, malformed, non-string, and overlong values", () => {
+Deno.test("normalizeEmail accepts a normalized address at the 254-character limit", () => {
+  const email = `${"a".repeat(242)}@example.com`;
+
+  assertEquals(email.length, 254);
+  assertEquals(normalizeEmail(email), email);
+});
+
+Deno.test("normalizeEmail rejects empty, malformed, non-string, overlong, and malformed-domain values", () => {
   assertEquals(normalizeEmail("   "), null);
   assertEquals(normalizeEmail("not-an-email"), null);
   assertEquals(normalizeEmail({ email: "organizer@example.com" }), null);
   assertEquals(normalizeEmail(`${"a".repeat(243)}@example.com`), null);
+  assertEquals(normalizeEmail("a@b..com"), null);
+  assertEquals(normalizeEmail("a@.example.com"), null);
+  assertEquals(normalizeEmail("a@example..com"), null);
+});
+
+Deno.test("normalizeDisplayName accepts a normalized name at the 100-character limit", () => {
+  const displayName = "a".repeat(100);
+
+  assertEquals(normalizeDisplayName(displayName), displayName);
 });
 
 Deno.test("normalizeDisplayName trims optional names and rejects empty, non-string, and overlong values", () => {

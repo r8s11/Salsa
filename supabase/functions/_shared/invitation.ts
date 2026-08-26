@@ -1,6 +1,6 @@
 const EMAIL_MAX_LENGTH = 254;
 const DISPLAY_NAME_MAX_LENGTH = 100;
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_PATTERN = /^[^\s@]+@(?:[^\s@.]+\.)+[^\s@.]+$/;
 
 const INVITE_REDIRECTS = {
   local: "http://localhost:5173/auth/invite",

@@ -189,4 +189,73 @@ describe("AccountPage", () => {
     expect(screen.getByText(/maria@example\.com/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Try Again" })).toBeInTheDocument();
   });
+
+  it("renders only regular-user cards and real destinations for an authenticated user without a special role", () => {
+    mocks.profile.profile = baseProfile();
+    renderPage();
+
+    expect(screen.getByRole("heading", { level: 2, name: "What you can do" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "View Profile & Activity" })).toHaveAttribute(
+      "href",
+      "/profile"
+    );
+    expect(screen.getByRole("link", { name: "Submit an Event" })).toHaveAttribute("href", "/submit");
+    expect(screen.queryByText("Host Events")).not.toBeInTheDocument();
+    expect(screen.queryByText("Moderation")).not.toBeInTheDocument();
+    expect(screen.queryByText("Administration")).not.toBeInTheDocument();
+  });
+
+  it("renders truthful Host cards and no Admin or moderation links for organizers", () => {
+    mocks.auth.role = "organizer";
+    mocks.profile.profile = baseProfile();
+    renderPage();
+
+    expect(screen.getByText("Host Events")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Open Host Dashboard" })).toHaveAttribute("href", "/host");
+    expect(screen.getByRole("link", { name: "My Events" })).toHaveAttribute("href", "/host/events");
+    expect(screen.queryByRole("link", { name: "Open Moderation Queue" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Open Admin Dashboard" })).not.toBeInTheDocument();
+    expect(screen.queryByText(/publish directly/i)).not.toBeInTheDocument();
+  });
+
+  it("renders only the verified moderation queue for moderators", () => {
+    mocks.auth.role = "moderator";
+    mocks.profile.profile = baseProfile();
+    renderPage();
+
+    expect(screen.getByText("Moderation")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Open Moderation Queue" })).toHaveAttribute(
+      "href",
+      "/admin/submissions"
+    );
+    expect(screen.queryByRole("link", { name: "Open Admin Dashboard" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Open Host Dashboard" })).not.toBeInTheDocument();
+  });
+
+  it("renders Administration for admins without Host access", () => {
+    mocks.auth.role = "admin";
+    mocks.profile.profile = baseProfile();
+    renderPage();
+
+    expect(screen.getByText("Administration")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Open Admin Dashboard" })).toHaveAttribute("href", "/admin");
+    expect(screen.queryByRole("link", { name: "Open Host Dashboard" })).not.toBeInTheDocument();
+  });
+
+  it("does not render capability cards before profile loading completes", () => {
+    mocks.profile.isLoading = true;
+    renderPage();
+
+    expect(screen.queryByRole("heading", { level: 2, name: "What you can do" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Open Admin Dashboard" })).not.toBeInTheDocument();
+  });
+
+  it("keeps truthful capability cards visible with the suspended account banner", () => {
+    mocks.auth.role = "organizer";
+    mocks.profile.profile = baseProfile({ status: "suspended" });
+    renderPage();
+
+    expect(screen.getByRole("alert")).toHaveTextContent("Account suspended");
+    expect(screen.getByRole("link", { name: "Open Host Dashboard" })).toHaveAttribute("href", "/host");
+  });
 });

@@ -1,3 +1,5 @@
+import type { UserRole } from "../../../contexts/authContextObject";
+
 // Account identity — private, authenticated data about the signed-in user.
 // Deliberately separate from any future "public profile" model: this file
 // only derives what the account owner sees about themselves.
@@ -98,4 +100,65 @@ const STATUS_MESSAGES: Partial<Record<AccountStatus, AccountStatusMessage>> = {
 /** Returns null for "active" — normal accounts get no status banner. */
 export function statusMessageFor(status: AccountStatus): AccountStatusMessage | null {
   return STATUS_MESSAGES[status] ?? null;
+}
+
+export interface AccountCapabilityLink {
+  label: string;
+  to: string;
+  primary: boolean;
+}
+
+/**
+ * Product-language capability card. This is presentation mapping, not an
+ * authorization source: routes, JWT claims, and Supabase RLS remain the
+ * enforcement boundaries.
+ */
+export interface AccountCapabilityCard {
+  title: string;
+  description: string;
+  links: AccountCapabilityLink[];
+}
+const PROFILE_AND_ACTIVITY_CARD: AccountCapabilityCard = {
+  title: "Profile & Activity",
+  description: "View your SalsaSegura activity and submitted events.",
+  links: [{ label: "View Profile & Activity", to: "/profile", primary: true }],
+};
+
+const SUBMIT_EVENT_CARD: AccountCapabilityCard = {
+  title: "Submit an Event",
+  description: "Submit an event for SalsaSegura review.",
+  links: [{ label: "Submit an Event", to: "/submit", primary: true }],
+};
+
+const ROLE_CAPABILITY_CARD: Record<Exclude<UserRole, null>, AccountCapabilityCard> = {
+  organizer: {
+    title: "Host Events",
+    description: "Submit events for review, manage eligible submissions, and promote approved listings.",
+    links: [
+      { label: "Open Host Dashboard", to: "/host", primary: true },
+      { label: "My Events", to: "/host/events", primary: false },
+    ],
+  },
+  moderator: {
+    title: "Moderation",
+    description: "Review event submissions in the moderation queue.",
+    links: [{ label: "Open Moderation Queue", to: "/admin/submissions", primary: true }],
+  },
+  admin: {
+    title: "Administration",
+    description:
+      "Manage SalsaSegura’s events, users, organizers, venues, taxonomy, and operational workflows.",
+    links: [{ label: "Open Admin Dashboard", to: "/admin", primary: true }],
+  },
+};
+
+/**
+ * Maps the one trusted JWT role to destinations guarded by that role. A null
+ * role is an ordinary authenticated user; "user" supports the same fallback
+ * for profile-derived display state.
+ */
+export function capabilityCardsFor(role: UserRole | AccountRole | null): AccountCapabilityCard[] {
+  const baseCards = [PROFILE_AND_ACTIVITY_CARD, SUBMIT_EVENT_CARD];
+  if (role === null || role === "user") return baseCards;
+  return [...baseCards, ROLE_CAPABILITY_CARD[role]];
 }

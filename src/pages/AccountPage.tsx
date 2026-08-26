@@ -3,6 +3,7 @@ import { Flag, PauseCircle, Ban } from "lucide-react";
 import { useAuth } from "../contexts/useAuth";
 import { useOwnProfile } from "../hooks/useOwnProfile";
 import {
+  capabilityCardsFor,
   ROLE_LABEL,
   resolveIdentity,
   initialsFor,
@@ -42,6 +43,7 @@ export default function AccountPage() {
   const statusMessage = profile ? statusMessageFor(profile.status) : null;
   const identity = profile ? resolveIdentity(profile) : null;
   const StatusIcon = profile ? STATUS_ICON[profile.status] : undefined;
+  const capabilityCards = profile ? capabilityCardsFor(role) : [];
 
   return (
     <main className="account-page">
@@ -139,6 +141,39 @@ export default function AccountPage() {
             <Link to="/profile" className="account-page__btn account-page__btn--primary">
               View Profile
             </Link>
+          </div>
+        </section>
+      )}
+
+      {!isLoading && !error && profile && identity && (
+        <section className="account-page__capabilities" aria-labelledby="account-capabilities-heading">
+          <div className="account-page__capabilities-heading">
+            <span className="account-page__eyebrow">What you can do</span>
+            <h2 id="account-capabilities-heading">What you can do</h2>
+          </div>
+          <div className="account-page__capability-grid">
+            {capabilityCards.map((card) => (
+              <article className="account-page__card account-page__capability-card" key={card.title}>
+                <div className="account-page__capability-title-row">
+                  <h3>{card.title}</h3>
+                  <span className="account-page__availability">Available</span>
+                </div>
+                <p>{card.description}</p>
+                <div className="account-page__capability-actions">
+                  {card.links.map((link) => (
+                    <Link
+                      className={`account-page__capability-link${
+                        link.primary ? " account-page__capability-link--primary" : ""
+                      }`}
+                      key={link.to}
+                      to={link.to}
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              </article>
+            ))}
           </div>
         </section>
       )}

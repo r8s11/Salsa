@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  capabilityCardsFor,
   resolveIdentity,
   initialsFor,
   memberSinceLabel,
@@ -81,5 +82,74 @@ describe("ROLE_LABEL", () => {
       organizer: "Organizer",
       admin: "Admin",
     });
+  });
+});
+
+describe("capabilityCardsFor", () => {
+  it("gives a regular authenticated user only Profile & Activity and Submit an Event", () => {
+    expect(capabilityCardsFor(null)).toEqual([
+      {
+        title: "Profile & Activity",
+        description: "View your SalsaSegura activity and submitted events.",
+        links: [{ label: "View Profile & Activity", to: "/profile", primary: true }],
+      },
+      {
+        title: "Submit an Event",
+        description: "Submit an event for SalsaSegura review.",
+        links: [{ label: "Submit an Event", to: "/submit", primary: true }],
+      },
+    ]);
+  });
+
+  it("gives organizers only their verified Host workspace and submission capabilities", () => {
+    const cards = capabilityCardsFor("organizer");
+
+    expect(cards.map((card) => card.title)).toEqual([
+      "Profile & Activity",
+      "Submit an Event",
+      "Host Events",
+    ]);
+    expect(cards[2]).toEqual({
+      title: "Host Events",
+      description: "Submit events for review, manage eligible submissions, and promote approved listings.",
+      links: [
+        { label: "Open Host Dashboard", to: "/host", primary: true },
+        { label: "My Events", to: "/host/events", primary: false },
+      ],
+    });
+    expect(cards.flatMap((card) => card.links.map((link) => link.to))).not.toContain("/admin");
+  });
+
+  it("gives moderators the verified moderation queue without Admin or Host destinations", () => {
+    const cards = capabilityCardsFor("moderator");
+
+    expect(cards.map((card) => card.title)).toEqual([
+      "Profile & Activity",
+      "Submit an Event",
+      "Moderation",
+    ]);
+    expect(cards[2].links).toEqual([
+      { label: "Open Moderation Queue", to: "/admin/submissions", primary: true },
+    ]);
+    expect(cards.flatMap((card) => card.links.map((link) => link.to))).not.toEqual(
+      expect.arrayContaining(["/host", "/admin/users", "/admin/venues"])
+    );
+  });
+
+  it("gives admins the Admin dashboard without pretending they are organizers", () => {
+    const cards = capabilityCardsFor("admin");
+
+    expect(cards.map((card) => card.title)).toEqual([
+      "Profile & Activity",
+      "Submit an Event",
+      "Administration",
+    ]);
+    expect(cards[2]).toEqual({
+      title: "Administration",
+      description:
+        "Manage SalsaSegura’s events, users, organizers, venues, taxonomy, and operational workflows.",
+      links: [{ label: "Open Admin Dashboard", to: "/admin", primary: true }],
+    });
+    expect(cards.flatMap((card) => card.links.map((link) => link.to))).not.toContain("/host");
   });
 });

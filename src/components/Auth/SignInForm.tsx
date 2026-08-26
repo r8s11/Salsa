@@ -7,8 +7,11 @@ import "./SignInForm.css";
 
 type Mode = "signin" | "signup";
 
+import { friendlyAuthError } from "./authUtils";
+
+
 export default function SignInForm() {
-  const { signInWithPassword, signUp, loading } = useAuth();
+  const { signInWithPassword, resendConfirmation, signUp, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [mode, setMode] = useState<Mode>("signin");
@@ -16,14 +19,28 @@ export default function SignInForm() {
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [showResend, setShowResend] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const toggleMode = () => {
     setMode(mode === "signin" ? "signup" : "signin");
     setErrorMsg(null);
     setMessage(null);
+    setShowResend(false);
     setEmail("");
     setPassword("");
+  };
+
+  const handleResend = async () => {
+    setErrorMsg(null);
+    setMessage(null);
+    const { error } = await resendConfirmation(email);
+    if (error) {
+      setErrorMsg("We couldn't send the email. Please try again shortly.");
+    } else {
+      setShowResend(false);
+      setMessage("Confirmation email sent. Please check your inbox.");
+    }
   };
 
   const redirectAfterAuth = () => {
@@ -39,21 +56,25 @@ export default function SignInForm() {
     if (mode === "signin") {
       const { error } = await signInWithPassword(email, password);
       if (error) {
-        setErrorMsg(error.message);
+        setErrorMsg(friendlyAuthError(error.message));
+        // Unconfirmed accounts get a recovery path instead of a dead end.
+        setShowResend(/email not confirmed/i.test(error.message));
       } else {
         redirectAfterAuth();
       }
     } else {
       const { error, session } = await signUp(email, password);
       if (error) {
-        setErrorMsg(error.message);
+        setErrorMsg(friendlyAuthError(error.message));
       } else if (session) {
         // Email confirmation is disabled (e.g. local dev): Supabase already
         // signed the user in, so send them where sign-in would rather than
         // telling them to check an email that was never sent.
         redirectAfterAuth();
       } else {
-        setMessage("Check your email for a confirmation link.");
+        setMessage(
+          "Check your email — we sent a confirmation link to finish creating your account."
+        );
       }
     }
   };
@@ -71,6 +92,16 @@ export default function SignInForm() {
         <div className="auth-message" role="status">
           {message}
         </div>
+      )}
+      {showResend && (
+        <button
+          type="button"
+          className="link-button"
+          onClick={handleResend}
+          disabled={loading}
+        >
+          Resend confirmation email
+        </button>
       )}
 
       <form onSubmit={handleSubmit} className="auth-form">

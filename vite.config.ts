@@ -20,6 +20,12 @@ export default defineConfig({
       // reference paths relative to their original project layout, so
       // collecting them here fails import resolution.
       ".design-sync/**",
+      // Supabase Edge Functions: Deno runtime code and tests (import from
+      // https:// specifiers, e.g. deno.land/std, and reference the global
+      // `Deno` object). Not Node/Vite-bundleable — run these with
+      // `deno test`, not vitest. Matched at any depth so nested worktrees
+      // under .worktrees/ are covered too.
+      "**/supabase/functions/**",
     ],
   },
 });

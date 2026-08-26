@@ -107,6 +107,9 @@ function Header() {
                       ))}
                     </div>
                   )}
+                  <NavLink to="/account" onClick={closeNavigation}>
+                    My Account
+                  </NavLink>
                   <NavLink to="/profile" onClick={closeNavigation}>
                     My Profile
                   </NavLink>
@@ -148,6 +151,9 @@ function Header() {
                       ))}
                     </div>
                   )}
+                  <NavLink to="/account" onClick={closeNavigation}>
+                    My Account
+                  </NavLink>
                   <NavLink to="/profile" onClick={closeNavigation}>
                     My Profile
                   </NavLink>

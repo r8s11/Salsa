@@ -40,6 +40,7 @@ const AdminActivityPage = lazy(() => import("./pages/AdminActivityPage"));
 const AdminActivityDetailPage = lazy(() => import("./pages/AdminActivityDetailPage"));
 const AdminAnalyticsPage = lazy(() => import("./pages/AdminAnalyticsPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+const AccountPage = lazy(() => import("./pages/AccountPage"));
 const HostMyEventsPage = lazy(() => import("./pages/HostMyEventsPage"));
 const HostDashboard = lazy(() => import("./components/Host/HostDashboard"));
 const HostEventDetailPage = lazy(() => import("./pages/HostEventDetailPage"));
@@ -180,6 +181,14 @@ function App() {
                 element={
                   <RequireAuth>
                     <ProfilePage />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="account"
+                element={
+                  <RequireAuth>
+                    <AccountPage />
                   </RequireAuth>
                 }
               />

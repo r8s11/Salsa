@@ -1,0 +1,336 @@
+/* ── Account Page ── */
+
+.account-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--space-xl) var(--gutter) var(--space-xxl);
+}
+
+.account-page__intro {
+  margin-bottom: var(--space-lg);
+}
+
+.account-page__eyebrow {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: var(--space-xs);
+}
+
+.account-page__h1 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(26px, 3.4vw, 34px);
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+.account-page__lede {
+  font-family: var(--font-body);
+  color: var(--text-dim);
+  margin-top: var(--space-xs);
+  font-size: 15px;
+}
+
+.account-page__visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Cards ── */
+
+.account-page__card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-md);
+}
+
+/* ── Status banner ── */
+
+.account-page__status-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.account-page__status-banner--flagged {
+  background: var(--gold-dim);
+  border: 1px solid rgba(233, 195, 73, 0.35);
+  color: var(--gold-light);
+}
+
+.account-page__status-banner--suspended,
+.account-page__status-banner--banned {
+  background: var(--red-dim);
+  border: 1px solid rgba(225, 29, 72, 0.35);
+  color: var(--red-bright);
+}
+
+.account-page__status-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.account-page__status-body {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+/* ── Identity card ── */
+
+.account-page__identity {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.account-page__avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+  object-fit: cover;
+}
+
+.account-page__avatar--initials {
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, var(--red-dim), var(--gold-dim));
+  color: var(--gold-light);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 20px;
+}
+
+.account-page__identity-body {
+  flex: 1;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.account-page__identity-name-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.account-page__name {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 21px;
+  color: var(--text);
+}
+
+.account-page__role-badge {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius-full);
+  padding: 2px 10px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.account-page__muted {
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  color: var(--text-dim);
+}
+
+.account-page__meta-label {
+  color: var(--text);
+}
+
+.account-page__hint {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--text-dim);
+  opacity: 0.8;
+}
+
+.account-page__username-missing {
+  font-style: italic;
+}
+
+.account-page__identity-actions {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.account-page__btn {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 11px 20px;
+  border-radius: var(--radius-full);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.account-page__btn--primary {
+  background: linear-gradient(120deg, var(--red), #c2153c);
+  color: #fff;
+}
+
+.account-page__btn--primary:hover {
+  box-shadow: var(--glow-primary);
+  color: #fff;
+}
+
+.account-page__btn--outline {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border-md);
+}
+
+.account-page__btn--outline:hover {
+  border-color: var(--red);
+  color: #fff;
+  background: var(--red-dim);
+}
+
+/* ── Error / missing-profile states ── */
+
+.account-page__error,
+.account-page__missing {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-sm);
+}
+
+.account-page__missing-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--text);
+}
+
+.account-page__missing-body {
+  font-family: var(--font-body);
+  color: var(--text-dim);
+  font-size: 13.5px;
+}
+
+.account-page__missing-email {
+  font-family: var(--font-body);
+  color: var(--text-dim);
+  font-size: 13.5px;
+}
+
+/* ── Loading skeleton ── */
+
+.account-page__skeleton {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.account-page__skel {
+  display: block;
+  border-radius: var(--radius-sm);
+  background: var(--card-hover);
+  animation: account-page-skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.account-page__skel--avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.account-page__skel-lines {
+  flex: 1;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.account-page__skel--line {
+  height: 16px;
+  width: 60%;
+}
+
+.account-page__skel--short {
+  width: 35%;
+  height: 12px;
+}
+
+@keyframes account-page-skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 640px) {
+  .account-page {
+    padding: var(--space-lg) var(--space-md) var(--space-xxl);
+  }
+
+  .account-page__identity {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .account-page__identity-actions {
+    width: 100%;
+  }
+
+  .account-page__identity-actions .account-page__btn {
+    flex: 1;
+    text-align: center;
+  }
+
+  .account-page__skeleton {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .account-page__skel {
+    animation: none;
+  }
+}

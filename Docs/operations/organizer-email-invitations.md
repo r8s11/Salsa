@@ -11,7 +11,7 @@ supabase functions deploy send-auth-email --no-verify-jwt
 supabase functions deploy invite-organizer
 ```
 
-`send-auth-email` is deliberately deployed without JWT verification because Supabase Auth calls it as an Auth Hook. The hook function itself must validate the hook secret. `invite-organizer` authorizes the inviting caller in its implementation.
+`send-auth-email` is deliberately deployed without JWT verification because Supabase Auth calls it as an Auth Hook. The hook function itself must validate the hook secret. `invite-organizer` is deployed without the `--no-verify-jwt` flag; instead, `supabase/config.toml` sets `verify_jwt = false` for it directly, because the function performs its own internal caller-JWT validation against the trusted `app_metadata.role` claim, which is the sole enforcement point for authorizing this function's callers.
 
 ## 2. Set production Function secrets
 
@@ -24,6 +24,8 @@ supabase secrets set AUTH_EXTERNAL_URL=https://www.salsasegura.com
 ```
 
 `SUPABASE_SERVICE_ROLE_KEY` is required by the invitation workflow. Supply it through the platform-provided Function secret/environment mechanism for the production project; do not place a service-role key in source control, frontend configuration, or an email template.
+
+`INVITE_REDIRECT_URL` is optional and not required for normal operation: the function already computes the correct redirect URL per environment (`ENVIRONMENT=local|production`). If set, it MUST exactly match one of the two hardcoded allowed URLs (`http://localhost:5173/auth/invite` or `https://www.salsasegura.com/auth/invite`); any other value causes the function to return `500`.
 
 ## 3. Configure the Supabase Auth Hook manually
 

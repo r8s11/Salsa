@@ -71,6 +71,10 @@ function runtimeDependencies(): InviteOrganizerDependencies {
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
   if (!supabaseUrl || !anonKey) throw new Error("Supabase public configuration is missing");
 
+  // Optional override for the invite confirmation redirect URL. Defaults are already correct
+  // per environment (`ENVIRONMENT=local|production`) via `inviteRedirectUrl()`; this env var
+  // exists only for exceptional cases. It is validated below via `isAllowedInviteRedirect()`
+  // and MUST exactly match one of the two hardcoded allowed URLs or the request fails with 500.
   const configuredRedirect = Deno.env.get("INVITE_REDIRECT_URL");
   const redirectUrl = configuredRedirect ?? inviteRedirectUrl(
     Deno.env.get("ENVIRONMENT") === "production" ? "production" : "local",

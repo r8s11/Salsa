@@ -389,7 +389,11 @@ s3_access_key = "env(S3_ACCESS_KEY)"
 s3_secret_key = "env(S3_SECRET_KEY)"
 
 [functions.invite-organizer]
-# The function validates the caller token itself so it can return stable errors.
+# Gateway JWT verification is intentionally disabled here: this function performs its own
+# internal caller-JWT validation against the trusted `app_metadata.role` claim (see
+# supabase/functions/invite-organizer/index.ts). That internal check is the SOLE enforcement
+# point for this function's authorization -- do not assume the gateway enforces auth, and do
+# not remove the internal check without replacing it with equivalent protection.
 verify_jwt = false
 
 [functions.send-auth-email]

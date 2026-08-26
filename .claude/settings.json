@@ -1,7 +1,20 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx expo prebuild:*)"
+      "Bash(npx expo prebuild:*)",
+      "mcp__codegraph__*"
+    ]
+  },
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "codegraph prompt-hook"
+          }
+        ]
+      }
     ]
   }
 }

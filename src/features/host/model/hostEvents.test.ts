@@ -61,19 +61,35 @@ const nextApproved: DatabaseEvent = {
 };
 
 describe("hostEvents", () => {
-  it("routes a pending Host event to the existing owner editor", () => {
+  it("routes a pending Host event to the existing owner editor as an edit action", () => {
     expect(hostEventAction({ ...baseEvent, id: "pending-1", status: "pending" })).toEqual({
-      label: "Edit event",
+      label: "Edit submission",
       to: "/profile/edit/pending-1",
     });
   });
 
-  it("routes an approved Host event to its existing Calendar detail", () => {
+  it("routes a rejected Host event to the existing owner editor as a revise action", () => {
+    expect(hostEventAction({ ...baseEvent, id: "rejected-1", status: "rejected" })).toEqual({
+      label: "Revise submission",
+      to: "/profile/edit/rejected-1",
+    });
+  });
+
+  it("routes an approved Host event to its real public event page", () => {
     expect(
       hostEventAction({ ...baseEvent, id: "approved-1", city: "boston", status: "approved" })
     ).toEqual({
+      label: "View public event",
+      to: "/events/approved-1",
+    });
+  });
+
+  it("falls back to the existing Calendar detail for a non-editable, non-approved event", () => {
+    expect(
+      hostEventAction({ ...baseEvent, id: "cancelled-1", city: "boston", status: "cancelled" })
+    ).toEqual({
       label: "View event",
-      to: "/calendar?event=approved-1&city=boston",
+      to: "/calendar?event=cancelled-1&city=boston",
     });
   });
 
@@ -90,7 +106,7 @@ describe("hostEvents", () => {
     expect(row.event.id).toBe("labeled");
     expect(row.dateLabel).toBe("August 17, 2026 at 8:00 PM");
     expect(row.statusLabel).toBe("Approved");
-    expect(row.action).toEqual({ label: "View event", to: "/calendar?event=labeled&city=boston" });
+    expect(row.action).toEqual({ label: "View public event", to: "/events/labeled" });
   });
 
   it("sorts Host event rows by event date ascending", () => {

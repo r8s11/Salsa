@@ -4,9 +4,7 @@ import { resolveEventModalImage } from "./eventModalImage";
 describe("resolveEventModalImage", () => {
   it("returns the event's uploaded image unchanged when present", () => {
     const url = "https://example.test/flyers/social-night.jpg";
-    expect(
-      resolveEventModalImage({ id: "1", imageUrl: url, calendarId: "social" })
-    ).toBe(url);
+    expect(resolveEventModalImage({ id: "1", imageUrl: url, calendarId: "social" })).toBe(url);
   });
 
   it("deterministically selects the Salsa fallback for an even id character-code sum", () => {
@@ -26,7 +24,11 @@ describe("resolveEventModalImage", () => {
   });
 
   it("falls back to a deterministic party photo when imageUrl is missing or empty", () => {
-    const missing = resolveEventModalImage({ id: "42", imageUrl: undefined, calendarId: "workshop" });
+    const missing = resolveEventModalImage({
+      id: "42",
+      imageUrl: undefined,
+      calendarId: "workshop",
+    });
     const empty = resolveEventModalImage({ id: "42", imageUrl: "", calendarId: "workshop" });
     expect(missing).toMatch(/^\/images\/event-modal-(salsa|bachata)-party\.webp$/);
     expect(empty).toBe(missing);

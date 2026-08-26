@@ -7,6 +7,7 @@ import { fetchApprovedEventById, fetchApprovedEvents } from "../features/events/
 import { databaseEventToScheduleX } from "../features/events/model/convert";
 import { selectRelatedEvents } from "../features/events/model/relatedEvents";
 import type { EventType } from "../features/events/model/types";
+import { buildPublicEventUrl } from "../features/events/model/eventSharing";
 import { downloadIcs, mapsUrl } from "../utils/ics";
 import NotFoundPage from "./NotFoundPage";
 import "./EventDetailPage.css";
@@ -98,7 +99,7 @@ export default function EventDetailPage() {
         ? `$${event.price_amount}`
         : "Pricing unavailable";
   const { weekday, day, month } = chipParts(scheduleEvent.start);
-  const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+  const shareUrl = buildPublicEventUrl(event.id);
   const whatsappHref = `https://wa.me/?text=${encodeURIComponent(`${event.title} — ${shareUrl}`)}`;
 
   const handleCopyLink = async () => {

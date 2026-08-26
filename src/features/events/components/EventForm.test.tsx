@@ -69,6 +69,18 @@ describe("EventForm", () => {
     expect(screen.queryByRole("heading", { name: "Host & contact" })).not.toBeInTheDocument();
   });
 
+  it("omits artwork for moderation submission edits without a canonical event id", () => {
+    render(
+      <EventForm
+        draft={draft}
+        onChange={vi.fn()}
+        capabilities={CAPABILITIES.organizerSubmissionEdit}
+      />
+    );
+
+    expect(screen.queryByRole("heading", { name: "Artwork" })).not.toBeInTheDocument();
+  });
+
   it("uses segmented controls to update event type, city, and price", () => {
     const onChange = vi.fn();
     render(<EventForm draft={draft} onChange={onChange} capabilities={CAPABILITIES.submit} />);

@@ -41,6 +41,7 @@ describe("SubmitEventPage", () => {
       isAdmin: false,
       isOrganizer: false,
       signInWithPassword: vi.fn(),
+      resendConfirmation: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
     });
@@ -183,6 +184,7 @@ describe("SubmitEventPage", () => {
       isAdmin: false,
       isOrganizer: true,
       signInWithPassword: vi.fn(),
+      resendConfirmation: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
     });
@@ -213,6 +215,7 @@ describe("SubmitEventPage", () => {
       isAdmin: false,
       isOrganizer: true,
       signInWithPassword: vi.fn(),
+      resendConfirmation: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
     });
@@ -242,6 +245,7 @@ describe("SubmitEventPage", () => {
       isAdmin: false,
       isOrganizer: true,
       signInWithPassword: vi.fn(),
+      resendConfirmation: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
     });
@@ -266,6 +270,7 @@ describe("SubmitEventPage", () => {
       isAdmin: false,
       isOrganizer: true,
       signInWithPassword: vi.fn(),
+      resendConfirmation: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
     });

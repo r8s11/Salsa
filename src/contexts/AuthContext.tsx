@@ -56,8 +56,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          // Confirmation emails return to the app's own callback route.
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
       });
       return { error: error as Error | null, session: data.session };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const resendConfirmation = useCallback(async (email: string) => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email,
+        options: {
+          // Confirmation emails return to the app's own callback route.
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+      return { error: error as Error | null };
     } finally {
       setLoading(false);
     }
@@ -82,6 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isModerator: role === "admin" || role === "moderator",
     isOrganizer: role === "organizer",
     signInWithPassword,
+    resendConfirmation,
     signUp,
     signOut,
   };

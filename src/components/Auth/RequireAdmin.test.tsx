@@ -40,6 +40,7 @@ describe("RequireAdmin", () => {
       isOrganizer: false,
       role: null,
       signInWithPassword: vi.fn(),
+      resendConfirmation: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
     } as AuthContextValue);
@@ -59,6 +60,7 @@ describe("RequireAdmin", () => {
       isOrganizer: false,
       role: null,
       signInWithPassword: vi.fn(),
+      resendConfirmation: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
     } as AuthContextValue);
@@ -78,6 +80,7 @@ describe("RequireAdmin", () => {
       isOrganizer: false,
       role: null,
       signInWithPassword: vi.fn(),
+      resendConfirmation: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
     } as AuthContextValue);
@@ -97,6 +100,7 @@ describe("RequireAdmin", () => {
       isOrganizer: false,
       role: "admin",
       signInWithPassword: vi.fn(),
+      resendConfirmation: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
     } as AuthContextValue);

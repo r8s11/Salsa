@@ -1,10 +1,25 @@
 import { createClient } from "@supabase/supabase-js";
 
-// Get environment variables
-export const supabaseURL =
-  import.meta.env.VITE_SUPABASE_URL || "https://placeholder-project.supabase.co";
-const supabaseDefaultKey =
-  import.meta.env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY || "placeholder-anon-key";
+// Get environment variables. Fail fast instead of silently creating a client
+// with placeholder credentials that produce cryptic runtime errors later.
+const supabaseURLValue = import.meta.env.VITE_SUPABASE_URL;
+const supabaseDefaultKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
 
-// Create and export Supabase client
-export const supabase = createClient(supabaseURL, supabaseDefaultKey);
+if (!supabaseURLValue || !supabaseDefaultKey) {
+  throw new Error(
+    "Missing required Supabase configuration. Set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY."
+  );
+}
+
+export const supabaseURL: string = supabaseURLValue;
+
+// Create and export Supabase client.
+// flowType "pkce" makes email-confirmation and future OAuth returns arrive at
+// /auth/callback with a ?code= param exchanged via exchangeCodeForSession().
+// detectSessionInUrl stays enabled so legacy implicit-hash tokens still work.
+export const supabase = createClient(supabaseURL, supabaseDefaultKey, {
+  auth: {
+    flowType: "pkce",
+    detectSessionInUrl: true,
+  },
+});

@@ -12,7 +12,7 @@ export default [
     // .design-sync/config.json). Their contents are regenerated on re-sync, are not
     // imported by src/, and are not built — linting them reports on code we neither
     // own nor ship.
-    ignores: ["dist/**", "node_modules/**", ".claude/**", ".design-sync/**", "design/**"],
+    ignores: ["dist/**", "node_modules/**", ".claude/**", ".design-sync/**", "design/**", "supabase/.temp/**", "src/dev-harness.tsx"],
   },
   {
     files: ["**/*.{ts,tsx}"],

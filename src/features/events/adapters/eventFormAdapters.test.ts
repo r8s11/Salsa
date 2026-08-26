@@ -58,7 +58,9 @@ describe("eventFormAdapters", () => {
     it("converts draft to admin payload including taxonomy and host info", () => {
       const payload = draftToAdminPayload(baseDraft);
       expect(payload.taxonomy_term_ids).toEqual(["term-1"]);
-      expect(payload.host).toBe("Test Event Host".split(" ").pop() === "Host" ? "Test Host" : "Test Host"); // Verify correct host
+      expect(payload.host).toBe(
+        "Test Event Host".split(" ").pop() === "Host" ? "Test Host" : "Test Host"
+      ); // Verify correct host
       expect(payload.venue_id).toBe("venue-1");
     });
   });

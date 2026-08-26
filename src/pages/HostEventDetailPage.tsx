@@ -102,12 +102,12 @@ export default function HostEventDetailPage() {
       <div className="host-event-detail__actions">
         {event.status === "pending" && (
           <Link className="admin-btn admin-btn--primary" to={`/profile/edit/${event.id}`}>
-            Edit submission
+            Edit event
           </Link>
         )}
         {event.status === "rejected" && (
           <Link className="admin-btn admin-btn--primary" to={`/profile/edit/${event.id}`}>
-            Revise submission
+            Revise event
           </Link>
         )}
         {event.status === "approved" && (

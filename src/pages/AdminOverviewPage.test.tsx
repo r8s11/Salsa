@@ -43,6 +43,7 @@ function authState(role: AuthContextValue["role"]): AuthContextValue {
     isModerator: role === "moderator",
     isOrganizer: role === "organizer",
     signInWithPassword: vi.fn(),
+      resendConfirmation: vi.fn(),
     signUp: vi.fn(),
     signOut: vi.fn().mockResolvedValue(undefined),
   };

@@ -12,6 +12,7 @@ export type AuthContextValue = {
   isModerator: boolean;
   isOrganizer: boolean;
   signInWithPassword: (email: string, password: string) => Promise<{ error: Error | null }>;
+  resendConfirmation: (email: string) => Promise<{ error: Error | null }>;
   signUp: (
     email: string,
     password: string

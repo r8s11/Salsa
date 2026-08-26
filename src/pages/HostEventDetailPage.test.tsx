@@ -93,11 +93,11 @@ describe("HostEventDetailPage", () => {
       await screen.findByRole("heading", { name: "Havana Nights Social" })
     ).toBeInTheDocument();
     expect(screen.getByText("Pending Approval")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Edit submission/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /Edit event/i })).toHaveAttribute(
       "href",
       "/profile/edit/base"
     );
-    expect(screen.queryByText("Share and promote")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Revise event/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /Revise submission/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /View public event/i })).not.toBeInTheDocument();
   });
@@ -109,7 +109,7 @@ describe("HostEventDetailPage", () => {
       await screen.findByRole("heading", { name: "Havana Nights Social" })
     ).toBeInTheDocument();
     expect(screen.getByText("Rejected")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Revise submission/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /Revise event/i })).toHaveAttribute(
       "href",
       "/profile/edit/rejected-1"
     );
@@ -128,7 +128,8 @@ describe("HostEventDetailPage", () => {
     );
     expect(screen.getByText("Share and promote")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Copy event link" })).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: /Edit submission/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Edit event/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Revise event/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /Revise submission/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /withdraw/i })).not.toBeInTheDocument();
   });

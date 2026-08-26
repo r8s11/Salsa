@@ -9,11 +9,17 @@ export interface HostEventRow {
 }
 
 export function hostEventAction(event: DatabaseEvent): { label: string; to: string } {
-  if (event.status === "pending" || event.status === "rejected") {
-    return {
-      label: "Edit event",
-      to: `/profile/edit/${event.id}`,
-    };
+  if (event.status === "pending") {
+    return { label: "Edit submission", to: `/profile/edit/${event.id}` };
+  }
+  if (event.status === "rejected") {
+    return { label: "Revise submission", to: `/profile/edit/${event.id}` };
+  }
+  if (event.status === "approved") {
+    // The real public detail route — not the calendar-modal shortcut used
+    // elsewhere — because this is the "View public event" action promised
+    // by the Host detail page and My Events row.
+    return { label: "View public event", to: `/events/${event.id}` };
   }
   return {
     label: "View event",

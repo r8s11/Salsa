@@ -21,6 +21,7 @@ describe("SignInForm", () => {
       isOrganizer: false,
       role: null,
       signInWithPassword,
+      resendConfirmation: vi.fn(),
       signUp: vi.fn(),
 
       signOut: vi.fn(),
@@ -65,6 +66,7 @@ describe("SignInForm", () => {
       isOrganizer: false,
       role: null,
       signInWithPassword: vi.fn(),
+      resendConfirmation: vi.fn(),
       signUp,
 
       signOut: vi.fn(),
@@ -105,6 +107,7 @@ describe("SignInForm", () => {
       isOrganizer: false,
       role: null,
       signInWithPassword: vi.fn(),
+      resendConfirmation: vi.fn(),
       signUp,
 
       signOut: vi.fn(),
@@ -126,7 +129,11 @@ describe("SignInForm", () => {
     await user.click(screen.getByRole("button", { name: /^sign up$/i }));
 
     await waitFor(() => {
-      expect(screen.getByText("Check your email for a confirmation link.")).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          "Check your email — we sent a confirmation link to finish creating your account."
+        )
+      ).toBeInTheDocument();
     });
     expect(screen.queryByText("Home Page")).not.toBeInTheDocument();
   });
@@ -140,6 +147,7 @@ describe("SignInForm", () => {
       isOrganizer: false,
       role: null,
       signInWithPassword: vi.fn(),
+      resendConfirmation: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
     });
@@ -164,6 +172,7 @@ describe("SignInForm", () => {
       isOrganizer: false,
       role: null,
       signInWithPassword: vi.fn(),
+      resendConfirmation: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
     });
@@ -195,6 +204,7 @@ describe("SignInForm", () => {
       isOrganizer: false,
       role: null,
       signInWithPassword: vi.fn(),
+      resendConfirmation: vi.fn(),
       signUp,
       signOut: vi.fn(),
     });

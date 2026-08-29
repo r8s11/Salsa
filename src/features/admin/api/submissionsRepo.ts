@@ -30,15 +30,21 @@ export type SubmissionCreate = {
   dance_styles: string[];
 };
 
-export async function createSubmission(submission: SubmissionCreate) {
-  const { submitter_id, submitter_email, submitter_name, ...submitted_data } = submission;
+export async function createSubmission(
+  submission: SubmissionCreate,
+  extraSubmittedData?: Record<string, unknown>
+) {
+  const submitter_id = submission.submitter_id;
+  const submitter_email = submission.submitter_email;
+  const submitter_name = submission.submitter_name;
+  const { submitter_id: _s, submitter_email: _e, submitter_name: _n, ...submitted_data } = submission;
 
   const { error } = await supabase.from("event_submissions").insert({
     submitter_id,
     submitter_email,
     submitter_name,
     status: "pending",
-    submitted_data,
+    submitted_data: { ...submitted_data, ...(extraSubmittedData ?? {}) },
     edited_data: null,
     reviewed_by: null,
     reviewed_at: null,

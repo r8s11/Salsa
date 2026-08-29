@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   MAX_EVENT_FLYER_BYTES,
+  parseEventFlyerPath,
   removeEventFlyer,
+  removeEventFlyerByPath,
   uploadEventFlyer,
   validateEventFlyer,
 } from "./eventFlyers";
@@ -73,5 +75,31 @@ describe("event flyer storage", () => {
     );
 
     expect(mocks.remove).not.toHaveBeenCalled();
+  });
+
+  it("removes a same-origin event-flyers URL by parsing its path", async () => {
+    mocks.remove.mockResolvedValue({ error: null });
+
+    await removeEventFlyer(
+      "https://project.supabase.co/storage/v1/object/public/event-flyers/user-1/event-1/flyer.jpg"
+    );
+
+    expect(mocks.remove).toHaveBeenCalledWith(["user-1/event-1/flyer.jpg"]);
+  });
+
+  it("refuses traversal / absolute paths via both removal helpers", async () => {
+    await removeEventFlyerByPath("../secrets.txt");
+    await removeEventFlyerByPath("/abs/path.jpg");
+
+    expect(mocks.remove).not.toHaveBeenCalled();
+  });
+
+  it("parseEventFlyerPath returns the inner path only for same-origin bucket URLs", () => {
+    expect(
+      parseEventFlyerPath(
+        "https://project.supabase.co/storage/v1/object/public/event-flyers/user-1/event-1/flyer.jpg"
+      )
+    ).toBe("user-1/event-1/flyer.jpg");
+    expect(parseEventFlyerPath("https://example.com/event-flyers/x/y/z.jpg")).toBeNull();
   });
 });

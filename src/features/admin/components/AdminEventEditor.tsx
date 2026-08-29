@@ -179,6 +179,7 @@ export default function AdminEventEditor({
               <EventFlyerField
                 currentUrl={form.image_url || null}
                 onFileChange={setSelectedFlyer}
+                onRemove={() => setForm((current) => ({ ...current, image_url: "" }))}
                 disabled={isSaving}
               />
             )}

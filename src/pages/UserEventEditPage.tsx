@@ -349,6 +349,10 @@ export default function UserEventEditPage() {
                     key={flyerUrl}
                     currentUrl={flyerUrl}
                     onFileChange={setSelectedFlyer}
+                    onRemove={() => {
+                      setSelectedFlyer(null);
+                      setSavedFlyerUrl(null);
+                    }}
                     disabled={isSaving}
                   />
                 ) : null

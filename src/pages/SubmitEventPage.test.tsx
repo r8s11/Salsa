@@ -98,7 +98,8 @@ describe("SubmitEventPage", () => {
         event_type: "social",
         event_date: "2026-08-15T04:00:00Z",
         city: "boston",
-      })
+      }),
+      undefined
     );
 
     expect(await screen.findByText(/Event Submitted!/i)).toBeInTheDocument();
@@ -127,7 +128,8 @@ describe("SubmitEventPage", () => {
         expect.objectContaining({
           event_date: "2026-08-18T00:00:00Z",
           event_time: "20:00",
-        })
+        }),
+        undefined
       );
     });
   });

@@ -129,7 +129,7 @@ export default function ProfilePage() {
           <button
             type="button"
             className="profile-action-btn profile-action-btn--outline"
-            onClick={() => signOut()}
+            onClick={() => signOut("global")}
           >
             Sign Out
           </button>

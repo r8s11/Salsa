@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { Session, User } from "@supabase/supabase-js";
 import { AuthProvider } from "./AuthContext";
 import { useAuth } from "./useAuth";
@@ -41,6 +42,7 @@ function makeSession(user: User): Session {
 
 let capturedSignIn: { error: Error | null; user: User | null } | undefined;
 let capturedSignUp: { error: Error | null; session: Session | null; user: User | null } | undefined;
+let capturedSignOut: { error: Error | null } | undefined;
 
 function SignInTrigger() {
   const { signInWithPassword, user, role } = useAuth();
@@ -76,12 +78,32 @@ function SignUpTrigger() {
   );
 }
 
+function SignOutTrigger({ scope }: { scope: "local" | "others" | "global" }) {
+  const { signOut, user, session } = useAuth();
+  return (
+    <div>
+      <div data-testid="sign-out-user-id">{user?.id ?? "none"}</div>
+      <div data-testid="sign-out-session">{session ? "present" : "none"}</div>
+      <button
+        onClick={async () => {
+          capturedSignOut = await signOut(scope);
+        }}
+      >
+        sign out
+      </button>
+    </div>
+  );
+}
+
 describe("AuthContext sign-in state race", () => {
   beforeEach(() => {
     capturedSignIn = undefined;
     capturedSignUp = undefined;
     vi.mocked(supabase.auth.signInWithPassword).mockReset();
     vi.mocked(supabase.auth.signUp).mockReset();
+    capturedSignOut = undefined;
+    vi.mocked(supabase.auth.getSession).mockResolvedValue({ data: { session: null } } as never);
+    vi.mocked(supabase.auth.signOut).mockReset();
   });
 
   it("resolves signInWithPassword with the fresh user and updates context state synchronously", async () => {
@@ -93,9 +115,11 @@ describe("AuthContext sign-in state race", () => {
     } as never);
 
     render(
-      <AuthProvider>
-        <SignInTrigger />
-      </AuthProvider>
+      <QueryClientProvider client={new QueryClient()}>
+        <AuthProvider>
+          <SignInTrigger />
+        </AuthProvider>
+      </QueryClientProvider>
     );
 
     await act(async () => {
@@ -122,9 +146,11 @@ describe("AuthContext sign-in state race", () => {
     } as never);
 
     render(
-      <AuthProvider>
-        <SignUpTrigger />
-      </AuthProvider>
+      <QueryClientProvider client={new QueryClient()}>
+        <AuthProvider>
+          <SignUpTrigger />
+        </AuthProvider>
+      </QueryClientProvider>
     );
 
     await act(async () => {
@@ -146,9 +172,11 @@ describe("AuthContext sign-in state race", () => {
     } as never);
 
     render(
-      <AuthProvider>
-        <SignUpTrigger />
-      </AuthProvider>
+      <QueryClientProvider client={new QueryClient()}>
+        <AuthProvider>
+          <SignUpTrigger />
+        </AuthProvider>
+      </QueryClientProvider>
     );
 
     await act(async () => {
@@ -158,5 +186,65 @@ describe("AuthContext sign-in state race", () => {
     expect(capturedSignUp?.error).toBeNull();
     expect(capturedSignUp?.session).toBeNull();
     expect(capturedSignUp?.user).toBeNull();
+  });
+});
+
+describe("AuthContext scoped sign-out", () => {
+  it("clears local auth and private query state only after a successful local sign-out", async () => {
+    const organizer = makeUser("organizer");
+    const session = makeSession(organizer);
+    const queryClient = new QueryClient();
+    queryClient.setQueryData(["private", organizer.id], { secret: "private event data" });
+    vi.mocked(supabase.auth.getSession).mockResolvedValue({ data: { session } } as never);
+    vi.mocked(supabase.auth.signOut).mockResolvedValue({ error: null } as never);
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <SignOutTrigger scope="local" />
+        </AuthProvider>
+      </QueryClientProvider>
+    );
+
+    await waitFor(() => expect(screen.getByTestId("sign-out-user-id")).toHaveTextContent(organizer.id));
+
+    await act(async () => {
+      screen.getByText("sign out").click();
+    });
+
+    expect(supabase.auth.signOut).toHaveBeenCalledWith({ scope: "local" });
+    expect(capturedSignOut?.error).toBeNull();
+    expect(screen.getByTestId("sign-out-user-id")).toHaveTextContent("none");
+    expect(screen.getByTestId("sign-out-session")).toHaveTextContent("none");
+    expect(queryClient.getQueryData(["private", organizer.id])).toBeUndefined();
+  });
+
+  it("keeps current auth and private query state after successful other-session sign-out", async () => {
+    const organizer = makeUser("organizer");
+    const session = makeSession(organizer);
+    const queryClient = new QueryClient();
+    queryClient.setQueryData(["private", organizer.id], { secret: "private event data" });
+    vi.mocked(supabase.auth.getSession).mockResolvedValue({ data: { session } } as never);
+    vi.mocked(supabase.auth.signOut).mockResolvedValue({ error: null } as never);
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <SignOutTrigger scope="others" />
+        </AuthProvider>
+      </QueryClientProvider>
+    );
+
+    await waitFor(() => expect(screen.getByTestId("sign-out-user-id")).toHaveTextContent(organizer.id));
+
+    await act(async () => {
+      screen.getByText("sign out").click();
+    });
+
+    expect(supabase.auth.signOut).toHaveBeenCalledWith({ scope: "others" });
+    expect(capturedSignOut?.error).toBeNull();
+    expect(screen.getByTestId("sign-out-user-id")).toHaveTextContent(organizer.id);
+    expect(screen.getByTestId("sign-out-session")).toHaveTextContent("present");
+    expect(queryClient.getQueryData(["private", organizer.id])).toEqual({ secret: "private event data" });
   });
 });

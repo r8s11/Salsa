@@ -1,5 +1,7 @@
-import { Link } from "react-router-dom";
+import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Flag, PauseCircle, Ban } from "lucide-react";
+import { useEscapeKey } from "../features/calendar/hooks/useEscapeKey";
 import { useAuth } from "../contexts/useAuth";
 import { useOwnProfile } from "../hooks/useOwnProfile";
 import {
@@ -35,15 +37,210 @@ function AccountSkeleton() {
   );
 }
 
+function SignOutEverywhereDialog({
+  error,
+  isPending,
+  onCancel,
+  onConfirm,
+}: {
+  error: string | null;
+  isPending: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const titleId = useId();
+  const descriptionId = useId();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const cancelRef = useRef<HTMLButtonElement>(null);
+  const previousFocusRef = useRef<Element | null>(null);
+
+  useEscapeKey(() => {
+    if (!isPending) {
+      onCancel();
+    }
+  });
+
+  useEffect(() => {
+    previousFocusRef.current = document.activeElement;
+    cancelRef.current?.focus();
+
+    return () => {
+      if (previousFocusRef.current instanceof HTMLElement) {
+        previousFocusRef.current.focus();
+      }
+    };
+  }, []);
+
+  const trapFocus = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== "Tab") {
+      return;
+    }
+
+    const focusable = dialogRef.current?.querySelectorAll<HTMLButtonElement>("button:not([disabled])");
+    if (!focusable || focusable.length === 0) {
+      return;
+    }
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
+
+  const cancel = () => {
+    if (!isPending) {
+      onCancel();
+    }
+  };
+
+  return (
+    <div className="account-page__dialog-overlay" onMouseDown={cancel}>
+      <div
+        aria-describedby={descriptionId}
+        aria-labelledby={titleId}
+        aria-modal="true"
+        className="account-page__dialog"
+        onKeyDown={trapFocus}
+        onMouseDown={(event) => event.stopPropagation()}
+        ref={dialogRef}
+        role="dialog"
+      >
+        <h2 id={titleId}>Sign out everywhere?</h2>
+        <p id={descriptionId}>
+          This ends every session, including this browser. People using another device may keep access until
+          their current access token expires.
+        </p>
+        {error && (
+          <p className="account-page__session-error" role="alert">
+            {error}
+          </p>
+        )}
+        <div className="account-page__dialog-actions">
+          <button
+            aria-label="Cancel sign out everywhere"
+            className="account-page__btn account-page__btn--outline"
+            disabled={isPending}
+            onClick={cancel}
+            ref={cancelRef}
+            type="button"
+          >
+            Cancel
+          </button>
+          <button
+            aria-label={isPending ? "Signing out everywhere" : "Confirm sign out everywhere"}
+            className="account-page__btn account-page__btn--session-global"
+            disabled={isPending}
+            onClick={onConfirm}
+            type="button"
+          >
+            {isPending ? "Signing out everywhere" : "Confirm sign out everywhere"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AccountPage() {
-  const { user, role } = useAuth();
+  const { user, role, signOut } = useAuth();
+  const navigate = useNavigate();
   const { profile, isLoading, error, refetch } = useOwnProfile(user?.id);
+  const [pendingAction, setPendingAction] = useState<"local" | "others" | "global" | null>(null);
+  const [sessionActionError, setSessionActionError] = useState<string | null>(null);
+  const [otherSessionsMessage, setOtherSessionsMessage] = useState<string | null>(null);
+  const [isGlobalDialogOpen, setIsGlobalDialogOpen] = useState(false);
+  const [globalSignOutError, setGlobalSignOutError] = useState<string | null>(null);
 
   const roleLabel = ROLE_LABEL[role ?? "user"];
   const statusMessage = profile ? statusMessageFor(profile.status) : null;
   const identity = profile ? resolveIdentity(profile) : null;
   const StatusIcon = profile ? STATUS_ICON[profile.status] : undefined;
   const capabilityCards = profile ? capabilityCardsFor(role) : [];
+  const isSessionActionPending = pendingAction !== null;
+
+  const handleScopedSignOut = async (scope: "local" | "others") => {
+    if (isSessionActionPending) {
+      return;
+    }
+
+    setPendingAction(scope);
+    setSessionActionError(null);
+    setOtherSessionsMessage(null);
+
+    try {
+      const { error } = await signOut(scope);
+      if (error) {
+        setSessionActionError(
+          scope === "local"
+            ? "We couldn't sign you out on this device. Please try again."
+            : "We couldn't sign out your other devices. Please try again."
+        );
+        return;
+      }
+
+      if (scope === "local") {
+        navigate("/", { replace: true });
+        return;
+      }
+
+      setOtherSessionsMessage(
+        "Other sessions were ended. Their current access may continue until each access token expires."
+      );
+    } catch {
+      setSessionActionError(
+        scope === "local"
+          ? "We couldn't sign you out on this device. Please try again."
+          : "We couldn't sign out your other devices. Please try again."
+      );
+    } finally {
+      setPendingAction(null);
+    }
+  };
+
+  const openGlobalSignOutDialog = () => {
+    if (isSessionActionPending) {
+      return;
+    }
+
+    setSessionActionError(null);
+    setOtherSessionsMessage(null);
+    setGlobalSignOutError(null);
+    setIsGlobalDialogOpen(true);
+  };
+
+  const closeGlobalSignOutDialog = () => {
+    if (!isSessionActionPending) {
+      setIsGlobalDialogOpen(false);
+    }
+  };
+
+  const handleGlobalSignOut = async () => {
+    if (isSessionActionPending) {
+      return;
+    }
+
+    setPendingAction("global");
+    setGlobalSignOutError(null);
+
+    try {
+      const { error } = await signOut("global");
+      if (error) {
+        setGlobalSignOutError("We couldn't sign you out everywhere. Please try again.");
+        return;
+      }
+
+      navigate("/", { replace: true });
+    } catch {
+      setGlobalSignOutError("We couldn't sign you out everywhere. Please try again.");
+    } finally {
+      setPendingAction(null);
+    }
+  };
 
   return (
     <main className="account-page">
@@ -187,6 +384,85 @@ export default function AccountPage() {
           <p>Required account and security emails are always sent to your account email.</p>
           <p>Optional email preferences aren&rsquo;t available yet.</p>
         </section>
+      )}
+
+      {user && (
+        <section
+          className="account-page__card account-page__security"
+          aria-labelledby="account-security-heading"
+        >
+          <h2 id="account-security-heading">Security &amp; sessions</h2>
+          <p className="account-page__security-intro">
+            Manage your current sign-in and protect your account.
+          </p>
+
+          {sessionActionError && (
+            <p className="account-page__session-error" role="alert">
+              {sessionActionError}
+            </p>
+          )}
+          {otherSessionsMessage && (
+            <p className="account-page__session-success" role="status">
+              {otherSessionsMessage}
+            </p>
+          )}
+
+          <div className="account-page__session-group">
+            <h3>Current session</h3>
+            <div className="account-page__session-row">
+              <div>
+                <div className="account-page__session-name-row">
+                  <span className="account-page__session-name">This browser</span>
+                  <span className="account-page__session-current">Current</span>
+                </div>
+                {user.email && <p className="account-page__session-email">Signed in as {user.email}</p>}
+              </div>
+              <button
+                className="account-page__btn account-page__btn--outline"
+                disabled={isSessionActionPending}
+                onClick={() => void handleScopedSignOut("local")}
+                type="button"
+              >
+                {pendingAction === "local" ? "Signing out on this device" : "Sign out on this device"}
+              </button>
+            </div>
+          </div>
+
+          <div className="account-page__session-group">
+            <h3>Other sessions</h3>
+            <p>End sessions on your other browsers and devices. A current access token may continue until it expires.</p>
+            <button
+              className="account-page__btn account-page__btn--outline"
+              disabled={isSessionActionPending}
+              onClick={() => void handleScopedSignOut("others")}
+              type="button"
+            >
+              {pendingAction === "others" ? "Signing out other devices" : "Sign out other devices"}
+            </button>
+          </div>
+
+          <div className="account-page__session-group account-page__session-group--global">
+            <h3>All sessions</h3>
+            <p>End every session, including this browser.</p>
+            <button
+              className="account-page__btn account-page__btn--session-global"
+              disabled={isSessionActionPending}
+              onClick={openGlobalSignOutDialog}
+              type="button"
+            >
+              Sign out everywhere
+            </button>
+          </div>
+        </section>
+      )}
+
+      {isGlobalDialogOpen && (
+        <SignOutEverywhereDialog
+          error={globalSignOutError}
+          isPending={pendingAction === "global"}
+          onCancel={closeGlobalSignOutDialog}
+          onConfirm={() => void handleGlobalSignOut()}
+        />
       )}
     </main>
   );

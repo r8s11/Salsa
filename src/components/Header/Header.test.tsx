@@ -146,13 +146,8 @@ describe("Header", () => {
   });
 
   it("removes dashboard links after sign out", async () => {
-    let resolveSignOut: (() => void) | undefined;
-    const signOut = vi.fn(
-      () =>
-        new Promise<void>((resolve) => {
-          resolveSignOut = resolve;
-        })
-    );
+    const signOutResult = Promise.withResolvers<{ error: null }>();
+    const signOut = vi.fn(() => signOutResult.promise);
     vi.mocked(useAuth).mockReturnValue(
       defaultAuth({ user: { id: "moderator" } as User, isModerator: true, signOut })
     );
@@ -163,8 +158,8 @@ describe("Header", () => {
     expect(screen.getAllByRole("link", { name: "Dashboard" }).length).toBeGreaterThan(0);
 
     await user.click(screen.getAllByRole("button", { name: "Sign Out" })[0]);
-    expect(signOut).toHaveBeenCalledOnce();
-    resolveSignOut?.();
+    expect(signOut).toHaveBeenCalledWith("global");
+    signOutResult.resolve({ error: null });
 
     vi.mocked(useAuth).mockReturnValue(defaultAuth());
     rerender(
@@ -225,13 +220,8 @@ describe("Header", () => {
   });
 
   it("awaits member sign out and closes the drawer", async () => {
-    let resolveSignOut: (() => void) | undefined;
-    const signOut = vi.fn(
-      () =>
-        new Promise<void>((resolve) => {
-          resolveSignOut = resolve;
-        })
-    );
+    const signOutResult = Promise.withResolvers<{ error: null }>();
+    const signOut = vi.fn(() => signOutResult.promise);
     vi.mocked(useAuth).mockReturnValue(defaultAuth({ user: { id: "member" } as User, signOut }));
     vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
     const user = userEvent.setup();
@@ -243,12 +233,12 @@ describe("Header", () => {
         name: "Sign Out",
       })
     );
-    expect(signOut).toHaveBeenCalledOnce();
+    expect(signOut).toHaveBeenCalledWith("global");
     expect(screen.getByRole("button", { name: "Close menu" })).toHaveAttribute(
       "aria-expanded",
       "true"
     );
-    resolveSignOut?.();
+    signOutResult.resolve({ error: null });
     await waitFor(() =>
       expect(screen.getByRole("button", { name: "Open menu" })).toHaveAttribute(
         "aria-expanded",

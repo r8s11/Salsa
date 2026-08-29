@@ -65,7 +65,7 @@ export default function AdminLayout() {
   }, []);
 
   const handleSignOut = async () => {
-    await signOut();
+    await signOut("global");
   };
   const sectionLabel = sectionLabelFor(pathname);
   const rolePrefix =

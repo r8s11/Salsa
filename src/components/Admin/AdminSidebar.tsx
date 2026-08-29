@@ -147,7 +147,7 @@ export default function AdminSidebar({
   const navItems = itemsWithGroupFlags(navItemsForRole(role));
 
   const handleSignOut = async () => {
-    await signOut();
+    await signOut("global");
   };
 
   return (

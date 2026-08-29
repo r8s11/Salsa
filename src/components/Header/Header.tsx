@@ -60,7 +60,7 @@ function Header() {
   );
 
   const handleSignOut = async () => {
-    await signOut();
+    await signOut("global");
     closeNavigation();
     navigate("/");
   };

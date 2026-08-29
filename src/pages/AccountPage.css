@@ -277,6 +277,179 @@
   margin-top: 4px;
 }
 
+/* ── Security & sessions (Phase 4: truthful session controls) ── */
+
+.account-page__security {
+  margin-top: var(--space-xl);
+}
+
+.account-page__security h2 {
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: clamp(20px, 2.6vw, 26px);
+  font-weight: 900;
+  margin-bottom: var(--space-sm);
+}
+
+.account-page__security-intro,
+.account-page__session-group p {
+  color: var(--text-dim);
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.account-page__session-group {
+  border-top: 1px solid var(--border);
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+}
+
+.account-page__session-group h3 {
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.account-page__session-row {
+  align-items: center;
+  display: flex;
+  gap: var(--space-md);
+  justify-content: space-between;
+}
+
+.account-page__session-name-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.account-page__session-name {
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.account-page__session-current {
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius-full);
+  color: var(--gold-light);
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  text-transform: uppercase;
+}
+
+.account-page__session-email {
+  color: var(--text-dim);
+  font-family: var(--font-body);
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.account-page__session-group > .account-page__btn {
+  margin-top: var(--space-sm);
+}
+
+.account-page__session-group--global {
+  border-color: rgba(225, 29, 72, 0.35);
+}
+
+.account-page__btn--session-global {
+  background: var(--red-dim);
+  border: 1px solid rgba(225, 29, 72, 0.55);
+  color: var(--red-bright);
+}
+
+.account-page__btn--session-global:hover:not(:disabled) {
+  background: rgba(225, 29, 72, 0.22);
+  color: #fff;
+}
+
+.account-page__btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.account-page__session-error,
+.account-page__session-success {
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.5;
+  margin-top: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+}
+
+.account-page__session-error {
+  background: var(--red-dim);
+  border: 1px solid rgba(225, 29, 72, 0.35);
+  color: var(--red-bright);
+}
+
+.account-page__session-success {
+  background: var(--gold-dim);
+  border: 1px solid rgba(233, 195, 73, 0.35);
+  color: var(--gold-light);
+}
+
+/* ── Global sign-out confirmation ── */
+
+.account-page__dialog-overlay {
+  align-items: center;
+  background: rgba(11, 19, 38, 0.62);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: var(--space-md);
+  position: fixed;
+  z-index: 1100;
+}
+
+.account-page__dialog {
+  background: var(--card);
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius-lg);
+  max-height: calc(100dvh - 32px);
+  max-width: 480px;
+  overflow-y: auto;
+  padding: var(--space-lg);
+  width: 100%;
+}
+
+.account-page__dialog h2 {
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: clamp(20px, 2.6vw, 26px);
+  font-weight: 900;
+}
+
+.account-page__dialog > p {
+  color: var(--text-dim);
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  line-height: 1.5;
+  margin-top: var(--space-sm);
+}
+
+.account-page__dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  justify-content: flex-end;
+  margin-top: var(--space-lg);
+}
+
+.account-page__btn:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
 /* ── Role capabilities ── */
 
 .account-page__capabilities {
@@ -452,6 +625,25 @@
   .account-page__skeleton {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .account-page__session-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .account-page__session-row .account-page__btn,
+  .account-page__session-group > .account-page__btn,
+  .account-page__dialog-actions .account-page__btn {
+    width: 100%;
+  }
+
+  .account-page__dialog {
+    padding: var(--space-md);
+  }
+
+  .account-page__dialog-actions {
+    flex-direction: column-reverse;
   }
 }
 

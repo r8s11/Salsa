@@ -1,9 +1,15 @@
+/* ========================================
+   Event Flyer Field — Ritmo Vivo design system
+   Reuses global tokens (slate surfaces, rose primary,
+   gold accents, rounded cards, focus rings).
+   ======================================== */
+
 .event-flyer-field {
   display: grid;
-  gap: 0.5rem;
+  gap: var(--space-sm);
 }
 
-.event-flyer-field > label {
+.event-flyer-field__label {
   color: var(--text-muted);
   font-family: var(--font-ui);
   font-size: 0.68rem;
@@ -19,31 +25,227 @@
   font-size: 0.8rem;
 }
 
+/* ── Preview (object-fit: contain — no destructive crop) ── */
 .event-flyer-field__preview {
-  width: min(100%, 360px);
-  max-height: 240px;
+  margin: 0;
+  display: grid;
+  gap: var(--space-xs);
+  padding: var(--space-sm);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  object-fit: cover;
+  background: var(--surface);
 }
 
-.event-flyer-field input[type="file"] {
+.event-flyer-field__preview img {
   width: 100%;
-  padding: 0.7rem;
-  border: 1px dashed var(--border-md);
+  max-height: 320px;
+  object-fit: contain;
   border-radius: var(--radius-sm);
-  color: var(--text-muted);
-  font: inherit;
+  background: var(--bg);
 }
 
-.event-flyer-field input[type="file"]:focus-visible {
+.event-flyer-field__preview-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  color: var(--text);
+}
+
+.event-flyer-field__ok-icon {
+  color: var(--gold);
+  flex-shrink: 0;
+}
+
+.event-flyer-field__size {
+  color: var(--text-dim);
+}
+
+/* ── Dropzone ── */
+.event-flyer-field__dropzone {
+  display: grid;
+  place-items: center;
+  gap: 6px;
+  padding: var(--space-lg);
+  border: 1.5px dashed var(--border-md);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text-muted);
+  text-align: center;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.event-flyer-field__dropzone:hover {
+  border-color: var(--red);
+  background: var(--surface-high);
+}
+
+.event-flyer-field__dropzone--drag {
+  border-color: var(--gold);
+  background: var(--gold-dim);
+  box-shadow: 0 0 0 2px var(--gold-dim);
+}
+
+.event-flyer-field__dropzone--busy {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+.event-flyer-field__dropzone:focus-visible {
   outline: 2px solid var(--gold);
   outline-offset: 2px;
 }
 
-.event-flyer-field [role="alert"] {
+.event-flyer-field__dropzone-text {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.event-flyer-field__dropzone-sub {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+
+.event-flyer-field__spinner {
+  animation: event-flyer-spin 0.9s linear infinite;
+}
+
+@keyframes event-flyer-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.event-flyer-field__choose {
+  margin-top: 4px;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--red);
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--red-bright);
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.event-flyer-field__choose:hover:not(:disabled) {
+  background: var(--red);
+  color: #fff;
+}
+
+.event-flyer-field__choose:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.event-flyer-field__input {
+  display: none;
+}
+
+/* ── Actions (Replace / Remove) ── */
+.event-flyer-field__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.event-flyer-field__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.55rem 1rem;
+  border-radius: var(--radius-full);
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.event-flyer-field__action:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.event-flyer-field__action--replace {
+  border: 1px solid var(--gold);
+  background: transparent;
+  color: var(--gold);
+}
+
+.event-flyer-field__action--replace:hover:not(:disabled) {
+  background: var(--gold-dim);
+  color: var(--gold-light);
+}
+
+.event-flyer-field__action--remove {
+  border: 1px solid var(--red-bright);
+  background: transparent;
+  color: var(--red-bright);
+}
+
+.event-flyer-field__action--remove:hover:not(:disabled) {
+  background: var(--red-dim);
+}
+
+.event-flyer-field__action--retry {
+  border: 1px solid var(--gold);
+  background: var(--gold-dim);
+  color: var(--gold-light);
+}
+
+.event-flyer-field__action--retry:hover:not(:disabled) {
+  background: var(--gold);
+  color: #fff;
+}
+
+.event-flyer-field__action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Alert (validation / upload error) ── */
+.event-flyer-field__alert {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   margin: 0;
   color: var(--red-bright);
   font-family: var(--font-body);
   font-size: 0.85rem;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .event-flyer-field__dropzone {
+    padding: var(--space-md);
+  }
+
+  .event-flyer-field__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .event-flyer-field__action {
+    justify-content: center;
+  }
 }

@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import EventCard from "./EventCard";
+import { createEventTitleImage } from "../../features/events/ui/eventTitleImage";
 import { ScheduleXEvent } from "../../types/events";
 
 const mockNavigate = vi.fn();
@@ -33,6 +34,22 @@ describe("EventCard", () => {
     expect(screen.getByRole("heading", { name: "Rooftop Sunset Social" })).toBeInTheDocument();
     expect(screen.getByText("29")).toBeInTheDocument();
     expect(screen.getByText("Social Dance")).toBeInTheDocument();
+  });
+  it("renders generated title art when the flyer is absent", () => {
+    renderCard({ ...baseEvent, imageUrl: undefined });
+    const image = screen.getByRole("img", {
+      name: "SalsaSegura event title image for Rooftop Sunset Social",
+    });
+    expect(image).toHaveAttribute(
+      "src",
+      createEventTitleImage({
+        id: baseEvent.id,
+        title: baseEvent.title,
+        eventType: baseEvent.calendarId,
+        city: baseEvent.city,
+        start: baseEvent.start,
+      })
+    );
   });
 
   it("shows location only when present", () => {

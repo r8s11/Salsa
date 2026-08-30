@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import FeaturedEventCard from "./FeaturedEventCard";
+import { createEventTitleImage } from "../../features/events/ui/eventTitleImage";
 import { ScheduleXEvent } from "../../types/events";
 
 const mockNavigate = vi.fn();
@@ -37,6 +38,22 @@ describe("FeaturedEventCard", () => {
     expect(screen.getByText("18")).toBeInTheDocument();
     expect(screen.getByText("Social Dance")).toBeInTheDocument();
     expect(screen.getByText(/rotating DJs/)).toBeInTheDocument();
+  });
+  it("renders generated title art when the flyer is absent", () => {
+    renderCard({ ...baseEvent, imageUrl: undefined });
+    const image = screen.getByRole("img", {
+      name: "SalsaSegura event title image for Salsa Social at The Dance Union",
+    });
+    expect(image).toHaveAttribute(
+      "src",
+      createEventTitleImage({
+        id: baseEvent.id,
+        title: baseEvent.title,
+        eventType: baseEvent.calendarId,
+        city: baseEvent.city,
+        start: baseEvent.start,
+      })
+    );
   });
 
   it("omits the description paragraph when absent", () => {

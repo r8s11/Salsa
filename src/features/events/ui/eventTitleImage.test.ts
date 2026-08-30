@@ -58,4 +58,30 @@ describe("createEventTitleImage", () => {
     expect(svg).toMatch(/<path\b[^>]*\saria-hidden="true"\/>/u);
     expect(svg).not.toContain('/ aria-hidden="true">');
   });
+
+  it("drops invalid Unicode and XML control characters before encoding", () => {
+    expect(() =>
+      createEventTitleImage({
+        ...social,
+        title: "A\uD800\u0000B",
+        city: "Boston\u0001",
+        start: "2026-09-04\u000B20:00",
+      })
+    ).not.toThrow();
+
+    const svg = decodeURIComponent(
+      createEventTitleImage({
+        ...social,
+        title: "A\uD800\u0000B",
+        city: "Boston\u0001",
+        start: "2026-09-04\u000B20:00",
+      })
+    );
+
+    expect(svg).toContain(">AB</tspan>");
+    expect(svg).not.toContain("\uD800");
+    expect(svg).not.toContain("\u0000");
+    expect(svg).not.toContain("\u0001");
+    expect(svg).not.toContain("\u000B");
+  });
 });

@@ -53,8 +53,29 @@ const TITLE_LINE_WIDTH = 29;
 const MAX_TITLE_LENGTH = TITLE_LINE_WIDTH * 3;
 const MAX_METADATA_LENGTH = 48;
 
+function stripInvalidXmlCharacters(value: string): string {
+  let result = "";
+  for (const character of value) {
+    const codePoint = character.codePointAt(0) ?? 0;
+    const isAllowed =
+      codePoint === 0x9 ||
+      codePoint === 0xa ||
+      codePoint === 0xd ||
+      (codePoint >= 0x20 && codePoint <= 0xd7ff) ||
+      (codePoint >= 0xe000 && codePoint <= 0xfffd) ||
+      (codePoint >= 0x10000 && codePoint <= 0x10ffff);
+    if (isAllowed) {
+      result += character;
+    }
+  }
+  return result;
+}
+
 function normaliseText(value: string | null | undefined, fallback: string): string {
-  const normalised = typeof value === "string" ? value.trim().replace(/\s+/gu, " ") : "";
+  const normalised =
+    typeof value === "string"
+      ? stripInvalidXmlCharacters(value).trim().replace(/\s+/gu, " ")
+      : "";
   return normalised || fallback;
 }
 
@@ -68,7 +89,7 @@ function truncateText(value: string, maxLength: number): string {
 }
 
 function appendEllipsis(value: string): string {
-  return value.length >= TITLE_LINE_WIDTH
+  return Array.from(value).length >= TITLE_LINE_WIDTH
     ? `${Array.from(value).slice(0, TITLE_LINE_WIDTH - 1).join("")}…`
     : `${value}…`;
 }
@@ -85,7 +106,7 @@ function normaliseAndWrapTitle(value: string | null | undefined): string[] {
       continue;
     }
 
-    if (word.length > TITLE_LINE_WIDTH) {
+    if (Array.from(word).length > TITLE_LINE_WIDTH) {
       if (currentLine) {
         lines.push(currentLine);
         currentLine = "";
@@ -107,7 +128,7 @@ function normaliseAndWrapTitle(value: string | null | undefined): string[] {
     }
 
     const candidate = currentLine ? `${currentLine} ${word}` : word;
-    if (candidate.length <= TITLE_LINE_WIDTH) {
+    if (Array.from(candidate).length <= TITLE_LINE_WIDTH) {
       currentLine = candidate;
       continue;
     }
@@ -148,7 +169,7 @@ function stableHash(value: string): number {
 }
 
 function escapeXml(value: string): string {
-  return value.replace(/[&<>"']/gu, (character) => {
+  return stripInvalidXmlCharacters(value).replace(/[&<>"']/gu, (character) => {
     switch (character) {
       case "&":
         return "&amp;";

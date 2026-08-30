@@ -16,12 +16,18 @@ vi.mock("../features/submit-event/useSubmissionAccess", () => ({ useSubmissionAc
 
 vi.mock("../contexts/useAuth", () => ({ useAuth }));
 
-const renderSubmitEventPage = () =>
-  render(
+const renderSubmitEventPage = () => {
+  const rendered = render(
     <CityProvider>
       <SubmitEventPage />
     </CityProvider>
   );
+  const manualEntry = screen.queryByRole("button", {
+    name: /Choose to enter event details manually/i,
+  });
+  if (manualEntry) fireEvent.click(manualEntry);
+  return rendered;
+};
 
 const chooseEventType = (name: "Social" | "Class" | "Workshop") =>
   fireEvent.click(screen.getByRole("button", { name }));
@@ -45,6 +51,21 @@ describe("SubmitEventPage", () => {
       signUp: vi.fn(),
       signOut: vi.fn(),
     });
+  });
+  it("requires an explicit flyer or manual entry choice", () => {
+    render(
+      <CityProvider>
+        <SubmitEventPage />
+      </CityProvider>
+    );
+
+    expect(screen.getByRole("group", { name: /How would you like to start/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Choose to upload a flyer to start/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Choose to enter event details manually/i })
+    ).toBeInTheDocument();
   });
 
   it("renders the event submission form", () => {

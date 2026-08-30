@@ -36,7 +36,11 @@ vi.mock("../features/events/api/eventFlyers", () => ({
 const FLYER_URL =
   "https://project.supabase.co/storage/v1/object/public/event-flyers/test-user-id/submission-abc/havana.png";
 
-const renderPage = () => render(<SubmitEventPage />);
+const renderPage = () => {
+  const rendered = render(<SubmitEventPage />);
+  fireEvent.click(screen.getByRole("button", { name: /Choose to upload a flyer to start/i }));
+  return rendered;
+};
 
 describe("SubmitEventPage flyer (Phase 1)", () => {
   beforeEach(() => {
@@ -60,9 +64,7 @@ describe("SubmitEventPage flyer (Phase 1)", () => {
   it("exposes a flyer-first entry point with a dropzone", () => {
     renderPage();
     expect(screen.getByRole("heading", { name: /Start with a flyer/i })).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /Choose Flyer/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Choose Flyer/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Continue manually/i })).toBeInTheDocument();
   });
 
@@ -83,7 +85,9 @@ describe("SubmitEventPage flyer (Phase 1)", () => {
     );
     renderPage();
 
-    expect(screen.queryByRole("button", { name: /Extract Event Details/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Extract Event Details/i })
+    ).not.toBeInTheDocument();
 
     await user.upload(
       screen.getByLabelText("Event flyer"),
@@ -91,7 +95,9 @@ describe("SubmitEventPage flyer (Phase 1)", () => {
     );
 
     // While the upload is in flight, the flyer is NOT ready yet.
-    expect(screen.queryByRole("button", { name: /Extract Event Details/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Extract Event Details/i })
+    ).not.toBeInTheDocument();
     expect(screen.getByText("Uploading…")).toBeInTheDocument();
 
     await act(async () => {
@@ -169,7 +175,9 @@ describe("SubmitEventPage flyer (Phase 1)", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent(/storage down/i);
     expect(screen.getByText(/Upload failed/i)).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Extract Event Details/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Extract Event Details/i })
+    ).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /Try Again/i }));
     expect(

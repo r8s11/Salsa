@@ -581,3 +581,10 @@ a.logo:focus-visible {
     transition-duration: 0.01ms !important;
   }
 }
+/* ----------------------------------------
+   13. Calendar page — lower Header z-index so Schedule-X dropdowns
+   can appear above the fixed header
+   ---------------------------------------- */
+body.calendar-page-open header {
+  z-index: 50;
+}

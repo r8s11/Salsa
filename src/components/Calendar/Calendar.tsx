@@ -61,6 +61,11 @@ export default function Calendar() {
   const navigate = useNavigate();
   const { city, setCity } = useCity();
   const { events: eventList, loading, error, refetch } = useEvents();
+
+  useEffect(() => {
+    document.body.classList.add("calendar-page-open");
+    return () => document.body.classList.remove("calendar-page-open");
+  }, []);
   const eventListRef = useRef(eventList);
   const cityParameterHandled = useRef(false);
   const [eventsService] = useState(() => createEventsServicePlugin());

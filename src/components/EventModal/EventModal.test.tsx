@@ -73,6 +73,26 @@ describe("EventModal", () => {
     expect(onClose).toHaveBeenCalledOnce();
   });
 
+  it("renders Full details as a close button (not a route link) when isFromHomepage is true", () => {
+    const onClose = vi.fn();
+    render(<EventModal event={baseEvent} onClose={onClose} isFromHomepage={true} />);
+    const detailsButton = screen.getByRole("button", { name: "Full details" });
+    expect(detailsButton).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Full details" })).not.toBeInTheDocument();
+    fireEvent.click(detailsButton);
+    expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  it("does not navigate when isFromHomepage is true and Full details is clicked", () => {
+    const onClose = vi.fn();
+    render(<EventModal event={baseEvent} onClose={onClose} isFromHomepage={true} />);
+    const detailsButton = screen.getByRole("button", { name: "Full details" });
+    fireEvent.click(detailsButton);
+    expect(onClose).toHaveBeenCalledTimes(1);
+    // No route change — the modal simply closes and returns to the homepage
+    expect(window.location.pathname).toBe("/");
+  });
+
   it("shows 'Free' and 'RSVP · Free' for a free event", () => {
     render(
       <EventModal

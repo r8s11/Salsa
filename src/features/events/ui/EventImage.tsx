@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import type { JSX } from "react";
 import {
   createEventTitleImage,
   getEventTitleImageAlt,
@@ -29,12 +30,9 @@ export default function EventImage({
   );
   const fallbackSrc = useMemo(() => createEventTitleImage(input), [input]);
   const flyerSrc = imageUrl?.trim() || fallbackSrc;
-  const [src, setSrc] = useState(flyerSrc);
-
-  useEffect(() => {
-    setSrc(flyerSrc);
-  }, [flyerSrc, fallbackSrc]);
-
+  const source = useMemo(() => ({ input, flyerSrc }), [input, flyerSrc]);
+  const [failedSource, setFailedSource] = useState<typeof source | null>(null);
+  const src = failedSource === source ? fallbackSrc : flyerSrc;
   const isFallback = src === fallbackSrc;
 
   return (
@@ -43,7 +41,7 @@ export default function EventImage({
       src={src}
       alt={isFallback ? getEventTitleImageAlt(input) : alt ?? `${title ?? "Event"} flyer`}
       loading={loading}
-      onError={isFallback ? undefined : () => setSrc(fallbackSrc)}
+      onError={isFallback ? undefined : () => setFailedSource(source)}
     />
   );
 }

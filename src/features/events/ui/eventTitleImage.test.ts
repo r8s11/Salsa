@@ -84,4 +84,29 @@ describe("createEventTitleImage", () => {
     expect(svg).not.toContain("\u0001");
     expect(svg).not.toContain("\u000B");
   });
+
+  it("formats city and date metadata for human-readable fallback art", () => {
+    const svg = decodeURIComponent(createEventTitleImage(social));
+
+    expect(svg).toContain("Boston  ·  Fri, Sep 4");
+    expect(
+      decodeURIComponent(createEventTitleImage({ ...social, start: "not-a-date" }))
+    ).not.toContain("not-a-date");
+  });
+
+  it("keeps wide glyph title lines within the fixed SVG width", () => {
+    const wideTitle = "界".repeat(29);
+    const svg = decodeURIComponent(createEventTitleImage({ ...social, title: wideTitle }));
+
+    expect(svg).toContain('textLength="1056" lengthAdjust="spacingAndGlyphs"');
+    expect(svg).toContain(`>${wideTitle}</tspan>`);
+  });
+
+  it("keeps the SalsaSegura wordmark in the upper lockup", () => {
+    const svg = decodeURIComponent(createEventTitleImage(social));
+
+    expect(svg.indexOf(">SalsaSegura</text>")).toBeGreaterThanOrEqual(0);
+    expect(svg.indexOf(">SalsaSegura</text>")).toBeLessThan(svg.indexOf('y="202"'));
+    expect(svg).not.toContain('y="620"');
+  });
 });

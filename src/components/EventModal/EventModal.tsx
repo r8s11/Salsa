@@ -149,8 +149,8 @@ export default function EventModal({ event, onClose }: EventModalProps) {
   // ── Shared action buttons (used in desktop sidebar + mobile sticky bar) ──
   const isFree = event.priceType === "free" || event.priceAmount == null;
   const priceLabel = isFree ? "Free" : `$${event.priceAmount}`;
-  const galleryThumbs = event.gallery?.slice(0, 4) ?? [];
-  const galleryExtra = (event.gallery?.length ?? 0) - galleryThumbs.length;
+  const rsvpLabel = isFree ? "RSVP · Free" : "Get Tickets";
+  const seriesDates = event.recurrence === "weekly" ? getUpcomingSeriesDates(event.start) : [];
   const imageInput = {
     id: event.id,
     title: event.title,

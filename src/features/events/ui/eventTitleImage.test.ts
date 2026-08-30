@@ -45,4 +45,10 @@ describe("createEventTitleImage", () => {
     expect(svg).not.toContain("<script>");
     expect(svg).toContain("aria-hidden=\"true\"");
   });
+
+  it("keeps decorative motifs subtle", () => {
+    const svg = decodeURIComponent(createEventTitleImage(social));
+
+    expect(svg).toContain('aria-hidden="true" color="#ff6b61" opacity="0.16"');
+  });
 });

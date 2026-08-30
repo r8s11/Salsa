@@ -101,21 +101,28 @@ describe("ProfileEditPage", () => {
     renderPage();
 
     const displayName = await screen.findByLabelText(/display name/i);
-    const username = screen.getByLabelText(/username/i);
     const save = screen.getByRole("button", { name: "Save Changes" });
 
     expect((displayName as HTMLInputElement).value).toBe("Maria Santos");
-    expect((username as HTMLInputElement).value).toBe("mariasalsa");
     expect(save).toBeDisabled();
   });
 
-  it("shows the public URL hint with the current username", async () => {
+
+  it("shows the public URL hint with the current username and the Phase 7 deferral", async () => {
     mocks.profile.profile = baseProfile();
     renderPage();
 
-    expect(await screen.findByText("salsasegura.com/u/mariasalsa")).toBeInTheDocument();
+    // The hint is a single <p> whose text is concatenated across two
+    // children. Find it via the parent element's textContent.
+    const hint = await screen.findByText((_, element) => {
+      if (!element) return false;
+      if (element.tagName !== "P") return false;
+      const text = element.textContent ?? "";
+      return text.includes("salsasegura.com/u/mariasalsa") &&
+        text.includes("Username changes arrive in a later update");
+    });
+    expect(hint).toBeInTheDocument();
   });
-
   it("renders the initials avatar fallback when no avatar_url is set", async () => {
     mocks.profile.profile = baseProfile({ display_name: "Maria Santos", avatar_url: null });
     renderPage();
@@ -147,18 +154,6 @@ describe("ProfileEditPage", () => {
     expect(screen.queryByLabelText(/^tagline$/i)).not.toBeInTheDocument();
   });
 
-  it("sanitises username input as the user types", async () => {
-    mocks.profile.profile = baseProfile();
-    const user = userEvent.setup();
-    renderPage();
-
-    const username = await screen.findByLabelText(/username/i);
-    await user.clear(username);
-    await user.type(username, "  @Maria.Salsa 99");
-
-    expect((username as HTMLInputElement).value).toBe("maria.salsa99");
-  });
-
   it("rejects malformed photo URLs but enables Save when corrected", async () => {
     mocks.profile.profile = baseProfile();
     const user = userEvent.setup();
@@ -177,7 +172,7 @@ describe("ProfileEditPage", () => {
     });
   });
 
-  it("saves trimmed display name and lowercased username via the update hook", async () => {
+  it("sends only display_name and avatar_url to the update hook; never username", async () => {
     mocks.profile.profile = baseProfile();
     mocks.update.update.mockResolvedValue(baseProfile());
     const user = userEvent.setup();
@@ -186,10 +181,7 @@ describe("ProfileEditPage", () => {
     const displayName = await screen.findByLabelText(/display name/i);
     await user.clear(displayName);
     await user.type(displayName, "  Maria Lucia  ");
-
-    const username = screen.getByLabelText(/username/i);
-    await user.clear(username);
-    await user.type(username, "MARIA99");
+    await user.type(screen.getByLabelText(/photo url/i), "https://cdn.test/maria.png");
 
     await user.click(screen.getByRole("button", { name: "Save Changes" }));
 
@@ -197,9 +189,20 @@ describe("ProfileEditPage", () => {
     const [patch] = mocks.update.update.mock.calls[0];
     expect(patch).toEqual({
       display_name: "Maria Lucia",
-      username: "maria99",
-      avatar_url: null,
+      avatar_url: "https://cdn.test/maria.png",
     });
+    expect(patch).not.toHaveProperty("username");
+  });
+
+  it("ignores typing in the disabled username field — the value never changes", async () => {
+    mocks.profile.profile = baseProfile();
+    const user = userEvent.setup();
+    renderPage();
+
+    const username = await screen.findByLabelText(/username/i);
+    await user.type(username, "anything");
+
+    expect((username as HTMLInputElement).value).toBe("mariasalsa");
   });
 
   it("surfaces a success notice after a real save and shows the updated value", async () => {
@@ -234,6 +237,29 @@ describe("ProfileEditPage", () => {
       await screen.findByText(/we couldn't save your changes\. please try again\./i)
     ).toBeInTheDocument();
     expect(screen.queryByText(/duplicate key value/i)).not.toBeInTheDocument();
+  });
+
+  it("preserves the typed values when a save fails", async () => {
+    mocks.profile.profile = baseProfile();
+    mocks.update.update.mockRejectedValue(new Error("RLS denied"));
+    mocks.update.error = "RLS denied";
+    const user = userEvent.setup();
+    renderPage();
+
+    const displayName = await screen.findByLabelText(/display name/i);
+    await user.clear(displayName);
+    await user.type(displayName, "  Maria Lucia  ");
+    await user.type(screen.getByLabelText(/photo url/i), "https://cdn.test/maria.png");
+
+    await user.click(screen.getByRole("button", { name: "Save Changes" }));
+
+    await screen.findByText(/we couldn't save your changes/i);
+    // The component trims only on submit; the input still reflects
+    // what the user typed so they can retry without re-typing.
+    expect((displayName as HTMLInputElement).value).toBe("  Maria Lucia  ");
+    expect(
+      (screen.getByLabelText(/photo url/i) as HTMLInputElement).value
+    ).toBe("https://cdn.test/maria.png");
   });
 
   it("disables Save when the display name is blank", async () => {

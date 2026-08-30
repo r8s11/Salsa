@@ -114,6 +114,44 @@ alter table public.profiles
   add constraint profiles_username_format
   check (username is null or username ~ '^[A-Za-z0-9_]{3,24}$');
 
+-- Phase 6 — Profile Edit Visual Foundation: owner-scoped, column-limited
+-- update path. Mirror of supabase/migrations/20260830000000_profile_owner_update.sql.
+do $$
+begin
+  if exists (
+    select 1 from information_schema.table_privileges
+    where table_schema = 'public'
+      and table_name = 'profiles'
+      and grantee = 'authenticated'
+      and privilege_type = 'UPDATE'
+  ) then
+    revoke update on public.profiles from authenticated;
+  end if;
+end
+$$;
+
+grant update (display_name, avatar_url) on public.profiles to authenticated;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'profiles_display_name_nonempty'
+  ) then
+    alter table public.profiles
+      add constraint profiles_display_name_nonempty
+      check (display_name is null or length(btrim(display_name)) > 0);
+  end if;
+end
+$$;
+
+drop policy if exists "Users update own profile fields" on public.profiles;
+create policy "Users update own profile fields"
+  on public.profiles
+  for update
+  to authenticated
+  using (id = auth.uid())
+  with check (id = auth.uid());
+
 -- One-time backfill for every existing auth user; ON CONFLICT makes rerunning safe.
 insert into public.profiles (id, display_name, role)
 select u.id,

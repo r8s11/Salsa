@@ -12,6 +12,9 @@ if (!supabaseURLValue || !supabaseDefaultKey) {
 }
 
 export const supabaseURL: string = supabaseURLValue;
+// Match Supabase's default namespace explicitly so deleted-account cleanup can
+// remove only this app's persisted session without changing existing sessions.
+export const supabaseAuthStorageKey = `sb-${new URL(supabaseURL).hostname.split(".")[0]}-auth-token`;
 
 // Create and export Supabase client.
 // flowType "pkce" makes email-confirmation and future OAuth returns arrive at
@@ -20,6 +23,7 @@ export const supabaseURL: string = supabaseURLValue;
 export const supabase = createClient(supabaseURL, supabaseDefaultKey, {
   auth: {
     flowType: "pkce",
+    storageKey: supabaseAuthStorageKey,
     detectSessionInUrl: true,
   },
 });

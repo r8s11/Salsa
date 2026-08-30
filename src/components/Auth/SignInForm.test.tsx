@@ -23,8 +23,8 @@ describe("SignInForm", () => {
       signInWithPassword,
       resendConfirmation: vi.fn(),
       signUp: vi.fn(),
-
       signOut: vi.fn(),
+      clearDeletedAccount: vi.fn(),
     });
 
     const user = userEvent.setup();
@@ -69,8 +69,8 @@ describe("SignInForm", () => {
       signInWithPassword: vi.fn(),
       resendConfirmation: vi.fn(),
       signUp,
-
       signOut: vi.fn(),
+      clearDeletedAccount: vi.fn(),
     });
 
     const user = userEvent.setup();
@@ -112,6 +112,7 @@ describe("SignInForm", () => {
       resendConfirmation: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
+      clearDeletedAccount: vi.fn(),
     });
 
     const user = userEvent.setup();
@@ -151,6 +152,7 @@ describe("SignInForm", () => {
       resendConfirmation: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
+      clearDeletedAccount: vi.fn(),
     });
 
     const user = userEvent.setup();
@@ -190,6 +192,7 @@ describe("SignInForm", () => {
       resendConfirmation: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
+      clearDeletedAccount: vi.fn(),
     });
 
     const user = userEvent.setup();
@@ -229,6 +232,7 @@ describe("SignInForm", () => {
       resendConfirmation: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
+      clearDeletedAccount: vi.fn(),
     });
 
     const user = userEvent.setup();
@@ -271,6 +275,7 @@ describe("SignInForm", () => {
       resendConfirmation: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
+      clearDeletedAccount: vi.fn(),
     });
 
     const user = userEvent.setup();
@@ -312,6 +317,7 @@ describe("SignInForm", () => {
       signUp,
 
       signOut: vi.fn(),
+      clearDeletedAccount: vi.fn(),
     });
 
     const user = userEvent.setup();
@@ -351,6 +357,7 @@ describe("SignInForm", () => {
       resendConfirmation: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
+      clearDeletedAccount: vi.fn(),
     });
 
     render(
@@ -376,6 +383,7 @@ describe("SignInForm", () => {
       resendConfirmation: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
+      clearDeletedAccount: vi.fn(),
     });
     const user = userEvent.setup();
 
@@ -408,6 +416,7 @@ describe("SignInForm", () => {
       resendConfirmation: vi.fn(),
       signUp,
       signOut: vi.fn(),
+      clearDeletedAccount: vi.fn(),
     });
     const user = userEvent.setup();
 

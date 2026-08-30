@@ -43,6 +43,7 @@ describe("RequireAdmin", () => {
       resendConfirmation: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
+      clearDeletedAccount: vi.fn(),
     } as AuthContextValue);
 
     renderAtAdmin();
@@ -63,6 +64,7 @@ describe("RequireAdmin", () => {
       resendConfirmation: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
+      clearDeletedAccount: vi.fn(),
     } as AuthContextValue);
 
     renderAtAdmin();
@@ -83,6 +85,7 @@ describe("RequireAdmin", () => {
       resendConfirmation: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
+      clearDeletedAccount: vi.fn(),
     } as AuthContextValue);
 
     renderAtAdmin();
@@ -103,6 +106,7 @@ describe("RequireAdmin", () => {
       resendConfirmation: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
+      clearDeletedAccount: vi.fn(),
     } as AuthContextValue);
 
     renderAtAdmin();

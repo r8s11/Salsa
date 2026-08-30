@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Flag, PauseCircle, Ban } from "lucide-react";
 import { useEscapeKey } from "../features/calendar/hooks/useEscapeKey";
@@ -13,6 +13,13 @@ import {
   statusMessageFor,
   type AccountStatus,
 } from "../features/account/model/account";
+import AccountDeletionDialog from "./AccountDeletionDialog";
+import {
+  checkAccountDeletionEligibility,
+  deleteCurrentAccount,
+  type DeletionBlocker,
+  type DeletionEligibility,
+} from "../features/account/api/accountDeletion";
 import "./AccountPage.css";
 
 const STATUS_ICON: Partial<Record<AccountStatus, typeof Flag>> = {
@@ -20,6 +27,23 @@ const STATUS_ICON: Partial<Record<AccountStatus, typeof Flag>> = {
   suspended: PauseCircle,
   banned: Ban,
 };
+
+function deletionBlockerMessage(blocker: DeletionBlocker): string {
+  switch (blocker) {
+    case "role":
+      return "Self-service deletion is not available for organizer, moderator, or admin accounts.";
+    case "event_history":
+      return "Self-service deletion is not available while your account has event or submission history.";
+    case "organizer":
+      return "Self-service deletion is not available while you have organizer access or an organizer request.";
+    case "operational_history":
+      return "Self-service deletion is not available while your account has protected operational history.";
+    case "storage":
+      return "Self-service deletion is not available while you own uploaded files.";
+    case "unknown":
+      return "We cannot verify whether your account can be deleted right now.";
+  }
+}
 
 function AccountSkeleton() {
   return (
@@ -147,7 +171,7 @@ function SignOutEverywhereDialog({
 }
 
 export default function AccountPage() {
-  const { user, role, signOut } = useAuth();
+  const { user, role, signOut, clearDeletedAccount } = useAuth();
   const navigate = useNavigate();
   const { profile, isLoading, error, refetch } = useOwnProfile(user?.id);
   const [pendingAction, setPendingAction] = useState<"local" | "others" | "global" | null>(null);
@@ -155,6 +179,13 @@ export default function AccountPage() {
   const [otherSessionsMessage, setOtherSessionsMessage] = useState<string | null>(null);
   const [isGlobalDialogOpen, setIsGlobalDialogOpen] = useState(false);
   const [globalSignOutError, setGlobalSignOutError] = useState<string | null>(null);
+  const [deletionEligibility, setDeletionEligibility] = useState<DeletionEligibility | null>(null);
+  const [deletionEligibilityError, setDeletionEligibilityError] = useState<string | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const deletionRequestInFlightRef = useRef(false);
+  const eligibilityRequestRef = useRef(0);
 
   const roleLabel = ROLE_LABEL[role ?? "user"];
   const statusMessage = profile ? statusMessageFor(profile.status) : null;
@@ -239,6 +270,69 @@ export default function AccountPage() {
       setGlobalSignOutError("We couldn't sign you out everywhere. Please try again.");
     } finally {
       setPendingAction(null);
+    }
+  };
+
+  const refreshDeletionEligibility = useCallback(async () => {
+    const requestId = ++eligibilityRequestRef.current;
+    setDeletionEligibility(null);
+    setDeletionEligibilityError(null);
+
+    try {
+      const eligibility = await checkAccountDeletionEligibility();
+      if (requestId === eligibilityRequestRef.current) {
+        setDeletionEligibility(eligibility);
+      }
+    } catch {
+      if (requestId === eligibilityRequestRef.current) {
+        setDeletionEligibilityError(
+          "We couldn't check whether account deletion is available. Please try again."
+        );
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (user?.id) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- async with requestId guard; intended external sync
+      void refreshDeletionEligibility();
+    }
+    return () => {
+      eligibilityRequestRef.current += 1;
+    };
+  }, [refreshDeletionEligibility, user?.id]);
+  const openDeleteDialog = () => {
+    if (deletionEligibility?.outcome !== "eligible" || isDeleting) return;
+    setDeleteError(null);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const closeDeleteDialog = () => {
+    if (!isDeleting) setIsDeleteDialogOpen(false);
+  };
+
+  const handleAccountDeletion = async () => {
+    if (deletionRequestInFlightRef.current) return;
+
+    deletionRequestInFlightRef.current = true;
+    setIsDeleting(true);
+    setDeleteError(null);
+
+    try {
+      const result = await deleteCurrentAccount();
+      if (result.outcome === "blocked") {
+        setDeletionEligibility(result);
+        setIsDeleteDialogOpen(false);
+        return;
+      }
+
+      clearDeletedAccount();
+      navigate("/", { replace: true });
+    } catch {
+      setDeleteError("We couldn't delete your account. Please try again.");
+    } finally {
+      deletionRequestInFlightRef.current = false;
+      setIsDeleting(false);
     }
   };
 
@@ -454,6 +548,61 @@ export default function AccountPage() {
             </button>
           </div>
         </section>
+      )}
+
+      {user && (
+        <section className="account-page__card account-page__danger" aria-labelledby="account-danger-heading">
+          <h2 id="account-danger-heading">Danger zone</h2>
+          <p className="account-page__danger-intro">Permanently delete your SalsaSegura account.</p>
+          <p className="account-page__danger-copy">
+            This permanently removes your sign-in and eligible personal account data. Some event, organizer,
+            or moderation records may need to be retained first.
+          </p>
+
+          {deletionEligibility === null && !deletionEligibilityError && (
+            <p aria-live="polite" className="account-page__danger-status">
+              Checking whether account deletion is available…
+            </p>
+          )}
+          {deletionEligibilityError && (
+            <div className="account-page__danger-error" role="alert">
+              <p>{deletionEligibilityError}</p>
+              <button
+                className="account-page__btn account-page__btn--outline"
+                onClick={() => void refreshDeletionEligibility()}
+                type="button"
+              >
+                Check again
+              </button>
+            </div>
+          )}
+          {deletionEligibility?.outcome === "blocked" && (
+            <p className="account-page__danger-blocker" role="status">
+              {deletionBlockerMessage(deletionEligibility.blocker)}{" "}
+              <Link to="/contact">Contact us</Link> if you need help with this account.
+            </p>
+          )}
+          {deletionEligibility?.outcome === "eligible" && (
+            <button
+              aria-label="Delete account"
+              className="account-page__btn account-page__btn--danger"
+              disabled={isDeleting}
+              onClick={openDeleteDialog}
+              type="button"
+            >
+              Delete account
+            </button>
+          )}
+        </section>
+      )}
+
+      {isDeleteDialogOpen && (
+        <AccountDeletionDialog
+          error={deleteError}
+          isPending={isDeleting}
+          onCancel={closeDeleteDialog}
+          onConfirm={() => void handleAccountDeletion()}
+        />
       )}
 
       {isGlobalDialogOpen && (

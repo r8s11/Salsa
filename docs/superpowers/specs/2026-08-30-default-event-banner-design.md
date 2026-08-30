@@ -27,13 +27,19 @@ The prior generated-template component and selection utility are removed rather 
 
 - Add a small shared fallback-image constant/helper that returns the public banner URL when no flyer is available.
 - Update card, featured-card, modal, detail-page, and admin-thumbnail rendering to use that URL while preserving existing flyer behavior.
+- Pass the same resolved image URL to `ShareableEventPoster` before Instagram/native sharing capture. The render-only poster must therefore receive the default banner rather than `undefined`.
 - Preserve `object-fit: cover` and each surface's established dimensions.
 - Mark adjacent-image use as decorative (`alt=""`) where the event title is already exposed by the surrounding card, modal, or page.
 - Remove the SVG artwork component, styles, template-selection utility, and their tests.
 
+## Root cause: Instagram sharing
+
+The modal visibly renders no-flyer artwork, but the sharing path independently calls `resolvePosterImage(resolvedImageUrl)`. That value is currently `undefined` when no flyer exists, so `ShareableEventPoster` receives no `imageUrl` and captures only its gradient background. Resolving the same banner URL before both visible rendering and poster capture fixes the source rather than adding a share-only exception.
+
 ## Verification
 
 - Tests prove uploaded flyer precedence and the banner fallback URL.
+- Tests prove `ShareableEventPoster` receives and renders the banner when no flyer exists, while an uploaded flyer still overrides it.
 - Tests cover the affected rendering surfaces.
 - Run targeted Vitest tests, TypeScript checking, lint, production build, and browser checks at desktop and mobile viewport widths.
 

@@ -9,6 +9,11 @@ const mocks = vi.hoisted(() => ({
     user: { id: "user-1", email: "maria@example.com" } as { id: string; email: string } | null,
     role: null as "admin" | "moderator" | "organizer" | null,
     signOut: vi.fn(),
+    clearDeletedAccount: vi.fn(),
+  },
+  deletion: {
+    check: vi.fn(),
+    delete: vi.fn(),
   },
   profile: {
     profile: null as unknown,
@@ -24,6 +29,11 @@ vi.mock("../contexts/useAuth", () => ({
 
 vi.mock("../hooks/useOwnProfile", () => ({
   useOwnProfile: () => mocks.profile,
+}));
+
+vi.mock("../features/account/api/accountDeletion", () => ({
+  checkAccountDeletionEligibility: () => mocks.deletion.check(),
+  deleteCurrentAccount: () => mocks.deletion.delete(),
 }));
 
 function CurrentLocation() {
@@ -73,6 +83,11 @@ describe("AccountPage", () => {
     mocks.profile.error = null;
     mocks.auth.signOut.mockReset();
     mocks.auth.signOut.mockResolvedValue({ error: null });
+    mocks.auth.clearDeletedAccount.mockReset();
+    mocks.deletion.check.mockReset();
+    mocks.deletion.check.mockImplementation(() => new Promise<never>(() => undefined));
+    mocks.deletion.delete.mockReset();
+    mocks.deletion.delete.mockResolvedValue({ outcome: "deleted" });
   });
 
   it("renders a single h1 and truthful copy, no Sofia prototype data", () => {
@@ -484,4 +499,163 @@ describe("AccountPage", () => {
     );
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
+  it.each([null, "organizer", "moderator", "admin"] as const)(
+    "renders the Danger zone for the %s account role",
+    (role) => {
+      mocks.auth.role = role;
+      mocks.profile.profile = baseProfile();
+      renderPage();
+
+      expect(screen.getByRole("heading", { level: 2, name: "Danger zone" })).toBeInTheDocument();
+      expect(screen.getByText("Permanently delete your SalsaSegura account.")).toBeInTheDocument();
+    }
+  );
+
+  it("enables deletion only after the server marks a regular account eligible", async () => {
+    mocks.profile.profile = baseProfile();
+    mocks.deletion.check.mockResolvedValue({ outcome: "eligible" });
+    renderPage();
+
+    expect(await screen.findByRole("button", { name: "Delete account" })).toBeEnabled();
+  });
+
+  it.each([
+    ["role", "Self-service deletion is not available for organizer, moderator, or admin accounts."],
+    ["event_history", "Self-service deletion is not available while your account has event or submission history."],
+    ["organizer", "Self-service deletion is not available while you have organizer access or an organizer request."],
+    ["operational_history", "Self-service deletion is not available while your account has protected operational history."],
+    ["storage", "Self-service deletion is not available while you own uploaded files."],
+    ["unknown", "We cannot verify whether your account can be deleted right now."],
+  ] as const)("blocks the %s eligibility state without an executable deletion path", async (blocker, message) => {
+    mocks.profile.profile = baseProfile();
+    mocks.deletion.check.mockResolvedValue({ outcome: "blocked", blocker });
+    renderPage();
+
+    await waitFor(() =>
+      expect(within(screen.getByRole("region", { name: "Danger zone" })).getByRole("status")).toHaveTextContent(
+        message
+      )
+    );
+    expect(screen.queryByRole("button", { name: "Delete account" })).not.toBeInTheDocument();
+  });
+
+  it("keeps deletion disabled when eligibility cannot be checked and allows recovery", async () => {
+    mocks.profile.profile = baseProfile();
+    mocks.deletion.check.mockRejectedValue(new Error("Network unavailable"));
+    const user = userEvent.setup();
+    renderPage();
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "We couldn't check whether account deletion is available. Please try again."
+    );
+    expect(screen.queryByRole("button", { name: "Delete account" })).not.toBeInTheDocument();
+
+    mocks.deletion.check.mockResolvedValue({ outcome: "eligible" });
+    await user.click(screen.getByRole("button", { name: "Check again" }));
+
+    expect(await screen.findByRole("button", { name: "Delete account" })).toBeEnabled();
+  });
+
+  it("requires the exact DELETE confirmation, contains focus, and restores the opener on Escape", async () => {
+    mocks.profile.profile = baseProfile();
+    mocks.deletion.check.mockResolvedValue({ outcome: "eligible" });
+    const user = userEvent.setup();
+    renderPage();
+
+    const opener = await screen.findByRole("button", { name: "Delete account" });
+    opener.focus();
+    await user.click(opener);
+
+    const dialog = screen.getByRole("dialog", { name: "Permanently delete account?" });
+    const confirmation = within(dialog).getByRole("textbox", { name: "Type DELETE to confirm" });
+    const cancel = within(dialog).getByRole("button", { name: "Cancel account deletion" });
+    const confirm = within(dialog).getByRole("button", { name: "Permanently delete account" });
+    expect(confirmation).toHaveFocus();
+    expect(confirm).toBeDisabled();
+
+    await user.type(confirmation, "delete");
+    expect(confirm).toBeDisabled();
+    await user.clear(confirmation);
+    await user.type(confirmation, "DELETE");
+    expect(confirm).toBeEnabled();
+
+    await user.tab();
+    expect(cancel).toHaveFocus();
+    await user.tab({ shift: true });
+    expect(confirmation).toHaveFocus();
+    await user.keyboard("{Escape}");
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(opener).toHaveFocus();
+  });
+
+  it("prevents duplicate deletion requests and clears client identity only after success", async () => {
+    const deletion = Promise.withResolvers<{ outcome: "deleted" }>();
+    mocks.profile.profile = baseProfile();
+    mocks.deletion.check.mockResolvedValue({ outcome: "eligible" });
+    mocks.deletion.delete.mockReturnValue(deletion.promise);
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.click(await screen.findByRole("button", { name: "Delete account" }));
+    const dialog = screen.getByRole("dialog", { name: "Permanently delete account?" });
+    await user.type(within(dialog).getByRole("textbox", { name: "Type DELETE to confirm" }), "DELETE");
+    const confirm = within(dialog).getByRole("button", { name: "Permanently delete account" });
+    await user.click(confirm);
+    await user.click(confirm);
+
+    expect(mocks.deletion.delete).toHaveBeenCalledOnce();
+    expect(within(dialog).getByRole("button", { name: "Deleting account…" })).toBeDisabled();
+    expect(mocks.auth.clearDeletedAccount).not.toHaveBeenCalled();
+
+    deletion.resolve({ outcome: "deleted" });
+
+    await waitFor(() => expect(screen.getByText("Signed out destination")).toBeInTheDocument());
+    expect(mocks.auth.clearDeletedAccount).toHaveBeenCalledOnce();
+    expect(screen.getByTestId("location")).toHaveTextContent("/");
+  });
+
+  it("preserves the confirmation and account page when deletion fails", async () => {
+    mocks.profile.profile = baseProfile();
+    mocks.deletion.check.mockResolvedValue({ outcome: "eligible" });
+    mocks.deletion.delete.mockRejectedValue(new Error("Service unavailable"));
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.click(await screen.findByRole("button", { name: "Delete account" }));
+    const dialog = screen.getByRole("dialog", { name: "Permanently delete account?" });
+    const confirmation = within(dialog).getByRole("textbox", { name: "Type DELETE to confirm" });
+    await user.type(confirmation, "DELETE");
+    await user.click(within(dialog).getByRole("button", { name: "Permanently delete account" }));
+
+    expect(await within(dialog).findByRole("alert")).toHaveTextContent(
+      "We couldn't delete your account. Please try again."
+    );
+    expect(confirmation).toHaveValue("DELETE");
+    expect(mocks.auth.clearDeletedAccount).not.toHaveBeenCalled();
+    expect(screen.queryByText("Signed out destination")).not.toBeInTheDocument();
+  });
+
+  it("renders a server-side eligibility change as a blocker without reporting deletion success", async () => {
+    mocks.profile.profile = baseProfile();
+    mocks.deletion.check.mockResolvedValue({ outcome: "eligible" });
+    mocks.deletion.delete.mockResolvedValue({ outcome: "blocked", blocker: "event_history" });
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.click(await screen.findByRole("button", { name: "Delete account" }));
+    const dialog = screen.getByRole("dialog", { name: "Permanently delete account?" });
+    await user.type(within(dialog).getByRole("textbox", { name: "Type DELETE to confirm" }), "DELETE");
+    await user.click(within(dialog).getByRole("button", { name: "Permanently delete account" }));
+
+    await waitFor(() =>
+      expect(within(screen.getByRole("region", { name: "Danger zone" })).getByRole("status")).toHaveTextContent(
+        "Self-service deletion is not available while your account has event or submission history."
+      )
+    );
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(mocks.auth.clearDeletedAccount).not.toHaveBeenCalled();
+    expect(screen.queryByText("Signed out destination")).not.toBeInTheDocument();
+  });
+
 });

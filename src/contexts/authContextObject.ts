@@ -30,6 +30,7 @@ export type AuthContextValue = {
     password: string
   ) => Promise<{ error: Error | null; session: Session | null; user: User | null }>;
   signOut: (scope: AuthSignOutScope) => Promise<{ error: Error | null }>;
+  clearDeletedAccount: () => void;
 };
 
 export const AuthContext = createContext<AuthContextValue | undefined>(undefined);

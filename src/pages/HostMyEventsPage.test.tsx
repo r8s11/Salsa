@@ -49,7 +49,7 @@ const ownerPending: DatabaseEvent = {
   id: "pending-1",
   title: "Pending Event",
   status: "pending",
-  event_date: "2026-08-30T20:00:00Z",
+  event_date: "2026-12-31T20:00:00Z",
   location: "Studio 4B",
 };
 

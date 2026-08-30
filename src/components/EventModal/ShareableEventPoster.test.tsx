@@ -26,4 +26,18 @@ describe("ShareableEventPoster", () => {
     expect(within(poster).getByText("social")).toBeInTheDocument();
     expect(within(poster).getByRole("heading", { name: event.title })).toBeInTheDocument();
   });
+
+  it("renders the resolved poster image in the Instagram Story poster", () => {
+    render(
+      <ShareableEventPoster event={event} imageUrl="data:image/png;base64,banner" />
+    );
+
+    expect(
+      screen.getByRole("img", { name: /instagram story poster/i })
+    ).toBeInTheDocument();
+    expect(document.querySelector(".poster-bg-img")).toHaveAttribute(
+      "src",
+      "data:image/png;base64,banner"
+    );
+  });
 });

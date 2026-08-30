@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render as rtlRender, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import EventModal from "./EventModal";
+import { DEFAULT_EVENT_BANNER_URL } from "./eventModalImage";
 import { ScheduleXEvent } from "../../types/events";
 
 const {
@@ -316,6 +317,8 @@ describe("share poster", () => {
     );
     mockDownloadPoster.mockReset();
     mockRemoveTarget.mockReset();
+    mockResolvePosterImage.mockReset();
+    mockResolvePosterImage.mockImplementation(async (url?: string) => url ?? null);
   });
 
   afterEach(() => {
@@ -355,6 +358,24 @@ describe("share poster", () => {
 
     await waitFor(() => expect(mockRemoveTarget).toHaveBeenCalled());
     expect(shareButton).not.toBeDisabled();
+  });
+
+  it("inlines the default banner in a no-flyer poster before capture", async () => {
+    mockResolvePosterImage.mockResolvedValue("data:image/png;base64,banner");
+    mockCapturePoster.mockImplementation(async (container: HTMLElement) => {
+      expect(container.querySelector(".poster-bg-img")).toHaveAttribute(
+        "src",
+        "data:image/png;base64,banner"
+      );
+      return new Blob(["poster"], { type: "image/png" });
+    });
+
+    render(<EventModal event={baseEvent} onClose={() => {}} />);
+    const [shareButton] = screen.getAllByRole("button", { name: "Share" });
+    fireEvent.click(shareButton);
+
+    await waitFor(() => expect(mockCapturePoster).toHaveBeenCalledTimes(1));
+    expect(mockResolvePosterImage).toHaveBeenCalledWith(DEFAULT_EVENT_BANNER_URL);
   });
 
   it("downloads the poster PNG directly when native file sharing is unavailable", async () => {

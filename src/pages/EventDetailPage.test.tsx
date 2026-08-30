@@ -6,6 +6,8 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DatabaseEvent } from "../features/events/model/types";
 import { fetchApprovedEventById, fetchApprovedEvents } from "../features/events/api/eventsRepo";
+import { databaseEventToScheduleX } from "../features/events/model/convert";
+import { createEventTitleImage } from "../features/events/ui/eventTitleImage";
 import EventDetailPage from "./EventDetailPage";
 
 vi.mock("../features/events/api/eventsRepo", () => ({
@@ -119,6 +121,26 @@ describe("EventDetailPage", () => {
     expect(screen.getByRole("button", { name: "Copy link" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Instagram" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "WhatsApp" })).toBeInTheDocument();
+  });
+
+  it("renders deterministic title art in the cover when no flyer is available", async () => {
+    renderPage();
+
+    const scheduleEvent = databaseEventToScheduleX(event);
+    const image = await screen.findByRole("img", {
+      name: "SalsaSegura event title image for Havana Nights",
+    });
+
+    expect(image).toHaveAttribute(
+      "src",
+      createEventTitleImage({
+        id: scheduleEvent.id,
+        title: scheduleEvent.title,
+        eventType: scheduleEvent.calendarId,
+        city: scheduleEvent.city,
+        start: scheduleEvent.start,
+      })
+    );
   });
 
   it("shows the host in the cover facts on every tab", async () => {

@@ -1,4 +1,5 @@
 import React from "react";
+import EventImage from "../../features/events/ui/EventImage";
 import { ScheduleXEvent } from "../../types/events";
 
 const TYPE_LABELS: Record<string, string> = {
@@ -34,6 +35,14 @@ export default function FeaturedEventCard({
     }
   };
 
+  const imageInput = {
+    id: event.id,
+    title: event.title,
+    eventType: event.calendarId,
+    city: event.city,
+    start: typeof event.start === "string" ? event.start : String(event.start),
+  };
+
   return (
     <article
       className="featured-card"
@@ -43,10 +52,13 @@ export default function FeaturedEventCard({
       onKeyDown={handleKeyDown}
       aria-label={`Featured event: ${event.title} on ${weekday} ${month} ${day} at ${time}`}
     >
-      <div
-        className={`featured-card-media featured-card-media--${event.calendarId}`}
-        style={event.imageUrl ? { backgroundImage: `url(${event.imageUrl})` } : undefined}
-      >
+      <div className={`featured-card-media featured-card-media--${event.calendarId}`}>
+        <EventImage
+          {...imageInput}
+          imageUrl={event.imageUrl}
+          className="featured-card-media__image"
+          loading="lazy"
+        />
         <div className="featured-card-date">
           <span>{weekday}</span>
           <strong>{day}</strong>

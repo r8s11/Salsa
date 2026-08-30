@@ -4,6 +4,7 @@ import { render as rtlRender, screen, fireEvent, waitFor, act } from "@testing-l
 import { MemoryRouter } from "react-router-dom";
 import EventModal from "./EventModal";
 import { ScheduleXEvent } from "../../types/events";
+import { createEventTitleImage } from "../../features/events/ui/eventTitleImage";
 
 const {
   mockEnsureContainer,
@@ -115,13 +116,14 @@ describe("EventModal", () => {
     const gallery = ["a.jpg", "b.jpg", "c.jpg", "d.jpg", "e.jpg", "f.jpg"];
     rerender(<EventModal event={{ ...baseEvent, gallery }} onClose={() => {}} />);
     expect(screen.getByText(/photos from past nights/i)).toBeInTheDocument();
-    const thumbs = screen.getAllByRole("img");
+    const thumbs = screen.getAllByRole("img", { name: /Past night photo/i });
     expect(thumbs).toHaveLength(4);
     for (const thumb of thumbs) {
       expect(thumb).toHaveAttribute("width", "60");
       expect(thumb).toHaveAttribute("height", "60");
       expect(thumb).toHaveAttribute("loading", "lazy");
     }
+
     expect(screen.getByText("+2")).toBeInTheDocument();
   });
 
@@ -268,6 +270,30 @@ describe("quick-look region", () => {
     expect(screen.getByText("Beginner Salsa Class")).toBeInTheDocument();
     expect(screen.getByText(/7:00 PM - 11:00 PM/i)).toBeInTheDocument();
     expect(screen.getByText("Free")).toBeInTheDocument();
+  });
+  it("uses generated title art in the modal poster when the flyer is absent", () => {
+    const event = {
+      ...classEvent,
+      id: "havana-nights",
+      title: "Havana Nights Social",
+      city: "boston" as const,
+      imageUrl: undefined,
+    };
+    render(<EventModal event={event} onClose={vi.fn()} />);
+    expect(
+      screen.getByRole("img", {
+        name: "SalsaSegura event title image for Havana Nights Social",
+      })
+    ).toHaveAttribute(
+      "src",
+      createEventTitleImage({
+        id: event.id,
+        title: event.title,
+        eventType: event.calendarId,
+        city: event.city,
+        start: event.start,
+      })
+    );
   });
 
   it("does not invent class metadata that is absent from the event", () => {

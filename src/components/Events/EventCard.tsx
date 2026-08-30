@@ -1,4 +1,5 @@
 import React from "react";
+import EventImage from "../../features/events/ui/EventImage";
 import { ScheduleXEvent } from "../../types/events";
 
 const TYPE_LABELS: Record<string, string> = {
@@ -34,6 +35,14 @@ export default function EventCard({
     }
   };
 
+  const imageInput = {
+    id: event.id,
+    title: event.title,
+    eventType: event.calendarId,
+    city: event.city,
+    start: typeof event.start === "string" ? event.start : String(event.start),
+  };
+
   return (
     <article
       className="event-card"
@@ -43,10 +52,13 @@ export default function EventCard({
       tabIndex={0}
       aria-label={`${event.title} on ${weekday} ${month} ${day} at ${time}`}
     >
-      <div
-        className={`event-card-thumb event-card-thumb--${event.calendarId}`}
-        style={event.imageUrl ? { backgroundImage: `url(${event.imageUrl})` } : undefined}
-      >
+      <div className={`event-card-thumb event-card-thumb--${event.calendarId}`}>
+        <EventImage
+          {...imageInput}
+          imageUrl={event.imageUrl}
+          className="event-card-thumb__image"
+          loading="lazy"
+        />
         <span className={`event-card-chip event-card-chip--${event.calendarId}`}>
           {TYPE_LABELS[event.calendarId] ?? event.calendarId}
         </span>

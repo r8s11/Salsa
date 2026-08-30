@@ -56,6 +56,15 @@
   background-color: var(--surface-high);
   background-image: linear-gradient(150deg, var(--surface-high), var(--red));
 }
+.featured-card-media__image,
+.event-card-thumb__image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 
 .featured-card-media--class {
   background-image: linear-gradient(150deg, var(--surface-high), #4a5aa8);
@@ -67,6 +76,7 @@
 
 .featured-card-date {
   position: absolute;
+  z-index: 1;
   top: 20px;
   left: 20px;
   display: flex;
@@ -278,6 +288,7 @@
 
 .event-card-chip {
   position: absolute;
+  z-index: 1;
   top: 12px;
   left: 12px;
   font-family: var(--font-display);
@@ -307,9 +318,9 @@
   color: var(--gold-light);
   border-color: rgba(233, 195, 73, 0.35);
 }
-
 .event-card-date-overlay {
   position: absolute;
+  z-index: 1;
   bottom: 12px;
   left: 12px;
   display: flex;

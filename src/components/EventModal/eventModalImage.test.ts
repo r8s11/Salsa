@@ -1,36 +1,57 @@
 import { describe, it, expect } from "vitest";
+import { createEventTitleImage } from "../../features/events/ui/eventTitleImage";
 import { resolveEventModalImage } from "./eventModalImage";
+
+const baseInput = {
+  id: "1",
+  title: "Salsa Social",
+  eventType: "social" as const,
+  city: "boston" as const,
+  start: "2026-08-24 19:00",
+};
 
 describe("resolveEventModalImage", () => {
   it("returns the event's uploaded image unchanged when present", () => {
     const url = "https://example.test/flyers/social-night.jpg";
-    expect(resolveEventModalImage({ id: "1", imageUrl: url, calendarId: "social" })).toBe(url);
+    expect(
+      resolveEventModalImage({
+        ...baseInput,
+        imageUrl: url,
+        calendarId: baseInput.eventType,
+      })
+    ).toBe(url);
   });
 
-  it("deterministically selects the Salsa fallback for an even id character-code sum", () => {
-    // "2" -> char code 50 (even).
-    const result = resolveEventModalImage({ id: "2", imageUrl: undefined, calendarId: "social" });
-    expect(result).toBe("/images/event-modal-salsa-party.webp");
-    // Re-resolving must be stable across calls/rerenders.
-    expect(resolveEventModalImage({ id: "2", imageUrl: undefined, calendarId: "social" })).toBe(
-      result
-    );
+  it("returns deterministic title art when the flyer is absent", () => {
+    const event = {
+      ...baseInput,
+      imageUrl: undefined,
+      calendarId: baseInput.eventType,
+    };
+    const result = resolveEventModalImage(event);
+    expect(result).toBe(createEventTitleImage(baseInput));
+    expect(resolveEventModalImage(event)).toBe(result);
   });
 
-  it("deterministically selects the Bachata fallback for an odd id character-code sum", () => {
-    // "1" -> char code 49 (odd).
-    const result = resolveEventModalImage({ id: "1", imageUrl: undefined, calendarId: "class" });
-    expect(result).toBe("/images/event-modal-bachata-party.webp");
-  });
-
-  it("falls back to a deterministic party photo when imageUrl is missing or empty", () => {
+  it("uses the same title art for missing and empty flyer URLs", () => {
     const missing = resolveEventModalImage({
-      id: "42",
+      ...baseInput,
       imageUrl: undefined,
       calendarId: "workshop",
+      eventType: "workshop",
     });
-    const empty = resolveEventModalImage({ id: "42", imageUrl: "", calendarId: "workshop" });
-    expect(missing).toMatch(/^\/images\/event-modal-(salsa|bachata)-party\.webp$/);
+    const empty = resolveEventModalImage({
+      ...baseInput,
+      imageUrl: "",
+      calendarId: "workshop",
+      eventType: "workshop",
+    });
+    expect(missing).toBe(
+      createEventTitleImage({
+        ...baseInput,
+        eventType: "workshop",
+      })
+    );
     expect(empty).toBe(missing);
   });
 });

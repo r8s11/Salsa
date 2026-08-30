@@ -5,10 +5,10 @@ import { resolveEventModalImage } from "./eventModalImage";
 const baseInput = {
   id: "1",
   title: "Salsa Social",
-  eventType: "social" as const,
   city: "boston" as const,
   start: "2026-08-24 19:00",
 };
+const socialImageInput = { ...baseInput, eventType: "social" as const };
 
 describe("resolveEventModalImage", () => {
   it("returns the event's uploaded image unchanged when present", () => {
@@ -17,7 +17,7 @@ describe("resolveEventModalImage", () => {
       resolveEventModalImage({
         ...baseInput,
         imageUrl: url,
-        calendarId: baseInput.eventType,
+        calendarId: socialImageInput.eventType,
       })
     ).toBe(url);
   });
@@ -26,10 +26,10 @@ describe("resolveEventModalImage", () => {
     const event = {
       ...baseInput,
       imageUrl: undefined,
-      calendarId: baseInput.eventType,
+      calendarId: socialImageInput.eventType,
     };
     const result = resolveEventModalImage(event);
-    expect(result).toBe(createEventTitleImage(baseInput));
+    expect(result).toBe(createEventTitleImage(socialImageInput));
     expect(resolveEventModalImage(event)).toBe(result);
   });
 
@@ -38,13 +38,11 @@ describe("resolveEventModalImage", () => {
       ...baseInput,
       imageUrl: undefined,
       calendarId: "workshop",
-      eventType: "workshop",
     });
     const empty = resolveEventModalImage({
       ...baseInput,
       imageUrl: "",
       calendarId: "workshop",
-      eventType: "workshop",
     });
     expect(missing).toBe(
       createEventTitleImage({

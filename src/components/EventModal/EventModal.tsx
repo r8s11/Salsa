@@ -13,6 +13,7 @@ import {
   X,
 } from "lucide-react";
 import { ScheduleXEvent } from "../../types/events";
+import { createEventTitleImage } from "../../features/events/ui/eventTitleImage";
 import { downloadIcs, mapsUrl, googleCalendarUrl } from "../../utils/ics";
 import { getUpcomingSeriesDates } from "../../utils/series";
 import {
@@ -240,8 +241,9 @@ export default function EventModal({ event, onClose }: EventModalProps) {
       // Inline the flyer before rendering: the capture cannot fetch a
       // cross-origin image, so an un-inlined flyer yields a photo-less poster.
       const posterImageUrl = await resolvePosterImage(resolvedImageUrl);
+      const posterImage = posterImageUrl ?? createEventTitleImage(imageInput);
       root = createRoot(container);
-      root.render(<ShareableEventPoster event={event} imageUrl={posterImageUrl ?? undefined} />);
+      root.render(<ShareableEventPoster event={event} imageUrl={posterImage} />);
       // Wait for the poster to render before capturing
       await new Promise((resolve) => setTimeout(resolve, 300));
       const poster = await capturePoster(container);

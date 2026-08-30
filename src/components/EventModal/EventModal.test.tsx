@@ -314,6 +314,8 @@ describe("share poster", () => {
     );
     mockDownloadPoster.mockReset();
     mockRemoveTarget.mockReset();
+    mockResolvePosterImage.mockReset();
+    mockResolvePosterImage.mockImplementation(async (url?: string) => url ?? null);
   });
 
   afterEach(() => {
@@ -353,6 +355,33 @@ describe("share poster", () => {
 
     await waitFor(() => expect(mockRemoveTarget).toHaveBeenCalled());
     expect(shareButton).not.toBeDisabled();
+  });
+
+  it("uses deterministic title art when an uploaded flyer cannot be inlined", async () => {
+    const eventWithBrokenFlyer: ScheduleXEvent = {
+      ...baseEvent,
+      imageUrl: "https://cdn.example.com/broken-flyer.png",
+    };
+    const expectedTitleArt = createEventTitleImage({
+      id: eventWithBrokenFlyer.id,
+      title: eventWithBrokenFlyer.title,
+      eventType: eventWithBrokenFlyer.calendarId,
+      city: eventWithBrokenFlyer.city,
+      start: eventWithBrokenFlyer.start,
+    });
+    mockResolvePosterImage.mockResolvedValue(null);
+    mockCapturePoster.mockImplementation(async (container: HTMLElement) => {
+      const image = container.querySelector<HTMLImageElement>(".poster-bg-img");
+      expect(image).not.toBeNull();
+      expect(image).toHaveAttribute("src", expectedTitleArt);
+      return new Blob(["poster"], { type: "image/png" });
+    });
+
+    render(<EventModal event={eventWithBrokenFlyer} onClose={() => {}} />);
+    const [shareButton] = screen.getAllByRole("button", { name: "Share" });
+    fireEvent.click(shareButton);
+
+    await waitFor(() => expect(mockCapturePoster).toHaveBeenCalledTimes(1));
   });
 
   it("downloads the poster PNG directly when native file sharing is unavailable", async () => {

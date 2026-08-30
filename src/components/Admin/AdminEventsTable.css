@@ -57,6 +57,18 @@
   flex-shrink: 0;
 }
 
+.admin-events-table__event-fallback {
+  width: 48px;
+  height: 48px;
+  min-height: 48px;
+  flex: 0 0 48px;
+  border-radius: var(--admin-radius);
+}
+
+.admin-events-table__event-fallback .ss-fallback__content {
+  display: none;
+}
+
 .admin-events-table__title {
   display: block;
   margin: 0 0 4px;

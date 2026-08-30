@@ -92,6 +92,11 @@ describe("AdminEventsTable", () => {
     expect(links[0]).toHaveAttribute("href", "/admin/events?edit=event-1");
   });
 
+  it("renders branded artwork instead of a remote placeholder when flyer is absent", () => {
+    renderTable();
+    expect(document.querySelector(".admin-events-table__event-fallback")).toBeInTheDocument();
+  });
+
   it("shows 'Venue not set' and 'Time not set' for empty fields", () => {
     renderTable({
       events: [{ ...baseEvent, location: null, event_time: null }],

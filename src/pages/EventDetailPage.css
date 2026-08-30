@@ -496,3 +496,22 @@
     justify-content: center;
   }
 }
+
+/* ---------- fallback component in cover ---------- */
+.event-page__cover .ss-fallback {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+}
+
+.event-page__cover .ss-fallback--detail {
+  min-height: unset;
+}
+
+.event-page__cover-art--fallback {
+  display: none;
+}
+
+.event-page__cover .ss-fallback {
+  z-index: 1;
+}

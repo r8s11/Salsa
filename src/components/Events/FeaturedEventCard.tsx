@@ -1,5 +1,7 @@
 import React from "react";
 import { ScheduleXEvent } from "../../types/events";
+import SalsaSeguraFallbackImage from "../brand/SalsaSeguraFallbackImage";
+import { getFallbackTemplate } from "../../utils/eventFallbacks";
 
 const TYPE_LABELS: Record<string, string> = {
   social: "Social Dance",
@@ -34,6 +36,8 @@ export default function FeaturedEventCard({
     }
   };
 
+  const hasImage = Boolean(event.imageUrl);
+
   return (
     <article
       className="featured-card"
@@ -45,8 +49,16 @@ export default function FeaturedEventCard({
     >
       <div
         className={`featured-card-media featured-card-media--${event.calendarId}`}
-        style={event.imageUrl ? { backgroundImage: `url(${event.imageUrl})` } : undefined}
+        style={hasImage ? { backgroundImage: `url(${event.imageUrl})` } : undefined}
       >
+        {!hasImage && (
+          <SalsaSeguraFallbackImage
+            title={event.title}
+            template={getFallbackTemplate(event)}
+            variant="card"
+            decorative
+          />
+        )}
         <div className="featured-card-date">
           <span>{weekday}</span>
           <strong>{day}</strong>

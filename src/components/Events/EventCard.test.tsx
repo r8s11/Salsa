@@ -35,6 +35,11 @@ describe("EventCard", () => {
     expect(screen.getByText("Social Dance")).toBeInTheDocument();
   });
 
+  it("renders branded title artwork when no flyer is available", () => {
+    const { container } = renderCard({ ...baseEvent, imageUrl: undefined });
+    expect(container.querySelector(".ss-fallback")).toBeInTheDocument();
+  });
+
   it("shows location only when present", () => {
     const { rerender } = renderCard(baseEvent);
     expect(screen.getByText(/Seaport Rooftop/)).toBeInTheDocument();

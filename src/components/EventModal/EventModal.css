@@ -676,3 +676,18 @@
     padding-right: 16px;
   }
 }
+
+/* Fallback variant: remove default gradient when fallback component renders */
+.modal-poster--fallback {
+  background-image: none;
+  padding: 0;
+}
+.modal-poster--fallback .modal-close,
+.modal-poster--fallback .poster-overlay {
+  position: relative;
+  z-index: 2;
+}
+.modal-poster--fallback .ss-fallback {
+  position: absolute;
+  inset: 0;
+}

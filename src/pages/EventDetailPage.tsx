@@ -9,6 +9,8 @@ import { selectRelatedEvents } from "../features/events/model/relatedEvents";
 import type { EventType } from "../features/events/model/types";
 import { buildPublicEventUrl } from "../features/events/model/eventSharing";
 import { downloadIcs, mapsUrl } from "../utils/ics";
+import { getFallbackTemplate } from "../utils/eventFallbacks";
+import SalsaSeguraFallbackImage from "../components/brand/SalsaSeguraFallbackImage";
 import NotFoundPage from "./NotFoundPage";
 import "./EventDetailPage.css";
 
@@ -129,8 +131,21 @@ export default function EventDetailPage() {
       <div className="event-page__cover">
         {event.image_url ? (
           <img className="event-page__cover-img" src={event.image_url} alt="" />
-        ) : null}
-        <div className="event-page__cover-art" />
+        ) : (
+          <SalsaSeguraFallbackImage
+            title={event.title}
+            template={getFallbackTemplate({
+              id: event.id,
+              title: event.title,
+              calendarId: event.event_type,
+              danceStyles: styles.map((term) => term.name),
+            })}
+            variant="detail"
+            decorative
+            showTitle={false}
+            />
+        )}
+        <div className={`event-page__cover-art ${event.image_url ? "" : "event-page__cover-art--fallback"}`} />
         <div className="event-page__cover-bar">
           <Link to="/calendar" className="event-page__back">
             ← The calendar

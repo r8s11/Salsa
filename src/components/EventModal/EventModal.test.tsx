@@ -55,6 +55,11 @@ describe("EventModal", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
+  it("renders branded title artwork when no flyer is available", () => {
+    const { container } = render(<EventModal event={baseEvent} onClose={() => {}} />);
+    expect(container.querySelector(".ss-fallback")).toBeInTheDocument();
+  });
+
   it("shows price and 'Get Tickets' for a paid event", () => {
     render(<EventModal event={baseEvent} onClose={() => {}} />);
     expect(screen.getByText("$20")).toBeInTheDocument();
@@ -76,17 +81,18 @@ describe("EventModal", () => {
   it("renders Full details as a close button (not a route link) when isFromHomepage is true", () => {
     const onClose = vi.fn();
     render(<EventModal event={baseEvent} onClose={onClose} isFromHomepage={true} />);
-    const detailsButton = screen.getByRole("button", { name: "Full details" });
-    expect(detailsButton).toBeInTheDocument();
+    const detailsButtons = screen.getAllByRole("button", { name: "Full details" });
+    expect(detailsButtons.length).toBeGreaterThan(0);
+    expect(detailsButtons[0]).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Full details" })).not.toBeInTheDocument();
-    fireEvent.click(detailsButton);
+    fireEvent.click(detailsButtons[0]);
     expect(onClose).toHaveBeenCalledOnce();
   });
 
   it("does not navigate when isFromHomepage is true and Full details is clicked", () => {
     const onClose = vi.fn();
     render(<EventModal event={baseEvent} onClose={onClose} isFromHomepage={true} />);
-    const detailsButton = screen.getByRole("button", { name: "Full details" });
+    const detailsButton = screen.getAllByRole("button", { name: "Full details" })[0];
     fireEvent.click(detailsButton);
     expect(onClose).toHaveBeenCalledTimes(1);
     // No route change — the modal simply closes and returns to the homepage

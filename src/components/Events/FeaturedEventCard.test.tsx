@@ -39,6 +39,11 @@ describe("FeaturedEventCard", () => {
     expect(screen.getByText(/rotating DJs/)).toBeInTheDocument();
   });
 
+  it("renders branded title artwork when no flyer is available", () => {
+    const { container } = renderCard({ ...baseEvent, imageUrl: undefined });
+    expect(container.querySelector(".ss-fallback")).toBeInTheDocument();
+  });
+
   it("omits the description paragraph when absent", () => {
     renderCard({ ...baseEvent, description: undefined });
     expect(screen.queryByText(/rotating DJs/)).not.toBeInTheDocument();

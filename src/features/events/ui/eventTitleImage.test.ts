@@ -51,4 +51,11 @@ describe("createEventTitleImage", () => {
 
     expect(svg).toContain('aria-hidden="true" color="#ff6b61" opacity="0.16"');
   });
+
+  it("serializes decorative motif paths as valid SVG", () => {
+    const svg = decodeURIComponent(createEventTitleImage(social));
+
+    expect(svg).toMatch(/<path\b[^>]*\saria-hidden="true"\/>/u);
+    expect(svg).not.toContain('/ aria-hidden="true">');
+  });
 });

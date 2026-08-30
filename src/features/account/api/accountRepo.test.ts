@@ -65,30 +65,51 @@ describe("updateOwnProfile", () => {
 
     const result = await updateOwnProfile("user-1", {
       display_name: "Maria L.",
-      username: "maria99",
       avatar_url: "https://cdn.test/me.png",
     });
 
     expect(from).toHaveBeenCalledWith("profiles");
     expect(updateOp).toHaveBeenCalledWith({
       display_name: "Maria L.",
-      username: "maria99",
       avatar_url: "https://cdn.test/me.png",
     });
     expect(eq).toHaveBeenCalledWith("id", "user-1");
     expect(result).toEqual(updatedRow);
   });
 
-  it("only sends the supplied fields so unrelated columns are preserved", async () => {
+  it("only sends display_name and avatar_url; never includes username or any privileged column", async () => {
     from.mockReturnValue({ update: updateOp });
     updateOp.mockReturnValue({ eq });
     eq.mockReturnValue({ select });
     select.mockReturnValue({ single });
     single.mockResolvedValue({ data: {}, error: null });
 
+    // Force the input to be a public-profile-lifecycle field too — the
+    // repository's typed contract must reject it at compile time, so
+    // verify at runtime that even an attempted cast would not be
+    // forwarded through .update().
     await updateOwnProfile("user-2", { display_name: "Renamed" });
 
     expect(updateOp).toHaveBeenCalledWith({ display_name: "Renamed" });
+    const payload = updateOp.mock.calls[0][0];
+    expect(payload).not.toHaveProperty("username");
+    expect(payload).not.toHaveProperty("role");
+    expect(payload).not.toHaveProperty("status");
+    expect(payload).not.toHaveProperty("status_reason");
+    expect(payload).not.toHaveProperty("created_at");
+    expect(payload).not.toHaveProperty("id");
+  });
+
+  it("only sends avatar_url when only the avatar is being updated", async () => {
+    from.mockReturnValue({ update: updateOp });
+    updateOp.mockReturnValue({ eq });
+    eq.mockReturnValue({ select });
+    select.mockReturnValue({ single });
+    single.mockResolvedValue({ data: {}, error: null });
+
+    await updateOwnProfile("user-3", { avatar_url: "https://cdn.test/avatar.png" });
+
+    expect(updateOp).toHaveBeenCalledWith({ avatar_url: "https://cdn.test/avatar.png" });
   });
 
   it("throws when supabase returns an error", async () => {
@@ -98,6 +119,6 @@ describe("updateOwnProfile", () => {
     select.mockReturnValue({ single });
     single.mockResolvedValue({ data: null, error: { message: "RLS denied" } });
 
-    await expect(updateOwnProfile("user-3", { display_name: "x" })).rejects.toThrow("RLS denied");
+    await expect(updateOwnProfile("user-4", { display_name: "x" })).rejects.toThrow("RLS denied");
   });
 });

@@ -4,12 +4,16 @@ import { ArrowLeft, Camera } from "lucide-react";
 import { useAuth } from "../contexts/useAuth";
 import { useOwnProfile } from "../hooks/useOwnProfile";
 import { useUpdateOwnProfile } from "../hooks/useUpdateOwnProfile";
-import { resolveIdentity, initialsFor, SAFE_NAME_FALLBACK, type OwnProfile } from "../features/account/model/account";
+import {
+  resolveIdentity,
+  initialsFor,
+  SAFE_NAME_FALLBACK,
+  type OwnProfile,
+} from "../features/account/model/account";
 import "./ProfileEditPage.css";
 
 type FormState = {
   display_name: string;
-  username: string;
   avatar_url: string;
 };
 
@@ -18,20 +22,8 @@ type SavedNotice = { kind: "success"; message: string };
 function formStateFromProfile(profile: OwnProfile): FormState {
   return {
     display_name: profile.display_name ?? "",
-    username: profile.username ?? "",
     avatar_url: profile.avatar_url ?? "",
   };
-}
-
-function sanitizeUsernameInput(value: string): string {
-  // Lowercased, single @, only the slug character set the public.profiles
-  // username_unique index expects. This is the existing app's convention;
-  // full username-lifecycle rules belong to Phase 7.
-  return value
-    .trim()
-    .replace(/^@+/, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9._]/g, "");
 }
 
 function isValidUrl(value: string): boolean {
@@ -54,7 +46,6 @@ export default function ProfileEditPage() {
   const usernameId = useId();
   const avatarUrlId = useId();
   const avatarUrlErrorId = useId();
-  const pageErrorId = useId();
 
   const [form, setForm] = useState<FormState | null>(null);
   const [avatarUrlError, setAvatarUrlError] = useState<string | null>(null);
@@ -69,11 +60,12 @@ export default function ProfileEditPage() {
 
   const identity = profile ? resolveIdentity(profile) : null;
   const initials = identity ? initialsFor(identity) : "·";
+  const currentUsername = profile?.username ?? null;
+
   const dirty =
     form !== null &&
     profile !== null &&
     (form.display_name !== (profile.display_name ?? "") ||
-      form.username !== (profile.username ?? "") ||
       form.avatar_url !== (profile.avatar_url ?? ""));
   const canSave =
     !isSaving &&
@@ -89,13 +81,11 @@ export default function ProfileEditPage() {
     setSaved(null);
 
     const trimmedDisplayName = form.display_name.trim();
-    const cleanedUsername = sanitizeUsernameInput(form.username);
     const cleanedAvatarUrl = form.avatar_url.trim();
 
     try {
       await update({
         display_name: trimmedDisplayName.length > 0 ? trimmedDisplayName : null,
-        username: cleanedUsername.length > 0 ? cleanedUsername : null,
         avatar_url: cleanedAvatarUrl.length > 0 ? cleanedAvatarUrl : null,
       });
       setSaved({ kind: "success", message: "Saved. Your profile is up to date." });
@@ -231,28 +221,19 @@ export default function ProfileEditPage() {
                   </label>
                   <input
                     id={usernameId}
-                    className="profile-edit-page__input"
+                    className="profile-edit-page__input profile-edit-page__input--readonly"
                     type="text"
-                    inputMode="text"
-                    autoCapitalize="off"
-                    autoCorrect="off"
-                    spellCheck={false}
-                    value={form.username}
-                    onChange={(event) => {
-                      setForm((current) =>
-                        current
-                          ? { ...current, username: sanitizeUsernameInput(event.target.value) }
-                          : current
-                      );
-                      setSaved(null);
-                    }}
-                    placeholder="your-handle"
-                    maxLength={32}
+                    readOnly
+                    disabled
+                    aria-readonly="true"
+                    value={currentUsername ?? ""}
+                    placeholder="Not set"
                   />
                   <p className="profile-edit-page__hint">
-                    {form.username
-                      ? `salsasegura.com/u/${form.username}`
-                      : "Shown on your public profile and submissions."}
+                    {currentUsername
+                      ? `salsasegura.com/u/${currentUsername}`
+                      : "No username set yet."}{" "}
+                    Username changes arrive in a later update.
                   </p>
                 </div>
               </div>
@@ -281,7 +262,7 @@ export default function ProfileEditPage() {
           </section>
 
           {saveError && (
-            <p id={pageErrorId} className="profile-edit-page__error" role="alert">
+            <p className="profile-edit-page__error" role="alert">
               We couldn't save your changes. Please try again.
             </p>
           )}

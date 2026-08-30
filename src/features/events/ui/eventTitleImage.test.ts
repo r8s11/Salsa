@@ -109,4 +109,15 @@ describe("createEventTitleImage", () => {
     expect(svg.indexOf(">SalsaSegura</text>")).toBeLessThan(svg.indexOf('y="202"'));
     expect(svg).not.toContain('y="620"');
   });
+
+  it("marks omitted words after an overlong first word", () => {
+    const svg = decodeURIComponent(
+      createEventTitleImage({
+        ...social,
+        title: `${"Supercalifragilisticexpialidocious".repeat(2)} trailing words`,
+      })
+    );
+
+    expect(svg).toContain("…");
+  });
 });

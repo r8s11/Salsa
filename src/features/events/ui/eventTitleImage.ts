@@ -161,7 +161,8 @@ function normaliseAndWrapTitle(value: string | null | undefined): string[] {
   let currentLine = "";
   let omittedWords = false;
 
-  for (const word of words) {
+  for (let wordIndex = 0; wordIndex < words.length; wordIndex += 1) {
+    const word = words[wordIndex];
     if (!word) {
       continue;
     }
@@ -180,8 +181,8 @@ function normaliseAndWrapTitle(value: string | null | undefined): string[] {
         }
         lines.push(chunk);
       }
-      if (lines.length === 3 || omittedWords) {
-        omittedWords = omittedWords || chunks.length > 0;
+      if (omittedWords || wordIndex < words.length - 1) {
+        omittedWords = omittedWords || wordIndex < words.length - 1;
         break;
       }
       continue;
@@ -212,8 +213,8 @@ function normaliseAndWrapTitle(value: string | null | undefined): string[] {
     return ["Event"];
   }
 
-  if (omittedWords && lines.length === 3) {
-    lines[2] = appendEllipsis(lines[2]);
+  if (omittedWords) {
+    lines[lines.length - 1] = appendEllipsis(lines[lines.length - 1]);
   }
 
   return lines.slice(0, 3);

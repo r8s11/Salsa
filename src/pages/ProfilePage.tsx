@@ -120,6 +120,9 @@ export default function ProfilePage() {
         </div>
 
         <div className="profile-actions">
+          <Link className="profile-action-btn profile-action-btn--outline" to="/profile/edit">
+            Profile settings
+          </Link>
           <Link className="profile-action-btn profile-action-btn--primary" to="/submit">
             + Submit Event
           </Link>

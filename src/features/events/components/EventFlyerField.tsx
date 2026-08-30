@@ -1,5 +1,7 @@
 import { ChangeEvent, DragEvent, useEffect, useId, useRef, useState } from "react";
 import { ImageUp, RotateCw, Trash2, Loader2, AlertTriangle, CheckCircle2, RefreshCw } from "lucide-react";
+import EventImage from "../ui/EventImage";
+import type { EventTitleImageInput } from "../ui/eventTitleImage";
 import { validateEventFlyer } from "../api/eventFlyers";
 import "./EventFlyerField.css";
 
@@ -36,6 +38,8 @@ type EventFlyerFieldProps = {
   onRetry?: () => void;
   /** Optional size caption rendered under an uploaded flyer, e.g. "1.8 MB". */
   sizeCaption?: string | null;
+  /** Event metadata used when a persisted flyer fails to load. */
+  imageInput?: EventTitleImageInput;
 };
 
 export default function EventFlyerField({
@@ -48,6 +52,13 @@ export default function EventFlyerField({
   onRemove,
   onRetry,
   sizeCaption = null,
+  imageInput = {
+    id: "event-flyer-preview",
+    title: undefined,
+    eventType: undefined,
+    city: undefined,
+    start: undefined,
+  },
 }: EventFlyerFieldProps) {
   const inputId = useId();
   const [dragOver, setDragOver] = useState(false);
@@ -151,17 +162,10 @@ export default function EventFlyerField({
 
       {showPreview && (
         <figure className="event-flyer-field__preview" aria-live="polite">
-          <img
-            src={displayUrl as string}
+          <EventImage
+            {...imageInput}
+            imageUrl={displayUrl}
             alt={previewUrl ? "Selected flyer preview" : "Current event flyer"}
-            onError={() => {
-              setPreviewError(true);
-              if (previewUrl) {
-                URL.revokeObjectURL(previewUrl);
-                setPreviewUrl(null);
-                onFileChange(null);
-              }
-            }}
           />
           <figcaption className="event-flyer-field__preview-meta">
             <CheckCircle2 size={16} aria-hidden className="event-flyer-field__ok-icon" />

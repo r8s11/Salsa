@@ -104,6 +104,13 @@ export default function SubmitEventPage() {
               {user ? (
                 <EventFlyerField
                   currentUrl={uploadedFlyerUrl}
+                  imageInput={{
+                    id: "new-event",
+                    title: form.title,
+                    eventType: form.event_type || undefined,
+                    city: form.city,
+                    start: `${form.event_date} ${form.event_time}`,
+                  }}
                   onFileChange={handleFlyerChange}
                   onRemove={handleFlyerRemove}
                   onRetry={handleFlyerRetry}

@@ -178,6 +178,13 @@ export default function AdminEventEditor({
             {eventId && (
               <EventFlyerField
                 currentUrl={form.image_url || null}
+                imageInput={{
+                  id: eventId,
+                  title: form.title,
+                  eventType: form.event_type || undefined,
+                  city: form.city,
+                  start: `${form.event_date} ${form.event_time}`,
+                }}
                 onFileChange={setSelectedFlyer}
                 onRemove={() => setForm((current) => ({ ...current, image_url: "" }))}
                 disabled={isSaving}

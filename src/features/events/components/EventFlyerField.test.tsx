@@ -1,6 +1,7 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+import { createEventTitleImage } from "../ui/eventTitleImage";
 import EventFlyerField from "./EventFlyerField";
 
 describe("EventFlyerField", () => {
@@ -49,6 +50,30 @@ describe("EventFlyerField", () => {
     );
     expect(screen.getByRole("button", { name: /Replace/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Remove/i })).toBeInTheDocument();
+  });
+
+  it("falls back to deterministic title art when a persisted flyer fails to load", () => {
+    const imageInput = {
+      id: "event-1",
+      title: "Havana Nights Social",
+      eventType: "social" as const,
+      city: "boston" as const,
+      start: "2026-10-24 21:00",
+    };
+    render(
+      <EventFlyerField
+        currentUrl="https://cdn.example.com/broken-flyer.png"
+        imageInput={imageInput}
+        onFileChange={vi.fn()}
+      />
+    );
+
+    const image = screen.getByRole("img", { name: "Current event flyer" });
+    fireEvent.error(image);
+
+    expect(
+      screen.getByRole("img", { name: "SalsaSegura event title image for Havana Nights Social" })
+    ).toHaveAttribute("src", createEventTitleImage(imageInput));
   });
 
   it("exposes Replace and Remove as keyboard-accessible buttons", async () => {

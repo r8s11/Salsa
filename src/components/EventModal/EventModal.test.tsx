@@ -362,12 +362,15 @@ describe("share poster", () => {
 
   it("inlines the default banner in a no-flyer poster before capture", async () => {
     mockResolvePosterImage.mockResolvedValue("data:image/png;base64,banner");
-    mockCapturePoster.mockImplementation(async (container: HTMLElement) => {
-      expect(container.querySelector(".poster-bg-img")).toHaveAttribute(
-        "src",
-        "data:image/png;base64,banner"
-      );
-      return new Blob(["poster"], { type: "image/png" });
+    let captureAssertion: Promise<void> | undefined;
+    mockCapturePoster.mockImplementation((container: HTMLElement) => {
+      captureAssertion = Promise.resolve().then(() => {
+        expect(container.querySelector(".poster-bg-img")).toHaveAttribute(
+          "src",
+          "data:image/png;base64,banner"
+        );
+      });
+      return captureAssertion.then(() => new Blob(["poster"], { type: "image/png" }));
     });
 
     render(<EventModal event={baseEvent} onClose={() => {}} />);
@@ -375,8 +378,12 @@ describe("share poster", () => {
     fireEvent.click(shareButton);
 
     await waitFor(() => expect(mockCapturePoster).toHaveBeenCalledTimes(1));
+    const pendingCapture = captureAssertion;
+    if (!pendingCapture) throw new Error("capturePoster did not schedule its image assertion");
+    await pendingCapture;
     expect(mockResolvePosterImage).toHaveBeenCalledWith(DEFAULT_EVENT_BANNER_URL);
   });
+
 
   it("downloads the poster PNG directly when native file sharing is unavailable", async () => {
     const shareSpy = vi.fn();

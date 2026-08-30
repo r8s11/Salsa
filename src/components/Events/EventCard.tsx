@@ -1,7 +1,6 @@
 import React from "react";
 import { ScheduleXEvent } from "../../types/events";
-import SalsaSeguraFallbackImage from "../brand/SalsaSeguraFallbackImage";
-import { getFallbackTemplate } from "../../utils/eventFallbacks";
+import { resolveEventModalImage } from "../EventModal/eventModalImage";
 
 const TYPE_LABELS: Record<string, string> = {
   social: "Social Dance",
@@ -36,7 +35,7 @@ export default function EventCard({
     }
   };
 
-  const hasImage = Boolean(event.imageUrl);
+  const imageUrl = resolveEventModalImage(event);
 
   return (
     <article
@@ -49,16 +48,8 @@ export default function EventCard({
     >
       <div
         className={`event-card-thumb event-card-thumb--${event.calendarId}`}
-        style={hasImage ? { backgroundImage: `url(${event.imageUrl})` } : undefined}
+        style={{ backgroundImage: `url(${imageUrl})` }}
       >
-        {!hasImage && (
-          <SalsaSeguraFallbackImage
-            title={event.title}
-            template={getFallbackTemplate(event)}
-            variant="card"
-            decorative
-          />
-        )}
         <span className={`event-card-chip event-card-chip--${event.calendarId}`}>
           {TYPE_LABELS[event.calendarId] ?? event.calendarId}
         </span>

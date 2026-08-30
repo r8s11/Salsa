@@ -55,9 +55,11 @@ describe("EventModal", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("renders branded title artwork when no flyer is available", () => {
+  it("uses the public default banner when no flyer is available", () => {
     const { container } = render(<EventModal event={baseEvent} onClose={() => {}} />);
-    expect(container.querySelector(".ss-fallback")).toBeInTheDocument();
+    const poster = container.querySelector(".modal-poster") as HTMLElement;
+    expect(poster.style.backgroundImage).toContain("/images/default-event-banner.png");
+    expect(container.querySelector(".ss-fallback")).not.toBeInTheDocument();
   });
 
   it("shows price and 'Get Tickets' for a paid event", () => {

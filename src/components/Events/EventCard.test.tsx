@@ -35,9 +35,11 @@ describe("EventCard", () => {
     expect(screen.getByText("Social Dance")).toBeInTheDocument();
   });
 
-  it("renders branded title artwork when no flyer is available", () => {
+  it("uses the public default banner when no flyer is available", () => {
     const { container } = renderCard({ ...baseEvent, imageUrl: undefined });
-    expect(container.querySelector(".ss-fallback")).toBeInTheDocument();
+    const thumb = container.querySelector(".event-card-thumb") as HTMLElement;
+    expect(thumb.style.backgroundImage).toContain("/images/default-event-banner.png");
+    expect(container.querySelector(".ss-fallback")).not.toBeInTheDocument();
   });
 
   it("shows location only when present", () => {

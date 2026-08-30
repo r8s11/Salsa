@@ -22,8 +22,6 @@ import {
 import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
 import ShareableEventPoster from "./ShareableEventPoster";
 import { resolveEventModalImage } from "./eventModalImage";
-import SalsaSeguraFallbackImage from "../brand/SalsaSeguraFallbackImage";
-import { getFallbackTemplate } from "../../utils/eventFallbacks";
 import "./EventModal.css";
 
 interface EventModalProps {
@@ -156,7 +154,6 @@ export default function EventModal({ event, onClose, isFromHomepage }: EventModa
   const galleryThumbs = event.gallery?.slice(0, 4) ?? [];
   const galleryExtra = (event.gallery?.length ?? 0) - galleryThumbs.length;
   const resolvedImageUrl = resolveEventModalImage(event);
-  const hasUploadedImage = Boolean(event.imageUrl);
 
   const hasContacts = !!(event.contactEmail || event.contactInstagram || event.contactWebsite);
   const locationLabel = `${event.location}${event.address ? ` · ${event.address}` : ""}`;
@@ -358,18 +355,9 @@ export default function EventModal({ event, onClose, isFromHomepage }: EventModa
 
         {/* ── Poster header ── */}
         <div
-          className={`modal-poster ${!hasUploadedImage ? "modal-poster--fallback" : ""}`}
-          style={hasUploadedImage ? { backgroundImage: `url(${resolvedImageUrl})` } : undefined}
+          className="modal-poster"
+          style={{ backgroundImage: `url(${resolvedImageUrl})` }}
         >
-          {!hasUploadedImage && (
-            <SalsaSeguraFallbackImage
-              title={event.title}
-              template={getFallbackTemplate(event)}
-              variant="modal"
-              decorative
-              showTitle={false}
-              />
-          )}
           <button className="modal-close back-pill" onClick={onClose}>
             <ArrowLeft size={16} aria-hidden /> Back to calendar
           </button>

@@ -39,9 +39,11 @@ describe("FeaturedEventCard", () => {
     expect(screen.getByText(/rotating DJs/)).toBeInTheDocument();
   });
 
-  it("renders branded title artwork when no flyer is available", () => {
+  it("uses the public default banner when no flyer is available", () => {
     const { container } = renderCard({ ...baseEvent, imageUrl: undefined });
-    expect(container.querySelector(".ss-fallback")).toBeInTheDocument();
+    const media = container.querySelector(".featured-card-media") as HTMLElement;
+    expect(media.style.backgroundImage).toContain("/images/default-event-banner.png");
+    expect(container.querySelector(".ss-fallback")).not.toBeInTheDocument();
   });
 
   it("omits the description paragraph when absent", () => {

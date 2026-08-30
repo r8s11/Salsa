@@ -90,6 +90,9 @@ describe("EventDetailPage", () => {
   it("renders the v2 cover, action strip, and sidebar cards", async () => {
     renderPage();
     expect(await screen.findByRole("heading", { name: "Havana Nights" })).toBeInTheDocument();
+    const coverImage = document.querySelector(".event-page__cover-img");
+    expect(coverImage).toHaveAttribute("src", "/images/default-event-banner.png");
+    expect(coverImage).toHaveAttribute("alt", "");
 
     // Cover: back pill, type badge, facts
     expect(screen.getByRole("link", { name: /the calendar/i })).toHaveAttribute(

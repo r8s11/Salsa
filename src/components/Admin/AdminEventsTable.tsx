@@ -21,8 +21,7 @@ import {
   Ban,
 } from "lucide-react";
 import type { DatabaseEvent } from "../../features/events/model/types";
-import SalsaSeguraFallbackImage from "../brand/SalsaSeguraFallbackImage";
-import { getFallbackTemplate } from "../../utils/eventFallbacks";
+import { resolveEventModalImage } from "../EventModal/eventModalImage";
 import { fromEventDateInstant, formatTimeLabel } from "../../features/events/model/eventDateTime";
 import { qualityIssues, QUALITY_ISSUE_LABEL } from "../../features/admin/model/overviewMetrics";
 import {
@@ -205,22 +204,17 @@ function EventCell({
   const issues = qualityIssues(event, duplicateIds);
   return (
     <div className="admin-events-table__event">
-      {event.image_url ? (
-        <img src={event.image_url} alt="" loading="lazy" width={48} height={48} />
-      ) : (
-        <SalsaSeguraFallbackImage
-          title={event.title}
-          template={getFallbackTemplate({
-            id: event.id,
-            title: event.title,
-            calendarId: event.event_type,
-          })}
-          variant="card"
-          decorative
-          showTitle={false}
-          className="admin-events-table__event-fallback"
-        />
-      )}
+      <img
+        src={resolveEventModalImage({
+          id: event.id,
+          imageUrl: event.image_url ?? undefined,
+          calendarId: event.event_type,
+        })}
+        alt=""
+        loading="lazy"
+        width={48}
+        height={48}
+      />
       <div className="admin-events-table__event-body">
         <Link to={`/admin/events?edit=${event.id}`} className="admin-events-table__title">
           {event.title}

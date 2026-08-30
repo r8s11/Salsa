@@ -92,9 +92,11 @@ describe("AdminEventsTable", () => {
     expect(links[0]).toHaveAttribute("href", "/admin/events?edit=event-1");
   });
 
-  it("renders branded artwork instead of a remote placeholder when flyer is absent", () => {
+  it("uses the public default banner when flyer is absent", () => {
     renderTable();
-    expect(document.querySelector(".admin-events-table__event-fallback")).toBeInTheDocument();
+    const image = document.querySelector(".admin-events-table__event img");
+    expect(image).toHaveAttribute("src", "/images/default-event-banner.png");
+    expect(image).toHaveAttribute("alt", "");
   });
 
   it("shows 'Venue not set' and 'Time not set' for empty fields", () => {

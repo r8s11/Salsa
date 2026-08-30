@@ -1,12 +1,9 @@
-import { ScheduleXEvent } from "../../types/events";
+import type { ScheduleXEvent } from "../../types/events";
 
-/**
- * Resolves the image URL for the event modal poster header.
- * Returns the event's uploaded flyer when present; otherwise undefined
- * (the modal renders SalsaSeguraFallbackImage component for the fallback).
- */
+export const DEFAULT_EVENT_BANNER_URL = "/images/default-event-banner.png";
+
 export function resolveEventModalImage(
   event: Pick<ScheduleXEvent, "id" | "imageUrl" | "calendarId">
-): string | undefined {
-  return event.imageUrl || undefined;
+): string {
+  return event.imageUrl || DEFAULT_EVENT_BANNER_URL;
 }

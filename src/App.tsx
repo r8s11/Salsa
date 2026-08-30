@@ -40,6 +40,7 @@ const AdminActivityPage = lazy(() => import("./pages/AdminActivityPage"));
 const AdminActivityDetailPage = lazy(() => import("./pages/AdminActivityDetailPage"));
 const AdminAnalyticsPage = lazy(() => import("./pages/AdminAnalyticsPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+const ProfileEditPage = lazy(() => import("./pages/ProfileEditPage"));
 const AccountPage = lazy(() => import("./pages/AccountPage"));
 const HostMyEventsPage = lazy(() => import("./pages/HostMyEventsPage"));
 const HostDashboard = lazy(() => import("./components/Host/HostDashboard"));
@@ -181,6 +182,14 @@ function App() {
                 element={
                   <RequireAuth>
                     <ProfilePage />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="profile/edit"
+                element={
+                  <RequireAuth>
+                    <ProfileEditPage />
                   </RequireAuth>
                 }
               />

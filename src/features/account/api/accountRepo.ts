@@ -17,3 +17,32 @@ export async function fetchOwnProfile(userId: string): Promise<OwnProfile | null
   if (error) throw new Error(error.message);
   return data as OwnProfile | null;
 }
+
+export type OwnProfileUpdate = {
+  display_name?: string | null;
+  username?: string | null;
+  avatar_url?: string | null;
+};
+
+/**
+ * Updates the caller's own `profiles` row, enforced by the "Users update own
+ * profile" RLS policy (id = auth.uid()). Only the three visual identity
+ * fields the existing public.profiles migration exposes are written here;
+ * new fields belong to a later phase with its own schema work.
+ *
+ * Returns the updated row so the caller's cached query state can be
+ * hydrated without a second round-trip.
+ */
+export async function updateOwnProfile(
+  userId: string,
+  patch: OwnProfileUpdate
+): Promise<OwnProfile> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .update(patch)
+    .eq("id", userId)
+    .select("id, display_name, username, avatar_url, status, status_reason, created_at")
+    .single();
+  if (error) throw new Error(error.message);
+  return data as OwnProfile;
+}

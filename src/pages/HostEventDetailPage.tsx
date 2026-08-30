@@ -5,7 +5,8 @@ import { useAuth } from "../contexts/useAuth";
 import { useMySubmissions } from "../hooks/useMySubmissions";
 import { deriveHostEventRows } from "../features/host/model/hostEvents";
 import type { DatabaseEvent } from "../features/events/model/types";
-import AdminStatusBadge from "../components/Admin/AdminStatusBadge";
+import { fromEventDateInstant } from "../features/events/model/eventDateTime";
+import EventImage from "../features/events/ui/EventImage";
 import EventShareControls from "../features/events/components/EventShareControls";
 import "./HostEventDetailPage.css";
 
@@ -74,6 +75,8 @@ export default function HostEventDetailPage() {
   if (!event) return null;
 
   const [row] = deriveHostEventRows([event]);
+  const { date, time } = fromEventDateInstant(event.event_date);
+  const imageStart = `${date} ${time}`;
   const danceStyles = event.taxonomy_terms.filter((term) => term.category === "dance_style");
   const price = formatPrice(event);
 
@@ -188,12 +191,17 @@ export default function HostEventDetailPage() {
           </section>
         )}
 
-        {event.image_url && (
-          <section className="admin-card host-event-detail__flyer">
-            <h2>Flyer</h2>
-            <img src={event.image_url} alt={`${event.title} flyer`} />
-          </section>
-        )}
+        <section className="admin-card host-event-detail__flyer">
+          <h2>Flyer</h2>
+          <EventImage
+            id={event.id}
+            title={event.title}
+            eventType={event.event_type}
+            start={imageStart}
+            imageUrl={event.image_url}
+            alt={`${event.title} flyer`}
+          />
+        </section>
       </div>
     </main>
   );

@@ -30,6 +30,10 @@
   object-fit: cover;
 }
 
+.event-page__cover-img.event-image--fallback {
+  object-fit: contain;
+}
+
 .event-page__cover-art {
   position: absolute;
   inset: 0;

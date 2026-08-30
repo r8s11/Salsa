@@ -53,6 +53,10 @@
   object-fit: cover;
 }
 
+.modal-poster__image.event-image--fallback {
+  object-fit: contain;
+}
+
 
 .modal-poster::after {
   content: "";

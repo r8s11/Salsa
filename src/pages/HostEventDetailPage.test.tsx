@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { createEventTitleImage } from "../features/events/ui/eventTitleImage";
 import type { DatabaseEvent } from "../features/events/model/types";
 import HostEventDetailPage from "./HostEventDetailPage";
 import RequireOrganizer from "../components/Auth/RequireOrganizer";
@@ -178,7 +179,7 @@ describe("HostEventDetailPage", () => {
     expect(flyer).toHaveAttribute("src", "https://cdn.example.com/flyer.png");
   });
 
-  it("omits the flyer, RSVP link, and description gracefully when absent", async () => {
+  it("renders title art when the flyer is absent", async () => {
     mockOwnerEvents({
       submissions: [
         { ...baseEvent, image_url: null, rsvp_link: null, description: null },
@@ -188,9 +189,20 @@ describe("HostEventDetailPage", () => {
     });
 
     renderDetail("base");
-    await screen.findByRole("heading", { name: "Havana Nights Social" });
+    const image = await screen.findByRole("img", {
+      name: "SalsaSegura event title image for Havana Nights Social",
+    });
 
-    expect(screen.queryByRole("img", { name: /flyer/i })).not.toBeInTheDocument();
+    expect(image).toHaveAttribute(
+      "src",
+      createEventTitleImage({
+        id: baseEvent.id,
+        title: baseEvent.title,
+        eventType: baseEvent.event_type,
+        city: baseEvent.city,
+        start: baseEvent.event_date,
+      })
+    );
     expect(screen.queryByRole("link", { name: /rsvp/i })).not.toBeInTheDocument();
     expect(screen.queryByText("Description")).not.toBeInTheDocument();
   });

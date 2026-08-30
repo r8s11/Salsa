@@ -11,6 +11,7 @@ export type EventImageProps = EventTitleImageInput & {
   alt?: string;
   className?: string;
   loading?: "eager" | "lazy";
+  onSourceError?: (source: string) => void;
 };
 
 export default function EventImage({
@@ -23,6 +24,7 @@ export default function EventImage({
   alt,
   className,
   loading,
+  onSourceError,
 }: EventImageProps): JSX.Element {
   const input = useMemo<EventTitleImageInput>(
     () => ({ id, title, eventType, city, start }),
@@ -37,11 +39,20 @@ export default function EventImage({
 
   return (
     <img
-      className={className}
+      className={[className, isFallback ? "event-image--fallback" : ""]
+        .filter(Boolean)
+        .join(" ")}
       src={src}
       alt={isFallback ? getEventTitleImageAlt(input) : alt ?? `${title ?? "Event"} flyer`}
       loading={loading}
-      onError={isFallback ? undefined : () => setFailedSource(source)}
+      onError={
+        isFallback
+          ? undefined
+          : () => {
+              onSourceError?.(flyerSrc);
+              setFailedSource(source);
+            }
+      }
     />
   );
 }

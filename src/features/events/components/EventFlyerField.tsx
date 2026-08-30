@@ -64,6 +64,7 @@ export default function EventFlyerField({
   const [dragOver, setDragOver] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [previewError, setPreviewError] = useState(false);
+  const [usingFallbackPreview, setUsingFallbackPreview] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -74,6 +75,11 @@ export default function EventFlyerField({
     };
   }, [previewUrl]);
 
+  useEffect(() => {
+    setPreviewError(false);
+    setUsingFallbackPreview(false);
+  }, [currentUrl]);
+
   const isBusy = status === "uploading" || status === "replacing" || status === "removing";
 
   const handleFiles = (files: FileList | null) => {
@@ -81,6 +87,7 @@ export default function EventFlyerField({
     if (!nextFile) {
       setValidationError(null);
       setPreviewError(false);
+      setUsingFallbackPreview(false);
       if (previewUrl) {
         URL.revokeObjectURL(previewUrl);
         setPreviewUrl(null);
@@ -97,6 +104,7 @@ export default function EventFlyerField({
 
     setValidationError(null);
     setPreviewError(false);
+    setUsingFallbackPreview(false);
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setPreviewUrl(URL.createObjectURL(nextFile));
     onFileChange(nextFile);
@@ -127,9 +135,21 @@ export default function EventFlyerField({
       setPreviewUrl(null);
     }
     setPreviewError(false);
+    setUsingFallbackPreview(false);
     setValidationError(null);
     onFileChange(null);
     onRemove?.();
+  };
+
+  const handlePreviewSourceError = () => {
+    if (previewUrl) {
+      setPreviewError(true);
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+      onFileChange(null);
+      return;
+    }
+    setUsingFallbackPreview(true);
   };
 
   const displayUrl = previewUrl ?? currentUrl;
@@ -141,17 +161,19 @@ export default function EventFlyerField({
   // successful upload reads as "ready". A still-local selection reads as
   // "Selected", and a failed upload reads as "Upload failed".
   const stateLabel =
-    status === "uploading" || status === "replacing"
-      ? "Uploading…"
-      : status === "removing"
-        ? "Removing…"
-        : status === "upload-error"
-          ? "Upload failed"
-          : status === "uploaded"
-            ? "Flyer ready"
-            : currentUrl
+    usingFallbackPreview
+      ? "Using title art fallback"
+      : status === "uploading" || status === "replacing"
+        ? "Uploading…"
+        : status === "removing"
+          ? "Removing…"
+          : status === "upload-error"
+            ? "Upload failed"
+            : status === "uploaded"
               ? "Flyer ready"
-              : "Selected";
+              : currentUrl
+                ? "Flyer ready"
+                : "Selected";
 
   return (
     <div className="event-flyer-field">
@@ -166,6 +188,7 @@ export default function EventFlyerField({
             {...imageInput}
             imageUrl={displayUrl}
             alt={previewUrl ? "Selected flyer preview" : "Current event flyer"}
+            onSourceError={handlePreviewSourceError}
           />
           <figcaption className="event-flyer-field__preview-meta">
             <CheckCircle2 size={16} aria-hidden className="event-flyer-field__ok-icon" />

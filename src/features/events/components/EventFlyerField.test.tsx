@@ -74,6 +74,27 @@ describe("EventFlyerField", () => {
     expect(
       screen.getByRole("img", { name: "SalsaSegura event title image for Havana Nights Social" })
     ).toHaveAttribute("src", createEventTitleImage(imageInput));
+    expect(screen.getByText("Using title art fallback")).toBeInTheDocument();
+  });
+
+  it("clears a selected file when its local preview fails", async () => {
+    const user = userEvent.setup();
+    const onFileChange = vi.fn();
+    const createObjectUrl = vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:broken-flyer");
+    const revokeObjectUrl = vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
+    render(<EventFlyerField currentUrl={null} onFileChange={onFileChange} />);
+
+    await user.upload(
+      screen.getByLabelText("Event flyer"),
+      new File(["png"], "flyer.png", { type: "image/png" })
+    );
+    fireEvent.error(screen.getByRole("img", { name: "Selected flyer preview" }));
+
+    expect(onFileChange).toHaveBeenLastCalledWith(null);
+    expect(revokeObjectUrl).toHaveBeenCalledWith("blob:broken-flyer");
+    expect(screen.queryByRole("img", { name: "Selected flyer preview" })).not.toBeInTheDocument();
+    createObjectUrl.mockRestore();
+    revokeObjectUrl.mockRestore();
   });
 
   it("exposes Replace and Remove as keyboard-accessible buttons", async () => {

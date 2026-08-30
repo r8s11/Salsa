@@ -36,6 +36,10 @@
   object-fit: cover;
 }
 
+.poster-bg-img.event-image--fallback {
+  object-fit: contain;
+}
+
 .poster-bg-gradient {
   position: absolute;
   inset: 0;

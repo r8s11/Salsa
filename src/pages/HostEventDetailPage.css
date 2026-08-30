@@ -139,6 +139,10 @@
   object-fit: cover;
 }
 
+.host-event-detail__flyer .event-image--fallback {
+  object-fit: contain;
+}
+
 .host-event-detail__status {
   color: var(--admin-text-muted);
 }

@@ -151,6 +151,8 @@ export default function EventModal({ event, onClose }: EventModalProps) {
   const priceLabel = isFree ? "Free" : `$${event.priceAmount}`;
   const rsvpLabel = isFree ? "RSVP · Free" : "Get Tickets";
   const seriesDates = event.recurrence === "weekly" ? getUpcomingSeriesDates(event.start) : [];
+  const galleryThumbs = event.gallery?.slice(0, 4) ?? [];
+  const galleryExtra = (event.gallery?.length ?? 0) - galleryThumbs.length;
   const imageInput = {
     id: event.id,
     title: event.title,

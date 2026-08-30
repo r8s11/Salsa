@@ -50,8 +50,11 @@ export default function ShareableEventPoster({ event, imageUrl }: ShareableEvent
 
   const isFree = event.priceType === "free" || event.priceAmount == null;
   const priceLabel = isFree ? "FREE" : `$${event.priceAmount}`;
-  const resolvedImageUrl = imageUrl?.trim() || resolveEventModalImage(event);
-  const isGeneratedTitleArt = !imageUrl?.trim() && !event.imageUrl?.trim();
+  const normalizedImageUrl = imageUrl?.trim();
+  const resolvedImageUrl = normalizedImageUrl || resolveEventModalImage(event);
+  const isGeneratedTitleArt =
+    normalizedImageUrl?.startsWith("data:image/svg+xml;charset=UTF-8,") ||
+    (!normalizedImageUrl && !event.imageUrl?.trim());
   const imageAlt = isGeneratedTitleArt
     ? getEventTitleImageAlt({
         id: event.id,

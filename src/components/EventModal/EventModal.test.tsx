@@ -374,6 +374,10 @@ describe("share poster", () => {
       const image = container.querySelector<HTMLImageElement>(".poster-bg-img");
       expect(image).not.toBeNull();
       expect(image).toHaveAttribute("src", expectedTitleArt);
+      expect(image).toHaveAttribute(
+        "alt",
+        "SalsaSegura event title image for Test Social"
+      );
       return new Blob(["poster"], { type: "image/png" });
     });
 

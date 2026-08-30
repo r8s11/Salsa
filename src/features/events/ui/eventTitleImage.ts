@@ -261,6 +261,7 @@ function renderTitleArtSvg({
   start: string | null | undefined;
 }): string {
   const titleLines = title
+    .map(escapeXml)
     .map(
       (line, index) =>
         `<tspan x="72" dy="${index === 0 ? 0 : 88}" textLength="1056" lengthAdjust="spacingAndGlyphs">${line}</tspan>`

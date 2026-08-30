@@ -94,10 +94,10 @@ describe("databaseEventToScheduleX", () => {
     expect(result.priceAmount).toBeUndefined();
   });
 
-  it("falls back to a deterministic generic photo keyed by event id when image_url is null", () => {
+  it("keeps imageUrl undefined when image_url is null", () => {
     const event = mockEvent({ id: "event-abc-123", image_url: null });
     const result = databaseEventToScheduleX(event);
-    expect(result.imageUrl).toBe("https://picsum.photos/seed/event-abc-123/800/600");
+    expect(result.imageUrl).toBeUndefined();
   });
 
   it("uses the stored image_url when one is present, without falling back", () => {

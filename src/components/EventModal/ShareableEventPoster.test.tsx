@@ -1,6 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { ScheduleXEvent } from "../../types/events";
+import { createEventTitleImage } from "../../features/events/ui/eventTitleImage";
 import ShareableEventPoster from "./ShareableEventPoster";
 
 const event: ScheduleXEvent = {
@@ -25,5 +26,31 @@ describe("ShareableEventPoster", () => {
     expect(poster).toHaveClass("poster-story");
     expect(within(poster).getByText("social")).toBeInTheDocument();
     expect(within(poster).getByRole("heading", { name: event.title })).toBeInTheDocument();
+  });
+
+  it("passes deterministic title art to poster output without an uploaded flyer", () => {
+    const titleArtEvent: ScheduleXEvent = {
+      ...event,
+      title: "Havana Nights Social",
+      city: "boston",
+      imageUrl: undefined,
+    };
+    const imageInput = {
+      id: titleArtEvent.id,
+      title: titleArtEvent.title,
+      eventType: titleArtEvent.calendarId,
+      city: titleArtEvent.city,
+      start: titleArtEvent.start,
+    };
+
+    render(<ShareableEventPoster event={titleArtEvent} />);
+
+    const poster = screen.getByRole("img", {
+      name: "Instagram Story poster for Havana Nights Social",
+    });
+    expect(within(poster).getByRole("img", { name: /Havana Nights Social/i })).toHaveAttribute(
+      "src",
+      createEventTitleImage(imageInput)
+    );
   });
 });

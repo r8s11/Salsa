@@ -1,5 +1,6 @@
 import { Fragment } from "react";
 import { Link } from "react-router-dom";
+import EventImage from "../../features/events/ui/EventImage";
 import {
   Clock,
   MapPin,
@@ -203,12 +204,15 @@ function EventCell({
   const issues = qualityIssues(event, duplicateIds);
   return (
     <div className="admin-events-table__event">
-      <img
-        src={event.image_url || `https://picsum.photos/seed/${event.id}/96/96`}
-        alt=""
+      <EventImage
+        id={event.id}
+        title={event.title}
+        eventType={event.event_type}
+        city={event.city}
+        start={event.event_date}
+        imageUrl={event.image_url}
+        alt={`${event.title} flyer`}
         loading="lazy"
-        width={48}
-        height={48}
       />
       <div className="admin-events-table__event-body">
         <Link to={`/admin/events?edit=${event.id}`} className="admin-events-table__title">

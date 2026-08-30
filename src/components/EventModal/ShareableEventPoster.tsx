@@ -1,5 +1,7 @@
 import { Clock, MapPin } from "lucide-react";
 import { ScheduleXEvent } from "../../types/events";
+import { getEventTitleImageAlt } from "../../features/events/ui/eventTitleImage";
+import { resolveEventModalImage } from "./eventModalImage";
 import SalsaSeguraLogo from "../brand/SalsaSeguraLogo";
 import "./ShareableEventPoster.css";
 
@@ -48,6 +50,18 @@ export default function ShareableEventPoster({ event, imageUrl }: ShareableEvent
 
   const isFree = event.priceType === "free" || event.priceAmount == null;
   const priceLabel = isFree ? "FREE" : `$${event.priceAmount}`;
+  const resolvedImageUrl = imageUrl?.trim() || resolveEventModalImage(event);
+  const isGeneratedTitleArt = !imageUrl?.trim() && !event.imageUrl?.trim();
+  const imageAlt = isGeneratedTitleArt
+    ? getEventTitleImageAlt({
+        id: event.id,
+        title: event.title,
+        eventType: event.calendarId,
+        city: event.city,
+        start: typeof event.start === "string" ? event.start : String(event.start),
+      })
+    : `${event.title} flyer`;
+
 
   return (
     <div
@@ -57,7 +71,7 @@ export default function ShareableEventPoster({ event, imageUrl }: ShareableEvent
     >
       {/* Background layer */}
       <div className="poster-bg">
-        {imageUrl ? <img className="poster-bg-img" src={imageUrl} alt="" /> : null}
+        <img className="poster-bg-img" src={resolvedImageUrl} alt={imageAlt} />
         <div className="poster-bg-gradient" />
       </div>
 

@@ -5,6 +5,7 @@ import { Link, useParams } from "react-router-dom";
 import { RelatedEventsStrip } from "../components/Events/RelatedEventsStrip";
 import { fetchApprovedEventById, fetchApprovedEvents } from "../features/events/api/eventsRepo";
 import { databaseEventToScheduleX } from "../features/events/model/convert";
+import EventImage from "../features/events/ui/EventImage";
 import { selectRelatedEvents } from "../features/events/model/relatedEvents";
 import type { EventType } from "../features/events/model/types";
 import { buildPublicEventUrl } from "../features/events/model/eventSharing";
@@ -127,9 +128,16 @@ export default function EventDetailPage() {
   return (
     <main className="event-page">
       <div className="event-page__cover">
-        {event.image_url ? (
-          <img className="event-page__cover-img" src={event.image_url} alt="" />
-        ) : null}
+        <EventImage
+          id={scheduleEvent.id}
+          title={scheduleEvent.title}
+          eventType={scheduleEvent.calendarId}
+          city={scheduleEvent.city}
+          start={scheduleEvent.start}
+          imageUrl={event.image_url}
+          className="event-page__cover-img"
+          alt={`${event.title} flyer`}
+        />
         <div className="event-page__cover-art" />
         <div className="event-page__cover-bar">
           <Link to="/calendar" className="event-page__back">

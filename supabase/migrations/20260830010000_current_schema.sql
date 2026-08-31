@@ -3758,6 +3758,17 @@ grant select, insert, update, delete on public.event_attendees to authenticated;
 grant select, insert, update on public.event_check_ins to authenticated;
 grant select on storage.objects to anon, authenticated;
 
+-- Policy helper functions must remain executable by the roles whose policies call them.
+grant execute on function public.account_is_active(uuid) to authenticated;
+grant execute on function public.is_admin() to authenticated;
+grant execute on function public.is_moderator() to authenticated;
+grant execute on function public.is_platform_admin() to authenticated;
+grant execute on function public.is_active_organizer_member(uuid) to authenticated;
+grant execute on function public.can_manage_event_attendance(uuid) to authenticated;
+grant execute on function public.public_event_suggestions_enabled() to anon, authenticated;
+grant execute on function public.registered_event_submissions_enabled() to authenticated;
+
+
 -- Client-callable RPCs are authenticated; each function retains its own gate.
 grant execute on function public.admin_analytics_metrics(timestamptz, timestamptz) to authenticated;
 grant execute on function public.admin_analytics_timeseries(timestamptz, timestamptz, text) to authenticated;

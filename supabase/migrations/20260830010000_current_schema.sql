@@ -3696,41 +3696,67 @@ from anon, authenticated;
 
 do $$
 declare
-  fn record;
+  fn regprocedure;
 begin
   for fn in
-    select p.oid::regprocedure as signature
-    from pg_proc p
-    join pg_namespace n on n.oid = p.pronamespace
-    where n.nspname = 'public'
-      and p.proname = any (array[
-        'account_is_active', 'admin_analytics_metrics', 'admin_analytics_timeseries',
-        'admin_approve_organizer_request', 'admin_audit_log', 'admin_invite_user',
-        'admin_organizer_request_counts', 'admin_organizer_request_detail',
-        'admin_organizer_requests', 'admin_reject_organizer_request',
-        'admin_revoke_organizer_access', 'admin_set_user_role',
-        'admin_set_user_status', 'admin_taxonomy_detail',
-        'admin_taxonomy_directory', 'admin_taxonomy_search',
-        'admin_user_directory', 'admin_venue_detail', 'admin_venue_directory',
-        'admin_venue_search', 'approve_event_submission',
-        'can_manage_event_attendance', 'category_of',
-        'guard_event_attendee_immutable_columns',
-        'guard_event_check_in_immutable_columns',
-        'guard_submitter_submission_update', 'handle_new_user',
-        'is_active_organizer_member', 'is_admin', 'is_moderator', 'is_organizer',
-        'is_platform_admin', 'log_event_change', 'log_platform_settings_change',
-        'log_submission_change', 'log_taxonomy_term_change',
-        'merge_taxonomy_terms', 'merge_venues', 'organizer_create_event',
-        'organizer_member_role', 'organizer_update_event',
-        'public_event_suggestions_enabled', 'registered_event_submissions_enabled',
-        'replace_event_taxonomy_terms', 'require_taxonomy_moderator',
-        'set_organizer_slug', 'set_updated_at', 'set_venue_derived_fields',
-        'slugify', 'stamp_platform_settings_update', 'venue_quality_issues'
-      ])
+    select signature
+    from unnest(array[
+      'public.account_is_active(uuid)'::regprocedure,
+      'public.admin_analytics_metrics(timestamptz, timestamptz)'::regprocedure,
+      'public.admin_analytics_timeseries(timestamptz, timestamptz, text)'::regprocedure,
+      'public.admin_approve_organizer_request(uuid, uuid, text)'::regprocedure,
+      'public.admin_audit_log(integer, integer, text, text[], text[], uuid, text, timestamptz, timestamptz)'::regprocedure,
+      'public.admin_invite_user(text, text, text)'::regprocedure,
+      'public.admin_organizer_request_counts()'::regprocedure,
+      'public.admin_organizer_request_detail(uuid)'::regprocedure,
+      'public.admin_organizer_requests()'::regprocedure,
+      'public.admin_reject_organizer_request(uuid, uuid, text, text, text)'::regprocedure,
+      'public.admin_revoke_organizer_access(uuid, uuid, text)'::regprocedure,
+      'public.admin_set_user_role(uuid, text)'::regprocedure,
+      'public.admin_set_user_status(uuid, text, text)'::regprocedure,
+      'public.admin_taxonomy_detail(uuid)'::regprocedure,
+      'public.admin_taxonomy_directory(text, text, text, text)'::regprocedure,
+      'public.admin_taxonomy_search(text, text)'::regprocedure,
+      'public.admin_user_directory()'::regprocedure,
+      'public.admin_venue_detail(uuid)'::regprocedure,
+      'public.admin_venue_directory(text, text[], text[], text[], boolean, text, integer, integer)'::regprocedure,
+      'public.admin_venue_search(text, integer)'::regprocedure,
+      'public.approve_event_submission(uuid, uuid[])'::regprocedure,
+      'public.can_manage_event_attendance(uuid)'::regprocedure,
+      'public.category_of(text, text)'::regprocedure,
+      'public.guard_event_attendee_immutable_columns()'::regprocedure,
+      'public.guard_event_check_in_immutable_columns()'::regprocedure,
+      'public.guard_submitter_submission_update()'::regprocedure,
+      'public.handle_new_user()'::regprocedure,
+      'public.is_active_organizer_member(uuid)'::regprocedure,
+      'public.is_admin()'::regprocedure,
+      'public.is_moderator()'::regprocedure,
+      'public.is_organizer()'::regprocedure,
+      'public.is_platform_admin()'::regprocedure,
+      'public.log_event_change()'::regprocedure,
+      'public.log_platform_settings_change()'::regprocedure,
+      'public.log_submission_change()'::regprocedure,
+      'public.log_taxonomy_term_change()'::regprocedure,
+      'public.merge_taxonomy_terms(uuid, uuid)'::regprocedure,
+      'public.merge_venues(uuid, uuid)'::regprocedure,
+      'public.organizer_create_event(uuid, jsonb, boolean)'::regprocedure,
+      'public.organizer_member_role(uuid)'::regprocedure,
+      'public.organizer_update_event(uuid, jsonb)'::regprocedure,
+      'public.public_event_suggestions_enabled()'::regprocedure,
+      'public.registered_event_submissions_enabled()'::regprocedure,
+      'public.replace_event_taxonomy_terms(uuid, uuid[])'::regprocedure,
+      'public.require_taxonomy_moderator()'::regprocedure,
+      'public.set_organizer_slug()'::regprocedure,
+      'public.set_updated_at()'::regprocedure,
+      'public.set_venue_derived_fields()'::regprocedure,
+      'public.slugify(text)'::regprocedure,
+      'public.stamp_platform_settings_update()'::regprocedure,
+      'public.venue_quality_issues(public.venues)'::regprocedure
+    ]) as requested(signature)
   loop
     execute format(
       'revoke all on function %s from public, anon, authenticated',
-      fn.signature
+      fn
     );
   end loop;
 end

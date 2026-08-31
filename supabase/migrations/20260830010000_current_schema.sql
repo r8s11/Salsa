@@ -1711,6 +1711,8 @@ end;
 $$;
 
 -- Final function: admin_user_directory
+drop function if exists public.admin_user_directory();
+
 create or replace function public.admin_user_directory()
 returns table (
   kind                text,
@@ -2436,6 +2438,8 @@ as $$
 $$;
 
 -- Final function: admin_invite_user
+drop function if exists public.admin_invite_user(text, text, text);
+
 create or replace function public.admin_invite_user(
   p_email        text,
   p_display_name text default null,

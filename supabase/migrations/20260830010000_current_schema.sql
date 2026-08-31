@@ -689,12 +689,306 @@ end;
 $$;
 
 -- =====================================================================
+-- Existing-state convergence. Defaults and nullability are applied after
+-- the backfills above; invalid historical rows fail instead of being
+-- silently rewritten.
+-- =====================================================================
+
+alter table public.profiles
+  alter column role set default 'user',
+  alter column role set not null,
+  alter column status set default 'active',
+  alter column status set not null,
+  alter column created_at set default now(),
+  alter column created_at set not null,
+  alter column updated_at set default now(),
+  alter column updated_at set not null;
+
+alter table public.venues
+  alter column name set not null,
+  alter column country set default 'US',
+  alter column country set not null,
+  alter column status set default 'active',
+  alter column status set not null,
+  alter column created_at set default now(),
+  alter column created_at set not null,
+  alter column updated_at set default now(),
+  alter column updated_at set not null;
+
+alter table public.organizers
+  alter column name set not null,
+  alter column status set default 'active',
+  alter column status set not null,
+  alter column created_at set default now(),
+  alter column created_at set not null,
+  alter column updated_at set default now(),
+  alter column updated_at set not null;
+
+alter table public.events
+  alter column title set not null,
+  alter column event_date set not null,
+  alter column status set default 'approved',
+  alter column created_at set default now(),
+  alter column source_type set default 'user_submission',
+  alter column source_type set not null,
+  alter column dance_styles set default '{}',
+  alter column dance_styles set not null,
+  alter column updated_at set default now(),
+  alter column updated_at set not null;
+
+alter table public.event_submissions
+  alter column status set default 'pending',
+  alter column status set not null,
+  alter column submitted_data set not null,
+  alter column submitted_at set default now(),
+  alter column submitted_at set not null,
+  alter column dismissed_duplicate_ids set default '{}',
+  alter column dismissed_duplicate_ids set not null,
+  alter column created_at set default now(),
+  alter column created_at set not null,
+  alter column updated_at set default now(),
+  alter column updated_at set not null;
+
+alter table public.taxonomy_terms
+  alter column category set not null,
+  alter column name set not null,
+  alter column slug set not null,
+  alter column status set default 'active',
+  alter column status set not null,
+  alter column display_order set default 0,
+  alter column display_order set not null,
+  alter column created_at set default now(),
+  alter column created_at set not null,
+  alter column updated_at set default now(),
+  alter column updated_at set not null;
+
+alter table public.event_taxonomy_terms
+  alter column event_id set not null,
+  alter column taxonomy_term_id set not null;
+
+alter table public.organizer_requests
+  alter column user_id set not null,
+  alter column status set default 'pending',
+  alter column status set not null,
+  alter column created_at set default now(),
+  alter column created_at set not null,
+  alter column updated_at set default now(),
+  alter column updated_at set not null;
+
+alter table public.organizer_members
+  alter column member_role set default 'owner',
+  alter column member_role set not null,
+  alter column status set default 'active',
+  alter column status set not null,
+  alter column created_at set default now(),
+  alter column created_at set not null,
+  alter column updated_at set default now(),
+  alter column updated_at set not null;
+
+alter table public.event_import_batches
+  alter column filename set not null,
+  alter column total_rows set not null,
+  alter column created_count set not null,
+  alter column duplicate_skipped_count set not null,
+  alter column failed_count set not null,
+  alter column created_at set default now(),
+  alter column created_at set not null;
+
+alter table public.platform_settings
+  alter column singleton set default true,
+  alter column singleton set not null,
+  alter column platform_name set not null,
+  alter column public_site_url set not null,
+  alter column support_email set not null,
+  alter column default_city set not null,
+  alter column default_country_code set not null,
+  alter column default_timezone set not null,
+  alter column default_locale set not null,
+  alter column default_currency_code set not null,
+  alter column default_event_duration_minutes set not null,
+  alter column allow_public_event_suggestions set not null,
+  alter column allow_registered_user_submissions set not null,
+  alter column updated_at set default now(),
+  alter column updated_at set not null;
+
+alter table public.event_attendees
+  alter column display_name set not null,
+  alter column category set not null,
+  alter column source set default 'host',
+  alter column source set not null,
+  alter column party_size set default 1,
+  alter column party_size set not null,
+  alter column created_at set default now(),
+  alter column created_at set not null,
+  alter column updated_at set default now(),
+  alter column updated_at set not null;
+
+alter table public.event_check_ins
+  alter column checked_in_at set default now(),
+  alter column checked_in_at set not null,
+  alter column checked_in_by set not null,
+  alter column method set default 'manual',
+  alter column method set not null,
+  alter column created_at set default now(),
+  alter column created_at set not null;
+
+alter table public.audit_logs
+  alter column action set not null,
+  alter column entity_type set not null,
+  alter column created_at set default now(),
+  alter column created_at set not null;
+
+-- Generated and key column types must match the canonical contract. This
+-- intentionally raises on a partial state that cannot converge safely.
+do $$
+declare expected record;
+begin
+  for expected in
+    select * from (values
+      ('profiles','id','uuid'), ('profiles','role','text'), ('profiles','status','text'),
+      ('venues','id','uuid'), ('venues','name','text'), ('organizers','id','uuid'),
+      ('events','id','uuid'), ('events','event_date','timestamp with time zone'),
+      ('events','source_type','text'), ('events','dance_styles','ARRAY'),
+      ('event_submissions','id','uuid'), ('event_submissions','submitted_data','jsonb'),
+      ('event_submissions','submitted_at','timestamp with time zone'),
+      ('taxonomy_terms','id','uuid'), ('taxonomy_terms','category','text'),
+      ('taxonomy_terms','normalized_name','text'), ('taxonomy_terms','slug','text'),
+      ('event_taxonomy_terms','event_id','uuid'), ('event_taxonomy_terms','taxonomy_term_id','uuid'),
+      ('organizer_requests','id','uuid'), ('organizer_members','organizer_id','uuid'),
+      ('event_import_batches','id','uuid'), ('platform_settings','singleton','boolean'),
+      ('event_attendees','id','uuid'), ('event_attendees','event_id','uuid'),
+      ('event_check_ins','id','uuid'), ('event_check_ins','attendee_id','uuid'),
+      ('audit_logs','id','uuid'), ('audit_logs','metadata','jsonb')
+    ) as v(table_name, column_name, data_type)
+  loop
+    if not exists (
+      select 1 from information_schema.columns c
+      where c.table_schema = 'public'
+        and c.table_name = expected.table_name
+        and c.column_name = expected.column_name
+        and c.data_type = expected.data_type
+    ) then
+      raise exception 'Current schema type mismatch: public.%.% must be %',
+        expected.table_name, expected.column_name, expected.data_type;
+    end if;
+  end loop;
+  if not exists (
+    select 1
+    from pg_attribute
+    where attrelid = 'public.taxonomy_terms'::regclass
+      and attname = 'normalized_name'
+      and attgenerated = 's'
+  ) then
+    raise exception 'Current schema mismatch: taxonomy_terms.normalized_name must remain generated';
+  end if;
+end;
+$$;
+
+-- Remaining foreign keys and key constraints are guarded by catalog lookup.
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conrelid = 'public.profiles'::regclass and conname = 'profiles_pkey') then
+    alter table public.profiles add constraint profiles_pkey primary key (id);
+  end if;
+  if not exists (select 1 from pg_constraint where conrelid = 'public.venues'::regclass and conname = 'venues_pkey') then
+    alter table public.venues add constraint venues_pkey primary key (id);
+  end if;
+  if not exists (select 1 from pg_constraint where conrelid = 'public.organizers'::regclass and conname = 'organizers_pkey') then
+    alter table public.organizers add constraint organizers_pkey primary key (id);
+  end if;
+  if not exists (select 1 from pg_constraint where conrelid = 'public.events'::regclass and conname = 'events_pkey') then
+    alter table public.events add constraint events_pkey primary key (id);
+  end if;
+  if not exists (select 1 from pg_constraint where conrelid = 'public.event_submissions'::regclass and conname = 'event_submissions_pkey') then
+    alter table public.event_submissions add constraint event_submissions_pkey primary key (id);
+  end if;
+  if not exists (select 1 from pg_constraint where conrelid = 'public.taxonomy_terms'::regclass and conname = 'taxonomy_terms_pkey') then
+    alter table public.taxonomy_terms add constraint taxonomy_terms_pkey primary key (id);
+  end if;
+  if not exists (select 1 from pg_constraint where conrelid = 'public.organizer_requests'::regclass and conname = 'organizer_requests_pkey') then
+    alter table public.organizer_requests add constraint organizer_requests_pkey primary key (id);
+  end if;
+  if not exists (select 1 from pg_constraint where conrelid = 'public.organizer_members'::regclass and conname = 'organizer_members_pkey') then
+    alter table public.organizer_members add constraint organizer_members_pkey primary key (organizer_id, user_id);
+  end if;
+  if not exists (select 1 from pg_constraint where conrelid = 'public.event_import_batches'::regclass and conname = 'event_import_batches_pkey') then
+    alter table public.event_import_batches add constraint event_import_batches_pkey primary key (id);
+  end if;
+  if not exists (select 1 from pg_constraint where conrelid = 'public.platform_settings'::regclass and conname = 'platform_settings_pkey') then
+    alter table public.platform_settings add constraint platform_settings_pkey primary key (singleton);
+  end if;
+  if not exists (select 1 from pg_constraint where conrelid = 'public.event_attendees'::regclass and conname = 'event_attendees_pkey') then
+    alter table public.event_attendees add constraint event_attendees_pkey primary key (id);
+  end if;
+  if not exists (select 1 from pg_constraint where conrelid = 'public.event_check_ins'::regclass and conname = 'event_check_ins_pkey') then
+    alter table public.event_check_ins add constraint event_check_ins_pkey primary key (id);
+  end if;
+  if not exists (select 1 from pg_constraint where conrelid = 'public.audit_logs'::regclass and conname = 'audit_logs_pkey') then
+    alter table public.audit_logs add constraint audit_logs_pkey primary key (id);
+  end if;
+
+  if not exists (select 1 from pg_constraint where conrelid = 'public.events'::regclass and conname = 'events_submitter_id_fkey') then
+    alter table public.events add constraint events_submitter_id_fkey foreign key (submitter_id) references auth.users(id);
+  end if;
+  if not exists (select 1 from pg_constraint where conrelid = 'public.event_submissions'::regclass and conname = 'event_submissions_submitter_id_fkey') then
+    alter table public.event_submissions add constraint event_submissions_submitter_id_fkey foreign key (submitter_id) references auth.users(id);
+  end if;
+  if not exists (select 1 from pg_constraint where conrelid = 'public.event_submissions'::regclass and conname = 'event_submissions_reviewed_by_fkey') then
+    alter table public.event_submissions add constraint event_submissions_reviewed_by_fkey foreign key (reviewed_by) references auth.users(id);
+  end if;
+  if not exists (select 1 from pg_constraint where conrelid = 'public.event_submissions'::regclass and conname = 'event_submissions_duplicate_of_event_id_fkey') then
+    alter table public.event_submissions add constraint event_submissions_duplicate_of_event_id_fkey foreign key (duplicate_of_event_id) references public.events(id) on delete set null;
+  end if;
+  if not exists (select 1 from pg_constraint where conrelid = 'public.event_submissions'::regclass and conname = 'event_submissions_approved_event_id_fkey') then
+    alter table public.event_submissions add constraint event_submissions_approved_event_id_fkey foreign key (approved_event_id) references public.events(id) on delete set null;
+  end if;
+  if not exists (select 1 from pg_constraint where conrelid = 'public.organizer_requests'::regclass and conname = 'organizer_requests_user_id_fkey') then
+    alter table public.organizer_requests add constraint organizer_requests_user_id_fkey foreign key (user_id) references public.profiles(id) on delete cascade;
+  end if;
+  if not exists (select 1 from pg_constraint where conrelid = 'public.organizer_requests'::regclass and conname = 'organizer_requests_proposed_organizer_id_fkey') then
+    alter table public.organizer_requests add constraint organizer_requests_proposed_organizer_id_fkey foreign key (proposed_organizer_id) references public.organizers(id) on delete set null;
+  end if;
+  if not exists (select 1 from pg_constraint where conrelid = 'public.organizer_requests'::regclass and conname = 'organizer_requests_reviewed_by_fkey') then
+    alter table public.organizer_requests add constraint organizer_requests_reviewed_by_fkey foreign key (reviewed_by) references public.profiles(id) on delete set null;
+  end if;
+  if not exists (select 1 from pg_constraint where conrelid = 'public.organizer_members'::regclass and conname = 'organizer_members_organizer_id_fkey') then
+    alter table public.organizer_members add constraint organizer_members_organizer_id_fkey foreign key (organizer_id) references public.organizers(id) on delete cascade;
+  end if;
+  if not exists (select 1 from pg_constraint where conrelid = 'public.organizer_members'::regclass and conname = 'organizer_members_user_id_fkey') then
+    alter table public.organizer_members add constraint organizer_members_user_id_fkey foreign key (user_id) references public.profiles(id) on delete cascade;
+  end if;
+  if not exists (select 1 from pg_constraint where conrelid = 'public.event_import_batches'::regclass and conname = 'event_import_batches_imported_by_fkey') then
+    alter table public.event_import_batches add constraint event_import_batches_imported_by_fkey foreign key (imported_by) references auth.users(id);
+  end if;
+  if not exists (select 1 from pg_constraint where conrelid = 'public.platform_settings'::regclass and conname = 'platform_settings_updated_by_fkey') then
+    alter table public.platform_settings add constraint platform_settings_updated_by_fkey foreign key (updated_by) references auth.users(id) on delete set null;
+  end if;
+  if not exists (select 1 from pg_constraint where conrelid = 'public.event_attendees'::regclass and conname = 'event_attendees_event_id_fkey') then
+    alter table public.event_attendees add constraint event_attendees_event_id_fkey foreign key (event_id) references public.events(id) on delete cascade;
+  end if;
+  if not exists (select 1 from pg_constraint where conrelid = 'public.event_attendees'::regclass and conname = 'event_attendees_profile_id_fkey') then
+    alter table public.event_attendees add constraint event_attendees_profile_id_fkey foreign key (profile_id) references public.profiles(id) on delete set null;
+  end if;
+  if not exists (select 1 from pg_constraint where conrelid = 'public.event_attendees'::regclass and conname = 'event_attendees_created_by_fkey') then
+    alter table public.event_attendees add constraint event_attendees_created_by_fkey foreign key (created_by) references auth.users(id);
+  end if;
+  if not exists (select 1 from pg_constraint where conrelid = 'public.event_check_ins'::regclass and conname = 'event_check_ins_checked_in_by_fkey') then
+    alter table public.event_check_ins add constraint event_check_ins_checked_in_by_fkey foreign key (checked_in_by) references auth.users(id);
+  end if;
+  if not exists (select 1 from pg_constraint where conrelid = 'public.event_check_ins'::regclass and conname = 'event_check_ins_reversed_by_fkey') then
+    alter table public.event_check_ins add constraint event_check_ins_reversed_by_fkey foreign key (reversed_by) references auth.users(id);
+  end if;
+  if not exists (select 1 from pg_constraint where conrelid = 'public.audit_logs'::regclass and conname = 'audit_logs_actor_id_fkey') then
+    alter table public.audit_logs add constraint audit_logs_actor_id_fkey foreign key (actor_id) references auth.users(id);
+  end if;
+end;
+$$;
+
+-- =====================================================================
 -- Resolved relational indexes (53 named indexes; all idempotent).
 -- =====================================================================
 
-create index if not exists events_event_date_idx on public.events (event_date);
 create index if not exists events_city_idx on public.events (city);
-create index if not exists events_status_idx on public.events (status);
 create index if not exists events_status_event_date_idx on public.events (status, event_date);
 create index if not exists events_dance_styles_idx on public.events using gin (dance_styles);
 create index if not exists events_venue_id_idx on public.events (venue_id);
@@ -716,16 +1010,19 @@ create index if not exists audit_logs_metadata_gin on public.audit_logs using gi
 create index if not exists audit_logs_target_lookup_idx on public.audit_logs (target_type, target_id) where target_id is not null;
 create index if not exists audit_logs_reason_idx on public.audit_logs (reason) where reason is not null;
 
-create index if not exists event_submissions_status_idx on public.event_submissions (status);
 create index if not exists event_submissions_status_submitted_idx on public.event_submissions (status, submitted_at desc);
 create index if not exists event_submissions_submitter_id_idx on public.event_submissions (submitter_id);
 create index if not exists event_submissions_submitted_at_idx on public.event_submissions (submitted_at);
 create index if not exists event_submissions_approved_event_id_idx on public.event_submissions (approved_event_id) where approved_event_id is not null;
+create index if not exists event_submissions_reviewed_by_idx on public.event_submissions (reviewed_by);
+create index if not exists event_submissions_duplicate_of_event_id_idx on public.event_submissions (duplicate_of_event_id) where duplicate_of_event_id is not null;
 
 create unique index if not exists organizers_slug_unique_idx on public.organizers (slug);
 create index if not exists organizers_status_idx on public.organizers (status);
 create index if not exists organizers_primary_city_idx on public.organizers (primary_city);
 create index if not exists organizer_requests_user_id_idx on public.organizer_requests (user_id);
+create index if not exists organizer_requests_proposed_organizer_id_idx on public.organizer_requests (proposed_organizer_id) where proposed_organizer_id is not null;
+create index if not exists organizer_requests_reviewed_by_idx on public.organizer_requests (reviewed_by) where reviewed_by is not null;
 create index if not exists organizer_requests_status_created_idx on public.organizer_requests (status, created_at desc);
 create index if not exists organizer_members_user_id_idx on public.organizer_members (user_id);
 create index if not exists organizer_members_organizer_status_idx on public.organizer_members (organizer_id, status);
@@ -734,6 +1031,7 @@ create unique index if not exists venues_slug_unique_idx on public.venues (slug)
 create index if not exists venues_normalized_name_idx on public.venues (normalized_name);
 create index if not exists venues_city_idx on public.venues (city);
 create index if not exists venues_status_idx on public.venues (status);
+create index if not exists venues_normalized_address_idx on public.venues (normalized_address) where normalized_address is not null;
 
 create index if not exists event_import_batches_created_at_idx on public.event_import_batches (created_at desc);
 create index if not exists event_import_batches_imported_by_idx on public.event_import_batches (imported_by);
@@ -742,11 +1040,9 @@ create index if not exists taxonomy_terms_directory_idx on public.taxonomy_terms
 create index if not exists taxonomy_terms_parent_idx on public.taxonomy_terms (parent_id) where parent_id is not null;
 create index if not exists event_taxonomy_terms_term_event_idx on public.event_taxonomy_terms (taxonomy_term_id, event_id);
 
-create index if not exists event_attendees_event_id_idx on public.event_attendees (event_id);
 create index if not exists event_attendees_event_category_idx on public.event_attendees (event_id, category);
 create index if not exists event_attendees_event_display_name_idx on public.event_attendees (event_id, display_name);
 create index if not exists event_check_ins_one_active_per_attendee_idx on public.event_check_ins (attendee_id) where reversed_at is null;
-create index if not exists event_check_ins_event_id_idx on public.event_check_ins (event_id);
 create index if not exists event_check_ins_attendee_event_idx on public.event_check_ins (attendee_id, event_id);
 create index if not exists event_attendees_profile_id_idx on public.event_attendees (profile_id) where profile_id is not null;
 create index if not exists event_attendees_created_by_idx on public.event_attendees (created_by);

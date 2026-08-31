@@ -705,6 +705,7 @@ alter table public.profiles
   alter column updated_at set not null;
 
 alter table public.venues
+  alter column id set default gen_random_uuid(),
   alter column name set not null,
   alter column country set default 'US',
   alter column country set not null,
@@ -716,6 +717,7 @@ alter table public.venues
   alter column updated_at set not null;
 
 alter table public.organizers
+  alter column id set default gen_random_uuid(),
   alter column name set not null,
   alter column status set default 'active',
   alter column status set not null,
@@ -725,9 +727,11 @@ alter table public.organizers
   alter column updated_at set not null;
 
 alter table public.events
+  alter column id set default gen_random_uuid(),
   alter column title set not null,
   alter column event_date set not null,
   alter column status set default 'approved',
+  alter column city set default 'boston',
   alter column created_at set default now(),
   alter column source_type set default 'user_submission',
   alter column source_type set not null,
@@ -737,6 +741,7 @@ alter table public.events
   alter column updated_at set not null;
 
 alter table public.event_submissions
+  alter column id set default gen_random_uuid(),
   alter column status set default 'pending',
   alter column status set not null,
   alter column submitted_data set not null,
@@ -748,8 +753,8 @@ alter table public.event_submissions
   alter column created_at set not null,
   alter column updated_at set default now(),
   alter column updated_at set not null;
-
 alter table public.taxonomy_terms
+  alter column id set default gen_random_uuid(),
   alter column category set not null,
   alter column name set not null,
   alter column slug set not null,
@@ -761,12 +766,8 @@ alter table public.taxonomy_terms
   alter column created_at set not null,
   alter column updated_at set default now(),
   alter column updated_at set not null;
-
-alter table public.event_taxonomy_terms
-  alter column event_id set not null,
-  alter column taxonomy_term_id set not null;
-
 alter table public.organizer_requests
+  alter column id set default gen_random_uuid(),
   alter column user_id set not null,
   alter column status set default 'pending',
   alter column status set not null,
@@ -774,6 +775,46 @@ alter table public.organizer_requests
   alter column created_at set not null,
   alter column updated_at set default now(),
   alter column updated_at set not null;
+alter table public.event_import_batches
+  alter column id set default gen_random_uuid(),
+  alter column filename set not null,
+  alter column total_rows set not null,
+  alter column created_count set not null,
+  alter column duplicate_skipped_count set not null,
+  alter column failed_count set not null,
+  alter column created_at set default now(),
+  alter column created_at set not null;
+alter table public.event_attendees
+  alter column id set default gen_random_uuid(),
+  alter column display_name set not null,
+  alter column category set not null,
+  alter column source set default 'host',
+  alter column source set not null,
+  alter column party_size set default 1,
+  alter column party_size set not null,
+  alter column created_at set default now(),
+  alter column created_at set not null,
+  alter column updated_at set default now(),
+  alter column updated_at set not null;
+alter table public.event_check_ins
+  alter column id set default gen_random_uuid(),
+  alter column checked_in_at set default now(),
+  alter column checked_in_at set not null,
+  alter column checked_in_by set not null,
+  alter column method set default 'manual',
+  alter column method set not null,
+  alter column created_at set default now(),
+  alter column created_at set not null;
+alter table public.audit_logs
+  alter column id set default gen_random_uuid(),
+  alter column action set not null,
+  alter column entity_type set not null,
+  alter column created_at set default now(),
+  alter column created_at set not null;
+
+alter table public.event_taxonomy_terms
+  alter column event_id set not null,
+  alter column taxonomy_term_id set not null;
 
 alter table public.organizer_members
   alter column member_role set default 'owner',
@@ -784,15 +825,6 @@ alter table public.organizer_members
   alter column created_at set not null,
   alter column updated_at set default now(),
   alter column updated_at set not null;
-
-alter table public.event_import_batches
-  alter column filename set not null,
-  alter column total_rows set not null,
-  alter column created_count set not null,
-  alter column duplicate_skipped_count set not null,
-  alter column failed_count set not null,
-  alter column created_at set default now(),
-  alter column created_at set not null;
 
 alter table public.platform_settings
   alter column singleton set default true,
@@ -811,75 +843,220 @@ alter table public.platform_settings
   alter column updated_at set default now(),
   alter column updated_at set not null;
 
-alter table public.event_attendees
-  alter column display_name set not null,
-  alter column category set not null,
-  alter column source set default 'host',
-  alter column source set not null,
-  alter column party_size set default 1,
-  alter column party_size set not null,
-  alter column created_at set default now(),
-  alter column created_at set not null,
-  alter column updated_at set default now(),
-  alter column updated_at set not null;
-
-alter table public.event_check_ins
-  alter column checked_in_at set default now(),
-  alter column checked_in_at set not null,
-  alter column checked_in_by set not null,
-  alter column method set default 'manual',
-  alter column method set not null,
-  alter column created_at set default now(),
-  alter column created_at set not null;
-
-alter table public.audit_logs
-  alter column action set not null,
-  alter column entity_type set not null,
-  alter column created_at set default now(),
-  alter column created_at set not null;
-
--- Generated and key column types must match the canonical contract. This
--- intentionally raises on a partial state that cannot converge safely.
+-- Canonical column types are checked with format_type, including array
+-- element types and numeric typmods. A mismatch fails before constraints.
 do $$
-declare expected record;
+declare expected record; actual_type text;
 begin
   for expected in
     select * from (values
-      ('profiles','id','uuid'), ('profiles','role','text'), ('profiles','status','text'),
-      ('venues','id','uuid'), ('venues','name','text'), ('organizers','id','uuid'),
-      ('events','id','uuid'), ('events','event_date','timestamp with time zone'),
-      ('events','source_type','text'), ('events','dance_styles','ARRAY'),
-      ('event_submissions','id','uuid'), ('event_submissions','submitted_data','jsonb'),
+      ('profiles','id','uuid'),
+      ('profiles','display_name','text'),
+      ('profiles','avatar_url','text'),
+      ('profiles','role','text'),
+      ('profiles','status','text'),
+      ('profiles','created_at','timestamp with time zone'),
+      ('profiles','updated_at','timestamp with time zone'),
+      ('profiles','username','text'),
+      ('profiles','status_reason','text'),
+      ('venues','id','uuid'),
+      ('venues','name','text'),
+      ('venues','slug','text'),
+      ('venues','address_line1','text'),
+      ('venues','address_line2','text'),
+      ('venues','city','text'),
+      ('venues','state_region','text'),
+      ('venues','postal_code','text'),
+      ('venues','country','text'),
+      ('venues','latitude','numeric(10,8)'),
+      ('venues','longitude','numeric(11,8)'),
+      ('venues','timezone','text'),
+      ('venues','website','text'),
+      ('venues','instagram','text'),
+      ('venues','phone','text'),
+      ('venues','status','text'),
+      ('venues','normalized_name','text'),
+      ('venues','normalized_address','text'),
+      ('venues','created_at','timestamp with time zone'),
+      ('venues','updated_at','timestamp with time zone'),
+      ('organizers','id','uuid'),
+      ('organizers','name','text'),
+      ('organizers','slug','text'),
+      ('organizers','description','text'),
+      ('organizers','logo_url','text'),
+      ('organizers','website','text'),
+      ('organizers','instagram','text'),
+      ('organizers','organizer_type','text'),
+      ('organizers','primary_city','text'),
+      ('organizers','status','text'),
+      ('organizers','created_at','timestamp with time zone'),
+      ('organizers','updated_at','timestamp with time zone'),
+      ('events','id','uuid'),
+      ('events','title','text'),
+      ('events','description','text'),
+      ('events','event_type','text'),
+      ('events','event_date','timestamp with time zone'),
+      ('events','event_time','text'),
+      ('events','location','text'),
+      ('events','address','text'),
+      ('events','price_type','text'),
+      ('events','price_amount','numeric(10,2)'),
+      ('events','rsvp_link','text'),
+      ('events','image_url','text'),
+      ('events','status','text'),
+      ('events','submitter_name','text'),
+      ('events','submitter_email','text'),
+      ('events','created_at','timestamp with time zone'),
+      ('events','city','text'),
+      ('events','host','text'),
+      ('events','recurrence','text'),
+      ('events','gallery','text[]'),
+      ('events','submitter_id','uuid'),
+      ('events','contact_email','text'),
+      ('events','contact_instagram','text'),
+      ('events','contact_website','text'),
+      ('events','source_type','text'),
+      ('events','dance_styles','text[]'),
+      ('events','updated_at','timestamp with time zone'),
+      ('events','cancellation_reason','text'),
+      ('events','venue_id','uuid'),
+      ('events','organizer_id','uuid'),
+      ('event_submissions','id','uuid'),
+      ('event_submissions','submitter_id','uuid'),
+      ('event_submissions','submitter_email','text'),
+      ('event_submissions','submitter_name','text'),
+      ('event_submissions','status','text'),
+      ('event_submissions','submitted_data','jsonb'),
+      ('event_submissions','edited_data','jsonb'),
       ('event_submissions','submitted_at','timestamp with time zone'),
-      ('taxonomy_terms','id','uuid'), ('taxonomy_terms','category','text'),
-      ('taxonomy_terms','normalized_name','text'), ('taxonomy_terms','slug','text'),
-      ('event_taxonomy_terms','event_id','uuid'), ('event_taxonomy_terms','taxonomy_term_id','uuid'),
-      ('organizer_requests','id','uuid'), ('organizer_members','organizer_id','uuid'),
-      ('event_import_batches','id','uuid'), ('platform_settings','singleton','boolean'),
-      ('event_attendees','id','uuid'), ('event_attendees','event_id','uuid'),
-      ('event_check_ins','id','uuid'), ('event_check_ins','attendee_id','uuid'),
-      ('audit_logs','id','uuid'), ('audit_logs','metadata','jsonb')
-    ) as v(table_name, column_name, data_type)
+      ('event_submissions','reviewed_by','uuid'),
+      ('event_submissions','reviewed_at','timestamp with time zone'),
+      ('event_submissions','rejection_reason','text'),
+      ('event_submissions','rejection_message','text'),
+      ('event_submissions','internal_note','text'),
+      ('event_submissions','duplicate_of_event_id','uuid'),
+      ('event_submissions','dismissed_duplicate_ids','uuid[]'),
+      ('event_submissions','approved_event_id','uuid'),
+      ('event_submissions','created_at','timestamp with time zone'),
+      ('event_submissions','updated_at','timestamp with time zone'),
+      ('taxonomy_terms','id','uuid'),
+      ('taxonomy_terms','category','text'),
+      ('taxonomy_terms','name','text'),
+      ('taxonomy_terms','normalized_name','text'),
+      ('taxonomy_terms','slug','text'),
+      ('taxonomy_terms','description','text'),
+      ('taxonomy_terms','parent_id','uuid'),
+      ('taxonomy_terms','status','text'),
+      ('taxonomy_terms','display_order','integer'),
+      ('taxonomy_terms','created_at','timestamp with time zone'),
+      ('taxonomy_terms','updated_at','timestamp with time zone'),
+      ('event_taxonomy_terms','event_id','uuid'),
+      ('event_taxonomy_terms','taxonomy_term_id','uuid'),
+      ('organizer_requests','id','uuid'),
+      ('organizer_requests','user_id','uuid'),
+      ('organizer_requests','proposed_organizer_id','uuid'),
+      ('organizer_requests','proposed_name','text'),
+      ('organizer_requests','organizer_type','text'),
+      ('organizer_requests','description','text'),
+      ('organizer_requests','website','text'),
+      ('organizer_requests','instagram','text'),
+      ('organizer_requests','primary_city','text'),
+      ('organizer_requests','request_message','text'),
+      ('organizer_requests','status','text'),
+      ('organizer_requests','reviewed_by','uuid'),
+      ('organizer_requests','reviewed_at','timestamp with time zone'),
+      ('organizer_requests','rejection_reason_code','text'),
+      ('organizer_requests','rejection_message','text'),
+      ('organizer_requests','created_at','timestamp with time zone'),
+      ('organizer_requests','updated_at','timestamp with time zone'),
+      ('organizer_members','organizer_id','uuid'),
+      ('organizer_members','user_id','uuid'),
+      ('organizer_members','member_role','text'),
+      ('organizer_members','status','text'),
+      ('organizer_members','created_at','timestamp with time zone'),
+      ('organizer_members','updated_at','timestamp with time zone'),
+      ('event_import_batches','id','uuid'),
+      ('event_import_batches','imported_by','uuid'),
+      ('event_import_batches','filename','text'),
+      ('event_import_batches','total_rows','integer'),
+      ('event_import_batches','created_count','integer'),
+      ('event_import_batches','duplicate_skipped_count','integer'),
+      ('event_import_batches','failed_count','integer'),
+      ('event_import_batches','created_at','timestamp with time zone'),
+      ('platform_settings','singleton','boolean'),
+      ('platform_settings','platform_name','text'),
+      ('platform_settings','public_site_url','text'),
+      ('platform_settings','support_email','text'),
+      ('platform_settings','default_city','text'),
+      ('platform_settings','default_country_code','text'),
+      ('platform_settings','default_timezone','text'),
+      ('platform_settings','default_locale','text'),
+      ('platform_settings','default_currency_code','text'),
+      ('platform_settings','default_event_duration_minutes','integer'),
+      ('platform_settings','allow_public_event_suggestions','boolean'),
+      ('platform_settings','allow_registered_user_submissions','boolean'),
+      ('platform_settings','updated_by','uuid'),
+      ('platform_settings','updated_at','timestamp with time zone'),
+      ('event_attendees','id','uuid'),
+      ('event_attendees','event_id','uuid'),
+      ('event_attendees','profile_id','uuid'),
+      ('event_attendees','display_name','text'),
+      ('event_attendees','email','text'),
+      ('event_attendees','category','text'),
+      ('event_attendees','source','text'),
+      ('event_attendees','party_size','integer'),
+      ('event_attendees','notes','text'),
+      ('event_attendees','created_by','uuid'),
+      ('event_attendees','created_at','timestamp with time zone'),
+      ('event_attendees','updated_at','timestamp with time zone'),
+      ('event_check_ins','id','uuid'),
+      ('event_check_ins','attendee_id','uuid'),
+      ('event_check_ins','event_id','uuid'),
+      ('event_check_ins','checked_in_at','timestamp with time zone'),
+      ('event_check_ins','checked_in_by','uuid'),
+      ('event_check_ins','method','text'),
+      ('event_check_ins','reversed_at','timestamp with time zone'),
+      ('event_check_ins','reversed_by','uuid'),
+      ('event_check_ins','reversal_reason','text'),
+      ('event_check_ins','created_at','timestamp with time zone'),
+      ('audit_logs','id','uuid'),
+      ('audit_logs','actor_id','uuid'),
+      ('audit_logs','action','text'),
+      ('audit_logs','entity_type','text'),
+      ('audit_logs','entity_id','uuid'),
+      ('audit_logs','metadata','jsonb'),
+      ('audit_logs','created_at','timestamp with time zone'),
+      ('audit_logs','before_state','jsonb'),
+      ('audit_logs','after_state','jsonb'),
+      ('audit_logs','reason','text'),
+      ('audit_logs','target_type','text'),
+      ('audit_logs','target_id','uuid'),
+      ('audit_logs','target_name','text')
+    ) as v(table_name, column_name, expected_type)
   loop
-    if not exists (
-      select 1 from information_schema.columns c
-      where c.table_schema = 'public'
-        and c.table_name = expected.table_name
-        and c.column_name = expected.column_name
-        and c.data_type = expected.data_type
-    ) then
-      raise exception 'Current schema type mismatch: public.%.% must be %',
-        expected.table_name, expected.column_name, expected.data_type;
+    select format_type(a.atttypid, a.atttypmod)
+      into actual_type
+      from pg_attribute a
+      where a.attrelid = format('public.%s', expected.table_name)::regclass
+        and a.attname = expected.column_name
+        and a.attnum > 0
+        and not a.attisdropped;
+    if actual_type is distinct from expected.expected_type then
+      raise exception 'Current schema type mismatch: public.%.% is %, expected %',
+        expected.table_name, expected.column_name, coalesce(actual_type, '<missing>'), expected.expected_type;
     end if;
   end loop;
   if not exists (
     select 1
-    from pg_attribute
-    where attrelid = 'public.taxonomy_terms'::regclass
-      and attname = 'normalized_name'
-      and attgenerated = 's'
+    from pg_attribute a
+    join pg_attrdef d on d.adrelid = a.attrelid and d.adnum = a.attnum
+    where a.attrelid = 'public.taxonomy_terms'::regclass
+      and a.attname = 'normalized_name'
+      and a.attgenerated = 's'
+      and regexp_replace(pg_get_expr(d.adbin, d.adrelid), '\s+', '', 'g') =
+          'lower(btrim(normalize(name,''NFKC''::text)))'
   ) then
-    raise exception 'Current schema mismatch: taxonomy_terms.normalized_name must remain generated';
+    raise exception 'Current schema mismatch: taxonomy_terms.normalized_name expression differs from canonical normalization';
   end if;
 end;
 $$;

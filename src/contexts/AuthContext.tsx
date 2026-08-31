@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import type { User, Session } from "@supabase/supabase-js";
-import { supabase } from "../lib/supabase";
+import { supabase, supabaseAuthStorageKey } from "../lib/supabase";
 import { AuthContext, roleFromUser } from "./authContextObject";
 import type { AuthContextValue, AuthSignOutScope } from "./authContextObject";
 
@@ -110,6 +110,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [queryClient]
   );
 
+  const clearDeletedAccount = useCallback(() => {
+    setSession(null);
+    setUser(null);
+    queryClient.clear();
+    window.localStorage.removeItem(supabaseAuthStorageKey);
+    window.localStorage.removeItem(`${supabaseAuthStorageKey}-user`);
+
+  }, [queryClient]);
+
   const role = roleFromUser(user);
   const value: AuthContextValue = {
     user,
@@ -123,6 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     resendConfirmation,
     signUp,
     signOut,
+    clearDeletedAccount,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

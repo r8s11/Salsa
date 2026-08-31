@@ -11,12 +11,14 @@ const { useMySubmissions } = vi.hoisted(() => ({ useMySubmissions: vi.fn() }));
 vi.mock("../contexts/useAuth", () => ({ useAuth }));
 vi.mock("../hooks/useMySubmissions", () => ({ useMySubmissions }));
 
+const futureEventDate = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+
 const baseEvent: DatabaseEvent = {
   id: "base",
   title: "Base Event",
   description: null,
   event_type: "social",
-  event_date: "2026-09-01T20:00:00Z",
+  event_date: futureEventDate,
   event_time: "20:00",
   location: "Havana Club",
   address: null,
@@ -49,7 +51,6 @@ const ownerPending: DatabaseEvent = {
   id: "pending-1",
   title: "Pending Event",
   status: "pending",
-  event_date: "2026-08-30T20:00:00Z",
   location: "Studio 4B",
 };
 

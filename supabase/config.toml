@@ -176,7 +176,7 @@ password_requirements = ""
 [auth.hook.send_email]
 enabled = true
 uri = "http://host.docker.internal:54321/functions/v1/send-auth-email"
-secrets = "env(SEND_EMAIL_HOOK_SECRET)"
+secrets = "v1,whsec_dGVzdC1vbmx5LWxvY2FsLWhvb2stc2VjcmV0LXNpZ25hdHVyZQ=="
 
 [auth.rate_limit]
 # Number of emails that can be sent per hour. Requires auth.email.smtp to be enabled.
@@ -394,6 +394,12 @@ s3_secret_key = "env(S3_SECRET_KEY)"
 # supabase/functions/invite-organizer/index.ts). That internal check is the SOLE enforcement
 # point for this function's authorization -- do not assume the gateway enforces auth, and do
 # not remove the internal check without replacing it with equivalent protection.
+verify_jwt = false
+
+[functions.delete-account]
+# The function validates the bearer token with auth.getUser() itself so it can
+# return its stable public eligibility response. Gateway verification alone is
+# never the deletion authorization boundary.
 verify_jwt = false
 
 [functions.send-auth-email]

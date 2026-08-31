@@ -16,9 +16,10 @@ vi.mock("../lib/supabase", () => ({
       resend: vi.fn(),
     },
   },
+  supabaseAuthStorageKey: "sb-salsa-test-auth-token",
 }));
 
-import { supabase } from "../lib/supabase";
+import { supabase, supabaseAuthStorageKey } from "../lib/supabase";
 
 function makeUser(role: string): User {
   return {
@@ -90,6 +91,19 @@ function SignOutTrigger({ scope }: { scope: "local" | "others" | "global" }) {
         }}
       >
         sign out
+      </button>
+    </div>
+  );
+}
+
+function DeletedAccountTrigger() {
+  const { clearDeletedAccount, user, session } = useAuth();
+  return (
+    <div>
+      <div data-testid="deleted-user-id">{user?.id ?? "none"}</div>
+      <div data-testid="deleted-session">{session ? "present" : "none"}</div>
+      <button type="button" onClick={clearDeletedAccount}>
+        clear deleted account
       </button>
     </div>
   );
@@ -246,5 +260,39 @@ describe("AuthContext scoped sign-out", () => {
     expect(screen.getByTestId("sign-out-user-id")).toHaveTextContent(organizer.id);
     expect(screen.getByTestId("sign-out-session")).toHaveTextContent("present");
     expect(queryClient.getQueryData(["private", organizer.id])).toEqual({ secret: "private event data" });
+  });
+});
+
+describe("AuthContext deleted-account cleanup", () => {
+  it("clears local identity and private queries even if post-deletion local sign-out fails", async () => {
+    const organizer = makeUser("organizer");
+    const session = makeSession(organizer);
+    const queryClient = new QueryClient();
+    queryClient.setQueryData(["private", organizer.id], { secret: "private event data" });
+    vi.mocked(supabase.auth.getSession).mockResolvedValue({ data: { session } } as never);
+    vi.mocked(supabase.auth.signOut).mockResolvedValue({ error: new Error("Auth user no longer exists") } as never);
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <DeletedAccountTrigger />
+        </AuthProvider>
+      </QueryClientProvider>
+    );
+    localStorage.setItem(supabaseAuthStorageKey, JSON.stringify(session));
+    localStorage.setItem(`${supabaseAuthStorageKey}-user`, JSON.stringify({ user: organizer }));
+
+
+    await waitFor(() => expect(screen.getByTestId("deleted-user-id")).toHaveTextContent(organizer.id));
+
+    await act(async () => {
+      screen.getByText("clear deleted account").click();
+    });
+
+    expect(screen.getByTestId("deleted-user-id")).toHaveTextContent("none");
+    expect(screen.getByTestId("deleted-session")).toHaveTextContent("none");
+    expect(queryClient.getQueryData(["private", organizer.id])).toBeUndefined();
+    expect(localStorage.getItem(supabaseAuthStorageKey)).toBeNull();
+    expect(localStorage.getItem(`${supabaseAuthStorageKey}-user`)).toBeNull();
   });
 });

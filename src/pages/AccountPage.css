@@ -398,6 +398,82 @@
   color: var(--gold-light);
 }
 
+/* ── Danger zone ── */
+
+.account-page__danger {
+  border-color: rgba(225, 29, 72, 0.35);
+  margin-top: var(--space-xl);
+}
+
+.account-page__danger h2 {
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: clamp(20px, 2.6vw, 26px);
+  font-weight: 900;
+  margin-bottom: var(--space-sm);
+}
+
+.account-page__danger-intro {
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.account-page__danger-copy,
+.account-page__danger-status,
+.account-page__danger-blocker,
+.account-page__danger-error p {
+  color: var(--text-dim);
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  line-height: 1.5;
+  margin-top: var(--space-sm);
+}
+
+.account-page__danger-blocker {
+  background: var(--red-dim);
+  border: 1px solid rgba(225, 29, 72, 0.35);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  padding: var(--space-sm) var(--space-md);
+}
+
+.account-page__danger-blocker a {
+  color: var(--gold-light);
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.account-page__danger-error {
+  align-items: flex-start;
+  background: var(--red-dim);
+  border: 1px solid rgba(225, 29, 72, 0.35);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+}
+
+.account-page__danger-error p {
+  color: var(--red-bright);
+  margin-top: 0;
+}
+
+.account-page__btn--danger {
+  background: var(--red-dim);
+  border: 1px solid rgba(225, 29, 72, 0.55);
+  color: var(--red-bright);
+  margin-top: var(--space-md);
+}
+
+.account-page__btn--danger:hover:not(:disabled) {
+  background: rgba(225, 29, 72, 0.22);
+  color: #fff;
+}
+
 /* ── Global sign-out confirmation ── */
 
 .account-page__dialog-overlay {
@@ -435,6 +511,45 @@
   font-size: 13.5px;
   line-height: 1.5;
   margin-top: var(--space-sm);
+}
+
+.account-page__dialog-copy p {
+  color: var(--text-dim);
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  line-height: 1.5;
+  margin-top: var(--space-sm);
+}
+
+.account-page__delete-confirmation {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: var(--space-md);
+}
+
+.account-page__delete-confirmation span {
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.account-page__delete-confirmation input {
+  background: var(--bg);
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  min-height: 44px;
+  padding: 10px 12px;
+}
+
+.account-page__delete-confirmation input:focus-visible {
+  border-color: var(--gold);
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
 }
 
 .account-page__dialog-actions {
@@ -634,6 +749,7 @@
 
   .account-page__session-row .account-page__btn,
   .account-page__session-group > .account-page__btn,
+  .account-page__danger .account-page__btn,
   .account-page__dialog-actions .account-page__btn {
     width: 100%;
   }

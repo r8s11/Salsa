@@ -27,6 +27,7 @@ const SECTION_LABEL: Record<string, string> = {
   "/admin/settings": "Settings",
   "/host": "Host · Dashboard",
   "/host/events": "Host · My Events",
+  "/host/events/new": "Host · New Event",
 };
 
 function sectionLabelFor(pathname: string): string {

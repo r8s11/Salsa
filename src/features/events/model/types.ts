@@ -27,6 +27,8 @@ export interface DatabaseEvent {
   submitter_id: string | null;
   status: "draft" | "pending" | "approved" | "rejected" | "cancelled" | "archived";
   source_type: "admin" | "user_submission" | "organizer" | "moderator" | "imported";
+  /** Legacy slug storage retained while taxonomy terms are progressively backfilled. */
+  dance_styles?: string[];
   taxonomy_term_ids: string[];
   taxonomy_terms: EventTaxonomyTerm[];
   updated_at: string;
@@ -40,6 +42,13 @@ export interface DatabaseEvent {
   contact_instagram: string | null;
   contact_website: string | null;
   venue_id: string | null;
+
+  /**
+   * Present only for organizer-owned events created via
+   * organizer_create_event(). Legacy submissions and admin-created events
+   * may not have this field.
+   */
+  organizer_id?: string | null;
 
   /**
    * Present only for a pending/rejected event_submission projected into the

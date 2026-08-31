@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/useAuth";
 import { useMySubmissions } from "../hooks/useMySubmissions";
+import { useMyOrganizers } from "../features/host/hooks/useMyOrganizers";
+import { useMyOrganizerEvents } from "../features/host/hooks/useMyOrganizerEvents";
 import { deriveHostEventRows, isUpcomingHostEvent } from "../features/host/model/hostEvents";
 import AdminPageHeader from "../components/Admin/AdminPageHeader";
 import EventShareControls from "../features/events/components/EventShareControls";
@@ -27,16 +29,23 @@ const STATUS_FILTERS: { value: HostStatusFilter; label: string }[] = [
 export default function HostMyEventsPage() {
   const { user } = useAuth();
   const { submissions, approvedEvents, isLoading, error, refetch } = useMySubmissions(user?.id);
+  const { data: organizers = [] } = useMyOrganizers();
+  const organizerEvents = useMyOrganizerEvents();
+  const canCreate = organizers.some(
+    (organizer) =>
+      organizer.organizerStatus === "active" &&
+      (organizer.memberRole === "owner" || organizer.memberRole === "manager")
+  );
   const [view, setView] = useState<HostEventsView>("cards");
   const [statusFilter, setStatusFilter] = useState<HostStatusFilter>("all");
   const [filterNow] = useState(() => new Date());
 
   const rows = useMemo(() => {
     const byId = new Map(
-      [...submissions, ...approvedEvents].map((event) => [event.id, event] as const)
+      [...submissions, ...approvedEvents, ...organizerEvents.events].map((event) => [event.id, event] as const)
     );
     return deriveHostEventRows([...byId.values()]);
-  }, [submissions, approvedEvents]);
+  }, [submissions, approvedEvents, organizerEvents.events]);
   const filteredRows = useMemo(() => {
     if (statusFilter === "all") return rows;
     if (statusFilter === "upcoming") {
@@ -58,24 +67,24 @@ export default function HostMyEventsPage() {
     <>
       <AdminPageHeader
         title="Host · My Events"
-        description="Events you submitted or published."
+        description="Events you submitted or manage for your organizers."
         actions={
-          <Link to="/submit" className="admin-btn admin-btn--primary">
-            Submit an event
-          </Link>
+          canCreate ? (
+            <Link to="/host/events/new" className="admin-btn admin-btn--primary">+ Create Event</Link>
+          ) : undefined
         }
       />
 
-      {error && (
+      {(error || organizerEvents.error) && (
         <div className="admin-banner admin-banner--error" role="alert">
           <p>We couldn&apos;t load your events.</p>
-          <button type="button" className="admin-btn admin-btn--secondary" onClick={refetch}>
+          <button type="button" className="admin-btn admin-btn--secondary" onClick={() => { void refetch(); void organizerEvents.refetch(); }}>
             Try Again
           </button>
         </div>
       )}
 
-      {!error && (
+      {!error && !organizerEvents.error && (
         <>
           <div className="host-my-events__controls">
             <div className="host-my-events__filters" role="group" aria-label="Event status">
@@ -110,22 +119,20 @@ export default function HostMyEventsPage() {
             </div>
           </div>
 
-          {isLoading && (
+          {(isLoading || organizerEvents.isLoading) && (
             <p role="status" className="host-my-events__status">
               Loading your events…
             </p>
           )}
 
-          {!isLoading && rows.length === 0 && (
+          {!isLoading && !organizerEvents.isLoading && rows.length === 0 && (
             <div className="admin-card host-my-events__empty">
               <p>You haven&apos;t submitted any events yet.</p>
-              <Link to="/submit" className="admin-btn admin-btn--primary">
-                Submit an event
-              </Link>
+              {canCreate && <Link to="/host/events/new" className="admin-btn admin-btn--primary">Create an event</Link>}
             </div>
           )}
 
-          {!isLoading && filteredRows.length > 0 && view === "cards" && (
+          {!isLoading && !organizerEvents.isLoading && filteredRows.length > 0 && view === "cards" && (
             <ul className="host-my-events__cards">
               {filteredRows.map((row) => (
                 <li key={row.event.id} className="admin-card host-my-events__card">
@@ -168,7 +175,7 @@ export default function HostMyEventsPage() {
             </ul>
           )}
 
-          {!isLoading && filteredRows.length > 0 && view === "table" && (
+          {!isLoading && !organizerEvents.isLoading && filteredRows.length > 0 && view === "table" && (
             <table className="host-my-events__table">
               <caption className="admin-visually-hidden">Your events</caption>
               <thead>
@@ -216,7 +223,7 @@ export default function HostMyEventsPage() {
               </tbody>
             </table>
           )}
-          {!isLoading && rows.length > 0 && filteredRows.length === 0 && (
+          {!isLoading && !organizerEvents.isLoading && rows.length > 0 && filteredRows.length === 0 && (
             <div className="admin-card host-my-events__empty">
               <p>No {statusFilter} events found.</p>
             </div>

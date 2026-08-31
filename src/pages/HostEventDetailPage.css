@@ -1,3 +1,6 @@
+/* ── Host Event Detail — Operations Dashboard ── */
+
+/* Back link */
 .host-event-detail__back {
   display: inline-flex;
   align-items: center;
@@ -14,6 +17,7 @@
   text-decoration: underline;
 }
 
+/* Header */
 .host-event-detail__header {
   margin-bottom: 8px;
 }
@@ -22,39 +26,105 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  margin-bottom: 4px;
 }
 
-.host-event-detail__title-row h1 {
-  margin: 0;
+.host-event-detail__event-title {
+  margin: 8px 0 0;
   color: var(--admin-text-strong);
   font-family: var(--font-display);
   font-size: 1.75rem;
   font-weight: 700;
+  line-height: 1.2;
 }
 
 .host-event-detail__meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
   margin: 8px 0 0;
   color: var(--admin-text-muted);
   font-size: 0.92rem;
 }
 
-.host-event-detail__status-message {
-  margin: 12px 0 0;
-  color: var(--admin-text-primary);
-  font-size: 0.92rem;
+.host-event-detail__meta-sep {
+  color: var(--admin-border);
 }
 
+.host-event-detail__organizer-context {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 6px 12px;
+  background: var(--admin-surface-secondary);
+  border-radius: var(--admin-radius);
+  font-size: 0.82rem;
+}
+
+.host-event-detail__organizer-label {
+  color: var(--admin-text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.68rem;
+}
+
+.host-event-detail__organizer-name {
+  color: var(--admin-text-strong);
+  font-weight: 600;
+}
+
+/* Status banner */
+.host-event-detail__status-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  margin: 12px 0 0;
+  border-radius: var(--admin-radius);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.host-event-detail__status-banner p {
+  margin: 0;
+}
+
+.host-event-detail__status-banner--draft {
+  background: var(--admin-surface-secondary);
+  color: var(--admin-text-muted);
+}
+
+.host-event-detail__status-banner--pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.host-event-detail__status-banner--approved {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.host-event-detail__status-banner--rejected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.host-event-detail__status-banner--cancelled {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Actions */
 .host-event-detail__actions {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 12px;
-  margin: 20px 0 28px;
-}
-
-.host-event-detail__share {
-  margin: 0 0 16px;
-  padding: 20px;
+  margin: 20px 0 24px;
 }
 
 .host-event-detail__actions .admin-btn {
@@ -63,29 +133,47 @@
   gap: 6px;
 }
 
+.host-event-detail__view-only {
+  color: var(--admin-text-muted);
+  font-size: 0.88rem;
+  font-style: italic;
+}
+
+/* Share */
+.host-event-detail__share {
+  margin: 0 0 16px;
+  padding: 20px;
+}
+
+/* Main grid */
 .host-event-detail__grid {
   display: grid;
   gap: 16px;
 }
 
 .host-event-detail__overview,
-.host-event-detail__description,
 .host-event-detail__flyer {
   padding: 20px;
 }
 
 .host-event-detail__overview h2,
+.host-event-detail__flyer h2,
 .host-event-detail__description h2,
-.host-event-detail__flyer h2 {
-  margin: 0 0 12px;
+.host-event-detail__links h2,
+.host-event-detail__operations h2 {
+  margin: 0 0 16px;
   color: var(--admin-text-strong);
-  font-size: 1rem;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
   font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
+/* Overview dl */
 .host-event-detail__overview dl {
   display: grid;
-  gap: 14px;
+  gap: 16px;
   margin: 0;
 }
 
@@ -103,22 +191,45 @@
   font-size: 0.9rem;
 }
 
-.host-event-detail__overview a {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  color: var(--admin-brand-text);
-  text-decoration: none;
+.host-event-detail__venue {
+  display: block;
+  font-weight: 600;
+  color: var(--admin-text-strong);
 }
 
-.host-event-detail__overview a:hover {
-  text-decoration: underline;
+.host-event-detail__street {
+  display: block;
+  color: var(--admin-text-muted);
+  font-size: 0.85rem;
+  margin-top: 2px;
 }
 
 .host-event-detail__chips {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+}
+
+/* Flyer */
+.host-event-detail__flyer img {
+  display: block;
+  width: 100%;
+  max-width: 480px;
+  border-radius: var(--admin-radius);
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.host-event-detail__flyer-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+/* Description */
+.host-event-detail__description {
+  padding: 20px;
 }
 
 .host-event-detail__description p {
@@ -130,25 +241,149 @@
   overflow-wrap: anywhere;
 }
 
-.host-event-detail__flyer img {
-  display: block;
-  width: 100%;
-  max-width: 480px;
-  border-radius: var(--admin-radius);
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
+/* Links & Contact */
+.host-event-detail__links {
+  padding: 20px;
 }
 
+.host-event-detail__links-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.host-event-detail__link-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 16px;
+  background: var(--admin-surface-subtle);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+}
+
+.host-event-detail__link-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--admin-text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.host-event-detail__link-card .admin-btn {
+  align-self: flex-start;
+}
+
+.host-event-detail__contact-value {
+  color: var(--admin-brand-text);
+  font-size: 0.9rem;
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.host-event-detail__contact-value:hover {
+  text-decoration: underline;
+}
+
+.host-event-detail__empty-text {
+  margin: 0;
+  color: var(--admin-text-muted);
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+/* Operations */
+.host-event-detail__operations {
+  padding: 20px;
+}
+
+.host-event-detail__operations-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.host-event-detail__operation-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px;
+  background: var(--admin-surface-subtle);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+}
+
+.host-event-detail__operation-card--coming-soon {
+  opacity: 0.7;
+}
+
+.host-event-detail__operation-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--admin-radius);
+  background: var(--admin-surface-secondary);
+  color: var(--admin-text-muted);
+}
+
+.host-event-detail__operation-content {
+  flex: 1;
+}
+
+.host-event-detail__operation-content h3 {
+  margin: 0 0 4px;
+  color: var(--admin-text-strong);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.host-event-detail__operation-content p {
+  margin: 0;
+  color: var(--admin-text-muted);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.host-event-detail__coming-soon-badge {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 3px 8px;
+  background: var(--admin-surface-secondary);
+  color: var(--admin-text-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: 9999px;
+}
+
+/* Status / loading */
 .host-event-detail__status {
   color: var(--admin-text-muted);
 }
 
-@media (min-width: 900px) {
+/* ── Responsive ── */
+
+@media (min-width: 768px) {
   .host-event-detail__grid {
     grid-template-columns: 1.3fr 1fr;
   }
 
-  .host-event-detail__description {
-    grid-column: 1 / -1;
+  .host-event-detail__links-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .host-event-detail__operations-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (min-width: 1024px) {
+  .host-event-detail__event-title {
+    font-size: 2rem;
   }
 }

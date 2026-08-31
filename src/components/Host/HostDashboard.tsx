@@ -1,8 +1,11 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { CalendarDays, ClipboardCheck, ListChecks, MapPin } from "lucide-react";
+import { Building2, CalendarDays, ClipboardCheck, ListChecks, MapPin } from "lucide-react";
 import { useAuth } from "../../contexts/useAuth";
 import { useMySubmissions } from "../../hooks/useMySubmissions";
+import { useMyOrganizers } from "../../features/host/hooks/useMyOrganizers";
+import { useMyOrganizerEvents } from "../../features/host/hooks/useMyOrganizerEvents";
+import type { OrganizerMemberRole } from "../../features/host/api/organizerAccessRepo";
 import {
   deriveHostEventRows,
   findNextHostEvent,
@@ -12,16 +15,41 @@ import AdminMetricCard from "../Admin/AdminMetricCard";
 import AdminPageHeader from "../Admin/AdminPageHeader";
 import "./HostDashboard.css";
 
+const ROLE_LABELS: Record<OrganizerMemberRole, string> = {
+  owner: "Owner",
+  manager: "Manager",
+  editor: "Editor",
+};
+
 export default function HostDashboard() {
-  const { user } = useAuth();
+  const { user, isAdmin, isModerator } = useAuth();
   const { submissions, approvedEvents, isLoading, error, refetch } = useMySubmissions(user?.id);
+  const {
+    data: organizers = [],
+    isLoading: organizersLoading,
+    error: organizersError,
+    refetch: refetchOrganizers,
+  } = useMyOrganizers();
+  const organizerEvents = useMyOrganizerEvents();
+  const canCreate = organizers.some(
+    (organizer) =>
+      organizer.organizerStatus === "active" &&
+      (organizer.memberRole === "owner" || organizer.memberRole === "manager")
+  );
+  const dashboardLoading = isLoading || organizerEvents.isLoading;
+  const dashboardError = error || organizersError?.message || organizerEvents.error;
+  const refetchAll = () => {
+    void refetch();
+    void refetchOrganizers?.();
+    void organizerEvents.refetch();
+  };
 
   // `new Date()` stays inside useMemo — calling it in the render body trips
   // react-hooks/purity, the same constraint AdminOverviewPage documents.
   const { rows, nextRow, upcomingCount, pendingCount, rejectedCount } = useMemo(() => {
     const now = new Date();
     const byId = new Map(
-      [...submissions, ...approvedEvents].map((event) => [event.id, event] as const)
+      [...submissions, ...approvedEvents, ...organizerEvents.events].map((event) => [event.id, event] as const)
     );
     const owned = [...byId.values()];
     const derived = deriveHostEventRows(owned);
@@ -34,7 +62,8 @@ export default function HostDashboard() {
       pendingCount: owned.filter((event) => event.status === "pending").length,
       rejectedCount: owned.filter((event) => event.status === "rejected").length,
     };
-  }, [submissions, approvedEvents]);
+  }, [submissions, approvedEvents, organizerEvents.events]);
+
 
   const otherRows = rows.filter((row) => row.event.id !== nextRow?.event.id);
 
@@ -45,24 +74,64 @@ export default function HostDashboard() {
         <AdminPageHeader
           title="Welcome back"
           description="Your submitted and published events, with next steps that match their status."
-          actions={
-            <Link to="/submit" className="admin-btn admin-btn--primary">
-              Submit an event
-            </Link>
-          }
+            actions={
+              <>
+                {canCreate && <Link to="/host/events/new" className="admin-btn admin-btn--primary">+ Create Event</Link>}
+                <Link to="/submit" className="admin-btn admin-btn--secondary">Submit an event</Link>
+              </>
+            }
         />
       </div>
 
-      {error && (
+      <section className="host-dashboard__organizers" aria-labelledby="host-organizers">
+        <h2 id="host-organizers" className="host-dashboard__eyebrow">
+          Your organizers
+        </h2>
+        {organizersLoading ? (
+          <p role="status" className="admin-overview-page__status">
+            Checking organizer access…
+          </p>
+        ) : organizers.length > 0 ? (
+          <ul className="host-dashboard__organizer-list">
+            {organizers.map((organizer) => (
+              <li key={organizer.organizerId} className="host-dashboard__organizer-card">
+                <div className="host-dashboard__organizer-main">
+                  <Building2 size={18} aria-hidden />
+                  <div>
+                    <h3>{organizer.organizerName}</h3>
+                    <p>{ROLE_LABELS[organizer.memberRole]}</p>
+                  </div>
+                </div>
+                <span className="host-dashboard__status host-dashboard__status--approved">
+                  Organizer access confirmed
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : isAdmin || isModerator ? (
+          <p className="host-dashboard__organizer-note">
+            No organizer memberships on this account. Platform tools live in{" "}
+            <Link to="/admin">Admin</Link>.
+          </p>
+        ) : (
+          <p className="host-dashboard__organizer-note">
+            No organizer access yet. Organizer access is granted by the Salsa Segura team once an
+            organizer request is approved.{" "}
+            <Link to="/contact">Contact Salsa Segura</Link> to get started.
+          </p>
+        )}
+      </section>
+
+      {dashboardError && (
         <div className="admin-banner admin-banner--error" role="alert">
           <p>We couldn&apos;t load your events.</p>
-          <button type="button" className="admin-btn admin-btn--secondary" onClick={refetch}>
+          <button type="button" className="admin-btn admin-btn--secondary" onClick={refetchAll}>
             Try Again
           </button>
         </div>
       )}
 
-      {!error && (
+      {!dashboardError && (
         <div className="admin-overview-page__body">
           <div className="admin-overview-page__metrics">
             <AdminMetricCard
@@ -73,7 +142,7 @@ export default function HostDashboard() {
               tone="informational"
               to="/host/events"
               actionLabel="View events"
-              isLoading={isLoading}
+              isLoading={dashboardLoading}
             />
             <AdminMetricCard
               label="Awaiting Review"
@@ -83,7 +152,7 @@ export default function HostDashboard() {
               tone="attention"
               to="/host/events"
               actionLabel="Review"
-              isLoading={isLoading}
+              isLoading={dashboardLoading}
             />
             <AdminMetricCard
               label="Total Events"
@@ -93,7 +162,7 @@ export default function HostDashboard() {
               tone="informational"
               to="/host/events"
               actionLabel="Manage"
-              isLoading={isLoading}
+              isLoading={dashboardLoading}
             />
             <AdminMetricCard
               label="Requires Revision"
@@ -103,17 +172,17 @@ export default function HostDashboard() {
               tone="attention"
               to="/host/events"
               actionLabel="Revise"
-              isLoading={isLoading}
+              isLoading={dashboardLoading}
             />
           </div>
 
-          {isLoading && (
+          {dashboardLoading && (
             <p role="status" className="admin-overview-page__status">
               Loading your events…
             </p>
           )}
 
-          {!isLoading && nextRow && (
+          {!dashboardLoading && nextRow && (
             <section className="admin-card host-dashboard__next" aria-labelledby="host-next-event">
               <h2 id="host-next-event" className="host-dashboard__eyebrow">
                 Next event
@@ -139,17 +208,18 @@ export default function HostDashboard() {
             </section>
           )}
 
-          {!isLoading && !nextRow && (
+          {!dashboardLoading && !nextRow && (
             <section className="admin-card host-dashboard__empty">
               <h2 className="host-dashboard__next-title">No upcoming events yet</h2>
-              <p>Submit an event and it appears here once it is scheduled.</p>
-              <Link className="admin-btn admin-btn--primary" to="/submit">
-                Submit an event
+              <p>{canCreate ? "Create an event and it will appear here once it is scheduled." : "Submit an event and it appears here once it is scheduled."}</p>
+              <Link className="admin-btn admin-btn--primary" to={canCreate ? "/host/events/new" : "/submit"}>
+                {canCreate ? "Create an event" : "Submit an event"}
               </Link>
+              {canCreate && <Link className="admin-btn admin-btn--secondary" to="/submit">Submit an event</Link>}
             </section>
           )}
 
-          {!isLoading && otherRows.length > 0 && (
+          {!dashboardLoading && otherRows.length > 0 && (
             <section className="admin-card host-dashboard__events" aria-labelledby="host-events">
               <div className="host-dashboard__events-head">
                 <h2 id="host-events" className="host-dashboard__eyebrow">

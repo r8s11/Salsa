@@ -49,6 +49,9 @@ export function buildAdminFormFromEvent(event: DatabaseEvent): AdminEventForm {
 }
 
 export function validateAdminEventForm(form: AdminEventForm): string | null {
+  if (!form.title.trim()) return "Event title is required.";
+  if (!form.event_type) return "Choose an event type.";
+  if (!form.event_date) return "Choose an event date.";
   const submitFormError = validateSubmitForm({
     title: form.title,
     description: form.description,

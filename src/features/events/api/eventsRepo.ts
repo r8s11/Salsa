@@ -34,7 +34,7 @@ type EventWithTaxonomy = Omit<DatabaseEvent, "taxonomy_term_ids" | "taxonomy_ter
   }[];
 };
 
-function projectEventTaxonomy(rows: EventWithTaxonomy[] | null): DatabaseEvent[] {
+export function projectEventTaxonomy(rows: EventWithTaxonomy[] | null): DatabaseEvent[] {
   return (rows ?? []).map(({ event_taxonomy_terms, ...event }) => ({
     ...event,
     taxonomy_term_ids: event_taxonomy_terms?.map(({ taxonomy_term_id }) => taxonomy_term_id) ?? [],

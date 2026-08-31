@@ -7,9 +7,15 @@ import HostMyEventsPage from "./HostMyEventsPage";
 
 const { useAuth } = vi.hoisted(() => ({ useAuth: vi.fn() }));
 const { useMySubmissions } = vi.hoisted(() => ({ useMySubmissions: vi.fn() }));
+const { useMyOrganizers, useMyOrganizerEvents } = vi.hoisted(() => ({
+  useMyOrganizers: vi.fn(),
+  useMyOrganizerEvents: vi.fn(),
+}));
 
 vi.mock("../contexts/useAuth", () => ({ useAuth }));
 vi.mock("../hooks/useMySubmissions", () => ({ useMySubmissions }));
+vi.mock("../features/host/hooks/useMyOrganizers", () => ({ useMyOrganizers }));
+vi.mock("../features/host/hooks/useMyOrganizerEvents", () => ({ useMyOrganizerEvents }));
 
 const futureEventDate = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
@@ -51,6 +57,7 @@ const ownerPending: DatabaseEvent = {
   id: "pending-1",
   title: "Pending Event",
   status: "pending",
+  event_date: "2099-08-30T20:00:00Z",
   location: "Studio 4B",
 };
 
@@ -98,6 +105,8 @@ describe("HostMyEventsPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(useAuth).mockReturnValue({ user: { id: "user-1" }, role: "organizer" });
+    vi.mocked(useMyOrganizers).mockReturnValue({ data: [] });
+    vi.mocked(useMyOrganizerEvents).mockReturnValue({ events: [], isLoading: false, error: null, refetch: vi.fn() });
     mockOwnerEvents();
   });
 

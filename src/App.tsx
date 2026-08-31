@@ -42,8 +42,12 @@ const AdminAnalyticsPage = lazy(() => import("./pages/AdminAnalyticsPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const AccountPage = lazy(() => import("./pages/AccountPage"));
 const HostMyEventsPage = lazy(() => import("./pages/HostMyEventsPage"));
+const HostCreateEventPage = lazy(() => import("./pages/HostCreateEventPage"));
+const HostEditEventPage = lazy(() => import("./pages/HostEditEventPage"));
 const HostDashboard = lazy(() => import("./components/Host/HostDashboard"));
 const HostEventDetailPage = lazy(() => import("./pages/HostEventDetailPage"));
+const HostAttendeeListPage = lazy(() => import("./pages/HostAttendeeListPage"));
+const HostCheckInPage = lazy(() => import("./pages/HostCheckInPage"));
 const UserEventEditPage = lazy(() => import("./pages/UserEventEditPage"));
 import RequireAuth from "./components/Auth/RequireAuth";
 import RequireAdmin from "./components/Auth/RequireAdmin";
@@ -167,7 +171,11 @@ function App() {
             >
               <Route index element={<HostDashboard />} />
               <Route path="events" element={<HostMyEventsPage />} />
+              <Route path="events/new" element={<HostCreateEventPage />} />
               <Route path="events/:eventId" element={<HostEventDetailPage />} />
+              <Route path="events/:eventId/edit" element={<HostEditEventPage />} />
+              <Route path="events/:eventId/attendees" element={<HostAttendeeListPage />} />
+              <Route path="events/:eventId/check-in" element={<HostCheckInPage />} />
             </Route>
             <Route path="/" element={<MainLayout />}>
               <Route index element={<HomePage />} />

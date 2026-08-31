@@ -38,7 +38,7 @@ export type EventFormCapabilities = {
 };
 
 export const CAPABILITIES: Record<
-  "submit" | "organizerEdit" | "organizerSubmissionEdit" | "admin",
+  "submit" | "organizerEdit" | "organizerCreate" | "organizerSubmissionEdit" | "admin",
   EventFormCapabilities
 > = {
   submit: {
@@ -54,7 +54,15 @@ export const CAPABILITIES: Record<
     attributes: false,
     venue: "free-text",
     flyer: true,
-    hostAndContact: false,
+    hostAndContact: true,
+    submitterInfo: false,
+  },
+  organizerCreate: {
+    styles: "slug-chips",
+    attributes: false,
+    venue: "free-text",
+    flyer: true,
+    hostAndContact: true,
     submitterInfo: false,
   },
   // A moderation submission has no canonical event id yet. Storage policy
@@ -149,3 +157,63 @@ export function draftToAdminPayload(draft: EventFormDraft): AdminEventPayload {
     venue_id: draft.venue_id || null,
   };
 }
+export type OrganizerCreateDraftPayload = Omit<AdminEventPayload, "taxonomy_term_ids"> & {
+  dance_styles: string[];
+};
+
+/** Maps the host form to the canonical organizer RPC payload. */
+export function draftToOrganizerCreatePayload(draft: EventFormDraft): OrganizerCreateDraftPayload {
+  const { taxonomy_term_ids: _taxonomyTermIds, ...payload } = draftToAdminPayload(draft);
+  return { ...payload, dance_styles: draft.dance_styles };
+}
+
+/**
+ * Maps the host edit form to the organizer update RPC payload.
+ * Only includes fields the RPC whitelist permits — status, organizer_id,
+ * submitter_id, source_type, venue_id, and created_at are excluded.
+ */
+export function draftToOrganizerUpdatePayload(
+  draft: EventFormDraft
+): OrganizerUpdateDraftPayload {
+  return {
+    title: draft.title,
+    description: draft.description || null,
+    event_type: draft.event_type as EventType,
+    city: draft.city,
+    event_date: toEventDateInstant(draft.event_date, draft.event_time),
+    event_time: draft.event_time || null,
+    location: draft.location || null,
+    address: draft.address || null,
+    price_type: draft.price_type || null,
+    price_amount: priceAmount(draft),
+    rsvp_link: draft.rsvp_link || null,
+    recurrence: draft.recurrence || null,
+    host: draft.host || null,
+    image_url: draft.image_url || null,
+    contact_email: draft.contact_email || null,
+    contact_instagram: draft.contact_instagram || null,
+    contact_website: draft.contact_website || null,
+    dance_styles: draft.dance_styles,
+  };
+}
+
+export type OrganizerUpdateDraftPayload = {
+  title: string;
+  description: string | null;
+  event_type: string;
+  city: string;
+  event_date: string;
+  event_time: string | null;
+  location: string | null;
+  address: string | null;
+  price_type: "free" | "paid" | null;
+  price_amount: number | null;
+  rsvp_link: string | null;
+  recurrence: "weekly" | null;
+  host: string | null;
+  image_url: string | null;
+  contact_email: string | null;
+  contact_instagram: string | null;
+  contact_website: string | null;
+  dance_styles: string[];
+};

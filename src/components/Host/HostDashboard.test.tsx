@@ -7,9 +7,14 @@ import RequireOrganizer from "../Auth/RequireOrganizer";
 
 const { useAuth } = vi.hoisted(() => ({ useAuth: vi.fn() }));
 const { useMySubmissions } = vi.hoisted(() => ({ useMySubmissions: vi.fn() }));
+const { useMyOrganizers } = vi.hoisted(() => ({ useMyOrganizers: vi.fn() }));
 
 vi.mock("../../contexts/useAuth", () => ({ useAuth }));
+const { useMyOrganizerEvents } = vi.hoisted(() => ({ useMyOrganizerEvents: vi.fn() }));
+
 vi.mock("../../hooks/useMySubmissions", () => ({ useMySubmissions }));
+vi.mock("../../features/host/hooks/useMyOrganizers", () => ({ useMyOrganizers }));
+vi.mock("../../features/host/hooks/useMyOrganizerEvents", () => ({ useMyOrganizerEvents }));
 
 function daysFromNow(days: number): string {
   return new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
@@ -79,6 +84,14 @@ function mockOwnerEvents(overrides: Record<string, unknown> = {}) {
   });
 }
 
+function mockMyOrganizers(overrides: Record<string, unknown> = {}) {
+  vi.mocked(useMyOrganizers).mockReturnValue({
+    data: [],
+    isLoading: false,
+    ...overrides,
+  });
+}
+
 function renderDashboard() {
   return render(
     <MemoryRouter initialEntries={["/host"]}>
@@ -90,8 +103,16 @@ function renderDashboard() {
 describe("HostDashboard", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(useMyOrganizerEvents).mockReturnValue({
+      events: [],
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+
     vi.mocked(useAuth).mockReturnValue({ user: { id: "user-1" }, role: "organizer" });
     mockOwnerEvents();
+    mockMyOrganizers();
   });
 
   it("leads with the nearest upcoming owner event", async () => {
@@ -182,12 +203,109 @@ describe("HostDashboard", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent("We couldn't load your events.");
   });
+  it("merges organizer-owned canonical events and dedupes by id", async () => {
+    const organizerEvent = {
+      ...nextApproved,
+      id: "organizer-draft",
+      title: "Organizer Draft",
+      status: "draft" as const,
+      submitter_id: "another-user",
+    };
+    vi.mocked(useMyOrganizerEvents).mockReturnValue({
+      events: [organizerEvent, nextApproved],
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+    renderDashboard();
+
+    expect(await screen.findByRole("link", { name: "Organizer Draft" })).toBeInTheDocument();
+    expect(screen.getAllByText("Rooftop Social")).toHaveLength(1);
+    expect(screen.getByLabelText(/Total Events: 4\./)).toBeInTheDocument();
+  });
+
+  it("surfaces organizer load failures and retries the organizer query", async () => {
+    const organizerRefetch = vi.fn();
+    vi.mocked(useMyOrganizerEvents).mockReturnValue({
+      events: [],
+      isLoading: false,
+      error: "Organizer query failed",
+      refetch: organizerRefetch,
+    });
+    renderDashboard();
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("We couldn't load your events.");
+    within(screen.getByRole("alert")).getByRole("button", { name: "Try Again" }).click();
+    expect(organizerRefetch).toHaveBeenCalledTimes(1);
+  });
+
+});
+
+describe("HostDashboard organizer access foundation", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(useAuth).mockReturnValue({ user: { id: "user-1" }, role: "organizer" });
+    mockOwnerEvents();
+    vi.mocked(useMyOrganizerEvents).mockReturnValue({
+      events: [],
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+
+  });
+
+  it("lists the signed-in user's active organizer memberships", async () => {
+    mockMyOrganizers({
+      data: [
+        {
+          organizerId: "org-1",
+          organizerName: "Havana Club",
+          organizerSlug: "havana-club",
+          organizerStatus: "active",
+          memberRole: "owner",
+        },
+      ],
+    });
+    renderDashboard();
+
+    expect(await screen.findByText("Your organizers")).toBeInTheDocument();
+    const organizerSection = screen.getByRole("region", { name: "Your organizers" });
+    const organizerCard = within(organizerSection).getByText("Havana Club").closest("li");
+    expect(organizerCard).not.toBeNull();
+    expect(organizerCard).toHaveTextContent("Havana Club");
+    expect(organizerCard).toHaveTextContent("Owner");
+    expect(organizerCard).toHaveTextContent("Organizer access confirmed");
+  });
+
+  it("shows the access-request state for signed-in users without memberships", async () => {
+    mockMyOrganizers();
+    renderDashboard();
+
+    expect(await screen.findByText(/No organizer access yet/)).toBeInTheDocument();
+  });
+
+  it("points platform roles at Admin instead of the request flow", async () => {
+    vi.mocked(useAuth).mockReturnValue({ user: { id: "admin-1" }, role: "admin", isAdmin: true });
+    mockMyOrganizers();
+    renderDashboard();
+
+    expect(await screen.findByText(/Platform tools live in/)).toBeInTheDocument();
+  });
 });
 
 describe("RequireOrganizer", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockOwnerEvents();
+    mockMyOrganizers();
+    vi.mocked(useMyOrganizerEvents).mockReturnValue({
+      events: [],
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+
   });
 
   function renderGuardedHost() {
@@ -220,15 +338,15 @@ describe("RequireOrganizer", () => {
     expect(await screen.findByRole("heading", { name: "Welcome back" })).toBeInTheDocument();
   });
 
-  it("keeps admins and moderators out of the owner-scoped Host area", async () => {
+  it("admits signed-in users without organizer access so the page can render the request state", async () => {
     vi.mocked(useAuth).mockReturnValue({
-      user: { id: "admin-1" },
+      user: { id: "regular-1" },
       loading: false,
       isOrganizer: false,
     });
     renderGuardedHost();
 
-    expect(await screen.findByText("Public home")).toBeInTheDocument();
+    expect(await screen.findByText(/No organizer access yet/)).toBeInTheDocument();
   });
 
   it("sends a signed-out visitor to sign in", async () => {

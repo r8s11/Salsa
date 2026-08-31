@@ -3184,4 +3184,607 @@ revoke all on function public.can_manage_event_attendance(uuid) from public, ano
 revoke all on function public.is_active_organizer_member(uuid) from public, anon, authenticated;
 revoke all on function public.organizer_member_role(uuid) from public, anon, authenticated;
 
+-- =====================================================================
+-- Task 4: final RLS, grants, storage policies, and schema reload
+-- =====================================================================
+
+alter table public.events enable row level security;
+alter table public.profiles enable row level security;
+alter table public.audit_logs enable row level security;
+alter table public.event_submissions enable row level security;
+alter table public.event_import_batches enable row level security;
+alter table public.venues enable row level security;
+alter table public.taxonomy_terms enable row level security;
+alter table public.event_taxonomy_terms enable row level security;
+alter table public.platform_settings enable row level security;
+alter table public.organizer_requests enable row level security;
+alter table public.organizers enable row level security;
+alter table public.organizer_members enable row level security;
+alter table public.event_attendees enable row level security;
+alter table public.event_check_ins enable row level security;
+
+-- Events: public approved reads, authenticated administration/ownership.
+drop policy if exists "Public events are viewable by everyone" on public.events;
+create policy "Public events are viewable by everyone"
+on public.events for select
+to anon, authenticated
+using (status = 'approved');
+
+drop policy if exists "Anyone can insert events" on public.events;
+create policy "Anyone can insert events"
+on public.events for insert
+to authenticated
+with check ((select public.is_admin()));
+
+drop policy if exists "Anon can submit pending events" on public.events;
+create policy "Anon can submit pending events"
+on public.events for insert
+to authenticated
+with check ((select public.is_admin()));
+
+drop policy if exists "Users can view own submissions" on public.events;
+create policy "Users can view own submissions"
+on public.events for select
+to authenticated
+using (submitter_id = (select auth.uid()));
+
+drop policy if exists "Admins can view all events" on public.events;
+create policy "Admins can view all events"
+on public.events for select
+to authenticated
+using ((select public.is_admin()));
+
+drop policy if exists "Admins can update events" on public.events;
+create policy "Admins can update events"
+on public.events for update
+to authenticated
+using ((select public.is_admin()))
+with check ((select public.is_admin()));
+
+drop policy if exists "Admins can delete events" on public.events;
+create policy "Admins can delete events"
+on public.events for delete
+to authenticated
+using ((select public.is_admin()));
+
+drop policy if exists "Admins can insert events" on public.events;
+create policy "Admins can insert events"
+on public.events for insert
+to authenticated
+with check ((select auth.jwt() -> 'app_metadata' ->> 'role') in ('admin', 'moderator'));
+
+drop policy if exists "Submitters update own pending or rejected events" on public.events;
+create policy "Submitters update own pending or rejected events"
+on public.events for update
+to authenticated
+using (
+  submitter_id = (select auth.uid())
+  and status in ('pending', 'rejected')
+  and (select public.account_is_active((select auth.uid())))
+)
+with check (
+  submitter_id = (select auth.uid())
+  and status in ('pending', 'rejected')
+  and (select public.account_is_active((select auth.uid())))
+);
+
+drop policy if exists "Submitters can withdraw own pending events" on public.events;
+create policy "Submitters can withdraw own pending events"
+on public.events for delete
+to authenticated
+using (
+  submitter_id = (select auth.uid())
+  and status = 'pending'
+  and (select public.account_is_active((select auth.uid())))
+);
+
+drop policy if exists "Organizer members read own organizer events" on public.events;
+create policy "Organizer members read own organizer events"
+on public.events for select
+to authenticated
+using (
+  organizer_id is not null
+  and (select public.is_active_organizer_member(organizer_id))
+);
+
+-- Profiles and audit logs are readable only through authenticated RLS.
+drop policy if exists "Users read own profile" on public.profiles;
+create policy "Users read own profile"
+on public.profiles for select
+to authenticated
+using (id = (select auth.uid()));
+
+drop policy if exists "Admins read all profiles" on public.profiles;
+create policy "Admins read all profiles"
+on public.profiles for select
+to authenticated
+using ((select public.is_admin()));
+
+drop policy if exists "Admins read audit log" on public.audit_logs;
+create policy "Admins read audit log"
+on public.audit_logs for select
+to authenticated
+using ((select public.is_admin()));
+
+-- Submission staging is the public/user submission surface.
+drop policy if exists "Submitters read own submissions" on public.event_submissions;
+create policy "Submitters read own submissions"
+on public.event_submissions for select
+to authenticated
+using (submitter_id = (select auth.uid()));
+
+drop policy if exists "Authenticated users can submit" on public.event_submissions;
+create policy "Authenticated users can submit"
+on public.event_submissions for insert
+to authenticated
+with check (
+  (select public.registered_event_submissions_enabled())
+  and status = 'pending'
+  and submitter_id = (select auth.uid())
+  and (select public.account_is_active((select auth.uid())))
+);
+
+drop policy if exists "Anon can submit" on public.event_submissions;
+create policy "Anon can submit"
+on public.event_submissions for insert
+to anon
+with check (
+  (select public.public_event_suggestions_enabled())
+  and status = 'pending'
+  and submitter_id is null
+);
+
+drop policy if exists "Moderators read all submissions" on public.event_submissions;
+create policy "Moderators read all submissions"
+on public.event_submissions for select
+to authenticated
+using ((select public.is_moderator()));
+
+drop policy if exists "Moderators update submissions" on public.event_submissions;
+create policy "Moderators update submissions"
+on public.event_submissions for update
+to authenticated
+using ((select public.is_moderator()))
+with check ((select public.is_moderator()));
+
+drop policy if exists "Submitters edit or withdraw own submissions" on public.event_submissions;
+create policy "Submitters edit or withdraw own submissions"
+on public.event_submissions for update
+to authenticated
+using (
+  submitter_id = (select auth.uid())
+  and status in ('pending', 'rejected')
+  and (select public.account_is_active((select auth.uid())))
+)
+with check (
+  submitter_id = (select auth.uid())
+  and status in ('pending', 'rejected', 'withdrawn')
+  and (select public.account_is_active((select auth.uid())))
+);
+
+-- Import batches.
+drop policy if exists "Admins read all import batches" on public.event_import_batches;
+create policy "Admins read all import batches"
+on public.event_import_batches for select
+to authenticated
+using ((select public.is_admin()));
+
+drop policy if exists "Moderators read own import batches" on public.event_import_batches;
+create policy "Moderators read own import batches"
+on public.event_import_batches for select
+to authenticated
+using (
+  (select auth.jwt() -> 'app_metadata' ->> 'role') = 'moderator'
+  and imported_by = (select auth.uid())
+);
+
+drop policy if exists "Admins and moderators insert own import batch" on public.event_import_batches;
+create policy "Admins and moderators insert own import batch"
+on public.event_import_batches for insert
+to authenticated
+with check (
+  (select auth.jwt() -> 'app_metadata' ->> 'role') in ('admin', 'moderator')
+  and imported_by = (select auth.uid())
+);
+
+-- Organizers and organizer membership.
+drop policy if exists "Admins manage organizers" on public.organizers;
+create policy "Admins manage organizers"
+on public.organizers for all
+to authenticated
+using ((select public.is_admin()))
+with check ((select public.is_admin()));
+
+drop policy if exists "Members read managed organizers" on public.organizers;
+create policy "Members read managed organizers"
+on public.organizers for select
+to authenticated
+using (
+  (select public.is_active_organizer_member(id))
+  or (select public.is_admin())
+);
+
+drop policy if exists "Admins read organizer requests" on public.organizer_requests;
+create policy "Admins read organizer requests"
+on public.organizer_requests for select
+to authenticated
+using ((select public.is_admin()));
+
+drop policy if exists "Users create own organizer requests" on public.organizer_requests;
+create policy "Users create own organizer requests"
+on public.organizer_requests for insert
+to authenticated
+with check (user_id = (select auth.uid()));
+
+drop policy if exists "Admins update organizer requests" on public.organizer_requests;
+create policy "Admins update organizer requests"
+on public.organizer_requests for update
+to authenticated
+using ((select public.is_admin()))
+with check ((select public.is_admin()));
+
+drop policy if exists "Admins manage organizer members" on public.organizer_members;
+create policy "Admins manage organizer members"
+on public.organizer_members for all
+to authenticated
+using ((select public.is_admin()))
+with check ((select public.is_admin()));
+
+drop policy if exists "Members read own memberships" on public.organizer_members;
+create policy "Members read own memberships"
+on public.organizer_members for select
+to authenticated
+using (user_id = (select auth.uid()));
+
+-- Venues and taxonomy directories.
+drop policy if exists "Anyone can read venues" on public.venues;
+create policy "Anyone can read venues"
+on public.venues for select
+to anon, authenticated
+using (true);
+
+drop policy if exists "Staff manage venues" on public.venues;
+create policy "Staff manage venues"
+on public.venues for all
+to authenticated
+using ((select auth.jwt() -> 'app_metadata' ->> 'role') in ('admin', 'moderator'))
+with check ((select auth.jwt() -> 'app_metadata' ->> 'role') in ('admin', 'moderator'));
+
+drop policy if exists "Admins manage venues" on public.venues;
+create policy "Admins manage venues"
+on public.venues for all
+to authenticated
+using ((select public.is_admin()))
+with check ((select public.is_admin()));
+
+drop policy if exists "Anyone can read taxonomy terms" on public.taxonomy_terms;
+create policy "Anyone can read taxonomy terms"
+on public.taxonomy_terms for select
+to anon, authenticated
+using (true);
+
+drop policy if exists "Staff manage taxonomy terms" on public.taxonomy_terms;
+create policy "Staff manage taxonomy terms"
+on public.taxonomy_terms for all
+to authenticated
+using ((select auth.jwt() -> 'app_metadata' ->> 'role') in ('admin', 'moderator'))
+with check ((select auth.jwt() -> 'app_metadata' ->> 'role') in ('admin', 'moderator'));
+
+drop policy if exists "Public active taxonomy terms are readable" on public.taxonomy_terms;
+create policy "Public active taxonomy terms are readable"
+on public.taxonomy_terms for select
+to anon, authenticated
+using (status = 'active');
+
+drop policy if exists "Moderators read taxonomy terms" on public.taxonomy_terms;
+create policy "Moderators read taxonomy terms"
+on public.taxonomy_terms for select
+to authenticated
+using ((select public.is_moderator()));
+
+drop policy if exists "Moderators manage taxonomy terms" on public.taxonomy_terms;
+create policy "Moderators manage taxonomy terms"
+on public.taxonomy_terms for all
+to authenticated
+using ((select public.is_moderator()))
+with check ((select public.is_moderator()));
+
+drop policy if exists "Anyone can read event taxonomy links" on public.event_taxonomy_terms;
+create policy "Anyone can read event taxonomy links"
+on public.event_taxonomy_terms for select
+to anon, authenticated
+using (true);
+
+drop policy if exists "Staff manage event taxonomy links" on public.event_taxonomy_terms;
+create policy "Staff manage event taxonomy links"
+on public.event_taxonomy_terms for all
+to authenticated
+using ((select auth.jwt() -> 'app_metadata' ->> 'role') in ('admin', 'moderator'))
+with check ((select auth.jwt() -> 'app_metadata' ->> 'role') in ('admin', 'moderator'));
+
+drop policy if exists "Owners read own event taxonomy terms" on public.event_taxonomy_terms;
+create policy "Owners read own event taxonomy terms"
+on public.event_taxonomy_terms for select
+to authenticated
+using (
+  exists (
+    select 1 from public.events e
+    where e.id = event_taxonomy_terms.event_id
+      and e.submitter_id = (select auth.uid())
+  )
+);
+
+drop policy if exists "Public approved event taxonomy is readable" on public.event_taxonomy_terms;
+create policy "Public approved event taxonomy is readable"
+on public.event_taxonomy_terms for select
+to anon, authenticated
+using (
+  exists (
+    select 1
+    from public.events event
+    join public.taxonomy_terms term on term.id = event_taxonomy_terms.taxonomy_term_id
+    where event.id = event_taxonomy_terms.event_id
+      and event.status = 'approved'
+      and term.status = 'active'
+  )
+);
+
+drop policy if exists "Moderators read event taxonomy terms" on public.event_taxonomy_terms;
+create policy "Moderators read event taxonomy terms"
+on public.event_taxonomy_terms for select
+to authenticated
+using ((select public.is_moderator()));
+
+drop policy if exists "Moderators manage event taxonomy terms" on public.event_taxonomy_terms;
+create policy "Moderators manage event taxonomy terms"
+on public.event_taxonomy_terms for all
+to authenticated
+using ((select public.is_moderator()))
+with check ((select public.is_moderator()));
+
+-- Platform settings remain an admin-only API surface.
+drop policy if exists "Admins read platform settings" on public.platform_settings;
+create policy "Admins read platform settings"
+on public.platform_settings for select
+to authenticated
+using ((select public.is_platform_admin()));
+
+drop policy if exists "Admins update platform settings" on public.platform_settings;
+create policy "Admins update platform settings"
+on public.platform_settings for update
+to authenticated
+using ((select public.is_platform_admin()))
+with check ((select public.is_platform_admin()));
+
+-- Host attendance and check-in isolation.
+drop policy if exists "Hosts read own approved event attendees" on public.event_attendees;
+create policy "Hosts read own approved event attendees"
+on public.event_attendees for select
+to authenticated
+using ((select public.can_manage_event_attendance(event_id)));
+
+drop policy if exists "Hosts add attendees to own approved events" on public.event_attendees;
+create policy "Hosts add attendees to own approved events"
+on public.event_attendees for insert
+to authenticated
+with check (
+  (select public.can_manage_event_attendance(event_id))
+  and created_by = (select auth.uid())
+);
+
+drop policy if exists "Hosts update own approved event attendees" on public.event_attendees;
+create policy "Hosts update own approved event attendees"
+on public.event_attendees for update
+to authenticated
+using ((select public.can_manage_event_attendance(event_id)))
+with check ((select public.can_manage_event_attendance(event_id)));
+
+drop policy if exists "Hosts delete never-checked-in attendees" on public.event_attendees;
+create policy "Hosts delete never-checked-in attendees"
+on public.event_attendees for delete
+to authenticated
+using (
+  (select public.can_manage_event_attendance(event_id))
+  and not exists (
+    select 1 from public.event_check_ins c
+    where c.attendee_id = event_attendees.id
+  )
+);
+
+drop policy if exists "Hosts read own approved event check-ins" on public.event_check_ins;
+create policy "Hosts read own approved event check-ins"
+on public.event_check_ins for select
+to authenticated
+using ((select public.can_manage_event_attendance(event_id)));
+
+drop policy if exists "Hosts record check-ins for own approved events" on public.event_check_ins;
+create policy "Hosts record check-ins for own approved events"
+on public.event_check_ins for insert
+to authenticated
+with check (
+  (select public.can_manage_event_attendance(event_id))
+  and checked_in_by = (select auth.uid())
+  and reversed_at is null
+  and reversed_by is null
+);
+
+drop policy if exists "Hosts reverse check-ins for own approved events" on public.event_check_ins;
+create policy "Hosts reverse check-ins for own approved events"
+on public.event_check_ins for update
+to authenticated
+using ((select public.can_manage_event_attendance(event_id)))
+with check (
+  (select public.can_manage_event_attendance(event_id))
+  and (reversed_at is null or reversed_by = (select auth.uid()))
+);
+
+-- Storage bucket and its owner/admin policies.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'event-flyers',
+  'event-flyers',
+  true,
+  5242880,
+  array['image/jpeg', 'image/png', 'image/webp']
+)
+on conflict (id) do update
+set public = excluded.public,
+    file_size_limit = excluded.file_size_limit,
+    allowed_mime_types = excluded.allowed_mime_types;
+
+drop policy if exists "Public can read event flyers" on storage.objects;
+create policy "Public can read event flyers"
+on storage.objects for select
+to public
+using (bucket_id = 'event-flyers');
+
+drop policy if exists "Owners insert event flyers" on storage.objects;
+create policy "Owners insert event flyers"
+on storage.objects for insert
+to authenticated
+with check (
+  bucket_id = 'event-flyers'
+  and owner_id = (select auth.uid())::text
+  and (storage.foldername(name))[1] = (select auth.uid())::text
+);
+
+drop policy if exists "Owners update event flyers" on storage.objects;
+create policy "Owners update event flyers"
+on storage.objects for update
+to authenticated
+using (
+  bucket_id = 'event-flyers'
+  and owner_id = (select auth.uid())::text
+  and (storage.foldername(name))[1] = (select auth.uid())::text
+)
+with check (
+  bucket_id = 'event-flyers'
+  and owner_id = (select auth.uid())::text
+  and (storage.foldername(name))[1] = (select auth.uid())::text
+);
+
+drop policy if exists "Owners delete event flyers" on storage.objects;
+create policy "Owners delete event flyers"
+on storage.objects for delete
+to authenticated
+using (
+  bucket_id = 'event-flyers'
+  and owner_id = (select auth.uid())::text
+  and (storage.foldername(name))[1] = (select auth.uid())::text
+);
+
+drop policy if exists "Admins manage event flyers" on storage.objects;
+create policy "Admins manage event flyers"
+on storage.objects for all
+to authenticated
+using (
+  bucket_id = 'event-flyers'
+  and (select auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
+)
+with check (
+  bucket_id = 'event-flyers'
+  and (select auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
+);
+
+-- Reset repository-owned table and function privileges before minimum grants.
+revoke all on public.events, public.profiles, public.audit_logs,
+  public.event_submissions, public.event_import_batches, public.venues,
+  public.taxonomy_terms, public.event_taxonomy_terms, public.platform_settings,
+  public.organizer_requests, public.organizers, public.organizer_members,
+  public.event_attendees, public.event_check_ins
+from anon, authenticated;
+
+do $$
+declare
+  fn record;
+begin
+  for fn in
+    select p.oid::regprocedure as signature
+    from pg_proc p
+    join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public'
+      and p.proname = any (array[
+        'account_is_active', 'admin_analytics_metrics', 'admin_analytics_timeseries',
+        'admin_approve_organizer_request', 'admin_audit_log', 'admin_invite_user',
+        'admin_organizer_request_counts', 'admin_organizer_request_detail',
+        'admin_organizer_requests', 'admin_reject_organizer_request',
+        'admin_revoke_organizer_access', 'admin_set_user_role',
+        'admin_set_user_status', 'admin_taxonomy_detail',
+        'admin_taxonomy_directory', 'admin_taxonomy_search',
+        'admin_user_directory', 'admin_venue_detail', 'admin_venue_directory',
+        'admin_venue_search', 'approve_event_submission',
+        'can_manage_event_attendance', 'category_of',
+        'guard_event_attendee_immutable_columns',
+        'guard_event_check_in_immutable_columns',
+        'guard_submitter_submission_update', 'handle_new_user',
+        'is_active_organizer_member', 'is_admin', 'is_moderator', 'is_organizer',
+        'is_platform_admin', 'log_event_change', 'log_platform_settings_change',
+        'log_submission_change', 'log_taxonomy_term_change',
+        'merge_taxonomy_terms', 'merge_venues', 'organizer_create_event',
+        'organizer_member_role', 'organizer_update_event',
+        'public_event_suggestions_enabled', 'registered_event_submissions_enabled',
+        'replace_event_taxonomy_terms', 'require_taxonomy_moderator',
+        'set_organizer_slug', 'set_updated_at', 'set_venue_derived_fields',
+        'slugify', 'stamp_platform_settings_update', 'venue_quality_issues'
+      ])
+  loop
+    execute format(
+      'revoke all on function %s from public, anon, authenticated',
+      fn.signature
+    );
+  end loop;
+end
+$$;
+
+-- Minimum table surface follows the policies above.
+grant select on public.events to anon, authenticated;
+grant insert, update, delete on public.events to authenticated;
+grant select on public.profiles to authenticated;
+grant select on public.audit_logs to authenticated;
+grant select, insert, update on public.event_submissions to authenticated;
+grant insert on public.event_submissions to anon;
+grant select, insert on public.event_import_batches to authenticated;
+grant select on public.venues to anon, authenticated;
+grant insert, update, delete on public.venues to authenticated;
+grant select on public.taxonomy_terms to anon, authenticated;
+grant insert, update, delete on public.taxonomy_terms to authenticated;
+grant select on public.event_taxonomy_terms to anon, authenticated;
+grant insert, update, delete on public.event_taxonomy_terms to authenticated;
+grant select, update on public.platform_settings to authenticated;
+grant select, insert, update on public.organizer_requests to authenticated;
+grant select, insert, update, delete on public.organizers to authenticated;
+grant select, insert, update, delete on public.organizer_members to authenticated;
+grant select, insert, update, delete on public.event_attendees to authenticated;
+grant select, insert, update on public.event_check_ins to authenticated;
+grant select on storage.objects to anon, authenticated;
+
+-- Client-callable RPCs are authenticated; each function retains its own gate.
+grant execute on function public.admin_analytics_metrics(timestamptz, timestamptz) to authenticated;
+grant execute on function public.admin_analytics_timeseries(timestamptz, timestamptz, text) to authenticated;
+grant execute on function public.admin_approve_organizer_request(uuid, uuid, text) to authenticated;
+grant execute on function public.admin_audit_log(integer, integer, text, text[], text[], uuid, text, timestamptz, timestamptz) to authenticated;
+grant execute on function public.admin_invite_user(text, text, text) to authenticated;
+grant execute on function public.admin_organizer_request_counts() to authenticated;
+grant execute on function public.admin_organizer_request_detail(uuid) to authenticated;
+grant execute on function public.admin_organizer_requests() to authenticated;
+grant execute on function public.admin_reject_organizer_request(uuid, uuid, text, text, text) to authenticated;
+grant execute on function public.admin_revoke_organizer_access(uuid, uuid, text) to authenticated;
+grant execute on function public.admin_set_user_role(uuid, text) to authenticated;
+grant execute on function public.admin_set_user_status(uuid, text, text) to authenticated;
+grant execute on function public.admin_taxonomy_detail(uuid) to authenticated;
+grant execute on function public.admin_taxonomy_directory(text, text, text, text) to authenticated;
+grant execute on function public.admin_taxonomy_search(text, text) to authenticated;
+grant execute on function public.admin_user_directory() to authenticated;
+grant execute on function public.admin_venue_detail(uuid) to authenticated;
+grant execute on function public.admin_venue_directory(text, text[], text[], text[], boolean, text, integer, integer) to authenticated;
+grant execute on function public.admin_venue_search(text, integer) to authenticated;
+grant execute on function public.approve_event_submission(uuid, uuid[]) to authenticated;
+grant execute on function public.merge_taxonomy_terms(uuid, uuid) to authenticated;
+grant execute on function public.merge_venues(uuid, uuid) to authenticated;
+grant execute on function public.organizer_create_event(uuid, jsonb, boolean) to authenticated;
+grant execute on function public.organizer_update_event(uuid, jsonb) to authenticated;
+grant execute on function public.replace_event_taxonomy_terms(uuid, uuid[]) to authenticated;
+
 commit;
+
+notify pgrst, 'reload schema';

@@ -294,7 +294,6 @@ export default function AccountPage() {
 
   useEffect(() => {
     if (user?.id) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- async with requestId guard; intended external sync
       void refreshDeletionEligibility();
     }
     return () => {

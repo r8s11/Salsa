@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import type { User } from "@supabase/supabase-js";
 import SalsaSeguraLogo from "../components/brand/SalsaSeguraLogo";
 import { useAuth } from "../contexts/useAuth";
 import {
@@ -16,6 +17,16 @@ import {
 import { setAuthReturnDestination } from "../lib/authReturnDestination";
 import "./FoundersAcceptPage.css";
 
+// Result of validating the invitation token; independent of auth state.
+type FetchState =
+  | { kind: "loading" }
+  | { kind: "validated"; organizationName: string; invitedEmail: string; expiresAt: string }
+  | { kind: "invalid" }
+  | { kind: "accepting"; organizationName: string }
+  | { kind: "accepted"; organizationName: string }
+  | { kind: "error" };
+
+// Display state, derived at render time from FetchState + the current auth user.
 type AcceptanceState =
   | { kind: "loading" }
   | { kind: "valid-signed-out"; organizationName: string; invitedEmail: string; expiresAt: string }
@@ -26,27 +37,54 @@ type AcceptanceState =
   | { kind: "accepted"; organizationName: string }
   | { kind: "error" };
 
+function deriveAcceptanceState(fetchState: FetchState, user: User | null): AcceptanceState {
+  if (fetchState.kind !== "validated") return fetchState;
+
+  const { organizationName, invitedEmail, expiresAt } = fetchState;
+  if (!user) {
+    return { kind: "valid-signed-out", organizationName, invitedEmail, expiresAt };
+  }
+
+  const authEmail = (user.email ?? "").toLowerCase();
+  if (authEmail === invitedEmail.toLowerCase()) {
+    return { kind: "valid-matching", organizationName, invitedEmail, expiresAt };
+  }
+  return { kind: "valid-wrong-user", organizationName, invitedEmail, expiresAt, authEmail };
+}
+
+function readInitialToken(searchParams: URLSearchParams): string | null {
+  const urlToken = searchParams.get("token");
+  const storedToken = getFounderInvitationToken();
+  const token = urlToken ?? storedToken;
+  return token && TOKEN_PATTERN.test(token) ? token : null;
+}
+
 const TOKEN_PATTERN = /^[0-9a-f]{64}$/;
 
 export default function FoundersAcceptPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user, loading: authLoading, signOut } = useAuth();
-  const [state, setState] = useState<AcceptanceState>({ kind: "loading" });
+  const [fetchState, setFetchState] = useState<FetchState>(() =>
+    readInitialToken(searchParams) ? { kind: "loading" } : { kind: "invalid" }
+  );
   const validatedRef = useRef(false);
   const headingRef = useRef<HTMLHeadingElement>(null);
+
+  const state = useMemo(
+    () => deriveAcceptanceState(fetchState, authLoading ? null : user),
+    [fetchState, authLoading, user]
+  );
 
   useEffect(() => {
     if (validatedRef.current) return;
     validatedRef.current = true;
 
     const urlToken = searchParams.get("token");
-    const storedToken = getFounderInvitationToken();
-    const token = urlToken ?? storedToken;
+    const token = readInitialToken(searchParams);
 
-    if (!token || !TOKEN_PATTERN.test(token)) {
+    if (!token) {
       clearFounderInvitationToken();
-      setState({ kind: "invalid" });
       return;
     }
 
@@ -55,7 +93,7 @@ export default function FoundersAcceptPage() {
         const result: FounderInvitationValidationResult = await validateFounderInvitation(token);
         if (!result.valid) {
           clearFounderInvitationToken();
-          setState({ kind: "invalid" });
+          setFetchState({ kind: "invalid" });
           return;
         }
 
@@ -64,56 +102,19 @@ export default function FoundersAcceptPage() {
           window.history.replaceState(null, "", "/founders/accept");
         }
 
-        setState({
-          kind: "valid-signed-out",
+        setFetchState({
+          kind: "validated",
           organizationName: result.organizationName,
           invitedEmail: result.invitedEmail,
           expiresAt: result.expiresAt,
         });
       } catch {
-        setState({ kind: "error" });
+        setFetchState({ kind: "error" });
       }
     };
 
     void run();
   }, [searchParams]);
-
-  useEffect(() => {
-    if (authLoading) return;
-    if (
-      state.kind !== "valid-signed-out" &&
-      state.kind !== "valid-matching" &&
-      state.kind !== "valid-wrong-user"
-    ) {
-      return;
-    }
-
-    if (!user) {
-      if (state.kind !== "valid-signed-out") {
-        setState({
-          kind: "valid-signed-out",
-          organizationName: state.organizationName,
-          invitedEmail: state.invitedEmail,
-          expiresAt: state.expiresAt,
-        });
-      }
-      return;
-    }
-
-    const authEmail = (user.email ?? "").toLowerCase();
-    const invitedEmail = state.invitedEmail.toLowerCase();
-    const targetKind = authEmail === invitedEmail ? "valid-matching" : "valid-wrong-user";
-
-    if (state.kind !== targetKind) {
-      setState({
-        kind: targetKind,
-        organizationName: state.organizationName,
-        invitedEmail: state.invitedEmail,
-        expiresAt: state.expiresAt,
-        ...(targetKind === "valid-wrong-user" ? { authEmail } : {}),
-      } as AcceptanceState);
-    }
-  }, [authLoading, user, state]);
 
   useEffect(() => {
     headingRef.current?.focus();
@@ -123,7 +124,7 @@ export default function FoundersAcceptPage() {
     const token = getFounderInvitationToken();
     if (!token || state.kind !== "valid-matching") return;
 
-    setState({ kind: "accepting", organizationName: state.organizationName });
+    setFetchState({ kind: "accepting", organizationName: state.organizationName });
     try {
       const result = await acceptFounderInvitation(token);
       clearFounderInvitationToken();
@@ -140,17 +141,17 @@ export default function FoundersAcceptPage() {
       } catch {
         /* recoverable on /founders/welcome */
       }
-      setState({ kind: "accepted", organizationName: result.organizationName });
+      setFetchState({ kind: "accepted", organizationName: result.organizationName });
     } catch (err) {
       const message = err instanceof Error ? err.message : "";
       if (message.includes("different email address")) {
-        setState({ kind: "invalid" });
+        setFetchState({ kind: "invalid" });
         clearFounderInvitationToken();
       } else if (message.includes("invitation is invalid, expired, or no longer available")) {
         clearFounderInvitationToken();
-        setState({ kind: "invalid" });
+        setFetchState({ kind: "invalid" });
       } else {
-        setState({ kind: "error" });
+        setFetchState({ kind: "error" });
       }
     }
   }, [state]);

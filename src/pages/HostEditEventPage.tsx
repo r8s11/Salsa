@@ -75,16 +75,11 @@ export default function HostEditEventPage() {
     return false;
   }, [event]);
 
-  // Initialize form when event loads
-  const prevEventIdRef = useMemo(() => ({ current: null as string | null }), []);
-  const derivedForm = useMemo(() => {
-    if (!event) return null;
-    if (prevEventIdRef.current === event.id) return null;
-    prevEventIdRef.current = event.id;
-    return eventToDraft(event);
-  }, [event, prevEventIdRef]);
-  if (derivedForm !== null && form === null) {
-    setForm(derivedForm);
+  // Initialize form when event loads (or when navigating to a different event)
+  const [prevEventId, setPrevEventId] = useState<string | null>(null);
+  if (event && event.id !== prevEventId) {
+    setPrevEventId(event.id);
+    setForm(eventToDraft(event));
   }
 
   // Check write access for the event's organizer

@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { Building2, CalendarDays, ClipboardCheck, ListChecks, MapPin } from "lucide-react";
+import { Building2, CalendarDays, ClipboardCheck, FileEdit, ListChecks, MapPin } from "lucide-react";
 import { useAuth } from "../../contexts/useAuth";
 import { useMySubmissions } from "../../hooks/useMySubmissions";
 import { useMyOrganizers } from "../../features/host/hooks/useMyOrganizers";
@@ -46,7 +46,7 @@ export default function HostDashboard() {
 
   // `new Date()` stays inside useMemo — calling it in the render body trips
   // react-hooks/purity, the same constraint AdminOverviewPage documents.
-  const { rows, nextRow, upcomingCount, pendingCount, rejectedCount } = useMemo(() => {
+  const { rows, nextRow, upcomingCount, pendingCount, draftCount } = useMemo(() => {
     const now = new Date();
     const byId = new Map(
       [...submissions, ...approvedEvents, ...organizerEvents.events].map((event) => [event.id, event] as const)
@@ -60,7 +60,7 @@ export default function HostDashboard() {
       nextRow: next ? (derived.find((row) => row.event.id === next.id) ?? null) : null,
       upcomingCount: owned.filter((event) => isUpcomingHostEvent(event, now)).length,
       pendingCount: owned.filter((event) => event.status === "pending").length,
-      rejectedCount: owned.filter((event) => event.status === "rejected").length,
+      draftCount: owned.filter((event) => event.status === "draft").length,
     };
   }, [submissions, approvedEvents, organizerEvents.events]);
 
@@ -145,6 +145,16 @@ export default function HostDashboard() {
               isLoading={dashboardLoading}
             />
             <AdminMetricCard
+              label="Drafts"
+              value={draftCount}
+              subLabel="Events in progress"
+              icon={FileEdit}
+              tone="informational"
+              to="/host/events?filter=drafts"
+              actionLabel="Continue editing"
+              isLoading={dashboardLoading}
+            />
+            <AdminMetricCard
               label="Awaiting Review"
               value={pendingCount}
               subLabel="Submitted, not yet published"
@@ -162,16 +172,6 @@ export default function HostDashboard() {
               tone="informational"
               to="/host/events"
               actionLabel="Manage"
-              isLoading={dashboardLoading}
-            />
-            <AdminMetricCard
-              label="Requires Revision"
-              value={rejectedCount}
-              subLabel="Rejected submissions"
-              icon={ClipboardCheck}
-              tone="attention"
-              to="/host/events"
-              actionLabel="Revise"
               isLoading={dashboardLoading}
             />
           </div>

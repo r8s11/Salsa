@@ -143,14 +143,14 @@ describe("HostDashboard", () => {
     expect(screen.getByLabelText(/Total Events: 3\./)).toBeInTheDocument();
   });
 
-  it("counts rejected owner submissions that require revision", async () => {
+  it("counts rejected owner submissions in total events", async () => {
     mockOwnerEvents({
       submissions: [{ ...laterPending, id: "rejected-1", status: "rejected" }],
       approvedEvents: [nextApproved],
     });
     renderDashboard();
 
-    expect(await screen.findByLabelText(/Requires Revision: 1\./)).toBeInTheDocument();
+    expect(await screen.findByLabelText(/Total Events: 2\./)).toBeInTheDocument();
   });
   it("routes pending events to the owner editor and published events to their public page", async () => {
     renderDashboard();

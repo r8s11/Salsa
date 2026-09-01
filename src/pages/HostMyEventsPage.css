@@ -1,29 +1,102 @@
+/* ── Controls ── */
+
 .host-my-events__controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.host-my-events__controls-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
-  margin-bottom: 16px;
 }
+
+/* ── Search ── */
+
+.host-my-events__search {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+}
+
+.host-my-events__search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--admin-text-muted);
+  pointer-events: none;
+}
+
+.host-my-events__search-input {
+  width: 100%;
+  padding: 10px 12px 10px 36px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  background: var(--admin-surface);
+  color: var(--admin-text-primary);
+  font-size: 0.875rem;
+}
+
+.host-my-events__search-input:focus {
+  outline: none;
+  border-color: var(--admin-brand);
+  box-shadow: 0 0 0 2px var(--admin-brand-ring);
+}
+
+.host-my-events__search-input::placeholder {
+  color: var(--admin-text-muted);
+}
+
+/* ── Organizer filter ── */
+
+.host-my-events__organizer-select {
+  padding: 8px 12px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  background: var(--admin-surface);
+  color: var(--admin-text-primary);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.host-my-events__organizer-select:focus {
+  outline: none;
+  border-color: var(--admin-brand);
+  box-shadow: 0 0 0 2px var(--admin-brand-ring);
+}
+
+/* ── Status filters ── */
 
 .host-my-events__filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 .host-my-events__filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   min-height: 36px;
-  padding: 6px 12px;
+  padding: 6px 14px;
   border: 1px solid var(--admin-border);
-  border-radius: var(--admin-radius);
+  border-radius: 999px;
   background: var(--admin-surface);
   color: var(--admin-text-muted);
   font: inherit;
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.15s;
+}
+
+.host-my-events__filter:hover {
+  border-color: var(--admin-text-muted);
 }
 
 .host-my-events__filter--active {
@@ -32,47 +105,51 @@
   color: var(--admin-brand-text);
 }
 
-.host-my-events__filter:focus-visible,
-.host-my-events__view:focus-visible {
+.host-my-events__filter-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--admin-surface-secondary);
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+
+.host-my-events__filter--active .host-my-events__filter-count {
+  background: rgba(225, 29, 72, 0.15);
+}
+
+.host-my-events__filter:focus-visible {
   outline: 2px solid var(--admin-brand-ring);
   outline-offset: 2px;
 }
 
-.host-my-events__toolbar {
-  display: inline-flex;
-  gap: 4px;
-  margin-bottom: 0;
-  padding: 4px;
-  border: 1px solid var(--admin-border);
-  border-radius: 999px;
-}
-
-.host-my-events__view {
-  padding: 7px 16px;
-  border: none;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--admin-text-muted);
-  font: inherit;
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.host-my-events__view--active {
-  background: var(--admin-surface-secondary);
-  color: var(--admin-text-strong);
-}
+/* ── Status ── */
 
 .host-my-events__status {
   color: var(--admin-text-muted);
+  text-align: center;
+  padding: 24px;
 }
+
+/* ── Empty states ── */
 
 .host-my-events__empty {
   display: grid;
   gap: 12px;
   justify-items: start;
-  padding: 24px;
+  padding: 32px 24px;
+  text-align: left;
+}
+
+.host-my-events__empty-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--admin-text-strong);
 }
 
 .host-my-events__empty p {
@@ -80,10 +157,52 @@
   color: var(--admin-text-muted);
 }
 
+.host-my-events__view-only {
+  color: var(--admin-text-muted);
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+/* ── Groups ── */
+
+.host-my-events__groups {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.host-my-events__group-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 16px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--admin-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.host-my-events__group-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--admin-surface-secondary);
+  color: var(--admin-text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* ── Event cards ── */
+
 .host-my-events__cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -92,140 +211,166 @@
 .host-my-events__card {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 18px;
+  overflow: hidden;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  background: var(--admin-surface);
+  transition: box-shadow 0.15s;
 }
 
-.host-my-events__date {
-  margin: 0;
-  color: var(--admin-text-muted);
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+.host-my-events__card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
-.host-my-events__card-title {
-  margin: 0;
-  color: var(--admin-text-strong);
-  font-size: 1rem;
-  font-weight: 700;
+/* ── Card flyer ── */
+
+.host-my-events__card-flyer {
+  position: relative;
+  width: 100%;
+  height: 140px;
+  overflow: hidden;
+  background: var(--admin-surface-secondary);
 }
 
-.host-my-events__card-title a,
-.host-my-events__table td[data-label="Event"] a {
-  color: inherit;
-  text-decoration: none;
+.host-my-events__card-flyer-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-.host-my-events__card-title a:hover,
-.host-my-events__table td[data-label="Event"] a:hover {
-  text-decoration: underline;
-}
-
-.host-my-events__facts {
-  display: grid;
-  gap: 8px;
-  margin: 0;
-}
-
-.host-my-events__facts dt {
-  color: var(--admin-text-muted);
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.host-my-events__facts dd {
-  margin: 2px 0 0;
-  color: var(--admin-text-primary);
-  font-size: 0.88rem;
-}
-
-.host-my-events__action {
-  align-self: flex-start;
-  color: var(--admin-brand-text);
-  font-size: 0.82rem;
-  font-weight: 600;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.host-my-events__action:hover {
-  text-decoration: underline;
-}
-
-.host-my-events__card-actions,
-.host-my-events__table-actions {
+.host-my-events__card-flyer-fallback {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 50%, #fbcfe8 100%);
+}
+
+.host-my-events__card-flyer-icon {
+  font-size: 2.5rem;
+  opacity: 0.6;
+}
+
+/* ── Card body ── */
+
+.host-my-events__card-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 10px;
+  padding: 16px;
+}
+
+.host-my-events__card-header {
+  display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.host-my-events__table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.host-my-events__table th,
-.host-my-events__table td {
-  padding: 8px 12px;
-}
-
-.host-my-events__table th {
-  color: var(--admin-text-muted);
-  font-size: 0.68rem;
+.host-my-events__card-title {
+  margin: 0;
+  font-size: 1rem;
   font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  color: var(--admin-text-strong);
+  line-height: 1.3;
 }
 
-.host-my-events__table td {
-  color: var(--admin-text);
-  font-size: 0.88rem;
+.host-my-events__card-title a {
+  color: inherit;
+  text-decoration: none;
 }
+
+.host-my-events__card-title a:hover {
+  text-decoration: underline;
+}
+
+/* ── Card meta ── */
+
+.host-my-events__card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.host-my-events__card-date,
+.host-my-events__card-location {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8125rem;
+  color: var(--admin-text-muted);
+}
+
+/* ── Card attendance ── */
+
+.host-my-events__card-attendance {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--admin-border);
+}
+
+.host-my-events__card-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--admin-text-primary);
+}
+
+.host-my-events__card-attendance-empty {
+  font-size: 0.8125rem;
+  color: var(--admin-text-muted);
+  font-style: italic;
+}
+
+/* ── Card actions ── */
+
+.host-my-events__card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 12px;
+}
+
+.host-my-events__card-btn {
+  font-size: 0.8125rem;
+  padding: 8px 16px;
+}
+
+/* ── Responsive ── */
 
 @media (max-width: 640px) {
-  .host-my-events__table thead {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
+  .host-my-events__cards {
+    grid-template-columns: 1fr;
   }
 
-  .host-my-events__table tr {
-    display: block;
-    margin-bottom: 12px;
-    padding: 6px 14px;
-    border: 1px solid var(--admin-border);
-    border-radius: 12px;
+  .host-my-events__controls-row {
+    flex-direction: column;
+    align-items: stretch;
   }
 
-  .host-my-events__table td {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 14px;
-    padding: 8px 0;
-    border-bottom: none;
-    text-align: right;
+  .host-my-events__organizer-select {
+    width: 100%;
   }
 
-  .host-my-events__table td + td {
-    border-top: 1px solid var(--admin-border);
+  .host-my-events__filters {
+    overflow-x: auto;
+    padding-bottom: 4px;
   }
 
-  .host-my-events__table td::before {
-    content: attr(data-label);
-    color: var(--admin-text-muted);
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    text-align: left;
+  .host-my-events__card-flyer {
+    height: 120px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .host-my-events__cards {
+    grid-template-columns: repeat(2, 1fr);
   }
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isSafeInternalPath, resolveAuthorizedDestination } from "./authDestination";
+import { isSafeInternalPath, resolveAuthorizedDestination, resolveCallbackDestination } from "./authDestination";
 
 describe("resolveAuthorizedDestination", () => {
   it("returns /host for organizer", () => {
@@ -16,6 +16,24 @@ describe("resolveAuthorizedDestination", () => {
 
   it("returns /profile for null role", () => {
     expect(resolveAuthorizedDestination(null)).toBe("/profile");
+  });
+});
+
+describe("resolveCallbackDestination", () => {
+  it("prefers a safe internal next path over the role default", () => {
+    expect(resolveCallbackDestination("organizer", "/founders/accept")).toBe("/founders/accept");
+  });
+
+  it("falls back to the role default when next is missing", () => {
+    expect(resolveCallbackDestination("admin", undefined)).toBe("/admin");
+  });
+
+  it("falls back to the role default when next is an external URL", () => {
+    expect(resolveCallbackDestination(null, "https://evil.com")).toBe("/profile");
+  });
+
+  it("falls back to the role default when next is protocol-relative", () => {
+    expect(resolveCallbackDestination("organizer", "//evil.com")).toBe("/host");
   });
 });
 

@@ -1,0 +1,231 @@
+.founder-request-card {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: var(--space-xl);
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.founder-header {
+  text-align: center;
+  margin-bottom: var(--space-xl);
+}
+
+.founder-header h1 {
+  margin: 0 0 var(--space-xs);
+  font-size: var(--text-2xl);
+  color: var(--text-primary);
+}
+
+.founder-tagline {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-base);
+  line-height: 1.6;
+}
+
+.founder-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+}
+
+@media (max-width: 640px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.form-group label {
+  font-weight: 600;
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+}
+
+.required {
+  color: var(--error);
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: var(--text-base);
+  font-family: inherit;
+  color: var(--text-primary);
+  background: var(--background);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.form-group input[disabled],
+.form-group textarea[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.form-group input[aria-invalid="true"],
+.form-group textarea[aria-invalid="true"] {
+  border-color: var(--error);
+}
+
+.field-error {
+  font-size: var(--text-xs);
+  color: var(--error);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.field-hint {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.instagram-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.instagram-prefix {
+  position: absolute;
+  left: var(--space-md);
+  color: var(--text-muted);
+  font-weight: 500;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.instagram-input input {
+  padding-left: 2.5rem;
+}
+
+.form-error {
+  padding: var(--space-md);
+  background: var(--error-bg);
+  border: 1px solid var(--error-border);
+  border-radius: var(--radius-md);
+  color: var(--error);
+  font-size: var(--text-sm);
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-xl);
+  background: var(--primary);
+  color: var(--primary-contrast);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--text-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition-fast), transform var(--transition-fast);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-hover);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.btn-primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btn-block {
+  width: 100%;
+}
+
+.btn-spinner {
+  width: 1.25rem;
+  height: 1.25rem;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.founder-submit {
+  margin-top: var(--space-sm);
+}
+
+.form-footer {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--border);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* Off-screen rather than display:none — display:none is skipped by many
+   bots; off-screen placement is the standard honeypot technique. */
+.honeypot {
+  position: absolute;
+  left: -9999px;
+  top: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.success-state {
+  text-align: center;
+  padding: var(--space-xl) 0;
+}
+
+.success-icon {
+  width: 4rem;
+  height: 4rem;
+  color: var(--success);
+  margin: 0 auto var(--space-md);
+}
+
+.success-state h1 {
+  margin: 0 0 var(--space-sm);
+  font-size: var(--text-2xl);
+  color: var(--text-primary);
+}
+
+.success-message {
+  margin: 0 0 var(--space-md);
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.duplicate-notice {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin-bottom: var(--space-lg);
+  font-style: italic;
+}

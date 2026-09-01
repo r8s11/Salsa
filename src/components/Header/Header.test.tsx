@@ -22,6 +22,7 @@ const defaultAuth = (overrides: Partial<AuthContextValue> = {}): AuthContextValu
   isOrganizer: false,
   signInWithPassword: vi.fn(),
   resendConfirmation: vi.fn(),
+      requestPasswordReset: vi.fn(),
   signUp: vi.fn(),
   signOut: vi.fn().mockResolvedValue(undefined),
   clearDeletedAccount: vi.fn(),
@@ -55,8 +56,8 @@ describe("Header", () => {
 
     expect(screen.getByRole("link", { name: /salsa segura/i })).toHaveAttribute("href", "/");
     expect(screen.getAllByRole("link", { name: "Calendar" })).toHaveLength(1);
-    expect(screen.getAllByRole("link", { name: "Lessons" })).toHaveLength(1);
-    expect(screen.getAllByRole("link", { name: "Instructors" })).toHaveLength(1);
+    expect(screen.queryByRole("link", { name: "Lessons" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Instructors" })).not.toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: "About" })).toHaveLength(1);
     expect(screen.getAllByRole("link", { name: "Contact" })).toHaveLength(1);
     expect(screen.queryByRole("link", { name: "Events" })).not.toBeInTheDocument();

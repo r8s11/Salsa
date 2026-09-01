@@ -12,6 +12,7 @@ const CalendarPage = lazy(() => import("./pages/CalendarPage"));
 const SubmitEventPage = lazy(() => import("./pages/SubmitEventPage"));
 const FoundersPage = lazy(() => import("./pages/FoundersPage"));
 const FoundersAcceptPage = lazy(() => import("./pages/FoundersAcceptPage"));
+const FoundersWelcomePage = lazy(() => import("./pages/FoundersWelcomePage"));
 const EventDetailPage = lazy(() => import("./pages/EventDetailPage"));
 const Lessons = lazy(() => import("./pages/Lessons"));
 const Instructors = lazy(() => import("./pages/Instructors"));
@@ -72,6 +73,7 @@ function App() {
             <Route path="/auth/invite" element={<InviteActivationPage />} />
             <Route path="/founders" element={<FoundersPage />} />
             <Route path="/founders/accept" element={<FoundersAcceptPage />} />
+            <Route path="/founders/welcome" element={<FoundersWelcomePage />} />
             <Route
               path="/admin"
               element={

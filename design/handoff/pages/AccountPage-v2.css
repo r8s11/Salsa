@@ -1,0 +1,101 @@
+.account-v2__section-title {
+  margin-bottom: 12px;
+}
+
+/* --- identity --- */
+.account-v2__identity {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.account-v2__avatar {
+  width: 64px;
+  height: 64px;
+  font-size: 20px;
+}
+
+.account-v2__identity-body {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.account-v2__name {
+  font-family: var(--ss-font-display);
+  font-weight: 900;
+  font-size: 21px;
+  color: var(--ss-text);
+}
+
+.account-v2__identity-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* --- roles --- */
+.account-v2__role {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.account-v2__role-name {
+  font-family: var(--ss-font-display);
+  font-weight: 800;
+  font-size: 16px;
+  color: var(--ss-text);
+}
+
+.account-v2__role-desc {
+  margin: 0;
+  line-height: 1.55;
+  flex: 1;
+}
+
+/* --- prefs --- */
+.account-v2__save {
+  align-self: flex-start;
+}
+
+/* --- sessions --- */
+.account-v2__session {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 15px 18px;
+  border-bottom: 1px solid var(--ss-border);
+}
+
+.account-v2__session:last-child {
+  border-bottom: none;
+}
+
+.account-v2__session-device {
+  font-family: var(--ss-font-display);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--ss-text);
+}
+
+/* --- danger --- */
+.account-v2__danger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+  border-color: rgba(225, 29, 72, 0.3);
+}
+
+.account-v2__danger-body {
+  margin: 6px 0 0;
+  max-width: 56ch;
+  line-height: 1.55;
+}

@@ -17,6 +17,7 @@ const defaultAuth = (overrides: Partial<AuthContextValue> = {}): AuthContextValu
   isOrganizer: false,
   signInWithPassword: vi.fn(),
   resendConfirmation: vi.fn(),
+      requestPasswordReset: vi.fn(),
   signUp: vi.fn(),
   signOut: vi.fn().mockResolvedValue(undefined),
   clearDeletedAccount: vi.fn(),

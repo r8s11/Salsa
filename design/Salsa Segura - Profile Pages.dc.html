@@ -1,0 +1,1955 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&amp;family=Epilogue:ital,wght@0,400;0,600;0,700;0,800;0,900;1,800&amp;family=Be+Vietnam+Pro:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+  <script src="image-slot.js"></script>
+  <style>
+    :root{
+      --bg:#0b1326;--surface:#131b2e;--surface-high:#171f33;
+      --red:#e11d48;--red-bright:#ff5874;--red-dim:rgba(225,29,72,0.18);
+      --gold:#e9c349;--gold-light:#ffe088;--tertiary:#ffb690;
+      --text:#dae2fd;--text-muted:#e5bdbe;--text-dim:#ac8889;
+      --border:rgba(255,255,255,0.10);--border-md:rgba(255,255,255,0.16);
+      --fdisp:'Epilogue','Helvetica Neue',sans-serif;--fbody:'Be Vietnam Pro',sans-serif;--flogo:'Great Vibes',cursive;
+    }
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    body{background:var(--bg);color:var(--text);font-family:var(--fbody);-webkit-font-smoothing:antialiased}
+    a{color:var(--gold);text-decoration:none}
+    a:hover{color:var(--gold-light)}
+    ::selection{background:var(--red);color:#fff}
+    @keyframes pp-fade{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+    .pp-scroll::-webkit-scrollbar{width:10px;height:8px}
+    .pp-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.14);border-radius:9999px}
+    .pp-scroll::-webkit-scrollbar-track{background:transparent}
+    image-slot{--is-empty-bg:linear-gradient(140deg,#1a2440,#241733);--is-empty-fg:var(--text-dim)}
+    .pp-static{position:static!important;top:auto!important;padding-top:8px}
+    .pp-embedded{min-height:0!important}
+    @media (max-width:980px){
+      .pp-2col{grid-template-columns:1fr!important}
+      .pp-grid3{grid-template-columns:repeat(2,1fr)!important}
+      .pp-grid2{grid-template-columns:1fr!important}
+      .pp-row{flex-wrap:wrap!important}
+      .pp-hidesm{display:none!important}
+    }
+    @media (max-width:640px){
+      .pp-grid3{grid-template-columns:1fr!important}
+      .pp-gallery{grid-template-columns:repeat(2,1fr)!important}
+      .pp-scroll > header{padding-left:0!important;padding-right:0!important}
+      .pp-embedded section,.pp-scroll > section{padding-left:18px!important;padding-right:18px!important}
+      .pp-static{padding-top:4px}
+    }
+  </style>
+</helmet>
+
+<div class="pp-scroll {{ rootMod }}" style="min-height:100vh;overflow-x:hidden">
+
+  <header class="{{ headerMod }}" style="position:sticky;top:0;z-index:60;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);background:rgba(11,19,38,0.78);border-bottom:1px solid var(--border)">
+    <sc-if value="{{ showShellNav }}" hint-placeholder-val="{{ true }}">
+    <nav style="max-width:1280px;margin:0 auto;padding:13px 28px;display:flex;align-items:center;gap:16px">
+      <a href="#" onClick="{{ goDirectory }}" style="display:flex;align-items:center;gap:8px;font-family:var(--flogo);font-size:29px;line-height:1;color:var(--gold);white-space:nowrap;flex-shrink:0" style-hover="color:var(--gold-light)"><img src="uploads/SalsaSegura_logo_transparent_master.png" alt="" style="height:27px;width:auto;display:block">Salsa <span style="color:var(--red-bright)">Segura</span></a>
+      <span style="font-family:var(--fdisp);font-weight:800;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-dim);padding:5px 11px;border:1px solid var(--border);border-radius:9999px;flex-shrink:0" class="pp-hidesm">Directory</span>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:3px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:9999px;padding:3px;flex-shrink:0">
+        <button type="button" onClick="{{ setCityBos }}" style="font-family:var(--fdisp);font-weight:700;font-size:12px;letter-spacing:.06em;padding:6px 13px;border:none;border-radius:9999px;cursor:pointer;color:{{ bosFg }};background:{{ bosBg }};transition:all .18s">BOS</button>
+        <button type="button" onClick="{{ setCityNyc }}" style="font-family:var(--fdisp);font-weight:700;font-size:12px;letter-spacing:.06em;padding:6px 13px;border:none;border-radius:9999px;cursor:pointer;color:{{ nycFg }};background:{{ nycBg }};transition:all .18s">NYC</button>
+      </div>
+      <a href="#" onClick="{{ noop }}" style="font-family:var(--fdisp);font-weight:700;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;padding:10px 18px;border-radius:9999px;background:linear-gradient(120deg,var(--red),#c2153c);color:#fff;box-shadow:0 6px 18px rgba(225,29,72,.32);flex-shrink:0" style-hover="color:#fff;box-shadow:0 8px 24px rgba(225,29,72,.5)" class="pp-hidesm">+ Add listing</a>
+      <span style="width:34px;height:34px;border-radius:9999px;background:linear-gradient(135deg,var(--red),var(--gold));display:flex;align-items:center;justify-content:center;font-family:var(--fdisp);font-weight:800;font-size:12px;color:#fff;flex-shrink:0">JR</span>
+    </nav>
+    </sc-if>
+    <div class="pp-scroll" style="max-width:1280px;margin:0 auto;padding:14px 28px 13px;display:flex;gap:7px;overflow-x:auto">
+      <sc-for list="{{ typeTabs }}" as="t" hint-placeholder-count="8">
+        <button type="button" onClick="{{ t.go }}" style="flex:1 1 0;min-width:max-content;display:inline-flex;align-items:center;justify-content:center;gap:7px;font-family:var(--fdisp);font-weight:700;font-size:12.5px;letter-spacing:.04em;padding:9px 14px;border-radius:9999px;border:1px solid {{ t.bd }};background:{{ t.bg }};color:{{ t.fg }};cursor:{{ t.cursor }};transition:all .18s" style-hover="color:#fff">{{ t.label }}<span style="font-family:var(--fbody);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim)">{{ t.note }}</span></button>
+      </sc-for>
+    </div>
+  </header>
+
+  <!-- ===================== DIRECTORY SHELL ===================== -->
+  <sc-if value="{{ isDirectory }}" hint-placeholder-val="{{ true }}">
+    <main data-screen-label="Directory" style="animation:pp-fade .35s ease both;max-width:1280px;margin:0 auto;padding:44px 28px 80px">
+      <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:26px">
+        <div style="max-width:56ch">
+          <span style="font-family:var(--fdisp);font-weight:800;font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--tertiary)">◆ {{ dirEyebrow }}</span>
+          <h1 style="font-family:var(--fdisp);font-weight:900;font-size:clamp(34px,5vw,54px);letter-spacing:-.02em;line-height:1;color:var(--text);margin:10px 0 10px">{{ dirTitle }}</h1>
+          <p style="font-family:var(--fbody);font-size:15.5px;line-height:1.6;color:var(--text-dim)">{{ dirSub }}</p>
+        </div>
+        <div style="text-align:right">
+          <div style="font-family:var(--fdisp);font-weight:900;font-size:34px;line-height:1;color:var(--gold)">{{ dirCount }}</div>
+          <div style="font-family:var(--fdisp);font-weight:700;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-dim);margin-top:5px">in {{ cityLabel }}</div>
+        </div>
+      </div>
+
+      <div class="pp-row" style="display:flex;align-items:center;gap:10px;margin-bottom:26px;padding:12px 14px;border-radius:14px;background:var(--surface);border:1px solid var(--border)">
+        <span style="font-size:15px;opacity:.6">⌕</span>
+        <input type="text" placeholder="{{ dirSearchHint }}" style="flex:1;min-width:180px;background:transparent;border:none;outline:none;font-family:var(--fbody);font-size:14px;color:var(--text)">
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <sc-for list="{{ dirFilters }}" as="f" hint-placeholder-count="5">
+            <button type="button" onClick="{{ f.go }}" style="font-family:var(--fdisp);font-weight:700;font-size:11.5px;letter-spacing:.05em;padding:7px 13px;border-radius:9999px;border:1px solid {{ f.bd }};background:{{ f.bg }};color:{{ f.fg }};cursor:pointer;transition:all .18s" style-hover="color:#fff;border-color:var(--red)">{{ f.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- DJ directory: dense rows, ordered by who is playing next -->
+      <sc-if value="{{ isDirDjs }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ djRows }}" as="d" hint-placeholder-count="4">
+            <article class="pp-row" style="display:flex;align-items:center;gap:16px;padding:15px 18px;border-radius:16px;background:var(--surface);border:1px solid var(--border);transition:all .2s" style-hover="border-color:var(--red-dim);transform:translateY(-2px)">
+              <a href="#" onClick="{{ d.open }}" style="width:58px;height:58px;border-radius:9999px;background:linear-gradient(135deg,var(--red),var(--gold));display:flex;align-items:center;justify-content:center;font-family:var(--fdisp);font-weight:900;font-size:19px;color:#fff;flex-shrink:0" style-hover="color:#fff">{{ d.initials }}</a>
+              <div style="min-width:200px;flex:1">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                  <a href="#" onClick="{{ d.open }}" style="font-family:var(--fdisp);font-weight:800;font-size:18px;letter-spacing:-.01em;color:var(--text)" style-hover="color:var(--gold)">{{ d.name }}</a>
+                  <sc-if value="{{ d.verified }}" hint-placeholder-val="{{ true }}"><span title="Verified by Salsa Segura" style="display:inline-flex;align-items:center;gap:4px;font-family:var(--fdisp);font-weight:800;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:9999px;background:rgba(233,195,73,.14);border:1px solid rgba(233,195,73,.4);color:var(--gold)">✓ Verified</span></sc-if>
+                  <sc-if value="{{ d.unclaimed }}" hint-placeholder-val="{{ false }}"><span style="font-family:var(--fdisp);font-weight:700;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:9999px;border:1px dashed var(--border-md);color:var(--text-dim)">Unclaimed</span></sc-if>
+                </div>
+                <div style="font-family:var(--fbody);font-size:13.5px;color:var(--text-dim);margin-top:3px">{{ d.tagline }}</div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:9px">
+                  <sc-for list="{{ d.styles }}" as="s" hint-placeholder-count="3">
+                    <span style="font-family:var(--fdisp);font-weight:600;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;padding:4px 9px;border-radius:6px;background:rgba(255,255,255,.05);color:var(--text-muted)">{{ s }}</span>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="min-width:190px">
+                <div style="font-family:var(--fdisp);font-weight:700;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px">Playing next</div>
+                <div style="font-family:var(--fbody);font-size:13.5px;color:var(--text);line-height:1.45">{{ d.next }}</div>
+                <div style="font-family:var(--fbody);font-size:12px;color:var(--tertiary);margin-top:4px">{{ d.cityLine }}</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:9px;flex-shrink:0">
+                <span style="font-family:var(--fdisp);font-weight:700;font-size:12.5px;color:var(--gold)">★ {{ d.rating }}</span>
+                <button type="button" onClick="{{ d.follow }}" style="font-family:var(--fdisp);font-weight:700;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;padding:9px 15px;border-radius:9999px;border:1px solid {{ d.fBd }};background:{{ d.fBg }};color:{{ d.fFg }};cursor:pointer;transition:all .18s" style-hover="border-color:var(--red)">{{ d.fLabel }}</button>
+              </div>
+            </article>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <!-- School directory: photo-led cards -->
+      <sc-if value="{{ isDirSchools }}" hint-placeholder-val="{{ false }}">
+        <div class="pp-grid2" style="display:grid;grid-template-columns:repeat(2,1fr);gap:18px">
+          <sc-for list="{{ schoolCards }}" as="c" hint-placeholder-count="4">
+            <article style="border-radius:20px;overflow:hidden;background:var(--surface);border:1px solid var(--border);display:flex;flex-direction:column;transition:all .22s" style-hover="border-color:var(--red-dim);transform:translateY(-3px)">
+              <div style="position:relative;height:180px">
+                <image-slot id="{{ c.slotId }}" shape="rect" fit="cover" placeholder="{{ c.slotHint }}"></image-slot>
+                <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,rgba(11,19,38,.82));pointer-events:none"></div>
+                <span style="position:absolute;top:13px;left:14px;font-family:var(--fdisp);font-weight:700;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:5px 11px;border-radius:9999px;background:rgba(233,195,73,.92);color:#20160a">{{ c.trial }}</span>
+                <div style="position:absolute;bottom:13px;left:16px;right:16px;display:flex;align-items:flex-end;justify-content:space-between;gap:10px">
+                  <a href="#" onClick="{{ c.open }}" style="font-family:var(--fdisp);font-weight:900;font-size:24px;letter-spacing:-.015em;color:#fff;line-height:1.05" style-hover="color:var(--gold-light)">{{ c.name }}</a>
+                  <sc-if value="{{ c.verified }}" hint-placeholder-val="{{ true }}"><span style="font-family:var(--fdisp);font-weight:800;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:9999px;background:rgba(233,195,73,.16);border:1px solid rgba(233,195,73,.45);color:var(--gold);flex-shrink:0">✓</span></sc-if>
+                </div>
+              </div>
+              <div style="padding:17px 18px 19px;display:flex;flex-direction:column;gap:13px;flex:1">
+                <p style="font-family:var(--fbody);font-size:14px;line-height:1.55;color:var(--text-muted)">{{ c.tagline }}</p>
+                <div style="display:flex;gap:6px;flex-wrap:wrap">
+                  <sc-for list="{{ c.levels }}" as="l" hint-placeholder-count="3">
+                    <span style="font-family:var(--fdisp);font-weight:700;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:6px;border:1px solid var(--border-md);color:var(--text-muted)">{{ l }}</span>
+                  </sc-for>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:auto;padding-top:13px;border-top:1px solid var(--border)">
+                  <div>
+                    <div style="font-family:var(--fbody);font-size:12.5px;color:var(--text-dim)">{{ c.where }}</div>
+                    <div style="font-family:var(--fbody);font-size:12.5px;color:var(--gold);margin-top:3px">★ {{ c.rating }} · {{ c.reviewLine }}</div>
+                  </div>
+                  <a href="#" onClick="{{ c.open }}" style="font-family:var(--fdisp);font-weight:700;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;padding:10px 16px;border-radius:9999px;border:1px solid var(--border-md);color:var(--text)" style-hover="color:#fff;border-color:var(--red)">View school →</a>
+                </div>
+              </div>
+            </article>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <!-- Instructor directory: portrait tiles -->
+      <sc-if value="{{ isDirInstructors }}" hint-placeholder-val="{{ false }}">
+        <div class="pp-grid3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+          <sc-for list="{{ instructorTiles }}" as="i" hint-placeholder-count="6">
+            <article style="border-radius:18px;overflow:hidden;background:var(--surface);border:1px solid var(--border);display:flex;flex-direction:column;transition:all .22s" style-hover="border-color:var(--red-dim);transform:translateY(-3px)">
+              <div style="position:relative;aspect-ratio:4/5">
+                <image-slot id="{{ i.slotId }}" shape="rect" fit="cover" placeholder="{{ i.slotHint }}"></image-slot>
+                <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,rgba(11,19,38,.9));pointer-events:none"></div>
+                <div style="position:absolute;bottom:12px;left:14px;right:14px">
+                  <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
+                    <a href="#" onClick="{{ i.open }}" style="font-family:var(--fdisp);font-weight:900;font-size:19px;color:#fff;line-height:1.1" style-hover="color:var(--gold-light)">{{ i.name }}</a>
+                    <sc-if value="{{ i.verified }}" hint-placeholder-val="{{ true }}"><span style="font-family:var(--fdisp);font-weight:800;font-size:9px;letter-spacing:.1em;padding:3px 7px;border-radius:9999px;background:rgba(233,195,73,.16);border:1px solid rgba(233,195,73,.45);color:var(--gold)">✓</span></sc-if>
+                  </div>
+                  <div style="font-family:var(--fbody);font-size:12.5px;color:var(--text-muted);margin-top:3px">{{ i.specialty }}</div>
+                </div>
+              </div>
+              <div style="padding:14px 15px 16px;display:flex;flex-direction:column;gap:11px;flex:1">
+                <div style="font-family:var(--fbody);font-size:12.5px;color:var(--text-dim)">{{ i.affiliation }}</div>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto">
+                  <div>
+                    <div style="font-family:var(--fdisp);font-weight:800;font-size:15px;color:var(--text)">{{ i.rate }}</div>
+                    <div style="font-family:var(--fbody);font-size:11.5px;color:var(--gold);margin-top:2px">★ {{ i.rating }} · {{ i.reviewLine }}</div>
+                  </div>
+                  <a href="#" onClick="{{ i.open }}" style="font-family:var(--fdisp);font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:9px 14px;border-radius:9999px;background:rgba(225,29,72,.16);border:1px solid var(--red-dim);color:var(--red-bright)" style-hover="color:#fff;background:var(--red)">Book</a>
+                </div>
+              </div>
+            </article>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <!-- Venue directory: spec-led rows -->
+      <sc-if value="{{ isDirVenues }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ venueRows }}" as="v" hint-placeholder-count="4">
+            <article class="pp-row" style="display:flex;align-items:stretch;gap:18px;padding:16px 18px;border-radius:16px;background:var(--surface);border:1px solid var(--border);transition:all .2s" style-hover="border-color:var(--red-dim);transform:translateY(-2px)">
+              <a href="#" onClick="{{ v.open }}" style="width:66px;flex-shrink:0;border-radius:12px;background:linear-gradient(140deg,#1b2542,#2a1730);display:flex;align-items:center;justify-content:center;font-family:var(--fdisp);font-weight:900;font-size:17px;color:var(--gold)" style-hover="color:var(--gold-light)">{{ v.initials }}</a>
+              <div style="flex:1;min-width:210px">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                  <a href="#" onClick="{{ v.open }}" style="font-family:var(--fdisp);font-weight:800;font-size:19px;letter-spacing:-.01em;color:var(--text)" style-hover="color:var(--gold)">{{ v.name }}</a>
+                  <span style="font-family:var(--fbody);font-size:12.5px;color:var(--text-dim)">{{ v.hood }}</span>
+                  <sc-if value="{{ v.verified }}" hint-placeholder-val="{{ true }}"><span style="font-family:var(--fdisp);font-weight:800;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:9999px;background:rgba(233,195,73,.14);border:1px solid rgba(233,195,73,.4);color:var(--gold)">✓ Verified</span></sc-if>
+                  <sc-if value="{{ v.unclaimed }}" hint-placeholder-val="{{ false }}"><span style="font-family:var(--fdisp);font-weight:700;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:9999px;border:1px dashed var(--border-md);color:var(--text-dim)">Unclaimed</span></sc-if>
+                </div>
+                <p style="font-family:var(--fbody);font-size:13.5px;line-height:1.55;color:var(--text-dim);margin-top:5px;max-width:60ch">{{ v.tagline }}</p>
+              </div>
+              <div style="display:flex;gap:26px;align-items:center;flex-shrink:0;padding:0 6px">
+                <div>
+                  <div style="font-family:var(--fdisp);font-weight:700;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px">Floor</div>
+                  <div style="font-family:var(--fdisp);font-weight:800;font-size:14px;color:var(--text)">{{ v.floor }}</div>
+                  <div style="font-family:var(--fbody);font-size:12px;color:var(--text-dim);margin-top:3px">{{ v.capacity }}</div>
+                </div>
+                <div style="min-width:150px">
+                  <div style="font-family:var(--fdisp);font-weight:700;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px">Next on the floor</div>
+                  <div style="font-family:var(--fbody);font-size:13.5px;color:var(--text)">{{ v.next }}</div>
+                  <div style="font-family:var(--fbody);font-size:12px;color:var(--gold);margin-top:3px">★ {{ v.rating }} · {{ v.reviewLine }}</div>
+                </div>
+                <a href="#" onClick="{{ v.open }}" style="font-family:var(--fdisp);font-weight:700;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;padding:11px 17px;border-radius:9999px;border:1px solid var(--border-md);color:var(--text);white-space:nowrap" style-hover="color:#fff;border-color:var(--red)">Venue page →</a>
+              </div>
+            </article>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <!-- Host directory: typographic cards -->
+      <sc-if value="{{ isDirHosts }}" hint-placeholder-val="{{ false }}">
+        <div class="pp-grid2" style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px">
+          <sc-for list="{{ hostCards }}" as="h" hint-placeholder-count="4">
+            <article style="padding:24px 24px 20px;border-radius:20px;background:var(--surface);border:1px solid var(--border);display:flex;flex-direction:column;gap:14px;transition:all .2s" style-hover="border-color:var(--red-dim);transform:translateY(-3px)">
+              <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
+                <span style="font-family:var(--fdisp);font-weight:800;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--red-bright)">{{ h.seriesLine }}</span>
+                <sc-if value="{{ h.verified }}" hint-placeholder-val="{{ true }}"><span style="font-family:var(--fdisp);font-weight:800;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:9999px;background:rgba(233,195,73,.14);border:1px solid rgba(233,195,73,.4);color:var(--gold)">✓ Verified</span></sc-if>
+                <sc-if value="{{ h.unclaimed }}" hint-placeholder-val="{{ false }}"><span style="font-family:var(--fdisp);font-weight:700;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:9999px;border:1px dashed var(--border-md);color:var(--text-dim)">Unclaimed</span></sc-if>
+              </div>
+              <a href="#" onClick="{{ h.open }}" style="font-family:var(--fdisp);font-weight:900;font-size:clamp(24px,2.6vw,32px);line-height:1.05;letter-spacing:-.02em;color:var(--text)" style-hover="color:var(--gold)">{{ h.name }}</a>
+              <p style="font-family:var(--fbody);font-size:14.5px;line-height:1.6;color:var(--text-muted)">{{ h.tagline }}</p>
+              <div style="display:flex;gap:22px;flex-wrap:wrap;padding-top:13px;border-top:1px solid var(--border)">
+                <div>
+                  <div style="font-family:var(--fdisp);font-weight:900;font-size:16px;color:var(--text)">{{ h.nights }}</div>
+                  <div style="font-family:var(--fbody);font-size:11.5px;color:var(--text-dim);margin-top:2px">{{ h.since }}</div>
+                </div>
+                <div>
+                  <div style="font-family:var(--fdisp);font-weight:900;font-size:16px;color:var(--gold)">★ {{ h.rating }}</div>
+                  <div style="font-family:var(--fbody);font-size:11.5px;color:var(--text-dim);margin-top:2px">Dancer rating</div>
+                </div>
+                <div style="min-width:150px">
+                  <div style="font-family:var(--fdisp);font-weight:800;font-size:13.5px;color:var(--text)">{{ h.next }}</div>
+                  <div style="font-family:var(--fbody);font-size:11.5px;color:var(--text-dim);margin-top:2px">Next night</div>
+                </div>
+              </div>
+              <div style="display:flex;gap:9px;margin-top:auto">
+                <button type="button" onClick="{{ h.follow }}" style="font-family:var(--fdisp);font-weight:700;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;padding:11px 17px;border-radius:9999px;border:1px solid {{ h.fBd }};background:{{ h.fBg }};color:{{ h.fFg }};cursor:pointer">{{ h.fLabel }}</button>
+                <a href="#" onClick="{{ h.open }}" style="font-family:var(--fdisp);font-weight:700;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;padding:11px 17px;border-radius:9999px;border:1px solid var(--border-md);color:var(--text)" style-hover="color:#fff;border-color:var(--red)">Host page →</a>
+              </div>
+            </article>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <!-- Media directory: work-sample tiles -->
+      <sc-if value="{{ isDirMedia }}" hint-placeholder-val="{{ false }}">
+        <div class="pp-grid2" style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px">
+          <sc-for list="{{ mediaTiles }}" as="m" hint-placeholder-count="4">
+            <article style="border-radius:20px;overflow:hidden;background:var(--surface);border:1px solid var(--border);display:flex;flex-direction:column;transition:all .2s" style-hover="border-color:var(--red-dim);transform:translateY(-3px)">
+              <div style="position:relative;aspect-ratio:16/9">
+                <image-slot id="{{ m.slotId }}" shape="rect" fit="cover" placeholder="{{ m.slotHint }}"></image-slot>
+                <span style="position:absolute;top:12px;left:13px;font-family:var(--fdisp);font-weight:800;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:5px 11px;border-radius:9999px;background:rgba(11,19,38,.78);border:1px solid var(--border);color:var(--tertiary)">{{ m.discipline }}</span>
+              </div>
+              <div style="padding:17px 19px 19px;display:flex;flex-direction:column;gap:11px;flex:1">
+                <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
+                  <a href="#" onClick="{{ m.open }}" style="font-family:var(--fdisp);font-weight:800;font-size:20px;letter-spacing:-.01em;color:var(--text)" style-hover="color:var(--gold)">{{ m.name }}</a>
+                  <sc-if value="{{ m.verified }}" hint-placeholder-val="{{ true }}"><span style="font-family:var(--fdisp);font-weight:800;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:9999px;background:rgba(233,195,73,.14);border:1px solid rgba(233,195,73,.4);color:var(--gold)">✓</span></sc-if>
+                  <sc-if value="{{ m.unclaimed }}" hint-placeholder-val="{{ false }}"><span style="font-family:var(--fdisp);font-weight:700;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:9999px;border:1px dashed var(--border-md);color:var(--text-dim)">Unclaimed</span></sc-if>
+                </div>
+                <p style="font-family:var(--fbody);font-size:13.5px;line-height:1.6;color:var(--text-muted)">{{ m.tagline }}</p>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:auto;padding-top:13px;border-top:1px solid var(--border)">
+                  <div>
+                    <div style="font-family:var(--fdisp);font-weight:800;font-size:15px;color:var(--text)">{{ m.rate }}</div>
+                    <div style="font-family:var(--fbody);font-size:12px;color:var(--text-dim);margin-top:3px">{{ m.turnaround }} · {{ m.audience }}</div>
+                  </div>
+                  <a href="#" onClick="{{ m.open }}" style="font-family:var(--fdisp);font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:10px 15px;border-radius:9999px;border:1px solid var(--border-md);color:var(--text);white-space:nowrap" style-hover="color:#fff;border-color:var(--red)">Portfolio →</a>
+                </div>
+              </div>
+            </article>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <!-- Performer directory: act cards -->
+      <sc-if value="{{ isDirPerformers }}" hint-placeholder-val="{{ false }}">
+        <div class="pp-grid2" style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px">
+          <sc-for list="{{ performerCards }}" as="p" hint-placeholder-count="4">
+            <article style="border-radius:20px;overflow:hidden;background:var(--surface);border:1px solid var(--border);display:flex;flex-direction:column;transition:all .2s" style-hover="border-color:var(--red-dim);transform:translateY(-3px)">
+              <div style="position:relative;aspect-ratio:16/10">
+                <image-slot id="{{ p.slotId }}" shape="rect" fit="cover" placeholder="{{ p.slotHint }}"></image-slot>
+                <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 35%,rgba(11,19,38,.9));pointer-events:none"></div>
+                <span style="position:absolute;top:12px;left:13px;font-family:var(--fdisp);font-weight:800;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:5px 11px;border-radius:9999px;background:{{ p.ptypeBg }};color:#0b1326">{{ p.ptypeLabel }}</span>
+                <span style="position:absolute;top:12px;right:13px;font-family:var(--fdisp);font-weight:700;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:5px 11px;border-radius:9999px;background:rgba(11,19,38,.72);color:var(--text-muted)">{{ p.act }}</span>
+                <div style="position:absolute;bottom:13px;left:16px;right:16px;display:flex;align-items:flex-end;justify-content:space-between;gap:10px">
+                  <a href="#" onClick="{{ p.open }}" style="font-family:var(--fdisp);font-weight:900;font-size:25px;letter-spacing:-.015em;color:#fff;line-height:1.05" style-hover="color:var(--gold-light)">{{ p.name }}</a>
+                  <span style="font-family:var(--fdisp);font-weight:700;font-size:11.5px;color:var(--text-muted);flex-shrink:0">{{ p.length }} · {{ p.dancers }}</span>
+                </div>
+              </div>
+              <div style="padding:17px 19px 19px;display:flex;flex-direction:column;gap:12px;flex:1">
+                <p style="font-family:var(--fbody);font-size:13.5px;line-height:1.6;color:var(--text-muted)">{{ p.tagline }}</p>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:auto;padding-top:13px;border-top:1px solid var(--border)">
+                  <div>
+                    <div style="font-family:var(--fdisp);font-weight:800;font-size:13.5px;color:var(--gold)">Next: {{ p.next }}</div>
+                    <div style="font-family:var(--fbody);font-size:12px;color:var(--text-dim);margin-top:3px">{{ p.dance }}</div>
+                  </div>
+                  <a href="#" onClick="{{ p.open }}" style="font-family:var(--fdisp);font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:10px 15px;border-radius:9999px;background:rgba(225,29,72,.16);border:1px solid var(--red-dim);color:var(--red-bright);white-space:nowrap" style-hover="color:#fff;background:var(--red)">See the act</a>
+                </div>
+              </div>
+            </article>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <p style="margin-top:34px;font-family:var(--fbody);font-size:13px;color:var(--text-dim);text-align:center">{{ dirFootnote }}</p>
+    </main>
+  </sc-if>
+
+  <!-- ===================== SHARED DETAIL SPINE ===================== -->
+  <sc-if value="{{ isDetail }}" hint-placeholder-val="{{ false }}">
+    <div style="animation:pp-fade .35s ease both">
+      <section style="position:relative;height:min(38vw,320px);min-height:230px">
+        <sc-if value="{{ isDj }}" hint-placeholder-val="{{ false }}">
+          <img src="https://d8j0ntlcm91z4.cloudfront.net/user_3G7GKJTEt9XJwDTgjAnE32B8wQ9/hf_20260820_221446_89420187-7e03-4bee-9c21-01d3b151593a.png" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+        </sc-if>
+        <sc-if value="{{ isSchool }}" hint-placeholder-val="{{ false }}">
+          <img src="https://d8j0ntlcm91z4.cloudfront.net/user_3G7GKJTEt9XJwDTgjAnE32B8wQ9/hf_20260820_221446_81c408fc-f480-4b29-9eae-002199c15af5.png" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+        </sc-if>
+        <sc-if value="{{ isInstructor }}" hint-placeholder-val="{{ false }}">
+          <img src="https://d8j0ntlcm91z4.cloudfront.net/user_3G7GKJTEt9XJwDTgjAnE32B8wQ9/hf_20260820_221446_3898f03f-74cf-40e1-be29-9107451efc38.png" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+        </sc-if>
+        <sc-if value="{{ isVenue }}" hint-placeholder-val="{{ false }}"><image-slot id="pp-ven-cover" shape="rect" fit="cover" placeholder="Venue — the room, lights on"></image-slot></sc-if>
+        <sc-if value="{{ isHost }}" hint-placeholder-val="{{ false }}"><image-slot id="pp-host-cover" shape="rect" fit="cover" placeholder="Host — a full floor at one of their nights"></image-slot></sc-if>
+        <sc-if value="{{ isMedia }}" hint-placeholder-val="{{ false }}"><image-slot id="pp-med-cover" shape="rect" fit="cover" placeholder="Media — signature frame from their portfolio"></image-slot></sc-if>
+        <sc-if value="{{ isPerformer }}" hint-placeholder-val="{{ false }}"><image-slot id="pp-perf-cover" shape="rect" fit="cover" placeholder="Performer — stage shot, wide"></image-slot></sc-if>
+        <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,19,38,.42) 0%,rgba(11,19,38,.06) 46%,rgba(11,19,38,.84) 88%,var(--bg));pointer-events:none"></div>
+        <div style="position:absolute;top:18px;left:0;right:0">
+          <div style="max-width:1180px;margin:0 auto;padding:0 28px">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+              <a href="#" onClick="{{ detBack }}" style="display:inline-flex;align-items:center;gap:8px;font-family:var(--fdisp);font-weight:600;font-size:13px;letter-spacing:.04em;padding:9px 16px;border-radius:9999px;background:rgba(11,19,38,.6);backdrop-filter:blur(8px);border:1px solid var(--border);color:var(--text)" style-hover="color:#fff;border-color:var(--red)">← {{ detBackLabel }}</a>
+              <sc-if value="{{ isPageOwner }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <a href="#" onClick="{{ noop }}" style="display:inline-flex;align-items:center;gap:7px;font-family:var(--fdisp);font-weight:700;font-size:12px;letter-spacing:.05em;text-transform:uppercase;padding:9px 16px;border-radius:9999px;background:rgba(11,19,38,.72);backdrop-filter:blur(8px);border:1px solid var(--border-md);color:var(--text)" style-hover="color:#fff;border-color:var(--gold)">Change cover</a>
+                  <a href="#" onClick="{{ noop }}" style="display:inline-flex;align-items:center;gap:7px;font-family:var(--fdisp);font-weight:700;font-size:12px;letter-spacing:.05em;text-transform:uppercase;padding:9px 16px;border-radius:9999px;background:rgba(233,195,73,.92);border:1px solid rgba(233,195,73,.5);color:#0b1326" style-hover="color:#0b1326;background:var(--gold-light)">Edit page</a>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section style="max-width:1180px;margin:0 auto;padding:0 28px">
+        <div class="pp-row" style="display:flex;align-items:flex-end;gap:22px;margin-top:-62px;position:relative;z-index:2">
+          <sc-if value="{{ detIsPerson }}" hint-placeholder-val="{{ false }}">
+            <div style="position:relative;width:132px;height:132px;border-radius:9999px;overflow:hidden;border:3px solid var(--bg);box-shadow:0 14px 40px rgba(0,0,0,.5);flex-shrink:0;background:var(--surface-high)">
+              <sc-if value="{{ isPageOwner }}" hint-placeholder-val="{{ false }}">
+                <a href="#" onClick="{{ noop }}" aria-label="Change portrait" title="Change portrait" style="position:absolute;bottom:6px;right:6px;z-index:3;width:34px;height:34px;border-radius:9999px;background:rgba(11,19,38,.86);border:1px solid var(--border-md);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--text)" style-hover="color:#fff;border-color:var(--gold)">✎</a>
+              </sc-if>
+              <sc-if value="{{ isInstructor }}" hint-placeholder-val="{{ false }}"><img src="https://d8j0ntlcm91z4.cloudfront.net/user_3G7GKJTEt9XJwDTgjAnE32B8wQ9/hf_20260820_221446_260fe12f-ebdc-47a8-9651-3dff127ee306.png" alt="" style="width:100%;height:100%;object-fit:cover;display:block"></sc-if>
+              <sc-if value="{{ isDj }}" hint-placeholder-val="{{ true }}"><image-slot id="pp-dj-avatar" shape="rect" fit="cover" placeholder="DJ portrait"></image-slot></sc-if>
+              <sc-if value="{{ isMedia }}" hint-placeholder-val="{{ false }}"><image-slot id="pp-med-avatar" shape="rect" fit="cover" placeholder="Portrait"></image-slot></sc-if>
+            </div>
+          </sc-if>
+          <sc-if value="{{ detIsOrg }}" hint-placeholder-val="{{ false }}">
+            <div style="width:132px;height:132px;border-radius:22px;flex-shrink:0;border:3px solid var(--bg);box-shadow:0 14px 40px rgba(0,0,0,.5);background:linear-gradient(140deg,#1b2542,#2a1730);display:flex;align-items:center;justify-content:center;font-family:var(--fdisp);font-weight:900;font-size:40px;letter-spacing:-.02em;color:var(--gold)">{{ detInitials }}</div>
+          </sc-if>
+          <div style="flex:1;min-width:240px;padding-bottom:6px">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+              <span style="font-family:var(--fdisp);font-weight:800;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;padding:5px 11px;border-radius:9999px;background:{{ detKindBg }};color:{{ detKindFg }}">{{ detKind }}</span>
+              <sc-if value="{{ detVerified }}" hint-placeholder-val="{{ true }}">
+                <span style="display:inline-flex;align-items:center;gap:5px;font-family:var(--fdisp);font-weight:800;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:5px 10px;border-radius:9999px;background:rgba(233,195,73,.14);border:1px solid rgba(233,195,73,.42);color:var(--gold)">✓ Verified by Salsa Segura</span>
+              </sc-if>
+            </div>
+            <h1 style="font-family:var(--fdisp);font-weight:900;font-size:clamp(32px,5vw,52px);line-height:1;letter-spacing:-.025em;color:#fff">{{ detName }}</h1>
+            <p style="font-family:var(--fbody);font-size:16px;line-height:1.55;color:var(--text-muted);margin-top:9px;max-width:52ch">{{ detTagline }}</p>
+          </div>
+          <div style="display:flex;gap:9px;flex-wrap:wrap;padding-bottom:8px">
+            <sc-if value="{{ detFollowing }}" hint-placeholder-val="{{ false }}">
+              <button type="button" onClick="{{ detToggleFollow }}" style="font-family:var(--fdisp);font-weight:700;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;padding:13px 24px;border-radius:9999px;border:1px solid var(--gold);background:rgba(233,195,73,.14);color:var(--gold);cursor:pointer">✓ Following</button>
+            </sc-if>
+            <sc-if value="{{ detNotFollowing }}" hint-placeholder-val="{{ true }}">
+              <button type="button" onClick="{{ detToggleFollow }}" style="font-family:var(--fdisp);font-weight:700;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;padding:13px 26px;border-radius:9999px;border:none;background:linear-gradient(120deg,var(--red),#c2153c);color:#fff;box-shadow:0 8px 22px rgba(225,29,72,.36);cursor:pointer">+ Follow</button>
+            </sc-if>
+            <a href="#" onClick="{{ noop }}" style="font-family:var(--fdisp);font-weight:700;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;padding:13px 22px;border-radius:9999px;border:1px solid var(--border-md);color:var(--text)" style-hover="color:#fff;border-color:var(--red)">{{ detCta }}</a>
+            <a href="#" onClick="{{ noop }}" aria-label="Share" style="width:46px;height:46px;border-radius:9999px;border:1px solid var(--border-md);display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--text)" style-hover="color:#fff;border-color:var(--red)">↗</a>
+          </div>
+        </div>
+
+        <div class="pp-row" style="display:flex;align-items:center;gap:26px;flex-wrap:wrap;margin-top:22px;padding:16px 20px;border-radius:16px;background:var(--surface);border:1px solid var(--border)">
+          <div>
+            <div style="font-family:var(--fdisp);font-weight:700;font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-dim);margin-bottom:5px">Dancing in</div>
+            <div style="display:flex;gap:7px;flex-wrap:wrap">
+              <sc-for list="{{ detCities }}" as="c" hint-placeholder-count="2">
+                <span style="display:inline-flex;align-items:center;gap:6px;font-family:var(--fdisp);font-weight:700;font-size:12px;letter-spacing:.04em;padding:6px 12px;border-radius:9999px;border:1px solid {{ c.bd }};background:{{ c.bg }};color:{{ c.fg }}">{{ c.label }}<span style="font-family:var(--fbody);font-size:10.5px;color:var(--text-dim)">{{ c.note }}</span></span>
+              </sc-for>
+            </div>
+          </div>
+          <div style="width:1px;height:38px;background:var(--border)" class="pp-hidesm"></div>
+          <sc-for list="{{ detStats }}" as="st" hint-placeholder-count="3">
+            <div>
+              <div style="font-family:var(--fdisp);font-weight:900;font-size:20px;color:var(--text);line-height:1">{{ st.value }}</div>
+              <div style="font-family:var(--fdisp);font-weight:700;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-dim);margin-top:5px">{{ st.label }}</div>
+            </div>
+          </sc-for>
+          <div style="margin-left:auto;display:flex;gap:8px">
+            <sc-for list="{{ detSocials }}" as="so" hint-placeholder-count="3">
+              <a href="#" onClick="{{ noop }}" title="{{ so.title }}" style="display:inline-flex;align-items:center;gap:7px;font-family:var(--fdisp);font-weight:700;font-size:11.5px;letter-spacing:.05em;padding:9px 13px;border-radius:10px;border:1px solid var(--border);color:var(--text-muted)" style-hover="color:#fff;border-color:var(--red)">{{ so.label }}</a>
+            </sc-for>
+          </div>
+        </div>
+
+        <sc-if value="{{ detShowClaim }}" hint-placeholder-val="{{ false }}">
+          <div class="pp-row" style="display:flex;align-items:center;gap:14px;margin-top:12px;padding:13px 18px;border-radius:14px;border:1px dashed rgba(233,195,73,.45);background:rgba(233,195,73,.06)">
+            <span style="font-size:17px">◎</span>
+            <div style="flex:1;min-width:200px">
+              <div style="font-family:var(--fdisp);font-weight:800;font-size:13.5px;color:var(--gold)">This page is unclaimed</div>
+              <div style="font-family:var(--fbody);font-size:12.5px;color:var(--text-dim);margin-top:2px">{{ detClaimNote }}</div>
+            </div>
+            <a href="#" onClick="{{ noop }}" style="font-family:var(--fdisp);font-weight:700;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;padding:10px 17px;border-radius:9999px;background:var(--gold);color:#20160a" style-hover="color:#20160a;background:var(--gold-light)">Claim this page</a>
+          </div>
+        </sc-if>
+
+        <nav class="pp-scroll" style="display:flex;gap:8px;overflow-x:auto;margin-top:22px;padding-bottom:4px;border-bottom:1px solid var(--border)">
+          <sc-for list="{{ detTabs }}" as="t" hint-placeholder-count="5">
+            <a href="{{ t.href }}" style="flex-shrink:0;font-family:var(--fdisp);font-weight:700;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;padding:12px 16px;color:var(--text-muted);border-bottom:2px solid transparent" style-hover="color:#fff;border-bottom-color:var(--red)">{{ t.label }}</a>
+          </sc-for>
+        </nav>
+      </section>
+
+      <!-- ============ DJ BODY ============ -->
+      <sc-if value="{{ isDj }}" hint-placeholder-val="{{ false }}">
+        <main data-screen-label="DJ page" class="pp-2col" style="max-width:1180px;margin:0 auto;padding:38px 28px 30px;display:grid;grid-template-columns:1.55fr 1fr;gap:40px">
+          <div style="display:flex;flex-direction:column;gap:38px;min-width:0">
+            <div id="dj-sound">
+              <h2 style="font-family:var(--fdisp);font-weight:800;font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--tertiary);margin-bottom:14px">The sound</h2>
+              <p style="font-family:var(--fbody);font-size:16.5px;line-height:1.75;color:var(--text-muted)">{{ djBio }}</p>
+              <div style="margin-top:24px;padding:20px;border-radius:16px;background:var(--surface);border:1px solid var(--border)">
+                <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:16px">
+                  <div style="font-family:var(--fdisp);font-weight:800;font-size:14px;color:var(--text)">A typical night, by the numbers</div>
+                  <div style="font-family:var(--fbody);font-size:12px;color:var(--text-dim)">share of a 4-hour set</div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:13px">
+                  <sc-for list="{{ djMix }}" as="m" hint-placeholder-count="5">
+                    <div>
+                      <div style="display:flex;justify-content:space-between;gap:10px;margin-bottom:6px">
+                        <span style="font-family:var(--fdisp);font-weight:700;font-size:13px;color:var(--text)">{{ m.label }}</span>
+                        <span style="font-family:var(--fbody);font-size:12.5px;color:var(--text-dim)">{{ m.pctLabel }}</span>
+                      </div>
+                      <div style="height:7px;border-radius:9999px;background:rgba(255,255,255,.06);overflow:hidden">
+                        <div style="height:100%;width:{{ m.width }};border-radius:9999px;background:{{ m.color }}"></div>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+
+            <sc-if value="{{ showDjMixes }}" hint-placeholder-val="{{ false }}">
+            <div id="dj-mixes">
+              <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:16px">
+                <h2 style="font-family:var(--fdisp);font-weight:900;font-size:clamp(22px,3vw,30px);letter-spacing:-.015em;color:var(--text)">Recorded sets</h2>
+                <a href="#" onClick="{{ noop }}" style="font-family:var(--fdisp);font-weight:700;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold)">All 14 mixes →</a>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <sc-for list="{{ djMixes }}" as="x" hint-placeholder-count="3">
+                  <div style="display:flex;align-items:center;gap:15px;padding:14px 16px;border-radius:14px;background:var(--surface);border:1px solid var(--border);transition:all .18s" style-hover="border-color:var(--red-dim)">
+                    <button type="button" onClick="{{ noop }}" aria-label="Play" style="width:42px;height:42px;border-radius:9999px;border:1px solid var(--red-dim);background:rgba(225,29,72,.14);color:var(--red-bright);font-size:13px;cursor:pointer;flex-shrink:0">▶</button>
+                    <div style="flex:1;min-width:0">
+                      <div style="font-family:var(--fdisp);font-weight:700;font-size:15px;color:var(--text)">{{ x.title }}</div>
+                      <div style="font-family:var(--fbody);font-size:12.5px;color:var(--text-dim);margin-top:3px">{{ x.meta }}</div>
+                    </div>
+                    <span style="font-family:var(--fbody);font-size:12.5px;color:var(--text-muted);flex-shrink:0">{{ x.length }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            </sc-if>
+
+            <div id="dj-photos">
+              <h2 style="font-family:var(--fdisp);font-weight:900;font-size:clamp(22px,3vw,30px);letter-spacing:-.015em;color:var(--text);margin-bottom:16px">From the booth</h2>
+              <div class="pp-gallery" style="display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:150px;gap:11px">
+                <div style="grid-column:span 2;grid-row:span 2;border-radius:16px;overflow:hidden;border:1px solid var(--border)"><image-slot id="pp-dj-g1" shape="rect" fit="cover" placeholder="Booth photo"></image-slot></div>
+                <div style="border-radius:16px;overflow:hidden;border:1px solid var(--border)"><image-slot id="pp-dj-g2" shape="rect" fit="cover" placeholder="Crowd"></image-slot></div>
+                <div style="border-radius:16px;overflow:hidden;border:1px solid var(--border)"><image-slot id="pp-dj-g3" shape="rect" fit="cover" placeholder="Night shot"></image-slot></div>
+              </div>
+            </div>
+
+            <sc-if value="{{ showDjReviews }}" hint-placeholder-val="{{ false }}">
+              <div id="dj-reviews">
+                <h2 style="font-family:var(--fdisp);font-weight:900;font-size:clamp(22px,3vw,30px);letter-spacing:-.015em;color:var(--text);margin-bottom:18px">What dancers say</h2>
+                <div class="pp-row" style="display:flex;gap:26px;align-items:center;padding:18px 20px;border-radius:16px;background:var(--surface);border:1px solid var(--border);margin-bottom:14px">
+                  <div style="text-align:center;flex-shrink:0">
+                    <div style="font-family:var(--fdisp);font-weight:900;font-size:42px;line-height:1;color:var(--gold)">{{ djRating }}</div>
+                    <div style="font-family:var(--fbody);font-size:12px;color:var(--text-dim);margin-top:6px">{{ djReviewCount }}</div>
+                  </div>
+                  <div style="flex:1;min-width:180px;display:flex;flex-direction:column;gap:8px">
+                    <sc-for list="{{ djRatingBars }}" as="b" hint-placeholder-count="3">
+                      <div style="display:flex;align-items:center;gap:11px">
+                        <span style="font-family:var(--fbody);font-size:12px;color:var(--text-dim);width:104px;flex-shrink:0">{{ b.label }}</span>
+                        <div style="flex:1;height:6px;border-radius:9999px;background:rgba(255,255,255,.06);overflow:hidden"><div style="height:100%;width:{{ b.width }};background:var(--gold);border-radius:9999px"></div></div>
+                        <span style="font-family:var(--fbody);font-size:12px;color:var(--text-muted);width:30px;text-align:right;flex-shrink:0">{{ b.score }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:11px">
+                  <sc-for list="{{ djReviews }}" as="r" hint-placeholder-count="2">
+                    <div style="padding:16px 18px;border-radius:14px;background:var(--surface);border:1px solid var(--border)">
+                      <div style="display:flex;align-items:center;gap:11px;margin-bottom:9px">
+                        <span style="width:32px;height:32px;border-radius:9999px;background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;font-family:var(--fdisp);font-weight:800;font-size:12px;color:var(--text-muted)">{{ r.initials }}</span>
+                        <div style="flex:1;min-width:0">
+                          <div style="font-family:var(--fdisp);font-weight:700;font-size:13.5px;color:var(--text)">{{ r.name }}</div>
+                          <div style="font-family:var(--fbody);font-size:11.5px;color:var(--text-dim)">{{ r.when }}</div>
+                        </div>
+                        <span style="font-family:var(--fdisp);font-weight:700;font-size:12.5px;color:var(--gold)">{{ r.stars }}</span>
+                      </div>
+                      <p style="font-family:var(--fbody);font-size:14.5px;line-height:1.65;color:var(--text-muted)">{{ r.text }}</p>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+
+          <aside style="display:flex;flex-direction:column;gap:16px;min-width:0">
+            <div id="dj-dates" style="border-radius:18px;background:var(--surface);border:1px solid var(--border);overflow:hidden">
+              <div style="padding:16px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px">
+                <div style="font-family:var(--fdisp);font-weight:800;font-size:13px;letter-spacing:.04em;color:var(--text)">Next dates</div>
+                <span style="font-family:var(--fbody);font-size:11px;color:var(--text-dim)">from the calendar</span>
+              </div>
+              <div style="display:flex;flex-direction:column">
+                <sc-for list="{{ djDates }}" as="d" hint-placeholder-count="4">
+                  <a href="#" onClick="{{ noop }}" style="display:flex;gap:14px;padding:14px 18px;border-bottom:1px solid var(--border);color:var(--text)" style-hover="background:rgba(255,255,255,.03);color:var(--text)">
+                    <span style="flex-shrink:0;width:48px;text-align:center;border-radius:10px;padding:8px 4px;background:{{ d.chipBg }};color:#fff">
+                      <span style="display:block;font-family:var(--fdisp);font-weight:900;font-size:19px;line-height:1">{{ d.day }}</span>
+                      <span style="display:block;font-family:var(--fdisp);font-weight:700;font-size:9.5px;letter-spacing:.08em">{{ d.month }}</span>
+                    </span>
+                    <span style="min-width:0;flex:1">
+                      <span style="display:block;font-family:var(--fdisp);font-weight:700;font-size:14px;line-height:1.3">{{ d.title }}</span>
+                      <span style="display:block;font-family:var(--fbody);font-size:12px;color:var(--text-dim);margin-top:3px">{{ d.meta }}</span>
+                      <span style="display:inline-block;font-family:var(--fdisp);font-weight:700;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--tertiary);margin-top:6px">{{ d.city }}</span>
+                    </span>
+                  </a>
+                </sc-for>
+              </div>
+              <div style="padding:13px 18px"><a href="#" onClick="{{ noop }}" style="font-family:var(--fdisp);font-weight:700;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold)">Follow to get alerts →</a></div>
+            </div>
+
+            <div style="border-radius:18px;background:var(--surface);border:1px solid var(--border);padding:18px">
+              <div style="font-family:var(--fdisp);font-weight:800;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-dim);margin-bottom:13px">Residencies</div>
+              <div style="display:flex;flex-direction:column;gap:11px">
+                <sc-for list="{{ djResidencies }}" as="r" hint-placeholder-count="2">
+                  <div style="display:flex;gap:11px;align-items:flex-start">
+                    <span style="width:7px;height:7px;border-radius:9999px;background:var(--red-bright);margin-top:6px;flex-shrink:0"></span>
+                    <div>
+                      <div style="font-family:var(--fdisp);font-weight:700;font-size:13.5px;color:var(--text)">{{ r.when }}</div>
+                      <div style="font-family:var(--fbody);font-size:12.5px;color:var(--text-dim);margin-top:2px">{{ r.where }}</div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="border-radius:18px;border:1px solid var(--border-md);background:linear-gradient(150deg,rgba(225,29,72,.14),rgba(233,195,73,.07));padding:20px">
+              <div style="font-family:var(--fdisp);font-weight:900;font-size:18px;color:#fff;margin-bottom:7px">Find me online</div>
+              <p style="font-family:var(--fbody);font-size:13.5px;line-height:1.6;color:var(--text-muted);margin-bottom:15px">Dates, sets and everything else go up here first.</p>
+              <a href="#" onClick="{{ noop }}" style="display:block;text-align:center;font-family:var(--fdisp);font-weight:700;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;padding:13px;border-radius:9999px;background:#fff;color:#0b1326" style-hover="color:#0b1326;background:var(--gold-light)">djnolorivas.com</a>
+              <div style="display:flex;gap:8px;margin-top:10px">
+                <a href="#" onClick="{{ noop }}" style="flex:1;text-align:center;font-family:var(--fdisp);font-weight:700;font-size:11.5px;letter-spacing:.05em;padding:11px;border-radius:9999px;border:1px solid var(--border-md);color:var(--text)" style-hover="color:#fff;border-color:#fff">Instagram</a>
+                <a href="#" onClick="{{ noop }}" style="flex:1;text-align:center;font-family:var(--fdisp);font-weight:700;font-size:11.5px;letter-spacing:.05em;padding:11px;border-radius:9999px;border:1px solid var(--border-md);color:var(--text)" style-hover="color:#fff;border-color:#fff">SoundCloud</a>
+              </div>
+            </div>
+          </aside>
+        </main>
+      </sc-if>
+
+      <!-- ============ SCHOOL BODY ============ -->
+      <sc-if value="{{ isSchool }}" hint-placeholder-val="{{ false }}">
+        <main data-screen-label="Dance school page" style="max-width:1180px;margin:0 auto;padding:38px 28px 30px">
+          <section id="school-start" style="margin-bottom:44px">
+            <div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:12px;margin-bottom:18px">
+              <h2 style="font-family:var(--fdisp);font-weight:900;font-size:clamp(24px,3.4vw,34px);letter-spacing:-.015em;color:var(--text)">Start here</h2>
+              <span style="font-family:var(--fbody);font-size:14px;color:var(--text-dim)">pick the door that matches you</span>
+            </div>
+            <div class="pp-grid3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+              <sc-for list="{{ schoolPaths }}" as="p" hint-placeholder-count="3">
+                <article style="padding:22px 20px;border-radius:18px;background:var(--surface);border:1px solid var(--border);display:flex;flex-direction:column;gap:12px;transition:all .2s" style-hover="border-color:var(--red-dim);transform:translateY(-3px)">
+                  <span style="font-family:var(--fdisp);font-weight:800;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:{{ p.tagFg }}">{{ p.tag }}</span>
+                  <h3 style="font-family:var(--fdisp);font-weight:900;font-size:21px;line-height:1.15;color:var(--text)">{{ p.title }}</h3>
+                  <p style="font-family:var(--fbody);font-size:14px;line-height:1.6;color:var(--text-dim)">{{ p.body }}</p>
+                  <div style="margin-top:auto;padding-top:14px;border-top:1px solid var(--border)">
+                    <div style="font-family:var(--fdisp);font-weight:700;font-size:13px;color:var(--text)">{{ p.classLine }}</div>
+                    <div style="font-family:var(--fbody);font-size:12.5px;color:var(--text-dim);margin-top:3px">{{ p.detailLine }}</div>
+                    <a href="#" onClick="{{ noop }}" style="display:inline-block;white-space:nowrap;font-family:var(--fdisp);font-weight:700;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);margin-top:11px">{{ p.cta }} →</a>
+                  </div>
+                </article>
+              </sc-for>
+            </div>
+          </section>
+
+          <section id="school-schedule" style="margin-bottom:44px">
+            <div class="pp-row" style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:18px">
+              <h2 style="font-family:var(--fdisp);font-weight:900;font-size:clamp(24px,3.4vw,34px);letter-spacing:-.015em;color:var(--text)">Weekly schedule</h2>
+              <div style="display:flex;gap:14px;flex-wrap:wrap">
+                <sc-for list="{{ schoolLevels }}" as="l" hint-placeholder-count="4">
+                  <span style="display:inline-flex;align-items:center;gap:7px;font-family:var(--fbody);font-size:12.5px;color:var(--text-muted)"><span style="width:9px;height:9px;border-radius:3px;background:{{ l.color }}"></span>{{ l.label }}</span>
+                </sc-for>
+              </div>
+            </div>
+            <div class="pp-scroll" style="display:flex;gap:8px;overflow-x:auto;margin-bottom:16px">
+              <sc-for list="{{ schoolDays }}" as="d" hint-placeholder-count="6">
+                <button type="button" onClick="{{ d.go }}" style="flex-shrink:0;min-width:86px;font-family:var(--fdisp);font-weight:800;font-size:13px;letter-spacing:.04em;padding:12px 16px;border-radius:12px;border:1px solid {{ d.bd }};background:{{ d.bg }};color:{{ d.fg }};cursor:pointer;text-align:left">{{ d.label }}<span style="display:block;font-family:var(--fbody);font-weight:400;font-size:11px;color:var(--text-dim);margin-top:3px">{{ d.count }}</span></button>
+              </sc-for>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:9px">
+              <sc-for list="{{ schoolClasses }}" as="c" hint-placeholder-count="3">
+                <div class="pp-row" style="display:flex;align-items:center;gap:16px;padding:15px 18px;border-radius:14px;background:var(--surface);border:1px solid var(--border)">
+                  <span style="width:4px;height:44px;border-radius:9999px;background:{{ c.color }};flex-shrink:0"></span>
+                  <div style="width:118px;flex-shrink:0">
+                    <div style="font-family:var(--fdisp);font-weight:800;font-size:15px;color:var(--text)">{{ c.time }}</div>
+                    <div style="font-family:var(--fbody);font-size:11.5px;color:var(--text-dim);margin-top:2px">{{ c.duration }}</div>
+                  </div>
+                  <div style="flex:1;min-width:160px">
+                    <div style="font-family:var(--fdisp);font-weight:700;font-size:16px;color:var(--text)">{{ c.title }}</div>
+                    <div style="font-family:var(--fbody);font-size:12.5px;color:var(--text-dim);margin-top:3px">{{ c.meta }}</div>
+                  </div>
+                  <span style="font-family:var(--fdisp);font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:5px 11px;border-radius:9999px;background:rgba(255,255,255,.05);color:var(--text-muted);flex-shrink:0">{{ c.level }}</span>
+                  <span style="font-family:var(--fbody);font-size:12.5px;color:{{ c.spotsFg }};flex-shrink:0;width:96px;text-align:right">{{ c.spots }}</span>
+                  <a href="#" onClick="{{ noop }}" style="font-family:var(--fdisp);font-weight:700;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;padding:10px 16px;border-radius:9999px;background:rgba(225,29,72,.16);border:1px solid var(--red-dim);color:var(--red-bright);flex-shrink:0" style-hover="color:#fff;background:var(--red)">Reserve</a>
+                </div>
+              </sc-for>
+            </div>
+          </section>
+
+          <section id="school-prices" class="pp-2col" style="display:grid;grid-template-columns:1.45fr 1fr;gap:40px;margin-bottom:44px">
+            <div>
+              <h2 style="font-family:var(--fdisp);font-weight:900;font-size:clamp(24px,3.4vw,34px);letter-spacing:-.015em;color:var(--text);margin-bottom:18px">Passes &amp; prices</h2>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <sc-for list="{{ schoolPasses }}" as="p" hint-placeholder-count="3">
+                  <div class="pp-row" style="display:flex;align-items:center;gap:16px;padding:17px 20px;border-radius:14px;background:var(--surface);border:1px solid {{ p.bd }}">
+                    <div style="flex:1;min-width:150px">
+                      <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
+                        <span style="font-family:var(--fdisp);font-weight:800;font-size:16.5px;color:var(--text)">{{ p.name }}</span>
+                        <sc-if value="{{ p.popular }}" hint-placeholder-val="{{ false }}"><span style="font-family:var(--fdisp);font-weight:700;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:9999px;background:rgba(233,195,73,.16);border:1px solid rgba(233,195,73,.4);color:var(--gold)">Most picked</span></sc-if>
+                      </div>
+                      <div style="font-family:var(--fbody);font-size:13px;color:var(--text-dim);margin-top:4px">{{ p.detail }}</div>
+                    </div>
+                    <div style="font-family:var(--fdisp);font-weight:900;font-size:24px;color:var(--gold);flex-shrink:0">{{ p.price }}</div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="margin-top:14px;padding:15px 18px;border-radius:14px;border:1px dashed rgba(233,195,73,.4);background:rgba(233,195,73,.06);font-family:var(--fbody);font-size:13.5px;line-height:1.6;color:var(--text-muted)">{{ schoolTrialNote }}</div>
+            </div>
+            <div>
+              <h2 style="font-family:var(--fdisp);font-weight:900;font-size:clamp(20px,2.6vw,26px);letter-spacing:-.01em;color:var(--text);margin-bottom:16px">Good to know</h2>
+              <div style="display:flex;flex-direction:column;gap:1px;border-radius:14px;overflow:hidden;border:1px solid var(--border)">
+                <sc-for list="{{ schoolFaq }}" as="f" hint-placeholder-count="4">
+                  <div style="background:var(--surface)">
+                    <button type="button" onClick="{{ f.go }}" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 17px;background:transparent;border:none;cursor:pointer;text-align:left;font-family:var(--fdisp);font-weight:700;font-size:14px;color:var(--text)">{{ f.q }}<span style="color:var(--text-dim);font-size:15px;flex-shrink:0">{{ f.icon }}</span></button>
+                    <sc-if value="{{ f.open }}" hint-placeholder-val="{{ false }}">
+                      <p style="padding:0 17px 16px;font-family:var(--fbody);font-size:13.5px;line-height:1.65;color:var(--text-dim)">{{ f.a }}</p>
+                    </sc-if>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </section>
+
+          <section id="school-team" style="margin-bottom:44px">
+            <div style="display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:18px">
+              <h2 style="font-family:var(--fdisp);font-weight:900;font-size:clamp(24px,3.4vw,34px);letter-spacing:-.015em;color:var(--text)">Who teaches here</h2>
+              <a href="#" onClick="{{ goDirInstructors }}" style="font-family:var(--fdisp);font-weight:700;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold)">All instructors →</a>
+            </div>
+            <div class="pp-grid3" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
+              <sc-for list="{{ schoolTeam }}" as="t" hint-placeholder-count="4">
+                <a href="#" onClick="{{ t.open }}" style="display:flex;flex-direction:column;gap:11px;padding:16px;border-radius:16px;background:var(--surface);border:1px solid var(--border);color:var(--text);transition:all .2s" style-hover="border-color:var(--red-dim);color:var(--text);transform:translateY(-3px)">
+                  <span style="width:100%;aspect-ratio:1/1;border-radius:12px;overflow:hidden;display:block"><image-slot id="{{ t.slotId }}" shape="rect" fit="cover" placeholder="{{ t.slotHint }}"></image-slot></span>
+                  <span style="display:block;font-family:var(--fdisp);font-weight:800;font-size:15px">{{ t.name }}</span>
+                  <span style="display:block;font-family:var(--fbody);font-size:12.5px;color:var(--text-dim);margin-top:-6px">{{ t.role }}</span>
+                </a>
+              </sc-for>
+            </div>
+          </section>
+
+          <section id="school-where" style="margin-bottom:44px">
+            <h2 style="font-family:var(--fdisp);font-weight:900;font-size:clamp(24px,3.4vw,34px);letter-spacing:-.015em;color:var(--text);margin-bottom:8px">Where to find us</h2>
+            <p style="font-family:var(--fbody);font-size:14.5px;color:var(--text-dim);margin-bottom:18px">{{ schoolCityNote }}</p>
+            <div class="pp-grid2" style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px">
+              <sc-for list="{{ schoolLocations }}" as="l" hint-placeholder-count="2">
+                <div style="border-radius:18px;overflow:hidden;background:var(--surface);border:1px solid var(--border)">
+                  <div style="height:150px;position:relative;background:linear-gradient(135deg,#1a2440,#241733)">
+                    <div aria-hidden="true" style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:24px 24px"></div>
+                    <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:28px">📍</span>
+                    <span style="position:absolute;bottom:10px;left:13px;font-family:var(--fdisp);font-weight:700;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim)">Map preview</span>
+                    <span style="position:absolute;top:12px;right:13px;font-family:var(--fdisp);font-weight:800;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:5px 11px;border-radius:9999px;background:rgba(11,19,38,.72);border:1px solid var(--border);color:{{ l.cityFg }}">{{ l.city }}</span>
+                  </div>
+                  <div style="padding:17px 19px">
+                    <div style="font-family:var(--fdisp);font-weight:800;font-size:17px;color:var(--text)">{{ l.name }}</div>
+                    <div style="font-family:var(--fbody);font-size:13.5px;color:var(--text-dim);line-height:1.55;margin-top:5px">{{ l.address }}</div>
+                    <div style="font-family:var(--fbody);font-size:13px;color:var(--text-muted);margin-top:9px">{{ l.transit }}</div>
+                    <div style="display:flex;gap:14px;margin-top:13px;flex-wrap:wrap">
+                      <a href="#" onClick="{{ noop }}" style="font-family:var(--fdisp);font-weight:700;font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--gold)">Directions →</a>
+                      <a href="#" onClick="{{ noop }}" style="font-family:var(--fdisp);font-weight:700;font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--gold)">{{ l.venueLink }} →</a>
+                    </div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </section>
+
+          <section id="school-photos" style="margin-bottom:44px">
+            <h2 style="font-family:var(--fdisp);font-weight:900;font-size:clamp(22px,3vw,30px);letter-spacing:-.015em;color:var(--text);margin-bottom:16px">Inside the studio</h2>
+            <div class="pp-gallery" style="display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:160px;gap:11px">
+              <div style="grid-column:span 2;grid-row:span 2;border-radius:16px;overflow:hidden;border:1px solid var(--border)"><img src="https://d8j0ntlcm91z4.cloudfront.net/user_3G7GKJTEt9XJwDTgjAnE32B8wQ9/hf_20260820_221446_41d1719f-6144-482a-8a28-2679ec25018b.png" alt="" style="width:100%;height:100%;object-fit:cover;display:block"></div>
+              <div style="border-radius:16px;overflow:hidden;border:1px solid var(--border)"><image-slot id="pp-school-g2" shape="rect" fit="cover" placeholder="Studio A"></image-slot></div>
+              <div style="border-radius:16px;overflow:hidden;border:1px solid var(--border)"><image-slot id="pp-school-g3" shape="rect" fit="cover" placeholder="Showcase"></image-slot></div>
+              <div style="grid-column:span 2;border-radius:16px;overflow:hidden;border:1px solid var(--border)"><image-slot id="pp-school-g4" shape="rect" fit="cover" placeholder="Social night"></image-slot></div>
+            </div>
+          </section>
+
+          <sc-if value="{{ showReviews }}" hint-placeholder-val="{{ true }}">
+            <section id="school-reviews">
+              <h2 style="font-family:var(--fdisp);font-weight:900;font-size:clamp(22px,3vw,30px);letter-spacing:-.015em;color:var(--text);margin-bottom:16px">Student reviews</h2>
+              <div class="pp-grid3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+                <sc-for list="{{ schoolReviews }}" as="r" hint-placeholder-count="3">
+                  <div style="padding:18px;border-radius:16px;background:var(--surface);border:1px solid var(--border)">
+                    <div style="font-family:var(--fdisp);font-weight:700;font-size:13px;color:var(--gold);margin-bottom:9px">{{ r.stars }}</div>
+                    <p style="font-family:var(--fbody);font-size:14.5px;line-height:1.65;color:var(--text-muted)">{{ r.text }}</p>
+                    <div style="font-family:var(--fbody);font-size:12px;color:var(--text-dim);margin-top:12px">{{ r.name }} · {{ r.when }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </section>
+          </sc-if>
+        </main>
+      </sc-if>
+
+      <!-- ============ INSTRUCTOR BODY ============ -->
+      <sc-if value="{{ isInstructor }}" hint-placeholder-val="{{ false }}">
+        <main data-screen-label="Instructor page" class="pp-2col" style="max-width:1180px;margin:0 auto;padding:38px 28px 30px;display:grid;grid-template-columns:1.55fr 1fr;gap:40px">
+          <div style="display:flex;flex-direction:column;gap:38px;min-width:0">
+            <div id="ins-about">
+              <h2 style="font-family:var(--fdisp);font-weight:800;font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--tertiary);margin-bottom:14px">In her words</h2>
+              <p style="font-family:var(--fbody);font-size:16.5px;line-height:1.75;color:var(--text-muted)">{{ insBio }}</p>
+              <div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:18px">
+                <sc-for list="{{ insBadges }}" as="b" hint-placeholder-count="3">
+                  <span style="font-family:var(--fdisp);font-weight:700;font-size:11.5px;letter-spacing:.06em;padding:8px 14px;border-radius:9999px;border:1px solid var(--border-md);color:var(--text-muted)">{{ b }}</span>
+                </sc-for>
+              </div>
+            </div>
+
+            <div id="ins-teaching">
+              <h2 style="font-family:var(--fdisp);font-weight:900;font-size:clamp(22px,3vw,30px);letter-spacing:-.015em;color:var(--text);margin-bottom:16px">What I teach</h2>
+              <div class="pp-grid2" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px">
+                <sc-for list="{{ insSkills }}" as="s" hint-placeholder-count="4">
+                  <div style="padding:19px;border-radius:16px;background:var(--surface);border:1px solid var(--border);display:flex;flex-direction:column;gap:9px">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+                      <span style="font-family:var(--fdisp);font-weight:800;font-size:17px;color:var(--text)">{{ s.title }}</span>
+                      <span style="font-family:var(--fdisp);font-weight:700;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:4px 9px;border-radius:6px;background:rgba(255,255,255,.05);color:var(--text-muted);flex-shrink:0">{{ s.level }}</span>
+                    </div>
+                    <p style="font-family:var(--fbody);font-size:13.5px;line-height:1.6;color:var(--text-dim)">{{ s.body }}</p>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <div id="ins-video">
+              <div style="display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:16px">
+                <h2 style="font-family:var(--fdisp);font-weight:900;font-size:clamp(22px,3vw,30px);letter-spacing:-.015em;color:var(--text)">Watch</h2>
+                <span style="font-family:var(--fbody);font-size:13px;color:var(--text-dim)">clips, socials &amp; stage work</span>
+              </div>
+              <div class="pp-grid2" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px">
+                <sc-for list="{{ insClips }}" as="c" hint-placeholder-count="2">
+                  <div style="position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--border);aspect-ratio:4/3">
+                    <image-slot id="{{ c.slotId }}" shape="rect" fit="cover" placeholder="{{ c.slotHint }}"></image-slot>
+                    <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(11,19,38,.88));pointer-events:none"></div>
+                    <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:52px;height:52px;border-radius:9999px;background:rgba(11,19,38,.6);border:1px solid var(--border-md);display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff">▶</span>
+                    <div style="position:absolute;bottom:13px;left:15px;right:15px">
+                      <div style="font-family:var(--fdisp);font-weight:800;font-size:15px;color:#fff">{{ c.title }}</div>
+                      <div style="font-family:var(--fbody);font-size:12px;color:var(--text-muted);margin-top:3px">{{ c.meta }}</div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="margin-top:16px;padding:18px 20px;border-radius:16px;background:var(--surface);border:1px solid var(--border)">
+                <div style="font-family:var(--fdisp);font-weight:800;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-dim);margin-bottom:13px">Stage &amp; festival credits</div>
+                <div style="display:flex;flex-direction:column;gap:10px">
+                  <sc-for list="{{ insCredits }}" as="cr" hint-placeholder-count="3">
+                    <div style="display:flex;gap:14px;align-items:baseline">
+                      <span style="font-family:var(--fdisp);font-weight:800;font-size:12.5px;color:var(--gold);width:46px;flex-shrink:0">{{ cr.year }}</span>
+                      <span style="font-family:var(--fbody);font-size:14px;color:var(--text-muted)">{{ cr.what }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+
+            <sc-if value="{{ showReviews }}" hint-placeholder-val="{{ true }}">
+              <div id="ins-reviews">
+                <h2 style="font-family:var(--fdisp);font-weight:900;font-size:clamp(22px,3vw,30px);letter-spacing:-.015em;color:var(--text);margin-bottom:16px">Student reviews</h2>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+                  <sc-for list="{{ insReviewTags }}" as="t" hint-placeholder-count="4">
+                    <span style="font-family:var(--fbody);font-size:12.5px;padding:7px 13px;border-radius:9999px;background:rgba(255,255,255,.05);color:var(--text-muted)">{{ t }}</span>
+                  </sc-for>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:11px">
+                  <sc-for list="{{ insReviews }}" as="r" hint-placeholder-count="2">
+                    <div style="padding:17px 19px;border-radius:14px;background:var(--surface);border:1px solid var(--border)">
+                      <div style="display:flex;align-items:center;gap:11px;margin-bottom:9px">
+                        <span style="width:32px;height:32px;border-radius:9999px;background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;font-family:var(--fdisp);font-weight:800;font-size:12px;color:var(--text-muted)">{{ r.initials }}</span>
+                        <div style="flex:1;min-width:0">
+                          <div style="font-family:var(--fdisp);font-weight:700;font-size:13.5px;color:var(--text)">{{ r.name }}</div>
+                          <div style="font-family:var(--fbody);font-size:11.5px;color:var(--text-dim)">{{ r.when }}</div>
+                        </div>
+                        <span style="font-family:var(--fdisp);font-weight:700;font-size:12.5px;color:var(--gold)">{{ r.stars }}</span>
+                      </div>
+                      <p style="font-family:var(--fbody);font-size:14.5px;line-height:1.65;color:var(--text-muted)">{{ r.text }}</p>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+
+          <aside style="display:flex;flex-direction:column;gap:16px;min-width:0">
+            <div id="ins-book" style="border-radius:18px;background:var(--surface-high);border:1px solid var(--border-md);padding:20px">
+              <div style="font-family:var(--fdisp);font-weight:900;font-size:20px;color:#fff;margin-bottom:4px">Book a lesson</div>
+              <div style="font-family:var(--fbody);font-size:13px;color:var(--text-dim);margin-bottom:16px">{{ insBookNote }}</div>
+              <div style="display:flex;flex-direction:column;gap:9px;margin-bottom:18px">
+                <sc-for list="{{ insRates }}" as="r" hint-placeholder-count="3">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid var(--border)">
+                    <div>
+                      <div style="font-family:var(--fdisp);font-weight:700;font-size:14px;color:var(--text)">{{ r.name }}</div>
+                      <div style="font-family:var(--fbody);font-size:11.5px;color:var(--text-dim);margin-top:2px">{{ r.detail }}</div>
+                    </div>
+                    <div style="font-family:var(--fdisp);font-weight:900;font-size:18px;color:var(--gold);flex-shrink:0">{{ r.price }}</div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="font-family:var(--fdisp);font-weight:700;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-dim);margin-bottom:9px">Open slots this week</div>
+              <div style="display:flex;gap:7px;margin-bottom:11px">
+                <sc-for list="{{ insDays }}" as="d" hint-placeholder-count="3">
+                  <button type="button" onClick="{{ d.go }}" style="flex:1;font-family:var(--fdisp);font-weight:800;font-size:12.5px;padding:10px 4px;border-radius:10px;border:1px solid {{ d.bd }};background:{{ d.bg }};color:{{ d.fg }};cursor:pointer">{{ d.label }}</button>
+                </sc-for>
+              </div>
+              <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px">
+                <sc-for list="{{ insSlots }}" as="s" hint-placeholder-count="4">
+                  <button type="button" onClick="{{ s.go }}" style="font-family:var(--fbody);font-size:12.5px;padding:9px 13px;border-radius:9999px;border:1px solid {{ s.bd }};background:{{ s.bg }};color:{{ s.fg }};cursor:pointer">{{ s.label }}</button>
+                </sc-for>
+              </div>
+              <button type="button" onClick="{{ noop }}" style="width:100%;font-family:var(--fdisp);font-weight:700;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;padding:14px;border-radius:9999px;border:none;background:linear-gradient(120deg,var(--red),#c2153c);color:#fff;box-shadow:0 8px 22px rgba(225,29,72,.34);cursor:pointer">{{ insRequestLabel }}</button>
+              <div style="font-family:var(--fbody);font-size:11.5px;color:var(--text-dim);text-align:center;margin-top:9px">{{ insReplyNote }}</div>
+            </div>
+
+            <div style="border-radius:18px;background:var(--surface);border:1px solid var(--border);padding:19px">
+              <div style="font-family:var(--fdisp);font-weight:800;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-dim);margin-bottom:14px">Where I teach</div>
+              <a href="#" onClick="{{ goSchool }}" style="display:flex;align-items:center;gap:13px;padding:13px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.03);color:var(--text);margin-bottom:13px" style-hover="border-color:var(--red);color:var(--text)">
+                <span style="width:42px;height:42px;border-radius:11px;background:linear-gradient(140deg,#1b2542,#2a1730);display:flex;align-items:center;justify-content:center;font-family:var(--fdisp);font-weight:900;font-size:15px;color:var(--gold);flex-shrink:0">CR</span>
+                <span style="min-width:0">
+                  <span style="display:block;font-family:var(--fdisp);font-weight:700;font-size:14.5px">Casa del Ritmo</span>
+                  <span style="display:block;font-family:var(--fbody);font-size:12px;color:var(--text-dim);margin-top:2px">Resident instructor · school page →</span>
+                </span>
+              </a>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <sc-for list="{{ insClasses }}" as="c" hint-placeholder-count="3">
+                  <div style="display:flex;gap:12px;align-items:flex-start">
+                    <span style="font-family:var(--fdisp);font-weight:800;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--tertiary);width:64px;flex-shrink:0;padding-top:2px">{{ c.day }}</span>
+                    <div style="min-width:0">
+                      <div style="font-family:var(--fdisp);font-weight:700;font-size:13.5px;color:var(--text)">{{ c.title }}</div>
+                      <div style="font-family:var(--fbody);font-size:12px;color:var(--text-dim);margin-top:2px">{{ c.meta }}</div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="border-radius:18px;background:var(--surface);border:1px solid var(--border);padding:19px">
+              <div style="font-family:var(--fdisp);font-weight:800;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-dim);margin-bottom:13px">Dancing next</div>
+              <div style="display:flex;flex-direction:column;gap:11px">
+                <sc-for list="{{ insDates }}" as="d" hint-placeholder-count="2">
+                  <a href="#" onClick="{{ noop }}" style="display:flex;gap:13px;align-items:center;color:var(--text)" style-hover="color:var(--gold)">
+                    <span style="flex-shrink:0;width:44px;text-align:center;border-radius:9px;padding:7px 3px;background:rgba(255,255,255,.05)">
+                      <span style="display:block;font-family:var(--fdisp);font-weight:900;font-size:17px;line-height:1">{{ d.day }}</span>
+                      <span style="display:block;font-family:var(--fdisp);font-weight:700;font-size:9px;letter-spacing:.08em;color:var(--text-dim)">{{ d.month }}</span>
+                    </span>
+                    <span style="min-width:0">
+                      <span style="display:block;font-family:var(--fdisp);font-weight:700;font-size:13.5px">{{ d.title }}</span>
+                      <span style="display:block;font-family:var(--fbody);font-size:12px;color:var(--text-dim);margin-top:2px">{{ d.meta }}</span>
+                    </span>
+                  </a>
+                </sc-for>
+              </div>
+            </div>
+          </aside>
+        </main>
+      </sc-if>
+
+      <!-- ============ VENUE BODY ============ -->
+      <sc-if value="{{ isVenue }}" hint-placeholder-val="{{ false }}">
+        <main data-screen-label="Venue page" style="max-width:1180px;margin:0 auto;padding:38px 28px 30px">
+          <section id="ven-floor" style="margin-bottom:44px">
+            <h2 style="font-family:var(--fdisp);font-weight:900;font-size:clamp(24px,3.4vw,34px);letter-spacing:-.015em;color:var(--text);margin-bottom:6px">The floor</h2>
+            <p style="font-family:var(--fbody);font-size:14.5px;color:var(--text-dim);margin-bottom:18px">What dancers ask before they come: what is underfoot, how much room, and does the air work.</p>
+            <div class="pp-grid3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+              <sc-for list="{{ venSpecs }}" as="sp" hint-placeholder-count="6">
+                <div style="padding:18px 19px;border-radius:16px;background:var(--surface);border:1px solid var(--border)">
+                  <div style="font-family:var(--fdisp);font-weight:700;font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-dim)">{{ sp.label }}</div>
+                  <div style="font-family:var(--fdisp);font-weight:900;font-size:21px;letter-spacing:-.01em;color:var(--text);margin-top:8px">{{ sp.value }}</div>
+                  <div style="font-family:var(--fbody);font-size:12.5px;color:var(--text-dim);margin-top:5px">{{ sp.note }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </section>
+
+          <section class="pp-2col" style="display:grid;grid-template-columns:1.5fr 1fr;gap:40px;margin-bottom:44px">
+            <div style="display:flex;flex-direction:column;gap:38px;min-width:0">
+              <div id="ven-nights">
+                <h2 style="font-family:var(--fdisp);font-weight:900;font-size:clamp(22px,3vw,30px);letter-spacing:-.015em;color:var(--text);margin-bottom:16px">Regular nights</h2>
+                <div style="display:flex;flex-direction:column;gap:9px">
+                  <sc-for list="{{ venNights }}" as="n" hint-placeholder-count="3">
+                    <div class="pp-row" style="display:flex;align-items:center;gap:16px;padding:15px 18px;border-radius:14px;background:var(--surface);border:1px solid var(--border)">
+                      <span style="width:52px;flex-shrink:0;font-family:var(--fdisp);font-weight:900;font-size:15px;letter-spacing:.04em;text-transform:uppercase;color:var(--red-bright)">{{ n.day }}</span>
+                      <div style="flex:1;min-width:150px">
+                        <div style="font-family:var(--fdisp);font-weight:700;font-size:16px;color:var(--text)">{{ n.title }}</div>
+                        <div style="font-family:var(--fbody);font-size:12.5px;color:var(--text-dim);margin-top:3px">{{ n.meta }}</div>
+                      </div>
+                      <a href="#" onClick="{{ goHost }}" style="font-family:var(--fdisp);font-weight:700;font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--gold);white-space:nowrap">{{ n.host }} →</a>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+
+              <div id="ven-calendar">
+                <div style="display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:16px">
+                  <h2 style="font-family:var(--fdisp);font-weight:900;font-size:clamp(22px,3vw,30px);letter-spacing:-.015em;color:var(--text)">On the calendar</h2>
+                  <span style="font-family:var(--fbody);font-size:13px;color:var(--text-dim)">next three at this address</span>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:9px">
+                  <sc-for list="{{ venDates }}" as="d" hint-placeholder-count="3">
+                    <a href="#" onClick="{{ noop }}" style="display:flex;gap:15px;align-items:center;padding:14px 16px;border-radius:14px;background:var(--surface);border:1px solid var(--border);color:var(--text)" style-hover="border-color:var(--red-dim);color:var(--text)">
+                      <span style="flex-shrink:0;width:50px;text-align:center;border-radius:10px;padding:8px 4px;background:{{ d.chipBg }};color:#fff">
+                        <span style="display:block;font-family:var(--fdisp);font-weight:900;font-size:19px;line-height:1">{{ d.day }}</span>
+                        <span style="display:block;font-family:var(--fdisp);font-weight:700;font-size:9.5px;letter-spacing:.08em">{{ d.month }}</span>
+                      </span>
+                      <span style="min-width:0">
+                        <span style="display:block;font-family:var(--fdisp);font-weight:700;font-size:15px">{{ d.title }}</span>
+                        <span style="display:block;font-family:var(--fbody);font-size:12.5px;color:var(--text-dim);margin-top:3px">{{ d.meta }}</span>
+                      </span>
+                    </a>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+
+            <aside id="ven-there" style="display:flex;flex-direction:column;gap:16px;min-width:0">
+              <div style="border-radius:18px;overflow:hidden;background:var(--surface);border:1px solid var(--border)">
+                <div style="height:160px;position:relative;background:linear-gradient(135deg,#1a2440,#241733)">
+                  <div aria-hidden="true" style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:24px 24px"></div>
+                  <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:30px">📍</span>
+                  <span style="position:absolute;bottom:10px;left:13px;font-family:var(--fdisp);font-weight:700;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim)">Map preview</span>
+                </div>
+                <div style="padding:17px 19px">
+                  <div style="font-family:var(--fdisp);font-weight:800;font-size:16px;color:var(--text)">41 Centre Street</div>
+                  <div style="font-family:var(--fbody);font-size:13.5px;color:var(--text-dim);margin-top:4px">Jamaica Plain, Boston MA 02130</div>
+                  <a href="#" onClick="{{ noop }}" style="display:inline-block;font-family:var(--fdisp);font-weight:700;font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--gold);margin-top:12px;white-space:nowrap">Get directions →</a>
+                </div>
+              </div>
+              <div style="border-radius:18px;background:var(--surface);border:1px solid var(--border);padding:19px">
+                <div style="font-family:var(--fdisp);font-weight:800;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-dim);margin-bottom:13px">Practical</div>
+                <div style="display:flex;flex-direction:column;gap:10px">
+                  <sc-for list="{{ venPractical }}" as="p" hint-placeholder-count="6">
+                    <div style="display:flex;gap:11px;align-items:flex-start">
+                      <span style="width:5px;height:5px;border-radius:9999px;background:var(--tertiary);margin-top:7px;flex-shrink:0"></span>
+                      <span style="font-family:var(--fbody);font-size:13.5px;line-height:1.55;color:var(--text-muted)">{{ p }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="border-radius:18px;border:1px solid var(--border-md);background:linear-gradient(150deg,rgba(233,195,73,.12),rgba(225,29,72,.08));padding:20px">
+                <div style="font-family:var(--fdisp);font-weight:900;font-size:18px;color:#fff;margin-bottom:7px">Rent the room</div>
+                <p style="font-family:var(--fbody);font-size:13.5px;line-height:1.6;color:var(--text-muted);margin-bottom:15px">{{ venRentNote }}</p>
+                <a href="#" onClick="{{ noop }}" style="display:block;text-align:center;font-family:var(--fdisp);font-weight:700;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;padding:13px;border-radius:9999px;background:#fff;color:#0b1326" style-hover="color:#0b1326;background:var(--gold-light)">Check available dates</a>
+              </div>
+            </aside>
+          </section>
+
+          <section style="margin-bottom:44px">
+            <h2 style="font-family:var(--fdisp);font-weight:900;font-size:clamp(22px,3vw,30px);letter-spacing:-.015em;color:var(--text);margin-bottom:16px">The room</h2>
+            <div class="pp-gallery" style="display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:155px;gap:11px">
+              <div style="grid-column:span 2;grid-row:span 2;border-radius:16px;overflow:hidden;border:1px solid var(--border)"><image-slot id="pp-ven-g1" shape="rect" fit="cover" placeholder="Main floor, full"></image-slot></div>
+              <div style="border-radius:16px;overflow:hidden;border:1px solid var(--border)"><image-slot id="pp-ven-g2" shape="rect" fit="cover" placeholder="The bar"></image-slot></div>
+              <div style="border-radius:16px;overflow:hidden;border:1px solid var(--border)"><image-slot id="pp-ven-g3" shape="rect" fit="cover" placeholder="DJ booth"></image-slot></div>
+              <div style="grid-column:span 2;border-radius:16px;overflow:hidden;border:1px solid var(--border)"><image-slot id="pp-ven-g4" shape="rect" fit="cover" placeholder="Second room / entrance"></image-slot></div>
+            </div>
+          </section>
+
+          <sc-if value="{{ showReviews }}" hint-placeholder-val="{{ true }}">
+            <section id="ven-reviews">
+              <h2 style="font-family:var(--fdisp);font-weight:900;font-size:clamp(22px,3vw,30px);letter-spacing:-.015em;color:var(--text);margin-bottom:16px">Dancers on this floor</h2>
+              <div class="pp-2col" style="display:grid;grid-template-columns:1fr 1.2fr;gap:20px">
+                <div style="padding:20px;border-radius:16px;background:var(--surface);border:1px solid var(--border);display:flex;flex-direction:column;gap:11px">
+                  <sc-for list="{{ venRatingBars }}" as="b" hint-placeholder-count="4">
+                    <div style="display:flex;align-items:center;gap:11px">
+                      <span style="font-family:var(--fbody);font-size:12.5px;color:var(--text-dim);width:112px;flex-shrink:0">{{ b.label }}</span>
+                      <div style="flex:1;height:6px;border-radius:9999px;background:rgba(255,255,255,.06);overflow:hidden"><div style="height:100%;width:{{ b.width }};background:var(--gold);border-radius:9999px"></div></div>
+                      <span style="font-family:var(--fbody);font-size:12.5px;color:var(--text-muted);width:30px;text-align:right;flex-shrink:0">{{ b.score }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:11px">
+                  <sc-for list="{{ venReviews }}" as="r" hint-placeholder-count="2">
+                    <div style="padding:16px 18px;border-radius:14px;background:var(--surface);border:1px solid var(--border)">
+                      <div style="display:flex;align-items:center;gap:11px;margin-bottom:9px">
+                        <span style="width:30px;height:30px;border-radius:9999px;background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;font-family:var(--fdisp);font-weight:800;font-size:11.5px;color:var(--text-muted)">{{ r.initials }}</span>
+                        <div style="flex:1;min-width:0">
+                          <div style="font-family:var(--fdisp);font-weight:700;font-size:13px;color:var(--text)">{{ r.name }}</div>
+                          <div style="font-family:var(--fbody);font-size:11.5px;color:var(--text-dim)">{{ r.when }}</div>
+                        </div>
+                        <span style="font-family:var(--fdisp);font-weight:700;font-size:12px;color:var(--gold)">{{ r.stars }}</span>
+                      </div>
+                      <p style="font-family:var(--fbody);font-size:14px;line-height:1.65;color:var(--text-muted)">{{ r.text }}</p>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </section>
+          </sc-if>
+        </main>
+      </sc-if>
+
+      <!-- ============ HOST BODY ============ -->
+      <sc-if value="{{ isHost }}" hint-placeholder-val="{{ false }}">
+        <main data-screen-label="Host page" style="max-width:1180px;margin:0 auto;padding:38px 28px 30px">
+          <section style="max-width:70ch;margin-bottom:44px">
+            <h2 style="font-family:var(--fdisp);font-weight:800;font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--tertiary);margin-bottom:14px">Why we run nights</h2>
+            <p style="font-family:var(--fbody);font-size:17px;line-height:1.75;color:var(--text-muted)">{{ hostBio }}</p>
+          </section>
+
+          <section id="host-series" style="margin-bottom:44px">
+            <h2 style="font-family:var(--fdisp);font-weight:900;font-size:clamp(24px,3.4vw,34px);letter-spacing:-.015em;color:var(--text);margin-bottom:18px">Our nights</h2>
+            <div class="pp-grid3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+              <sc-for list="{{ hostSeries }}" as="se" hint-placeholder-count="3">
+                <article style="padding:22px 20px;border-radius:18px;background:var(--surface);border:1px solid var(--border);display:flex;flex-direction:column;gap:11px">
+                  <span style="font-family:var(--fdisp);font-weight:800;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:{{ se.tagFg }}">{{ se.cadence }}</span>
+                  <h3 style="font-family:var(--fdisp);font-weight:900;font-size:22px;line-height:1.1;color:var(--text)">{{ se.name }}</h3>
+                  <div style="font-family:var(--fbody);font-size:13.5px;color:var(--text-dim)">{{ se.venue }}</div>
+                  <div style="font-family:var(--fbody);font-size:13.5px;color:var(--text-muted)">{{ se.attendance }}</div>
+                  <div style="margin-top:auto;padding-top:14px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px">
+                    <span style="font-family:var(--fdisp);font-weight:800;font-size:13.5px;color:var(--gold)">{{ se.next }}</span>
+                    <a href="#" onClick="{{ noop }}" style="font-family:var(--fdisp);font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);white-space:nowrap" style-hover="color:#fff">Event →</a>
+                  </div>
+                </article>
+              </sc-for>
+            </div>
+          </section>
+
+          <section id="host-rules" class="pp-2col" style="display:grid;grid-template-columns:1.15fr 1fr;gap:40px;margin-bottom:44px">
+            <div>
+              <h2 style="font-family:var(--fdisp);font-weight:900;font-size:clamp(24px,3.4vw,34px);letter-spacing:-.015em;color:var(--text);margin-bottom:8px">House rules</h2>
+              <p style="font-family:var(--fbody);font-size:14.5px;color:var(--text-dim);margin-bottom:18px">Published so a first-timer knows what to expect, and so we can be held to it.</p>
+              <div style="display:flex;flex-direction:column;gap:11px">
+                <sc-for list="{{ hostRules }}" as="r" hint-placeholder-count="5">
+                  <div style="display:flex;gap:14px;padding:16px 18px;border-radius:14px;background:var(--surface);border:1px solid var(--border)">
+                    <span style="font-family:var(--fdisp);font-weight:900;font-size:13px;color:var(--red-bright);flex-shrink:0;padding-top:2px">{{ r.num }}</span>
+                    <div>
+                      <div style="font-family:var(--fdisp);font-weight:800;font-size:15.5px;color:var(--text)">{{ r.title }}</div>
+                      <p style="font-family:var(--fbody);font-size:13.5px;line-height:1.6;color:var(--text-dim);margin-top:4px">{{ r.body }}</p>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div id="host-upcoming">
+              <h2 style="font-family:var(--fdisp);font-weight:900;font-size:clamp(20px,2.6vw,26px);letter-spacing:-.01em;color:var(--text);margin-bottom:16px">Upcoming</h2>
+              <div style="border-radius:18px;background:var(--surface);border:1px solid var(--border);overflow:hidden">
+                <sc-for list="{{ hostUpcoming }}" as="d" hint-placeholder-count="4">
+                  <a href="#" onClick="{{ noop }}" style="display:flex;gap:14px;padding:14px 17px;border-bottom:1px solid var(--border);color:var(--text)" style-hover="background:rgba(255,255,255,.03);color:var(--text)">
+                    <span style="flex-shrink:0;width:48px;text-align:center;border-radius:10px;padding:8px 4px;background:{{ d.chipBg }};color:#fff">
+                      <span style="display:block;font-family:var(--fdisp);font-weight:900;font-size:18px;line-height:1">{{ d.day }}</span>
+                      <span style="display:block;font-family:var(--fdisp);font-weight:700;font-size:9px;letter-spacing:.08em">{{ d.month }}</span>
+                    </span>
+                    <span style="min-width:0">
+                      <span style="display:block;font-family:var(--fdisp);font-weight:700;font-size:14px;line-height:1.3">{{ d.title }}</span>
+                      <span style="display:block;font-family:var(--fbody);font-size:12px;color:var(--text-dim);margin-top:3px">{{ d.meta }}</span>
+                    </span>
+                  </a>
+                </sc-for>
+                <div style="padding:13px 17px"><a href="#" onClick="{{ noop }}" style="font-family:var(--fdisp);font-weight:700;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold)">All 312 past nights →</a></div>
+              </div>
+            </div>
+          </section>
+
+          <section id="host-team" style="margin-bottom:44px">
+            <h2 style="font-family:var(--fdisp);font-weight:900;font-size:clamp(22px,3vw,30px);letter-spacing:-.015em;color:var(--text);margin-bottom:16px">Who to talk to</h2>
+            <div class="pp-grid3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+              <sc-for list="{{ hostTeam }}" as="t" hint-placeholder-count="3">
+                <div style="padding:18px 19px;border-radius:16px;background:var(--surface);border:1px solid var(--border)">
+                  <div style="font-family:var(--fdisp);font-weight:800;font-size:16.5px;color:var(--text)">{{ t.name }}</div>
+                  <div style="font-family:var(--fbody);font-size:13px;color:var(--text-dim);margin-top:4px">{{ t.role }}</div>
+                  <a href="#" onClick="{{ noop }}" style="display:inline-block;font-family:var(--fbody);font-size:13px;color:var(--gold);margin-top:10px">{{ t.contact }}casadelritmo.com</a>
+                </div>
+              </sc-for>
+            </div>
+          </section>
+
+          <section id="host-work">
+            <h2 style="font-family:var(--fdisp);font-weight:900;font-size:clamp(22px,3vw,30px);letter-spacing:-.015em;color:var(--text);margin-bottom:16px">Work with us</h2>
+            <div class="pp-grid3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+              <sc-for list="{{ hostWork }}" as="w" hint-placeholder-count="3">
+                <div style="padding:20px;border-radius:16px;border:1px solid var(--border-md);background:linear-gradient(150deg,rgba(225,29,72,.1),rgba(233,195,73,.05));display:flex;flex-direction:column;gap:9px">
+                  <div style="font-family:var(--fdisp);font-weight:900;font-size:18px;color:#fff">{{ w.title }}</div>
+                  <p style="font-family:var(--fbody);font-size:13.5px;line-height:1.6;color:var(--text-muted)">{{ w.body }}</p>
+                  <a href="#" onClick="{{ noop }}" style="margin-top:auto;font-family:var(--fdisp);font-weight:700;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);white-space:nowrap">{{ w.cta }} →</a>
+                </div>
+              </sc-for>
+            </div>
+          </section>
+        </main>
+      </sc-if>
+
+      <!-- ============ MEDIA BODY ============ -->
+      <sc-if value="{{ isMedia }}" hint-placeholder-val="{{ false }}">
+        <main data-screen-label="Media page" style="max-width:1180px;margin:0 auto;padding:38px 28px 30px">
+          <section id="med-portfolio" style="margin-bottom:44px">
+            <div style="display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:16px">
+              <h2 style="font-family:var(--fdisp);font-weight:900;font-size:clamp(24px,3.4vw,34px);letter-spacing:-.015em;color:var(--text)">Portfolio</h2>
+              <span style="font-family:var(--fbody);font-size:13px;color:var(--text-dim)">selected frames · full archive on request</span>
+            </div>
+            <div class="pp-gallery" style="display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:158px;gap:11px">
+              <div style="grid-column:span 2;grid-row:span 2;border-radius:16px;overflow:hidden;border:1px solid var(--border)"><image-slot id="pp-med-p1" shape="rect" fit="cover" placeholder="Social floor, wide"></image-slot></div>
+              <div style="border-radius:16px;overflow:hidden;border:1px solid var(--border)"><image-slot id="pp-med-p2" shape="rect" fit="cover" placeholder="Couple, tight"></image-slot></div>
+              <div style="grid-row:span 2;border-radius:16px;overflow:hidden;border:1px solid var(--border)"><image-slot id="pp-med-p3" shape="rect" fit="cover" placeholder="Stage show, vertical"></image-slot></div>
+              <div style="border-radius:16px;overflow:hidden;border:1px solid var(--border)"><image-slot id="pp-med-p4" shape="rect" fit="cover" placeholder="DJ booth"></image-slot></div>
+              <div style="grid-column:span 2;border-radius:16px;overflow:hidden;border:1px solid var(--border)"><image-slot id="pp-med-p5" shape="rect" fit="cover" placeholder="Crowd detail"></image-slot></div>
+              <div style="grid-column:span 2;border-radius:16px;overflow:hidden;border:1px solid var(--border)"><image-slot id="pp-med-p6" shape="rect" fit="cover" placeholder="Portrait session"></image-slot></div>
+            </div>
+          </section>
+
+          <section class="pp-2col" style="display:grid;grid-template-columns:1.5fr 1fr;gap:40px;margin-bottom:44px">
+            <div style="display:flex;flex-direction:column;gap:38px;min-width:0">
+              <sc-if value="{{ showMediaServices }}" hint-placeholder-val="{{ false }}">
+              <div id="med-services">
+                <h2 style="font-family:var(--fdisp);font-weight:900;font-size:clamp(22px,3vw,30px);letter-spacing:-.015em;color:var(--text);margin-bottom:16px">What I shoot</h2>
+                <div style="display:flex;flex-direction:column;gap:9px">
+                  <sc-for list="{{ medServices }}" as="sv" hint-placeholder-count="4">
+                    <div class="pp-row" style="display:flex;align-items:center;gap:16px;padding:16px 19px;border-radius:14px;background:var(--surface);border:1px solid var(--border)">
+                      <div style="flex:1;min-width:170px">
+                        <div style="font-family:var(--fdisp);font-weight:800;font-size:16.5px;color:var(--text)">{{ sv.name }}</div>
+                        <div style="font-family:var(--fbody);font-size:13px;color:var(--text-dim);margin-top:4px">{{ sv.detail }}</div>
+                      </div>
+                      <div style="font-family:var(--fdisp);font-weight:900;font-size:22px;color:var(--gold);flex-shrink:0">{{ sv.price }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+              </sc-if>
+
+              <div id="med-terms">
+                <h2 style="font-family:var(--fdisp);font-weight:900;font-size:clamp(22px,3vw,30px);letter-spacing:-.015em;color:var(--text);margin-bottom:14px">Licensing, plainly</h2>
+                <p style="font-family:var(--fbody);font-size:15.5px;line-height:1.75;color:var(--text-muted)">{{ medTerms }}</p>
+              </div>
+
+              <div id="med-covered">
+                <h2 style="font-family:var(--fdisp);font-weight:900;font-size:clamp(22px,3vw,30px);letter-spacing:-.015em;color:var(--text);margin-bottom:14px">Covered on Salsa Segura</h2>
+                <div style="display:flex;gap:9px;flex-wrap:wrap">
+                  <sc-for list="{{ medCovered }}" as="cv" hint-placeholder-count="6">
+                    <a href="#" onClick="{{ noop }}" style="font-family:var(--fdisp);font-weight:700;font-size:12px;letter-spacing:.04em;padding:10px 15px;border-radius:9999px;border:1px solid var(--border);color:var(--text-muted)" style-hover="color:#fff;border-color:var(--red)">{{ cv }}</a>
+                  </sc-for>
+                </div>
+              </div>
+
+              <sc-if value="{{ showReviews }}" hint-placeholder-val="{{ true }}">
+                <div id="med-reviews">
+                  <h2 style="font-family:var(--fdisp);font-weight:900;font-size:clamp(22px,3vw,30px);letter-spacing:-.015em;color:var(--text);margin-bottom:16px">Hosts who booked her</h2>
+                  <div style="display:flex;flex-direction:column;gap:11px">
+                    <sc-for list="{{ medReviews }}" as="r" hint-placeholder-count="2">
+                      <div style="padding:17px 19px;border-radius:14px;background:var(--surface);border:1px solid var(--border)">
+                        <div style="display:flex;align-items:center;gap:11px;margin-bottom:9px">
+                          <span style="width:32px;height:32px;border-radius:9999px;background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;font-family:var(--fdisp);font-weight:800;font-size:12px;color:var(--text-muted)">{{ r.initials }}</span>
+                          <div style="flex:1;min-width:0">
+                            <div style="font-family:var(--fdisp);font-weight:700;font-size:13.5px;color:var(--text)">{{ r.name }}</div>
+                            <div style="font-family:var(--fbody);font-size:11.5px;color:var(--text-dim)">{{ r.when }}</div>
+                          </div>
+                          <span style="font-family:var(--fdisp);font-weight:700;font-size:12.5px;color:var(--gold)">{{ r.stars }}</span>
+                        </div>
+                        <p style="font-family:var(--fbody);font-size:14.5px;line-height:1.65;color:var(--text-muted)">{{ r.text }}</p>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-if>
+            </div>
+
+            <aside style="display:flex;flex-direction:column;gap:16px;min-width:0">
+              <sc-for list="{{ medFacts }}" as="f" hint-placeholder-count="3">
+                <div style="padding:18px 19px;border-radius:16px;background:var(--surface);border:1px solid var(--border)">
+                  <div style="font-family:var(--fdisp);font-weight:700;font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-dim)">{{ f.label }}</div>
+                  <div style="font-family:var(--fdisp);font-weight:900;font-size:21px;color:var(--text);margin-top:8px">{{ f.value }}</div>
+                  <div style="font-family:var(--fbody);font-size:12.5px;color:var(--text-dim);margin-top:5px">{{ f.note }}</div>
+                </div>
+              </sc-for>
+              <div style="border-radius:18px;border:1px solid var(--border-md);background:linear-gradient(150deg,rgba(255,182,144,.14),rgba(225,29,72,.08));padding:20px">
+                <div style="font-family:var(--fdisp);font-weight:900;font-size:18px;color:#fff;margin-bottom:7px">Find her online</div>
+                <p style="font-family:var(--fbody);font-size:13.5px;line-height:1.6;color:var(--text-muted);margin-bottom:15px">Galleries from every night she shoots, plus the full portfolio site.</p>
+                <a href="#" onClick="{{ noop }}" style="display:block;text-align:center;font-family:var(--fdisp);font-weight:700;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;padding:13px;border-radius:9999px;background:#fff;color:#0b1326" style-hover="color:#0b1326;background:var(--gold-light)">lupeortega.photo</a>
+                <div style="display:flex;gap:8px;margin-top:10px">
+                  <a href="#" onClick="{{ noop }}" style="flex:1;text-align:center;font-family:var(--fdisp);font-weight:700;font-size:11.5px;letter-spacing:.05em;padding:11px;border-radius:9999px;border:1px solid var(--border-md);color:var(--text)" style-hover="color:#fff;border-color:#fff">Instagram</a>
+                  <a href="#" onClick="{{ noop }}" style="flex:1;text-align:center;font-family:var(--fdisp);font-weight:700;font-size:11.5px;letter-spacing:.05em;padding:11px;border-radius:9999px;border:1px solid var(--border-md);color:var(--text)" style-hover="color:#fff;border-color:#fff">Vimeo</a>
+                </div>
+              </div>
+            </aside>
+          </section>
+        </main>
+      </sc-if>
+
+      <!-- ============ PERFORMER BODY ============ -->
+      <sc-if value="{{ isPerformer }}" hint-placeholder-val="{{ false }}">
+        <main data-screen-label="Performer page" style="max-width:1180px;margin:0 auto;padding:38px 28px 30px">
+          <section id="perf-act" style="margin-bottom:44px">
+            <h2 style="font-family:var(--fdisp);font-weight:900;font-size:clamp(24px,3.4vw,34px);letter-spacing:-.015em;color:var(--text);margin-bottom:6px">The act</h2>
+            <p style="font-family:var(--fbody);font-size:14.5px;color:var(--text-dim);margin-bottom:18px">Three versions of the same partnership, sized to the room you have.</p>
+            <div class="pp-grid3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+              <sc-for list="{{ perfActs }}" as="a" hint-placeholder-count="3">
+                <article style="padding:22px 20px;border-radius:18px;background:var(--surface);border:1px solid var(--border);display:flex;flex-direction:column;gap:11px">
+                  <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
+                    <span style="font-family:var(--fdisp);font-weight:800;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--red-bright)">{{ a.length }}</span>
+                    <span style="font-family:var(--fbody);font-size:12px;color:var(--text-dim)">{{ a.dancers }}</span>
+                  </div>
+                  <h3 style="font-family:var(--fdisp);font-weight:900;font-size:22px;line-height:1.1;color:var(--text)">{{ a.name }}</h3>
+                  <p style="font-family:var(--fbody);font-size:13.5px;line-height:1.6;color:var(--text-dim)">{{ a.detail }}</p>
+                  <div style="margin-top:auto;padding-top:14px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px">
+                    <span style="font-family:var(--fdisp);font-weight:900;font-size:20px;color:var(--gold)">{{ a.price }}</span>
+                    <a href="#" onClick="{{ noop }}" style="font-family:var(--fdisp);font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);white-space:nowrap" style-hover="color:#fff">Enquire →</a>
+                  </div>
+                </article>
+              </sc-for>
+            </div>
+          </section>
+
+          <section id="perf-reel" style="margin-bottom:44px">
+            <h2 style="font-family:var(--fdisp);font-weight:900;font-size:clamp(22px,3vw,30px);letter-spacing:-.015em;color:var(--text);margin-bottom:16px">Watch</h2>
+            <div class="pp-grid2" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px">
+              <sc-for list="{{ perfClips }}" as="c" hint-placeholder-count="2">
+                <div style="position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--border);aspect-ratio:16/10">
+                  <image-slot id="{{ c.slotId }}" shape="rect" fit="cover" placeholder="{{ c.slotHint }}"></image-slot>
+                  <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(11,19,38,.88));pointer-events:none"></div>
+                  <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:54px;height:54px;border-radius:9999px;background:rgba(11,19,38,.6);border:1px solid var(--border-md);display:flex;align-items:center;justify-content:center;font-size:17px;color:#fff">▶</span>
+                  <div style="position:absolute;bottom:14px;left:16px;right:16px">
+                    <div style="font-family:var(--fdisp);font-weight:800;font-size:16px;color:#fff">{{ c.title }}</div>
+                    <div style="font-family:var(--fbody);font-size:12.5px;color:var(--text-muted);margin-top:3px">{{ c.meta }}</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </section>
+
+          <section class="pp-2col" style="display:grid;grid-template-columns:1.35fr 1fr;gap:40px;margin-bottom:44px">
+            <div id="perf-rider">
+              <h2 style="font-family:var(--fdisp);font-weight:900;font-size:clamp(22px,3vw,30px);letter-spacing:-.015em;color:var(--text);margin-bottom:8px">Tech rider</h2>
+              <p style="font-family:var(--fbody);font-size:14.5px;color:var(--text-dim);margin-bottom:16px">Send this to the venue and nothing gets negotiated at the door.</p>
+              <div style="display:flex;flex-direction:column;gap:10px;padding:20px;border-radius:16px;background:var(--surface);border:1px solid var(--border)">
+                <sc-for list="{{ perfRider }}" as="rd" hint-placeholder-count="5">
+                  <div style="display:flex;gap:12px;align-items:flex-start">
+                    <span style="width:5px;height:5px;border-radius:9999px;background:var(--red-bright);margin-top:8px;flex-shrink:0"></span>
+                    <span style="font-family:var(--fbody);font-size:14px;line-height:1.6;color:var(--text-muted)">{{ rd }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="margin-top:16px;padding:18px 20px;border-radius:16px;background:var(--surface);border:1px solid var(--border)">
+                <div style="font-family:var(--fdisp);font-weight:800;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-dim);margin-bottom:13px">Stage &amp; festival credits</div>
+                <div style="display:flex;flex-direction:column;gap:10px">
+                  <sc-for list="{{ perfCredits }}" as="cr" hint-placeholder-count="4">
+                    <div style="display:flex;gap:14px;align-items:baseline">
+                      <span style="font-family:var(--fdisp);font-weight:800;font-size:12.5px;color:var(--gold);width:46px;flex-shrink:0">{{ cr.year }}</span>
+                      <span style="font-family:var(--fbody);font-size:14px;color:var(--text-muted)">{{ cr.what }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+
+            <aside style="display:flex;flex-direction:column;gap:16px;min-width:0">
+              <div id="perf-dates" style="border-radius:18px;background:var(--surface);border:1px solid var(--border);overflow:hidden">
+                <div style="padding:16px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px">
+                  <div style="font-family:var(--fdisp);font-weight:800;font-size:13px;color:var(--text)">Where to see them</div>
+                  <span style="font-family:var(--fbody);font-size:11px;color:var(--text-dim)">from the calendar</span>
+                </div>
+                <sc-for list="{{ perfDates }}" as="d" hint-placeholder-count="3">
+                  <a href="#" onClick="{{ noop }}" style="display:flex;gap:14px;padding:14px 18px;border-bottom:1px solid var(--border);color:var(--text)" style-hover="background:rgba(255,255,255,.03);color:var(--text)">
+                    <span style="flex-shrink:0;width:48px;text-align:center;border-radius:10px;padding:8px 4px;background:{{ d.chipBg }};color:#fff">
+                      <span style="display:block;font-family:var(--fdisp);font-weight:900;font-size:18px;line-height:1">{{ d.day }}</span>
+                      <span style="display:block;font-family:var(--fdisp);font-weight:700;font-size:9px;letter-spacing:.08em">{{ d.month }}</span>
+                    </span>
+                    <span style="min-width:0">
+                      <span style="display:block;font-family:var(--fdisp);font-weight:700;font-size:14px;line-height:1.3">{{ d.title }}</span>
+                      <span style="display:block;font-family:var(--fbody);font-size:12px;color:var(--text-dim);margin-top:3px">{{ d.meta }}</span>
+                    </span>
+                  </a>
+                </sc-for>
+              </div>
+
+              <div style="border-radius:18px;background:var(--surface);border:1px solid var(--border);padding:19px">
+                <div style="font-family:var(--fdisp);font-weight:800;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-dim);margin-bottom:14px">The dancers</div>
+                <div style="display:flex;flex-direction:column;gap:12px">
+                  <sc-for list="{{ perfDancers }}" as="dn" hint-placeholder-count="2">
+                    <a href="#" onClick="{{ goDirInstructors }}" style="display:flex;align-items:center;gap:13px;color:var(--text)" style-hover="color:var(--gold)">
+                      <span style="width:46px;height:46px;border-radius:9999px;overflow:hidden;flex-shrink:0;display:block"><image-slot id="{{ dn.slotId }}" shape="rect" fit="cover" placeholder="Portrait"></image-slot></span>
+                      <span style="min-width:0">
+                        <span style="display:block;font-family:var(--fdisp);font-weight:700;font-size:14.5px">{{ dn.name }}</span>
+                        <span style="display:block;font-family:var(--fbody);font-size:12px;color:var(--text-dim);margin-top:2px">{{ dn.role }}</span>
+                      </span>
+                    </a>
+                  </sc-for>
+                </div>
+              </div>
+
+              <div style="border-radius:18px;border:1px solid var(--border-md);background:linear-gradient(150deg,rgba(225,29,72,.14),rgba(233,195,73,.07));padding:20px">
+                <div style="font-family:var(--fdisp);font-weight:900;font-size:18px;color:#fff;margin-bottom:7px">Book the act</div>
+                <p style="font-family:var(--fbody);font-size:13.5px;line-height:1.6;color:var(--text-muted);margin-bottom:15px">Tell them the date, the room size and the set length. They answer within two days and hold the date on deposit.</p>
+                <a href="#" onClick="{{ noop }}" style="display:block;text-align:center;font-family:var(--fdisp);font-weight:700;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;padding:13px;border-radius:9999px;background:#fff;color:#0b1326" style-hover="color:#0b1326;background:var(--gold-light)">Send a booking request</a>
+              </div>
+            </aside>
+          </section>
+
+          <sc-if value="{{ showReviews }}" hint-placeholder-val="{{ true }}">
+            <section id="perf-reviews">
+              <h2 style="font-family:var(--fdisp);font-weight:900;font-size:clamp(22px,3vw,30px);letter-spacing:-.015em;color:var(--text);margin-bottom:16px">Organizers who booked them</h2>
+              <div class="pp-grid2" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px">
+                <sc-for list="{{ perfReviews }}" as="r" hint-placeholder-count="2">
+                  <div style="padding:18px 19px;border-radius:16px;background:var(--surface);border:1px solid var(--border)">
+                    <div style="display:flex;align-items:center;gap:11px;margin-bottom:9px">
+                      <span style="width:32px;height:32px;border-radius:9999px;background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;font-family:var(--fdisp);font-weight:800;font-size:12px;color:var(--text-muted)">{{ r.initials }}</span>
+                      <div style="flex:1;min-width:0">
+                        <div style="font-family:var(--fdisp);font-weight:700;font-size:13.5px;color:var(--text)">{{ r.name }}</div>
+                        <div style="font-family:var(--fbody);font-size:11.5px;color:var(--text-dim)">{{ r.when }}</div>
+                      </div>
+                      <span style="font-family:var(--fdisp);font-weight:700;font-size:12.5px;color:var(--gold)">{{ r.stars }}</span>
+                    </div>
+                    <p style="font-family:var(--fbody);font-size:14.5px;line-height:1.65;color:var(--text-muted)">{{ r.text }}</p>
+                  </div>
+                </sc-for>
+              </div>
+            </section>
+          </sc-if>
+        </main>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showFooter }}" hint-placeholder-val="{{ true }}">
+  <footer style="border-top:1px solid var(--border);background:rgba(255,255,255,.02);margin-top:20px">
+    <div class="pp-row" style="max-width:1280px;margin:0 auto;padding:30px 28px;display:flex;align-items:center;justify-content:space-between;gap:18px">
+      <span style="font-family:var(--flogo);font-size:25px;color:var(--gold)">Salsa <span style="color:var(--red-bright)">Segura</span></span>
+      <span style="font-family:var(--fbody);font-size:12.5px;color:var(--text-dim)">Seven directory + profile layouts on one spine. Event pages live in the main prototype.</span>
+    </div>
+  </footer>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;100%&quot;,&quot;height&quot;:900},&quot;initialScreen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dir-djs&quot;,&quot;dir-schools&quot;,&quot;dir-instructors&quot;,&quot;dir-venues&quot;,&quot;dir-hosts&quot;,&quot;dir-media&quot;,&quot;dir-performers&quot;,&quot;dj&quot;,&quot;school&quot;,&quot;instructor&quot;,&quot;venue&quot;,&quot;host&quot;,&quot;media&quot;,&quot;performer&quot;],&quot;default&quot;:&quot;dir-djs&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Demo state&quot;},&quot;initialCity&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;boston&quot;,&quot;nyc&quot;],&quot;default&quot;:&quot;boston&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Demo state&quot;},&quot;isPageOwner&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Demo state&quot;,&quot;label&quot;:&quot;Viewing as page owner&quot;},&quot;embedded&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Embedding&quot;,&quot;label&quot;:&quot;Hide own header &amp; footer&quot;},&quot;showReviews&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Page features&quot;},&quot;showClaimBanner&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Page features&quot;},&quot;showComingSoonTabs&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Page features&quot;},&quot;showDjMixes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Page features&quot;,&quot;label&quot;:&quot;DJ: recorded sets&quot;},&quot;showDjReviews&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Page features&quot;,&quot;label&quot;:&quot;DJ: reviews&quot;},&quot;showMediaServices&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Page features&quot;,&quot;label&quot;:&quot;Media: what I shoot + rates&quot;}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      screen: this.props.initialScreen || "dir-djs",
+      city: this.props.initialCity || "boston",
+      following: { nolo: false, ceci: true, yeya: false, tumbao: false, papo: false, marisol: false, casa: false },
+      dirFilter: "all",
+      schoolDay: "mon",
+      faqOpen: 0,
+      insDay: "thu",
+      insSlot: "7:00 PM"
+    };
+
+    this._djs = [
+      { id: "nolo", name: "DJ Nolo Rivas", initials: "NR", tagline: "Salsa dura, timba, and a hard on2 floor", styles: ["Salsa dura", "Timba", "Son"], cities: ["boston", "nyc"], followers: 1284, rating: "4.9", reviews: 38, verified: true, next: "Fri Aug 21 · 9:30 PM — Havana Room" },
+      { id: "ceci", name: "DJ Ceci Marte", initials: "CM", tagline: "Bachata sensual, moderna, late-night kizomba", styles: ["Bachata", "Sensual", "Kizomba"], cities: ["boston"], followers: 912, rating: "4.8", reviews: 24, verified: true, next: "Sat Aug 22 · 10:00 PM — Sala Norte" },
+      { id: "tumbao", name: "DJ Tumbao", initials: "TB", tagline: "Son, guaguancó and golden-era classics", styles: ["Son", "Classics", "Cha-cha"], cities: ["boston"], followers: 604, rating: "4.7", reviews: 15, verified: false, unclaimed: true, next: "Thu Aug 27 · 8:00 PM — El Malecón" },
+      { id: "yeya", name: "DJ Yeya", initials: "YY", tagline: "Crossover sets — salsa into kizomba without a seam", styles: ["Salsa", "Kizomba", "Afrobeat"], cities: ["boston", "nyc"], followers: 1560, rating: "4.9", reviews: 41, verified: true, next: "Sat Sep 6 · 9:00 PM — Salón 47" },
+      { id: "papo", name: "DJ Papo Estrella", initials: "PE", tagline: "Mambo, big band, Palladium-era nights", styles: ["Mambo", "Big band", "Boogaloo"], cities: ["nyc"], followers: 2040, rating: "5.0", reviews: 52, verified: true, next: "Fri Aug 28 · 9:30 PM — Club Delirio" }
+    ];
+
+    this._schools = [
+      { id: "casa", name: "Casa del Ritmo", initials: "CR", tagline: "On2 fundamentals taught in six-week cycles. Beginners get their own room, their own social, and a teacher who remembers their name.", levels: ["Intro", "Improver", "Advanced", "Team"], cities: ["boston", "nyc"], where: "Jamaica Plain · Bushwick", trial: "First class free", rating: "4.9", reviews: 86, verified: true, cover: "https://d8j0ntlcm91z4.cloudfront.net/user_3G7GKJTEt9XJwDTgjAnE32B8wQ9/hf_20260820_221446_81c408fc-f480-4b29-9eae-002199c15af5.png" },
+      { id: "clave", name: "Estudio Clave", initials: "EC", tagline: "Technique labs and performance teams. Audition cycles twice a year, with a preparation track for dancers who are not ready yet.", levels: ["Improver", "Advanced", "Team"], cities: ["boston"], where: "Central Square, Cambridge", trial: "Open lab Sundays", rating: "4.8", reviews: 44, verified: true },
+      { id: "bcollective", name: "Bachata Collective", initials: "BC", tagline: "Bachata only — dominican basics through sensual bodywork, with a live-music practice night every third Sunday.", levels: ["Intro", "Improver"], cities: ["boston"], where: "Union Square, Somerville", trial: "$10 first class", rating: "4.7", reviews: 31, verified: false },
+      { id: "mambolab", name: "Mambo Lab", initials: "ML", tagline: "A mambo school in the Palladium line — shines, partnerwork, and a weekly clinic on hearing the montuno.", levels: ["Intro", "Advanced"], cities: ["nyc"], where: "Midtown West", trial: "Drop-ins welcome", rating: "4.8", reviews: 57, verified: true }
+    ];
+
+    this._instructors = [
+      { id: "marisol", name: "Marisol Peña", initials: "MP", specialty: "Salsa on2 · partnerwork", affiliation: "Casa del Ritmo — resident", rate: "from $95 / hr", cities: ["boston", "nyc"], rating: "4.9", reviews: 52, verified: true, avatar: "https://d8j0ntlcm91z4.cloudfront.net/user_3G7GKJTEt9XJwDTgjAnE32B8wQ9/hf_20260820_221446_260fe12f-ebdc-47a8-9651-3dff127ee306.png" },
+      { id: "andre", name: "Andre Okonjo", initials: "AO", specialty: "Bachata sensual", affiliation: "Bachata Collective", rate: "from $80 / hr", cities: ["boston"], rating: "4.8", reviews: 29, verified: true },
+      { id: "yuli", name: "Yuli Ferrer", initials: "YF", specialty: "Cuban salsa & timba", affiliation: "Independent", rate: "from $85 / hr", cities: ["boston"], rating: "4.9", reviews: 33, verified: false },
+      { id: "dee", name: "Dee Santiago", initials: "DS", specialty: "Styling · performance", affiliation: "Estudio Clave", rate: "from $90 / hr", cities: ["boston"], rating: "4.7", reviews: 21, verified: true },
+      { id: "tomas", name: "Tomás Rey", initials: "TR", specialty: "Wedding first dance", affiliation: "Independent", rate: "from $110 / hr", cities: ["boston", "nyc"], rating: "5.0", reviews: 64, verified: true },
+      { id: "kenia", name: "Kenia Duarte", initials: "KD", specialty: "Musicality & footwork", affiliation: "Mambo Lab", rate: "from $95 / hr", cities: ["nyc"], rating: "4.8", reviews: 18, verified: true }
+    ];
+
+    this._venues = [
+      { id: "havana", name: "Havana Room", initials: "HR", tagline: "A brick room with a sprung maple floor and the Friday social that taught half of Boston to dance on2.", cities: ["boston"], hood: "Jamaica Plain", floor: "Sprung maple", capacity: "220", rating: "4.8", reviews: 64, verified: true, next: "Tonight · Casa del Ritmo Social" },
+      { id: "salanorte", name: "Sala Norte", initials: "SN", tagline: "Rooftop bar upstairs, small dark room downstairs, bachata until two.", cities: ["boston"], hood: "Somerville", floor: "Polished concrete", capacity: "160", rating: "4.4", reviews: 38, verified: true, next: "Sat · Bachata Rooftop" },
+      { id: "malecon", name: "El Malecón", initials: "EM", tagline: "Restaurant by day, live-band stage on Thursdays. Tile floor, so bring the right shoes.", cities: ["boston"], hood: "East Boston", floor: "Tile", capacity: "180", rating: "4.6", reviews: 29, verified: false, unclaimed: true, next: "Thu · Timba Thursdays" },
+      { id: "salon47", name: "Salón 47", initials: "S47", tagline: "Parquet, a proper booth and the best sightlines for a show in Midtown.", cities: ["nyc"], hood: "Midtown West", floor: "Parquet", capacity: "300", rating: "4.9", reviews: 88, verified: true, next: "Sep 6 · Mambo City Weekender" },
+      { id: "delirio", name: "Club Delirio", initials: "CD", tagline: "Big room, big sound, two floors on Friday.", cities: ["nyc"], hood: "Lower East Side", floor: "Sealed tile", capacity: "260", rating: "4.5", reviews: 51, verified: true, next: "Fri · Palladium Fridays" }
+    ];
+
+    this._hosts = [
+      { id: "casanights", name: "Casa del Ritmo Nights", initials: "CN", tagline: "The Friday social, two festivals a year, and the beginner crash course that feeds both.", cities: ["boston", "nyc"], series: 3, nights: "312 nights", since: "Since 2016", rating: "4.9", reviews: 71, verified: true, next: "Fri Aug 21 · Friday Social" },
+      { id: "timbacrew", name: "Timba Thursdays Crew", initials: "TT", tagline: "Two Thursdays a month at El Malecón, live band once a quarter.", cities: ["boston"], series: 1, nights: "96 nights", since: "Since 2021", rating: "4.7", reviews: 22, verified: true, next: "Thu Aug 27 · Timba Thursdays" },
+      { id: "bcnights", name: "Bachata Collective", initials: "BC", tagline: "Third-Sunday live music practica and a monthly Saturday rooftop.", cities: ["boston"], series: 2, nights: "58 nights", since: "Since 2022", rating: "4.6", reviews: 17, verified: false, unclaimed: true, next: "Sat Aug 22 · Bachata Rooftop" },
+      { id: "mambocity", name: "Mambo City", initials: "MC", tagline: "Weekenders, congress rooms and the Palladium Friday residency.", cities: ["nyc"], series: 4, nights: "410 nights", since: "Since 2011", rating: "4.8", reviews: 103, verified: true, next: "Sep 6 · Mambo City Weekender" }
+    ];
+
+    this._media = [
+      { id: "lupe", name: "Lupe Ortega", initials: "LO", discipline: "Event photography", tagline: "Shoots socials on fast glass and no flash, so nobody dances into a strobe. Gallery up within two days, watermark-free for the dancers in the frame.", cities: ["boston", "nyc"], rate: "from $250 / night", turnaround: "48 hours", audience: "8.4k on Instagram", rating: "4.9", reviews: 34, verified: true },
+      { id: "nine8", name: "Nine8 Films", initials: "N8", discipline: "Video & reels", tagline: "Two-camera event coverage and a 30-second reel cut for the host by Monday.", cities: ["boston", "nyc"], rate: "from $600 / event", turnaround: "5 days", audience: "12k on Instagram", rating: "4.8", reviews: 19, verified: true },
+      { id: "saborpress", name: "Sabor Press", initials: "SP", discipline: "Press & interviews", tagline: "Long-form writing on the New England scene, plus festival previews.", cities: ["boston"], rate: "Editorial · no fee", turnaround: "Weekly", audience: "3.1k newsletter", rating: "4.7", reviews: 8, verified: false, unclaimed: true },
+      { id: "dianaonthe2", name: "@dianaonthe2", initials: "D2", discipline: "Social media", tagline: "Recaps, teacher spotlights and the calendar in story form.", cities: ["boston", "nyc"], rate: "Partnerships from $150", turnaround: "Same night", audience: "42k on TikTok", rating: "4.8", reviews: 12, verified: true }
+    ];
+
+    this._performers = [
+      { id: "duoclave", name: "Duo Clave", initials: "DC", ptype: "dancer", act: "Cabaret duo", tagline: "A six-minute cabaret set with lifts, built to work on a festival stage or a cleared dance floor with a low ceiling.", cities: ["boston", "nyc"], length: "6 min", dancers: "2 dancers", rate: "from $450", rating: "4.9", reviews: 27, verified: true, next: "Aug 21 · Friday Social" },
+      { id: "orquestabembe", name: "Orquesta Bembé", initials: "OB", ptype: "live", act: "Live salsa band", tagline: "Ten-piece salsa dura orchestra. Two sets with a DJ covering the changeover, or one long set to close the night.", cities: ["boston", "nyc"], length: "2 × 45 min", dancers: "10 musicians", rate: "from $2,400", rating: "4.9", reviews: 34, verified: true, next: "Aug 24 · Sabor Sunday" },
+      { id: "ruedabos", name: "Rueda Boston", initials: "RB", ptype: "dancer", act: "Rueda de casino team", tagline: "Twelve dancers, one caller, and a routine that pulls the crowd into the circle at the end.", cities: ["boston"], length: "8 min", dancers: "12 dancers", rate: "from $700", rating: "4.8", reviews: 15, verified: true, next: "Sep 12 · Festival showcase" },
+      { id: "lostimbaleros", name: "Los Timbaleros", initials: "LT", ptype: "live", act: "Live percussion", tagline: "Timbales, congas and bongo sitting in over the DJ set. Works in a room with no stage.", cities: ["boston"], length: "30–60 min", dancers: "3 musicians", rate: "from $600", rating: "5.0", reviews: 19, verified: true, next: "Aug 22 · Havana Nights" },
+      { id: "lashermanas", name: "Las Hermanas", initials: "LH", ptype: "dancer", act: "Ladies team", tagline: "Styling-forward team piece with live percussion option.", cities: ["boston", "nyc"], length: "5 min", dancers: "6 dancers", rate: "from $600", rating: "4.9", reviews: 21, verified: true, next: "Oct 4 · Congress pro show" },
+      { id: "semillas", name: "Semillas JP", initials: "SJ", ptype: "dancer", act: "Youth team", tagline: "Kids and teens from the Jamaica Plain program. Community shows and festival openers.", cities: ["boston"], length: "4 min", dancers: "9 dancers", rate: "Community rate", rating: "5.0", reviews: 9, verified: false, unclaimed: true, next: "Sep 20 · JP Block Party" }
+    ];
+  }
+
+  componentDidUpdate(prev) {
+    const patch = {};
+    if ((prev.initialScreen !== this.props.initialScreen || prev.resetTick !== this.props.resetTick) && this.props.initialScreen) patch.screen = this.props.initialScreen;
+    if (prev.initialCity !== this.props.initialCity && this.props.initialCity) patch.city = this.props.initialCity;
+    if (Object.keys(patch).length) this.setState(patch);
+  }
+  cityLabel(c) { return c === "nyc" ? "New York" : "Boston"; }
+  go(screen) { this.setState({ screen: screen }); setTimeout(() => { try { window.scrollTo({ top: 0 }); } catch (e) {} }, 0); }
+  toggleFollow(id) { this.setState((s) => ({ following: Object.assign({}, s.following, { [id]: !s.following[id] }) })); }
+
+  renderVals() {
+    const s = this.state;
+    const screen = s.screen;
+    const city = s.city;
+    const isPageOwner = this.props.isPageOwner === true;
+    const showReviews = this.props.showReviews !== false;
+    const showDjMixes = this.props.showDjMixes === true;
+    const showDjReviews = this.props.showDjReviews === true;
+    const showMediaServices = this.props.showMediaServices === true;
+    const showClaim = this.props.showClaimBanner !== false;
+    const noop = (e) => { if (e) e.preventDefault(); };
+    const chip = (on) => ({ bg: on ? "rgba(225,29,72,.18)" : "transparent", fg: on ? "#fff" : "var(--text-muted)", bd: on ? "var(--red-dim)" : "var(--border)" });
+
+    const tabDefs = [
+      { k: "dir-djs", l: "DJs", live: true }, { k: "dir-schools", l: "Dance schools", live: true }, { k: "dir-instructors", l: "Instructors", live: true },
+      { k: "dir-venues", l: "Venues", live: true }, { k: "dir-hosts", l: "Hosts", live: true }, { k: "dir-media", l: "Media", live: true }, { k: "dir-performers", l: "Performers", live: true },
+      { k: "events", l: "Events", note: "in prototype" }
+    ];
+    const detailParent = { dj: "dir-djs", school: "dir-schools", instructor: "dir-instructors", venue: "dir-venues", host: "dir-hosts", media: "dir-media", performer: "dir-performers" };
+    const activeTab = detailParent[screen] || screen;
+    const typeTabs = tabDefs.filter((t) => t.live || this.props.showComingSoonTabs !== false).map((t) => {
+      const on = t.k === activeTab;
+      const c = chip(on);
+      return { label: t.l, note: t.live ? "" : (t.note || "next"), bg: t.live ? c.bg : "transparent", fg: t.live ? c.fg : "var(--text-dim)", bd: t.live ? c.bd : "var(--border)", cursor: t.live ? "pointer" : "default",
+        go: (e) => { if (e) e.preventDefault(); if (t.live) this.go(t.k); } };
+    });
+
+    const inCity = (e) => e.cities.indexOf(city) !== -1;
+    const cityBadge = (cities) => cities.map((c) => (c === "nyc" ? "NYC" : "BOS")).join(" · ");
+
+    const djsIn = this._djs.filter(inCity);
+    const schoolsIn = this._schools.filter(inCity);
+    const insIn = this._instructors.filter(inCity);
+
+    const venuesIn = this._venues.filter(inCity);
+    const hostsIn = this._hosts.filter(inCity);
+    const mediaIn = this._media.filter(inCity);
+    const performersIn = this._performers.filter(inCity);
+
+    const filterSets = {
+      "dir-djs": ["All", "Salsa", "Bachata", "Timba", "Playing this week"],
+      "dir-schools": ["All", "Beginner-friendly", "On2", "Bachata", "Teams"],
+      "dir-instructors": ["All", "Salsa", "Bachata", "Weddings", "Kids"],
+      "dir-venues": ["All", "Wood floor", "Live band", "Late licence", "Step-free"],
+      "dir-hosts": ["All", "Weekly", "Monthly", "Festivals", "Live music"],
+      "dir-media": ["All", "Photo", "Video", "Press", "Social"],
+      "dir-performers": ["All", "Dancers", "Live music"]
+    };
+    const dirFilters = (filterSets[activeTab] || filterSets["dir-djs"]).map((label) => {
+      const on = (label === "All" && s.dirFilter === "all") || s.dirFilter === label;
+      const c = chip(on);
+      return { label: label, bg: c.bg, fg: c.fg, bd: c.bd, go: (e) => { if (e) e.preventDefault(); this.setState({ dirFilter: label === "All" ? "all" : label }); } };
+    });
+
+    const djRows = djsIn.map((d) => {
+      const on = !!s.following[d.id];
+      return { name: d.name, initials: d.initials, tagline: d.tagline, styles: d.styles, next: d.next, rating: d.rating, verified: !!d.verified, unclaimed: !!d.unclaimed,
+        cityLine: d.cities.length > 1 ? "Also plays " + this.cityLabel(d.cities.filter((c) => c !== city)[0]) : this.cityLabel(city) + " only",
+        fLabel: on ? "Following" : "+ Follow", fBg: on ? "rgba(233,195,73,.14)" : "transparent", fFg: on ? "var(--gold)" : "var(--text)", fBd: on ? "var(--gold)" : "var(--border-md)",
+        follow: (e) => { if (e) e.preventDefault(); this.toggleFollow(d.id); },
+        open: (e) => { if (e) e.preventDefault(); this.go("dj"); } };
+    });
+
+    const schoolCards = schoolsIn.map((c, i) => ({ name: c.name, tagline: c.tagline, levels: c.levels, where: c.where, trial: c.trial, rating: c.rating, reviewLine: c.reviews + " reviews", verified: !!c.verified,
+      slotId: "pp-school-card-" + c.id, slotHint: c.name + " — studio photo", hasPhoto: !!c.cover, noPhoto: !c.cover, src: c.cover || "",
+      open: (e) => { if (e) e.preventDefault(); this.go("school"); } }));
+
+    const instructorTiles = insIn.map((t) => ({ name: t.name, specialty: t.specialty, affiliation: t.affiliation, rate: t.rate, rating: t.rating, reviewLine: t.reviews + " reviews", verified: !!t.verified,
+      slotId: "pp-ins-tile-" + t.id, slotHint: t.name + " — portrait",
+      open: (e) => { if (e) e.preventDefault(); this.go("instructor"); } }));
+
+    const venueRows = venuesIn.map((v) => ({ name: v.name, initials: v.initials, tagline: v.tagline, hood: v.hood, floor: v.floor, capacity: v.capacity + " capacity", rating: v.rating,
+      reviewLine: v.reviews + " floor reviews", verified: !!v.verified, unclaimed: !!v.unclaimed, next: v.next,
+      open: (e) => { if (e) e.preventDefault(); this.go("venue"); } }));
+
+    const hostCards = hostsIn.map((h) => {
+      const on = !!s.following[h.id];
+      return { name: h.name, initials: h.initials, tagline: h.tagline, seriesLine: h.series === 1 ? "1 regular night" : h.series + " regular nights", nights: h.nights, since: h.since,
+        rating: h.rating, verified: !!h.verified, unclaimed: !!h.unclaimed, next: h.next,
+        fLabel: on ? "Following" : "+ Follow", fBg: on ? "rgba(233,195,73,.14)" : "transparent", fFg: on ? "var(--gold)" : "var(--text)", fBd: on ? "var(--gold)" : "var(--border-md)",
+        follow: (e) => { if (e) e.preventDefault(); this.toggleFollow(h.id); },
+        open: (e) => { if (e) e.preventDefault(); this.go("host"); } };
+    });
+
+    const mediaTiles = mediaIn.map((m) => ({ name: m.name, discipline: m.discipline, tagline: m.tagline, rate: m.rate, turnaround: "Delivers in " + m.turnaround, audience: m.audience,
+      rating: m.rating, verified: !!m.verified, unclaimed: !!m.unclaimed, slotId: "pp-media-tile-" + m.id, slotHint: m.name + " — sample work",
+      open: (e) => { if (e) e.preventDefault(); this.go("media"); } }));
+
+    const perfWant = s.dirFilter === "Dancers" ? "dancer" : s.dirFilter === "Live music" ? "live" : null;
+    const perfTypeOn = (p) => !perfWant || (p.ptype || "dancer") === perfWant;
+    const performerCards = performersIn.filter(perfTypeOn).map((p) => ({ name: p.name, initials: p.initials, act: p.act, tagline: p.tagline, length: p.length, dancers: p.dancers, rate: p.rate, dance: p.dance || p.act,
+      ptypeLabel: (p.ptype === "live" ? "Live music" : "Dancers"),
+      ptypeBg: (p.ptype === "live" ? "rgba(233,195,73,.9)" : "rgba(225,29,72,.9)"),
+      rating: p.rating, verified: !!p.verified, unclaimed: !!p.unclaimed, next: p.next, slotId: "pp-perf-card-" + p.id, slotHint: p.name + " — stage photo",
+      open: (e) => { if (e) e.preventDefault(); this.go("performer"); } }));
+
+    const dirCopy = {
+      "dir-djs": { eyebrow: "DJs", title: "Who is playing the music", sub: "Follow a DJ and their dates land in your calendar. Every set on this list is booked through an event on Salsa Segura.", search: "Search DJs, genres, residencies…", count: djsIn.length, foot: "Playing in " + this.cityLabel(city) + " but not listed? Add yourself — claiming a page takes about two minutes." },
+      "dir-schools": { eyebrow: "Dance schools", title: "Learn to dance here", sub: "Schools list their real weekly schedule, levels and prices, so a first-timer can pick a class without sending a single DM.", search: "Search schools, neighborhoods, styles…", count: schoolsIn.length, foot: "Schools update their own schedule. Prices shown are what you pay at the door." },
+      "dir-instructors": { eyebrow: "Instructors", title: "Teachers taking students", sub: "Private lessons, wedding first dances and technique work — with rates in the open and real open slots.", search: "Search instructors, styles, languages…", count: insIn.length, foot: "Rates are set by instructors. Salsa Segura takes no cut of a lesson." },
+      "dir-venues": { eyebrow: "Venues", title: "Rooms that hold a floor", sub: "Floor surface, capacity and what is on tonight — the three things a dancer checks before leaving the house.", search: "Search venues, neighborhoods, floors…", count: venuesIn.length, foot: "Floor ratings come from dancers, not owners. Venue staff can claim a page and correct the details." },
+      "dir-hosts": { eyebrow: "Hosts & organizers", title: "Who runs the nights", sub: "The people behind each series. Follow a host and every night they announce reaches your calendar.", search: "Search hosts, series, festivals…", count: hostsIn.length, foot: "Hosts publish their own house rules. Anything that breaks them can be reported from an event page." },
+      "dir-media": { eyebrow: "Media", title: "Photographers, film & press", sub: "Who to book for a night, and who to send a press request to. Rates, turnaround and licensing stated up front.", search: "Search photo, video, press, social…", count: mediaIn.length, foot: "Dancers can request a takedown of any photo of them from the gallery it appears in." },
+      "dir-performers": { eyebrow: "Performers", title: "Local performers", sub: "Dance acts and live music from this scene \u2014 set length, stage needs and next date on every page.", search: "Search acts, styles, team size…", count: performersIn.length, foot: "Every act listed here dances socially in this city. Festival organizers can request a private reel." }
+    };
+    const copy = dirCopy[activeTab] || dirCopy["dir-djs"];
+
+    // ---------- shared detail spine ----------
+    const dj = this._djs[0], school = this._schools[0], ins = this._instructors[0];
+    const ven = this._venues[0], host = this._hosts[0], med = this._media[0], perf = this._performers[0];
+    const detail = screen === "dj" ? {
+      kind: "DJ", kindBg: "rgba(225,29,72,.18)", kindFg: "var(--red-bright)", name: dj.name, tagline: dj.tagline, initials: dj.initials, verified: dj.verified,
+      cities: dj.cities, back: "All DJs", backTo: "dir-djs", person: true, cta: "Book this DJ", id: dj.id, unclaimed: false,
+      cover: "https://d8j0ntlcm91z4.cloudfront.net/user_3G7GKJTEt9XJwDTgjAnE32B8wQ9/hf_20260820_221446_89420187-7e03-4bee-9c21-01d3b151593a.png", avatar: null,
+      stats: [{ value: this.fmtN(dj.followers), label: "Followers" }, { value: "★ " + dj.rating, label: dj.reviews + " reviews" }, { value: "3 nights", label: "This week" }],
+      socials: [{ label: "Instagram", title: "@djnolorivas" }, { label: "WhatsApp", title: "Message on WhatsApp" }, { label: "SoundCloud", title: "Mixes" }],
+      tabs: [{ label: "Sound", href: "#dj-sound" }, { label: "Next dates", href: "#dj-dates" }, { label: "Photos", href: "#dj-photos" }],
+      claimNote: ""
+    } : screen === "school" ? {
+      kind: "Dance school", kindBg: "rgba(233,195,73,.16)", kindFg: "var(--gold)", name: school.name, tagline: school.tagline, initials: school.initials, verified: school.verified,
+      cities: school.cities, back: "All schools", backTo: "dir-schools", person: false, cta: "Contact the school", id: school.id, unclaimed: false,
+      cover: school.cover, avatar: null,
+      stats: [{ value: "420", label: "Students / term" }, { value: "★ " + school.rating, label: school.reviews + " reviews" }, { value: "6 wks", label: "Class cycle" }],
+      socials: [{ label: "Instagram", title: "@casadelritmo" }, { label: "WhatsApp", title: "Message the front desk" }, { label: "Website", title: "casadelritmo.com" }],
+      tabs: [{ label: "Start here", href: "#school-start" }, { label: "Schedule", href: "#school-schedule" }, { label: "Prices", href: "#school-prices" }, { label: "Teachers", href: "#school-team" }, { label: "Locations", href: "#school-where" }, { label: "Reviews", href: "#school-reviews" }],
+      claimNote: ""
+    } : screen === "venue" ? {
+      kind: "Venue", kindBg: "rgba(233,195,73,.16)", kindFg: "var(--gold)", name: ven.name, tagline: ven.tagline, initials: ven.initials, verified: ven.verified,
+      cities: ven.cities, back: "All venues", backTo: "dir-venues", person: false, cta: "Rent this room", id: ven.id, unclaimed: false, cover: null, avatar: null,
+      stats: [{ value: ven.capacity, label: "Capacity" }, { value: "★ " + ven.rating, label: ven.reviews + " floor reviews" }, { value: "3 nights", label: "Regular weekly" }],
+      socials: [{ label: "Instagram", title: "@havanaroomjp" }, { label: "Website", title: "havanaroom.com" }, { label: "Phone", title: "Call the bar" }],
+      tabs: [{ label: "The floor", href: "#ven-floor" }, { label: "Regular nights", href: "#ven-nights" }, { label: "On the calendar", href: "#ven-calendar" }, { label: "Getting there", href: "#ven-there" }, { label: "Reviews", href: "#ven-reviews" }],
+      claimNote: ""
+    } : screen === "host" ? {
+      kind: "Host", kindBg: "rgba(225,29,72,.18)", kindFg: "var(--red-bright)", name: host.name, tagline: host.tagline, initials: host.initials, verified: host.verified,
+      cities: host.cities, back: "All hosts", backTo: "dir-hosts", person: false, cta: "Contact the host", id: host.id, unclaimed: false, cover: null, avatar: null,
+      stats: [{ value: "312", label: "Nights run" }, { value: "★ " + host.rating, label: host.reviews + " reviews" }, { value: "2016", label: "Hosting since" }],
+      socials: [{ label: "Instagram", title: "@casadelritmonights" }, { label: "WhatsApp", title: "Message the host" }, { label: "Press kit", title: "Logos and photos" }],
+      tabs: [{ label: "Our nights", href: "#host-series" }, { label: "House rules", href: "#host-rules" }, { label: "Upcoming", href: "#host-upcoming" }, { label: "The team", href: "#host-team" }, { label: "Work with us", href: "#host-work" }],
+      claimNote: ""
+    } : screen === "media" ? {
+      kind: "Media", kindBg: "rgba(255,182,144,.16)", kindFg: "var(--tertiary)", name: med.name, tagline: med.tagline, initials: med.initials, verified: med.verified,
+      cities: med.cities, back: "All media", backTo: "dir-media", person: true, cta: "Request coverage", id: med.id, unclaimed: false, cover: null, avatar: null,
+      stats: [{ value: "★ " + med.rating, label: med.reviews + " reviews" }, { value: "8.4k", label: "Instagram" }, { value: "48 hrs", label: "Gallery turnaround" }],
+      socials: [{ label: "Instagram", title: "@lupeshootsdance" }, { label: "WhatsApp", title: "Message Lupe" }, { label: "Portfolio", title: "Full portfolio site" }],
+      tabs: [{ label: "Portfolio", href: "#med-portfolio" }, { label: "Licensing", href: "#med-terms" }, { label: "Covered", href: "#med-covered" }, { label: "Reviews", href: "#med-reviews" }],
+      claimNote: ""
+    } : screen === "performer" ? {
+      kind: "Performer", kindBg: "rgba(225,29,72,.18)", kindFg: "var(--red-bright)", name: perf.name, tagline: perf.tagline, initials: perf.initials, verified: perf.verified,
+      cities: perf.cities, back: "All performers", backTo: "dir-performers", person: false, cta: "Book this act", id: perf.id, unclaimed: false, cover: null, avatar: null,
+      stats: [{ value: "★ " + perf.rating, label: perf.reviews + " reviews" }, { value: perf.length, label: "Set length" }, { value: "18", label: "Shows this year" }],
+      socials: [{ label: "Instagram", title: "@duoclave" }, { label: "YouTube", title: "Full reels" }, { label: "WhatsApp", title: "Message the duo" }],
+      tabs: [{ label: "The act", href: "#perf-act" }, { label: "Watch", href: "#perf-reel" }, { label: "Tech rider", href: "#perf-rider" }, { label: "Upcoming", href: "#perf-dates" }, { label: "Reviews", href: "#perf-reviews" }],
+      claimNote: ""
+    } : {
+      kind: "Instructor", kindBg: "rgba(255,182,144,.16)", kindFg: "var(--tertiary)", name: ins.name, tagline: "Salsa on2 and partnerwork. Fifteen years on the floor, eight of them teaching beginners who thought they had no rhythm.", initials: ins.initials, verified: ins.verified,
+      cities: ins.cities, back: "All instructors", backTo: "dir-instructors", person: true, cta: "Message Marisol", id: ins.id, unclaimed: true,
+      cover: "https://d8j0ntlcm91z4.cloudfront.net/user_3G7GKJTEt9XJwDTgjAnE32B8wQ9/hf_20260820_221446_3898f03f-74cf-40e1-be29-9107451efc38.png", avatar: ins.avatar,
+      stats: [{ value: "★ " + ins.rating, label: ins.reviews + " reviews" }, { value: "$95", label: "Private / hr" }, { value: "4", label: "Open slots" }],
+      socials: [{ label: "Instagram", title: "@marisolon2" }, { label: "WhatsApp", title: "Message on WhatsApp" }, { label: "YouTube", title: "Clips" }],
+      tabs: [{ label: "About", href: "#ins-about" }, { label: "What I teach", href: "#ins-teaching" }, { label: "Book", href: "#ins-book" }, { label: "Watch", href: "#ins-video" }, { label: "Reviews", href: "#ins-reviews" }],
+      claimNote: "Added by a student in March. Marisol can take it over and edit her own rates and slots."
+    };
+
+    const detFollowing = !!s.following[detail.id];
+    const detCities = detail.cities.map((c) => {
+      const on = c === city;
+      return { label: this.cityLabel(c), note: on ? "· active" : "", bg: on ? "rgba(225,29,72,.16)" : "transparent", fg: on ? "#fff" : "var(--text-muted)", bd: on ? "var(--red-dim)" : "var(--border)" };
+    });
+    const hasCover = detail.cover && detail.cover.indexOf("http") === 0;
+
+    // ---------- DJ body ----------
+    const djMixDefs = [
+      { label: "Salsa dura & clásica", pct: 34, color: "var(--red)" },
+      { label: "Timba", pct: 26, color: "var(--red-bright)" },
+      { label: "Bachata", pct: 18, color: "var(--gold)" },
+      { label: "Son & cha-cha", pct: 14, color: "var(--tertiary)" },
+      { label: "Cumbia & merengue", pct: 8, color: "rgba(255,255,255,.3)" }
+    ];
+    const djDateDefs = [
+      { day: "21", month: "AUG", title: "Friday Social — Casa del Ritmo", meta: "9:30 PM · Havana Room, Jamaica Plain", city: "Boston", chipBg: "linear-gradient(135deg,var(--red),#c2153c)" },
+      { day: "22", month: "AUG", title: "Bachata & Salsa Rooftop", meta: "10:00 PM · Sala Norte, Somerville", city: "Boston", chipBg: "linear-gradient(135deg,var(--red),#c2153c)" },
+      { day: "27", month: "AUG", title: "Timba Thursdays", meta: "8:00 PM · El Malecón, East Boston", city: "Boston", chipBg: "rgba(255,255,255,.08)" },
+      { day: "06", month: "SEP", title: "Mambo City Weekender", meta: "9:00 PM · Salón 47, Manhattan", city: "New York", chipBg: "rgba(255,255,255,.08)" }
+    ];
+
+    // ---------- school body ----------
+    const dayDefs = [
+      { k: "mon", l: "Mon", n: "3 classes" }, { k: "tue", l: "Tue", n: "2 classes" }, { k: "wed", l: "Wed", n: "3 classes" },
+      { k: "thu", l: "Thu", n: "2 classes" }, { k: "fri", l: "Fri", n: "1 class + social" }, { k: "sat", l: "Sat", n: "4 classes" }
+    ];
+    const classesByDay = {
+      mon: [
+        { time: "6:30 PM", duration: "60 min", title: "Intro to Salsa on2 — cycle starts Sep 1", meta: "Marisol Peña · Studio A · no partner needed", level: "Intro", color: "var(--gold)", spots: "9 spots left", spotsFg: "var(--text-muted)" },
+        { time: "7:45 PM", duration: "60 min", title: "Improver partnerwork", meta: "Yuli Ferrer · Studio A", level: "Improver", color: "var(--red)", spots: "4 spots left", spotsFg: "var(--tertiary)" },
+        { time: "9:00 PM", duration: "75 min", title: "Body movement & musicality", meta: "Dee Santiago · Studio B", level: "All levels", color: "var(--tertiary)", spots: "Open", spotsFg: "var(--text-dim)" }
+      ],
+      tue: [
+        { time: "7:00 PM", duration: "60 min", title: "Bachata basics", meta: "Andre Okonjo · Studio B", level: "Intro", color: "var(--gold)", spots: "12 spots left", spotsFg: "var(--text-muted)" },
+        { time: "8:15 PM", duration: "90 min", title: "Performance team rehearsal", meta: "By audition · Studio A", level: "Team", color: "rgba(255,255,255,.35)", spots: "Closed", spotsFg: "var(--text-dim)" }
+      ],
+      wed: [
+        { time: "6:30 PM", duration: "60 min", title: "Intro to Salsa on2 — midweek section", meta: "Marisol Peña · Studio A", level: "Intro", color: "var(--gold)", spots: "6 spots left", spotsFg: "var(--text-muted)" },
+        { time: "7:45 PM", duration: "60 min", title: "Turn patterns & lead technique", meta: "Yuli Ferrer · Studio A", level: "Improver", color: "var(--red)", spots: "2 spots left", spotsFg: "var(--red-bright)" },
+        { time: "9:00 PM", duration: "60 min", title: "Advanced shines lab", meta: "Dee Santiago · Studio B", level: "Advanced", color: "var(--tertiary)", spots: "Open", spotsFg: "var(--text-dim)" }
+      ],
+      thu: [
+        { time: "7:00 PM", duration: "75 min", title: "Ladies styling", meta: "Dee Santiago · Studio B", level: "Improver", color: "var(--red)", spots: "5 spots left", spotsFg: "var(--text-muted)" },
+        { time: "8:30 PM", duration: "60 min", title: "Practice hour — open floor", meta: "Free for pass holders · Studio A", level: "All levels", color: "var(--tertiary)", spots: "Drop in", spotsFg: "var(--text-dim)" }
+      ],
+      fri: [
+        { time: "8:00 PM", duration: "60 min", title: "Pre-social crash course", meta: "Marisol Peña · Studio A · included with entry", level: "Intro", color: "var(--gold)", spots: "Walk-ins", spotsFg: "var(--text-dim)" }
+      ],
+      sat: [
+        { time: "11:00 AM", duration: "60 min", title: "Kids & family salsa", meta: "Yuli Ferrer · Studio B", level: "Intro", color: "var(--gold)", spots: "8 spots left", spotsFg: "var(--text-muted)" },
+        { time: "12:15 PM", duration: "90 min", title: "Saturday intensive — partnerwork", meta: "Marisol Peña · Studio A", level: "Improver", color: "var(--red)", spots: "3 spots left", spotsFg: "var(--tertiary)" },
+        { time: "2:00 PM", duration: "90 min", title: "Advanced technique lab", meta: "Guest instructor · Studio A", level: "Advanced", color: "var(--tertiary)", spots: "Waitlist", spotsFg: "var(--text-dim)" },
+        { time: "4:00 PM", duration: "120 min", title: "Team rehearsal — showcase prep", meta: "By audition · Studio A", level: "Team", color: "rgba(255,255,255,.35)", spots: "Closed", spotsFg: "var(--text-dim)" }
+      ]
+    };
+    const faqDefs = [
+      { q: "Do I need a partner?", a: "No. Classes rotate partners every few minutes, and the school keeps the lead/follow balance even by capping registrations on each side." },
+      { q: "What should I wear?", a: "Anything you can move in, and shoes with a smooth sole. Sneakers grip the floor and make turns harder on your knees. Dance shoes are never required." },
+      { q: "Can I join mid-cycle?", a: "Intro cycles run six weeks and you can join through week two. After that you are welcome in the Friday crash course until the next cycle opens." },
+      { q: "Is there a student social?", a: "Every Friday at the Havana Room, with a free crash course at 8 PM and a DJ from 9:30. Pass holders get in free." }
+    ];
+    const schoolDayList = dayDefs.map((d) => {
+      const on = d.k === s.schoolDay;
+      const c = chip(on);
+      return { label: d.l, count: d.n, bg: c.bg, fg: on ? "#fff" : "var(--text-muted)", bd: c.bd, go: () => this.setState({ schoolDay: d.k }) };
+    });
+
+    // ---------- instructor body ----------
+    const insDayDefs = [{ k: "thu", l: "Thu 21" }, { k: "fri", l: "Fri 22" }, { k: "sun", l: "Sun 24" }];
+    const slotsByDay = { thu: ["5:00 PM", "6:00 PM", "7:00 PM"], fri: ["4:30 PM", "5:30 PM"], sun: ["11:00 AM", "12:00 PM", "1:00 PM", "3:00 PM"] };
+    const insDays = insDayDefs.map((d) => {
+      const on = d.k === s.insDay;
+      const c = chip(on);
+      return { label: d.l, bg: c.bg, fg: on ? "#fff" : "var(--text-muted)", bd: c.bd, go: () => this.setState({ insDay: d.k, insSlot: slotsByDay[d.k][0] }) };
+    });
+    const insSlots = (slotsByDay[s.insDay] || []).map((t) => {
+      const on = t === s.insSlot;
+      return { label: t, bg: on ? "rgba(233,195,73,.16)" : "transparent", fg: on ? "var(--gold)" : "var(--text-muted)", bd: on ? "var(--gold)" : "var(--border)", go: () => this.setState({ insSlot: t }) };
+    });
+
+    return {
+      noop: noop, isPageOwner: isPageOwner, showReviews: showReviews, showDjMixes: showDjMixes, showDjReviews: showDjReviews, showMediaServices: showMediaServices,
+      showShellNav: !this.props.embedded, showFooter: !this.props.embedded, headerMod: this.props.embedded ? "pp-static" : "", rootMod: this.props.embedded ? "pp-embedded" : "",
+      goDirectory: (e) => { if (e) e.preventDefault(); this.go("dir-djs"); },
+      goDirInstructors: (e) => { if (e) e.preventDefault(); this.go("dir-instructors"); },
+      goSchool: (e) => { if (e) e.preventDefault(); this.go("school"); },
+      goHost: (e) => { if (e) e.preventDefault(); this.go("host"); },
+      setCityBos: () => this.setState({ city: "boston" }), setCityNyc: () => this.setState({ city: "nyc" }),
+      bosBg: city === "boston" ? "var(--red)" : "transparent", bosFg: city === "boston" ? "#fff" : "var(--text-muted)",
+      nycBg: city === "nyc" ? "var(--red)" : "transparent", nycFg: city === "nyc" ? "#fff" : "var(--text-muted)",
+      cityLabel: this.cityLabel(city), typeTabs: typeTabs,
+
+      isDirectory: activeTab === screen, isDirDjs: screen === "dir-djs", isDirSchools: screen === "dir-schools", isDirInstructors: screen === "dir-instructors",
+      isDirVenues: screen === "dir-venues", isDirHosts: screen === "dir-hosts", isDirMedia: screen === "dir-media", isDirPerformers: screen === "dir-performers",
+      isDetail: !!detailParent[screen],
+      isDj: screen === "dj", isSchool: screen === "school", isInstructor: screen === "instructor",
+      isVenue: screen === "venue", isHost: screen === "host", isMedia: screen === "media", isPerformer: screen === "performer",
+      venueRows: venueRows, hostCards: hostCards, mediaTiles: mediaTiles, performerCards: performerCards,
+
+      dirEyebrow: copy.eyebrow, dirTitle: copy.title, dirSub: copy.sub, dirCount: copy.count, dirSearchHint: copy.search, dirFootnote: copy.foot,
+      dirFilters: dirFilters, djRows: djRows, schoolCards: schoolCards, instructorTiles: instructorTiles,
+
+      detKind: detail.kind, detKindBg: detail.kindBg, detKindFg: detail.kindFg, detName: detail.name, detTagline: detail.tagline,
+      detInitials: detail.initials, detVerified: detail.verified, detCities: detCities, detStats: detail.stats, detSocials: detail.socials, detTabs: detail.tabs,
+      detCta: detail.cta, detBackLabel: detail.back, detBack: (e) => { if (e) e.preventDefault(); this.go(detail.backTo); },
+      detIsPerson: detail.person, detIsOrg: !detail.person,
+      detCover: detail.cover, detHasPhoto: hasCover, detNoPhoto: !hasCover,
+      detAvatar: detail.avatar, detHasAvatarPhoto: !!detail.avatar, detNoAvatarPhoto: !detail.avatar,
+      detFollowing: detFollowing, detNotFollowing: !detFollowing,
+      detToggleFollow: () => this.toggleFollow(detail.id),
+      detShowClaim: showClaim && detail.unclaimed, detClaimNote: detail.claimNote,
+
+      djBio: "Nolo has held the Friday floor at the Havana Room since 2019. He reads a room by watching feet, not phones — dura early while the floor fills, timba once it does, and a bachata block at midnight so nobody sits down. Requests welcome between songs, not during.",
+      djMix: djMixDefs.map((m) => ({ label: m.label, pctLabel: m.pct + "%", width: m.pct + "%", color: m.color })),
+      djMixes: [
+        { title: "Timba Heat, Vol. 4", meta: "Recorded live at El Malecón · June 2026", length: "62 min" },
+        { title: "On2 Warmup", meta: "Studio mix · classics into modern", length: "48 min" },
+        { title: "Son & Late Classics", meta: "Recorded live at Havana Room · March 2026", length: "71 min" }
+      ],
+      djDates: djDateDefs.map((d) => Object.assign({}, d, { open: noop })),
+      djResidencies: [
+        { when: "Every Friday", where: "Havana Room — Casa del Ritmo social, Jamaica Plain" },
+        { when: "2nd & 4th Thursday", where: "El Malecón — Timba Thursdays, East Boston" },
+        { when: "First Saturday, monthly", where: "Salón 47 — guest set, Manhattan" }
+      ],
+      djBookNote: "Weddings, festival rooms and private parties. Four-hour minimum, own gear, and a request sheet a week ahead.",
+      djRating: dj.rating, djReviewCount: dj.reviews + " reviews", 
+      djRatingBars: [{ label: "Music selection", score: "4.9", width: "98%" }, { label: "Reads the floor", score: "4.9", width: "97%" }, { label: "Sound quality", score: "4.7", width: "94%" }],
+      djReviews: [
+        { initials: "LM", name: "Lucía M.", when: "Two weeks ago · Friday Social", stars: "★★★★★", text: "He played the Van Van block right when the floor was full and nobody left for twenty minutes. Also actually mixes on beat, which should not be rare but is." },
+        { initials: "DK", name: "Devin K.", when: "Last month · Timba Thursdays", stars: "★★★★★", text: "Came alone, knew two moves. He kept enough classics in the set that I could hear the 1 and the 2. Good night for a beginner." }
+      ],
+
+      schoolPaths: [
+        { tag: "Never danced", tagFg: "var(--gold)", title: "Start in the Intro cycle", body: "Six weeks, same room, same people. You learn the basic, the cross-body lead and how to hear the clave. No partner, no shoes, no experience.", classLine: "Intro to Salsa on2", detailLine: "Mondays 6:30 PM · next cycle Sep 1 · first class free", cta: "Reserve a spot" },
+        { tag: "Danced a bit", tagFg: "var(--red-bright)", title: "Improver + body movement", body: "You know the basic but freeze in a social. Two classes a week: partnerwork on Monday, musicality and movement on Wednesday.", classLine: "Improver partnerwork", detailLine: "Mon & Wed 7:45 PM · drop in any week", cta: "See the class" },
+        { tag: "Ready to perform", tagFg: "var(--tertiary)", title: "Audition for the team", body: "The showcase team rehearses twice a week and performs at four festivals a year. Auditions open in January and August.", classLine: "Casa del Ritmo Performance Team", detailLine: "Tue & Sat · auditions Aug 30", cta: "Audition details" }
+      ],
+      schoolLevels: [{ label: "Intro", color: "var(--gold)" }, { label: "Improver", color: "var(--red)" }, { label: "Advanced / all levels", color: "var(--tertiary)" }, { label: "Team (by audition)", color: "rgba(255,255,255,.35)" }],
+      schoolDays: schoolDayList,
+      schoolClasses: classesByDay[s.schoolDay] || [],
+      schoolPasses: [
+        { name: "Drop-in class", detail: "Any single class, any level", price: "$22", bd: "var(--border)", popular: false },
+        { name: "Five-class card", detail: "Valid three months · shareable with a partner", price: "$95", bd: "rgba(233,195,73,.4)", popular: true },
+        { name: "Unlimited month", detail: "All classes, practice hour and Friday social", price: "$155", bd: "var(--border)", popular: false }
+      ],
+      schoolTrialNote: "First class is free for anyone who has never danced with us — walk in fifteen minutes early and say so at the desk. Students and under-25s pay $16 drop-in with an ID.",
+      schoolFaq: faqDefs.map((f, i) => ({ q: f.q, a: f.a, open: s.faqOpen === i, icon: s.faqOpen === i ? "−" : "+", go: () => this.setState({ faqOpen: s.faqOpen === i ? -1 : i }) })),
+      schoolTeam: this._instructors.slice(0, 4).map((t) => ({ name: t.name, role: t.specialty, slotId: "pp-team-" + t.id, slotHint: t.name, open: (e) => { if (e) e.preventDefault(); this.go("instructor"); } })),
+      schoolCityNote: "Two studios, one schedule and one pass. A Boston pass works in Bushwick and the other way round — useful if you travel for festivals.",
+      schoolLocations: [
+        { city: "Boston", cityFg: "var(--red-bright)", name: "Studio A & B — Jamaica Plain", address: "41 Centre Street, Boston MA 02130", transit: "Orange Line to Jackson Square, 6 min walk · street parking after 6 PM", venueLink: "Venue page" },
+        { city: "New York", cityFg: "var(--gold)", name: "Bushwick annex", address: "1104 Flushing Ave, Brooklyn NY 11237", transit: "L to Morgan Ave, 4 min walk · shares the floor with Mambo Lab on Sundays", venueLink: "Venue page" }
+      ],
+      schoolReviews: [
+        { stars: "★★★★★", text: "I did the intro cycle having never danced. By week four I went to the Friday social and actually danced instead of standing by the bar.", name: "Priya S.", when: "June 2026" },
+        { stars: "★★★★★", text: "The lead/follow cap is the reason I stayed. No standing out three songs in a row because the class is uneven.", name: "Marcus T.", when: "May 2026" },
+        { stars: "★★★★☆", text: "Advanced lab is excellent. Studio B gets warm in July — bring water.", name: "Ana R.", when: "July 2026" }
+      ],
+
+      insBio: "I teach on2 because that is where the music lives. My beginner classes start with the clave and the weight change, not with a pattern — get those and the patterns take care of themselves. I teach in English and Spanish, and I take four private students a week so nobody gets a rushed hour.",
+      insBadges: ["English & Spanish", "Teaches since 2018", "Beginner specialist", "Wedding first dances", "Travels to NYC monthly"],
+      insSkills: [
+        { title: "Salsa on2 fundamentals", level: "Beginner", body: "Timing, weight change and the cross-body lead, taught so a social floor makes sense by week three." },
+        { title: "Partnerwork & connection", level: "Improver", body: "Frame, tension and how to lead without pulling. The class most dancers should take twice." },
+        { title: "Musicality", level: "All levels", body: "Hearing the montuno, the mambo section and where the break lands, then dancing to it instead of counting." },
+        { title: "Wedding first dance", level: "Private", body: "Four to six sessions, your song, choreography that survives nerves and a long dress." }
+      ],
+      insClips: [
+        { title: "Social floor, Havana Room", meta: "Improvised · June 2026", slotId: "pp-ins-clip-1", slotHint: "Social dancing clip" },
+        { title: "Boston Salsa Festival — pro show", meta: "Stage performance · 2026", slotId: "pp-ins-clip-2", slotHint: "Stage performance clip" }
+      ],
+      insCredits: [
+        { year: "2026", what: "Boston Salsa Festival — pro show and on2 workshop track" },
+        { year: "2025", what: "Nueva York Salsa Congress — invited instructor, ladies' technique" },
+        { year: "2024", what: "Casa del Ritmo showcase team — director, two seasons" },
+        { year: "2022", what: "World Latin Dance Cup — semifinalist, cabaret division" }
+      ],
+      insReviewTags: ["Patient with beginners", "Great musicality", "Clear explanations", "Bilingual", "Punctual"],
+      insReviews: [
+        { initials: "JB", name: "Jordan B.", when: "Three weeks ago · private lesson", stars: "★★★★★", text: "Booked five privates before my wedding. She rebuilt the whole routine when my wife's dress turned out heavier than expected, and never made us feel like beginners." },
+        { initials: "SA", name: "Sofia A.", when: "Last month · Monday intro", stars: "★★★★★", text: "She spent ten minutes on one weight change and it fixed everything else. I finally hear the 2." }
+      ],
+      insRates: [
+        { name: "Private, 60 min", detail: "One dancer · studio included", price: "$95" },
+        { name: "Couple, 60 min", detail: "Two dancers, one lesson", price: "$120" },
+        { name: "Wedding package", detail: "Five sessions · choreography & music edit", price: "$450" }
+      ],
+      insBookNote: "Four private slots a week. Studio time in Jamaica Plain is included in the rate.",
+      insDays: insDays, insSlots: insSlots,
+      insRequestLabel: "Request " + (s.insSlot || "a slot"),
+      insReplyNote: "Usually replies within a day. No payment until she confirms.",
+      insClasses: [
+        { day: "Mon", title: "Intro to Salsa on2", meta: "6:30 PM · Studio A · Casa del Ritmo" },
+        { day: "Wed", title: "Intro to Salsa on2 — midweek", meta: "6:30 PM · Studio A" },
+        { day: "Sat", title: "Saturday intensive — partnerwork", meta: "12:15 PM · Studio A" }
+      ],
+      insDates: [
+        { day: "21", month: "AUG", title: "Friday Social — teaching the crash course", meta: "8:00 PM · Havana Room, Boston" },
+        { day: "06", month: "SEP", title: "Mambo City Weekender — guest workshop", meta: "2:00 PM · Salón 47, New York" }
+      ],
+
+      venSpecs: [
+        { label: "Floor", value: "Sprung maple", note: "Refinished 2025 · smooth for suede" },
+        { label: "Floor area", value: "1,400 sq ft", note: "Two connected rooms" },
+        { label: "Capacity", value: "220", note: "Comfortable at 150 dancing" },
+        { label: "Sound", value: "House PA + booth", note: "DJ brings controller only" },
+        { label: "Air", value: "AC, two units", note: "Runs all summer" },
+        { label: "Bar & food", value: "Full bar, small plates", note: "Kitchen closes at 11" }
+      ],
+      venNights: [
+        { day: "Thu", title: "Practice hour — open floor", host: "Casa del Ritmo", meta: "7 PM · free, no DJ" },
+        { day: "Fri", title: "Friday Social", host: "Casa del Ritmo Nights", meta: "9:30 PM · DJ Nolo Rivas · $15" },
+        { day: "Sun", title: "Live band matinée", host: "Sabor Sunday", meta: "Third Sunday · 4 PM · $20" }
+      ],
+      venDates: [
+        { day: "21", month: "AUG", title: "Friday Social", meta: "9:30 PM · DJ Nolo Rivas · crash course at 8", chipBg: "linear-gradient(135deg,var(--red),#c2153c)" },
+        { day: "24", month: "AUG", title: "Live band matinée — Orquesta Bembé", meta: "4:00 PM · $20 at the door", chipBg: "rgba(255,255,255,.08)" },
+        { day: "28", month: "AUG", title: "Friday Social", meta: "9:30 PM · DJ Ceci Marte", chipBg: "rgba(255,255,255,.08)" }
+      ],
+      venPractical: [
+        "Step-free entrance from Centre Street, accessible restroom on the main floor",
+        "Coat check $2, cash or card at the desk",
+        "Street parking free after 6 PM; municipal lot two blocks north",
+        "Orange Line to Jackson Square, six minute walk",
+        "Cover $10–$20 depending on the night; students $5 off with ID",
+        "Doors close to new entries at 1 AM, music until 2"
+      ],
+      venRatingBars: [
+        { label: "Floor quality", score: "4.9", width: "98%" },
+        { label: "Sound", score: "4.7", width: "94%" },
+        { label: "Space to dance", score: "4.6", width: "92%" },
+        { label: "Feels safe", score: "4.9", width: "98%" }
+      ],
+      venReviews: [
+        { initials: "TC", name: "Tasha C.", when: "Two weeks ago", stars: "★★★★★", text: "Best wood floor in the city and they actually run the AC. Gets tight around eleven but the second room opens up." },
+        { initials: "RG", name: "Rob G.", when: "Last month", stars: "★★★★☆", text: "Sound is clean in the main room, a little boomy near the bar. Staff walked two people out fast when someone got handsy — worth saying." }
+      ],
+      venRentNote: "Private hire Sunday through Wednesday. Room, bar staff and PA included; you bring the DJ and the promotion.",
+
+      hostBio: "We started the Friday social with thirty people in a rented studio and a borrowed speaker. Ten years on it is the same idea: one room, a beginner class at the door, and a floor where nobody has to explain themselves.",
+      hostSeries: [
+        { name: "Friday Social", cadence: "Weekly · Fridays", venue: "Havana Room, Jamaica Plain", attendance: "180–220 dancers", next: "Aug 21 · 9:30 PM", tagFg: "var(--red-bright)" },
+        { name: "Sabor Sunday matinée", cadence: "Monthly · third Sunday", venue: "Havana Room, Jamaica Plain", attendance: "120 dancers · live band", next: "Aug 24 · 4:00 PM", tagFg: "var(--gold)" },
+        { name: "Casa Weekender", cadence: "Twice a year", venue: "Multiple rooms · Boston & NYC", attendance: "600 pass holders", next: "Nov 6–8", tagFg: "var(--tertiary)" }
+      ],
+      hostRules: [
+        { num: "01", title: "Ask, then dance", body: "Nobody owes anyone a dance. A no is a complete answer and staff will back it up." },
+        { num: "02", title: "Two floor hosts every night", body: "In red shirts, on the floor, not behind the bar. They can stop a song and remove a guest." },
+        { num: "03", title: "Report anything, any time", body: "Text the number on the wristband or use the report button on the event page. We reply within a day." },
+        { num: "04", title: "Beginners get the first hour", body: "The 8 PM crash course room is for people who have never danced. Advanced dancers, please wait upstairs." },
+        { num: "05", title: "Photos only in the lit corner", body: "The photographer works one side of the room. The rest of the floor is camera-free." }
+      ],
+      hostUpcoming: [
+        { day: "21", month: "AUG", title: "Friday Social", meta: "Havana Room · DJ Nolo Rivas · $15", chipBg: "linear-gradient(135deg,var(--red),#c2153c)" },
+        { day: "24", month: "AUG", title: "Sabor Sunday — Orquesta Bembé", meta: "Havana Room · live band · $20", chipBg: "rgba(255,255,255,.08)" },
+        { day: "28", month: "AUG", title: "Friday Social", meta: "Havana Room · DJ Ceci Marte · $15", chipBg: "rgba(255,255,255,.08)" },
+        { day: "06", month: "NOV", title: "Casa Weekender — pass on sale", meta: "Three rooms · Boston · from $95", chipBg: "rgba(255,255,255,.08)" }
+      ],
+      hostTeam: [
+        { name: "Ana Beltrán", role: "Founder · books the DJs", contact: "ana@" },
+        { name: "Marisol Peña", role: "Classes & crash course", contact: "marisol@" },
+        { name: "Kwame Adjei", role: "Floor hosts & safety", contact: "safety@" }
+      ],
+      hostWork: [
+        { title: "Play for us", body: "DJs and bands send a mix and two dates you are free.", cta: "DJ submission" },
+        { title: "Bring a venue", body: "Room for 150+ with a real floor? We run Sundays and Wednesdays too.", cta: "Venue enquiry" },
+        { title: "Press & photos", body: "Logos, past-night photos and attendance numbers for festival programmes.", cta: "Press kit" }
+      ],
+
+      medServices: [
+        { name: "Event coverage", detail: "Up to 4 hours · 60+ edited frames · gallery link for the host", price: "$250" },
+        { name: "Reel cut", detail: "Vertical 30s edit from the same night, delivered next day", price: "+$120" },
+        { name: "Portrait session", detail: "Dancer or teacher portraits · studio or floor · 20 frames", price: "$180" },
+        { name: "Festival weekend", detail: "Three days, stage plus socials, same-day selects", price: "from $900" }
+      ],
+      medFacts: [
+        { label: "Turnaround", value: "48 hours", note: "Same-night selects on request" },
+        { label: "Licensing", value: "Host + dancers", note: "Free personal use, credit appreciated" },
+        { label: "Gear", value: "No flash on the floor", note: "Fast primes, quiet shutter" }
+      ],
+      medTerms: "Hosts get full commercial use of the gallery for the night they booked. Dancers in a frame may use their own photos anywhere, no fee, no watermark. Brands and venues need a separate licence. Any dancer can ask for a photo of themselves to be pulled, no reason needed, and it comes down the same day.",
+      medCovered: ["Friday Social — 40+ nights", "Boston Salsa Festival 2026", "Timba Thursdays", "Casa Weekender", "Mambo City Weekender", "JP Block Party"],
+      medPortfolio: [
+        { slotId: "pp-med-p1", slotHint: "Social floor, wide", span: "span 2", rowSpan: "span 2" },
+        { slotId: "pp-med-p2", slotHint: "Couple, tight", span: "span 1", rowSpan: "span 1" },
+        { slotId: "pp-med-p3", slotHint: "DJ booth", span: "span 1", rowSpan: "span 1" },
+        { slotId: "pp-med-p4", slotHint: "Stage show", span: "span 1", rowSpan: "span 2" },
+        { slotId: "pp-med-p5", slotHint: "Crowd detail", span: "span 1", rowSpan: "span 1" },
+        { slotId: "pp-med-p6", slotHint: "Portrait", span: "span 1", rowSpan: "span 1" }
+      ],
+      medReviews: [
+        { initials: "AB", name: "Ana Beltrán · Casa del Ritmo Nights", when: "July 2026", stars: "★★★★★", text: "Forty nights and the gallery has never been late. She knows which dancers to shoot and which ones want to be left alone." },
+        { initials: "JD", name: "Jorge D. · festival director", when: "May 2026", stars: "★★★★★", text: "Delivered same-day selects across a three-day festival and handled the stage lighting without a single blown frame." }
+      ],
+
+      perfActs: [
+        { name: "Cabaret set", length: "6 min", dancers: "2 dancers", detail: "Three lifts, one drop. Needs a clear 16 × 16 ft and a hard floor.", price: "$450" },
+        { name: "Showcase piece", length: "4 min", dancers: "2 dancers", detail: "No lifts, works on a crowded social floor or a low ceiling.", price: "$300" },
+        { name: "Class + show", length: "60 min + set", dancers: "2 dancers", detail: "A partnerwork workshop before the performance, same night.", price: "$650" }
+      ],
+      perfRider: [
+        "Clear floor 16 × 16 ft minimum, swept, no drink glasses at the edge",
+        "Two handheld mics or a house playlist we send 48 hours ahead",
+        "A room to change with a mirror and somewhere to hang costumes",
+        "Fifteen minutes of stage time either side of the set for a floor check",
+        "Travel included within 60 miles of Boston; NYC dates by arrangement"
+      ],
+      perfClips: [
+        { title: "Boston Salsa Festival — pro show", meta: "6-min cabaret · 2026", slotId: "pp-perf-clip-1", slotHint: "Stage reel" },
+        { title: "Friday Social — floor set", meta: "4-min showcase · 2026", slotId: "pp-perf-clip-2", slotHint: "Floor set clip" }
+      ],
+      perfCredits: [
+        { year: "2026", what: "Boston Salsa Festival — pro show, both nights" },
+        { year: "2026", what: "Casa Weekender — opening set and workshop" },
+        { year: "2025", what: "Nueva York Salsa Congress — invited duo" },
+        { year: "2025", what: "World Latin Dance Cup — cabaret division, 4th" }
+      ],
+      perfDates: [
+        { day: "21", month: "AUG", title: "Friday Social — guest set", meta: "11:00 PM · Havana Room, Boston", chipBg: "linear-gradient(135deg,var(--red),#c2153c)" },
+        { day: "12", month: "SEP", title: "Rueda Boston showcase night", meta: "9:30 PM · Sala Norte, Somerville", chipBg: "rgba(255,255,255,.08)" },
+        { day: "04", month: "OCT", title: "Mambo City congress — pro show", meta: "10:00 PM · Salón 47, New York", chipBg: "rgba(255,255,255,.08)" }
+      ],
+      perfDancers: [
+        { name: "Camila Rueda", role: "Follow · choreography", slotId: "pp-perf-d1" },
+        { name: "Elías Font", role: "Lead · lifts & partnering", slotId: "pp-perf-d2" }
+      ],
+      perfReviews: [
+        { initials: "AB", name: "Ana Beltrán · host", when: "June 2026", stars: "★★★★★", text: "They cleared the floor, did six minutes, and stayed to dance socially for two hours. That second part is why we rebook them." },
+        { initials: "MF", name: "Marta F. · festival programmer", when: "April 2026", stars: "★★★★★", text: "Sent the rider a month ahead and hit every mark at the tech check. Easiest act on the bill." }
+      ]
+    };
+  }
+
+  fmtN(n) { return n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, "") + "k" : String(n); }
+}
+</script>
+</body>
+</html>

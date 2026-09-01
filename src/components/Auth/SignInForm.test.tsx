@@ -22,6 +22,7 @@ describe("SignInForm", () => {
       role: null,
       signInWithPassword,
       resendConfirmation: vi.fn(),
+      requestPasswordReset: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
       clearDeletedAccount: vi.fn(),
@@ -68,6 +69,7 @@ describe("SignInForm", () => {
       role: null,
       signInWithPassword: vi.fn(),
       resendConfirmation: vi.fn(),
+      requestPasswordReset: vi.fn(),
       signUp,
       signOut: vi.fn(),
       clearDeletedAccount: vi.fn(),
@@ -110,6 +112,7 @@ describe("SignInForm", () => {
       role: null,
       signInWithPassword,
       resendConfirmation: vi.fn(),
+      requestPasswordReset: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
       clearDeletedAccount: vi.fn(),
@@ -150,6 +153,7 @@ describe("SignInForm", () => {
       role: null,
       signInWithPassword,
       resendConfirmation: vi.fn(),
+      requestPasswordReset: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
       clearDeletedAccount: vi.fn(),
@@ -190,6 +194,7 @@ describe("SignInForm", () => {
       role: null,
       signInWithPassword,
       resendConfirmation: vi.fn(),
+      requestPasswordReset: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
       clearDeletedAccount: vi.fn(),
@@ -230,6 +235,7 @@ describe("SignInForm", () => {
       role: null,
       signInWithPassword,
       resendConfirmation: vi.fn(),
+      requestPasswordReset: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
       clearDeletedAccount: vi.fn(),
@@ -273,6 +279,7 @@ describe("SignInForm", () => {
       role: null,
       signInWithPassword,
       resendConfirmation: vi.fn(),
+      requestPasswordReset: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
       clearDeletedAccount: vi.fn(),
@@ -314,6 +321,7 @@ describe("SignInForm", () => {
       role: null,
       signInWithPassword: vi.fn(),
       resendConfirmation: vi.fn(),
+      requestPasswordReset: vi.fn(),
       signUp,
 
       signOut: vi.fn(),
@@ -355,6 +363,7 @@ describe("SignInForm", () => {
       role: null,
       signInWithPassword: vi.fn(),
       resendConfirmation: vi.fn(),
+      requestPasswordReset: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
       clearDeletedAccount: vi.fn(),
@@ -381,6 +390,7 @@ describe("SignInForm", () => {
       role: null,
       signInWithPassword: vi.fn(),
       resendConfirmation: vi.fn(),
+      requestPasswordReset: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
       clearDeletedAccount: vi.fn(),
@@ -414,6 +424,7 @@ describe("SignInForm", () => {
       role: null,
       signInWithPassword: vi.fn(),
       resendConfirmation: vi.fn(),
+      requestPasswordReset: vi.fn(),
       signUp,
       signOut: vi.fn(),
       clearDeletedAccount: vi.fn(),
@@ -433,5 +444,139 @@ describe("SignInForm", () => {
     await user.type(screen.getByLabelText(/^password$/i), "password123");
     await user.click(screen.getByRole("button", { name: /^sign up$/i }));
     expect(signUp).toHaveBeenCalledWith("new@example.com", "password123");
+  });
+
+  it("switches to a password reset request form and submits it", async () => {
+    const requestPasswordReset = vi.fn().mockResolvedValue({ error: null });
+    vi.mocked(useAuth).mockReturnValue({
+      user: null,
+      session: null,
+      loading: false,
+      isAdmin: false,
+      isModerator: false,
+      isOrganizer: false,
+      role: null,
+      signInWithPassword: vi.fn(),
+      resendConfirmation: vi.fn(),
+      requestPasswordReset,
+      signUp: vi.fn(),
+      signOut: vi.fn(),
+      clearDeletedAccount: vi.fn(),
+    });
+    const user = userEvent.setup();
+
+    render(
+      <MemoryRouter>
+        <SignInForm />
+      </MemoryRouter>
+    );
+
+    await user.click(screen.getByRole("button", { name: /forgot password/i }));
+    expect(screen.getByRole("heading", { name: "Reset your password" })).toBeInTheDocument();
+    expect(screen.queryByLabelText(/^password$/i)).not.toBeInTheDocument();
+
+    await user.type(screen.getByLabelText(/email/i), "user@example.com");
+    await user.click(screen.getByRole("button", { name: /send reset link/i }));
+
+    expect(requestPasswordReset).toHaveBeenCalledWith("user@example.com");
+    await waitFor(() => {
+      expect(screen.getByRole("status")).toHaveTextContent(/we've sent a link/i);
+    });
+  });
+
+  it("shows a friendly error when the reset request itself fails", async () => {
+    const requestPasswordReset = vi.fn().mockResolvedValue({
+      error: new Error("Too many attempts. Please wait a moment and try again."),
+    });
+    vi.mocked(useAuth).mockReturnValue({
+      user: null,
+      session: null,
+      loading: false,
+      isAdmin: false,
+      isModerator: false,
+      isOrganizer: false,
+      role: null,
+      signInWithPassword: vi.fn(),
+      resendConfirmation: vi.fn(),
+      requestPasswordReset,
+      signUp: vi.fn(),
+      signOut: vi.fn(),
+      clearDeletedAccount: vi.fn(),
+    });
+    const user = userEvent.setup();
+
+    render(
+      <MemoryRouter>
+        <SignInForm />
+      </MemoryRouter>
+    );
+
+    await user.click(screen.getByRole("button", { name: /forgot password/i }));
+    await user.type(screen.getByLabelText(/email/i), "user@example.com");
+    await user.click(screen.getByRole("button", { name: /send reset link/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toHaveTextContent(/too many attempts/i);
+    });
+  });
+
+  it("returns to sign-in from the reset form", async () => {
+    vi.mocked(useAuth).mockReturnValue({
+      user: null,
+      session: null,
+      loading: false,
+      isAdmin: false,
+      isModerator: false,
+      isOrganizer: false,
+      role: null,
+      signInWithPassword: vi.fn(),
+      resendConfirmation: vi.fn(),
+      requestPasswordReset: vi.fn(),
+      signUp: vi.fn(),
+      signOut: vi.fn(),
+      clearDeletedAccount: vi.fn(),
+    });
+    const user = userEvent.setup();
+
+    render(
+      <MemoryRouter>
+        <SignInForm />
+      </MemoryRouter>
+    );
+
+    await user.click(screen.getByRole("button", { name: /forgot password/i }));
+    await user.click(screen.getByRole("button", { name: /back to sign in/i }));
+    expect(screen.getByRole("heading", { name: "Welcome back" })).toBeInTheDocument();
+  });
+
+  it("arrives pre-filled in reset mode when navigated with reset state", () => {
+    vi.mocked(useAuth).mockReturnValue({
+      user: null,
+      session: null,
+      loading: false,
+      isAdmin: false,
+      isModerator: false,
+      isOrganizer: false,
+      role: null,
+      signInWithPassword: vi.fn(),
+      resendConfirmation: vi.fn(),
+      requestPasswordReset: vi.fn(),
+      signUp: vi.fn(),
+      signOut: vi.fn(),
+      clearDeletedAccount: vi.fn(),
+    });
+
+    render(
+      <MemoryRouter
+        initialEntries={[
+          { pathname: "/signin", state: { mode: "reset", email: "expired@example.com" } },
+        ]}
+      >
+        <SignInForm />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByRole("heading", { name: "Reset your password" })).toBeInTheDocument();
+    expect(screen.getByLabelText(/email/i)).toHaveValue("expired@example.com");
   });
 });

@@ -1,4 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
+import { useState } from "react";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { Session, User } from "@supabase/supabase-js";
@@ -14,6 +15,7 @@ vi.mock("../lib/supabase", () => ({
       signUp: vi.fn(),
       signOut: vi.fn(),
       resend: vi.fn(),
+      resetPasswordForEmail: vi.fn(),
     },
   },
   supabaseAuthStorageKey: "sb-salsa-test-auth-token",
@@ -104,6 +106,23 @@ function DeletedAccountTrigger() {
       <div data-testid="deleted-session">{session ? "present" : "none"}</div>
       <button type="button" onClick={clearDeletedAccount}>
         clear deleted account
+      </button>
+    </div>
+  );
+}
+
+function PasswordResetTrigger() {
+  const { requestPasswordReset } = useAuth();
+  const [result, setResult] = useState<{ error: Error | null } | undefined>();
+  return (
+    <div>
+      <div data-testid="reset-error">{result ? (result.error ? result.error.message : "none") : "pending"}</div>
+      <button
+        onClick={async () => {
+          setResult(await requestPasswordReset("user@example.com"));
+        }}
+      >
+        request reset
       </button>
     </div>
   );
@@ -294,5 +313,49 @@ describe("AuthContext deleted-account cleanup", () => {
     expect(queryClient.getQueryData(["private", organizer.id])).toBeUndefined();
     expect(localStorage.getItem(supabaseAuthStorageKey)).toBeNull();
     expect(localStorage.getItem(`${supabaseAuthStorageKey}-user`)).toBeNull();
+  });
+});
+
+describe("AuthContext password recovery", () => {
+  it("sends a recovery email to the app's own callback route", async () => {
+    vi.mocked(supabase.auth.resetPasswordForEmail).mockResolvedValue({ data: {}, error: null } as never);
+
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <AuthProvider>
+          <PasswordResetTrigger />
+        </AuthProvider>
+      </QueryClientProvider>
+    );
+
+    await act(async () => {
+      screen.getByText("request reset").click();
+    });
+
+    expect(supabase.auth.resetPasswordForEmail).toHaveBeenCalledWith("user@example.com", {
+      redirectTo: `${window.location.origin}/auth/callback`,
+    });
+    expect(screen.getByTestId("reset-error")).toHaveTextContent("none");
+  });
+
+  it("surfaces an error from resetPasswordForEmail without throwing", async () => {
+    vi.mocked(supabase.auth.resetPasswordForEmail).mockResolvedValue({
+      data: null,
+      error: new Error("Too many requests"),
+    } as never);
+
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <AuthProvider>
+          <PasswordResetTrigger />
+        </AuthProvider>
+      </QueryClientProvider>
+    );
+
+    await act(async () => {
+      screen.getByText("request reset").click();
+    });
+
+    expect(screen.getByTestId("reset-error")).toHaveTextContent("Too many requests");
   });
 });

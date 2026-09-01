@@ -67,14 +67,14 @@ function Contact() {
   return (
     <section id="contact" className="contact">
       <div className="container">
-        <h2 className="section-title">Ready to Dance?</h2>
+        <h1 className="section-title">Ready to Dance?</h1>
         <p className="contact-intro">
           Get in touch — say hello, share an event, or join the floor.
         </p>
 
         <div className="contact-grid">
           <div className="contact-form-card">
-            <h3>📬 Send a Message</h3>
+            <h2>📬 Send a Message</h2>
             {error && (
               <div role="alert" className="contact-error-banner">
                 {error}
@@ -138,7 +138,7 @@ function Contact() {
           <div className="contact-info-cards">
             <div className="contact-card" style={{ wordBreak: "break-all" }}>
               <div className="contact-icon">📧</div>
-              <h3>Email</h3>
+              <h2>Email</h2>
               <a
                 href="mailto:info@SalsaSegura.com"
                 style={{
@@ -153,7 +153,7 @@ function Contact() {
 
             <div className="contact-card">
               <div className="contact-icon">📞</div>
-              <h3>Phone</h3>
+              <h2>Phone</h2>
               <a href="tel:+19784440922">(978) 444-0922</a>
             </div>
           </div>

@@ -1,0 +1,10 @@
+.admin-v2__kpi-value {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.admin-v2__actions {
+  display: inline-flex;
+  gap: 7px;
+}

@@ -24,6 +24,10 @@ vi.mock("../features/submit-event/useSubmissionAccess", () => ({
 vi.mock("../features/admin/api/submissionsRepo", () => ({
   createSubmission: vi.fn(),
 }));
+// Mocked so the normal test suite can never reach the Edge Function/Resend.
+vi.mock("../features/submit-event/submissionNotification", () => ({
+  notifySubmissionReceived: vi.fn(),
+}));
 vi.mock("../features/events/api/eventFlyers", () => ({
   uploadEventFlyer: mockEventFlyers.uploadEventFlyer,
   removeEventFlyer: mockEventFlyers.removeEventFlyer,
@@ -133,7 +137,7 @@ describe("SubmitEventPage flyer (Phase 1)", () => {
 
   it("persists the uploaded flyer URL into submitted_data on submit — one upload only", async () => {
     const user = userEvent.setup();
-    vi.mocked(submissionsRepo.createSubmission).mockResolvedValueOnce();
+    vi.mocked(submissionsRepo.createSubmission).mockResolvedValueOnce("submission-id");
 
     renderPage();
 
@@ -187,7 +191,7 @@ describe("SubmitEventPage flyer (Phase 1)", () => {
 
   it("submits without a flyer when the guest is not authenticated", async () => {
     mockAuth.user = null;
-    vi.mocked(submissionsRepo.createSubmission).mockResolvedValueOnce();
+    vi.mocked(submissionsRepo.createSubmission).mockResolvedValueOnce("submission-id");
     renderPage();
 
     // Guests are not offered the flyer upload — only an honest note.
@@ -200,6 +204,14 @@ describe("SubmitEventPage flyer (Phase 1)", () => {
     fireEvent.click(screen.getByRole("button", { name: /Social/i }));
     fireEvent.change(screen.getByLabelText(/Date \*/i), {
       target: { value: "2026-09-05" },
+    });
+    // Anonymous submissions now require submitter contact details — they are
+    // the only channel for the confirmation and review-outcome emails.
+    fireEvent.change(screen.getByLabelText(/Your name/i), {
+      target: { value: "Guest Dancer" },
+    });
+    fireEvent.change(screen.getByLabelText(/^Email/i), {
+      target: { value: "guest@example.com" },
     });
     fireEvent.click(screen.getByRole("button", { name: /Submit Event/i }));
 

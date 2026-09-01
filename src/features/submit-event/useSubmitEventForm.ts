@@ -5,7 +5,7 @@ import { uploadEventFlyer, removeEventFlyer } from "../events/api/eventFlyers";
 import { useCity } from "../../contexts/useCity";
 import { useAuth } from "../../contexts/useAuth";
 import { buildInitialForm, validateSubmitForm } from "./validation";
-import { notifyAdminsOfNewSubmission } from "./submissionNotification";
+import { notifySubmissionReceived } from "./submissionNotification";
 import type { EventFormDraft } from "../events/components/EventForm";
 import { draftToSubmission } from "../events/components/EventForm";
 import type { EventFlyerStatus } from "../events/components/EventFlyerField";
@@ -140,23 +140,28 @@ export function useSubmitEventForm() {
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setError(null);
-    const validationError = validateSubmitForm({
-      title: form.title,
-      description: form.description,
-      event_type: form.event_type,
-      city: form.city,
-      event_date: form.event_date,
-      event_time: form.event_time,
-      location: form.location,
-      address: form.address,
-      price_type: form.price_type,
-      price_amount: form.price_amount,
-      rsvp_link: form.rsvp_link,
-      submitter_name: form.submitter_name,
-      submitter_email: form.submitter_email,
-      recurrence: form.recurrence,
-      dance_styles: form.dance_styles,
-    });
+    const validationError = validateSubmitForm(
+      {
+        title: form.title,
+        description: form.description,
+        event_type: form.event_type,
+        city: form.city,
+        event_date: form.event_date,
+        event_time: form.event_time,
+        location: form.location,
+        address: form.address,
+        price_type: form.price_type,
+        price_amount: form.price_amount,
+        rsvp_link: form.rsvp_link,
+        submitter_name: form.submitter_name,
+        submitter_email: form.submitter_email,
+        recurrence: form.recurrence,
+        dance_styles: form.dance_styles,
+      },
+      // Anonymous submitters have no account to reach them through, so name
+      // and email become required. Matches the anon RLS policy + trigger.
+      !user
+    );
     if (validationError) {
       setError(validationError);
       return;
@@ -179,13 +184,18 @@ export function useSubmitEventForm() {
         form,
         user ? { id: user.id, email: user.email ?? null } : null
       );
-      await createSubmission(
+      const submissionId = await createSubmission(
         submission,
         // Persist the uploaded flyer URL into submitted_data so the approval
         // carry-through (deferred SQL) can copy it to events.image_url.
         persistedFlyerUrl ? { image_url: persistedFlyerUrl } : undefined
       );
-      void notifyAdminsOfNewSubmission(submission);
+      // The submission is committed. Both emails (submitter confirmation +
+      // moderator notification) are deliberately un-awaited: the row is the
+      // source of truth, so a mail failure must never turn a successful
+      // submission into a visible error. The Edge Function records failures
+      // in event_submission_email_attempts for diagnosis.
+      void notifySubmissionReceived(submissionId);
       setIsSubmitted(true);
       setForm(buildSubmitDraft(defaultCity));
       setFlyerFile(null);

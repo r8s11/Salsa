@@ -20,8 +20,6 @@ import { deriveHostEventRows } from "../features/host/model/hostEvents";
 import type { DatabaseEvent } from "../features/events/model/types";
 import { fromEventDateInstant, formatTimeLabel } from "../features/events/model/eventDateTime";
 import AdminStatusBadge from "../components/Admin/AdminStatusBadge";
-import SalsaSeguraFallbackImage from "../components/brand/SalsaSeguraFallbackImage";
-import { getFallbackTemplate } from "../utils/eventFallbacks";
 import EventShareControls from "../features/events/components/EventShareControls";
 import { useEventAttendees } from "../features/host/hooks/useEventAttendees";
 import { useEventCheckIns } from "../features/host/hooks/useEventCheckIns";
@@ -335,16 +333,9 @@ export default function HostEventDetailPage() {
           {event.image_url ? (
             <img src={event.image_url} alt={`${event.title} flyer`} />
           ) : (
-            <SalsaSeguraFallbackImage
-              title={event.title}
-              template={getFallbackTemplate({
-                id: event.id,
-                title: event.title,
-                danceStyles: event.dance_styles,
-              })}
-              variant="detail"
-              showTitle={false}
-            />
+            <div className="host-event-detail__flyer-fallback">
+              <span className="host-event-detail__flyer-icon">💃</span>
+            </div>
           )}
           {canEdit && (
             <Link

@@ -1,0 +1,396 @@
+.admin-request-detail-page {
+  padding: 32px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.admin-request-detail-page.loading {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 48px;
+}
+
+.admin-request-detail-page .skeleton {
+  background: linear-gradient(90deg, var(--admin-border) 25%, var(--admin-surface-secondary) 50%, var(--admin-border) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 4px;
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.admin-request-detail-page .skeleton-title {
+  height: 28px;
+  width: 300px;
+  margin-bottom: 16px;
+  border-radius: var(--admin-radius);
+}
+
+.admin-request-detail-page .skeleton-meta {
+  height: 16px;
+  width: 200px;
+  margin-bottom: 8px;
+  border-radius: 4px;
+}
+
+.admin-request-detail-page.not-found {
+  text-align: center;
+  padding: 64px 32px;
+}
+
+.admin-request-detail-page.not-found h1 {
+  margin: 0 0 16px;
+  color: var(--admin-text-strong);
+}
+
+.admin-request-detail-page.not-found p {
+  margin: 0 0 24px;
+  color: var(--admin-text-secondary);
+}
+
+.detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--admin-border);
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--admin-text-secondary);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: color 0.15s ease;
+}
+
+.back-link:hover {
+  color: var(--admin-brand-text);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.detail-content {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.detail-section {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-lg);
+  padding: 32px;
+}
+
+.detail-section h2 {
+  margin: 0 0 24px;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--admin-text-strong);
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+}
+
+.detail-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-field.full-width {
+  grid-column: 1 / -1;
+}
+
+.detail-field label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--admin-text-muted);
+}
+
+.detail-field span,
+.detail-field a {
+  font-size: 0.95rem;
+  color: var(--admin-text-primary);
+  word-break: break-word;
+}
+
+.detail-field a {
+  color: var(--admin-brand-text);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.detail-field a:hover {
+  color: var(--admin-brand-hover);
+  text-decoration: underline;
+}
+
+.message-box {
+  background: var(--admin-background);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  padding: 16px;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--admin-text-secondary);
+  white-space: pre-wrap;
+  min-height: 60px;
+}
+
+.empty {
+  color: var(--admin-text-muted);
+  font-style: italic;
+}
+
+.review-section,
+.invitation-section {
+  border-top: 1px solid var(--admin-border);
+  padding-top: 32px;
+  margin-top: 24px;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.status-badge.status-pending {
+  background: var(--admin-warning-tint);
+  color: var(--admin-warning);
+}
+
+.status-badge.status-approved {
+  background: var(--admin-success-tint);
+  color: var(--admin-success);
+}
+
+.status-badge.status-rejected {
+  background: var(--admin-danger-tint);
+  color: var(--admin-danger);
+}
+
+.reviewed-badge {
+  font-size: 0.75rem;
+  color: var(--admin-text-muted);
+  margin-left: 8px;
+}
+
+.actions-bar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  padding-top: 24px;
+  border-top: 1px solid var(--admin-border);
+  margin-top: 32px;
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-danger {
+  padding: 8px 24px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: var(--admin-radius);
+  cursor: pointer;
+  transition: background 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.btn-primary {
+  color: #fff;
+  background: var(--admin-brand);
+  border: none;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--admin-brand-hover);
+}
+
+.btn-secondary {
+  color: var(--admin-text-secondary);
+  background: transparent;
+  border: 1px solid var(--admin-border);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--admin-surface-secondary);
+  color: var(--admin-text-primary);
+}
+
+.btn-danger {
+  color: #fff;
+  background: var(--admin-danger);
+  border: none;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: var(--admin-danger-strong);
+}
+
+.btn-primary:disabled,
+.btn-secondary:disabled,
+.btn-danger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ---- Invitation section (Phase 4) ---- */
+
+/* ---- Email delivery status (Phase 5) ---- */
+
+.invitation-email-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.invitation-email-status--not_sent {
+  color: var(--admin-text-muted);
+}
+
+.invitation-email-status--sent {
+  color: var(--admin-success);
+}
+
+.invitation-email-status--failed {
+  color: var(--admin-danger);
+}
+
+.invitation-success {
+  color: var(--admin-success);
+  font-size: 0.85rem;
+  margin-top: 8px;
+}
+
+.invitation-dev-link {
+  display: block;
+  margin-top: 12px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--admin-text-muted);
+  font-size: 0.75rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.invitation-dev-link:hover:not(:disabled) {
+  color: var(--admin-text-secondary);
+}
+
+.invitation-dev-link:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.invitation-status-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.invitation-display-status {
+  font-weight: 600;
+  color: var(--admin-text-primary);
+}
+
+.invitation-meta {
+  font-size: 0.85rem;
+  color: var(--admin-text-muted);
+}
+
+.invitation-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.invitation-token-reveal {
+  margin-top: 16px;
+  padding: 16px;
+  background: var(--admin-warning-tint);
+  border: 1px solid var(--admin-warning-border);
+  border-radius: var(--admin-radius);
+}
+
+.invitation-token-reveal p {
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+  color: var(--admin-text-primary);
+}
+
+.invitation-token-reveal .invitation-link-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.invitation-token-reveal code {
+  flex: 1;
+  padding: 8px 12px;
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  word-break: break-all;
+  color: var(--admin-text-primary);
+}
+
+.invitation-error {
+  color: var(--admin-danger);
+  font-size: 0.85rem;
+  margin-top: 8px;
+}
+
+@media (max-width: 768px) {
+  .admin-request-detail-page {
+    padding: 16px;
+  }
+
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}

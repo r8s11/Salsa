@@ -275,7 +275,7 @@ describe("HostEventDetailPage — Operations Dashboard", () => {
     expect(flyer).toHaveAttribute("src", "https://cdn.example.com/flyer.png");
   });
 
-  it("shows fallback artwork when no image", async () => {
+  it("shows a fallback icon when no image", async () => {
     const noImage = { ...draftEvent, organizer_id: "org-1" };
     mockOrganizerData("owner", [noImage]);
     mockOwnerEvents({
@@ -287,7 +287,7 @@ describe("HostEventDetailPage — Operations Dashboard", () => {
     await screen.findByRole("heading", { name: "Havana Nights Social" });
 
     expect(screen.getByRole("heading", { name: "Event Flyer" })).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "Salsa Segura artwork for Havana Nights Social" })).toBeInTheDocument();
+    expect(screen.getByText("💃")).toBeInTheDocument();
   });
 
   it("shows Manage Flyer link for owner/manager", async () => {

@@ -14,6 +14,13 @@ type Props = {
     attributes: EventTaxonomyTerm[];
     archived: EventTaxonomyTerm[];
   };
+  /**
+   * Marks the "Your info" name/email inputs as required. Set for anonymous
+   * public submission, where those two fields are the only way to reach the
+   * submitter about their own event. Defaults to false so admin and
+   * authenticated forms are unaffected.
+   */
+  requireSubmitterContact?: boolean;
 };
 
 const styles = [
@@ -33,6 +40,7 @@ export default function EventForm({
   renderVenueField,
   renderFlyerField,
   taxonomyTerms,
+  requireSubmitterContact = false,
 }: Props) {
   const update = <K extends keyof EventFormDraft>(key: K, value: EventFormDraft[K]) =>
     onChange({ ...draft, [key]: value });
@@ -315,11 +323,19 @@ export default function EventForm({
       {capabilities.submitterInfo && (
         <section className="event-form__section">
           <h2>Your info</h2>
+          {requireSubmitterContact && (
+            <p className="event-form__hint">
+              We use these to confirm we got your event and to tell you once it has been
+              reviewed. No account needed.
+            </p>
+          )}
           <label>
             Your name
             <input
               value={draft.submitter_name}
               onChange={(event) => update("submitter_name", event.target.value)}
+              required={requireSubmitterContact}
+              maxLength={300}
             />
           </label>
           <label>
@@ -328,6 +344,9 @@ export default function EventForm({
               type="email"
               value={draft.submitter_email}
               onChange={(event) => update("submitter_email", event.target.value)}
+              required={requireSubmitterContact}
+              maxLength={300}
+              autoComplete="email"
             />
           </label>
         </section>

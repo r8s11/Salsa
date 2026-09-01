@@ -12,6 +12,12 @@ vi.mock("../features/admin/api/submissionsRepo", () => ({
   createSubmission: vi.fn(),
 }));
 
+// The submit path fires the transactional emails fire-and-forget. Mocked so
+// the normal test suite can never reach the Edge Function or Resend.
+vi.mock("../features/submit-event/submissionNotification", () => ({
+  notifySubmissionReceived: vi.fn(),
+}));
+
 vi.mock("../features/submit-event/useSubmissionAccess", () => ({ useSubmissionAccess }));
 
 vi.mock("../contexts/useAuth", () => ({ useAuth }));
@@ -48,6 +54,7 @@ describe("SubmitEventPage", () => {
       isOrganizer: false,
       signInWithPassword: vi.fn(),
       resendConfirmation: vi.fn(),
+      requestPasswordReset: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
     });
@@ -95,7 +102,7 @@ describe("SubmitEventPage", () => {
   });
 
   it("submits the form successfully and displays success card", async () => {
-    vi.mocked(submissionsRepo.createSubmission).mockResolvedValueOnce();
+    vi.mocked(submissionsRepo.createSubmission).mockResolvedValueOnce("submission-id");
 
     renderSubmitEventPage();
 
@@ -127,7 +134,7 @@ describe("SubmitEventPage", () => {
   });
 
   it("persists a supplied start time as its New York instant", async () => {
-    vi.mocked(submissionsRepo.createSubmission).mockResolvedValueOnce();
+    vi.mocked(submissionsRepo.createSubmission).mockResolvedValueOnce("submission-id");
 
     renderSubmitEventPage();
 
@@ -176,7 +183,7 @@ describe("SubmitEventPage", () => {
   });
 
   it("allows resetting the form from success card to submit another event", async () => {
-    vi.mocked(submissionsRepo.createSubmission).mockResolvedValueOnce();
+    vi.mocked(submissionsRepo.createSubmission).mockResolvedValueOnce("submission-id");
 
     renderSubmitEventPage();
 
@@ -208,6 +215,7 @@ describe("SubmitEventPage", () => {
       isOrganizer: true,
       signInWithPassword: vi.fn(),
       resendConfirmation: vi.fn(),
+      requestPasswordReset: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
     });
@@ -239,6 +247,7 @@ describe("SubmitEventPage", () => {
       isOrganizer: true,
       signInWithPassword: vi.fn(),
       resendConfirmation: vi.fn(),
+      requestPasswordReset: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
     });
@@ -269,6 +278,7 @@ describe("SubmitEventPage", () => {
       isOrganizer: true,
       signInWithPassword: vi.fn(),
       resendConfirmation: vi.fn(),
+      requestPasswordReset: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
     });
@@ -294,6 +304,7 @@ describe("SubmitEventPage", () => {
       isOrganizer: true,
       signInWithPassword: vi.fn(),
       resendConfirmation: vi.fn(),
+      requestPasswordReset: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
     });

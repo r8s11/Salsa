@@ -41,7 +41,37 @@ export const DESCRIPTION_MAX_LENGTH = 2000;
 export const OTHER_TEXT_MAX_LENGTH = 300;
 export const DANCE_STYLES_MAX_COUNT = 10;
 
-export function validateSubmitForm(form: SubmitForm): string | null {
+/**
+ * Mirrors the database rule in
+ * sql/submission-emails/002_anon_submitter_contact_required.sql and the
+ * Edge Functions' normalizeEmail(). Plausibility only — no regex proves
+ * deliverability.
+ */
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/**
+ * `isAnonymous` gates the submitter-contact rules. An authenticated submitter
+ * is reachable through their account (`submitter_id` -> `auth.users.email`),
+ * so the form's free-text fields are genuinely optional for them. An
+ * anonymous submitter has no account: these two fields are the only way to
+ * send them a confirmation, approval, or rejection notice, which makes them
+ * required rather than nice-to-have.
+ *
+ * Defaults to `false` so existing authenticated/admin callers are unaffected.
+ */
+export function validateSubmitForm(form: SubmitForm, isAnonymous = false): string | null {
+  if (isAnonymous) {
+    if (form.submitter_name.trim() === "") {
+      return "Please enter your name so we can credit and contact you about this event.";
+    }
+    if (form.submitter_email.trim() === "") {
+      return "Please enter your email so we can tell you when your event has been reviewed.";
+    }
+    if (!EMAIL_PATTERN.test(form.submitter_email.trim())) {
+      return "Please enter a valid email address (e.g. you@example.com).";
+    }
+  }
+
   // Length caps (spam friction)
   if (form.title.length > TITLE_MAX_LENGTH) {
     return `Event title must be ${TITLE_MAX_LENGTH} characters or fewer.`;

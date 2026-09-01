@@ -25,6 +25,7 @@ export type AuthContextValue = {
     password: string
   ) => Promise<{ error: Error | null; user: User | null }>;
   resendConfirmation: (email: string) => Promise<{ error: Error | null }>;
+  requestPasswordReset: (email: string) => Promise<{ error: Error | null }>;
   signUp: (
     email: string,
     password: string

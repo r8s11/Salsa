@@ -17,13 +17,26 @@ export const supabaseURL: string = supabaseURLValue;
 export const supabaseAuthStorageKey = `sb-${new URL(supabaseURL).hostname.split(".")[0]}-auth-token`;
 
 // Create and export Supabase client.
-// flowType "pkce" makes email-confirmation and future OAuth returns arrive at
-// /auth/callback with a ?code= param exchanged via exchangeCodeForSession().
-// detectSessionInUrl stays enabled so legacy implicit-hash tokens still work.
+// flowType "pkce" makes email-confirmation and password-recovery returns
+// arrive at /auth/callback with a ?code= param exchanged via
+// exchangeCodeForSession(); /auth/invite handles its own invite links the
+// same way.
+//
+// detectSessionInUrl is deliberately OFF: both callback routes already do
+// their own explicit, single-shot session handling (PKCE code exchange or,
+// for legacy implicit links, a manual setSession() from the hash fragment —
+// see AuthCallback.tsx / InviteActivationPage.tsx). Leaving it on makes the
+// client ALSO auto-exchange the same code on construction, racing the
+// component's manual call — this genuinely happened (two concurrent token
+// exchanges for one code, and the automatic exchange's PASSWORD_RECOVERY
+// notification firing before any component had subscribed, since
+// AuthCallback is lazy-loaded and mounts after the client already
+// initialized) and produced an intermittent false "expired link" error even
+// on a valid link.
 export const supabase = createClient(supabaseURL, supabaseDefaultKey, {
   auth: {
     flowType: "pkce",
     storageKey: supabaseAuthStorageKey,
-    detectSessionInUrl: true,
+    detectSessionInUrl: false,
   },
 });

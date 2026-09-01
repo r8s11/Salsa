@@ -20,6 +20,15 @@
   color: var(--text-muted);
 }
 
+.event-form__hint {
+  margin: 0 0 var(--space-sm);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+  text-transform: none;
+  letter-spacing: normal;
+}
+
 .event-form label {
   display: grid;
   gap: 6px;

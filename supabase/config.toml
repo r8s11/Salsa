@@ -396,6 +396,21 @@ s3_secret_key = "env(S3_SECRET_KEY)"
 # not remove the internal check without replacing it with equivalent protection.
 verify_jwt = false
 
+[functions.send-founder-invitation]
+# Gateway JWT verification is intentionally disabled here: this function performs its own
+# internal caller-JWT validation against the trusted `app_metadata.role` claim (see
+# supabase/functions/send-founder-invitation/index.ts), mirroring invite-organizer. That
+# internal check is the SOLE enforcement point for this function's authorization -- do not
+# assume the gateway enforces auth, and do not remove the internal check without replacing
+# it with equivalent protection.
+verify_jwt = false
+
+[functions.reissue-founder-invitation]
+# This endpoint repeats the same explicit auth.getUser() + app_metadata.role
+# authorization boundary as the initial-send endpoint. Gateway verification
+# must remain disabled only while that equivalent internal enforcement exists.
+verify_jwt = false
+
 [functions.delete-account]
 # The function validates the bearer token with auth.getUser() itself so it can
 # return its stable public eligibility response. Gateway verification alone is
@@ -403,4 +418,40 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.send-auth-email]
+verify_jwt = false
+
+[functions.send-submission-email]
+# Gateway JWT verification is intentionally disabled here, because two of the four
+# email events are triggered by a genuinely anonymous submitter who has no session
+# (the anonymous Event Submission flow requires no account by design).
+#
+# Authorization is enforced INSIDE the function, per event:
+#   received / awaiting_review -- no session required. Abuse is bounded instead by
+#     the submission having to exist, still be 'pending', have been created inside
+#     a 15-minute freshness window, and by the one-success-per-(submission,event)
+#     database claim. Replaying an old or invented id sends nothing.
+#   approved / rejected -- requires a Bearer JWT whose app_metadata.role is admin
+#     or moderator, AND the submission must already be in that terminal state.
+#
+# The anti-relay invariant is separate from and stronger than the auth question:
+# the caller supplies only a submission id and an event name. Every recipient
+# address is read server-side from event_submissions / platform_settings, so no
+# caller can influence who receives mail. Do not add a caller-supplied recipient,
+# subject, or body parameter to this function.
+verify_jwt = false
+
+[functions.send-founder-welcome-email]
+# Gateway JWT verification is intentionally disabled here, mirroring
+# invite-organizer / send-founder-invitation: this function performs its own
+# internal caller-JWT validation via auth.getUser() (see
+# supabase/functions/send-founder-welcome-email/index.ts) so it controls the
+# exact error shape and stays independently testable, rather than depending
+# on the gateway's own 401 behavior. Every call requires a valid Bearer JWT —
+# there is no anonymous path for this function at all — the internal check
+# is the SOLE enforcement point; do not remove it without replacing it with
+# equivalent protection.
+#
+# The request body is never read (see ANTI-RELAY note in index.ts): the only
+# input to this function is the caller's own identity. Do not add a
+# caller-supplied recipient, subject, or body parameter to this function.
 verify_jwt = false

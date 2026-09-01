@@ -9,8 +9,6 @@ import "./Header.css";
 
 const PRIMARY_LINKS = [
   { to: "/calendar", label: "Calendar" },
-  { to: "/lessons", label: "Lessons" },
-  { to: "/instructors", label: "Instructors" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
 ] as const;

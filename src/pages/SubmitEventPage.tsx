@@ -181,7 +181,12 @@ export default function SubmitEventPage() {
 
             {/* ── Canonical event form ── */}
             <form ref={formRef} onSubmit={handleSubmit} className="submit-form">
-              <EventForm draft={form} onChange={onChange} capabilities={CAPABILITIES.submit} />
+              <EventForm
+                draft={form}
+                onChange={onChange}
+                capabilities={CAPABILITIES.submit}
+                requireSubmitterContact={!user}
+              />
               <button type="submit" className="btn-primary btn-block" disabled={isSubmitting}>
                 {isSubmitting
                   ? "Submitting..."

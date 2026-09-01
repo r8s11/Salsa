@@ -1,0 +1,195 @@
+/* Founder Invitation Acceptance (Phase 6) */
+
+.founders-accept-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+
+.founders-accept-header {
+  padding: var(--space-lg) var(--space-md);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.founders-accept-logo {
+  display: inline-flex;
+  color: var(--gold-light);
+  text-decoration: none;
+}
+
+.founders-accept-logo:focus-visible {
+  outline: 2px solid var(--gold-light);
+  outline-offset: 4px;
+}
+
+.founders-accept-content {
+  flex: 1;
+  padding: var(--space-xl) var(--space-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.founders-accept-card {
+  width: 100%;
+  max-width: 480px;
+  padding: var(--space-xl);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+
+.founders-accept-card--success {
+  border-color: var(--red-dim);
+}
+
+.founders-accept-card h1 {
+  margin: 0 0 var(--space-md);
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--text);
+  line-height: 1.3;
+}
+
+.founders-accept-card h1:focus {
+  outline: 2px solid var(--red);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.founders-accept-org {
+  margin: 0 0 var(--space-md);
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--red-bright);
+}
+
+.founders-accept-detail {
+  margin: 0 0 var(--space-lg);
+  color: var(--text-muted);
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.founders-accept-detail strong {
+  color: var(--text);
+  word-break: break-all;
+}
+
+.founders-accept-muted {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.founders-accept-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.founders-accept-actions .btn-primary,
+.founders-accept-actions .btn-secondary {
+  padding: var(--space-sm) var(--space-lg);
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.founders-accept-actions .btn-primary {
+  color: #fff;
+  background: var(--red);
+  border: none;
+}
+
+.founders-accept-actions .btn-primary:hover:not(:disabled) {
+  background: var(--red-bright);
+}
+
+.founders-accept-actions .btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.founders-accept-actions .btn-secondary,
+.founders-accept-card > .btn-secondary {
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--border-md);
+  text-decoration: none;
+  display: inline-block;
+  padding: var(--space-sm) var(--space-lg);
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.founders-accept-actions .btn-secondary:hover:not(:disabled),
+.founders-accept-card > .btn-secondary:hover {
+  background: var(--card-hover);
+  color: var(--text);
+}
+
+.founders-accept-hint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+.founders-accept-home {
+  display: inline-block;
+  margin-top: var(--space-sm);
+}
+
+.founders-accept-footer {
+  padding: var(--space-lg) var(--space-md);
+  text-align: center;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.founders-accept-footer-link {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.875rem;
+}
+
+.founders-accept-footer-link:hover {
+  color: var(--red-bright);
+}
+
+@media (min-width: 480px) {
+  .founders-accept-actions {
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  .founders-accept-actions .btn-primary,
+  .founders-accept-actions .btn-secondary {
+    min-width: 160px;
+  }
+}
+
+@media (max-width: 375px) {
+  .founders-accept-content {
+    padding: var(--space-lg) var(--space-sm);
+  }
+
+  .founders-accept-card {
+    padding: var(--space-lg);
+  }
+
+  .founders-accept-card h1 {
+    font-size: 1.25rem;
+  }
+}

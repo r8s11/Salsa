@@ -20,6 +20,7 @@ function authState(overrides: Partial<AuthContextValue>): AuthContextValue {
     isModerator: false,
     signInWithPassword: vi.fn(),
       resendConfirmation: vi.fn(),
+      requestPasswordReset: vi.fn(),
     signUp: vi.fn(),
     signOut: vi.fn(),
     ...overrides,

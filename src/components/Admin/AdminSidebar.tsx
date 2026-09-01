@@ -11,12 +11,14 @@ import {
   ChevronLeft,
   ChevronRight as ChevronRightIcon,
   Upload,
+  Building2,
 } from "lucide-react";
 import type { ComponentType } from "react";
 import { useAuth } from "../../contexts/useAuth";
 import type { UserRole } from "../../contexts/authContextObject";
 import { useTheme } from "../../contexts/useTheme";
 import { useOrganizerRequests } from "../../features/admin/hooks/useOrganizerRequests";
+import { useFounderRequests } from "../../hooks/useFounderRequests";
 import SalsaSeguraLogo from "../brand/SalsaSeguraLogo";
 import "./AdminSidebar.css";
 
@@ -71,6 +73,7 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { label: "Events", icon: CalendarDays, to: "/admin/events", roles: ["admin"] },
       { label: "My Events", icon: CalendarDays, to: "/host/events", roles: ["organizer"] },
+      { label: "Organization", icon: Building2, to: "/host/organization", roles: ["organizer"] },
       {
         label: "Bulk Upload",
         icon: Upload,
@@ -94,6 +97,12 @@ const NAV_SECTIONS: NavSection[] = [
         label: "Organizer Requests",
         icon: UserPlus,
         to: "/admin/organizer-requests",
+        roles: ["admin", "moderator"],
+      },
+      {
+        label: "Founder Requests",
+        icon: ClipboardCheck,
+        to: "/admin/founder-requests",
         roles: ["admin", "moderator"],
       },
     ],
@@ -144,6 +153,7 @@ export default function AdminSidebar({
   const { user, role, signOut } = useAuth();
   const { theme, setTheme, effectiveTheme } = useTheme();
   const { pendingCount } = useOrganizerRequests();
+  const { pendingCount: founderPendingCount } = useFounderRequests();
   const navItems = itemsWithGroupFlags(navItemsForRole(role));
 
   const handleSignOut = async () => {
@@ -168,7 +178,12 @@ export default function AdminSidebar({
         {navItems.map(({ item, showGroup }) => {
           const Icon = item.icon;
           const isOrganizerRequests = item.to === "/admin/organizer-requests";
-          const badge = isOrganizerRequests ? pendingCount : null;
+          const isFounderRequests = item.to === "/admin/founder-requests";
+          const badge = isOrganizerRequests
+            ? pendingCount
+            : isFounderRequests
+            ? founderPendingCount
+            : null;
 
           return (
             <div key={item.to} className="admin-nav__item-wrap">

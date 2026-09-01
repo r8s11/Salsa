@@ -53,6 +53,7 @@ const HostEventDetailPage = lazy(() => import("./pages/HostEventDetailPage"));
 const HostAttendeeListPage = lazy(() => import("./pages/HostAttendeeListPage"));
 const HostCheckInPage = lazy(() => import("./pages/HostCheckInPage"));
 const HostEventImportPage = lazy(() => import("./pages/HostEventImportPage"));
+const HostOrganizationPage = lazy(() => import("./pages/HostOrganizationPage"));
 const UserEventEditPage = lazy(() => import("./pages/UserEventEditPage"));
 import RequireAuth from "./components/Auth/RequireAuth";
 import RequireAdmin from "./components/Auth/RequireAdmin";
@@ -196,6 +197,7 @@ function App() {
               <Route path="events" element={<HostMyEventsPage />} />
               <Route path="events/import" element={<HostEventImportPage />} />
               <Route path="events/new" element={<HostCreateEventPage />} />
+              <Route path="organization" element={<HostOrganizationPage />} />
               <Route path="events/:eventId" element={<HostEventDetailPage />} />
               <Route path="events/:eventId/edit" element={<HostEditEventPage />} />
               <Route path="events/:eventId/attendees" element={<HostAttendeeListPage />} />

@@ -10,6 +10,12 @@ export interface OrganizerMembership {
   organizerSlug: string | null;
   organizerStatus: string;
   memberRole: OrganizerMemberRole;
+  description: string | null;
+  logoUrl: string | null;
+  website: string | null;
+  instagram: string | null;
+  organizerType: string | null;
+  primaryCity: string | null;
 }
 
 /**
@@ -37,10 +43,22 @@ function repositoryError(error: { message: string; code?: string }): Error {
 interface OrganizerMemberRow {
   member_role: OrganizerMemberRole;
   status: string;
-  organizers: { id: string; name: string; slug: string | null; status: string } | null;
+  organizers: {
+    id: string;
+    name: string;
+    slug: string | null;
+    status: string;
+    description: string | null;
+    logo_url: string | null;
+    website: string | null;
+    instagram: string | null;
+    organizer_type: string | null;
+    primary_city: string | null;
+  } | null;
 }
 
-const MEMBER_SELECT = "member_role, status, organizers(id, name, slug, status)";
+const MEMBER_SELECT =
+  "member_role, status, organizers(id, name, slug, status, description, logo_url, website, instagram, organizer_type, primary_city)";
 
 function projectMembership(row: OrganizerMemberRow): OrganizerMembership | null {
   if (!row.organizers) return null;
@@ -50,6 +68,12 @@ function projectMembership(row: OrganizerMemberRow): OrganizerMembership | null 
     organizerSlug: row.organizers.slug,
     organizerStatus: row.organizers.status,
     memberRole: row.member_role,
+    description: row.organizers.description,
+    logoUrl: row.organizers.logo_url,
+    website: row.organizers.website,
+    instagram: row.organizers.instagram,
+    organizerType: row.organizers.organizer_type,
+    primaryCity: row.organizers.primary_city,
   };
 }
 
@@ -167,6 +191,69 @@ export async function updateOrganizerEvent(
 ): Promise<void> {
   const { error } = await supabase.rpc("organizer_update_event", {
     p_event_id: eventId,
+    p_payload: payload,
+  });
+  if (error) throw repositoryError(error);
+}
+
+/**
+ * Fields an organizer owner/manager may edit through
+ * public.organizer_update_profile(). Mirrors the RPC whitelist exactly.
+ */
+export type OrganizerProfileUpdatePayload = {
+  name?: string;
+  description?: string | null;
+  logo_url?: string | null;
+  website?: string | null;
+  instagram?: string | null;
+  organizer_type?: string | null;
+  primary_city?: string | null;
+};
+
+/**
+ * Fetches the full organizer record. The caller must have an active
+ * membership; RLS on organizers enforces this at the database level.
+ */
+export async function fetchOrganizerProfile(organizerId: string): Promise<OrganizerMembership> {
+  const { data, error } = await supabase
+    .from("organizers")
+    .select("id, name, slug, status, description, logo_url, website, instagram, organizer_type, primary_city")
+    .eq("id", organizerId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Organizer not found.");
+
+  const org = data as {
+    id: string; name: string; slug: string | null; status: string;
+    description: string | null; logo_url: string | null; website: string | null;
+    instagram: string | null; organizer_type: string | null; primary_city: string | null;
+  };
+
+  return {
+    organizerId: org.id,
+    organizerName: org.name,
+    organizerSlug: org.slug,
+    organizerStatus: org.status,
+    memberRole: "owner", // placeholder — caller already knows their role from membership
+    description: org.description,
+    logoUrl: org.logo_url,
+    website: org.website,
+    instagram: org.instagram,
+    organizerType: org.organizer_type,
+    primaryCity: org.primary_city,
+  };
+}
+
+/**
+ * Updates an organizer's profile through the secure RPC boundary.
+ * Authorization is enforced inside the SECURITY DEFINER RPC.
+ */
+export async function updateOrganizerProfile(
+  organizerId: string,
+  payload: OrganizerProfileUpdatePayload
+): Promise<void> {
+  const { error } = await supabase.rpc("organizer_update_profile", {
+    p_organizer_id: organizerId,
     p_payload: payload,
   });
   if (error) throw repositoryError(error);

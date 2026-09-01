@@ -345,9 +345,14 @@ export default function HostMyEventsPage() {
         }
         actions={
           canCreate ? (
-            <Link to="/host/events/new" className="admin-btn admin-btn--primary">
-              + Create Event
-            </Link>
+            <>
+              <Link to="/host/events/import" className="admin-btn admin-btn--secondary">
+                Import CSV
+              </Link>
+              <Link to="/host/events/new" className="admin-btn admin-btn--primary">
+                + Create Event
+              </Link>
+            </>
           ) : isEditor ? (
             <span className="host-my-events__view-only">View only</span>
           ) : undefined
@@ -447,9 +452,14 @@ export default function HostMyEventsPage() {
               : "No events are available for this Organizer yet."}
           </p>
           {canCreate && (
-            <Link to="/host/events/new" className="admin-btn admin-btn--primary">
-              Create Event
-            </Link>
+            <>
+              <Link to="/host/events/import" className="admin-btn admin-btn--secondary">
+                Import CSV
+              </Link>
+              <Link to="/host/events/new" className="admin-btn admin-btn--primary">
+                Create Event
+              </Link>
+            </>
           )}
         </div>
       )}

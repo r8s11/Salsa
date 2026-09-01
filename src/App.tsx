@@ -10,11 +10,15 @@ const AboutPage = lazy(() => import("./pages/AboutPage"));
 const ContactPage = lazy(() => import("./pages/ContactPage"));
 const CalendarPage = lazy(() => import("./pages/CalendarPage"));
 const SubmitEventPage = lazy(() => import("./pages/SubmitEventPage"));
+const FoundersPage = lazy(() => import("./pages/FoundersPage"));
+const FoundersAcceptPage = lazy(() => import("./pages/FoundersAcceptPage"));
 const EventDetailPage = lazy(() => import("./pages/EventDetailPage"));
 const Lessons = lazy(() => import("./pages/Lessons"));
 const Instructors = lazy(() => import("./pages/Instructors"));
 const Schools = lazy(() => import("./pages/Schools"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
+const AdminFounderRequestsPage = lazy(() => import("./pages/Admin/AdminFounderRequestsPage"));
+const AdminFounderRequestDetailPage = lazy(() => import("./pages/Admin/AdminFounderRequestDetailPage"));
 const SignInPage = lazy(() => import("./pages/SignInPage"));
 const AuthCallback = lazy(() => import("./components/Auth/AuthCallback"));
 const InviteActivationPage = lazy(() => import("./components/Auth/InviteActivationPage"));
@@ -48,6 +52,7 @@ const HostDashboard = lazy(() => import("./components/Host/HostDashboard"));
 const HostEventDetailPage = lazy(() => import("./pages/HostEventDetailPage"));
 const HostAttendeeListPage = lazy(() => import("./pages/HostAttendeeListPage"));
 const HostCheckInPage = lazy(() => import("./pages/HostCheckInPage"));
+const HostEventImportPage = lazy(() => import("./pages/HostEventImportPage"));
 const UserEventEditPage = lazy(() => import("./pages/UserEventEditPage"));
 import RequireAuth from "./components/Auth/RequireAuth";
 import RequireAdmin from "./components/Auth/RequireAdmin";
@@ -64,6 +69,8 @@ function App() {
             <Route path="/signin" element={<SignInPage />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/auth/invite" element={<InviteActivationPage />} />
+            <Route path="/founders" element={<FoundersPage />} />
+            <Route path="/founders/accept" element={<FoundersAcceptPage />} />
             <Route
               path="/admin"
               element={
@@ -110,6 +117,22 @@ function App() {
                   <RequireAdmin>
                     <AdminOrganizerRequestDetailPage />
                   </RequireAdmin>
+                }
+              />
+              <Route
+                path="founder-requests"
+                element={
+                  <RequireReviewer>
+                    <AdminFounderRequestsPage />
+                  </RequireReviewer>
+                }
+              />
+              <Route
+                path="founder-requests/:id"
+                element={
+                  <RequireReviewer>
+                    <AdminFounderRequestDetailPage />
+                  </RequireReviewer>
                 }
               />
               <Route
@@ -171,6 +194,7 @@ function App() {
             >
               <Route index element={<HostDashboard />} />
               <Route path="events" element={<HostMyEventsPage />} />
+              <Route path="events/import" element={<HostEventImportPage />} />
               <Route path="events/new" element={<HostCreateEventPage />} />
               <Route path="events/:eventId" element={<HostEventDetailPage />} />
               <Route path="events/:eventId/edit" element={<HostEditEventPage />} />

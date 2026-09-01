@@ -123,7 +123,7 @@ a.logo:hover {
 }
 .city-switch__btn.active {
   color: var(--text);
-  background: var(--red);
+  background: var(--red-deep);
 }
 
 .auth-btn {
@@ -138,12 +138,13 @@ a.logo:hover {
   text-transform: uppercase;
   white-space: nowrap;
   cursor: pointer;
-  background: var(--red);
-  border: 1px solid var(--red);
+  background: var(--red-deep);
+  border: 1px solid var(--red-deep);
   border-radius: var(--radius-sm);
 }
 
 .auth-btn:hover {
+  color: var(--bg);
   background: var(--red-bright);
   border-color: var(--red-bright);
 }

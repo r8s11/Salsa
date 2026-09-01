@@ -49,8 +49,8 @@
   min-height: 3rem;
   padding: 0.25rem;
   border-radius: 0.5rem;
-  background-color: var(--red);
-  color: var(--surface-high);
+  background-color: var(--red-deep);
+  color: var(--text);
   font-family: var(--font-display);
   line-height: 1.1;
   flex-shrink: 0;
@@ -58,7 +58,7 @@
 
 .related-events-strip__badge--class {
   background-color: var(--gold);
-  color: var(--text);
+  color: var(--bg);
 }
 
 .related-events-strip__badge--workshop {

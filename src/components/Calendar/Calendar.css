@@ -26,7 +26,13 @@
   --sx-color-outline-variant: var(--border);
   --sx-color-shadow: #000;
   --sx-color-surface-tint: var(--red);
-  --sx-color-neutral: var(--sx-color-outline);
+  /* AA fix: --sx-color-neutral drives readable text (day names, date
+     headers, list-view times/arrows), not decorative borders — it must
+     stay opaque and pass 4.5:1, so it can't alias --sx-color-outline
+     (a translucent border token). --sx-color-neutral-variant remains on
+     --sx-color-outline-variant intentionally: it only styles decorative
+     leading/trailing and disabled date-picker days. */
+  --sx-color-neutral: var(--text-muted);
   --sx-color-neutral-variant: var(--sx-color-outline-variant);
   --sx-internal-color-gray-ripple-background: var(--surface-high);
   --sx-internal-color-light-gray: var(--card);

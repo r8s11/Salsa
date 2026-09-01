@@ -22,6 +22,7 @@
   /* Accent — Rose Red (primary) */
   --red: #e11d48;
   --red-bright: #ff5874;
+  --red-deep: #be123c; /* AA-safe (4.87:1) background for var(--text) foreground */
   --red-dim: rgba(225, 29, 72, 0.18);
   --red-glow: rgba(225, 29, 72, 0.3);
 

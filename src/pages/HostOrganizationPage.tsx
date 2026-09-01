@@ -113,7 +113,7 @@ export default function HostOrganizationPage() {
   const canEdit = selectedMembership?.memberRole === "owner" || selectedMembership?.memberRole === "manager";
 
   const [organizer, setOrganizer] = useState<OrganizerMembership | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(() => selectedOrganizerId !== "");
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const [editing, setEditing] = useState(false);
@@ -124,14 +124,20 @@ export default function HostOrganizationPage() {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
 
-  useEffect(() => {
-    if (!selectedOrganizerId) return;
-    let cancelled = false;
+  // Reset load/edit UI state; called from the event handlers that change
+  // selectedOrganizerId or retryCount, not from the effect that reacts to
+  // them (setState there would be synchronous-in-effect).
+  const beginLoad = () => {
     setLoading(true);
     setLoadError(null);
     setEditing(false);
     setForm(null);
     setSaveSuccess(false);
+  };
+
+  useEffect(() => {
+    if (!selectedOrganizerId) return;
+    let cancelled = false;
     fetchOrganizerProfile(selectedOrganizerId)
       .then((profile) => {
         if (!cancelled) setOrganizer(profile);
@@ -251,7 +257,10 @@ export default function HostOrganizationPage() {
           <select
             id="org-select"
             value={selectedOrganizerId}
-            onChange={(e) => setSelectedOrganizerId(e.target.value)}
+            onChange={(e) => {
+              setSelectedOrganizerId(e.target.value);
+              beginLoad();
+            }}
           >
             {activeOrganizers.map((o) => (
               <option key={o.organizerId} value={o.organizerId}>
@@ -267,7 +276,14 @@ export default function HostOrganizationPage() {
       {loadError && (
         <div className="admin-banner admin-banner--error" role="alert">
           <p>{loadError}</p>
-          <button type="button" className="admin-btn admin-btn--secondary" onClick={() => setRetryCount((c) => c + 1)}>
+          <button
+            type="button"
+            className="admin-btn admin-btn--secondary"
+            onClick={() => {
+              beginLoad();
+              setRetryCount((c) => c + 1);
+            }}
+          >
             Try Again
           </button>
         </div>

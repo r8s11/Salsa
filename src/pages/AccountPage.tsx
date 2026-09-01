@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Flag, PauseCircle, Ban } from "lucide-react";
 import { useEscapeKey } from "../features/calendar/hooks/useEscapeKey";
@@ -273,33 +273,30 @@ export default function AccountPage() {
     }
   };
 
-  const refreshDeletionEligibility = useCallback(async () => {
-    const requestId = ++eligibilityRequestRef.current;
-    setDeletionEligibility(null);
-    setDeletionEligibilityError(null);
-
-    try {
-      const eligibility = await checkAccountDeletionEligibility();
-      if (requestId === eligibilityRequestRef.current) {
-        setDeletionEligibility(eligibility);
-      }
-    } catch {
-      if (requestId === eligibilityRequestRef.current) {
-        setDeletionEligibilityError(
-          "We couldn't check whether account deletion is available. Please try again."
-        );
-      }
-    }
-  }, []);
+  const [eligibilityRetryCount, setEligibilityRetryCount] = useState(0);
 
   useEffect(() => {
-    if (user?.id) {
-      void refreshDeletionEligibility();
-    }
+    if (!user?.id) return;
+    const requestId = ++eligibilityRequestRef.current;
+    checkAccountDeletionEligibility()
+      .then((eligibility) => {
+        if (requestId === eligibilityRequestRef.current) {
+          setDeletionEligibility(eligibility);
+          setDeletionEligibilityError(null);
+        }
+      })
+      .catch(() => {
+        if (requestId === eligibilityRequestRef.current) {
+          setDeletionEligibilityError(
+            "We couldn't check whether account deletion is available. Please try again."
+          );
+        }
+      });
     return () => {
       eligibilityRequestRef.current += 1;
     };
-  }, [refreshDeletionEligibility, user?.id]);
+  }, [user?.id, eligibilityRetryCount]);
+
   const openDeleteDialog = () => {
     if (deletionEligibility?.outcome !== "eligible" || isDeleting) return;
     setDeleteError(null);
@@ -568,7 +565,11 @@ export default function AccountPage() {
               <p>{deletionEligibilityError}</p>
               <button
                 className="account-page__btn account-page__btn--outline"
-                onClick={() => void refreshDeletionEligibility()}
+                onClick={() => {
+                  setDeletionEligibility(null);
+                  setDeletionEligibilityError(null);
+                  setEligibilityRetryCount((c) => c + 1);
+                }}
                 type="button"
               >
                 Check again

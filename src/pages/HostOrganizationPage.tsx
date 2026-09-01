@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { ExternalLink, Globe, MapPin, Pencil } from "lucide-react";
@@ -122,27 +122,28 @@ export default function HostOrganizationPage() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
-  const loadOrganizer = useCallback(async (organizerId: string) => {
-    if (!organizerId) return;
+  useEffect(() => {
+    if (!selectedOrganizerId) return;
+    let cancelled = false;
     setLoading(true);
     setLoadError(null);
     setEditing(false);
     setForm(null);
     setSaveSuccess(false);
-    try {
-      const profile = await fetchOrganizerProfile(organizerId);
-      setOrganizer(profile);
-    } catch (err) {
-      setLoadError(err instanceof Error ? err.message : "Failed to load organizer.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (selectedOrganizerId) loadOrganizer(selectedOrganizerId);
-  }, [selectedOrganizerId, loadOrganizer]);
+    fetchOrganizerProfile(selectedOrganizerId)
+      .then((profile) => {
+        if (!cancelled) setOrganizer(profile);
+      })
+      .catch((err) => {
+        if (!cancelled) setLoadError(err instanceof Error ? err.message : "Failed to load organizer.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [selectedOrganizerId, retryCount]);
 
   const startEditing = () => {
     if (!organizer) return;
@@ -266,7 +267,7 @@ export default function HostOrganizationPage() {
       {loadError && (
         <div className="admin-banner admin-banner--error" role="alert">
           <p>{loadError}</p>
-          <button type="button" className="admin-btn admin-btn--secondary" onClick={() => loadOrganizer(selectedOrganizerId)}>
+          <button type="button" className="admin-btn admin-btn--secondary" onClick={() => setRetryCount((c) => c + 1)}>
             Try Again
           </button>
         </div>

@@ -67,24 +67,29 @@ export default function HostEditEventPage() {
   const [flyer, setFlyer] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [accessDenied, setAccessDenied] = useState(false);
   const [hasWriteAccess, setHasWriteAccess] = useState(false);
 
-  // Initialize form when event loads
-  useEffect(() => {
-    if (event) {
-      setForm(eventToDraft(event));
-    }
+  const accessDenied = useMemo(() => {
+    if (!event) return false;
+    if (!event.organizer_id) return true;
+    return false;
   }, [event]);
+
+  // Initialize form when event loads
+  const prevEventIdRef = useMemo(() => ({ current: null as string | null }), []);
+  const derivedForm = useMemo(() => {
+    if (!event) return null;
+    if (prevEventIdRef.current === event.id) return null;
+    prevEventIdRef.current = event.id;
+    return eventToDraft(event);
+  }, [event, prevEventIdRef]);
+  if (derivedForm !== null && form === null) {
+    setForm(derivedForm);
+  }
 
   // Check write access for the event's organizer
   useEffect(() => {
-    if (!event || !user || !event.organizer_id) {
-      if (event && !event.organizer_id) {
-        setAccessDenied(true);
-      }
-      return;
-    }
+    if (!event || !user || !event.organizer_id) return;
 
     const checkAccess = async () => {
       try {
@@ -93,7 +98,7 @@ export default function HostEditEventPage() {
           membership.memberRole === "owner" || membership.memberRole === "manager"
         );
       } catch {
-        setAccessDenied(true);
+        setHasWriteAccess(false);
       }
     };
 

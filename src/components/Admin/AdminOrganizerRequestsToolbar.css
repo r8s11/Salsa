@@ -15,8 +15,8 @@
   position: relative;
   display: flex;
   align-items: center;
-  flex: 1;
-  min-width: 180px;
+  flex: 1 1 280px;
+  min-width: 280px;
 }
 
 .admin-organizer-requests-toolbar__search svg {
@@ -28,7 +28,10 @@
   pointer-events: none;
 }
 
-.admin-organizer-requests-toolbar__search input {
+.admin-shell .admin-organizer-requests-toolbar__search .admin-input {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
   padding-left: 36px;
 }
 
@@ -97,4 +100,11 @@
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--admin-text-strong);
+}
+
+@media (max-width: 640px) {
+  .admin-organizer-requests-toolbar__search {
+    flex-basis: 100%;
+    width: 100%;
+  }
 }

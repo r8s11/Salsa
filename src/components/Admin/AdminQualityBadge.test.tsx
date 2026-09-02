@@ -13,4 +13,19 @@ describe("AdminQualityBadge", () => {
     );
     expect(screen.getByText("Custom: custom-issue")).toBeDefined();
   });
+
+  it("uses a concise trigger label without hiding the quality issue details", () => {
+    render(
+      <AdminQualityBadge
+        issues={["missing-organizer"]}
+        labelFor={() => "Missing organizer"}
+        eventTitle="Test Event"
+        triggerLabel="Needs organizer"
+      />
+    );
+
+    expect(
+      screen.getByRole("button", { name: "1 quality issue: Missing organizer" })
+    ).toHaveTextContent("Needs organizer");
+  });
 });

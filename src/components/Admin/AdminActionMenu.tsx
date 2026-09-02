@@ -6,7 +6,7 @@ import {
   type ComponentType,
   type KeyboardEvent,
 } from "react";
-import { MoreHorizontal } from "lucide-react";
+import { ChevronDown, MoreHorizontal } from "lucide-react";
 import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
 import "./AdminActionMenu.css";
 
@@ -23,9 +23,15 @@ interface AdminActionMenuProps {
   label: string; // e.g. "Actions for Salsa at the Anchor"
   items: ActionMenuItem[];
   disabled?: boolean;
+  triggerText?: string;
 }
 
-export default function AdminActionMenu({ label, items, disabled }: AdminActionMenuProps) {
+export default function AdminActionMenu({
+  label,
+  items,
+  disabled,
+  triggerText,
+}: AdminActionMenuProps) {
   const [open, setOpen] = useState(false);
   const [openUpward, setOpenUpward] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -98,14 +104,21 @@ export default function AdminActionMenu({ label, items, disabled }: AdminActionM
       <button
         type="button"
         ref={triggerRef}
-        className="admin-icon-btn admin-action-menu__trigger"
+        className={`admin-icon-btn admin-action-menu__trigger${triggerText ? " admin-action-menu__trigger--labeled" : ""}`}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={label}
         disabled={disabled}
         onClick={() => setOpen((value) => !value)}
       >
-        <MoreHorizontal size={16} />
+        {triggerText ? (
+          <>
+            <span>{triggerText}</span>
+            <ChevronDown size={14} />
+          </>
+        ) : (
+          <MoreHorizontal size={16} />
+        )}
       </button>
 
       {open && (

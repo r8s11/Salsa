@@ -105,7 +105,7 @@ export default function AdminOrganizerRequestsToolbar({
             type="search"
             className="admin-input"
             aria-label="Search organizer requests"
-            placeholder="Search by applicant or brand name…"
+            placeholder="Search applicants or brands"
             value={searchInput}
             onChange={(event) => handleSearchInput(event.target.value)}
           />
@@ -114,7 +114,7 @@ export default function AdminOrganizerRequestsToolbar({
         <div className="admin-organizer-requests-toolbar__type" ref={typeWrapRef}>
           <button
             type="button"
-            className="admin-btn admin-btn--secondary"
+            className="admin-btn admin-btn--secondary admin-btn--sm"
             aria-haspopup="menu"
             aria-expanded={typeOpen}
             onClick={() => setTypeOpen((value) => !value)}
@@ -146,7 +146,7 @@ export default function AdminOrganizerRequestsToolbar({
 
         <button
           type="button"
-          className="admin-btn admin-btn--secondary admin-organizer-requests-toolbar__more"
+          className="admin-btn admin-btn--secondary admin-btn--sm admin-organizer-requests-toolbar__more"
           onClick={onOpenDrawer}
         >
           <SlidersHorizontal size={14} />

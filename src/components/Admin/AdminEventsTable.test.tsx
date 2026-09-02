@@ -215,6 +215,18 @@ describe("AdminEventsTable", () => {
     ).toBeInTheDocument();
   });
 
+  it("uses a concise organizer warning and a labeled management action", () => {
+    renderTable({
+      events: [{ ...baseEvent, location: "Venue", host: null, image_url: "flyer.png" }],
+    });
+
+    const row = desktopRowFor("Pending Social");
+    expect(
+      within(row).getByRole("button", { name: "1 quality issue: Missing organizer" })
+    ).toHaveTextContent("Needs organizer");
+    expect(within(row).getByText("Manage")).toBeInTheDocument();
+  });
+
   it("renders a row-scoped error banner only for the matching event", () => {
     renderTable({ errorId: "event-1", error: "Network error" });
     const alerts = screen.getAllByRole("alert");

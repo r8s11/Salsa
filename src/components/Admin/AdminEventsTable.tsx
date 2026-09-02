@@ -232,6 +232,7 @@ function EventCell({
             labelFor={(issue) => QUALITY_ISSUE_LABEL[issue]}
             eventTitle={event.title}
             cancellationReason={event.cancellation_reason}
+            triggerLabel={issues.includes("organizer") ? "Needs organizer" : undefined}
           />
         )}
       </div>
@@ -322,6 +323,7 @@ export default function AdminEventsTable({
                           label={`Actions for ${event.title}`}
                           items={rowActionItems(event, onAction)}
                           disabled={isBusy}
+                          triggerText="Manage"
                         />
                       </div>
                     </td>
@@ -344,6 +346,7 @@ export default function AdminEventsTable({
         {events.map((event) => {
           const isBusy = busy?.id === event.id;
           const { date, time } = formatDateLine(event.event_date);
+          const issues = qualityIssues(event, duplicateIds);
 
           return (
             <li
@@ -366,10 +369,11 @@ export default function AdminEventsTable({
                 <span className="admin-chip">{CITY_LABEL[event.city]}</span>
               </div>
               <AdminQualityBadge
-                issues={qualityIssues(event, duplicateIds)}
+                issues={issues}
                 labelFor={(issue) => QUALITY_ISSUE_LABEL[issue]}
                 eventTitle={event.title}
                 cancellationReason={event.cancellation_reason}
+                triggerLabel={issues.includes("organizer") ? "Needs organizer" : undefined}
               />
               <div className="admin-events-cards__row">
                 <span className="admin-events-cards__label">Date</span>

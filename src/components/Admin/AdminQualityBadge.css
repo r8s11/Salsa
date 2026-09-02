@@ -1,0 +1,62 @@
+.admin-quality-badge {
+  position: relative;
+  display: inline-flex;
+}
+
+.admin-shell .admin-quality-badge__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 28px;
+  padding: 4px 8px;
+  border: 1px solid var(--admin-warning-border);
+  border-radius: 9999px;
+  background: var(--admin-warning-tint);
+  color: var(--admin-warning);
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.admin-shell .admin-quality-badge__trigger:hover,
+.admin-shell .admin-quality-badge__trigger[aria-expanded="true"] {
+  border-color: var(--admin-warning);
+}
+
+.admin-shell .admin-quality-badge__popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 60;
+  width: max-content;
+  max-width: min(280px, calc(100vw - 48px));
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  background: var(--admin-surface-elevated);
+  box-shadow: var(--admin-shadow-md);
+  color: var(--admin-text-primary);
+  font-size: 0.8rem;
+}
+
+.admin-quality-badge__popover ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding-left: 16px;
+}
+
+.admin-quality-badge__reason {
+  margin: 8px 0 0;
+  color: var(--admin-text-muted);
+}
+
+@media (pointer: coarse) {
+  .admin-shell .admin-quality-badge__trigger {
+    min-height: 36px;
+    padding: 6px 10px;
+  }
+}

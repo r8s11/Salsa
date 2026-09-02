@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { TriangleAlert } from "lucide-react";
 import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
+import "./AdminQualityBadge.css";
 
 interface AdminQualityBadgeProps<T extends string> {
   issues: T[];
   labelFor: (issue: T) => string;
   eventTitle: string;
   cancellationReason?: string | null;
+  triggerLabel?: string;
 }
 
 export default function AdminQualityBadge<T extends string>({
@@ -14,6 +16,7 @@ export default function AdminQualityBadge<T extends string>({
   labelFor,
   eventTitle,
   cancellationReason,
+  triggerLabel,
 }: AdminQualityBadgeProps<T>) {
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -44,12 +47,14 @@ export default function AdminQualityBadge<T extends string>({
         className="admin-quality-badge__trigger"
         aria-haspopup="dialog"
         aria-expanded={open}
-        aria-label={`${issues.length} quality issue${issues.length === 1 ? "" : "s"}`}
+        aria-label={`${issues.length} quality issue${issues.length === 1 ? "" : "s"}: ${issues
+          .map(labelFor)
+          .join(", ")}`}
         onClick={() => setOpen((value) => !value)}
       >
         <TriangleAlert size={12} />
-        {labelFor(first)}
-        {rest.length > 0 && ` +${rest.length}`}
+        {triggerLabel ?? labelFor(first)}
+        {!triggerLabel && rest.length > 0 && ` +${rest.length}`}
       </button>
 
       {open && (

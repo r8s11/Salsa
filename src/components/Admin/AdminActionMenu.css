@@ -15,6 +15,32 @@
   height: 44px;
 }
 
+.admin-shell .admin-action-menu .admin-action-menu__trigger--labeled {
+  width: auto;
+  height: 34px;
+  min-height: 34px;
+  gap: 4px;
+  padding: 0 10px;
+  border: 1px solid var(--admin-border);
+  background: var(--admin-surface);
+  color: var(--admin-text-primary);
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.admin-shell .admin-action-menu .admin-action-menu__trigger--labeled:hover:not(:disabled) {
+  background: var(--admin-surface-secondary);
+}
+
+@media (pointer: coarse) {
+  .admin-shell .admin-action-menu .admin-action-menu__trigger--labeled {
+    width: auto;
+    height: 44px;
+    min-height: 44px;
+  }
+}
+
 .admin-action-menu__panel {
   position: absolute;
   top: calc(100% + 4px);

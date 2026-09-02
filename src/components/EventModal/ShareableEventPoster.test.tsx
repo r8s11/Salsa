@@ -35,9 +35,21 @@ describe("ShareableEventPoster", () => {
     expect(
       screen.getByRole("img", { name: /instagram story poster/i })
     ).toBeInTheDocument();
-    expect(document.querySelector(".poster-bg-img")).toHaveAttribute(
+    expect(document.querySelector(".poster-artwork-fill img")).toHaveAttribute(
       "src",
       "data:image/png;base64,banner"
     );
+    expect(document.querySelector(".poster-artwork-image")).toHaveAttribute(
+      "src",
+      "data:image/png;base64,banner"
+    );
+    expect(document.querySelector(".poster-info-panel")).toBeInTheDocument();
+  });
+
+  it("uses the identical information panel when an event has no flyer", () => {
+    render(<ShareableEventPoster event={event} />);
+
+    expect(document.querySelector(".poster-artwork-frame")).not.toBeInTheDocument();
+    expect(document.querySelector(".poster-info-panel")).toBeInTheDocument();
   });
 });

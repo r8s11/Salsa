@@ -102,12 +102,31 @@ describe("databaseEventToScheduleX", () => {
     expect(result.imageUrl).toBe(url);
   });
 
+  it("keeps a normalized poster cache separate from the original flyer", () => {
+    const result = databaseEventToScheduleX(
+      mockEvent({
+        image_url: "https://flyers.example/original.jpg",
+        poster_image_url:
+          "https://project.supabase.co/storage/v1/object/public/event-flyers/poster-cache/test-id/flyer.jpg",
+      })
+    );
+
+    expect(result.imageUrl).toBe("https://flyers.example/original.jpg");
+    expect(result.posterImageUrl).toContain("poster-cache/test-id/");
+  });
+
   it("projects canonical dance-style term names", () => {
     const event = mockEvent({
       taxonomy_term_ids: ["salsa", "beginner"],
       taxonomy_terms: [
         { id: "salsa", name: "Salsa", slug: "salsa", category: "dance_style", status: "active" },
-        { id: "beginner", name: "Beginner", slug: "beginner", category: "dance_style", status: "active" },
+        {
+          id: "beginner",
+          name: "Beginner",
+          slug: "beginner",
+          category: "dance_style",
+          status: "active",
+        },
       ],
     });
     const result = databaseEventToScheduleX(event);

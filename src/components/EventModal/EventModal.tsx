@@ -15,10 +15,8 @@ import {
 import { ScheduleXEvent } from "../../types/events";
 import { downloadIcs, mapsUrl, googleCalendarUrl } from "../../utils/ics";
 import { getUpcomingSeriesDates } from "../../utils/series";
-import {
-  resolvePosterImage,
-  useShareablePoster,
-} from "../../features/calendar/hooks/useShareablePoster";
+import { useShareablePoster } from "../../features/calendar/hooks/useShareablePoster";
+import { resolvePosterImageForEvent } from "../../features/calendar/api/posterFlyers";
 import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
 import ShareableEventPoster from "./ShareableEventPoster";
 import { resolveEventModalImage } from "./eventModalImage";
@@ -112,6 +110,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
   });
 
   const [isDownloading, setIsDownloading] = useState(false);
+  const [shareError, setShareError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const copiedTimerRef = useRef<number | null>(null);
   const { ensureContainer, capturePoster, posterFilename, downloadPoster, removeTarget } =
@@ -225,14 +224,25 @@ export default function EventModal({ event, onClose }: EventModalProps) {
   const handleSharePoster = async () => {
     if (isDownloading || !event) return;
     setIsDownloading(true);
+    setShareError(null);
     let root: ReturnType<typeof createRoot> | null = null;
     try {
+      const resolution = await resolvePosterImageForEvent({
+        eventId: String(event.id),
+        sourceUrl: event.imageUrl ?? null,
+        cachedUrl: event.posterImageUrl ?? null,
+      });
+
+      if (resolution.status === "unavailable") {
+        setShareError("We couldn't prepare this event flyer for sharing. Please try again later.");
+        return;
+      }
+
+      const posterImageUrl = resolution.status === "ready" ? resolution.dataUrl : undefined;
+
       const container = ensureContainer();
-      // Inline the flyer before rendering: the capture cannot fetch a
-      // cross-origin image, so an un-inlined flyer yields a photo-less poster.
-      const posterImageUrl = await resolvePosterImage(resolvedImageUrl);
       root = createRoot(container);
-      root.render(<ShareableEventPoster event={event} imageUrl={posterImageUrl ?? undefined} />);
+      root.render(<ShareableEventPoster event={event} imageUrl={posterImageUrl} />);
       // Wait for the poster to render before capturing
       await new Promise((resolve) => setTimeout(resolve, 300));
       const poster = await capturePoster(container);
@@ -286,6 +296,11 @@ export default function EventModal({ event, onClose }: EventModalProps) {
           <Share2 size={16} aria-hidden />
           {isDownloading ? "Generating…" : "Share"}
         </button>
+        {shareError && (
+          <p role="alert" className="poster-share-error">
+            {shareError}
+          </p>
+        )}
       </div>
 
       {/* Add to Calendar */}

@@ -20,6 +20,9 @@ export interface DatabaseEvent {
   address: string | null;
   price_type: "free" | "paid" | null;
   price_amount: number | null;
+  rsvp_link: string | null;
+  image_url: string | null;
+  poster_image_url: string | null;
   submitter_name: string | null;
   submitter_email: string | null;
   submitter_id: string | null;
@@ -46,6 +49,7 @@ export interface DatabaseEvent {
    * organizer_create_event(). Legacy submissions and admin-created events
    * may not have this field.
    */
+  organizer_id?: string | null;
 
   /**
    * Present only for a pending/rejected event_submission projected into the
@@ -71,4 +75,10 @@ export interface ScheduleXEvent {
   gallery?: string[];
   imageUrl?: string;
   posterImageUrl?: string;
+  priceType?: "free" | "paid";
+  priceAmount?: number;
+  contactEmail?: string;
+  contactInstagram?: string;
+  contactWebsite?: string;
+  danceStyles?: string[];
 }

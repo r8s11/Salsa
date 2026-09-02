@@ -13,6 +13,7 @@ const {
   mockDownloadPoster,
   mockRemoveTarget,
   mockResolvePosterImage,
+  mockResolvePosterImageForEvent,
 } = vi.hoisted(() => ({
   mockEnsureContainer: vi.fn(),
   mockCapturePoster: vi.fn(),
@@ -23,6 +24,7 @@ const {
   mockDownloadPoster: vi.fn(),
   mockRemoveTarget: vi.fn(),
   mockResolvePosterImage: vi.fn(async (url?: string) => url ?? null),
+  mockResolvePosterImageForEvent: vi.fn(async () => ({ status: "missing" })),
 }));
 
 vi.mock("../../features/calendar/hooks/useShareablePoster", () => ({
@@ -34,6 +36,11 @@ vi.mock("../../features/calendar/hooks/useShareablePoster", () => ({
     downloadPoster: mockDownloadPoster,
     removeTarget: mockRemoveTarget,
   }),
+}));
+
+vi.mock("../../features/calendar/api/posterFlyers", () => ({
+  resolvePosterImageForEvent: mockResolvePosterImageForEvent,
+  requestPosterFlyer: vi.fn(),
 }));
 
 const render = (ui: ReactElement) => rtlRender(ui, { wrapper: MemoryRouter });
@@ -317,6 +324,8 @@ describe("share poster", () => {
     mockRemoveTarget.mockReset();
     mockResolvePosterImage.mockReset();
     mockResolvePosterImage.mockImplementation(async (url?: string) => url ?? null);
+    mockResolvePosterImageForEvent.mockReset();
+    mockResolvePosterImageForEvent.mockImplementation(async () => ({ status: "missing" }));
   });
 
   afterEach(() => {
@@ -333,6 +342,7 @@ describe("share poster", () => {
   });
 
   it("shares a single Story PNG File with event-title metadata when native file sharing is available", async () => {
+    mockResolvePosterImageForEvent.mockResolvedValue({ status: "ready", dataUrl: "data:image/png;base64,poster" });
     const shareSpy = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, "canShare", { value: vi.fn(() => true), configurable: true });
     Object.defineProperty(navigator, "share", { value: shareSpy, configurable: true });
@@ -358,15 +368,12 @@ describe("share poster", () => {
     expect(shareButton).not.toBeDisabled();
   });
 
-  it("inlines the default banner in a no-flyer poster before capture", async () => {
-    mockResolvePosterImage.mockResolvedValue("data:image/png;base64,banner");
+  it("renders the no-flyer gradient when no flyer is present", async () => {
+    mockResolvePosterImageForEvent.mockResolvedValue({ status: "missing" });
     let captureAssertion: Promise<void> | undefined;
     mockCapturePoster.mockImplementation((container: HTMLElement) => {
       captureAssertion = Promise.resolve().then(() => {
-        expect(container.querySelector(".poster-bg-img")).toHaveAttribute(
-          "src",
-          "data:image/png;base64,banner"
-        );
+        expect(container.querySelector(".poster-bg-img")).toBeNull();
       });
       return captureAssertion.then(() => new Blob(["poster"], { type: "image/png" }));
     });
@@ -379,7 +386,26 @@ describe("share poster", () => {
     const pendingCapture = captureAssertion;
     if (!pendingCapture) throw new Error("capturePoster did not schedule its image assertion");
     await pendingCapture;
-    expect(mockResolvePosterImage).toHaveBeenCalledWith(DEFAULT_EVENT_BANNER_URL);
+    expect(mockResolvePosterImageForEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ eventId: "1" }),
+    );
+  });
+
+  it("blocks native sharing and shows an error when flyer normalization fails", async () => {
+    mockResolvePosterImageForEvent.mockResolvedValue({ status: "unavailable" });
+    const shareSpy = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "canShare", { value: vi.fn(() => true), configurable: true });
+    Object.defineProperty(navigator, "share", { value: shareSpy, configurable: true });
+
+    render(<EventModal event={{ ...baseEvent, imageUrl: "https://cdn.example/flyer.jpg" }} onClose={() => {}} />);
+    const [shareButton] = screen.getAllByRole("button", { name: "Share" });
+    fireEvent.click(shareButton);
+
+    await waitFor(() => expect(screen.getAllByText(/prepare this event flyer/i).length).toBeGreaterThan(0));
+    expect(mockCapturePoster).not.toHaveBeenCalled();
+    expect(shareSpy).not.toHaveBeenCalled();
+    expect(mockDownloadPoster).not.toHaveBeenCalled();
+    await waitFor(() => expect(mockRemoveTarget).toHaveBeenCalled());
   });
 
 

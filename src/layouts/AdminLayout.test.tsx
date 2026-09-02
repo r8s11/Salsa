@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import AdminLayout from "./AdminLayout";
 const { useTheme } = vi.hoisted(() => ({ useTheme: vi.fn() }));
 const useOrganizerRequests = vi.hoisted(() => vi.fn());
@@ -10,7 +11,7 @@ vi.mock("../features/admin/hooks/useOrganizerRequests", () => ({ useOrganizerReq
 
 vi.mock("../contexts/useAuth", () => ({
   useAuth: () => ({
-    user: { id: "admin-1", email: "admin@salsa.test" },
+    user: { id: "admin-1", email: "[EMAIL]" },
     role: "admin",
     isAdmin: true,
     isModerator: true,
@@ -18,28 +19,40 @@ vi.mock("../contexts/useAuth", () => ({
   }),
 }));
 
+function makeTestQueryClient() {
+  return new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+}
+
 function renderLayout() {
+  const queryClient = makeTestQueryClient();
   return render(
-    <MemoryRouter initialEntries={["/admin"]}>
-      <Routes>
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<p>Dashboard content</p>} />
-        </Route>
-      </Routes>
-    </MemoryRouter>
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={["/admin"]}>
+        <Routes>
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<p>Dashboard content</p>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    </QueryClientProvider>
   );
 }
 
 function renderLayoutAt(path: string) {
+  const queryClient = makeTestQueryClient();
   return render(
-    <MemoryRouter initialEntries={[path]}>
-      <Routes>
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<p>Dashboard content</p>} />
-          <Route path="users/:id" element={<p>Detail content</p>} />
-        </Route>
-      </Routes>
-    </MemoryRouter>
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={[path]}>
+        <Routes>
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<p>Dashboard content</p>} />
+            <Route path="users/:id" element={<p>Detail content</p>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    </QueryClientProvider>
   );
 }
 
@@ -131,14 +144,17 @@ describe("AdminLayout", () => {
   });
 
   it("uses Host-aware breadcrumbs without changing the Admin dashboard label", () => {
+    const queryClient = makeTestQueryClient();
     render(
-      <MemoryRouter initialEntries={["/host/events"]}>
-        <Routes>
-          <Route path="/host" element={<AdminLayout />}>
-            <Route path="events" element={<p>Host events</p>} />
-          </Route>
-        </Routes>
-      </MemoryRouter>
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={["/host/events"]}>
+          <Routes>
+            <Route path="/host" element={<AdminLayout />}>
+              <Route path="events" element={<p>Host events</p>} />
+            </Route>
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>
     );
 
     expect(
@@ -147,14 +163,17 @@ describe("AdminLayout", () => {
   });
 
   it("labels the Host event detail route", () => {
+    const queryClient = makeTestQueryClient();
     render(
-      <MemoryRouter initialEntries={["/host/events/abc-123"]}>
-        <Routes>
-          <Route path="/host" element={<AdminLayout />}>
-            <Route path="events/:eventId" element={<p>Host event detail</p>} />
-          </Route>
-        </Routes>
-      </MemoryRouter>
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={["/host/events/abc-123"]}>
+          <Routes>
+            <Route path="/host" element={<AdminLayout />}>
+              <Route path="events/:eventId" element={<p>Host event detail</p>} />
+            </Route>
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>
     );
 
     expect(

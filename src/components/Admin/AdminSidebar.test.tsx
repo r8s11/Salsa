@@ -2,16 +2,53 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ComponentProps } from "react";
 import AdminSidebar from "./AdminSidebar";
 
+function makeTestQueryClient() {
+  return new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+}
+
 function renderSidebar(props: Partial<ComponentProps<typeof AdminSidebar>> = {}) {
+  const queryClient = makeTestQueryClient();
   return render(
-    <MemoryRouter>
-      <AdminSidebar variant="fixed" {...props} />
-    </MemoryRouter>
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter>
+        <AdminSidebar variant="fixed" {...props} />
+      </MemoryRouter>
+    </QueryClientProvider>
   );
 }
+
+const { useAuth } = vi.hoisted(() => ({ useAuth: vi.fn() }));
+vi.mock("../../contexts/useAuth", () => ({ useAuth }));
+const { useTheme } = vi.hoisted(() => ({ useTheme: vi.fn() }));
+vi.mock("../../contexts/useTheme", () => ({ useTheme }));
+vi.mock("../../features/admin/hooks/useOrganizerRequests", () => ({
+  useOrganizerRequests: vi.fn(() => ({
+    pendingCount: 0,
+    pendingCountLoading: false,
+    pendingCountError: null,
+  })),
+}));
+
+beforeEach(() => {
+  vi.mocked(useAuth).mockReturnValue({
+    user: null,
+    role: "admin",
+    isAdmin: true,
+    isModerator: false,
+    signOut: vi.fn(),
+  });
+  vi.mocked(useTheme).mockReturnValue({
+    theme: "system",
+    effectiveTheme: "light",
+    setTheme: vi.fn(),
+  });
+});
 
 describe("AdminSidebar collapse", () => {
   it("shows the Collapse control only for the fixed variant", () => {
@@ -20,10 +57,13 @@ describe("AdminSidebar collapse", () => {
   });
 
   it("does not show a collapse control on the drawer variant", () => {
+    const queryClient = makeTestQueryClient();
     render(
-      <MemoryRouter>
-        <AdminSidebar variant="drawer" />
-      </MemoryRouter>
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <AdminSidebar variant="drawer" />
+        </MemoryRouter>
+      </QueryClientProvider>
     );
     expect(screen.queryByRole("button", { name: /collapse/i })).not.toBeInTheDocument();
   });
@@ -55,37 +95,10 @@ describe("AdminSidebar public brand navigation", () => {
   });
 });
 
-const { useAuth } = vi.hoisted(() => ({ useAuth: vi.fn() }));
-vi.mock("../../contexts/useAuth", () => ({ useAuth }));
-const { useTheme } = vi.hoisted(() => ({ useTheme: vi.fn() }));
-vi.mock("../../contexts/useTheme", () => ({ useTheme }));
-vi.mock("../../features/admin/hooks/useOrganizerRequests", () => ({
-  useOrganizerRequests: vi.fn(() => ({
-    pendingCount: 0,
-    pendingCountLoading: false,
-    pendingCountError: null,
-  })),
-}));
-
-beforeEach(() => {
-  vi.mocked(useAuth).mockReturnValue({
-    user: null,
-    role: "admin",
-    isAdmin: true,
-    isModerator: false,
-    signOut: vi.fn(),
-  });
-  vi.mocked(useTheme).mockReturnValue({
-    theme: "system",
-    effectiveTheme: "light",
-    setTheme: vi.fn(),
-  });
-});
-
 describe("AdminSidebar drawer account block", () => {
   beforeEach(() => {
     vi.mocked(useAuth).mockReturnValue({
-      user: { email: "admin@salsa.test" },
+      user: { email: "[EMAIL]" },
       role: "admin",
       isAdmin: true,
       isModerator: false,
@@ -99,20 +112,26 @@ describe("AdminSidebar drawer account block", () => {
   });
 
   it("drawer variant renders Appearance and Sign Out", () => {
+    const queryClient = makeTestQueryClient();
     render(
-      <MemoryRouter>
-        <AdminSidebar variant="drawer" />
-      </MemoryRouter>
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <AdminSidebar variant="drawer" />
+        </MemoryRouter>
+      </QueryClientProvider>
     );
     expect(screen.getByText("Appearance")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Sign out" })).toBeInTheDocument();
   });
 
   it("fixed variant does not render the account block", () => {
+    const queryClient = makeTestQueryClient();
     render(
-      <MemoryRouter>
-        <AdminSidebar variant="fixed" collapsed={false} onToggleCollapse={vi.fn()} />
-      </MemoryRouter>
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <AdminSidebar variant="fixed" collapsed={false} onToggleCollapse={vi.fn()} />
+        </MemoryRouter>
+      </QueryClientProvider>
     );
     expect(screen.queryByRole("button", { name: "Sign out" })).not.toBeInTheDocument();
   });
@@ -121,7 +140,7 @@ describe("AdminSidebar drawer account block", () => {
 describe("AdminSidebar settings navigation", () => {
   it("renders Settings as an admin-only link", () => {
     vi.mocked(useAuth).mockReturnValue({
-      user: { email: "admin@salsa.test" },
+      user: { email: "[EMAIL]" },
       role: "admin",
       isAdmin: true,
       isModerator: true,
@@ -138,7 +157,7 @@ describe("AdminSidebar settings navigation", () => {
 
   it("does not render Settings for moderators", () => {
     vi.mocked(useAuth).mockReturnValue({
-      user: { email: "moderator@salsa.test" },
+      user: { email: "[EMAIL]" },
       role: "moderator",
       isAdmin: false,
       isModerator: true,
@@ -151,6 +170,7 @@ describe("AdminSidebar settings navigation", () => {
     expect(screen.queryByText("Settings")).not.toBeInTheDocument();
   });
 });
+
 describe("AdminSidebar Host navigation", () => {
   it("points the organizer role at the guarded Host routes", () => {
     vi.mocked(useAuth).mockReturnValue({ role: "organizer" });
@@ -166,10 +186,13 @@ describe("AdminSidebar Host navigation", () => {
 
   it("keeps My Events active on the nested Host event detail route", () => {
     vi.mocked(useAuth).mockReturnValue({ role: "organizer" });
+    const queryClient = makeTestQueryClient();
     render(
-      <MemoryRouter initialEntries={["/host/events/abc-123"]}>
-        <AdminSidebar variant="fixed" />
-      </MemoryRouter>
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={["/host/events/abc-123"]}>
+          <AdminSidebar variant="fixed" />
+        </MemoryRouter>
+      </QueryClientProvider>
     );
 
     expect(screen.getByRole("link", { name: "My Events" })).toHaveClass("admin-nav__link--active");

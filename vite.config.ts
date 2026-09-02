@@ -20,6 +20,11 @@ export default defineConfig({
       // reference paths relative to their original project layout, so
       // collecting them here fails import resolution.
       ".design-sync/**",
+      // Local git worktrees: each is an independent checkout with its own
+      // src/ tree. Vitest would collect their test files alongside the
+      // main checkout and run them against THIS tree's node_modules,
+      // producing misleading failures.
+      ".worktrees/**",
       // Supabase Edge Functions: Deno runtime code and tests (import from
       // https:// specifiers, e.g. deno.land/std, and reference the global
       // `Deno` object). Not Node/Vite-bundleable — run these with

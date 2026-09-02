@@ -166,7 +166,7 @@ describe("HostEditEventPage", () => {
     renderEdit();
 
     expect(
-      await screen.findByRole("heading", { name: /don't have access/i })
+      await screen.findByRole("heading", { name: /don't have (edit )?access/i })
     ).toBeInTheDocument();
   });
 

@@ -302,7 +302,10 @@ main {
    7. Buttons (shared)
    ---------------------------------------- */
 .btn-primary {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
   padding: 0.8rem 1.75rem;
   background: linear-gradient(180deg, #ff3d63, #e11d48);
   color: #fff;
@@ -353,7 +356,10 @@ main {
 
 /* Secondary — gold outline, fills with translucent gold on hover */
 .btn-secondary {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
   padding: 0.8rem 1.75rem;
   background: transparent;
   color: var(--gold);
@@ -583,9 +589,15 @@ a.logo:focus-visible {
   }
 }
 /* ----------------------------------------
-   13. Calendar page — lower Header z-index so Schedule-X dropdowns
-   can appear above the fixed header
+   13. Calendar page — lower the site header's z-index on desktop so
+   Schedule-X dropdowns can appear above the fixed header. Scoped to
+   .site-header (not the bare `header` element, which also matches
+   Calendar's semantic .stage-header banner) and to desktop widths only —
+   below 991px the mobile drawer lives inside .site-header and must always
+   stay above the calendar banner and the fixed mobile tab bar.
    ---------------------------------------- */
-body.calendar-page-open header {
-  z-index: 50;
+@media (min-width: 991px) {
+  body.calendar-page-open .site-header {
+    z-index: 50;
+  }
 }

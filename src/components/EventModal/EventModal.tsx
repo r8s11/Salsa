@@ -27,7 +27,6 @@ import "./EventModal.css";
 interface EventModalProps {
   event: ScheduleXEvent | null;
   onClose: () => void;
-  isFromHomepage?: boolean;
 }
 
 // Normalize a start/end value that may be a string or a Temporal.ZonedDateTime
@@ -63,7 +62,7 @@ const formatTime = (startVal: unknown, endVal: unknown) => {
   return `${startDate.toLocaleTimeString("en-US", opts)} - ${endDate.toLocaleTimeString("en-US", opts)}`;
 };
 
-export default function EventModal({ event, onClose, isFromHomepage }: EventModalProps) {
+export default function EventModal({ event, onClose }: EventModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
 
@@ -273,23 +272,9 @@ export default function EventModal({ event, onClose, isFromHomepage }: EventModa
         </a>
       )}
 
-      {isFromHomepage ? (
-        <button
-          type="button"
-          className="btn-secondary modal-full-details"
-          onClick={onClose}
-        >
-          Full details
-        </button>
-      ) : (
-        <Link
-          className="btn-secondary modal-full-details"
-          to={`/events/${event.id}`}
-          onClick={onClose}
-        >
-          Full details
-        </Link>
-      )}
+      <Link className="btn-secondary modal-full-details" to={`/events/${event.id}`} onClick={onClose}>
+        Full details
+      </Link>
 
       {/* Shareable Poster */}
       <div className="poster-download-section">

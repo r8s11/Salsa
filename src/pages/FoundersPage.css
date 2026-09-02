@@ -43,6 +43,10 @@
 }
 
 .footer-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 4px 2px;
   color: var(--text-muted);
   text-decoration: none;
   font-size: var(--text-sm);

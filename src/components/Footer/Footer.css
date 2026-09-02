@@ -25,6 +25,13 @@ footer {
 }
 
 .footer-links a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* Short labels ("Call", "Email") need the width floor too — the row's
+     1.25rem–2.5rem gap keeps adjacent hit boxes from overlapping. */
+  min-width: 44px;
+  min-height: 44px;
   font-family: var(--font-ui);
   font-size: 0.72rem;
   font-weight: 400;
@@ -39,7 +46,14 @@ footer {
   color: var(--text);
 }
 
-/* Buy Me a Coffee link */
+/* Buy Me a Coffee link — padding grows the hit area; the image itself
+   stays at its existing 36px visual size. */
+.bmc-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 0;
+}
+
 .bmc-link img {
   height: 36px;
   width: auto;

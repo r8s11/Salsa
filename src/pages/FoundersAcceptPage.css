@@ -125,7 +125,6 @@
   background: transparent;
   border: 1px solid var(--border-md);
   text-decoration: none;
-  display: inline-block;
   padding: var(--space-sm) var(--space-lg);
   font-size: 1rem;
   font-weight: 600;
@@ -159,6 +158,10 @@
 }
 
 .founders-accept-footer-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 4px 2px;
   color: var(--text-muted);
   text-decoration: none;
   font-size: 0.875rem;

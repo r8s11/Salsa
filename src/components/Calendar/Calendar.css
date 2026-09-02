@@ -133,8 +133,8 @@
 }
 
 .nav-btn {
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   border: 1.5px solid var(--border-md);
   background: transparent;
@@ -178,6 +178,10 @@
 }
 
 .pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
   padding: 8px 16px;
   border-radius: var(--radius-full);
   border: 1.5px solid var(--border-md);
@@ -291,6 +295,10 @@
 }
 
 .calendar-error button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
   margin-top: 0.875rem;
   padding: 8px 20px;
   background: var(--red);
@@ -421,10 +429,29 @@
     padding-right: 12px;
   }
 
+  /* Single scroll owner on mobile: let the list view's content participate
+     in document height instead of scrolling inside its own fixed-height
+     box. Schedule-X's .sx__calendar/.sx__view-container normally form a
+     nested `overflow-y: auto` pane (see .sx__view-container in
+     @schedule-x/theme-default) — that's the desktop/grid-bounded behavior,
+     which stays untouched above 768px. At and below 768px the component
+     always renders list view (see Calendar.tsx's max-width:768px media
+     listener), so it's safe to unconditionally free this container's
+     height here. */
   .sx-react-calendar-wrapper {
-    height: calc(100dvh - 260px);
-    min-height: calc(100dvh - 260px);
+    height: auto;
+    min-height: 0;
     max-height: none;
     border-radius: var(--radius-sm);
+  }
+
+  .sx-react-calendar-wrapper .sx__calendar {
+    height: auto;
+    overflow: visible;
+  }
+
+  .sx-react-calendar-wrapper .sx__view-container {
+    height: auto;
+    overflow-y: visible;
   }
 }

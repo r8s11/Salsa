@@ -64,7 +64,7 @@ function Header() {
   };
 
   return (
-    <header>
+    <header className="site-header">
       <nav className="container" aria-label="Main navigation">
         <Link to="/" className="logo" onClick={closeNavigation}>
           <SalsaSeguraLogo variant="full" size="lg" tone="brand" />

@@ -142,7 +142,6 @@ function Contact() {
               <a
                 href="mailto:info@SalsaSegura.com"
                 style={{
-                  display: "inline-block",
                   maxWidth: "100%",
                   overflowWrap: "break-word",
                 }}

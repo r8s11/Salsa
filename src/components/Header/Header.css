@@ -1,4 +1,4 @@
-header {
+.site-header {
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -11,7 +11,7 @@ header {
   -webkit-backdrop-filter: blur(var(--glass-blur));
 }
 
-header nav {
+.site-header nav {
   display: flex;
   align-items: center;
   height: 68px;
@@ -21,6 +21,7 @@ a.logo {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
+  min-height: 44px;
   color: var(--text);
   font-family: var(--font-logo);
   font-size: 2rem;
@@ -208,6 +209,9 @@ a.logo:hover {
 
 .account-disclosure__dashboards a,
 .mobile-nav__dashboards a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
   padding: var(--space-sm);
   color: var(--text-muted);
   text-align: left;
@@ -239,6 +243,9 @@ a.logo:hover {
 .account-disclosure__menu a,
 .account-disclosure__menu button,
 .drawer-sign-out {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
   padding: var(--space-sm);
   color: var(--text-muted);
   text-align: left;
@@ -262,8 +269,12 @@ a.logo:hover {
 .hamburger {
   display: none;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: 5px;
-  padding: var(--space-sm);
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
   cursor: pointer;
   background: transparent;
   border: 0;
@@ -306,8 +317,19 @@ a.logo:hover {
   outline-offset: 2px;
 }
 
+@media (min-width: 991px) {
+  .nav-links > li > a,
+  .city-switch__btn,
+  .auth-btn,
+  .account-disclosure summary {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+}
+
 @media (max-width: 990px) {
-  header nav {
+  .site-header nav {
     justify-content: space-between;
   }
   .desktop-nav-actions {
@@ -401,7 +423,7 @@ a.logo:hover {
 }
 
 @media (max-width: 640px) {
-  header nav {
+  .site-header nav {
     padding-top: env(safe-area-inset-top);
   }
 

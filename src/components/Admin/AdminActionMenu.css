@@ -3,6 +3,18 @@
   display: inline-flex;
 }
 
+/*
+ * The shared `.admin-icon-btn` primitive is 32x32 (used across many admin
+ * controls). This trigger is a row-level tap target, so it is raised to the
+ * project's ~44x44 standard here rather than resizing the shared primitive.
+ * Admin table rows are ~105px tall, so the larger box does not change row
+ * geometry. The icon glyph size is unchanged.
+ */
+.admin-shell .admin-action-menu__trigger {
+  width: 44px;
+  height: 44px;
+}
+
 .admin-action-menu__panel {
   position: absolute;
   top: calc(100% + 4px);

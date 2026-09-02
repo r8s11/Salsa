@@ -81,25 +81,23 @@ describe("EventModal", () => {
     expect(onClose).toHaveBeenCalledOnce();
   });
 
-  it("renders Full details as a close button (not a route link) when isFromHomepage is true", () => {
+  it("renders Full details as a link (never a close button) regardless of origin", () => {
     const onClose = vi.fn();
-    render(<EventModal event={baseEvent} onClose={onClose} isFromHomepage={true} />);
-    const detailsButtons = screen.getAllByRole("button", { name: "Full details" });
-    expect(detailsButtons.length).toBeGreaterThan(0);
-    expect(detailsButtons[0]).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Full details" })).not.toBeInTheDocument();
-    fireEvent.click(detailsButtons[0]);
+    render(<EventModal event={baseEvent} onClose={onClose} />);
+    const details = screen.getAllByRole("link", { name: "Full details" })[0];
+    expect(details).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Full details" })).not.toBeInTheDocument();
+    fireEvent.click(details);
     expect(onClose).toHaveBeenCalledOnce();
   });
 
-  it("does not navigate when isFromHomepage is true and Full details is clicked", () => {
+  it("resolves Full details to this event's own id, not a fallback route", () => {
     const onClose = vi.fn();
-    render(<EventModal event={baseEvent} onClose={onClose} isFromHomepage={true} />);
-    const detailsButton = screen.getAllByRole("button", { name: "Full details" })[0];
-    fireEvent.click(detailsButton);
-    expect(onClose).toHaveBeenCalledTimes(1);
-    // No route change — the modal simply closes and returns to the homepage
-    expect(window.location.pathname).toBe("/");
+    render(<EventModal event={{ ...baseEvent, id: "abc123" }} onClose={onClose} />);
+    const details = screen.getAllByRole("link", { name: "Full details" })[0];
+    expect(details).toHaveAttribute("href", "/events/abc123");
+    expect(details).not.toHaveAttribute("href", "/calendar");
+    expect(details).not.toHaveAttribute("href", "/");
   });
 
   it("shows 'Free' and 'RSVP · Free' for a free event", () => {

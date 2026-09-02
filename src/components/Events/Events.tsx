@@ -134,7 +134,7 @@ function Events() {
           </div>
         </div>
       </section>
-      <EventModal event={selectedEvent} onClose={() => setSelectedEvent(null)} isFromHomepage={true} />
+      <EventModal event={selectedEvent} onClose={() => setSelectedEvent(null)} />
     </>
   );
 }

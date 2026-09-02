@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Sparkles, ArrowDown } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { useAuth } from "../contexts/useAuth";
 import EventForm, { CAPABILITIES } from "../features/events/components/EventForm";
 import EventFlyerField from "../features/events/components/EventFlyerField";
@@ -10,7 +10,6 @@ import "../styles/forms.css";
 import "./SubmitEventPage.css";
 
 type EntryMode = "choice" | "flyer" | "manual";
-
 
 export default function SubmitEventPage() {
   const { user, isOrganizer } = useAuth();
@@ -52,7 +51,6 @@ export default function SubmitEventPage() {
   }, [isOrganizer, isDirty]);
 
   const focusForm = () => {
-    // Reveal/scroll to the canonical event form so manual entry continues.
     const formEl = formRef.current;
     if (formEl) {
       formEl.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -160,22 +158,8 @@ export default function SubmitEventPage() {
                     >
                       <Sparkles size={16} aria-hidden /> Extract Event Details
                     </button>
-                    <button type="button" className="btn-ghost" onClick={focusForm}>
-                      <ArrowDown size={16} aria-hidden /> Continue manually
-                    </button>
                   </div>
                 )}
-
-                <div className="submit-flyer__divider">
-                  <span>or</span>
-                </div>
-                <button
-                  type="button"
-                  className="btn-ghost submit-flyer__manual"
-                  onClick={focusForm}
-                >
-                  Continue manually
-                </button>
               </section>
             )}
 
@@ -218,9 +202,9 @@ export default function SubmitEventPage() {
               AI flyer extraction is coming soon. Your flyer is already saved and will be used as
               the event image.
             </p>
-            <p>You can continue adding the event details manually.</p>
+            <p>You can continue adding the event details in the form.</p>
             <button type="button" className="btn-primary" onClick={closeComingSoon}>
-              Continue Manually
+              Back to event form
             </button>
           </div>
         </div>

@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { SlidersHorizontal } from "lucide-react";
+import AdminPageHeader from "../../components/Admin/AdminPageHeader";
+import AdminViewTabs from "../../components/Admin/AdminViewTabs";
 import AdminSubmissionsTable, {
   type SubmissionRowAction,
 } from "../../components/Admin/AdminSubmissionsTable";
@@ -8,50 +11,164 @@ import AdminSubmissionsFilterDrawer, {
 } from "../../components/Admin/AdminSubmissionsFilterDrawer";
 import { useAdminSubmissions } from "../../hooks/useAdminSubmissions";
 import { type EventSubmission } from "../../features/admin/model/submissions";
-import "../../styles/admin.css";
+import "./AdminSubmissionsPage.css";
+
+type SubmissionView = "pending" | "in_review" | "needs_information" | "all";
+
+const SUBMISSION_VIEWS: { view: SubmissionView; label: string }[] = [
+  { view: "pending", label: "Pending" },
+  { view: "in_review", label: "In Review" },
+  { view: "needs_information", label: "Needs Information" },
+  { view: "all", label: "All" },
+];
 
 export default function AdminSubmissionsPage() {
   const navigate = useNavigate();
-  const { submissions, isLoading, updateSubmission } = useAdminSubmissions();
-  const [filters, setFilters] = useState<SubmissionFilters>({ status: null, submitter_name: null });
+  const { submissions, isLoading, error, updateSubmission, isUpdating, updateError } =
+    useAdminSubmissions();
+  const [filters, setFilters] = useState<SubmissionFilters>({
+    status: null,
+    submitter_name: null,
+  });
+  const [view, setView] = useState<SubmissionView>("pending");
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const counts: Record<SubmissionView, number> = {
+    pending: submissions.filter((submission) => submission.status === "pending").length,
+    in_review: submissions.filter((submission) => submission.status === "in_review").length,
+    needs_information: submissions.filter((submission) => submission.status === "needs_information")
+      .length,
+    all: submissions.length,
+  };
+
+  const filteredSubmissions = submissions.filter((submission) => {
+    if (view !== "all" && submission.status !== view) return false;
+    if (filters.status && submission.status !== filters.status) return false;
+    if (filters.submitter_name && submission.submitter_name !== filters.submitter_name)
+      return false;
+    return true;
+  });
+
+  const activeFilterCount =
+    Number(Boolean(filters.status)) + Number(Boolean(filters.submitter_name));
+
+  const handleViewChange = (nextView: SubmissionView) => {
+    setView(nextView);
+    if (nextView !== "all" && filters.status) {
+      setFilters({ ...filters, status: null });
+    }
+  };
+
+  const handleFiltersChange = (nextFilters: SubmissionFilters) => {
+    setFilters(nextFilters);
+    if (nextFilters.status) setView("all");
+  };
 
   const handleAction = (action: SubmissionRowAction, submission: EventSubmission) => {
     switch (action) {
       case "approve":
+      case "view":
         navigate(`/admin/submissions/${submission.id}`);
         break;
       case "reject":
         updateSubmission({ id: submission.id, update: { status: "rejected" } });
         break;
-      case "view":
-        navigate(`/admin/submissions/${submission.id}`);
-        break;
     }
   };
 
-  const filteredSubmissions = submissions.filter((s) => {
-    if (filters.status && s.status !== filters.status) return false;
-    if (filters.submitter_name && s.submitter_name !== filters.submitter_name) return false;
-    return true;
-  });
+  const emptyMessage =
+    view === "pending"
+      ? "No submissions are waiting to be reviewed."
+      : view === "in_review"
+        ? "No submissions are currently in review."
+        : view === "needs_information"
+          ? "No submissions are waiting for more information."
+          : "No submissions match these filters.";
 
   return (
     <div className="admin-submissions-page">
-      <h1>Submissions</h1>
-      <button onClick={() => setDrawerOpen(true)}>Filters</button>
+      <AdminPageHeader
+        title="Submissions"
+        description="Review community-submitted events before they reach the calendar."
+        actions={
+          <button
+            type="button"
+            className="admin-btn admin-btn--secondary admin-btn--sm"
+            onClick={() => setDrawerOpen(true)}
+          >
+            <SlidersHorizontal size={14} aria-hidden="true" />
+            Filters
+            {activeFilterCount > 0 && (
+              <span className="admin-submissions-page__filter-count">{activeFilterCount}</span>
+            )}
+          </button>
+        }
+      />
 
-      {isLoading ? (
-        <p>Loading…</p>
-      ) : (
-        <AdminSubmissionsTable submissions={filteredSubmissions} onAction={handleAction} />
+      {error && (
+        <div className="admin-banner admin-banner--error" role="alert">
+          Submissions could not be loaded. Try refreshing the page.
+        </div>
+      )}
+
+      {!error && (
+        <>
+          <AdminViewTabs
+            views={SUBMISSION_VIEWS}
+            active={view}
+            counts={counts}
+            panelId="admin-submissions-tabpanel"
+            ariaLabel="Submission review queue"
+            selectId="admin-submissions-view-select"
+            selectLabel="Submission review queue"
+            onChange={handleViewChange}
+          />
+
+          <p className="admin-submissions-page__result-count" role="status">
+            {filteredSubmissions.length} submission
+            {filteredSubmissions.length === 1 ? "" : "s"}
+          </p>
+
+          <div
+            className="admin-card admin-submissions-page__table-card"
+            id="admin-submissions-tabpanel"
+            role="tabpanel"
+            aria-labelledby={`admin-view-tab-${view}`}
+          >
+            {isLoading ? (
+              <div className="admin-submissions-page__loading" aria-busy="true">
+                <p role="status">Loading submissions…</p>
+              </div>
+            ) : filteredSubmissions.length === 0 ? (
+              <div className="admin-submissions-page__empty">
+                <h2>{emptyMessage}</h2>
+                {activeFilterCount > 0 && (
+                  <button
+                    type="button"
+                    className="admin-btn admin-btn--ghost admin-btn--sm"
+                    onClick={() => handleFiltersChange({ status: null, submitter_name: null })}
+                  >
+                    Clear filters
+                  </button>
+                )}
+              </div>
+            ) : (
+              <AdminSubmissionsTable
+                submissions={filteredSubmissions}
+                onAction={handleAction}
+                busy={isUpdating}
+                error={updateError instanceof Error ? updateError.message : null}
+              />
+            )}
+          </div>
+        </>
       )}
 
       <AdminSubmissionsFilterDrawer
         open={drawerOpen}
         submissions={submissions}
         filters={filters}
-        onFiltersChange={setFilters}
+        onFiltersChange={handleFiltersChange}
         onClose={() => setDrawerOpen(false)}
       />
     </div>

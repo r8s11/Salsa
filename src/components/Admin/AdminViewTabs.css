@@ -23,9 +23,8 @@
     display: flex;
     overflow-x: auto;
     scrollbar-width: thin;
-    gap: 4px;
+    gap: 2px;
     position: relative;
-    mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
   }
 
   .admin-view-tabs__select-label,
@@ -38,7 +37,7 @@
     align-items: center;
     gap: 6px;
     flex-shrink: 0;
-    padding: 10px 14px;
+    padding: 8px 12px;
     border: none;
     border-bottom: 2px solid transparent;
     background: transparent;

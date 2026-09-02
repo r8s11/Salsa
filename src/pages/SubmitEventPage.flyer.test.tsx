@@ -65,11 +65,12 @@ describe("SubmitEventPage flyer (Phase 1)", () => {
     mockEventFlyers.removeEventFlyer.mockResolvedValue(undefined);
   });
 
-  it("exposes a flyer-first entry point with a dropzone", () => {
+  it("flows directly from the flyer section into the event form without a manual continuation control", () => {
     renderPage();
     expect(screen.getByRole("heading", { name: /Start with a flyer/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Choose Flyer/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Continue manually/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Continue manually/i })).not.toBeInTheDocument();
+    expect(screen.getByLabelText(/Event Title \*/i)).toBeInTheDocument();
   });
 
   it("does not force flyer upload — manual entry remains available", () => {
@@ -113,7 +114,7 @@ describe("SubmitEventPage flyer (Phase 1)", () => {
     ).toBeInTheDocument();
   });
 
-  it("opens an honest Coming Soon notice (not a silent no-op) and returns to manual entry", async () => {
+  it("opens an honest Coming Soon notice and returns to the event form", async () => {
     const user = userEvent.setup();
     renderPage();
 
@@ -130,7 +131,7 @@ describe("SubmitEventPage flyer (Phase 1)", () => {
     expect(dialog).toHaveTextContent(/AI flyer extraction is coming soon/i);
     expect(dialog).toHaveTextContent(/Your flyer is already saved/i);
 
-    await user.click(within(dialog).getByRole("button", { name: /Continue Manually/i }));
+    await user.click(within(dialog).getByRole("button", { name: /Back to event form/i }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(screen.getByLabelText(/Event Title \*/i)).toBeInTheDocument();
   });

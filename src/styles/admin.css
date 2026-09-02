@@ -177,6 +177,9 @@
   font-family: var(--font-ui);
   font-size: 0.9rem;
   font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
   cursor: pointer;
   transition:
     background-color 0.15s ease,
@@ -230,6 +233,38 @@
 .admin-shell .admin-btn--ghost:hover:not(:disabled) {
   background: var(--admin-surface-secondary);
   color: var(--admin-text-primary);
+}
+
+.admin-shell .admin-btn--sm {
+  min-height: 34px;
+  padding: 0 11px;
+  gap: 6px;
+  font-size: 0.82rem;
+}
+
+.admin-shell .admin-btn--danger-quiet {
+  background: transparent;
+  border-color: var(--admin-danger-border);
+  color: var(--admin-danger-strong);
+}
+
+.admin-shell .admin-btn--danger-quiet:hover:not(:disabled) {
+  background: var(--admin-danger-tint);
+  border-color: var(--admin-danger);
+  color: var(--admin-danger-strong);
+}
+
+@media (pointer: coarse) {
+  .admin-shell .admin-btn--sm,
+  .admin-shell .admin-input,
+  .admin-shell .admin-select {
+    min-height: 44px;
+  }
+
+  .admin-shell .admin-icon-btn {
+    width: 44px;
+    height: 44px;
+  }
 }
 
 /* ----------------------------------------

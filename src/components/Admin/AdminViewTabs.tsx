@@ -61,6 +61,7 @@ export default function AdminViewTabs<V extends string>({
               id={`admin-view-tab-${view}`}
               aria-selected={isActive}
               aria-controls={panelId}
+              aria-label={`${label} ${count}`}
               tabIndex={isActive ? 0 : -1}
               ref={(el) => {
                 tabRefs.current[index] = el;

@@ -51,6 +51,17 @@ describe("AdminTagsPage", () => {
     );
   });
 
+  it("renders one taxonomy view control instead of duplicating it inside the filter card", () => {
+    render(
+      <MemoryRouter>
+        <AdminTagsPage />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByRole("tablist", { name: "Taxonomy views" })).toBeVisible();
+    expect(screen.queryByRole("navigation", { name: "Taxonomy views" })).not.toBeInTheDocument();
+  });
+
   it("updates search URL when typing in the search box", async () => {
     render(
       <MemoryRouter initialEntries={["/admin/tags"]}>

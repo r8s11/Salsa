@@ -1,6 +1,6 @@
 import { Clock, User, Mail } from "lucide-react";
 import { type EventSubmission } from "../../features/admin/model/submissions";
-import AdminStatusBadge from "./AdminStatusBadge";
+import AdminSubmissionStatusBadge from "./AdminSubmissionStatusBadge";
 import AdminActionMenu from "./AdminActionMenu";
 import "./AdminSubmissionsTable.css";
 
@@ -24,17 +24,17 @@ function formatDate(iso: string): string {
 
 function SubmissionCell({ submission }: { submission: EventSubmission }) {
   return (
-    <div className="submission-cell">
-      <div className="submission-title">
+    <div className="admin-submissions-table__event">
+      <div className="admin-submissions-table__title">
         {(submission.submitted_data?.title as string) || "Untitled Event"}
       </div>
-      <div className="submission-meta">
-        <span className="submitter">
-          <User size={14} />
+      <div className="admin-submissions-table__meta">
+        <span>
+          <User size={14} aria-hidden="true" />
           {submission.submitter_name || "Anonymous"}
         </span>
-        <span className="email">
-          <Mail size={14} />
+        <span>
+          <Mail size={14} aria-hidden="true" />
           {submission.submitter_email || "No email"}
         </span>
       </div>
@@ -50,32 +50,32 @@ export default function AdminSubmissionsTable({
 }: AdminSubmissionsTableProps) {
   return (
     <div className="admin-submissions-table-container">
-      {error && <div className="error-banner">{error}</div>}
+      {error && <div className="admin-banner admin-banner--error">{error}</div>}
       <table className="admin-submissions-table">
         <thead>
           <tr>
             <th>Event Details</th>
             <th>Status</th>
             <th>Submitted At</th>
-            <th className="actions-header">Actions</th>
+            <th className="admin-submissions-table__actions-header">Actions</th>
           </tr>
         </thead>
         <tbody>
           {submissions.map((submission) => (
-            <tr key={submission.id} className={busy ? "busy" : ""}>
+            <tr key={submission.id} className={busy ? "admin-submissions-table__row--busy" : ""}>
               <td>
                 <SubmissionCell submission={submission} />
               </td>
               <td>
-                <AdminStatusBadge status={submission.status} />
+                <AdminSubmissionStatusBadge status={submission.status} />
               </td>
               <td>
-                <div className="date-col">
+                <div className="admin-submissions-table__date">
                   <Clock size={14} />
                   {formatDate(submission.submitted_at)}
                 </div>
               </td>
-              <td className="actions-col">
+              <td className="admin-submissions-table__actions">
                 <AdminActionMenu
                   label={`Actions for ${submission.submitted_data?.title || "submission"}`}
                   items={[

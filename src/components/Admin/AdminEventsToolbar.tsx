@@ -153,7 +153,7 @@ export default function AdminEventsToolbar({
         <div className="admin-field admin-events-toolbar__date">
           <div className="admin-select-wrap">
             <select
-              className="admin-select"
+              className="admin-select admin-events-toolbar__select"
               aria-label="Date"
               value={datePreset}
               onChange={(event) => handleDatePresetChange(event.target.value as DatePreset)}
@@ -194,7 +194,7 @@ export default function AdminEventsToolbar({
         <div className="admin-events-toolbar__status" ref={statusWrapRef}>
           <button
             type="button"
-            className="admin-btn admin-btn--secondary"
+            className="admin-btn admin-btn--secondary admin-btn--sm"
             aria-haspopup="menu"
             aria-expanded={statusOpen}
             onClick={() => setStatusOpen((value) => !value)}
@@ -226,7 +226,7 @@ export default function AdminEventsToolbar({
 
         <button
           type="button"
-          className="admin-btn admin-btn--secondary admin-events-toolbar__more"
+          className="admin-btn admin-btn--secondary admin-btn--sm admin-events-toolbar__more"
           onClick={onOpenDrawer}
         >
           <SlidersHorizontal size={14} />
@@ -244,7 +244,7 @@ export default function AdminEventsToolbar({
         <div className="admin-select-wrap">
           <select
             id="admin-events-sort"
-            className="admin-select"
+            className="admin-select admin-events-toolbar__select"
             value={sort.key}
             onChange={(event) =>
               onSortChange({ key: event.target.value as SortKey, dir: sort.dir })

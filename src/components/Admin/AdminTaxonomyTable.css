@@ -50,6 +50,11 @@
   color: var(--admin-text-primary);
 }
 
+.admin-taxonomy-table td:last-child {
+  width: 1%;
+  white-space: nowrap;
+}
+
 .admin-taxonomy-table a {
   color: var(--admin-text-strong);
   text-decoration: none;
@@ -61,8 +66,9 @@
 
 .admin-taxonomy-table__actions {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
-  gap: 4px;
+  gap: 6px;
 }
 
 /* Hover dimming for archived rows keeps them visually distinct */
@@ -141,6 +147,16 @@
 
   .admin-taxonomy-cards {
     display: flex;
+  }
+
+  .admin-taxonomy-table__actions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    margin-top: 12px;
+  }
+
+  .admin-taxonomy-table__actions .admin-btn {
+    min-height: 44px;
   }
 }
 

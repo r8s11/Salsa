@@ -1,0 +1,58 @@
+.admin-submissions-page > .admin-view-tabs,
+.admin-submissions-page > .admin-view-tabs__select {
+  margin-bottom: 12px;
+}
+
+.admin-submissions-page__filter-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9999px;
+  background: var(--admin-brand);
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.admin-submissions-page__result-count {
+  margin: 0 0 8px;
+  color: var(--admin-text-muted);
+  font-size: 0.85rem;
+}
+
+.admin-submissions-page__table-card {
+  overflow: hidden;
+}
+
+.admin-submissions-page__loading,
+.admin-submissions-page__empty {
+  padding: 32px 20px;
+}
+
+.admin-submissions-page__loading p {
+  margin: 0;
+  color: var(--admin-text-muted);
+}
+
+.admin-submissions-page__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.admin-submissions-page__empty h2 {
+  margin: 0;
+  color: var(--admin-text-strong);
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+}
+
+@media (max-width: 767px) {
+  .admin-submissions-page__table-card {
+    overflow-x: auto;
+  }
+}

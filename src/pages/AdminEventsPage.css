@@ -23,7 +23,8 @@
 }
 
 .admin-events-page__toolbar-card {
-  margin-bottom: 16px;
+  margin: 12px 0 16px;
+  padding: 12px;
 }
 
 .admin-events-page__chips {

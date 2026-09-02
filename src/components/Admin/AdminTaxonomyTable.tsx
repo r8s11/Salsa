@@ -24,23 +24,25 @@ export default function AdminTaxonomyTable({
       {term.status === "archived" ? (
         <button
           type="button"
-          className="admin-btn admin-btn--secondary"
+          className="admin-btn admin-btn--secondary admin-btn--sm"
+          aria-label={`Restore ${term.name}`}
           onClick={() => onRestore(term.id)}
         >
-          Restore {term.name}
+          Restore
         </button>
       ) : (
         <button
           type="button"
-          className="admin-btn admin-btn--secondary"
+          className="admin-btn admin-btn--secondary admin-btn--sm"
+          aria-label={`Archive ${term.name}`}
           onClick={() => onArchive(term.id)}
         >
-          Archive {term.name}
+          Archive
         </button>
       )}
       <button
         type="button"
-        className="admin-btn admin-btn--danger"
+        className="admin-btn admin-btn--danger-quiet admin-btn--sm"
         aria-label={`Delete ${term.name}`}
         disabled={term.usage_count > 0}
         title={term.usage_count > 0 ? `Used by ${term.usage_count} events` : undefined}
@@ -93,20 +95,20 @@ export default function AdminTaxonomyTable({
         aria-label="Taxonomy terms mobile list"
       >
         {terms.map((term) => (
-          <article className="admin-card" key={term.id}>
-            {
-              <>
+          <article className="admin-card admin-taxonomy-cards__item" key={term.id}>
+            <div className="admin-taxonomy-cards__body">
+              <p className="admin-taxonomy-cards__name">
                 <Link to={`/admin/tags/${term.id}`}>{term.name}</Link>
-                <span>
-                  {categoryLabel[term.category]} ·{" "}
-                  <span aria-label={`Used by ${term.usage_count} events`}>
-                    {term.usage_count} events
-                  </span>{" "}
-                  · <AdminTaxonomyStatusBadge status={term.status} />
-                </span>
-                {action(term)}
-              </>
-            }
+              </p>
+              <p className="admin-taxonomy-cards__meta">
+                {categoryLabel[term.category]} ·{" "}
+                <span aria-label={`Used by ${term.usage_count} events`}>
+                  {term.usage_count} events
+                </span>{" "}
+                · <AdminTaxonomyStatusBadge status={term.status} />
+              </p>
+            </div>
+            {action(term)}
           </article>
         ))}
       </div>

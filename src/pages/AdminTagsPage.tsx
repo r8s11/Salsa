@@ -112,15 +112,6 @@ export default function AdminTagsPage() {
 
           <div className="admin-card admin-tags-page__toolbar-card">
             <AdminTaxonomyToolbar filters={urlFilters} onFiltersChange={updateFilters} />
-            {hasActiveFilters && (
-              <button
-                type="button"
-                className="admin-btn admin-btn--ghost admin-tags-page__clear-all"
-                onClick={clearAllFilters}
-              >
-                Clear all filters
-              </button>
-            )}
           </div>
 
           <p className="admin-tags-page__result-count" role="status">

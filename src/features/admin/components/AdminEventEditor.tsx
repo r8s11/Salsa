@@ -33,7 +33,7 @@ export default function AdminEventEditor({
   submitLabel,
   isSaving,
   error,
-  eventId,
+  eventId: _eventId,
   onSubmit,
   onCancel,
 }: Props) {
@@ -164,26 +164,12 @@ export default function AdminEventEditor({
           </>
         )}
         renderFlyerField={() => (
-          <>
-            <label>
-              Image URL
-              <input
-                type="url"
-                value={form.image_url}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, image_url: event.target.value }))
-                }
-              />
-            </label>
-            {eventId && (
-              <EventFlyerField
-                currentUrl={form.image_url || null}
-                onFileChange={setSelectedFlyer}
-                onRemove={() => setForm((current) => ({ ...current, image_url: "" }))}
-                disabled={isSaving}
-              />
-            )}
-          </>
+          <EventFlyerField
+            currentUrl={form.image_url || null}
+            onFileChange={setSelectedFlyer}
+            onRemove={() => setForm((current) => ({ ...current, image_url: "" }))}
+            disabled={isSaving}
+          />
         )}
       />
       <p>

@@ -393,21 +393,21 @@ describe("share poster", () => {
     );
   });
 
-  it("blocks native sharing and shows an error when flyer normalization fails", async () => {
+  it("falls back to no-flyer poster when normalization fails", async () => {
     mockResolvePosterImageForEvent.mockResolvedValue({ status: "unavailable" });
     const shareSpy = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, "canShare", { value: vi.fn(() => true), configurable: true });
     Object.defineProperty(navigator, "share", { value: shareSpy, configurable: true });
+    mockCapturePoster.mockResolvedValue(new Blob(["poster"], { type: "image/png" }));
 
     render(<EventModal event={{ ...baseEvent, imageUrl: "https://cdn.example/flyer.jpg" }} onClose={() => {}} />);
     const [shareButton] = screen.getAllByRole("button", { name: "Share" });
     fireEvent.click(shareButton);
 
-    await waitFor(() => expect(screen.getAllByText(/prepare this event flyer/i).length).toBeGreaterThan(0));
-    expect(mockCapturePoster).not.toHaveBeenCalled();
-    expect(shareSpy).not.toHaveBeenCalled();
-    expect(mockDownloadPoster).not.toHaveBeenCalled();
-    await waitFor(() => expect(mockRemoveTarget).toHaveBeenCalled());
+    await waitFor(() => expect(mockCapturePoster).toHaveBeenCalled());
+    await waitFor(() => expect(shareSpy).toHaveBeenCalled());
+    expect(screen.queryByText(/prepare this event flyer/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
 

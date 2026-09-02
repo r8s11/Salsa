@@ -110,7 +110,6 @@ export default function EventModal({ event, onClose }: EventModalProps) {
   });
 
   const [isDownloading, setIsDownloading] = useState(false);
-  const [shareError, setShareError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const copiedTimerRef = useRef<number | null>(null);
   const { ensureContainer, capturePoster, posterFilename, downloadPoster, removeTarget } =
@@ -224,7 +223,6 @@ export default function EventModal({ event, onClose }: EventModalProps) {
   const handleSharePoster = async () => {
     if (isDownloading || !event) return;
     setIsDownloading(true);
-    setShareError(null);
     let root: ReturnType<typeof createRoot> | null = null;
     try {
       const resolution = await resolvePosterImageForEvent({
@@ -234,8 +232,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
       });
 
       if (resolution.status === "unavailable") {
-        setShareError("We couldn't prepare this event flyer for sharing. Please try again later.");
-        return;
+        console.warn("Flyer unavailable, sharing without flyer");
       }
 
       const posterImageUrl = resolution.status === "ready" ? resolution.dataUrl : undefined;
@@ -296,11 +293,6 @@ export default function EventModal({ event, onClose }: EventModalProps) {
           <Share2 size={16} aria-hidden />
           {isDownloading ? "Generating…" : "Share"}
         </button>
-        {shareError && (
-          <p role="alert" className="poster-share-error">
-            {shareError}
-          </p>
-        )}
       </div>
 
       {/* Add to Calendar */}

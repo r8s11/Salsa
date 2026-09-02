@@ -69,7 +69,14 @@ export async function resolvePosterImageForEvent(params: {
   }
 
   if (asset.status === "missing") return { status: "missing" };
-  if (asset.status === "unavailable") return { status: "unavailable" };
+  if (asset.status === "unavailable") {
+    // Fallback: try direct fetch for storage URLs or when function is unavailable
+    if (sourceUrl) {
+      const directDataUrl = await fetchAssetAsDataUrl(sourceUrl);
+      if (directDataUrl) return { status: "ready", dataUrl: directDataUrl };
+    }
+    return { status: "unavailable" };
+  }
 
   const dataUrl = await fetchAssetAsDataUrl(asset.url);
   return dataUrl ? { status: "ready", dataUrl } : { status: "unavailable" };

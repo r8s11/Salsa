@@ -24,7 +24,8 @@ const {
   mockDownloadPoster: vi.fn(),
   mockRemoveTarget: vi.fn(),
   mockResolvePosterImage: vi.fn(async (url?: string) => url ?? null),
-  mockResolvePosterImageForEvent: vi.fn(async () => ({ status: "missing" })),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  mockResolvePosterImageForEvent: vi.fn(async () => ({ status: "missing" }) as any),
 }));
 
 vi.mock("../../features/calendar/hooks/useShareablePoster", () => ({
@@ -66,7 +67,7 @@ describe("EventModal", () => {
   it("uses the public default banner when no flyer is available", () => {
     const { container } = render(<EventModal event={baseEvent} onClose={() => {}} />);
     const poster = container.querySelector(".modal-poster") as HTMLElement;
-    expect(poster.style.backgroundImage).toContain("/images/default-event-banner.png");
+    expect(poster.style.backgroundImage).toContain(DEFAULT_EVENT_BANNER_URL);
     expect(container.querySelector(".ss-fallback")).not.toBeInTheDocument();
   });
 
@@ -342,7 +343,8 @@ describe("share poster", () => {
   });
 
   it("shares a single Story PNG File with event-title metadata when native file sharing is available", async () => {
-    mockResolvePosterImageForEvent.mockResolvedValue({ status: "ready", dataUrl: "data:image/png;base64,poster" });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    mockResolvePosterImageForEvent.mockResolvedValue({ status: "ready", dataUrl: "data:image/png;base64,poster" } as any);
     const shareSpy = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, "canShare", { value: vi.fn(() => true), configurable: true });
     Object.defineProperty(navigator, "share", { value: shareSpy, configurable: true });

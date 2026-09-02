@@ -86,7 +86,6 @@ describe("poster flyer client", () => {
         this.onload?.();
       }
     }
-    // @ts-expect-error - mock
     globalThis.FileReader = MockFileReader as unknown as typeof FileReader;
 
     const { resolvePosterImageForEvent } = await import("./posterFlyers");

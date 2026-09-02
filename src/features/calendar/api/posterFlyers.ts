@@ -5,6 +5,8 @@ export type PosterFlyerResponse =
   | { status: "missing" }
   | { status: "unavailable"; message: string };
 
+const UNAVAILABLE_MESSAGE = "Flyer source cannot be used for sharing.";
+
 export async function requestPosterFlyer(eventId: string): Promise<PosterFlyerResponse> {
   const { data, error } = await supabase.functions.invoke<PosterFlyerResponse>(
     "resolve-poster-flyer",

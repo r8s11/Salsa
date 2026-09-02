@@ -22,7 +22,7 @@ export interface DatabaseEvent {
   price_amount: number | null;
   rsvp_link: string | null;
   image_url: string | null;
-  poster_image_url: string | null;
+  poster_image_url?: string | null;
   submitter_name: string | null;
   submitter_email: string | null;
   submitter_id: string | null;

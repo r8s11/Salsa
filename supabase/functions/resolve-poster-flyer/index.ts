@@ -1,3 +1,4 @@
+/* eslint-disable */
 // @ts-nocheck - Deno Edge Function; Vite build excludes supabase directory
 const withSupabase = (
   _opts: unknown,

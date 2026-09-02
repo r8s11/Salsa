@@ -455,3 +455,9 @@ verify_jwt = false
 # input to this function is the caller's own identity. Do not add a
 # caller-supplied recipient, subject, or body parameter to this function.
 verify_jwt = false
+
+[functions.resolve-poster-flyer]
+# Public share path - accepts the project's publishable key like request-founder-access.
+# Authorization is enforced inside the handler: it loads the event by ID and only
+# serves approved events, never fetching an arbitrary caller-supplied URL.
+verify_jwt = false

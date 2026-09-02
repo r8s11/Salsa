@@ -36,6 +36,7 @@ export function databaseEventToScheduleX(event: DatabaseEvent): ScheduleXEvent {
       .filter((term) => term.category === "dance_style")
       .map((term) => term.name),
     imageUrl: event.image_url ?? undefined,
+    posterImageUrl: event.poster_image_url ?? undefined,
     priceType: event.price_type ?? undefined,
     priceAmount: event.price_amount ?? undefined,
   };

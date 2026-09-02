@@ -12,6 +12,47 @@ vi.mock("../../../lib/supabase", () => ({
 
 const originalFetch = globalThis.fetch;
 
+type DrawnSize = { width: number; height: number };
+
+/**
+ * Stubs the browser image-decoding pipeline the poster resolver uses:
+ * fetch -> createImageBitmap -> canvas draw -> JPEG data URL. Records the
+ * size each bitmap is drawn at so tests can assert the downscale cap.
+ */
+function stubImageDecoding(options: {
+  width?: number;
+  height?: number;
+  decodeFails?: boolean;
+}): { drawnSizes: DrawnSize[] } {
+  const drawnSizes: DrawnSize[] = [];
+
+  globalThis.fetch = vi.fn().mockResolvedValue({
+    ok: true,
+    headers: {
+      get: (name: string) => (name.toLowerCase() === "content-type" ? "image/jpeg" : null),
+    },
+    blob: async () => new Blob([new Uint8Array([1, 2, 3])], { type: "image/jpeg" }),
+  } as unknown as Response);
+
+  const createImageBitmapStub = options.decodeFails
+    ? vi.fn().mockRejectedValue(new Error("not an image"))
+    : vi.fn().mockResolvedValue({
+        width: options.width ?? 800,
+        height: options.height ?? 600,
+        close: vi.fn(),
+      });
+  Reflect.set(globalThis, "createImageBitmap", createImageBitmapStub);
+
+  vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({
+    drawImage: (_bitmap: unknown, _x: number, _y: number, width: number, height: number) => {
+      drawnSizes.push({ width, height });
+    },
+  } as unknown as CanvasRenderingContext2D);
+  vi.spyOn(HTMLCanvasElement.prototype, "toDataURL").mockReturnValue("data:image/jpeg;base64,STUB");
+
+  return { drawnSizes };
+}
+
 describe("poster flyer client", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -68,25 +109,7 @@ describe("poster flyer client", () => {
   });
 
   it("uses cached URL without invoking the function and converts it to a data URL", async () => {
-    const bytes = new Uint8Array([1, 2, 3]);
-    const blob = new Blob([bytes], { type: "image/jpeg" });
-    globalThis.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      headers: { get: (name: string) => (name.toLowerCase() === "content-type" ? "image/jpeg" : null) },
-      blob: async () => blob,
-    } as unknown as Response);
-
-    const originalFileReader = globalThis.FileReader;
-    class MockFileReader {
-      result: string | null = null;
-      onload: (() => void) | null = null;
-      onerror: (() => void) | null = null;
-      readAsDataURL(_blob: Blob) {
-        this.result = "data:image/jpeg;base64,AAAA";
-        this.onload?.();
-      }
-    }
-    globalThis.FileReader = MockFileReader as unknown as typeof FileReader;
+    const { drawnSizes } = stubImageDecoding({ width: 800, height: 600 });
 
     const { resolvePosterImageForEvent } = await import("./posterFlyers");
 
@@ -96,14 +119,45 @@ describe("poster flyer client", () => {
         sourceUrl: "https://cdn.example/flyer.jpg",
         cachedUrl: "https://project.supabase.co/storage/v1/object/public/event-flyers/poster-cache/event-1/hash.jpg",
       }),
-    ).resolves.toEqual({ status: "ready", dataUrl: "data:image/jpeg;base64,AAAA" });
+    ).resolves.toEqual({ status: "ready", dataUrl: "data:image/jpeg;base64,STUB" });
 
     expect(invokeMock).not.toHaveBeenCalled();
     expect(globalThis.fetch).toHaveBeenCalledWith(
       "https://project.supabase.co/storage/v1/object/public/event-flyers/poster-cache/event-1/hash.jpg",
       expect.anything(),
     );
+    // Already under the cap — kept at native size.
+    expect(drawnSizes).toEqual([{ width: 800, height: 600 }]);
+  });
 
-    globalThis.FileReader = originalFileReader;
+  it("downscales an oversized flyer so html-to-image capture cannot hang on a multi-MB data URL", async () => {
+    const { drawnSizes } = stubImageDecoding({ width: 4000, height: 3000 });
+
+    const { resolvePosterImageForEvent } = await import("./posterFlyers");
+
+    await expect(
+      resolvePosterImageForEvent({
+        eventId: "event-1",
+        sourceUrl: null,
+        cachedUrl: "https://project.supabase.co/storage/v1/object/public/event-flyers/big.png",
+      }),
+    ).resolves.toEqual({ status: "ready", dataUrl: "data:image/jpeg;base64,STUB" });
+
+    // Longest edge capped at 1440, aspect ratio preserved.
+    expect(drawnSizes).toEqual([{ width: 1440, height: 1080 }]);
+  });
+
+  it("returns unavailable when the fetched bytes cannot be decoded as an image", async () => {
+    stubImageDecoding({ decodeFails: true });
+
+    const { resolvePosterImageForEvent } = await import("./posterFlyers");
+
+    await expect(
+      resolvePosterImageForEvent({
+        eventId: "event-1",
+        sourceUrl: null,
+        cachedUrl: "https://project.supabase.co/storage/v1/object/public/event-flyers/broken.png",
+      }),
+    ).resolves.toEqual({ status: "unavailable" });
   });
 });

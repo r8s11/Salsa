@@ -120,7 +120,7 @@ describe("EventDetailPage", () => {
     );
     expect(screen.getByText("Share this night")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Copy link" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Instagram" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Share" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "WhatsApp" })).toBeInTheDocument();
   });
 
@@ -191,4 +191,33 @@ describe("EventDetailPage", () => {
     await screen.findByRole("heading", { name: "Havana Nights" });
     expect(screen.queryByRole("region", { name: /more/i })).not.toBeInTheDocument();
   });
+  it("shares the selected event through the native share sheet with its canonical event URL", async () => {
+    const user = userEvent.setup();
+    const share = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal("navigator", { ...navigator, share });
+
+    renderPage();
+    await screen.findByRole("heading", { name: "Havana Nights" });
+    await user.click(screen.getByRole("button", { name: "Share" }));
+
+    expect(share).toHaveBeenCalledWith({
+      title: "Havana Nights",
+      text: "Join us for Havana Nights at Grand Ballroom.",
+      url: `${window.location.origin}/events/event-1`,
+    });
+  });
+
+  it("copies the event URL and explains the Instagram fallback when native sharing is unavailable", async () => {
+    const user = userEvent.setup();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal("navigator", { ...navigator, share: undefined, clipboard: { writeText } });
+
+    renderPage();
+    await screen.findByRole("heading", { name: "Havana Nights" });
+    await user.click(screen.getByRole("button", { name: "Share" }));
+
+    expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/events/event-1`);
+    expect(screen.getByRole("status")).toHaveTextContent("Event link copied. Paste it into Instagram.");
+  });
 });
+

@@ -7,7 +7,7 @@ import { fetchApprovedEventById, fetchApprovedEvents } from "../features/events/
 import { databaseEventToScheduleX } from "../features/events/model/convert";
 import { selectRelatedEvents } from "../features/events/model/relatedEvents";
 import type { EventType } from "../features/events/model/types";
-import { buildPublicEventUrl } from "../features/events/model/eventSharing";
+import { buildNativeSharePayload, buildPublicEventUrl } from "../features/events/model/eventSharing";
 import { downloadIcs, mapsUrl } from "../utils/ics";
 import { resolveEventModalImage } from "../components/EventModal/eventModalImage";
 import NotFoundPage from "./NotFoundPage";
@@ -69,6 +69,9 @@ export default function EventDetailPage() {
 
   const [tab, setTab] = useState<"about" | "album">("about");
   const [copied, setCopied] = useState(false);
+  const [shareFeedback, setShareFeedback] = useState<{ kind: "status" | "error"; message: string } | null>(
+    null
+  );
 
   if (isLoading)
     return (
@@ -103,25 +106,42 @@ export default function EventDetailPage() {
   const shareUrl = buildPublicEventUrl(event.id);
   const whatsappHref = `https://wa.me/?text=${encodeURIComponent(`${event.title} — ${shareUrl}`)}`;
 
-  const handleCopyLink = async () => {
+  const handleCopyLink = async (
+    successMessage = "Event link copied.",
+    failureMessage = "Could not copy event link."
+  ) => {
     try {
+      if (!navigator.clipboard?.writeText) throw new Error("Clipboard unavailable");
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
+      setShareFeedback({ kind: "status", message: successMessage });
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Clipboard unavailable — nothing to do.
+      setShareFeedback({ kind: "error", message: failureMessage });
     }
   };
 
-  const handleInstagramShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: event.title, text: event.title, url: shareUrl });
-      } catch {
-        // Share sheet dismissed — nothing to do.
-      }
-    } else {
-      handleCopyLink();
+  const handleShare = async () => {
+    setShareFeedback(null);
+    if (!navigator.share) {
+      await handleCopyLink("Event link copied. Paste it into Instagram.");
+      return;
+    }
+
+    try {
+      await navigator.share(
+        buildNativeSharePayload({
+          title: event.title,
+          location: event.location,
+          publicUrl: shareUrl,
+        })
+      );
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      await handleCopyLink(
+        "Couldn't open sharing. Event link copied. Paste it into Instagram.",
+        "Couldn't share or copy the event link."
+      );
     }
   };
 
@@ -277,16 +297,16 @@ export default function EventDetailPage() {
                   <button
                     type="button"
                     className="event-page__btn event-page__btn--ghost event-page__btn--sm"
-                    onClick={handleCopyLink}
+                    onClick={() => void handleCopyLink()}
                   >
                     {copied ? "Copied" : "Copy link"}
                   </button>
                   <button
                     type="button"
                     className="event-page__btn event-page__btn--ghost event-page__btn--sm"
-                    onClick={handleInstagramShare}
+                    onClick={handleShare}
                   >
-                    Instagram
+                    Share
                   </button>
                   <a
                     className="event-page__btn event-page__btn--ghost event-page__btn--sm"
@@ -297,6 +317,11 @@ export default function EventDetailPage() {
                     WhatsApp
                   </a>
                 </div>
+                {shareFeedback && (
+                  <p role={shareFeedback.kind === "error" ? "alert" : "status"}>
+                    {shareFeedback.message}
+                  </p>
+                )}
               </div>
             </aside>
           </div>

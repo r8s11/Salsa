@@ -1,17 +1,11 @@
-import { Clock, Building2, Mail, MapPin, Globe } from "lucide-react";
+import { Fragment, type ComponentType, type ReactNode } from "react";
+import { Clock, MapPin, Globe } from "lucide-react";
 import AdminActionMenu from "./AdminActionMenu";
 import {
   founderRequestActionItems,
   type FounderAccessRequestRow,
 } from "../../features/admin/model/founderRequestsQuery";
 import "./AdminFounderRequestsTable.css";
-
-interface AdminFounderRequestsTableProps {
-  requests: FounderAccessRequestRow[];
-  onAction: (action: "view" | "approve" | "reject", request: FounderAccessRequestRow) => void;
-  isLoading?: boolean;
-  isAdmin: boolean;
-}
 
 function formatDateLocal(iso: string): string {
   return new Date(iso).toLocaleDateString(undefined, {
@@ -21,7 +15,27 @@ function formatDateLocal(iso: string): string {
   });
 }
 
-function RequestRow({
+/** One line of stacked, icon-led contact/location information. */
+function MetaItem({
+  icon: Icon,
+  children,
+  title,
+}: {
+  // lucide icons accept an optional className via the SVG props; the broader
+  // type is used because tsc -b strictly checks prop spread.
+  icon: ComponentType<{ size?: number; className?: string }>;
+  children: ReactNode;
+  title?: string;
+}) {
+  return (
+    <div className="founder-meta-item" title={title}>
+      <Icon size={12} className="founder-meta-item__icon" aria-hidden="true" />
+      <span className="founder-meta-item__value">{children}</span>
+    </div>
+  );
+}
+
+function RequestRowDesktop({
   request,
   onAction,
   isAdmin,
@@ -33,71 +47,242 @@ function RequestRow({
   const items = founderRequestActionItems(request, (action, req) => onAction(action, req)).filter(
     (item) => isAdmin || (item.id !== "approve" && item.id !== "reject")
   );
+
+  const applicantName = request.applicant_name || "—";
+  const email = request.email;
+  const orgName = request.organization_name;
+  const location = request.city
+    ? `${request.city}${request.region ? `, ${request.region}` : ""}`
+    : null;
+
   return (
-    <tr key={request.id}>
-      <td>
-        <div className="request-cell">
-          <div className="request-title">{request.applicant_name}</div>
-          <div className="request-meta">
-            <span className="meta-item">
-              <Mail size={12} />
-              {request.email}
+    <tr className="founder-request-row" data-request-id={request.id}>
+      {/* Applicant / Organization — stacked: name, email, org */}
+      <td className="col-applicant">
+        <div className="founder-stacked-cell">
+          <div className="founder-primary">{applicantName}</div>
+          {email ? (
+            <a
+              href={`mailto:${email}`}
+              className="founder-secondary founder-link"
+              title={email}
+              aria-label={`Email ${applicantName}`}
+            >
+              {email}
+            </a>
+          ) : null}
+          {orgName ? (
+            <span className="founder-tertiary" title={orgName}>
+              {orgName}
             </span>
-            <span className="meta-item">
-              <Building2 size={12} />
-              {request.organization_name}
+          ) : null}
+        </div>
+      </td>
+
+      {/* Contact — stacked: location, instagram, website */}
+      <td className="col-contact">
+        <div className="founder-stacked-cell founder-contact-cell">
+          {location ? <MetaItem icon={MapPin}>{location}</MetaItem> : null}
+          {request.instagram ? (
+            <MetaItem icon={Globe} title={`@${request.instagram}`}>
+              <a
+                href={`https://instagram.com/${request.instagram.replace(/^@/, "")}`}
+                className="founder-link"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Instagram ${request.instagram}`}
+              >
+                @{request.instagram}
+              </a>
+            </MetaItem>
+          ) : null}
+          {request.website ? (
+            <MetaItem icon={Globe} title={request.website}>
+              <a
+                href={
+                  request.website.match(/^https?:\/\//)
+                    ? request.website
+                    : `https://${request.website}`
+                }
+                className="founder-link"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Website ${request.website}`}
+              >
+                {request.website}
+              </a>
+            </MetaItem>
+          ) : null}
+        </div>
+      </td>
+
+      {/* Submitted */}
+      <td className="col-submitted">
+        <div className="founder-date-cell">
+          <Clock size={14} aria-hidden="true" />
+          <span>{formatDateLocal(request.created_at)}</span>
+        </div>
+      </td>
+
+      {/* Status — icon + label, plus review metadata line */}
+      <td className="col-status">
+        <div className="founder-status-cell">
+          <span
+            className={`founder-status-badge founder-status-badge--${request.status}`}
+            aria-label={request.status}
+          >
+            <span className="founder-status-icon" aria-hidden="true">
+              {request.status === "pending" && "⏳"}
+              {request.status === "approved" && "✓"}
+              {request.status === "rejected" && "✕"}
             </span>
-          </div>
-        </div>
-      </td>
-      <td>
-        <div className="contact-col">
-          {request.city && (
-            <div className="meta-item">
-              <MapPin size={12} />
-              {request.city}
-              {request.region && `, ${request.region}`}
-            </div>
-          )}
-          {request.instagram && (
-            <div className="meta-item">
-              @{request.instagram}
-            </div>
-          )}
-          {request.website && (
-            <div className="meta-item">
-              <Globe size={12} />
-              {request.website}
-            </div>
-          )}
-        </div>
-      </td>
-      <td>
-        <div className="date-col">
-          <Clock size={14} />
-          {formatDateLocal(request.created_at)}
-        </div>
-      </td>
-      <td>
-        <div className="status-col">
-          <span className={`status-badge status-${request.status}`}>
-            {request.status === "pending" && <Clock size={12} />}
-            {request.status === "approved" && <span className="check-icon">✓</span>}
-            {request.status === "rejected" && <span className="x-icon">✕</span>}
-            {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+            <span className="founder-status-label">
+              {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+            </span>
           </span>
-          {request.reviewed_at && (
-            <div className="reviewed-meta">
+          {request.reviewed_at ? (
+            <div
+              className="founder-status-meta"
+              aria-label={`Reviewed ${formatDateLocal(request.reviewed_at)}`}
+            >
               Reviewed {formatDateLocal(request.reviewed_at)}
             </div>
-          )}
+          ) : null}
         </div>
       </td>
-      <td>
-        <AdminActionMenu
-          label={`Actions for ${request.applicant_name}`}
-          items={items}
-        />
+
+      {/* Actions — always-right-aligned, consistent */}
+      <td className="col-actions">
+        <div className="founder-actions-cell">
+          <AdminActionMenu label={`Actions for ${applicantName}`} items={items} />
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+function RequestRowMobileCard({
+  request,
+  onAction,
+  isAdmin,
+}: {
+  request: FounderAccessRequestRow;
+  onAction: (action: "view" | "approve" | "reject", request: FounderAccessRequestRow) => void;
+  isAdmin: boolean;
+}) {
+  const items = founderRequestActionItems(request, (action, req) => onAction(action, req)).filter(
+    (item) => isAdmin || (item.id !== "approve" && item.id !== "reject")
+  );
+
+  const applicantName = request.applicant_name || "—";
+  const email = request.email;
+  const orgName = request.organization_name;
+  const location = request.city
+    ? `${request.city}${request.region ? `, ${request.region}` : ""}`
+    : null;
+
+  return (
+    <tr className="founder-mobile-card" data-request-id={request.id}>
+      <td className="founder-mobile-card__body" colSpan={5}>
+        <div className="founder-mobile-card__row">
+          <div className="founder-mobile-card__field" data-label="Applicant / Organization">
+            <div className="founder-stacked-cell">
+              <div className="founder-primary">{applicantName}</div>
+              {email ? (
+                <a
+                  href={`mailto:${email}`}
+                  className="founder-secondary founder-link"
+                  title={email}
+                  aria-label={`Email ${applicantName}`}
+                >
+                  {email}
+                </a>
+              ) : null}
+              {orgName ? (
+                <span className="founder-tertiary" title={orgName}>
+                  {orgName}
+                </span>
+              ) : null}
+            </div>
+          </div>
+          <div
+            className="founder-mobile-card__field"
+            data-label="Contact"
+            aria-label={
+              location ||
+              (request.instagram ? `@${request.instagram}` : undefined) ||
+              (request.website ? request.website : undefined) ||
+              "No contact information"
+            }
+          >
+            <div className="founder-stacked-cell founder-contact-cell">
+              {location ? <MetaItem icon={MapPin}>{location}</MetaItem> : null}
+              {request.instagram ? (
+                <MetaItem icon={Globe} title={`@${request.instagram}`}>
+                  <a
+                    href={`https://instagram.com/${request.instagram.replace(/^@/, "")}`}
+                    className="founder-link"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Instagram ${request.instagram}`}
+                  >
+                    @{request.instagram}
+                  </a>
+                </MetaItem>
+              ) : null}
+              {request.website ? (
+                <MetaItem icon={Globe} title={request.website}>
+                  <a
+                    href={
+                      request.website.match(/^https?:\/\//)
+                        ? request.website
+                        : `https://${request.website}`
+                    }
+                    className="founder-link"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Website ${request.website}`}
+                  >
+                    {request.website}
+                  </a>
+                </MetaItem>
+              ) : null}
+            </div>
+          </div>
+        </div>
+        <div className="founder-mobile-card__row">
+          <div className="founder-mobile-card__field" data-label="Submitted">
+            <div className="founder-date-cell">
+              <Clock size={14} aria-hidden="true" />
+              <span>{formatDateLocal(request.created_at)}</span>
+            </div>
+          </div>
+          <div className="founder-mobile-card__field" data-label="Status">
+            <div className="founder-status-cell">
+              <span
+                className={`founder-status-badge founder-status-badge--${request.status}`}
+                aria-label={request.status}
+              >
+                <span className="founder-status-icon" aria-hidden="true">
+                  {request.status === "pending" && "⏳"}
+                  {request.status === "approved" && "✓"}
+                  {request.status === "rejected" && "✕"}
+                </span>
+                <span className="founder-status-label">
+                  {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+                </span>
+              </span>
+              {request.reviewed_at ? (
+                <div className="founder-status-meta">
+                  Reviewed {formatDateLocal(request.reviewed_at)}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+        <div className="founder-mobile-card__actions">
+          <AdminActionMenu label={`Actions for ${applicantName}`} items={items} />
+        </div>
       </td>
     </tr>
   );
@@ -105,9 +290,9 @@ function RequestRow({
 
 function LoadingRow({ colSpan = 5 }: { colSpan?: number }) {
   return (
-    <tr className="loading-row">
+    <tr className="founder-loading-row">
       <td colSpan={colSpan}>
-        <div className="loading-placeholder">
+        <div className="founder-loading-placeholder">
           <div className="skeleton skeleton-title"></div>
           <div className="skeleton skeleton-meta"></div>
           <div className="skeleton skeleton-meta short"></div>
@@ -122,22 +307,36 @@ export default function AdminFounderRequestsTable({
   onAction,
   isLoading = false,
   isAdmin,
-}: AdminFounderRequestsTableProps) {
+}: {
+  requests: FounderAccessRequestRow[];
+  onAction: (action: "view" | "approve" | "reject", request: FounderAccessRequestRow) => void;
+  isLoading?: boolean;
+  isAdmin: boolean;
+}) {
   if (isLoading) {
     return (
       <div className="admin-founder-requests-table-container">
         <table className="admin-founder-requests-table">
+          <colgroup>
+            <col className="col-applicant" />
+            <col className="col-contact" />
+            <col className="col-submitted" />
+            <col className="col-status" />
+            <col className="col-actions" />
+          </colgroup>
           <thead>
             <tr>
-              <th>Applicant / Organization</th>
-              <th>Contact</th>
-              <th>Submitted</th>
-              <th>Status</th>
-              <th className="actions-header">Actions</th>
+              <th className="col-applicant">Applicant / Organization</th>
+              <th className="col-contact">Contact</th>
+              <th className="col-submitted">Submitted</th>
+              <th className="col-status">Status</th>
+              <th className="col-actions actions-header">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {[...Array(5)].map((_, i) => <LoadingRow key={i} />)}
+            {[...Array(5)].map((_, i) => (
+              <LoadingRow key={i} />
+            ))}
           </tbody>
         </table>
       </div>
@@ -147,7 +346,7 @@ export default function AdminFounderRequestsTable({
   if (requests.length === 0) {
     return (
       <div className="admin-founder-requests-table-container empty">
-        <div className="empty-state">
+        <div className="founder-empty-state">
           <p>No founder requests found.</p>
         </div>
       </div>
@@ -157,18 +356,28 @@ export default function AdminFounderRequestsTable({
   return (
     <div className="admin-founder-requests-table-container">
       <table className="admin-founder-requests-table">
+        <colgroup>
+          <col className="col-applicant" />
+          <col className="col-contact" />
+          <col className="col-submitted" />
+          <col className="col-status" />
+          <col className="col-actions" />
+        </colgroup>
         <thead>
           <tr>
-            <th>Applicant / Organization</th>
-            <th>Contact</th>
-            <th>Submitted</th>
-            <th>Status</th>
-            <th className="actions-header">Actions</th>
+            <th className="col-applicant">Applicant / Organization</th>
+            <th className="col-contact">Contact</th>
+            <th className="col-submitted">Submitted</th>
+            <th className="col-status">Status</th>
+            <th className="col-actions actions-header">Actions</th>
           </tr>
         </thead>
         <tbody>
           {requests.map((request) => (
-            <RequestRow key={request.id} request={request} onAction={onAction} isAdmin={isAdmin} />
+            <Fragment key={request.id}>
+              <RequestRowDesktop request={request} onAction={onAction} isAdmin={isAdmin} />
+              <RequestRowMobileCard request={request} onAction={onAction} isAdmin={isAdmin} />
+            </Fragment>
           ))}
         </tbody>
       </table>

@@ -125,8 +125,8 @@ export default function AdminFounderRequestsTable({
 }: AdminFounderRequestsTableProps) {
   if (isLoading) {
     return (
-      <div className="admin-requests-table-container">
-        <table className="admin-requests-table">
+      <div className="admin-founder-requests-table-container">
+        <table className="admin-founder-requests-table">
           <thead>
             <tr>
               <th>Applicant / Organization</th>
@@ -146,7 +146,7 @@ export default function AdminFounderRequestsTable({
 
   if (requests.length === 0) {
     return (
-      <div className="admin-requests-table-container empty">
+      <div className="admin-founder-requests-table-container empty">
         <div className="empty-state">
           <p>No founder requests found.</p>
         </div>
@@ -155,8 +155,8 @@ export default function AdminFounderRequestsTable({
   }
 
   return (
-    <div className="admin-requests-table-container">
-      <table className="admin-requests-table">
+    <div className="admin-founder-requests-table-container">
+      <table className="admin-founder-requests-table">
         <thead>
           <tr>
             <th>Applicant / Organization</th>

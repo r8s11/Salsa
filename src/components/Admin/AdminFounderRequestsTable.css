@@ -64,6 +64,9 @@
   align-items: center;
   gap: var(--space-xs);
   font-size: var(--text-xs);
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .admin-founder-requests-table .icon-sm {
@@ -187,5 +190,16 @@
 
   .admin-founder-requests-table .request-cell {
     min-width: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-founder-requests-table th:nth-child(2),
+  .admin-founder-requests-table td:nth-child(2) {
+    display: none;
+  }
+
+  .admin-founder-requests-table .request-cell {
+    min-width: 0;
   }
 }

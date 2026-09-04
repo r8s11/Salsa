@@ -70,6 +70,39 @@ export function initialsFor(identity: ResolvedIdentity): string {
   return source.charAt(0).toUpperCase() || "?";
 }
 
+/**
+ * Up to two initials for the compact header avatar. Strips a leading "@"
+ * (username fallback), then takes the first character of at most the first
+ * two whitespace-separated words, uppercased. Returns "?" for blank input.
+ */
+export function avatarInitials(source: string): string {
+  const trimmed = source.trim().replace(/^@/, "").trim();
+  if (!trimmed) {
+    return "?";
+  }
+  const words = trimmed.split(/\s+/).slice(0, 2);
+  const initials = words.map((word) => word.charAt(0).toUpperCase()).join("");
+  return initials || "?";
+}
+
+/**
+ * Name + initials for the compact Header account avatar. Resolution order:
+ * display_name -> username -> email -> SAFE_NAME_FALLBACK. This is
+ * deliberately distinct from `resolveIdentity`/`initialsFor` (used by the
+ * large AccountPage avatar, which shows a single letter and never falls
+ * back to email): the compact header avatar has room for up to two
+ * characters and, lacking any profile name, prefers a real email-derived
+ * initial over an anonymous fallback initial.
+ */
+export function resolveAvatarIdentity(
+  profile: Pick<OwnProfile, "display_name" | "username"> | null,
+  email?: string | null
+): { name: string; initials: string } {
+  const name =
+    profile?.display_name?.trim() || profile?.username?.trim() || email?.trim() || SAFE_NAME_FALLBACK;
+  return { name, initials: avatarInitials(name) };
+}
+
 export function memberSinceLabel(createdAt: string): string {
   return new Date(createdAt).toLocaleDateString("en-US", { month: "long", year: "numeric" });
 }

@@ -48,6 +48,109 @@
   min-height: calc(100dvh - 68px);
 }
 
+.calendar-body {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-lg);
+}
+
+.calendar-content {
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .calendar-body {
+    grid-template-columns: 280px minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.calendar-sidebar {
+  background: var(--surface);
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.sidebar-section-label {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin: 0 0 var(--space-sm);
+}
+
+.sidebar-period-label {
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  color: var(--text);
+  margin: 0;
+}
+
+.sidebar-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  min-height: 44px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.sidebar-row:hover {
+  border-color: var(--border-lg);
+  color: var(--text);
+}
+
+.sidebar-row:focus-visible {
+  outline: 2px solid var(--gold-light);
+  outline-offset: 2px;
+}
+
+.sidebar-row-active {
+  background: var(--red-dim);
+  border-color: var(--gold);
+  color: var(--text);
+}
+
+.sidebar-row-count {
+  color: var(--text-dim);
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+
+.sidebar-footer {
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  margin: 0;
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--border);
+}
+
 /* ── Stage header ── */
 .stage-header {
   position: relative;

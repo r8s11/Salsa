@@ -10,6 +10,7 @@ const useEvents = vi.fn();
 const setCity = vi.fn();
 let city = "boston";
 let compact = false;
+let wide = true;
 let mediaListener: ((event: MediaQueryListEvent) => void) | undefined;
 let removeMediaListener = vi.fn();
 
@@ -47,6 +48,7 @@ const event = {
   calendarId: "social" as const,
   location: "Dance Hall",
   priceType: "free" as const,
+  danceStyles: ["Salsa"],
 };
 
 function renderCalendar(path = "/calendar") {
@@ -61,15 +63,16 @@ beforeEach(() => {
   vi.clearAllMocks();
   city = "boston";
   compact = false;
+  wide = true;
   mediaListener = undefined;
   removeMediaListener = vi.fn();
-  window.matchMedia = vi.fn().mockImplementation(() => ({
+  window.matchMedia = vi.fn().mockImplementation((query: string) => ({
     get matches() {
-      return compact;
+      return query.includes("max-width") ? compact : wide;
     },
-    media: "(max-width: 768px)",
+    media: query,
     addEventListener: (_: string, listener: (event: MediaQueryListEvent) => void) => {
-      mediaListener = listener;
+      if (query.includes("max-width")) mediaListener = listener;
     },
     removeEventListener: removeMediaListener,
   }));
@@ -101,7 +104,7 @@ describe("Calendar", () => {
     fireEvent.click(screen.getByRole("button", { name: "Next month" }));
     fireEvent.click(screen.getByRole("button", { name: "NYC" }));
     fireEvent.click(screen.getByRole("button", { name: "Week" }));
-    fireEvent.click(screen.getByRole("button", { name: "Class" }));
+    fireEvent.click(screen.getByRole("button", { name: "Class 0" }));
     expect(calendarControls.setDate).toHaveBeenCalledTimes(3);
     expect(setCity).toHaveBeenCalledWith("new-york-city");
     expect(calendarControls.setView).toHaveBeenCalledWith("week");
@@ -110,7 +113,7 @@ describe("Calendar", () => {
 
   it("clears Schedule-X and keeps the submit CTA for a filter with no matches", () => {
     renderCalendar();
-    fireEvent.click(screen.getByRole("button", { name: "Class" }));
+    fireEvent.click(screen.getByRole("button", { name: "Class 0" }));
     expect(eventsService.set).toHaveBeenLastCalledWith([]);
     expect(screen.getByText("No events match this filter.")).toBeInTheDocument();
     expect(screen.queryByTestId("schedule-x-calendar")).not.toBeInTheDocument();
@@ -161,5 +164,75 @@ describe("Calendar", () => {
     renderCalendar("/calendar?city=boston");
     renderCalendar("/calendar?city=invalid");
     expect(setCity).not.toHaveBeenCalled();
+  });
+  it("renders the desktop sidebar with the What's on group and event count footer", () => {
+    renderCalendar();
+    expect(screen.getByRole("complementary", { name: "Calendar filters" })).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "What's on" })).toBeInTheDocument();
+    expect(screen.getByText(/event(s)? this week/)).toBeInTheDocument();
+  });
+
+  it("hides the sidebar on compact layouts, leaving the toolbar pills as the only filter", () => {
+    compact = true;
+    wide = false;
+    renderCalendar();
+    expect(
+      screen.queryByRole("complementary", { name: "Calendar filters" })
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Filter by event type" })).toBeInTheDocument();
+  });
+
+  it("keeps tablet widths on the compact toolbar so the calendar grid keeps its width", () => {
+    wide = false;
+    renderCalendar();
+    expect(
+      screen.queryByRole("complementary", { name: "Calendar filters" })
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Filter by event type" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Month" })).toBeInTheDocument();
+  });
+
+  it("presents event-type filtering once per layout", () => {
+    renderCalendar();
+    expect(screen.queryByRole("group", { name: "Filter by event type" })).not.toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "What's on" })).toBeInTheDocument();
+  });
+
+  it("narrows Schedule-X events when a sidebar dance style is chosen", () => {
+    const bachataEvent = { ...event, id: "event-2", calendarId: "class" as const, danceStyles: ["Bachata"] };
+    useEvents.mockReturnValue({
+      events: [event, bachataEvent],
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+    renderCalendar();
+    fireEvent.click(screen.getByRole("button", { name: "Bachata" }));
+    expect(eventsService.set).toHaveBeenLastCalledWith(
+      expect.arrayContaining([expect.objectContaining({ id: "event-2" })])
+    );
+    expect(eventsService.set).toHaveBeenLastCalledWith(
+      expect.not.arrayContaining([expect.objectContaining({ id: "event-1" })])
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Salsa" }));
+    expect(eventsService.set).toHaveBeenLastCalledWith(
+      expect.arrayContaining([expect.objectContaining({ id: "event-1" })])
+    );
+  });
+
+  it("drives type filtering from the desktop sidebar row", () => {
+    renderCalendar();
+    const socialRow = screen.getByRole("button", { name: "Social 1" });
+    expect(socialRow).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(screen.getByRole("button", { name: "Class 0" }));
+    expect(screen.getByRole("button", { name: "Class 0" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
+    expect(screen.getByRole("button", { name: "Social 1" })).toHaveAttribute(
+      "aria-pressed",
+      "false"
+    );
+    expect(eventsService.set).toHaveBeenLastCalledWith([]);
   });
 });

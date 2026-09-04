@@ -114,10 +114,12 @@ describe("EventDetailPage", () => {
     expect(screen.getByText("Hosted by")).toBeInTheDocument();
     expect(screen.getAllByText("Carlos").length).toBeGreaterThan(0);
     expect(screen.getByText("Where")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /open map/i })).toHaveAttribute(
+    expect(screen.getByText("Map preview")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /get directions/i })).toHaveAttribute(
       "href",
       expect.stringContaining("maps.google.com")
     );
+    expect(screen.getByRole("button", { name: /instagram story/i })).toBeInTheDocument();
     expect(screen.getByText("Share this night")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Copy link" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Share" })).toBeInTheDocument();

@@ -3,6 +3,8 @@ import {
   capabilityCardsFor,
   resolveIdentity,
   initialsFor,
+  avatarInitials,
+  resolveAvatarIdentity,
   memberSinceLabel,
   statusMessageFor,
   ROLE_LABEL,
@@ -48,6 +50,69 @@ describe("initialsFor", () => {
 
   it("skips a leading @ when the name is a username fallback", () => {
     expect(initialsFor({ name: "@mariasalsa", usernameLine: null, usernameMissing: false })).toBe("M");
+  });
+});
+
+describe("avatarInitials", () => {
+  it("takes the first letter of up to two whitespace-separated words", () => {
+    expect(avatarInitials("Sofia Martinez")).toBe("SM");
+  });
+
+  it("takes the single initial of a one-word name", () => {
+    expect(avatarInitials("Roosevelt")).toBe("R");
+  });
+
+  it("takes the first character of an email address", () => {
+    expect(avatarInitials("dancefan@example.com")).toBe("D");
+  });
+
+  it("strips a leading @ from a username", () => {
+    expect(avatarInitials("@sofia")).toBe("S");
+  });
+
+  it("returns ? for blank input", () => {
+    expect(avatarInitials("  ")).toBe("?");
+  });
+
+  it("never returns more than two characters", () => {
+    expect(avatarInitials("Maria Elena Rodriguez Santos")).toHaveLength(2);
+  });
+});
+
+describe("resolveAvatarIdentity", () => {
+  it("prefers display_name over username and email", () => {
+    expect(
+      resolveAvatarIdentity(
+        { display_name: "Sofia Martinez", username: "sofia" },
+        "sofia@example.com"
+      )
+    ).toEqual({ name: "Sofia Martinez", initials: "SM" });
+  });
+
+  it("falls back to username when display_name is missing", () => {
+    expect(
+      resolveAvatarIdentity({ display_name: null, username: "@sofia" }, "sofia@example.com")
+    ).toEqual({ name: "@sofia", initials: "S" });
+  });
+
+  it("falls back to email when display_name and username are missing", () => {
+    expect(
+      resolveAvatarIdentity({ display_name: null, username: null }, "dancefan@example.com")
+    ).toEqual({ name: "dancefan@example.com", initials: "D" });
+  });
+
+  it("falls back to the safe generic name when nothing is available", () => {
+    expect(resolveAvatarIdentity({ display_name: null, username: null }, null)).toEqual({
+      name: SAFE_NAME_FALLBACK,
+      initials: avatarInitials(SAFE_NAME_FALLBACK),
+    });
+  });
+
+  it("treats a null profile the same as an empty profile", () => {
+    expect(resolveAvatarIdentity(null, "dancefan@example.com")).toEqual({
+      name: "dancefan@example.com",
+      initials: "D",
+    });
   });
 });
 

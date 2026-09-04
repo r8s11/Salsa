@@ -152,26 +152,43 @@ a.logo:hover {
 
 .account-disclosure {
   position: relative;
+  margin-left: var(--space-sm);
 }
 
 .account-disclosure summary {
-  padding: 6px 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
   cursor: pointer;
   list-style: none;
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  border-radius: 50%;
 }
 
 .account-disclosure summary::-webkit-details-marker {
   display: none;
 }
-.account-disclosure summary::after {
-  margin-left: var(--space-sm);
-  content: "⌄";
-  color: var(--gold-light);
+
+.account-avatar {
+  display: block;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
 }
-.account-disclosure[open] summary::after {
-  content: "⌃";
+
+.account-avatar--initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--red), var(--gold));
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 15px;
 }
 
 .account-disclosure__menu {
@@ -181,7 +198,9 @@ a.logo:hover {
   display: grid;
   width: 220px;
   padding: var(--space-sm);
-  background: var(--header-bg);
+  /* Opaque surface: the avatar trigger is available at mobile widths, where
+     this menu overlays page artwork instead of the header bar. */
+  background: var(--surface);
   border: 1px solid var(--border-md);
   border-radius: var(--radius);
   box-shadow: var(--glow-primary);
@@ -334,6 +353,10 @@ a.logo:hover {
   }
   .desktop-nav-actions {
     display: none;
+  }
+  .account-disclosure {
+    margin-left: auto;
+    margin-right: var(--space-sm);
   }
   .hamburger {
     display: flex;

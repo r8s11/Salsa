@@ -13,7 +13,7 @@ import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import "temporal-polyfill/global";
 import "./Calendar.css";
 import "@schedule-x/theme-default/dist/index.css";
-import { ScheduleXEvent, CALENDARS_CONFIG, City } from "../../types/events";
+import { ScheduleXEvent, CALENDARS_CONFIG, City, EventType } from "../../types/events";
 import { filterEventsByType, TypeFilter } from "../../utils/filterEvents";
 import { getUpcomingSeriesDates } from "../../utils/series";
 import { useCity } from "../../contexts/useCity";
@@ -25,6 +25,16 @@ import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
 import { useEventDeepLink } from "../../features/calendar/hooks/useEventDeepLink";
 import CalendarLegend from "../../features/calendar/components/CalendarLegend";
 import CalendarStatus from "../../features/calendar/components/CalendarStatus";
+import CalendarSidebar from "../../features/calendar/components/CalendarSidebar";
+import {
+  calendarPeriodRange,
+  formatPeriodLabel,
+  countEventsByType,
+  availableDanceStyles,
+  filterEventsByDanceStyle,
+  countEventsInRange,
+  eventCountLabel as formatEventCountLabel,
+} from "../../features/calendar/model/calendarSidebar";
 
 type CalendarView = "month-grid" | "week" | "list";
 
@@ -46,10 +56,19 @@ const TYPE_OPTIONS: { value: TypeFilter; label: string }[] = [
   { value: "workshop", label: "Workshop" },
 ];
 
+// The compact list-view switch (Schedule-X view + toolbar) and the desktop
+// filter sidebar are separate breakpoints: between them (tablet widths) the
+// calendar grid still needs its full width, so filtering stays in the compact
+// toolbar instead of a stacked full-width sidebar.
+const COMPACT_QUERY = "(max-width: 768px)";
+const SIDEBAR_QUERY = "(min-width: 1024px)";
+
 export default function Calendar() {
-  const [initialCompact] = useState(() => window.matchMedia("(max-width: 768px)").matches);
+  const [initialCompact] = useState(() => window.matchMedia(COMPACT_QUERY).matches);
+  const [hasSidebar, setHasSidebar] = useState(() => window.matchMedia(SIDEBAR_QUERY).matches);
   const [selectedEvent, setSelectedEvent] = useState<ScheduleXEvent | null>(null);
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
+  const [styleFilter, setStyleFilter] = useState<string>("all");
   const [isCompact, setIsCompact] = useState(initialCompact);
   const [activeView, setActiveView] = useState<CalendarView>(
     initialCompact ? "list" : "month-grid"
@@ -71,8 +90,8 @@ export default function Calendar() {
   const [eventsService] = useState(() => createEventsServicePlugin());
   const [calendarControls] = useState(() => createCalendarControlsPlugin());
   const filteredEvents = useMemo(
-    () => filterEventsByType(eventList, typeFilter),
-    [eventList, typeFilter]
+    () => filterEventsByDanceStyle(filterEventsByType(eventList, typeFilter), styleFilter),
+    [eventList, typeFilter, styleFilter]
   );
 
   const expandedEvents = useMemo(() => {
@@ -141,7 +160,7 @@ export default function Calendar() {
   });
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(max-width: 768px)");
+    const mediaQuery = window.matchMedia(COMPACT_QUERY);
     const handleChange = (event: MediaQueryListEvent) => {
       const nextView: CalendarView = event.matches ? "list" : "month-grid";
       setIsCompact(event.matches);
@@ -152,6 +171,13 @@ export default function Calendar() {
     mediaQuery.addEventListener("change", handleChange);
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, [calendarControls]);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(SIDEBAR_QUERY);
+    const handleChange = (event: MediaQueryListEvent) => setHasSidebar(event.matches);
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, []);
 
   useEffect(() => {
     if (cityParameterHandled.current) return;
@@ -214,6 +240,22 @@ export default function Calendar() {
   const hasNoMatches = !loading && !error && eventList.length > 0 && filteredEvents.length === 0;
   const showCalendar = !loading && !error && expandedEvents.length > 0;
   const showSubmitCta = !loading && !error && eventList.length > 0;
+  const today = Temporal.Now.plainDateISO();
+  const periodRange = calendarPeriodRange(visibleDate, activeView, today);
+  const periodLabel = formatPeriodLabel(periodRange);
+  const typeCountsInStyleContext = countEventsByType(
+    filterEventsByDanceStyle(eventList, styleFilter)
+  );
+  const sidebarTypeOptions = TYPE_OPTIONS.filter((option) => option.value !== "all").map(
+    (option) => ({
+      value: option.value as EventType,
+      label: option.label,
+      count: typeCountsInStyleContext[option.value as EventType] ?? 0,
+    })
+  );
+  const sidebarStyleOptions = availableDanceStyles(eventList);
+  const weekEventCount = countEventsInRange(expandedEvents, today, today.add({ days: 6 }));
+  const sidebarEventCountLabel = formatEventCountLabel(weekEventCount);
 
   return (
     <div className="calendar-page">
@@ -252,62 +294,85 @@ export default function Calendar() {
         </div>
       </header>
 
-      <div className="calendar-toolbar">
-        <div className="toolbar-inner">
-          <div className="pill-group" role="group" aria-label="Filter by event type">
-            {TYPE_OPTIONS.map((option) => (
-              <button
-                key={option.value}
-                className={`pill ${typeFilter === option.value ? "pill-active-type" : ""}`}
-                aria-pressed={typeFilter === option.value}
-                onClick={() => setTypeFilter(option.value)}
-              >
-                {option.label}
-              </button>
-            ))}
+      <div className="calendar-body">
+        {hasSidebar && (
+          <CalendarSidebar
+            periodLabel={periodLabel}
+            typeOptions={sidebarTypeOptions}
+            typeFilter={typeFilter}
+            onTypeFilterChange={setTypeFilter}
+            styleOptions={sidebarStyleOptions}
+            styleFilter={styleFilter}
+            onStyleFilterChange={setStyleFilter}
+            eventCountLabel={sidebarEventCountLabel}
+          />
+        )}
+        <div className="calendar-content">
+          <div className="calendar-toolbar">
+            <div className="toolbar-inner">
+              {/* Event-type filtering lives in exactly one place per layout:
+                  the desktop sidebar, or these compact toolbar pills. */}
+              {!hasSidebar && (
+                <div className="pill-group" role="group" aria-label="Filter by event type">
+                  {TYPE_OPTIONS.map((option) => (
+                    <button
+                      key={option.value}
+                      className={`pill ${typeFilter === option.value ? "pill-active-type" : ""}`}
+                      aria-pressed={typeFilter === option.value}
+                      onClick={() => setTypeFilter(option.value)}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {!isCompact && (
+                <div className="pill-group" role="group" aria-label="Calendar view">
+                  {VIEW_OPTIONS.map((option) => (
+                    <button
+                      key={option.value}
+                      className={`pill ${activeView === option.value ? "pill-active-view" : ""}`}
+                      aria-pressed={activeView === option.value}
+                      onClick={() => handleViewChange(option.value)}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {!isCompact && <CalendarLegend />}
+            </div>
           </div>
-          {!isCompact && (
-            <div className="pill-group" role="group" aria-label="Calendar view">
-              {VIEW_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  className={`pill ${activeView === option.value ? "pill-active-view" : ""}`}
-                  aria-pressed={activeView === option.value}
-                  onClick={() => handleViewChange(option.value)}
-                >
-                  {option.label}
-                </button>
-              ))}
+
+          <CalendarStatus
+            loading={loading}
+            error={error}
+            isEmpty={isEmpty}
+            hasNoMatches={hasNoMatches}
+            cityLabel={cityLabel}
+            onRetry={refetch}
+            onClearFilter={() => {
+              setTypeFilter("all");
+              setStyleFilter("all");
+            }}
+          />
+
+          {showCalendar && (
+            <div className="calendar-main">
+              <ScheduleXCalendar calendarApp={calendar} />
             </div>
           )}
-          {!isCompact && <CalendarLegend />}
+
+          {showSubmitCta && (
+            <div className="calendar-cta">
+              <p>Know about an event that's missing?</p>
+              <Link to="/submit" className="btn-primary">
+                Submit an Event
+              </Link>
+            </div>
+          )}
         </div>
       </div>
-
-      <CalendarStatus
-        loading={loading}
-        error={error}
-        isEmpty={isEmpty}
-        hasNoMatches={hasNoMatches}
-        cityLabel={cityLabel}
-        onRetry={refetch}
-        onClearFilter={() => setTypeFilter("all")}
-      />
-
-      {showCalendar && (
-        <div className="calendar-main">
-          <ScheduleXCalendar calendarApp={calendar} />
-        </div>
-      )}
-
-      {showSubmitCta && (
-        <div className="calendar-cta">
-          <p>Know about an event that's missing?</p>
-          <Link to="/submit" className="btn-primary">
-            Submit an Event
-          </Link>
-        </div>
-      )}
 
       <EventModal event={selectedEvent} onClose={handleClosedModal} />
     </div>

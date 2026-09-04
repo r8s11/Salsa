@@ -1,0 +1,160 @@
+/* ========================================
+   Instagram Story sharing — trigger + preview sheet
+   ======================================== */
+
+.story-share__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 10px;
+  padding: 10px 16px;
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--gold-light);
+  font: 700 0.8rem var(--font-display);
+  cursor: pointer;
+}
+
+.story-share__trigger:hover:not(:disabled) {
+  background: var(--gold-dim);
+  color: #fff;
+}
+
+.story-share__trigger:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+.story-share__trigger:focus-visible,
+.story-share__action:focus-visible,
+.story-share__action--primary:focus-visible,
+.story-share__close:focus-visible {
+  outline: 2px solid var(--gold-light);
+  outline-offset: 2px;
+}
+
+.story-share__hint,
+.story-share__feedback {
+  margin: 8px 0 0;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--text-dim);
+}
+
+.story-share__feedback {
+  color: var(--text-muted);
+}
+
+/* ── Preview sheet ── */
+
+.story-share__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+  background: rgba(6, 10, 21, 0.82);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.story-share__sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: min(360px, 100%);
+  max-height: 100%;
+  padding: 16px;
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  overflow-y: auto;
+}
+
+.story-share__sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.story-share__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.story-share__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.story-share__close:hover {
+  color: #fff;
+  border-color: var(--red);
+}
+
+.story-share__preview {
+  display: block;
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  max-height: 58vh;
+  object-fit: contain;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+}
+
+.story-share__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.story-share__action,
+.story-share__action--primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  flex: 1 1 auto;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text);
+  font: 700 0.75rem var(--font-display);
+  cursor: pointer;
+}
+
+.story-share__action--primary {
+  background: var(--red);
+  border-color: var(--red);
+  color: #fff;
+  flex-basis: 100%;
+}
+
+.story-share__action:hover {
+  color: #fff;
+  border-color: var(--border-lg);
+}

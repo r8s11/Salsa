@@ -4,7 +4,9 @@ import { useCity } from "../../contexts/useCity";
 import { useAuth } from "../../contexts/useAuth";
 import type { City } from "../../contexts/CityContext";
 import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
+import { useOwnProfile } from "../../hooks/useOwnProfile";
 import SalsaSeguraLogo from "../brand/SalsaSeguraLogo";
+import AccountAvatar from "./AccountAvatar";
 import "./Header.css";
 
 const PRIMARY_LINKS = [
@@ -18,6 +20,7 @@ function Header() {
   const accountDisclosure = useRef<HTMLDetailsElement>(null);
   const { city, setCity } = useCity();
   const { user, isModerator, isAdmin, isOrganizer, signOut } = useAuth();
+  const { profile } = useOwnProfile(user?.id);
   const navigate = useNavigate();
 
   const dashboardLinks: ReadonlyArray<{ to: string; label: string }> = [
@@ -132,35 +135,9 @@ function Header() {
         <div className="desktop-nav-actions">
           {citySwitcher()}
           {user ? (
-            <>
-              <NavLink to="/submit" className="auth-btn" onClick={closeNavigation}>
-                Submit Event
-              </NavLink>
-              <details ref={accountDisclosure} className="account-disclosure">
-                <summary>Account</summary>
-                <div className="account-disclosure__menu">
-                  {dashboardLinks.length > 0 && (
-                    <div className="account-disclosure__dashboards">
-                      <span className="account-disclosure__dashboards-label">Dashboards</span>
-                      {dashboardLinks.map(({ to, label }) => (
-                        <NavLink key={to} to={to} onClick={closeNavigation}>
-                          {label}
-                        </NavLink>
-                      ))}
-                    </div>
-                  )}
-                  <NavLink to="/account" onClick={closeNavigation}>
-                    My Account
-                  </NavLink>
-                  <NavLink to="/profile" onClick={closeNavigation}>
-                    My Profile
-                  </NavLink>
-                  <button type="button" onClick={handleSignOut}>
-                    Sign Out
-                  </button>
-                </div>
-              </details>
-            </>
+            <NavLink to="/submit" className="auth-btn" onClick={closeNavigation}>
+              Submit Event
+            </NavLink>
           ) : (
             <>
               <NavLink to="/submit" className="auth-btn" onClick={closeNavigation}>
@@ -173,6 +150,39 @@ function Header() {
           )}
         </div>
 
+        {user && (
+          <details ref={accountDisclosure} className="account-disclosure">
+            <summary aria-label="Open account menu">
+              <AccountAvatar
+                avatarUrl={profile?.avatar_url}
+                displayName={profile?.display_name}
+                username={profile?.username}
+                email={user.email}
+              />
+            </summary>
+            <div className="account-disclosure__menu">
+              {dashboardLinks.length > 0 && (
+                <div className="account-disclosure__dashboards">
+                  <span className="account-disclosure__dashboards-label">Dashboards</span>
+                  {dashboardLinks.map(({ to, label }) => (
+                    <NavLink key={to} to={to} onClick={closeNavigation}>
+                      {label}
+                    </NavLink>
+                  ))}
+                </div>
+              )}
+              <NavLink to="/account" onClick={closeNavigation}>
+                My Account
+              </NavLink>
+              <NavLink to="/profile" onClick={closeNavigation}>
+                My Profile
+              </NavLink>
+              <button type="button" onClick={handleSignOut}>
+                Sign Out
+              </button>
+            </div>
+          </details>
+        )}
         <button
           type="button"
           className={`hamburger ${mobileOpen ? "active" : ""}`}

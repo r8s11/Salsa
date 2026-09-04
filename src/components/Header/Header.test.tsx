@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
@@ -6,10 +6,12 @@ import type { User } from "@supabase/supabase-js";
 import type { AuthContextValue } from "../../contexts/authContextObject";
 import { useAuth } from "../../contexts/useAuth";
 import { useCity } from "../../contexts/useCity";
+import { useOwnProfile } from "../../hooks/useOwnProfile";
 import Header from "./Header";
 
 vi.mock("../../contexts/useAuth", () => ({ useAuth: vi.fn() }));
 vi.mock("../../contexts/useCity", () => ({ useCity: vi.fn() }));
+vi.mock("../../hooks/useOwnProfile", () => ({ useOwnProfile: vi.fn() }));
 
 const setCity = vi.fn();
 const defaultAuth = (overrides: Partial<AuthContextValue> = {}): AuthContextValue => ({
@@ -27,6 +29,13 @@ const defaultAuth = (overrides: Partial<AuthContextValue> = {}): AuthContextValu
   signOut: vi.fn().mockResolvedValue(undefined),
   clearDeletedAccount: vi.fn(),
   ...overrides,
+});
+
+const defaultProfileQuery = () => ({
+  profile: null,
+  isLoading: false,
+  error: null,
+  refetch: vi.fn(),
 });
 
 function renderHeader() {
@@ -48,6 +57,10 @@ function renderHeader() {
 }
 
 describe("Header", () => {
+  beforeEach(() => {
+    vi.mocked(useOwnProfile).mockReturnValue(defaultProfileQuery());
+  });
+
   it("renders the logo home link, exact primary navigation, and guest sign in", () => {
     vi.mocked(useAuth).mockReturnValue(defaultAuth());
     vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
@@ -70,10 +83,7 @@ describe("Header", () => {
 
     renderHeader();
 
-    const account = within(screen.getByRole("banner"))
-      .getAllByText("Account")
-      .find((el) => el.tagName === "SUMMARY")
-      ?.closest("details");
+    const account = screen.getByLabelText("Open account menu").closest("details");
     expect(account).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: "Submit Event" })[0]).toHaveAttribute(
       "href",
@@ -129,10 +139,9 @@ describe("Header", () => {
     const user = userEvent.setup();
     renderHeader();
 
-    const desktopAccount = within(screen.getByRole("banner"))
-      .getAllByText("Account")
-      .find((el) => el.tagName === "SUMMARY")
-      ?.closest("details") as HTMLElement;
+    const desktopAccount = screen
+      .getByLabelText("Open account menu")
+      .closest("details") as HTMLElement;
     expect(within(desktopAccount).getByRole("link", { name: "Host Dashboard" })).toHaveAttribute(
       "href",
       "/host"
@@ -324,5 +333,147 @@ describe("Header", () => {
 
     expect(within(account).getByRole("link", { name: "Submit Event" })).toHaveClass("auth-btn");
     expect(within(account).getByRole("link", { name: "Sign In" })).not.toHaveClass("auth-btn");
+  });
+
+  it("shows the profile photo inside the account menu trigger when avatar_url is set", () => {
+    vi.mocked(useAuth).mockReturnValue(
+      defaultAuth({ user: { id: "member", email: "member@example.com" } as User })
+    );
+    vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
+    vi.mocked(useOwnProfile).mockReturnValue({
+      ...defaultProfileQuery(),
+      profile: {
+        id: "member",
+        display_name: "Sofia Martinez",
+        username: "sofia",
+        avatar_url: "https://example.com/sofia.jpg",
+        status: "active",
+        status_reason: null,
+        created_at: "2026-01-01T00:00:00Z",
+      },
+    });
+
+    renderHeader();
+    const trigger = screen.getByLabelText("Open account menu");
+    const img = trigger.querySelector("img.account-avatar");
+    expect(img).toHaveAttribute("src", "https://example.com/sofia.jpg");
+  });
+
+  it("falls back to display_name initials when there is no avatar_url", () => {
+    vi.mocked(useAuth).mockReturnValue(defaultAuth({ user: { id: "member" } as User }));
+    vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
+    vi.mocked(useOwnProfile).mockReturnValue({
+      ...defaultProfileQuery(),
+      profile: {
+        id: "member",
+        display_name: "Sofia Martinez",
+        username: null,
+        avatar_url: null,
+        status: "active",
+        status_reason: null,
+        created_at: "2026-01-01T00:00:00Z",
+      },
+    });
+
+    renderHeader();
+
+    const trigger = screen.getByLabelText("Open account menu");
+    expect(trigger.querySelector("img")).not.toBeInTheDocument();
+    expect(trigger).toHaveTextContent("SM");
+  });
+
+  it("falls back through username then email when display_name is missing", () => {
+    vi.mocked(useAuth).mockReturnValue(
+      defaultAuth({ user: { id: "member", email: "dancefan@example.com" } as User })
+    );
+    vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
+    vi.mocked(useOwnProfile).mockReturnValue({
+      ...defaultProfileQuery(),
+      profile: {
+        id: "member",
+        display_name: null,
+        username: "@sofia",
+        avatar_url: null,
+        status: "active",
+        status_reason: null,
+        created_at: "2026-01-01T00:00:00Z",
+      },
+    });
+
+    const { rerender } = renderHeader();
+    expect(screen.getByLabelText("Open account menu")).toHaveTextContent("S");
+
+    vi.mocked(useOwnProfile).mockReturnValue({
+      ...defaultProfileQuery(),
+      profile: {
+        id: "member",
+        display_name: null,
+        username: null,
+        avatar_url: null,
+        status: "active",
+        status_reason: null,
+        created_at: "2026-01-01T00:00:00Z",
+      },
+    });
+    rerender(
+      <MemoryRouter initialEntries={["/"]}>
+        <Routes>
+          <Route
+            path="*"
+            element={
+              <>
+                <Header />
+                <main>Destination</main>
+              </>
+            }
+          />
+        </Routes>
+      </MemoryRouter>
+    );
+    expect(screen.getByLabelText("Open account menu")).toHaveTextContent("D");
+  });
+
+  it("exposes 'Open account menu' as the accessible name, not the initials text", () => {
+    vi.mocked(useAuth).mockReturnValue(defaultAuth({ user: { id: "member" } as User }));
+    vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
+    vi.mocked(useOwnProfile).mockReturnValue({
+      ...defaultProfileQuery(),
+      profile: {
+        id: "member",
+        display_name: "Roosevelt",
+        username: null,
+        avatar_url: null,
+        status: "active",
+        status_reason: null,
+        created_at: "2026-01-01T00:00:00Z",
+      },
+    });
+
+    renderHeader();
+
+    const trigger = screen.getByLabelText("Open account menu");
+    expect(trigger.tagName).toBe("SUMMARY");
+    expect(screen.queryByLabelText("R")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "R" })).not.toBeInTheDocument();
+  });
+
+  it("still reveals My Account, My Profile, and Sign Out when the avatar trigger is open", () => {
+    vi.mocked(useAuth).mockReturnValue(defaultAuth({ user: { id: "member" } as User }));
+    vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
+
+    renderHeader();
+
+    const details = screen.getByLabelText("Open account menu").closest("details") as HTMLDetailsElement;
+    details.open = true;
+
+    expect(within(details).getByRole("link", { name: "My Account" })).toHaveAttribute(
+      "href",
+      "/account"
+    );
+    expect(within(details).getByRole("link", { name: "My Profile" })).toHaveAttribute(
+      "href",
+      "/profile"
+    );
+    expect(within(details).getByRole("button", { name: "Sign Out" })).toBeInTheDocument();
   });
 });

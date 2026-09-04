@@ -4,9 +4,11 @@ import { CalendarPlus, Clock3, ExternalLink, MapPin, Users } from "lucide-react"
 import { Link, useParams } from "react-router-dom";
 import { RelatedEventsStrip } from "../components/Events/RelatedEventsStrip";
 import { fetchApprovedEventById, fetchApprovedEvents } from "../features/events/api/eventsRepo";
+import InstagramStoryShare from "../features/events/components/InstagramStoryShare";
+import VenueMapCard from "../features/events/components/VenueMapCard";
 import { databaseEventToScheduleX } from "../features/events/model/convert";
 import { selectRelatedEvents } from "../features/events/model/relatedEvents";
-import type { EventType } from "../features/events/model/types";
+import type { City, EventType } from "../features/events/model/types";
 import { buildNativeSharePayload, buildPublicEventUrl } from "../features/events/model/eventSharing";
 import { downloadIcs, mapsUrl } from "../utils/ics";
 import { resolveEventModalImage } from "../components/EventModal/eventModalImage";
@@ -17,6 +19,12 @@ const TYPE_LABELS: Record<EventType, string> = {
   social: "Social",
   class: "Class",
   workshop: "Workshop",
+};
+
+// Public-surface city labels, matching RelatedEventsStrip on this same page.
+const CITY_LABELS: Record<City, string> = {
+  boston: "Greater Boston",
+  "new-york-city": "New York City",
 };
 
 function formatDate(start: string): string {
@@ -273,23 +281,12 @@ export default function EventDetailPage() {
                 </div>
               )}
 
-              {(event.location || event.address) && (
-                <div className="event-page__card">
-                  <div className="event-page__aside-label">Where</div>
-                  {event.location && <div className="event-page__venue">{event.location}</div>}
-                  {event.address && <div className="event-page__muted">{event.address}</div>}
-                  {mapHref && (
-                    <a
-                      className="event-page__map-link"
-                      href={mapHref}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Open map <ExternalLink size={14} aria-hidden="true" />
-                    </a>
-                  )}
-                </div>
-              )}
+              <VenueMapCard
+                venueName={event.location}
+                streetAddress={event.address}
+                cityLabel={CITY_LABELS[event.city]}
+                directionsHref={mapHref}
+              />
 
               <div className="event-page__card">
                 <div className="event-page__aside-label">Share this night</div>
@@ -317,6 +314,12 @@ export default function EventDetailPage() {
                     WhatsApp
                   </a>
                 </div>
+                <InstagramStoryShare
+                  event={scheduleEvent}
+                  flyerUrl={event.image_url}
+                  cachedFlyerUrl={event.poster_image_url ?? null}
+                  shareUrl={shareUrl}
+                />
                 {shareFeedback && (
                   <p role={shareFeedback.kind === "error" ? "alert" : "status"}>
                     {shareFeedback.message}

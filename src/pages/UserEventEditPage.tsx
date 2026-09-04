@@ -1,8 +1,9 @@
 import type { FormEvent } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../contexts/useAuth";
+import { useAccessibleDialog } from "../shared/a11y/useAccessibleDialog";
 import type { DatabaseEvent } from "../features/events/model/types";
 import {
   deleteEventForUser,
@@ -240,17 +241,11 @@ export default function UserEventEditPage() {
 
   const handleWithdraw = async () => {
     if (!editingEvent || withdrawMutation.isPending) return;
-    if (
-      window.confirm(
-        `Withdraw "${editingEvent.title}"? This will permanently delete the submission and cannot be undone.`
-      )
-    ) {
-      setWithdrawError(null);
-      try {
-        await withdrawMutation.mutateAsync(editingEvent);
-      } catch (error) {
-        setWithdrawError(error instanceof Error ? error.message : "Unknown error");
-      }
+    setWithdrawError(null);
+    try {
+      await withdrawMutation.mutateAsync(editingEvent);
+    } catch (error) {
+      setWithdrawError(error instanceof Error ? error.message : "Unknown error");
     }
   };
 
@@ -323,11 +318,6 @@ export default function UserEventEditPage() {
             <p>❌ {saveError}</p>
           </div>
         )}
-        {withdrawError && (
-          <div className="error-banner" role="alert">
-            <p>❌ {withdrawError}</p>
-          </div>
-        )}
         {saveSuccess && (
           <p className="user-edit-page__success" role="status">
             {saveSuccess}
@@ -384,40 +374,13 @@ export default function UserEventEditPage() {
           </form>
         )}
         {showWithdrawConfirm && canWithdraw && (
-          <div
-            className="user-withdraw-overlay"
-            onClick={() => setShowWithdrawConfirm(false)}
-            role="presentation"
-          >
-            <div
-              className="user-withdraw-dialog"
-              onClick={(event) => event.stopPropagation()}
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="withdraw-title"
-            >
-              <h2 id="withdraw-title">Withdraw submission?</h2>
-              <p>This removes "{editingEvent.title}" from review and cannot be undone.</p>
-              <div className="user-withdraw-dialog__actions">
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  onClick={() => setShowWithdrawConfirm(false)}
-                  disabled={withdrawMutation.isPending}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  className="btn-danger"
-                  onClick={handleWithdraw}
-                  disabled={withdrawMutation.isPending}
-                >
-                  {withdrawMutation.isPending ? "Withdrawing…" : "Withdraw submission"}
-                </button>
-              </div>
-            </div>
-          </div>
+          <WithdrawConfirmDialog
+            title={editingEvent.title}
+            isBusy={withdrawMutation.isPending}
+            error={withdrawError}
+            onConfirm={handleWithdraw}
+            onCancel={() => setShowWithdrawConfirm(false)}
+          />
         )}
       </div>
     </main>
@@ -426,4 +389,68 @@ export default function UserEventEditPage() {
 
 function isEditableStatus(event: DatabaseEvent | null): boolean {
   return event?.status === "pending" || event?.status === "rejected";
+}
+
+interface WithdrawConfirmDialogProps {
+  title: string;
+  isBusy: boolean;
+  error: string | null;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+function WithdrawConfirmDialog({
+  title,
+  isBusy,
+  error,
+  onConfirm,
+  onCancel,
+}: WithdrawConfirmDialogProps) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const cancelRef = useRef<HTMLButtonElement>(null);
+  const { onKeyDown, onBackdropClick, onDialogClick } = useAccessibleDialog({
+    dialogRef,
+    onDismiss: onCancel,
+    isBusy,
+    initialFocusRef: cancelRef,
+  });
+
+  return (
+    <div className="user-withdraw-overlay" onClick={onBackdropClick} role="presentation">
+      <div
+        className="user-withdraw-dialog"
+        ref={dialogRef}
+        onClick={onDialogClick}
+        onKeyDown={onKeyDown}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="withdraw-title"
+        aria-describedby="withdraw-body"
+      >
+        <h2 id="withdraw-title">Withdraw &ldquo;{title}&rdquo;?</h2>
+        <p id="withdraw-body">
+          This permanently deletes the submission and cannot be undone.
+        </p>
+        {error && (
+          <p className="user-withdraw-dialog__error" role="alert">
+            ❌ {error}
+          </p>
+        )}
+        <div className="user-withdraw-dialog__actions">
+          <button
+            type="button"
+            className="btn-secondary"
+            ref={cancelRef}
+            onClick={onCancel}
+            disabled={isBusy}
+          >
+            Cancel
+          </button>
+          <button type="button" className="btn-danger" onClick={onConfirm} disabled={isBusy}>
+            {isBusy ? "Withdrawing…" : "Withdraw submission"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }

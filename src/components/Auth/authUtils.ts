@@ -1,3 +1,10 @@
+import { publicErrorMessage } from "../../shared/forms/errorMessage";
+
+/** True when a Supabase auth failure means the account's email is unconfirmed. */
+export function isUnconfirmedEmail(message: string): boolean {
+  return /email not confirmed/i.test(message);
+}
+
 /** Map raw Supabase auth errors to user-friendly copy. */
 export function friendlyAuthError(message: string): string {
   if (/already registered/i.test(message)) {
@@ -15,6 +22,12 @@ export function friendlyAuthError(message: string): string {
   if (/password.*at least|should be at least/i.test(message)) {
     return "Password must be at least 6 characters.";
   }
-  // Unconfirmed email keeps its message (the resend button appears below it).
-  return message;
+  if (isUnconfirmedEmail(message)) {
+    // The resend button appears below this copy (see isUnconfirmedEmail callers).
+    return "Your email address hasn't been confirmed yet. Resend the confirmation email to continue.";
+  }
+  // Anything unmapped never reaches the user verbatim.
+  return publicErrorMessage(message, {
+    fallback: "We couldn't complete that request. Please try again.",
+  });
 }

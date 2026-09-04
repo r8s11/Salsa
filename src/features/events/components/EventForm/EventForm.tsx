@@ -1,6 +1,9 @@
 import type { ReactNode } from "react";
 import type { EventTaxonomyTerm } from "../../model/types";
 import type { EventFormCapabilities, EventFormDraft } from "./types";
+import type { SubmitFieldErrors } from "../../../submit-event/validation";
+import FormFieldError from "../../../../shared/forms/FormFieldError";
+import { fieldErrorProps } from "../../../../shared/forms/fieldErrorProps";
 import "./EventForm.css";
 
 type Props = {
@@ -21,6 +24,12 @@ type Props = {
    * authenticated forms are unaffected.
    */
   requireSubmitterContact?: boolean;
+  /**
+   * Per-field validation errors, keyed the same way as
+   * `validateSubmitFormFields`. Only `/submit` passes this today — admin and
+   * organizer-edit surfaces render without it and see no error UI.
+   */
+  errors?: SubmitFieldErrors;
 };
 
 const styles = [
@@ -41,6 +50,7 @@ export default function EventForm({
   renderFlyerField,
   taxonomyTerms,
   requireSubmitterContact = false,
+  errors = {},
 }: Props) {
   const update = <K extends keyof EventFormDraft>(key: K, value: EventFormDraft[K]) =>
     onChange({ ...draft, [key]: value });
@@ -63,17 +73,29 @@ export default function EventForm({
     <div className="event-form">
       <section className="event-form__section">
         <h2>Basics</h2>
-        <label>
-          Event Title *
+        <div className="event-form__field">
+          <label htmlFor="event-title">Event Title *</label>
           <input
+            id="event-title"
             value={draft.title}
             onChange={(event) => update("title", event.target.value)}
             required
+            {...fieldErrorProps("event-title-error", errors.title)}
           />
-        </label>
+          <FormFieldError id="event-title-error" message={errors.title} />
+        </div>
         <div className="event-form__field">
-          <span className="event-form__label">Event type *</span>
-          <div className="event-form__segmented" role="group" aria-label="Event type">
+          <span className="event-form__label" id="event-type-label">
+            Event type *
+          </span>
+          <div
+            id="event-type"
+            className="event-form__segmented"
+            role="group"
+            aria-labelledby="event-type-label"
+            aria-required="true"
+            {...fieldErrorProps("event-type-error", errors.event_type)}
+          >
             {(
               [
                 ["social", "Social"],
@@ -91,10 +113,20 @@ export default function EventForm({
               </button>
             ))}
           </div>
+          <FormFieldError id="event-type-error" message={errors.event_type} />
         </div>
         <div className="event-form__field">
-          <span className="event-form__label">City *</span>
-          <div className="event-form__segmented" role="group" aria-label="City">
+          <span className="event-form__label" id="event-city-label">
+            City *
+          </span>
+          <div
+            id="event-city"
+            className="event-form__segmented"
+            role="group"
+            aria-labelledby="event-city-label"
+            aria-required="true"
+            {...fieldErrorProps("event-city-error", errors.city)}
+          >
             {(
               [
                 ["boston", "Boston"],
@@ -111,30 +143,46 @@ export default function EventForm({
               </button>
             ))}
           </div>
+          <FormFieldError id="event-city-error" message={errors.city} />
         </div>
-        <label>
-          Description
+        <div className="event-form__field">
+          <label htmlFor="event-description">Description</label>
           <textarea
+            id="event-description"
             value={draft.description}
             onChange={(event) => update("description", event.target.value)}
+            {...fieldErrorProps("event-description-error", errors.description)}
           />
-        </label>
+          <FormFieldError id="event-description-error" message={errors.description} />
+        </div>
       </section>
       {capabilities.styles !== "none" && (
         <section className="event-form__section">
           <h2>Styles & tags</h2>
           {capabilities.styles === "slug-chips" && (
-            <div className="event-form__chips">
-              {styles.map(([value, label]) => (
-                <button
-                  key={value}
-                  type="button"
-                  aria-pressed={draft.dance_styles.includes(value)}
-                  onClick={() => toggleStyle(value)}
-                >
-                  {label}
-                </button>
-              ))}
+            <div className="event-form__field">
+              <span className="event-form__label" id="event-dance-styles-label">
+                Dance Styles
+              </span>
+              <div
+                id="event-dance-styles"
+                className="event-form__chips"
+                role="group"
+                aria-labelledby="event-dance-styles-label"
+                {...fieldErrorProps("event-dance-styles-error", errors.dance_styles)}
+              >
+                {styles.map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    aria-pressed={draft.dance_styles.includes(value)}
+                    onClick={() => toggleStyle(value)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <FormFieldError id="event-dance-styles-error" message={errors.dance_styles} />
             </div>
           )}
           {capabilities.styles === "taxonomy-chips" && taxonomyTerms && (
@@ -179,23 +227,27 @@ export default function EventForm({
       )}
       <section className="event-form__section">
         <h2>When</h2>
-        <label>
-          Date *
+        <div className="event-form__field">
+          <label htmlFor="event-date">Date *</label>
           <input
+            id="event-date"
             type="date"
             value={draft.event_date}
             onChange={(event) => update("event_date", event.target.value)}
             required
+            {...fieldErrorProps("event-date-error", errors.event_date)}
           />
-        </label>
-        <label>
-          Start Time
+          <FormFieldError id="event-date-error" message={errors.event_date} />
+        </div>
+        <div className="event-form__field">
+          <label htmlFor="event-time">Start Time</label>
           <input
+            id="event-time"
             type="time"
             value={draft.event_time}
             onChange={(event) => update("event_time", event.target.value)}
           />
-        </label>
+        </div>
         <label className="event-form__check">
           <input
             type="checkbox"
@@ -211,20 +263,26 @@ export default function EventForm({
           renderVenueField()
         ) : (
           <>
-            <label>
-              Venue Name
+            <div className="event-form__field">
+              <label htmlFor="event-location">Venue Name</label>
               <input
+                id="event-location"
                 value={draft.location}
                 onChange={(event) => update("location", event.target.value)}
+                {...fieldErrorProps("event-location-error", errors.location)}
               />
-            </label>
-            <label>
-              Address
+              <FormFieldError id="event-location-error" message={errors.location} />
+            </div>
+            <div className="event-form__field">
+              <label htmlFor="event-address">Address</label>
               <input
+                id="event-address"
                 value={draft.address}
                 onChange={(event) => update("address", event.target.value)}
+                {...fieldErrorProps("event-address-error", errors.address)}
               />
-            </label>
+              <FormFieldError id="event-address-error" message={errors.address} />
+            </div>
           </>
         )}
       </section>
@@ -252,24 +310,30 @@ export default function EventForm({
           </div>
         </div>
         {draft.price_type === "paid" && (
-          <label>
-            Amount
+          <div className="event-form__field">
+            <label htmlFor="event-price-amount">Amount</label>
             <input
+              id="event-price-amount"
               type="number"
               min="0"
               value={draft.price_amount}
               onChange={(event) => update("price_amount", event.target.value)}
+              {...fieldErrorProps("event-price-amount-error", errors.price_amount)}
             />
-          </label>
+            <FormFieldError id="event-price-amount-error" message={errors.price_amount} />
+          </div>
         )}
-        <label>
-          RSVP link
+        <div className="event-form__field">
+          <label htmlFor="event-rsvp-link">RSVP link</label>
           <input
+            id="event-rsvp-link"
             type="url"
             value={draft.rsvp_link}
             onChange={(event) => update("rsvp_link", event.target.value)}
+            {...fieldErrorProps("event-rsvp-link-error", errors.rsvp_link)}
           />
-        </label>
+          <FormFieldError id="event-rsvp-link-error" message={errors.rsvp_link} />
+        </div>
       </section>
       {capabilities.flyer && (
         <section className="event-form__section">
@@ -329,26 +393,32 @@ export default function EventForm({
               reviewed. No account needed.
             </p>
           )}
-          <label>
-            Your name
+          <div className="event-form__field">
+            <label htmlFor="submitter-name">Your name</label>
             <input
+              id="submitter-name"
               value={draft.submitter_name}
               onChange={(event) => update("submitter_name", event.target.value)}
               required={requireSubmitterContact}
               maxLength={300}
+              {...fieldErrorProps("submitter-name-error", errors.submitter_name)}
             />
-          </label>
-          <label>
-            Email
+            <FormFieldError id="submitter-name-error" message={errors.submitter_name} />
+          </div>
+          <div className="event-form__field">
+            <label htmlFor="submitter-email">Email</label>
             <input
+              id="submitter-email"
               type="email"
               value={draft.submitter_email}
               onChange={(event) => update("submitter_email", event.target.value)}
               required={requireSubmitterContact}
               maxLength={300}
               autoComplete="email"
+              {...fieldErrorProps("submitter-email-error", errors.submitter_email)}
             />
-          </label>
+            <FormFieldError id="submitter-email-error" message={errors.submitter_email} />
+          </div>
         </section>
       )}
     </div>

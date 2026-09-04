@@ -7,6 +7,9 @@ import { roleFromUser } from "../../contexts/authContextObject";
 import { resolveCallbackDestination } from "../../lib/authDestination";
 import { consumeAuthIntent, type AuthIntentKind } from "../../lib/authIntent";
 import { consumeAuthReturnDestination } from "../../lib/authReturnDestination";
+import { publicErrorMessage } from "../../shared/forms/errorMessage";
+import FormFieldError from "../../shared/forms/FormFieldError";
+import { fieldErrorProps } from "../../shared/forms/fieldErrorProps";
 import "./AuthCallback.css";
 
 type CallbackError = AuthIntentKind | "invalid";
@@ -59,9 +62,13 @@ export default function AuthCallback() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [setupError, setSetupError] = useState<string | null>(null);
+  const [passwordFieldError, setPasswordFieldError] = useState<string | null>(null);
+  const [confirmPasswordFieldError, setConfirmPasswordFieldError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [resendStatus, setResendStatus] = useState<"idle" | "pending" | "sent" | "failed">("idle");
   const consumedRef = useRef(false);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const confirmPasswordRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     // Effects run twice in React StrictMode dev builds. exchangeCodeForSession
@@ -177,21 +184,30 @@ export default function AuthCallback() {
     e.preventDefault();
     if (busy) return;
 
+    setSetupError(null);
+    setPasswordFieldError(null);
+    setConfirmPasswordFieldError(null);
+
     if (password.length < 8) {
-      setSetupError("Password must be at least 8 characters.");
+      setPasswordFieldError("Password must be at least 8 characters.");
+      passwordRef.current?.focus();
       return;
     }
     if (password !== confirmPassword) {
-      setSetupError("Passwords do not match.");
+      setConfirmPasswordFieldError("Passwords do not match.");
+      confirmPasswordRef.current?.focus();
       return;
     }
 
-    setSetupError(null);
     setBusy(true);
     try {
       const { data, error: updateError } = await supabase.auth.updateUser({ password });
       if (updateError) {
-        setSetupError(updateError.message);
+        setSetupError(
+          publicErrorMessage(updateError, {
+            fallback: "We couldn't update your password. Please try again.",
+          })
+        );
         return;
       }
       const role = roleFromUser(data.user);
@@ -204,7 +220,9 @@ export default function AuthCallback() {
       }
     } catch (err) {
       console.warn("Password update failed:", err);
-      setSetupError("Failed to update your password. Please try again.");
+      setSetupError(
+        publicErrorMessage(err, { fallback: "We couldn't update your password. Please try again." })
+      );
     } finally {
       setBusy(false);
     }
@@ -255,7 +273,7 @@ export default function AuthCallback() {
       <section className="auth-card">
         <h1>Set a new password</h1>
         {setupError && (
-          <p className="auth-error" role="alert">
+          <p className="auth-error" id="recovery-setup-error" role="alert">
             {setupError}
           </p>
         )}
@@ -264,6 +282,7 @@ export default function AuthCallback() {
             <label htmlFor="recovery-password">New password</label>
             <input
               id="recovery-password"
+              name="new-password"
               type="password"
               autoComplete="new-password"
               required
@@ -271,12 +290,16 @@ export default function AuthCallback() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={busy}
+              ref={passwordRef}
+              {...fieldErrorProps("recovery-password-error", passwordFieldError)}
             />
+            <FormFieldError id="recovery-password-error" message={passwordFieldError} />
           </div>
           <div className="form-group">
             <label htmlFor="recovery-confirm-password">Confirm new password</label>
             <input
               id="recovery-confirm-password"
+              name="confirm-password"
               type="password"
               autoComplete="new-password"
               required
@@ -284,7 +307,10 @@ export default function AuthCallback() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               disabled={busy}
+              ref={confirmPasswordRef}
+              {...fieldErrorProps("recovery-confirm-password-error", confirmPasswordFieldError)}
             />
+            <FormFieldError id="recovery-confirm-password-error" message={confirmPasswordFieldError} />
           </div>
           <button type="submit" className="btn-primary btn-block" disabled={busy}>
             {busy ? "Updating password…" : "Set new password"}

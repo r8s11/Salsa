@@ -1,9 +1,10 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import AdminPageHeader from "../components/Admin/AdminPageHeader";
 import AdminViewTabs from "../components/Admin/AdminViewTabs";
 import AdminTaxonomyToolbar from "../components/Admin/AdminTaxonomyToolbar";
 import AdminTaxonomyTable from "../components/Admin/AdminTaxonomyTable";
+import AdminConfirmDialog from "../components/Admin/AdminConfirmDialog";
 import { useAdminTaxonomy } from "../features/admin/hooks/useAdminTaxonomy";
 import {
   DEFAULT_TAXONOMY_FILTERS,
@@ -12,7 +13,9 @@ import {
   taxonomyViewCounts,
   TAXONOMY_VIEWS,
   type TaxonomyFilters,
+  type TaxonomyTerm,
 } from "../features/admin/model/taxonomy";
+import { taxonomyArchiveCopy, taxonomyDeleteCopy } from "../features/admin/model/taxonomyConfirmCopy";
 import "./AdminTagsPage.css";
 
 function parseFilters(searchParams: URLSearchParams): TaxonomyFilters {
@@ -41,6 +44,9 @@ export default function AdminTagsPage() {
   const [params, setParams] = useSearchParams();
   const urlFilters = parseFilters(params);
   const { terms, isLoading, error, archive, restore, remove } = useAdminTaxonomy(urlFilters);
+  const [pendingAction, setPendingAction] = useState<
+    { kind: "archive" | "delete"; term: TaxonomyTerm } | null
+  >(null);
 
   const viewableTerms = useMemo(
     () => applyTaxonomyView(terms ?? [], urlFilters.view),
@@ -71,6 +77,14 @@ export default function AdminTagsPage() {
       : terms?.length === 0
         ? "No taxonomy terms yet."
         : null;
+
+  const closePendingAction = () => setPendingAction(null);
+
+  const confirmPendingAction = () => {
+    if (!pendingAction) return;
+    const mutation = pendingAction.kind === "archive" ? archive : remove;
+    mutation.mutate(pendingAction.term.id, { onSuccess: closePendingAction });
+  };
 
   return (
     <>
@@ -151,13 +165,28 @@ export default function AdminTagsPage() {
             ) : (
               <AdminTaxonomyTable
                 terms={filteredTerms}
-                onArchive={(id) => archive.mutate(id)}
+                onArchive={(term) => setPendingAction({ kind: "archive", term })}
                 onRestore={(id) => restore.mutate(id)}
-                onDelete={(id) => remove.mutate(id)}
+                onDelete={(term) => setPendingAction({ kind: "delete", term })}
               />
             )}
           </div>
         </>
+      )}
+      {pendingAction && (
+        <AdminConfirmDialog
+          {...(pendingAction.kind === "archive"
+            ? taxonomyArchiveCopy(pendingAction.term.name)
+            : taxonomyDeleteCopy(pendingAction.term.name))}
+          isBusy={pendingAction.kind === "archive" ? archive.isPending : remove.isPending}
+          error={
+            pendingAction.kind === "archive"
+              ? (archive.error?.message ?? null)
+              : (remove.error?.message ?? null)
+          }
+          onConfirm={confirmPendingAction}
+          onCancel={closePendingAction}
+        />
       )}
     </>
   );

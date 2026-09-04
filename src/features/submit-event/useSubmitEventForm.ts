@@ -4,7 +4,8 @@ import { createSubmission } from "../admin/api/submissionsRepo";
 import { uploadEventFlyer, removeEventFlyer } from "../events/api/eventFlyers";
 import { useCity } from "../../contexts/useCity";
 import { useAuth } from "../../contexts/useAuth";
-import { buildInitialForm, validateSubmitForm } from "./validation";
+import { buildInitialForm, validateSubmitFormFields, type SubmitFieldErrors } from "./validation";
+import { publicErrorMessage } from "../../shared/forms/errorMessage";
 import { notifySubmissionReceived } from "./submissionNotification";
 import type { EventFormDraft } from "../events/components/EventForm";
 import { draftToSubmission } from "../events/components/EventForm";
@@ -29,7 +30,13 @@ export function useSubmitEventForm() {
   const [form, setForm] = useState<EventFormDraft>(() => buildSubmitDraft(defaultCity));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // Per-field validation errors, keyed by `SubmitFieldName`.
+  const [fieldErrors, setFieldErrors] = useState<SubmitFieldErrors>({});
+  // Failure with no identifiable field — a rejected API call.
+  const [serverError, setServerError] = useState<string | null>(null);
+  // Bumped on every failed submit attempt (validation or server) so
+  // `FormErrorSummary` re-focuses even when the error text is unchanged.
+  const [failedAttempt, setFailedAttempt] = useState(0);
 
   // ── Flyer (Phase 1): persist-before-ready ──
   // The flyer is uploaded to Supabase Storage as soon as it is chosen — the
@@ -47,9 +54,38 @@ export function useSubmitEventForm() {
   // is already running. Resolves to the persisted URL or null on failure.
   const flyerUploadPromise = useRef<Promise<string | null> | null>(null);
 
-  const update = <K extends keyof EventFormDraft>(field: K, value: EventFormDraft[K]) =>
+  // Drops a field's error the moment its value changes — stale "Choose an
+  // event type" text must not survive the user fixing it.
+  const clearFieldError = <K extends keyof EventFormDraft>(field: K) => {
+    setFieldErrors((previous) => {
+      if (!(field in previous)) return previous;
+      const next = { ...previous };
+      delete next[field as keyof SubmitFieldErrors];
+      return next;
+    });
+  };
+
+  const update = <K extends keyof EventFormDraft>(field: K, value: EventFormDraft[K]) => {
     setForm((previous) => ({ ...previous, [field]: value }));
-  const onChange = (draft: EventFormDraft) => setForm(draft);
+    clearFieldError(field);
+  };
+  const onChange = (draft: EventFormDraft) => {
+    setForm((previous) => {
+      setFieldErrors((previousErrors) => {
+        if (Object.keys(previousErrors).length === 0) return previousErrors;
+        const next = { ...previousErrors };
+        let changed = false;
+        for (const field of Object.keys(next) as (keyof EventFormDraft)[]) {
+          if (previous[field] !== draft[field]) {
+            delete next[field as keyof SubmitFieldErrors];
+            changed = true;
+          }
+        }
+        return changed ? next : previousErrors;
+      });
+      return draft;
+    });
+  };
 
   const uploadFlyerFile = (file: File): Promise<string | null> => {
     if (!user) return Promise.resolve(null);
@@ -139,8 +175,8 @@ export function useSubmitEventForm() {
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    setError(null);
-    const validationError = validateSubmitForm(
+    setServerError(null);
+    const validationErrors = validateSubmitFormFields(
       {
         title: form.title,
         description: form.description,
@@ -162,10 +198,12 @@ export function useSubmitEventForm() {
       // and email become required. Matches the anon RLS policy + trigger.
       !user
     );
-    if (validationError) {
-      setError(validationError);
+    if (Object.keys(validationErrors).length > 0) {
+      setFieldErrors(validationErrors);
+      setFailedAttempt((attempt) => attempt + 1);
       return;
     }
+    setFieldErrors({});
 
     // Reuse the URL already persisted for this flyer — submit never performs a
     // second upload. If an upload is still in flight, wait for it to settle.
@@ -204,7 +242,12 @@ export function useSubmitEventForm() {
       flyerUploadPromise.current = null;
       setFlyerStatus("empty");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
+      setServerError(
+        publicErrorMessage(err, {
+          fallback: "We couldn't submit your event. Please try again.",
+        })
+      );
+      setFailedAttempt((attempt) => attempt + 1);
       // Clean up a flyer that was uploaded but whose submission failed, so we
       // don't leave an orphaned object.
       if (persistedFlyerUrl) {
@@ -234,7 +277,9 @@ export function useSubmitEventForm() {
     handleSubmit,
     isSubmitting,
     isSubmitted,
-    error,
+    fieldErrors,
+    serverError,
+    failedAttempt,
     resetSubmitted,
     flyerFile,
     flyerStatus,

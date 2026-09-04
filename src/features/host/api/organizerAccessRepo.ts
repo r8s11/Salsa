@@ -179,6 +179,13 @@ export async function createOrganizerEvent(
   return data as string;
 }
 
+export async function deleteOrganizerEvent(eventId: string): Promise<void> {
+  const { error } = await supabase.rpc("organizer_delete_event", {
+    p_event_id: eventId,
+  });
+  if (error) throw repositoryError(error);
+}
+
 /**
  * Organizer-scoped event mutation seam. Authorization (authenticated
  * session, active account, active owner/manager membership on the event's

@@ -1,0 +1,25 @@
+/* ========================================
+   Public form field error — shared primitive
+   ======================================== */
+
+.field-error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-top: 6px;
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: #ff8080; /* matches .error-banner text, AA on --bg and --surface */
+}
+
+/* Invalid controls in public forms get the same border treatment. */
+.form-group input[aria-invalid="true"],
+.form-group select[aria-invalid="true"],
+.form-group textarea[aria-invalid="true"],
+.submit-form .form-group input[aria-invalid="true"],
+.submit-form .form-group select[aria-invalid="true"],
+.submit-form .form-group textarea[aria-invalid="true"],
+.auth-form input[aria-invalid="true"] {
+  border-color: var(--red);
+}

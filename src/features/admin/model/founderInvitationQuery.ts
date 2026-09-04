@@ -9,6 +9,7 @@
  */
 
 export type FounderInvitationStatus = "pending" | "accepted" | "revoked";
+export type FounderInvitationDeliveryStatus = "attempting" | "sent" | "failed";
 
 /**
  * A founder invitation row as returned by the
@@ -28,7 +29,7 @@ export interface FounderInvitationRow {
   accepted_at: string | null;
   accepted_by: string | null;
   /** Phase 5: most recent email-delivery attempt for this invitation, if any. */
-  latest_delivery_status: "sent" | "failed" | null;
+  latest_delivery_status: FounderInvitationDeliveryStatus | null;
   latest_delivery_provider_message_id: string | null;
   latest_delivery_attempted_at: string | null;
   latest_delivery_error_code: string | null;
@@ -130,10 +131,11 @@ export function founderInvitationAcceptUrl(token: string): string {
  * attempt has been recorded for it yet" — both render identically to an
  * admin ("no email has gone out").
  */
-export type FounderInvitationEmailDisplayStatus = "not_sent" | "sent" | "failed";
+export type FounderInvitationEmailDisplayStatus = "not_sent" | "attempting" | "sent" | "failed";
 
 export const FOUNDER_INVITATION_EMAIL_DISPLAY_LABEL: Record<FounderInvitationEmailDisplayStatus, string> = {
   not_sent: "Not invited",
+  attempting: "Email delivery attempting",
   sent: "Invitation email sent",
   failed: "Invitation email failed",
 };
@@ -142,7 +144,7 @@ export function deriveEmailDisplayStatus(
   invitation: FounderInvitationRow | null
 ): FounderInvitationEmailDisplayStatus {
   if (!invitation || !invitation.latest_delivery_status) return "not_sent";
-  return invitation.latest_delivery_status === "sent" ? "sent" : "failed";
+  return invitation.latest_delivery_status;
 }
 
 /** Response from the `send-founder-invitation` Edge Function on success. */
@@ -151,4 +153,19 @@ export interface SendFounderInvitationResult {
   invitationId: string;
   email: string;
   expiresAt: string;
+  deduplicated?: boolean;
+  deliveryStatus?: "attempting" | "sent";
+}
+
+export interface FounderInvitationDeliveryAttemptRow {
+  id: string;
+  invitation_id: string;
+  attempt_number: number;
+  provider: string;
+  provider_message_id: string | null;
+  status: FounderInvitationDeliveryStatus;
+  error_code: string | null;
+  attempted_by: string;
+  attempted_at: string;
+  completed_at: string | null;
 }

@@ -144,6 +144,17 @@ describe("deriveEmailDisplayStatus", () => {
     expect(deriveEmailDisplayStatus(invitation({ latest_delivery_status: null }))).toBe("not_sent");
   });
 
+
+  it("keeps an incomplete delivery distinct from sent and failed", () => {
+    expect(
+      deriveEmailDisplayStatus(
+        invitation({
+          latest_delivery_status: "attempting",
+          delivery_attempt_count: 1,
+        })
+      )
+    ).toBe("attempting");
+  });
   it("returns sent when the latest delivery attempt succeeded", () => {
     expect(
       deriveEmailDisplayStatus(
@@ -172,7 +183,7 @@ describe("deriveEmailDisplayStatus", () => {
 describe("FOUNDER_INVITATION_EMAIL_DISPLAY_LABEL", () => {
   it("has a human label for every email display status", () => {
     expect(Object.keys(FOUNDER_INVITATION_EMAIL_DISPLAY_LABEL).sort()).toEqual(
-      ["failed", "not_sent", "sent"].sort()
+      ["attempting", "failed", "not_sent", "sent"].sort()
     );
   });
 });

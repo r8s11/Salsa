@@ -1,14 +1,17 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import AdminConfirmDialog from "../components/Admin/AdminConfirmDialog";
 import AdminMergeTaxonomyDialog from "../components/Admin/AdminMergeTaxonomyDialog";
 import AdminTaxonomyForm from "../components/Admin/AdminTaxonomyForm";
 import { useAdminTaxonomy, useAdminTaxonomyTerm } from "../features/admin/hooks/useAdminTaxonomy";
 import { DEFAULT_TAXONOMY_FILTERS } from "../features/admin/model/taxonomy";
+import { taxonomyArchiveCopy, taxonomyDeleteCopy } from "../features/admin/model/taxonomyConfirmCopy";
 
 export default function AdminTaxonomyDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [mergeOpen, setMergeOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<"archive" | "delete" | null>(null);
   const { term, isLoading, error } = useAdminTaxonomyTerm(id);
   const actions = useAdminTaxonomy(DEFAULT_TAXONOMY_FILTERS);
 
@@ -21,13 +24,15 @@ export default function AdminTaxonomyDetailPage() {
       candidate.category === term.category &&
       candidate.status === "active"
   );
-  const archive = () => {
-    if (window.confirm(`Archive ${term.name}? It will remain attached to historical events.`))
-      actions.archive.mutate(term.id);
-  };
-  const remove = () => {
-    if (term.usage_count === 0 && window.confirm(`Delete ${term.name}? This cannot be undone.`))
-      actions.remove.mutate(term.id, { onSuccess: () => navigate("/admin/tags") });
+  const closePendingAction = () => setPendingAction(null);
+  const confirmPendingAction = () => {
+    if (pendingAction === "archive") {
+      actions.archive.mutate(term.id, { onSuccess: closePendingAction });
+    } else if (pendingAction === "delete") {
+      actions.remove.mutate(term.id, {
+        onSuccess: () => navigate("/admin/tags"),
+      });
+    }
   };
 
   return (
@@ -69,7 +74,11 @@ export default function AdminTaxonomyDetailPage() {
             Restore
           </button>
         ) : (
-          <button type="button" className="admin-btn admin-btn--secondary" onClick={archive}>
+          <button
+            type="button"
+            className="admin-btn admin-btn--secondary"
+            onClick={() => setPendingAction("archive")}
+          >
             Archive
           </button>
         )}
@@ -90,7 +99,7 @@ export default function AdminTaxonomyDetailPage() {
               ? `This term is used by ${term.usage_count} events and cannot be deleted.`
               : undefined
           }
-          onClick={remove}
+          onClick={() => setPendingAction("delete")}
         >
           Delete
         </button>
@@ -111,6 +120,21 @@ export default function AdminTaxonomyDetailPage() {
               }
             )
           }
+        />
+      )}
+      {pendingAction && (
+        <AdminConfirmDialog
+          {...(pendingAction === "archive"
+            ? taxonomyArchiveCopy(term.name)
+            : taxonomyDeleteCopy(term.name))}
+          isBusy={pendingAction === "archive" ? actions.archive.isPending : actions.remove.isPending}
+          error={
+            pendingAction === "archive"
+              ? (actions.archive.error?.message ?? null)
+              : (actions.remove.error?.message ?? null)
+          }
+          onConfirm={confirmPendingAction}
+          onCancel={closePendingAction}
         />
       )}
     </section>

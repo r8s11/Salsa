@@ -1,6 +1,7 @@
 import { FunctionsHttpError } from "@supabase/supabase-js";
 import { supabase } from "../../../lib/supabase";
 import type {
+  FounderInvitationDeliveryAttemptRow,
   FounderInvitationRow,
   CreateFounderInvitationResult,
   SendFounderInvitationResult,
@@ -59,24 +60,66 @@ export async function revokeFounderInvitation(invitationId: string): Promise<{ s
  * credential nobody received.
  */
 export async function sendFounderInvitation(
-  founderRequestId: string
+  founderRequestId: string,
+  idempotencyKey: string
 ): Promise<SendFounderInvitationResult> {
-  const { data, error } = await supabase.functions.invoke<SendFounderInvitationResult>(
-    "send-founder-invitation",
-    { body: { founderRequestId } }
-  );
+  return invokeFounderInvitationDelivery("send-founder-invitation", founderRequestId, idempotencyKey);
+}
+
+export async function reissueFounderInvitation(
+  founderRequestId: string,
+  idempotencyKey: string
+): Promise<SendFounderInvitationResult> {
+  return invokeFounderInvitationDelivery("reissue-founder-invitation", founderRequestId, idempotencyKey);
+}
+
+async function invokeFounderInvitationDelivery(
+  functionName: "send-founder-invitation" | "reissue-founder-invitation",
+  founderRequestId: string,
+  idempotencyKey: string
+): Promise<SendFounderInvitationResult> {
+  const { data, error } = await supabase.functions.invoke<SendFounderInvitationResult>(functionName, {
+    body: { founderRequestId, idempotencyKey },
+  });
   if (error) {
     let message = error.message;
     if (error instanceof FunctionsHttpError) {
       try {
-        const body = (await error.context.json()) as { error?: string } | null;
-        if (body?.error) message = body.error;
+        const responseBody: unknown = await error.context.json();
+        if (
+          typeof responseBody === "object" &&
+          responseBody !== null &&
+          "error" in responseBody &&
+          typeof responseBody.error === "string"
+        ) {
+          message = responseBody.error;
+        }
       } catch {
-        // Response body wasn't JSON; fall back to the generic message.
+        // Response body was not JSON; use the transport error.
       }
     }
     throw new Error(message);
   }
   if (!data) throw new Error("The invitation email was not sent. Please try again.");
   return data;
+}
+
+export async function fetchFounderInvitationHistory(
+  founderRequestId: string
+): Promise<FounderInvitationRow[]> {
+  const { data, error } = await supabase.rpc("admin_founder_invitation_history", {
+    p_founder_request_id: founderRequestId,
+  });
+  if (error) throw new Error(error.message);
+  return (data as FounderInvitationRow[] | null) ?? [];
+}
+
+export async function fetchFounderInvitationDeliveryAttempts(
+  invitationId: string
+): Promise<FounderInvitationDeliveryAttemptRow[]> {
+  const { data, error } = await supabase.rpc("admin_founder_invitation_delivery_attempts", {
+    p_invitation_id: invitationId,
+  });
+  if (error) throw new Error(error.message);
+  return (data as FounderInvitationDeliveryAttemptRow[] | null) ?? [];
 }

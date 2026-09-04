@@ -193,6 +193,12 @@
   font-size: 0.9rem;
 }
 
+.user-withdraw-dialog__error {
+  margin: -8px 0 20px;
+  color: #e11d48;
+  font-size: 0.85rem;
+}
+
 .user-withdraw-dialog__actions {
   display: flex;
   justify-content: flex-end;

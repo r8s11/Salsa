@@ -1,7 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
-import { Resend } from "https://esm.sh/resend@4.0.1";
-import { founderAcceptUrl } from "../_shared/invitation.ts";
+import { Resend } from "https://esm.sh/resend@6.26.0";
 import { founderInvitationEmailContent } from "../_shared/founderInvitationEmail.ts";
 
 /**
@@ -23,8 +22,17 @@ import { founderInvitationEmailContent } from "../_shared/founderInvitationEmail
  * Resend API key.
  */
 
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
 function json(data: unknown, status = 200): Response {
-  return new Response(JSON.stringify(data), { status, headers: { "Content-Type": "application/json" } });
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+  });
 }
 
 function errorResponse(message: string, status: number): Response {
@@ -44,10 +52,11 @@ type CallerClient = {
 
 type ResendMessage = { from: string; to: string; subject: string; html: string; text: string };
 type ResendResult = { data: { id?: string } | null; error: { message?: string; name?: string } | null };
+type ResendSendOptions = { idempotencyKey?: string };
 
 export type FounderInvitationDeliveryDependencies = {
   createCallerClient: (authorization: string) => CallerClient;
-  resend: { emails: { send(message: ResendMessage): Promise<ResendResult> } };
+  resend: { emails: { send(message: ResendMessage, options?: ResendSendOptions): Promise<ResendResult> } };
   from: string;
   acceptUrlBase: string;
   log: (message: string, details?: unknown) => void;
@@ -62,7 +71,57 @@ export type IssuedFounderInvitation = {
   email: string;
   organizationName: string;
   expiresAt: string;
+  attemptId: string;
+  claimed: true;
+  deduplicated: false;
 };
+
+type DeduplicatedFounderInvitation = {
+  claimed: false;
+  deduplicated: true;
+  status: "attempting" | "sent";
+  invitationId: string;
+  email: string;
+  expiresAt: string;
+};
+
+function isDeduplicatedInvitation(value: unknown): value is DeduplicatedFounderInvitation {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "deduplicated" in value &&
+    value.deduplicated === true &&
+    "status" in value &&
+    (value.status === "attempting" || value.status === "sent") &&
+    "invitationId" in value &&
+    typeof value.invitationId === "string" &&
+    "email" in value &&
+    typeof value.email === "string" &&
+    "expiresAt" in value &&
+    typeof value.expiresAt === "string"
+  );
+}
+
+function isIssuedInvitation(value: unknown): value is IssuedFounderInvitation {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "claimed" in value &&
+    value.claimed === true &&
+    "id" in value &&
+    typeof value.id === "string" &&
+    "token" in value &&
+    typeof value.token === "string" &&
+    "email" in value &&
+    typeof value.email === "string" &&
+    "organizationName" in value &&
+    typeof value.organizationName === "string" &&
+    "expiresAt" in value &&
+    typeof value.expiresAt === "string" &&
+    "attemptId" in value &&
+    typeof value.attemptId === "string"
+  );
+}
 
 /** Maps a Postgres error surfaced through PostgREST/postgrest-js to an HTTP response. */
 function mapInvitationIssueError(error: RpcError, verb: "create" | "reissue"): Response {
@@ -75,6 +134,8 @@ function mapInvitationIssueError(error: RpcError, verb: "create" | "reissue"): R
       return errorResponse("An invitation has already been issued for this request", 409);
     case "22023":
       return errorResponse(error.message ?? `This request is not eligible to ${verb} an invitation`, 400);
+    case "55000":
+      return errorResponse("Please wait 60 seconds before reissuing this invitation.", 429);
     default:
       return errorResponse(`Unable to ${verb} invitation`, 500);
   }
@@ -93,22 +154,18 @@ export function classifyFounderInvitationResendFailure(result: ResendResult | nu
 
 /**
  * Canonical delivery orchestration for a server-issued Founder invitation.
- *
- * `issueRpc` is intentionally the only configurable step. Both create and
- * reissue use caller-authenticated SQL to mint the credential, then share the
- * same controlled recipient, token confinement, delivery-attempt audit, and
- * fail-then-revoke compensation. The request body never carries an email,
- * token, URL, or provider field.
+ * Create and reissue share the same claim-before-send, token confinement,
+ * provider idempotency, completion audit, and failure compensation.
  */
 export function createFounderInvitationDeliveryHandler(
   dependencies: FounderInvitationDeliveryDependencies,
   options: {
-    issueRpc: "admin_create_founder_invitation" | "admin_reissue_founder_invitation";
     verb: "create" | "reissue";
     logPrefix: string;
   }
 ) {
   return async (request: Request): Promise<Response> => {
+    if (request.method === "OPTIONS") return new Response("ok", { headers: CORS_HEADERS });
     if (request.method !== "POST") return errorResponse("Method not allowed", 405);
 
     const authorization = request.headers.get("authorization");
@@ -127,6 +184,11 @@ export function createFounderInvitationDeliveryHandler(
     if (callerResult.error || !user) return errorResponse("Unauthorized", 401);
     if (user.app_metadata?.role !== "admin") return errorResponse("Forbidden", 403);
 
+    const declaredLength = Number(request.headers.get("content-length") ?? "0");
+    if (Number.isFinite(declaredLength) && declaredLength > 10_000) {
+      return errorResponse("Request body too large", 413);
+    }
+
     let body: unknown;
     try {
       body = await request.json();
@@ -134,15 +196,24 @@ export function createFounderInvitationDeliveryHandler(
       return errorResponse("Invalid JSON body", 400);
     }
     if (typeof body !== "object" || body === null || Array.isArray(body)) {
-      return errorResponse("founderRequestId is required", 400);
+      return errorResponse("founderRequestId and idempotencyKey are required", 400);
     }
-    const founderRequestId = (body as { founderRequestId?: unknown }).founderRequestId;
+    const founderRequestId = "founderRequestId" in body ? body.founderRequestId : undefined;
+    const idempotencyKey = "idempotencyKey" in body ? body.idempotencyKey : undefined;
     if (typeof founderRequestId !== "string" || founderRequestId.length === 0) {
       return errorResponse("founderRequestId is required", 400);
     }
+    if (
+      typeof idempotencyKey !== "string" ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(idempotencyKey)
+    ) {
+      return errorResponse("A valid idempotencyKey is required", 400);
+    }
 
-    const issueResult = await caller.rpc(options.issueRpc, {
+    const issueResult = await caller.rpc("admin_claim_founder_invitation_delivery", {
       p_founder_request_id: founderRequestId,
+      p_operation: options.verb,
+      p_idempotency_key: idempotencyKey,
     });
     if (issueResult.error) {
       dependencies.log(`${options.logPrefix}: invitation ${options.verb} failed`, {
@@ -151,11 +222,22 @@ export function createFounderInvitationDeliveryHandler(
       });
       return mapInvitationIssueError(issueResult.error, options.verb);
     }
-    const invitation = issueResult.data as IssuedFounderInvitation | null;
-    if (!invitation || typeof invitation.token !== "string") {
-      dependencies.log(`${options.logPrefix}: RPC returned no invitation data`, { userId: user.id });
+    const claim = issueResult.data;
+    if (isDeduplicatedInvitation(claim)) {
+      return json({
+        success: true,
+        deduplicated: true,
+        deliveryStatus: claim.status,
+        invitationId: claim.invitationId,
+        email: claim.email,
+        expiresAt: claim.expiresAt,
+      });
+    }
+    if (!isIssuedInvitation(claim)) {
+      dependencies.log(`${options.logPrefix}: claim returned no invitation data`, { userId: user.id });
       return errorResponse(`Unable to ${options.verb} invitation`, 500);
     }
+    const invitation = claim;
 
     const acceptUrl = `${dependencies.acceptUrlBase}?token=${encodeURIComponent(invitation.token)}`;
     const content = founderInvitationEmailContent({
@@ -167,24 +249,27 @@ export function createFounderInvitationDeliveryHandler(
     let sendResult: ResendResult | null = null;
     let thrown: unknown = null;
     try {
-      sendResult = await dependencies.resend.emails.send({
-        from: dependencies.from,
-        to: invitation.email,
-        subject: content.subject,
-        html: content.html,
-        text: content.text,
-      });
+      sendResult = await dependencies.resend.emails.send(
+        {
+          from: dependencies.from,
+          to: invitation.email,
+          subject: content.subject,
+          html: content.html,
+          text: content.text,
+        },
+        { idempotencyKey: `founder-invitation-${idempotencyKey}` }
+      );
     } catch (err) {
       thrown = err;
     }
 
-    const succeeded = !thrown && sendResult && !sendResult.error && sendResult.data?.id;
+    const providerMessageId = sendResult?.data?.id ?? null;
+    const succeeded = !thrown && sendResult && !sendResult.error && providerMessageId;
     if (succeeded) {
-      const recordResult = await caller.rpc("admin_record_founder_invitation_delivery_attempt", {
-        p_invitation_id: invitation.id,
+      const recordResult = await caller.rpc("admin_complete_founder_invitation_delivery", {
+        p_attempt_id: invitation.attemptId,
         p_status: "sent",
-        p_provider_message_id: sendResult.data.id,
-        p_provider: "resend",
+        p_provider_message_id: providerMessageId,
       });
       if (recordResult.error) {
         dependencies.log(`${options.logPrefix}: delivery recording failed after successful send`, {
@@ -201,11 +286,10 @@ export function createFounderInvitationDeliveryHandler(
     }
 
     const errorCode = classifyFounderInvitationResendFailure(sendResult, thrown);
-    const recordResult = await caller.rpc("admin_record_founder_invitation_delivery_attempt", {
-      p_invitation_id: invitation.id,
+    const recordResult = await caller.rpc("admin_complete_founder_invitation_delivery", {
+      p_attempt_id: invitation.attemptId,
       p_status: "failed",
       p_error_code: errorCode,
-      p_provider: "resend",
     });
     if (recordResult.error) {
       dependencies.log(`${options.logPrefix}: failed delivery recording also failed`, {
@@ -214,15 +298,6 @@ export function createFounderInvitationDeliveryHandler(
       });
     }
 
-    const revokeResult = await caller.rpc("admin_revoke_founder_invitation", {
-      p_invitation_id: invitation.id,
-    });
-    if (revokeResult.error) {
-      dependencies.log(`${options.logPrefix}: compensating revoke failed`, {
-        invitationId: invitation.id,
-        code: revokeResult.error.code,
-      });
-    }
 
     dependencies.log(`${options.logPrefix}: email send failed`, {
       invitationId: invitation.id,
@@ -234,7 +309,6 @@ export function createFounderInvitationDeliveryHandler(
 
 export function createSendFounderInvitationHandler(dependencies: SendFounderInvitationDependencies) {
   return createFounderInvitationDeliveryHandler(dependencies, {
-    issueRpc: "admin_create_founder_invitation",
     verb: "create",
     logPrefix: "send-founder-invitation",
   });
@@ -252,8 +326,9 @@ function runtimeDependencies(): SendFounderInvitationDependencies {
   const supabaseUrl = requiredEnvironment("SUPABASE_URL");
   const anonKey = requiredEnvironment("SUPABASE_ANON_KEY");
   const resendKey = requiredEnvironment("RESEND_API_KEY");
-
-  const acceptUrlBase = founderAcceptUrl(Deno.env.get("ENVIRONMENT") === "production" ? "production" : "local");
+  const from = requiredEnvironment("AUTH_EMAIL_FROM");
+  const externalUrl = new URL(requiredEnvironment("AUTH_EXTERNAL_URL"));
+  const acceptUrlBase = new URL("/founders/accept", externalUrl).toString();
 
   return {
     createCallerClient: (authorization: string) => {
@@ -268,7 +343,7 @@ function runtimeDependencies(): SendFounderInvitationDependencies {
       };
     },
     resend: new Resend(resendKey),
-    from: Deno.env.get("AUTH_EMAIL_FROM") ?? "SalsaSegura <onboarding@resend.dev>",
+    from,
     acceptUrlBase,
     log: (message, details) => console.error(message, details),
   };

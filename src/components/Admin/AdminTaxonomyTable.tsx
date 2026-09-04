@@ -15,9 +15,9 @@ export default function AdminTaxonomyTable({
   onDelete,
 }: {
   terms: TaxonomyTerm[];
-  onArchive: (id: string) => void;
+  onArchive: (term: TaxonomyTerm) => void;
   onRestore: (id: string) => void;
-  onDelete: (id: string) => void;
+  onDelete: (term: TaxonomyTerm) => void;
 }) {
   const action = (term: TaxonomyTerm) => (
     <div className="admin-taxonomy-table__actions">
@@ -35,7 +35,7 @@ export default function AdminTaxonomyTable({
           type="button"
           className="admin-btn admin-btn--secondary admin-btn--sm"
           aria-label={`Archive ${term.name}`}
-          onClick={() => onArchive(term.id)}
+          onClick={() => onArchive(term)}
         >
           Archive
         </button>
@@ -46,7 +46,7 @@ export default function AdminTaxonomyTable({
         aria-label={`Delete ${term.name}`}
         disabled={term.usage_count > 0}
         title={term.usage_count > 0 ? `Used by ${term.usage_count} events` : undefined}
-        onClick={() => onDelete(term.id)}
+        onClick={() => onDelete(term)}
       >
         Delete
       </button>

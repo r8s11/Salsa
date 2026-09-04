@@ -117,6 +117,13 @@ export default function EventFlyerField({
     }
     setPreviewError(false);
     setValidationError(null);
+    // No confirmation dialog: this only stages a local draft change (clears
+    // the selected file / detaches the current URL from the form draft).
+    // Nothing persisted is deleted here — the parent (UserEventEditPage)
+    // deletes the previously uploaded storage object via removeEventFlyer
+    // only after a save mutation succeeds, so an accidental Remove click is
+    // fully recoverable by not saving (or by re-selecting/undoing before
+    // Save).
     onFileChange(null);
     onRemove?.();
   };
@@ -141,6 +148,9 @@ export default function EventFlyerField({
             : currentUrl
               ? "Flyer ready"
               : "Selected";
+
+  const alertId = `${inputId}-error`;
+  const hasAlert = Boolean(validationError || (status === "upload-error" && errorMessage));
 
   return (
     <div className="event-flyer-field">
@@ -232,6 +242,8 @@ export default function EventFlyerField({
             className="event-flyer-field__input"
             tabIndex={-1}
             aria-hidden
+            aria-invalid={hasAlert ? "true" : undefined}
+            aria-describedby={hasAlert ? alertId : undefined}
           />
         </div>
       )}
@@ -272,8 +284,8 @@ export default function EventFlyerField({
         </div>
       )}
 
-      {(validationError || (status === "upload-error" && errorMessage)) && (
-        <p className="event-flyer-field__alert" role="alert">
+      {hasAlert && (
+        <p className="event-flyer-field__alert" id={alertId} role="alert">
           <AlertTriangle size={16} aria-hidden />
           {validationError ?? errorMessage}
         </p>

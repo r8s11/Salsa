@@ -42,26 +42,33 @@ create index if not exists taxonomy_terms_usage_count_idx on public.taxonomy_ter
 -- Row Level Security
 alter table public.taxonomy_terms enable row level security;
 
--- Policies: Allow authenticated users to read all terms, admins to modify
-create policy if not exists "Taxonomy terms are viewable by authenticated users"
+-- Policies: Public calendar reads terms anonymously (event dance-style/attribute
+-- tags render for signed-out visitors); admins modify.
+drop policy if exists "Taxonomy terms are viewable by authenticated users" on public.taxonomy_terms;
+drop policy if exists "Taxonomy terms are publicly viewable" on public.taxonomy_terms;
+create policy "Taxonomy terms are publicly viewable"
   on public.taxonomy_terms
   for select
-  to authenticated
+  to anon, authenticated
   using (true);
 
-create policy if not exists "Admins can insert taxonomy terms"
+drop policy if exists "Admins can insert taxonomy terms" on public.taxonomy_terms;
+create policy "Admins can insert taxonomy terms"
   on public.taxonomy_terms
   for insert
   to authenticated
-  using (public.is_admin());
+  with check (public.is_admin());
 
-create policy if not exists "Admins can update taxonomy terms"
+drop policy if exists "Admins can update taxonomy terms" on public.taxonomy_terms;
+create policy "Admins can update taxonomy terms"
   on public.taxonomy_terms
   for update
   to authenticated
-  using (public.is_admin());
+  using (public.is_admin())
+  with check (public.is_admin());
 
-create policy if not exists "Admins can delete taxonomy terms"
+drop policy if exists "Admins can delete taxonomy terms" on public.taxonomy_terms;
+create policy "Admins can delete taxonomy terms"
   on public.taxonomy_terms
   for delete
   to authenticated
@@ -72,7 +79,8 @@ grant select on public.taxonomy_terms to anon, authenticated;
 grant insert, update, delete on public.taxonomy_terms to authenticated;
 
 -- Trigger to set updated_at
-create trigger if not exists taxonomy_terms_set_updated_at
+drop trigger if exists taxonomy_terms_set_updated_at on public.taxonomy_terms;
+create trigger taxonomy_terms_set_updated_at
   before update on public.taxonomy_terms
   for each row
   execute function public.set_updated_at();

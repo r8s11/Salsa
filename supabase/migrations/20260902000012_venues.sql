@@ -53,26 +53,34 @@ create index if not exists venues_status_idx on public.venues(status);
 -- Row Level Security
 alter table public.venues enable row level security;
 
--- Policies: Allow authenticated users to read all venues, admins to modify
-create policy if not exists "Venues are viewable by authenticated users"
+-- Policies: admins are the sole reader/writer. Public/organizer surfaces reach
+-- venue data only through the admin_venue_* SECURITY DEFINER RPCs (which bypass
+-- RLS deliberately), never through a direct table SELECT.
+drop policy if exists "Venues are viewable by authenticated users" on public.venues;
+drop policy if exists "Admins read venues" on public.venues;
+create policy "Admins read venues"
   on public.venues
   for select
   to authenticated
-  using (true);
+  using (public.is_admin());
 
-create policy if not exists "Admins can insert venues"
+drop policy if exists "Admins can insert venues" on public.venues;
+create policy "Admins can insert venues"
   on public.venues
   for insert
   to authenticated
-  using (public.is_admin());
+  with check (public.is_admin());
 
-create policy if not exists "Admins can update venues"
+drop policy if exists "Admins can update venues" on public.venues;
+create policy "Admins can update venues"
   on public.venues
   for update
   to authenticated
-  using (public.is_admin());
+  using (public.is_admin())
+  with check (public.is_admin());
 
-create policy if not exists "Admins can delete venues"
+drop policy if exists "Admins can delete venues" on public.venues;
+create policy "Admins can delete venues"
   on public.venues
   for delete
   to authenticated
@@ -82,7 +90,8 @@ create policy if not exists "Admins can delete venues"
 grant select, insert, update, delete on public.venues to authenticated;
 
 -- Trigger to set updated_at
-create trigger if not exists venues_set_updated_at
+drop trigger if exists venues_set_updated_at on public.venues;
+create trigger venues_set_updated_at
   before update on public.venues
   for each row
   execute function public.set_updated_at();

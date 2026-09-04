@@ -12,6 +12,9 @@ const DEFAULT_INVITATION = {
   email: "founder@example.com",
   organizationName: "Salsa Riverside",
   expiresAt: "2026-09-03T00:00:00.000Z",
+  attemptId: "attempt-1",
+  claimed: true as const,
+  deduplicated: false as const,
 };
 
 function dependencies(overrides: Partial<SendFounderInvitationDependencies> = {}) {
@@ -19,12 +22,11 @@ function dependencies(overrides: Partial<SendFounderInvitationDependencies> = {}
   const logs: Array<{ message: string; details?: unknown }> = [];
 
   const rpcResponses: Record<string, { data: unknown; error: { code?: string; message?: string } | null }> = {
-    admin_create_founder_invitation: { data: DEFAULT_INVITATION, error: null },
-    admin_record_founder_invitation_delivery_attempt: {
-      data: { id: "attempt-1", attemptNumber: 1, status: "sent" },
+    admin_claim_founder_invitation_delivery: { data: DEFAULT_INVITATION, error: null },
+    admin_complete_founder_invitation_delivery: {
+      data: { success: true, deduplicated: false, status: "sent" },
       error: null,
     },
-    admin_revoke_founder_invitation: { data: { success: true, status: "revoked" }, error: null },
   };
 
   const deps: SendFounderInvitationDependencies = {
@@ -58,10 +60,14 @@ function dependencies(overrides: Partial<SendFounderInvitationDependencies> = {}
 }
 
 function request(body: unknown, authorization = "Bearer caller-token") {
+  const requestBody =
+    typeof body === "object" && body !== null && !Array.isArray(body)
+      ? { ...body, idempotencyKey: "123e4567-e89b-42d3-a456-426614174000" }
+      : body;
   return new Request("http://localhost/send-founder-invitation", {
     method: "POST",
     headers: { "content-type": "application/json", authorization },
-    body: JSON.stringify(body),
+    body: JSON.stringify(requestBody),
   });
 }
 
@@ -133,6 +139,28 @@ Deno.test("rejects a body without founderRequestId", async () => {
   assertEquals(response.status, 400);
 });
 
+Deno.test("rejects a missing idempotency key", async () => {
+  const { deps } = dependencies();
+  const response = await createSendFounderInvitationHandler(deps)(
+    new Request("http://localhost/send-founder-invitation", {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: "Bearer caller-token" },
+      body: JSON.stringify({ founderRequestId: "req-1" }),
+    })
+  );
+  assertEquals(response.status, 400);
+});
+
+Deno.test("answers CORS preflight without authenticating", async () => {
+  const { deps, calls } = dependencies();
+  const response = await createSendFounderInvitationHandler(deps)(
+    new Request("http://localhost/send-founder-invitation", { method: "OPTIONS" })
+  );
+  assertEquals(response.status, 200);
+  assertEquals(response.headers.get("access-control-allow-methods"), "POST, OPTIONS");
+  assertEquals(calls.length, 0);
+});
+
 // --- Eligibility (pass-through from the Phase 4 RPC) --------------------
 
 Deno.test("maps pending/rejected-request RPC error to 400", async () => {
@@ -181,6 +209,27 @@ Deno.test("maps an already-active invitation RPC error to 409 without sending em
   assertEquals(calls.filter((c) => c.name === "resend:send").length, 0);
 });
 
+Deno.test("maps the server-side reissue cooldown to 429", async () => {
+  const { deps } = dependencies({
+    createCallerClient: () => ({
+      auth: {
+        getUser: async () => ({
+          data: { user: { id: "admin-id", app_metadata: { role: "admin" } } },
+          error: null,
+        }),
+      },
+      rpc: async () => ({
+        data: null,
+        error: { code: "55000", message: "please wait before reissuing this invitation" },
+      }),
+    }),
+  });
+  const response = await createSendFounderInvitationHandler(deps)(
+    request({ founderRequestId: "req-1" })
+  );
+  assertEquals(response.status, 429);
+});
+
 // --- Success path: email content + delivery recording -------------------
 
 Deno.test("sends the email to the invitation's email, with subject/accept-URL/expiry copy", async () => {
@@ -209,16 +258,45 @@ Deno.test("does not encode role/status/organization-owner metadata into the acce
   assertEquals([...url.searchParams.keys()], ["token"]);
 });
 
-Deno.test("records a sent delivery attempt with the provider message id on success", async () => {
+Deno.test("deduplicates an attempting claim without contacting Resend", async () => {
+  const { deps, calls, rpcResponses } = dependencies();
+  rpcResponses.admin_claim_founder_invitation_delivery = {
+    data: {
+      claimed: false,
+      deduplicated: true,
+      status: "attempting",
+      invitationId: DEFAULT_INVITATION.id,
+      email: DEFAULT_INVITATION.email,
+      expiresAt: DEFAULT_INVITATION.expiresAt,
+    },
+    error: null,
+  };
+  const response = await createSendFounderInvitationHandler(deps)(
+    request({ founderRequestId: "req-1" })
+  );
+  assertEquals(response.status, 200);
+  assertEquals(calls.some((call) => call.name === "resend:send"), false);
+  assertEquals(await response.json(), {
+    success: true,
+    deduplicated: true,
+    deliveryStatus: "attempting",
+    invitationId: DEFAULT_INVITATION.id,
+    email: DEFAULT_INVITATION.email,
+    expiresAt: DEFAULT_INVITATION.expiresAt,
+  });
+});
+
+Deno.test("claims before sending and completes the attempt with the provider message id", async () => {
   const { deps, calls } = dependencies();
   await createSendFounderInvitationHandler(deps)(request({ founderRequestId: "req-1" }));
 
-  const recordCall = calls.find((c) => c.name === "rpc:admin_record_founder_invitation_delivery_attempt");
+  assertEquals(calls[0]?.name, "rpc:admin_claim_founder_invitation_delivery");
+  const recordCall = calls.find((c) => c.name === "rpc:admin_complete_founder_invitation_delivery");
   assertExists(recordCall);
   const args = recordCall!.value as Record<string, unknown>;
   assertEquals(args.p_status, "sent");
   assertEquals(args.p_provider_message_id, "resend-msg-1");
-  assertEquals(args.p_invitation_id, DEFAULT_INVITATION.id);
+  assertEquals(args.p_attempt_id, DEFAULT_INVITATION.attemptId);
 });
 
 Deno.test("returns a safe success payload without the plaintext token", async () => {
@@ -246,7 +324,7 @@ Deno.test("never logs the plaintext token", async () => {
 
 // --- Failure + compensation ----------------------------------------------
 
-Deno.test("records a failed delivery attempt and revokes the invitation when Resend returns an error", async () => {
+Deno.test("completes a failed delivery claim so the database revokes the invitation atomically", async () => {
   const { deps, calls } = dependencies({
     resend: {
       emails: {
@@ -260,17 +338,14 @@ Deno.test("records a failed delivery attempt and revokes the invitation when Res
   const body = await response.json();
   assertEquals(body.error, "Invitation created, but the email could not be sent. Please try again.");
 
-  const recordCall = calls.find((c) => c.name === "rpc:admin_record_founder_invitation_delivery_attempt");
+  const recordCall = calls.find((c) => c.name === "rpc:admin_complete_founder_invitation_delivery");
   const args = recordCall!.value as Record<string, unknown>;
   assertEquals(args.p_status, "failed");
   assertEquals(args.p_error_code, "rate_limited");
-
-  const revokeCall = calls.find((c) => c.name === "rpc:admin_revoke_founder_invitation");
-  assertExists(revokeCall);
-  assertEquals((revokeCall!.value as Record<string, unknown>).p_invitation_id, DEFAULT_INVITATION.id);
+  assertEquals(args.p_attempt_id, DEFAULT_INVITATION.attemptId);
 });
 
-Deno.test("classifies a thrown network error and still compensates", async () => {
+Deno.test("classifies a thrown network error and completes the failed claim", async () => {
   const { deps, calls } = dependencies({
     resend: {
       emails: {
@@ -283,9 +358,8 @@ Deno.test("classifies a thrown network error and still compensates", async () =>
   const response = await createSendFounderInvitationHandler(deps)(request({ founderRequestId: "req-1" }));
   assertEquals(response.status, 502);
 
-  const recordCall = calls.find((c) => c.name === "rpc:admin_record_founder_invitation_delivery_attempt");
+  const recordCall = calls.find((c) => c.name === "rpc:admin_complete_founder_invitation_delivery");
   assertEquals((recordCall!.value as Record<string, unknown>).p_error_code, "network_error");
-  assertExists(calls.find((c) => c.name === "rpc:admin_revoke_founder_invitation"));
 });
 
 Deno.test("does not report success when the provider returns no message id", async () => {
@@ -298,10 +372,10 @@ Deno.test("does not report success when the provider returns no message id", asy
   });
   const response = await createSendFounderInvitationHandler(deps)(request({ founderRequestId: "req-1" }));
   assertEquals(response.status, 502);
-  assertExists(calls.find((c) => c.name === "rpc:admin_revoke_founder_invitation"));
+  assertExists(calls.find((c) => c.name === "rpc:admin_complete_founder_invitation_delivery"));
 });
 
-Deno.test("a compensating-revoke failure does not change the reported outcome", async () => {
+Deno.test("a failed completion write does not misreport provider failure as success", async () => {
   const { deps } = dependencies({
     resend: {
       emails: {
@@ -315,8 +389,8 @@ Deno.test("a compensating-revoke failure does not change the reported outcome", 
     return {
       ...client,
       rpc: async (fn: string, args: Record<string, unknown>) => {
-        if (fn === "admin_revoke_founder_invitation") {
-          return { data: null, error: { code: "P0002", message: "invitation not found" } };
+        if (fn === "admin_complete_founder_invitation_delivery") {
+          return { data: null, error: { code: "P0002", message: "attempt not found" } };
         }
         return client.rpc(fn, args);
       },

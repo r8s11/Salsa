@@ -89,6 +89,7 @@ describe("SignInForm", () => {
     await user.click(screen.getByRole("button", { name: /^sign up$/i }));
     await user.type(screen.getByLabelText(/email/i), "new@example.com");
     await user.type(screen.getByLabelText(/^password$/i), "password123");
+    await user.type(screen.getByLabelText(/confirm password/i), "password123");
     await user.click(screen.getByRole("button", { name: /^sign up$/i }));
 
     await waitFor(() => {
@@ -341,6 +342,7 @@ describe("SignInForm", () => {
     await user.click(screen.getByRole("button", { name: /^sign up$/i }));
     await user.type(screen.getByLabelText(/email/i), "new@example.com");
     await user.type(screen.getByLabelText(/^password$/i), "password123");
+    await user.type(screen.getByLabelText(/confirm password/i), "password123");
     await user.click(screen.getByRole("button", { name: /^sign up$/i }));
 
     await waitFor(() => {
@@ -442,6 +444,7 @@ describe("SignInForm", () => {
     expect(screen.getByRole("heading", { name: "Create your account" })).toBeInTheDocument();
     await user.type(screen.getByLabelText(/email/i), "new@example.com");
     await user.type(screen.getByLabelText(/^password$/i), "password123");
+    await user.type(screen.getByLabelText(/confirm password/i), "password123");
     await user.click(screen.getByRole("button", { name: /^sign up$/i }));
     expect(signUp).toHaveBeenCalledWith("new@example.com", "password123");
   });
@@ -578,5 +581,198 @@ describe("SignInForm", () => {
 
     expect(screen.getByRole("heading", { name: "Reset your password" })).toBeInTheDocument();
     expect(screen.getByLabelText(/email/i)).toHaveValue("expired@example.com");
+  });
+
+  it("associates a credential failure with the email field and moves focus there, preserving values", async () => {
+    const signInWithPassword = vi.fn().mockResolvedValue({
+      error: new Error("Invalid login credentials"),
+      user: null,
+    });
+    vi.mocked(useAuth).mockReturnValue({
+      user: null,
+      session: null,
+      loading: false,
+      isAdmin: false,
+      isModerator: false,
+      isOrganizer: false,
+      role: null,
+      signInWithPassword,
+      resendConfirmation: vi.fn(),
+      requestPasswordReset: vi.fn(),
+      signUp: vi.fn(),
+      signOut: vi.fn(),
+      clearDeletedAccount: vi.fn(),
+    });
+    const user = userEvent.setup();
+
+    render(
+      <MemoryRouter>
+        <SignInForm />
+      </MemoryRouter>
+    );
+
+    await user.type(screen.getByLabelText(/email/i), "user@example.com");
+    await user.type(screen.getByLabelText(/^password$/i), "wrongpassword");
+    await user.click(screen.getByRole("button", { name: /^sign in$/i }));
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent(/incorrect email or password/i);
+    expect(alert).toHaveAttribute("id", "auth-form-error");
+
+    const emailInput = screen.getByLabelText(/email/i);
+    await waitFor(() => expect(emailInput).toHaveFocus());
+    expect(emailInput).toHaveValue("user@example.com");
+    expect(screen.getByLabelText(/^password$/i)).toHaveValue("wrongpassword");
+  });
+
+  it("renders a Confirm password field on sign-up and blocks submit on mismatch without calling signUp", async () => {
+    const signUp = vi.fn();
+    vi.mocked(useAuth).mockReturnValue({
+      user: null,
+      session: null,
+      loading: false,
+      isAdmin: false,
+      isModerator: false,
+      isOrganizer: false,
+      role: null,
+      signInWithPassword: vi.fn(),
+      resendConfirmation: vi.fn(),
+      requestPasswordReset: vi.fn(),
+      signUp,
+      signOut: vi.fn(),
+      clearDeletedAccount: vi.fn(),
+    });
+    const user = userEvent.setup();
+
+    render(
+      <MemoryRouter>
+        <SignInForm />
+      </MemoryRouter>
+    );
+
+    await user.click(screen.getByRole("button", { name: /^sign up$/i }));
+    expect(screen.getByLabelText(/confirm password/i)).toBeInTheDocument();
+
+    await user.type(screen.getByLabelText(/email/i), "new@example.com");
+    await user.type(screen.getByLabelText(/^password$/i), "password123");
+    await user.type(screen.getByLabelText(/confirm password/i), "different123");
+    await user.click(screen.getByRole("button", { name: /^sign up$/i }));
+
+    const confirmInput = screen.getByLabelText(/confirm password/i);
+    await waitFor(() => expect(confirmInput).toHaveFocus());
+    expect(screen.getByText(/passwords do not match/i)).toBeInTheDocument();
+    expect(signUp).not.toHaveBeenCalled();
+  });
+
+  it("blocks sign-up submit on a too-short password without calling signUp", async () => {
+    const signUp = vi.fn();
+    vi.mocked(useAuth).mockReturnValue({
+      user: null,
+      session: null,
+      loading: false,
+      isAdmin: false,
+      isModerator: false,
+      isOrganizer: false,
+      role: null,
+      signInWithPassword: vi.fn(),
+      resendConfirmation: vi.fn(),
+      requestPasswordReset: vi.fn(),
+      signUp,
+      signOut: vi.fn(),
+      clearDeletedAccount: vi.fn(),
+    });
+    const user = userEvent.setup();
+
+    render(
+      <MemoryRouter>
+        <SignInForm />
+      </MemoryRouter>
+    );
+
+    await user.click(screen.getByRole("button", { name: /^sign up$/i }));
+    await user.type(screen.getByLabelText(/email/i), "new@example.com");
+    await user.type(screen.getByLabelText(/^password$/i), "short");
+    await user.type(screen.getByLabelText(/confirm password/i), "short");
+    await user.click(screen.getByRole("button", { name: /^sign up$/i }));
+
+    expect(screen.getByText(/password must be at least 6 characters/i)).toBeInTheDocument();
+    expect(signUp).not.toHaveBeenCalled();
+  });
+
+  it("shows SalsaSegura copy for an unconfirmed email and still offers Resend", async () => {
+    const signInWithPassword = vi.fn().mockResolvedValue({
+      error: new Error("Email not confirmed"),
+      user: null,
+    });
+    vi.mocked(useAuth).mockReturnValue({
+      user: null,
+      session: null,
+      loading: false,
+      isAdmin: false,
+      isModerator: false,
+      isOrganizer: false,
+      role: null,
+      signInWithPassword,
+      resendConfirmation: vi.fn(),
+      requestPasswordReset: vi.fn(),
+      signUp: vi.fn(),
+      signOut: vi.fn(),
+      clearDeletedAccount: vi.fn(),
+    });
+    const user = userEvent.setup();
+
+    render(
+      <MemoryRouter>
+        <SignInForm />
+      </MemoryRouter>
+    );
+
+    await user.type(screen.getByLabelText(/email/i), "user@example.com");
+    await user.type(screen.getByLabelText(/^password$/i), "password123");
+    await user.click(screen.getByRole("button", { name: /^sign in$/i }));
+
+    expect(
+      await screen.findByText(
+        "Your email address hasn't been confirmed yet. Resend the confirmation email to continue."
+      )
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/email not confirmed/i)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /resend confirmation email/i })).toBeInTheDocument();
+  });
+
+  it("keeps the reset-mode privacy copy unchanged regardless of whether the account exists", async () => {
+    const requestPasswordReset = vi.fn().mockResolvedValue({ error: null });
+    vi.mocked(useAuth).mockReturnValue({
+      user: null,
+      session: null,
+      loading: false,
+      isAdmin: false,
+      isModerator: false,
+      isOrganizer: false,
+      role: null,
+      signInWithPassword: vi.fn(),
+      resendConfirmation: vi.fn(),
+      requestPasswordReset,
+      signUp: vi.fn(),
+      signOut: vi.fn(),
+      clearDeletedAccount: vi.fn(),
+    });
+    const user = userEvent.setup();
+
+    render(
+      <MemoryRouter>
+        <SignInForm />
+      </MemoryRouter>
+    );
+
+    await user.click(screen.getByRole("button", { name: /forgot password/i }));
+    await user.type(screen.getByLabelText(/email/i), "unknown@example.com");
+    await user.click(screen.getByRole("button", { name: /send reset link/i }));
+
+    expect(
+      await screen.findByText(
+        "If an account exists for that email, we've sent a link to reset your password."
+      )
+    ).toBeInTheDocument();
   });
 });

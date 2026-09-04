@@ -372,4 +372,104 @@ describe("AuthCallback", () => {
     expect(supabase.auth.exchangeCodeForSession).not.toHaveBeenCalled();
     expect(supabase.auth.setSession).not.toHaveBeenCalled();
   });
+
+  it("associates the short-password error with the password field and moves focus there", async () => {
+    vi.mocked(supabase.auth.exchangeCodeForSession).mockResolvedValue({
+      data: { user: mockUser, session: mockSession, redirectType: "recovery" },
+      error: null,
+    } as never);
+    vi.mocked(supabase.auth.getSession).mockResolvedValue({
+      data: { session: mockSession },
+      error: null,
+    } as never);
+
+    const user = userEvent.setup();
+    renderCallback("/auth/callback?code=recovery-code");
+
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { name: "Set a new password" })).toBeInTheDocument()
+    );
+
+    const passwordInput = screen.getByLabelText(/^new password$/i);
+    await user.type(passwordInput, "short");
+    await user.type(screen.getByLabelText(/confirm new password/i), "short");
+    await user.click(screen.getByRole("button", { name: /set new password/i }));
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveAttribute("id", "recovery-password-error");
+    expect(passwordInput).toHaveAttribute("aria-describedby", "recovery-password-error");
+    await waitFor(() => expect(passwordInput).toHaveFocus());
+  });
+
+  it("associates a mismatch error with the confirm-password field and moves focus there", async () => {
+    vi.mocked(supabase.auth.exchangeCodeForSession).mockResolvedValue({
+      data: { user: mockUser, session: mockSession, redirectType: "recovery" },
+      error: null,
+    } as never);
+    vi.mocked(supabase.auth.getSession).mockResolvedValue({
+      data: { session: mockSession },
+      error: null,
+    } as never);
+
+    const user = userEvent.setup();
+    renderCallback("/auth/callback?code=recovery-code");
+
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { name: "Set a new password" })).toBeInTheDocument()
+    );
+
+    await user.type(screen.getByLabelText(/^new password$/i), "long-enough-password");
+    const confirmInput = screen.getByLabelText(/confirm new password/i);
+    await user.type(confirmInput, "different-password");
+    await user.click(screen.getByRole("button", { name: /set new password/i }));
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveAttribute("id", "recovery-confirm-password-error");
+    expect(alert).toHaveTextContent(/passwords do not match/i);
+    await waitFor(() => expect(confirmInput).toHaveFocus());
+    expect(supabase.auth.updateUser).not.toHaveBeenCalled();
+  });
+
+  it("maps an updateUser error object to safe copy instead of raw provider text", async () => {
+    vi.mocked(supabase.auth.exchangeCodeForSession).mockResolvedValue({
+      data: { user: mockUser, session: mockSession, redirectType: "recovery" },
+      error: null,
+    } as never);
+    vi.mocked(supabase.auth.getSession).mockResolvedValue({
+      data: { session: mockSession },
+      error: null,
+    } as never);
+    vi.mocked(supabase.auth.updateUser).mockResolvedValue({
+      data: { user: null },
+      error: { message: "duplicate key value violates unique constraint" },
+    } as never);
+
+    const user = userEvent.setup();
+    renderCallback("/auth/callback?code=recovery-code");
+
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { name: "Set a new password" })).toBeInTheDocument()
+    );
+
+    await user.type(screen.getByLabelText(/^new password$/i), "long-enough-password");
+    await user.type(screen.getByLabelText(/confirm new password/i), "long-enough-password");
+    await user.click(screen.getByRole("button", { name: /set new password/i }));
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveAttribute("id", "recovery-setup-error");
+    expect(alert).toHaveTextContent(/couldn't update your password/i);
+    expect(alert).not.toHaveTextContent(/constraint/i);
+  });
+
+  it("leaves the expired/invalid recovery and signup link copy unchanged", async () => {
+    setAuthIntent("recovery", "user@example.com");
+    renderCallback(
+      "/auth/callback?error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired"
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByText(/this password reset link has expired or was already used/i)
+      ).toBeInTheDocument()
+    );
+  });
 });

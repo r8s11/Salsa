@@ -169,6 +169,7 @@ export default function AdminSubmissionDetailPage() {
       {rejectDialogOpen && (
         <AdminRejectSubmissionDialog
           submissionId={submission.id}
+          submissionLabel={(submission.submitted_data?.title as string) || null}
           isBusy={isUpdating}
           onConfirm={reject}
           onCancel={() => setRejectDialogOpen(false)}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -23,6 +23,8 @@ import AdminStatusBadge from "../components/Admin/AdminStatusBadge";
 import EventShareControls from "../features/events/components/EventShareControls";
 import { useEventAttendees } from "../features/host/hooks/useEventAttendees";
 import { useEventCheckIns } from "../features/host/hooks/useEventCheckIns";
+import AdminConfirmDialog from "../components/Admin/AdminConfirmDialog";
+import { deleteOrganizerEvent } from "../features/host/api/organizerAccessRepo";
 import "./HostEventDetailPage.css";
 
 /* ── Formatting helpers ── */
@@ -81,6 +83,9 @@ export default function HostEventDetailPage() {
   const { data: organizers = [] } = useMyOrganizers();
   const { attendees } = useEventAttendees(eventId);
   const { checkIns } = useEventCheckIns(eventId);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const flyerWarning =
     typeof location.state === "object" &&
     location.state !== null &&
@@ -174,6 +179,21 @@ export default function HostEventDetailPage() {
   const isPublic = event.status === "approved";
   const isCancelled = event.status === "cancelled";
 
+  const handleDelete = async () => {
+    if (!eventId || isDeleting) return;
+    setIsDeleting(true);
+    setDeleteError(null);
+    try {
+      await deleteOrganizerEvent(eventId);
+      await Promise.all([refetch(), organizerEvents.refetch()]);
+      navigate("/host/events", { replace: true });
+    } catch (cause) {
+      setDeleteError(cause instanceof Error ? cause.message : "We couldn’t delete this event.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <main className="host-event-detail">
       {/* ── Back link ── */}
@@ -235,6 +255,18 @@ export default function HostEventDetailPage() {
           <Link className="admin-btn admin-btn--primary" to={`/host/events/${event.id}/edit`}>
             Edit Event
           </Link>
+        )}
+        {canEdit && (
+          <button
+            type="button"
+            className="admin-btn admin-btn--danger"
+            onClick={() => {
+              setDeleteError(null);
+              setDeleteOpen(true);
+            }}
+          >
+            Delete Event
+          </button>
         )}
         {isEditor && (
           <span className="host-event-detail__view-only">View only</span>
@@ -491,6 +523,21 @@ export default function HostEventDetailPage() {
           </Link>
         </div>
       </section>
+      {deleteOpen && (
+        <AdminConfirmDialog
+          title="Delete this event?"
+          body="This permanently removes the event and its attendee records. This action cannot be undone."
+          confirmLabel="Delete Event"
+          busyLabel="Deleting…"
+          isBusy={isDeleting}
+          tone="danger"
+          error={deleteError}
+          onConfirm={() => void handleDelete()}
+          onCancel={() => {
+            if (!isDeleting) setDeleteOpen(false);
+          }}
+        />
+      )}
     </main>
   );
 }

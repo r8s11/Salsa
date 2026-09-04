@@ -253,9 +253,13 @@ describe("useSubmitEventForm", () => {
 
     await act(async () => {
       result.current.handleFlyerChange(pngFile());
+    });
+    await act(async () => {
       result.current.update("title", "Test Event");
       result.current.update("event_type", "social");
       result.current.update("event_date", "2026-08-20");
+    });
+    await act(async () => {
       await result.current.handleSubmit({
         preventDefault: () => {},
       } as unknown as FormEvent);
@@ -370,7 +374,7 @@ describe("useSubmitEventForm", () => {
 
     expect(createSubmission).toHaveBeenCalledTimes(1);
     expect(result.current.isSubmitted).toBe(true);
-    expect(result.current.error).toBeNull();
+    expect(result.current.serverError).toBeNull();
   });
 
   // ── Anonymous submitter contact is required ──
@@ -389,7 +393,7 @@ describe("useSubmitEventForm", () => {
       await result.current.handleSubmit({ preventDefault: () => {} } as unknown as FormEvent);
     });
 
-    expect(result.current.error).toMatch(/name/i);
+    expect(result.current.fieldErrors.submitter_name).toMatch(/name/i);
     expect(createSubmission).not.toHaveBeenCalled();
     expect(notifySubmissionReceived).not.toHaveBeenCalled();
   });
@@ -409,7 +413,7 @@ describe("useSubmitEventForm", () => {
       await result.current.handleSubmit({ preventDefault: () => {} } as unknown as FormEvent);
     });
 
-    expect(result.current.error).toMatch(/valid email/i);
+    expect(result.current.fieldErrors.submitter_email).toMatch(/valid email/i);
     expect(createSubmission).not.toHaveBeenCalled();
   });
 
@@ -428,7 +432,7 @@ describe("useSubmitEventForm", () => {
       await result.current.handleSubmit({ preventDefault: () => {} } as unknown as FormEvent);
     });
 
-    expect(result.current.error).toBeNull();
+    expect(result.current.serverError).toBeNull();
     expect(createSubmission).toHaveBeenCalledWith(
       expect.objectContaining({
         submitter_id: null,
@@ -452,7 +456,7 @@ describe("useSubmitEventForm", () => {
       await result.current.handleSubmit({ preventDefault: () => {} } as unknown as FormEvent);
     });
 
-    expect(result.current.error).toBeNull();
+    expect(result.current.serverError).toBeNull();
     expect(createSubmission).toHaveBeenCalledTimes(1);
   });
 });

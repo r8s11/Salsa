@@ -1,7 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
-import { Resend } from "https://esm.sh/resend@4.0.1";
-import { founderAcceptUrl } from "../_shared/invitation.ts";
+import { Resend } from "https://esm.sh/resend@6.26.0";
 import {
   createFounderInvitationDeliveryHandler,
   type FounderInvitationDeliveryDependencies,
@@ -22,7 +21,6 @@ export function createReissueFounderInvitationHandler(
   dependencies: ReissueFounderInvitationDependencies
 ) {
   return createFounderInvitationDeliveryHandler(dependencies, {
-    issueRpc: "admin_reissue_founder_invitation",
     verb: "reissue",
     logPrefix: "reissue-founder-invitation",
   });
@@ -38,7 +36,9 @@ function runtimeDependencies(): ReissueFounderInvitationDependencies {
   const supabaseUrl = requiredEnvironment("SUPABASE_URL");
   const anonKey = requiredEnvironment("SUPABASE_ANON_KEY");
   const resendKey = requiredEnvironment("RESEND_API_KEY");
-  const acceptUrlBase = founderAcceptUrl(Deno.env.get("ENVIRONMENT") === "production" ? "production" : "local");
+  const from = requiredEnvironment("AUTH_EMAIL_FROM");
+  const externalUrl = new URL(requiredEnvironment("AUTH_EXTERNAL_URL"));
+  const acceptUrlBase = new URL("/founders/accept", externalUrl).toString();
 
   return {
     createCallerClient: (authorization) => {
@@ -53,7 +53,7 @@ function runtimeDependencies(): ReissueFounderInvitationDependencies {
       };
     },
     resend: new Resend(resendKey),
-    from: Deno.env.get("AUTH_EMAIL_FROM") ?? "SalsaSegura <onboarding@resend.dev>",
+    from,
     acceptUrlBase,
     log: (message, details) => console.error(message, details),
   };

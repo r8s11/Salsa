@@ -1,7 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  fetchFounderInvitationDeliveryAttempts,
   fetchFounderInvitationForRequest,
+  fetchFounderInvitationHistory,
   createFounderInvitation,
+  reissueFounderInvitation,
   revokeFounderInvitation,
   sendFounderInvitation,
 } from "../features/admin/api/founderInvitationRepo";
@@ -14,6 +17,7 @@ import {
 export function useFounderInvitation(founderRequestId: string | null) {
   const queryClient = useQueryClient();
   const queryKey = ["admin", "founder-invitation", founderRequestId];
+  const historyQueryKey = ["admin", "founder-invitation-history", founderRequestId];
 
   const query = useQuery({
     queryKey,
@@ -24,6 +28,7 @@ export function useFounderInvitation(founderRequestId: string | null) {
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey });
+    queryClient.invalidateQueries({ queryKey: historyQueryKey });
   };
 
   const createMutation = useMutation({
@@ -37,9 +42,31 @@ export function useFounderInvitation(founderRequestId: string | null) {
   });
 
   const sendMutation = useMutation({
-    mutationFn: () => sendFounderInvitation(founderRequestId!),
+    mutationFn: (idempotencyKey: string) => sendFounderInvitation(founderRequestId!, idempotencyKey),
     onSuccess: () => invalidate(),
-    onError: () => invalidate(), // a failed send still creates+revokes an invitation server-side
+    onError: () => invalidate(),
+  });
+
+  const reissueMutation = useMutation({
+    mutationFn: (idempotencyKey: string) => reissueFounderInvitation(founderRequestId!, idempotencyKey),
+    onSuccess: () => invalidate(),
+    onError: () => invalidate(),
+  });
+
+  const historyQuery = useQuery({
+    queryKey: historyQueryKey,
+    enabled: !!founderRequestId,
+    queryFn: async () => {
+      const invitations = await fetchFounderInvitationHistory(founderRequestId!);
+      const attempts = await Promise.all(
+        invitations.map((invitation) => fetchFounderInvitationDeliveryAttempts(invitation.id))
+      );
+      const attemptsByInvitation = Object.fromEntries(
+        invitations.map((row, index) => [row.id, attempts[index] ?? []])
+      );
+      return { invitations, attemptsByInvitation };
+    },
+    staleTime: 0,
   });
 
   return {
@@ -59,5 +86,14 @@ export function useFounderInvitation(founderRequestId: string | null) {
     sendError: sendMutation.error,
     sentInvitation: sendMutation.data ?? null,
     resetSendResult: sendMutation.reset,
+    reissueInvitation: reissueMutation.mutate,
+    isReissuing: reissueMutation.isPending,
+    reissueError: reissueMutation.error,
+    reissuedInvitation: reissueMutation.data ?? null,
+    resetReissueResult: reissueMutation.reset,
+    invitationHistory: historyQuery.data?.invitations ?? [],
+    deliveryAttemptsByInvitation: historyQuery.data?.attemptsByInvitation ?? {},
+    isHistoryLoading: historyQuery.isLoading,
+    historyError: historyQuery.error,
   };
 }

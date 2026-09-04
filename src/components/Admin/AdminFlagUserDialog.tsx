@@ -1,6 +1,6 @@
-import { useEffect, useId, useRef, useState } from "react";
-import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
+import { useId, useRef, useState } from "react";
 import { displayNameFor, type AdminUserRow } from "../../features/admin/model/usersQuery";
+import { useAccessibleDialog } from "../../shared/a11y/useAccessibleDialog";
 import "./AdminFlagUserDialog.css";
 
 interface AdminFlagUserDialogProps {
@@ -27,23 +27,18 @@ export default function AdminFlagUserDialog({
   onCancel,
 }: AdminFlagUserDialogProps) {
   const titleId = useId();
+  const descId = useId();
+  const dialogRef = useRef<HTMLDivElement>(null);
   const selectRef = useRef<HTMLSelectElement>(null);
-  const previouslyFocusedRef = useRef<Element | null>(null);
   const [reason, setReason] = useState(REASONS[0]);
   const [notes, setNotes] = useState("");
 
-  useEscapeKey(onCancel);
-
-  useEffect(() => {
-    previouslyFocusedRef.current = document.activeElement;
-    selectRef.current?.focus();
-    return () => {
-      const previouslyFocused = previouslyFocusedRef.current;
-      if (previouslyFocused instanceof HTMLElement) {
-        previouslyFocused.focus();
-      }
-    };
-  }, []);
+  const { onKeyDown, onBackdropClick, onDialogClick } = useAccessibleDialog({
+    dialogRef,
+    onDismiss: onCancel,
+    isBusy,
+    initialFocusRef: selectRef,
+  });
 
   const notesRequired = reason === "Other";
   const confirmDisabled = isBusy || (notesRequired && notes.trim() === "");
@@ -54,18 +49,21 @@ export default function AdminFlagUserDialog({
   };
 
   return (
-    <div className="admin-flag-user-dialog__overlay" onClick={onCancel}>
+    <div className="admin-flag-user-dialog__overlay" onClick={onBackdropClick}>
       <div
+        ref={dialogRef}
         className="admin-flag-user-dialog admin-card"
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        onClick={(event) => event.stopPropagation()}
+        aria-describedby={descId}
+        onKeyDown={onKeyDown}
+        onClick={onDialogClick}
       >
         <h2 id={titleId}>
           Flag {user.username ? `@${user.username}` : displayNameFor(user)} for review?
         </h2>
-        <p>Flagging is an internal review state. It does not restrict the account.</p>
+        <p id={descId}>Flagging is an internal review state. It does not restrict the account.</p>
 
         <div className="admin-field">
           <label htmlFor="admin-flag-reason">Reason</label>

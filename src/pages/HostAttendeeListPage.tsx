@@ -1,8 +1,9 @@
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, UserPlus, Trash2, Edit3 } from "lucide-react";
 import { useEventAttendees } from "../features/host/hooks/useEventAttendees";
 import type { AttendeeCategory, HostAttendeeInput } from "../features/host/model/attendance";
+import { useAccessibleDialog } from "../shared/a11y/useAccessibleDialog";
 import "../styles/admin.css";
 import "./HostAttendeeListPage.css";
 
@@ -163,17 +164,27 @@ export default function HostAttendeeListPage() {
     addAttendee,
     isAdding,
     deleteAttendee,
-    isDeleting,
   } = useEventAttendees(eventId);
 
   const totalPartySize = attendees.reduce((sum, a) => sum + a.partySize, 0);
 
-  async function handleDelete(id: string) {
-    if (!window.confirm("Remove this attendee? This cannot be undone.")) return;
+  const [removeTarget, setRemoveTarget] = useState<{ id: string; displayName: string } | null>(
+    null
+  );
+  const [pendingRemoveId, setPendingRemoveId] = useState<string | null>(null);
+  const [removeError, setRemoveError] = useState<string | null>(null);
+
+  async function confirmRemove() {
+    if (!removeTarget || pendingRemoveId) return;
+    setRemoveError(null);
+    setPendingRemoveId(removeTarget.id);
     try {
-      await deleteAttendee(id);
-    } catch {
-      // error surfaced by hook
+      await deleteAttendee(removeTarget.id);
+      setRemoveTarget(null);
+    } catch (err) {
+      setRemoveError(err instanceof Error ? err.message : "Unknown error");
+    } finally {
+      setPendingRemoveId(null);
     }
   }
 
@@ -257,8 +268,10 @@ export default function HostAttendeeListPage() {
                       <button
                         type="button"
                         className="attendee-action-btn attendee-action-btn--danger"
-                        onClick={() => handleDelete(attendee.id)}
-                        disabled={isDeleting}
+                        onClick={() =>
+                          setRemoveTarget({ id: attendee.id, displayName: attendee.displayName })
+                        }
+                        disabled={pendingRemoveId === attendee.id}
                         aria-label={`Remove ${attendee.displayName}`}
                       >
                         <Trash2 size={14} aria-hidden="true" />
@@ -270,7 +283,88 @@ export default function HostAttendeeListPage() {
             </table>
           </div>
         )}
+        {removeTarget && (
+          <RemoveAttendeeDialog
+            displayName={removeTarget.displayName}
+            isBusy={pendingRemoveId === removeTarget.id}
+            error={removeError}
+            onConfirm={confirmRemove}
+            onCancel={() => {
+              setRemoveTarget(null);
+              setRemoveError(null);
+            }}
+          />
+        )}
       </div>
     </main>
+  );
+}
+
+interface RemoveAttendeeDialogProps {
+  displayName: string;
+  isBusy: boolean;
+  error: string | null;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+function RemoveAttendeeDialog({
+  displayName,
+  isBusy,
+  error,
+  onConfirm,
+  onCancel,
+}: RemoveAttendeeDialogProps) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const cancelRef = useRef<HTMLButtonElement>(null);
+  const { onKeyDown, onBackdropClick, onDialogClick } = useAccessibleDialog({
+    dialogRef,
+    onDismiss: onCancel,
+    isBusy,
+    initialFocusRef: cancelRef,
+  });
+
+  return (
+    <div className="attendee-remove-overlay" onClick={onBackdropClick} role="presentation">
+      <div
+        className="attendee-remove-dialog"
+        ref={dialogRef}
+        onClick={onDialogClick}
+        onKeyDown={onKeyDown}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="remove-attendee-title"
+        aria-describedby="remove-attendee-body"
+      >
+        <h2 id="remove-attendee-title">Remove attendee &ldquo;{displayName}&rdquo;?</h2>
+        <p id="remove-attendee-body">
+          This removes their attendance record from this event.
+        </p>
+        {error && (
+          <p className="attendee-remove-dialog__error" role="alert">
+            {error}
+          </p>
+        )}
+        <div className="attendee-remove-dialog__actions">
+          <button
+            type="button"
+            className="admin-btn admin-btn--secondary"
+            ref={cancelRef}
+            onClick={onCancel}
+            disabled={isBusy}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="admin-btn admin-btn--danger"
+            onClick={onConfirm}
+            disabled={isBusy}
+          >
+            {isBusy ? "Removing…" : "Remove attendee"}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

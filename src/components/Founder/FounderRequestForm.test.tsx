@@ -231,4 +231,26 @@ describe("FounderRequestForm", () => {
       expect(screen.queryByText(/your name is required/i)).not.toBeInTheDocument();
     });
   });
+
+  it("focuses the first invalid field after a failed submit", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn().mockResolvedValue({ success: true });
+    renderForm(onSubmit);
+
+    await user.click(screen.getByRole("button", { name: /submit request/i }));
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/your name \*/i)).toHaveFocus();
+    });
+    expect(onSubmit).not.toHaveBeenCalled();
+
+    // With the name supplied, focus moves to the next field that still fails.
+    await user.type(screen.getByLabelText(/your name \*/i), "John Doe");
+    await user.click(screen.getByRole("button", { name: /submit request/i }));
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/email \*/i)).toHaveFocus();
+    });
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
 });

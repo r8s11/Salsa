@@ -152,26 +152,63 @@ describe("HostAttendeeListPage", () => {
     );
   });
 
-  it("calls deleteAttendee when confirmed", async () => {
+  it("opening the remove dialog does not delete, and clicking Confirm deletes exactly once", async () => {
     const user = userEvent.setup();
     mockAttendees = [attendeeA];
     mockDeleteAttendee.mockResolvedValue(undefined);
-    vi.spyOn(window, "confirm").mockReturnValue(true);
 
     renderPage();
-    await user.click(screen.getByRole("button", { name: /remove ana garcia/i }));
+    const removeButton = screen.getByRole("button", { name: /remove ana garcia/i });
+    await user.click(removeButton);
 
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText(/Remove attendee.*Ana Garcia/i)).toBeInTheDocument();
+    expect(mockDeleteAttendee).not.toHaveBeenCalled();
+    // Destructive dialogs start focus on Cancel.
+    expect(within(dialog).getByRole("button", { name: "Cancel" })).toHaveFocus();
+
+    await user.click(within(dialog).getByRole("button", { name: /remove attendee/i }));
+
+    expect(mockDeleteAttendee).toHaveBeenCalledTimes(1);
     expect(mockDeleteAttendee).toHaveBeenCalledWith("att-1");
+    await vi.waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    await vi.waitFor(() => expect(removeButton).toHaveFocus());
   });
 
-  it("does not call deleteAttendee when cancelled", async () => {
+  it("does not call deleteAttendee when the dialog is cancelled", async () => {
     const user = userEvent.setup();
     mockAttendees = [attendeeA];
-    vi.spyOn(window, "confirm").mockReturnValue(false);
 
     renderPage();
     await user.click(screen.getByRole("button", { name: /remove ana garcia/i }));
+    await screen.findByRole("dialog");
+
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
 
     expect(mockDeleteAttendee).not.toHaveBeenCalled();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("keeps the dialog open and disables only the targeted row while deleting, and surfaces an error on failure", async () => {
+    const user = userEvent.setup();
+    mockAttendees = [attendeeA, attendeeB];
+    const { promise, reject } = Promise.withResolvers<void>();
+    mockDeleteAttendee.mockImplementation(() => promise);
+
+    renderPage();
+    await user.click(screen.getByRole("button", { name: /remove ana garcia/i }));
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("button", { name: /remove attendee/i }));
+
+    // Only Ana's row is disabled while her delete is in flight; Bob's stays enabled.
+    expect(screen.getByRole("button", { name: /remove ana garcia/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /remove bob smith/i })).not.toBeDisabled();
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+    reject(new Error("Attendee delete failed"));
+
+    expect(await screen.findByText(/Attendee delete failed/i)).toBeInTheDocument();
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /remove ana garcia/i })).not.toBeDisabled();
   });
 });

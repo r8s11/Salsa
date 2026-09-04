@@ -46,24 +46,32 @@ comment on column public.platform_settings.updated_at is 'Timestamp of last upda
 -- Row Level Security
 alter table public.platform_settings enable row level security;
 
--- Policies: Allow admins to read and update platform settings
-create policy if not exists "Admins read platform settings"
+-- Policies: Allow admins to read and update platform settings. The public
+-- submission-gate flags are read by anon/authenticated visitors exclusively
+-- through the SECURITY DEFINER public_event_suggestions_enabled() /
+-- registered_event_submissions_enabled() RPCs (added in a later migration),
+-- never through a direct table SELECT — so this table itself stays admin-only.
+drop policy if exists "Admins read platform settings" on public.platform_settings;
+create policy "Admins read platform settings"
   on public.platform_settings
   for select
   to authenticated
   using (public.is_platform_admin());
 
-create policy if not exists "Admins update platform settings"
+drop policy if exists "Admins update platform settings" on public.platform_settings;
+create policy "Admins update platform settings"
   on public.platform_settings
   for update
   to authenticated
-  using (public.is_platform_admin());
+  using (public.is_platform_admin())
+  with check (public.is_platform_admin());
 
 -- Grants
 grant select, update on public.platform_settings to authenticated;
 
 -- Trigger to set updated_at
-create trigger if not exists platform_settings_set_updated_at
+drop trigger if exists platform_settings_set_updated_at on public.platform_settings;
+create trigger platform_settings_set_updated_at
   before update on public.platform_settings
   for each row
   execute function public.set_updated_at();

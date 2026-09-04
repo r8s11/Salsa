@@ -76,6 +76,20 @@
   outline-offset: 1px;
 }
 
+.event-form input[aria-invalid="true"],
+.event-form select[aria-invalid="true"],
+.event-form textarea[aria-invalid="true"] {
+  border-color: var(--red);
+}
+
+.event-form__segmented[aria-invalid="true"],
+.event-form__chips[aria-invalid="true"] {
+  border: 1px solid var(--red);
+  border-radius: var(--radius-md);
+  padding: 6px;
+  margin: -6px;
+}
+
 .event-form__chips {
   display: flex;
   flex-wrap: wrap;

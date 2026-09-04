@@ -82,6 +82,31 @@ describe("EventFlyerField", () => {
     expect(screen.getByRole("alert")).toHaveTextContent(/We couldn't upload this flyer/i);
   });
 
+  it("wires the file input's aria-describedby and aria-invalid to the upload error", () => {
+    render(
+      <EventFlyerField
+        currentUrl={null}
+        onFileChange={vi.fn()}
+        status="upload-error"
+        errorMessage="We couldn't upload this flyer."
+      />
+    );
+
+    const input = screen.getByLabelText("Event flyer");
+    const alert = screen.getByRole("alert");
+    expect(alert).toHaveAttribute("id");
+    expect(input).toHaveAttribute("aria-invalid", "true");
+    expect(input.getAttribute("aria-describedby")).toBe(alert.getAttribute("id"));
+  });
+
+  it("has no aria-describedby when there is no error", () => {
+    render(<EventFlyerField currentUrl={null} onFileChange={vi.fn()} />);
+
+    const input = screen.getByLabelText("Event flyer");
+    expect(input).not.toHaveAttribute("aria-describedby");
+    expect(input).not.toHaveAttribute("aria-invalid");
+  });
+
   it("announces an uploading state without exposing a broken preview", () => {
     render(<EventFlyerField currentUrl={null} onFileChange={vi.fn()} status="uploading" />);
 

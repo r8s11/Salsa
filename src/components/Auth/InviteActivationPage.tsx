@@ -3,6 +3,9 @@ import type { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
 import { roleFromUser } from "../../contexts/authContextObject";
+import { publicErrorMessage } from "../../shared/forms/errorMessage";
+import FormFieldError from "../../shared/forms/FormFieldError";
+import { fieldErrorProps } from "../../shared/forms/fieldErrorProps";
 import "./InviteActivationPage.css";
 
 type ActivationError = "invalid" | "not-organizer" | "unknown";
@@ -33,8 +36,12 @@ export default function InviteActivationPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [setupError, setSetupError] = useState<string | null>(null);
+  const [passwordFieldError, setPasswordFieldError] = useState<string | null>(null);
+  const [confirmPasswordFieldError, setConfirmPasswordFieldError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const consumedRef = useRef(false);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const confirmPasswordRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (consumedRef.current) return;
@@ -126,27 +133,38 @@ export default function InviteActivationPage() {
     e.preventDefault();
     if (busy) return;
 
+    setSetupError(null);
+    setPasswordFieldError(null);
+    setConfirmPasswordFieldError(null);
+
     if (password.length < 8) {
-      setSetupError("Password must be at least 8 characters.");
+      setPasswordFieldError("Password must be at least 8 characters.");
+      passwordRef.current?.focus();
       return;
     }
     if (password !== confirmPassword) {
-      setSetupError("Passwords do not match.");
+      setConfirmPasswordFieldError("Passwords do not match.");
+      confirmPasswordRef.current?.focus();
       return;
     }
 
-    setSetupError(null);
     setBusy(true);
     try {
       const { error: updateError } = await supabase.auth.updateUser({ password });
       if (updateError) {
-        setSetupError(updateError.message);
+        setSetupError(
+          publicErrorMessage(updateError, {
+            fallback: "We couldn't set your password. Please try again.",
+          })
+        );
         return;
       }
       navigate("/host", { replace: true });
     } catch (err) {
       console.warn("Invite password update failed:", err);
-      setSetupError("Failed to set your password. Please try again.");
+      setSetupError(
+        publicErrorMessage(err, { fallback: "We couldn't set your password. Please try again." })
+      );
     } finally {
       setBusy(false);
     }
@@ -182,7 +200,7 @@ export default function InviteActivationPage() {
       <section className="auth-card">
         <h1>Set your organizer password</h1>
         {setupError && (
-          <p className="auth-error" role="alert">
+          <p className="auth-error" id="invite-setup-error" role="alert">
             {setupError}
           </p>
         )}
@@ -191,6 +209,7 @@ export default function InviteActivationPage() {
             <label htmlFor="invite-password">Password</label>
             <input
               id="invite-password"
+              name="new-password"
               type="password"
               autoComplete="new-password"
               required
@@ -198,12 +217,16 @@ export default function InviteActivationPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={busy}
+              ref={passwordRef}
+              {...fieldErrorProps("invite-password-error", passwordFieldError)}
             />
+            <FormFieldError id="invite-password-error" message={passwordFieldError} />
           </div>
           <div className="form-group">
             <label htmlFor="invite-confirm-password">Confirm password</label>
             <input
               id="invite-confirm-password"
+              name="confirm-password"
               type="password"
               autoComplete="new-password"
               required
@@ -211,7 +234,10 @@ export default function InviteActivationPage() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               disabled={busy}
+              ref={confirmPasswordRef}
+              {...fieldErrorProps("invite-confirm-password-error", confirmPasswordFieldError)}
             />
+            <FormFieldError id="invite-confirm-password-error" message={confirmPasswordFieldError} />
           </div>
           <button type="submit" className="btn-primary btn-block" disabled={busy}>
             {busy ? "Setting password…" : "Set password & continue"}

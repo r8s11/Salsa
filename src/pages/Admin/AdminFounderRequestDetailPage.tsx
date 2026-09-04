@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import AdminApproveDialog from "../../components/Admin/AdminApproveDialog";
 import AdminRejectFounderDialog from "../../components/Admin/AdminRejectFounderDialog";
 import AdminFounderInvitationSection from "../../components/Admin/AdminFounderInvitationSection";
-import { useFounderRequest, useFounderRequests } from "../../hooks/useFounderRequests";
+import { useFounderHostState, useFounderRequest, useFounderRequests } from "../../hooks/useFounderRequests";
 import {
   type FounderRejectionReasonCode,
   FOUNDER_REQUEST_STATUS_LABEL,
@@ -16,6 +16,7 @@ export default function AdminFounderRequestDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { isAdmin, approveRequest, rejectRequest, isApproving, isRejecting } = useFounderRequests();
   const { data: request, isLoading, error } = useFounderRequest(id ?? null);
+  const { data: hostState, isLoading: isHostStateLoading } = useFounderHostState(id ?? null);
   const [showApproveDialog, setShowApproveDialog] = useState(false);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
 
@@ -92,6 +93,13 @@ export default function AdminFounderRequestDetailPage() {
               </span>
             )}
           </span>
+        </div>
+        <div className="header-actions">
+          {isHostStateLoading ? (
+            <span className="status-badge">Checking Host access…</span>
+          ) : hostState?.hostActive ? (
+            <span className="status-badge status-approved">Host Active</span>
+          ) : null}
         </div>
       </header>
 

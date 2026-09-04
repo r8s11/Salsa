@@ -233,4 +233,72 @@ describe("InviteActivationPage", () => {
     await waitFor(() => expect(screen.getByText("Host dashboard")).toBeInTheDocument());
     expect(mocks.updateUser).toHaveBeenCalledWith({ password: "strong-password" });
   });
+
+  it("associates the short-password error with the password field and moves focus there", async () => {
+    mocks.getSession.mockResolvedValue({ data: { session: { user: userWithRole("organizer") } }, error: null });
+    mocks.getUser.mockResolvedValue({ data: { user: userWithRole("organizer") }, error: null });
+    const user = userEvent.setup();
+    renderPage();
+    await expectOrganizerForm();
+
+    const passwordInput = screen.getByLabelText(/^password$/i);
+    await user.type(passwordInput, "short");
+    await user.type(screen.getByLabelText(/confirm password/i), "short");
+    await user.click(screen.getByRole("button", { name: /set password/i }));
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveAttribute("id", "invite-password-error");
+    expect(passwordInput).toHaveAttribute("aria-describedby", "invite-password-error");
+    await waitFor(() => expect(passwordInput).toHaveFocus());
+  });
+
+  it("associates a mismatch error with the confirm-password field and moves focus there", async () => {
+    mocks.getSession.mockResolvedValue({ data: { session: { user: userWithRole("organizer") } }, error: null });
+    mocks.getUser.mockResolvedValue({ data: { user: userWithRole("organizer") }, error: null });
+    const user = userEvent.setup();
+    renderPage();
+    await expectOrganizerForm();
+
+    await user.type(screen.getByLabelText(/^password$/i), "long-enough-password");
+    const confirmInput = screen.getByLabelText(/confirm password/i);
+    await user.type(confirmInput, "different-password");
+    await user.click(screen.getByRole("button", { name: /set password/i }));
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveAttribute("id", "invite-confirm-password-error");
+    expect(alert).toHaveTextContent(/passwords do not match/i);
+    await waitFor(() => expect(confirmInput).toHaveFocus());
+    expect(mocks.updateUser).not.toHaveBeenCalled();
+  });
+
+  it("maps an internal-looking updateUser error to safe copy instead of raw provider text", async () => {
+    mocks.getSession.mockResolvedValue({ data: { session: { user: userWithRole("organizer") } }, error: null });
+    mocks.getUser.mockResolvedValue({ data: { user: userWithRole("organizer") }, error: null });
+    mocks.updateUser.mockResolvedValue({
+      data: { user: null },
+      error: { message: "row-level security policy violation" },
+    });
+    const user = userEvent.setup();
+    renderPage();
+    await expectOrganizerForm();
+
+    await user.type(screen.getByLabelText(/^password$/i), "long-enough-password");
+    await user.type(screen.getByLabelText(/confirm password/i), "long-enough-password");
+    await user.click(screen.getByRole("button", { name: /set password/i }));
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveAttribute("id", "invite-setup-error");
+    expect(alert).toHaveTextContent(/couldn't set your password/i);
+    expect(alert).not.toHaveTextContent(/row-level security/i);
+  });
+
+  it("leaves the invalid/expired invitation copy unchanged", async () => {
+    setCallbackUrl("/auth/invite?error=access_denied&error_description=Invitation%20expired");
+    renderPage();
+    expect(
+      await screen.findByText(
+        /this invitation link is invalid, expired, or has already been used\. please request a new invitation\./i
+      )
+    ).toBeInTheDocument();
+  });
 });

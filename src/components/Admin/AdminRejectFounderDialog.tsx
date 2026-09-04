@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useId, useRef, useState } from "react";
+import { useAccessibleDialog } from "../../shared/a11y/useAccessibleDialog";
 import "./AdminRejectFounderDialog.css";
 
 const REASONS: { code: string; label: string }[] = [
@@ -23,26 +24,40 @@ export default function AdminRejectFounderDialog({
   onCancel,
   isOpen,
 }: AdminRejectFounderDialogProps) {
+  const titleId = useId();
+  const descId = useId();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const reasonSelectRef = useRef<HTMLSelectElement>(null);
   const [reason, setReason] = useState<string>("insufficient_information");
   const [message, setMessage] = useState("");
   const [note, setNote] = useState("");
+
+  const { onKeyDown, onBackdropClick, onDialogClick } = useAccessibleDialog({
+    dialogRef,
+    onDismiss: onCancel,
+    isBusy,
+    initialFocusRef: reasonSelectRef,
+  });
 
   const confirmDisabled = isBusy || (reason === "other" && note.trim() === "");
 
   if (!isOpen) return null;
 
   return (
-    <div className="admin-reject-dialog__overlay" onClick={onCancel}>
+    <div className="admin-reject-dialog__overlay" onClick={onBackdropClick}>
       <div
+        ref={dialogRef}
         className="admin-reject-dialog admin-card"
         role="dialog"
         aria-modal="true"
-        aria-label={`Reject founder request ${requestId}`}
-        onClick={(e) => e.stopPropagation()}
+        aria-labelledby={titleId}
+        aria-describedby={descId}
+        onKeyDown={onKeyDown}
+        onClick={onDialogClick}
       >
-        <h2>Reject Founder Request?</h2>
+        <h2 id={titleId}>Reject Founder Request?</h2>
 
-        <p className="reject-message">
+        <p id={descId} className="reject-message">
           This will mark the request as <strong>Rejected</strong>.
         </p>
 
@@ -50,6 +65,7 @@ export default function AdminRejectFounderDialog({
           <label htmlFor="reject-reason">Reason <span className="required" aria-hidden="true">*</span></label>
           <select
             id="reject-reason"
+            ref={reasonSelectRef}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             disabled={isBusy}

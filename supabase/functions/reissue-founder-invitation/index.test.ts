@@ -15,18 +15,20 @@ const REISSUED_INVITATION = {
   organizationName: "Riverside Salsa",
   expiresAt: "2026-09-04T00:00:00.000Z",
   revokedCount: 1,
+  attemptId: "attempt-2",
+  claimed: true as const,
+  deduplicated: false as const,
 };
 
 function dependencies(overrides: Partial<ReissueFounderInvitationDependencies> = {}) {
   const calls: Call[] = [];
   const logs: Array<{ message: string; details?: unknown }> = [];
   const rpcResponses: Record<string, { data: unknown; error: { code?: string; message?: string } | null }> = {
-    admin_reissue_founder_invitation: { data: REISSUED_INVITATION, error: null },
-    admin_record_founder_invitation_delivery_attempt: {
-      data: { id: "attempt-2", attemptNumber: 1, status: "sent" },
+    admin_claim_founder_invitation_delivery: { data: REISSUED_INVITATION, error: null },
+    admin_complete_founder_invitation_delivery: {
+      data: { success: true, deduplicated: false, status: "sent" },
       error: null,
     },
-    admin_revoke_founder_invitation: { data: { success: true, status: "revoked" }, error: null },
   };
 
   const deps: ReissueFounderInvitationDependencies = {
@@ -59,7 +61,13 @@ function dependencies(overrides: Partial<ReissueFounderInvitationDependencies> =
   return { deps, calls, logs, rpcResponses };
 }
 
-function request(body: unknown = { founderRequestId: "req-1" }, authorization = "Bearer caller-token") {
+function request(
+  body: unknown = {
+    founderRequestId: "req-1",
+    idempotencyKey: "123e4567-e89b-42d3-a456-426614174000",
+  },
+  authorization = "Bearer caller-token"
+) {
   return new Request("http://localhost/reissue-founder-invitation", {
     method: "POST",
     headers: { "content-type": "application/json", authorization },
@@ -73,8 +81,12 @@ Deno.test("reissues a Founder invitation with a fresh credential, records delive
 
   assertEquals(response.status, 200);
   assertEquals(calls[0], {
-    name: "rpc:admin_reissue_founder_invitation",
-    value: { p_founder_request_id: "req-1" },
+    name: "rpc:admin_claim_founder_invitation_delivery",
+    value: {
+      p_founder_request_id: "req-1",
+      p_operation: "reissue",
+      p_idempotency_key: "123e4567-e89b-42d3-a456-426614174000",
+    },
   });
 
   const sendCall = calls.find((call) => call.name === "resend:send");
@@ -84,12 +96,11 @@ Deno.test("reissues a Founder invitation with a fresh credential, records delive
   assertStringIncludes(message.html, `${ACCEPT_URL_BASE}?token=${TOKEN}`);
   assertStringIncludes(message.text, `${ACCEPT_URL_BASE}?token=${TOKEN}`);
 
-  const deliveryCall = calls.find((call) => call.name === "rpc:admin_record_founder_invitation_delivery_attempt");
+  const deliveryCall = calls.find((call) => call.name === "rpc:admin_complete_founder_invitation_delivery");
   assertEquals(deliveryCall?.value, {
-    p_invitation_id: REISSUED_INVITATION.id,
+    p_attempt_id: REISSUED_INVITATION.attemptId,
     p_status: "sent",
     p_provider_message_id: "resend-msg-fresh",
-    p_provider: "resend",
   });
   const body = await response.text();
   assertEquals(body.includes(TOKEN), false);

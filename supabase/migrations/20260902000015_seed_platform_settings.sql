@@ -20,7 +20,7 @@ insert into public.platform_settings (
   true,
   'Salsa Segura',
   'https://salsasegura.com',
-  '[EMAIL]',
+  'support@salsasegura.com',
   'boston',
   'US',
   'America/New_York',

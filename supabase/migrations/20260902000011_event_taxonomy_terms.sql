@@ -18,20 +18,25 @@ create index if not exists event_taxonomy_terms_taxonomy_term_id_idx on public.e
 -- Row Level Security
 alter table public.event_taxonomy_terms enable row level security;
 
--- Policies: Allow authenticated users to read all event-taxonomy relationships
-create policy if not exists "Event taxonomy terms are viewable by authenticated users"
+-- Policies: Public calendar reads event↔term links anonymously (feeds the
+-- events(*, event_taxonomy_terms(...)) embed on signed-out pages).
+drop policy if exists "Event taxonomy terms are viewable by authenticated users" on public.event_taxonomy_terms;
+drop policy if exists "Event taxonomy terms are publicly viewable" on public.event_taxonomy_terms;
+create policy "Event taxonomy terms are publicly viewable"
   on public.event_taxonomy_terms
   for select
-  to authenticated
+  to anon, authenticated
   using (true);
 
-create policy if not exists "Admins can insert event taxonomy terms"
+drop policy if exists "Admins can insert event taxonomy terms" on public.event_taxonomy_terms;
+create policy "Admins can insert event taxonomy terms"
   on public.event_taxonomy_terms
   for insert
   to authenticated
-  using (public.is_admin());
+  with check (public.is_admin());
 
-create policy if not exists "Admins can delete event taxonomy terms"
+drop policy if exists "Admins can delete event taxonomy terms" on public.event_taxonomy_terms;
+create policy "Admins can delete event taxonomy terms"
   on public.event_taxonomy_terms
   for delete
   to authenticated

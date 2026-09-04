@@ -6,10 +6,32 @@ import EventFlyerField from "../features/events/components/EventFlyerField";
 import SuccessCard from "../features/submit-event/components/SuccessCard";
 import { useSubmissionAccess } from "../features/submit-event/useSubmissionAccess";
 import { useSubmitEventForm } from "../features/submit-event/useSubmitEventForm";
+import type { SubmitFieldName } from "../features/submit-event/validation";
+import FormErrorSummary from "../shared/forms/FormErrorSummary";
 import "../styles/forms.css";
 import "./SubmitEventPage.css";
 
 type EntryMode = "choice" | "flyer" | "manual";
+
+/**
+ * Maps each `SubmitFieldName` to the DOM id `EventForm` renders it with, in
+ * form order — drives both the error summary's link targets and the order
+ * its list is built in.
+ */
+const FIELD_ORDER: { field: SubmitFieldName; id: string }[] = [
+  { field: "title", id: "event-title" },
+  { field: "event_type", id: "event-type" },
+  { field: "city", id: "event-city" },
+  { field: "description", id: "event-description" },
+  { field: "dance_styles", id: "event-dance-styles" },
+  { field: "event_date", id: "event-date" },
+  { field: "location", id: "event-location" },
+  { field: "address", id: "event-address" },
+  { field: "price_amount", id: "event-price-amount" },
+  { field: "rsvp_link", id: "event-rsvp-link" },
+  { field: "submitter_name", id: "submitter-name" },
+  { field: "submitter_email", id: "submitter-email" },
+];
 
 export default function SubmitEventPage() {
   const { user, isOrganizer } = useAuth();
@@ -19,7 +41,9 @@ export default function SubmitEventPage() {
     handleSubmit,
     isSubmitting,
     isSubmitted,
-    error,
+    fieldErrors,
+    serverError,
+    failedAttempt,
     resetSubmitted,
     flyerFile,
     flyerStatus,
@@ -76,11 +100,6 @@ export default function SubmitEventPage() {
             ? "Add the details dancers need to discover and attend your event. It goes through moderation review before it appears on the calendar."
             : "Know about a salsa, bachata, or dance event in Greater Boston or NYC? Share it with the community! All submissions are reviewed before appearing on the calendar."}
         </p>
-        {error && (
-          <div className="error-banner" role="alert">
-            <p>❌ {error}</p>
-          </div>
-        )}
         {submissionAccess.isLoading ? (
           <p role="status">Checking whether submissions are open…</p>
         ) : submissionAccess.error ? (
@@ -164,12 +183,23 @@ export default function SubmitEventPage() {
             )}
 
             {/* ── Canonical event form ── */}
-            <form ref={formRef} onSubmit={handleSubmit} className="submit-form">
+            <form ref={formRef} onSubmit={handleSubmit} className="submit-form" noValidate>
+              <FormErrorSummary
+                id="submit-error-summary"
+                items={FIELD_ORDER.filter(({ field }) => fieldErrors[field]).map(({ field, id }) => ({
+                  fieldId: id,
+                  message: fieldErrors[field] as string,
+                }))}
+                serverMessage={serverError}
+                focusKey={failedAttempt}
+              />
+              <p className="submit-form__required-legend">* Required</p>
               <EventForm
                 draft={form}
                 onChange={onChange}
                 capabilities={CAPABILITIES.submit}
                 requireSubmitterContact={!user}
+                errors={fieldErrors}
               />
               <button type="submit" className="btn-primary btn-block" disabled={isSubmitting}>
                 {isSubmitting

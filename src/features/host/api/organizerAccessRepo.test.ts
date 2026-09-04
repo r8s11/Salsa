@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   OrganizerAccessError,
   createOrganizerEvent,
+  deleteOrganizerEvent,
   fetchMyOrganizers,
   fetchOrganizerEvents,
   updateOrganizerEvent,
@@ -140,6 +141,20 @@ describe("createOrganizerEvent", () => {
       p_organizer_id: "org-1",
       p_payload: { title: "Salsa Night", event_type: "social", dance_styles: [] },
       p_publish: true,
+    });
+  });
+});
+
+describe("deleteOrganizerEvent", () => {
+  beforeEach(() => mocks.rpc.mockReset());
+
+  it("routes deletion through the organizer-authorized RPC", async () => {
+    mocks.rpc.mockResolvedValue({ data: null, error: null });
+
+    await deleteOrganizerEvent("evt-1");
+
+    expect(mocks.rpc).toHaveBeenCalledWith("organizer_delete_event", {
+      p_event_id: "evt-1",
     });
   });
 });

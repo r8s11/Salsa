@@ -55,6 +55,12 @@
 }
 
 /* ── Form Fields ── */
+.contact-required-legend {
+  margin: 0 0 1rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
 .form-group {
   margin-bottom: 1.25rem;
 }

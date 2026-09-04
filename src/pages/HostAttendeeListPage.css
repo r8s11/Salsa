@@ -238,6 +238,56 @@
   border-color: #fecaca;
 }
 
+/* ── Remove attendee confirmation dialog ── */
+
+.attendee-remove-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.55);
+}
+
+.attendee-remove-dialog {
+  width: 100%;
+  max-width: 420px;
+  padding: 24px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.attendee-remove-dialog h2 {
+  margin: 0 0 8px;
+  font-size: 1.15rem;
+  color: #0f172a;
+}
+
+.attendee-remove-dialog p {
+  margin: 0 0 20px;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.attendee-remove-dialog__error {
+  margin: -8px 0 20px;
+  color: #dc2626;
+  font-size: 0.85rem;
+}
+
+.attendee-remove-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.attendee-remove-dialog__actions .admin-btn {
+  min-height: 44px;
+}
+
 /* ── Responsive ── */
 
 @media (max-width: 640px) {

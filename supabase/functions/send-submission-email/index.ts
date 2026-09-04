@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
-import { Resend } from "https://esm.sh/resend@4.0.1";
+import { Resend } from "https://esm.sh/resend@6.26.0";
 import {
   submissionReceivedEmail,
   submissionAwaitingReviewEmail,

@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { X } from "lucide-react";
-import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
 import {
   REJECTION_REASON_LABEL,
   type RejectionReasonCode,
 } from "../../features/admin/model/organizerRequestsQuery";
+import { useAccessibleDialog } from "../../shared/a11y/useAccessibleDialog";
 import "./AdminRejectOrganizerDialog.css";
 
 const REJECTION_REASONS: RejectionReasonCode[] = [
@@ -35,19 +35,20 @@ export default function AdminRejectOrganizerDialog({
   onCancel,
   onConfirm,
 }: AdminRejectOrganizerDialogProps) {
+  const titleId = useId();
+  const descId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
-  const confirmRef = useRef<HTMLButtonElement>(null);
+  const cancelRef = useRef<HTMLButtonElement>(null);
   const [reasonCode, setReasonCode] = useState<RejectionReasonCode>("insufficient_information");
   const [applicantMessage, setApplicantMessage] = useState("");
   const [internalNote, setInternalNote] = useState("");
 
-  useEscapeKey(onCancel);
-
-  useEffect(() => {
-    if (open) {
-      confirmRef.current?.focus();
-    }
-  }, [open]);
+  const { onKeyDown, onBackdropClick, onDialogClick } = useAccessibleDialog({
+    dialogRef,
+    onDismiss: onCancel,
+    isBusy,
+    initialFocusRef: cancelRef,
+  });
 
   if (!open) return null;
 
@@ -60,17 +61,19 @@ export default function AdminRejectOrganizerDialog({
   };
 
   return (
-    <div className="admin-reject-organizer-dialog__overlay" onClick={onCancel}>
+    <div className="admin-reject-organizer-dialog__overlay" onClick={onBackdropClick}>
       <div
         ref={dialogRef}
         className="admin-reject-organizer-dialog admin-card"
         role="dialog"
         aria-modal="true"
-        aria-label="Reject organizer request"
-        onClick={(event) => event.stopPropagation()}
+        aria-labelledby={titleId}
+        aria-describedby={descId}
+        onKeyDown={onKeyDown}
+        onClick={onDialogClick}
       >
         <div className="admin-reject-organizer-dialog__header">
-          <h2>Reject Organizer Request</h2>
+          <h2 id={titleId}>Reject Organizer Request</h2>
           <button
             type="button"
             className="admin-icon-btn"
@@ -83,7 +86,7 @@ export default function AdminRejectOrganizerDialog({
         </div>
 
         <div className="admin-reject-organizer-dialog__body">
-          <p className="admin-reject-organizer-dialog__explanation">
+          <p id={descId} className="admin-reject-organizer-dialog__explanation">
             Select a reason for rejection. The applicant will be notified.
           </p>
 
@@ -139,6 +142,7 @@ export default function AdminRejectOrganizerDialog({
 
         <div className="admin-reject-organizer-dialog__actions">
           <button
+            ref={cancelRef}
             type="button"
             className="admin-btn admin-btn--secondary"
             onClick={onCancel}
@@ -147,7 +151,6 @@ export default function AdminRejectOrganizerDialog({
             Cancel
           </button>
           <button
-            ref={confirmRef}
             type="button"
             className="admin-btn admin-btn--danger"
             onClick={handleSubmit}

@@ -1,14 +1,20 @@
-import { useEffect, useId, useRef, useState } from "react";
-import type { KeyboardEvent } from "react";
-import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
+import { useId, useRef, useState } from "react";
+import { useAccessibleDialog } from "../../shared/a11y/useAccessibleDialog";
 import "./AdminConfirmDialog.css";
 
 interface AdminConfirmDialogProps {
   title: string;
   body: string;
   confirmLabel: string;
+  /** Confirm label while the mutation runs, e.g. "Deleting…". */
+  busyLabel?: string;
   isBusy: boolean;
   tone?: "danger" | "neutral";
+  /**
+   * Danger confirmations always start on Cancel: a dangerous action must never
+   * be one stray Enter away. Neutral confirmations default to Confirm and
+   * honour an explicit override.
+   */
   initialFocus?: "cancel" | "confirm";
   reasonField?: { label: string; placeholder?: string; required?: boolean };
   error?: string | null;
@@ -20,36 +26,32 @@ export default function AdminConfirmDialog({
   title,
   body,
   confirmLabel,
+  busyLabel = "Working…",
   isBusy,
   tone = "danger",
-  initialFocus = "confirm",
+  initialFocus,
   reasonField,
   error,
   onConfirm,
   onCancel,
 }: AdminConfirmDialogProps) {
   const titleId = useId();
+  const bodyId = useId();
   const reasonId = useId();
   const cancelRef = useRef<HTMLButtonElement>(null);
   const confirmRef = useRef<HTMLButtonElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
-  const previouslyFocusedRef = useRef<Element | null>(null);
   const [reason, setReason] = useState("");
   const [showRequiredError, setShowRequiredError] = useState(false);
 
-  useEscapeKey(onCancel);
-
-  useEffect(() => {
-    previouslyFocusedRef.current = document.activeElement;
-    (initialFocus === "cancel" ? cancelRef : confirmRef).current?.focus();
-    return () => {
-      const previouslyFocused = previouslyFocusedRef.current;
-      if (previouslyFocused instanceof HTMLElement) {
-        previouslyFocused.focus();
-      }
-    };
-  }, [initialFocus]);
+  const focusesConfirm = tone === "danger" ? false : initialFocus !== "cancel";
+  const { onKeyDown, onBackdropClick, onDialogClick } = useAccessibleDialog({
+    dialogRef,
+    onDismiss: onCancel,
+    isBusy,
+    initialFocusRef: focusesConfirm ? confirmRef : cancelRef,
+  });
 
   const handleConfirm = () => {
     if (!reasonField) {
@@ -66,38 +68,20 @@ export default function AdminConfirmDialog({
     onConfirm(trimmed === "" ? undefined : trimmed);
   };
 
-  const trapFocus = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key !== "Tab") return;
-
-    const focusable = dialogRef.current?.querySelectorAll<HTMLElement>(
-      "button:not([disabled]), textarea:not([disabled])"
-    );
-    if (!focusable || focusable.length === 0) return;
-
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    if (event.shiftKey && document.activeElement === first) {
-      event.preventDefault();
-      last.focus();
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault();
-      first.focus();
-    }
-  };
-
   return (
-    <div className="admin-confirm-dialog__overlay" onClick={onCancel}>
+    <div className="admin-confirm-dialog__overlay" onClick={onBackdropClick}>
       <div
         className="admin-confirm-dialog admin-card"
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
+        aria-describedby={bodyId}
         ref={dialogRef}
-        onKeyDown={trapFocus}
-        onClick={(event) => event.stopPropagation()}
+        onKeyDown={onKeyDown}
+        onClick={onDialogClick}
       >
         <h2 id={titleId}>{title}</h2>
-        <p>{body}</p>
+        <p id={bodyId}>{body}</p>
         {reasonField && (
           <div className="admin-field">
             <label htmlFor={reasonId}>{reasonField.label}</label>
@@ -141,7 +125,7 @@ export default function AdminConfirmDialog({
             onClick={handleConfirm}
             disabled={isBusy}
           >
-            {isBusy ? "Working…" : confirmLabel}
+            {isBusy ? busyLabel : confirmLabel}
           </button>
         </div>
       </div>

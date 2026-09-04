@@ -9,6 +9,7 @@ import {
   type FounderRequestPayload,
   type FounderRequestErrors,
 } from "../../lib/founderRequest";
+import FormFieldError from "../../shared/forms/FormFieldError";
 import "./FounderRequestForm.css";
 
 interface Props {
@@ -32,6 +33,7 @@ export default function FounderRequestForm({ onSubmit }: Props) {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const successHeadingRef = useRef<HTMLHeadingElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   // Move focus to the success heading so screen readers announce the
   // outcome of the submission.
@@ -49,6 +51,22 @@ export default function FounderRequestForm({ onSubmit }: Props) {
     }
   };
 
+  /**
+   * Focuses the first control whose field carries an error, using DOM order so
+   * it always matches what the reader sees.
+   */
+  const focusFirstInvalidField = (fieldErrors: FounderRequestErrors) => {
+    const form = formRef.current;
+    if (!form) return;
+    const controls = form.querySelectorAll<HTMLElement>("input[id], textarea[id]");
+    for (const control of controls) {
+      if (fieldErrors[control.id as keyof FounderRequestErrors]) {
+        control.focus();
+        return;
+      }
+    }
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
@@ -56,7 +74,12 @@ export default function FounderRequestForm({ onSubmit }: Props) {
 
     const validationErrors = validateFounderRequest(payload);
     setErrors(validationErrors);
-    if (hasErrors(validationErrors)) return;
+    if (hasErrors(validationErrors)) {
+      // Short form: land the user on the first field that needs fixing rather
+      // than leaving focus on the submit button (P2-4).
+      focusFirstInvalidField(validationErrors);
+      return;
+    }
 
     setSubmitting(true);
     setSubmitError(null);
@@ -119,13 +142,14 @@ export default function FounderRequestForm({ onSubmit }: Props) {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="founder-form" noValidate>
+      <form ref={formRef} onSubmit={handleSubmit} className="founder-form" noValidate>
         {/* Honeypot: visually hidden, ignored by humans and screen readers;
             bots that fill it get a silent success from the server. */}
         <div className="honeypot" aria-hidden="true">
           <label htmlFor="companyWebsite">Company website</label>
           <input
             id="companyWebsite"
+            name="companyWebsite"
             type="text"
             tabIndex={-1}
             autoComplete="off"
@@ -142,6 +166,7 @@ export default function FounderRequestForm({ onSubmit }: Props) {
             </label>
             <input
               id="applicantName"
+              name="applicantName"
               type="text"
               value={payload.applicantName}
               onChange={(e) => handleChange("applicantName", e.target.value)}
@@ -151,11 +176,7 @@ export default function FounderRequestForm({ onSubmit }: Props) {
               aria-invalid={errors.applicantName ? "true" : "false"}
               aria-describedby={errors.applicantName ? "applicantName-error" : undefined}
             />
-            {errors.applicantName && (
-              <span id="applicantName-error" className="field-error" role="alert">
-                {errors.applicantName}
-              </span>
-            )}
+            <FormFieldError id="applicantName-error" message={errors.applicantName} />
           </div>
 
           <div className="form-group">
@@ -164,20 +185,18 @@ export default function FounderRequestForm({ onSubmit }: Props) {
             </label>
             <input
               id="email"
+              name="email"
               type="email"
               value={payload.email}
               onChange={(e) => handleChange("email", e.target.value)}
               required
               autoComplete="email"
+              spellCheck={false}
               disabled={submitting}
               aria-invalid={errors.email ? "true" : "false"}
               aria-describedby={errors.email ? "email-error" : undefined}
             />
-            {errors.email && (
-              <span id="email-error" className="field-error" role="alert">
-                {errors.email}
-              </span>
-            )}
+            <FormFieldError id="email-error" message={errors.email} />
           </div>
         </div>
 
@@ -187,6 +206,7 @@ export default function FounderRequestForm({ onSubmit }: Props) {
           </label>
           <input
             id="organizationName"
+            name="organizationName"
             type="text"
             value={payload.organizationName}
             onChange={(e) => handleChange("organizationName", e.target.value)}
@@ -196,11 +216,7 @@ export default function FounderRequestForm({ onSubmit }: Props) {
             aria-invalid={errors.organizationName ? "true" : "false"}
             aria-describedby={errors.organizationName ? "organizationName-error" : undefined}
           />
-          {errors.organizationName && (
-            <span id="organizationName-error" className="field-error" role="alert">
-              {errors.organizationName}
-            </span>
-          )}
+          <FormFieldError id="organizationName-error" message={errors.organizationName} />
         </div>
 
         <div className="form-row">
@@ -210,10 +226,14 @@ export default function FounderRequestForm({ onSubmit }: Props) {
               <span className="instagram-prefix" aria-hidden="true">@</span>
               <input
                 id="instagram"
+                name="instagram"
                 type="text"
                 value={payload.instagram ?? ""}
                 onChange={(e) => handleChange("instagram", e.target.value)}
                 placeholder="yourhandle"
+                autoComplete="off"
+                autoCapitalize="none"
+                spellCheck={false}
                 disabled={submitting}
                 aria-invalid={errors.instagram ? "true" : "false"}
                 aria-describedby={errors.instagram ? "instagram-error" : "instagram-hint"}
@@ -222,30 +242,24 @@ export default function FounderRequestForm({ onSubmit }: Props) {
             <span id="instagram-hint" className="field-hint">
               Handle only (e.g., salsanights)
             </span>
-            {errors.instagram && (
-              <span id="instagram-error" className="field-error" role="alert">
-                {errors.instagram}
-              </span>
-            )}
+            <FormFieldError id="instagram-error" message={errors.instagram} />
           </div>
 
           <div className="form-group">
             <label htmlFor="website">Website</label>
             <input
               id="website"
+              name="website"
               type="url"
               value={payload.website ?? ""}
               onChange={(e) => handleChange("website", e.target.value)}
               placeholder="https://example.com"
+              autoComplete="url"
               disabled={submitting}
               aria-invalid={errors.website ? "true" : "false"}
               aria-describedby={errors.website ? "website-error" : undefined}
             />
-            {errors.website && (
-              <span id="website-error" className="field-error" role="alert">
-                {errors.website}
-              </span>
-            )}
+            <FormFieldError id="website-error" message={errors.website} />
           </div>
         </div>
 
@@ -254,37 +268,33 @@ export default function FounderRequestForm({ onSubmit }: Props) {
             <label htmlFor="city">City</label>
             <input
               id="city"
+              name="city"
               type="text"
               value={payload.city ?? ""}
               onChange={(e) => handleChange("city", e.target.value)}
+              autoComplete="address-level2"
               disabled={submitting}
               aria-invalid={errors.city ? "true" : "false"}
               aria-describedby={errors.city ? "city-error" : undefined}
             />
-            {errors.city && (
-              <span id="city-error" className="field-error" role="alert">
-                {errors.city}
-              </span>
-            )}
+            <FormFieldError id="city-error" message={errors.city} />
           </div>
 
           <div className="form-group">
             <label htmlFor="region">Region / State</label>
             <input
               id="region"
+              name="region"
               type="text"
               value={payload.region ?? ""}
               onChange={(e) => handleChange("region", e.target.value)}
               placeholder="MA, NY, etc."
+              autoComplete="address-level1"
               disabled={submitting}
               aria-invalid={errors.region ? "true" : "false"}
               aria-describedby={errors.region ? "region-error" : undefined}
             />
-            {errors.region && (
-              <span id="region-error" className="field-error" role="alert">
-                {errors.region}
-              </span>
-            )}
+            <FormFieldError id="region-error" message={errors.region} />
           </div>
         </div>
 
@@ -292,38 +302,34 @@ export default function FounderRequestForm({ onSubmit }: Props) {
           <label htmlFor="description">Tell us about your events</label>
           <textarea
             id="description"
+            name="description"
             value={payload.description ?? ""}
             onChange={(e) => handleChange("description", e.target.value)}
             rows={4}
             placeholder="What kinds of events do you organize? (socials, classes, festivals, venues, etc.)"
+            autoComplete="off"
             disabled={submitting}
             aria-invalid={errors.description ? "true" : "false"}
             aria-describedby={errors.description ? "description-error" : undefined}
           />
-          {errors.description && (
-            <span id="description-error" className="field-error" role="alert">
-              {errors.description}
-            </span>
-          )}
+          <FormFieldError id="description-error" message={errors.description} />
         </div>
 
         <div className="form-group">
           <label htmlFor="message">Anything else you&rsquo;d like us to know?</label>
           <textarea
             id="message"
+            name="message"
             value={payload.message ?? ""}
             onChange={(e) => handleChange("message", e.target.value)}
             rows={3}
             placeholder="Venue capacity, typical attendance, special requirements, etc."
+            autoComplete="off"
             disabled={submitting}
             aria-invalid={errors.message ? "true" : "false"}
             aria-describedby={errors.message ? "message-error" : undefined}
           />
-          {errors.message && (
-            <span id="message-error" className="field-error" role="alert">
-              {errors.message}
-            </span>
-          )}
+          <FormFieldError id="message-error" message={errors.message} />
         </div>
 
         <button type="submit" className="btn-primary btn-block founder-submit" disabled={submitting}>

@@ -1,40 +1,25 @@
 import { useState } from "react";
+import AdminConfirmDialog from "./AdminConfirmDialog";
 import { useFounderInvitation } from "../../hooks/useFounderInvitation";
 import {
   deriveInvitationDisplayStatus,
   deriveEmailDisplayStatus,
   canCreateFounderInvitation,
+  canReissueFounderInvitation,
   canRevokeFounderInvitation,
   founderInvitationAcceptUrl,
   FOUNDER_INVITATION_DISPLAY_LABEL,
   FOUNDER_INVITATION_EMAIL_DISPLAY_LABEL,
 } from "../../features/admin/model/founderInvitationQuery";
 
-interface AdminFounderInvitationSectionProps {
-  founderRequestId: string;
-  isAdmin: boolean;
-}
-
-/**
- * Invitation status + email-delivery status + send/revoke controls for an
- * approved founder request. Only rendered by the parent detail page when
- * the request's status is "approved" (spec §4/§25).
- *
- * Invitation lifecycle (none/pending/expired/revoked/accepted) and email
- * lifecycle (not sent/sent/failed) are shown as two separate lines,
- * deliberately never merged into one status (spec §8/§20).
- *
- * The plaintext token from a Phase 4 no-email creation is shown exactly
- * once, in local component state only — it is never persisted, never
- * re-fetchable, and disappears on navigation/reload because the database
- * never stores it (spec §12/§26). The primary production action is
- * "Send Founder Invitation", which creates the invitation and emails it
- * server-side in one step — the admin never sees the token for that path.
- */
 export default function AdminFounderInvitationSection({
   founderRequestId,
   isAdmin,
-}: AdminFounderInvitationSectionProps) {
+}: {
+  founderRequestId: string;
+  isAdmin: boolean;
+}) {
+
   const {
     invitation,
     isLoading,
@@ -50,8 +35,18 @@ export default function AdminFounderInvitationSection({
     isSending,
     sendError,
     sentInvitation,
+    reissueInvitation,
+    isReissuing,
+    reissueError,
+    reissuedInvitation,
+    resetReissueResult,
+    invitationHistory,
+    deliveryAttemptsByInvitation,
+    isHistoryLoading,
+    historyError,
   } = useFounderInvitation(founderRequestId);
   const [copied, setCopied] = useState(false);
+  const [reissueIdempotencyKey, setReissueIdempotencyKey] = useState<string | null>(null);
 
   const displayStatus = deriveInvitationDisplayStatus(invitation);
   const emailDisplayStatus = deriveEmailDisplayStatus(invitation);
@@ -60,7 +55,7 @@ export default function AdminFounderInvitationSection({
   const handleSend = () => {
     resetCreatedInvitation();
     setCopied(false);
-    sendInvitation();
+    sendInvitation(crypto.randomUUID());
   };
 
   const handleCreateWithoutEmail = () => {
@@ -72,6 +67,22 @@ export default function AdminFounderInvitationSection({
   const handleRevoke = () => {
     if (!invitation) return;
     revokeInvitation(invitation.id);
+  };
+
+  const handleOpenReissue = () => {
+    resetReissueResult();
+    setReissueIdempotencyKey(crypto.randomUUID());
+  };
+
+  const handleCloseReissue = () => {
+    if (!isReissuing) setReissueIdempotencyKey(null);
+  };
+
+  const handleConfirmReissue = () => {
+    if (!reissueIdempotencyKey) return;
+    reissueInvitation(reissueIdempotencyKey, {
+      onSuccess: () => setReissueIdempotencyKey(null),
+    });
   };
 
   const handleCopy = async () => {
@@ -149,6 +160,16 @@ export default function AdminFounderInvitationSection({
               {isRevoking ? "Revoking…" : "Revoke Invitation"}
             </button>
           )}
+          {invitation && canReissueFounderInvitation(displayStatus) && (
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={handleOpenReissue}
+              disabled={isReissuing || isSending || isCreating}
+            >
+              Reissue Fresh Invitation
+            </button>
+          )}
         </div>
       )}
 
@@ -178,10 +199,17 @@ export default function AdminFounderInvitationSection({
           {revokeError instanceof Error ? revokeError.message : "Unable to revoke invitation."}
         </p>
       )}
+      {reissueError && !reissueIdempotencyKey && (
+        <p className="invitation-error" role="alert">
+          {reissueError instanceof Error ? reissueError.message : "Unable to reissue the invitation."}
+        </p>
+      )}
 
-      {sentInvitation && (
+      {(sentInvitation || reissuedInvitation) && (
         <p className="invitation-success" role="status">
-          Invitation email sent to {sentInvitation.email}.
+          {(sentInvitation ?? reissuedInvitation)?.deliveryStatus === "attempting"
+            ? "Invitation delivery is already in progress."
+            : `Invitation email sent to ${(sentInvitation ?? reissuedInvitation)?.email}.`}
         </p>
       )}
 
@@ -199,6 +227,49 @@ export default function AdminFounderInvitationSection({
             </button>
           </div>
         </div>
+      )}
+
+      <section className="invitation-history" aria-labelledby="invitation-history-heading">
+        <h3 id="invitation-history-heading">Invitation and email history</h3>
+        {isHistoryLoading && <p role="status">Loading history…</p>}
+        {historyError && (
+          <p className="invitation-error" role="alert">
+            Unable to load invitation history.
+          </p>
+        )}
+        {!isHistoryLoading && !historyError && invitationHistory.length === 0 && (
+          <p className="empty">No invitation history yet.</p>
+        )}
+        {invitationHistory.map((historyInvitation) => (
+          <article className="invitation-history__item" key={historyInvitation.id}>
+            <div className="invitation-history__heading">
+              <strong>{FOUNDER_INVITATION_DISPLAY_LABEL[deriveInvitationDisplayStatus(historyInvitation)]}</strong>
+              <span>{new Date(historyInvitation.created_at).toLocaleString()}</span>
+            </div>
+            {(deliveryAttemptsByInvitation[historyInvitation.id] ?? []).map((attempt) => (
+              <div className="invitation-history__attempt" key={attempt.id}>
+                <span>{FOUNDER_INVITATION_EMAIL_DISPLAY_LABEL[attempt.status]}</span>
+                <span>Attempt {attempt.attempt_number}</span>
+                <span>{new Date(attempt.attempted_at).toLocaleString()}</span>
+                {attempt.error_code && <span>Error: {attempt.error_code.replace(/_/g, " ")}</span>}
+              </div>
+            ))}
+          </article>
+        ))}
+      </section>
+
+      {reissueIdempotencyKey && (
+        <AdminConfirmDialog
+          title="Reissue a fresh Founder invitation?"
+          body="This invalidates the current invitation and sends a new single-use credential. The old email link will stop working."
+          confirmLabel="Reissue Fresh Invitation"
+          busyLabel="Reissuing…"
+          isBusy={isReissuing}
+          tone="danger"
+          error={reissueError instanceof Error ? reissueError.message : null}
+          onConfirm={handleConfirmReissue}
+          onCancel={handleCloseReissue}
+        />
       )}
     </section>
   );

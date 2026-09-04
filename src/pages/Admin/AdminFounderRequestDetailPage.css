@@ -278,6 +278,10 @@
 .invitation-email-status--not_sent {
   color: var(--admin-text-muted);
 }
+.invitation-email-status--attempting {
+  color: var(--admin-warning);
+}
+
 
 .invitation-email-status--sent {
   color: var(--admin-success);
@@ -374,6 +378,41 @@
   font-size: 0.85rem;
   margin-top: 8px;
 }
+.invitation-history {
+  margin-top: 24px;
+  border-top: 1px solid var(--admin-border);
+  padding-top: 20px;
+}
+
+.invitation-history h3 {
+  margin: 0 0 12px;
+  font-size: 1rem;
+}
+
+.invitation-history__item {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.invitation-history__heading,
+.invitation-history__attempt {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  justify-content: space-between;
+}
+
+.invitation-history__heading span,
+.invitation-history__attempt {
+  color: var(--admin-text-muted);
+  font-size: 0.8rem;
+}
+
+.invitation-history__attempt {
+  justify-content: flex-start;
+  margin-top: 8px;
+}
+
 
 @media (max-width: 768px) {
   .admin-request-detail-page {

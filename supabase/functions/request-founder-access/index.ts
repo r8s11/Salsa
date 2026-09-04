@@ -60,10 +60,16 @@ export type FounderAccessDependencies = {
 
 // --- Handler --------------------------------------------------------------
 
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
 function json(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { "Content-Type": "application/json" },
+    headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
   });
 }
 
@@ -80,6 +86,13 @@ function isDuplicateInsertError(error: { code?: string; message?: string }): boo
 
 export function createRequestFounderAccessHandler(dependencies: FounderAccessDependencies) {
   return async (req: Request): Promise<Response> => {
+    if (req.method === "OPTIONS") {
+      return new Response("ok", { headers: CORS_HEADERS });
+    }
+    const declaredLength = Number(req.headers.get("content-length") ?? "0");
+    if (Number.isFinite(declaredLength) && declaredLength > MAX_BODY_BYTES) {
+      return errorResponse("Request body too large", 413);
+    }
     if (req.method !== "POST") {
       return errorResponse("Method not allowed", 405);
     }

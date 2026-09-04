@@ -25,6 +25,21 @@ export async function fetchFounderRequest(id: string): Promise<FounderAccessRequ
   return (data?.[0] ?? null) as FounderAccessRequestRow | null;
 }
 
+export async function fetchFounderHostState(
+  founderRequestId: string
+): Promise<{ organizerId: string | null; hostActive: boolean }> {
+  const { data, error } = await supabase.rpc("admin_founder_host_state", {
+    p_founder_request_id: founderRequestId,
+  });
+  if (error) throw new Error(error.message);
+  const row: unknown = data?.[0];
+  if (!row || typeof row !== "object") return { organizerId: null, hostActive: false };
+  const organizerId =
+    "organizer_id" in row && typeof row.organizer_id === "string" ? row.organizer_id : null;
+  const hostActive = "host_active" in row && row.host_active === true;
+  return { organizerId, hostActive };
+}
+
 /**
  * Submits a review decision (approve/reject) for a founder request.
  * Calls the `admin_review_founder_request` RPC which enforces:
@@ -42,7 +57,6 @@ export async function reviewFounderRequest(
   const { data, error } = await supabase.rpc("admin_review_founder_request", {
     p_request_id: payload.requestId,
     p_decision: payload.decision,
-    p_reviewer_id: (await supabase.auth.getUser()).data.user?.id ?? "",
     p_reason_code: payload.reasonCode ?? null,
     p_reason_message: payload.message ?? null,
   });

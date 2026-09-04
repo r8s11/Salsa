@@ -1,8 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
-import { Resend } from "https://esm.sh/resend@4.0.1";
+import { Resend } from "https://esm.sh/resend@6.26.0";
 import { founderWelcomeEmailContent } from "../_shared/founderWelcomeEmail.ts";
-import { hostDashboardUrl } from "../_shared/invitation.ts";
 import { classifyResendFailure, type ResendResult } from "../_shared/emailLayout.ts";
 
 /**
@@ -39,8 +38,17 @@ import { classifyResendFailure, type ResendResult } from "../_shared/emailLayout
  * stand regardless (spec §19).
  */
 
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
 function json(data: unknown, status = 200): Response {
-  return new Response(JSON.stringify(data), { status, headers: { "Content-Type": "application/json" } });
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+  });
 }
 
 function errorResponse(message: string, status: number): Response {
@@ -59,7 +67,7 @@ type ClaimResult = {
 };
 
 type ResendMessage = { from: string; to: string; subject: string; html: string; text: string };
-type ResendSendOptions = { idempotencyKey: string };
+type ResendSendOptions = { idempotencyKey?: string };
 
 export type SendFounderWelcomeEmailDependencies = {
   /** Runs `claim_founder_welcome_email()` as the caller — never the service role. */
@@ -84,6 +92,7 @@ export type SendFounderWelcomeEmailDependencies = {
 
 export function createSendFounderWelcomeEmailHandler(dependencies: SendFounderWelcomeEmailDependencies) {
   return async (request: Request): Promise<Response> => {
+    if (request.method === "OPTIONS") return new Response("ok", { headers: CORS_HEADERS });
     if (request.method !== "POST") return errorResponse("Method not allowed", 405);
 
     const authorization = request.headers.get("authorization");
@@ -189,7 +198,9 @@ function runtimeDependencies(): SendFounderWelcomeEmailDependencies {
   const supabaseUrl = requiredEnvironment("SUPABASE_URL");
   const anonKey = requiredEnvironment("SUPABASE_ANON_KEY");
   const resendKey = requiredEnvironment("RESEND_API_KEY");
-
+  const from = requiredEnvironment("AUTH_EMAIL_FROM");
+  const externalUrl = new URL(requiredEnvironment("AUTH_EXTERNAL_URL"));
+  const dashboardUrl = new URL("/host", externalUrl).toString();
   const callerClient = (authorization: string) =>
     createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authorization } },
@@ -216,10 +227,10 @@ function runtimeDependencies(): SendFounderWelcomeEmailDependencies {
     },
 
     resend: new Resend(resendKey),
-    from: Deno.env.get("AUTH_EMAIL_FROM") ?? "SalsaSegura <onboarding@resend.dev>",
+    from,
     platformName: "Salsa Segura",
     supportEmail: "info@salsasegura.com",
-    hostDashboardUrl: hostDashboardUrl(Deno.env.get("ENVIRONMENT") === "production" ? "production" : "local"),
+    hostDashboardUrl: dashboardUrl,
     log: (message, details) => console.error(message, details),
   };
 }

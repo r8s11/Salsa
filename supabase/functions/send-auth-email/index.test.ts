@@ -88,7 +88,7 @@ Deno.test("sends invite mail using token_hash and the exact redirect URL", async
   assertStringIncludes(message.html, "Accept invitation");
   assertStringIncludes(message.html, "single-use");
   assertStringIncludes(message.html, "set a password");
-  assertStringIncludes(message.html, "https://project.supabase.co/auth/v1/verify?token=hash%2B%2F%3D&type=invite&redirect_to=http%3A%2F%2Flocalhost%3A5173%2Fauth%2Finvite%3Fsource%3Demail");
+  assertStringIncludes(message.html, "https://project.supabase.co/auth/v1/verify?token=hash%2B%2F%3D&amp;type=invite&amp;redirect_to=http%3A%2F%2Flocalhost%3A5173%2Fauth%2Finvite%3Fsource%3Demail");
   assertEquals(message.html.includes(rawToken), false);
 });
 
@@ -104,7 +104,7 @@ for (const [action, subjectFragment] of [["signup", "Confirm"], ["magiclink", "S
     assertStringIncludes(sent[0].subject, subjectFragment);
     assertStringIncludes(
       sent[0].html,
-      `https://project.supabase.co/auth/v1/verify?token=hash%2B%2F%3D&type=${action}&redirect_to=https%3A%2F%2Fapp.example%2Fauth%2Fcallback%3Fflow%3Demail`,
+      `https://project.supabase.co/auth/v1/verify?token=hash%2B%2F%3D&amp;type=${action}&amp;redirect_to=https%3A%2F%2Fapp.example%2Fauth%2Fcallback%3Fflow%3Demail`,
     );
   });
 }

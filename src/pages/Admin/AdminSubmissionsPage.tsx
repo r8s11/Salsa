@@ -9,8 +9,10 @@ import AdminSubmissionsTable, {
 import AdminSubmissionsFilterDrawer, {
   type SubmissionFilters,
 } from "../../components/Admin/AdminSubmissionsFilterDrawer";
+import AdminRejectSubmissionDialog from "../../components/Admin/AdminRejectSubmissionDialog";
 import { useAdminSubmissions } from "../../hooks/useAdminSubmissions";
 import { type EventSubmission } from "../../features/admin/model/submissions";
+import { notifySubmissionRejected } from "../../features/submit-event/submissionNotification";
 import "./AdminSubmissionsPage.css";
 
 type SubmissionView = "pending" | "in_review" | "needs_information" | "all";
@@ -22,10 +24,25 @@ const SUBMISSION_VIEWS: { view: SubmissionView; label: string }[] = [
   { view: "all", label: "All" },
 ];
 
+/**
+ * Supabase rejects with a PostgrestError, which is a plain object rather than
+ * an Error — falling back to `null` here would hide a failed rejection behind
+ * an open dialog, so unknown failures still get a message.
+ */
+function rejectionErrorMessage(error: unknown): string | null {
+  if (!error) return null;
+  if (error instanceof Error) return error.message;
+  if (typeof error === "object" && "message" in error && typeof error.message === "string") {
+    return error.message || "Rejection failed.";
+  }
+  return "Rejection failed.";
+}
+
 export default function AdminSubmissionsPage() {
   const navigate = useNavigate();
   const { submissions, isLoading, error, updateSubmission, isUpdating, updateError } =
     useAdminSubmissions();
+  const [rejectingSubmission, setRejectingSubmission] = useState<EventSubmission | null>(null);
   const [filters, setFilters] = useState<SubmissionFilters>({
     status: null,
     submitter_name: null,
@@ -71,9 +88,32 @@ export default function AdminSubmissionsPage() {
         navigate(`/admin/submissions/${submission.id}`);
         break;
       case "reject":
-        updateSubmission({ id: submission.id, update: { status: "rejected" } });
+        setRejectingSubmission(submission);
         break;
     }
+  };
+
+  const handleRejectConfirm = (reason: string, message: string, note: string) => {
+    if (!rejectingSubmission) return;
+    updateSubmission(
+      {
+        id: rejectingSubmission.id,
+        update: {
+          status: "rejected",
+          rejection_reason: reason as EventSubmission["rejection_reason"],
+          rejection_message: message || undefined,
+          internal_note: note || undefined,
+        },
+      },
+      {
+        onSuccess: () => {
+          // Only after the rejection committed. The email carries
+          // rejection_message only — internal_note never leaves the admin UI.
+          void notifySubmissionRejected(rejectingSubmission.id);
+          setRejectingSubmission(null);
+        },
+      }
+    );
   };
 
   const emptyMessage =
@@ -156,8 +196,8 @@ export default function AdminSubmissionsPage() {
               <AdminSubmissionsTable
                 submissions={filteredSubmissions}
                 onAction={handleAction}
-                busy={isUpdating}
-                error={updateError instanceof Error ? updateError.message : null}
+                busy={rejectingSubmission ? false : isUpdating}
+                error={rejectingSubmission ? null : rejectionErrorMessage(updateError)}
               />
             )}
           </div>
@@ -171,6 +211,17 @@ export default function AdminSubmissionsPage() {
         onFiltersChange={handleFiltersChange}
         onClose={() => setDrawerOpen(false)}
       />
+
+      {rejectingSubmission && (
+        <AdminRejectSubmissionDialog
+          submissionId={rejectingSubmission.id}
+          submissionLabel={(rejectingSubmission.submitted_data?.title as string) || null}
+          isBusy={isUpdating}
+          error={rejectionErrorMessage(updateError)}
+          onConfirm={handleRejectConfirm}
+          onCancel={() => setRejectingSubmission(null)}
+        />
+      )}
     </div>
   );
 }

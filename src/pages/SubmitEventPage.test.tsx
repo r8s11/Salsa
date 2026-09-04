@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import * as submissionsRepo from "../features/admin/api/submissionsRepo";
 import SubmitEventPage from "./SubmitEventPage";
 import { CityProvider } from "../contexts/CityContext";
@@ -75,7 +75,7 @@ describe("SubmitEventPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders the event submission form", () => {
+  it("renders the event submission form with noValidate and a required legend", () => {
     renderSubmitEventPage();
 
     expect(screen.getByRole("heading", { name: /Submit an Event/i })).toBeInTheDocument();
@@ -86,6 +86,8 @@ describe("SubmitEventPage", () => {
     expect(screen.getByLabelText(/Venue Name/i)).toBeInTheDocument();
     expect(screen.getByRole("group", { name: /Price/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/Your Name/i)).toBeInTheDocument();
+    expect(document.querySelector("form.submit-form")).toHaveAttribute("noValidate", "");
+    expect(screen.getByText("* Required")).toBeInTheDocument();
   });
 
   it("replaces the form with a closed-state message when registered submissions are disabled", () => {
@@ -162,9 +164,69 @@ describe("SubmitEventPage", () => {
     });
   });
 
-  it("displays an error message when submission fails", async () => {
+  // ── Field-level validation + error summary (P2-4) ──
+
+  it("reports every missing required field at once on an empty submit, including event type and city", async () => {
+    renderSubmitEventPage();
+
+    fireEvent.click(screen.getByRole("button", { name: /Submit Event/i }));
+
+    const summary = await screen.findByText("Please fix the following:");
+    const summaryContainer = summary.closest("#submit-error-summary") as HTMLElement;
+    expect(summaryContainer).toBeInTheDocument();
+    expect(summaryContainer).toHaveTextContent(/enter an event title/i);
+    expect(summaryContainer).toHaveTextContent(/choose an event type/i);
+    expect(summaryContainer).toHaveTextContent(/choose an event date/i);
+    expect(submissionsRepo.createSubmission).not.toHaveBeenCalled();
+
+    const titleInput = screen.getByLabelText(/Event Title \*/i);
+    expect(titleInput).toHaveAttribute("aria-invalid", "true");
+    expect(titleInput).toHaveAttribute("aria-describedby", "event-title-error");
+    expect(document.getElementById("event-title-error")).toHaveTextContent(
+      /enter an event title/i
+    );
+
+    const eventTypeGroup = screen.getByRole("group", { name: /Event type/i });
+    expect(eventTypeGroup).toHaveAttribute("aria-invalid", "true");
+    expect(eventTypeGroup).toHaveAttribute("aria-describedby", "event-type-error");
+
+    const link = within(summaryContainer).getByRole("link", { name: /enter an event title/i });
+    expect(link).toHaveAttribute("href", "#event-title");
+  });
+
+  it("focuses and re-focuses the error summary on each failed validation submit", async () => {
+    renderSubmitEventPage();
+
+    fireEvent.click(screen.getByRole("button", { name: /Submit Event/i }));
+    const summary = (await screen.findByText("Please fix the following:")).closest(
+      "#submit-error-summary"
+    ) as HTMLElement;
+    await waitFor(() => expect(summary).toHaveFocus());
+
+    // Fix nothing, submit again — same errors, but the summary must refocus.
+    (summary as HTMLElement).blur();
+    fireEvent.click(screen.getByRole("button", { name: /Submit Event/i }));
+    await waitFor(() => expect(summary).toHaveFocus());
+  });
+
+  it("clears a field's error and aria-invalid as soon as its value changes", async () => {
+    renderSubmitEventPage();
+
+    fireEvent.click(screen.getByRole("button", { name: /Submit Event/i }));
+    await screen.findByText("Please fix the following:");
+
+    const titleInput = screen.getByLabelText(/Event Title \*/i);
+    expect(titleInput).toHaveAttribute("aria-invalid", "true");
+
+    fireEvent.change(titleInput, { target: { value: "Now filled in" } });
+
+    expect(titleInput).toHaveAttribute("aria-invalid", "false");
+    expect(document.getElementById("event-title-error")).not.toBeInTheDocument();
+  });
+
+  it("shows safe, actionable copy (never raw provider text) on a rejected submit, and focuses the summary", async () => {
     vi.mocked(submissionsRepo.createSubmission).mockRejectedValueOnce(
-      new Error("Network connection error")
+      new Error("duplicate key value violates unique constraint")
     );
 
     renderSubmitEventPage();
@@ -179,7 +241,40 @@ describe("SubmitEventPage", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /Submit Event/i }));
 
-    expect(await screen.findByText(/❌ Network connection error/i)).toBeInTheDocument();
+    await waitFor(() => expect(document.getElementById("submit-error-summary")).toBeInTheDocument());
+    const summary = document.getElementById("submit-error-summary") as HTMLElement;
+    expect(summary).toHaveTextContent(/We couldn't submit your event\. Please try again\./i);
+    expect(summary).not.toHaveTextContent(/duplicate key|constraint/i);
+    await waitFor(() => expect(summary).toHaveFocus());
+
+    // Values survive the failed submit.
+    expect((screen.getByLabelText(/Event Title \*/i) as HTMLInputElement).value).toBe(
+      "Salsa in the Park"
+    );
+  });
+
+  it("keeps submit disabled while a submission is in flight", async () => {
+    let resolveSubmit!: (id: string) => void;
+    vi.mocked(submissionsRepo.createSubmission).mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveSubmit = resolve;
+      })
+    );
+
+    renderSubmitEventPage();
+
+    fireEvent.change(screen.getByLabelText(/Event Title \*/i), {
+      target: { value: "Pending Event" },
+    });
+    chooseEventType("Social");
+    fireEvent.change(screen.getByLabelText(/Date \*/i), { target: { value: "2026-08-20" } });
+
+    const submitButton = screen.getByRole("button", { name: /Submit Event/i });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => expect(submitButton).toBeDisabled());
+    resolveSubmit("submission-id");
+    await screen.findByText(/Event Submitted!/i);
   });
 
   it("allows resetting the form from success card to submit another event", async () => {
@@ -263,7 +358,12 @@ describe("SubmitEventPage", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Submit for review" }));
 
-    expect(await screen.findByText(/❌ Network error/i)).toBeInTheDocument();
+    // "Network error" reads as a network-shaped failure to `publicErrorMessage`
+    // (the audit's own regex for "the request never reached the service"), so
+    // it collapses to the safe connection copy rather than being echoed raw.
+    expect(
+      await screen.findByText(/We couldn't reach the server\. Check your connection and try again\./i)
+    ).toBeInTheDocument();
     expect((screen.getByLabelText(/Event Title \*/i) as HTMLInputElement).value).toBe(
       "Havana Nights Social"
     );

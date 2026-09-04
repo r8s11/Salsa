@@ -1,11 +1,11 @@
-import { useEffect, useId, useRef, useState } from "react";
-import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
+import { useId, useRef, useState } from "react";
 import {
   ROLE_LABEL,
   displayNameFor,
   type AdminUserRow,
   type UserRole,
 } from "../../features/admin/model/usersQuery";
+import { useAccessibleDialog } from "../../shared/a11y/useAccessibleDialog";
 import "./AdminRoleChangeDialog.css";
 
 interface AdminRoleChangeDialogProps {
@@ -36,32 +36,30 @@ export default function AdminRoleChangeDialog({
   onCancel,
 }: AdminRoleChangeDialogProps) {
   const titleId = useId();
+  const descId = useId();
+  const dialogRef = useRef<HTMLDivElement>(null);
   const selectRef = useRef<HTMLSelectElement>(null);
-  const previouslyFocusedRef = useRef<Element | null>(null);
   const currentRole = user.role ?? "user";
   const [selectedRole, setSelectedRole] = useState<UserRole>(currentRole);
 
-  useEscapeKey(onCancel);
-
-  useEffect(() => {
-    previouslyFocusedRef.current = document.activeElement;
-    selectRef.current?.focus();
-    return () => {
-      const previouslyFocused = previouslyFocusedRef.current;
-      if (previouslyFocused instanceof HTMLElement) {
-        previouslyFocused.focus();
-      }
-    };
-  }, []);
+  const { onKeyDown, onBackdropClick, onDialogClick } = useAccessibleDialog({
+    dialogRef,
+    onDismiss: onCancel,
+    isBusy,
+    initialFocusRef: selectRef,
+  });
 
   return (
-    <div className="admin-role-change-dialog__overlay" onClick={onCancel}>
+    <div className="admin-role-change-dialog__overlay" onClick={onBackdropClick}>
       <div
+        ref={dialogRef}
         className="admin-role-change-dialog admin-card"
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        onClick={(event) => event.stopPropagation()}
+        aria-describedby={descId}
+        onKeyDown={onKeyDown}
+        onClick={onDialogClick}
       >
         <h2 id={titleId}>
           Change role for {user.username ? `@${user.username}` : displayNameFor(user)}
@@ -89,7 +87,7 @@ export default function AdminRoleChangeDialog({
           </select>
         </div>
 
-        <p className="admin-role-change-dialog__consequence" role="status">
+        <p id={descId} className="admin-role-change-dialog__consequence" role="status">
           {CONSEQUENCE_COPY[selectedRole]}
         </p>
 

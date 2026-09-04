@@ -3,6 +3,7 @@ import { useAuth } from "../contexts/useAuth";
 import {
   fetchFounderRequests,
   fetchFounderRequest,
+  fetchFounderHostState,
   reviewFounderRequest,
   fetchPendingFounderRequestCount,
 } from "../features/admin/api/founderRequestsRepo";
@@ -94,6 +95,15 @@ export function useFounderRequest(id: string | null) {
     queryKey: ["admin", "founder-request", id],
     enabled: !!id,
     queryFn: () => fetchFounderRequest(id!),
+    staleTime: 0,
+  });
+}
+
+export function useFounderHostState(id: string | null) {
+  return useQuery({
+    queryKey: ["admin", "founder-host-state", id],
+    enabled: !!id,
+    queryFn: () => fetchFounderHostState(id!),
     staleTime: 0,
   });
 }

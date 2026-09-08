@@ -39,7 +39,7 @@ function Hero() {
         transition: {
           opacity: { duration: 0.42, delay: 0.08, ease: [0.22, 1, 0.36, 1] as const },
           scale: { duration: 0.42, delay: 0.08, ease: [0.22, 1, 0.36, 1] as const },
-          rotate: { duration: 28, ease: "linear", repeat: Infinity },
+          rotate: { duration: 28, ease: "linear" as const, repeat: Infinity },
         },
       };
 

@@ -1,5 +1,6 @@
 /* ========================================
    Hero — Ritmo Vivo
+   Choreographed entrance: atmosphere → eyebrow → headline → copy → action
    ======================================== */
 
 .hero {
@@ -15,6 +16,8 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
+  opacity: 0;
+  animation: heroFadeUp 0.6s ease-out 0ms both;
 }
 
 /* Crimson spotlight, upper-right */
@@ -24,6 +27,8 @@
   background:
     radial-gradient(90% 70% at 78% 8%, rgba(225, 29, 72, 0.22), transparent 60%),
     radial-gradient(70% 60% at 8% 90%, rgba(233, 195, 73, 0.12), transparent 55%);
+  animation: heroGlowPulse 12s ease-in-out infinite;
+  will-change: opacity, transform;
 }
 
 /* Subtle line grid */
@@ -36,6 +41,8 @@
   background-size: 52px 52px;
   mask-image: radial-gradient(80% 70% at 50% 30%, #000, transparent);
   -webkit-mask-image: radial-gradient(80% 70% at 50% 30%, #000, transparent);
+  animation: heroGridDrift 20s ease-in-out infinite;
+  will-change: background-position;
 }
 
 /* ── Content ── */
@@ -49,13 +56,14 @@
   max-width: 860px;
 }
 
-/* Eyebrow */
+/* Eyebrow — enters after atmosphere settles */
 .hero-eyebrow {
   display: flex;
   align-items: center;
   gap: 12px;
   margin-bottom: 1.6rem;
-  animation: heroFadeUp 0.9s ease-out both;
+  opacity: 0;
+  animation: heroFadeUp 0.38s ease-out 120ms both;
 }
 
 .hero-eyebrow-line {
@@ -74,7 +82,7 @@
   color: var(--tertiary);
 }
 
-/* Main heading */
+/* Main heading — staggered line-by-line reveal */
 .hero-heading {
   font-family: var(--font-display);
   font-weight: 900;
@@ -82,12 +90,20 @@
   letter-spacing: -0.02em;
   font-size: clamp(3.25rem, 9vw, 8rem);
   margin: 0;
-  animation: heroFadeUp 0.9s ease-out 0.05s both;
 }
 
 .hero-heading-line {
   display: block;
   color: var(--text);
+  opacity: 0;
+}
+
+.hero-heading-line[data-line="1"] {
+  animation: heroFadeUp 0.42s ease-out 220ms both;
+}
+
+.hero-heading-line[data-line="2"] {
+  animation: heroFadeUp 0.42s ease-out 310ms both;
 }
 
 .hero-heading-accent {
@@ -98,7 +114,7 @@
   color: var(--gold);
 }
 
-/* Subtitle */
+/* Subtitle — enters after headline settles */
 .hero-subtitle {
   font-family: var(--font-body);
   font-size: clamp(0.95rem, 1.5vw, 1.2rem);
@@ -106,25 +122,34 @@
   max-width: 540px;
   line-height: 1.5;
   margin-top: 1.4rem;
-  animation: heroFadeUp 0.9s ease-out 0.12s both;
+  opacity: 0;
+  animation: heroFadeUp 0.4s ease-out 400ms both;
 }
 
 .hero-subtitle-city {
   color: var(--gold-light);
 }
 
-/* CTA buttons */
+/* CTA buttons — enters last, primary then secondary */
 .hero-cta {
   display: flex;
   flex-wrap: wrap;
   gap: 0.9rem;
   margin-top: 2.1rem;
-  animation: heroFadeUp 0.9s ease-out 0.18s both;
 }
 
 .hero-btn {
   padding: 0.95rem 1.9rem;
   font-size: 0.85rem;
+  opacity: 0;
+}
+
+.hero-btn:first-child {
+  animation: heroFadeUp 0.38s ease-out 520ms both;
+}
+
+.hero-btn:last-child {
+  animation: heroFadeUp 0.38s ease-out 590ms both;
 }
 
 /* Stats */
@@ -132,7 +157,8 @@
   display: flex;
   gap: 2.25rem;
   margin-top: 2.75rem;
-  animation: heroFadeUp 0.9s ease-out 0.24s both;
+  opacity: 0;
+  animation: heroFadeUp 0.4s ease-out 650ms both;
 }
 
 .hero-stat-num {
@@ -190,11 +216,33 @@
 @keyframes heroFadeUp {
   from {
     opacity: 0;
-    transform: translateY(28px);
+    transform: translateY(18px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Subtle ambient glow pulse */
+@keyframes heroGlowPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.88;
+    transform: scale(1.015);
+  }
+}
+
+/* Subtle grid drift */
+@keyframes heroGridDrift {
+  0%, 100% {
+    background-position: 0 0;
+  }
+  50% {
+    background-position: 26px 26px;
   }
 }
 
@@ -207,10 +255,40 @@
   }
 }
 
+/* ── CTA hover feedback ── */
+@media (hover: hover) and (pointer: fine) {
+  .hero-btn {
+    transition: transform 0.15s ease-out, box-shadow 0.2s ease-out;
+  }
+
+  .hero-btn:hover {
+    transform: translateY(-1px);
+  }
+
+  .hero-btn:active {
+    transform: translateY(0);
+  }
+}
+
 /* ── Reduced Motion ── */
 @media (prefers-reduced-motion: reduce) {
+  .hero-bg,
+  .hero-eyebrow,
+  .hero-heading-line,
+  .hero-subtitle,
+  .hero-btn,
+  .hero-stats,
+  .hero-glow,
+  .hero-grid {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
   .hero-ticker-track {
     animation: none;
+  }
+  .hero-btn:hover {
+    transform: none;
   }
 }
 
@@ -239,5 +317,16 @@
 
   .hero-stat-num {
     font-size: 1.5rem;
+  }
+}
+
+/* ── Pointer Parallax (desktop only) ── */
+@media (hover: hover) and (pointer: fine) {
+  .hero-bg {
+    transform: translate(
+      var(--hero-parallax-x, 0px),
+      var(--hero-parallax-y, 0px)
+    );
+    transition: transform 0.3s ease-out;
   }
 }

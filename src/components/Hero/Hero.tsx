@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
-import { useMemo } from "react";
+import ButtonLink from "../ui/ButtonLink";
+import { useMemo, useEffect, useRef } from "react";
 import "./Hero.css";
 import { useEvents } from "../../hooks/useEvent";
 import { useCity } from "../../contexts/useCity";
@@ -49,8 +49,38 @@ function Hero() {
     { num: cityShort, label: "On The Floor" },
   ];
 
+  const heroRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const hero = heroRef.current;
+    if (!hero) return;
+
+    const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
+    if (!mq.matches) return;
+
+    const handleMove = (e: MouseEvent) => {
+      const rect = hero.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
+      const y = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
+      hero.style.setProperty("--hero-parallax-x", `${x * 6}px`);
+      hero.style.setProperty("--hero-parallax-y", `${y * 6}px`);
+    };
+
+    const handleLeave = () => {
+      hero.style.setProperty("--hero-parallax-x", "0px");
+      hero.style.setProperty("--hero-parallax-y", "0px");
+    };
+
+    hero.addEventListener("mousemove", handleMove);
+    hero.addEventListener("mouseleave", handleLeave);
+    return () => {
+      hero.removeEventListener("mousemove", handleMove);
+      hero.removeEventListener("mouseleave", handleLeave);
+    };
+  }, []);
+
   return (
-    <section id="home" className="hero">
+    <section id="home" className="hero" ref={heroRef}>
       {/* Atmospheric background */}
       <div className="hero-bg" aria-hidden="true">
         <div className="hero-glow" />
@@ -65,8 +95,8 @@ function Hero() {
           </div>
 
           <h1 className="hero-heading">
-            <span className="hero-heading-line">Find Your</span>
-            <span className="hero-heading-line">
+            <span className="hero-heading-line" data-line="1">Find Your</span>
+            <span className="hero-heading-line" data-line="2">
               <span className="hero-heading-accent">Rhythm</span>
               <span className="hero-heading-dot">.</span>
             </span>
@@ -78,12 +108,12 @@ function Hero() {
           </p>
 
           <div className="hero-cta">
-            <a href="#events" className="btn-primary hero-btn">
+            <a href="#events" className="ui-button ui-button--primary hero-btn">
               Tonight on the floor
             </a>
-            <Link to="/calendar" className="btn-secondary hero-btn">
+            <ButtonLink to="/calendar" variant="secondary" className="hero-btn">
               Full calendar
-            </Link>
+            </ButtonLink>
           </div>
 
           {!loading && (

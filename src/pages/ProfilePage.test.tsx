@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import type { DatabaseEvent } from "../features/events/model/types";
 import ProfilePage from "./ProfilePage";
@@ -16,6 +16,12 @@ const mocks = vi.hoisted(() => ({
     isLoading: false,
     error: null as string | null,
   },
+  ownProfile: {
+    profile: null as unknown,
+    isLoading: false,
+    error: null as string | null,
+    refetch: vi.fn(),
+  },
 }));
 
 vi.mock("../contexts/useAuth", () => ({
@@ -24,6 +30,10 @@ vi.mock("../contexts/useAuth", () => ({
 
 vi.mock("../hooks/useMySubmissions", () => ({
   useMySubmissions: () => ({ ...mocks.submissions, refetch: mocks.refetch }),
+}));
+
+vi.mock("../hooks/useOwnProfile", () => ({
+  useOwnProfile: () => mocks.ownProfile,
 }));
 
 const bostonApproved: DatabaseEvent = {
@@ -97,6 +107,9 @@ describe("ProfilePage", () => {
       isLoading: false,
       error: null,
     };
+    mocks.ownProfile.profile = null;
+    mocks.ownProfile.isLoading = false;
+    mocks.ownProfile.error = null;
   });
 
   it("shows profile identity and actions", () => {
@@ -181,5 +194,84 @@ describe("ProfilePage", () => {
 
     const editLinks = screen.getAllByText("Edit");
     expect(editLinks).toHaveLength(2);
+  });
+
+  // ---- Phase 6 correction ----
+  // /profile is where the editor returns after saving, so it must show the
+  // persisted profile row, not the auth metadata. It previously read
+  // user_metadata.full_name, so a saved display_name never appeared here.
+
+  function savedProfile(overrides: Record<string, unknown> = {}) {
+    return {
+      id: "user-1",
+      display_name: "Maria Santos",
+      username: "mariasalsa",
+      avatar_url: null,
+      status: "active",
+      status_reason: null,
+      created_at: "2026-01-15T00:00:00Z",
+      ...overrides,
+    };
+  }
+
+  it("shows the saved display name from the profile row", () => {
+    mocks.ownProfile.profile = savedProfile();
+    renderPage();
+
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Maria Santos");
+    expect(screen.queryByText("dancer")).not.toBeInTheDocument();
+  });
+
+  it("renders the saved photo with referrers suppressed", () => {
+    mocks.ownProfile.profile = savedProfile({ avatar_url: "https://cdn.test/maria.png" });
+    renderPage();
+
+    const img = screen.getByRole("presentation", { hidden: true }) as HTMLImageElement;
+    expect(img.getAttribute("src")).toBe("https://cdn.test/maria.png");
+    expect(img.getAttribute("referrerpolicy")).toBe("no-referrer");
+  });
+
+  it("falls back to initials when the saved photo fails to load", () => {
+    mocks.ownProfile.profile = savedProfile({ avatar_url: "https://cdn.test/gone.png" });
+    const { container } = renderPage();
+
+    fireEvent.error(screen.getByRole("presentation", { hidden: true }));
+
+    expect(container.querySelector("img")).toBeNull();
+    expect(screen.getByText("M")).toBeInTheDocument();
+  });
+
+  it("attempts a fresh load when the saved photo URL changes after a failure", () => {
+    mocks.ownProfile.profile = savedProfile({ avatar_url: "https://cdn.test/gone.png" });
+    const { container, rerender } = renderPage();
+
+    fireEvent.error(screen.getByRole("presentation", { hidden: true }));
+    expect(container.querySelector("img")).toBeNull();
+
+    mocks.ownProfile.profile = savedProfile({ avatar_url: "https://cdn.test/fresh.png" });
+    rerender(
+      <MemoryRouter>
+        <ProfilePage />
+      </MemoryRouter>
+    );
+
+    const img = container.querySelector("img") as HTMLImageElement;
+    expect(img).not.toBeNull();
+    expect(img.getAttribute("src")).toBe("https://cdn.test/fresh.png");
+  });
+
+  it("never assigns a stored photo value the save path would reject", () => {
+    mocks.ownProfile.profile = savedProfile({ avatar_url: "https://user:pass@cdn.test/x.png" });
+    const { container } = renderPage();
+
+    expect(container.querySelector("img")).toBeNull();
+    expect(screen.getByText("M")).toBeInTheDocument();
+  });
+
+  it("keeps the existing email-derived fallback when no profile row exists", () => {
+    mocks.ownProfile.profile = null;
+    renderPage();
+
+    expect(screen.getByText("dancer")).toBeInTheDocument();
   });
 });

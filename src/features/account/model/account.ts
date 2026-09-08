@@ -103,6 +103,40 @@ export function resolveAvatarIdentity(
   return { name, initials: avatarInitials(name) };
 }
 
+/**
+ * The single rule deciding whether a stored/typed photo URL may be both
+ * SAVED and assigned to an `<img src>`. Preview and save must not diverge:
+ * previously the editor previewed any non-empty string, so a malformed URL
+ * — or one carrying embedded credentials — was handed straight to the
+ * browser as an image request.
+ *
+ * Rejects:
+ *   - blank / whitespace-only values
+ *   - anything `new URL()` cannot parse as an absolute URL
+ *   - schemes other than http(s) (`javascript:`, `data:`, `blob:`, `file:`)
+ *   - URLs with a username and/or password in the authority, which would
+ *     leak those credentials as part of an outbound image request
+ *
+ * Uploads are a later phase; until then this is the whole trust boundary
+ * for user-supplied image locations.
+ */
+export function isDisplayablePhotoUrl(value: string | null | undefined): boolean {
+  if (!value) return false;
+  const trimmed = value.trim();
+  if (trimmed.length === 0) return false;
+
+  let url: URL;
+  try {
+    url = new URL(trimmed);
+  } catch {
+    return false;
+  }
+
+  if (url.protocol !== "http:" && url.protocol !== "https:") return false;
+  if (url.username !== "" || url.password !== "") return false;
+  return true;
+}
+
 export function memberSinceLabel(createdAt: string): string {
   return new Date(createdAt).toLocaleDateString("en-US", { month: "long", year: "numeric" });
 }

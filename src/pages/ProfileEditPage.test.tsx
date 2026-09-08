@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -45,6 +45,26 @@ function renderPage(initialPath = "/profile/edit") {
           <Route path="/profile/edit" element={<ProfileEditPage />} />
           <Route path="/profile" element={<p>Profile destination</p>} />
         </Routes>
+      </MemoryRouter>
+    </QueryClientProvider>
+  );
+}
+
+// Mirrors the real composition: MainLayout owns the single <main> landmark
+// and the page renders into its <Outlet />.
+function renderComposed(initialPath = "/profile/edit") {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={[initialPath]}>
+        <main className="page-content">
+          <Routes>
+            <Route path="/profile/edit" element={<ProfileEditPage />} />
+            <Route path="/profile" element={<p>Profile destination</p>} />
+          </Routes>
+        </main>
       </MemoryRouter>
     </QueryClientProvider>
   );
@@ -303,5 +323,147 @@ describe("ProfileEditPage", () => {
 
     await user.click(screen.getByRole("button", { name: "Try Again" }));
     expect(mocks.profile.refetch).toHaveBeenCalledOnce();
+  });
+
+  // ---- Phase 6 correction: preview must obey the save-time URL rule ----
+  // Previously the preview rendered whenever the string was non-empty, so a
+  // malformed URL or one with embedded credentials was assigned to src.
+  // These assert the rendered DOM, not just a validator return value.
+
+  function photoSection() {
+    const heading = screen.getByRole("heading", { name: "PHOTO & NAME" });
+    return heading.closest("section") as HTMLElement;
+  }
+
+  it.each([
+    ["a malformed value", "not-a-url"],
+    ["a scheme-relative value", "//cdn.test/x.png"],
+    ["a file: scheme", "file:///etc/passwd"],
+    ["a javascript: scheme", "javascript:alert(1)"],
+    ["a data: scheme", "data:image/png;base64,iVBORw0KGgo="],
+    ["credentials in the authority", "https://user:pass@cdn.test/x.png"],
+  ])("never assigns %s to the preview src", async (_label, value) => {
+    mocks.profile.profile = baseProfile({ avatar_url: null });
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.type(await screen.findByLabelText(/photo url/i), value);
+
+    const section = photoSection();
+    expect(section.querySelector("img")).toBeNull();
+    // and the initials fallback is what the user sees instead
+    expect(within(section).getByText("M")).toBeInTheDocument();
+  });
+
+  it("previews a valid URL and keeps referrers off the request", async () => {
+    mocks.profile.profile = baseProfile({ avatar_url: null });
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.type(await screen.findByLabelText(/photo url/i), "https://cdn.test/ok.png");
+
+    const img = photoSection().querySelector("img") as HTMLImageElement;
+    expect(img).not.toBeNull();
+    expect(img.getAttribute("src")).toBe("https://cdn.test/ok.png");
+    expect(img.getAttribute("referrerpolicy")).toBe("no-referrer");
+  });
+
+  it("falls back to initials when a syntactically valid preview image fails to load", async () => {
+    mocks.profile.profile = baseProfile({ avatar_url: "https://cdn.test/gone.png" });
+    renderPage();
+
+    const img = (await screen.findByRole("presentation", { hidden: true })) as HTMLImageElement;
+    fireEvent.error(img);
+
+    const section = photoSection();
+    expect(section.querySelector("img")).toBeNull();
+    expect(within(section).getByText("M")).toBeInTheDocument();
+  });
+
+  it("retries the preview after a failed URL is replaced with a new one", async () => {
+    mocks.profile.profile = baseProfile({ avatar_url: "https://cdn.test/gone.png" });
+    const user = userEvent.setup();
+    renderPage();
+
+    fireEvent.error((await screen.findByRole("presentation", { hidden: true })) as HTMLImageElement);
+    expect(photoSection().querySelector("img")).toBeNull();
+
+    const photoUrl = screen.getByLabelText(/photo url/i);
+    await user.clear(photoUrl);
+    await user.type(photoUrl, "https://cdn.test/fresh.png");
+
+    const img = photoSection().querySelector("img") as HTMLImageElement;
+    expect(img).not.toBeNull();
+    expect(img.getAttribute("src")).toBe("https://cdn.test/fresh.png");
+  });
+
+  it("blocks Save for a credential-bearing URL the same way it blocks malformed input", async () => {
+    mocks.profile.profile = baseProfile();
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.type(
+      await screen.findByLabelText(/photo url/i),
+      "https://user:pass@cdn.test/x.png"
+    );
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/full link starting with https/i);
+    expect(screen.getByRole("button", { name: "Save Changes" })).toBeDisabled();
+    expect(mocks.update.update).not.toHaveBeenCalled();
+  });
+
+  // ---- Phase 6 correction: accessibility claims must be true ----
+
+  it("contributes no main landmark of its own, leaving MainLayout's as the only one", () => {
+    mocks.profile.profile = baseProfile();
+    renderComposed();
+
+    expect(screen.getAllByRole("main")).toHaveLength(1);
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+  });
+
+  it("associates the read-only username help text with the username input", async () => {
+    mocks.profile.profile = baseProfile();
+    renderPage();
+
+    const username = (await screen.findByLabelText(/username/i)) as HTMLInputElement;
+    const describedBy = username.getAttribute("aria-describedby");
+    expect(describedBy).toBeTruthy();
+    const help = document.getElementById(describedBy as string);
+    expect(help?.textContent).toMatch(/username changes arrive in a later update/i);
+  });
+
+  it("associates the photo hint with the photo input, and swaps in the error when invalid", async () => {
+    mocks.profile.profile = baseProfile();
+    const user = userEvent.setup();
+    renderPage();
+
+    const photoUrl = (await screen.findByLabelText(/photo url/i)) as HTMLInputElement;
+    const hintId = photoUrl.getAttribute("aria-describedby");
+    expect(hintId).toBeTruthy();
+    expect(document.getElementById(hintId as string)?.textContent).toMatch(/hosted image/i);
+    expect(photoUrl.getAttribute("aria-invalid")).toBeNull();
+
+    await user.type(photoUrl, "not-a-url");
+
+    expect(photoUrl.getAttribute("aria-invalid")).toBe("true");
+    const ids = (photoUrl.getAttribute("aria-describedby") ?? "").split(/\s+/);
+    const texts = ids.map((id) => document.getElementById(id)?.textContent ?? "").join(" ");
+    expect(texts).toMatch(/full link starting with https/i);
+  });
+
+  it("marks a blank required display name as invalid", async () => {
+    mocks.profile.profile = baseProfile();
+    const user = userEvent.setup();
+    renderPage();
+
+    const displayName = (await screen.findByLabelText(/display name/i)) as HTMLInputElement;
+    expect(displayName.getAttribute("aria-invalid")).toBeNull();
+
+    await user.clear(displayName);
+
+    expect(displayName.getAttribute("aria-invalid")).toBe("true");
+    const describedBy = displayName.getAttribute("aria-describedby");
+    expect(document.getElementById(describedBy as string)?.textContent).toMatch(/required/i);
   });
 });

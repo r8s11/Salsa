@@ -310,3 +310,42 @@ Browser verification confirmed the mobile record has computed `opacity: 1` from 
 
 - Commit: `947546a`
 - Message: `fix(hero): preserve mobile vinyl opacity`
+## Final review fix
+
+### Changed file
+
+- `src/components/Hero/Hero.css`
+  - Removed the mobile `.hero-vinyl` `opacity: 0.72` declaration while retaining `filter: opacity(0.72)`. This prevents reduced-motion rendering from applying opacity twice and preserves the normal Motion-rendered 72% visual result.
+
+No approved record geometry, Motion behavior, screenshots, or unrelated files were changed.
+
+### Commands and output
+
+```bash
+npx vitest run src/components/Hero/Hero.test.tsx
+```
+
+```text
+Test Files  1 passed (1)
+Tests  4 passed (4)
+```
+
+```bash
+npm run lint -- --max-warnings 0
+```
+
+```text
+Exit status: 0; no warnings were reported.
+```
+
+```bash
+npm run build
+```
+
+```text
+✓ built in 8.93s
+(!) Some chunks are larger than 500 kB after minification.
+Largest final JS chunk: 752.28 kB (230.76 kB gzip).
+```
+
+All required verification commands passed. The build emitted only the existing chunk-size warning.

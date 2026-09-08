@@ -55,6 +55,7 @@ function Hero() {
     const hero = heroRef.current;
     if (!hero) return;
 
+    if (typeof window.matchMedia !== "function") return;
     const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
     if (!mq.matches) return;
 

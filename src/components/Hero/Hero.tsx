@@ -31,6 +31,19 @@ function Hero() {
           transition: { duration: 0.42, delay, ease: [0.22, 1, 0.36, 1] as const },
         };
 
+  const vinylMotion = shouldReduceMotion
+    ? { initial: false as const }
+    : {
+        initial: { opacity: 0, scale: 0.96, rotate: 0 },
+        animate: { opacity: 1, scale: 1, rotate: 360 },
+        transition: {
+          opacity: { duration: 0.42, delay: 0.08, ease: [0.22, 1, 0.36, 1] as const },
+          scale: { duration: 0.42, delay: 0.08, ease: [0.22, 1, 0.36, 1] as const },
+          rotate: { duration: 28, ease: "linear", repeat: Infinity },
+        },
+      };
+
+
   const { eventsThisWeek, venueCount, tickerItems } = useMemo(() => {
     const now = new Date();
     const weekFromNow = new Date(now);
@@ -95,6 +108,7 @@ function Hero() {
     <section id="home" className="hero" ref={heroRef}>
       {/* Atmospheric background */}
       <motion.div className="hero-bg" aria-hidden="true" {...enter(0, 0)}>
+        <motion.div className="hero-vinyl" aria-hidden="true" {...vinylMotion} />
         <div className="hero-glow" />
         <div className="hero-grid" />
       </motion.div>

@@ -4,6 +4,8 @@ import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import Hero from "./Hero";
 
+const motionState = vi.hoisted(() => ({ reduced: false }));
+
 vi.mock("../../contexts/useCity", () => ({
   useCity: () => ({ city: "boston" }),
 }));
@@ -26,18 +28,34 @@ vi.mock("motion/react", () => ({
     div: ({
       children,
       initial: _initial,
-      animate: _animate,
-      transition: _transition,
+      animate,
+      transition,
       ...props
     }: ComponentProps<"div"> & {
       initial?: unknown;
       animate?: unknown;
       transition?: unknown;
-    }) => (
-      <div {...props} data-motion="div">
-        {children}
-      </div>
-    ),
+    }) => {
+      const rotate =
+        typeof animate === "object" && animate !== null && "rotate" in animate
+          ? String(animate.rotate)
+          : undefined;
+      const repeat =
+        typeof transition === "object" && transition !== null && "rotate" in transition
+          ? String((transition.rotate as { repeat?: number }).repeat)
+          : undefined;
+
+      return (
+        <div
+          {...props}
+          data-motion="div"
+          data-motion-rotate={rotate}
+          data-motion-rotate-repeat={repeat}
+        >
+          {children}
+        </div>
+      );
+    },
     h1: ({
       children,
       initial: _initial,
@@ -69,7 +87,7 @@ vi.mock("motion/react", () => ({
       </p>
     ),
   },
-  useReducedMotion: () => false,
+  useReducedMotion: () => motionState.reduced,
 }));
 
 describe("Hero", () => {
@@ -102,5 +120,34 @@ describe("Hero", () => {
     expect(container.querySelector(".hero-heading")).toHaveAttribute("data-motion", "h1");
     expect(container.querySelector(".hero-cta")).toHaveAttribute("data-motion", "div");
     expect(container.querySelector(".hero-stats")).toHaveAttribute("data-motion", "div");
+  });
+
+  it("renders the decorative vinyl as a repeating Motion background layer", () => {
+    const { container } = render(
+      <MemoryRouter>
+        <Hero />
+      </MemoryRouter>,
+    );
+
+    const vinyl = container.querySelector(".hero-vinyl");
+    expect(vinyl).toHaveAttribute("aria-hidden", "true");
+    expect(vinyl).toHaveAttribute("data-motion", "div");
+    expect(vinyl).toHaveAttribute("data-motion-rotate", "360");
+    expect(vinyl).toHaveAttribute("data-motion-rotate-repeat", "Infinity");
+  });
+
+  it("keeps the vinyl static when reduced motion is requested", () => {
+    motionState.reduced = true;
+    const { container, unmount } = render(
+      <MemoryRouter>
+        <Hero />
+      </MemoryRouter>,
+    );
+
+    const vinyl = container.querySelector(".hero-vinyl");
+    expect(vinyl).toHaveAttribute("data-motion", "div");
+    expect(vinyl).not.toHaveAttribute("data-motion-rotate");
+    unmount();
+    motionState.reduced = false;
   });
 });

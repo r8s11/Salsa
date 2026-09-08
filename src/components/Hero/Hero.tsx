@@ -109,16 +109,16 @@ function Hero() {
           </p>
 
           <div className="hero-cta">
-            <a href="#events" className="ui-button ui-button--primary hero-btn">
+            <a href="#events" className="ui-button ui-button--primary hero-btn hero-btn--primary">
               Tonight on the floor
             </a>
-            <ButtonLink to="/calendar" variant="secondary" className="hero-btn">
+            <ButtonLink to="/calendar" variant="secondary" className="hero-btn hero-btn--secondary">
               Full calendar
             </ButtonLink>
           </div>
 
           {!loading && (
-            <div className="hero-stats">
+            <div className="hero-stats hero-stats--compact">
               {heroStats.map((stat) => (
                 <div className="hero-stat" key={stat.label}>
                   <div className="hero-stat-num">{stat.num}</div>

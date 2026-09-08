@@ -16,8 +16,6 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: 0;
-  animation: heroFadeUp 0.6s ease-out 0ms both;
 }
 
 /* Crimson spotlight, upper-right */
@@ -56,14 +54,12 @@
   max-width: 860px;
 }
 
-/* Eyebrow — enters after atmosphere settles */
+/* Eyebrow */
 .hero-eyebrow {
   display: flex;
   align-items: center;
   gap: 12px;
   margin-bottom: 1.6rem;
-  opacity: 0;
-  animation: heroFadeUp 0.38s ease-out 120ms both;
 }
 
 .hero-eyebrow-line {
@@ -82,7 +78,7 @@
   color: var(--tertiary);
 }
 
-/* Main heading — staggered line-by-line reveal */
+/* Main heading */
 .hero-heading {
   font-family: var(--font-display);
   font-weight: 900;
@@ -95,15 +91,6 @@
 .hero-heading-line {
   display: block;
   color: var(--text);
-  opacity: 0;
-}
-
-.hero-heading-line[data-line="1"] {
-  animation: heroFadeUp 0.42s ease-out 220ms both;
-}
-
-.hero-heading-line[data-line="2"] {
-  animation: heroFadeUp 0.42s ease-out 310ms both;
 }
 
 .hero-heading-accent {
@@ -114,7 +101,7 @@
   color: var(--gold);
 }
 
-/* Subtitle — enters after headline settles */
+/* Subtitle */
 .hero-subtitle {
   font-family: var(--font-body);
   font-size: clamp(0.95rem, 1.5vw, 1.2rem);
@@ -122,15 +109,13 @@
   max-width: 540px;
   line-height: 1.5;
   margin-top: 1.4rem;
-  opacity: 0;
-  animation: heroFadeUp 0.4s ease-out 400ms both;
 }
 
 .hero-subtitle-city {
   color: var(--gold-light);
 }
 
-/* CTA buttons — enters last, primary then secondary */
+/* CTA buttons */
 .hero-cta {
   display: flex;
   flex-wrap: wrap;
@@ -141,15 +126,6 @@
 .hero-btn {
   padding: 0.95rem 1.9rem;
   font-size: 0.85rem;
-  opacity: 0;
-}
-
-.hero-btn:first-child {
-  animation: heroFadeUp 0.38s ease-out 520ms both;
-}
-
-.hero-btn:last-child {
-  animation: heroFadeUp 0.38s ease-out 590ms both;
 }
 
 /* Stats */
@@ -157,8 +133,6 @@
   display: flex;
   gap: 2.25rem;
   margin-top: 2.75rem;
-  opacity: 0;
-  animation: heroFadeUp 0.4s ease-out 650ms both;
 }
 
 .hero-stat-num {
@@ -212,17 +186,6 @@
   color: var(--red);
 }
 
-/* ── Keyframes ── */
-@keyframes heroFadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(18px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
 /* Subtle ambient glow pulse */
 @keyframes heroGlowPulse {
@@ -272,21 +235,12 @@
 
 /* ── Reduced Motion ── */
 @media (prefers-reduced-motion: reduce) {
-  .hero-bg,
-  .hero-eyebrow,
-  .hero-heading-line,
-  .hero-subtitle,
-  .hero-btn,
-  .hero-stats,
   .hero-glow,
-  .hero-grid {
-    animation: none !important;
-    opacity: 1 !important;
-    transform: none !important;
-  }
+  .hero-grid,
   .hero-ticker-track {
     animation: none;
   }
+
   .hero-btn:hover {
     transform: none;
   }

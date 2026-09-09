@@ -298,6 +298,88 @@
   align-items: center;
 }
 
+<<<<<<< HEAD
+=======
+.submit-flyer__divider {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: var(--text-dim);
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.submit-flyer__divider::before,
+.submit-flyer__divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.submit-flyer__manual {
+  justify-self: center;
+}
+
+/* ── Applied-extraction confirmation (Phase 3) ── */
+.submit-flyer__applied {
+  max-width: 680px;
+  margin: 0 auto 1.5rem;
+  padding: 0.85rem 1.1rem;
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-md);
+  background: var(--gold-dim);
+  color: var(--gold-light);
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  text-align: center;
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* ── Two-column flyer + extracted details (Phase 2) ── */
+.submit-flyer__extract-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-md);
+  align-items: start;
+  margin-top: var(--space-xs);
+}
+
+.submit-flyer__extract-flyer {
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.submit-flyer__extract-preview {
+  margin: 0;
+  padding: var(--space-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.submit-flyer__extract-preview img {
+  width: 100%;
+  max-height: 460px;
+  object-fit: contain;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+
+.submit-flyer__extract-details {
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .submit-flyer__extract-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+>>>>>>> b6fcc6d (flyer)
 /* ── Coming Soon modal (honest, no silent no-op) ── */
 .submit-comingsoon-overlay {
   position: fixed;

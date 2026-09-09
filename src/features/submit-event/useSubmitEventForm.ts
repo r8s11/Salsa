@@ -10,6 +10,17 @@ import { notifySubmissionReceived } from "./submissionNotification";
 import type { EventFormDraft } from "../events/components/EventForm";
 import { draftToSubmission } from "../events/components/EventForm";
 import type { EventFlyerStatus } from "../events/components/EventFlyerField";
+import { extractEventFromFlyer, type ExtractFlyerResult } from "../flyer-extraction/client";
+import type { ExtractedEvent } from "../flyer-extraction/types";
+import { applyAcceptedToForm } from "../flyer-extraction/review";
+import {
+  reconcileFlyerExtraction,
+  type ReconciledExtraction,
+} from "../flyer-extraction/reconcileClient";
+import {
+  buildFlyerReviewState,
+  type ReviewState,
+} from "../flyer-extraction/review";
 
 function buildSubmitDraft(city: EventFormDraft["city"]): EventFormDraft {
   return {
@@ -41,10 +52,7 @@ export function useSubmitEventForm() {
   // ── Flyer (Phase 1): persist-before-ready ──
   // The flyer is uploaded to Supabase Storage as soon as it is chosen — the
   // "ready" state therefore always means the object exists in persistent
-  // storage, and submitting reuses that URL without a second upload. The
-  // canonical `events.image_url` is populated later by the approval RPC once
-  // the carry-through SQL (sql/flyer-automation/phase-1/002_update_submission_approval_image.sql)
-  // is applied in production.
+  // storage, and submitting reuses that URL without a second upload.
   const [flyerFile, setFlyerFile] = useState<File | null>(null);
   const [flyerStatus, setFlyerStatus] = useState<EventFlyerStatus>("empty");
   const [flyerError, setFlyerError] = useState<string | null>(null);
@@ -53,6 +61,30 @@ export function useSubmitEventForm() {
   // Tracks the in-flight upload so submit never starts a second one while one
   // is already running. Resolves to the persisted URL or null on failure.
   const flyerUploadPromise = useRef<Promise<string | null> | null>(null);
+
+  // ── Flyer extraction (Phase 2) ──
+  // The extracted result lives only in client state after the AI response.
+  // It is keyed to the *current* flyer: replacing or removing the flyer clears it
+  // so stale details from Flyer A can never sit under Flyer B.
+  const [extractedEvent, setExtractedEvent] = useState<ExtractedEvent | null>(null);
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [extractionError, setExtractionError] = useState<string | null>(null);
+
+  // ── Phase 4 reconciliation (entity/taxonomy matching) ──
+  // Produced by the server-side `reconcile-flyer` function once extraction is
+  // done. It never mutates the form on its own; applyFlyerExtraction consumes
+  // it. Cleared together with the extraction so a new flyer starts fresh.
+  const [reconciliation, setReconciliation] = useState<ReconciledExtraction | null>(null);
+  // Phase 5 review state: which extracted fields the user has accepted.
+  const [review, setReview] = useState<ReviewState | null>(null);
+
+  const clearExtraction = () => {
+    setIsExtracting(false);
+    setExtractedEvent(null);
+    setExtractionError(null);
+    setReconciliation(null);
+    setReview(null);
+  };
 
   // Drops a field's error the moment its value changes — stale "Choose an
   // event type" text must not survive the user fixing it.
@@ -69,6 +101,7 @@ export function useSubmitEventForm() {
     setForm((previous) => ({ ...previous, [field]: value }));
     clearFieldError(field);
   };
+
   const onChange = (draft: EventFormDraft) => {
     setForm((previous) => {
       setFieldErrors((previousErrors) => {
@@ -107,7 +140,9 @@ export function useSubmitEventForm() {
       .catch((uploadErr) => {
         setFlyerStatus("upload-error");
         setFlyerError(
-          uploadErr instanceof Error ? uploadErr.message : "We couldn't upload this flyer."
+          uploadErr instanceof Error
+            ? uploadErr.message
+            : "We couldn't upload this flyer."
         );
         // The applicant can retry or continue manually — the submission is not
         // blocked by a failed upload.
@@ -126,6 +161,7 @@ export function useSubmitEventForm() {
       setFlyerStatus("empty");
       setUploadedFlyerUrl(null);
       setFlyerPath(null);
+      clearExtraction();
       if (previousUrl) {
         void removeEventFlyer(previousUrl).catch(() => {
           /* best-effort cleanup */
@@ -139,6 +175,8 @@ export function useSubmitEventForm() {
     const previousUrl = uploadedFlyerUrl;
     setUploadedFlyerUrl(null);
     setFlyerPath(null);
+    // The old extraction belongs to the old flyer — drop it so it cannot linger.
+    clearExtraction();
     if (previousUrl) {
       void removeEventFlyer(previousUrl).catch(() => {
         /* best-effort cleanup */
@@ -158,6 +196,7 @@ export function useSubmitEventForm() {
 
   const handleFlyerRemove = async () => {
     setFlyerStatus("removing");
+    clearExtraction();
     try {
       if (uploadedFlyerUrl) {
         await removeEventFlyer(uploadedFlyerUrl);
@@ -171,6 +210,53 @@ export function useSubmitEventForm() {
       setFlyerError("We couldn't remove this flyer. Please try again.");
       setFlyerStatus(uploadedFlyerUrl ? "uploaded" : "empty");
     }
+  };
+
+  // ── Phase 2 extraction entry point: the React UI calls this (via the
+  //    `extractEventFromFlyer` client) once a flyer is ready. Disabled-guard
+  //    lives in the UI so the button can't be clicked repeatedly; this just
+  //    ensures a flyer exists and runs the server-side analysis.
+  const extractFlyer = async (): Promise<void> => {
+    if (!uploadedFlyerUrl || isExtracting) return;
+    setIsExtracting(true);
+    setExtractionError(null);
+    setExtractedEvent(null);
+    setReconciliation(null);
+    setReview(null);
+    try {
+      const result: ExtractFlyerResult = await extractEventFromFlyer(uploadedFlyerUrl);
+      setExtractedEvent(result);
+      // Phase 4: reconcile the extraction against canonical data. Failures here
+      // degrade to a benign "no match" result and never block the workflow.
+      try {
+        setReconciliation(await reconcileFlyerExtraction(result));
+      } catch {
+        setReconciliation(null);
+      }
+      // Phase 5: build the review state from the extraction + reconciliation.
+      try {
+        setReview(buildFlyerReviewState(result, reconciliation));
+      } catch {
+        setReview(null);
+      }
+    } catch (err) {
+      setExtractionError(
+        err instanceof Error ? err.message : "We couldn't read this flyer."
+      );
+    } finally {
+      setIsExtracting(false);
+    }
+  };
+
+  // Phase 3 + 4 + 5: apply the currently accepted extraction subset to the
+  // canonical form draft. The review layer owns which suggestions are eligible;
+  // this pass only applies those the user has marked accepted. The merge utility
+  // still protects user-entered values and never overwrites the form.
+  const applyFlyerExtraction = (): void => {
+    if (!extractedEvent || !review) return;
+    setForm((previous) =>
+      applyAcceptedToForm(previous, extractedEvent, review, reconciliation ?? undefined)
+    );
   };
 
   const handleSubmit = async (event: FormEvent) => {
@@ -231,8 +317,7 @@ export function useSubmitEventForm() {
       // The submission is committed. Both emails (submitter confirmation +
       // moderator notification) are deliberately un-awaited: the row is the
       // source of truth, so a mail failure must never turn a successful
-      // submission into a visible error. The Edge Function records failures
-      // in event_submission_email_attempts for diagnosis.
+      // submission into a visible error.
       void notifySubmissionReceived(submissionId);
       setIsSubmitted(true);
       setForm(buildSubmitDraft(defaultCity));
@@ -240,6 +325,7 @@ export function useSubmitEventForm() {
       setUploadedFlyerUrl(null);
       setFlyerPath(null);
       flyerUploadPromise.current = null;
+      clearExtraction();
       setFlyerStatus("empty");
     } catch (err) {
       setServerError(
@@ -259,6 +345,7 @@ export function useSubmitEventForm() {
         setUploadedFlyerUrl(null);
         setFlyerPath(null);
         flyerUploadPromise.current = null;
+        clearExtraction();
         setFlyerStatus("empty");
       }
     } finally {
@@ -267,7 +354,6 @@ export function useSubmitEventForm() {
   };
 
   const resetSubmitted = () => setIsSubmitted(false);
-
   const flyerReady = Boolean(uploadedFlyerUrl);
 
   return {
@@ -290,5 +376,11 @@ export function useSubmitEventForm() {
     handleFlyerChange,
     handleFlyerRetry,
     handleFlyerRemove,
+    extractFlyer,
+    extractedEvent,
+    reconciliation,
+    isExtracting,
+    extractionError,
+    applyFlyerExtraction,
   };
 }

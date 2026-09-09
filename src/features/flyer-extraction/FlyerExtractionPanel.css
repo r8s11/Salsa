@@ -1,0 +1,224 @@
+/* ========================================
+   Flyer Extraction Panel — Ritmo Vivo
+   Reuses global tokens: slate surfaces, rose primary, gold accents,
+   style-chip for dance styles, focus rings. No "AI" visual language.
+   ======================================== */
+
+.flyer-extraction {
+  display: grid;
+  gap: var(--space-md);
+  padding: 1.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.flyer-extraction__title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.flyer-extraction__sub {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.flyer-extraction__note {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+/* ── Processing ── */
+.flyer-extraction--analyzing {
+  place-items: center;
+  text-align: center;
+}
+
+.flyer-extraction__spinner {
+  color: var(--gold);
+  animation: event-flyer-spin 0.9s linear infinite;
+}
+
+.flyer-extraction__looking {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.flyer-extraction__looking li {
+  padding: 0.35rem 0.85rem;
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius-full);
+  background: var(--card);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ── Failure ── */
+.flyer-extraction__error-icon {
+  color: var(--red-bright);
+  justify-self: start;
+}
+
+.flyer-extraction--error .flyer-extraction__title {
+  color: var(--red-bright);
+}
+
+/* ── Success header ── */
+.flyer-extraction__header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.flyer-extraction__ok-icon {
+  color: var(--gold);
+  flex-shrink: 0;
+}
+
+.flyer-extraction__count {
+  margin-left: auto;
+  padding: 0.25rem 0.8rem;
+  border-radius: var(--radius-full);
+  background: var(--gold-dim);
+  color: var(--gold-light);
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.flyer-extraction__partial {
+  margin: 0;
+  padding: 0.5rem 0.85rem;
+  border-radius: var(--radius-sm);
+  background: var(--tertiary-dim);
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+/* ── Results grid ── */
+.flyer-extraction__results {
+  display: grid;
+  gap: 1rem;
+  padding-top: 0.25rem;
+  border-top: 1px solid var(--border);
+}
+
+.flyer-extraction__row {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.flyer-extraction__label {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.flyer-extraction__value {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.98rem;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.flyer-extraction__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.flyer-extraction__list {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--text);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.flyer-extraction__list li::marker {
+  color: var(--gold);
+}
+
+/* ── Actions ── */
+.flyer-extraction__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: center;
+  padding-top: 0.5rem;
+}
+
+.flyer-extraction__actions .btn-primary,
+.flyer-extraction__actions .btn-ghost {
+  justify-content: center;
+}
+
+.flyer-extraction__match-note {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0.6rem 0.85rem;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2, var(--card, #f7f3ee));
+  border: 1px solid var(--border);
+}
+
+.flyer-extraction__match {
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--text);
+}
+
+.flyer-extraction__match--venue::before,
+.flyer-extraction__match--organizer::before,
+.flyer-extraction__match--taxonomy::before {
+  content: "✓ ";
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.flyer-extraction__match--none {
+  color: var(--text-muted);
+  font-weight: 500;
+  font-style: italic;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .flyer-extraction {
+    padding: 1.25rem;
+  }
+
+  .flyer-extraction__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

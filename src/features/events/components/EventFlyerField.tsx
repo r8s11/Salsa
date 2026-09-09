@@ -10,7 +10,9 @@ export type EventFlyerStatus =
   | "uploaded"
   | "upload-error"
   | "replacing"
-  | "removing";
+  | "removing"
+  | "extracting"
+  | "extraction-error";
 
 type EventFlyerFieldProps = {
   /** Public URL of an already-persisted flyer (if any). */
@@ -21,7 +23,7 @@ type EventFlyerFieldProps = {
    * responsible for the actual storage upload and for reporting status back via
    * `status` / `errorMessage`.
    */
-  onFileChange: (file: File | null) => void;
+  onFileChange: ((file: File | null) => void) | null;
   /** Current lifecycle status, owned by the parent. */
   status?: EventFlyerStatus;
   /** Human-readable error shown when status is `upload-error`. */
@@ -74,7 +76,7 @@ export default function EventFlyerField({
         URL.revokeObjectURL(previewUrl);
         setPreviewUrl(null);
       }
-      onFileChange(null);
+      onFileChange?.(null);
       return;
     }
 
@@ -88,7 +90,7 @@ export default function EventFlyerField({
     setPreviewError(false);
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setPreviewUrl(URL.createObjectURL(nextFile));
-    onFileChange(nextFile);
+    onFileChange?.(nextFile);
   };
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -124,7 +126,7 @@ export default function EventFlyerField({
     // only after a save mutation succeeds, so an accidental Remove click is
     // fully recoverable by not saving (or by re-selecting/undoing before
     // Save).
-    onFileChange(null);
+    onFileChange?.(null);
     onRemove?.();
   };
 
@@ -133,9 +135,8 @@ export default function EventFlyerField({
   const showDropzone = !showPreview || status === "empty";
   const captionText = sizeCaption ?? null;
 
-  // Persist-before-ready: only a persisted flyer (currentUrl) or a confirmed
-  // successful upload reads as "ready". A still-local selection reads as
-  // "Selected", and a failed upload reads as "Upload failed".
+  // Persist-before-ready: only a persisted flyer (currentUrl) with a healthy
+  // upload status, or a fresh local selection, reads as "ready"/"Selected".
   const stateLabel =
     status === "uploading" || status === "replacing"
       ? "Uploading…"
@@ -143,11 +144,13 @@ export default function EventFlyerField({
         ? "Removing…"
         : status === "upload-error"
           ? "Upload failed"
-          : status === "uploaded"
+          : status === "uploaded" || (currentUrl && status === "ready")
             ? "Flyer ready"
             : currentUrl
               ? "Flyer ready"
-              : "Selected";
+              : previewUrl
+                ? "Selected"
+                : "Choose a flyer";
 
   const alertId = `${inputId}-error`;
   const hasAlert = Boolean(validationError || (status === "upload-error" && errorMessage));
@@ -158,28 +161,6 @@ export default function EventFlyerField({
         {label}
       </label>
       <p className="event-flyer-field__helper">JPG, PNG, or WebP · up to 5 MB</p>
-
-      {showPreview && (
-        <figure className="event-flyer-field__preview" aria-live="polite">
-          <img
-            src={displayUrl as string}
-            alt={previewUrl ? "Selected flyer preview" : "Current event flyer"}
-            onError={() => {
-              setPreviewError(true);
-              if (previewUrl) {
-                URL.revokeObjectURL(previewUrl);
-                setPreviewUrl(null);
-                onFileChange(null);
-              }
-            }}
-          />
-          <figcaption className="event-flyer-field__preview-meta">
-            <CheckCircle2 size={16} aria-hidden className="event-flyer-field__ok-icon" />
-            <span>{stateLabel}</span>
-            {captionText && <span className="event-flyer-field__size">· {captionText}</span>}
-          </figcaption>
-        </figure>
-      )}
 
       {showDropzone && (
         <div
@@ -247,6 +228,42 @@ export default function EventFlyerField({
           />
         </div>
       )}
+
+      {showPreview && (
+        <figure className="event-flyer-field__preview" aria-live="polite">
+          <img
+            src={displayUrl as string}
+            alt={previewUrl ? "Selected flyer preview" : "Current event flyer"}
+            onError={() => {
+              setPreviewError(true);
+              if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+                setPreviewUrl(null);
+                onFileChange?.(null);
+              }
+            }}
+          />
+          <figcaption className="event-flyer-field__preview-meta">
+            <CheckCircle2 size={16} aria-hidden className="event-flyer-field__ok-icon" />
+            <span>{stateLabel}</span>
+            {captionText && <span className="event-flyer-field__size">· {captionText}</span>}
+          </figcaption>
+        </figure>
+      )}
+
+      {/* Hidden file input lives outside the dropzone so the "Replace" affordance
+          (shown after upload) can always open the picker. */}
+      <input
+        ref={inputRef}
+        id={inputId}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        onChange={handleChange}
+        disabled={disabled || isBusy}
+        className="event-flyer-field__input"
+        tabIndex={-1}
+        aria-hidden
+      />
 
       {showPreview && (currentUrl || previewUrl) && (
         <div className="event-flyer-field__actions">

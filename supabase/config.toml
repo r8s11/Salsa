@@ -401,6 +401,7 @@ verify_jwt = false
 # not remove the internal check without replacing it with equivalent protection.
 verify_jwt = false
 
+<<<<<<< HEAD
 [functions.send-founder-invitation]
 # Gateway JWT verification is intentionally disabled here: this function performs its own
 # internal caller-JWT validation against the trusted `app_metadata.role` claim (see
@@ -420,6 +421,13 @@ verify_jwt = false
 # The function validates the bearer token with auth.getUser() itself so it can
 # return its stable public eligibility response. Gateway verification alone is
 # never the deletion authorization boundary.
+=======
+[functions.extract-flyer]
+# The function performs its own caller-JWT verification (see
+# supabase/functions/extract-flyer/index.ts) before spending AI budget, so the
+# gateway JWT check is intentionally disabled — the function is the sole
+# enforcement point for its auth + image-URL guard.
+>>>>>>> b6fcc6d (flyer)
 verify_jwt = false
 
 [functions.send-auth-email]

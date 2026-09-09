@@ -3,6 +3,7 @@ import { Sparkles } from "lucide-react";
 import { useAuth } from "../contexts/useAuth";
 import EventForm, { CAPABILITIES } from "../features/events/components/EventForm";
 import EventFlyerField from "../features/events/components/EventFlyerField";
+import FlyerExtractionPanel from "../features/flyer-extraction/FlyerExtractionPanel";
 import SuccessCard from "../features/submit-event/components/SuccessCard";
 import { useSubmissionAccess } from "../features/submit-event/useSubmissionAccess";
 import { useSubmitEventForm } from "../features/submit-event/useSubmitEventForm";
@@ -13,18 +14,17 @@ import "./SubmitEventPage.css";
 
 type EntryMode = "choice" | "flyer" | "manual";
 
-/**
- * Maps each `SubmitFieldName` to the DOM id `EventForm` renders it with, in
+/** Maps each `SubmitFieldName` to the DOM id `EventForm` renders it with, in
  * form order — drives both the error summary's link targets and the order
- * its list is built in.
- */
+ * its list is built in. */
 const FIELD_ORDER: { field: SubmitFieldName; id: string }[] = [
   { field: "title", id: "event-title" },
   { field: "event_type", id: "event-type" },
+  { field: "dance_styles", id: "dance-styles" },
   { field: "city", id: "event-city" },
   { field: "description", id: "event-description" },
-  { field: "dance_styles", id: "event-dance-styles" },
   { field: "event_date", id: "event-date" },
+  { field: "event_time", id: "event-time" },
   { field: "location", id: "event-location" },
   { field: "address", id: "event-address" },
   { field: "price_amount", id: "event-price-amount" },
@@ -34,7 +34,7 @@ const FIELD_ORDER: { field: SubmitFieldName; id: string }[] = [
 ];
 
 export default function SubmitEventPage() {
-  const { user, isOrganizer } = useAuth();
+  const { user } = useAuth();
   const {
     form,
     onChange,
@@ -53,6 +53,12 @@ export default function SubmitEventPage() {
     handleFlyerChange,
     handleFlyerRetry,
     handleFlyerRemove,
+    extractFlyer,
+    extractedEvent,
+    reconciliation,
+    isExtracting,
+    extractionError,
+    applyFlyerExtraction,
   } = useSubmitEventForm();
   const submissionAccess = useSubmissionAccess(Boolean(user));
   const [pristineForm] = useState(form);
@@ -60,43 +66,34 @@ export default function SubmitEventPage() {
   const [entryMode, setEntryMode] = useState<EntryMode>("choice");
 
   const formRef = useRef<HTMLFormElement>(null);
-  const [showComingSoon, setShowComingSoon] = useState(false);
-  const comingSoonRef = useRef<HTMLDivElement>(null);
+  const [showAppliedBanner, setShowAppliedBanner] = useState(false);
+  const appliedBannerRef = useRef<HTMLDivElement>(null);
 
-  // Only the Host-facing entry point warns before losing typed work — the
-  // public submitter flow is intentionally left unchanged in Phase 2.
+  const handleApplyExtraction = () => {
+    applyFlyerExtraction();
+    setShowAppliedBanner(true);
+  };
+
+  // Only the Host-facing entry point warns before losing typed work.
   useEffect(() => {
-    if (!isOrganizer || !isDirty) return;
+    if (!user || !isDirty) return;
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       event.preventDefault();
     };
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [isOrganizer, isDirty]);
-
-  const focusForm = () => {
-    const formEl = formRef.current;
-    if (formEl) {
-      formEl.scrollIntoView({ behavior: "smooth", block: "start" });
-      const firstField = formEl.querySelector<HTMLElement>("input, textarea, button, [tabindex]");
-      firstField?.focus();
-    }
-  };
-
-  const closeComingSoon = () => {
-    setShowComingSoon(false);
-    focusForm();
-  };
+  }, [user, isDirty]);
 
   if (isSubmitted) return <SuccessCard onReset={resetSubmitted} />;
 
   return (
     <section className="submit-event">
       <div className="container">
-        {isOrganizer && <p className="submit-event__eyebrow">Host · Create Event</p>}
-        <h1 className="section-title">{isOrganizer ? "Create a new event" : "Submit an Event"}</h1>
+        <h1 className="section-title">
+          {user ? "Create a new event" : "Submit an Event"}
+        </h1>
         <p className="submit-intro">
-          {isOrganizer
+          {user
             ? "Add the details dancers need to discover and attend your event. It goes through moderation review before it appears on the calendar."
             : "Know about a salsa, bachata, or dance event in Greater Boston or NYC? Share it with the community! All submissions are reviewed before appearing on the calendar."}
         </p>
@@ -109,10 +106,21 @@ export default function SubmitEventPage() {
         ) : !submissionAccess.canSubmit ? (
           <p className="submit-intro">Event submissions are currently closed.</p>
         ) : entryMode === "choice" ? (
-          <div className="flyer-choice-grid" role="group" aria-label="How would you like to start?">
-            <div className="flyer-choice-card" role="group" aria-label="Upload a flyer">
+          <div
+            className="flyer-choice-grid"
+            role="group"
+            aria-label="How would you like to start?"
+          >
+            <div
+              className="flyer-choice-card"
+              role="group"
+              aria-label="Upload a flyer"
+            >
               <h2>Upload a Flyer</h2>
-              <p>Let SalsaSegura help prepare your event using your flyer as the event image.</p>
+              <p>
+                Let SalsaSegura help prepare your event using your flyer as the
+                event image.
+              </p>
               <button
                 type="button"
                 className="btn-primary"
@@ -122,7 +130,11 @@ export default function SubmitEventPage() {
                 Upload Flyer
               </button>
             </div>
-            <div className="flyer-choice-card" role="group" aria-label="Enter manually">
+            <div
+              className="flyer-choice-card"
+              role="group"
+              aria-label="Enter manually"
+            >
               <h2>Enter Manually</h2>
               <p>Fill in the event details yourself from the start.</p>
               <button
@@ -138,13 +150,19 @@ export default function SubmitEventPage() {
         ) : (
           <>
             {entryMode === "flyer" && (
-              <section className="submit-flyer" aria-labelledby="submit-flyer-heading">
-                <h2 id="submit-flyer-heading" className="submit-flyer__heading">
+              <section
+                className="submit-flyer"
+                aria-labelledby="submit-flyer-heading"
+              >
+                <h2
+                  id="submit-flyer-heading"
+                  className="submit-flyer__heading"
+                >
                   Start with a flyer
                 </h2>
                 <p className="submit-flyer__subhead">
-                  Upload an event flyer and SalsaSegura will eventually help fill in the event
-                  details for you.
+                  Upload an event flyer and SalsaSegura will help fill in the
+                  event details for you.
                 </p>
 
                 {user ? (
@@ -158,38 +176,145 @@ export default function SubmitEventPage() {
                     disabled={isSubmitting}
                     label="Event flyer"
                     sizeCaption={
-                      flyerFile ? `${(flyerFile.size / (1024 * 1024)).toFixed(1)} MB` : null
+                      flyerFile
+                        ? `${(flyerFile.size / (1024 * 1024)).toFixed(1)} MB`
+                        : null
                     }
                   />
                 ) : (
                   <p className="submit-flyer__guest-note" role="note">
-                    You must be signed in to upload a flyer. You can still submit event details
-                    manually below.
+                    You must be signed in to upload a flyer. You can still
+                    submit event details manually below.
                   </p>
                 )}
 
-                {flyerReady && (
+                {flyerReady && flyerStatus !== "extracting" && !extractedEvent && (
                   <div className="submit-flyer__actions">
                     <button
                       type="button"
                       className="btn-secondary"
-                      onClick={() => setShowComingSoon(true)}
+                      onClick={extractFlyer}
+                      disabled={isExtracting}
                     >
-                      <Sparkles size={16} aria-hidden /> Extract Event Details
+                      {isExtracting ? (
+                        <>
+                          <span
+                            className="flyer-extraction-panel_status_spinner"
+                            aria-hidden
+                          />
+                          Analyzing…
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles size={16} aria-hidden />
+                          Extract Event Details
+                        </>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-ghost"
+                      onClick={() => setEntryMode("manual")}
+                    >
+                      Continue manually
                     </button>
                   </div>
                 )}
+
+                {flyerStatus === "extracting" && (
+                  <div className="flyer-extraction-panel">
+                    <div className="flyer-extraction-panel__status">
+                      <span
+                        className="flyer-extraction-panel_status_spinner"
+                        aria-hidden
+                      />
+                      <span className="flyer-extraction-panel_status_text">
+                        Analyzing your flyer
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {extractedEvent && (
+                  <div className="flyer-extraction-panel">
+                    <FlyerExtractionPanel
+                      event={extractedEvent}
+                      isAnalyzing={isExtracting}
+                      error={extractionError}
+                      onAnalyze={extractFlyer}
+                      onUseTheseDetails={handleApplyExtraction}
+                      reconciliation={reconciliation}
+                    />
+
+                    {showAppliedBanner && (
+                      <div
+                        className="form-status form-status_success"
+                        role="status"
+                        aria-label="Details added to your event form"
+                        ref={appliedBannerRef}
+                      >
+                        Details added to your event form. Review everything
+                        before submitting.
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {flyerStatus === "extraction-error" && (
+                  <div className="flyer-extraction-failure">
+                    <p className="flyer-extraction-failure_heading">
+                      We couldn&apos;t read this flyer
+                    </p>
+                    <p className="flyer-extraction-failure_text">
+                      {flyerError}
+                    </p>
+                    <div className="flyer-extraction-failure_actions">
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        onClick={handleFlyerRetry}
+                      >
+                        Try Again
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-ghost"
+                        onClick={() => setEntryMode("manual")}
+                      >
+                        Continue manually
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="submit-flyer__divider">
+                  <span>or</span>
+                </div>
+                <button
+                  type="button"
+                  className="btn-ghost submit-flyer__manual"
+                  onClick={() => setEntryMode("manual")}
+                >
+                  Continue manually
+                </button>
               </section>
             )}
 
             {/* ── Canonical event form ── */}
-            <form ref={formRef} onSubmit={handleSubmit} className="submit-form" noValidate>
+            <form
+              ref={formRef}
+              onSubmit={handleSubmit}
+              className="submit-form"
+              noValidate
+            >
               <FormErrorSummary
                 id="submit-error-summary"
-                items={FIELD_ORDER.filter(({ field }) => fieldErrors[field]).map(({ field, id }) => ({
-                  fieldId: id,
-                  message: fieldErrors[field] as string,
-                }))}
+                items={FIELD_ORDER
+                  .filter(({ field }) => fieldErrors[field])
+                  .map(({ field, id }) => ({
+                    fieldId: id,
+                    message: fieldErrors[field] as string,
+                  }))}
                 serverMessage={serverError}
                 focusKey={failedAttempt}
               />
@@ -201,10 +326,14 @@ export default function SubmitEventPage() {
                 requireSubmitterContact={!user}
                 errors={fieldErrors}
               />
-              <button type="submit" className="btn-primary btn-block" disabled={isSubmitting}>
+              <button
+                type="submit"
+                className="btn-primary btn-block"
+                disabled={isSubmitting}
+              >
                 {isSubmitting
                   ? "Submitting..."
-                  : isOrganizer
+                  : user
                     ? "Submit for review"
                     : "Submit Event"}
               </button>
@@ -212,33 +341,6 @@ export default function SubmitEventPage() {
           </>
         )}
       </div>
-
-      {/* ── Coming Soon (honest, not a silent no-op) ── */}
-      {showComingSoon && (
-        <div className="submit-comingsoon-overlay" onClick={closeComingSoon} role="presentation">
-          <div
-            className="submit-comingsoon"
-            onClick={(event) => event.stopPropagation()}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="coming-soon-title"
-            ref={comingSoonRef}
-          >
-            <h2 id="coming-soon-title">
-              <Sparkles size={18} aria-hidden /> Extract Event Details
-            </h2>
-            <p className="submit-comingsoon__badge">Coming soon</p>
-            <p>
-              AI flyer extraction is coming soon. Your flyer is already saved and will be used as
-              the event image.
-            </p>
-            <p>You can continue adding the event details in the form.</p>
-            <button type="button" className="btn-primary" onClick={closeComingSoon}>
-              Back to event form
-            </button>
-          </div>
-        </div>
-      )}
     </section>
   );
 }

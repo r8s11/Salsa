@@ -5,6 +5,7 @@ import {
   initialsFor,
   avatarInitials,
   resolveAvatarIdentity,
+  isDisplayablePhotoUrl,
   memberSinceLabel,
   statusMessageFor,
   ROLE_LABEL,
@@ -216,5 +217,54 @@ describe("capabilityCardsFor", () => {
       links: [{ label: "Open Admin Dashboard", to: "/admin", primary: true }],
     });
     expect(cards.flatMap((card) => card.links.map((link) => link.to))).not.toContain("/host");
+  });
+});
+
+// Phase 6 correction: the editor previewed any non-empty string, so a
+// malformed URL or one carrying embedded credentials reached an <img src>.
+// Preview and save must share one parsed rule.
+describe("isDisplayablePhotoUrl", () => {
+  it("accepts ordinary http(s) image URLs", () => {
+    expect(isDisplayablePhotoUrl("https://cdn.test/maria.png")).toBe(true);
+    expect(isDisplayablePhotoUrl("http://cdn.test/maria.png")).toBe(true);
+    expect(isDisplayablePhotoUrl("https://cdn.test:8443/a/b.png?v=2#x")).toBe(true);
+  });
+
+  it("rejects a blank or whitespace-only value", () => {
+    expect(isDisplayablePhotoUrl("")).toBe(false);
+    expect(isDisplayablePhotoUrl("   ")).toBe(false);
+  });
+
+  it("rejects values that are not parseable absolute URLs", () => {
+    expect(isDisplayablePhotoUrl("not-a-url")).toBe(false);
+    expect(isDisplayablePhotoUrl("cdn.test/maria.png")).toBe(false);
+    // Scheme-relative has no base here, so URL() throws.
+    expect(isDisplayablePhotoUrl("//cdn.test/maria.png")).toBe(false);
+  });
+
+  // Verified against the WHATWG parser: a single slash after the scheme
+  // normalizes to the same absolute URL the browser would fetch
+  // ("http:/cdn.test/x" -> "http://cdn.test/x"), so it is accepted rather
+  // than treated as malformed.
+  it("accepts the single-slash form the URL parser normalizes", () => {
+    expect(isDisplayablePhotoUrl("http:/cdn.test/maria.png")).toBe(true);
+    expect(new URL("http:/cdn.test/maria.png").href).toBe("http://cdn.test/maria.png");
+  });
+
+  it("rejects non-http(s) schemes that an <img src> would still act on", () => {
+    expect(isDisplayablePhotoUrl("javascript:alert(1)")).toBe(false);
+    expect(isDisplayablePhotoUrl("data:image/png;base64,iVBORw0KGgo=")).toBe(false);
+    expect(isDisplayablePhotoUrl("file:///etc/passwd")).toBe(false);
+    expect(isDisplayablePhotoUrl("blob:https://cdn.test/uuid")).toBe(false);
+  });
+
+  it("rejects embedded credentials, which must never reach a preview src", () => {
+    expect(isDisplayablePhotoUrl("https://user:pass@cdn.test/maria.png")).toBe(false);
+    expect(isDisplayablePhotoUrl("https://user@cdn.test/maria.png")).toBe(false);
+    expect(isDisplayablePhotoUrl("https://:pass@cdn.test/maria.png")).toBe(false);
+  });
+
+  it("tolerates surrounding whitespace on an otherwise valid URL", () => {
+    expect(isDisplayablePhotoUrl("  https://cdn.test/maria.png  ")).toBe(true);
   });
 });

@@ -77,7 +77,8 @@ const pendingEvent: DatabaseEvent = {
   id: "pending-1",
   title: "Summer Social",
   status: "pending",
-  event_date: futureDate,
+  event_date: "2026-12-31T20:00:00Z",
+  location: "Studio 4B",
 };
 
 const pastEvent: DatabaseEvent = {

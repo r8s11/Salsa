@@ -466,3 +466,8 @@ verify_jwt = false
 # Authorization is enforced inside the handler: it loads the event by ID and only
 # serves approved events, never fetching an arbitrary caller-supplied URL.
 verify_jwt = false
+
+[functions.extract-flyer]
+# Authenticated user endpoint; the handler also validates the caller JWT before
+# reading the owner-prefixed flyer and contacting OpenAI.
+verify_jwt = true

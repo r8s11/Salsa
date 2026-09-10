@@ -256,3 +256,36 @@ the silent missing-profile empty state.
 **Readiness:** local acceptance complete for the stated visible outcome. Hosted release
 remains gated on step 1–3 above, which require authorization this handoff explicitly
 withheld.
+
+## Repository state reconciliation — 2026-09-09 (late)
+
+### Phase 8 recovery
+
+The worktree holding Phase 8 was discarded while its work was still uncommitted. The tested
+content is now commit `2010b54dfada610d5226b67c8aeaade4338cdff9` on the unpushed branch
+`feat/account-profile-phase8` (base `2e659ff`), restored from the acceptance patch
+`cb0d05f988c26e7d9cb08f54fb1759a3764d4ca7c76e3eae84d390e48841f930`. Its reports, advisor
+output and browser screenshots are retained independently of that deleted worktree.
+
+Phase 8 stays **blocked on real Supabase/GoTrue parity** — GoTrue-issued sessions,
+`scripts/phase8-verify/verify-dance-identity.mjs` exiting 0 against a confirmed disposable
+Supabase stack, and `supabase db lint` itself. It is neither accepted nor released, and its
+branch is not merged.
+
+### Corrected commit
+
+`c5b32ff` was pushed as a ledger update but actually carried an accidental broad path
+migration: 326 exact-content renames across `src/`, `Docs/`, `sql/` and `supabase/` (largely
+case-only, e.g. `Docs/` to `docs/`) plus 11 deletions, including the tracked Host SQL
+contract test `sql/host-phase-2/001_create_organizer_event.test.ts`. It carried no ledger
+text at all. The relocated TypeScript kept its old relative imports, so a clean checkout of
+that revision failed to type-check. The changes came from the primary checkout's dirty index,
+which `git commit` staged despite a path-scoped `git add`. This commit reverts that migration
+in full and carries the intended ledger update instead.
+
+### Working-copy hygiene
+
+`/Users/roosevelt/work/Salsa` remains heavily dirty with unrelated in-flight work, and its
+index can hold staged changes that belong to no phase. Start every future Account or Profile
+phase in a clean worktree from current `origin/main`, and commit with explicit pathspecs
+(`git commit -- <paths>`) rather than trusting the shared index.

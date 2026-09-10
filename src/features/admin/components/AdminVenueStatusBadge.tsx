@@ -1,5 +1,5 @@
-import type { VenueStatus } from "../../features/admin/model/venuesQuery";
-import { VENUE_STATUS_LABEL, VENUE_STATUS_ICON } from "../../features/admin/model/venuesQuery";
+import type { VenueStatus } from "../model/venuesQuery";
+import { VENUE_STATUS_LABEL, VENUE_STATUS_ICON } from "../model/venuesQuery";
 
 interface AdminVenueStatusBadgeProps {
   status: VenueStatus;

@@ -1,5 +1,5 @@
 import { Building2, ShieldCheck, Shield } from "lucide-react";
-import { ROLE_LABEL, type UserRole } from "../../features/admin/model/usersQuery";
+import { ROLE_LABEL, type UserRole } from "../model/usersQuery";
 
 // Role is the quiet axis: the default "user" role renders as plain muted
 // text with no pill, and only elevated roles earn a badge at all. Icon +

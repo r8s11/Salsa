@@ -4,11 +4,11 @@ import { render, screen } from "@testing-library/react";
 import App from "./App";
 import { Providers } from "./app/providers";
 
-vi.mock("./components/Auth/RequireAdmin", () => ({
+vi.mock("./features/auth/components/RequireAdmin", () => ({
   default: ({ children }: { children: ReactNode }) => children,
 }));
 
-vi.mock("./components/Auth/RequireReviewer", () => ({
+vi.mock("./features/auth/components/RequireReviewer", () => ({
   default: ({ children }: { children: ReactNode }) => children,
 }));
 

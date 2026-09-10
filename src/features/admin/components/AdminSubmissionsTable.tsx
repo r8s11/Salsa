@@ -1,5 +1,5 @@
 import { Clock, User, Mail } from "lucide-react";
-import { type EventSubmission } from "../../features/admin/model/submissions";
+import { type EventSubmission } from "../model/submissions";
 import AdminSubmissionStatusBadge from "./AdminSubmissionStatusBadge";
 import AdminActionMenu from "./AdminActionMenu";
 import "./AdminSubmissionsTable.css";

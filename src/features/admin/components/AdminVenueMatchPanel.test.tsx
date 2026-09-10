@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import type { DatabaseEvent } from "../../../features/events/model/types";
-import type { EventSubmission } from "../../../features/admin/model/submissions";
+import type { DatabaseEvent } from "../../events/model/types";
+import type { EventSubmission } from "../model/submissions";
 import AdminVenueMatchPanel from "./AdminVenueMatchPanel";
 
 function makeSubmission(location: string): EventSubmission {

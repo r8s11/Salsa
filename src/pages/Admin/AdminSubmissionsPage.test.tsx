@@ -2,7 +2,7 @@ import { render, screen, within, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import AdminSubmissionsPage from "./AdminSubmissionsPage";
+import AdminSubmissionsPage from "../Admin/AdminSubmissionsPage";
 import { useAdminSubmissions } from "../../hooks/useAdminSubmissions";
 import { notifySubmissionRejected } from "../../features/submit-event/submissionNotification";
 import type { EventSubmission } from "../../features/admin/model/submissions";

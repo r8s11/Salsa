@@ -1,5 +1,5 @@
 import type { DatabaseEvent } from "../../events/model/types";
-import type { AdminUserRow } from "../model/usersQuery";
+import type { AdminUserRow } from "./usersQuery";
 
 export const UPCOMING_WINDOW_DAYS = 30;
 export const UPCOMING_LIST_LIMIT = 8;

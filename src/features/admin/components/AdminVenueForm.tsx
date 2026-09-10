@@ -10,8 +10,8 @@ import {
   type VenueRow,
   COUNTRY_OPTIONS,
   venueDisplayAddress,
-} from "../../features/admin/model/venuesQuery";
-import { searchVenues } from "../../features/admin/api/venuesRepo";
+} from "../model/venuesQuery";
+import { searchVenues } from "../api/venuesRepo";
 
 interface AdminVenueFormProps {
   initial?: VenueDetailRow;

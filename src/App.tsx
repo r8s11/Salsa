@@ -21,8 +21,8 @@ const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 const AdminFounderRequestsPage = lazy(() => import("./pages/Admin/AdminFounderRequestsPage"));
 const AdminFounderRequestDetailPage = lazy(() => import("./pages/Admin/AdminFounderRequestDetailPage"));
 const SignInPage = lazy(() => import("./pages/SignInPage"));
-const AuthCallback = lazy(() => import("./components/Auth/AuthCallback"));
-const InviteActivationPage = lazy(() => import("./components/Auth/InviteActivationPage"));
+const AuthCallback = lazy(() => import("./features/auth/components/AuthCallback"));
+const InviteActivationPage = lazy(() => import("./features/auth/components/InviteActivationPage"));
 const AdminLayout = lazy(() => import("./layouts/AdminLayout"));
 const AdminOverviewPage = lazy(() => import("./pages/AdminOverviewPage"));
 const AdminEventsPage = lazy(() => import("./pages/AdminEventsPage"));
@@ -50,17 +50,17 @@ const AccountPage = lazy(() => import("./pages/AccountPage"));
 const HostMyEventsPage = lazy(() => import("./pages/HostMyEventsPage"));
 const HostCreateEventPage = lazy(() => import("./pages/HostCreateEventPage"));
 const HostEditEventPage = lazy(() => import("./pages/HostEditEventPage"));
-const HostDashboard = lazy(() => import("./components/Host/HostDashboard"));
+const HostDashboard = lazy(() => import("./features/host/components/HostDashboard"));
 const HostEventDetailPage = lazy(() => import("./pages/HostEventDetailPage"));
 const HostAttendeeListPage = lazy(() => import("./pages/HostAttendeeListPage"));
 const HostCheckInPage = lazy(() => import("./pages/HostCheckInPage"));
 const HostEventImportPage = lazy(() => import("./pages/HostEventImportPage"));
 const HostOrganizationPage = lazy(() => import("./pages/HostOrganizationPage"));
 const UserEventEditPage = lazy(() => import("./pages/UserEventEditPage"));
-import RequireAuth from "./components/Auth/RequireAuth";
-import RequireAdmin from "./components/Auth/RequireAdmin";
-import RequireReviewer from "./components/Auth/RequireReviewer";
-import RequireOrganizer from "./components/Auth/RequireOrganizer";
+import RequireAuth from "./features/auth/components/RequireAuth";
+import RequireAdmin from "./features/auth/components/RequireAdmin";
+import RequireReviewer from "./features/auth/components/RequireReviewer";
+import RequireOrganizer from "./features/auth/components/RequireOrganizer";
 
 function App() {
   return (

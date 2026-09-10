@@ -1,5 +1,5 @@
 import { Clock, CircleCheck, CircleX } from "lucide-react";
-import type { ActionMenuItem } from "../../../components/Admin/AdminActionMenu";
+import type { ActionMenuItem } from "../components/AdminActionMenu";
 
 /**
  * The request-level status vocabulary — distinct from both the event-status

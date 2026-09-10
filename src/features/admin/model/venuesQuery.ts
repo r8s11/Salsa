@@ -1,6 +1,6 @@
 import { Clock, CircleCheck, CircleX } from "lucide-react";
 import type { ComponentType } from "react";
-import type { ActionMenuItem } from "../../../components/Admin/AdminActionMenu";
+import type { ActionMenuItem } from "../components/AdminActionMenu";
 
 /**
  * Venue lifecycle status — only three values (brief §4).

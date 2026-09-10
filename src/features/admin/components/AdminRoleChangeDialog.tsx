@@ -4,8 +4,8 @@ import {
   displayNameFor,
   type AdminUserRow,
   type UserRole,
-} from "../../features/admin/model/usersQuery";
-import { useAccessibleDialog } from "../../shared/a11y/useAccessibleDialog";
+} from "../model/usersQuery";
+import { useAccessibleDialog } from "../../../shared/a11y/useAccessibleDialog";
 import "./AdminRoleChangeDialog.css";
 
 interface AdminRoleChangeDialogProps {

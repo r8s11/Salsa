@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
-import type { ScheduleXEvent } from "../../types/events";
+import type { ScheduleXEvent } from "../../../../types/events";
 import Events from "./Events";
 
 // Deliberately does NOT mock EventModal — this test exercises the real
@@ -10,7 +10,7 @@ import Events from "./Events";
 // detail route contract holds end to end (P2 Phase 2: EventModal must never
 // special-case its origin; the homepage is not allowed a different Full
 // Details behavior than any other caller).
-vi.mock("../../hooks/useEvent", () => ({
+vi.mock("../../../../hooks/useEvent", () => ({
   useEvents: () => ({ events, loading: false, error: null }),
 }));
 

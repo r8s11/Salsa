@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import type { ComponentProps } from "react";
 import AdminRoleChangeDialog from "./AdminRoleChangeDialog";
-import type { AdminUserRow } from "../../features/admin/model/usersQuery";
+import type { AdminUserRow } from "../model/usersQuery";
 
 type Props = ComponentProps<typeof AdminRoleChangeDialog>;
 

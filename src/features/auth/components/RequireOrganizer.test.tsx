@@ -2,16 +2,16 @@ import { beforeEach, describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import RequireOrganizer from "./RequireOrganizer";
-import type { AuthContextValue } from "../../contexts/authContextObject";
-import { useAuth } from "../../contexts/useAuth";
+import type { AuthContextValue } from "../../../contexts/authContextObject";
+import { useAuth } from "../../../contexts/useAuth";
 import type { User } from "@supabase/supabase-js";
-import { useMyOrganizers } from "../../features/host/hooks/useMyOrganizers";
+import { useMyOrganizers } from "../../host/hooks/useMyOrganizers";
 
-vi.mock("../../contexts/useAuth", () => ({
+vi.mock("../../../contexts/useAuth", () => ({
   useAuth: vi.fn(),
 }));
 
-vi.mock("../../features/host/hooks/useMyOrganizers", () => ({
+vi.mock("../../host/hooks/useMyOrganizers", () => ({
   useMyOrganizers: vi.fn(),
 }));
 

@@ -1,6 +1,6 @@
 import { supabase } from "../../../lib/supabase";
 import { DatabaseEvent, City, EventType } from "../../../types/events";
-import { toEventDateInstant, formatTimeLabel } from "../../../features/events/model/eventDateTime";
+import { toEventDateInstant, formatTimeLabel } from "../model/eventDateTime";
 import { replaceEventTaxonomyTerms } from "../../admin/api/taxonomyRepo";
 
 export interface AdminEventPayload {

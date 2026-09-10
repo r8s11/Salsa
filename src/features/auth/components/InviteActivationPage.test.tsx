@@ -15,7 +15,7 @@ const mocks = vi.hoisted(() => ({
   updateUser: vi.fn(),
 }));
 
-vi.mock("../../lib/supabase", () => ({
+vi.mock("../../../lib/supabase", () => ({
   supabase: {
     auth: mocks,
   },

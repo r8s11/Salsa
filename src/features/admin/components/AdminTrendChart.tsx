@@ -1,4 +1,4 @@
-import type { ChartDataPoint } from "../../features/admin/model/analyticsQuery";
+import type { ChartDataPoint } from "../model/analyticsQuery";
 import "./AdminTrendChart.css";
 
 interface AdminTrendChartProps {

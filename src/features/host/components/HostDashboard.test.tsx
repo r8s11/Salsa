@@ -1,20 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import type { DatabaseEvent } from "../../features/events/model/types";
+import type { DatabaseEvent } from "../../events/model/types";
 import HostDashboard from "./HostDashboard";
-import RequireOrganizer from "../Auth/RequireOrganizer";
+import RequireOrganizer from "../../auth/components/RequireOrganizer";
 
 const { useAuth } = vi.hoisted(() => ({ useAuth: vi.fn() }));
 const { useMySubmissions } = vi.hoisted(() => ({ useMySubmissions: vi.fn() }));
 const { useMyOrganizers } = vi.hoisted(() => ({ useMyOrganizers: vi.fn() }));
 
-vi.mock("../../contexts/useAuth", () => ({ useAuth }));
+vi.mock("../../../contexts/useAuth", () => ({ useAuth }));
 const { useMyOrganizerEvents } = vi.hoisted(() => ({ useMyOrganizerEvents: vi.fn() }));
 
-vi.mock("../../hooks/useMySubmissions", () => ({ useMySubmissions }));
-vi.mock("../../features/host/hooks/useMyOrganizers", () => ({ useMyOrganizers }));
-vi.mock("../../features/host/hooks/useMyOrganizerEvents", () => ({ useMyOrganizerEvents }));
+vi.mock("../../../hooks/useMySubmissions", () => ({ useMySubmissions }));
+vi.mock("../hooks/useMyOrganizers", () => ({ useMyOrganizers }));
+vi.mock("../hooks/useMyOrganizerEvents", () => ({ useMyOrganizerEvents }));
 
 function daysFromNow(days: number): string {
   return new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();

@@ -1,17 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { supabase } from "../../lib/supabase";
-import { useAuth } from "../../contexts/useAuth";
-import { roleFromUser } from "../../contexts/authContextObject";
-import { resolveCallbackDestination } from "../../lib/authDestination";
-import { consumeAuthIntent, type AuthIntentKind } from "../../lib/authIntent";
-import { consumeAuthReturnDestination } from "../../lib/authReturnDestination";
-import { publicErrorMessage } from "../../shared/forms/errorMessage";
-import FormFieldError from "../../shared/forms/FormFieldError";
-import { fieldErrorProps } from "../../shared/forms/fieldErrorProps";
-import Button from "../ui/Button";
-import ButtonLink from "../ui/ButtonLink";
+import { supabase } from "../../../lib/supabase";
+import { useAuth } from "../../../contexts/useAuth";
+import { roleFromUser } from "../../../contexts/authContextObject";
+import { resolveCallbackDestination } from "../../../lib/authDestination";
+import { consumeAuthIntent, type AuthIntentKind } from "../../../lib/authIntent";
+import { consumeAuthReturnDestination } from "../../../lib/authReturnDestination";
+import { publicErrorMessage } from "../../../shared/forms/errorMessage";
+import FormFieldError from "../../../shared/forms/FormFieldError";
+import { fieldErrorProps } from "../../../shared/forms/fieldErrorProps";
+import Button from "../../../components/ui/Button";
+import ButtonLink from "../../../components/ui/ButtonLink";
 import "./AuthCallback.css";
 
 type CallbackError = AuthIntentKind | "invalid";

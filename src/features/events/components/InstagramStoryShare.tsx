@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { Camera, Download, Link2, Share2, X } from "lucide-react";
-import ShareableEventPoster from "../../../components/EventModal/ShareableEventPoster";
+import ShareableEventPoster from "./EventModal/ShareableEventPoster";
 import { resolvePosterImageForEvent } from "../../calendar/api/posterFlyers";
 import { useEscapeKey } from "../../calendar/hooks/useEscapeKey";
 import { useShareablePoster } from "../../calendar/hooks/useShareablePoster";

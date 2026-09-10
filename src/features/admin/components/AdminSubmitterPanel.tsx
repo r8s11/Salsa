@@ -4,7 +4,7 @@ import {
   displayNameFor,
   identityLineFor,
   type AdminUserRow,
-} from "../../features/admin/model/usersQuery";
+} from "../model/usersQuery";
 
 interface Submitter {
   user: AdminUserRow;

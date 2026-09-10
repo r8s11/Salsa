@@ -4,7 +4,7 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import type { EventSubmission } from "../../features/admin/model/submissions";
 import * as useAdminSubmissions from "../../hooks/useAdminSubmissions";
-import AdminSubmissionDetailPage from "./AdminSubmissionDetailPage";
+import AdminSubmissionDetailPage from "../Admin/AdminSubmissionDetailPage";
 import { useActiveTaxonomyTerms } from "../../features/admin/hooks/useAdminTaxonomy";
 
 vi.mock("../../hooks/useAdminSubmissions", () => ({

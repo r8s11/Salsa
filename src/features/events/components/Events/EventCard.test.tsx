@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import EventCard from "./EventCard";
-import { ScheduleXEvent } from "../../types/events";
+import { ScheduleXEvent } from "../../../../types/events";
 
 const mockNavigate = vi.fn();
 vi.mock("react-router-dom", async () => {

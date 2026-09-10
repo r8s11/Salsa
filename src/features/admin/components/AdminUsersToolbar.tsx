@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Search, SlidersHorizontal, ChevronDown } from "lucide-react";
-import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
+import { useEscapeKey } from "../../calendar/hooks/useEscapeKey";
 import {
   ROLE_LABEL,
   ACCOUNT_STATUS_LABEL,
@@ -9,7 +9,7 @@ import {
   type AccountStatus,
   type SortDir,
   type UserSortKey,
-} from "../../features/admin/model/usersQuery";
+} from "../model/usersQuery";
 import "./AdminUsersToolbar.css";
 
 const ROLE_OPTIONS: { value: UserRole; label: string }[] = [

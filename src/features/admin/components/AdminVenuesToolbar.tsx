@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Search, SlidersHorizontal, ChevronDown } from "lucide-react";
-import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
+import { useEscapeKey } from "../../calendar/hooks/useEscapeKey";
 import {
   VENUE_SORT_OPTIONS,
   VENUE_VIEWS,
@@ -9,7 +9,7 @@ import {
   type VenueSort,
   type VenueFilters,
   type VenueStatus,
-} from "../../features/admin/model/venuesQuery";
+} from "../model/venuesQuery";
 import AdminViewTabs from "./AdminViewTabs";
 import "./AdminVenuesToolbar.css";
 

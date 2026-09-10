@@ -1,6 +1,6 @@
 import { Clock, Shield, Ban, PauseCircle } from "lucide-react";
 import type { ComponentType } from "react";
-import type { ActivityAuditLog } from "../../features/admin/model/auditActivityQuery";
+import type { ActivityAuditLog } from "../model/auditActivityQuery";
 import {
   activityActionLabel,
   activityActorLabel,
@@ -9,7 +9,7 @@ import {
   isSensitiveAction,
   CATEGORY_LABEL,
   formatActivityDate,
-} from "../../features/admin/model/auditActivityQuery";
+} from "../model/auditActivityQuery";
 import "./AdminActivityTable.css";
 
 interface AdminActivityTableProps {

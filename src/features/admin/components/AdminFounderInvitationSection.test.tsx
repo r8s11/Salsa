@@ -5,7 +5,7 @@ import AdminFounderInvitationSection from "./AdminFounderInvitationSection";
 
 const { useFounderInvitation } = vi.hoisted(() => ({ useFounderInvitation: vi.fn() }));
 
-vi.mock("../../hooks/useFounderInvitation", () => ({ useFounderInvitation }));
+vi.mock("../../../hooks/useFounderInvitation", () => ({ useFounderInvitation }));
 
 const pendingInvitation = {
   id: "inv-1",

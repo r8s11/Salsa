@@ -38,7 +38,7 @@ vi.mock("../../../utils/seo", () => ({
   generateEventsListStructuredData: vi.fn(() => ({})),
   injectStructuredData: vi.fn(),
 }));
-vi.mock("../../events/components/EventModal/EventModal", () => ({ default: () => null }));
+vi.mock("../EventModal/EventModal", () => ({ default: () => null }));
 
 const event = {
   id: "event-1",

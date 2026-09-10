@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Sparkles } from "lucide-react";
 import { useAuth } from "../contexts/useAuth";
 import EventForm, { CAPABILITIES } from "../features/events/components/EventForm";
@@ -53,16 +53,12 @@ export default function SubmitEventPage() {
     flyerReady,
     handleFlyerChange,
     handleFlyerRetry,
-    handleFlyerRemove,
   } = useSubmitEventForm();
   const submissionAccess = useSubmissionAccess(Boolean(user));
   const [pristineForm] = useState(form);
   const isDirty = JSON.stringify(form) !== JSON.stringify(pristineForm);
   const [entryMode, setEntryMode] = useState<EntryMode>("choice");
-
-  const formRef = useRef<HTMLFormElement>(null);
   const [showComingSoon, setShowComingSoon] = useState(false);
-  const comingSoonRef = useRef<HTMLDivElement>(null);
 
   // Only the Host-facing entry point warns before losing typed work — the
   // public submitter flow is intentionally left unchanged in Phase 2.
@@ -75,20 +71,14 @@ export default function SubmitEventPage() {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [isOrganizer, isDirty]);
 
-  const focusForm = () => {
-    const formEl = formRef.current;
-    if (formEl) {
-      formEl.scrollIntoView({ behavior: "smooth", block: "start" });
-      const firstField = formEl.querySelector<HTMLElement>("input, textarea, button, [tabindex]");
-      firstField?.focus();
-    }
-  };
-
-  const closeComingSoon = () => {
+  const handleFlyerFileChange = (file: File | null) => {
     setShowComingSoon(false);
-    focusForm();
+    handleFlyerChange(file);
   };
 
+  const handleFlyerRemove = () => {
+    setShowComingSoon(false);
+  };
   if (isSubmitted) return <SuccessCard onReset={resetSubmitted} />;
 
   return (
@@ -114,12 +104,23 @@ export default function SubmitEventPage() {
             <div className="flyer-choice-card" role="group" aria-label="Upload a flyer">
               <h2>Upload a Flyer</h2>
               <p>Let SalsaSegura help prepare your event using your flyer as the event image.</p>
-              <Button onClick={() => setEntryMode("flyer")} aria-label="Choose to upload a flyer to start">Upload Flyer</Button>
+              <Button
+                onClick={() => setEntryMode("flyer")}
+                aria-label="Choose to upload a flyer to start"
+              >
+                Upload Flyer
+              </Button>
             </div>
             <div className="flyer-choice-card" role="group" aria-label="Enter manually">
               <h2>Enter Manually</h2>
               <p>Fill in the event details yourself from the start.</p>
-              <Button variant="secondary" onClick={() => setEntryMode("manual")} aria-label="Choose to enter event details manually">Start Manually</Button>
+              <Button
+                variant="secondary"
+                onClick={() => setEntryMode("manual")}
+                aria-label="Choose to enter event details manually"
+              >
+                Start Manually
+              </Button>
             </div>
           </div>
         ) : (
@@ -137,7 +138,7 @@ export default function SubmitEventPage() {
                 {user ? (
                   <EventFlyerField
                     currentUrl={uploadedFlyerUrl}
-                    onFileChange={handleFlyerChange}
+                    onFileChange={handleFlyerFileChange}
                     onRemove={handleFlyerRemove}
                     onRetry={handleFlyerRetry}
                     status={flyerStatus}
@@ -162,11 +163,17 @@ export default function SubmitEventPage() {
                     </Button>
                   </div>
                 )}
+
+                {showComingSoon && flyerReady && (
+                  <p className="submit-flyer__notice" role="status">
+                    Flyer analysis will be enabled in the next deployment.
+                  </p>
+                )}
               </section>
             )}
 
             {/* ── Canonical event form ── */}
-            <form ref={formRef} onSubmit={handleSubmit} className="submit-form" noValidate>
+            <form onSubmit={handleSubmit} className="submit-form" noValidate>
               <FormErrorSummary
                 id="submit-error-summary"
                 items={FIELD_ORDER.filter(({ field }) => fieldErrors[field]).map(({ field, id }) => ({
@@ -191,31 +198,6 @@ export default function SubmitEventPage() {
           </>
         )}
       </div>
-
-      {/* ── Coming Soon (honest, not a silent no-op) ── */}
-      {showComingSoon && (
-        <div className="submit-comingsoon-overlay" onClick={closeComingSoon} role="presentation">
-          <div
-            className="submit-comingsoon"
-            onClick={(event) => event.stopPropagation()}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="coming-soon-title"
-            ref={comingSoonRef}
-          >
-            <h2 id="coming-soon-title">
-              <Sparkles size={18} aria-hidden /> Extract Event Details
-            </h2>
-            <p className="submit-comingsoon__badge">Coming soon</p>
-            <p>
-              AI flyer extraction is coming soon. Your flyer is already saved and will be used as
-              the event image.
-            </p>
-            <p>You can continue adding the event details in the form.</p>
-            <Button onClick={closeComingSoon}>Back to event form</Button>
-          </div>
-        </div>
-      )}
     </section>
   );
 }

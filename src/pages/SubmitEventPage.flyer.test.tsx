@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { act, render, screen, fireEvent, waitFor, within } from "@testing-library/react";
+import { act, render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import * as submissionsRepo from "../features/admin/api/submissionsRepo";
 import SubmitEventPage from "./SubmitEventPage";
@@ -104,6 +104,7 @@ describe("SubmitEventPage flyer (Phase 1)", () => {
       screen.queryByRole("button", { name: /Extract Event Details/i })
     ).not.toBeInTheDocument();
     expect(screen.getByText("Uploading…")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Selected flyer preview" })).toBeInTheDocument();
 
     await act(async () => {
       resolveUpload({ path: "test-user-id/submission-abc/havana.png", url: FLYER_URL });
@@ -114,7 +115,7 @@ describe("SubmitEventPage flyer (Phase 1)", () => {
     ).toBeInTheDocument();
   });
 
-  it("opens an honest Coming Soon notice and returns to the event form", async () => {
+  it("shows the honest next-deployment notice without invoking AI", async () => {
     const user = userEvent.setup();
     renderPage();
 
@@ -126,14 +127,36 @@ describe("SubmitEventPage flyer (Phase 1)", () => {
 
     await user.click(screen.getByRole("button", { name: /Extract Event Details/i }));
 
-    const dialog = await screen.findByRole("dialog", { name: /Extract Event Details/i });
-    expect(dialog).toHaveTextContent(/Coming soon/i);
-    expect(dialog).toHaveTextContent(/AI flyer extraction is coming soon/i);
-    expect(dialog).toHaveTextContent(/Your flyer is already saved/i);
-
-    await user.click(within(dialog).getByRole("button", { name: /Back to event form/i }));
+    expect(
+      await screen.findByText("Flyer analysis will be enabled in the next deployment.")
+    ).toBeInTheDocument();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    expect(screen.getByLabelText(/Event Title \*/i)).toBeInTheDocument();
+    expect(mockEventFlyers.uploadEventFlyer).toHaveBeenCalledTimes(1);
+
+    await user.type(screen.getByLabelText(/Event Title \*/i), "Manual details remain editable");
+    expect(screen.getByLabelText(/Event Title \*/i)).toHaveValue("Manual details remain editable");
+  });
+
+  it("clears the extraction notice and flyer controls when the flyer is removed", async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.upload(
+      screen.getByLabelText("Event flyer"),
+      new File(["png"], "havana-friday.png", { type: "image/png" })
+    );
+    await user.click(await screen.findByRole("button", { name: /Extract Event Details/i }));
+    expect(
+      await screen.findByText("Flyer analysis will be enabled in the next deployment.")
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /Remove/i }));
+
+    expect(screen.queryByRole("img", { name: "Selected flyer preview" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Extract Event Details/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Flyer analysis will be enabled in the next deployment.")
+    ).not.toBeInTheDocument();
   });
 
   it("persists the uploaded flyer URL into submitted_data on submit — one upload only", async () => {

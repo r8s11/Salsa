@@ -50,6 +50,27 @@ describe("EventFlyerField", () => {
     expect(screen.getByRole("button", { name: /Replace/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Remove/i })).toBeInTheDocument();
   });
+  it("opens the file picker from Replace and updates the preview with the new flyer", async () => {
+    const user = userEvent.setup();
+    const onFileChange = vi.fn();
+    const picker = vi.spyOn(HTMLInputElement.prototype, "click");
+    render(
+      <EventFlyerField
+        currentUrl="https://example.com/flyer-a.png"
+        onFileChange={onFileChange}
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: /Replace/i }));
+    expect(picker).toHaveBeenCalledTimes(1);
+
+    const flyerB = new File(["flyer b"], "flyer-b.png", { type: "image/png" });
+    await user.upload(screen.getByLabelText("Event flyer"), flyerB);
+
+    expect(onFileChange).toHaveBeenLastCalledWith(flyerB);
+    expect(screen.getByRole("img", { name: "Selected flyer preview" })).toBeInTheDocument();
+    picker.mockRestore();
+  });
 
   it("exposes Replace and Remove as keyboard-accessible buttons", async () => {
     const user = userEvent.setup();

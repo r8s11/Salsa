@@ -25,7 +25,7 @@
   top: 50%;
   left: 100%;
   z-index: 3;
-  width: clamp(360px, 105vw, 1400px);
+  width: clamp(288px, 84vw, 1120px);
   aspect-ratio: 1;
   height: auto;
   transform: translate(-50%, -50%);
@@ -145,6 +145,33 @@
     radial-gradient(circle closest-side at 40% 32%, #ef2c58 0%, #dc1b45 48%, #9c1035 100%);
   mask-image: radial-gradient(circle closest-side, #000 0 33.9%, transparent 34.2%);
   -webkit-mask-image: radial-gradient(circle closest-side, #000 0 33.9%, transparent 34.2%);
+}
+
+/* Curved label printing — rides the label, so it turns with the record. */
+.hero-vinyl__print {
+  position: absolute;
+  inset: 0;
+  width: 33.8%;
+  height: 33.8%;
+  margin: auto;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.hero-vinyl__print-title {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 6.6px;
+  fill: #fff;
+}
+
+.hero-vinyl__print-meta {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 3.6px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  fill: var(--gold-light);
 }
 
 /* Static specular — the light stays put while the record turns. */

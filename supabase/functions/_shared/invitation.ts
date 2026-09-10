@@ -15,9 +15,56 @@ export function normalizeDisplayName(value: unknown): string | null {
   return trimmed;
 }
 
+export type InviteRedirectEnvironment = Record<string, string | undefined>;
+
+const LOCAL_INVITE_REDIRECT = "http://localhost:5173/auth/invite";
+
+function configuredHttpUrl(value: string): URL | null {
+  try {
+    const url = new URL(value);
+    if (
+      (url.protocol !== "http:" && url.protocol !== "https:") ||
+      !url.hostname ||
+      url.username ||
+      url.password ||
+      value.startsWith("//")
+    ) {
+      return null;
+    }
+    return url;
+  } catch {
+    return null;
+  }
+}
+
+export function isValidInviteRedirect(value: string): boolean {
+  return configuredHttpUrl(value) !== null;
+}
+
+export function resolveInviteRedirectUrl(
+  environment: InviteRedirectEnvironment,
+): string | null {
+  const explicit = environment.INVITE_REDIRECT_URL?.trim();
+  if (explicit) {
+    return isValidInviteRedirect(explicit) ? explicit : null;
+  }
+
+  const external = environment.AUTH_EXTERNAL_URL?.trim();
+  if (external) {
+    const base = configuredHttpUrl(external);
+    if (!base) return null;
+    return new URL("/auth/invite", base).toString();
+  }
+
+  const runtime = environment.ENVIRONMENT?.trim().toLowerCase();
+  return runtime === "local" || runtime === "development"
+    ? LOCAL_INVITE_REDIRECT
+    : null;
+}
+
 export function inviteRedirectUrl(environment: "local" | "production"): string {
   return environment === "local"
-    ? "http://localhost:5173/auth/invite"
+    ? LOCAL_INVITE_REDIRECT
     : "https://www.salsasegura.com/auth/invite";
 }
 

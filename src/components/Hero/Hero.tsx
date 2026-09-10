@@ -44,7 +44,7 @@ function Hero() {
       };
 
 
-  const { eventsThisWeek, venueCount, tickerItems } = useMemo(() => {
+  const { eventsThisWeek, venueCount, tickerItems, labelArt } = useMemo(() => {
     const now = new Date();
     const weekFromNow = new Date(now);
     weekFromNow.setDate(now.getDate() + 7);
@@ -60,10 +60,26 @@ function Hero() {
     const thisWeek = upcoming.filter((e) => new Date(e.start.replace(" ", "T")) <= weekFromNow);
     const venues = new Set(upcoming.map((e) => e.location).filter(Boolean));
 
+    // The record's paper label carries the next event, printed on two arcs so
+    // it reads the way a pressed label does — and it turns with the disc.
+    const featured = upcoming[0];
+    const featuredTime = featured
+      ? new Date(featured.start.replace(" ", "T")).toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "2-digit",
+        })
+      : null;
+
     return {
       eventsThisWeek: thisWeek.length,
       venueCount: venues.size,
       tickerItems: upcoming.slice(0, 8).map((e) => e.title),
+      labelArt: featured
+        ? {
+            title: featured.title,
+            meta: [featuredTime, featured.location].filter(Boolean).join(" · "),
+          }
+        : null,
     };
   }, [events]);
 
@@ -115,6 +131,34 @@ function Hero() {
           <div className="hero-vinyl__disc">
             <div className="hero-vinyl__grooves" />
             <div className="hero-vinyl__label" />
+            {labelArt && (
+              <svg className="hero-vinyl__print" viewBox="0 0 100 100" aria-hidden="true">
+                <defs>
+                  <path
+                    id="hero-vinyl-arc-title"
+                    d="M 36.32,87.59 A 40,40 0 0 1 36.32,12.41"
+                    fill="none"
+                  />
+                  <path
+                    id="hero-vinyl-arc-meta"
+                    d="M 32.79,74.57 A 30,30 0 0 1 32.79,25.43"
+                    fill="none"
+                  />
+                </defs>
+                <text className="hero-vinyl__print-title">
+                  <textPath href="#hero-vinyl-arc-title" startOffset="50%" textAnchor="middle">
+                    {labelArt.title}
+                  </textPath>
+                </text>
+                {labelArt.meta && (
+                  <text className="hero-vinyl__print-meta">
+                    <textPath href="#hero-vinyl-arc-meta" startOffset="50%" textAnchor="middle">
+                      {labelArt.meta}
+                    </textPath>
+                  </text>
+                )}
+              </svg>
+            )}
           </div>
           <div className="hero-vinyl__sheen" />
         </motion.div>

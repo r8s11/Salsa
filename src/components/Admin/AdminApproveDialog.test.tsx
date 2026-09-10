@@ -25,7 +25,7 @@ describe("AdminApproveDialog", () => {
 
   it("starts focus on the Approve control (non-destructive action)", () => {
     renderDialog();
-    expect(screen.getByRole("button", { name: "Approve Request" })).toHaveFocus();
+    expect(screen.getByRole("button", { name: "Approve & Send Invitation" })).toHaveFocus();
   });
 
   it("dismisses on Escape and backdrop click while idle", () => {
@@ -57,7 +57,7 @@ describe("AdminApproveDialog", () => {
     renderDialog();
     const dialog = screen.getByRole("dialog");
     const cancelButton = screen.getByRole("button", { name: "Cancel" });
-    const approveButton = screen.getByRole("button", { name: "Approve Request" });
+    const approveButton = screen.getByRole("button", { name: "Approve & Send Invitation" });
 
     approveButton.focus();
     fireEvent.keyDown(dialog, { key: "Tab" });
@@ -85,7 +85,7 @@ describe("AdminApproveDialog", () => {
     const onConfirm = vi.fn();
     renderDialog({ onConfirm, requestId: "req-42" });
 
-    fireEvent.click(screen.getByRole("button", { name: "Approve Request" }));
+    fireEvent.click(screen.getByRole("button", { name: "Approve & Send Invitation" }));
 
     expect(onConfirm).toHaveBeenCalledExactlyOnceWith("req-42");
   });

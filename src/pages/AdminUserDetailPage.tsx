@@ -192,7 +192,7 @@ export default function AdminUserDetailPage() {
       </header>
 
       <div className="admin-user-detail-page__layout">
-        <main className="admin-user-detail-page__main">
+        <div className="admin-user-detail-page__main">
           <section
             className="admin-card admin-user-detail-page__account-intelligence"
             aria-labelledby="account-activity-heading"
@@ -308,7 +308,7 @@ export default function AdminUserDetailPage() {
               </ol>
             )}
           </section>
-        </main>
+        </div>
 
         <aside className="admin-user-detail-page__side-rail" aria-label="Account operations">
           <section className="admin-card admin-user-detail-page__moderation">

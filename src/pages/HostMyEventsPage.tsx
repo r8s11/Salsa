@@ -133,7 +133,7 @@ function EventCard({ event, attendeeCount, checkedInCount, canManage }: EventCar
           />
         ) : (
           <div className="host-my-events__card-flyer-fallback">
-            <span className="host-my-events__card-flyer-icon">💃</span>
+            <span className="host-my-events__card-flyer-icon" aria-hidden="true">💃</span>
           </div>
         )}
       </div>
@@ -334,7 +334,7 @@ export default function HostMyEventsPage() {
   };
 
   return (
-    <main className="admin-shell">
+    <div className="admin-shell">
       {/* Header */}
       <AdminPageHeader
         title="My Events"
@@ -498,6 +498,6 @@ export default function HostMyEventsPage() {
           ))}
         </div>
       )}
-    </main>
+    </div>
   );
 }

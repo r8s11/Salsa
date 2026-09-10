@@ -7,6 +7,7 @@ import {
   reviewFounderRequest,
   fetchPendingFounderRequestCount,
 } from "../features/admin/api/founderRequestsRepo";
+import { sendFounderInvitation } from "../features/admin/api/founderInvitationRepo";
 import type { FounderAccessRequestRow } from "../features/admin/model/founderRequestsQuery";
 
 /**
@@ -50,6 +51,20 @@ export function useFounderRequests() {
     },
   });
 
+  const approveAndSendInvitationMutation = useMutation({
+    mutationFn: async (requestId: string) => {
+      const reviewResult = await reviewFounderRequest({
+        requestId,
+        decision: "approve",
+      });
+      const invitationResult = await sendFounderInvitation(requestId, crypto.randomUUID());
+      return { reviewResult, invitationResult };
+    },
+    onSuccess: () => {
+      invalidate();
+    },
+  });
+
   const rejectMutation = useMutation({
     mutationFn: (params: {
       requestId: string;
@@ -77,6 +92,10 @@ export function useFounderRequests() {
     approveRequest: approveMutation.mutate,
     isApproving: approveMutation.isPending,
     approveError: approveMutation.error,
+    approveAndSendInvitation: approveAndSendInvitationMutation.mutate,
+    isApprovingAndSending: approveAndSendInvitationMutation.isPending,
+    approveAndSendInvitationError: approveAndSendInvitationMutation.error,
+    approveAndSendInvitationResult: approveAndSendInvitationMutation.data,
     rejectRequest: rejectMutation.mutate,
     isRejecting: rejectMutation.isPending,
     rejectError: rejectMutation.error,

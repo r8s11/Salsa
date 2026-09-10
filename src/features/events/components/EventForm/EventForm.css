@@ -69,11 +69,11 @@
   resize: vertical;
 }
 
-.event-form input:focus,
-.event-form select:focus,
-.event-form textarea:focus {
-  outline: 2px solid var(--red);
-  outline-offset: 1px;
+.event-form input:focus-visible,
+.event-form select:focus-visible,
+.event-form textarea:focus-visible {
+  outline: 2px solid var(--red-bright);
+  outline-offset: 2px;
 }
 
 .event-form input[aria-invalid="true"],

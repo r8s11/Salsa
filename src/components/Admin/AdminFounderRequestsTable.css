@@ -131,7 +131,7 @@
 }
 
 .founder-link:focus-visible {
-  outline: 2px solid var(--primary);
+  outline: 2px solid var(--admin-brand);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
 }

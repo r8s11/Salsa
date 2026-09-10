@@ -219,7 +219,125 @@ describe("EventDetailPage", () => {
     await user.click(screen.getByRole("button", { name: "Share" }));
 
     expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/events/event-1`);
-    expect(screen.getByRole("status")).toHaveTextContent("Event link copied. Paste it into Instagram.");
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Event link copied. Paste it into Instagram."
+    );
+  });
+
+  it("wraps tabs in a tablist with correct aria attributes", async () => {
+    renderPage();
+    await screen.findByRole("heading", { name: "Havana Nights" });
+
+    const tablist = screen.getByRole("tablist", { name: "Sections" });
+    expect(tablist).toBeInTheDocument();
+
+    const aboutTab = screen.getByRole("tab", { name: /about the night/i });
+    const albumTab = screen.getByRole("tab", { name: /photo album/i });
+
+    expect(aboutTab).toHaveAttribute("aria-selected", "true");
+    expect(aboutTab).toHaveAttribute("aria-controls");
+    expect(albumTab).toHaveAttribute("aria-selected", "false");
+    expect(albumTab).toHaveAttribute("aria-controls");
+    expect(aboutTab).toHaveAttribute("tabindex", "0");
+    expect(albumTab).toHaveAttribute("tabindex", "-1");
+
+    const aboutPanel = document.getElementById(aboutTab.getAttribute("aria-controls")!);
+    expect(aboutPanel).toHaveAttribute("role", "tabpanel");
+    expect(aboutPanel).toHaveAttribute("aria-labelledby", aboutTab.id);
+  });
+
+  it("switches tabpanel and roving tabindex on click", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByRole("heading", { name: "Havana Nights" });
+
+    await user.click(screen.getByRole("tab", { name: /photo album/i }));
+
+    const albumTab = screen.getByRole("tab", { name: /photo album/i });
+    const aboutTab = screen.getByRole("tab", { name: /about the night/i });
+    expect(albumTab).toHaveAttribute("aria-selected", "true");
+    expect(albumTab).toHaveAttribute("tabindex", "0");
+    expect(aboutTab).toHaveAttribute("aria-selected", "false");
+    expect(aboutTab).toHaveAttribute("tabindex", "-1");
+
+    const albumPanel = document.getElementById(albumTab.getAttribute("aria-controls")!);
+    expect(albumPanel).toHaveAttribute("role", "tabpanel");
+    expect(albumPanel).toHaveAttribute("aria-labelledby", albumTab.id);
+  });
+
+  it("navigates tabs with arrow keys", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByRole("heading", { name: "Havana Nights" });
+
+    const aboutTab = screen.getByRole("tab", { name: /about the night/i });
+    aboutTab.focus();
+    await user.keyboard("{ArrowRight}");
+
+    expect(screen.getByRole("tab", { name: /photo album/i })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+    expect(screen.getByRole("tab", { name: /about the night/i })).toHaveAttribute(
+      "aria-selected",
+      "false"
+    );
+
+    await user.keyboard("{ArrowLeft}");
+    expect(screen.getByRole("tab", { name: /about the night/i })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+    expect(screen.getByRole("tab", { name: /photo album/i })).toHaveAttribute(
+      "aria-selected",
+      "false"
+    );
+  });
+
+  it("navigates to first tab with Home key", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByRole("heading", { name: "Havana Nights" });
+
+    const albumTab = screen.getByRole("tab", { name: /photo album/i });
+    await user.click(albumTab);
+    expect(albumTab).toHaveAttribute("aria-selected", "true");
+
+    albumTab.focus();
+    await user.keyboard("{Home}");
+
+    expect(screen.getByRole("tab", { name: /about the night/i })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+    expect(screen.getByRole("tab", { name: /about the night/i })).toHaveFocus();
+  });
+
+  it("navigates to last tab with End key", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByRole("heading", { name: "Havana Nights" });
+
+    const aboutTab = screen.getByRole("tab", { name: /about the night/i });
+    aboutTab.focus();
+    await user.keyboard("{End}");
+
+    expect(screen.getByRole("tab", { name: /photo album/i })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+    expect(screen.getByRole("tab", { name: /photo album/i })).toHaveFocus();
+  });
+
+  it("moves DOM focus to the newly active tab on arrow navigation", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByRole("heading", { name: "Havana Nights" });
+
+    const aboutTab = screen.getByRole("tab", { name: /about the night/i });
+    aboutTab.focus();
+    await user.keyboard("{ArrowRight}");
+
+    expect(screen.getByRole("tab", { name: /photo album/i })).toHaveFocus();
   });
 });
-

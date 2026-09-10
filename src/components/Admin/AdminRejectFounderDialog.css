@@ -77,9 +77,8 @@
 }
 
 .reason-select:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--primary-light);
+  outline: 2px solid var(--admin-brand);
+  outline-offset: 2px;
 }
 
 .reject-note,
@@ -99,9 +98,8 @@
 
 .reject-note:focus,
 .reject-message:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--primary-light);
+  outline: 2px solid var(--admin-brand);
+  outline-offset: 2px;
 }
 
 .field-hint {

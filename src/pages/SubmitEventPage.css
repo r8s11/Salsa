@@ -356,11 +356,6 @@
   line-height: 1.6;
 }
 
-.submit-comingsoon .btn-primary {
-  justify-self: center;
-  margin-top: 0.5rem;
-}
-
 @media (max-width: 600px) {
   .submit-flyer {
     padding: 1.25rem;
@@ -369,9 +364,5 @@
   .submit-flyer__actions {
     flex-direction: column;
     align-items: stretch;
-  }
-
-  .submit-flyer__actions .btn-secondary {
-    justify-content: center;
   }
 }

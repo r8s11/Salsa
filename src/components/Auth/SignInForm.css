@@ -8,7 +8,7 @@
   box-shadow: var(--glow-primary);
 }
 
-.auth-card h1 {
+.auth-card h2 {
   margin: 0 0 var(--space-lg);
   color: var(--text);
   font-family: var(--font-display);

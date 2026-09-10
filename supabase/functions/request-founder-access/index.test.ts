@@ -2,13 +2,25 @@ import { assertEquals, assertExists } from "https://deno.land/std/testing/assert
 import { createRequestFounderAccessHandler } from "./index.ts";
 import type { FounderAccessDependencies, FounderRequestNotifyDependencies } from "./index.ts";
 
-const INSERTED_ROW = { id: "new-request-id", created_at: "2026-09-04T12:00:00.000Z" };
+const INSERTED_ROW = {
+  id: "new-request-id",
+  created_at: "2026-09-04T12:00:00.000Z",
+  normalized_email: "john@example.com",
+  applicant_name: "John Doe",
+  organization_name: "Salsa Nights Boston",
+};
 
 // Test seam: records every insert and returns configurable select/insert results.
 function makeService(opts: {
   existing?: { id: string } | null;
   insertError?: { code?: string; message?: string } | null;
-  insertedRow?: { id: string; created_at: string } | null;
+  insertedRow?: {
+    id: string;
+    created_at: string;
+    normalized_email: string;
+    applicant_name: string;
+    organization_name: string;
+  } | null;
 } = {}) {
   const inserts: Array<Record<string, unknown>> = [];
   const dependencies: FounderAccessDependencies = {
@@ -41,9 +53,24 @@ function makeService(opts: {
   };
   return { dependencies, inserts };
 }
+interface NotifySeam {
+  dependencies: FounderRequestNotifyDependencies;
+  claims: Array<{ requestId: string; emailEvent: string }>;
+  completions: Array<{
+    attemptId: string;
+    requestId: string;
+    emailEvent: string;
+    status: "sent" | "failed";
+    providerMessageId: string | null;
+    errorCode: string | null;
+  }>;
+  sends: Array<{ message: Record<string, unknown>; options?: { idempotencyKey: string } }>;
+}
 
-// Test seam for the internal admin-notification path: records every claim/
-// complete/send call so tests can assert exactly what was attempted.
+
+// Test seam for both notification paths (admin + applicant): records every
+// claim/complete/send call so tests can assert exactly what was attempted,
+// per (requestId, emailEvent).
 function makeNotify(opts: {
   settings?: { platform_name: string; support_email: string } | null;
   settingsError?: { code?: string; message?: string } | null;
@@ -53,10 +80,12 @@ function makeNotify(opts: {
   sendResult?: { data: { id?: string } | null; error: { message?: string; name?: string } | null };
   sendThrows?: unknown;
   reviewUrlBase?: string | null;
-} = {}) {
-  const claims: string[] = [];
+} = {}): NotifySeam {
+  const claims: Array<{ requestId: string; emailEvent: string }> = [];
   const completions: Array<{
     attemptId: string;
+    requestId: string;
+    emailEvent: string;
     status: "sent" | "failed";
     providerMessageId: string | null;
     errorCode: string | null;
@@ -75,8 +104,8 @@ function makeNotify(opts: {
           : opts.settings,
         error: opts.settingsError ?? null,
       }),
-    claimAttempt: (requestId: string) => {
-      claims.push(requestId);
+    claimAttempt: (requestId, emailEvent) => {
+      claims.push({ requestId, emailEvent });
       return Promise.resolve({ attemptId: claimAttemptId, error: opts.claimError ?? null });
     },
     completeAttempt: (attempt) => {
@@ -220,25 +249,19 @@ Deno.test("honeypot submissions get success without inserting", async () => {
   assertEquals(inserts.length, 0);
 });
 
-// --- Automatic admin notification ------------------------------------------
+// --- Automatic notifications (admin + applicant confirmation) -------------
 
-Deno.test("a fresh insert claims and sends exactly one admin notification", async () => {
-  const notify = makeNotify();
-  const { dependencies } = makeService();
-  dependencies.notify = notify.dependencies;
-  const handler = createRequestFounderAccessHandler(dependencies);
+function sendsFor(notify: NotifySeam, marker: string) {
+  return notify.sends.filter((s) => (s.options?.idempotencyKey ?? "").includes(marker));
+}
+function claimsFor(notify: NotifySeam, emailEvent: string) {
+  return notify.claims.filter((c) => c.emailEvent === emailEvent);
+}
+function completionsFor(notify: NotifySeam, emailEvent: string) {
+  return notify.completions.filter((c) => c.emailEvent === emailEvent);
+}
 
-  const res = await handler(post(validPayload));
-  assertEquals(res.status, 200);
-
-  assertEquals(notify.claims, [INSERTED_ROW.id]);
-  assertEquals(notify.sends.length, 1);
-  assertEquals(notify.completions, [
-    { attemptId: "attempt-1", status: "sent", providerMessageId: "resend-message-id", errorCode: null },
-  ]);
-});
-
-Deno.test("the notification recipient is read server-side, never from the request body", async () => {
+Deno.test("the admin notification recipient is read server-side, never from the request body", async () => {
   const notify = makeNotify({
     settings: { platform_name: "SalsaSegura", support_email: "trusted-mods@salsasegura.example" },
   });
@@ -246,13 +269,65 @@ Deno.test("the notification recipient is read server-side, never from the reques
   dependencies.notify = notify.dependencies;
   const handler = createRequestFounderAccessHandler(dependencies);
 
-  await handler(post({ ...validPayload, to: "attacker@evil.example", from: "attacker@evil.example" }));
+  await handler(post({
+    ...validPayload,
+    to: "attacker@evil.example",
+    recipient: "attacker@evil.example",
+    from: "attacker@evil.example",
+    subject: "UNTRUSTED_SUBJECT",
+    html: "<b>UNTRUSTED_BODY</b>",
+    text: "UNTRUSTED_BODY",
+    reviewed_by: "UNTRUSTED_REVIEWER",
+    rejection_message: "UNTRUSTED_REJECTION",
+  }));
 
-  assertEquals(notify.sends.length, 1);
-  assertEquals(notify.sends[0].message.to, "trusted-mods@salsasegura.example");
-  // No client-suppliable field influenced the recipient, subject, or body.
-  assertEquals(typeof notify.sends[0].message.subject, "string");
-  assertExists(notify.sends[0].message.html);
+  const adminSends = sendsFor(notify, "admin_request_notification");
+  assertEquals(adminSends.length, 1);
+  assertEquals(adminSends[0].message.to, "trusted-mods@salsasegura.example");
+  for (const send of notify.sends) {
+    assertEquals(send.message.from, "SalsaSegura <team@contact.salsasegura.com>");
+    assertEquals(send.message.to === "attacker@evil.example", false);
+    assertEquals(JSON.stringify(send.message).includes("UNTRUSTED_"), false);
+  }
+});
+
+Deno.test("the applicant confirmation recipient is the persisted row's normalized_email, not the raw request body", async () => {
+  // The persisted row disagrees with the raw request body's email — proves
+  // the confirmation recipient is sourced from the DB row, not re-derived
+  // from client input.
+  const { dependencies } = makeService({
+    insertedRow: { ...INSERTED_ROW, normalized_email: "persisted-only@salsasegura.example" },
+  });
+  const notify = makeNotify();
+  dependencies.notify = notify.dependencies;
+  const handler = createRequestFounderAccessHandler(dependencies);
+
+  await handler(post(validPayload));
+
+  const applicantSends = sendsFor(notify, "founder-request-confirmation");
+  assertEquals(applicantSends.length, 1);
+  assertEquals(applicantSends[0].message.to, "persisted-only@salsasegura.example");
+  assertEquals(applicantSends[0].message.to !== validPayload.email, true);
+});
+
+Deno.test("the applicant confirmation copy is built from the persisted applicant_name/organization_name", async () => {
+  const { dependencies } = makeService({
+    insertedRow: {
+      ...INSERTED_ROW,
+      applicant_name: "Persisted Name",
+      organization_name: "Persisted Org",
+    },
+  });
+  const notify = makeNotify();
+  dependencies.notify = notify.dependencies;
+  const handler = createRequestFounderAccessHandler(dependencies);
+
+  await handler(post(validPayload));
+
+  const applicantSends = sendsFor(notify, "founder-request-confirmation");
+  const html = applicantSends[0].message.html as string;
+  assertEquals(html.includes("Persisted Name"), true);
+  assertEquals(html.includes("Persisted Org"), true);
 });
 
 Deno.test("the review link points at the canonical admin founder-request route", async () => {
@@ -263,14 +338,28 @@ Deno.test("the review link points at the canonical admin founder-request route",
 
   await handler(post(validPayload));
 
-  const html = notify.sends[0].message.html as string;
+  const adminHtml = sendsFor(notify, "admin_request_notification")[0].message.html as string;
   assertEquals(
-    html.includes(`https://salsasegura.example/admin/founder-requests/${INSERTED_ROW.id}`),
+    adminHtml.includes(`https://salsasegura.example/admin/founder-requests/${INSERTED_ROW.id}`),
     true
   );
 });
 
-Deno.test("a duplicate request does not claim or send a notification", async () => {
+Deno.test("the applicant confirmation carries no admin URL, review link, or token", async () => {
+  const notify = makeNotify({ reviewUrlBase: "https://salsasegura.example/admin/founder-requests/" });
+  const { dependencies } = makeService();
+  dependencies.notify = notify.dependencies;
+  const handler = createRequestFounderAccessHandler(dependencies);
+
+  await handler(post(validPayload));
+
+  const applicantHtml = sendsFor(notify, "founder-request-confirmation")[0].message.html as string;
+  for (const forbidden of ["/admin/founder-requests/", "http://", "https://", "token"]) {
+    assertEquals(applicantHtml.toLowerCase().includes(forbidden.toLowerCase()), false);
+  }
+});
+
+Deno.test("a duplicate request does not claim or send either notification", async () => {
   const notify = makeNotify();
   const { dependencies } = makeService({ existing: { id: "existing-id" } });
   dependencies.notify = notify.dependencies;
@@ -282,7 +371,7 @@ Deno.test("a duplicate request does not claim or send a notification", async () 
   assertEquals(notify.sends.length, 0);
 });
 
-Deno.test("a concurrent-race duplicate does not claim or send a notification", async () => {
+Deno.test("a concurrent-race duplicate does not claim or send either notification", async () => {
   const notify = makeNotify();
   const { dependencies } = makeService({
     insertError: { code: "23505", message: "duplicate key value violates unique constraint" },
@@ -296,7 +385,7 @@ Deno.test("a concurrent-race duplicate does not claim or send a notification", a
   assertEquals(notify.sends.length, 0);
 });
 
-Deno.test("a honeypot submission does not claim or send a notification", async () => {
+Deno.test("a honeypot submission does not claim or send either notification", async () => {
   const notify = makeNotify();
   const { dependencies } = makeService();
   dependencies.notify = notify.dependencies;
@@ -308,7 +397,7 @@ Deno.test("a honeypot submission does not claim or send a notification", async (
   assertEquals(notify.sends.length, 0);
 });
 
-Deno.test("an already-claimed/sent notification is not resent (dedup)", async () => {
+Deno.test("an already-claimed/sent notification is not resent for either event (dedup)", async () => {
   const notify = makeNotify({ claimAttemptId: null });
   const { dependencies } = makeService();
   dependencies.notify = notify.dependencies;
@@ -316,29 +405,50 @@ Deno.test("an already-claimed/sent notification is not resent (dedup)", async ()
 
   const res = await handler(post(validPayload));
   assertEquals(res.status, 200);
-  assertEquals(notify.claims, [INSERTED_ROW.id]);
+  assertEquals(claimsFor(notify, "admin_request_notification").length, 1);
+  assertEquals(claimsFor(notify, "applicant_confirmation").length, 1);
   assertEquals(notify.sends.length, 0);
   assertEquals(notify.completions.length, 0);
 });
 
-Deno.test("a Resend failure does not fail the public submission, and is recorded", async () => {
-  const notify = makeNotify({
-    sendResult: { data: null, error: { name: "validation_error", message: "domain not verified" } },
-  });
-  const { dependencies } = makeService();
-  dependencies.notify = notify.dependencies;
-  const handler = createRequestFounderAccessHandler(dependencies);
+for (const adminSucceeds of [true, false]) {
+  for (const applicantSucceeds of [true, false]) {
+    Deno.test(`independent delivery: admin=${adminSucceeds}, applicant=${applicantSucceeds}`, async () => {
+      const notify = makeNotify();
+      notify.dependencies.resend = {
+        emails: {
+          send: (message, options) => {
+            notify.sends.push({ message, options });
+            const isAdmin = options?.idempotencyKey.includes("admin_request_notification");
+            return Promise.resolve((isAdmin ? adminSucceeds : applicantSucceeds)
+              ? { data: { id: isAdmin ? "admin-provider-id" : "applicant-provider-id" }, error: null }
+              : { data: null, error: { name: "application_error", message: "private provider details" } });
+          },
+        },
+      };
+      const { dependencies, inserts } = makeService();
+      dependencies.notify = notify.dependencies;
+      const res = await createRequestFounderAccessHandler(dependencies)(post(validPayload));
+      assertEquals(res.status, 200);
+      assertEquals(await res.json(), { success: true });
+      assertEquals(inserts.length, 1);
+      assertEquals(inserts[0].status, "pending");
+      assertEquals(notify.sends.length, 2);
+      for (const [event, succeeded, providerId] of [
+        ["admin_request_notification", adminSucceeds, "admin-provider-id"],
+        ["applicant_confirmation", applicantSucceeds, "applicant-provider-id"],
+      ] as const) {
+        const completions = completionsFor(notify, event);
+        assertEquals(completions.length, 1);
+        assertEquals(completions[0].status, succeeded ? "sent" : "failed");
+        assertEquals(completions[0].providerMessageId, succeeded ? providerId : null);
+        assertEquals(completions[0].errorCode, succeeded ? null : "provider_error");
+      }
+    });
+  }
+}
 
-  const res = await handler(post(validPayload));
-  assertEquals(res.status, 200);
-  assertEquals(await res.json(), { success: true });
-
-  assertEquals(notify.completions.length, 1);
-  assertEquals(notify.completions[0].status, "failed");
-  assertExists(notify.completions[0].errorCode);
-});
-
-Deno.test("a thrown Resend error does not fail the public submission", async () => {
+Deno.test("a thrown Resend error does not fail the public submission (either event)", async () => {
   const notify = makeNotify({ sendThrows: new Error("network unreachable") });
   const { dependencies } = makeService();
   dependencies.notify = notify.dependencies;
@@ -346,11 +456,13 @@ Deno.test("a thrown Resend error does not fail the public submission", async () 
 
   const res = await handler(post(validPayload));
   assertEquals(res.status, 200);
-  assertEquals(notify.completions[0].status, "failed");
-  assertEquals(notify.completions[0].errorCode, "network_error");
+  assertEquals(completionsFor(notify, "admin_request_notification")[0].status, "failed");
+  assertEquals(completionsFor(notify, "admin_request_notification")[0].errorCode, "network_error");
+  assertEquals(completionsFor(notify, "applicant_confirmation")[0].status, "failed");
+  assertEquals(completionsFor(notify, "applicant_confirmation")[0].errorCode, "network_error");
 });
 
-Deno.test("a missing recipient configuration does not fail the public submission", async () => {
+Deno.test("a missing admin recipient configuration does not fail the public submission", async () => {
   const notify = makeNotify({ settings: { platform_name: "SalsaSegura", support_email: "" } });
   const { dependencies } = makeService();
   dependencies.notify = notify.dependencies;
@@ -359,12 +471,31 @@ Deno.test("a missing recipient configuration does not fail the public submission
   const res = await handler(post(validPayload));
   assertEquals(res.status, 200);
   assertEquals(await res.json(), { success: true });
-  assertEquals(notify.sends.length, 0);
-  assertEquals(notify.completions[0].status, "failed");
-  assertEquals(notify.completions[0].errorCode, "no_recipient");
+  assertEquals(sendsFor(notify, "admin_request_notification").length, 0);
+  assertEquals(completionsFor(notify, "admin_request_notification")[0].status, "failed");
+  assertEquals(completionsFor(notify, "admin_request_notification")[0].errorCode, "no_recipient");
+  // The applicant confirmation is independent — a bad admin recipient
+  // never prevents it from sending.
+  assertEquals(sendsFor(notify, "founder-request-confirmation").length, 1);
+  assertEquals(completionsFor(notify, "applicant_confirmation")[0].status, "sent");
 });
 
-Deno.test("an unreadable settings row does not fail the public submission", async () => {
+Deno.test("an invalid/unpersisted applicant recipient does not fail the public submission or block the admin notification", async () => {
+  const { dependencies } = makeService({ insertedRow: { ...INSERTED_ROW, normalized_email: "" } });
+  const notify = makeNotify();
+  dependencies.notify = notify.dependencies;
+  const handler = createRequestFounderAccessHandler(dependencies);
+
+  const res = await handler(post(validPayload));
+  assertEquals(res.status, 200);
+  assertEquals(await res.json(), { success: true });
+  assertEquals(sendsFor(notify, "founder-request-confirmation").length, 0);
+  assertEquals(completionsFor(notify, "applicant_confirmation")[0].status, "failed");
+  assertEquals(completionsFor(notify, "applicant_confirmation")[0].errorCode, "no_recipient");
+  assertEquals(completionsFor(notify, "admin_request_notification")[0].status, "sent");
+});
+
+Deno.test("an unreadable settings row does not fail the public submission, and does not block the applicant confirmation", async () => {
   const notify = makeNotify({ settingsError: { code: "500", message: "connection refused" } });
   const { dependencies } = makeService();
   dependencies.notify = notify.dependencies;
@@ -372,11 +503,12 @@ Deno.test("an unreadable settings row does not fail the public submission", asyn
 
   const res = await handler(post(validPayload));
   assertEquals(res.status, 200);
-  assertEquals(notify.sends.length, 0);
-  assertEquals(notify.completions[0].errorCode, "configuration_error");
+  assertEquals(sendsFor(notify, "admin_request_notification").length, 0);
+  assertEquals(completionsFor(notify, "admin_request_notification")[0].errorCode, "configuration_error");
+  assertEquals(completionsFor(notify, "applicant_confirmation")[0].status, "sent");
 });
 
-Deno.test("a missing Resend configuration does not fail the public submission", async () => {
+Deno.test("a missing Resend configuration fails both notifications with configuration_error", async () => {
   const notify = makeNotify({ resendConfigured: false });
   const { dependencies } = makeService();
   dependencies.notify = notify.dependencies;
@@ -385,10 +517,11 @@ Deno.test("a missing Resend configuration does not fail the public submission", 
   const res = await handler(post(validPayload));
   assertEquals(res.status, 200);
   assertEquals(notify.sends.length, 0);
-  assertEquals(notify.completions[0].errorCode, "configuration_error");
+  assertEquals(completionsFor(notify, "admin_request_notification")[0].errorCode, "configuration_error");
+  assertEquals(completionsFor(notify, "applicant_confirmation")[0].errorCode, "configuration_error");
 });
 
-Deno.test("a claim-read failure does not fail the public submission", async () => {
+Deno.test("a claim-read failure does not fail the public submission (either event)", async () => {
   const notify = makeNotify({ claimError: { code: "500", message: "connection refused" } });
   const { dependencies } = makeService();
   dependencies.notify = notify.dependencies;
@@ -399,42 +532,60 @@ Deno.test("a claim-read failure does not fail the public submission", async () =
   assertEquals(notify.sends.length, 0);
 });
 
-Deno.test("internal fields (reviewed_by, reviewed_at, rejection state) never reach the email", async () => {
+Deno.test("a thrown admin-claim error is caught and never prevents the applicant confirmation from running", async () => {
   const notify = makeNotify();
+  let adminClaimed = false;
+  const wrapped: FounderRequestNotifyDependencies = {
+    ...notify.dependencies,
+    claimAttempt: (requestId, emailEvent) => {
+      if (emailEvent === "admin_request_notification" && !adminClaimed) {
+        adminClaimed = true;
+        throw new Error("boom");
+      }
+      return notify.dependencies.claimAttempt(requestId, emailEvent);
+    },
+  };
   const { dependencies } = makeService();
-  dependencies.notify = notify.dependencies;
+  dependencies.notify = wrapped;
   const handler = createRequestFounderAccessHandler(dependencies);
 
-  await handler(post(validPayload));
-
-  const html = notify.sends[0].message.html as string;
-  for (const forbidden of ["reviewed_by", "reviewed_at", "rejection_reason", "rejection_message"]) {
-    assertEquals(html.includes(forbidden), false);
-  }
+  const res = await handler(post(validPayload));
+  assertEquals(res.status, 200);
+  assertEquals(await res.json(), { success: true });
+  assertEquals(sendsFor(notify, "founder-request-confirmation").length, 1);
+  assertEquals(completionsFor(notify, "applicant_confirmation")[0].status, "sent");
 });
 
-Deno.test("applicant-supplied HTML in name/organization is escaped in the notification", async () => {
+Deno.test("applicant-supplied HTML in name/organization is escaped in both notifications", async () => {
   const notify = makeNotify();
-  const { dependencies } = makeService();
+  const { dependencies } = makeService({
+    insertedRow: {
+      ...INSERTED_ROW,
+      applicant_name: "<img src=x onerror=alert(1)>",
+      organization_name: "<script>alert(2)</script>",
+    },
+  });
   dependencies.notify = notify.dependencies;
   const handler = createRequestFounderAccessHandler(dependencies);
 
   await handler(
     post({
-      applicantName: '<img src=x onerror=alert(1)>',
+      applicantName: "<img src=x onerror=alert(1)>",
       email: "attacker@example.com",
       organizationName: "<script>alert(2)</script>",
     })
   );
 
-  const html = notify.sends[0].message.html as string;
-  assertEquals(html.includes("<img"), false);
-  assertEquals(html.includes("<script>"), false);
-  assertEquals(html.includes("&lt;img"), true);
-  assertEquals(html.includes("&lt;script&gt;"), true);
+  for (const send of notify.sends) {
+    const html = send.message.html as string;
+    assertEquals(html.includes("<img"), false);
+    assertEquals(html.includes("<script>"), false);
+    assertEquals(html.includes("&lt;img"), true);
+    assertEquals(html.includes("&lt;script&gt;"), true);
+  }
 });
 
-Deno.test("the notification reply-to is the applicant's own address", async () => {
+Deno.test("the admin notification reply-to is the applicant's own address", async () => {
   const notify = makeNotify();
   const { dependencies } = makeService();
   dependencies.notify = notify.dependencies;
@@ -442,10 +593,21 @@ Deno.test("the notification reply-to is the applicant's own address", async () =
 
   await handler(post(validPayload));
 
-  assertEquals(notify.sends[0].message.replyTo, "john@example.com");
+  assertEquals(sendsFor(notify, "admin_request_notification")[0].message.replyTo, "john@example.com");
 });
 
-Deno.test("the notification carries a per-request idempotency key", async () => {
+Deno.test("the applicant confirmation has no reply-to override", async () => {
+  const notify = makeNotify();
+  const { dependencies } = makeService();
+  dependencies.notify = notify.dependencies;
+  const handler = createRequestFounderAccessHandler(dependencies);
+
+  await handler(post(validPayload));
+
+  assertEquals(sendsFor(notify, "founder-request-confirmation")[0].message.replyTo, undefined);
+});
+
+Deno.test("the admin notification carries a per-request idempotency key", async () => {
   const notify = makeNotify();
   const { dependencies } = makeService();
   dependencies.notify = notify.dependencies;
@@ -454,7 +616,21 @@ Deno.test("the notification carries a per-request idempotency key", async () => 
   await handler(post(validPayload));
 
   assertEquals(
-    notify.sends[0].options?.idempotencyKey,
+    sendsFor(notify, "admin_request_notification")[0].options?.idempotencyKey,
     `founder-request-${INSERTED_ROW.id}-admin_request_notification`
+  );
+});
+
+Deno.test("the applicant confirmation carries a stable per-request idempotency key", async () => {
+  const notify = makeNotify();
+  const { dependencies } = makeService();
+  dependencies.notify = notify.dependencies;
+  const handler = createRequestFounderAccessHandler(dependencies);
+
+  await handler(post(validPayload));
+
+  assertEquals(
+    sendsFor(notify, "founder-request-confirmation")[0].options?.idempotencyKey,
+    `founder-request-confirmation:${INSERTED_ROW.id}`
   );
 });

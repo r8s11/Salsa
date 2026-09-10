@@ -16,6 +16,8 @@ import {
 } from "../lib/founderInvitationToken";
 import { setAuthReturnDestination } from "../lib/authReturnDestination";
 import "./FoundersAcceptPage.css";
+import Button from "../components/ui/Button";
+import ButtonLink from "../components/ui/ButtonLink";
 
 // Result of validating the invitation token; independent of auth state.
 type FetchState =
@@ -208,20 +210,12 @@ export default function FoundersAcceptPage() {
               {formatDate(state.expiresAt)}.
             </p>
             <div className="founders-accept-actions">
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={() => goSignIn("signin")}
-              >
+              <Button onClick={() => goSignIn("signin")}>
                 Sign In
-              </button>
-              <button
-                type="button"
-                className="btn-secondary"
-                onClick={() => goSignIn("signup")}
-              >
+              </Button>
+              <Button variant="secondary" onClick={() => goSignIn("signup")}>
                 Create Account
-              </button>
+              </Button>
             </div>
             <p className="founders-accept-hint">
               Use the email address the invitation was sent to. Do not have access to it? Contact
@@ -241,14 +235,9 @@ export default function FoundersAcceptPage() {
               continue setting up your organization.
             </p>
             <div className="founders-accept-actions">
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={handleAccept}
-                disabled={false}
-              >
+              <Button onClick={handleAccept} disabled={false}>
                 Accept Invitation
-              </button>
+              </Button>
             </div>
           </section>
         )}
@@ -264,9 +253,9 @@ export default function FoundersAcceptPage() {
               accept it.
             </p>
             <div className="founders-accept-actions">
-              <button type="button" className="btn-primary" onClick={handleSwitchAccount}>
+              <Button onClick={handleSwitchAccount}>
                 Sign in with a different account
-              </button>
+              </Button>
             </div>
           </section>
         )}
@@ -280,9 +269,9 @@ export default function FoundersAcceptPage() {
               The link may have already been used, expired, or been revoked. If you believe this is
               a mistake, contact the SalsaSegura team.
             </p>
-            <Link to="/" className="btn-secondary founders-accept-home">
+            <ButtonLink to="/" variant="secondary">
               Back to SalsaSegura
-            </Link>
+            </ButtonLink>
           </section>
         )}
 
@@ -305,9 +294,9 @@ export default function FoundersAcceptPage() {
               Your SalsaSegura account is now connected to this Founder invitation. Let&apos;s
               finish setting up your organization.
             </p>
-            <Link to="/founders/welcome" className="btn-primary founders-accept-home">
+            <ButtonLink to="/founders/welcome" variant="primary">
               Continue
-            </Link>
+            </ButtonLink>
           </section>
         )}
 
@@ -318,13 +307,9 @@ export default function FoundersAcceptPage() {
             </h1>
             <p className="founders-accept-detail">Please try again in a moment.</p>
             <div className="founders-accept-actions">
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={() => window.location.reload()}
-              >
+              <Button onClick={() => window.location.reload()}>
                 Try Again
-              </button>
+              </Button>
             </div>
           </section>
         )}

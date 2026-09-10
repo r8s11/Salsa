@@ -122,7 +122,7 @@ describe("Hero", () => {
     expect(container.querySelector(".hero-stats")).toHaveAttribute("data-motion", "div");
   });
 
-  it("renders the decorative vinyl as a repeating Motion background layer", () => {
+  it("renders the decorative record as layered, non-announced background art", () => {
     const { container } = render(
       <MemoryRouter>
         <Hero />
@@ -131,12 +131,14 @@ describe("Hero", () => {
 
     const vinyl = container.querySelector(".hero-vinyl");
     expect(vinyl).toHaveAttribute("aria-hidden", "true");
-    expect(vinyl).toHaveAttribute("data-motion", "div");
-    expect(vinyl).toHaveAttribute("data-motion-rotate", "360");
-    expect(vinyl).toHaveAttribute("data-motion-rotate-repeat", "Infinity");
+    // Disc and label spin together in CSS; glow and sheen stay put.
+    expect(vinyl?.querySelector(".hero-vinyl__disc .hero-vinyl__grooves")).toBeInTheDocument();
+    expect(vinyl?.querySelector(".hero-vinyl__disc .hero-vinyl__label")).toBeInTheDocument();
+    expect(vinyl?.querySelector(".hero-vinyl__glow")).toBeInTheDocument();
+    expect(vinyl?.querySelector(".hero-vinyl__sheen")).toBeInTheDocument();
   });
 
-  it("keeps the vinyl static when reduced motion is requested", () => {
+  it("drops the vinyl entrance animation when reduced motion is requested", () => {
     motionState.reduced = true;
     const { container, unmount } = render(
       <MemoryRouter>
@@ -146,7 +148,7 @@ describe("Hero", () => {
 
     const vinyl = container.querySelector(".hero-vinyl");
     expect(vinyl).toHaveAttribute("data-motion", "div");
-    expect(vinyl).not.toHaveAttribute("data-motion-rotate");
+    expect(vinyl).not.toHaveAttribute("data-motion-opacity");
     unmount();
     motionState.reduced = false;
   });

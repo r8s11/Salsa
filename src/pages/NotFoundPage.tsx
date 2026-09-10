@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import ButtonLink from "../components/ui/ButtonLink";
 
 export default function NotFoundPage() {
   return (
@@ -7,9 +7,9 @@ export default function NotFoundPage() {
         <h1>404</h1>
         <h2>Page Not Found</h2>
         <p>Oops! Looks like this page took a wrong turn on the dance floor.</p>
-        <Link to="/" className="btn-primary">
+        <ButtonLink to="/" variant="primary">
           🏠 Back to Home
-        </Link>
+        </ButtonLink>
       </div>
     </section>
   );

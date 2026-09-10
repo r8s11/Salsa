@@ -279,6 +279,12 @@ main {
   border-color: var(--red);
 }
 
+.contact-form input:focus-visible,
+.contact-form textarea:focus-visible {
+  outline: 2px solid var(--red-bright);
+  outline-offset: 2px;
+}
+
 .contact-form button {
   background: var(--red);
   color: var(--text);
@@ -568,9 +574,6 @@ a.logo:focus-visible {
   outline-offset: 4px;
 }
 
-.cta-button:focus-visible,
-.submit-button:focus-visible,
-.details-button:focus-visible,
 .hero-btn:focus-visible {
   outline: 2px solid var(--red-bright);
   outline-offset: 2px;

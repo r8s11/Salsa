@@ -81,7 +81,7 @@ export default function HostCheckInPage() {
   }
 
   return (
-    <main className="admin-shell">
+    <div className="admin-shell">
       <div className="host-checkin">
         <Link
           to={`/host/events/${eventId}`}
@@ -227,6 +227,6 @@ export default function HostCheckInPage() {
           </>
         )}
       </div>
-    </main>
+    </div>
   );
 }

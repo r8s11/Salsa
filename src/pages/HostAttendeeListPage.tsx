@@ -189,7 +189,7 @@ export default function HostAttendeeListPage() {
   }
 
   return (
-    <main className="admin-shell">
+    <div className="admin-shell">
       <div className="host-attendee-list">
         <Link
           to={`/host/events/${eventId}`}
@@ -296,7 +296,7 @@ export default function HostAttendeeListPage() {
           />
         )}
       </div>
-    </main>
+    </div>
   );
 }
 

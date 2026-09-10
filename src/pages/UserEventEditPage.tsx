@@ -26,6 +26,7 @@ import { validateSubmitForm } from "../features/submit-event/validation";
 import { useMySubmissions } from "../hooks/useMySubmissions";
 import "../styles/forms.css";
 import "./UserEventEditPage.css";
+import Button from "../components/ui/Button";
 
 function buildUserDraft(event: DatabaseEvent): EventFormDraft {
   const { date, time } = fromEventDateInstant(event.event_date);
@@ -349,17 +350,14 @@ export default function UserEventEditPage() {
               }
             />
             <div className="user-edit-page__actions">
-              <button type="submit" className="btn-primary" disabled={isSaving}>
-                {isSaving ? "Saving…" : "Save changes"}
-              </button>
-              <button
-                type="button"
-                className="btn-secondary"
+              <Button type="submit" loading={isSaving} loadingLabel="Saving…">Save changes</Button>
+              <Button
+                variant="secondary"
                 onClick={() => navigate(returnPath)}
                 disabled={isSaving}
               >
                 Cancel
-              </button>
+              </Button>
               {canWithdraw && (
                 <button
                   type="button"
@@ -437,18 +435,17 @@ function WithdrawConfirmDialog({
           </p>
         )}
         <div className="user-withdraw-dialog__actions">
-          <button
-            type="button"
-            className="btn-secondary"
+          <Button
+            variant="secondary"
             ref={cancelRef}
             onClick={onCancel}
             disabled={isBusy}
           >
             Cancel
-          </button>
-          <button type="button" className="btn-danger" onClick={onConfirm} disabled={isBusy}>
-            {isBusy ? "Withdrawing…" : "Withdraw submission"}
-          </button>
+          </Button>
+          <Button variant="danger" onClick={onConfirm} disabled={isBusy} loading={isBusy} loadingLabel="Withdrawing…">
+            Withdraw submission
+          </Button>
         </div>
       </div>
     </div>

@@ -340,11 +340,13 @@ describe("HostMyEventsPage", () => {
     expect(img).toHaveAttribute("src", "https://cdn.example.com/flyer.png");
   });
 
-  it("shows fallback when no flyer", async () => {
+  it("shows fallback when no flyer, hidden from the accessibility tree", async () => {
     mockEvents([draftEvent]);
     renderPage();
     expect(await screen.findByText("New Year Bash")).toBeInTheDocument();
-    expect(screen.getByText("💃")).toBeInTheDocument();
+    const fallbackIcon = screen.getByText("💃");
+    expect(fallbackIcon).toBeInTheDocument();
+    expect(fallbackIcon).toHaveAttribute("aria-hidden", "true");
   });
 
   /* ── Attendance ── */

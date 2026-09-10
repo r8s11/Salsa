@@ -4,6 +4,8 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/useAuth";
 import { useMySubmissions } from "../hooks/useMySubmissions";
 import type { DatabaseEvent } from "../features/events/model/types";
+import Button from "../components/ui/Button";
+import ButtonLink from "../components/ui/ButtonLink";
 import "./ProfilePage.css";
 
 function formatEventDate(isoDate: string): string {
@@ -120,19 +122,15 @@ export default function ProfilePage() {
         </div>
 
         <div className="profile-actions">
-          <Link className="profile-action-btn profile-action-btn--primary" to="/submit">
+          <ButtonLink to="/submit" variant="primary">
             + Submit Event
-          </Link>
-          <Link className="profile-action-btn profile-action-btn--outline" to="/calendar">
+          </ButtonLink>
+          <ButtonLink to="/calendar" variant="secondary">
             View Calendar
-          </Link>
-          <button
-            type="button"
-            className="profile-action-btn profile-action-btn--outline"
-            onClick={() => signOut("global")}
-          >
+          </ButtonLink>
+          <Button variant="secondary" onClick={() => signOut("global")}>
             Sign Out
-          </button>
+          </Button>
         </div>
       </div>
 

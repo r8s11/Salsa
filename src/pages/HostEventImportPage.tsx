@@ -119,7 +119,7 @@ export default function HostEventImportPage() {
 
   if (activeOrganizers.length === 0) {
     return (
-      <main className="admin-shell">
+      <div className="admin-shell">
         <AdminPageHeader
           title="Import Events"
           description="Bulk-add events from a spreadsheet."
@@ -135,12 +135,12 @@ export default function HostEventImportPage() {
             Back to Events
           </Link>
         </div>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="admin-shell">
+    <div className="admin-shell">
       <AdminPageHeader
         title="Import Events"
         description={
@@ -390,6 +390,6 @@ export default function HostEventImportPage() {
           </div>
         </section>
       )}
-    </main>
+    </div>
   );
 }

@@ -1,4 +1,5 @@
 import type { ChangeEvent } from "react";
+import { X } from "lucide-react";
 import {
   FOUNDER_REQUEST_SORT_OPTIONS,
   type FounderRequestFilters,
@@ -53,7 +54,7 @@ export default function AdminFounderRequestsFilterDrawer({
         <header className="filter-drawer-header">
           <h2>Filters</h2>
           <button className="close-btn" onClick={onClose} aria-label="Close filters">
-            <span className="icon">✕</span>
+            <X className="icon" size={18} aria-hidden="true" />
           </button>
         </header>
 

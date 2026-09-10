@@ -6,7 +6,8 @@ import {
   isHoneypotTripped,
 } from "../_shared/founderRequest.ts";
 import { founderRequestAdminNotificationEmail } from "../_shared/founderRequestNotificationEmail.ts";
-import { classifyResendFailure } from "../_shared/emailLayout.ts";
+import { founderRequestConfirmationEmail } from "../_shared/founderRequestConfirmationEmail.ts";
+import { classifyResendFailure, type EmailContent } from "../_shared/emailLayout.ts";
 
 /**
  * POST /functions/v1/request-founder-access
@@ -16,34 +17,46 @@ import { classifyResendFailure } from "../_shared/emailLayout.ts";
  *
  * Pipeline: body-size guard → JSON parse → honeypot → authoritative
  * validation/normalization (shared module) → duplicate check → insert
- * with status forced to 'pending' → automatic internal admin
- * notification attempt.
+ * with status forced to 'pending' → two independent automatic
+ * notification attempts (internal admin, then applicant confirmation).
  *
  * Responses are enumeration-safe: every successful path returns the exact
  * same body whether a row was inserted, a duplicate was suppressed, or a
  * honeypot was tripped — nothing reveals whether a given email has
  * applied, and no admin workflow state is exposed.
  *
- * The gateway keeps default JWT verification: callers must present a
- * valid Supabase key (the frontend uses supabase.functions.invoke, which
- * always sends the publishable key or a session token). No caller
- * identity is used for authorization — payload validation is the whole
- * boundary.
+ * Public intake runs with verify_jwt=false; no caller identity authorizes
+ * email delivery. Validation, persisted request state, and server-owned
+ * templates and recipient routing define that boundary.
  *
- * ADMIN NOTIFICATION, ANTI-RELAY. After — and only after — a fresh row
- * is durably inserted, this function attempts one internal notification
- * to `platform_settings.support_email`, mirroring the invariant
- * established by send-submission-email: the caller (an anonymous
- * applicant) supplies none of the recipient, subject, or body — those
- * are derived entirely server-side from the row just inserted and from
- * trusted platform configuration. A duplicate or honeypot outcome never
- * triggers a notification (spec §7/§8): only the branch that actually
- * performs the INSERT calls the notification helper.
+ * NOTIFICATIONS, ANTI-RELAY. After — and only after — a fresh row is
+ * durably inserted, this function attempts two notifications, each
+ * independently claimed and completed:
  *
- * RELIABILITY. The notification is attempted after the insert commits
+ *  - `admin_request_notification`, to `platform_settings.support_email`,
+ *    with server-owned subject and body derived from validated request
+ *    facts and trusted platform configuration.
+ *  - `applicant_confirmation`, a receipt to the applicant themselves.
+ *    The recipient and copy come from the row exactly as the database
+ *    persisted it (`normalized_email`, `applicant_name`,
+ *    `organization_name`) — never from the raw, unpersisted request
+ *    body — so a race or normalization mismatch can never send to an
+ *    address that wasn't actually stored. The receipt states plainly
+ *    that the request is pending review, no action is required,
+ *    approval is not guaranteed, and no Host access is active yet; a
+ *    separate, secure invitation follows only if the request is later
+ *    approved.
+ *
+ * A duplicate or honeypot outcome never triggers either notification
+ * (spec §7/§8): only the branch that actually performs the INSERT calls
+ * the notification helpers.
+ *
+ * RELIABILITY. Each notification is attempted after the insert commits
  * and is never allowed to change the public response or roll back the
- * request. A send failure — including a missing recipient or missing
- * Resend configuration — is recorded in
+ * request. The two attempts are independent and sequential: a failure —
+ * or a thrown error — in one is caught and logged without ever
+ * preventing the other from running. A send failure — including a
+ * missing recipient or missing Resend configuration — is recorded in
  * founder_request_notification_attempts and logged; the caller still
  * receives SUCCESS_RESPONSE. Idempotency is enforced the same way as
  * the four event-submission emails: an atomic claim, keyed on
@@ -69,7 +82,13 @@ const SUCCESS_RESPONSE: FounderAccessResponse = { success: true };
 // --- Dependency seam (mirrors invite-organizer's ServiceClient pattern) ---
 
 type MaybeSingleResult = Promise<{ data: { id: string } | null; error: { message?: string } | null }>;
-type InsertedRow = { id: string; created_at: string };
+type InsertedRow = {
+  id: string;
+  created_at: string;
+  normalized_email: string;
+  applicant_name: string;
+  organization_name: string;
+};
 type InsertResult = Promise<{ data: InsertedRow | null; error: { code?: string; message?: string } | null }>;
 
 export type FounderAccessTable = {
@@ -104,20 +123,29 @@ type ResendResult = {
   error: { message?: string; name?: string } | null;
 };
 
+/** The two distinct email events tracked in founder_request_notification_attempts. */
+export type FounderRequestEmailEvent = "admin_request_notification" | "applicant_confirmation";
+
 /**
- * The internal admin-notification dependencies. `resend` is nullable —
- * when RESEND_API_KEY is not configured, the notification is skipped
+ * The internal notification dependencies, shared by both the admin
+ * notification and the applicant confirmation. `resend` is nullable —
+ * when RESEND_API_KEY is not configured, every notification is skipped
  * (recorded as a `configuration_error` attempt) rather than the whole
  * function failing to boot. The public submission path never depends on
  * any of these.
  */
 export type FounderRequestNotifyDependencies = {
   readSettings: () => Promise<QueryResult<SettingsRow>>;
-  /** Atomically claims the right to send one admin notification for this request. */
-  claimAttempt: (requestId: string) => Promise<{ attemptId: string | null; error: PostgrestError | null }>;
+  /** Atomically claims the right to send one notification of `emailEvent` for this request. */
+  claimAttempt: (
+    requestId: string,
+    emailEvent: FounderRequestEmailEvent
+  ) => Promise<{ attemptId: string | null; error: PostgrestError | null }>;
   /** Closes a claim opened by claimAttempt as sent or failed. */
   completeAttempt: (attempt: {
     attemptId: string;
+    requestId: string;
+    emailEvent: FounderRequestEmailEvent;
     status: "sent" | "failed";
     providerMessageId: string | null;
     errorCode: string | null;
@@ -174,11 +202,108 @@ function normalizedRecipient(value: string | null | undefined): string | null {
 }
 
 /**
- * Attempts the internal admin notification for one freshly inserted
- * Founder request. Never throws and never returns a value the caller
- * needs to act on — a failure here is diagnosable through
- * founder_request_notification_attempts, never a reason to change the
- * public response.
+ * Claims the right to send one notification of `emailEvent` for a
+ * request. Returns null when the claim fails or another caller holds it.
+ */
+async function claimNotification(
+  notify: FounderRequestNotifyDependencies,
+  requestId: string,
+  emailEvent: FounderRequestEmailEvent
+): Promise<string | null> {
+  const claim = await notify.claimAttempt(requestId, emailEvent);
+  if (claim.error) {
+    notify.log(`request-founder-access: ${emailEvent} claim failed`, {
+      requestId,
+      code: claim.error.code,
+    });
+    return null;
+  }
+  return claim.attemptId; // null means already sent, or another caller holds the claim
+}
+
+/**
+ * Sends one claimed notification and records the normalized provider outcome.
+ * The handler isolates exceptions from either notification path.
+ */
+async function sendAndComplete(
+  notify: FounderRequestNotifyDependencies,
+  args: {
+    attemptId: string;
+    requestId: string;
+    emailEvent: FounderRequestEmailEvent;
+    recipient: string;
+    content: EmailContent;
+    replyTo?: string;
+    idempotencyKey: string;
+  }
+): Promise<void> {
+  if (!notify.resend) {
+    await notify.completeAttempt({
+      attemptId: args.attemptId,
+      requestId: args.requestId,
+      emailEvent: args.emailEvent,
+      status: "failed",
+      providerMessageId: null,
+      errorCode: "configuration_error",
+    });
+    notify.log(`request-founder-access: ${args.emailEvent} configuration unavailable`, {
+      requestId: args.requestId,
+      resendConfigured: false,
+    });
+    return;
+  }
+
+  let sendResult: ResendResult | null = null;
+  let thrown: unknown = null;
+  try {
+    sendResult = await notify.resend.emails.send(
+      {
+        from: notify.from,
+        to: args.recipient,
+        subject: args.content.subject,
+        html: args.content.html,
+        text: args.content.text,
+        ...(args.replyTo ? { replyTo: args.replyTo } : {}),
+      },
+      // Stable per request/purpose; provider deduplication lasts 24 hours.
+      { idempotencyKey: args.idempotencyKey }
+    );
+  } catch (err) {
+    thrown = err;
+  }
+
+  const providerMessageId = sendResult?.data?.id ?? null;
+  const succeeded = !thrown && sendResult && !sendResult.error && providerMessageId;
+
+  if (succeeded) {
+    await notify.completeAttempt({
+      attemptId: args.attemptId,
+      requestId: args.requestId,
+      emailEvent: args.emailEvent,
+      status: "sent",
+      providerMessageId,
+      errorCode: null,
+    });
+    return;
+  }
+
+  const errorCode = classifyResendFailure(sendResult, thrown);
+  await notify.completeAttempt({
+    attemptId: args.attemptId,
+    requestId: args.requestId,
+    emailEvent: args.emailEvent,
+    status: "failed",
+    providerMessageId: null,
+    errorCode,
+  });
+  notify.log(`request-founder-access: ${args.emailEvent} send failed`, {
+    requestId: args.requestId,
+    errorCode,
+  });
+}
+
+/**
+ * Sends the internal admin notification after a fresh request is committed.
  */
 async function attemptFounderRequestAdminNotification(
   notify: FounderRequestNotifyDependencies,
@@ -194,21 +319,16 @@ async function attemptFounderRequestAdminNotification(
     submittedAt: string;
   }
 ): Promise<void> {
-  const claim = await notify.claimAttempt(request.requestId);
-  if (claim.error) {
-    notify.log("request-founder-access: notification claim failed", {
-      requestId: request.requestId,
-      code: claim.error.code,
-    });
-    return;
-  }
-  if (!claim.attemptId) return; // already sent, or another caller holds the claim
-  const attemptId = claim.attemptId;
+  const emailEvent: FounderRequestEmailEvent = "admin_request_notification";
+  const attemptId = await claimNotification(notify, request.requestId, emailEvent);
+  if (!attemptId) return;
 
   const settingsResult = await notify.readSettings();
-  if (settingsResult.error || !settingsResult.data || !notify.resend) {
+  if (settingsResult.error || !settingsResult.data) {
     await notify.completeAttempt({
       attemptId,
+      requestId: request.requestId,
+      emailEvent,
       status: "failed",
       providerMessageId: null,
       errorCode: "configuration_error",
@@ -216,7 +336,6 @@ async function attemptFounderRequestAdminNotification(
     notify.log("request-founder-access: notification configuration unavailable", {
       requestId: request.requestId,
       settingsError: settingsResult.error?.code,
-      resendConfigured: notify.resend !== null,
     });
     return;
   }
@@ -225,6 +344,8 @@ async function attemptFounderRequestAdminNotification(
   if (!recipient) {
     await notify.completeAttempt({
       attemptId,
+      requestId: request.requestId,
+      emailEvent,
       status: "failed",
       providerMessageId: null,
       errorCode: settingsResult.data.support_email ? "invalid_recipient" : "no_recipient",
@@ -254,40 +375,64 @@ async function attemptFounderRequestAdminNotification(
   // useful default for a moderator following up on a review.
   const replyTo = normalizedRecipient(request.email) ?? undefined;
 
-  let sendResult: ResendResult | null = null;
-  let thrown: unknown = null;
-  try {
-    sendResult = await notify.resend.emails.send(
-      {
-        from: notify.from,
-        to: recipient,
-        subject: content.subject,
-        html: content.html,
-        text: content.text,
-        ...(replyTo ? { replyTo } : {}),
-      },
-      // Deterministic per request: covers a crash after Resend accepted the
-      // message but before the claim was closed — a later retry then
-      // returns the original message instead of sending a second copy.
-      { idempotencyKey: `founder-request-${request.requestId}-admin_request_notification` }
-    );
-  } catch (err) {
-    thrown = err;
+  await sendAndComplete(notify, {
+    attemptId,
+    requestId: request.requestId,
+    emailEvent,
+    recipient,
+    content,
+    replyTo,
+    idempotencyKey: `founder-request-${request.requestId}-admin_request_notification`,
+  });
+}
+
+/**
+ * Attempts the applicant confirmation receipt for one freshly inserted
+ * Founder request. The recipient and copy are both derived from the row
+ * exactly as persisted (`normalized_email`, `applicant_name`,
+ * `organization_name`) — this function accepts no raw request-body
+ * value, so a normalization mismatch or a lost race can never cause a
+ * send to an address that was never actually stored.
+ */
+async function attemptFounderRequestApplicantConfirmation(
+  notify: FounderRequestNotifyDependencies,
+  request: {
+    requestId: string;
+    applicantName: string;
+    organizationName: string;
+    normalizedEmail: string;
   }
+): Promise<void> {
+  const emailEvent: FounderRequestEmailEvent = "applicant_confirmation";
+  const attemptId = await claimNotification(notify, request.requestId, emailEvent);
+  if (!attemptId) return;
 
-  const providerMessageId = sendResult?.data?.id ?? null;
-  const succeeded = !thrown && sendResult && !sendResult.error && providerMessageId;
-
-  if (succeeded) {
-    await notify.completeAttempt({ attemptId, status: "sent", providerMessageId, errorCode: null });
+  const recipient = normalizedRecipient(request.normalizedEmail);
+  if (!recipient) {
+    await notify.completeAttempt({
+      attemptId,
+      requestId: request.requestId,
+      emailEvent,
+      status: "failed",
+      providerMessageId: null,
+      errorCode: request.normalizedEmail ? "invalid_recipient" : "no_recipient",
+    });
+    notify.log("request-founder-access: unusable applicant recipient", { requestId: request.requestId });
     return;
   }
 
-  const errorCode = classifyResendFailure(sendResult, thrown);
-  await notify.completeAttempt({ attemptId, status: "failed", providerMessageId: null, errorCode });
-  notify.log("request-founder-access: notification send failed", {
+  const content = founderRequestConfirmationEmail({
+    applicantName: request.applicantName,
+    organizationName: request.organizationName,
+  });
+
+  await sendAndComplete(notify, {
+    attemptId,
     requestId: request.requestId,
-    errorCode,
+    emailEvent,
+    recipient,
+    content,
+    idempotencyKey: `founder-request-confirmation:${request.requestId}`,
   });
 }
 
@@ -370,7 +515,7 @@ export function createRequestFounderAccessHandler(dependencies: FounderAccessDep
         message: data.message ?? null,
         status: "pending",
       })
-      .select("id,created_at")
+      .select("id,created_at,normalized_email,applicant_name,organization_name")
       .single();
 
     if (insertError || !inserted) {
@@ -386,7 +531,9 @@ export function createRequestFounderAccessHandler(dependencies: FounderAccessDep
 
     // Insert committed. The public response is already decided — a
     // notification failure below can never change it or roll the request
-    // back (spec §4/§12).
+    // back (spec §4/§12). The two notifications are independent: each
+    // gets its own try/catch so a thrown error in one never prevents the
+    // other from running.
     try {
       await attemptFounderRequestAdminNotification(dependencies.notify, {
         requestId: inserted.id,
@@ -401,7 +548,20 @@ export function createRequestFounderAccessHandler(dependencies: FounderAccessDep
       });
     } catch (err) {
       dependencies.log(
-        `founder-access notification threw: ${err instanceof Error ? err.message : "unknown"}`
+        `founder-access admin notification threw: ${err instanceof Error ? err.message : "unknown"}`
+      );
+    }
+
+    try {
+      await attemptFounderRequestApplicantConfirmation(dependencies.notify, {
+        requestId: inserted.id,
+        applicantName: inserted.applicant_name,
+        organizationName: inserted.organization_name,
+        normalizedEmail: inserted.normalized_email,
+      });
+    } catch (err) {
+      dependencies.log(
+        `founder-access applicant confirmation threw: ${err instanceof Error ? err.message : "unknown"}`
       );
     }
 
@@ -454,9 +614,10 @@ function runtimeDependencies(): FounderAccessDependencies {
           .maybeSingle();
         return result as unknown as QueryResult<SettingsRow>;
       },
-      claimAttempt: async (requestId) => {
+      claimAttempt: async (requestId, emailEvent) => {
         const result = await client.rpc("claim_founder_request_notification_attempt", {
           p_request_id: requestId,
+          p_email_event: emailEvent,
         });
         if (result.error) {
           return { attemptId: null, error: result.error as unknown as PostgrestError };
@@ -468,11 +629,22 @@ function runtimeDependencies(): FounderAccessDependencies {
       completeAttempt: async (attempt) => {
         const result = await client.rpc("complete_founder_request_notification_attempt", {
           p_attempt_id: attempt.attemptId,
+          p_request_id: attempt.requestId,
+          p_email_event: attempt.emailEvent,
           p_status: attempt.status,
           p_provider_message_id: attempt.providerMessageId,
           p_error_code: attempt.errorCode,
         });
-        return { error: (result.error as unknown as PostgrestError | null) ?? null };
+        const error = (result.error as unknown as PostgrestError | null) ??
+          (result.data === true ? null : { code: "attempt_not_pending" });
+        if (error) {
+          console.error("request-founder-access: notification completion failed", {
+            requestId: attempt.requestId,
+            emailEvent: attempt.emailEvent,
+            code: error.code,
+          });
+        }
+        return { error };
       },
       resend: resendKey ? new Resend(resendKey) : null,
       from: Deno.env.get("AUTH_EMAIL_FROM") ?? "SalsaSegura <onboarding@resend.dev>",

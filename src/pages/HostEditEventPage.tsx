@@ -156,17 +156,17 @@ export default function HostEditEventPage() {
 
   if (isLoading) {
     return (
-      <main className="host-edit-event">
+      <div className="host-edit-event">
         <p className="host-edit-event__status" role="status">
           Loading event…
         </p>
-      </main>
+      </div>
     );
   }
 
   if (!event) {
     return (
-      <main className="host-edit-event">
+      <div className="host-edit-event">
         <Link to="/host/events" className="host-edit-event__back">
           <ArrowLeft size={16} aria-hidden="true" />
           My Events
@@ -178,13 +178,13 @@ export default function HostEditEventPage() {
             Back to My Events
           </Link>
         </section>
-      </main>
+      </div>
     );
   }
 
   if (accessDenied) {
     return (
-      <main className="host-edit-event">
+      <div className="host-edit-event">
         <Link to="/host/events" className="host-edit-event__back">
           <ArrowLeft size={16} aria-hidden="true" />
           My Events
@@ -196,13 +196,13 @@ export default function HostEditEventPage() {
             Back to My Events
           </Link>
         </section>
-      </main>
+      </div>
     );
   }
 
   if (!hasWriteAccess) {
     return (
-      <main className="host-edit-event">
+      <div className="host-edit-event">
         <Link to="/host/events" className="host-edit-event__back">
           <ArrowLeft size={16} aria-hidden="true" />
           My Events
@@ -214,14 +214,14 @@ export default function HostEditEventPage() {
             Back to My Events
           </Link>
         </section>
-      </main>
+      </div>
     );
   }
 
   const organizer = organizers.find((o) => o.organizerId === event.organizer_id);
 
   return (
-    <main className="host-edit-event">
+    <div className="host-edit-event">
       <Link to={`/host/events/${event.id}`} className="host-edit-event__back">
         <ArrowLeft size={16} aria-hidden="true" />
         Back to event
@@ -279,6 +279,6 @@ export default function HostEditEventPage() {
           </button>
         </div>
       </form>
-    </main>
+    </div>
   );
 }

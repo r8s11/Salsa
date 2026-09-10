@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { useEscapeKey } from "../features/calendar/hooks/useEscapeKey";
+import Button from "../components/ui/Button";
 
 type AccountDeletionDialogProps = {
   error: string | null;
@@ -99,24 +100,22 @@ export default function AccountDeletionDialog({
           </p>
         )}
         <div className="account-page__dialog-actions">
-          <button
+          <Button
             aria-label="Cancel account deletion"
-            className="account-page__btn account-page__btn--outline"
+            variant="secondary"
             disabled={isPending}
             onClick={cancel}
-            type="button"
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             aria-label={isPending ? "Deleting account…" : "Permanently delete account"}
-            className="account-page__btn account-page__btn--danger"
+            variant="danger"
             disabled={!isConfirmed || isPending}
             onClick={onConfirm}
-            type="button"
           >
             {isPending ? "Deleting account…" : "Delete account"}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

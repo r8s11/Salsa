@@ -185,45 +185,6 @@
   flex-wrap: wrap;
 }
 
-.account-page__btn {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 12.5px;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  padding: 11px 20px;
-  border-radius: var(--radius-full);
-  text-decoration: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.account-page__btn--primary {
-  background: linear-gradient(120deg, var(--red), #c2153c);
-  color: #fff;
-}
-
-.account-page__btn--primary:hover {
-  box-shadow: var(--glow-primary);
-  color: #fff;
-}
-
-.account-page__btn--outline {
-  background: transparent;
-  color: var(--text);
-  border: 1px solid var(--border-md);
-}
-
-.account-page__btn--outline:hover {
-  border-color: var(--red);
-  color: #fff;
-  background: var(--red-dim);
-}
-
 /* ── Error / missing-profile states ── */
 
 .account-page__error,
@@ -352,10 +313,6 @@
   margin-top: 4px;
 }
 
-.account-page__session-group > .account-page__btn {
-  margin-top: var(--space-sm);
-}
-
 .account-page__session-group--global {
   border-color: rgba(225, 29, 72, 0.35);
 }
@@ -369,11 +326,6 @@
 .account-page__btn--session-global:hover:not(:disabled) {
   background: rgba(225, 29, 72, 0.22);
   color: #fff;
-}
-
-.account-page__btn:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
 }
 
 .account-page__session-error,
@@ -462,18 +414,6 @@
   margin-top: 0;
 }
 
-.account-page__btn--danger {
-  background: var(--red-dim);
-  border: 1px solid rgba(225, 29, 72, 0.55);
-  color: var(--red-bright);
-  margin-top: var(--space-md);
-}
-
-.account-page__btn--danger:hover:not(:disabled) {
-  background: rgba(225, 29, 72, 0.22);
-  color: #fff;
-}
-
 /* ── Global sign-out confirmation ── */
 
 .account-page__dialog-overlay {
@@ -558,11 +498,6 @@
   gap: var(--space-sm);
   justify-content: flex-end;
   margin-top: var(--space-lg);
-}
-
-.account-page__btn:focus-visible {
-  outline: 2px solid var(--gold);
-  outline-offset: 3px;
 }
 
 /* ── Role capabilities ── */
@@ -718,11 +653,6 @@
     width: 100%;
   }
 
-  .account-page__identity-actions .account-page__btn {
-    flex: 1;
-    text-align: center;
-  }
-
   .account-page__capability-grid {
     grid-template-columns: 1fr;
   }
@@ -745,13 +675,6 @@
   .account-page__session-row {
     align-items: stretch;
     flex-direction: column;
-  }
-
-  .account-page__session-row .account-page__btn,
-  .account-page__session-group > .account-page__btn,
-  .account-page__danger .account-page__btn,
-  .account-page__dialog-actions .account-page__btn {
-    width: 100%;
   }
 
   .account-page__dialog {

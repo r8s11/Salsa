@@ -94,50 +94,6 @@
   margin-bottom: var(--space-md);
 }
 
-.founders-accept-actions .btn-primary,
-.founders-accept-actions .btn-secondary {
-  padding: var(--space-sm) var(--space-lg);
-  font-size: 1rem;
-  font-weight: 600;
-  border-radius: var(--radius);
-  cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
-}
-
-.founders-accept-actions .btn-primary {
-  color: #fff;
-  background: var(--red);
-  border: none;
-}
-
-.founders-accept-actions .btn-primary:hover:not(:disabled) {
-  background: var(--red-bright);
-}
-
-.founders-accept-actions .btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.founders-accept-actions .btn-secondary,
-.founders-accept-card > .btn-secondary {
-  color: var(--text-muted);
-  background: transparent;
-  border: 1px solid var(--border-md);
-  text-decoration: none;
-  padding: var(--space-sm) var(--space-lg);
-  font-size: 1rem;
-  font-weight: 600;
-  border-radius: var(--radius);
-  cursor: pointer;
-}
-
-.founders-accept-actions .btn-secondary:hover:not(:disabled),
-.founders-accept-card > .btn-secondary:hover {
-  background: var(--card-hover);
-  color: var(--text);
-}
-
 .founders-accept-hint {
   margin: 0;
   font-size: 0.8rem;
@@ -177,10 +133,6 @@
     justify-content: center;
   }
 
-  .founders-accept-actions .btn-primary,
-  .founders-accept-actions .btn-secondary {
-    min-width: 160px;
-  }
 }
 
 @media (max-width: 375px) {

@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
-import { Link } from "react-router-dom";
-import { CheckCircle, Loader2 } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 import {
   validateFounderRequest,
   hasErrors,
@@ -10,6 +9,8 @@ import {
   type FounderRequestErrors,
 } from "../../lib/founderRequest";
 import FormFieldError from "../../shared/forms/FormFieldError";
+import Button from "../ui/Button";
+import ButtonLink from "../ui/ButtonLink";
 import "./FounderRequestForm.css";
 
 interface Props {
@@ -116,9 +117,9 @@ export default function FounderRequestForm({ onSubmit }: Props) {
           <p className="duplicate-notice">
             If you&rsquo;ve already submitted a request, there&rsquo;s no need to submit again.
           </p>
-          <Link to="/" className="btn-primary btn-block">
+          <ButtonLink to="/" variant="primary" block>
             Return Home
-          </Link>
+          </ButtonLink>
         </div>
       </section>
     );
@@ -332,16 +333,9 @@ export default function FounderRequestForm({ onSubmit }: Props) {
           <FormFieldError id="message-error" message={errors.message} />
         </div>
 
-        <button type="submit" className="btn-primary btn-block founder-submit" disabled={submitting}>
-          {submitting ? (
-            <>
-              <Loader2 className="btn-spinner" aria-hidden="true" />
-              Submitting…
-            </>
-          ) : (
-            "Submit Request"
-          )}
-        </button>
+        <Button type="submit" block loading={submitting} loadingLabel="Submitting…">
+          Submit Request
+        </Button>
 
         <p className="form-footer">
           By submitting, you agree to be contacted about organizer access.

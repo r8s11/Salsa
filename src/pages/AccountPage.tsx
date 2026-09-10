@@ -20,6 +20,8 @@ import {
   type DeletionBlocker,
   type DeletionEligibility,
 } from "../features/account/api/accountDeletion";
+import Button from "../components/ui/Button";
+import ButtonLink from "../components/ui/ButtonLink";
 import "./AccountPage.css";
 
 const STATUS_ICON: Partial<Record<AccountStatus, typeof Flag>> = {
@@ -145,25 +147,24 @@ function SignOutEverywhereDialog({
           </p>
         )}
         <div className="account-page__dialog-actions">
-          <button
+          <Button
             aria-label="Cancel sign out everywhere"
-            className="account-page__btn account-page__btn--outline"
+            variant="secondary"
             disabled={isPending}
             onClick={cancel}
             ref={cancelRef}
-            type="button"
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             aria-label={isPending ? "Signing out everywhere" : "Confirm sign out everywhere"}
-            className="account-page__btn account-page__btn--session-global"
+            variant="danger"
+            className="account-page__btn--session-global"
             disabled={isPending}
             onClick={onConfirm}
-            type="button"
           >
             {isPending ? "Signing out everywhere" : "Confirm sign out everywhere"}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -360,9 +361,9 @@ export default function AccountPage() {
       {!isLoading && error && (
         <div className="account-page__card account-page__error" role="alert">
           <p>We couldn't load your account details.</p>
-          <button type="button" className="account-page__btn account-page__btn--outline" onClick={() => refetch()}>
+          <Button variant="secondary" onClick={() => refetch()}>
             Try Again
-          </button>
+          </Button>
         </div>
       )}
 
@@ -378,9 +379,9 @@ export default function AccountPage() {
               Signed in as <strong>{user.email}</strong>
             </p>
           )}
-          <button type="button" className="account-page__btn account-page__btn--outline" onClick={() => refetch()}>
+          <Button variant="secondary" onClick={() => refetch()}>
             Try Again
-          </button>
+          </Button>
         </div>
       )}
 
@@ -425,9 +426,9 @@ export default function AccountPage() {
           </div>
 
           <div className="account-page__identity-actions">
-            <Link to="/profile" className="account-page__btn account-page__btn--primary">
+            <ButtonLink to="/profile" variant="primary">
               View Profile
-            </Link>
+            </ButtonLink>
           </div>
         </section>
       )}
@@ -507,41 +508,39 @@ export default function AccountPage() {
                 </div>
                 {user.email && <p className="account-page__session-email">Signed in as {user.email}</p>}
               </div>
-              <button
-                className="account-page__btn account-page__btn--outline"
+              <Button
+                variant="secondary"
                 disabled={isSessionActionPending}
                 onClick={() => void handleScopedSignOut("local")}
-                type="button"
               >
                 {pendingAction === "local" ? "Signing out on this device" : "Sign out on this device"}
-              </button>
+              </Button>
             </div>
           </div>
 
           <div className="account-page__session-group">
             <h3>Other sessions</h3>
             <p>End sessions on your other browsers and devices. A current access token may continue until it expires.</p>
-            <button
-              className="account-page__btn account-page__btn--outline"
+            <Button
+              variant="secondary"
               disabled={isSessionActionPending}
               onClick={() => void handleScopedSignOut("others")}
-              type="button"
             >
               {pendingAction === "others" ? "Signing out other devices" : "Sign out other devices"}
-            </button>
+            </Button>
           </div>
 
           <div className="account-page__session-group account-page__session-group--global">
             <h3>All sessions</h3>
             <p>End every session, including this browser.</p>
-            <button
-              className="account-page__btn account-page__btn--session-global"
+            <Button
+              variant="danger"
+              className="account-page__btn--session-global"
               disabled={isSessionActionPending}
               onClick={openGlobalSignOutDialog}
-              type="button"
             >
               Sign out everywhere
-            </button>
+            </Button>
           </div>
         </section>
       )}
@@ -563,17 +562,16 @@ export default function AccountPage() {
           {deletionEligibilityError && (
             <div className="account-page__danger-error" role="alert">
               <p>{deletionEligibilityError}</p>
-              <button
-                className="account-page__btn account-page__btn--outline"
+              <Button
+                variant="secondary"
                 onClick={() => {
                   setDeletionEligibility(null);
                   setDeletionEligibilityError(null);
                   setEligibilityRetryCount((c) => c + 1);
                 }}
-                type="button"
               >
                 Check again
-              </button>
+              </Button>
             </div>
           )}
           {deletionEligibility?.outcome === "blocked" && (
@@ -583,15 +581,14 @@ export default function AccountPage() {
             </p>
           )}
           {deletionEligibility?.outcome === "eligible" && (
-            <button
+            <Button
               aria-label="Delete account"
-              className="account-page__btn account-page__btn--danger"
+              variant="danger"
               disabled={isDeleting}
               onClick={openDeleteDialog}
-              type="button"
             >
               Delete account
-            </button>
+            </Button>
           )}
         </section>
       )}

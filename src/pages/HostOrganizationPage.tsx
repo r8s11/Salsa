@@ -202,16 +202,16 @@ export default function HostOrganizationPage() {
 
   if (isLoading) {
     return (
-      <main className="admin-shell">
+      <div className="admin-shell">
         <AdminPageHeader title="Organization" description="View and manage your organizer identity." />
         <p role="status" className="host-org__status-msg">Checking organizer access…</p>
-      </main>
+      </div>
     );
   }
 
   if (organizersError) {
     return (
-      <main className="admin-shell">
+      <div className="admin-shell">
         <AdminPageHeader title="Organization" description="View and manage your organizer identity." />
         <div className="admin-banner admin-banner--error" role="alert">
           <p>We couldn&apos;t load your organizers.</p>
@@ -219,24 +219,24 @@ export default function HostOrganizationPage() {
             Try Again
           </button>
         </div>
-      </main>
+      </div>
     );
   }
 
   if (activeOrganizers.length === 0) {
     return (
-      <main className="admin-shell">
+      <div className="admin-shell">
         <AdminPageHeader title="Organization" description="View and manage your organizer identity." />
         <div className="admin-card host-org__empty">
           <p>You don&apos;t have access to any organizations yet.</p>
           <Link to="/host" className="admin-btn admin-btn--primary">Back to Dashboard</Link>
         </div>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="admin-shell">
+    <div className="admin-shell">
       <AdminPageHeader
         title="Organization"
         description={
@@ -488,6 +488,6 @@ export default function HostOrganizationPage() {
           </div>
         </form>
       )}
-    </main>
+    </div>
   );
 }

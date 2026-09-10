@@ -83,6 +83,13 @@
   background: rgba(196, 18, 48, 0.04);
 }
 
+.submit-form .form-group input:focus-visible,
+.submit-form .form-group select:focus-visible,
+.submit-form .form-group textarea:focus-visible {
+  outline: 2px solid var(--red-bright);
+  outline-offset: 2px;
+}
+
 .submit-form .form-group input[readonly] {
   background: rgba(255, 255, 255, 0.015);
   color: var(--text-muted);

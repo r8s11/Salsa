@@ -1,7 +1,7 @@
 // Purpose: Display the home page event feed — a featured event plus a
 // filterable grid of the rest of this week's floor.
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import ButtonLink from "../ui/ButtonLink";
 import "./Events.css";
 import { useEvents } from "../../hooks/useEvent";
 import EventCard from "./EventCard";
@@ -122,14 +122,14 @@ function Events() {
           )}
 
           <div className="events-footer">
-            <Link to="/calendar" className="btn-secondary">
+            <ButtonLink to="/calendar" variant="secondary">
               View Full Calendar
-            </Link>
+            </ButtonLink>
             <div className="events-cta">
               <p>Want to host a pop-up class or private event?</p>
-              <Link to="/submit" className="btn-primary">
+              <ButtonLink to="/submit" variant="primary">
                 Submit an Event
-              </Link>
+              </ButtonLink>
             </div>
           </div>
         </div>

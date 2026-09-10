@@ -8,6 +8,7 @@ import { useSubmissionAccess } from "../features/submit-event/useSubmissionAcces
 import { useSubmitEventForm } from "../features/submit-event/useSubmitEventForm";
 import type { SubmitFieldName } from "../features/submit-event/validation";
 import FormErrorSummary from "../shared/forms/FormErrorSummary";
+import Button from "../components/ui/Button";
 import "../styles/forms.css";
 import "./SubmitEventPage.css";
 
@@ -113,26 +114,12 @@ export default function SubmitEventPage() {
             <div className="flyer-choice-card" role="group" aria-label="Upload a flyer">
               <h2>Upload a Flyer</h2>
               <p>Let SalsaSegura help prepare your event using your flyer as the event image.</p>
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={() => setEntryMode("flyer")}
-                aria-label="Choose to upload a flyer to start"
-              >
-                Upload Flyer
-              </button>
+              <Button onClick={() => setEntryMode("flyer")} aria-label="Choose to upload a flyer to start">Upload Flyer</Button>
             </div>
             <div className="flyer-choice-card" role="group" aria-label="Enter manually">
               <h2>Enter Manually</h2>
               <p>Fill in the event details yourself from the start.</p>
-              <button
-                type="button"
-                className="btn-secondary"
-                onClick={() => setEntryMode("manual")}
-                aria-label="Choose to enter event details manually"
-              >
-                Start Manually
-              </button>
+              <Button variant="secondary" onClick={() => setEntryMode("manual")} aria-label="Choose to enter event details manually">Start Manually</Button>
             </div>
           </div>
         ) : (
@@ -170,13 +157,9 @@ export default function SubmitEventPage() {
 
                 {flyerReady && (
                   <div className="submit-flyer__actions">
-                    <button
-                      type="button"
-                      className="btn-secondary"
-                      onClick={() => setShowComingSoon(true)}
-                    >
+                    <Button variant="secondary" onClick={() => setShowComingSoon(true)}>
                       <Sparkles size={16} aria-hidden /> Extract Event Details
-                    </button>
+                    </Button>
                   </div>
                 )}
               </section>
@@ -201,13 +184,9 @@ export default function SubmitEventPage() {
                 requireSubmitterContact={!user}
                 errors={fieldErrors}
               />
-              <button type="submit" className="btn-primary btn-block" disabled={isSubmitting}>
-                {isSubmitting
-                  ? "Submitting..."
-                  : isOrganizer
-                    ? "Submit for review"
-                    : "Submit Event"}
-              </button>
+              <Button type="submit" block loading={isSubmitting} loadingLabel="Submitting...">
+                {isOrganizer ? "Submit for review" : "Submit Event"}
+              </Button>
             </form>
           </>
         )}
@@ -233,9 +212,7 @@ export default function SubmitEventPage() {
               the event image.
             </p>
             <p>You can continue adding the event details in the form.</p>
-            <button type="button" className="btn-primary" onClick={closeComingSoon}>
-              Back to event form
-            </button>
+            <Button onClick={closeComingSoon}>Back to event form</Button>
           </div>
         </div>
       )}

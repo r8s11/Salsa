@@ -2,6 +2,7 @@ import { useState, FormEvent, useRef } from "react";
 import FormFieldError from "../../shared/forms/FormFieldError";
 import { fieldErrorProps } from "../../shared/forms/fieldErrorProps";
 import { publicErrorMessage } from "../../shared/forms/errorMessage";
+import Button from "../ui/Button";
 import "./Contact.css";
 
 interface FormErrors {
@@ -29,12 +30,6 @@ function Contact() {
   const emailRef = useRef<HTMLInputElement>(null);
   const interestRef = useRef<HTMLSelectElement>(null);
   const messageRef = useRef<HTMLTextAreaElement>(null);
-
-  const submitButtonText = isSubmitting
-    ? "Sending..."
-    : isSubmitted
-      ? "Message Sent! ✓"
-      : "Send Message";
 
   const validate = (): FormErrors => {
     const next: FormErrors = {};
@@ -128,7 +123,7 @@ function Contact() {
 
         <div className="contact-grid">
           <div className="contact-form-card">
-            <h2>📬 Send a Message</h2>
+            <h2><span aria-hidden="true">📬</span> Send a Message</h2>
             {error && (
               <div role="alert" className="contact-error-banner">
                 {error}
@@ -208,9 +203,14 @@ function Contact() {
                 ></textarea>
                 <FormFieldError id="contact-message-error" message={errors.message} />
               </div>
-              <button type="submit" className="btn-primary btn-block" disabled={isSubmitting}>
-                {submitButtonText}
-              </button>
+              <Button
+                type="submit"
+                block
+                loading={isSubmitting}
+                loadingLabel="Sending..."
+              >
+                {isSubmitted ? "Message Sent! ✓" : "Send Message"}
+              </Button>
             </form>
           </div>
 

@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { Link } from "react-router-dom";
 import {
   ArrowLeft,
   CalendarPlus,
@@ -8,7 +7,6 @@ import {
   Link2,
   MapPin,
   Repeat,
-  Share2,
   Users,
   X,
 } from "lucide-react";
@@ -20,6 +18,9 @@ import { resolvePosterImageForEvent } from "../../features/calendar/api/posterFl
 import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
 import ShareableEventPoster from "./ShareableEventPoster";
 import { resolveEventModalImage } from "./eventModalImage";
+import Button from "../ui/Button";
+import IconButton from "../ui/IconButton";
+import ButtonLink from "../ui/ButtonLink";
 import "./EventModal.css";
 
 interface EventModalProps {
@@ -269,60 +270,55 @@ export default function EventModal({ event, onClose }: EventModalProps) {
   const renderActions = (inSidebar: boolean) => (
     <>
       {event.rsvpLink && (
-        <a
-          className="btn-primary rsvp-button"
-          href={event.rsvpLink}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
+        <ButtonLink href={event.rsvpLink} external className="rsvp-button">
           {rsvpLabel}
-        </a>
+        </ButtonLink>
       )}
 
-      <Link className="btn-secondary modal-full-details" to={`/events/${event.id}`} onClick={onClose}>
+      <ButtonLink to={`/events/${event.id}`} variant="secondary" onClick={onClose}>
         Full details
-      </Link>
+      </ButtonLink>
 
       {/* Shareable Poster */}
       <div className="poster-download-section">
-        <button
-          className="btn-secondary poster-toggle-btn"
+        <Button
+          variant="secondary"
           onClick={handleSharePoster}
           disabled={isDownloading}
+          loading={isDownloading}
+          loadingLabel="Generating…"
         >
-          <Share2 size={16} aria-hidden />
-          {isDownloading ? "Generating…" : "Share"}
-        </button>
+          Share
+        </Button>
       </div>
 
       {/* Add to Calendar */}
       {(() => {
         const calUrl = googleCalendarUrl(event);
         return calUrl ? (
-          <a
-            className="btn-secondary ics-button"
+          <ButtonLink
             href={calUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Add to calendar"
+            external
+            variant="secondary"
+            className="ics-button"
           >
             <CalendarPlus size={16} aria-hidden /> Add to calendar
-          </a>
+          </ButtonLink>
         ) : (
-          <button className="btn-secondary ics-button" onClick={() => downloadIcs(event)}>
+          <Button variant="secondary" onClick={() => downloadIcs(event)} className="ics-button">
             <CalendarPlus size={16} aria-hidden /> Add to calendar
-          </button>
+          </Button>
         );
       })()}
       {/* Copy Event Link */}
-      <button
-        className="btn-secondary copy-link-btn"
+      <Button
+        variant="secondary"
         onClick={handleCopyLink}
-        aria-label="Copy event link"
+        className="copy-link-btn"
       >
         <Link2 size={16} aria-hidden />
         {copied ? "Copied" : "Copy link"}
-      </button>
+      </Button>
 
       {inSidebar && <p className="reassurance">RSVP opens the host's page · pay at the door</p>}
     </>
@@ -341,9 +337,9 @@ export default function EventModal({ event, onClose }: EventModalProps) {
         {/* Drag handle — visible only on mobile */}
         <div className="modal-drag-handle" aria-hidden />
 
-        <button type="button" className="modal-close-x" aria-label="Close" onClick={onClose}>
+        <IconButton aria-label="Close" onClick={onClose} className="modal-close-x">
           <X size={20} aria-hidden />
-        </button>
+        </IconButton>
 
         {/* ── Poster header ── */}
         <div

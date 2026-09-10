@@ -1943,6 +1943,29 @@ create policy "Admins read all profiles"
   on public.profiles for select to authenticated
   using ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
 
+-- Phase 6: authenticated self-service edit of own display_name/avatar_url.
+-- See 20260908002324_own_profile_update_policy.sql for the full rationale
+-- (column-grant boundary + restrictive own-row guard).
+drop policy if exists "Users update own profile" on public.profiles;
+create policy "Users update own profile"
+  on public.profiles
+  for update
+  to authenticated
+  using (id = auth.uid())
+  with check (
+    id = auth.uid()
+    and btrim(display_name) <> ''
+  );
+
+drop policy if exists "Restrict profile updates to own row" on public.profiles;
+create policy "Restrict profile updates to own row"
+  on public.profiles
+  as restrictive
+  for update
+  to authenticated
+  using (id = auth.uid())
+  with check (id = auth.uid());
+
 -- audit_logs
 alter table public.audit_logs enable row level security;
 

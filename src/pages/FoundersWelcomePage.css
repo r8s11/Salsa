@@ -125,41 +125,6 @@
   margin-bottom: var(--space-md);
 }
 
-.founders-welcome-actions .btn-primary,
-.founders-welcome-actions .btn-secondary {
-  padding: var(--space-sm) var(--space-lg);
-  font-size: 1rem;
-  font-weight: 600;
-  border-radius: var(--radius);
-  cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
-}
-
-.founders-welcome-actions .btn-primary {
-  color: #fff;
-  background: var(--red);
-  border: none;
-  text-decoration: none;
-  display: inline-block;
-}
-
-.founders-welcome-actions .btn-primary:hover:not(:disabled) {
-  background: var(--red-bright);
-}
-
-.founders-welcome-actions .btn-secondary {
-  color: var(--text-muted);
-  background: transparent;
-  border: 1px solid var(--border-md);
-  text-decoration: none;
-  display: inline-block;
-}
-
-.founders-welcome-actions .btn-secondary:hover:not(:disabled) {
-  background: var(--card-hover);
-  color: var(--text);
-}
-
 .founders-welcome-home {
   display: inline-block;
   margin-top: var(--space-sm);
@@ -189,10 +154,6 @@
     flex-wrap: wrap;
   }
 
-  .founders-welcome-actions .btn-primary,
-  .founders-welcome-actions .btn-secondary {
-    min-width: 160px;
-  }
 }
 
 @media (max-width: 375px) {

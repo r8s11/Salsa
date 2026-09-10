@@ -31,7 +31,8 @@
 }
 
 .admin-users-toolbar__search .admin-input:focus-visible {
-  outline: none;
+  outline: 2px solid var(--admin-brand);
+  outline-offset: 2px;
 }
 
 .admin-users-toolbar__role {

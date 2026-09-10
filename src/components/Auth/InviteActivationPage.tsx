@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
 import { roleFromUser } from "../../contexts/authContextObject";
 import { publicErrorMessage } from "../../shared/forms/errorMessage";
 import FormFieldError from "../../shared/forms/FormFieldError";
 import { fieldErrorProps } from "../../shared/forms/fieldErrorProps";
+import Button from "../ui/Button";
+import ButtonLink from "../ui/ButtonLink";
 import "./InviteActivationPage.css";
 
 type ActivationError = "invalid" | "not-organizer" | "unknown";
@@ -188,9 +190,9 @@ export default function InviteActivationPage() {
         <p className="auth-error" role="alert">
           {ERROR_MESSAGES[error]}
         </p>
-        <Link to="/signin" className="btn-primary btn-block">
+        <ButtonLink to="/signin" variant="primary" block>
           Back to sign in
-        </Link>
+        </ButtonLink>
       </section>
     );
   }
@@ -239,9 +241,9 @@ export default function InviteActivationPage() {
             />
             <FormFieldError id="invite-confirm-password-error" message={confirmPasswordFieldError} />
           </div>
-          <button type="submit" className="btn-primary btn-block" disabled={busy}>
-            {busy ? "Setting password…" : "Set password & continue"}
-          </button>
+          <Button type="submit" block loading={busy} loadingLabel="Setting password…">
+            Set password &amp; continue
+          </Button>
         </form>
       </section>
     );

@@ -130,11 +130,6 @@
   margin-top: 6px;
 }
 
-.user-edit-page__actions .btn-primary,
-.user-edit-page__actions .btn-secondary {
-  flex: 0 0 auto;
-}
-
 .user-edit-page__withdraw {
   margin-left: auto;
   padding: 10px 0;
@@ -224,8 +219,6 @@
     flex-direction: column;
   }
 
-  .user-edit-page__actions .btn-primary,
-  .user-edit-page__actions .btn-secondary,
   .user-edit-page__withdraw {
     width: 100%;
   }

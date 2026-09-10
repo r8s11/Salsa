@@ -32,6 +32,7 @@ export default function AdminRejectSubmissionDialog({
   onCancel,
 }: AdminRejectSubmissionDialogProps) {
   const titleId = useId();
+  const descriptionId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
   const reasonRef = useRef<HTMLSelectElement>(null);
   const [reason, setReason] = useState<string>(REASONS[0]);
@@ -55,12 +56,18 @@ export default function AdminRejectSubmissionDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
+        aria-describedby={descriptionId}
         onClick={onDialogClick}
         onKeyDown={onKeyDown}
       >
         <h2 id={titleId}>
-          {submissionLabel ? `Reject “${submissionLabel}”?` : `Reject Submission ${submissionId}?`}
+          {submissionLabel ? `Reject \u201c${submissionLabel}\u201d?` : `Reject Submission ${submissionId}?`}
         </h2>
+
+        <p id={descriptionId} className="admin-reject-submission-dialog__description">
+          This submission will be removed from the review queue. The submitter will be notified of
+          the rejection and may submit a new event.
+        </p>
 
         {error && (
           <div className="admin-banner admin-banner--error" role="alert">

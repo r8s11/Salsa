@@ -24,10 +24,14 @@
 
 .admin-venues-toolbar__search input {
   border: none;
-  outline: none;
   width: 100%;
   background: transparent;
   padding: 8px 12px;
+}
+
+.admin-venues-toolbar__search input:focus-visible {
+  outline: 2px solid var(--admin-brand);
+  outline-offset: 2px;
 }
 
 .admin-venues-toolbar__status {

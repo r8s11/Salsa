@@ -116,24 +116,24 @@ export default function HostEventDetailPage() {
 
   if (isLoading || organizerEvents.isLoading) {
     return (
-      <main className="host-event-detail">
+      <div className="host-event-detail">
         <p role="status" className="host-event-detail__status">
           Loading event…
         </p>
-      </main>
+      </div>
     );
   }
 
   if (error || organizerEvents.error) {
     return (
-      <main className="host-event-detail">
+      <div className="host-event-detail">
         <div className="admin-banner admin-banner--error" role="alert">
           <p>We couldn&apos;t load this event.</p>
           <button type="button" className="admin-btn admin-btn--secondary" onClick={refetch}>
             Try Again
           </button>
         </div>
-      </main>
+      </div>
     );
   }
 
@@ -195,7 +195,7 @@ export default function HostEventDetailPage() {
   };
 
   return (
-    <main className="host-event-detail">
+    <div className="host-event-detail">
       {/* ── Back link ── */}
       <Link to="/host/events" className="host-event-detail__back">
         <ArrowLeft size={16} aria-hidden="true" />
@@ -538,6 +538,6 @@ export default function HostEventDetailPage() {
           }}
         />
       )}
-    </main>
+    </div>
   );
 }

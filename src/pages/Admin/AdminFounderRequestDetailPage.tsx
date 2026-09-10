@@ -14,7 +14,15 @@ import "./AdminFounderRequestDetailPage.css";
 
 export default function AdminFounderRequestDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { isAdmin, approveRequest, rejectRequest, isApproving, isRejecting } = useFounderRequests();
+  const {
+    isAdmin,
+    approveAndSendInvitation,
+    isApprovingAndSending,
+    approveAndSendInvitationError,
+    approveAndSendInvitationResult,
+    rejectRequest,
+    isRejecting,
+  } = useFounderRequests();
   const { data: request, isLoading, error } = useFounderRequest(id ?? null);
   const { data: hostState, isLoading: isHostStateLoading } = useFounderHostState(id ?? null);
   const [showApproveDialog, setShowApproveDialog] = useState(false);
@@ -24,7 +32,7 @@ export default function AdminFounderRequestDetailPage() {
   const openRejectDialog = () => setShowRejectDialog(true);
 
   const handleApprove = (requestId: string) => {
-    approveRequest(requestId, {
+    approveAndSendInvitation(requestId, {
       onSuccess: () => setShowApproveDialog(false),
     });
   };
@@ -103,7 +111,7 @@ export default function AdminFounderRequestDetailPage() {
         </div>
       </header>
 
-      <main className="detail-content">
+      <div className="detail-content">
         <section className="detail-section applicant-section">
           <h2>Applicant</h2>
           <div className="detail-grid">
@@ -220,15 +228,31 @@ export default function AdminFounderRequestDetailPage() {
               onClick={openApproveDialog}
               disabled={false}
             >
-              Approve
+              Approve & Send Invitation
             </button>
           </div>
         )}
-      </main>
+
+        {approveAndSendInvitationError && (
+          <div className="result-message result-message--error" role="alert">
+            {approveAndSendInvitationError instanceof Error
+              ? approveAndSendInvitationError.message
+              : "An error occurred during approval."}
+          </div>
+        )}
+
+        {approveAndSendInvitationResult && (
+          <div className="result-message result-message--success" role="status">
+            {approveAndSendInvitationResult.invitationResult?.deliveryStatus === "attempting"
+              ? "Request approved. Invitation email is being sent."
+              : `Request approved. Invitation email sent to ${approveAndSendInvitationResult.invitationResult?.email}.`}
+          </div>
+        )}
+      </div>
 
       <AdminApproveDialog
         requestId={request.id}
-        isBusy={isApproving}
+        isBusy={isApprovingAndSending}
         onConfirm={handleApprove}
         onCancel={() => setShowApproveDialog(false)}
         isOpen={showApproveDialog}

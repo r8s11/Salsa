@@ -47,7 +47,11 @@ export default function SalsaSeguraLogo({
         width={160}
         height={160}
       />
-      {variant === "full" && <span className="ss-logo__wordmark">Salsa Segura</span>}
+      {variant === "full" && (
+        <span className="ss-logo__wordmark">
+          Salsa <span className="ss-logo__wordmark-accent">Segura</span>
+        </span>
+      )}
     </span>
   );
 }

@@ -2,7 +2,7 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--background);
+  background: var(--bg);
 }
 
 .founders-header {
@@ -49,12 +49,12 @@
   padding: 4px 2px;
   color: var(--text-muted);
   text-decoration: none;
-  font-size: var(--text-sm);
-  transition: color var(--transition-fast);
+  font-size: 0.875rem;
+  transition: color 0.15s ease;
 }
 
 .footer-link:hover {
-  color: var(--primary);
+  color: var(--red-bright);
 }
 
 .founders-card {

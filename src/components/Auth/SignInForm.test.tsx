@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
@@ -774,5 +774,65 @@ describe("SignInForm", () => {
         "If an account exists for that email, we've sent a link to reset your password."
       )
     ).toBeInTheDocument();
+  });
+});
+
+describe("SignInForm heading hierarchy", () => {
+  beforeEach(() => {
+    vi.mocked(useAuth).mockReturnValue({
+      user: null,
+      session: null,
+      loading: false,
+      isAdmin: false,
+      isModerator: false,
+      isOrganizer: false,
+      role: null,
+      signInWithPassword: vi.fn(),
+      resendConfirmation: vi.fn(),
+      requestPasswordReset: vi.fn(),
+      signUp: vi.fn(),
+      signOut: vi.fn(),
+      clearDeletedAccount: vi.fn(),
+    });
+  });
+
+  it("renders the auth-mode heading at level 2 (not level 1)", () => {
+    render(
+      <MemoryRouter>
+        <SignInForm />
+      </MemoryRouter>
+    );
+
+    const heading = screen.getByRole("heading", { name: "Welcome back" });
+    expect(heading).toBeInTheDocument();
+    expect(heading.tagName).toBe("H2");
+  });
+
+  it("renders sign-up mode heading at level 2", async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <SignInForm />
+      </MemoryRouter>
+    );
+
+    await user.click(screen.getByRole("button", { name: "Sign up" }));
+
+    const heading = screen.getByRole("heading", { name: "Create your account" });
+    expect(heading.tagName).toBe("H2");
+  });
+
+  it("renders password reset heading at level 2", async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <SignInForm />
+      </MemoryRouter>
+    );
+
+    await user.click(screen.getByRole("button", { name: /forgot password/i }));
+
+    const heading = screen.getByRole("heading", { name: "Reset your password" });
+    expect(heading.tagName).toBe("H2");
   });
 });

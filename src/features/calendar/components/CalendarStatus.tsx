@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import ButtonLink from "../../../components/ui/ButtonLink";
 
 interface Props {
   loading: boolean;
@@ -40,9 +40,9 @@ export default function CalendarStatus({
     return (
       <div className="calendar-status" role="status">
         <p>No upcoming events in {cityLabel} yet.</p>
-        <Link to="/submit" className="btn-primary">
+        <ButtonLink to="/submit" variant="primary">
           Submit an Event
-        </Link>
+        </ButtonLink>
       </div>
     );
   }

@@ -4,6 +4,8 @@ import SalsaSeguraLogo from "../components/brand/SalsaSeguraLogo";
 import { useAuth } from "../contexts/useAuth";
 import { setAuthReturnDestination } from "../lib/authReturnDestination";
 import { useFounderOnboarding } from "../hooks/useFounderOnboarding";
+import Button from "../components/ui/Button";
+import ButtonLink from "../components/ui/ButtonLink";
 import "./FoundersWelcomePage.css";
 
 /**
@@ -122,9 +124,9 @@ export default function FoundersWelcomePage() {
         </h1>
         <p className="founders-welcome-detail">Please try again in a moment.</p>
         <div className="founders-welcome-actions">
-          <button type="button" className="btn-primary" onClick={() => void refetch()}>
+          <Button onClick={() => void refetch()}>
             Try Again
-          </button>
+          </Button>
         </div>
       </section>
     );
@@ -139,9 +141,9 @@ export default function FoundersWelcomePage() {
           expecting to see your organization here, check that you&apos;re signed in with the right
           account, or start a new request.
         </p>
-        <Link to="/founders" className="btn-secondary founders-welcome-home">
+        <ButtonLink to="/founders" variant="secondary">
           Request Founder access
-        </Link>
+        </ButtonLink>
       </section>
     );
   } else if (resolved?.state === "manual_resolution_required") {
@@ -165,9 +167,9 @@ export default function FoundersWelcomePage() {
         </h1>
         <p className="founders-welcome-detail">Please try again in a moment.</p>
         <div className="founders-welcome-actions">
-          <button type="button" className="btn-primary" onClick={retryProvisioning}>
+          <Button onClick={retryProvisioning}>
             Try Again
-          </button>
+          </Button>
         </div>
       </section>
     );
@@ -200,12 +202,12 @@ export default function FoundersWelcomePage() {
           <li>Manage your organization&apos;s profile</li>
         </ul>
         <div className="founders-welcome-actions">
-          <Link to="/host" className="btn-primary">
+          <ButtonLink to="/host" variant="primary">
             Go to Host Dashboard
-          </Link>
-          <Link to="/host/events" className="btn-secondary">
+          </ButtonLink>
+          <ButtonLink to="/host/events" variant="secondary">
             View Your Events
-          </Link>
+          </ButtonLink>
         </div>
       </section>
     );

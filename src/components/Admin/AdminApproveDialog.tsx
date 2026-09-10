@@ -43,15 +43,15 @@ export default function AdminApproveDialog({
         onKeyDown={onKeyDown}
         onClick={onDialogClick}
       >
-        <h2 id={titleId}>Approve Founder Request?</h2>
+        <h2 id={titleId}>Approve & Send Invitation?</h2>
 
         <p id={descId} className="approve-message">
-          This will mark the request as <strong>Approved</strong>.
+          This will approve the request <strong>and automatically send</strong> a founder invitation email.
         </p>
 
         <p className="approve-note">
-          <strong>Note:</strong> No invitation email will be sent in this phase.
-          The applicant will be granted access in a later onboarding step.
+          <strong>Note:</strong> The invitation email will be sent immediately after approval.
+          If the email fails, the approval will still be saved and you can resend the invitation later.
         </p>
 
         <div className="admin-approve-dialog__actions">
@@ -70,7 +70,7 @@ export default function AdminApproveDialog({
             onClick={() => onConfirm(requestId)}
             disabled={isBusy}
           >
-            {isBusy ? "Approving…" : "Approve Request"}
+            {isBusy ? "Approving & Sending…" : "Approve & Send Invitation"}
           </button>
         </div>
       </div>

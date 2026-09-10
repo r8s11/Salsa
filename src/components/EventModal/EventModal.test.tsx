@@ -472,7 +472,7 @@ describe("copy event link", () => {
     Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
 
     render(<EventModal event={baseEvent} onClose={() => {}} />);
-    const copyButtons = screen.getAllByRole("button", { name: "Copy event link" });
+    const copyButtons = screen.getAllByRole("button", { name: "Copy link" });
     expect(copyButtons).toHaveLength(2);
     await act(async () => {
       fireEvent.click(copyButtons[0]);
@@ -495,7 +495,7 @@ describe("copy event link", () => {
     Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
 
     render(<EventModal event={baseEvent} onClose={() => {}} />);
-    const [copyButton] = screen.getAllByRole("button", { name: "Copy event link" });
+    const [copyButton] = screen.getAllByRole("button", { name: "Copy link" });
     await act(async () => {
       fireEvent.click(copyButton);
     });

@@ -35,7 +35,8 @@
 }
 
 .admin-events-toolbar__search .admin-input:focus-visible {
-  outline: none;
+  outline: 2px solid var(--admin-brand);
+  outline-offset: 2px;
 }
 
 .admin-events-toolbar__select {

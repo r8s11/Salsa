@@ -235,4 +235,10 @@ describe("Calendar", () => {
     );
     expect(eventsService.set).toHaveBeenLastCalledWith([]);
   });
+
+  it("gives the month heading an accessible Dance Calendar prefix", () => {
+    renderCalendar();
+    const heading = screen.getByRole("heading", { level: 1 });
+    expect(heading).toHaveAccessibleName(/^Dance Calendar —\s[A-Z][a-z]+ \d{4}$/);
+  });
 });

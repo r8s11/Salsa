@@ -1,7 +1,8 @@
-import { Link, NavLink } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   CalendarDays,
+  CalendarPlus,
   Users,
   ClipboardCheck,
   UserPlus,
@@ -19,11 +20,17 @@ import type { UserRole } from "../../contexts/authContextObject";
 import { useTheme } from "../../contexts/useTheme";
 import { useOrganizerRequests } from "../../features/admin/hooks/useOrganizerRequests";
 import { useFounderRequests } from "../../hooks/useFounderRequests";
+import { useHostCapabilities } from "../../features/host/hooks/useHostCapabilities";
+import type { HostCapabilities } from "../../features/host/model/hostCapabilities";
 import SalsaSeguraLogo from "../brand/SalsaSeguraLogo";
 import "./AdminSidebar.css";
 
+export type AdminSidebarMode = "admin" | "host";
+
 interface AdminSidebarProps {
   variant: "fixed" | "drawer";
+  /** Which workspace the surrounding route belongs to. Drives the landmark. */
+  mode?: AdminSidebarMode;
   onNavigate?: () => void;
   collapsed?: boolean;
   onToggleCollapse?: () => void;
@@ -33,23 +40,25 @@ type NavItem = {
   label: string;
   icon: ComponentType<{ size?: number }>;
   to: string;
+  /** Match `to` exactly instead of matching nested routes too. */
   end?: boolean;
-  roles: UserRole[];
+  /**
+   * Nested paths that belong to a more specific sibling entry. Keeps a
+   * parent like "My Events" from lighting up on /host/events/new.
+   */
+  notPaths?: string[];
   section?: string;
   badge?: number | null;
 };
 
-type NavSection = {
-  title: string;
-  items: NavItem[];
-  roles: UserRole[];
-};
+type AdminNavItem = NavItem & { roles: UserRole[] };
 
-const NAV_SECTIONS: NavSection[] = [
-  // ── Admin ──────────────────────────────────────────────
+type HostNavItem = NavItem & { capability: keyof HostCapabilities };
+
+const ADMIN_NAV_SECTIONS: { title: string; roles: UserRole[]; items: AdminNavItem[] }[] = [
   {
     title: "Overview",
-    roles: ["admin", "moderator", "organizer"],
+    roles: ["admin", "moderator"],
     items: [
       {
         label: "Dashboard",
@@ -58,22 +67,13 @@ const NAV_SECTIONS: NavSection[] = [
         end: true,
         roles: ["admin", "moderator"],
       },
-      {
-        label: "Host Dashboard",
-        icon: LayoutDashboard,
-        to: "/host",
-        end: true,
-        roles: ["organizer"],
-      },
     ],
   },
   {
     title: "Management",
-    roles: ["admin", "moderator", "organizer"],
+    roles: ["admin"],
     items: [
       { label: "Events", icon: CalendarDays, to: "/admin/events", roles: ["admin"] },
-      { label: "My Events", icon: CalendarDays, to: "/host/events", roles: ["organizer"] },
-      { label: "Organization", icon: Building2, to: "/host/organization", roles: ["organizer"] },
       {
         label: "Bulk Upload",
         icon: Upload,
@@ -122,18 +122,89 @@ const NAV_SECTIONS: NavSection[] = [
   },
 ];
 
-function navItemsForRole(role: UserRole | null): NavItem[] {
-  const activeRoles: UserRole[] = role === null ? [] : [role];
-  const roleSet = new Set(activeRoles);
-  // A user with role "admin" also qualifies for moderator-scoped items.
-  if (role === "admin") roleSet.add("moderator");
-  return NAV_SECTIONS.filter((section) =>
-    activeRoles.some((r) => section.roles.includes(r))
-  ).flatMap((section) =>
+/**
+ * Host navigation is gated by effective capabilities, never by the coarse
+ * app_metadata role: a membership-only owner is a legitimate Host and must
+ * receive the same links a role-carrying organizer does.
+ */
+const HOST_NAV_SECTIONS: { title: string; items: HostNavItem[] }[] = [
+  {
+    title: "Overview",
+    items: [
+      {
+        label: "Host Dashboard",
+        icon: LayoutDashboard,
+        to: "/host",
+        end: true,
+        capability: "hasHostAccess",
+      },
+    ],
+  },
+  {
+    title: "Management",
+    items: [
+      {
+        label: "My Events",
+        icon: CalendarDays,
+        to: "/host/events",
+        notPaths: ["/host/events/new", "/host/events/import"],
+        capability: "hasHostAccess",
+      },
+      {
+        label: "New Event",
+        icon: CalendarPlus,
+        to: "/host/events/new",
+        end: true,
+        capability: "canCreateEvents",
+      },
+      {
+        label: "Import",
+        icon: Upload,
+        to: "/host/events/import",
+        end: true,
+        capability: "canImportEvents",
+      },
+      {
+        label: "Organization",
+        icon: Building2,
+        to: "/host/organization",
+        capability: "canManageOrganization",
+      },
+    ],
+  },
+];
+
+/**
+ * Platform roles keep the Admin surfaces; everyone else navigates by Host
+ * capability. A caller with neither gets no actionable navigation — the
+ * /host landing still renders its own access-request state.
+ */
+function navItemsFor(role: UserRole | null, capabilities: HostCapabilities): NavItem[] {
+  if (role === "admin" || role === "moderator") {
+    // A user with role "admin" also qualifies for moderator-scoped items.
+    const grantedRoles: UserRole[] = role === "admin" ? ["admin", "moderator"] : ["moderator"];
+    return ADMIN_NAV_SECTIONS.filter((section) => section.roles.includes(role)).flatMap((section) =>
+      section.items
+        .filter((item) => item.roles.some((granted) => grantedRoles.includes(granted)))
+        .map((item) => ({ ...item, section: section.title }))
+    );
+  }
+
+  if (!capabilities.hasHostAccess) return [];
+
+  return HOST_NAV_SECTIONS.flatMap((section) =>
     section.items
-      .filter((item) => item.roles.some((r) => roleSet.has(r)))
+      .filter((item) => capabilities[item.capability])
       .map((item) => ({ ...item, section: section.title }))
   );
+}
+
+function isNavItemActive(item: NavItem, pathname: string): boolean {
+  if (item.notPaths?.some((path) => pathname === path || pathname.startsWith(`${path}/`))) {
+    return false;
+  }
+  if (item.end) return pathname === item.to;
+  return pathname === item.to || pathname.startsWith(`${item.to}/`);
 }
 
 function itemsWithGroupFlags(items: NavItem[]): { item: NavItem; showGroup: boolean }[] {
@@ -146,6 +217,7 @@ function itemsWithGroupFlags(items: NavItem[]): { item: NavItem; showGroup: bool
 
 export default function AdminSidebar({
   variant,
+  mode = "admin",
   onNavigate,
   collapsed = false,
   onToggleCollapse,
@@ -154,7 +226,9 @@ export default function AdminSidebar({
   const { theme, setTheme, effectiveTheme } = useTheme();
   const { pendingCount } = useOrganizerRequests();
   const { pendingCount: founderPendingCount } = useFounderRequests();
-  const navItems = itemsWithGroupFlags(navItemsForRole(role));
+  const hostCapabilities = useHostCapabilities();
+  const { pathname } = useLocation();
+  const navItems = itemsWithGroupFlags(navItemsFor(role, hostCapabilities));
 
   const handleSignOut = async () => {
     await signOut("global");
@@ -162,9 +236,10 @@ export default function AdminSidebar({
 
   return (
     <nav
-      aria-label="Admin"
+      aria-label={mode === "host" ? "Host navigation" : "Admin navigation"}
       className="admin-sidebar"
       data-variant={variant}
+      data-mode={mode}
       data-collapsed={collapsed}
     >
       <Link className="admin-sidebar__brand" to="/" onClick={() => onNavigate?.()}>
@@ -185,16 +260,16 @@ export default function AdminSidebar({
             ? founderPendingCount
             : null;
 
+          const isActive = isNavItemActive(item, pathname);
+
           return (
             <div key={item.to} className="admin-nav__item-wrap">
               {showGroup && <span className="admin-nav__group">{item.section}</span>}
-              <NavLink
+              <Link
                 to={item.to}
-                end={item.end}
                 onClick={() => onNavigate?.()}
-                className={({ isActive }) =>
-                  `admin-nav__link${isActive ? " admin-nav__link--active" : ""}`
-                }
+                className={`admin-nav__link${isActive ? " admin-nav__link--active" : ""}`}
+                aria-current={isActive ? "page" : undefined}
                 title={item.label}
               >
                 <Icon size={18} />
@@ -207,7 +282,7 @@ export default function AdminSidebar({
                     {badge}
                   </span>
                 )}
-              </NavLink>
+              </Link>
             </div>
           );
         })}

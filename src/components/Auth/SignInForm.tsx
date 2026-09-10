@@ -9,6 +9,8 @@ import { resolveAuthorizedDestination, isSafeInternalPath } from "../../lib/auth
 import { consumeAuthReturnDestination } from "../../lib/authReturnDestination";
 import FormFieldError from "../../shared/forms/FormFieldError";
 import { fieldErrorProps } from "../../shared/forms/fieldErrorProps";
+import Button from "../ui/Button";
+import IconButton from "../ui/IconButton";
 import "./SignInForm.css";
 
 type Mode = "signin" | "signup" | "reset";
@@ -18,11 +20,14 @@ import { friendlyAuthError, isUnconfirmedEmail } from "./authUtils";
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function SignInForm() {
-  const { signInWithPassword, resendConfirmation, requestPasswordReset, signUp, loading } = useAuth();
+  const { signInWithPassword, resendConfirmation, requestPasswordReset, signUp, loading } =
+    useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [mode, setMode] = useState<Mode>(location.state?.mode === "reset" ? "reset" : "signin");
-  const [email, setEmail] = useState(typeof location.state?.email === "string" ? location.state.email : "");
+  const [email, setEmail] = useState(
+    typeof location.state?.email === "string" ? location.state.email : ""
+  );
   const emailLocked = location.state?.lockedEmail === true;
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -114,7 +119,8 @@ export default function SignInForm() {
     // unrelated email-link flow.
     const returnDestination = consumeAuthReturnDestination();
     const from = location.state?.from;
-    const destination = returnDestination ?? (isSafeInternalPath(from) ? from : resolveAuthorizedDestination(role));
+    const destination =
+      returnDestination ?? (isSafeInternalPath(from) ? from : resolveAuthorizedDestination(role));
     navigate(destination, { replace: true });
   };
 
@@ -232,13 +238,13 @@ export default function SignInForm() {
 
   return (
     <section className="auth-card">
-      <h1>
+      <h2>
         {mode === "reset"
           ? "Reset your password"
           : mode === "signin"
             ? "Welcome back"
             : "Create your account"}
-      </h1>
+      </h2>
 
       {errorMsg && (
         <div className="auth-error" id="auth-form-error" role="alert">
@@ -251,14 +257,9 @@ export default function SignInForm() {
         </div>
       )}
       {showResend && (
-        <button
-          type="button"
-          className="link-button"
-          onClick={handleResend}
-          disabled={loading}
-        >
+        <Button variant="ghost" type="button" onClick={handleResend} disabled={loading}>
           Resend confirmation email
-        </button>
+        </Button>
       )}
 
       {mode === "reset" ? (
@@ -281,9 +282,9 @@ export default function SignInForm() {
             <FormFieldError id="reset-email-error" message={resetEmailError} />
           </div>
 
-          <button type="submit" className="btn-primary btn-block" disabled={loading}>
-            {loading ? "Please wait…" : "Send reset link"}
-          </button>
+          <Button type="submit" block loading={loading} loadingLabel="Please wait…">
+            {loading ? undefined : "Send reset link"}
+          </Button>
         </form>
       ) : (
         <form onSubmit={handleSubmit} className="auth-form" noValidate>
@@ -324,24 +325,26 @@ export default function SignInForm() {
                 disabled={loading}
                 minLength={6}
                 ref={passwordRef}
-                {...fieldErrorProps("password-error", passwordError, errorMsg ? "auth-form-error" : undefined)}
+                {...fieldErrorProps(
+                  "password-error",
+                  passwordError,
+                  errorMsg ? "auth-form-error" : undefined
+                )}
               />
-              <button
-                type="button"
-                className="password-toggle"
+              <IconButton
                 onClick={() => setShowPassword((isVisible) => !isVisible)}
                 disabled={loading}
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
-              </button>
+              </IconButton>
             </div>
             <FormFieldError id="password-error" message={passwordError} />
             {mode === "signin" && (
               <div className="forgot-password-row">
-                <button type="button" className="link-button" onClick={openResetMode} disabled={loading}>
+                <Button variant="ghost" type="button" onClick={openResetMode} disabled={loading}>
                   Forgot password?
-                </button>
+                </Button>
               </div>
             )}
           </div>
@@ -366,23 +369,23 @@ export default function SignInForm() {
             </div>
           )}
 
-          <button type="submit" className="btn-primary btn-block" disabled={loading}>
-            {loading ? "Please wait…" : mode === "signin" ? "Sign In" : "Sign Up"}
-          </button>
+          <Button type="submit" block loading={loading} loadingLabel="Please wait…">
+            {loading ? undefined : mode === "signin" ? "Sign In" : "Sign Up"}
+          </Button>
         </form>
       )}
 
       <p className="auth-toggle">
         {mode === "reset" ? (
-          <button type="button" className="link-button" onClick={backToSignIn}>
+          <Button variant="ghost" type="button" onClick={backToSignIn}>
             Back to sign in
-          </button>
+          </Button>
         ) : (
           <>
             {mode === "signin" ? "Don't have an account?" : "Already have an account?"}
-            <button type="button" className="link-button" onClick={toggleMode}>
+            <Button variant="ghost" type="button" onClick={toggleMode}>
               {mode === "signin" ? "Sign up" : "Sign in"}
-            </button>
+            </Button>
           </>
         )}
       </p>

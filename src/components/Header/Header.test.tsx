@@ -283,12 +283,12 @@ describe("Header", () => {
     const account = within(drawer).getByRole("region", { name: "Account" });
 
     expect(within(drawer).getByText("Explore Salsa Segura")).toBeInTheDocument();
-    expect(within(account).getByRole("link", { name: "Submit Event" })).toHaveClass("auth-btn");
+    expect(within(account).getByRole("link", { name: "Submit Event" })).toHaveClass("ui-button");
     expect(within(account).getByRole("link", { name: "Sign In" })).toHaveAttribute(
       "href",
       "/signin"
     );
-    expect(within(city).getByRole("button", { name: "BOS" })).toHaveAttribute(
+    expect(within(city).getByRole("button", { name: /Boston/ })).toHaveAttribute(
       "aria-pressed",
       "true"
     );
@@ -316,7 +316,7 @@ describe("Header", () => {
       "/admin"
     );
     expect(within(account).getByRole("button", { name: "Sign Out" })).toBeInTheDocument();
-    expect(within(city).getByRole("button", { name: "NYC" })).toHaveAttribute(
+    expect(within(city).getByRole("button", { name: /New York/ })).toHaveAttribute(
       "aria-pressed",
       "true"
     );
@@ -331,8 +331,8 @@ describe("Header", () => {
     const drawer = document.getElementById("site-navigation") as HTMLElement;
     const account = within(drawer).getByRole("region", { name: "Account" });
 
-    expect(within(account).getByRole("link", { name: "Submit Event" })).toHaveClass("auth-btn");
-    expect(within(account).getByRole("link", { name: "Sign In" })).not.toHaveClass("auth-btn");
+    expect(within(account).getByRole("link", { name: "Submit Event" })).toHaveClass("ui-button");
+    expect(within(account).getByRole("link", { name: "Sign In" })).toHaveClass("ui-button");
   });
 
   it("shows the profile photo inside the account menu trigger when avatar_url is set", () => {

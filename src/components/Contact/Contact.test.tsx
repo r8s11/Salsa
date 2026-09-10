@@ -14,6 +14,13 @@ describe("Contact", () => {
     vi.restoreAllMocks();
   });
 
+  it("hides the decorative emoji on the form heading from the accessibility tree", () => {
+    render(<Contact />);
+    const heading = screen.getByRole("heading", { name: "Send a Message" });
+    expect(heading).toHaveAccessibleName("Send a Message");
+    expect(heading.querySelector("[aria-hidden='true']")).toHaveTextContent("📬");
+  });
+
   it("renders four inline errors and focuses name on empty submit", async () => {
     render(<Contact />);
     fireEvent.click(screen.getByRole("button", { name: /send message/i }));

@@ -28,11 +28,28 @@ const SECTION_LABEL: Record<string, string> = {
   "/host": "Host · Dashboard",
   "/host/events": "Host · My Events",
   "/host/events/new": "Host · New Event",
+  "/host/events/import": "Host · Import Events",
+  "/host/organization": "Host · Organization",
+};
+
+/**
+ * Trailing segments of /host/events/:eventId routes. Checked before the
+ * broad event-detail fallback so a nested action never reports itself as
+ * "Event Details".
+ */
+const HOST_EVENT_CHILD_LABEL: Record<string, string> = {
+  edit: "Host · Edit Event",
+  attendees: "Host · Attendees",
+  "check-in": "Host · Check-in",
 };
 
 function sectionLabelFor(pathname: string): string {
   if (SECTION_LABEL[pathname]) return SECTION_LABEL[pathname];
-  if (pathname.startsWith("/host/events/")) return "Host · Event Details";
+  if (pathname.startsWith("/host/events/")) {
+    const trailing = pathname.split("/").filter(Boolean).slice(3).join("/");
+    return HOST_EVENT_CHILD_LABEL[trailing] ?? "Host · Event Details";
+  }
+  if (pathname === "/host" || pathname.startsWith("/host/")) return SECTION_LABEL["/host"];
   if (pathname.startsWith("/admin/events/")) return "Events";
   if (pathname.startsWith("/admin/users/")) return "Users";
   if (pathname.startsWith("/admin/organizer-requests/")) return "Organizer Requests";
@@ -78,11 +95,16 @@ export default function AdminLayout() {
       ? `${rolePrefix} · ${sectionLabel}`
       : sectionLabel;
   const initial = user?.email ? user.email.charAt(0).toUpperCase() : "?";
+  // Host and Admin share this shell; the mode drives the navigation landmark
+  // name and the tablet navigation treatment (Host keeps the labeled drawer
+  // until the full sidebar appears at 1024px).
+  const mode = isHostRoute ? "host" : "admin";
 
   return (
-    <div className="admin-shell">
+    <div className="admin-shell" data-mode={mode}>
       <AdminSidebar
         variant="fixed"
+        mode={mode}
         collapsed={sidebarCollapsed}
         onToggleCollapse={() => setSidebarCollapsed((value) => !value)}
       />
@@ -102,7 +124,7 @@ export default function AdminLayout() {
           >
             <X size={20} aria-hidden="true" />
           </button>
-          <AdminSidebar variant="drawer" onNavigate={closeDrawer} />
+          <AdminSidebar variant="drawer" mode={mode} onNavigate={closeDrawer} />
         </div>
       </div>
 

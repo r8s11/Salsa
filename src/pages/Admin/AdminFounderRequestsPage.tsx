@@ -24,9 +24,11 @@ export default function AdminFounderRequestsPage() {
     requests: allRequests,
     isLoading,
     isAdmin,
-    approveRequest,
+    approveAndSendInvitation,
+    isApprovingAndSending,
+    approveAndSendInvitationError,
+    approveAndSendInvitationResult,
     rejectRequest,
-    isApproving,
     isRejecting,
   } = useFounderRequests();
 
@@ -65,7 +67,7 @@ export default function AdminFounderRequestsPage() {
   };
 
   const handleApprove = (requestId: string) => {
-    approveRequest(requestId, {
+    approveAndSendInvitation(requestId, {
       onSuccess: () => {
         setShowApproveDialog(false);
         setSelectedRequestId(null);
@@ -130,7 +132,23 @@ export default function AdminFounderRequestsPage() {
         </div>
       </header>
 
-      <main className="page-main">
+      <div className="page-main">
+        {approveAndSendInvitationError && (
+          <div className="result-message result-message--error" role="alert">
+            {approveAndSendInvitationError instanceof Error
+              ? approveAndSendInvitationError.message
+              : "An error occurred during approval."}
+          </div>
+        )}
+
+        {approveAndSendInvitationResult && (
+          <div className="result-message result-message--success" role="status">
+            {approveAndSendInvitationResult.invitationResult?.deliveryStatus === "attempting"
+              ? "Request approved. Invitation email is being sent."
+              : `Request approved. Invitation email sent to ${approveAndSendInvitationResult.invitationResult?.email}.`}
+          </div>
+        )}
+
         {isLoading ? (
           <div className="loading-state">
             <Loader2 className="spinner" />
@@ -159,7 +177,7 @@ export default function AdminFounderRequestsPage() {
             )}
           </>
         )}
-      </main>
+      </div>
 
       <AdminFounderRequestsFilterDrawer
         open={filterDrawerOpen}
@@ -173,7 +191,7 @@ export default function AdminFounderRequestsPage() {
 
       <AdminApproveDialog
         requestId={selectedRequestId ?? ""}
-        isBusy={isApproving}
+        isBusy={isApprovingAndSending}
         onConfirm={handleApprove}
         onCancel={() => setShowApproveDialog(false)}
         isOpen={showApproveDialog}

@@ -263,7 +263,9 @@ export default function Calendar() {
         <div className="stage-inner">
           <div className="stage-left">
             <p className="stage-eyebrow">What's on · {cityLabel}</p>
-            <h1 className="stage-title">{monthTitle}</h1>
+            <h1 className="stage-title" aria-label={`Dance Calendar — ${monthTitle}`}>
+              {monthTitle}
+            </h1>
             <p className="stage-accent">salsa &amp; bachata, hasta la madrugada</p>
           </div>
           <div className="stage-controls stage-controls-primary">

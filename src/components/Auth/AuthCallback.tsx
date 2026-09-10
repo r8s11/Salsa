@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../contexts/useAuth";
 import { roleFromUser } from "../../contexts/authContextObject";
@@ -10,6 +10,8 @@ import { consumeAuthReturnDestination } from "../../lib/authReturnDestination";
 import { publicErrorMessage } from "../../shared/forms/errorMessage";
 import FormFieldError from "../../shared/forms/FormFieldError";
 import { fieldErrorProps } from "../../shared/forms/fieldErrorProps";
+import Button from "../ui/Button";
+import ButtonLink from "../ui/ButtonLink";
 import "./AuthCallback.css";
 
 type CallbackError = AuthIntentKind | "invalid";
@@ -237,14 +239,14 @@ export default function AuthCallback() {
           {copy.message}
         </p>
         {error === "signup" && intentEmail && (
-          <button
+          <Button
+            variant="ghost"
             type="button"
-            className="link-button"
             onClick={handleResendConfirmation}
             disabled={resendStatus === "pending"}
           >
             {resendStatus === "pending" ? "Sending…" : "Resend confirmation email"}
-          </button>
+          </Button>
         )}
         {error === "signup" && resendStatus === "sent" && (
           <p className="auth-message" role="status">
@@ -257,13 +259,13 @@ export default function AuthCallback() {
           </p>
         )}
         {error === "recovery" && (
-          <Link to="/signin" state={{ mode: "reset", email: intentEmail }} className="link-button">
+          <ButtonLink to="/signin" variant="ghost" state={{ mode: "reset", email: intentEmail }}>
             Request a new reset email
-          </Link>
+          </ButtonLink>
         )}
-        <Link to="/signin" className="btn-primary btn-block">
+        <ButtonLink to="/signin" variant="primary" block>
           Back to sign in
-        </Link>
+        </ButtonLink>
       </section>
     );
   }
@@ -312,9 +314,9 @@ export default function AuthCallback() {
             />
             <FormFieldError id="recovery-confirm-password-error" message={confirmPasswordFieldError} />
           </div>
-          <button type="submit" className="btn-primary btn-block" disabled={busy}>
-            {busy ? "Updating password…" : "Set new password"}
-          </button>
+          <Button type="submit" block loading={busy} loadingLabel="Updating password…">
+            Set new password
+          </Button>
         </form>
       </section>
     );

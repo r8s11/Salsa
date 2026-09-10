@@ -29,8 +29,16 @@ a.logo {
   text-decoration: none;
 }
 
-a.logo:hover {
+a.logo:hover .ss-logo__wordmark,
+a.logo:hover .ss-logo__wordmark-accent {
   color: var(--gold-light);
+}
+
+/* Drawer-only ornaments: the numeral and the diamond marker exist for the
+   full-screen mobile sheet and never render in the desktop bar. */
+.nav-links__num,
+.nav-links__marker {
+  display: none;
 }
 
 .nav-links {
@@ -127,24 +135,21 @@ a.logo:hover {
   background: var(--red-deep);
 }
 
-.auth-btn {
-  display: inline-block;
+/* Header-specific overrides for ui-button--compact (replaces old .auth-btn) */
+.site-header .ui-button--compact {
+  min-height: 44px;
   padding: 6px 12px;
-  color: var(--text);
-  font-family: var(--font-ui);
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.14em;
-  text-decoration: none;
-  text-transform: uppercase;
   white-space: nowrap;
-  cursor: pointer;
   background: var(--red-deep);
   border: 1px solid var(--red-deep);
   border-radius: var(--radius-sm);
+  color: var(--text);
 }
 
-.auth-btn:hover {
+.site-header .ui-button--compact:hover {
   color: var(--bg);
   background: var(--red-bright);
   border-color: var(--red-bright);
@@ -324,7 +329,7 @@ a.logo:hover {
 .logo:focus-visible,
 .nav-links a:focus-visible,
 .city-switch__btn:focus-visible,
-.auth-btn:focus-visible,
+.site-header .ui-button:focus-visible,
 .account-disclosure summary:focus-visible,
 .account-disclosure__menu a:focus-visible,
 .account-disclosure__menu button:focus-visible,
@@ -332,14 +337,14 @@ a.logo:hover {
 .mobile-nav__dashboards a:focus-visible,
 .drawer-sign-out:focus-visible,
 .hamburger:focus-visible {
-  outline: 2px solid var(--gold-light);
+  outline: 2px solid var(--red-bright);
   outline-offset: 2px;
 }
 
 @media (min-width: 991px) {
   .nav-links > li > a,
   .city-switch__btn,
-  .auth-btn,
+  .site-header .ui-button,
   .account-disclosure summary {
     display: inline-flex;
     align-items: center;
@@ -362,6 +367,9 @@ a.logo:hover {
     display: flex;
   }
 
+  /* ── Full-screen sheet ───────────────────────────────────────────
+     Sits under the sticky bar so the gold/rose logo and the X stay
+     visible while the sheet is open. */
   .nav-links {
     position: fixed;
     top: 68px;
@@ -373,48 +381,141 @@ a.logo:hover {
     align-items: stretch;
     gap: 0;
     margin: 0;
-    padding: var(--space-md) var(--gutter);
+    padding: var(--space-lg) 20px calc(var(--space-xl) + env(safe-area-inset-bottom));
     overflow-y: auto;
-    background: var(--bg);
+    background:
+      radial-gradient(80% 55% at 88% 0%, rgba(225, 29, 72, 0.26), transparent 62%),
+      radial-gradient(70% 50% at 0% 100%, rgba(233, 195, 73, 0.12), transparent 58%),
+      var(--bg);
   }
 
   .nav-links.active {
     display: flex;
+    animation: navSheetIn 0.22s cubic-bezier(0.22, 0.9, 0.3, 1) both;
   }
+
+  /* Numbered destination list */
   .nav-links > li > a {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    min-height: 60px;
     padding: 12px 0;
     border-radius: 0;
+    border-bottom: 1px solid var(--border);
   }
+
   .nav-links > li > a::after {
     right: 0;
     left: 0;
   }
+
+  .nav-links__num {
+    display: block;
+    width: 22px;
+    flex-shrink: 0;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    color: var(--red-bright);
+  }
+
+  .nav-links__label {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: clamp(1.6rem, 7.5vw, 2.15rem);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+
+  .nav-links__marker {
+    display: block;
+    margin-left: auto;
+    font-size: 0.85rem;
+    line-height: 1;
+    color: var(--gold);
+  }
+
+  .nav-links > li > a.active .nav-links__label {
+    color: var(--gold-light);
+  }
+
   .mobile-nav-actions {
-    display: grid;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
     gap: var(--space-lg);
-    margin-top: var(--space-md);
+    margin-top: var(--space-lg);
   }
   .mobile-nav__context,
   .mobile-nav__label {
-    font-family: var(--font-epilogue);
-    font-size: 0.75rem;
-    letter-spacing: 0.05em;
-    color: var(--text-muted);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.66rem;
+    letter-spacing: 0.2em;
+    color: var(--text-dim);
     text-transform: uppercase;
+  }
+  .mobile-nav__context {
+    display: none;
   }
   .mobile-nav__city {
     display: grid;
-    gap: var(--space-xs);
-    padding: var(--space-md);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    background: var(--card);
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
+    gap: var(--space-sm);
   }
+
+  /* City cards, not pills */
+  .city-switch--mobile {
+    display: flex;
+    gap: 10px;
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+
+  .city-switch--mobile .city-switch__btn {
+    flex: 1;
+    min-height: 52px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 3px;
+    padding: 0 16px;
+    border: 1px solid var(--border-md);
+    border-radius: var(--radius-lg);
+    background: rgba(255, 255, 255, 0.03);
+    text-align: left;
+  }
+
+  .city-switch--mobile .city-switch__btn.active {
+    border-color: var(--red);
+    background: var(--red-deep);
+  }
+
+  .city-switch__name {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 0.92rem;
+    letter-spacing: 0.02em;
+  }
+
+  .city-switch__region {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.62;
+  }
+
   .mobile-nav__account {
     display: grid;
-    gap: var(--space-xs);
+    gap: var(--space-sm);
+    /* Anchors the account block to the bottom of the sheet, matching the
+       redesign, instead of stacking everything against the nav list. */
+    margin-top: auto;
     padding-top: var(--space-md);
     border-top: 1px solid var(--border);
   }
@@ -422,26 +523,104 @@ a.logo:hover {
   .mobile-nav__account > a,
   .drawer-sign-out {
     min-height: 44px;
-    align-items: center;
   }
-  .mobile-nav__account > a:not(.auth-btn),
+  .mobile-nav__account > a:not(.ui-button):not(.mobile-nav__identity),
   .drawer-sign-out {
     display: flex;
+    align-items: center;
     width: 100%;
+    min-height: 46px;
     text-align: left;
-    padding: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
     color: var(--text-muted);
+    border: 1px solid var(--border-md);
     border-radius: var(--radius-md);
   }
-  .mobile-nav__account > a:not(.auth-btn):hover,
+  .mobile-nav__account > a:not(.ui-button):hover,
   .drawer-sign-out:hover {
     color: var(--text);
     background: var(--card);
+    border-color: var(--red);
   }
-  .mobile-nav-actions .auth-btn {
+
+  /* Signed-in identity card */
+  .mobile-nav__identity {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    color: var(--text);
+  }
+
+  .mobile-nav__identity:hover {
+    border-color: var(--red-dim);
+  }
+
+  .mobile-nav__identity .account-avatar {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+  }
+
+  .mobile-nav__identity-text {
+    display: grid;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .mobile-nav__identity-name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.94rem;
+    color: var(--text);
+  }
+
+  .mobile-nav__identity-email {
+    overflow: hidden;
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-transform: none;
+  }
+
+  .mobile-nav__identity-cta {
+    flex-shrink: 0;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.66rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .mobile-nav-actions .ui-button {
     width: 100%;
     display: flex;
     justify-content: center;
+    min-height: 54px;
+    border-radius: var(--radius-full);
+  }
+
+  @keyframes navSheetIn {
+    from {
+      opacity: 0;
+      transform: translateY(14px) scale(0.985);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nav-links.active {
+      animation: none;
+    }
   }
 }
 

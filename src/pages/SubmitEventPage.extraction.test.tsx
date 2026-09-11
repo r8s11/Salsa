@@ -254,4 +254,35 @@ describe("SubmitEventPage flyer extraction (Phase 3)", () => {
       screen.queryByRole("button", { name: /Extract Event Details/i })
     ).not.toBeInTheDocument();
   });
+
+  it("a stale response cannot prefill the form once its flyer has been removed", async () => {
+    let resolveExtraction!: (value: typeof FULL_EXTRACTION) => void;
+    mockFlyerExtraction.extractEventFromFlyer.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveExtraction = resolve;
+      })
+    );
+    const user = userEvent.setup();
+    renderPage();
+    await uploadFlyer(user);
+
+    await user.click(screen.getByRole("button", { name: /Extract Event Details/i }));
+    expect(screen.getByText(/Analyzing your flyer/i)).toBeInTheDocument();
+
+    // Remove the flyer while extraction is still in flight.
+    await user.click(screen.getByRole("button", { name: /Remove/i }));
+    expect(screen.queryByLabelText(/Event Title \*/i)).toHaveValue("");
+
+    // The stale request now resolves — it must reach neither the panel nor
+    // the form, even though it would have been a perfectly valid result.
+    await act(async () => {
+      resolveExtraction(FULL_EXTRACTION);
+    });
+
+    expect(screen.queryByText(/Flyer analyzed/i)).not.toBeInTheDocument();
+    expect(screen.getByLabelText(/Event Title \*/i)).toHaveValue("");
+    expect(
+      screen.queryByRole("button", { name: /Extract Event Details/i })
+    ).not.toBeInTheDocument();
+  });
 });

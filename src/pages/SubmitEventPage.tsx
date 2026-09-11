@@ -7,12 +7,19 @@ import SuccessCard from "../features/submit-event/components/SuccessCard";
 import { useSubmissionAccess } from "../features/submit-event/hooks/useSubmissionAccess";
 import { useSubmitEventForm } from "../features/submit-event/hooks/useSubmitEventForm";
 import type { SubmitFieldName } from "../features/submit-event/model/validation";
+import { extractEventFromFlyer } from "../features/flyer-extraction/client";
+import { applyExtractionToDraft } from "../features/flyer-extraction/prefill";
 import FormErrorSummary from "../shared/forms/FormErrorSummary";
 import Button from "../components/ui/Button";
 import "../styles/forms.css";
 import "./SubmitEventPage.css";
 
 type EntryMode = "choice" | "flyer" | "manual";
+type ExtractionNotice =
+  | { status: "idle" }
+  | { status: "working" }
+  | { status: "done"; filled: string[]; skipped: string[] }
+  | { status: "error"; message: string };
 
 /**
  * Maps each `SubmitFieldName` to the DOM id `EventForm` renders it with, in
@@ -61,8 +68,7 @@ export default function SubmitEventPage() {
   const [entryMode, setEntryMode] = useState<EntryMode>("choice");
 
   const formRef = useRef<HTMLFormElement>(null);
-  const [showComingSoon, setShowComingSoon] = useState(false);
-  const comingSoonRef = useRef<HTMLDivElement>(null);
+  const [extractNotice, setExtractNotice] = useState<ExtractionNotice>({ status: "idle" });
 
   // Only the Host-facing entry point warns before losing typed work — the
   // public submitter flow is intentionally left unchanged in Phase 2.
@@ -84,9 +90,22 @@ export default function SubmitEventPage() {
     }
   };
 
-  const closeComingSoon = () => {
-    setShowComingSoon(false);
-    focusForm();
+  const handleExtract = async () => {
+    if (!uploadedFlyerUrl || extractNotice.status === "working") return;
+    setExtractNotice({ status: "working" });
+    try {
+      const extraction = await extractEventFromFlyer(uploadedFlyerUrl);
+      const result = applyExtractionToDraft(extraction, form);
+      onChange(result.draft);
+      setExtractNotice({ status: "done", filled: result.filled, skipped: result.skipped });
+      focusForm();
+    } catch (error) {
+      setExtractNotice({
+        status: "error",
+        message:
+          error instanceof Error ? error.message : "We couldn't read this flyer. Please try again.",
+      });
+    }
   };
 
   if (isSubmitted) return <SuccessCard onReset={resetSubmitted} />;
@@ -130,8 +149,8 @@ export default function SubmitEventPage() {
                   Start with a flyer
                 </h2>
                 <p className="submit-flyer__subhead">
-                  Upload an event flyer and SalsaSegura will eventually help fill in the event
-                  details for you.
+                  Upload an event flyer and SalsaSegura will help fill in the event details for
+                  you — review everything before submitting.
                 </p>
 
                 {user ? (
@@ -157,9 +176,40 @@ export default function SubmitEventPage() {
 
                 {flyerReady && (
                   <div className="submit-flyer__actions">
-                    <Button variant="secondary" onClick={() => setShowComingSoon(true)}>
+                    <Button
+                      variant="secondary"
+                      onClick={handleExtract}
+                      loading={extractNotice.status === "working"}
+                      loadingLabel="Reading flyer…"
+                    >
                       <Sparkles size={16} aria-hidden /> Extract Event Details
                     </Button>
+                  </div>
+                )}
+                {extractNotice.status === "done" && (
+                  <div className="submit-flyer__notice" role="status">
+                    {extractNotice.filled.length > 0 ? (
+                      <p>
+                        Filled {extractNotice.filled.join(", ").toLowerCase()} from your flyer —
+                        review below before submitting.
+                      </p>
+                    ) : (
+                      <p>
+                        Couldn&apos;t pull any details from this flyer — fill in the form
+                        manually.
+                      </p>
+                    )}
+                    {extractNotice.skipped.length > 0 && (
+                      <p>
+                        Couldn&apos;t determine: {extractNotice.skipped.join(", ").toLowerCase()} —
+                        fill those in manually.
+                      </p>
+                    )}
+                  </div>
+                )}
+                {extractNotice.status === "error" && (
+                  <div className="submit-flyer__notice" role="alert">
+                    <p>{extractNotice.message}</p>
                   </div>
                 )}
               </section>
@@ -191,31 +241,6 @@ export default function SubmitEventPage() {
           </>
         )}
       </div>
-
-      {/* ── Coming Soon (honest, not a silent no-op) ── */}
-      {showComingSoon && (
-        <div className="submit-comingsoon-overlay" onClick={closeComingSoon} role="presentation">
-          <div
-            className="submit-comingsoon"
-            onClick={(event) => event.stopPropagation()}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="coming-soon-title"
-            ref={comingSoonRef}
-          >
-            <h2 id="coming-soon-title">
-              <Sparkles size={18} aria-hidden /> Extract Event Details
-            </h2>
-            <p className="submit-comingsoon__badge">Coming soon</p>
-            <p>
-              AI flyer extraction is coming soon. Your flyer is already saved and will be used as
-              the event image.
-            </p>
-            <p>You can continue adding the event details in the form.</p>
-            <Button onClick={closeComingSoon}>Back to event form</Button>
-          </div>
-        </div>
-      )}
     </section>
   );
 }

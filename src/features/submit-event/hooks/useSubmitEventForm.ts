@@ -1,5 +1,5 @@
 import type { FormEvent } from "react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createSubmission } from "../../admin/api/submissionsRepo";
 import { uploadEventFlyer, removeEventFlyer } from "../../events/api/eventFlyers";
 import { useCity } from "../../../contexts/useCity";
@@ -11,6 +11,7 @@ import type { EventFormDraft } from "../../events/components/EventForm";
 import { draftToSubmission } from "../../events/components/EventForm";
 import type { EventFlyerStatus } from "../../events/components/EventFlyerField";
 import { extractEventFromFlyer } from "../../flyer-extraction/client";
+import { applyExtractionToDraft, type PrefillResult } from "../../flyer-extraction/prefill";
 import type { ExtractedEvent, FlyerExtractionStatus } from "../../flyer-extraction/types";
 
 function buildSubmitDraft(city: EventFormDraft["city"]): EventFormDraft {
@@ -30,6 +31,14 @@ export function useSubmitEventForm() {
   const { city: defaultCity } = useCity();
   const { user } = useAuth();
   const [form, setForm] = useState<EventFormDraft>(() => buildSubmitDraft(defaultCity));
+  // Extraction resolves asynchronously; reading `form` from a closure
+  // captured when the request started would ignore anything the user typed
+  // in the meantime. This ref always reflects the latest render's form, so
+  // the success handler prefills against current, not stale, values.
+  const formRef = useRef(form);
+  useEffect(() => {
+    formRef.current = form;
+  }, [form]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   // Per-field validation errors, keyed by `SubmitFieldName`.
@@ -66,6 +75,12 @@ export function useSubmitEventForm() {
   const [extractionStatus, setExtractionStatus] = useState<FlyerExtractionStatus>("idle");
   const [extractionResult, setExtractionResult] = useState<ExtractedEvent | null>(null);
   const [extractionError, setExtractionError] = useState<string | null>(null);
+  // Human labels of fields the last successful extraction filled/skipped —
+  // sourced from `applyExtractionToDraft`'s `PrefillResult`, not recomputed.
+  const [prefillFeedback, setPrefillFeedback] = useState<Pick<
+    PrefillResult,
+    "filled" | "skipped"
+  > | null>(null);
   const extractionGeneration = useRef(0);
   // Synchronous duplicate-click guard: React state updates don't apply
   // mid-event-handler, so two calls to handleExtractFlyer in the same tick
@@ -145,6 +160,7 @@ export function useSubmitEventForm() {
     setExtractionStatus("idle");
     setExtractionResult(null);
     setExtractionError(null);
+    setPrefillFeedback(null);
   };
 
   const handleFlyerChange = (file: File | null) => {
@@ -217,10 +233,18 @@ export function useSubmitEventForm() {
     setExtractionError(null);
     extractEventFromFlyer(uploadedFlyerUrl)
       .then((result) => {
+        // Generation check BEFORE anything else — a stale response must
+        // never render, and (critically) must never reach the form.
         if (extractionGeneration.current !== generation) return;
         isExtracting.current = false;
         setExtractionResult(result);
         setExtractionStatus("success");
+        // Prefill against the latest form, not a closure captured when this
+        // request started — a manual edit made while extraction was in
+        // flight must still win.
+        const { draft, filled, skipped } = applyExtractionToDraft(result, formRef.current);
+        onChange(draft);
+        setPrefillFeedback({ filled, skipped });
       })
       .catch((err) => {
         if (extractionGeneration.current !== generation) return;
@@ -359,6 +383,7 @@ export function useSubmitEventForm() {
     extractionStatus,
     extractionResult,
     extractionError,
+    prefillFeedback,
     handleExtractFlyer,
     dismissExtractionError,
   };

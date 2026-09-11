@@ -591,6 +591,7 @@ describe("useSubmitEventForm", () => {
       expect(result.current.extractionStatus).toBe("idle");
       expect(result.current.extractionResult).toBeNull();
       expect(result.current.extractionError).toBeNull();
+      expect(result.current.prefillFeedback).toBeNull();
     });
 
     it("clears the extraction result when the flyer is removed", async () => {
@@ -611,6 +612,7 @@ describe("useSubmitEventForm", () => {
       expect(result.current.extractionStatus).toBe("idle");
       expect(result.current.extractionResult).toBeNull();
       expect(result.current.flyerReady).toBe(false);
+      expect(result.current.prefillFeedback).toBeNull();
     });
 
     it("discards a stale response after the flyer changes mid-request", async () => {
@@ -646,12 +648,55 @@ describe("useSubmitEventForm", () => {
       expect(result.current.extractionResult).toBeNull();
     });
 
-    it("never mutates the manual form while extracting", async () => {
+    it("fills only empty fields from a successful extraction", async () => {
+      mockFlyerExtraction.extractEventFromFlyer.mockResolvedValue(extractionFixture);
+      const { result } = renderHook(() => useSubmitEventForm());
+
+      await act(async () => {
+        result.current.handleFlyerChange(pngFile());
+      });
+      await act(async () => {
+        result.current.handleExtractFlyer();
+      });
+
+      expect(result.current.extractionStatus).toBe("success");
+      expect(result.current.form.title).toBe("Boston Salsa Night");
+      expect(result.current.form.location).toBe("Havana Club");
+      expect(result.current.form.event_date).toBe("2026-09-18");
+      expect(result.current.form.price_type).toBe("paid");
+      expect(result.current.form.price_amount).toBe("20");
+      expect(result.current.prefillFeedback?.filled).toContain("Title");
+    });
+
+    it("never overwrites a manually typed value that was already non-empty", async () => {
       mockFlyerExtraction.extractEventFromFlyer.mockResolvedValue(extractionFixture);
       const { result } = renderHook(() => useSubmitEventForm());
 
       await act(async () => {
         result.current.update("title", "My Own Title");
+      });
+      await act(async () => {
+        result.current.handleFlyerChange(pngFile());
+      });
+      await act(async () => {
+        result.current.handleExtractFlyer();
+      });
+
+      expect(result.current.extractionStatus).toBe("success");
+      // The fixture's title differs from what was typed — proving the
+      // manual value survived, not merely that it was never assigned to.
+      expect(result.current.extractionResult?.title).toBe("Boston Salsa Night");
+      expect(result.current.form.title).toBe("My Own Title");
+    });
+
+    it("leaves the current city unchanged and reports it skipped when the flyer's locality is unmappable", async () => {
+      mockFlyerExtraction.extractEventFromFlyer.mockResolvedValue({
+        ...extractionFixture,
+        city: "Providence, RI",
+      });
+      const { result } = renderHook(() => useSubmitEventForm());
+
+      await act(async () => {
         result.current.update("city", "new-york-city");
       });
       await act(async () => {
@@ -662,10 +707,82 @@ describe("useSubmitEventForm", () => {
       });
 
       expect(result.current.extractionStatus).toBe("success");
-      // The fixture's title/city differ from what was typed — proving the
-      // manual field survived, not merely that it was never assigned to.
-      expect(result.current.form.title).toBe("My Own Title");
       expect(result.current.form.city).toBe("new-york-city");
+      expect(result.current.prefillFeedback?.skipped).toContain("City");
+    });
+
+    it("retrying extraction does not overwrite a field the user edited after the first prefill", async () => {
+      mockFlyerExtraction.extractEventFromFlyer.mockResolvedValue(extractionFixture);
+      const { result } = renderHook(() => useSubmitEventForm());
+      await act(async () => {
+        result.current.handleFlyerChange(pngFile());
+      });
+      await act(async () => {
+        result.current.handleExtractFlyer();
+      });
+      expect(result.current.form.title).toBe("Boston Salsa Night");
+
+      await act(async () => {
+        result.current.update("title", "Edited After Prefill");
+      });
+      await act(async () => {
+        result.current.handleExtractFlyer();
+      });
+
+      expect(result.current.extractionStatus).toBe("success");
+      expect(result.current.form.title).toBe("Edited After Prefill");
+    });
+
+    it("a stale response must not prefill the form, even though it already committed once", async () => {
+      let resolveFirst!: (value: typeof extractionFixture) => void;
+      mockFlyerExtraction.extractEventFromFlyer.mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveFirst = resolve;
+        })
+      );
+      const { result } = renderHook(() => useSubmitEventForm());
+      await act(async () => {
+        result.current.handleFlyerChange(pngFile());
+      });
+      await act(async () => {
+        result.current.handleExtractFlyer();
+      });
+      expect(result.current.extractionStatus).toBe("loading");
+
+      // Replace the flyer while extraction A is still in flight.
+      await act(async () => {
+        result.current.handleFlyerChange(pngFile());
+      });
+      expect(result.current.extractionStatus).toBe("idle");
+      expect(result.current.form.title).toBe("");
+
+      // A's response arrives late. It must not render AND must not prefill.
+      await act(async () => {
+        resolveFirst(extractionFixture);
+      });
+
+      expect(result.current.extractionStatus).toBe("idle");
+      expect(result.current.extractionResult).toBeNull();
+      expect(result.current.form.title).toBe("");
+      expect(result.current.prefillFeedback).toBeNull();
+    });
+
+    it("leaves the form untouched on extraction failure", async () => {
+      mockFlyerExtraction.extractEventFromFlyer.mockRejectedValueOnce(new Error("read failed"));
+      const { result } = renderHook(() => useSubmitEventForm());
+      await act(async () => {
+        result.current.update("title", "Kept On Failure");
+      });
+      await act(async () => {
+        result.current.handleFlyerChange(pngFile());
+      });
+      await act(async () => {
+        result.current.handleExtractFlyer();
+      });
+
+      expect(result.current.extractionStatus).toBe("error");
+      expect(result.current.form.title).toBe("Kept On Failure");
+      expect(result.current.prefillFeedback).toBeNull();
     });
 
     it("dismissing a failed extraction clears the error without touching the flyer", async () => {

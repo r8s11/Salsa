@@ -4,11 +4,11 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactElement } from "react";
 import AdminLayout from "./AdminLayout";
-import HostMyEventsPage from "../pages/HostMyEventsPage";
-import HostEventImportPage from "../pages/HostEventImportPage";
-import HostOrganizationPage from "../pages/HostOrganizationPage";
-import HostEventDetailPage from "../pages/HostEventDetailPage";
-import HostAttendeeListPage from "../pages/HostAttendeeListPage";
+import HostMyEventsPage from "../pages/host/HostMyEventsPage";
+import HostEventImportPage from "../pages/host/HostEventImportPage";
+import HostOrganizationPage from "../pages/host/HostOrganizationPage";
+import HostEventDetailPage from "../pages/host/HostEventDetailPage";
+import HostAttendeeListPage from "../pages/host/HostAttendeeListPage";
 
 /**
  * AdminLayout owns the document's single <main> landmark. Host pages used to
@@ -27,7 +27,7 @@ vi.mock("../features/admin/hooks/useOrganizerRequests", () => ({
     pendingCountError: null,
   }),
 }));
-vi.mock("../hooks/useFounderRequests", () => ({
+vi.mock("../features/admin/hooks/useFounderRequests", () => ({
   useFounderRequests: () => ({ pendingCount: 0 }),
 }));
 vi.mock("../contexts/useAuth", () => ({
@@ -55,7 +55,7 @@ vi.mock("../features/host/hooks/useEventCheckIns", () => ({
 vi.mock("../features/host/hooks/useEventAttendanceSummaries", () => ({
   useEventAttendanceSummaries: () => ({ summaries: {}, isLoading: false }),
 }));
-vi.mock("../hooks/useMySubmissions", () => ({
+vi.mock("../features/account/hooks/useMySubmissions", () => ({
   useMySubmissions: () => ({
     submissions: [],
     approvedEvents: [],
@@ -64,7 +64,7 @@ vi.mock("../hooks/useMySubmissions", () => ({
     refetch: vi.fn(),
   }),
 }));
-vi.mock("../hooks/useHostEventImport", () => ({
+vi.mock("../features/host/hooks/useHostEventImport", () => ({
   useHostEventImport: () => ({
     stage: "idle",
     fileName: null,

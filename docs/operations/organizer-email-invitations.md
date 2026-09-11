@@ -9,6 +9,7 @@ From the repository root, authenticated to the intended Supabase production proj
 ```bash
 supabase functions deploy send-auth-email --no-verify-jwt
 supabase functions deploy invite-organizer
+supabase functions deploy resend-organizer-invitation
 ```
 
 `send-auth-email` is deliberately deployed without JWT verification because Supabase Auth calls it as an Auth Hook. The hook function itself must validate the hook secret. `invite-organizer` is deployed without the `--no-verify-jwt` flag; instead, `supabase/config.toml` sets `verify_jwt = false` for it directly, because the function performs its own internal caller-JWT validation against the trusted `app_metadata.role` claim, which is the sole enforcement point for authorizing this function's callers.
@@ -20,12 +21,27 @@ Set these on the target Supabase project. Use the secret values from the approve
 ```bash
 supabase secrets set RESEND_API_KEY=<approved-resend-api-key>
 supabase secrets set SEND_EMAIL_HOOK_SECRET=<approved-random-hook-secret>
+supabase secrets set AUTH_EMAIL_FROM='SalsaSegura <onboarding@contact.salsasegura.com>'
 supabase secrets set AUTH_EXTERNAL_URL=https://www.salsasegura.com
 ```
 
 `SUPABASE_SERVICE_ROLE_KEY` is required by the invitation workflow. Supply it through the platform-provided Function secret/environment mechanism for the production project; do not place a service-role key in source control, frontend configuration, or an email template.
 
-`INVITE_REDIRECT_URL` is optional and not required for normal operation: the function already computes the correct redirect URL per environment (`ENVIRONMENT=local|production`). If set, it MUST exactly match one of the two hardcoded allowed URLs (`http://localhost:5173/auth/invite` or `https://www.salsasegura.com/auth/invite`); any other value causes the function to return `500`.
+`INVITE_REDIRECT_URL` is optional. Both `invite-organizer` and
+`resend-organizer-invitation` resolve the redirect through
+`resolveInviteRedirectUrl` (`supabase/functions/_shared/invitation.ts`), whose
+precedence is: `INVITE_REDIRECT_URL` → `AUTH_EXTERNAL_URL` + `/auth/invite` →
+localhost **only** when `ENVIRONMENT` is `local`/`development` → otherwise fail
+closed with a `500`. With `AUTH_EXTERNAL_URL=https://www.salsasegura.com` set as
+above, production already resolves to
+`https://www.salsasegura.com/auth/invite` and needs no second variable. If
+`INVITE_REDIRECT_URL` is set, it must be a valid `http(s)` URL; a malformed or
+non-http value fails closed rather than falling back to localhost.
+
+`resend-organizer-invitation` additionally requires `RESEND_API_KEY` and
+`AUTH_EMAIL_FROM`: unlike the first invite (delivered by the Auth Send Email
+hook), the resend mints the credential with `auth.admin.generateLink` and sends
+the email through Resend directly.
 
 ## 3. Configure the Supabase Auth Hook manually
 
@@ -54,7 +70,7 @@ Do not use a lookalike route or append a suffix to `/auth/invite`.
 
 ## 5. Configure the invitation email template manually
 
-In **Supabase Dashboard → Authentication → Email Templates → Invite user**, copy the subject and HTML from `auth-templates/invite-organizer.md`. The link must use this unmodified Supabase variable:
+In **Supabase Dashboard → Authentication → Email Templates → Invite user**, copy the subject and HTML from `supabase/templates/invite-organizer.md`. The link must use this unmodified Supabase variable:
 
 ```html
 <a href="{{ .ConfirmationURL }}">Accept your organizer invitation</a>
@@ -94,7 +110,7 @@ Local Auth also allowlists `http://localhost:5173/auth/invite`. These settings d
 ## 8. Release readiness report (as of 2026-08-26)
 
 This section records the actual, evidence-backed status of the organizer email invitations feature
-at the end of implementation (Tasks 1–9 of `Docs/superpowers/plans/2026-08-26-organizer-email-invitations.md`,
+at the end of implementation (Tasks 1–9 of `docs/superpowers/plans/2026-08-26-organizer-email-invitations.md`,
 full history in `.superpowers/sdd/2026-08-26-organizer-email-invitations/progress.md` and the
 per-task `task-N-report.md` files). It supersedes nothing above — Sections 1–7 remain the exact
 manual steps a human operator must still perform.
@@ -134,7 +150,7 @@ local (`supabase/config.toml`) config, and this documentation. Full commands/val
 | Set production Function secrets `RESEND_API_KEY`, `SEND_EMAIL_HOOK_SECRET`, `AUTH_EXTERNAL_URL`, and the service-role key via the platform secret mechanism (Section 2) | **NOT executed** |
 | Configure the Supabase Dashboard → Authentication → Hooks → Send Email hook, URL `https://<production-project-ref>.supabase.co/functions/v1/send-auth-email` + the `SEND_EMAIL_HOOK_SECRET` value (Section 3) | **NOT executed** |
 | Add `https://www.salsasegura.com/auth/invite` to the Dashboard → Authentication → URL Configuration redirect allowlist (Section 4) | **NOT executed** |
-| Paste the Invite user email template from `auth-templates/invite-organizer.md` into Dashboard → Authentication → Email Templates, using only `{{ .ConfirmationURL }}` (Section 5) | **NOT executed** |
+| Paste the Invite user email template from `supabase/templates/invite-organizer.md` into Dashboard → Authentication → Email Templates, using only `{{ .ConfirmationURL }}` (Section 5) | **NOT executed** |
 | Verify the Resend sender domain/address and that the approved `RESEND_API_KEY` is authorized to send from it; send one controlled invitation to a monitored inbox (Section 6) | **NOT executed** |
 | Verify `https://www.salsasegura.com/auth/invite` serves the SPA (not a platform 404) on Azure Static Web Apps after a real deploy, then completes the invite flow (Section 7) | **NOT executed** |
 

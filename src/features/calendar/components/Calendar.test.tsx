@@ -29,16 +29,16 @@ vi.mock("@schedule-x/events-service", () => ({ createEventsServicePlugin: () => 
 vi.mock("@schedule-x/calendar-controls", () => ({
   createCalendarControlsPlugin: () => calendarControls,
 }));
-vi.mock("../../hooks/useEvent", () => ({ useEvents: () => useEvents() }));
-vi.mock("../../contexts/useCity", () => ({ useCity: () => ({ city, setCity }) }));
-vi.mock("../../features/calendar/hooks/useEventDeepLink", () => ({ useEventDeepLink: vi.fn() }));
-vi.mock("../../features/calendar/hooks/useEscapeKey", () => ({ useEscapeKey: vi.fn() }));
-vi.mock("../../shared/seo/useDocumentMeta", () => ({ useDocumentMeta: vi.fn() }));
-vi.mock("../../utils/seo", () => ({
+vi.mock("../../events/hooks/useEvent", () => ({ useEvents: () => useEvents() }));
+vi.mock("../../../contexts/useCity", () => ({ useCity: () => ({ city, setCity }) }));
+vi.mock("../hooks/useEventDeepLink", () => ({ useEventDeepLink: vi.fn() }));
+vi.mock("../hooks/useEscapeKey", () => ({ useEscapeKey: vi.fn() }));
+vi.mock("../../../shared/seo/useDocumentMeta", () => ({ useDocumentMeta: vi.fn() }));
+vi.mock("../../../utils/seo", () => ({
   generateEventsListStructuredData: vi.fn(() => ({})),
   injectStructuredData: vi.fn(),
 }));
-vi.mock("../EventModal/EventModal", () => ({ default: () => null }));
+vi.mock("../../events/components/EventModal/EventModal", () => ({ default: () => null }));
 
 const event = {
   id: "event-1",

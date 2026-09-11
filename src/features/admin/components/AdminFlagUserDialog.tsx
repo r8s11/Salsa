@@ -1,6 +1,6 @@
 import { useId, useRef, useState } from "react";
-import { displayNameFor, type AdminUserRow } from "../../features/admin/model/usersQuery";
-import { useAccessibleDialog } from "../../shared/a11y/useAccessibleDialog";
+import { displayNameFor, type AdminUserRow } from "../model/usersQuery";
+import { useAccessibleDialog } from "../../../shared/a11y/useAccessibleDialog";
 import "./AdminFlagUserDialog.css";
 
 interface AdminFlagUserDialogProps {

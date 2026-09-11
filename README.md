@@ -37,8 +37,8 @@ VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY=...
 
 ## Documentation
 
-- [Docs/STATUS_SUMMARY.md](Docs/STATUS_SUMMARY.md) — current project status
-- [Docs/ROADMAP.md](Docs/ROADMAP.md) — 52-week roadmap
+- [docs/STATUS_SUMMARY.md](docs/STATUS_SUMMARY.md) — current project status
+- [docs/ROADMAP.md](docs/ROADMAP.md) — 52-week roadmap
 - [DESIGN.md](DESIGN.md) — "Ritmo Vivo" design system
-- [Docs/plans/MODERNIZATION_BLUEPRINT.md](Docs/plans/MODERNIZATION_BLUEPRINT.md) — architecture audit & refactor plan
+- [docs/plans/MODERNIZATION_BLUEPRINT.md](docs/plans/MODERNIZATION_BLUEPRINT.md) — architecture audit & refactor plan
 - [CLAUDE.md](CLAUDE.md) — agent/contributor guide

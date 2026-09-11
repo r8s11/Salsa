@@ -166,3 +166,6 @@ Comprehensive*/
 
 # codebase-memory-mcp local index cache
 .codebase-memory/
+
+# Generated code-analysis caches (tools keep their conventional locations)
+graphify-out/

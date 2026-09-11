@@ -4,7 +4,7 @@
 
 **Philosophy:** Launch minimal, iterate based on real user feedback
 **URL:** www.salsasegura.com
-**Status:** Live · Week 28 of 52 · calendar + submissions + local dev stack + auth shipped. The full `/admin` dashboard (Phases 1-14 — events, users, submissions, organizer requests, venues, taxonomy, settings, audit log, analytics) shipped and **closed out Aug 17, 2026**, well beyond this 52-week plan's original "moderation dashboard" (Week 6) scope — see `Docs/STATUS_SUMMARY.md` and `SALSASEGURA_ADMIN_CLOSEOUT.md`.
+**Status:** Live · Week 28 of 52 · calendar + submissions + local dev stack + auth shipped. The full `/admin` dashboard (Phases 1-14 — events, users, submissions, organizer requests, venues, taxonomy, settings, audit log, analytics) shipped and **closed out Aug 17, 2026**, well beyond this 52-week plan's original "moderation dashboard" (Week 6) scope — see `docs/STATUS_SUMMARY.md` and `docs/archive/admin-closeout.md`.
 
 ---
 
@@ -12,7 +12,7 @@
 
 **Done out of order:** the core calendar pipeline (weeks 1-4), type filters (part of week 8), Open Graph (week 10), plus early pieces of recurring events (W15), gallery columns (W21), and multi-city (W22) landed via the Tambora events module (PR #8) and the ICS→Supabase import pivot.
 **Done Aug 10-11:** local Supabase dev stack, authentication (W5, email/password + Apple/Google/GitHub OAuth), moderation dashboard (W6), account-linked submissions + `/profile`, and the Rhythm Console UI refresh (Header/Sign-in/Admin/Profile/Calendar).
-**Done Aug 11-17 (beyond the original plan):** full Admin Dashboard, Phases 1-14 — closed out, READY TO CLOSE per `SALSASEGURA_ADMIN_CLOSEOUT.md`.
+**Done Aug 11-17 (beyond the original plan):** full Admin Dashboard, Phases 1-14 — closed out, READY TO CLOSE per `docs/archive/admin-closeout.md`.
 **Current focus:** text search & basic filters (Week 8 remainder) — the only unstarted item blocking further roadmap progress; nothing else is in flight.
 
 ## 📊 Progress Overview
@@ -32,7 +32,7 @@
 - [X] Authentication launch (email/password + Apple/Google/GitHub OAuth, Aug 10)
 - [X] Moderation dashboard (`/admin` queue with approve/reject, Aug 10)
 - [X] Rhythm Console UI refresh — Header/Sign-in/Admin/Profile/Calendar (Aug 11)
-- [X] Full Admin Dashboard, Phases 1-14 — events, users, submissions, organizer requests, venues, taxonomy, settings, audit log, analytics (Aug 11-17, closed out — beyond original Week 6 scope, see `SALSASEGURA_ADMIN_CLOSEOUT.md`)
+- [X] Full Admin Dashboard, Phases 1-14 — events, users, submissions, organizer requests, venues, taxonomy, settings, audit log, analytics (Aug 11-17, closed out — beyond original Week 6 scope, see `docs/archive/admin-closeout.md`)
 
 ### In Progress 🔄
 
@@ -57,7 +57,7 @@
 | 3    | Jan 15-21      | Database backend (Supabase)                  | ✅ Done    |
 | 4    | Jan 22-28      | Community submissions (Beta)                 | ✅ Done    |
 | 5    | Jan 29 - Feb 4 | Authentication launch                        | ✅ Done (Aug 10, overdue) |
-| 6    | Feb 5-11       | Moderation dashboard                         | ✅ Done (Aug 10, overdue) — superseded Aug 17 by full Admin Dashboard (Phases 1-14, `SALSASEGURA_ADMIN_CLOSEOUT.md`) |
+| 6    | Feb 5-11       | Moderation dashboard                         | ✅ Done (Aug 10, overdue) — superseded Aug 17 by full Admin Dashboard (Phases 1-14, `docs/archive/admin-closeout.md`) |
 | 7    | Feb 12-18      | Mobile optimization                          | 🔄 Partial (responsive layout done) |
 | 8    | Feb 19-25      | Search & basic filters                       | 🔄 Partial (type filters, no search) |
 | 9    | Feb 26 - Mar 4 | Email notifications                          | 📅 Planned |
@@ -152,10 +152,10 @@
 
 ## 🔗 Quick Links
 
-- [Status Summary](./STATUS_SUMMARY.md) - Current project snapshot
-- [52-Week Plan](./salsa_52week_plan.md) - Detailed weekly breakdown
-- [Modernization Blueprint](./plans/MODERNIZATION_BLUEPRINT.md) - Architecture audit & refactor plan
-- [Feature Requests](./Feedback.md) - Community feedback
+- [Status Summary](STATUS_SUMMARY.md) - Current project snapshot
+- [52-Week Plan](salsa_52week_plan.md) - Detailed weekly breakdown
+- [Modernization Blueprint](plans/MODERNIZATION_BLUEPRINT.md) - Architecture audit & refactor plan
+- [Feature Requests](Feedback.md) - Community feedback
 
 ---
 

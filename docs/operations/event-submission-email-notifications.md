@@ -12,12 +12,12 @@ throughout.
 | Piece | Location | Status before this change |
 |---|---|---|
 | `event_submissions` table + RLS | `supabase/migrations/20260817000000_event_submissions.sql` | Reused unchanged |
-| Production anon policy (3 clauses) | `supabase/reconcile-prod-schema.sql:1934` | Extended with a 4th clause; all 3 originals preserved |
-| `approve_event_submission(uuid, uuid[])` | `sql/phase-10/002`, `sql/flyer-automation/phase-1/002` | Reused unchanged |
+| Production anon policy (3 clauses) | `supabase/manual/reconcile-prod-schema.sql:1934` | Extended with a 4th clause; all 3 originals preserved |
+| `approve_event_submission(uuid, uuid[])` | `supabase/manual/phase-10/002`, `supabase/manual/flyer-automation/phase-1/002` | Reused unchanged |
 | Approve action | `submissionsRepo.approveSubmissionWithTaxonomy` → `useAdminSubmissions` | Notification added on success |
 | Reject action | `AdminSubmissionDetailPage.reject` → `submissionsRepo.updateSubmission` | Notification added on success |
-| Review route | `/admin/submissions/:id` (`src/App.tsx:85`) | Linked from the moderator email |
-| Public event route | `/events/:id` (`src/App.tsx:208`) | `approved_event_id` resolves here for the "View event" CTA |
+| Review route | `/admin/submissions/:id` (`src/app/App.tsx:85`) | Linked from the moderator email |
+| Public event route | `/events/:id` (`src/app/App.tsx:208`) | `approved_event_id` resolves here for the "View event" CTA |
 | Moderator recipient | `platform_settings.support_email` | Now read server-side |
 | Public site URL | `platform_settings.public_site_url` | Now read server-side, https-only |
 | Sender | `AUTH_EMAIL_FROM` env var (`send-auth-email`, `send-founder-invitation`) | Reused — no new variable |
@@ -56,25 +56,25 @@ Emails A (confirmation), C (approval), and D (rejection) did not exist at all.
 | `supabase/functions/send-submission-email/index.ts` | The Edge Function. Trusted-recipient design, per-event authorization, claim-then-send idempotency. |
 | `supabase/functions/send-submission-email/index.test.ts` | 47 Deno tests (DI seam, mirroring `send-founder-invitation`). |
 | `supabase/functions/_shared/submissionEmail.ts` | One shared layout + the four content builders. |
-| `sql/submission-emails/001_email_delivery_attempts.sql` | **Required.** Delivery log, idempotency index, claim/complete RPCs, service-role grants. |
-| `sql/submission-emails/002_anon_submitter_contact_required.sql` | **Recommended.** Anon contact requirement (policy + INSERT-only trigger). |
-| `sql/submission-emails/003_postcheck.sql` | Read-only verification queries. |
-| `src/features/submit-event/submissionNotification.test.ts` | Anti-relay contract tests for the client. |
+| `supabase/manual/submission-emails/001_email_delivery_attempts.sql` | **Required.** Delivery log, idempotency index, claim/complete RPCs, service-role grants. |
+| `supabase/manual/submission-emails/002_anon_submitter_contact_required.sql` | **Recommended.** Anon contact requirement (policy + INSERT-only trigger). |
+| `supabase/manual/submission-emails/003_postcheck.sql` | Read-only verification queries. |
+| `src/features/submit-event/api/submissionNotification.test.ts` | Anti-relay contract tests for the client. |
 
 ### Modified
 
 | File | Change |
 |---|---|
-| `src/features/submit-event/submissionNotification.ts` | Rewritten. Sends only `{submissionId, event}`; four exported helpers; never throws. |
+| `src/features/submit-event/api/submissionNotification.ts` | Rewritten. Sends only `{submissionId, event}`; four exported helpers; never throws. |
 | `src/features/admin/api/submissionsRepo.ts` | `createSubmission` generates and returns the submission id. |
-| `src/features/submit-event/useSubmitEventForm.ts` | Fires `notifySubmissionReceived(id)` after commit; passes `!user` to validation. |
-| `src/features/submit-event/validation.ts` | `validateSubmitForm(form, isAnonymous)` requires name + valid email when anonymous. |
+| `src/features/submit-event/hooks/useSubmitEventForm.ts` | Fires `notifySubmissionReceived(id)` after commit; passes `!user` to validation. |
+| `src/features/submit-event/model/validation.ts` | `validateSubmitForm(form, isAnonymous)` requires name + valid email when anonymous. |
 | `src/features/events/components/EventForm/EventForm.tsx` | New `requireSubmitterContact` prop → `required` + `maxLength` + hint. |
 | `src/features/events/components/EventForm/EventForm.css` | `.event-form__hint`. |
 | `src/pages/SubmitEventPage.tsx` | Passes `requireSubmitterContact={!user}`. |
-| `src/pages/Admin/AdminSubmissionDetailPage.tsx` | Fires approval/rejection notifications in `onSuccess`. |
+| `src/pages/admin/AdminSubmissionDetailPage.tsx` | Fires approval/rejection notifications in `onSuccess`. |
 | `supabase/config.toml` | `[functions.send-submission-email]` with a documented `verify_jwt = false`. |
-| `src/features/submit-event/useSubmitEventForm.test.ts` | Notification + anonymous-contact tests; two pre-existing tests updated for the new contract. |
+| `src/features/submit-event/hooks/useSubmitEventForm.test.ts` | Notification + anonymous-contact tests; two pre-existing tests updated for the new contract. |
 | `src/pages/SubmitEventPage.test.tsx`, `SubmitEventPage.flyer.test.tsx`, `Admin/AdminSubmissionDetailPage.test.tsx` | Mock `submissionNotification` so the suite can never reach Resend. |
 
 ### Deleted (clean cutover, no shim)
@@ -194,9 +194,9 @@ applied (`003_postcheck.sql` query 8 reproduces this inside a rollback).
 
 | Order | File | Required? | Purpose |
 |---|---|---|---|
-| 1 | `sql/submission-emails/001_email_delivery_attempts.sql` | **Required** | Delivery log + idempotency + claim RPCs + service-role grants. Without it every send returns 503. |
-| 2 | `sql/submission-emails/002_anon_submitter_contact_required.sql` | Recommended | Anon contact requirement. Without it the function records `no_recipient` and skips. |
-| 3 | `sql/submission-emails/003_postcheck.sql` | Verification | Read-only checks + operational queries. |
+| 1 | `supabase/manual/submission-emails/001_email_delivery_attempts.sql` | **Required** | Delivery log + idempotency + claim RPCs + service-role grants. Without it every send returns 503. |
+| 2 | `supabase/manual/submission-emails/002_anon_submitter_contact_required.sql` | Recommended | Anon contact requirement. Without it the function records `no_recipient` and skips. |
+| 3 | `supabase/manual/submission-emails/003_postcheck.sql` | Verification | Read-only checks + operational queries. |
 
 Each file carries its own Purpose / Required-vs-optional / Execution order /
 Safety notes / Rollback considerations header, plus a pre-flight query where

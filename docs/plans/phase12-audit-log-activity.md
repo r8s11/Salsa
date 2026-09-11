@@ -15,7 +15,7 @@ Phase 12 exposes that existing data through an **Activity** page and **Activity 
 | `audit_logs` table (id, actor_id, action, entity_type, entity_id, metadata jsonb, created_at) | `supabase/migrations/20260813000100_audit_logs.sql` | Read-only source. The model and repo query it. |
 | `log_event_change()` trigger on `events` | `20260813000100_audit_logs.sql` | Events audit entries already flow in. |
 | `log_submission_change()` trigger on `event_submissions` | `20260817000000_event_submissions.sql` | Submission audit entries already flow in. |
-| `log_platform_settings_change()` trigger on `platform_settings` | `sql/phase-11/004_add_platform_settings_audit.sql` | Platform-settings audit entries already flow in. |
+| `log_platform_settings_change()` trigger on `platform_settings` | `supabase/manual/phase-11/004_add_platform_settings_audit.sql` | Platform-settings audit entries already flow in. |
 | `auditLogLabelFor`, `actorLabelFor`, `latestActionEntry` | `src/features/admin/model/auditLog.ts` | Reused and extended by the activity model. |
 | Admin table/toolbar/drawer/filter-drawer/page patterns | `AdminEventsTable`, `AdminVenuesPage`, `AdminOrganizerRequestsPage`, `AdminActionMenu`, `AdminViewTabs` | New components follow these established conventions exactly. |
 | Admin user directory RPC | `admin_user_directory()` | Resolves actor + target identities for display. |
@@ -322,7 +322,7 @@ Pagination: server-side `offset`/`limit` (25/50/100), matching `AdminPagination`
 
 ## 26. Manual SQL files, order, and safety
 
-All files live under `sql/phase-12/`. The `audit_logs` table already exists (created by `20260813000100_audit_logs.sql` and deployed). This phase's SQL is **additive and non-destructive** — it adds supporting infrastructure so the Activity UI can resolve identities, display human-readable target names, and search efficiently, without disturbing existing triggers.
+All files live under `supabase/manual/phase-12/`. The `audit_logs` table already exists (created by `20260813000100_audit_logs.sql` and deployed). This phase's SQL is **additive and non-destructive** — it adds supporting infrastructure so the Activity UI can resolve identities, display human-readable target names, and search efficiently, without disturbing existing triggers.
 
 | Order | File | Purpose | Safety |
 |---|---|---|---|

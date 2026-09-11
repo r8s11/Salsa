@@ -1329,9 +1329,9 @@ Run: `npm run dev`, then in a browser:
 - Reject a submission with reason "Other" and an empty internal note; confirm the inline validation error blocks submission until a note is entered.
 - Sign in (or seed) a `moderator`-role account; confirm it can reach `/admin/submissions` but is redirected away from `/admin/users`.
 
-- [ ] **Step 6: Update the design doc's implementation-status note (optional, only if the project's convention tracks phase completion in `Docs/plans/`)**
+- [ ] **Step 6: Update the design doc's implementation-status note (optional, only if the project's convention tracks phase completion in `docs/plans/`)**
 
-No file changes required by default — confirm with the user whether `Docs/plans/phase7-event-submission-review.md` should be annotated as "Implemented" or left as the historical design record (existing Phase 3/5/6 docs were left unannotated per repo convention — default to leaving it unchanged unless told otherwise).
+No file changes required by default — confirm with the user whether `docs/plans/phase7-event-submission-review.md` should be annotated as "Implemented" or left as the historical design record (existing Phase 3/5/6 docs were left unannotated per repo convention — default to leaving it unchanged unless told otherwise).
 
 - [ ] **Step 7: Report completion**
 

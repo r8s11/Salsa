@@ -166,6 +166,17 @@ Deno.test("rejects valid JSON bodies that are not objects", async () => {
   }
 });
 
+Deno.test("fails closed when the trusted redirect configuration is missing or invalid", async () => {
+  for (const redirectUrl of [null, "javascript:alert(1)"]) {
+    const { deps, calls } = dependencies({ redirectUrl });
+    const response = await createInviteOrganizerHandler(deps)(
+      request({ email: "person@example.com" }),
+    );
+    assertEquals(response.status, 500);
+    assertEquals(calls, []);
+  }
+});
+
 Deno.test("invites organizers with only trusted role and redirect values", async () => {
   const { deps, calls } = dependencies();
   const response = await createInviteOrganizerHandler(deps)(request({

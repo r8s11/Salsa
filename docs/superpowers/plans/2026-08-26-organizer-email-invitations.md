@@ -39,7 +39,7 @@
 - `src/App.tsx` — add `/auth/invite` route without changing `/auth/callback` ownership.
 - `src/lib/inviteAuth.ts/.test.ts` — pure callback-result parser/one-time handling helpers if needed to keep activation component focused; exact implementation may remain in the page only if tests demonstrate the boundary is unnecessary.
 - `supabase/config.toml` — local Auth Send Email Hook URI, local invite redirect allowlist, and local function JWT settings only.
-- `supabase/functions/send-auth-email/README.md` or `Docs/operations/organizer-email-invitations.md` — manual production deployment, secrets, Auth Hook, template, redirect allowlist, and Azure deep-link checklist. Create documentation only in the task that owns deployment instructions.
+- `supabase/functions/send-auth-email/README.md` or `docs/operations/organizer-email-invitations.md` — manual production deployment, secrets, Auth Hook, template, redirect allowlist, and Azure deep-link checklist. Create documentation only in the task that owns deployment instructions.
 - `staticwebapp.config.json` — modify only if direct `/auth/invite` refresh is not covered by the existing SPA fallback; otherwise add a test/evidence note and leave it unchanged.
 
 ---
@@ -129,19 +129,19 @@
 
 ## Task 4: Add local Auth Hook and invitation configuration documentation
 
-- Create: `auth-templates/invite-organizer.md` (dashboard copy/paste reference)
+- Create: `supabase/templates/invite-organizer.md` (dashboard copy/paste reference)
 - Modify: `supabase/config.toml`
-- Modify or create: `Docs/operations/organizer-email-invitations.md`
+- Modify or create: `docs/operations/organizer-email-invitations.md`
 - Modify: `staticwebapp.config.json` only if verification proves the current fallback does not cover `/auth/invite`
 
 - [ ] **Step 1: Write a configuration/documentation verification check.** Verify exact strings are present: local `/auth/invite`, production `https://www.salsasegura.com/auth/invite`, local Hook URI using `host.docker.internal`, `send-auth-email`, `verify_jwt = false`, `{{ .ConfirmationURL }}`, required secrets, and no `/auth/inviteThen` typo.
 - [ ] **Step 2: Add local config.** Add the exact local invite URL to `[auth] additional_redirect_urls`. Add `[auth.hook.send_email] enabled = true` with `uri = "http://host.docker.internal:54321/functions/v1/send-auth-email"` and add `[functions.send-auth-email] verify_jwt = false` if supported by the current Supabase CLI format. Do not commit secret values.
-- [ ] **Step 3: Add the Invite template reference.** Create `auth-templates/invite-organizer.md` with exact dashboard instructions and an HTML invitation body using `{{ .ConfirmationURL }}`; the template must not contain a hardcoded token, raw service credential, or malformed `/auth/inviteThen` URL.
+- [ ] **Step 3: Add the Invite template reference.** Create `supabase/templates/invite-organizer.md` with exact dashboard instructions and an HTML invitation body using `{{ .ConfirmationURL }}`; the template must not contain a hardcoded token, raw service credential, or malformed `/auth/inviteThen` URL.
 - [ ] **Step 4: Document production manual steps.** Include deploy commands (`supabase functions deploy send-auth-email --no-verify-jwt`, deploy `invite-organizer`), Function secrets (`RESEND_API_KEY`, `SEND_EMAIL_HOOK_SECRET`, `AUTH_EXTERNAL_URL`, `SUPABASE_SERVICE_ROLE_KEY` via platform-provided secret), Dashboard → Authentication → Hooks URL/secret, Auth redirect allowlist exact URL, Invite template using `{{ .ConfirmationURL }}`, Resend sender verification, and Azure Static Web Apps direct-refresh check. State clearly that no hosted setting is changed by repository work.
 - [ ] **Step 5: Verify SPA deep-link behavior.** Load `/auth/invite` directly and refresh through the local dev server. Inspect `staticwebapp.config.json` before changing it; its current `navigationFallback.rewrite = "/index.html"` should normally cover this path. Add no redundant route rewrite if it already works.
 - [ ] **Step 6: Commit.**
   ```bash
-  git add supabase/config.toml auth-templates/invite-organizer.md Docs/operations/organizer-email-invitations.md staticwebapp.config.json
+  git add supabase/config.toml supabase/templates/invite-organizer.md docs/operations/organizer-email-invitations.md staticwebapp.config.json
   git commit -m "docs(auth): document organizer invitation configuration"
   ```
 
@@ -255,7 +255,7 @@ type CreatedAccount =
 ## Task 9: Final release-readiness report and manual deployment handoff
 
 **Files:**
-- Modify: `Docs/operations/organizer-email-invitations.md` if verification produced exact final results.
+- Modify: `docs/operations/organizer-email-invitations.md` if verification produced exact final results.
 - Create: no new source files.
 
 - [ ] **Step 1: Record actual root causes and implementation results.** Distinguish the old direct SQL/temp-password flow from the new trusted Auth Admin API path and signed Auth Email Hook.
@@ -264,7 +264,7 @@ type CreatedAccount =
 - [ ] **Step 4: Report verification evidence.** Include function/unit tests, full suite/lint/build, real Admin→Organizer invitation, `/auth/invite` acceptance, setup/password, `/host`, reuse/expiry/malformed/unauthorized checks, and secret exposure scan.
 - [ ] **Step 5: Commit final documentation.**
   ```bash
-  git add Docs/operations/organizer-email-invitations.md
+  git add docs/operations/organizer-email-invitations.md
   git commit -m "docs(auth): record organizer invitation release readiness"
   ```
 

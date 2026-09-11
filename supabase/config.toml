@@ -401,6 +401,15 @@ verify_jwt = false
 # not remove the internal check without replacing it with equivalent protection.
 verify_jwt = false
 
+[functions.resend-organizer-invitation]
+# Gateway JWT verification is intentionally disabled here, mirroring invite-organizer:
+# this function performs its own internal caller-JWT validation against the trusted
+# `app_metadata.role` claim (see supabase/functions/resend-organizer-invitation/index.ts).
+# That internal check is the SOLE enforcement point for this function's authorization,
+# and the recipient address is read server-side from the target Auth user, never from
+# the request body.
+verify_jwt = false
+
 [functions.send-founder-invitation]
 # Gateway JWT verification is intentionally disabled here: this function performs its own
 # internal caller-JWT validation against the trusted `app_metadata.role` claim (see

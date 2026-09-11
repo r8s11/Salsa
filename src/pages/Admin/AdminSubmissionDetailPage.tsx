@@ -1,13 +1,13 @@
 import { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useActiveTaxonomyTerms } from "../../features/admin/hooks/useAdminTaxonomy";
-import { useAdminSubmissions } from "../../hooks/useAdminSubmissions";
-import AdminRejectSubmissionDialog from "../../components/Admin/AdminRejectSubmissionDialog";
+import { useAdminSubmissions } from "../../features/admin/hooks/useAdminSubmissionList";
+import AdminRejectSubmissionDialog from "../../features/admin/components/AdminRejectSubmissionDialog";
 import type { EventSubmission } from "../../features/admin/model/submissions";
 import {
   notifySubmissionApproved,
   notifySubmissionRejected,
-} from "../../features/submit-event/submissionNotification";
+} from "../../features/submit-event/api/submissionNotification";
 import "./AdminSubmissionDetailPage.css";
 
 export default function AdminSubmissionDetailPage() {

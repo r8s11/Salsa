@@ -39,14 +39,14 @@
 | `src/components/Events/Events.css` | Removes artificial card title/metadata separation. |
 | `src/components/EventModal/EventModal.css` | Compacts metadata hierarchy and supports natural long-address wrapping. |
 | `src/components/Admin/AdminSidebar.tsx` | Makes admin brand link to public `/`. |
-| `sql/2026-08-21_event_flyers_storage.sql` | Manually applied public bucket and Storage RLS policies only. |
+| `supabase/manual/2026-08-21_event_flyers_storage.sql` | Manually applied public bucket and Storage RLS policies only. |
 
 ### Task 1: Add isolated flyer storage API and reviewed SQL
 
 **Files:**
 - Create: `src/features/events/api/eventFlyers.ts`
 - Create: `src/features/events/api/eventFlyers.test.ts`
-- Create: `sql/2026-08-21_event_flyers_storage.sql`
+- Create: `supabase/manual/2026-08-21_event_flyers_storage.sql`
 
 **Interfaces:**
 - Produces: `EVENT_FLYERS_BUCKET`, `MAX_EVENT_FLYER_BYTES`, `validateEventFlyer(file: File): string | null`, `uploadEventFlyer(input: { file: File; ownerId: string; eventId: string }): Promise<{ url: string; path: string }>`, `removeEventFlyer(url: string): Promise<void>`.
@@ -141,7 +141,7 @@ Expected: PASS with Storage client calls asserted and external URLs untouched.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/features/events/api/eventFlyers.ts src/features/events/api/eventFlyers.test.ts sql/2026-08-21_event_flyers_storage.sql
+git add src/features/events/api/eventFlyers.ts src/features/events/api/eventFlyers.test.ts supabase/manual/2026-08-21_event_flyers_storage.sql
 git commit -m "feat: add event flyer storage support"
 ```
 

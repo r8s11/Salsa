@@ -10,17 +10,17 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { ScheduleXEvent } from "../../types/events";
-import { downloadIcs, mapsUrl, googleCalendarUrl } from "../../utils/ics";
-import { getUpcomingSeriesDates } from "../../utils/series";
-import { useShareablePoster } from "../../features/calendar/hooks/useShareablePoster";
-import { resolvePosterImageForEvent } from "../../features/calendar/api/posterFlyers";
-import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
+import { ScheduleXEvent } from "../../../../types/events";
+import { downloadIcs, mapsUrl, googleCalendarUrl } from "../../../../utils/ics";
+import { getUpcomingSeriesDates } from "../../../../utils/series";
+import { useShareablePoster } from "../../../calendar/hooks/useShareablePoster";
+import { resolvePosterImageForEvent } from "../../../calendar/api/posterFlyers";
+import { useEscapeKey } from "../../../calendar/hooks/useEscapeKey";
 import ShareableEventPoster from "./ShareableEventPoster";
 import { resolveEventModalImage } from "./eventModalImage";
-import Button from "../ui/Button";
-import IconButton from "../ui/IconButton";
-import ButtonLink from "../ui/ButtonLink";
+import Button from "../../../../components/ui/Button";
+import IconButton from "../../../../components/ui/IconButton";
+import ButtonLink from "../../../../components/ui/ButtonLink";
 import "./EventModal.css";
 
 interface EventModalProps {

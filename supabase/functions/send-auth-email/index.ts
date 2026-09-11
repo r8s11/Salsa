@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@6.26.0";
 import { Webhook } from "https://esm.sh/standardwebhooks@1.0.0";
+import { organizerInvitationEmailContent } from "../_shared/organizerInvitationEmail.ts";
 
 export interface SendAuthEmailDependencies {
   webhook: { verify(rawPayload: string, headers: Record<string, string>): unknown };
@@ -10,10 +11,15 @@ export interface SendAuthEmailDependencies {
 }
 
 type AuthEmail = { from: string; to: string; subject: string; html: string };
-type EmailActionType = "invite" | "signup" | "magiclink" | "recovery";
+type EmailActionType = "invite" | "signup" | "magiclink" | "recovery" | "email_change";
 type AuthHookPayload = {
-  user: { email: string };
-  email_data: { token_hash: string; redirect_to: string; email_action_type: EmailActionType };
+  user: { email: string; new_email: string | null };
+  email_data: {
+    token_hash: string;
+    token_hash_new: string | null;
+    redirect_to: string;
+    email_action_type: EmailActionType;
+  };
 };
 
 const unauthorized = () => Response.json({ error: { http_code: 401, message: "Unauthorized" } }, { status: 401 });
@@ -36,34 +42,40 @@ function parsePayload(value: unknown): AuthHookPayload | null {
   const emailData = payload.email_data;
   if (!user || typeof user !== "object" || !emailData || typeof emailData !== "object") return null;
   const email = "email" in user ? stringField(user.email) : null;
+  const newEmail = "new_email" in user ? stringField(user.new_email) : null;
   const tokenHash = "token_hash" in emailData ? stringField(emailData.token_hash) : null;
+  const tokenHashNew = "token_hash_new" in emailData ? stringField(emailData.token_hash_new) : null;
   const redirectTo = "redirect_to" in emailData ? stringField(emailData.redirect_to) : null;
   const action = "email_action_type" in emailData ? stringField(emailData.email_action_type) : null;
   if (!email || !tokenHash || !redirectTo || !isActionType(action)) return null;
-  return { user: { email }, email_data: { token_hash: tokenHash, redirect_to: redirectTo, email_action_type: action } };
+  return {
+    user: { email, new_email: newEmail },
+    email_data: { token_hash: tokenHash, token_hash_new: tokenHashNew, redirect_to: redirectTo, email_action_type: action },
+  };
 }
 
 function isActionType(value: string | null): value is EmailActionType {
-  return value === "invite" || value === "signup" || value === "magiclink" || value === "recovery";
+  return value === "invite" || value === "signup" || value === "magiclink" || value === "recovery" || value === "email_change";
 }
 
 function escapeHtml(value: string): string {
   return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
 }
 
-function verificationUrl(authExternalUrl: string, emailData: AuthHookPayload["email_data"]): string {
+function verifyLink(authExternalUrl: string, tokenHash: string, actionType: EmailActionType, redirectTo: string): string {
   const base = authExternalUrl.replace(/\/$/, "");
-  return `${base}/auth/v1/verify?token=${encodeURIComponent(emailData.token_hash)}&type=${encodeURIComponent(emailData.email_action_type)}&redirect_to=${encodeURIComponent(emailData.redirect_to)}`;
+  return `${base}/auth/v1/verify?token=${encodeURIComponent(tokenHash)}&type=${encodeURIComponent(actionType)}&redirect_to=${encodeURIComponent(redirectTo)}`;
 }
 
-function template(action: EmailActionType, url: string): Pick<AuthEmail, "subject" | "html"> {
+function template(action: Exclude<EmailActionType, "email_change">, url: string): Pick<AuthEmail, "subject" | "html"> {
   const safeUrl = escapeHtml(url);
   switch (action) {
-    case "invite":
-      return {
-        subject: "You have an invitation to SalsaSegura",
-        html: `<p>You have been invited to SalsaSegura.</p><p><a href="${safeUrl}">Accept invitation</a></p><p>This invitation is single-use and expires. After accepting it, you will set a password.</p>`,
-      };
+    case "invite": {
+      // One shared builder with resend-organizer-invitation: both triggers
+      // must produce the same email, differing only in the credential URL.
+      const { subject, html } = organizerInvitationEmailContent({ acceptUrl: url });
+      return { subject, html };
+    }
     case "signup":
       return { subject: "Confirm your SalsaSegura email", html: `<p><a href="${safeUrl}">Confirm your email</a></p>` };
     case "magiclink":
@@ -71,6 +83,30 @@ function template(action: EmailActionType, url: string): Pick<AuthEmail, "subjec
     case "recovery":
       return { subject: "Reset your SalsaSegura password", html: `<p><a href="${safeUrl}">Reset your password</a></p>` };
   }
+}
+
+// Secure Email Change (enabled on this project) sends one OTP per address
+// and the hook payload's token hash field names are swapped for backward
+// compatibility: `token_hash_new` verifies the CURRENT address and
+// `token_hash` verifies the NEW address. See Supabase's Send Email Hook
+// docs, "Email change behavior and token hash mapping".
+function emailChangeCurrentAddressTemplate(url: string, newEmail: string | null): Pick<AuthEmail, "subject" | "html"> {
+  const safeUrl = escapeHtml(url);
+  const context = newEmail
+    ? `<p>The requested new address is ${escapeHtml(newEmail)}.</p>`
+    : "";
+  return {
+    subject: "Confirm your SalsaSegura email change",
+    html: `<p>We received a request to change the email address on your SalsaSegura account.</p>${context}<p>If this was you, confirm the change:</p><p><a href="${safeUrl}">Confirm email change</a></p><p>If you didn't request this, you can ignore this email — your account is unaffected.</p>`,
+  };
+}
+
+function emailChangeNewAddressTemplate(url: string): Pick<AuthEmail, "subject" | "html"> {
+  const safeUrl = escapeHtml(url);
+  return {
+    subject: "Confirm your new SalsaSegura email",
+    html: `<p>Confirm this email address for your SalsaSegura account:</p><p><a href="${safeUrl}">Confirm new email</a></p>`,
+  };
 }
 
 export function createSendAuthEmailHandler(deps: SendAuthEmailDependencies) {
@@ -88,11 +124,27 @@ export function createSendAuthEmailHandler(deps: SendAuthEmailDependencies) {
     const payload = parsePayload(verified);
     if (!payload) return unauthorized();
 
-    const url = verificationUrl(deps.authExternalUrl, payload.email_data);
-    const content = template(payload.email_data.email_action_type, url);
+    const messages: AuthEmail[] = [];
+    if (payload.email_data.email_action_type === "email_change") {
+      if (payload.email_data.token_hash_new) {
+        const url = verifyLink(deps.authExternalUrl, payload.email_data.token_hash_new, "email_change", payload.email_data.redirect_to);
+        messages.push({ from: deps.from, to: payload.user.email, ...emailChangeCurrentAddressTemplate(url, payload.user.new_email) });
+      }
+      if (payload.user.new_email) {
+        const url = verifyLink(deps.authExternalUrl, payload.email_data.token_hash, "email_change", payload.email_data.redirect_to);
+        messages.push({ from: deps.from, to: payload.user.new_email, ...emailChangeNewAddressTemplate(url) });
+      }
+      if (messages.length === 0) return unauthorized();
+    } else {
+      const url = verifyLink(deps.authExternalUrl, payload.email_data.token_hash, payload.email_data.email_action_type, payload.email_data.redirect_to);
+      messages.push({ from: deps.from, to: payload.user.email, ...template(payload.email_data.email_action_type, url) });
+    }
+
     try {
-      const result = await deps.resend.emails.send({ from: deps.from, to: payload.user.email, ...content });
-      if (result.error || result.data == null) return unauthorized();
+      for (const message of messages) {
+        const result = await deps.resend.emails.send(message);
+        if (result.error || result.data == null) return unauthorized();
+      }
     } catch {
       return unauthorized();
     }

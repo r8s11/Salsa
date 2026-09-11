@@ -60,7 +60,7 @@
 
 ## Production Code Verification
 
-Reviewed the merged implementation in `src/pages/AccountPage.tsx`:
+Reviewed the merged implementation in `src/pages/account/AccountPage.tsx`:
 
 **Lines 166-203:** `handleScopedSignOut` function
 - Handles "local" and "others" scopes

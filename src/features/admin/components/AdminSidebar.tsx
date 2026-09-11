@@ -15,14 +15,14 @@ import {
   Building2,
 } from "lucide-react";
 import type { ComponentType } from "react";
-import { useAuth } from "../../contexts/useAuth";
-import type { UserRole } from "../../contexts/authContextObject";
-import { useTheme } from "../../contexts/useTheme";
-import { useOrganizerRequests } from "../../features/admin/hooks/useOrganizerRequests";
-import { useFounderRequests } from "../../hooks/useFounderRequests";
-import { useHostCapabilities } from "../../features/host/hooks/useHostCapabilities";
-import type { HostCapabilities } from "../../features/host/model/hostCapabilities";
-import SalsaSeguraLogo from "../brand/SalsaSeguraLogo";
+import { useAuth } from "../../../contexts/useAuth";
+import type { UserRole } from "../../../contexts/authContextObject";
+import { useTheme } from "../../../contexts/useTheme";
+import { useOrganizerRequests } from "../hooks/useOrganizerRequests";
+import { useFounderRequests } from "../hooks/useFounderRequests";
+import { useHostCapabilities } from "../../host/hooks/useHostCapabilities";
+import type { HostCapabilities } from "../../host/model/hostCapabilities";
+import SalsaSeguraLogo from "../../../components/brand/SalsaSeguraLogo";
 import "./AdminSidebar.css";
 
 export type AdminSidebarMode = "admin" | "host";

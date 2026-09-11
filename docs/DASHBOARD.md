@@ -52,7 +52,7 @@
 | **Phase**        | Modernization pass + overdue Phase 1 items |
 | **Week**         | 28 / 52                                  |
 | **Deployed**     | ✅ Live on Azure                          |
-| **Detailed Plan**| [ROADMAP.md](./ROADMAP.md) · [STATUS_SUMMARY.md](./STATUS_SUMMARY.md) |
+| **Detailed Plan**| [ROADMAP.md](ROADMAP.md) · [STATUS_SUMMARY.md](STATUS_SUMMARY.md) |
 
 #### Completed ✅
 - [x] React app deployed to Azure
@@ -65,11 +65,11 @@
 - [x] Tambora events module (PR #8 — filters, rebuilt event modal, .ics export, weekly series)
 
 #### In Progress 🔄
-- [ ] Modernization blueprint execution ([plans/MODERNIZATION_BLUEPRINT.md](./plans/MODERNIZATION_BLUEPRINT.md))
+- [ ] Modernization blueprint execution ([plans/MODERNIZATION_BLUEPRINT.md](plans/MODERNIZATION_BLUEPRINT.md))
 
 #### Next Up 📅
 - [ ] Authentication (user accounts)
-- [ ] Moderation dashboard ([ADMIN_MODERATION_GUIDE.md](./ADMIN_MODERATION_GUIDE.md))
+- [ ] Moderation dashboard ([ADMIN_MODERATION_GUIDE.md](ADMIN_MODERATION_GUIDE.md))
 - [ ] Text search & map view
 
 ---
@@ -122,12 +122,12 @@ Use this every week before and after working:
 
 | Document                                                     | Purpose                              |
 | ------------------------------------------------------------ | ------------------------------------ |
-| [ROADMAP.md](./ROADMAP.md)                                   | SalsaSegura 52-week roadmap          |
-| [salsa_52week_plan.md](./salsa_52week_plan.md)               | Detailed weekly deliverables         |
-| [STATUS_SUMMARY.md](./STATUS_SUMMARY.md)                     | Current project snapshot             |
-| [TODO.md](./TODO.md)                                         | Short-term to-dos                    |
-| [Feedback.md](./Feedback.md)                                 | Community feature requests           |
-| [MOBILE_APP_PLAN.md](./MOBILE_APP_PLAN.md)                   | Mobile app development plan          |
+| [ROADMAP.md](ROADMAP.md)                                   | SalsaSegura 52-week roadmap          |
+| [salsa_52week_plan.md](salsa_52week_plan.md)               | Detailed weekly deliverables         |
+| [STATUS_SUMMARY.md](STATUS_SUMMARY.md)                     | Current project snapshot             |
+| [TODO.md](TODO.md)                                         | Short-term to-dos                    |
+| [Feedback.md](Feedback.md)                                 | Community feature requests           |
+| [MOBILE_APP_PLAN.md](MOBILE_APP_PLAN.md)                   | Mobile app development plan          |
 
 ---
 

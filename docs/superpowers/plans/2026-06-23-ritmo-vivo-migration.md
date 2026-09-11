@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Migrate the Salsa Segura site from the "Noche Ardiente" design system to "Ritmo Vivo" (deep-slate glassmorphism, rose-red/gold/orange, neon glow) per `Docs/superpowers/specs/2026-06-23-ritmo-vivo-design-migration.md`.
+**Goal:** Migrate the Salsa Segura site from the "Noche Ardiente" design system to "Ritmo Vivo" (deep-slate glassmorphism, rose-red/gold/orange, neon glow) per `docs/superpowers/specs/2026-06-23-ritmo-vivo-design-migration.md`.
 
 **Architecture:** Token-first. Rewrite `global.css` tokens to Ritmo Vivo values keeping the SAME variable names so all components inherit instantly (~70% of the change). Then per-component passes apply what variables can't express: `backdrop-filter` glass, glow shadows, new radii, pill chips. App stays shippable between tasks.
 

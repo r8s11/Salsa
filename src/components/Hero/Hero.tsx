@@ -2,7 +2,7 @@ import ButtonLink from "../ui/ButtonLink";
 import { motion, useReducedMotion } from "motion/react";
 import { useMemo, useEffect, useRef } from "react";
 import "./Hero.css";
-import { useEvents } from "../../hooks/useEvent";
+import { useEvents } from "../../features/events/hooks/useEvent";
 import { useCity } from "../../contexts/useCity";
 
 const CITY_LABELS: Record<string, string> = {

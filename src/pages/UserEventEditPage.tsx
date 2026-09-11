@@ -22,8 +22,8 @@ import EventForm, {
 import type { EventFormDraft } from "../features/events/components/EventForm";
 import EventFlyerField from "../features/events/components/EventFlyerField";
 import { fromEventDateInstant } from "../features/events/model/eventDateTime";
-import { validateSubmitForm } from "../features/submit-event/validation";
-import { useMySubmissions } from "../hooks/useMySubmissions";
+import { validateSubmitForm } from "../features/submit-event/model/validation";
+import { useMySubmissions } from "../features/account/hooks/useMySubmissions";
 import "../styles/forms.css";
 import "./UserEventEditPage.css";
 import Button from "../components/ui/Button";

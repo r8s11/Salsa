@@ -3,12 +3,12 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import AdminSubmissionsPage from "./AdminSubmissionsPage";
-import { useAdminSubmissions } from "../../hooks/useAdminSubmissions";
-import { notifySubmissionRejected } from "../../features/submit-event/submissionNotification";
+import { useAdminSubmissions } from "../../features/admin/hooks/useAdminSubmissionList";
+import { notifySubmissionRejected } from "../../features/submit-event/api/submissionNotification";
 import type { EventSubmission } from "../../features/admin/model/submissions";
 
-vi.mock("../../hooks/useAdminSubmissions");
-vi.mock("../../features/submit-event/submissionNotification", () => ({
+vi.mock("../../features/admin/hooks/useAdminSubmissionList");
+vi.mock("../../features/submit-event/api/submissionNotification", () => ({
   notifySubmissionRejected: vi.fn().mockResolvedValue(undefined),
 }));
 

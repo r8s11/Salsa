@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build the `/admin/submissions` queue and `/admin/submissions/:id` review workspace on a new `event_submissions` table, per `Docs/plans/phase7-event-submission-review.md` (the approved design doc — read it first, it is the spec of record), including the required two-table-split ripple into the submitter-facing surfaces.
+**Goal:** Build the `/admin/submissions` queue and `/admin/submissions/:id` review workspace on a new `event_submissions` table, per `docs/plans/phase7-event-submission-review.md` (the approved design doc — read it first, it is the spec of record), including the required two-table-split ripple into the submitter-facing surfaces.
 
 **Architecture:** A dedicated `public.event_submissions` table (immutable `submitted_data` jsonb + `edited_data` jsonb overlay) replaces `events.status='pending'`/`'rejected'` as the moderation staging area. `/admin/submissions` and `/admin/submissions/:id` operate exclusively on it. Approval reads the effective data and **inserts** a new `events` row; the submission row survives permanently with `approved_event_id` pointing at it. Review history reuses `audit_logs` with `entity_type='event_submission'`. `admin_user_directory()` is extended to union submission counts. Submitter-facing surfaces (`ProfilePage`, `UserEventEditPage`, `submitEvent`, `useMySubmissions`) are rewired to read/write `event_submissions` for pending/rejected/withdrawn and `events` only for approved.
 

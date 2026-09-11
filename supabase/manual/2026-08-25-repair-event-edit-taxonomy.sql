@@ -1,7 +1,7 @@
 -- =====================================================================
 -- Repair: production event edit save after 2026-08-25-fix-production-event-edits.sql
 --
--- Run this AFTER sql/2026-08-25-fix-production-event-edits.sql.
+-- Run this AFTER supabase/manual/2026-08-25-fix-production-event-edits.sql.
 --
 -- Why this exists: the first script created event_taxonomy_terms but omitted
 -- the RPC that the app actually calls after updating events:

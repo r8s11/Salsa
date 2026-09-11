@@ -32,7 +32,7 @@
 --
 -- ROLLBACK CONSIDERATIONS
 --   Re-apply the prior function definition (baseline exists in the phase-10
---   taxonomy migration sql/phase-10/002_create_event_taxonomy_terms.sql).
+--   taxonomy migration supabase/manual/phase-10/002_create_event_taxonomy_terms.sql).
 -- =====================================================================
 
 begin;

@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Implement the two real gaps identified in `Docs/plans/phase1-admin-shell-revision.md`: a light/dark/system theme system with persisted preference, and a user-triggered sidebar collapse — plus the semantic token rename and hardcoded-hex sweep that both depend on, an Appearance/Account account-menu extension, and a minimal toast component.
+**Goal:** Implement the two real gaps identified in `docs/plans/phase1-admin-shell-revision.md`: a light/dark/system theme system with persisted preference, and a user-triggered sidebar collapse — plus the semantic token rename and hardcoded-hex sweep that both depend on, an Appearance/Account account-menu extension, and a minimal toast component.
 
 **Architecture:** A `ThemeContext` (mirrors the existing `CityContext` pattern exactly) resolves `light|dark|system` to an effective theme, writes `data-theme` on `.admin-shell`, and persists to `localStorage`. Every `--admin-*` custom property in `admin.css` is renamed to the brief's semantic vocabulary and gets a `.admin-shell[data-theme="dark"]` override block with real (not inverted) dark values. Every hardcoded hex color found in the audit (status/role badges, popovers, topbar translucency, one broken CSS-var fallback) is replaced with a token reference. Sidebar collapse is a third, user-controlled width state reusing the existing ≥768px icon-rail CSS as its visual, gated to ≥1024px, persisted the same way as theme.
 

@@ -228,7 +228,7 @@ The singleton contains no authorization role model, user preferences, taxonomy d
 
 ## 18. Manual SQL files, order, and safety
 
-All files are **manual review artifacts** under `sql/phase-11/`; none has been executed.
+All files are **manual review artifacts** under `supabase/manual/phase-11/`; none has been executed.
 
 | Order | File | Purpose | Safety boundary |
 |---:|---|---|---|

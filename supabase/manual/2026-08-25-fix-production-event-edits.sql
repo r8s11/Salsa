@@ -5,7 +5,7 @@
 --
 -- Why edits fail: the admin editor's UPDATE writes `venue_id` and then
 -- replaces rows in `event_taxonomy_terms`. Those objects were introduced in
--- `supabase/reconcile-prod-schema.sql` and `sql/phase-10/*`, NOT in a
+-- `supabase/manual/reconcile-prod-schema.sql` and `supabase/manual/phase-10/*`, NOT in a
 -- numbered file under `supabase/migrations/`. A production database migrated
 -- only from `supabase/migrations/` therefore has no `events.venue_id`, no
 -- `venues`, and no taxonomy tables — every save fails on the missing column
@@ -14,7 +14,7 @@
 --
 -- Safe to run more than once: every statement is additive and guarded
 --
--- IMPORTANT: Run sql/2026-08-25-repair-event-edit-taxonomy.sql immediately
+-- IMPORTANT: Run supabase/manual/2026-08-25-repair-event-edit-taxonomy.sql immediately
 -- afterward. That follow-up installs replace_event_taxonomy_terms(), the RPC
 -- the app calls after updating an event row.
 -- (create table if not exists / add column if not exists / drop-then-add for

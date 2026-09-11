@@ -140,6 +140,39 @@ export async function inviteOrganizerByEmail(
 }
 
 /**
+ * Re-sends an organizer invitation that was never accepted, through the
+ * `resend-organizer-invitation` Edge Function. The client sends only the
+ * target user id and a fresh idempotency key — recipient address, redirect
+ * destination, and the invitation credential are all server-side.
+ *
+ * The idempotency key makes a double-clicked Resend deliver one email: the
+ * function passes it to the provider verbatim.
+ */
+export async function resendOrganizerInvitation(
+  userId: string,
+  idempotencyKey: string = crypto.randomUUID()
+): Promise<{ email: string }> {
+  const { data, error } = await supabase.functions.invoke<InviteOrganizerFunctionResponse>(
+    "resend-organizer-invitation",
+    { body: { userId, idempotencyKey } }
+  );
+  if (error) {
+    let message = error.message;
+    if (error instanceof FunctionsHttpError) {
+      try {
+        const body = (await error.context.json()) as { error?: string } | null;
+        if (body?.error) message = body.error;
+      } catch {
+        // Response body wasn't JSON; fall back to the generic message.
+      }
+    }
+    throw new Error(message);
+  }
+  if (!data) throw new Error("The invitation was not sent. Please try again.");
+  return { email: data.email };
+}
+
+/**
  * Delivery-aware account creation used by the Admin "create user" flow.
  * Organizer accounts default to a real email invitation; every other role
  * (and Organizer with an explicit temporary-password fallback) keeps using

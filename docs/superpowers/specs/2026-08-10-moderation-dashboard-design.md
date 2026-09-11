@@ -1,7 +1,7 @@
 # Admin Moderation Dashboard
 
 **Date:** 2026-08-10
-**Source:** `Docs/ADMIN_MODERATION_GUIDE.md` (roadmap Week 6, overdue) — this spec supersedes the guide's file layout and auth wiring where they predate work that has since shipped; the guide's SQL/RLS design and moderation UX remain the reference.
+**Source:** `docs/ADMIN_MODERATION_GUIDE.md` (roadmap Week 6, overdue) — this spec supersedes the guide's file layout and auth wiring where they predate work that has since shipped; the guide's SQL/RLS design and moderation UX remain the reference.
 **Decision:** Build the pending-events queue (approve/reject) as a thin extension of the existing repository-pattern data layer and the `AuthContext`/`RequireAuth` that shipped 2026-08-10, rather than the guide's originally-specified standalone `/admin/login` + hand-rolled fetch hook — those predate both.
 
 ## Scope

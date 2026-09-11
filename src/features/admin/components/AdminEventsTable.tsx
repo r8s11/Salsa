@@ -20,17 +20,17 @@ import {
   Trash2,
   Ban,
 } from "lucide-react";
-import type { DatabaseEvent } from "../../features/events/model/types";
-import { resolveEventModalImage } from "../EventModal/eventModalImage";
-import { fromEventDateInstant, formatTimeLabel } from "../../features/events/model/eventDateTime";
-import { qualityIssues, QUALITY_ISSUE_LABEL } from "../../features/admin/model/overviewMetrics";
+import type { DatabaseEvent } from "../../events/model/types";
+import { resolveEventModalImage } from "../../events/components/EventModal/eventModalImage";
+import { fromEventDateInstant, formatTimeLabel } from "../../events/model/eventDateTime";
+import { qualityIssues, QUALITY_ISSUE_LABEL } from "../model/overviewMetrics";
 import {
   CITY_LABEL,
   SOURCE_TYPE_LABEL,
   submitterDisplay,
   type SortDir,
   type SortKey,
-} from "../../features/admin/model/eventsQuery";
+} from "../model/eventsQuery";
 import AdminStatusBadge from "./AdminStatusBadge";
 import AdminQualityBadge from "./AdminQualityBadge";
 import AdminActionMenu, { type ActionMenuItem } from "./AdminActionMenu";

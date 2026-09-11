@@ -6,12 +6,13 @@ import type { User } from "@supabase/supabase-js";
 import type { AuthContextValue } from "../../contexts/authContextObject";
 import { useAuth } from "../../contexts/useAuth";
 import { useCity } from "../../contexts/useCity";
-import { useOwnProfile } from "../../hooks/useOwnProfile";
+import type { OwnProfile } from "../../features/account/model/account";
+import { useOwnProfile } from "../../features/account/hooks/useOwnProfile";
 import Header from "./Header";
 
 vi.mock("../../contexts/useAuth", () => ({ useAuth: vi.fn() }));
 vi.mock("../../contexts/useCity", () => ({ useCity: vi.fn() }));
-vi.mock("../../hooks/useOwnProfile", () => ({ useOwnProfile: vi.fn() }));
+vi.mock("../../features/account/hooks/useOwnProfile", () => ({ useOwnProfile: vi.fn() }));
 
 const setCity = vi.fn();
 const defaultAuth = (overrides: Partial<AuthContextValue> = {}): AuthContextValue => ({
@@ -25,6 +26,7 @@ const defaultAuth = (overrides: Partial<AuthContextValue> = {}): AuthContextValu
   signInWithPassword: vi.fn(),
   resendConfirmation: vi.fn(),
       requestPasswordReset: vi.fn(),
+      updateEmail: vi.fn(),
   signUp: vi.fn(),
   signOut: vi.fn().mockResolvedValue(undefined),
   clearDeletedAccount: vi.fn(),
@@ -36,6 +38,26 @@ const defaultProfileQuery = () => ({
   isLoading: false,
   error: null,
   refetch: vi.fn(),
+});
+
+const memberProfile = (overrides: Partial<OwnProfile> = {}): OwnProfile => ({
+  id: "member",
+  display_name: null,
+  username: null,
+  avatar_url: null,
+  status: "active",
+  status_reason: null,
+  created_at: "2026-01-01T00:00:00Z",
+  bio: null,
+  city: null,
+  dance_styles: [],
+  instagram: null,
+  website: null,
+  cover_url: null,
+  public_profile: true,
+  stats_public: true,
+  notification_prefs: {},
+  ...overrides,
 });
 
 function renderHeader() {
@@ -342,15 +364,7 @@ describe("Header", () => {
     vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
     vi.mocked(useOwnProfile).mockReturnValue({
       ...defaultProfileQuery(),
-      profile: {
-        id: "member",
-        display_name: "Sofia Martinez",
-        username: "sofia",
-        avatar_url: "https://example.com/sofia.jpg",
-        status: "active",
-        status_reason: null,
-        created_at: "2026-01-01T00:00:00Z",
-      },
+      profile: memberProfile({ display_name: "Sofia Martinez", username: "sofia", avatar_url: "https://example.com/sofia.jpg" }),
     });
 
     renderHeader();
@@ -364,15 +378,7 @@ describe("Header", () => {
     vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
     vi.mocked(useOwnProfile).mockReturnValue({
       ...defaultProfileQuery(),
-      profile: {
-        id: "member",
-        display_name: "Sofia Martinez",
-        username: null,
-        avatar_url: null,
-        status: "active",
-        status_reason: null,
-        created_at: "2026-01-01T00:00:00Z",
-      },
+      profile: memberProfile({ display_name: "Sofia Martinez" }),
     });
 
     renderHeader();
@@ -389,15 +395,7 @@ describe("Header", () => {
     vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
     vi.mocked(useOwnProfile).mockReturnValue({
       ...defaultProfileQuery(),
-      profile: {
-        id: "member",
-        display_name: null,
-        username: "@sofia",
-        avatar_url: null,
-        status: "active",
-        status_reason: null,
-        created_at: "2026-01-01T00:00:00Z",
-      },
+      profile: memberProfile({ username: "@sofia" }),
     });
 
     const { rerender } = renderHeader();
@@ -405,15 +403,7 @@ describe("Header", () => {
 
     vi.mocked(useOwnProfile).mockReturnValue({
       ...defaultProfileQuery(),
-      profile: {
-        id: "member",
-        display_name: null,
-        username: null,
-        avatar_url: null,
-        status: "active",
-        status_reason: null,
-        created_at: "2026-01-01T00:00:00Z",
-      },
+      profile: memberProfile(),
     });
     rerender(
       <MemoryRouter initialEntries={["/"]}>
@@ -438,15 +428,7 @@ describe("Header", () => {
     vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
     vi.mocked(useOwnProfile).mockReturnValue({
       ...defaultProfileQuery(),
-      profile: {
-        id: "member",
-        display_name: "Roosevelt",
-        username: null,
-        avatar_url: null,
-        status: "active",
-        status_reason: null,
-        created_at: "2026-01-01T00:00:00Z",
-      },
+      profile: memberProfile({ display_name: "Roosevelt" }),
     });
 
     renderHeader();

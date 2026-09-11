@@ -1,7 +1,7 @@
 # Moderator CSV Event Import — Design
 
 **Status:** Approved (moderator write-access approach and partial-import policy confirmed by user)
-**Related:** `scripts/import-ics.mjs` (existing, unrelated CLI-only importer — not touched), `Docs/superpowers/specs/2026-08-17-logo-integration-design.md` (prior spec in this series, same doc convention)
+**Related:** `scripts/import-ics.mjs` (existing, unrelated CLI-only importer — not touched), `docs/superpowers/specs/2026-08-17-logo-integration-design.md` (prior spec in this series, same doc convention)
 
 ## Context
 
@@ -95,8 +95,8 @@ src/features/admin/api/csvImportRepo.ts      — batched supabase.from("events")
                                                 event_import_batches summary row
 src/hooks/useCsvEventImport.ts               — orchestrates parse → validate → duplicate-check
                                                 → preview state → import mutation
-sql/moderator_csv_import_permissions.sql     — widens the events-insert RLS policy
-sql/event_import_audit.sql                   — new event_import_batches table + RLS
+supabase/manual/moderator_csv_import_permissions.sql     — widens the events-insert RLS policy
+supabase/manual/event_import_audit.sql                   — new event_import_batches table + RLS
 ```
 
 **New dependency:** `papaparse` (+ `@types/papaparse`). Handles quoted commas, escaped quotes, UTF-8, and header parsing correctly out of the box — exactly what the brief asks for ("prefer a mature CSV parser... small, well-maintained dependency rather than fragile manual parsing"). No CSV parser currently exists in this project.
@@ -126,8 +126,8 @@ sql/event_import_audit.sql                   — new event_import_batches table 
 
 Two files, both requiring **manual review and execution against production** (this repo's established convention — nothing auto-applies):
 
-1. **`sql/moderator_csv_import_permissions.sql`** — `alter policy "Admins can insert events" on public.events with check (role in ('admin','moderator'))`. Low risk, additive to an existing policy, no data change. Rollback: revert the `with check` clause to `role = 'admin'`.
-2. **`sql/event_import_audit.sql`** — `create table event_import_batches (id, imported_by, filename, total_rows, created_count, duplicate_skipped_count, failed_count, created_at)` + RLS (admin/moderator select own + admin select all, matching the `audit_logs` access pattern) + grants. Rollback: `drop table`.
+1. **`supabase/manual/moderator_csv_import_permissions.sql`** — `alter policy "Admins can insert events" on public.events with check (role in ('admin','moderator'))`. Low risk, additive to an existing policy, no data change. Rollback: revert the `with check` clause to `role = 'admin'`.
+2. **`supabase/manual/event_import_audit.sql`** — `create table event_import_batches (id, imported_by, filename, total_rows, created_count, duplicate_skipped_count, failed_count, created_at)` + RLS (admin/moderator select own + admin select all, matching the `audit_logs` access pattern) + grants. Rollback: `drop table`.
 
 Both applied to **local** Supabase for development/testing in this session; **not** applied to production — flagged for manual review per established convention.
 

@@ -1,6 +1,6 @@
 # Modernization Blueprint — Per-Step Agent Prompts
 
-> Generated from `Docs/plans/MODERNIZATION_BLUEPRINT.md` (audit dated 2026-07-06).
+> Generated from `docs/plans/MODERNIZATION_BLUEPRINT.md` (audit dated 2026-07-06).
 > Each prompt below is self-contained — copy one at a time into a fresh agent (subagent, Claude Code session, or `Agent`/`Workflow` tool call). Run steps **in order**; each depends on the previous one landing cleanly. Do not skip ahead.
 
 **Shared global rules (already folded into every prompt below, repeated here for reference):**
@@ -15,7 +15,7 @@
 ## Step 1: Sanitize dependencies & standardize package manager
 
 ```
-You're working in the Salsa Segura repo (React 19 + TypeScript + Vite + Supabase, root at repo root). This is Step 1 of a 15-step modernization blueprint (Docs/plans/MODERNIZATION_BLUEPRINT.md) — read that file's "Phase 3: Execution Agent Roadmap" section first for full context, but this prompt is self-contained for execution.
+You're working in the Salsa Segura repo (React 19 + TypeScript + Vite + Supabase, root at repo root). This is Step 1 of a 15-step modernization blueprint (docs/plans/MODERNIZATION_BLUEPRINT.md) — read that file's "Phase 3: Execution Agent Roadmap" section first for full context, but this prompt is self-contained for execution.
 
 Global rules for every step in this roadmap: never touch files outside the target list below; `npm run build` must exit 0 after your change; never rename CSS classes; add no new dependencies unless explicitly authorized; commit when validation passes, using the step title as the commit message.
 
@@ -46,7 +46,7 @@ Commit message: "Step 1: Sanitize dependencies & standardize package manager"
 ## Step 2: Add CI quality gate
 
 ```
-You're working in the Salsa Segura repo (React 19 + TypeScript + Vite + Supabase). This is Step 2 of a 15-step modernization blueprint (Docs/plans/MODERNIZATION_BLUEPRINT.md). Step 1 (dependency/lockfile cleanup) should already be merged — verify `git log` shows it before proceeding; if not, stop and say so.
+You're working in the Salsa Segura repo (React 19 + TypeScript + Vite + Supabase). This is Step 2 of a 15-step modernization blueprint (docs/plans/MODERNIZATION_BLUEPRINT.md). Step 1 (dependency/lockfile cleanup) should already be merged — verify `git log` shows it before proceeding; if not, stop and say so.
 
 Global rules for every step in this roadmap: never touch files outside the target list below; `npm run build` must exit 0 after your change; never rename CSS classes; add no new dependencies unless explicitly authorized; commit when validation passes, using the step title as the commit message.
 
@@ -73,7 +73,7 @@ Commit message: "Step 2: Add CI quality gate"
 ## Step 3: Delete dead code
 
 ```
-You're working in the Salsa Segura repo (React 19 + TypeScript + Vite + Supabase). This is Step 3 of a 15-step modernization blueprint (Docs/plans/MODERNIZATION_BLUEPRINT.md). Steps 1-2 should already be merged.
+You're working in the Salsa Segura repo (React 19 + TypeScript + Vite + Supabase). This is Step 3 of a 15-step modernization blueprint (docs/plans/MODERNIZATION_BLUEPRINT.md). Steps 1-2 should already be merged.
 
 Global rules for every step in this roadmap: never touch files outside the target list below; `npm run build` must exit 0 after your change; never rename CSS classes; add no new dependencies unless explicitly authorized; commit when validation passes, using the step title as the commit message.
 
@@ -99,7 +99,7 @@ Commit message: "Step 3: Delete dead code"
 ## Step 4: Create the events feature skeleton (move, don't rewrite)
 
 ```
-You're working in the Salsa Segura repo (React 19 + TypeScript + Vite + Supabase). This is Step 4 of a 15-step modernization blueprint (Docs/plans/MODERNIZATION_BLUEPRINT.md). Steps 1-3 should already be merged.
+You're working in the Salsa Segura repo (React 19 + TypeScript + Vite + Supabase). This is Step 4 of a 15-step modernization blueprint (docs/plans/MODERNIZATION_BLUEPRINT.md). Steps 1-3 should already be merged.
 
 Global rules for every step in this roadmap: never touch files outside the target list below; `npm run build` must exit 0 after your change; never rename CSS classes; add no new dependencies unless explicitly authorized; commit when validation passes, using the step title as the commit message.
 
@@ -127,16 +127,16 @@ Commit message: "Step 4: Create the events feature skeleton (move, don't rewrite
 ## Step 5: Make timezone handling explicit in convert.ts
 
 ```
-You're working in the Salsa Segura repo (React 19 + TypeScript + Vite + Supabase). This is Step 5 of a 15-step modernization blueprint (Docs/plans/MODERNIZATION_BLUEPRINT.md). Step 4 (which created src/features/events/model/convert.ts) must already be merged — verify before proceeding.
+You're working in the Salsa Segura repo (React 19 + TypeScript + Vite + Supabase). This is Step 5 of a 15-step modernization blueprint (docs/plans/MODERNIZATION_BLUEPRINT.md). Step 4 (which created src/features/events/model/convert.ts) must already be merged — verify before proceeding.
 
 Global rules for every step in this roadmap: never touch files outside the target list below; `npm run build` must exit 0 after your change; never rename CSS classes; add no new dependencies unless explicitly authorized; commit when validation passes, using the step title as the commit message.
 
-Target files: src/features/events/model/convert.ts (read-only reference: Docs/sql queries/events.sql)
+Target files: src/features/events/model/convert.ts (read-only reference: supabase/manual/legacy/events.sql)
 
 Objective: This is a correctness bug fix, not just cleanup. `convert.ts`'s conversion currently round-trips through `new Date(event.event_date)` plus local getters. If `events.event_date` in Supabase is a `timestamptz` column, Supabase returns offset-qualified strings and ALL displayed event times shift by the visitor's own timezone offset — wrong for every visitor outside Eastern time. The project already depends on `temporal-polyfill` for exactly this reason, but it's unused in this code path. There's also a stale comment bug: it says "Assume 2 hours duration" while the code actually adds 4 hours.
 
 Instructions:
-1. First, open `Docs/sql queries/events.sql` and determine whether the `event_date` column is `timestamp` (naive, no offset) or `timestamptz` (offset-aware). Record your finding in a comment at the top of `convert.ts`.
+1. First, open `supabase/manual/legacy/events.sql` and determine whether the `event_date` column is `timestamp` (naive, no offset) or `timestamptz` (offset-aware). Record your finding in a comment at the top of `convert.ts`.
 2. Reimplement the conversion using Temporal (the global polyfill is already available):
    - If `timestamptz`: parse as `Temporal.Instant`, then `.toZonedDateTimeISO('America/New_York')`.
    - If naive `timestamp`: parse directly as `Temporal.PlainDateTime` (no timezone conversion needed, it's already wall-clock).
@@ -156,7 +156,7 @@ Commit message: (deferred — see Step 6, which commits both together)
 ## Step 6: Unit-test the conversion domain
 
 ```
-You're working in the Salsa Segura repo (React 19 + TypeScript + Vite + Supabase). This is Step 6 of a 15-step modernization blueprint (Docs/plans/MODERNIZATION_BLUEPRINT.md). This step must be done in the SAME session as Step 5 (timezone fix to convert.ts) — if convert.ts hasn't been updated yet, do Step 5 first, then this step, then commit both together.
+You're working in the Salsa Segura repo (React 19 + TypeScript + Vite + Supabase). This is Step 6 of a 15-step modernization blueprint (docs/plans/MODERNIZATION_BLUEPRINT.md). This step must be done in the SAME session as Step 5 (timezone fix to convert.ts) — if convert.ts hasn't been updated yet, do Step 5 first, then this step, then commit both together.
 
 Global rules for every step in this roadmap: never touch files outside the target list below; `npm run build` must exit 0 after your change; never rename CSS classes; add no new dependencies unless explicitly authorized; commit when validation passes, using the step title as the commit message.
 
@@ -185,7 +185,7 @@ Commit message: "Step 5+6: Make timezone handling explicit in convert.ts, with t
 ## Step 7: Introduce the events repository
 
 ```
-You're working in the Salsa Segura repo (React 19 + TypeScript + Vite + Supabase). This is Step 7 of a 15-step modernization blueprint (Docs/plans/MODERNIZATION_BLUEPRINT.md). Steps 1-6 should already be merged.
+You're working in the Salsa Segura repo (React 19 + TypeScript + Vite + Supabase). This is Step 7 of a 15-step modernization blueprint (docs/plans/MODERNIZATION_BLUEPRINT.md). Steps 1-6 should already be merged.
 
 Global rules for every step in this roadmap: never touch files outside the target list below; `npm run build` must exit 0 after your change; never rename CSS classes; add no new dependencies unless explicitly authorized; commit when validation passes, using the step title as the commit message.
 
@@ -214,7 +214,7 @@ Commit message: "Step 7: Introduce the events repository"
 ## Step 8: Adopt TanStack Query
 
 ```
-You're working in the Salsa Segura repo (React 19 + TypeScript + Vite + Supabase). This is Step 8 of a 15-step modernization blueprint (Docs/plans/MODERNIZATION_BLUEPRINT.md). Step 7 (the events repository) must already be merged — this step builds directly on `eventsRepo.ts`.
+You're working in the Salsa Segura repo (React 19 + TypeScript + Vite + Supabase). This is Step 8 of a 15-step modernization blueprint (docs/plans/MODERNIZATION_BLUEPRINT.md). Step 7 (the events repository) must already be merged — this step builds directly on `eventsRepo.ts`.
 
 Global rules for every step in this roadmap: never touch files outside the target list below; `npm run build` must exit 0 after your change; never rename CSS classes; commit when validation passes, using the step title as the commit message. EXCEPTION for this step only: you ARE authorized to add exactly one new dependency, `@tanstack/react-query` v5 (no devtools package) — no other new dependencies.
 
@@ -245,7 +245,7 @@ Commit message: "Step 8: Adopt TanStack Query"
 ## Step 9: Extract submit-event validation
 
 ```
-You're working in the Salsa Segura repo (React 19 + TypeScript + Vite + Supabase). This is Step 9 of a 15-step modernization blueprint (Docs/plans/MODERNIZATION_BLUEPRINT.md). Steps 1-8 should already be merged.
+You're working in the Salsa Segura repo (React 19 + TypeScript + Vite + Supabase). This is Step 9 of a 15-step modernization blueprint (docs/plans/MODERNIZATION_BLUEPRINT.md). Steps 1-8 should already be merged.
 
 Global rules for every step in this roadmap: never touch files outside the target list below; `npm run build` must exit 0 after your change; never rename CSS classes; add no new dependencies unless explicitly authorized; commit when validation passes, using the step title as the commit message.
 
@@ -274,7 +274,7 @@ Commit message: "Step 9: Extract submit-event validation"
 ## Step 10: Decompose SubmitEventPage
 
 ```
-You're working in the Salsa Segura repo (React 19 + TypeScript + Vite + Supabase). This is Step 10 of a 15-step modernization blueprint (Docs/plans/MODERNIZATION_BLUEPRINT.md). Step 9 (validation extraction) must already be merged — this step builds on `validation.ts`.
+You're working in the Salsa Segura repo (React 19 + TypeScript + Vite + Supabase). This is Step 10 of a 15-step modernization blueprint (docs/plans/MODERNIZATION_BLUEPRINT.md). Step 9 (validation extraction) must already be merged — this step builds on `validation.ts`.
 
 Global rules for every step in this roadmap: never touch files outside the target list below; `npm run build` must exit 0 after your change; never rename CSS classes; add no new dependencies unless explicitly authorized; commit when validation passes, using the step title as the commit message.
 
@@ -302,7 +302,7 @@ Commit message: "Step 10: Decompose SubmitEventPage"
 ## Step 11: Decompose Calendar page & fix stale H1
 
 ```
-You're working in the Salsa Segura repo (React 19 + TypeScript + Vite + Supabase). This is Step 11 of a 15-step modernization blueprint (Docs/plans/MODERNIZATION_BLUEPRINT.md). Steps 1-10 should already be merged.
+You're working in the Salsa Segura repo (React 19 + TypeScript + Vite + Supabase). This is Step 11 of a 15-step modernization blueprint (docs/plans/MODERNIZATION_BLUEPRINT.md). Steps 1-10 should already be merged.
 
 Global rules for every step in this roadmap: never touch files outside the target list below; `npm run build` must exit 0 after your change; never rename CSS classes; add no new dependencies unless explicitly authorized; commit when validation passes, using the step title as the commit message.
 
@@ -334,7 +334,7 @@ Commit message: "Step 11: Decompose Calendar page & fix stale H1"
 ## Step 12: Hosting config hardening
 
 ```
-You're working in the Salsa Segura repo (React 19 + TypeScript + Vite + Supabase). This is Step 12 of a 15-step modernization blueprint (Docs/plans/MODERNIZATION_BLUEPRINT.md). Steps 1-11 should already be merged.
+You're working in the Salsa Segura repo (React 19 + TypeScript + Vite + Supabase). This is Step 12 of a 15-step modernization blueprint (docs/plans/MODERNIZATION_BLUEPRINT.md). Steps 1-11 should already be merged.
 
 Global rules for every step in this roadmap: never touch files outside the target list below; `npm run build` must exit 0 after your change; never rename CSS classes; add no new dependencies unless explicitly authorized; commit when validation passes, using the step title as the commit message.
 
@@ -364,7 +364,7 @@ Commit message: "Step 12: Hosting config hardening"
 ## Step 13: CSS ownership cleanup
 
 ```
-You're working in the Salsa Segura repo (React 19 + TypeScript + Vite + Supabase, "Ritmo Vivo" design system — plain component-scoped CSS, no Tailwind/CSS modules). This is Step 13 of a 15-step modernization blueprint (Docs/plans/MODERNIZATION_BLUEPRINT.md). Steps 1-12 should already be merged.
+You're working in the Salsa Segura repo (React 19 + TypeScript + Vite + Supabase, "Ritmo Vivo" design system — plain component-scoped CSS, no Tailwind/CSS modules). This is Step 13 of a 15-step modernization blueprint (docs/plans/MODERNIZATION_BLUEPRINT.md). Steps 1-12 should already be merged.
 
 Global rules for every step in this roadmap: never touch files outside the target list below; `npm run build` must exit 0 after your change; never rename CSS classes; add no new dependencies unless explicitly authorized; commit when validation passes, using the step title as the commit message.
 
@@ -390,7 +390,7 @@ Commit message: "Step 13: CSS ownership cleanup"
 ## Step 14: Dependency modernization pass
 
 ```
-You're working in the Salsa Segura repo (React 19 + TypeScript + Vite + Supabase). This is Step 14 of a 15-step modernization blueprint (Docs/plans/MODERNIZATION_BLUEPRINT.md). Steps 1-13 should already be merged.
+You're working in the Salsa Segura repo (React 19 + TypeScript + Vite + Supabase). This is Step 14 of a 15-step modernization blueprint (docs/plans/MODERNIZATION_BLUEPRINT.md). Steps 1-13 should already be merged.
 
 Global rules for every step in this roadmap: never touch files outside the target list below; `npm run build` must exit 0 after your change; never rename CSS classes; commit when validation passes, using the step title as the commit message. This step authorizes routine version bumps only — no net-new packages beyond what's already in package.json.
 
@@ -401,7 +401,7 @@ Objective: Close remaining version-skew and stale-major items. The four `@schedu
 Instructions — do these ONE AT A TIME, each as its own validated commit, not a single batch commit:
 1. Align all four `@schedule-x/*` packages (`@schedule-x/calendar`, `@schedule-x/calendar-controls`, `@schedule-x/events-service`, `@schedule-x/react`, `@schedule-x/theme-default`) to the same latest 4.x minor version. Validate, then commit.
 2. Bump `@supabase/supabase-js` within the 2.x line to latest. Validate, then commit.
-3. In an ISOLATED commit attempt, try bumping `temporal-polyfill` from 0.x to 1.x. Read its changelog first — this is a breaking major version. The blast radius is the global-import path (`temporal-polyfill/global`) and every `Temporal.*` call site, primarily in `convert.ts` and `Calendar.tsx`. If you hit any API mismatch you can't resolve cleanly, REVERT just the temporal-polyfill bump (keep the other two bumps) and record the blocker as a note in `Docs/plans/MODERNIZATION_BLUEPRINT.md` or a TODO file — do not force it through.
+3. In an ISOLATED commit attempt, try bumping `temporal-polyfill` from 0.x to 1.x. Read its changelog first — this is a breaking major version. The blast radius is the global-import path (`temporal-polyfill/global`) and every `Temporal.*` call site, primarily in `convert.ts` and `Calendar.tsx`. If you hit any API mismatch you can't resolve cleanly, REVERT just the temporal-polyfill bump (keep the other two bumps) and record the blocker as a note in `docs/plans/MODERNIZATION_BLUEPRINT.md` or a TODO file — do not force it through.
 
 Validation (run after EACH individual bump, before committing that bump):
 - `npm run build` passes
@@ -417,11 +417,11 @@ Commit messages: "Step 14a: Align @schedule-x/* versions", "Step 14b: Bump @supa
 ## Step 15: Final regression & documentation sync
 
 ```
-You're working in the Salsa Segura repo (React 19 + TypeScript + Vite + Supabase). This is Step 15 — the FINAL step of a 15-step modernization blueprint (Docs/plans/MODERNIZATION_BLUEPRINT.md). Steps 1-14 should already be merged. This step verifies the whole system end-to-end and leaves accurate documentation for whoever works on this repo next.
+You're working in the Salsa Segura repo (React 19 + TypeScript + Vite + Supabase). This is Step 15 — the FINAL step of a 15-step modernization blueprint (docs/plans/MODERNIZATION_BLUEPRINT.md). Steps 1-14 should already be merged. This step verifies the whole system end-to-end and leaves accurate documentation for whoever works on this repo next.
 
 Global rules for every step in this roadmap: never touch files outside the target list below; `npm run build` must exit 0 after your change; never rename CSS classes; add no new dependencies; commit when validation passes, using the step title as the commit message.
 
-Target files: CLAUDE.md, Docs/STATUS_SUMMARY.md
+Target files: CLAUDE.md, docs/STATUS_SUMMARY.md
 
 Objective: Run the complete quality gate across the whole app, manually click through every route, and update the two docs that describe current architecture/status so they reflect the post-modernization state (not the pre-modernization one).
 
@@ -429,7 +429,7 @@ Instructions:
 1. Run, in order, and confirm each exits 0: `npm run lint`, `npx vitest run`, `npm run build`.
 2. Run `npm run preview` and manually click through every route: `/`, `/about`, `/contact`, `/calendar`, `/submit`, `/lessons`, `/instructors`, an unmatched path (404 page), and a calendar deep-link (`/calendar?event=<real id>`). Confirm each renders correctly with no console errors.
 3. Update `CLAUDE.md`'s Architecture section to describe the NEW data-flow chain: `eventsRepo → useEventsQuery → convert.ts` (replacing the old `useSupabaseEvents → useEvents → databaseEventToScheduleX` description). Document the `src/features/` directory convention introduced across Steps 4-11, note that TanStack Query is now the server-state layer, restate the explicit timezone policy from Step 5, and correct the event duration description to 4 hours (not 2).
-4. Update `Docs/STATUS_SUMMARY.md` to reflect that the modernization blueprint has been executed, listing what changed.
+4. Update `docs/STATUS_SUMMARY.md` to reflect that the modernization blueprint has been executed, listing what changed.
 5. Grep to confirm CLAUDE.md contains no leftover references to files deleted during this roadmap (`useSupabaseEvents`, `AuthContext`).
 
 Validation:

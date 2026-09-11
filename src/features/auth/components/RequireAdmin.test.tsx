@@ -2,11 +2,11 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import RequireAdmin from "./RequireAdmin";
-import type { AuthContextValue } from "../../contexts/authContextObject";
-import { useAuth } from "../../contexts/useAuth";
+import type { AuthContextValue } from "../../../contexts/authContextObject";
+import { useAuth } from "../../../contexts/useAuth";
 import type { User } from "@supabase/supabase-js";
 
-vi.mock("../../contexts/useAuth", () => ({
+vi.mock("../../../contexts/useAuth", () => ({
   useAuth: vi.fn(),
 }));
 
@@ -42,6 +42,7 @@ describe("RequireAdmin", () => {
       signInWithPassword: vi.fn(),
       resendConfirmation: vi.fn(),
       requestPasswordReset: vi.fn(),
+      updateEmail: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
       clearDeletedAccount: vi.fn(),
@@ -64,6 +65,7 @@ describe("RequireAdmin", () => {
       signInWithPassword: vi.fn(),
       resendConfirmation: vi.fn(),
       requestPasswordReset: vi.fn(),
+      updateEmail: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
       clearDeletedAccount: vi.fn(),
@@ -86,6 +88,7 @@ describe("RequireAdmin", () => {
       signInWithPassword: vi.fn(),
       resendConfirmation: vi.fn(),
       requestPasswordReset: vi.fn(),
+      updateEmail: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
       clearDeletedAccount: vi.fn(),
@@ -108,6 +111,7 @@ describe("RequireAdmin", () => {
       signInWithPassword: vi.fn(),
       resendConfirmation: vi.fn(),
       requestPasswordReset: vi.fn(),
+      updateEmail: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
       clearDeletedAccount: vi.fn(),

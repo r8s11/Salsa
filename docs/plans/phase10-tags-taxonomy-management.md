@@ -243,7 +243,7 @@ Constraints and indexes:
 
 ## 10. SQL deliverables and manual execution
 
-The user manually reviews and runs SQL in production. SQL is therefore a reviewed deliverable, never an automatic deployment step. Phase 10 creates the following distinct files under `sql/phase-10/`:
+The user manually reviews and runs SQL in production. SQL is therefore a reviewed deliverable, never an automatic deployment step. Phase 10 creates the following distinct files under `supabase/manual/phase-10/`:
 
 | Order | File | Required | Expected result and safety |
 |---:|---|---|---|

@@ -14,11 +14,11 @@ vi.mock("../features/admin/api/submissionsRepo", () => ({
 
 // The submit path fires the transactional emails fire-and-forget. Mocked so
 // the normal test suite can never reach the Edge Function or Resend.
-vi.mock("../features/submit-event/submissionNotification", () => ({
+vi.mock("../features/submit-event/api/submissionNotification", () => ({
   notifySubmissionReceived: vi.fn(),
 }));
 
-vi.mock("../features/submit-event/useSubmissionAccess", () => ({ useSubmissionAccess }));
+vi.mock("../features/submit-event/hooks/useSubmissionAccess", () => ({ useSubmissionAccess }));
 
 vi.mock("../contexts/useAuth", () => ({ useAuth }));
 
@@ -55,6 +55,7 @@ describe("SubmitEventPage", () => {
       signInWithPassword: vi.fn(),
       resendConfirmation: vi.fn(),
       requestPasswordReset: vi.fn(),
+      updateEmail: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
     });
@@ -311,6 +312,7 @@ describe("SubmitEventPage", () => {
       signInWithPassword: vi.fn(),
       resendConfirmation: vi.fn(),
       requestPasswordReset: vi.fn(),
+      updateEmail: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
     });
@@ -343,6 +345,7 @@ describe("SubmitEventPage", () => {
       signInWithPassword: vi.fn(),
       resendConfirmation: vi.fn(),
       requestPasswordReset: vi.fn(),
+      updateEmail: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
     });
@@ -379,6 +382,7 @@ describe("SubmitEventPage", () => {
       signInWithPassword: vi.fn(),
       resendConfirmation: vi.fn(),
       requestPasswordReset: vi.fn(),
+      updateEmail: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
     });
@@ -405,6 +409,7 @@ describe("SubmitEventPage", () => {
       signInWithPassword: vi.fn(),
       resendConfirmation: vi.fn(),
       requestPasswordReset: vi.fn(),
+      updateEmail: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
     });

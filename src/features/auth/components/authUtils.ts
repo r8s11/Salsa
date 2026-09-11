@@ -1,4 +1,4 @@
-import { publicErrorMessage } from "../../shared/forms/errorMessage";
+import { publicErrorMessage } from "../../../shared/forms/errorMessage";
 
 /** True when a Supabase auth failure means the account's email is unconfirmed. */
 export function isUnconfirmedEmail(message: string): boolean {

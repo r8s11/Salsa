@@ -47,9 +47,9 @@ Reason: The repository is public and the encrypted private-key object remains re
 
 ## Files Changed
 
-- `Docs/security/historical-key-resolution.md`
+- `docs/security/historical-key-resolution.md`
 
-Expected: `Docs/security/historical-key-resolution.md` only
+Expected: `docs/security/historical-key-resolution.md` only
 
 ## Safety Confirmation
 

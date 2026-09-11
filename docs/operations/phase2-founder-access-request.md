@@ -36,7 +36,7 @@ This single file creates:
 
 **No `anon` privileges** are granted on this table. Public submission goes exclusively through the Edge Function, which uses the service role (bypasses RLS).
 
-**Migration-timestamp note**: this file uses `20260831000001` (after `20260831000000_phase5_host_attendance.sql`). The pre-existing collision on prefix `20260830000000` (two files, documented in `Docs/operations/phase1-auth-email-foundation.md` §7) is unrelated to this phase.
+**Migration-timestamp note**: this file uses `20260831000001` (after `20260831000000_phase5_host_attendance.sql`). The pre-existing collision on prefix `20260830000000` (two files, documented in `docs/operations/phase1-auth-email-foundation.md` §7) is unrelated to this phase.
 
 ## 3. Edge Function deployment (manual)
 
@@ -142,7 +142,7 @@ from public.founder_access_requests limit 1;
 
 ## 8. Phase 2 findings (pre-existing defects discovered during audit)
 
-1. **Local-stack `service_role` table-privilege gap** (blocks ALL edge-function writes on postgres-owned tables locally): the local Supabase stack's default `postgres`-owner ACL grants `service_role` only `Dxtm` (DELETE/REFERENCES/TRIGGER/TRUNCATE) — **no SELECT or INSERT** — on tables created by `postgres` (which includes every table created by the migration engine). This means `invite-organizer`, `send-auth-email`, `delete-account`, `request-founder-access`, and every other Edge Function in the repo that uses the service role to write to public tables **fails locally** with `permission denied for table <X>`. Production hosted Supabase grants `service_role` the full CRUD on public tables automatically, so production is unaffected. The repo's own ops doc `Docs/operations/organizer-email-invitations.md` §8.4 verified invite-organizer against the real hosted Supabase (or via `admin/generate_link` as a local bypass), never against the local stack's service-role path. **Not a Phase 2 bug** — affects every function in the repo locally. Local-only fix for verifying any service-role function:
+1. **Local-stack `service_role` table-privilege gap** (blocks ALL edge-function writes on postgres-owned tables locally): the local Supabase stack's default `postgres`-owner ACL grants `service_role` only `Dxtm` (DELETE/REFERENCES/TRIGGER/TRUNCATE) — **no SELECT or INSERT** — on tables created by `postgres` (which includes every table created by the migration engine). This means `invite-organizer`, `send-auth-email`, `delete-account`, `request-founder-access`, and every other Edge Function in the repo that uses the service role to write to public tables **fails locally** with `permission denied for table <X>`. Production hosted Supabase grants `service_role` the full CRUD on public tables automatically, so production is unaffected. The repo's own ops doc `docs/operations/organizer-email-invitations.md` §8.4 verified invite-organizer against the real hosted Supabase (or via `admin/generate_link` as a local bypass), never against the local stack's service-role path. **Not a Phase 2 bug** — affects every function in the repo locally. Local-only fix for verifying any service-role function:
 
    ```sql
    -- One-time, per function's target table (example for founder_access_requests):
@@ -150,7 +150,7 @@ from public.founder_access_requests limit 1;
    ```
 
    Production does not need this.
-2. **Migration timestamp collision** (`20260830000000` two-file collision) — pre-existing, documented in `Docs/operations/phase1-auth-email-foundation.md` §7. Unrelated to Phase 2. Renaming one of the two files to `20260830000001_phase6_host_organizer_access.sql` is the recommended fix; out of scope for this phase.
+2. **Migration timestamp collision** (`20260830000000` two-file collision) — pre-existing, documented in `docs/operations/phase1-auth-email-foundation.md` §7. Unrelated to Phase 2. Renaming one of the two files to `20260830000001_phase6_host_organizer_access.sql` is the recommended fix; out of scope for this phase.
 3. **Deno test execution** — the Edge Function's Deno test files (`supabase/functions/_shared/founderRequest.test.ts` and `supabase/functions/request-founder-access/index.test.ts`) cannot be executed in this environment (no `deno` binary). This is a pre-existing repo-wide limitation that also affects `invitation.test.ts`, `invite-organizer/index.test.ts`, and `send-auth-email/index.test.ts`. The tests follow the same convention as those files; live verification against the local stack covered the same scenarios end-to-end.
 
 ## 9. No Phase 1 / Host Dashboard impact

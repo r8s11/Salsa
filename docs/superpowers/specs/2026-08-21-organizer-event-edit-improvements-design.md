@@ -70,7 +70,7 @@ Extend the existing owner editor only within its pending/rejected review state. 
 
 ## Storage SQL
 
-Create one reviewable SQL file under `sql/` and do not execute it. It must:
+Create one reviewable SQL file under `supabase/manual/` and do not execute it. It must:
 
 1. Create or idempotently configure public bucket `event-flyers` with JPEG/PNG/WebP MIME types and a 5 MiB limit.
 2. Permit authenticated owners to create, update, and delete objects only in paths rooted at their auth UID.

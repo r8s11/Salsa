@@ -7,7 +7,7 @@ import {
   type KeyboardEvent,
 } from "react";
 import { ChevronDown, MoreHorizontal } from "lucide-react";
-import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
+import { useEscapeKey } from "../../calendar/hooks/useEscapeKey";
 import "./AdminActionMenu.css";
 
 export interface ActionMenuItem {

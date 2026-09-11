@@ -4,7 +4,7 @@
  * Deliberately separate from founderRequestsQuery.ts: an invitation is a
  * distinct lifecycle (pending -> accepted | revoked) issued *for* an
  * approved founder_access_requests row, not a field on that row. See
- * Docs/operations/phase4-founder-invitation-foundation.md for the full
+ * docs/operations/phase4-founder-invitation-foundation.md for the full
  * architecture.
  */
 

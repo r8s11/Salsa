@@ -4,7 +4,7 @@ import { render as rtlRender, screen, fireEvent, waitFor, act } from "@testing-l
 import { MemoryRouter } from "react-router-dom";
 import EventModal from "./EventModal";
 import { DEFAULT_EVENT_BANNER_URL } from "./eventModalImage";
-import { ScheduleXEvent } from "../../types/events";
+import { ScheduleXEvent } from "../../../../types/events";
 
 const {
   mockEnsureContainer,
@@ -28,7 +28,7 @@ const {
   mockResolvePosterImageForEvent: vi.fn(async () => ({ status: "missing" }) as any),
 }));
 
-vi.mock("../../features/calendar/hooks/useShareablePoster", () => ({
+vi.mock("../../../calendar/hooks/useShareablePoster", () => ({
   resolvePosterImage: mockResolvePosterImage,
   useShareablePoster: () => ({
     ensureContainer: mockEnsureContainer,
@@ -39,7 +39,7 @@ vi.mock("../../features/calendar/hooks/useShareablePoster", () => ({
   }),
 }));
 
-vi.mock("../../features/calendar/api/posterFlyers", () => ({
+vi.mock("../../../calendar/api/posterFlyers", () => ({
   resolvePosterImageForEvent: mockResolvePosterImageForEvent,
   requestPosterFlyer: vi.fn(),
 }));

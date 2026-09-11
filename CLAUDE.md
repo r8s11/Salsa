@@ -53,7 +53,7 @@ Supabase (events table)
       .eq("status", "approved").eq("city", city).gte("event_date", <today - 1 day>)
   → useEventsQuery(city)                    [src/features/events/hooks/useEventsQuery.ts]
       TanStack Query, key: ["events", city], staleTime 5 min, retry 1
-  → useEvents()                             [src/hooks/useEvent.ts — thin wrapper, entry point for components]
+  → useEvents()                             [src/features/events/hooks/useEvent.ts — thin wrapper, entry point for components]
   → databaseEventToScheduleX()              [src/features/events/model/convert.ts]
   → Calendar component feeds converted events into Schedule-X via eventsService.set()
 ```
@@ -66,7 +66,7 @@ Supabase (events table)
 
 ### Timezone policy
 
-`src/features/events/model/convert.ts` is the single place datetime conversion happens. `event_date` in Supabase is `timestamp with time zone` (`timestamptz`) — confirmed via `Docs/sql queries/events.sql`. Conversion parses it as `Temporal.Instant` and renders via `.toZonedDateTimeISO("America/New_York")`, so displayed times are always correct `America/New_York` wall-clock regardless of the visitor's own timezone. `new Date(` must never appear in this file. Output format stays `"YYYY-MM-DD HH:mm"` (what Schedule-X expects). Event duration defaults to `DEFAULT_DURATION_HOURS = 4` (a named constant in `convert.ts`) when an explicit end time isn't given.
+`src/features/events/model/convert.ts` is the single place datetime conversion happens. `event_date` in Supabase is `timestamp with time zone` (`timestamptz`) — confirmed via `supabase/manual/legacy/events.sql`. Conversion parses it as `Temporal.Instant` and renders via `.toZonedDateTimeISO("America/New_York")`, so displayed times are always correct `America/New_York` wall-clock regardless of the visitor's own timezone. `new Date(` must never appear in this file. Output format stays `"YYYY-MM-DD HH:mm"` (what Schedule-X expects). Event duration defaults to `DEFAULT_DURATION_HOURS = 4` (a named constant in `convert.ts`) when an explicit end time isn't given.
 
 Every file using the ambient global `Temporal` (this file, `Calendar.tsx`, `src/utils/series.ts`) must `import "temporal-polyfill/global"` itself — it is not loaded globally by any shared entry point.
 
@@ -78,7 +78,7 @@ Every file using the ambient global `Temporal` (this file, `Calendar.tsx`, `src/
 
 ### Event submission
 
-`SubmitEventPage` is a thin composition shell (`src/pages/SubmitEventPage.tsx`) around `useSubmitEventForm()` (`src/features/submit-event/useSubmitEventForm.ts`), which owns form state, calls `validateSubmitForm()` (`src/features/submit-event/validation.ts`, pure + unit-tested), then `eventsRepo.submitEvent()` with `status: "pending"`. Each `<fieldset>` is its own component under `src/features/submit-event/components/`. Events are only shown on the calendar after manual approval (`status: "approved"`).
+`SubmitEventPage` is a thin composition shell (`src/pages/SubmitEventPage.tsx`) around `useSubmitEventForm()` (`src/features/submit-event/hooks/useSubmitEventForm.ts`), which owns form state, calls `validateSubmitForm()` (`src/features/submit-event/model/validation.ts`, pure + unit-tested), then `eventsRepo.submitEvent()` with `status: "pending"`. Each `<fieldset>` is its own component under `src/features/submit-event/components/`. Events are only shown on the calendar after manual approval (`status: "approved"`).
 
 ### Routing
 
@@ -95,7 +95,7 @@ All routes share `MainLayout` (Header + Footer via `<Outlet>`). Pages other than
 
 ### Content files
 
-`src/content/events/` contains `.md` files (`.draft` and `.pass` suffixes) used as raw event data/templates. Vite is configured with `assetsInclude: ["**/*.md"]` so these can be imported.
+`data/legacy/events/` contains `.md` files (`.draft` and `.pass` suffixes) used as raw event data/templates. Vite is configured with `assetsInclude: ["**/*.md"]` so these can be imported.
 
 ### CSS ownership
 

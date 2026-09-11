@@ -773,7 +773,7 @@ const styles = StyleSheet.create({
 
 ### M2.4: Update useEvents Hook with Refetch
 
-Create `src/hooks/useEvents.ts`:
+Create `src/features/events/hooks/useEvents.ts`:
 
 ```typescript
 import { useState, useCallback } from "react";
@@ -1962,7 +1962,7 @@ For Bun workspaces, update root `package.json`:
 | ---------------------- | -------------------------------- | -------------------------------- | ----------------------- |
 | `events.ts`            | `src/types/events.ts`            | `src/types/events.ts`            | None                    |
 | `useSupabaseEvents.ts` | `src/hooks/useSupabaseEvents.ts` | `src/hooks/useSupabaseEvents.ts` | None                    |
-| `useEvents.ts`         | `src/hooks/useEvent.ts`          | `src/hooks/useEvents.ts`         | Minor                   |
+| `useEvents.ts`         | `src/features/events/hooks/useEvent.ts`          | `src/features/events/hooks/useEvents.ts`         | Minor                   |
 | `supabase.ts`          | `src/lib/supabase.ts`            | `src/lib/supabase.ts`            | Env vars + AsyncStorage |
 
 ### Files NOT to Share (Platform-Specific)

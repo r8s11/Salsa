@@ -12,7 +12,7 @@ success response.
 
 | Flow | Before this change |
 |---|---|
-| Event Submission | **The admin notification already existed and was already automatic.** `send-submission-email`'s `awaiting_review` event *is* the moderator notification — server-derived recipient (`platform_settings.support_email`), server-built content and review link (`/admin/submissions/:id`), claim-then-send idempotency (`event_submission_email_attempts`), non-blocking failure semantics. `useSubmitEventForm.ts` calls `notifySubmissionReceived(id)` immediately after `createSubmission()` commits, unconditionally, with no separate user action — see `Docs/operations/event-submission-email-notifications.md`. |
+| Event Submission | **The admin notification already existed and was already automatic.** `send-submission-email`'s `awaiting_review` event *is* the moderator notification — server-derived recipient (`platform_settings.support_email`), server-built content and review link (`/admin/submissions/:id`), claim-then-send idempotency (`event_submission_email_attempts`), non-blocking failure semantics. `useSubmitEventForm.ts` calls `notifySubmissionReceived(id)` immediately after `createSubmission()` commits, unconditionally, with no separate user action — see `docs/operations/event-submission-email-notifications.md`. |
 | Founder Access Request | **No admin notification existed at all.** `request-founder-access` validated, deduplicated, and inserted a pending row, then returned `{success:true}`. Nothing read `platform_settings`, nothing called Resend, and no delivery-tracking table existed for this flow. |
 
 Per spec §1 ("do not duplicate it if the functionality already exists"),
@@ -99,12 +99,12 @@ notification.
 `GRANT` was required):
 
 - `select, insert` on `founder_access_requests` — `20260903000000_phase10_founder_delivery_reliability.sql`.
-- `select (platform_name, public_site_url, support_email, singleton)` on `platform_settings` — `sql/submission-emails/001_email_delivery_attempts.sql`.
+- `select (platform_name, public_site_url, support_email, singleton)` on `platform_settings` — `supabase/manual/submission-emails/001_email_delivery_attempts.sql`.
 
 Sender: `AUTH_EMAIL_FROM` (existing convention, no new variable). Review link
 base: `AUTH_EXTERNAL_URL` (the same convention as `send-founder-invitation`,
 `send-founder-welcome-email`, `reissue-founder-invitation`) + the real,
-audited route `/admin/founder-requests/:id` (`src/App.tsx`,
+audited route `/admin/founder-requests/:id` (`src/app/App.tsx`,
 `AdminFounderRequestDetailPage.tsx`).
 
 ## 5. Failure Semantics
@@ -134,8 +134,8 @@ two attempts tables, readable by moderators/admins via RLS.
 | `supabase/functions/_shared/founderRequestConfirmationEmail.ts` | **New.** The one content builder for the applicant's own receipt email — fixed `SalsaSegura` brand (no `platform_settings` read), no CTA/link, no internal request state as a parameter. |
 | `supabase/migrations/20260904000000_founder_request_admin_notifications.sql` | Unchanged — `founder_request_notification_attempts` table + original claim/complete RPCs. |
 | `supabase/migrations/20260907000000_founder_request_applicant_confirmation.sql` | **New.** Widens `email_event` to also accept `applicant_confirmation`; widens the claim RPC's validation to match (signature/defaults unchanged); drops the old 4-arg completion RPC and replaces it with a 6-arg, request/purpose-bound one (see §7). |
-| `sql/2026-09-07-founder-request-applicant-confirmation-regression.sql` | **New.** Executable, rolled-back regression tests for the new migration (see §9). |
-| `Docs/operations/automatic-submission-admin-notifications.md` | This file. |
+| `supabase/manual/2026-09-07-founder-request-applicant-confirmation-regression.sql` | **New.** Executable, rolled-back regression tests for the new migration (see §9). |
+| `docs/operations/automatic-submission-admin-notifications.md` | This file. |
 
 No file in the Event Submission path was modified.
 
@@ -208,9 +208,9 @@ The second is new for this update:
   (verified-necessary fix, not new functionality).** The admin
   notification path's dependency on this grant existed unchanged since
   20260904000000, whose header asserted it was already satisfied by
-  `sql/submission-emails/001_email_delivery_attempts.sql`'s
+  `supabase/manual/submission-emails/001_email_delivery_attempts.sql`'s
   column-scoped grant. That is only true once `001` has actually been
-  run — it lives under `sql/`, not `supabase/migrations/`, so unlike
+  run — it lives under `supabase/manual/`, not `supabase/migrations/`, so unlike
   every file in this directory it is **not** applied automatically by
   `supabase db reset`/`supabase start`. Verified against a fresh local
   stack seeded only from `supabase/migrations/*`: the admin path failed
@@ -224,7 +224,7 @@ The second is new for this update:
 
 Both migrations were written against the local Supabase Postgres schema
 and are structurally verified by
-`sql/2026-09-07-founder-request-applicant-confirmation-regression.sql`
+`supabase/manual/2026-09-07-founder-request-applicant-confirmation-regression.sql`
 (§9). The project owner confirmed both migrations were applied to production
 before the targeted Edge Function deployment; the production smoke test is
 recorded in §10.
@@ -258,7 +258,7 @@ recorded in §10.
 - **Admin link does not bypass authentication.** The review URL is a plain
   navigation into the existing `/admin/founder-requests/:id` route, which is
   gated by the pre-existing Admin `RequireAuth`/`RequireRole` guard in
-  `src/App.tsx` — nothing new was added to authorize it, no bypass token.
+  `src/app/App.tsx` — nothing new was added to authorize it, no bypass token.
 - **Notification exists only for a real persisted object.** The claim/insert
   ordering guarantees a notification attempt can only be created for a
   `request_id` that has an actual `founder_access_requests` row (FK with
@@ -333,7 +333,7 @@ change (confirmed via `git status` — none of those files were edited here).
 
 ### SQL — Database Regression (this change, EXECUTED)
 
-`sql/2026-09-07-founder-request-applicant-confirmation-regression.sql` is a
+`supabase/manual/2026-09-07-founder-request-applicant-confirmation-regression.sql` is a
 pure-SQL, self-rolled-back regression script covering the new migration:
 independent claiming of the two purposes for one request, a duplicate claim
 refused while pending, a request_id/email_event mismatch rejected by the new
@@ -355,7 +355,7 @@ post-run `select count(*)` confirmed zero residual rows in either
 ```bash
 psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" \
   -v ON_ERROR_STOP=1 \
-  -f sql/2026-09-07-founder-request-applicant-confirmation-regression.sql
+  -f supabase/manual/2026-09-07-founder-request-applicant-confirmation-regression.sql
 ```
 
 ### Deno — Edge Functions (this change, EXECUTED)
@@ -426,7 +426,7 @@ confirmed zero residual rows after verification.
 
 Event Submission's provider-integration behavior is unchanged and already
 covered by its own 47 Deno tests plus the prior audit's live verification
-(`Docs/operations/event-submission-email-notifications.md` §9).
+(`docs/operations/event-submission-email-notifications.md` §9).
 
 ### Provider QA for the applicant confirmation email (this change, EXECUTED)
 
@@ -545,7 +545,7 @@ pausing/flagging public Founder-request intake for the gap:
 - **No admin email for an Event Submission**: unchanged from the prior
   audit — check `event_submission_email_attempts` for
   `(submission_id, 'awaiting_review')`, per
-  `Docs/operations/event-submission-email-notifications.md`.
+  `docs/operations/event-submission-email-notifications.md`.
 
 ## Final Verdict
 

@@ -8,7 +8,7 @@
 
 **Tech Stack:** React 19, TypeScript, Vitest, `html-to-image`, Supabase Postgres/Storage/Edge Functions, `@supabase/server`.
 
-**Spec:** `Docs/superpowers/specs/2026-09-02-instagram-story-poster-design.md`
+**Spec:** `docs/superpowers/specs/2026-09-02-instagram-story-poster-design.md`
 
 ## Global Constraints
 

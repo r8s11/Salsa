@@ -4,7 +4,7 @@
 
 **Goal:** Replace fragmented schema history with one idempotent current-state Supabase migration, preserve superseded SQL byte-for-byte in a dated archive, retain active operational SQL separately, and prove the result against a disposable local stack.
 
-**Architecture:** Resolve the repository's 67 existing SQL files into one dependency-ordered migration at `supabase/migrations/20260830010000_current_schema.sql`. Historical schema and repair files move beneath `sql/archive/2026-08-30/` with checksums and provenance; seeds, diagnostics, verification, and rollbacks remain operational. Verification uses fresh and repeat local application, catalog comparison, security checks, and real end-user JWTs through PostgREST.
+**Architecture:** Resolve the repository's 67 existing SQL files into one dependency-ordered migration at `supabase/migrations/20260830010000_current_schema.sql`. Historical schema and repair files move beneath `supabase/manual/archive/2026-08-30/` with checksums and provenance; seeds, diagnostics, verification, and rollbacks remain operational. Verification uses fresh and repeat local application, catalog comparison, security checks, and real end-user JWTs through PostgREST.
 
 **Tech Stack:** PostgreSQL 15+, Supabase CLI 2.113.0, PostgREST, SQL/PLpgSQL, Node.js 22+, npm 11.6.2
 
@@ -30,31 +30,31 @@
 | Path | Action | Responsibility |
 | --- | --- | --- |
 | `supabase/migrations/20260830010000_current_schema.sql` | Create | Sole schema bootstrap and idempotent upgrade migration |
-| `sql/archive/2026-08-30/manifest.md` | Create | Provenance, SHA-256, category, folded behavior, replacement for all 67 inputs |
-| `sql/archive/2026-08-30/<original-relative-path>` | Create by move | Byte-identical historical migrations, repairs, phase schema, and legacy queries |
-| `sql/final-verification/01_preflight_check.sql` | Modify | Pre-apply compatibility/drift checks for an existing database |
-| `sql/final-verification/02_post_migration_verification.sql` | Modify | Complete post-apply object, idempotency, and schema-contract checks |
-| `sql/final-verification/03_rls_security_check.sql` | Modify | Final view, function, RLS, policy, grant, and advisor-equivalent checks |
+| `supabase/manual/archive/2026-08-30/manifest.md` | Create | Provenance, SHA-256, category, folded behavior, replacement for all 67 inputs |
+| `supabase/manual/archive/2026-08-30/<original-relative-path>` | Create by move | Byte-identical historical migrations, repairs, phase schema, and legacy queries |
+| `supabase/manual/final-verification/01_preflight_check.sql` | Modify | Pre-apply compatibility/drift checks for an existing database |
+| `supabase/manual/final-verification/02_post_migration_verification.sql` | Modify | Complete post-apply object, idempotency, and schema-contract checks |
+| `supabase/manual/final-verification/03_rls_security_check.sql` | Modify | Final view, function, RLS, policy, grant, and advisor-equivalent checks |
 | `supabase/manual/phase6_host_access_verification.sql` | Modify | Remove obsolete migration-path wording; retain database-layer host checks |
 | `README.md` | Modify | Current local reset, manual production review, active SQL, and archive guidance |
 | `supabase/seed.sql` | Keep unchanged unless compatibility requires a minimal column fix | Local development data only |
 | `supabase/placeholder-prod.sql` | Keep unchanged | Manually reviewed production placeholder data only |
 | `supabase/diagnose-prod-schema.sql` | Keep | Read-only operational diagnostic |
 | `supabase/diagnose-prod-events-admin.sql` | Keep | Read-only event-editor diagnostic |
-| `sql/flyer-automation/phase-1/001_preflight.sql` | Keep | Flyer preflight operation |
-| `sql/flyer-automation/phase-1/001_preflight_flyer_storage.sql` | Keep | Flyer storage preflight operation |
-| `sql/flyer-automation/phase-1/004_postcheck.sql` | Keep | Flyer post-apply verification |
-| `sql/host-phase-5/900_optional_rollback_host_attendance.sql` | Keep | Optional attendance rollback; never part of bootstrap |
-| `sql/phase-10/003_seed_taxonomy_terms.sql` | Keep | Optional/idempotent canonical taxonomy data seed |
-| `sql/phase-10/005_remove_events_dance_styles.sql` | Keep | Explicit optional destructive cleanup; never part of bootstrap |
+| `supabase/manual/flyer-automation/phase-1/001_preflight.sql` | Keep | Flyer preflight operation |
+| `supabase/manual/flyer-automation/phase-1/001_preflight_flyer_storage.sql` | Keep | Flyer storage preflight operation |
+| `supabase/manual/flyer-automation/phase-1/004_postcheck.sql` | Keep | Flyer post-apply verification |
+| `supabase/manual/host-phase-5/900_optional_rollback_host_attendance.sql` | Keep | Optional attendance rollback; never part of bootstrap |
+| `supabase/manual/phase-10/003_seed_taxonomy_terms.sql` | Keep | Optional/idempotent canonical taxonomy data seed |
+| `supabase/manual/phase-10/005_remove_events_dance_styles.sql` | Keep | Explicit optional destructive cleanup; never part of bootstrap |
 
 ---
 
 ### Task 1: Freeze the SQL estate and create the provenance manifest
 
 **Files:**
-- Create: `sql/archive/2026-08-30/manifest.md`
-- Read without modifying: every existing `*.sql` under `supabase/`, `sql/`, and `Docs/sql queries/`
+- Create: `supabase/manual/archive/2026-08-30/manifest.md`
+- Read without modifying: every existing `*.sql` under `supabase/`, `supabase/manual/`, and `supabase/manual/legacy/`
 
 **Interfaces:**
 - Consumes: the 67 SQL files present at task start, including untracked files
@@ -68,7 +68,7 @@ Run through context-mode from repository root:
 python3 - <<'PY'
 from pathlib import Path
 import hashlib
-roots = [Path('supabase'), Path('sql'), Path('Docs/sql queries')]
+roots = [Path('supabase'), Path('sql'), Path('docs/sql queries')]
 files = sorted(p for root in roots for p in root.rglob('*.sql'))
 assert len(files) == 67, f'expected 67 input SQL files, found {len(files)}'
 for path in files:
@@ -81,7 +81,7 @@ Expected: exactly 67 unique paths; save the complete output outside the reposito
 
 - [ ] **Step 2: Classify every input with an explicit winner**
 
-Create `sql/archive/2026-08-30/manifest.md` with this header and a row for every input:
+Create `supabase/manual/archive/2026-08-30/manifest.md` with this header and a row for every input:
 
 ```markdown
 # SQL archive manifest — 2026-08-30
@@ -110,18 +110,18 @@ supabase/placeholder-prod.sql
 supabase/diagnose-prod-schema.sql
 supabase/diagnose-prod-events-admin.sql
 supabase/manual/phase6_host_access_verification.sql
-sql/final-verification/01_preflight_check.sql
-sql/final-verification/02_post_migration_verification.sql
-sql/final-verification/03_rls_security_check.sql
-sql/flyer-automation/phase-1/001_preflight.sql
-sql/flyer-automation/phase-1/001_preflight_flyer_storage.sql
-sql/flyer-automation/phase-1/004_postcheck.sql
-sql/host-phase-5/900_optional_rollback_host_attendance.sql
-sql/phase-10/003_seed_taxonomy_terms.sql
-sql/phase-10/005_remove_events_dance_styles.sql
+supabase/manual/final-verification/01_preflight_check.sql
+supabase/manual/final-verification/02_post_migration_verification.sql
+supabase/manual/final-verification/03_rls_security_check.sql
+supabase/manual/flyer-automation/phase-1/001_preflight.sql
+supabase/manual/flyer-automation/phase-1/001_preflight_flyer_storage.sql
+supabase/manual/flyer-automation/phase-1/004_postcheck.sql
+supabase/manual/host-phase-5/900_optional_rollback_host_attendance.sql
+supabase/manual/phase-10/003_seed_taxonomy_terms.sql
+supabase/manual/phase-10/005_remove_events_dance_styles.sql
 ```
 
-All numbered migrations, `supabase/reconcile-prod-schema.sql`, required feature-phase DDL, production repair SQL, and function/policy fixes are `folded-schema` or `superseded-repair`. All `Docs/sql queries/*.sql` are `historical-data`. Do not choose a winner merely by filename date: record the final definition named in Tasks 2–4.
+All numbered migrations, `supabase/reconcile-prod-schema.sql`, required feature-phase DDL, production repair SQL, and function/policy fixes are `folded-schema` or `superseded-repair`. All `supabase/manual/legacy/*.sql` are `historical-data`. Do not choose a winner merely by filename date: record the final definition named in Tasks 2–4.
 
 - [ ] **Step 3: Verify complete, duplicate-free manifest coverage**
 
@@ -131,10 +131,10 @@ Run:
 python3 - <<'PY'
 from pathlib import Path
 import re
-manifest = Path('sql/archive/2026-08-30/manifest.md').read_text()
-inputs = sorted(p.as_posix() for root in [Path('supabase'), Path('sql'), Path('Docs/sql queries')]
+manifest = Path('supabase/manual/archive/2026-08-30/manifest.md').read_text()
+inputs = sorted(p.as_posix() for root in [Path('supabase'), Path('sql'), Path('docs/sql queries')]
                 for p in root.rglob('*.sql')
-                if 'sql/archive/2026-08-30/' not in p.as_posix())
+                if 'supabase/manual/archive/2026-08-30/' not in p.as_posix())
 rows = re.findall(r'^\| (`?)([^|`]+?)\1 \| [0-9a-f]{64} \|', manifest, re.M)
 listed = [path.strip() for _, path in rows]
 assert len(inputs) == 67
@@ -149,7 +149,7 @@ Expected: `PASS: manifest covers 67 inputs exactly once`.
 - [ ] **Step 4: Commit the immutable inventory before consolidation**
 
 ```bash
-git add sql/archive/2026-08-30/manifest.md
+git add supabase/manual/archive/2026-08-30/manifest.md
 git commit -m "docs: inventory SQL consolidation inputs"
 ```
 
@@ -161,8 +161,8 @@ git commit -m "docs: inventory SQL consolidation inputs"
 - Create: `supabase/migrations/20260830010000_current_schema.sql`
 - Reference: `supabase/migrations/*.sql`
 - Reference: `supabase/reconcile-prod-schema.sql`
-- Reference: `sql/phase-10/*.sql`
-- Reference: `sql/host-phase-5/*.sql`
+- Reference: `supabase/manual/phase-10/*.sql`
+- Reference: `supabase/manual/host-phase-5/*.sql`
 - Reference: `supabase/migrations/20260830000000_phase6_host_organizer_access.sql`
 
 **Interfaces:**
@@ -293,9 +293,9 @@ git commit -m "feat(db): consolidate current relational schema"
 **Files:**
 - Modify: `supabase/migrations/20260830010000_current_schema.sql`
 - Reference: `supabase/reconcile-prod-schema.sql`
-- Reference: `sql/2026-08-25-repair-event-edit-taxonomy.sql`
-- Reference: `sql/flyer-automation/phase-1/002_update_submission_approval_image.sql`
-- Reference: `sql/recommendations/handle_new_user_privilege_hardening.sql`
+- Reference: `supabase/manual/2026-08-25-repair-event-edit-taxonomy.sql`
+- Reference: `supabase/manual/flyer-automation/phase-1/002_update_submission_approval_image.sql`
+- Reference: `supabase/manual/recommendations/handle_new_user_privilege_hardening.sql`
 - Reference: `supabase/migrations/20260820000000_fix_admin_invite_user.sql`
 
 **Interfaces:**
@@ -308,9 +308,9 @@ Add one `create or replace function` definition for each function in the resolve
 
 ```text
 admin_invite_user               -> 20260820000000_fix_admin_invite_user.sql
-replace_event_taxonomy_terms    -> sql/phase-10/002_create_event_taxonomy_terms.sql
-approve_event_submission       -> sql/flyer-automation/phase-1/002_update_submission_approval_image.sql
-handle_new_user                -> sql/recommendations/handle_new_user_privilege_hardening.sql
+replace_event_taxonomy_terms    -> supabase/manual/phase-10/002_create_event_taxonomy_terms.sql
+approve_event_submission       -> supabase/manual/flyer-automation/phase-1/002_update_submission_approval_image.sql
+handle_new_user                -> supabase/manual/recommendations/handle_new_user_privilege_hardening.sql
 organizer_create_event         -> 20260830000000_phase6_host_organizer_access.sql
 organizer_update_event         -> 20260830000000_phase6_host_organizer_access.sql
 ```
@@ -390,13 +390,13 @@ git commit -m "feat(db): consolidate functions and triggers"
 
 **Files:**
 - Modify: `supabase/migrations/20260830010000_current_schema.sql`
-- Reference: `sql/2026-08-25-fix-security-definer-views.sql`
-- Reference: `sql/2026-08-25-fix-event-flyer-public-access.sql`
-- Reference: `sql/2026-08-21_event_flyers_storage.sql`
-- Reference: `sql/host-phase-4/001_owner_read_event_taxonomy_terms.sql`
-- Reference: `sql/host-phase-5/006_add_host_attendance_rls.sql`
-- Reference: `sql/host-phase-5/007_add_host_attendance_grants.sql`
-- Reference: `sql/host-phase-6/001_owner_manage_event_submissions.sql`
+- Reference: `supabase/manual/2026-08-25-fix-security-definer-views.sql`
+- Reference: `supabase/manual/2026-08-25-fix-event-flyer-public-access.sql`
+- Reference: `supabase/manual/2026-08-21_event_flyers_storage.sql`
+- Reference: `supabase/manual/host-phase-4/001_owner_read_event_taxonomy_terms.sql`
+- Reference: `supabase/manual/host-phase-5/006_add_host_attendance_rls.sql`
+- Reference: `supabase/manual/host-phase-5/007_add_host_attendance_grants.sql`
+- Reference: `supabase/manual/host-phase-6/001_owner_manage_event_submissions.sql`
 
 **Interfaces:**
 - Consumes: tables and predicates from Tasks 2–3
@@ -532,8 +532,8 @@ git commit -m "feat(db): consolidate RLS and grants"
 
 **Files:**
 - Modify only if verification finds a source defect: `supabase/migrations/20260830010000_current_schema.sql`
-- Test: `sql/final-verification/02_post_migration_verification.sql`
-- Test: `sql/final-verification/03_rls_security_check.sql`
+- Test: `supabase/manual/final-verification/02_post_migration_verification.sql`
+- Test: `supabase/manual/final-verification/03_rls_security_check.sql`
 
 **Interfaces:**
 - Consumes: complete canonical migration from Tasks 2–4
@@ -595,11 +595,11 @@ Expected: no diff. A changing timestamp or regenerated object definition is a fa
 ```bash
 docker exec -i -e PGPASSWORD=postgres supabase_db_Salsa \
   psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
-  < sql/final-verification/02_post_migration_verification.sql
+  < supabase/manual/final-verification/02_post_migration_verification.sql
 
 docker exec -i -e PGPASSWORD=postgres supabase_db_Salsa \
   psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
-  < sql/final-verification/03_rls_security_check.sql
+  < supabase/manual/final-verification/03_rls_security_check.sql
 ```
 
 Expected: all expected object rows present; zero public/anon grants on admin RPCs and internal views; no mutable `search_path`; no public table with RLS disabled; no unindexed foreign keys or duplicate indexes.
@@ -618,8 +618,8 @@ Skip this commit if verification required no source correction.
 ### Task 6: Archive superseded SQL without changing bytes
 
 **Files:**
-- Move: historical SQL to `sql/archive/2026-08-30/<original-relative-path>`
-- Modify: `sql/archive/2026-08-30/manifest.md`
+- Move: historical SQL to `supabase/manual/archive/2026-08-30/<original-relative-path>`
+- Modify: `supabase/manual/archive/2026-08-30/manifest.md`
 - Keep: the exact operational allow-list from Task 1
 
 **Interfaces:**
@@ -632,13 +632,13 @@ Preserve the complete original relative path. Examples:
 
 ```text
 supabase/migrations/20260101000000_baseline_events_schema.sql
-  -> sql/archive/2026-08-30/supabase/migrations/20260101000000_baseline_events_schema.sql
+  -> supabase/manual/archive/2026-08-30/supabase/migrations/20260101000000_baseline_events_schema.sql
 supabase/reconcile-prod-schema.sql
-  -> sql/archive/2026-08-30/supabase/reconcile-prod-schema.sql
-sql/phase-10/001_create_taxonomy_terms.sql
-  -> sql/archive/2026-08-30/sql/phase-10/001_create_taxonomy_terms.sql
-Docs/sql queries/events.sql
-  -> sql/archive/2026-08-30/Docs/sql queries/events.sql
+  -> supabase/manual/archive/2026-08-30/supabase/reconcile-prod-schema.sql
+supabase/manual/phase-10/001_create_taxonomy_terms.sql
+  -> supabase/manual/archive/2026-08-30/supabase/manual/phase-10/001_create_taxonomy_terms.sql
+supabase/manual/legacy/events.sql
+  -> supabase/manual/archive/2026-08-30/supabase/manual/legacy/events.sql
 ```
 
 Use `mv`, never rewrite/copy-delete through a formatter. Leave `supabase/migrations/20260830010000_current_schema.sql` as the only migration.
@@ -657,18 +657,18 @@ active = {
  'supabase/seed.sql','supabase/placeholder-prod.sql',
  'supabase/diagnose-prod-schema.sql','supabase/diagnose-prod-events-admin.sql',
  'supabase/manual/phase6_host_access_verification.sql',
- 'sql/final-verification/01_preflight_check.sql',
- 'sql/final-verification/02_post_migration_verification.sql',
- 'sql/final-verification/03_rls_security_check.sql',
- 'sql/flyer-automation/phase-1/001_preflight.sql',
- 'sql/flyer-automation/phase-1/001_preflight_flyer_storage.sql',
- 'sql/flyer-automation/phase-1/004_postcheck.sql',
- 'sql/host-phase-5/900_optional_rollback_host_attendance.sql',
- 'sql/phase-10/003_seed_taxonomy_terms.sql',
- 'sql/phase-10/005_remove_events_dance_styles.sql',
+ 'supabase/manual/final-verification/01_preflight_check.sql',
+ 'supabase/manual/final-verification/02_post_migration_verification.sql',
+ 'supabase/manual/final-verification/03_rls_security_check.sql',
+ 'supabase/manual/flyer-automation/phase-1/001_preflight.sql',
+ 'supabase/manual/flyer-automation/phase-1/001_preflight_flyer_storage.sql',
+ 'supabase/manual/flyer-automation/phase-1/004_postcheck.sql',
+ 'supabase/manual/host-phase-5/900_optional_rollback_host_attendance.sql',
+ 'supabase/manual/phase-10/003_seed_taxonomy_terms.sql',
+ 'supabase/manual/phase-10/005_remove_events_dance_styles.sql',
 }
 for original, expected in before.items():
-    path = Path(original) if original in active else Path('sql/archive/2026-08-30') / original
+    path = Path(original) if original in active else Path('supabase/manual/archive/2026-08-30') / original
     actual = hashlib.sha256(path.read_bytes()).hexdigest()
     assert actual == expected, f'byte drift: {original}'
 print(f'PASS: {len(before)} original SQL files preserved byte-for-byte')
@@ -684,7 +684,7 @@ python3 - <<'PY'
 from pathlib import Path
 migrations = list(Path('supabase/migrations').glob('*.sql'))
 assert [p.name for p in migrations] == ['20260830010000_current_schema.sql']
-assert len(list(Path('sql/archive/2026-08-30').rglob('*.sql'))) == 53
+assert len(list(Path('supabase/manual/archive/2026-08-30').rglob('*.sql'))) == 53
 print('PASS: one current migration and 53 archived SQL files')
 PY
 ```
@@ -698,7 +698,7 @@ Every archived row names its exact archive destination. Every active row names i
 - [ ] **Step 5: Commit the archive cutover**
 
 ```bash
-git add -A supabase/migrations supabase/reconcile-prod-schema.sql sql Docs/sql\ queries
+git add -A supabase/migrations supabase/reconcile-prod-schema.sql sql docs/sql\ queries
 git commit -m "chore(db): archive superseded SQL history"
 ```
 
@@ -707,9 +707,9 @@ git commit -m "chore(db): archive superseded SQL history"
 ### Task 7: Update current verification and operational guidance
 
 **Files:**
-- Modify: `sql/final-verification/01_preflight_check.sql`
-- Modify: `sql/final-verification/02_post_migration_verification.sql`
-- Modify: `sql/final-verification/03_rls_security_check.sql`
+- Modify: `supabase/manual/final-verification/01_preflight_check.sql`
+- Modify: `supabase/manual/final-verification/02_post_migration_verification.sql`
+- Modify: `supabase/manual/final-verification/03_rls_security_check.sql`
 - Modify: `supabase/manual/phase6_host_access_verification.sql`
 - Modify: `README.md`
 
@@ -765,7 +765,7 @@ Add a `## Database schema` section with these exact operational facts:
 - Production: review SQL manually and run it in Supabase Studio; never run repository reset/push commands against production.
 - Local seed: `supabase/seed.sql` only.
 - Production placeholder data: `supabase/placeholder-prod.sql` only; never use the local seed in production.
-- Historical SQL: `sql/archive/2026-08-30/manifest.md`; archive files are provenance, not an execution sequence.
+- Historical SQL: `supabase/manual/archive/2026-08-30/manifest.md`; archive files are provenance, not an execution sequence.
 - Current diagnostics, pre/post checks, and optional rollbacks remain outside the archive.
 ```
 
@@ -773,12 +773,12 @@ Do not rewrite historical design/plan documents that accurately describe the sta
 
 - [ ] **Step 6: Verify no active instruction points to archived execution paths**
 
-Run a repository regex search excluding `Docs/Done`, historical plans/specs, and `sql/archive` itself. Expected active references are only the canonical migration and retained operational files.
+Run a repository regex search excluding `docs/Done`, historical plans/specs, and `supabase/manual/archive` itself. Expected active references are only the canonical migration and retained operational files.
 
 - [ ] **Step 7: Commit verification and operational guidance**
 
 ```bash
-git add README.md sql/final-verification supabase/manual/phase6_host_access_verification.sql
+git add README.md supabase/manual/final-verification supabase/manual/phase6_host_access_verification.sql
 git commit -m "docs(db): point operations at canonical schema"
 ```
 
@@ -788,7 +788,7 @@ git commit -m "docs(db): point operations at canonical schema"
 
 **Files:**
 - Test: `supabase/migrations/20260830010000_current_schema.sql`
-- Test: `sql/final-verification/*.sql`
+- Test: `supabase/manual/final-verification/*.sql`
 - Test: application database contracts under `src/**/*.test.ts` and `src/**/*.test.tsx`
 - No permanent fixture files
 
@@ -853,11 +853,11 @@ Positive controls must prove admin access, moderator review access, organizer ow
 ```bash
 docker exec -i -e PGPASSWORD=postgres supabase_db_Salsa \
   psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
-  < sql/final-verification/02_post_migration_verification.sql
+  < supabase/manual/final-verification/02_post_migration_verification.sql
 
 docker exec -i -e PGPASSWORD=postgres supabase_db_Salsa \
   psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
-  < sql/final-verification/03_rls_security_check.sql
+  < supabase/manual/final-verification/03_rls_security_check.sql
 
 docker exec -i -e PGPASSWORD=postgres supabase_db_Salsa \
   psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
@@ -896,7 +896,7 @@ Do not use `git clean -fdx`; it would delete `.env.local` and `node_modules`.
 - [ ] **Step 9: Commit any final verification-driven corrections**
 
 ```bash
-git add supabase/migrations/20260830010000_current_schema.sql sql/final-verification README.md
+git add supabase/migrations/20260830010000_current_schema.sql supabase/manual/final-verification README.md
 git commit -m "fix(db): close consolidation verification gaps"
 ```
 

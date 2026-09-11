@@ -3,17 +3,17 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import type { EventSubmission } from "../../features/admin/model/submissions";
-import * as useAdminSubmissions from "../../hooks/useAdminSubmissions";
+import * as useAdminSubmissions from "../../features/admin/hooks/useAdminSubmissionList";
 import AdminSubmissionDetailPage from "./AdminSubmissionDetailPage";
 import { useActiveTaxonomyTerms } from "../../features/admin/hooks/useAdminTaxonomy";
 
-vi.mock("../../hooks/useAdminSubmissions", () => ({
+vi.mock("../../features/admin/hooks/useAdminSubmissionList", () => ({
   useAdminSubmissions: vi.fn(),
 }));
 vi.mock("../../features/admin/hooks/useAdminTaxonomy", () => ({ useActiveTaxonomyTerms: vi.fn() }));
 // Approve/reject fire the transactional emails fire-and-forget. Mocked so the
 // normal test suite can never reach the Edge Function or Resend.
-vi.mock("../../features/submit-event/submissionNotification", () => ({
+vi.mock("../../features/submit-event/api/submissionNotification", () => ({
   notifySubmissionApproved: vi.fn(),
   notifySubmissionRejected: vi.fn(),
 }));

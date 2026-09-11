@@ -13,7 +13,7 @@
 --
 -- Safe to re-run. Flyers are public event media; this grants public READ
 -- only. Upload/update/delete remain owner/admin restricted by
--- sql/2026-08-21_event_flyers_storage.sql.
+-- supabase/manual/2026-08-21_event_flyers_storage.sql.
 -- =====================================================================
 
 begin;

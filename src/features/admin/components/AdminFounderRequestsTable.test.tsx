@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import AdminFounderRequestsTable from "./AdminFounderRequestsTable";
-import type { FounderAccessRequestRow } from "../../features/admin/model/founderRequestsQuery";
+import type { FounderAccessRequestRow } from "../model/founderRequestsQuery";
 
 const baseRequest: FounderAccessRequestRow = {
   id: "req-1",

@@ -10,7 +10,7 @@ vi.mock("../../contexts/useCity", () => ({
   useCity: () => ({ city: "boston" }),
 }));
 
-vi.mock("../../hooks/useEvent", () => ({
+vi.mock("../../features/events/hooks/useEvent", () => ({
   useEvents: () => ({
     events: [
       {

@@ -4,7 +4,7 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactElement } from "react";
 import AdminLayout from "./AdminLayout";
-import AdminUserDetailPage from "../pages/AdminUserDetailPage";
+import AdminUserDetailPage from "../pages/admin/AdminUserDetailPage";
 
 /**
  * AdminLayout owns the document's single <main> landmark. These tests verify
@@ -22,7 +22,7 @@ vi.mock("../features/admin/hooks/useOrganizerRequests", () => ({
     pendingCountError: null,
   }),
 }));
-vi.mock("../hooks/useFounderRequests", () => ({
+vi.mock("../features/admin/hooks/useFounderRequests", () => ({
   useFounderRequests: () => ({ pendingCount: 0 }),
 }));
 vi.mock("../contexts/useAuth", () => ({

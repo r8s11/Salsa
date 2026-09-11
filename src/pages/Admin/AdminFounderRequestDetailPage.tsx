@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import AdminApproveDialog from "../../components/Admin/AdminApproveDialog";
-import AdminRejectFounderDialog from "../../components/Admin/AdminRejectFounderDialog";
-import AdminFounderInvitationSection from "../../components/Admin/AdminFounderInvitationSection";
-import { useFounderHostState, useFounderRequest, useFounderRequests } from "../../hooks/useFounderRequests";
+import AdminApproveDialog from "../../features/admin/components/AdminApproveDialog";
+import AdminRejectFounderDialog from "../../features/admin/components/AdminRejectFounderDialog";
+import AdminFounderInvitationSection from "../../features/admin/components/AdminFounderInvitationSection";
+import { useFounderHostState, useFounderRequest, useFounderRequests } from "../../features/admin/hooks/useFounderRequests";
 import {
   type FounderRejectionReasonCode,
   FOUNDER_REQUEST_STATUS_LABEL,

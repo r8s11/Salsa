@@ -20,7 +20,7 @@ const mocks = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("../hooks/useMySubmissions", () => ({
+vi.mock("../features/account/hooks/useMySubmissions", () => ({
   useMySubmissions: mocks.useMySubmissions,
 }));
 vi.mock("../features/events/api/eventsRepo", () => ({

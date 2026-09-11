@@ -33,12 +33,12 @@
 --   psql:
 --     psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" \
 --       -v ON_ERROR_STOP=1 \
---       -f sql/2026-09-07-founder-request-applicant-confirmation-regression.sql
+--       -f supabase/manual/2026-09-07-founder-request-applicant-confirmation-regression.sql
 --
 --   Bun (no CLI dependency):
 --     bun -e '
 --       const sql = new (await import("bun")).SQL("postgresql://postgres:postgres@127.0.0.1:54322/postgres");
---       await sql.file("sql/2026-09-07-founder-request-applicant-confirmation-regression.sql");
+--       await sql.file("supabase/manual/2026-09-07-founder-request-applicant-confirmation-regression.sql");
 --       console.log("regression script completed without error");
 --       process.exit(0);
 --     '

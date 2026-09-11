@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import type { EventTaxonomyTerm } from "../../model/types";
 import type { EventFormCapabilities, EventFormDraft } from "./types";
-import type { SubmitFieldErrors } from "../../../submit-event/validation";
+import type { SubmitFieldErrors } from "../../../submit-event/model/validation";
 import FormFieldError from "../../../../shared/forms/FormFieldError";
 import { fieldErrorProps } from "../../../../shared/forms/fieldErrorProps";
 import "./EventForm.css";

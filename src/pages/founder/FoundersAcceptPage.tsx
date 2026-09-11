@@ -1,0 +1,325 @@
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import type { User } from "@supabase/supabase-js";
+import SalsaSeguraLogo from "../../components/brand/SalsaSeguraLogo";
+import { useAuth } from "../../contexts/useAuth";
+import {
+  validateFounderInvitation,
+  acceptFounderInvitation,
+  type FounderInvitationValidationResult,
+} from "../../features/founder/api/founderInvitationAcceptance";
+import { provisionFounderOrganization } from "../../features/founder/api/founderOnboarding";
+import {
+  setFounderInvitationToken,
+  getFounderInvitationToken,
+  clearFounderInvitationToken,
+} from "../../lib/founderInvitationToken";
+import { setAuthReturnDestination } from "../../lib/authReturnDestination";
+import "./FoundersAcceptPage.css";
+import Button from "../../components/ui/Button";
+import ButtonLink from "../../components/ui/ButtonLink";
+
+// Result of validating the invitation token; independent of auth state.
+type FetchState =
+  | { kind: "loading" }
+  | { kind: "validated"; organizationName: string; invitedEmail: string; expiresAt: string }
+  | { kind: "invalid" }
+  | { kind: "accepting"; organizationName: string }
+  | { kind: "accepted"; organizationName: string }
+  | { kind: "error" };
+
+// Display state, derived at render time from FetchState + the current auth user.
+type AcceptanceState =
+  | { kind: "loading" }
+  | { kind: "valid-signed-out"; organizationName: string; invitedEmail: string; expiresAt: string }
+  | { kind: "valid-matching"; organizationName: string; invitedEmail: string; expiresAt: string }
+  | { kind: "valid-wrong-user"; organizationName: string; invitedEmail: string; expiresAt: string; authEmail: string }
+  | { kind: "invalid" }
+  | { kind: "accepting"; organizationName: string }
+  | { kind: "accepted"; organizationName: string }
+  | { kind: "error" };
+
+function deriveAcceptanceState(fetchState: FetchState, user: User | null): AcceptanceState {
+  if (fetchState.kind !== "validated") return fetchState;
+
+  const { organizationName, invitedEmail, expiresAt } = fetchState;
+  if (!user) {
+    return { kind: "valid-signed-out", organizationName, invitedEmail, expiresAt };
+  }
+
+  const authEmail = (user.email ?? "").toLowerCase();
+  if (authEmail === invitedEmail.toLowerCase()) {
+    return { kind: "valid-matching", organizationName, invitedEmail, expiresAt };
+  }
+  return { kind: "valid-wrong-user", organizationName, invitedEmail, expiresAt, authEmail };
+}
+
+function readInitialToken(searchParams: URLSearchParams): string | null {
+  const urlToken = searchParams.get("token");
+  const storedToken = getFounderInvitationToken();
+  const token = urlToken ?? storedToken;
+  return token && TOKEN_PATTERN.test(token) ? token : null;
+}
+
+const TOKEN_PATTERN = /^[0-9a-f]{64}$/;
+
+export default function FoundersAcceptPage() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { user, loading: authLoading, signOut } = useAuth();
+  const [fetchState, setFetchState] = useState<FetchState>(() =>
+    readInitialToken(searchParams) ? { kind: "loading" } : { kind: "invalid" }
+  );
+  const validatedRef = useRef(false);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
+  const state = useMemo(
+    () => deriveAcceptanceState(fetchState, authLoading ? null : user),
+    [fetchState, authLoading, user]
+  );
+
+  useEffect(() => {
+    if (validatedRef.current) return;
+    validatedRef.current = true;
+
+    const urlToken = searchParams.get("token");
+    const token = readInitialToken(searchParams);
+
+    if (!token) {
+      clearFounderInvitationToken();
+      return;
+    }
+
+    const run = async () => {
+      try {
+        const result: FounderInvitationValidationResult = await validateFounderInvitation(token);
+        if (!result.valid) {
+          clearFounderInvitationToken();
+          setFetchState({ kind: "invalid" });
+          return;
+        }
+
+        setFounderInvitationToken(token);
+        if (urlToken) {
+          window.history.replaceState(null, "", "/founders/accept");
+        }
+
+        setFetchState({
+          kind: "validated",
+          organizationName: result.organizationName,
+          invitedEmail: result.invitedEmail,
+          expiresAt: result.expiresAt,
+        });
+      } catch {
+        setFetchState({ kind: "error" });
+      }
+    };
+
+    void run();
+  }, [searchParams]);
+
+  useEffect(() => {
+    headingRef.current?.focus();
+  }, [state.kind]);
+
+  const handleAccept = useCallback(async () => {
+    const token = getFounderInvitationToken();
+    if (!token || state.kind !== "valid-matching") return;
+
+    setFetchState({ kind: "accepting", organizationName: state.organizationName });
+    try {
+      const result = await acceptFounderInvitation(token);
+      clearFounderInvitationToken();
+      // Best-effort, inline: the common-path happy flow completes
+      // provisioning before the user ever sees /founders/welcome, so
+      // there's no visible "setting up" flash. If this fails (network
+      // blip, etc.) the acceptance itself already committed and stands —
+      // /founders/welcome's own resolver detects accepted_not_provisioned
+      // and retries provisioning itself, so nothing here is a hard
+      // dependency (spec §19: a downstream failure must never undo an
+      // already-committed step).
+      try {
+        await provisionFounderOrganization();
+      } catch {
+        /* recoverable on /founders/welcome */
+      }
+      setFetchState({ kind: "accepted", organizationName: result.organizationName });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      if (message.includes("different email address")) {
+        setFetchState({ kind: "invalid" });
+        clearFounderInvitationToken();
+      } else if (message.includes("invitation is invalid, expired, or no longer available")) {
+        clearFounderInvitationToken();
+        setFetchState({ kind: "invalid" });
+      } else {
+        setFetchState({ kind: "error" });
+      }
+    }
+  }, [state]);
+
+  const goSignIn = useCallback(
+    (mode: "signin" | "signup") => {
+      if (state.kind !== "valid-signed-out") return;
+      setAuthReturnDestination("/founders/accept");
+      navigate("/signin", {
+        state: {
+          from: "/founders/accept",
+          mode,
+          email: state.invitedEmail,
+          lockedEmail: mode === "signup",
+        },
+      });
+    },
+    [navigate, state]
+  );
+
+  const handleSwitchAccount = useCallback(async () => {
+    await signOut("local");
+  }, [signOut]);
+
+  const formatDate = (iso: string) =>
+    new Date(iso).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" });
+
+  return (
+    <main className="founders-accept-page">
+      <header className="founders-accept-header">
+        <Link className="founders-accept-logo" to="/" aria-label="Salsa Segura home">
+          <SalsaSeguraLogo variant="full" size="lg" tone="brand" />
+        </Link>
+      </header>
+
+      <div className="founders-accept-content">
+        {state.kind === "loading" && (
+          <section className="founders-accept-card" aria-labelledby="accept-heading">
+            <h1 id="accept-heading" ref={headingRef} tabIndex={-1}>
+              Checking invitation…
+            </h1>
+            <p className="founders-accept-muted">Please wait while we verify your invitation.</p>
+          </section>
+        )}
+
+        {state.kind === "valid-signed-out" && (
+          <section className="founders-accept-card" aria-labelledby="accept-heading">
+            <h1 id="accept-heading" ref={headingRef} tabIndex={-1}>
+              You have been invited to manage events on SalsaSegura
+            </h1>
+            <p className="founders-accept-org">{state.organizationName}</p>
+            <p className="founders-accept-detail">
+              This invitation was sent to <strong>{state.invitedEmail}</strong> and expires{" "}
+              {formatDate(state.expiresAt)}.
+            </p>
+            <div className="founders-accept-actions">
+              <Button onClick={() => goSignIn("signin")}>
+                Sign In
+              </Button>
+              <Button variant="secondary" onClick={() => goSignIn("signup")}>
+                Create Account
+              </Button>
+            </div>
+            <p className="founders-accept-hint">
+              Use the email address the invitation was sent to. Do not have access to it? Contact
+              the SalsaSegura team.
+            </p>
+          </section>
+        )}
+
+        {state.kind === "valid-matching" && (
+          <section className="founders-accept-card" aria-labelledby="accept-heading">
+            <h1 id="accept-heading" ref={headingRef} tabIndex={-1}>
+              Accept your Founder invitation
+            </h1>
+            <p className="founders-accept-org">{state.organizationName}</p>
+            <p className="founders-accept-detail">
+              You are signed in as <strong>{state.invitedEmail}</strong>. Accept this invitation to
+              continue setting up your organization.
+            </p>
+            <div className="founders-accept-actions">
+              <Button onClick={handleAccept} disabled={false}>
+                Accept Invitation
+              </Button>
+            </div>
+          </section>
+        )}
+
+        {state.kind === "valid-wrong-user" && (
+          <section className="founders-accept-card" aria-labelledby="accept-heading">
+            <h1 id="accept-heading" ref={headingRef} tabIndex={-1}>
+              This invitation was sent to another email address
+            </h1>
+            <p className="founders-accept-detail">
+              You are signed in as <strong>{state.authEmail}</strong>, but this invitation was sent
+              to <strong>{state.invitedEmail}</strong>. Sign in with the invited email address to
+              accept it.
+            </p>
+            <div className="founders-accept-actions">
+              <Button onClick={handleSwitchAccount}>
+                Sign in with a different account
+              </Button>
+            </div>
+          </section>
+        )}
+
+        {state.kind === "invalid" && (
+          <section className="founders-accept-card" aria-labelledby="accept-heading">
+            <h1 id="accept-heading" ref={headingRef} tabIndex={-1}>
+              This invitation is invalid, expired, or no longer available
+            </h1>
+            <p className="founders-accept-detail">
+              The link may have already been used, expired, or been revoked. If you believe this is
+              a mistake, contact the SalsaSegura team.
+            </p>
+            <ButtonLink to="/" variant="secondary">
+              Back to SalsaSegura
+            </ButtonLink>
+          </section>
+        )}
+
+        {state.kind === "accepting" && (
+          <section className="founders-accept-card" aria-labelledby="accept-heading">
+            <h1 id="accept-heading" ref={headingRef} tabIndex={-1}>
+              Accepting invitation…
+            </h1>
+            <p className="founders-accept-muted">Please wait while we complete your acceptance.</p>
+          </section>
+        )}
+
+        {state.kind === "accepted" && (
+          <section className="founders-accept-card founders-accept-card--success" aria-labelledby="accept-heading">
+            <h1 id="accept-heading" ref={headingRef} tabIndex={-1}>
+              Invitation accepted
+            </h1>
+            <p className="founders-accept-org">{state.organizationName}</p>
+            <p className="founders-accept-detail">
+              Your SalsaSegura account is now connected to this Founder invitation. Let&apos;s
+              finish setting up your organization.
+            </p>
+            <ButtonLink to="/founders/welcome" variant="primary">
+              Continue
+            </ButtonLink>
+          </section>
+        )}
+
+        {state.kind === "error" && (
+          <section className="founders-accept-card" aria-labelledby="accept-heading">
+            <h1 id="accept-heading" ref={headingRef} tabIndex={-1}>
+              We could not complete the invitation right now
+            </h1>
+            <p className="founders-accept-detail">Please try again in a moment.</p>
+            <div className="founders-accept-actions">
+              <Button onClick={() => window.location.reload()}>
+                Try Again
+              </Button>
+            </div>
+          </section>
+        )}
+      </div>
+
+      <footer className="founders-accept-footer">
+        <Link to="/" className="founders-accept-footer-link">
+          ← Back to SalsaSegura
+        </Link>
+      </footer>
+    </main>
+  );
+}

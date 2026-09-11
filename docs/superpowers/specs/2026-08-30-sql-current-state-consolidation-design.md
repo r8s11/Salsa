@@ -2,7 +2,7 @@
 
 ## Context
 
-The repository currently contains 67 SQL files spread across `supabase/migrations/`, top-level `supabase/`, `supabase/manual/`, `sql/`, and `Docs/sql queries/`. They mix several different concerns: schema history, production drift repair, feature-phase delivery, security corrections, diagnostics, verification, seeds, and optional rollback scripts.
+The repository currently contains 67 SQL files spread across `supabase/migrations/`, top-level `supabase/`, `supabase/manual/`, `supabase/manual/`, and `supabase/manual/legacy/`. They mix several different concerns: schema history, production drift repair, feature-phase delivery, security corrections, diagnostics, verification, seeds, and optional rollback scripts.
 
 No single file represents the complete database contract used by the application. Numbered migrations omit objects later delivered through manual phase scripts and production repair files; `supabase/reconcile-prod-schema.sql` predates newer Host, flyer, account, and security work. Mechanical concatenation would retain superseded functions and policies rather than express one final state.
 
@@ -14,12 +14,12 @@ The worktree also contains untracked SQL for Host phases, flyer automation, reco
 | --- | --- | --- |
 | `supabase/migrations/*.sql` | Numbered schema history through Phase 6 organizer access | Fold final object definitions into the canonical migration, then archive unchanged |
 | `supabase/reconcile-prod-schema.sql` | Historical production drift reconciliation | Use as an input for missing production-safe guards, then archive unchanged |
-| `sql/phase-*` and `sql/host-phase-*` | Manually delivered feature schema, functions, RLS, grants, indexes, and rollback | Fold required current-state definitions into the canonical migration; retain optional rollback only as operational history |
-| Root `sql/*.sql` and `sql/recommendations/*.sql` | Production repairs, security hardening, and storage fixes | Security and storage final states supersede earlier definitions; archive superseded repair scripts unchanged |
-| `sql/flyer-automation/**` | Preflight, function correction, and postcheck | Fold the final function definition into the canonical migration; retain checks as operational files |
-| `sql/final-verification/**`, `supabase/diagnose-*.sql`, `supabase/manual/**` | Diagnostics and verification | Keep active and separate; update paths or assumptions if consolidation changes them |
+| `supabase/manual/phase-*` and `supabase/manual/host-phase-*` | Manually delivered feature schema, functions, RLS, grants, indexes, and rollback | Fold required current-state definitions into the canonical migration; retain optional rollback only as operational history |
+| Root `supabase/manual/*.sql` and `supabase/manual/recommendations/*.sql` | Production repairs, security hardening, and storage fixes | Security and storage final states supersede earlier definitions; archive superseded repair scripts unchanged |
+| `supabase/manual/flyer-automation/**` | Preflight, function correction, and postcheck | Fold the final function definition into the canonical migration; retain checks as operational files |
+| `supabase/manual/final-verification/**`, `supabase/diagnose-*.sql`, `supabase/manual/**` | Diagnostics and verification | Keep active and separate; update paths or assumptions if consolidation changes them |
 | `supabase/seed.sql`, `supabase/placeholder-prod.sql`, taxonomy seeds, generated event seeds | Development, production placeholder, and reference data | Keep separate from schema; never merge production and development data |
-| `Docs/sql queries/*.sql` | Early ad hoc setup, fixes, and generated data | Archive unchanged; these files are not current setup instructions |
+| `supabase/manual/legacy/*.sql` | Early ad hoc setup, fixes, and generated data | Archive unchanged; these files are not current setup instructions |
 
 Known precedence requirements:
 
@@ -53,7 +53,7 @@ This file becomes the sole schema bootstrap and upgrade script in `supabase/migr
 
 Move superseded SQL history into:
 
-`sql/archive/2026-08-30/`
+`supabase/manual/archive/2026-08-30/`
 
 The archive preserves each source file's repository-relative path beneath the dated directory. Files move without content edits. A manifest records original path, archived path, category, whether its current behavior was folded into the canonical migration, and any active replacement.
 
@@ -125,7 +125,7 @@ A successful parse or first application is not sufficient. Required evidence is 
 ## Deliverables
 
 - `supabase/migrations/20260830010000_current_schema.sql`
-- `sql/archive/2026-08-30/manifest.md`
+- `supabase/manual/archive/2026-08-30/manifest.md`
 - Archived historical SQL preserving original relative paths and bytes
 - Active, separate seed/diagnostic/verification/rollback SQL
 - Updated setup and operational references

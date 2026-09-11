@@ -3,10 +3,10 @@ import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import {
   type EmailInviteSuccess,
   type InviteOrganizerRequest,
-  inviteRedirectUrl,
-  isAllowedInviteRedirect,
+  isValidInviteRedirect,
   normalizeDisplayName,
   normalizeEmail,
+  resolveInviteRedirectUrl,
 } from "../_shared/invitation.ts";
 
 const corsHeaders = {
@@ -65,7 +65,7 @@ export type ServiceClient = {
 export type InviteOrganizerDependencies = {
   createCallerClient: (authorization: string) => CallerClient;
   createServiceClient: () => ServiceClient;
-  redirectUrl: string;
+  redirectUrl: string | null;
   log: (message: string, details: Record<string, string>) => void;
 };
 
@@ -99,14 +99,11 @@ function runtimeDependencies(): InviteOrganizerDependencies {
     throw new Error("Supabase public configuration is missing");
   }
 
-  // Optional override for the invite confirmation redirect URL. Defaults are already correct
-  // per environment (`ENVIRONMENT=local|production`) via `inviteRedirectUrl()`; this env var
-  // exists only for exceptional cases. It is validated below via `isAllowedInviteRedirect()`
-  // and MUST exactly match one of the two hardcoded allowed URLs or the request fails with 500.
-  const configuredRedirect = Deno.env.get("INVITE_REDIRECT_URL");
-  const redirectUrl = configuredRedirect ?? inviteRedirectUrl(
-    Deno.env.get("ENVIRONMENT") === "production" ? "production" : "local",
-  );
+  const redirectUrl = resolveInviteRedirectUrl({
+    ENVIRONMENT: Deno.env.get("ENVIRONMENT"),
+    AUTH_EXTERNAL_URL: Deno.env.get("AUTH_EXTERNAL_URL"),
+    INVITE_REDIRECT_URL: Deno.env.get("INVITE_REDIRECT_URL"),
+  });
 
   return {
     createCallerClient: (authorization) =>
@@ -171,7 +168,7 @@ export function createInviteOrganizerHandler(
     const caller = callerResult.data.user;
     if (callerResult.error || !caller) return error("Unauthorized", 401);
     if (caller.app_metadata?.role !== "admin") return error("Forbidden", 403);
-    if (!isAllowedInviteRedirect(dependencies.redirectUrl)) {
+    if (!dependencies.redirectUrl || !isValidInviteRedirect(dependencies.redirectUrl)) {
       dependencies.log("invite-organizer invalid redirect configuration", {
         userId: caller.id,
       });

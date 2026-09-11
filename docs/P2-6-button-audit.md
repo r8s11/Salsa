@@ -371,33 +371,33 @@ Phase 2 should normalize onto existing tokens:
 - `src/pages/SubmitEventPage.tsx` + `.css`
 - `src/pages/EventDetailPage.tsx` + `.css`
 - `src/pages/NotFoundPage.tsx`
-- `src/pages/FoundersAcceptPage.tsx`
-- `src/pages/FoundersWelcomePage.tsx`
+- `src/pages/founder/FoundersAcceptPage.tsx`
+- `src/pages/founder/FoundersWelcomePage.tsx`
 - `src/pages/UserEventEditPage.tsx`
-- `src/pages/AccountPage.tsx` + `.css`
-- `src/pages/ProfilePage.tsx` + `.css`
-- `src/components/Events/Events.tsx` + `.css`
+- `src/pages/account/AccountPage.tsx` + `.css`
+- `src/pages/account/ProfilePage.tsx` + `.css`
+- `src/features/events/components/Events/Events.tsx` + `.css`
 - `src/components/Hero/Hero.tsx` + `.css`
 - `src/components/Contact/Contact.tsx`
-- `src/components/Auth/SignInForm.tsx` + `.css`
-- `src/components/Auth/AuthCallback.tsx`
-- `src/components/Auth/InviteActivationPage.tsx`
-- `src/components/Founder/FounderRequestForm.tsx` + `.css`
-- `src/components/EventModal/EventModal.tsx` + `.css`
+- `src/features/auth/components/SignInForm.tsx` + `.css`
+- `src/features/auth/components/AuthCallback.tsx`
+- `src/features/auth/components/InviteActivationPage.tsx`
+- `src/features/founder/components/FounderRequestForm.tsx` + `.css`
+- `src/features/events/components/EventModal/EventModal.tsx` + `.css`
 - `src/features/calendar/components/CalendarStatus.tsx`
 - `src/features/submit-event/components/SuccessCard.tsx`
 - `src/features/events/components/VenueMapCard.tsx` + `.css`
 - `src/components/Header/Header.tsx` + `.css`
-- `src/components/Calendar/Calendar.tsx` + `.css`
+- `src/features/calendar/components/Calendar.tsx` + `.css`
 
 **CSS files to consolidate/remove:**
 - `src/styles/global.css` (sections 7: Buttons → import from Button.css)
 - `src/pages/EventDetailPage.css` (btn section → remove)
-- `src/pages/AccountPage.css` (btn section → remove)
-- `src/pages/ProfilePage.css` (btn section → remove)
-- `src/components/Events/Events.css` (cta-button → remove)
-- `src/components/Founder/FounderRequestForm.css` (btn-primary override → remove)
-- `src/components/Auth/SignInForm.css` (link-button, password-toggle → keep password-toggle, remove link-button)
+- `src/pages/account/AccountPage.css` (btn section → remove)
+- `src/pages/account/ProfilePage.css` (btn section → remove)
+- `src/features/events/components/Events/Events.css` (cta-button → remove)
+- `src/features/founder/components/FounderRequestForm.css` (btn-primary override → remove)
+- `src/features/auth/components/SignInForm.css` (link-button, password-toggle → keep password-toggle, remove link-button)
 
 **Not changed:**
 - `src/styles/admin.css` (admin-btn stays separate)

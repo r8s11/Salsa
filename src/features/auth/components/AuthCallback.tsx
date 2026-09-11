@@ -1,17 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { supabase } from "../../lib/supabase";
-import { useAuth } from "../../contexts/useAuth";
-import { roleFromUser } from "../../contexts/authContextObject";
-import { resolveCallbackDestination } from "../../lib/authDestination";
-import { consumeAuthIntent, type AuthIntentKind } from "../../lib/authIntent";
-import { consumeAuthReturnDestination } from "../../lib/authReturnDestination";
-import { publicErrorMessage } from "../../shared/forms/errorMessage";
-import FormFieldError from "../../shared/forms/FormFieldError";
-import { fieldErrorProps } from "../../shared/forms/fieldErrorProps";
-import Button from "../ui/Button";
-import ButtonLink from "../ui/ButtonLink";
+import { supabase } from "../../../lib/supabase";
+import { useAuth } from "../../../contexts/useAuth";
+import { roleFromUser } from "../../../contexts/authContextObject";
+import { resolveCallbackDestination } from "../../../lib/authDestination";
+import { consumeAuthIntent, type AuthIntentKind } from "../../../lib/authIntent";
+import { consumeAuthReturnDestination } from "../../../lib/authReturnDestination";
+import { publicErrorMessage } from "../../../shared/forms/errorMessage";
+import FormFieldError from "../../../shared/forms/FormFieldError";
+import { fieldErrorProps } from "../../../shared/forms/fieldErrorProps";
+import Button from "../../../components/ui/Button";
+import ButtonLink from "../../../components/ui/ButtonLink";
 import "./AuthCallback.css";
 
 type CallbackError = AuthIntentKind | "invalid";
@@ -25,6 +25,11 @@ const ERROR_COPY: Record<CallbackError, { heading: string; message: string }> = 
   recovery: {
     heading: "We couldn't reset your password",
     message: "This password reset link has expired or was already used. Request a new reset email to continue.",
+  },
+  email_change: {
+    heading: "We couldn't confirm your email change",
+    message:
+      "This confirmation link is invalid, expired, or was already used. If you still want to change your account email, request the change again from your account page.",
   },
   invalid: {
     heading: "We couldn't complete your sign-in",
@@ -147,11 +152,21 @@ export default function AuthCallback() {
           return;
         }
 
-        // The flow that requested this link succeeded; clear its hint.
-        consumeAuthIntent();
+        // The flow that requested this link succeeded; capture its kind
+        // before clearing the hint. GoTrue's PKCE code exchange only ever
+        // echoes back "recovery" as a redirectType (see auth-js
+        // GoTrueClient._exchangeCodeForSession) — email-change confirmations
+        // return `redirectType: null`, so the client-side intent hint
+        // recorded by `updateEmail` is the only same-tab signal available.
+        const completedIntent = consumeAuthIntent();
 
         if (redirectType === "recovery") {
           setShowRecoverySetup(true);
+          return;
+        }
+
+        if (redirectType === "email_change" || completedIntent?.kind === "email_change") {
+          navigate("/account", { replace: true, state: { emailChanged: true } });
           return;
         }
         // Route to a role-appropriate (or explicitly requested) destination.

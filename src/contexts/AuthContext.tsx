@@ -105,6 +105,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const updateEmail = useCallback(async (newEmail: string) => {
+    setAuthIntent("email_change", newEmail);
+    try {
+      const { error } = await supabase.auth.updateUser(
+        { email: newEmail },
+        {
+          // Change confirmation emails return to the app's own callback
+          // route, same as signup and recovery.
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        }
+      );
+      return { error: error as Error | null };
+    } catch (error) {
+      return { error: error as Error };
+    }
+  }, []);
+
   const signOut = useCallback(
     async (scope: AuthSignOutScope) => {
       try {
@@ -150,6 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signInWithPassword,
     resendConfirmation,
     requestPasswordReset,
+    updateEmail,
     signUp,
     signOut,
     clearDeletedAccount,

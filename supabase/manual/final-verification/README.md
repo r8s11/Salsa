@@ -32,19 +32,19 @@
 
 | Script | Type | Risk |
 |--------|------|------|
-| `sql/phase-13/001_create_analytics_views.sql` | Schema (view) | None — read-only |
-| `sql/phase-13/002_create_analytics_rpcs.sql` | Schema (function) | Security — verify admin role check |
-| `sql/phase-13/003_add_analytics_indexes.sql` | Schema (index) | Low — additive, uses `if not exists` |
-| `sql/phase-13/004_optional_backfill_dates.sql` | **Data update** | Low — only fills NULL `submitted_at` |
+| `supabase/manual/phase-13/001_create_analytics_views.sql` | Schema (view) | None — read-only |
+| `supabase/manual/phase-13/002_create_analytics_rpcs.sql` | Schema (function) | Security — verify admin role check |
+| `supabase/manual/phase-13/003_add_analytics_indexes.sql` | Schema (index) | Low — additive, uses `if not exists` |
+| `supabase/manual/phase-13/004_optional_backfill_dates.sql` | **Data update** | Low — only fills NULL `submitted_at` |
 
 ## Phase 12 Deployment Scripts (reference)
 
 | Script | Type | Risk |
 |--------|------|------|
-| `sql/phase-12/001_create_audit_view_and_rpc.sql` | Schema (view + RPC) | Security — verify admin role check |
-| `sql/phase-12/002_add_audit_indexes.sql` | Schema (index) | Low — additive |
-| `sql/phase-12/003_add_audit_constraints.sql` | Schema (constraint) | Low — CHECK constraint; no data removal |
-| `sql/phase-12/004_optional_backfill_activity.sql` | **Data update** | Low — only backfills null `actor_id` |
+| `supabase/manual/phase-12/001_create_audit_view_and_rpc.sql` | Schema (view + RPC) | Security — verify admin role check |
+| `supabase/manual/phase-12/002_add_audit_indexes.sql` | Schema (index) | Low — additive |
+| `supabase/manual/phase-12/003_add_audit_constraints.sql` | Schema (constraint) | Low — CHECK constraint; no data removal |
+| `supabase/manual/phase-12/004_optional_backfill_activity.sql` | **Data update** | Low — only backfills null `actor_id` |
 
 ## Risks
 
@@ -60,8 +60,8 @@
   could be vulnerable to search-path shadowing. The `03_rls_security_check.sql`
   script reports `proconfig` to verify this is set.
 
-- **Backfill scripts**: `sql/phase-12/004_optional_backfill_activity.sql` and
-  `sql/phase-13/004_optional_backfill_dates.sql` both UPDATE existing rows.
+- **Backfill scripts**: `supabase/manual/phase-12/004_optional_backfill_activity.sql` and
+  `supabase/manual/phase-13/004_optional_backfill_dates.sql` both UPDATE existing rows.
   They are safe (only fill NULLs) but modify data. Review the affected row count
   from the preflight before running.
 

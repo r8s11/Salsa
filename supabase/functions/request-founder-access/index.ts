@@ -69,7 +69,7 @@ export interface FounderAccessResponse {
 const MAX_BODY_BYTES = 10_000;
 const MAX_EMAIL = 320;
 // Same shape as the database rule in
-// sql/submission-emails/002_anon_submitter_contact_required.sql and
+// supabase/manual/submission-emails/002_anon_submitter_contact_required.sql and
 // send-submission-email's normalizedRecipient(), so every layer agrees on
 // what a plausible, header-injection-safe address looks like.
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

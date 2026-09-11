@@ -2,7 +2,7 @@
 
 ## Context
 
-This phase designs the moderation workspace for reviewing event suggestions before they reach the public calendar: the queue at `/admin/submissions` and the detail workflow at `/admin/submissions/:id`. It serves Admins and Moderators — the brief asks for both roles to review submissions, which is itself a change from today (see the grounded-state table below). Organizer Requests are an explicitly separate surface (already `built: false` in `AdminSidebar.tsx`) and are not covered here. This is a design deliverable only, matching `Docs/plans/phase3-admin-events-management.md`, `phase5-admin-users-management.md`, and `phase6-admin-user-detail-management.md`: no feature code, migrations, or tests are written in this phase, and it stops at "wait for my approval before continuing."
+This phase designs the moderation workspace for reviewing event suggestions before they reach the public calendar: the queue at `/admin/submissions` and the detail workflow at `/admin/submissions/:id`. It serves Admins and Moderators — the brief asks for both roles to review submissions, which is itself a change from today (see the grounded-state table below). Organizer Requests are an explicitly separate surface (already `built: false` in `AdminSidebar.tsx`) and are not covered here. This is a design deliverable only, matching `docs/plans/phase3-admin-events-management.md`, `phase5-admin-users-management.md`, and `phase6-admin-user-detail-management.md`: no feature code, migrations, or tests are written in this phase, and it stops at "wait for my approval before continuing."
 
 ## Grounded state of the codebase
 
@@ -249,7 +249,7 @@ Phase 7 therefore designs venue **normalization**, not venue **creation**:
   `Use Existing Venue` rewrites the submission's `location` (and `address` when the existing record has a fuller one) to the canonical spelling, recorded as a normal edit in `edited_data`. This has real value today: it keeps the venue filter clean and pre-cleans the data for a future `venues` table.
 - **No match** → `New venue — will be recorded as free text.` No "+ Create Venue" button, because there is nothing for it to create. Stating this directly is better than shipping a control that lies about what it does.
 
-**Scope boundary:** a real `venues` entity is needed by both this workflow and the SEO foundation (`Docs/plans/seo-foundation-strategy.md` lists it as Before-Launch), and belongs in its own phase — not inside a moderation phase.
+**Scope boundary:** a real `venues` entity is needed by both this workflow and the SEO foundation (`docs/plans/seo-foundation-strategy.md` lists it as Before-Launch), and belongs in its own phase — not inside a moderation phase.
 
 ## 8. Approve / Edit & Approve / Reject flows
 

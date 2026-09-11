@@ -8,7 +8,7 @@
 
 **Tech Stack:** React 19 + TypeScript + Vite, React Router v7, @schedule-x v4, temporal-polyfill, Supabase, Vitest + Testing Library, lucide-react (new), @schedule-x/calendar-controls (new).
 
-**Spec:** `Docs/superpowers/specs/2026-07-14-tambora-events-module-design.md`
+**Spec:** `docs/superpowers/specs/2026-07-14-tambora-events-module-design.md`
 
 ## Global Constraints
 

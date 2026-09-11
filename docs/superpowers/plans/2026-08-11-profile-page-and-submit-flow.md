@@ -13,7 +13,7 @@
 - Every task ends with `npm run build` exiting 0 — **except Task 2's Step 4, which documents an intentionally-expected failure** (the new required `NewEventSubmission` fields have no caller yet; Task 3 supplies one and is the first task after Task 2 required to build clean).
 - `.from("events")` may only appear in `src/features/events/api/eventsRepo.ts` — verify with `grep -rln 'from("events")' src/` after any task touching that file; it must return exactly one path.
 - No new dependencies.
-- No editing/withdrawing a submission from `/profile` — read-only status tracking only (explicit out-of-scope, `Docs/superpowers/specs/2026-08-10-profile-page-and-submit-flow-design.md`).
+- No editing/withdrawing a submission from `/profile` — read-only status tracking only (explicit out-of-scope, `docs/superpowers/specs/2026-08-10-profile-page-and-submit-flow-design.md`).
 - No recurrence value besides `"weekly"`.
 - No account dropdown menu — plain nav links only.
 - Never change existing CSS class names on files this plan modifies.
@@ -1034,7 +1034,7 @@ git commit -m "feat: disable OAuth sign-in buttons, label as coming soon"
 
 **Files:**
 
-- Modify: `Docs/STATUS_SUMMARY.md`
+- Modify: `docs/STATUS_SUMMARY.md`
 
 **Interfaces:** none (verification + documentation only).
 
@@ -1063,13 +1063,13 @@ With `npx supabase status` confirming the stack is up and `npm run dev` running,
 7. Sign in as a different (or brand-new) account, visit `/profile`: confirm it shows the empty state ("You haven't submitted any events yet.") and does **not** show the first account's submission.
 8. On `/signin`, confirm all three OAuth buttons show "(Coming soon)", are visibly dimmed, and produce no console error or network request when clicked.
 
-- [ ] **Step 3: Update `Docs/STATUS_SUMMARY.md`**
+- [ ] **Step 3: Update `docs/STATUS_SUMMARY.md`**
 
 Add a line under the existing Authentication/Moderation-dashboard bullets in "What's Built" (or wherever the current file's structure best fits after Task 10's changes — re-read the file first, line numbers will have shifted since the moderation-dashboard docs sync) noting: account-linked submissions (`submitter_id`), `/profile` page, and nav discoverability for Submit Event/My Profile, shipped alongside a note that OAuth sign-in (Apple/Google/GitHub) is UI-present but disabled pending real provider credentials.
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add Docs/STATUS_SUMMARY.md
+git add docs/STATUS_SUMMARY.md
 git commit -m "docs: note account-linked submissions and profile page in status summary"
 ```

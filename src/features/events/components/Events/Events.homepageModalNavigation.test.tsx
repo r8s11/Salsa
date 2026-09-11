@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
-import type { ScheduleXEvent } from "../../types/events";
+import type { ScheduleXEvent } from "../../../../types/events";
 import Events from "./Events";
 
 // Deliberately does NOT mock EventModal — this test exercises the real

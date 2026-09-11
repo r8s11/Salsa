@@ -13,7 +13,7 @@
 - Every task ends with `npm run build` exiting 0 (matches the Modernization Blueprint's regression gate — `tsc -b` catches type errors immediately).
 - `.from("events")` may only appear in `src/features/events/api/eventsRepo.ts` — verify with `grep -rln 'from("events")' src/` after any task touching that file; it must return exactly one path.
 - No new dependencies — everything needed (`@tanstack/react-query`, `temporal-polyfill`, Testing Library) is already installed.
-- No nav link to `/admin`, no `/admin/login`, no event-editing UI, no approved/rejected history view (explicit out-of-scope, `Docs/superpowers/specs/2026-08-10-moderation-dashboard-design.md`).
+- No nav link to `/admin`, no `/admin/login`, no event-editing UI, no approved/rejected history view (explicit out-of-scope, `docs/superpowers/specs/2026-08-10-moderation-dashboard-design.md`).
 - Never change existing CSS class names on files this plan modifies (visual regression risk, per the Blueprint's standing rule).
 - Commit after each task with the task title as the message (`feat: ...` / `docs: ...` per this repo's existing convention).
 
@@ -866,8 +866,8 @@ git commit -m "feat: wire /admin route"
 
 **Files:**
 
-- Modify: `Docs/STATUS_SUMMARY.md`
-- Modify: `Docs/ROADMAP.md`
+- Modify: `docs/STATUS_SUMMARY.md`
+- Modify: `docs/ROADMAP.md`
 
 **Interfaces:** none (verification + documentation only).
 
@@ -894,17 +894,17 @@ With `npx supabase status` confirming the stack is up and `npm run dev` running:
 5. Signed out of every account, navigate directly to `/admin`. Confirm you land on `/signin` (the unauthenticated redirect).
 6. Sign in as a non-admin test account (or use a second browser profile) and navigate directly to `/admin`. Confirm you land on `/` with no error message — the signed-in-but-not-admin redirect (per the "silent redirect" design decision).
 
-- [ ] **Step 3: Update `Docs/STATUS_SUMMARY.md`**
+- [ ] **Step 3: Update `docs/STATUS_SUMMARY.md`**
 
 In the "What's NOT Built" table, change the Moderation dashboard row from "Not started" to shipped, and update "Recommended Next Steps" item 4 (previously pointing at this feature) to point at the next roadmap item (Text search, W8) instead. Re-read the file first — line numbers will have shifted since the design-spec commit.
 
-- [ ] **Step 4: Update `Docs/ROADMAP.md`**
+- [ ] **Step 4: Update `docs/ROADMAP.md`**
 
 Move "Moderation dashboard" from "In Progress 🔄" to "Completed ✅" in the Progress Overview section, and update the Week 6 row in the 52-Week Deliverables table from "⚠️ Overdue" to "✅ Done". Re-read the file first for current line numbers.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add Docs/STATUS_SUMMARY.md Docs/ROADMAP.md
+git add docs/STATUS_SUMMARY.md docs/ROADMAP.md
 git commit -m "docs: mark moderation dashboard shipped"
 ```

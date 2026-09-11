@@ -1,8 +1,8 @@
 import "temporal-polyfill/global";
 import { useEffect, useId, useRef, useState } from "react";
-import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
-import type { DatabaseEvent } from "../../features/events/model/types";
-import { fromEventDateInstant } from "../../features/events/model/eventDateTime";
+import { useEscapeKey } from "../../calendar/hooks/useEscapeKey";
+import type { DatabaseEvent } from "../../events/model/types";
+import { fromEventDateInstant } from "../../events/model/eventDateTime";
 import "./AdminDuplicateEventDialog.css";
 
 interface AdminDuplicateEventDialogProps {

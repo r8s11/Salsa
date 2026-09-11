@@ -4,11 +4,11 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import AuthCallback from "./AuthCallback";
-import { supabase } from "../../lib/supabase";
-import { useAuth } from "../../contexts/useAuth";
-import { setAuthIntent } from "../../lib/authIntent";
+import { supabase } from "../../../lib/supabase";
+import { useAuth } from "../../../contexts/useAuth";
+import { setAuthIntent } from "../../../lib/authIntent";
 
-vi.mock("../../lib/supabase", () => ({
+vi.mock("../../../lib/supabase", () => ({
   supabase: {
     auth: {
       exchangeCodeForSession: vi.fn(),
@@ -19,7 +19,7 @@ vi.mock("../../lib/supabase", () => ({
   },
 }));
 
-vi.mock("../../contexts/useAuth", () => ({
+vi.mock("../../../contexts/useAuth", () => ({
   useAuth: vi.fn(),
 }));
 
@@ -81,6 +81,7 @@ describe("AuthCallback", () => {
       signInWithPassword: vi.fn(),
       resendConfirmation: vi.fn().mockResolvedValue({ error: null }),
       requestPasswordReset: vi.fn(),
+      updateEmail: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
       clearDeletedAccount: vi.fn(),
@@ -158,6 +159,50 @@ describe("AuthCallback", () => {
     await waitFor(() =>
       expect(screen.getByText("Profile Page")).toBeInTheDocument()
     );
+  });
+
+  it("routes a completed email-change confirmation to the account page", async () => {
+    const session = { user: userWithRole(null) } as unknown as Session;
+    vi.mocked(supabase.auth.exchangeCodeForSession).mockResolvedValue({
+      data: { user: session.user, session, redirectType: "email_change" },
+      error: null,
+    } as never);
+    vi.mocked(supabase.auth.getSession).mockResolvedValue({
+      data: { session },
+      error: null,
+    } as never);
+
+    renderCallbackWithRoutes([{ path: "/account", text: "Account Page" }], "/auth/callback?code=abc123");
+
+    await waitFor(() =>
+      expect(screen.getByText("Account Page")).toBeInTheDocument()
+    );
+  });
+
+  it("routes an email-change confirmation to the account page using the local intent hint when the exchange reports no redirect type", async () => {
+    setAuthIntent("email_change", "new@example.com");
+    const session = { user: userWithRole(null) } as unknown as Session;
+    vi.mocked(supabase.auth.exchangeCodeForSession).mockResolvedValue({
+      data: { user: session.user, session, redirectType: null },
+      error: null,
+    } as never);
+    vi.mocked(supabase.auth.getSession).mockResolvedValue({
+      data: { session },
+      error: null,
+    } as never);
+
+    renderCallbackWithRoutes(
+      [
+        { path: "/account", text: "Account Page" },
+        { path: "/profile", text: "Profile Page" },
+      ],
+      "/auth/callback?code=abc123"
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText("Account Page")).toBeInTheDocument()
+    );
+    expect(screen.queryByText("Profile Page")).not.toBeInTheDocument();
   });
 
   it("honors a safe ?next= destination over the role default", async () => {
@@ -296,6 +341,17 @@ describe("AuthCallback", () => {
     expect(resendLink.getAttribute("href")).toBe("/signin");
   });
 
+  it("shows email-change-specific copy for an expired confirmation link", async () => {
+    setAuthIntent("email_change", "new@example.com");
+
+    renderCallback("/auth/callback?error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired");
+
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { name: "We couldn't confirm your email change" })).toBeInTheDocument()
+    );
+    expect(screen.getByText(/request the change again from your account page/i)).toBeInTheDocument();
+  });
+
   it("shows signup-specific copy and an inline resend action for an expired confirmation link", async () => {
     setAuthIntent("signup", "user@example.com");
     const resendConfirmation = vi.fn().mockResolvedValue({ error: null });
@@ -310,6 +366,7 @@ describe("AuthCallback", () => {
       signInWithPassword: vi.fn(),
       resendConfirmation,
       requestPasswordReset: vi.fn(),
+      updateEmail: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
       clearDeletedAccount: vi.fn(),

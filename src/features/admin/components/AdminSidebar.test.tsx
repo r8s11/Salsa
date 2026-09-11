@@ -8,7 +8,7 @@ import AdminSidebar from "./AdminSidebar";
 import type {
   OrganizerMemberRole,
   OrganizerMembership,
-} from "../../features/host/api/organizerAccessRepo";
+} from "../../host/api/organizerAccessRepo";
 
 function makeTestQueryClient() {
   return new QueryClient({
@@ -28,12 +28,12 @@ function renderSidebar(props: Partial<ComponentProps<typeof AdminSidebar>> = {})
 }
 
 const { useAuth } = vi.hoisted(() => ({ useAuth: vi.fn() }));
-vi.mock("../../contexts/useAuth", () => ({ useAuth }));
+vi.mock("../../../contexts/useAuth", () => ({ useAuth }));
 const { useTheme } = vi.hoisted(() => ({ useTheme: vi.fn() }));
-vi.mock("../../contexts/useTheme", () => ({ useTheme }));
+vi.mock("../../../contexts/useTheme", () => ({ useTheme }));
 const { useMyOrganizers } = vi.hoisted(() => ({ useMyOrganizers: vi.fn() }));
-vi.mock("../../features/host/hooks/useMyOrganizers", () => ({ useMyOrganizers }));
-vi.mock("../../features/admin/hooks/useOrganizerRequests", () => ({
+vi.mock("../../host/hooks/useMyOrganizers", () => ({ useMyOrganizers }));
+vi.mock("../hooks/useOrganizerRequests", () => ({
   useOrganizerRequests: vi.fn(() => ({
     pendingCount: 0,
     pendingCountLoading: false,

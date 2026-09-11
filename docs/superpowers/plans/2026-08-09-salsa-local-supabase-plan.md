@@ -6,7 +6,7 @@
 
 Stand up a local Supabase stack via the Supabase CLI so Salsa runs entirely on this machine during development, with production continuing to live on the hosted Supabase project (`https://tlajzziavbnfomhfwofw.supabase.co`).
 
-**Salsa deliberately does not join the shared `devdb` Postgres.** It is a Supabase-native app whose two next roadmap items (`Docs/ROADMAP.md` "Next Up": Authentication Week 5, Moderation dashboard Week 6) both require Supabase Auth/GoTrue. Reproducing PostgREST + GoTrue + URL routing by hand on top of devdb would be bespoke config with real drift risk against the hosted project. Salsa gets the CLI's own Postgres 17 on port 54322; `devdb` (port 5432) remains the dev database for the plain-Postgres projects (piggy, salsatd, and WODCard when it lands).
+**Salsa deliberately does not join the shared `devdb` Postgres.** It is a Supabase-native app whose two next roadmap items (`docs/ROADMAP.md` "Next Up": Authentication Week 5, Moderation dashboard Week 6) both require Supabase Auth/GoTrue. Reproducing PostgREST + GoTrue + URL routing by hand on top of devdb would be bespoke config with real drift risk against the hosted project. Salsa gets the CLI's own Postgres 17 on port 54322; `devdb` (port 5432) remains the dev database for the plain-Postgres projects (piggy, salsatd, and WODCard when it lands).
 
 ## Approach
 
@@ -65,13 +65,13 @@ Inbucket is safe to disable because `[auth.email] enable_confirmations = false` 
 
 ### Step 3 — Add a baseline schema migration
 
-`supabase/migrations/` contains exactly one file, `20260714T000000_add_event_module_fields.sql`, and it is an **incremental** `alter table events add column …` with no `CREATE TABLE` anywhere. The real schema history was applied by hand against hosted Supabase through the SQL editor and lives in `Docs/sql queries/*.sql`. Consequently `supabase db reset` fails today — the ALTER runs against a table that does not exist.
+`supabase/migrations/` contains exactly one file, `20260714T000000_add_event_module_fields.sql`, and it is an **incremental** `alter table events add column …` with no `CREATE TABLE` anywhere. The real schema history was applied by hand against hosted Supabase through the SQL editor and lives in `supabase/manual/legacy/*.sql`. Consequently `supabase db reset` fails today — the ALTER runs against a table that does not exist.
 
 Create `supabase/migrations/20260101T000000_baseline_events_schema.sql` with exactly this content. The timestamp is deliberately back-dated so it sorts before the existing migration; it reconstructs the table's pre-`20260714` state so the existing migration still applies meaningfully on top.
 
 ```sql
 -- Baseline schema for public.events, reconstructed from the hand-applied
--- history in Docs/sql queries/ (events.sql + add_submitter_columns.sql +
+-- history in supabase/manual/legacy/ (events.sql + add_submitter_columns.sql +
 -- fix_price_amount_typo.sql + add_city_column.sql).
 --
 -- Back-dated so it sorts before 20260714T000000_add_event_module_fields.sql,
@@ -115,18 +115,18 @@ create policy "Public events are viewable by everyone"
 Notes that prevent wrong guesses while writing this:
 - `gen_random_uuid()` is native from Postgres 13 on; `major_version = 17`, so **no `pgcrypto` extension is needed**.
 - `status` intentionally has **no CHECK constraint** — that matches production, even though `src/features/events/model/types.ts` types it as the union `"approved" | "pending" | "rejected"`.
-- Do **not** copy `Docs/sql queries/events.sql` verbatim. It is stale and broken: line 25 reads `after table` instead of `alter table` (a literal syntax error that could never have run), and it is missing 4 of the table's real columns (`city`, `host`, `recurrence`, `gallery`).
+- Do **not** copy `supabase/manual/legacy/events.sql` verbatim. It is stale and broken: line 25 reads `after table` instead of `alter table` (a literal syntax error that could never have run), and it is missing 4 of the table's real columns (`city`, `host`, `recurrence`, `gallery`).
 - Leave `supabase/migrations/20260714T000000_add_event_module_fields.sql` **unchanged**.
 
 ### Step 4 — Add the current INSERT policy as a migration
 
-`Docs/sql queries/fix_insert_rls.sql` holds the currently-active insert policy, which supersedes the permissive `with check (true)` policy from `events.sql`. Because the baseline in Step 3 never creates that superseded policy, this migration only needs to create the live one.
+`supabase/manual/legacy/fix_insert_rls.sql` holds the currently-active insert policy, which supersedes the permissive `with check (true)` policy from `events.sql`. Because the baseline in Step 3 never creates that superseded policy, this migration only needs to create the live one.
 
 Create `supabase/migrations/20260809T000000_events_insert_policy.sql`:
 
 ```sql
 -- Anon insert capped to status='pending' so anonymous writes can never bypass
--- moderation. Mirrors Docs/sql queries/fix_insert_rls.sql as applied to
+-- moderation. Mirrors supabase/manual/legacy/fix_insert_rls.sql as applied to
 -- production. Both SubmitEventPage and scripts/import-ics.mjs insert with
 -- status='pending'.
 
@@ -213,11 +213,11 @@ VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY=<paste from `npx supabase status`>
 VITE_WEB3FORMS_ACCESS_KEY=local-dev-unset
 ```
 
-`VITE_WEB3FORMS_ACCESS_KEY` is read only inside the submit handler at `src/components/Contact/Contact.tsx:26`, never at import time, so the placeholder does not break startup — only the contact form's submit will fail locally, which is intentional (the real key in `azure-env-setup.sh` posts to the live Web3Forms endpoint and would send real email from a dev box). To exercise the contact form for real, temporarily paste the value from `azure-env-setup.sh:16`.
+`VITE_WEB3FORMS_ACCESS_KEY` is read only inside the submit handler at `src/components/Contact/Contact.tsx:26`, never at import time, so the placeholder does not break startup — only the contact form's submit will fail locally, which is intentional (the real key in `scripts/scripts/azure-env-setup.sh` posts to the live Web3Forms endpoint and would send real email from a dev box). To exercise the contact form for real, temporarily paste the value from `scripts/scripts/azure-env-setup.sh:16`.
 
 Because `.env.local` must exist before the app can import `src/lib/supabase.ts`, create it with a placeholder key first and fill in the real key after `supabase start` prints it.
 
-Do **not** point local development at the production URL/key in `azure-env-setup.sh:14-15` — that is the live project serving salsasegura.com. (Separately: that file commits the production publishable and Web3Forms keys in plaintext and targets `az webapp` App Service settings that the real Azure Static Web Apps pipeline in `.github/workflows/azure-static-web-apps-lemon-stone-01afe980f.yml` does not use. Cleaning that up is not part of this work.)
+Do **not** point local development at the production URL/key in `scripts/scripts/azure-env-setup.sh:14-15` — that is the live project serving salsasegura.com. (Separately: that file commits the production publishable and Web3Forms keys in plaintext and targets `az webapp` App Service settings that the real Azure Static Web Apps pipeline in `.github/workflows/azure-static-web-apps-lemon-stone-01afe980f.yml` does not use. Cleaning that up is not part of this work.)
 
 ### Step 7 — Start the stack and load the schema
 
@@ -235,7 +235,7 @@ npx supabase db reset       # applies the 3 migrations in order, then seed.sql
 - `Salsa/src/lib/supabase.ts:8-10` — throws at import when either env var is absent. This is why `.env.local` must exist before anything runs, and why a placeholder key is needed before `supabase start` can print the real one.
 - `Salsa/src/features/events/api/eventsRepo.ts:25-31,41-44` — the app's only two database call sites. `fetchApprovedEvents` filters `status='approved'` + `city` + `event_date >= yesterday`; `submitEvent` inserts with `status:'pending'`. These define exactly what the seed and RLS policies must satisfy.
 - `Salsa/supabase/config.toml` — already initialized; only the five `enabled` flags in Step 2 change. `[api] port = 54321` and `[db] port = 54322` are what `.env.local` and any psql command must match.
-- `Salsa/Docs/sql queries/` — the real (hand-applied) schema history that Step 3 reconstructs from. `events.sql` is stale and contains a syntax error; prefer the reconstruction in Step 3 over re-reading it.
+- `Salsa/supabase/manual/legacy/` — the real (hand-applied) schema history that Step 3 reconstructs from. `events.sql` is stale and contains a syntax error; prefer the reconstruction in Step 3 over re-reading it.
 - `Salsa/src/features/events/model/types.ts` — `DatabaseEvent`, the TypeScript shape the schema must satisfy. Note `city` is typed non-nullable there while the column is nullable in SQL.
 
 ## Verification
@@ -314,7 +314,7 @@ Expect exactly `piggy, postgres, salsatd, tambora` — no `salsa` database, conf
 
 ## Assumptions & contingencies
 
-- **The baseline migration is local-only and must NOT be pushed to production.** It is reconstructed from `Docs/sql queries/`, not dumped from the live database, because the hosted project's Postgres password is not available here (only the publishable key is, in `azure-env-setup.sh`). Running `supabase db push` or `supabase link` against production with an unverified baseline risks corrupting the live schema. Before ever adopting migrations as the deployment path, obtain the project's DB password and run `supabase db pull` to capture the true production schema, then reconcile it against Step 3's baseline. Until then, production keeps being changed by hand through the SQL editor exactly as it is today.
+- **The baseline migration is local-only and must NOT be pushed to production.** It is reconstructed from `supabase/manual/legacy/`, not dumped from the live database, because the hosted project's Postgres password is not available here (only the publishable key is, in `scripts/scripts/azure-env-setup.sh`). Running `supabase db push` or `supabase link` against production with an unverified baseline risks corrupting the live schema. Before ever adopting migrations as the deployment path, obtain the project's DB password and run `supabase db pull` to capture the true production schema, then reconcile it against Step 3's baseline. Until then, production keeps being changed by hand through the SQL editor exactly as it is today.
 - **`supabase start` pulls ~5 images on first run.** Docker registry reachability and 204 GB free disk were confirmed. If the host runs short of memory with devdb + piggy also up (7.6 GiB total, ~4.5 GiB available, 2.6 GiB already swapped), stop the piggy stack for the session (`docker compose -f /home/r8s/code/piggy/compose.yaml stop`) rather than trimming Supabase further — `[auth]` and `[studio]` are the two services the next roadmap items depend on and should be the last to go.
 - **The local anon/publishable key format may differ from production's `sb_publishable_…` shape.** Recent CLI versions emit a JWT-style anon key, a new-format publishable key, or both. Whichever `npx supabase status` labels for client use is correct for `VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY`; `createClient` accepts either. If `status` prints both a legacy `anon key` and a `publishable key`, prefer the publishable one to match production's shape.
 - **`src/content/events/events.db3` is an orphaned, empty SQLite file** with zero references anywhere in the repo and a schema that does not match the live `events` table. It plays no part in this work; leave it alone.

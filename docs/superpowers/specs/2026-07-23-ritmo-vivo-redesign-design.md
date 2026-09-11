@@ -3,7 +3,7 @@
 **Date:** 2026-07-23
 **Status:** Approved design, ready for implementation plan
 **Source design:** Claude Design project `5e670f28-848c-4fd2-8419-3f91a3693aa8` → `Salsa Segura - Redesign.dc.html`
-**Related:** `Docs/plans/MODERNIZATION_BLUEPRINT.md` (steps 4–10 are folded in here, scoped)
+**Related:** `docs/plans/MODERNIZATION_BLUEPRINT.md` (steps 4–10 are folded in here, scoped)
 
 ## 1. Goal & Scope
 
@@ -52,7 +52,7 @@ Values come verbatim from the mockup's inline `:root`. Existing tokens (`--bg`, 
 - `src/features/events/model/types.ts` — `DatabaseEvent`, `ScheduleXEvent`, `EventType`, `City` (moved from `src/types/events.ts`).
 - `src/features/events/model/calendarsConfig.ts` — `CALENDARS_CONFIG` (moved).
 - `src/features/events/model/convert.ts` — `databaseEventToScheduleX`, reimplemented with Temporal:
-  - Determine whether `events.event_date` is `timestamp` vs `timestamptz` (check `Docs/sql queries/events.sql`); record the finding in a top-of-file comment.
+  - Determine whether `events.event_date` is `timestamp` vs `timestamptz` (check `supabase/manual/legacy/events.sql`); record the finding in a top-of-file comment.
   - `timestamptz` → `Temporal.Instant` → `.toZonedDateTimeISO('America/New_York')`; naive `timestamp` → `Temporal.PlainDateTime`.
   - Output stays `"YYYY-MM-DD HH:mm"`. `const DEFAULT_DURATION_HOURS = 4` replaces the "2 hours" comment. `new Date(` must not appear in the file.
 - `src/features/events/model/convert.test.ts` — summer/EDT, winter/EST, `end = start + 4h`, DST fall-back monotonicity (`start < end`), null optionals → `undefined`. Fixed literal timestamps only.

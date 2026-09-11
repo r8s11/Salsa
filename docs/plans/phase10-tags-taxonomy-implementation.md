@@ -17,7 +17,7 @@
 - Database constraints—not frontend checks alone—must prevent case-only duplicates and duplicate event-term pairs.
 - Archive preserves relationships and removes terms from normal event entry. Delete is available only when term usage is zero. Merge reassigns relationships transactionally and archives the source.
 - Never auto-merge based on text similarity. Parent/child schema support is permitted, but no hierarchy UI is in scope.
-- SQL files live in `sql/phase-10/`, are individually commented and idempotent where possible, and are never run against production by this work.
+- SQL files live in `supabase/manual/phase-10/`, are individually commented and idempotent where possible, and are never run against production by this work.
 - Do not run `supabase db push`, `supabase db reset`, or any production database command.
 - Reuse existing admin patterns: `AdminActionMenu`, `AdminConfirmDialog`, `AdminViewTabs`, URL-state toolbars, desktop-table/mobile-card layout, `.admin-shell` tokens, and the theme context.
 - New Supabase access belongs in `src/features/admin/api/taxonomyRepo.ts`; components and hooks never call Supabase directly.
@@ -30,11 +30,11 @@
 
 | Path | Responsibility |
 |---|---|
-| `sql/phase-10/001_create_taxonomy_terms.sql` | Taxonomy schema, database-derived normalization, constraints, RLS, audit support, and directory/detail/search RPCs. |
-| `sql/phase-10/002_create_event_taxonomy_terms.sql` | Event-term join table, exact-set replacement and transactional submission-approval RPCs, plus FK/index protections. |
-| `sql/phase-10/003_seed_taxonomy_terms.sql` | Idempotent canonical dance-style and attribute seeds. |
-| `sql/phase-10/004_migrate_event_dance_styles.sql` | Deterministic legacy-array migration plus validation queries. |
-| `sql/phase-10/005_remove_events_dance_styles.sql` | Explicit optional, destructive, post-deploy cleanup only. |
+| `supabase/manual/phase-10/001_create_taxonomy_terms.sql` | Taxonomy schema, database-derived normalization, constraints, RLS, audit support, and directory/detail/search RPCs. |
+| `supabase/manual/phase-10/002_create_event_taxonomy_terms.sql` | Event-term join table, exact-set replacement and transactional submission-approval RPCs, plus FK/index protections. |
+| `supabase/manual/phase-10/003_seed_taxonomy_terms.sql` | Idempotent canonical dance-style and attribute seeds. |
+| `supabase/manual/phase-10/004_migrate_event_dance_styles.sql` | Deterministic legacy-array migration plus validation queries. |
+| `supabase/manual/phase-10/005_remove_events_dance_styles.sql` | Explicit optional, destructive, post-deploy cleanup only. |
 | `src/features/admin/model/taxonomy.ts` | Term/domain types, URL/filter parsing, form normalization and validation helpers. |
 | `src/features/admin/api/taxonomyRepo.ts` | Sole taxonomy data-access module; RPC directory/detail/search and mutations. |
 | `src/features/admin/hooks/useAdminTaxonomy.ts` | TanStack Query keys, queries, mutations, and cache invalidation. |
@@ -56,11 +56,11 @@
 ## Task 1: Add reviewed, manual taxonomy SQL deliverables
 
 **Files:**
-- Create: `sql/phase-10/001_create_taxonomy_terms.sql`
-- Create: `sql/phase-10/002_create_event_taxonomy_terms.sql`
-- Create: `sql/phase-10/003_seed_taxonomy_terms.sql`
-- Create: `sql/phase-10/004_migrate_event_dance_styles.sql`
-- Create: `sql/phase-10/005_remove_events_dance_styles.sql`
+- Create: `supabase/manual/phase-10/001_create_taxonomy_terms.sql`
+- Create: `supabase/manual/phase-10/002_create_event_taxonomy_terms.sql`
+- Create: `supabase/manual/phase-10/003_seed_taxonomy_terms.sql`
+- Create: `supabase/manual/phase-10/004_migrate_event_dance_styles.sql`
+- Create: `supabase/manual/phase-10/005_remove_events_dance_styles.sql`
 - Test: SQL inspection queries embedded in `004_migrate_event_dance_styles.sql`
 
 **Interfaces:**
@@ -173,14 +173,14 @@ Seed all specified canonical values with `insert ... on conflict (slug) do updat
 
 - [ ] **Step 5: Add post-migration verification SQL and inspect all SQL files**
 
-Run: `grep -nE "(create table|create function|insert into|drop column|production)" sql/phase-10/*.sql`
+Run: `grep -nE "(create table|create function|insert into|drop column|production)" supabase/manual/phase-10/*.sql`
 
 Expected: five named, commented files; only `005` contains `drop column`; `004` includes legacy-row versus join-row count checks and unmapped-value checks.
 
 - [ ] **Step 6: Commit the SQL deliverables**
 
 ```bash
-git add sql/phase-10
+git add supabase/manual/phase-10
 git commit -m "feat: add Phase 10 taxonomy SQL"
 ```
 
@@ -543,7 +543,7 @@ Expected: PASS; event payloads no longer expose `dance_styles`.
 - [ ] **Step 5: Commit the data contract cutover**
 
 ```bash
-git add src/features/events/model/types.ts src/features/admin/model/adminEventForm.ts src/features/admin/model/adminEventForm.test.ts src/features/events/api/eventsRepo.ts src/features/events/api/eventsRepo.test.ts src/features/admin/api/taxonomyRepo.ts src/features/admin/api/taxonomyRepo.test.ts sql/phase-10/002_create_event_taxonomy_terms.sql
+git add src/features/events/model/types.ts src/features/admin/model/adminEventForm.ts src/features/admin/model/adminEventForm.test.ts src/features/events/api/eventsRepo.ts src/features/events/api/eventsRepo.test.ts src/features/admin/api/taxonomyRepo.ts src/features/admin/api/taxonomyRepo.test.ts supabase/manual/phase-10/002_create_event_taxonomy_terms.sql
 git commit -m "feat: persist event taxonomy relationships"
 ```
 
@@ -679,7 +679,7 @@ git commit -m "feat: map submissions to taxonomy terms"
 ## Task 10: Run final integration verification and document manual SQL order
 
 **Files:**
-- Modify: `Docs/plans/phase10-tags-taxonomy-management.md` only if implementation reveals a material approved-spec correction; otherwise leave unchanged.
+- Modify: `docs/plans/phase10-tags-taxonomy-management.md` only if implementation reveals a material approved-spec correction; otherwise leave unchanged.
 - Verify: source/tests/SQL/browser behavior.
 
 **Interfaces:**
@@ -735,7 +735,7 @@ Expected: every interaction completes without console errors; keyboard Tab/Escap
 
 - [ ] **Step 4: Verify manual SQL delivery and state execution order in handoff**
 
-Run: `grep -nE "OPTIONAL AND DESTRUCTIVE|drop column|insert into public.event_taxonomy_terms|merge_taxonomy_terms|approve_event_submission" sql/phase-10/*.sql`
+Run: `grep -nE "OPTIONAL AND DESTRUCTIVE|drop column|insert into public.event_taxonomy_terms|merge_taxonomy_terms|approve_event_submission" supabase/manual/phase-10/*.sql`
 
 Expected: `005_remove_events_dance_styles.sql` is the only destructive cleanup; no source applies production SQL automatically.
 
@@ -744,7 +744,7 @@ Report execution order exactly: `001_create_taxonomy_terms.sql` → `002_create_
 - [ ] **Step 5: Commit any verification-only documentation correction**
 
 ```bash
-git add Docs/plans/phase10-tags-taxonomy-management.md
+git add docs/plans/phase10-tags-taxonomy-management.md
 git commit -m "docs: clarify Phase 10 taxonomy rollout"
 ```
 

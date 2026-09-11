@@ -1,5 +1,5 @@
 import { TriangleAlert, CheckCircle } from "lucide-react";
-import { QualityGap, QUALITY_ISSUE_LABEL } from "../../../features/admin/model/quality";
+import { QualityGap, QUALITY_ISSUE_LABEL } from "../model/quality";
 
 interface AdminSubmissionQualityPanelProps {
   gaps: QualityGap[];

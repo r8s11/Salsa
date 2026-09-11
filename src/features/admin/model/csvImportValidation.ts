@@ -6,7 +6,7 @@ import {
   DESCRIPTION_MAX_LENGTH,
   OTHER_TEXT_MAX_LENGTH,
   TITLE_MAX_LENGTH,
-} from "../../submit-event/validation";
+} from "../../submit-event/model/validation";
 import type { AdminEventPayload } from "../../events/api/eventsRepo";
 import { draftToAdminPayload } from "../../events/components/EventForm";
 

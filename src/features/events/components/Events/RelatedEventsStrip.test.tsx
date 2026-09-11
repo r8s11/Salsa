@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
-import type { DatabaseEvent } from "../../features/events/model/types";
+import type { DatabaseEvent } from "../../model/types";
 import { RelatedEventsStrip } from "./RelatedEventsStrip";
 
 function makeEvent(overrides: Partial<DatabaseEvent> = {}): DatabaseEvent {

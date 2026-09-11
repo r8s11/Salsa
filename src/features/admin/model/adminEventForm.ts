@@ -1,6 +1,6 @@
 import type { City, DatabaseEvent } from "../../events/model/types";
 import type { EventFormDraft } from "../../events/components/EventForm";
-import { buildInitialForm, validateSubmitForm } from "../../submit-event/validation";
+import { buildInitialForm, validateSubmitForm } from "../../submit-event/model/validation";
 import { fromEventDateInstant } from "../../events/model/eventDateTime";
 
 export type AdminEventForm = EventFormDraft;

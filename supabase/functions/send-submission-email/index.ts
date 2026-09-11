@@ -162,7 +162,7 @@ const MAX_REJECTION_MESSAGE = 2_000;
 const MAX_EMAIL = 320;
 
 // Same shape as the database rule in
-// sql/submission-emails/002_anon_submitter_contact_required.sql and
+// supabase/manual/submission-emails/002_anon_submitter_contact_required.sql and
 // _shared/invitation.ts normalizeEmail(), so all three layers agree.
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

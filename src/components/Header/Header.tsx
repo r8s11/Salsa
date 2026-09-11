@@ -4,7 +4,7 @@ import { useCity } from "../../contexts/useCity";
 import { useAuth } from "../../contexts/useAuth";
 import type { City } from "../../contexts/CityContext";
 import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
-import { useOwnProfile } from "../../hooks/useOwnProfile";
+import { useOwnProfile } from "../../features/account/hooks/useOwnProfile";
 import SalsaSeguraLogo from "../brand/SalsaSeguraLogo";
 import AccountAvatar from "./AccountAvatar";
 import ButtonLink from "../ui/ButtonLink";

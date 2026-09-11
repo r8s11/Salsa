@@ -18,14 +18,14 @@ const mockEventFlyers = vi.hoisted(() => ({
 
 vi.mock("../contexts/useAuth", () => ({ useAuth: () => ({ user: mockAuth.user }) }));
 vi.mock("../contexts/useCity", () => ({ useCity: () => ({ city: "boston" }) }));
-vi.mock("../features/submit-event/useSubmissionAccess", () => ({
+vi.mock("../features/submit-event/hooks/useSubmissionAccess", () => ({
   useSubmissionAccess: mockSubmissionAccess.useSubmissionAccess,
 }));
 vi.mock("../features/admin/api/submissionsRepo", () => ({
   createSubmission: vi.fn(),
 }));
 // Mocked so the normal test suite can never reach the Edge Function/Resend.
-vi.mock("../features/submit-event/submissionNotification", () => ({
+vi.mock("../features/submit-event/api/submissionNotification", () => ({
   notifySubmissionReceived: vi.fn(),
 }));
 vi.mock("../features/events/api/eventFlyers", () => ({

@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build `/admin/users/:id`, the single-account detail and role-management screen, per the approved design at `Docs/plans/phase6-admin-user-detail-management.md`.
+**Goal:** Build `/admin/users/:id`, the single-account detail and role-management screen, per the approved design at `docs/plans/phase6-admin-user-detail-management.md`.
 
 **Architecture:** A new `AdminUserDetailPage` reads the already-cached Phase 5 `useAdminUsers()`/`useAdminEvents()` query results and finds the one row/events it needs client-side — no new bulk RPC. Two small additions to the data layer: `admin_user_directory()` gains an `email_confirmed_at` column, and a new `auditLogRepo.fetchUserAuditLog()` reads the already-grant-permitted `audit_logs` table directly. Every mutating dialog (`AdminRoleChangeDialog`, `AdminFlagUserDialog`, `AdminConfirmDialog`) is reused verbatim from Phase 5. Shared row logic (`UserAvatar`, `rowActionItems`) is extracted out of `AdminUsersTable.tsx` so the table row menu and the detail page's header menu are provably the same contract.
 
@@ -11,7 +11,7 @@
 ## Global Constraints
 
 - Repo module owning all Supabase calls for one entity: `profilesRepo.ts` for profiles/users, new `auditLogRepo.ts` for `audit_logs` — never call `supabase.from(...)`/`supabase.rpc(...)` from a component or hook directly.
-- No new tables, no new RPC functions beyond the one `admin_user_directory()` column addition — see `Docs/plans/phase6-admin-user-detail-management.md` Decisions section; this is a hard constraint from the approved design, not an oversight to fix later.
+- No new tables, no new RPC functions beyond the one `admin_user_directory()` column addition — see `docs/plans/phase6-admin-user-detail-management.md` Decisions section; this is a hard constraint from the approved design, not an oversight to fix later.
 - Every dialog (`AdminRoleChangeDialog`, `AdminFlagUserDialog`, `AdminConfirmDialog`) is reused unmodified — zero prop or behavior changes.
 - Match existing code style exactly: `admin-<component>__<part>` CSS class naming, `.admin-shell`-scoped rules appended to component-local `.css` files, `PAGE_SIZE_OPTIONS`/URL-as-state-store patterns from `AdminEventsPage.tsx`/`AdminUsersPage.tsx` where relevant.
 - Run only the specific test file(s) named in each task's Step "Run tests" line while executing tasks — full-suite `npx vitest run`, `npm run build`, and `npm run lint` run once, at the very end (Task 9), not per task.

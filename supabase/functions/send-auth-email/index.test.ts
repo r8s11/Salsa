@@ -3,6 +3,7 @@ import { createSendAuthEmailHandler, type SendAuthEmailDependencies } from "./in
 
 type EmailData = {
   token_hash?: string;
+  token_hash_new?: string;
   token?: string;
   redirect_to?: string;
   email_action_type?: string;
@@ -10,7 +11,7 @@ type EmailData = {
 
 type SentEmail = { from: string; to: string; subject: string; html: string };
 
-function signedRequest(emailData: EmailData, email = "organizer@example.com") {
+function signedRequest(emailData: EmailData, email = "organizer@example.com", newEmail?: string) {
   return new Request("http://localhost/send-auth-email", {
     method: "POST",
     headers: {
@@ -19,7 +20,7 @@ function signedRequest(emailData: EmailData, email = "organizer@example.com") {
       "webhook-timestamp": "1710000000",
       "webhook-signature": "v1,test-signature",
     },
-    body: JSON.stringify({ user: { email }, email_data: emailData }),
+    body: JSON.stringify({ user: { email, new_email: newEmail }, email_data: emailData }),
   });
 }
 
@@ -118,11 +119,48 @@ Deno.test("rejects a Resend response with no delivery data", async () => {
   })));
 });
 
-Deno.test("rejects unsupported action types and Resend failures", async () => {
-  const unsupported = dependencies();
-  await error(await createSendAuthEmailHandler(unsupported.deps)(signedRequest({ token_hash: "hash", redirect_to: "https://app.example", email_action_type: "email_change" })));
-  assertEquals(unsupported.sent, []);
-
+Deno.test("rejects Resend failures", async () => {
   const failed = dependencies({ resend: { emails: { send: async () => ({ data: null, error: { message: "provider failed" } }) } } });
   await error(await createSendAuthEmailHandler(failed.deps)(signedRequest({ token_hash: "hash", redirect_to: "https://app.example", email_action_type: "invite" })));
+});
+
+Deno.test("sends both email_change confirmations when Secure Email Change provides two tokens", async () => {
+  const { deps, sent } = dependencies();
+  const response = await createSendAuthEmailHandler(deps)(signedRequest(
+    { token_hash: "new-address-hash", token_hash_new: "current-address-hash", redirect_to: "https://app.example/auth/callback", email_action_type: "email_change" },
+    "old@example.com",
+    "new@example.com",
+  ));
+  assertEquals(response.status, 200);
+  assertEquals(sent.length, 2);
+  const [toCurrent, toNew] = sent;
+  assertEquals(toCurrent.to, "old@example.com");
+  assertStringIncludes(toCurrent.html, "new@example.com");
+  assertStringIncludes(toCurrent.html, "token=current-address-hash");
+  assertStringIncludes(toCurrent.html, "type=email_change");
+  assertEquals(toNew.to, "new@example.com");
+  assertStringIncludes(toNew.html, "token=new-address-hash");
+  assertStringIncludes(toNew.html, "type=email_change");
+});
+
+Deno.test("sends a single email_change confirmation to the new address when Secure Email Change is disabled", async () => {
+  const { deps, sent } = dependencies();
+  const response = await createSendAuthEmailHandler(deps)(signedRequest(
+    { token_hash: "new-address-hash", redirect_to: "https://app.example/auth/callback", email_action_type: "email_change" },
+    "old@example.com",
+    "new@example.com",
+  ));
+  assertEquals(response.status, 200);
+  assertEquals(sent.length, 1);
+  assertEquals(sent[0].to, "new@example.com");
+});
+
+Deno.test("rejects an email_change payload with no usable recipient", async () => {
+  const { deps, sent } = dependencies();
+  const response = await createSendAuthEmailHandler(deps)(signedRequest(
+    { token_hash: "new-address-hash", redirect_to: "https://app.example/auth/callback", email_action_type: "email_change" },
+    "old@example.com",
+  ));
+  await error(response);
+  assertEquals(sent, []);
 });

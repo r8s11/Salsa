@@ -1,11 +1,11 @@
 import { useEffect, useRef, type KeyboardEvent } from "react";
 import { X } from "lucide-react";
-import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
+import { useEscapeKey } from "../../calendar/hooks/useEscapeKey";
 import {
   CATEGORY_LABEL,
   type ActivityCategory,
   type ActivityFilters,
-} from "../../features/admin/model/auditActivityQuery";
+} from "../model/auditActivityQuery";
 import "./AdminActivityFilterDrawer.css";
 
 interface AdminActivityFilterDrawerProps {

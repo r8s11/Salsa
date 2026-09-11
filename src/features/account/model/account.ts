@@ -1,4 +1,5 @@
 import type { UserRole } from "../../../contexts/authContextObject";
+import type { City } from "../../events/model/types";
 
 // Account identity — private, authenticated data about the signed-in user.
 // Deliberately separate from any future "public profile" model: this file
@@ -21,6 +22,55 @@ export interface OwnProfile {
   status: AccountStatus;
   status_reason: string | null;
   created_at: string;
+  /** Owner-editable presentation fields (20260911000000_profile_public_fields.sql). */
+  bio: string | null;
+  city: City | null;
+  dance_styles: string[];
+  instagram: string | null;
+  website: string | null;
+  cover_url: string | null;
+  public_profile: boolean;
+  stats_public: boolean;
+  notification_prefs: NotificationPrefs;
+}
+
+/** Notification toggles, keyed by preference slug (profiles.notification_prefs). */
+export type NotificationPrefs = Partial<Record<NotificationPrefKey, boolean>>;
+
+export type NotificationPrefKey = (typeof NOTIFICATION_PREFS)[number]["key"];
+
+/**
+ * The notification toggles the editor renders, with the default applied when
+ * a profile has never saved a value for that key. Unset means "on" for the
+ * two event-relevant ones: a member who submits events expects to hear about
+ * their own events without opting in first.
+ */
+export const NOTIFICATION_PREFS = [
+  {
+    key: "new_events_in_city",
+    label: "New events in my city",
+    default: true,
+  },
+  {
+    key: "weekly_digest",
+    label: "Weekly digest of what's on",
+    default: false,
+  },
+  {
+    key: "my_event_updates",
+    label: "Updates about events I submitted",
+    default: true,
+  },
+] as const;
+
+/** The stored value when present, else the toggle's documented default. */
+export function notificationPrefEnabled(
+  prefs: NotificationPrefs | null | undefined,
+  key: NotificationPrefKey
+): boolean {
+  const stored = prefs?.[key];
+  if (typeof stored === "boolean") return stored;
+  return NOTIFICATION_PREFS.find((pref) => pref.key === key)?.default ?? false;
 }
 
 export const ROLE_LABEL: Record<AccountRole, string> = {

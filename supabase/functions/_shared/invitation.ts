@@ -22,9 +22,12 @@ const LOCAL_INVITE_REDIRECT = "http://localhost:5173/auth/invite";
 function configuredHttpUrl(value: string): URL | null {
   try {
     const url = new URL(value);
+    const hostname = url.hostname.toLowerCase();
+    const isIpv4 = /^\d{1,3}(?:\.\d{1,3}){3}$/.test(hostname);
     if (
       (url.protocol !== "http:" && url.protocol !== "https:") ||
-      !url.hostname ||
+      !hostname ||
+      (hostname !== "localhost" && !hostname.includes(".") && !isIpv4) ||
       url.username ||
       url.password ||
       value.startsWith("//")

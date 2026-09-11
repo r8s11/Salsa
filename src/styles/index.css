@@ -1,0 +1,66 @@
+/* Import Global Styles */
+@import "./global.css";
+
+/* Handoff token bridge — maps --ss-* to existing --* tokens */
+@import "./handoff-bridge.css";
+
+/* Page-specific styles */
+.page-content {
+  animation: fadeIn 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  flex: 1;
+}
+
+@media (max-width: 640px) {
+  .page-content {
+    padding-bottom: calc(56px + env(safe-area-inset-bottom));
+  }
+}
+
+/* Lazy loading fallback */
+.page-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+/* 404 Page */
+.not-found-page {
+  text-align: center;
+  padding: 4rem 0;
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.not-found-page h1 {
+  font-family: var(--font-display);
+  font-size: clamp(5rem, 15vw, 9rem);
+  font-weight: 900;
+  line-height: 1;
+  margin: 0;
+  color: var(--red);
+}
+
+.not-found-page h2 {
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0.5rem 0 1rem;
+  font-weight: 400;
+}
+
+.not-found-page p {
+  margin-bottom: 2rem;
+  color: var(--text-dim);
+}

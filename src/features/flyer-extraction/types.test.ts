@@ -54,4 +54,32 @@ describe("flyer extraction validation", () => {
     expect(parsed.instagram).toHaveLength(500);
     expect(parsed.details).toEqual(["same", "x".repeat(500)]);
   });
+
+  it("keeps a scheme-less domain by assuming https", () => {
+    expect(parseFlyerExtraction({ website: "salsasegura.com" }).website).toBe(
+      "https://salsasegura.com"
+    );
+    expect(parseFlyerExtraction({ website: "www.salsasegura.com/events" }).website).toBe(
+      "https://www.salsasegura.com/events"
+    );
+    expect(parseFlyerExtraction({ website: "https://example.com" }).website).toBe(
+      "https://example.com"
+    );
+    expect(parseFlyerExtraction({ website: "ask at the door" }).website).toBeNull();
+  });
+
+  it("keeps the readable fields when a date or time is unparseable", () => {
+    const parsed = parseFlyerExtraction({
+      title: "Friday Salsa",
+      date: "next Friday",
+      start_time: "9pm",
+      end_time: "22:30",
+      venue_name: "Dance Hall",
+    });
+    expect(parsed.date).toBeNull();
+    expect(parsed.start_time).toBeNull();
+    expect(parsed.end_time).toBe("22:30");
+    expect(parsed.title).toBe("Friday Salsa");
+    expect(parsed.venue_name).toBe("Dance Hall");
+  });
 });

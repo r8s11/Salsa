@@ -82,14 +82,21 @@ function cleanArray(value: unknown, field: string): string[] {
   return values;
 }
 
+// Flyers print bare domains ("salsasegura.com") far more often than full URLs,
+// and `new URL` rejects those outright. Assume https for a scheme-less value
+// that still looks like a hostname, and reject anything that is not http(s).
 function cleanWebsite(value: string | null): string | null {
   if (!value) return null;
+  const candidate = /^[a-z][a-z0-9+.-]*:/i.test(value) ? value : `https://${value}`;
+  let parsed: URL;
   try {
-    const parsed = new URL(value);
-    return parsed.protocol === "http:" || parsed.protocol === "https:" ? value : null;
+    parsed = new URL(candidate);
   } catch {
     return null;
   }
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null;
+  if (!/^[a-z0-9-]+(\.[a-z0-9-]+)+$/i.test(parsed.hostname)) return null;
+  return candidate;
 }
 
 export function parseFlyerExtraction(raw: unknown): ExtractedEvent {
@@ -128,9 +135,11 @@ export function parseFlyerExtraction(raw: unknown): ExtractedEvent {
     result[field] = cleanText(value);
   }
 
-  if (result.date && !DATE_PATTERN.test(result.date)) throw new Error("Invalid flyer extraction field: date");
-  if (result.start_time && !TIME_PATTERN.test(result.start_time)) throw new Error("Invalid flyer extraction field: start_time");
-  if (result.end_time && !TIME_PATTERN.test(result.end_time)) throw new Error("Invalid flyer extraction field: end_time");
+  // Mirrors the edge function: one unreadable value costs the user that field,
+  // not the whole prefill. A structurally wrong payload still throws above.
+  if (result.date && !DATE_PATTERN.test(result.date)) result.date = null;
+  if (result.start_time && !TIME_PATTERN.test(result.start_time)) result.start_time = null;
+  if (result.end_time && !TIME_PATTERN.test(result.end_time)) result.end_time = null;
   result.website = cleanWebsite(result.website);
   return result;
 }

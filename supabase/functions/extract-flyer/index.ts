@@ -145,7 +145,7 @@ function normalizeWebsite(value: string | null): string | null {
   }
   if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null;
   if (!/^[a-z0-9-]+(\.[a-z0-9-]+)+$/i.test(parsed.hostname)) return null;
-  return parsed.toString();
+  return candidate;
 }
 
 function sanitizeExtraction(raw: unknown): ExtractedEvent | null {

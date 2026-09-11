@@ -118,7 +118,7 @@ Deno.test("keeps the readable fields when a date or time is unparseable", async 
 
 Deno.test("keeps a scheme-less domain and rejects a non-http website", async () => {
   const bare = await extractionFrom({ title: "Salsa Night", website: "salsasegura.com" });
-  assertEquals((await bare.json()).extraction.website, "https://salsasegura.com/");
+  assertEquals((await bare.json()).extraction.website, "https://salsasegura.com");
 
   const withPath = await extractionFrom({ title: "Salsa Night", website: "www.salsasegura.com/events" });
   assertEquals((await withPath.json()).extraction.website, "https://www.salsasegura.com/events");

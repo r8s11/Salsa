@@ -90,3 +90,42 @@ Deno.test("rejects invalid provider JSON and schema shapes", async () => {
   }))(request());
   assertEquals(malformedShape.status, 502);
 });
+
+function extractionFrom(extracted: Record<string, unknown>) {
+  return createExtractFlyerHandler(makeDependencies({
+    fetchOpenAI: () => Promise.resolve(responseJson({
+      output: [{ type: "message", content: [{ type: "output_text", text: JSON.stringify(extracted) }] }],
+    })),
+  }))(request());
+}
+
+Deno.test("keeps the readable fields when a date or time is unparseable", async () => {
+  const response = await extractionFrom({
+    title: "Salsa Night",
+    date: "next Friday",
+    start_time: "9pm",
+    end_time: "22:30",
+    venue_name: "The Studio",
+  });
+  assertEquals(response.status, 200);
+  const { extraction } = await response.json();
+  assertEquals(extraction.date, null);
+  assertEquals(extraction.start_time, null);
+  assertEquals(extraction.end_time, "22:30");
+  assertEquals(extraction.title, "Salsa Night");
+  assertEquals(extraction.venue_name, "The Studio");
+});
+
+Deno.test("keeps a scheme-less domain and rejects a non-http website", async () => {
+  const bare = await extractionFrom({ title: "Salsa Night", website: "salsasegura.com" });
+  assertEquals((await bare.json()).extraction.website, "https://salsasegura.com/");
+
+  const withPath = await extractionFrom({ title: "Salsa Night", website: "www.salsasegura.com/events" });
+  assertEquals((await withPath.json()).extraction.website, "https://www.salsasegura.com/events");
+
+  const scripted = await extractionFrom({ title: "Salsa Night", website: "javascript:alert(1)" });
+  assertEquals((await scripted.json()).extraction.website, null);
+
+  const nonsense = await extractionFrom({ title: "Salsa Night", website: "ask at the door" });
+  assertEquals((await nonsense.json()).extraction.website, null);
+});

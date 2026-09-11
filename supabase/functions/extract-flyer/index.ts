@@ -131,6 +131,23 @@ function cleanArray(value: unknown): string[] | null {
   return output;
 }
 
+// Flyers print bare domains ("salsasegura.com") far more often than full URLs,
+// and `new URL` rejects those outright. Assume https for a scheme-less value
+// that still looks like a hostname, and reject anything that is not http(s).
+function normalizeWebsite(value: string | null): string | null {
+  if (!value) return null;
+  const candidate = /^[a-z][a-z0-9+.-]*:/i.test(value) ? value : `https://${value}`;
+  let parsed: URL;
+  try {
+    parsed = new URL(candidate);
+  } catch {
+    return null;
+  }
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null;
+  if (!/^[a-z0-9-]+(\.[a-z0-9-]+)+$/i.test(parsed.hostname)) return null;
+  return parsed.toString();
+}
+
 function sanitizeExtraction(raw: unknown): ExtractedEvent | null {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
   const source = raw as Record<string, unknown>;
@@ -150,17 +167,13 @@ function sanitizeExtraction(raw: unknown): ExtractedEvent | null {
   if (!styles || !details) return null;
   result.dance_styles = styles;
   result.details = details;
-  if (result.date && !/^\d{4}-\d{2}-\d{2}$/.test(result.date)) return null;
-  if (result.start_time && !/^([01]\d|2[0-3]):[0-5]\d$/.test(result.start_time)) return null;
-  if (result.end_time && !/^([01]\d|2[0-3]):[0-5]\d$/.test(result.end_time)) return null;
-  if (result.website) {
-    try {
-      const website = new URL(result.website);
-      if (website.protocol !== "http:" && website.protocol !== "https:") result.website = null;
-    } catch {
-      result.website = null;
-    }
-  }
+  // A single unreadable field must not discard the whole extraction: the form
+  // is prefilled field by field, so dropping one value costs the user one
+  // correction while dropping all of them costs a re-upload.
+  if (result.date && !/^\d{4}-\d{2}-\d{2}$/.test(result.date)) result.date = null;
+  if (result.start_time && !/^([01]\d|2[0-3]):[0-5]\d$/.test(result.start_time)) result.start_time = null;
+  if (result.end_time && !/^([01]\d|2[0-3]):[0-5]\d$/.test(result.end_time)) result.end_time = null;
+  result.website = normalizeWebsite(result.website);
   return result;
 }
 

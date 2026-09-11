@@ -14,7 +14,7 @@ import AdminPageHeader from "./AdminPageHeader";
 import AdminMetricCard from "./AdminMetricCard";
 import AdminNeedsAttention, { AttentionItem } from "./AdminNeedsAttention";
 import AdminUpcomingEvents from "./AdminUpcomingEvents";
-import "../../pages/admin/AdminOverviewPage.css";
+import "../../pages/Admin/AdminOverviewPage.css";
 
 export default function PlatformAdminOverview() {
   const { events: queried, isLoading, error, refetch } = useAdminEvents();

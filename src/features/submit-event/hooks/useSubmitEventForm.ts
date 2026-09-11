@@ -10,6 +10,8 @@ import { notifySubmissionReceived } from "../api/submissionNotification";
 import type { EventFormDraft } from "../../events/components/EventForm";
 import { draftToSubmission } from "../../events/components/EventForm";
 import type { EventFlyerStatus } from "../../events/components/EventFlyerField";
+import { extractEventFromFlyer } from "../../flyer-extraction/client";
+import type { ExtractedEvent, FlyerExtractionStatus } from "../../flyer-extraction/types";
 
 function buildSubmitDraft(city: EventFormDraft["city"]): EventFormDraft {
   return {
@@ -53,6 +55,23 @@ export function useSubmitEventForm() {
   // Tracks the in-flight upload so submit never starts a second one while one
   // is already running. Resolves to the persisted URL or null on failure.
   const flyerUploadPromise = useRef<Promise<string | null> | null>(null);
+
+  // ── Flyer extraction (Phase 3): review-only ──
+  // One extraction attempt at a time, for the currently persisted flyer.
+  // `extractionGeneration` is bumped whenever the active flyer changes
+  // (replace/remove) or a new extraction starts; a resolving request only
+  // applies its result if its captured generation still matches, so a late
+  // response for a flyer the user has already replaced or removed is
+  // discarded rather than silently becoming the visible result.
+  const [extractionStatus, setExtractionStatus] = useState<FlyerExtractionStatus>("idle");
+  const [extractionResult, setExtractionResult] = useState<ExtractedEvent | null>(null);
+  const [extractionError, setExtractionError] = useState<string | null>(null);
+  const extractionGeneration = useRef(0);
+  // Synchronous duplicate-click guard: React state updates don't apply
+  // mid-event-handler, so two calls to handleExtractFlyer in the same tick
+  // would both read `extractionStatus` as "idle" from the same render
+  // closure. This ref flips immediately, before any state update or await.
+  const isExtracting = useRef(false);
 
   // Drops a field's error the moment its value changes — stale "Choose an
   // event type" text must not survive the user fixing it.
@@ -117,8 +136,20 @@ export function useSubmitEventForm() {
     return promise;
   };
 
+  // Invalidates any in-flight extraction and clears its result — called
+  // whenever the flyer identity changes (replace/remove) so a response that
+  // arrives afterward is recognized as stale and ignored.
+  const resetExtraction = () => {
+    extractionGeneration.current += 1;
+    isExtracting.current = false;
+    setExtractionStatus("idle");
+    setExtractionResult(null);
+    setExtractionError(null);
+  };
+
   const handleFlyerChange = (file: File | null) => {
     setFlyerError(null);
+    resetExtraction();
     if (!file) {
       // Cleared selection: remove a previously persisted flyer (orphan safety).
       const previousUrl = uploadedFlyerUrl;
@@ -157,6 +188,7 @@ export function useSubmitEventForm() {
   };
 
   const handleFlyerRemove = async () => {
+    resetExtraction();
     setFlyerStatus("removing");
     try {
       if (uploadedFlyerUrl) {
@@ -171,6 +203,39 @@ export function useSubmitEventForm() {
       setFlyerError("We couldn't remove this flyer. Please try again.");
       setFlyerStatus(uploadedFlyerUrl ? "uploaded" : "empty");
     }
+  };
+
+  // Runs (or re-runs) extraction for the currently persisted flyer. Guards
+  // against duplicate concurrent requests and stamps a generation so a
+  // response is only applied if the flyer has not changed since the request
+  // started.
+  const handleExtractFlyer = () => {
+    if (!uploadedFlyerUrl || isExtracting.current) return;
+    isExtracting.current = true;
+    const generation = ++extractionGeneration.current;
+    setExtractionStatus("loading");
+    setExtractionError(null);
+    extractEventFromFlyer(uploadedFlyerUrl)
+      .then((result) => {
+        if (extractionGeneration.current !== generation) return;
+        isExtracting.current = false;
+        setExtractionResult(result);
+        setExtractionStatus("success");
+      })
+      .catch((err) => {
+        if (extractionGeneration.current !== generation) return;
+        isExtracting.current = false;
+        setExtractionResult(null);
+        setExtractionStatus("error");
+        setExtractionError(err instanceof Error ? err.message : "We couldn't read this flyer.");
+      });
+  };
+
+  // "Continue manually" — leaves the flyer and its upload alone, only
+  // dismisses the failed attempt so the button is available to try again.
+  const dismissExtractionError = () => {
+    setExtractionStatus("idle");
+    setExtractionError(null);
   };
 
   const handleSubmit = async (event: FormEvent) => {
@@ -241,6 +306,7 @@ export function useSubmitEventForm() {
       setFlyerPath(null);
       flyerUploadPromise.current = null;
       setFlyerStatus("empty");
+      resetExtraction();
     } catch (err) {
       setServerError(
         publicErrorMessage(err, {
@@ -290,5 +356,10 @@ export function useSubmitEventForm() {
     handleFlyerChange,
     handleFlyerRetry,
     handleFlyerRemove,
+    extractionStatus,
+    extractionResult,
+    extractionError,
+    handleExtractFlyer,
+    dismissExtractionError,
   };
 }

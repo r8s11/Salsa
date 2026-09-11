@@ -3,6 +3,7 @@ import { Sparkles } from "lucide-react";
 import { useAuth } from "../contexts/useAuth";
 import EventForm, { CAPABILITIES } from "../features/events/components/EventForm";
 import EventFlyerField from "../features/events/components/EventFlyerField";
+import FlyerExtractionPanel from "../features/flyer-extraction/FlyerExtractionPanel";
 import SuccessCard from "../features/submit-event/components/SuccessCard";
 import { useSubmissionAccess } from "../features/submit-event/hooks/useSubmissionAccess";
 import { useSubmitEventForm } from "../features/submit-event/hooks/useSubmitEventForm";
@@ -61,6 +62,11 @@ export default function SubmitEventPage() {
     handleFlyerChange,
     handleFlyerRetry,
     handleFlyerRemove,
+    extractionStatus,
+    extractionResult,
+    extractionError,
+    handleExtractFlyer,
+    dismissExtractionError,
   } = useSubmitEventForm();
   const submissionAccess = useSubmissionAccess(Boolean(user));
   const [pristineForm] = useState(form);
@@ -174,7 +180,7 @@ export default function SubmitEventPage() {
                   </p>
                 )}
 
-                {flyerReady && (
+                {flyerReady && extractionStatus === "idle" && (
                   <div className="submit-flyer__actions">
                     <Button
                       variant="secondary"

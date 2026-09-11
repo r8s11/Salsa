@@ -34,6 +34,9 @@ export type ExtractedEvent = {
 
 export type ExtractFlyerResponse = { extraction: ExtractedEvent };
 
+/** Lifecycle of one extraction attempt for the currently persisted flyer. */
+export type FlyerExtractionStatus = "idle" | "loading" | "success" | "error";
+
 type StringField = Exclude<(typeof EXTRACTION_FIELDS)[number], "dance_styles" | "details">;
 const STRING_FIELDS: readonly StringField[] = [
   "title",

@@ -9,6 +9,12 @@
   margin: 0 auto;
 }
 
+.submit-form__required-legend {
+  margin: 0 0 1.25rem;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
 /* ── Fieldsets ── */
 .submit-form fieldset {
   border: 1px solid var(--border);
@@ -75,6 +81,13 @@
   outline: none;
   border-color: var(--red);
   background: rgba(196, 18, 48, 0.04);
+}
+
+.submit-form .form-group input:focus-visible,
+.submit-form .form-group select:focus-visible,
+.submit-form .form-group textarea:focus-visible {
+  outline: 2px solid var(--red-bright);
+  outline-offset: 2px;
 }
 
 .submit-form .form-group input[readonly] {

@@ -1,5 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { act, render, screen } from "@testing-library/react";
+import { useState } from "react";
+import { act, render, screen, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { Session, User } from "@supabase/supabase-js";
 import { AuthProvider } from "./AuthContext";
 import { useAuth } from "./useAuth";
@@ -13,11 +15,13 @@ vi.mock("../lib/supabase", () => ({
       signUp: vi.fn(),
       signOut: vi.fn(),
       resend: vi.fn(),
+      resetPasswordForEmail: vi.fn(),
     },
   },
+  supabaseAuthStorageKey: "sb-salsa-test-auth-token",
 }));
 
-import { supabase } from "../lib/supabase";
+import { supabase, supabaseAuthStorageKey } from "../lib/supabase";
 
 function makeUser(role: string): User {
   return {
@@ -41,6 +45,7 @@ function makeSession(user: User): Session {
 
 let capturedSignIn: { error: Error | null; user: User | null } | undefined;
 let capturedSignUp: { error: Error | null; session: Session | null; user: User | null } | undefined;
+let capturedSignOut: { error: Error | null } | undefined;
 
 function SignInTrigger() {
   const { signInWithPassword, user, role } = useAuth();
@@ -76,12 +81,62 @@ function SignUpTrigger() {
   );
 }
 
+function SignOutTrigger({ scope }: { scope: "local" | "others" | "global" }) {
+  const { signOut, user, session } = useAuth();
+  return (
+    <div>
+      <div data-testid="sign-out-user-id">{user?.id ?? "none"}</div>
+      <div data-testid="sign-out-session">{session ? "present" : "none"}</div>
+      <button
+        onClick={async () => {
+          capturedSignOut = await signOut(scope);
+        }}
+      >
+        sign out
+      </button>
+    </div>
+  );
+}
+
+function DeletedAccountTrigger() {
+  const { clearDeletedAccount, user, session } = useAuth();
+  return (
+    <div>
+      <div data-testid="deleted-user-id">{user?.id ?? "none"}</div>
+      <div data-testid="deleted-session">{session ? "present" : "none"}</div>
+      <button type="button" onClick={clearDeletedAccount}>
+        clear deleted account
+      </button>
+    </div>
+  );
+}
+
+function PasswordResetTrigger() {
+  const { requestPasswordReset } = useAuth();
+  const [result, setResult] = useState<{ error: Error | null } | undefined>();
+  return (
+    <div>
+      <div data-testid="reset-error">{result ? (result.error ? result.error.message : "none") : "pending"}</div>
+      <button
+        onClick={async () => {
+          setResult(await requestPasswordReset("user@example.com"));
+        }}
+      >
+        request reset
+      </button>
+    </div>
+  );
+}
+
 describe("AuthContext sign-in state race", () => {
   beforeEach(() => {
     capturedSignIn = undefined;
     capturedSignUp = undefined;
     vi.mocked(supabase.auth.signInWithPassword).mockReset();
     vi.mocked(supabase.auth.signUp).mockReset();
+    capturedSignOut = undefined;
+    vi.mocked(supabase.auth.getSession).mockResolvedValue({ data: { session: null } } as never);
+    vi.mocked(supabase.auth.signOut).mockReset();
   });
 
   it("resolves signInWithPassword with the fresh user and updates context state synchronously", async () => {
@@ -93,9 +148,11 @@ describe("AuthContext sign-in state race", () => {
     } as never);
 
     render(
-      <AuthProvider>
-        <SignInTrigger />
-      </AuthProvider>
+      <QueryClientProvider client={new QueryClient()}>
+        <AuthProvider>
+          <SignInTrigger />
+        </AuthProvider>
+      </QueryClientProvider>
     );
 
     await act(async () => {
@@ -122,9 +179,11 @@ describe("AuthContext sign-in state race", () => {
     } as never);
 
     render(
-      <AuthProvider>
-        <SignUpTrigger />
-      </AuthProvider>
+      <QueryClientProvider client={new QueryClient()}>
+        <AuthProvider>
+          <SignUpTrigger />
+        </AuthProvider>
+      </QueryClientProvider>
     );
 
     await act(async () => {
@@ -146,9 +205,11 @@ describe("AuthContext sign-in state race", () => {
     } as never);
 
     render(
-      <AuthProvider>
-        <SignUpTrigger />
-      </AuthProvider>
+      <QueryClientProvider client={new QueryClient()}>
+        <AuthProvider>
+          <SignUpTrigger />
+        </AuthProvider>
+      </QueryClientProvider>
     );
 
     await act(async () => {
@@ -158,5 +219,143 @@ describe("AuthContext sign-in state race", () => {
     expect(capturedSignUp?.error).toBeNull();
     expect(capturedSignUp?.session).toBeNull();
     expect(capturedSignUp?.user).toBeNull();
+  });
+});
+
+describe("AuthContext scoped sign-out", () => {
+  it("clears local auth and private query state only after a successful local sign-out", async () => {
+    const organizer = makeUser("organizer");
+    const session = makeSession(organizer);
+    const queryClient = new QueryClient();
+    queryClient.setQueryData(["private", organizer.id], { secret: "private event data" });
+    vi.mocked(supabase.auth.getSession).mockResolvedValue({ data: { session } } as never);
+    vi.mocked(supabase.auth.signOut).mockResolvedValue({ error: null } as never);
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <SignOutTrigger scope="local" />
+        </AuthProvider>
+      </QueryClientProvider>
+    );
+
+    await waitFor(() => expect(screen.getByTestId("sign-out-user-id")).toHaveTextContent(organizer.id));
+
+    await act(async () => {
+      screen.getByText("sign out").click();
+    });
+
+    expect(supabase.auth.signOut).toHaveBeenCalledWith({ scope: "local" });
+    expect(capturedSignOut?.error).toBeNull();
+    expect(screen.getByTestId("sign-out-user-id")).toHaveTextContent("none");
+    expect(screen.getByTestId("sign-out-session")).toHaveTextContent("none");
+    expect(queryClient.getQueryData(["private", organizer.id])).toBeUndefined();
+  });
+
+  it("keeps current auth and private query state after successful other-session sign-out", async () => {
+    const organizer = makeUser("organizer");
+    const session = makeSession(organizer);
+    const queryClient = new QueryClient();
+    queryClient.setQueryData(["private", organizer.id], { secret: "private event data" });
+    vi.mocked(supabase.auth.getSession).mockResolvedValue({ data: { session } } as never);
+    vi.mocked(supabase.auth.signOut).mockResolvedValue({ error: null } as never);
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <SignOutTrigger scope="others" />
+        </AuthProvider>
+      </QueryClientProvider>
+    );
+
+    await waitFor(() => expect(screen.getByTestId("sign-out-user-id")).toHaveTextContent(organizer.id));
+
+    await act(async () => {
+      screen.getByText("sign out").click();
+    });
+
+    expect(supabase.auth.signOut).toHaveBeenCalledWith({ scope: "others" });
+    expect(capturedSignOut?.error).toBeNull();
+    expect(screen.getByTestId("sign-out-user-id")).toHaveTextContent(organizer.id);
+    expect(screen.getByTestId("sign-out-session")).toHaveTextContent("present");
+    expect(queryClient.getQueryData(["private", organizer.id])).toEqual({ secret: "private event data" });
+  });
+});
+
+describe("AuthContext deleted-account cleanup", () => {
+  it("clears local identity and private queries even if post-deletion local sign-out fails", async () => {
+    const organizer = makeUser("organizer");
+    const session = makeSession(organizer);
+    const queryClient = new QueryClient();
+    queryClient.setQueryData(["private", organizer.id], { secret: "private event data" });
+    vi.mocked(supabase.auth.getSession).mockResolvedValue({ data: { session } } as never);
+    vi.mocked(supabase.auth.signOut).mockResolvedValue({ error: new Error("Auth user no longer exists") } as never);
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <DeletedAccountTrigger />
+        </AuthProvider>
+      </QueryClientProvider>
+    );
+    localStorage.setItem(supabaseAuthStorageKey, JSON.stringify(session));
+    localStorage.setItem(`${supabaseAuthStorageKey}-user`, JSON.stringify({ user: organizer }));
+
+
+    await waitFor(() => expect(screen.getByTestId("deleted-user-id")).toHaveTextContent(organizer.id));
+
+    await act(async () => {
+      screen.getByText("clear deleted account").click();
+    });
+
+    expect(screen.getByTestId("deleted-user-id")).toHaveTextContent("none");
+    expect(screen.getByTestId("deleted-session")).toHaveTextContent("none");
+    expect(queryClient.getQueryData(["private", organizer.id])).toBeUndefined();
+    expect(localStorage.getItem(supabaseAuthStorageKey)).toBeNull();
+    expect(localStorage.getItem(`${supabaseAuthStorageKey}-user`)).toBeNull();
+  });
+});
+
+describe("AuthContext password recovery", () => {
+  it("sends a recovery email to the app's own callback route", async () => {
+    vi.mocked(supabase.auth.resetPasswordForEmail).mockResolvedValue({ data: {}, error: null } as never);
+
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <AuthProvider>
+          <PasswordResetTrigger />
+        </AuthProvider>
+      </QueryClientProvider>
+    );
+
+    await act(async () => {
+      screen.getByText("request reset").click();
+    });
+
+    expect(supabase.auth.resetPasswordForEmail).toHaveBeenCalledWith("user@example.com", {
+      redirectTo: `${window.location.origin}/auth/callback`,
+    });
+    expect(screen.getByTestId("reset-error")).toHaveTextContent("none");
+  });
+
+  it("surfaces an error from resetPasswordForEmail without throwing", async () => {
+    vi.mocked(supabase.auth.resetPasswordForEmail).mockResolvedValue({
+      data: null,
+      error: new Error("Too many requests"),
+    } as never);
+
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <AuthProvider>
+          <PasswordResetTrigger />
+        </AuthProvider>
+      </QueryClientProvider>
+    );
+
+    await act(async () => {
+      screen.getByText("request reset").click();
+    });
+
+    expect(screen.getByTestId("reset-error")).toHaveTextContent("Too many requests");
   });
 });

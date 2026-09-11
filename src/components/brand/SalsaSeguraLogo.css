@@ -25,8 +25,13 @@
 
 .ss-logo__wordmark {
   white-space: nowrap;
-  /* Intentionally no font-family/size/color here — inherits from whatever
-     container renders the logo (Header's .logo, SignInPage's .auth-logo,
-     AdminSidebar's .admin-sidebar__brand), so each context keeps its own
-     existing typography exactly as before this component existed. */
+  /* Script face, size and spacing still come from the container
+     (Header's .logo, SignInPage's .auth-logo, AdminSidebar's brand).
+     Only the two-tone brand colorway is owned here so every surface
+     renders the same gold "Salsa" + rose "Segura". */
+  color: var(--gold);
+}
+
+.ss-logo__wordmark-accent {
+  color: var(--red-bright);
 }

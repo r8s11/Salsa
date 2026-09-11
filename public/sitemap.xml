@@ -38,22 +38,6 @@
     <priority>0.6</priority>
   </url>
 
-  <!-- Lessons Page -->
-  <url>
-    <loc>https://salsasegura.com/Lessons</loc>
-    <lastmod>2026-02-10</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- Instructors Page -->
-  <url>
-    <loc>https://salsasegura.com/Instructors</loc>
-    <lastmod>2026-02-10</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-
   <!-- Submit Event Page -->
   <url>
     <loc>https://salsasegura.com/submit</loc>

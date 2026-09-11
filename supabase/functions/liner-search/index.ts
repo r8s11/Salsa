@@ -1,5 +1,11 @@
-import { json } from "https://esm.sh/@supabase/functions-js@0.5.0/src/utilities.ts";
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
+
+function json(data: unknown, status = 200): Response {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
+}
 
 type LinerSearchMode = "web" | "scholar";
 type LinerDateRange = "past_day" | "past_week" | "past_month" | "past_year";

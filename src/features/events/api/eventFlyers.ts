@@ -54,24 +54,53 @@ export async function uploadEventFlyer({
 }
 
 export async function removeEventFlyer(url: string): Promise<void> {
-  let parsedUrl: URL;
-  try {
-    parsedUrl = new URL(url);
-  } catch {
-    return;
-  }
-
-  if (parsedUrl.origin !== supabaseURL || !parsedUrl.pathname.startsWith(PUBLIC_OBJECT_PATH)) {
-    return;
-  }
-
-  const path = decodeURIComponent(parsedUrl.pathname.slice(PUBLIC_OBJECT_PATH.length));
-  if (!path || path.startsWith("/") || path.includes("../")) {
-    return;
-  }
+  const path = parseEventFlyerPath(url);
+  if (!path) return;
 
   const { error } = await supabase.storage.from(EVENT_FLYERS_BUCKET).remove([path]);
   if (error) {
     throw new Error(error.message);
   }
+}
+
+/**
+ * Remove a stored flyer from a known storage path (e.g. `ownerId/eventId/uuid.ext`)
+ * rather than a public URL. Use this for cleanup during replace/remove when the
+ * path is already known, avoiding a round-trip parse from a URL.
+ *
+ * The path is validated to be a non-empty, non-absolute, traversal-free
+ * `ownerId/eventId/file` segment before any delete is issued.
+ */
+export async function removeEventFlyerByPath(path: string | null | undefined): Promise<void> {
+  if (!path || path.startsWith("/") || path.includes("../")) return;
+
+  const { error } = await supabase.storage.from(EVENT_FLYERS_BUCKET).remove([path]);
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+/**
+ * Extract a storage path from a public `event-flyers` object URL, or return
+ * null when the URL is not a same-origin object inside the bucket. Guards
+ * against deleting objects in other buckets or other origins.
+ */
+export function parseEventFlyerPath(url: string): string | null {
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(url);
+  } catch {
+    return null;
+  }
+
+  if (parsedUrl.origin !== supabaseURL || !parsedUrl.pathname.startsWith(PUBLIC_OBJECT_PATH)) {
+    return null;
+  }
+
+  const path = decodeURIComponent(parsedUrl.pathname.slice(PUBLIC_OBJECT_PATH.length));
+  if (!path || path.startsWith("/") || path.includes("../")) {
+    return null;
+  }
+
+  return path;
 }

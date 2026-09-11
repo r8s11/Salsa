@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
-import { Resend } from "https://esm.sh/resend@4.0.1";
-import { Webhook } from "npm:standardwebhooks@1.0.0";
+import { Resend } from "https://esm.sh/resend@6.26.0";
+import { Webhook } from "https://esm.sh/standardwebhooks@1.0.0";
 
 export interface SendAuthEmailDependencies {
   webhook: { verify(rawPayload: string, headers: Record<string, string>): unknown };
@@ -113,15 +113,17 @@ function configuredHandler() {
     webhook: new Webhook(secret),
     resend: new Resend(resendKey),
     authExternalUrl: requiredEnvironment("SUPABASE_URL"),
-    from: Deno.env.get("AUTH_EMAIL_FROM") ?? "SalsaSegura <onboarding@resend.dev>",
+    from: requiredEnvironment("AUTH_EMAIL_FROM"),
   });
 }
 
-serve(async (req) => {
-  if (req.method !== "POST") return Response.json({ error: "Method not allowed" }, { status: 405 });
-  try {
-    return await configuredHandler()(req);
-  } catch {
-    return unauthorized();
-  }
-});
+if (import.meta.main) {
+  serve(async (req) => {
+    if (req.method !== "POST") return Response.json({ error: "Method not allowed" }, { status: 405 });
+    try {
+      return await configuredHandler()(req);
+    } catch {
+      return unauthorized();
+    }
+  });
+}

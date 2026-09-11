@@ -18,6 +18,7 @@
     "db:reset": "supabase db reset"
   },
   "dependencies": {
+    "@roshitx/omp-nine-router": "^0.1.2",
     "@schedule-x/calendar": "^4.6.1",
     "@schedule-x/calendar-controls": "^4.6.1",
     "@schedule-x/events-service": "^4.6.1",
@@ -29,6 +30,7 @@
     "@vectorize-io/hindsight-client": "^0.9.1",
     "html-to-image": "^1.11.13",
     "lucide-react": "^1.24.0",
+    "motion": "^13.2.0",
     "omp-deck": "^0.6.0",
     "papaparse": "^5.6.0",
     "react": "^19.2.4",

@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import "./Footer.css";
 
 function Footer() {
@@ -11,6 +12,7 @@ function Footer() {
             Instagram
           </a>
           <a href="mailto:info@SalsaSegura.com">Email</a>
+          <Link to="/founders">Host an event</Link>
           <a href="tel:+19784440922">Call</a>
         </div>
 

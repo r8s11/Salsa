@@ -1,9 +1,17 @@
 import "temporal-polyfill/global";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/useAuth";
 import { useMySubmissions } from "../hooks/useMySubmissions";
+import { useOwnProfile } from "../hooks/useOwnProfile";
+import {
+  resolveIdentity,
+  initialsFor,
+  isDisplayablePhotoUrl,
+} from "../features/account/model/account";
 import type { DatabaseEvent } from "../features/events/model/types";
+import Button from "../components/ui/Button";
+import ButtonLink from "../components/ui/ButtonLink";
 import "./ProfilePage.css";
 
 function formatEventDate(isoDate: string): string {
@@ -48,6 +56,9 @@ function eventTypeLabel(type: DatabaseEvent["event_type"]): string {
 export default function ProfilePage() {
   const { user, signOut } = useAuth();
   const { submissions, approvedEvents, isLoading, error, refetch } = useMySubmissions(user?.id);
+  const { profile } = useOwnProfile(user?.id);
+  // The exact photo URL whose <img> raised onError; a new URL retries.
+  const [failedPhotoUrl, setFailedPhotoUrl] = useState<string | null>(null);
 
   const allEvents = useMemo(
     () => [...(submissions ?? []), ...(approvedEvents ?? [])],
@@ -64,14 +75,23 @@ export default function ProfilePage() {
     };
   }, [allEvents]);
 
+  // The saved profile row is the source of truth for the identity shown
+  // here — this is where the editor returns after a save. Only when no
+  // profile row exists does the pre-existing auth-metadata fallback apply,
+  // so missing-profile accounts keep rendering exactly as before.
+  const identity = profile ? resolveIdentity(profile) : null;
   const userName =
-    ((user?.user_metadata as Record<string, unknown> | null | undefined)?.full_name as
+    identity?.name ??
+    (((user?.user_metadata as Record<string, unknown> | null | undefined)?.full_name as
       | string
       | undefined) ||
-    user?.email?.split("@")[0] ||
-    "Dancer";
+      user?.email?.split("@")[0] ||
+      "Dancer");
 
-  const userInitial = userName.charAt(0).toUpperCase();
+  const userInitial = identity ? initialsFor(identity) : userName.charAt(0).toUpperCase();
+
+  const savedPhotoUrl = profile?.avatar_url?.trim() ?? "";
+  const showPhoto = isDisplayablePhotoUrl(savedPhotoUrl) && failedPhotoUrl !== savedPhotoUrl;
   const memberSince = user?.created_at
     ? new Date(user.created_at).toLocaleDateString("en-US", { month: "short", year: "numeric" })
     : null;
@@ -109,9 +129,22 @@ export default function ProfilePage() {
       {/* Profile header */}
       <div className="profile-header">
         <div className="profile-avatar-wrapper">
-          <div className="profile-avatar-large" aria-hidden="true">
-            {userInitial}
-          </div>
+          {showPhoto ? (
+            <img
+              className="profile-avatar-large profile-avatar-large--photo"
+              src={savedPhotoUrl}
+              alt=""
+              width={128}
+              height={128}
+              loading="lazy"
+              referrerPolicy="no-referrer"
+              onError={() => setFailedPhotoUrl(savedPhotoUrl)}
+            />
+          ) : (
+            <div className="profile-avatar-large" aria-hidden="true">
+              {userInitial}
+            </div>
+          )}
         </div>
 
         <div className="profile-identity">
@@ -120,19 +153,18 @@ export default function ProfilePage() {
         </div>
 
         <div className="profile-actions">
-          <Link className="profile-action-btn profile-action-btn--primary" to="/submit">
+          <Link className="profile-action-btn profile-action-btn--outline" to="/profile/edit">
+            Profile settings
+          </Link>
+          <ButtonLink to="/submit" variant="primary">
             + Submit Event
-          </Link>
-          <Link className="profile-action-btn profile-action-btn--outline" to="/calendar">
+          </ButtonLink>
+          <ButtonLink to="/calendar" variant="secondary">
             View Calendar
-          </Link>
-          <button
-            type="button"
-            className="profile-action-btn profile-action-btn--outline"
-            onClick={() => signOut()}
-          >
+          </ButtonLink>
+          <Button variant="secondary" onClick={() => signOut("global")}>
             Sign Out
-          </button>
+          </Button>
         </div>
       </div>
 

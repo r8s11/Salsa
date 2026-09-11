@@ -1,0 +1,14 @@
+.host-create__heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.host-create__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 18px 20px;
+}

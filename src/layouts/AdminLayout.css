@@ -265,6 +265,33 @@
 }
 
 /* ----------------------------------------
+   768–1023px, Host mode — keep the labeled drawer instead of the icon-only
+   rail. At this width the rail exposed destination names only through
+   `title`, which touch users never see. Admin keeps its rail here.
+   ---------------------------------------- */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .admin-shell[data-mode="host"] .admin-drawer[data-open="true"] {
+    display: block;
+  }
+
+  .admin-shell[data-mode="host"] .admin-sidebar[data-variant="fixed"] {
+    display: none;
+  }
+
+  .admin-shell[data-mode="host"] .admin-topbar {
+    left: 0;
+  }
+
+  .admin-shell[data-mode="host"] .admin-main {
+    margin-left: 0;
+  }
+
+  .admin-shell[data-mode="host"] .admin-topbar__burger {
+    display: inline-flex;
+  }
+}
+
+/* ----------------------------------------
    ≥1024px — full sidebar
    ---------------------------------------- */
 @media (min-width: 1024px) {

@@ -1,0 +1,560 @@
+/* ========================================
+   Calendar — Ritmo Vivo
+   Schedule-X theme override + page layout
+   ======================================== */
+
+/* ── Schedule-X Theme: Ritmo Vivo ── */
+:root {
+  --sx-color-primary: var(--red);
+  --sx-color-on-primary: #fff;
+  --sx-color-primary-container: var(--red-dim);
+  --sx-color-on-primary-container: #ffccd4;
+  --sx-color-secondary: #6b5b4e;
+  --sx-color-on-secondary: #fff;
+  --sx-color-secondary-container: #2a201c;
+  --sx-color-on-secondary-container: #e8d8d0;
+  --sx-color-surface: var(--surface);
+  --sx-color-surface-dim: var(--bg);
+  --sx-color-surface-bright: var(--surface-high);
+  --sx-color-on-surface: var(--text);
+  --sx-color-surface-container: var(--card);
+  --sx-color-surface-container-low: var(--surface);
+  --sx-color-surface-container-high: var(--surface-high);
+  --sx-color-background: var(--surface);
+  --sx-color-on-background: var(--text);
+  --sx-color-outline: var(--border-md);
+  --sx-color-outline-variant: var(--border);
+  --sx-color-shadow: #000;
+  --sx-color-surface-tint: var(--red);
+  /* AA fix: --sx-color-neutral drives readable text (day names, date
+     headers, list-view times/arrows), not decorative borders — it must
+     stay opaque and pass 4.5:1, so it can't alias --sx-color-outline
+     (a translucent border token). --sx-color-neutral-variant remains on
+     --sx-color-outline-variant intentionally: it only styles decorative
+     leading/trailing and disabled date-picker days. */
+  --sx-color-neutral: var(--text-muted);
+  --sx-color-neutral-variant: var(--sx-color-outline-variant);
+  --sx-internal-color-gray-ripple-background: var(--surface-high);
+  --sx-internal-color-light-gray: var(--card);
+  --sx-internal-color-text: var(--text);
+}
+
+/* ── Page layout ── */
+.calendar-page {
+  background: var(--bg);
+  color: var(--text);
+  padding: 0 0 100px;
+  margin: 0 auto;
+  min-height: calc(100dvh - 68px);
+}
+
+.calendar-body {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-lg);
+}
+
+.calendar-content {
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .calendar-body {
+    grid-template-columns: 280px minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.calendar-sidebar {
+  background: var(--surface);
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.sidebar-section-label {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin: 0 0 var(--space-sm);
+}
+
+.sidebar-period-label {
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  color: var(--text);
+  margin: 0;
+}
+
+.sidebar-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  min-height: 44px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.sidebar-row:hover {
+  border-color: var(--border-lg);
+  color: var(--text);
+}
+
+.sidebar-row:focus-visible {
+  outline: 2px solid var(--gold-light);
+  outline-offset: 2px;
+}
+
+.sidebar-row-active {
+  background: var(--red-dim);
+  border-color: var(--gold);
+  color: var(--text);
+}
+
+.sidebar-row-count {
+  color: var(--text-dim);
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+
+.sidebar-footer {
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  margin: 0;
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--border);
+}
+
+/* ── Stage header ── */
+.stage-header {
+  position: relative;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.stage-header::before,
+.stage-header::after {
+  content: "";
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.stage-header::before {
+  top: -180px;
+  right: -120px;
+  background: radial-gradient(circle, var(--red-glow), transparent 70%);
+}
+
+.stage-header::after {
+  bottom: -220px;
+  left: -140px;
+  background: radial-gradient(circle, var(--gold-dim), transparent 70%);
+}
+
+.stage-inner {
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 56px 24px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.stage-eyebrow {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin: 0 0 6px;
+}
+
+.stage-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--text);
+  margin: 0;
+}
+
+.stage-accent {
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: 1rem;
+  color: var(--tertiary);
+  margin: 8px 0 0;
+}
+
+.stage-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* ── Month nav ── */
+.month-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-md);
+  background: transparent;
+  color: var(--text);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.nav-btn:hover {
+  border-color: var(--border-lg);
+  background: var(--card);
+}
+
+.nav-btn:focus-visible,
+.pill:focus-visible,
+.calendar-error button:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
+.today-btn {
+  width: auto;
+  padding: 0 16px;
+  border-radius: var(--radius-full);
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* ── Pills (city / view / type filters) ── */
+.pill-group {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--border-md);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.pill:hover {
+  border-color: var(--border-lg);
+  color: var(--text);
+}
+
+.pill-active-city,
+.pill-active-type {
+  background: var(--red);
+  border-color: var(--red);
+  color: #fff;
+}
+
+.pill-active-view {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--bg);
+}
+
+.calendar-toolbar {
+  background: var(--card);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 24px;
+}
+
+.toolbar-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 12px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.legend-items {
+  display: flex;
+  gap: 1.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.legend-dot.social {
+  background: var(--red);
+}
+.legend-dot.class {
+  background: var(--tertiary);
+}
+.legend-dot.workshop {
+  background: var(--gold);
+}
+
+/* ── Loading / Error States ── */
+.calendar-status {
+  text-align: center;
+  padding: 1.5rem;
+  background: var(--card);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  letter-spacing: 0.1em;
+  max-width: 560px;
+  margin: 0 auto 1.5rem;
+}
+
+.calendar-error {
+  background: var(--red-dim);
+  border-color: var(--red-glow);
+  color: var(--red-bright);
+}
+
+.calendar-error button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  margin-top: 0.875rem;
+  padding: 8px 20px;
+  background: var(--red);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.calendar-error button:hover {
+  background: var(--red-bright);
+}
+
+.calendar-main {
+  position: relative;
+  z-index: 1;
+  margin: 0 auto;
+  max-width: 1200px;
+  padding: 0 24px;
+}
+
+.sx-react-calendar-wrapper {
+  width: 100%;
+  height: 800px;
+  max-height: 80dvh;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 40px var(--red-glow);
+}
+
+.sx-react-calendar-wrapper .sx__calendar-header {
+  display: none !important;
+}
+
+/* ── Submit CTA ── */
+.calendar-cta {
+  text-align: center;
+  margin: 3rem 24px 0;
+  padding: 2.5rem 1.5rem 0;
+  border-top: 1px solid var(--border);
+}
+
+.calendar-cta p {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--text-muted);
+  margin-bottom: 1.25rem;
+}
+
+/* ── Week-view layout tweaks (unchanged functional) ── */
+.sx-react-calendar-wrapper .sx__week-grid__time-axis,
+.sx-react-calendar-wrapper .sx__week-grid__hour-text {
+  display: none !important;
+}
+
+.sx-react-calendar-wrapper .sx__week-grid {
+  padding-left: 0 !important;
+}
+
+.sx-react-calendar-wrapper .sx__week-grid__date {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.sx-react-calendar-wrapper .sx__week-grid .sx__time-grid-event {
+  position: static !important;
+  width: 100% !important;
+  margin: 0 !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.sx-react-calendar-wrapper .sx__week-grid .sx__time-grid-event-inner {
+  position: relative;
+  padding: 0.5rem 0.75rem;
+}
+
+.sx-react-calendar-wrapper .sx__week-grid .sx__time-grid-event-time {
+  display: none !important;
+}
+
+.sx-react-calendar-wrapper .sx__week-grid .sx__time-grid-event-title {
+  white-space: normal;
+}
+
+/* ── Mobile ── */
+@media (max-width: 768px) {
+  .calendar-page {
+    padding: 0 0 72px;
+  }
+
+  .stage-inner {
+    padding: 32px 16px 20px;
+    align-items: flex-start;
+  }
+
+  .stage-controls-primary,
+  .toolbar-inner {
+    width: 100%;
+  }
+
+  .toolbar-inner {
+    padding: 12px 16px;
+  }
+
+  .pill-group {
+    flex-wrap: nowrap;
+    max-width: 100%;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+  }
+
+  .pill {
+    flex: 0 0 auto;
+  }
+
+  .calendar-main {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  /* Single scroll owner on mobile: let the list view's content participate
+     in document height instead of scrolling inside its own fixed-height
+     box. Schedule-X's .sx__calendar/.sx__view-container normally form a
+     nested `overflow-y: auto` pane (see .sx__view-container in
+     @schedule-x/theme-default) — that's the desktop/grid-bounded behavior,
+     which stays untouched above 768px. At and below 768px the component
+     always renders list view (see Calendar.tsx's max-width:768px media
+     listener), so it's safe to unconditionally free this container's
+     height here. */
+  .sx-react-calendar-wrapper {
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    border-radius: var(--radius-sm);
+  }
+
+  .sx-react-calendar-wrapper .sx__calendar {
+    height: auto;
+    overflow: visible;
+  }
+
+  .sx-react-calendar-wrapper .sx__view-container {
+    height: auto;
+    overflow-y: visible;
+  }
+}

@@ -231,37 +231,6 @@
   color: var(--text-muted);
 }
 
-/* ---------- buttons ---------- */
-
-.event-page__btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 10px 16px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-md);
-  font: 700 0.8rem var(--font-display);
-  text-decoration: none;
-  cursor: pointer;
-  background: transparent;
-  color: var(--text);
-}
-
-.event-page__btn--primary {
-  background: var(--red);
-  border-color: var(--red);
-  color: #fff;
-}
-
-.event-page__btn--ghost {
-  background: transparent;
-}
-
-.event-page__btn--sm {
-  padding: 7px 12px;
-  font-size: 0.75rem;
-}
-
 /* ---------- tabs ---------- */
 
 .event-page__tabs {
@@ -423,6 +392,11 @@
   gap: 8px;
 }
 
+/* Compact share actions must still meet the 44px touch target */
+.event-page__share .ui-button--compact {
+  min-height: 44px;
+}
+
 /* ---------- album ---------- */
 
 .event-page__album {
@@ -490,9 +464,5 @@
   }
   .event-page__strip-actions {
     width: 100%;
-  }
-  .event-page__strip-actions .event-page__btn {
-    flex: 1;
-    justify-content: center;
   }
 }

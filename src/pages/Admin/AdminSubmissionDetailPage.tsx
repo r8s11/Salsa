@@ -2,8 +2,12 @@ import { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useActiveTaxonomyTerms } from "../../features/admin/hooks/useAdminTaxonomy";
 import { useAdminSubmissions } from "../../hooks/useAdminSubmissions";
-import AdminRejectSubmissionDialog from "../../components/Admin/AdminRejectSubmissionDialog";
+import AdminRejectSubmissionDialog from "../../features/admin/components/AdminRejectSubmissionDialog";
 import type { EventSubmission } from "../../features/admin/model/submissions";
+import {
+  notifySubmissionApproved,
+  notifySubmissionRejected,
+} from "../../features/submit-event/submissionNotification";
 import "./AdminSubmissionDetailPage.css";
 
 export default function AdminSubmissionDetailPage() {
@@ -46,7 +50,15 @@ export default function AdminSubmissionDetailPage() {
   const approve = () => {
     approveSubmissionWithTaxonomy(
       { submissionId: submission.id, taxonomyTermIds },
-      { onSuccess: () => navigate("/admin/submissions") }
+      {
+        onSuccess: () => {
+          // Only after the approval RPC committed. Un-awaited: the event is
+          // published either way, so a mail failure must not block the
+          // moderator or undo the approval.
+          void notifySubmissionApproved(submission.id);
+          navigate("/admin/submissions");
+        },
+      }
     );
   };
   const reject = (reason: string, message: string, note: string) => {
@@ -60,7 +72,14 @@ export default function AdminSubmissionDetailPage() {
           internal_note: note || undefined,
         },
       },
-      { onSuccess: () => navigate("/admin/submissions") }
+      {
+        onSuccess: () => {
+          // Only after the rejection committed. The email carries
+          // rejection_message only — internal_note never leaves the admin UI.
+          void notifySubmissionRejected(submission.id);
+          navigate("/admin/submissions");
+        },
+      }
     );
   };
 
@@ -150,6 +169,7 @@ export default function AdminSubmissionDetailPage() {
       {rejectDialogOpen && (
         <AdminRejectSubmissionDialog
           submissionId={submission.id}
+          submissionLabel={(submission.submitted_data?.title as string) || null}
           isBusy={isUpdating}
           onConfirm={reject}
           onCancel={() => setRejectDialogOpen(false)}

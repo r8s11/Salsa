@@ -1,0 +1,54 @@
+/* ========================================
+   Public form error summary — shared primitive
+   ======================================== */
+
+.form-error-summary {
+  max-width: 680px;
+  margin: 0 auto 1.5rem;
+  padding: 1rem 1.25rem;
+  background: var(--red-dim);
+  border: 1px solid rgba(196, 18, 48, 0.35);
+  border-radius: var(--radius-md);
+  color: #ff8080;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  text-align: left;
+}
+
+.form-error-summary:focus-visible,
+.form-error-summary:focus {
+  outline: 2px solid var(--gold-light);
+  outline-offset: 3px;
+}
+
+.form-error-summary__heading {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  color: #ffb3b3;
+}
+
+.form-error-summary__server {
+  margin: 8px 0 0;
+}
+
+.form-error-summary__list {
+  margin: 8px 0 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 4px;
+}
+
+.form-error-summary__list a {
+  color: #ff8080;
+  text-decoration: underline;
+}
+
+.form-error-summary__list a:hover {
+  color: #ffb3b3;
+}
+
+.form-error-summary__list a:focus-visible {
+  outline: 2px solid var(--gold-light);
+  outline-offset: 2px;
+}

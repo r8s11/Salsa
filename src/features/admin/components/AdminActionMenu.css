@@ -1,0 +1,104 @@
+.admin-action-menu {
+  position: relative;
+  display: inline-flex;
+}
+
+/*
+ * The shared `.admin-icon-btn` primitive is 32x32 (used across many admin
+ * controls). This trigger is a row-level tap target, so it is raised to the
+ * project's ~44x44 standard here rather than resizing the shared primitive.
+ * Admin table rows are ~105px tall, so the larger box does not change row
+ * geometry. The icon glyph size is unchanged.
+ */
+.admin-shell .admin-action-menu__trigger {
+  width: 44px;
+  height: 44px;
+}
+
+.admin-shell .admin-action-menu .admin-action-menu__trigger--labeled {
+  width: auto;
+  height: 34px;
+  min-height: 34px;
+  gap: 4px;
+  padding: 0 10px;
+  border: 1px solid var(--admin-border);
+  background: var(--admin-surface);
+  color: var(--admin-text-primary);
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.admin-shell .admin-action-menu .admin-action-menu__trigger--labeled:hover:not(:disabled) {
+  background: var(--admin-surface-secondary);
+}
+
+@media (pointer: coarse) {
+  .admin-shell .admin-action-menu .admin-action-menu__trigger--labeled {
+    width: auto;
+    height: 44px;
+    min-height: 44px;
+  }
+}
+
+.admin-action-menu__panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 50;
+  min-width: 180px;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--admin-surface-elevated);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  box-shadow: var(--admin-shadow-md);
+}
+
+.admin-action-menu__panel--up {
+  top: auto;
+  bottom: calc(100% + 4px);
+}
+
+.admin-action-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 36px;
+  padding: 6px 10px;
+  border: none;
+  border-radius: calc(var(--admin-radius) - 2px);
+  background: transparent;
+  color: var(--admin-text-primary);
+  font-size: 0.875rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-action-menu__item:hover,
+.admin-action-menu__item:focus-visible {
+  background: var(--admin-surface-secondary);
+}
+
+.admin-action-menu__item--danger {
+  color: var(--admin-danger);
+}
+
+.admin-action-menu__item--danger:hover,
+.admin-action-menu__item--danger:focus-visible {
+  background: var(--admin-danger-tint);
+}
+
+.admin-action-menu__separator {
+  margin: 4px 6px;
+  border: none;
+  border-top: 1px solid var(--admin-border);
+}
+
+@media (pointer: coarse) {
+  .admin-action-menu__item {
+    min-height: 44px;
+  }
+}

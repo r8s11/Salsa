@@ -20,6 +20,15 @@
   color: var(--text-muted);
 }
 
+.event-form__hint {
+  margin: 0 0 var(--space-sm);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+  text-transform: none;
+  letter-spacing: normal;
+}
+
 .event-form label {
   display: grid;
   gap: 6px;
@@ -60,11 +69,25 @@
   resize: vertical;
 }
 
-.event-form input:focus,
-.event-form select:focus,
-.event-form textarea:focus {
-  outline: 2px solid var(--red);
-  outline-offset: 1px;
+.event-form input:focus-visible,
+.event-form select:focus-visible,
+.event-form textarea:focus-visible {
+  outline: 2px solid var(--red-bright);
+  outline-offset: 2px;
+}
+
+.event-form input[aria-invalid="true"],
+.event-form select[aria-invalid="true"],
+.event-form textarea[aria-invalid="true"] {
+  border-color: var(--red);
+}
+
+.event-form__segmented[aria-invalid="true"],
+.event-form__chips[aria-invalid="true"] {
+  border: 1px solid var(--red);
+  border-radius: var(--radius-md);
+  padding: 6px;
+  margin: -6px;
 }
 
 .event-form__chips {

@@ -1,0 +1,270 @@
+import { describe, expect, it } from "vitest";
+import {
+  capabilityCardsFor,
+  resolveIdentity,
+  initialsFor,
+  avatarInitials,
+  resolveAvatarIdentity,
+  isDisplayablePhotoUrl,
+  memberSinceLabel,
+  statusMessageFor,
+  ROLE_LABEL,
+  SAFE_NAME_FALLBACK,
+} from "./account";
+
+describe("resolveIdentity", () => {
+  it("prefers display_name and shows @username underneath", () => {
+    const identity = resolveIdentity({ display_name: "Maria Santos", username: "mariasalsa" });
+    expect(identity).toEqual({
+      name: "Maria Santos",
+      usernameLine: "@mariasalsa",
+      usernameMissing: false,
+    });
+  });
+
+  it("flags a missing username when only display_name exists", () => {
+    const identity = resolveIdentity({ display_name: "Maria Santos", username: null });
+    expect(identity).toEqual({ name: "Maria Santos", usernameLine: null, usernameMissing: true });
+  });
+
+  it("falls back to @username as the name when display_name is empty", () => {
+    const identity = resolveIdentity({ display_name: null, username: "mariasalsa" });
+    expect(identity).toEqual({ name: "@mariasalsa", usernameLine: null, usernameMissing: false });
+  });
+
+  it("falls back to a safe generic name when both are empty, never the email", () => {
+    const identity = resolveIdentity({ display_name: "", username: "" });
+    expect(identity).toEqual({ name: SAFE_NAME_FALLBACK, usernameLine: null, usernameMissing: true });
+  });
+
+  it("trims whitespace-only display_name and username", () => {
+    const identity = resolveIdentity({ display_name: "   ", username: "   " });
+    expect(identity.name).toBe(SAFE_NAME_FALLBACK);
+    expect(identity.usernameMissing).toBe(true);
+  });
+});
+
+describe("initialsFor", () => {
+  it("takes the first letter of the resolved name", () => {
+    expect(initialsFor({ name: "Maria Santos", usernameLine: null, usernameMissing: false })).toBe("M");
+  });
+
+  it("skips a leading @ when the name is a username fallback", () => {
+    expect(initialsFor({ name: "@mariasalsa", usernameLine: null, usernameMissing: false })).toBe("M");
+  });
+});
+
+describe("avatarInitials", () => {
+  it("takes the first letter of up to two whitespace-separated words", () => {
+    expect(avatarInitials("Sofia Martinez")).toBe("SM");
+  });
+
+  it("takes the single initial of a one-word name", () => {
+    expect(avatarInitials("Roosevelt")).toBe("R");
+  });
+
+  it("takes the first character of an email address", () => {
+    expect(avatarInitials("dancefan@example.com")).toBe("D");
+  });
+
+  it("strips a leading @ from a username", () => {
+    expect(avatarInitials("@sofia")).toBe("S");
+  });
+
+  it("returns ? for blank input", () => {
+    expect(avatarInitials("  ")).toBe("?");
+  });
+
+  it("never returns more than two characters", () => {
+    expect(avatarInitials("Maria Elena Rodriguez Santos")).toHaveLength(2);
+  });
+});
+
+describe("resolveAvatarIdentity", () => {
+  it("prefers display_name over username and email", () => {
+    expect(
+      resolveAvatarIdentity(
+        { display_name: "Sofia Martinez", username: "sofia" },
+        "sofia@example.com"
+      )
+    ).toEqual({ name: "Sofia Martinez", initials: "SM" });
+  });
+
+  it("falls back to username when display_name is missing", () => {
+    expect(
+      resolveAvatarIdentity({ display_name: null, username: "@sofia" }, "sofia@example.com")
+    ).toEqual({ name: "@sofia", initials: "S" });
+  });
+
+  it("falls back to email when display_name and username are missing", () => {
+    expect(
+      resolveAvatarIdentity({ display_name: null, username: null }, "dancefan@example.com")
+    ).toEqual({ name: "dancefan@example.com", initials: "D" });
+  });
+
+  it("falls back to the safe generic name when nothing is available", () => {
+    expect(resolveAvatarIdentity({ display_name: null, username: null }, null)).toEqual({
+      name: SAFE_NAME_FALLBACK,
+      initials: avatarInitials(SAFE_NAME_FALLBACK),
+    });
+  });
+
+  it("treats a null profile the same as an empty profile", () => {
+    expect(resolveAvatarIdentity(null, "dancefan@example.com")).toEqual({
+      name: "dancefan@example.com",
+      initials: "D",
+    });
+  });
+});
+
+describe("memberSinceLabel", () => {
+  it("formats a timestamp as a friendly month/year", () => {
+    expect(memberSinceLabel("2026-03-15T00:00:00Z")).toBe("March 2026");
+  });
+});
+
+describe("statusMessageFor", () => {
+  it("returns null for active accounts", () => {
+    expect(statusMessageFor("active")).toBeNull();
+  });
+
+  it("returns a contextual message for suspended accounts without exposing status_reason", () => {
+    const message = statusMessageFor("suspended");
+    expect(message?.title).toBe("Account suspended");
+    expect(message?.body).not.toMatch(/reason/i);
+  });
+
+  it("returns a distinct message for flagged and banned accounts", () => {
+    expect(statusMessageFor("flagged")?.title).toBe("Account flagged for review");
+    expect(statusMessageFor("banned")?.title).toBe("Account banned");
+  });
+});
+
+describe("ROLE_LABEL", () => {
+  it("covers every production role with no fabricated values", () => {
+    expect(ROLE_LABEL).toEqual({
+      user: "User",
+      moderator: "Moderator",
+      organizer: "Organizer",
+      admin: "Admin",
+    });
+  });
+});
+
+describe("capabilityCardsFor", () => {
+  it("gives a regular authenticated user only Profile & Activity and Submit an Event", () => {
+    expect(capabilityCardsFor(null)).toEqual([
+      {
+        title: "Profile & Activity",
+        description: "View your SalsaSegura activity and submitted events.",
+        links: [{ label: "View Profile & Activity", to: "/profile", primary: true }],
+      },
+      {
+        title: "Submit an Event",
+        description: "Submit an event for SalsaSegura review.",
+        links: [{ label: "Submit an Event", to: "/submit", primary: true }],
+      },
+    ]);
+  });
+
+  it("gives organizers only their verified Host workspace and submission capabilities", () => {
+    const cards = capabilityCardsFor("organizer");
+
+    expect(cards.map((card) => card.title)).toEqual([
+      "Profile & Activity",
+      "Submit an Event",
+      "Host Events",
+    ]);
+    expect(cards[2]).toEqual({
+      title: "Host Events",
+      description: "Submit events for review, manage eligible submissions, and promote approved listings.",
+      links: [
+        { label: "Open Host Dashboard", to: "/host", primary: true },
+        { label: "My Events", to: "/host/events", primary: false },
+      ],
+    });
+    expect(cards.flatMap((card) => card.links.map((link) => link.to))).not.toContain("/admin");
+  });
+
+  it("gives moderators the verified moderation queue without Admin or Host destinations", () => {
+    const cards = capabilityCardsFor("moderator");
+
+    expect(cards.map((card) => card.title)).toEqual([
+      "Profile & Activity",
+      "Submit an Event",
+      "Moderation",
+    ]);
+    expect(cards[2].links).toEqual([
+      { label: "Open Moderation Queue", to: "/admin/submissions", primary: true },
+    ]);
+    expect(cards.flatMap((card) => card.links.map((link) => link.to))).not.toEqual(
+      expect.arrayContaining(["/host", "/admin/users", "/admin/venues"])
+    );
+  });
+
+  it("gives admins the Admin dashboard without pretending they are organizers", () => {
+    const cards = capabilityCardsFor("admin");
+
+    expect(cards.map((card) => card.title)).toEqual([
+      "Profile & Activity",
+      "Submit an Event",
+      "Administration",
+    ]);
+    expect(cards[2]).toEqual({
+      title: "Administration",
+      description:
+        "Manage SalsaSegura’s events, users, organizers, venues, taxonomy, and operational workflows.",
+      links: [{ label: "Open Admin Dashboard", to: "/admin", primary: true }],
+    });
+    expect(cards.flatMap((card) => card.links.map((link) => link.to))).not.toContain("/host");
+  });
+});
+
+// Phase 6 correction: the editor previewed any non-empty string, so a
+// malformed URL or one carrying embedded credentials reached an <img src>.
+// Preview and save must share one parsed rule.
+describe("isDisplayablePhotoUrl", () => {
+  it("accepts ordinary http(s) image URLs", () => {
+    expect(isDisplayablePhotoUrl("https://cdn.test/maria.png")).toBe(true);
+    expect(isDisplayablePhotoUrl("http://cdn.test/maria.png")).toBe(true);
+    expect(isDisplayablePhotoUrl("https://cdn.test:8443/a/b.png?v=2#x")).toBe(true);
+  });
+
+  it("rejects a blank or whitespace-only value", () => {
+    expect(isDisplayablePhotoUrl("")).toBe(false);
+    expect(isDisplayablePhotoUrl("   ")).toBe(false);
+  });
+
+  it("rejects values that are not parseable absolute URLs", () => {
+    expect(isDisplayablePhotoUrl("not-a-url")).toBe(false);
+    expect(isDisplayablePhotoUrl("cdn.test/maria.png")).toBe(false);
+    // Scheme-relative has no base here, so URL() throws.
+    expect(isDisplayablePhotoUrl("//cdn.test/maria.png")).toBe(false);
+  });
+
+  // Verified against the WHATWG parser: a single slash after the scheme
+  // normalizes to the same absolute URL the browser would fetch
+  // ("http:/cdn.test/x" -> "http://cdn.test/x"), so it is accepted rather
+  // than treated as malformed.
+  it("accepts the single-slash form the URL parser normalizes", () => {
+    expect(isDisplayablePhotoUrl("http:/cdn.test/maria.png")).toBe(true);
+    expect(new URL("http:/cdn.test/maria.png").href).toBe("http://cdn.test/maria.png");
+  });
+
+  it("rejects non-http(s) schemes that an <img src> would still act on", () => {
+    expect(isDisplayablePhotoUrl("javascript:alert(1)")).toBe(false);
+    expect(isDisplayablePhotoUrl("data:image/png;base64,iVBORw0KGgo=")).toBe(false);
+    expect(isDisplayablePhotoUrl("file:///etc/passwd")).toBe(false);
+    expect(isDisplayablePhotoUrl("blob:https://cdn.test/uuid")).toBe(false);
+  });
+
+  it("rejects embedded credentials, which must never reach a preview src", () => {
+    expect(isDisplayablePhotoUrl("https://user:pass@cdn.test/maria.png")).toBe(false);
+    expect(isDisplayablePhotoUrl("https://user@cdn.test/maria.png")).toBe(false);
+    expect(isDisplayablePhotoUrl("https://:pass@cdn.test/maria.png")).toBe(false);
+  });
+
+  it("tolerates surrounding whitespace on an otherwise valid URL", () => {
+    expect(isDisplayablePhotoUrl("  https://cdn.test/maria.png  ")).toBe(true);
+  });
+});

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { DatabaseEvent } from "../features/events/model/types";
@@ -298,7 +299,6 @@ describe("UserEventEditPage withdraw flow", () => {
       error: null,
     });
     mocks.deleteEventForUser.mockResolvedValueOnce(undefined);
-    vi.spyOn(window, "confirm").mockReturnValueOnce(true);
 
     renderPage();
 
@@ -314,6 +314,10 @@ describe("UserEventEditPage withdraw flow", () => {
       name: /Withdraw submission/i,
     });
     expect(allWithdrawButtons).toHaveLength(2);
+    // Focus starts on Cancel, never on the destructive control.
+    expect(within(screen.getByRole("dialog")).getByRole("button", { name: "Cancel" })).toHaveFocus();
+    expect(mocks.deleteEventForUser).not.toHaveBeenCalled();
+
     fireEvent.click(allWithdrawButtons[1]);
 
     await waitFor(() => {
@@ -323,7 +327,7 @@ describe("UserEventEditPage withdraw flow", () => {
     });
   });
 
-  it("does not call deleteEventForUser when the user cancels the confirm dialog", async () => {
+  it("does not call deleteEventForUser when the user cancels the dialog", async () => {
     mocks.useMySubmissions.mockReturnValue({
       submissions: [pendingEvent],
       approvedEvents: [],
@@ -331,7 +335,7 @@ describe("UserEventEditPage withdraw flow", () => {
       error: null,
     });
     mocks.deleteEventForUser.mockResolvedValueOnce(undefined);
-    vi.spyOn(window, "confirm").mockReturnValueOnce(false);
+    const user = userEvent.setup();
 
     renderPage();
 
@@ -339,15 +343,53 @@ describe("UserEventEditPage withdraw flow", () => {
 
     // Step 1: Open the withdraw dialog
     const mainWithdrawButtons = screen.getAllByRole("button", { name: /Withdraw submission/i });
-    fireEvent.click(mainWithdrawButtons[0]);
+    await user.click(mainWithdrawButtons[0]);
 
     // Step 2: Click "Cancel" in the dialog (the dialog's Cancel is the 2nd Cancel button)
     const cancelButtons = screen.getAllByRole("button", { name: /Cancel/i });
-    fireEvent.click(cancelButtons[1]);
+    await user.click(cancelButtons[1]);
 
     await waitFor(() => {
       expect(mocks.deleteEventForUser).not.toHaveBeenCalled();
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
+    expect(mainWithdrawButtons[0]).toHaveFocus();
+  });
+
+  it("closes on Escape while idle but not while withdrawal is pending", async () => {
+    mocks.useMySubmissions.mockReturnValue({
+      submissions: [pendingEvent],
+      approvedEvents: [],
+      isLoading: false,
+      error: null,
+    });
+    let resolveDelete: (() => void) | undefined;
+    mocks.deleteEventForUser.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveDelete = resolve;
+        })
+    );
+
+    renderPage();
+    await screen.findByDisplayValue("Pending Event");
+    fireEvent.click(screen.getByRole("button", { name: /^Withdraw submission$/ }));
+    await screen.findByRole("dialog");
+    fireEvent.keyDown(window, { key: "Escape" });
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(mocks.deleteEventForUser).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("button", { name: /^Withdraw submission$/ }));
+    const allButtons = await screen.findAllByRole("button", { name: /Withdraw submission/i });
+    fireEvent.click(allButtons[1]);
+    await waitFor(() => expect(mocks.deleteEventForUser).toHaveBeenCalledTimes(1));
+
+    // Busy: Escape must not close the dialog.
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+    resolveDelete?.();
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
   });
 
   it("withdraws a projected moderation submission through status=withdrawn", async () => {
@@ -358,7 +400,6 @@ describe("UserEventEditPage withdraw flow", () => {
       error: null,
     });
     mocks.withdrawOwnEventSubmission.mockResolvedValueOnce(undefined);
-    vi.spyOn(window, "confirm").mockReturnValueOnce(true);
 
     renderPageFor("submission-id");
 
@@ -372,6 +413,7 @@ describe("UserEventEditPage withdraw flow", () => {
     });
     expect(mocks.deleteEventForUser).not.toHaveBeenCalled();
   });
+
 });
 
 const rejectedEvent: DatabaseEvent = {
@@ -513,7 +555,6 @@ describe("UserEventEditPage withdrawal safety", () => {
           resolveDelete = resolve;
         })
     );
-    vi.spyOn(window, "confirm").mockReturnValue(true);
 
     renderPage();
     await screen.findByDisplayValue("Pending Event");
@@ -537,7 +578,6 @@ describe("UserEventEditPage withdrawal safety", () => {
       error: null,
     });
     mocks.deleteEventForUser.mockRejectedValueOnce(new Error("Withdrawal network error"));
-    vi.spyOn(window, "confirm").mockReturnValue(true);
 
     renderPage();
     await screen.findByDisplayValue("Pending Event");
@@ -545,7 +585,11 @@ describe("UserEventEditPage withdrawal safety", () => {
     const allButtons = await screen.findAllByRole("button", { name: /Withdraw submission/i });
     fireEvent.click(allButtons[1]);
 
-    expect(await screen.findByText(/❌ Withdrawal network error/i)).toBeInTheDocument();
+    const errorMessage = await screen.findByText(/❌ Withdrawal network error/i);
+    expect(errorMessage).toBeInTheDocument();
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toContainElement(errorMessage);
+    expect(errorMessage.closest('[role="alert"]')).not.toBeNull();
     expect(screen.getByDisplayValue("Pending Event")).toBeInTheDocument();
   });
 });

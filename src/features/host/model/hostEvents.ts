@@ -21,6 +21,9 @@ export function hostEventAction(event: DatabaseEvent): { label: string; to: stri
     // by the Host detail page and My Events row.
     return { label: "View public event", to: `/events/${event.id}` };
   }
+  if (event.status === "draft") {
+    return { label: "View draft", to: `/host/events/${event.id}` };
+  }
   return {
     label: "View event",
     to: `/calendar?event=${event.id}&city=${event.city}`,

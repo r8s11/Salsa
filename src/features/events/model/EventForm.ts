@@ -1,4 +1,4 @@
-import type { EventType, City } from "../model/types";
+import type { EventType, City } from "./types";
 
 export type EventFormDraft = {
   title: string;

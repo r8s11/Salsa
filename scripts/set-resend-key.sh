@@ -28,5 +28,5 @@ fi
 echo "Setting RESEND_API_KEY secret locally..."
 npx supabase functions secrets set RESEND_API_KEY --env-file <(echo "RESEND_API_KEY=$KEY")
 echo ""
-echo "Done. The send-email Edge Function will now use this key."
+echo "Done. SalsaSegura transactional Edge Functions will now use this key."
 echo "To clear it later: npx supabase functions secrets unset RESEND_API_KEY"

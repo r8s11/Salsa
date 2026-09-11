@@ -63,10 +63,11 @@ describe("EventForm", () => {
       "Where",
       "Pricing & RSVP",
       "Artwork",
+      "Host & contact",
     ]);
     expect(screen.getByText("Upload flyer")).toBeVisible();
     expect(screen.queryByRole("heading", { name: "Your info" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: "Host & contact" })).not.toBeInTheDocument();
+
   });
 
   it("omits artwork for moderation submission edits without a canonical event id", () => {

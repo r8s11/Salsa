@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import type { User, Session } from "@supabase/supabase-js";
-import { supabase } from "../lib/supabase";
+import { supabase, supabaseAuthStorageKey } from "../lib/supabase";
+import { setAuthIntent } from "../lib/authIntent";
 import { AuthContext, roleFromUser } from "./authContextObject";
-import type { AuthContextValue } from "./authContextObject";
+import type { AuthContextValue, AuthSignOutScope } from "./authContextObject";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const getSession = async () => {
@@ -47,6 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = useCallback(async (email: string, password: string) => {
     setLoading(true);
+    setAuthIntent("signup", email);
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -69,6 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const resendConfirmation = useCallback(async (email: string) => {
     setLoading(true);
+    setAuthIntent("signup", email);
     try {
       const { error } = await supabase.auth.resend({
         type: "signup",
@@ -84,14 +89,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const signOut = useCallback(async () => {
+  const requestPasswordReset = useCallback(async (email: string) => {
     setLoading(true);
+    setAuthIntent("recovery", email);
     try {
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        // Recovery emails return to the app's own callback route, which
+        // detects the PASSWORD_RECOVERY auth event and shows a "set new
+        // password" form instead of navigating away immediately.
+        redirectTo: `${window.location.origin}/auth/callback`,
+      });
+      return { error: error as Error | null };
     } finally {
       setLoading(false);
     }
   }, []);
+
+  const signOut = useCallback(
+    async (scope: AuthSignOutScope) => {
+      try {
+        const { error } = await supabase.auth.signOut({ scope });
+        if (error) {
+          return { error };
+        }
+
+        if (scope !== "others") {
+          setSession(null);
+          setUser(null);
+          queryClient.clear();
+        }
+
+        return { error: null };
+      } catch (error) {
+        return {
+          error: error instanceof Error ? error : new Error("Unable to sign out. Please try again."),
+        };
+      }
+    },
+    [queryClient]
+  );
+
+  const clearDeletedAccount = useCallback(() => {
+    setSession(null);
+    setUser(null);
+    queryClient.clear();
+    window.localStorage.removeItem(supabaseAuthStorageKey);
+    window.localStorage.removeItem(`${supabaseAuthStorageKey}-user`);
+
+  }, [queryClient]);
 
   const role = roleFromUser(user);
   const value: AuthContextValue = {
@@ -104,8 +149,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isOrganizer: role === "organizer",
     signInWithPassword,
     resendConfirmation,
+    requestPasswordReset,
     signUp,
     signOut,
+    clearDeletedAccount,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

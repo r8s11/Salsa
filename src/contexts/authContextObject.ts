@@ -11,6 +11,7 @@ export function roleFromUser(user: User | null): UserRole | null {
   return null;
 }
 
+export type AuthSignOutScope = "local" | "global" | "others";
 export type AuthContextValue = {
   user: User | null;
   session: Session | null;
@@ -24,11 +25,13 @@ export type AuthContextValue = {
     password: string
   ) => Promise<{ error: Error | null; user: User | null }>;
   resendConfirmation: (email: string) => Promise<{ error: Error | null }>;
+  requestPasswordReset: (email: string) => Promise<{ error: Error | null }>;
   signUp: (
     email: string,
     password: string
   ) => Promise<{ error: Error | null; session: Session | null; user: User | null }>;
-  signOut: () => Promise<void>;
+  signOut: (scope: AuthSignOutScope) => Promise<{ error: Error | null }>;
+  clearDeletedAccount: () => void;
 };
 
 export const AuthContext = createContext<AuthContextValue | undefined>(undefined);

@@ -1,6 +1,6 @@
 import { supabase } from "../../../lib/supabase";
 import { DatabaseEvent, City, EventType } from "../../../types/events";
-import { toEventDateInstant, formatTimeLabel } from "../../../features/events/model/eventDateTime";
+import { toEventDateInstant, formatTimeLabel } from "../model/eventDateTime";
 import { replaceEventTaxonomyTerms } from "../../admin/api/taxonomyRepo";
 
 export interface AdminEventPayload {
@@ -34,7 +34,7 @@ type EventWithTaxonomy = Omit<DatabaseEvent, "taxonomy_term_ids" | "taxonomy_ter
   }[];
 };
 
-function projectEventTaxonomy(rows: EventWithTaxonomy[] | null): DatabaseEvent[] {
+export function projectEventTaxonomy(rows: EventWithTaxonomy[] | null): DatabaseEvent[] {
   return (rows ?? []).map(({ event_taxonomy_terms, ...event }) => ({
     ...event,
     taxonomy_term_ids: event_taxonomy_terms?.map(({ taxonomy_term_id }) => taxonomy_term_id) ?? [],

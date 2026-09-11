@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&amp;family=Epilogue:ital,wght@0,400;0,600;0,700;0,800;0,900;1,800&amp;family=Be+Vietnam+Pro:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0b1326;--surface:#131b2e;--surface-high:#171f33;
+      --red:#e11d48;--red-bright:#ff5874;--red-dim:rgba(225,29,72,0.18);
+      --gold:#e9c349;--gold-light:#ffe088;--tertiary:#ffb690;
+      --text:#dae2fd;--text-muted:#e5bdbe;--text-dim:#ac8889;
+      --border:rgba(255,255,255,0.10);--border-md:rgba(255,255,255,0.16);
+      --fdisp:'Epilogue','Helvetica Neue',sans-serif;--fbody:'Be Vietnam Pro',sans-serif;--flogo:'Great Vibes',cursive;
+    }
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    body{background:var(--bg);color:var(--text);font-family:var(--fbody);-webkit-font-smoothing:antialiased}
+    a{color:var(--gold);text-decoration:none}
+    a:hover{color:var(--gold-light)}
+    ::selection{background:var(--red);color:#fff}
+  </style>
+</helmet>
+
+<div style="min-height:100vh;background:radial-gradient(80% 50% at 50% 0%,rgba(225,29,72,.14),transparent 60%),var(--bg);padding:56px 40px 100px">
+
+  <header style="max-width:1500px;margin:0 auto 54px">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+      <span style="width:34px;height:2px;background:var(--red)"></span>
+      <span style="font-family:var(--fdisp);font-weight:600;font-size:12.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--tertiary)">Mobile · 390 × 844</span>
+    </div>
+    <h1 style="font-family:var(--fdisp);font-weight:900;font-size:clamp(40px,5.5vw,72px);line-height:.96;letter-spacing:-.02em;color:var(--text)">Phone views</h1>
+    <p style="font-family:var(--fbody);font-size:15.5px;line-height:1.6;color:var(--text-muted);max-width:60ch;margin-top:16px">Live frames of the prototype at phone width. Every frame is the real build, not a mockup — tap inside one and it navigates. Bottom tab bar carries Home, Calendar, Directory and Me; Add Event sits on a floating button over the feed.</p>
+  </header>
+
+  <section style="max-width:1500px;margin:0 auto 68px">
+    <div style="display:flex;align-items:baseline;gap:14px;padding-bottom:14px;border-bottom:1px solid var(--border);margin-bottom:30px">
+      <h2 style="font-family:var(--fdisp);font-weight:800;font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)">Public</h2>
+      <span style="font-family:var(--fbody);font-size:13px;color:var(--text-dim)">What a dancer sees</span>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:44px">
+      <sc-for list="{{ publicFrames }}" as="f" hint-placeholder-count="5">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:baseline;gap:10px">
+            <span style="font-family:var(--fdisp);font-weight:800;font-size:14.5px;color:var(--text)">{{ f.label }}</span>
+            <span style="font-family:var(--fbody);font-size:12px;color:var(--text-dim)">{{ f.note }}</span>
+          </div>
+          <div style="width:412px;height:866px;border-radius:48px;padding:11px;background:#05080f;border:1px solid var(--border-md);box-shadow:0 30px 70px rgba(0,0,0,.55)">
+            <div style="width:390px;height:844px;border-radius:38px;overflow:hidden;position:relative;background:var(--bg)">
+              <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;background:rgba(11,19,38,.94);position:relative;z-index:4">
+                <span style="font-family:var(--fdisp);font-weight:700;font-size:12.5px;color:var(--text)">9:41</span>
+                <div aria-hidden="true" style="position:absolute;left:50%;top:8px;transform:translateX(-50%);width:106px;height:30px;border-radius:9999px;background:#05080f"></div>
+                <div style="display:flex;align-items:center;gap:6px">
+                  <span style="font-family:var(--fdisp);font-weight:700;font-size:10px;letter-spacing:.06em;color:var(--text)">LTE</span>
+                  <span style="width:21px;height:11px;border:1px solid var(--text-dim);border-radius:3px;display:inline-flex;align-items:center;padding:1.5px"><span style="display:block;width:12px;height:100%;background:var(--text);border-radius:2px"></span></span>
+                </div>
+              </div>
+              <iframe src="{{ f.src }}" title="{{ f.label }}" loading="lazy" style="width:390px;height:800px;border:none;display:block;background:var(--bg)"></iframe>
+            </div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="max-width:1500px;margin:0 auto 68px">
+    <div style="display:flex;align-items:baseline;gap:14px;padding-bottom:14px;border-bottom:1px solid var(--border);margin-bottom:30px">
+      <h2 style="font-family:var(--fdisp);font-weight:800;font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)">Dashboards</h2>
+      <span style="font-family:var(--fbody);font-size:13px;color:var(--text-dim)">Tables become stacked cards; section drawer replaces the left rail</span>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:44px">
+      <sc-for list="{{ dashFrames }}" as="f" hint-placeholder-count="4">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:baseline;gap:10px">
+            <span style="font-family:var(--fdisp);font-weight:800;font-size:14.5px;color:var(--text)">{{ f.label }}</span>
+            <span style="font-family:var(--fbody);font-size:12px;color:var(--text-dim)">{{ f.note }}</span>
+          </div>
+          <div style="width:412px;height:866px;border-radius:48px;padding:11px;background:#05080f;border:1px solid var(--border-md);box-shadow:0 30px 70px rgba(0,0,0,.55)">
+            <div style="width:390px;height:844px;border-radius:38px;overflow:hidden;position:relative;background:var(--bg)">
+              <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;background:rgba(11,19,38,.94);position:relative;z-index:4">
+                <span style="font-family:var(--fdisp);font-weight:700;font-size:12.5px;color:var(--text)">9:41</span>
+                <div aria-hidden="true" style="position:absolute;left:50%;top:8px;transform:translateX(-50%);width:106px;height:30px;border-radius:9999px;background:#05080f"></div>
+                <div style="display:flex;align-items:center;gap:6px">
+                  <span style="font-family:var(--fdisp);font-weight:700;font-size:10px;letter-spacing:.06em;color:var(--text)">LTE</span>
+                  <span style="width:21px;height:11px;border:1px solid var(--text-dim);border-radius:3px;display:inline-flex;align-items:center;padding:1.5px"><span style="display:block;width:12px;height:100%;background:var(--text);border-radius:2px"></span></span>
+                </div>
+              </div>
+              <iframe src="{{ f.src }}" title="{{ f.label }}" loading="lazy" style="width:390px;height:800px;border:none;display:block;background:var(--bg)"></iframe>
+            </div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="max-width:1500px;margin:0 auto">
+    <div style="display:flex;align-items:baseline;gap:14px;padding-bottom:14px;border-bottom:1px solid var(--border);margin-bottom:30px">
+      <h2 style="font-family:var(--fdisp);font-weight:800;font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)">Account</h2>
+      <span style="font-family:var(--fbody);font-size:13px;color:var(--text-dim)">Reached from the Me tab</span>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:44px">
+      <sc-for list="{{ accountFrames }}" as="f" hint-placeholder-count="2">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:baseline;gap:10px">
+            <span style="font-family:var(--fdisp);font-weight:800;font-size:14.5px;color:var(--text)">{{ f.label }}</span>
+            <span style="font-family:var(--fbody);font-size:12px;color:var(--text-dim)">{{ f.note }}</span>
+          </div>
+          <div style="width:412px;height:866px;border-radius:48px;padding:11px;background:#05080f;border:1px solid var(--border-md);box-shadow:0 30px 70px rgba(0,0,0,.55)">
+            <div style="width:390px;height:844px;border-radius:38px;overflow:hidden;position:relative;background:var(--bg)">
+              <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;background:rgba(11,19,38,.94);position:relative;z-index:4">
+                <span style="font-family:var(--fdisp);font-weight:700;font-size:12.5px;color:var(--text)">9:41</span>
+                <div aria-hidden="true" style="position:absolute;left:50%;top:8px;transform:translateX(-50%);width:106px;height:30px;border-radius:9999px;background:#05080f"></div>
+                <div style="display:flex;align-items:center;gap:6px">
+                  <span style="font-family:var(--fdisp);font-weight:700;font-size:10px;letter-spacing:.06em;color:var(--text)">LTE</span>
+                  <span style="width:21px;height:11px;border:1px solid var(--text-dim);border-radius:3px;display:inline-flex;align-items:center;padding:1.5px"><span style="display:block;width:12px;height:100%;background:var(--text);border-radius:2px"></span></span>
+                </div>
+              </div>
+              <iframe src="{{ f.src }}" title="{{ f.label }}" loading="lazy" style="width:390px;height:800px;border:none;display:block;background:var(--bg)"></iframe>
+            </div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;100%&quot;,&quot;height&quot;:1100}}">
+class Component extends DCLogic {
+  renderVals() {
+    const src = (h) => "Salsa Segura - Redesign.dc.html#" + h;
+    return {
+      publicFrames: [
+        { label: "Home", note: "hero · ticker · featured · feed", src: src("screen=home") },
+        { label: "Event detail", note: "cover, lineup, gallery", src: src("screen=event") },
+        { label: "Calendar", note: "week stacks to one column", src: src("screen=calendar") },
+        { label: "Directory", note: "type bar scrolls", src: src("screen=directory&dir=dir-djs") },
+        { label: "DJ profile", note: "hero spine · tabs", src: src("screen=directory&dir=dj") }
+      ],
+      dashFrames: [
+        { label: "Organizer dashboard", note: "KPIs stack", src: src("screen=organizer-dash") },
+        { label: "My Events", note: "cards or table", src: src("screen=organizer-events") },
+        { label: "Admin", note: "queue as cards", src: src("screen=admin") },
+        { label: "Moderator", note: "reports as cards", src: src("screen=moderator") }
+      ],
+      accountFrames: [
+        { label: "My account", note: "roles, sessions, prefs", src: src("screen=account") },
+        { label: "Edit profile", note: "single-column form", src: src("screen=edit-profile") }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

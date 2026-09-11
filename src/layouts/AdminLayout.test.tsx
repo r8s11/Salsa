@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import AdminLayout from "./AdminLayout";
 const { useTheme } = vi.hoisted(() => ({ useTheme: vi.fn() }));
 const useOrganizerRequests = vi.hoisted(() => vi.fn());
@@ -10,7 +11,7 @@ vi.mock("../features/admin/hooks/useOrganizerRequests", () => ({ useOrganizerReq
 
 vi.mock("../contexts/useAuth", () => ({
   useAuth: () => ({
-    user: { id: "admin-1", email: "admin@salsa.test" },
+    user: { id: "admin-1", email: "[EMAIL]" },
     role: "admin",
     isAdmin: true,
     isModerator: true,
@@ -18,28 +19,63 @@ vi.mock("../contexts/useAuth", () => ({
   }),
 }));
 
+function makeTestQueryClient() {
+  return new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+}
+
 function renderLayout() {
+  const queryClient = makeTestQueryClient();
   return render(
-    <MemoryRouter initialEntries={["/admin"]}>
-      <Routes>
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<p>Dashboard content</p>} />
-        </Route>
-      </Routes>
-    </MemoryRouter>
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={["/admin"]}>
+        <Routes>
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<p>Dashboard content</p>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    </QueryClientProvider>
   );
 }
 
 function renderLayoutAt(path: string) {
+  const queryClient = makeTestQueryClient();
   return render(
-    <MemoryRouter initialEntries={[path]}>
-      <Routes>
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<p>Dashboard content</p>} />
-          <Route path="users/:id" element={<p>Detail content</p>} />
-        </Route>
-      </Routes>
-    </MemoryRouter>
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={[path]}>
+        <Routes>
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<p>Dashboard content</p>} />
+            <Route path="users/:id" element={<p>Detail content</p>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    </QueryClientProvider>
+  );
+}
+
+function renderHostLayoutAt(path: string) {
+  const queryClient = makeTestQueryClient();
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={[path]}>
+        <Routes>
+          <Route path="/host" element={<AdminLayout />}>
+            <Route index element={<p>Host dashboard</p>} />
+            <Route path="events" element={<p>Host events</p>} />
+            <Route path="events/new" element={<p>Host create event</p>} />
+            <Route path="events/import" element={<p>Host import</p>} />
+            <Route path="events/:eventId" element={<p>Host event detail</p>} />
+            <Route path="events/:eventId/edit" element={<p>Host edit event</p>} />
+            <Route path="events/:eventId/attendees" element={<p>Host attendees</p>} />
+            <Route path="events/:eventId/check-in" element={<p>Host check-in</p>} />
+            <Route path="organization" element={<p>Host organization</p>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    </QueryClientProvider>
   );
 }
 
@@ -130,36 +166,35 @@ describe("AdminLayout", () => {
     ).toBeInTheDocument();
   });
 
-  it("uses Host-aware breadcrumbs without changing the Admin dashboard label", () => {
-    render(
-      <MemoryRouter initialEntries={["/host/events"]}>
-        <Routes>
-          <Route path="/host" element={<AdminLayout />}>
-            <Route path="events" element={<p>Host events</p>} />
-          </Route>
-        </Routes>
-      </MemoryRouter>
-    );
+  it.each([
+    ["/host", "Host · Dashboard"],
+    ["/host/events", "Host · My Events"],
+    ["/host/events/new", "Host · New Event"],
+    ["/host/events/import", "Host · Import Events"],
+    ["/host/events/abc-123", "Host · Event Details"],
+    ["/host/events/abc-123/edit", "Host · Edit Event"],
+    ["/host/events/abc-123/attendees", "Host · Attendees"],
+    ["/host/events/abc-123/check-in", "Host · Check-in"],
+    ["/host/organization", "Host · Organization"],
+  ])("labels the Host location %s as %s", (path, expected) => {
+    renderHostLayoutAt(path);
 
     expect(
-      screen.getByText("Host · My Events", { selector: ".admin-breadcrumbs__crumb" })
+      screen.getByText(expected, { selector: ".admin-breadcrumbs__crumb" })
     ).toBeInTheDocument();
   });
 
-  it("labels the Host event detail route", () => {
-    render(
-      <MemoryRouter initialEntries={["/host/events/abc-123"]}>
-        <Routes>
-          <Route path="/host" element={<AdminLayout />}>
-            <Route path="events/:eventId" element={<p>Host event detail</p>} />
-          </Route>
-        </Routes>
-      </MemoryRouter>
-    );
+  it("names the navigation landmark for the Host workspace", () => {
+    renderHostLayoutAt("/host/events");
 
-    expect(
-      screen.getByText("Host · Event Details", { selector: ".admin-breadcrumbs__crumb" })
-    ).toBeInTheDocument();
+    expect(screen.getAllByRole("navigation", { name: "Host navigation" })).toHaveLength(2);
+    expect(screen.queryByRole("navigation", { name: "Admin navigation" })).not.toBeInTheDocument();
+  });
+
+  it("keeps the Admin navigation landmark on Admin routes", () => {
+    renderLayout();
+
+    expect(screen.getAllByRole("navigation", { name: "Admin navigation" })).toHaveLength(2);
   });
 
   it("account menu shows Appearance with System checked by default", async () => {

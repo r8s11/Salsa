@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { describe, expect, it, vi, type Mock } from "vitest";
 import type { User } from "@supabase/supabase-js";
-import RequireReviewer from "../components/Auth/RequireReviewer";
+import RequireReviewer from "../features/auth/components/RequireReviewer";
 import { useAuth } from "../contexts/useAuth";
 import type { AuthContextValue } from "../contexts/authContextObject";
 
@@ -20,6 +20,7 @@ function authState(overrides: Partial<AuthContextValue>): AuthContextValue {
     isModerator: false,
     signInWithPassword: vi.fn(),
       resendConfirmation: vi.fn(),
+      requestPasswordReset: vi.fn(),
     signUp: vi.fn(),
     signOut: vi.fn(),
     ...overrides,

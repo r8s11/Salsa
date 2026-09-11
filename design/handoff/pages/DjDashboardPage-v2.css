@@ -1,0 +1,245 @@
+.dj-v2__kpi-value {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.dj-v2__section-title {
+  margin-bottom: 12px;
+}
+
+.dj-v2__actions {
+  display: inline-flex;
+  gap: 7px;
+}
+
+/* --- next gig --- */
+.dj-v2__next {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.dj-v2__datechip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 80px;
+  padding: 11px 16px;
+  border-radius: 14px;
+  background: var(--ss-red);
+  color: #fff;
+}
+
+.dj-v2__datechip-kicker,
+.dj-v2__datechip-month {
+  font-family: var(--ss-font-display);
+  font-weight: 600;
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.dj-v2__datechip-kicker {
+  opacity: 0.85;
+}
+
+.dj-v2__datechip-day {
+  font-family: var(--ss-font-display);
+  font-weight: 900;
+  font-size: 31px;
+  line-height: 1.05;
+}
+
+.dj-v2__next-body {
+  flex: 1;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 9px;
+}
+
+.dj-v2__next-title {
+  font-family: var(--ss-font-display);
+  font-weight: 900;
+  font-size: 23px;
+  line-height: 1.1;
+  color: var(--ss-text);
+  margin: 0;
+}
+
+.dj-v2__next-facts {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  font-family: var(--ss-font-body);
+  font-size: 12.5px;
+  color: var(--ss-text-dim);
+}
+
+/* --- schedule --- */
+.dj-v2__month {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--ss-border);
+}
+
+.dj-v2__month .ss-section-label {
+  color: var(--ss-gold);
+  font-size: 13px;
+  letter-spacing: 0.16em;
+}
+
+.dj-v2__gigs {
+  gap: 10px;
+}
+
+.dj-v2__gig {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 15px 17px;
+  border-radius: 14px;
+}
+
+.dj-v2__gig-date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 52px;
+}
+
+.dj-v2__gig-weekday {
+  font-family: var(--ss-font-display);
+  font-weight: 600;
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ss-text-dim);
+}
+
+.dj-v2__gig-day {
+  font-family: var(--ss-font-display);
+  font-weight: 900;
+  font-size: 22px;
+  line-height: 1.1;
+  color: var(--ss-text);
+}
+
+.dj-v2__gig-body {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dj-v2__gig-title {
+  font-family: var(--ss-font-display);
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--ss-text);
+}
+
+.dj-v2__gig-set {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: right;
+}
+
+.dj-v2__gig-time {
+  font-family: var(--ss-font-display);
+  font-weight: 700;
+  font-size: 12.5px;
+  color: var(--ss-gold-light);
+}
+
+/* --- completeness --- */
+.dj-v2__pct {
+  font-family: var(--ss-font-display);
+  font-weight: 900;
+  font-size: 20px;
+  color: var(--ss-gold);
+}
+
+.dj-v2__completebar {
+  height: 7px;
+}
+
+.dj-v2__completefill {
+  background: linear-gradient(90deg, var(--ss-red), var(--ss-gold));
+}
+
+.dj-v2__checklist {
+  gap: 9px;
+}
+
+.dj-v2__check {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.dj-v2__dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  border: 1px solid var(--ss-border-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--ss-text-dim);
+  flex-shrink: 0;
+}
+
+.dj-v2__dot--on {
+  background: var(--ss-red);
+  border-color: transparent;
+  color: #fff;
+}
+
+.dj-v2__check-label {
+  font-family: var(--ss-font-body);
+  font-size: 13.5px;
+  color: var(--ss-text);
+}
+
+.dj-v2__check-label--off {
+  color: var(--ss-text-dim);
+}
+
+/* --- facts --- */
+.dj-v2__fact {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.dj-v2__fact-label {
+  font-family: var(--ss-font-display);
+  font-weight: 700;
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ss-text-dim);
+}
+
+.dj-v2__fact-value {
+  font-family: var(--ss-font-body);
+  font-size: 13.5px;
+  color: var(--ss-text);
+}
+
+.dj-v2__editbtn {
+  margin-top: auto;
+  border-radius: var(--ss-radius-sm);
+  justify-content: center;
+}

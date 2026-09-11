@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import SignInForm from "../components/Auth/SignInForm";
+import SignInForm from "../features/auth/components/SignInForm";
 import SalsaSeguraLogo from "../components/brand/SalsaSeguraLogo";
 import "./SignInPage.css";
 

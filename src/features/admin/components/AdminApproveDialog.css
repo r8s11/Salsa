@@ -1,0 +1,110 @@
+.admin-approve-dialog__overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: var(--space-md);
+  animation: fade-in 0.15s ease-out;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.admin-approve-dialog {
+  width: 100%;
+  max-width: 440px;
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  padding: var(--space-xl);
+  animation: scale-in 0.2s ease-out;
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.admin-approve-dialog h2 {
+  margin: 0 0 var(--space-sm);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.approve-message {
+  margin: 0 0 var(--space-md);
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.approve-message strong {
+  color: var(--text-primary);
+}
+
+.approve-note {
+  margin: 0 0 var(--space-lg);
+  padding: var(--space-md);
+  background: var(--info-bg);
+  border: 1px solid var(--info-border);
+  border-radius: var(--radius-md);
+  color: var(--info-text);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+}
+
+.approve-note strong {
+  color: var(--info-text);
+}
+
+.admin-approve-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-md);
+  margin-top: var(--space-lg);
+}
+
+.admin-approve-dialog .btn-secondary {
+  padding: var(--space-sm) var(--space-lg);
+  font-size: var(--text-base);
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.admin-approve-dialog .btn-secondary:hover:not(:disabled) {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+  border-color: var(--text-muted);
+}
+
+.admin-approve-dialog .btn-secondary:disabled,
+.admin-approve-dialog .btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.admin-approve-dialog .btn-primary {
+  padding: var(--space-sm) var(--space-lg);
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--primary-contrast);
+  background: var(--primary);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.admin-approve-dialog .btn-primary:hover:not(:disabled) {
+  background: var(--primary-hover);
+}

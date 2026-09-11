@@ -55,6 +55,14 @@
   font-size: 2.5rem;
 }
 
+/* Saved photo occupies the same slot as the initials tile, so swapping
+   between them on a load failure causes no layout shift. */
+.profile-avatar-large--photo {
+  display: block;
+  object-fit: cover;
+  background: var(--ink-800, #14161c);
+}
+
 .profile-identity {
   margin-top: var(--space-md);
   margin-bottom: var(--space-lg);
@@ -81,42 +89,6 @@
   flex-wrap: wrap;
   gap: var(--space-sm);
   margin-bottom: var(--space-lg);
-}
-
-.profile-action-btn {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 12.5px;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  padding: 11px 20px;
-  border-radius: var(--radius-full);
-  text-decoration: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.profile-action-btn--primary {
-  background: linear-gradient(120deg, var(--red), #c2153c);
-  color: #fff;
-  border: none;
-}
-
-.profile-action-btn--primary:hover {
-  box-shadow: var(--glow-primary);
-  color: #fff;
-}
-
-.profile-action-btn--outline {
-  background: transparent;
-  color: var(--text);
-  border: 1px solid var(--border-md);
-}
-
-.profile-action-btn--outline:hover {
-  border-color: var(--red);
-  color: #fff;
-  background: var(--red-dim);
 }
 
 /* Stats bar */

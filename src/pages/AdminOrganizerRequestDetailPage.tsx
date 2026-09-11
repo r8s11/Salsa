@@ -21,15 +21,15 @@ import {
   type RequestStatus,
   type RequestRowAction,
 } from "../features/admin/model/organizerRequestsQuery";
-import AdminUserAvatar from "../components/Admin/AdminUserAvatar";
-import AdminRoleBadge from "../components/Admin/AdminRoleBadge";
-import AdminAccountStatusBadge from "../components/Admin/AdminAccountStatusBadge";
-import AdminRequestStatusBadge from "../components/Admin/AdminRequestStatusBadge";
-import AdminStatusBadge from "../components/Admin/AdminStatusBadge";
-import AdminActionMenu from "../components/Admin/AdminActionMenu";
-import AdminConfirmDialog from "../components/Admin/AdminConfirmDialog";
-import AdminRejectOrganizerDialog from "../components/Admin/AdminRejectOrganizerDialog";
-import type { ActionMenuItem } from "../components/Admin/AdminActionMenu";
+import AdminUserAvatar from "../features/admin/components/AdminUserAvatar";
+import AdminRoleBadge from "../features/admin/components/AdminRoleBadge";
+import AdminAccountStatusBadge from "../features/admin/components/AdminAccountStatusBadge";
+import AdminRequestStatusBadge from "../features/admin/components/AdminRequestStatusBadge";
+import AdminStatusBadge from "../features/admin/components/AdminStatusBadge";
+import AdminActionMenu from "../features/admin/components/AdminActionMenu";
+import AdminConfirmDialog from "../features/admin/components/AdminConfirmDialog";
+import AdminRejectOrganizerDialog from "../features/admin/components/AdminRejectOrganizerDialog";
+import type { ActionMenuItem } from "../features/admin/components/AdminActionMenu";
 import "./AdminOrganizerRequestDetailPage.css";
 
 function formatDate(iso: string): string {

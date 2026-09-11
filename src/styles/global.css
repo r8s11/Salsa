@@ -22,6 +22,7 @@
   /* Accent — Rose Red (primary) */
   --red: #e11d48;
   --red-bright: #ff5874;
+  --red-deep: #be123c; /* AA-safe (4.87:1) background for var(--text) foreground */
   --red-dim: rgba(225, 29, 72, 0.18);
   --red-glow: rgba(225, 29, 72, 0.3);
 
@@ -278,6 +279,12 @@ main {
   border-color: var(--red);
 }
 
+.contact-form input:focus-visible,
+.contact-form textarea:focus-visible {
+  outline: 2px solid var(--red-bright);
+  outline-offset: 2px;
+}
+
 .contact-form button {
   background: var(--red);
   color: var(--text);
@@ -301,7 +308,10 @@ main {
    7. Buttons (shared)
    ---------------------------------------- */
 .btn-primary {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
   padding: 0.8rem 1.75rem;
   background: linear-gradient(180deg, #ff3d63, #e11d48);
   color: #fff;
@@ -352,7 +362,10 @@ main {
 
 /* Secondary — gold outline, fills with translucent gold on hover */
 .btn-secondary {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
   padding: 0.8rem 1.75rem;
   background: transparent;
   color: var(--gold);
@@ -561,9 +574,6 @@ a.logo:focus-visible {
   outline-offset: 4px;
 }
 
-.cta-button:focus-visible,
-.submit-button:focus-visible,
-.details-button:focus-visible,
 .hero-btn:focus-visible {
   outline: 2px solid var(--red-bright);
   outline-offset: 2px;
@@ -579,5 +589,18 @@ a.logo:focus-visible {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+/* ----------------------------------------
+   13. Calendar page — lower the site header's z-index on desktop so
+   Schedule-X dropdowns can appear above the fixed header. Scoped to
+   .site-header (not the bare `header` element, which also matches
+   Calendar's semantic .stage-header banner) and to desktop widths only —
+   below 991px the mobile drawer lives inside .site-header and must always
+   stay above the calendar banner and the fixed mobile tab bar.
+   ---------------------------------------- */
+@media (min-width: 991px) {
+  body.calendar-page-open .site-header {
+    z-index: 50;
   }
 }

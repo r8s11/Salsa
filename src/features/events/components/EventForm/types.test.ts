@@ -1,6 +1,6 @@
 import "temporal-polyfill/global";
 import { describe, expect, it } from "vitest";
-import { draftToAdminPayload, draftToSubmission, draftToUserPayload } from "./types";
+import { draftToAdminPayload, draftToOrganizerCreatePayload, draftToSubmission, draftToUserPayload } from "./types";
 import type { EventFormDraft } from "./types";
 
 const draft: EventFormDraft = {
@@ -108,5 +108,11 @@ describe("EventForm adapters", () => {
         "venue_id",
       ].sort()
     );
+  });
+  it("maps organizer creation to canonical fields including slug-based styles", () => {
+    const payload = draftToOrganizerCreatePayload(draft);
+    expect(payload.dance_styles).toEqual(["salsa"]);
+    expect(payload).not.toHaveProperty("taxonomy_term_ids");
+    expect(payload).toHaveProperty("venue_id", "venue-1");
   });
 });

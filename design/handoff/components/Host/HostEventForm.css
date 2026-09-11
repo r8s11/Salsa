@@ -1,0 +1,66 @@
+.host-form__segmented {
+  display: flex;
+  gap: 3px;
+  padding: 3px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--ss-border-md);
+  border-radius: var(--ss-radius-sm);
+}
+
+.host-form__segmented-opt {
+  flex: 1;
+  font-family: var(--ss-font-display);
+  font-weight: 700;
+  font-size: 12px;
+  padding: 11px 8px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ss-text-muted);
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.host-form__segmented-opt[aria-pressed="true"] {
+  background: var(--ss-red);
+  color: #fff;
+}
+
+.host-form__media {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.host-form__flyer {
+  width: 186px;
+  height: 248px;
+}
+
+.host-form__cover-field {
+  flex: 1;
+  min-width: 220px;
+}
+
+.host-form__cover {
+  height: 150px;
+}
+
+.host-form__add {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.host-form__add .ss-input {
+  flex: 1;
+  min-width: 170px;
+  font-size: 13.5px;
+  padding: 11px 14px;
+}
+
+.host-form__add .ss-btn {
+  border-radius: var(--ss-radius-sm);
+  padding: 11px 17px;
+}

@@ -1,0 +1,144 @@
+.admin-events-toolbar {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-events-toolbar__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.admin-events-toolbar__search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 300px;
+  min-width: 220px;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  background: var(--admin-surface-elevated);
+  color: var(--admin-text-muted);
+}
+
+.admin-events-toolbar__search .admin-input {
+  flex: 1;
+  min-width: 0;
+  min-height: 34px;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.admin-events-toolbar__search .admin-input:focus-visible {
+  outline: 2px solid var(--admin-brand);
+  outline-offset: 2px;
+}
+
+.admin-events-toolbar__select {
+  min-height: 34px;
+  background: var(--admin-surface-elevated);
+}
+
+.admin-events-toolbar__date {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.admin-events-toolbar__date-range {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 15;
+  display: flex;
+  gap: 6px;
+  padding: 8px;
+  background: var(--admin-surface-elevated);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  box-shadow: var(--admin-shadow-md);
+}
+
+.admin-events-toolbar__status,
+.admin-events-toolbar__more {
+  position: relative;
+}
+
+.admin-events-toolbar__status-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 15;
+  min-width: 200px;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: var(--admin-surface-elevated);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  box-shadow: var(--admin-shadow-md);
+}
+
+.admin-events-toolbar__status-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 4px 6px;
+  border-radius: calc(var(--admin-radius) - 2px);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.admin-events-toolbar__status-option:hover {
+  background: var(--admin-surface-secondary);
+}
+
+.admin-events-toolbar__more-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9999px;
+  background: var(--admin-brand);
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.admin-events-toolbar__sort-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  min-width: max-content;
+}
+
+.admin-events-toolbar__sort-label {
+  color: var(--admin-text-muted);
+  font-size: 0.8rem;
+}
+
+@media (min-width: 1100px) {
+  .admin-events-toolbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .admin-events-toolbar__row {
+    flex-wrap: nowrap;
+  }
+}
+
+@media (pointer: coarse) {
+  .admin-events-toolbar__status-option {
+    min-height: 44px;
+  }
+}

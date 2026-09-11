@@ -30,15 +30,35 @@ export type SubmissionCreate = {
   dance_styles: string[];
 };
 
-export async function createSubmission(submission: SubmissionCreate) {
-  const { submitter_id, submitter_email, submitter_name, ...submitted_data } = submission;
+/**
+ * Inserts a submission and returns its id.
+ *
+ * The id is generated client-side rather than read back from the insert
+ * because anonymous callers hold only an INSERT grant on
+ * `event_submissions` — `.insert().select()` would need SELECT and fails for
+ * exactly the anonymous path this feature serves. A caller-supplied UUID is
+ * safe here: it is only a lookup key, never an authorization token. The
+ * Edge Function that consumes it re-reads the row server-side and derives
+ * every recipient from that row, so knowing or guessing an id grants nothing.
+ */
+export async function createSubmission(
+  submission: SubmissionCreate,
+  extraSubmittedData?: Record<string, unknown>
+): Promise<string> {
+  const submitter_id = submission.submitter_id;
+  const submitter_email = submission.submitter_email;
+  const submitter_name = submission.submitter_name;
+  const { submitter_id: _s, submitter_email: _e, submitter_name: _n, ...submitted_data } = submission;
+
+  const id = crypto.randomUUID();
 
   const { error } = await supabase.from("event_submissions").insert({
+    id,
     submitter_id,
     submitter_email,
     submitter_name,
     status: "pending",
-    submitted_data,
+    submitted_data: { ...submitted_data, ...(extraSubmittedData ?? {}) },
     edited_data: null,
     reviewed_by: null,
     reviewed_at: null,
@@ -51,6 +71,7 @@ export async function createSubmission(submission: SubmissionCreate) {
   });
 
   if (error) throw error;
+  return id;
 }
 
 /**

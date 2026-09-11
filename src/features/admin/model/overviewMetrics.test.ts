@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { DatabaseEvent } from "../../events/model/types";
-import type { AdminUserRow } from "../model/usersQuery";
+import type { AdminUserRow } from "./usersQuery";
 import {
   deriveIncompleteEvents,
   deriveOverviewMetrics,

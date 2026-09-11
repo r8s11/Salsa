@@ -1,14 +1,31 @@
-import { useState } from "react";
+import { useId, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { CalendarPlus, Clock3, ExternalLink, MapPin, Users } from "lucide-react";
+import {
+  CalendarPlus,
+  Clock3,
+  ExternalLink,
+  LinkIcon,
+  MapPin,
+  MessageCircle,
+  Share2,
+  Users,
+} from "lucide-react";
 import { Link, useParams } from "react-router-dom";
-import { RelatedEventsStrip } from "../components/Events/RelatedEventsStrip";
+import { RelatedEventsStrip } from "../features/events/components/Events/RelatedEventsStrip";
 import { fetchApprovedEventById, fetchApprovedEvents } from "../features/events/api/eventsRepo";
+import InstagramStoryShare from "../features/events/components/InstagramStoryShare";
+import VenueMapCard from "../features/events/components/VenueMapCard";
 import { databaseEventToScheduleX } from "../features/events/model/convert";
 import { selectRelatedEvents } from "../features/events/model/relatedEvents";
-import type { EventType } from "../features/events/model/types";
-import { buildPublicEventUrl } from "../features/events/model/eventSharing";
+import type { City, EventType } from "../features/events/model/types";
+import {
+  buildNativeSharePayload,
+  buildPublicEventUrl,
+} from "../features/events/model/eventSharing";
 import { downloadIcs, mapsUrl } from "../utils/ics";
+import { resolveEventModalImage } from "../features/events/components/EventModal/eventModalImage";
+import Button from "../components/ui/Button";
+import ButtonLink from "../components/ui/ButtonLink";
 import NotFoundPage from "./NotFoundPage";
 import "./EventDetailPage.css";
 
@@ -16,6 +33,12 @@ const TYPE_LABELS: Record<EventType, string> = {
   social: "Social",
   class: "Class",
   workshop: "Workshop",
+};
+
+// Public-surface city labels, matching RelatedEventsStrip on this same page.
+const CITY_LABELS: Record<City, string> = {
+  boston: "Greater Boston",
+  "new-york-city": "New York City",
 };
 
 function formatDate(start: string): string {
@@ -66,20 +89,39 @@ export default function EventDetailPage() {
     enabled: Boolean(event?.city),
   });
 
+  const tabListId = useId();
+  const aboutTabId = `${tabListId}-tab-about`;
+  const albumTabId = `${tabListId}-tab-album`;
+  const aboutPanelId = `${tabListId}-panel-about`;
+  const albumPanelId = `${tabListId}-panel-album`;
+
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
   const [tab, setTab] = useState<"about" | "album">("about");
+
+  const focusTab = (index: number) => {
+    const tabs: Array<"about" | "album"> = ["about", "album"];
+    const next = ((index % tabs.length) + tabs.length) % tabs.length;
+    tabRefs.current[next]?.focus();
+    setTab(tabs[next]);
+  };
   const [copied, setCopied] = useState(false);
+  const [shareFeedback, setShareFeedback] = useState<{
+    kind: "status" | "error";
+    message: string;
+  } | null>(null);
 
   if (isLoading)
     return (
-      <main className="event-page event-page--status" role="status">
+      <div className="event-page event-page--status" role="status">
         Loading event…
-      </main>
+      </div>
     );
   if (error) {
     return (
-      <main className="event-page event-page--status" role="alert">
+      <div className="event-page event-page--status" role="alert">
         We couldn&apos;t load this event. Please try again.
-      </main>
+      </div>
     );
   }
   if (!event) return <NotFoundPage />;
@@ -102,34 +144,49 @@ export default function EventDetailPage() {
   const shareUrl = buildPublicEventUrl(event.id);
   const whatsappHref = `https://wa.me/?text=${encodeURIComponent(`${event.title} — ${shareUrl}`)}`;
 
-  const handleCopyLink = async () => {
+  const handleCopyLink = async (
+    successMessage = "Event link copied.",
+    failureMessage = "Could not copy event link."
+  ) => {
     try {
+      if (!navigator.clipboard?.writeText) throw new Error("Clipboard unavailable");
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
+      setShareFeedback({ kind: "status", message: successMessage });
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Clipboard unavailable — nothing to do.
+      setShareFeedback({ kind: "error", message: failureMessage });
     }
   };
 
-  const handleInstagramShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: event.title, text: event.title, url: shareUrl });
-      } catch {
-        // Share sheet dismissed — nothing to do.
-      }
-    } else {
-      handleCopyLink();
+  const handleShare = async () => {
+    setShareFeedback(null);
+    if (!navigator.share) {
+      await handleCopyLink("Event link copied. Paste it into Instagram.");
+      return;
+    }
+
+    try {
+      await navigator.share(
+        buildNativeSharePayload({
+          title: event.title,
+          location: event.location,
+          publicUrl: shareUrl,
+        })
+      );
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      await handleCopyLink(
+        "Couldn't open sharing. Event link copied. Paste it into Instagram.",
+        "Couldn't share or copy the event link."
+      );
     }
   };
 
   return (
-    <main className="event-page">
+    <div className="event-page">
       <div className="event-page__cover">
-        {event.image_url ? (
-          <img className="event-page__cover-img" src={event.image_url} alt="" />
-        ) : null}
+        <img className="event-page__cover-img" src={resolveEventModalImage(scheduleEvent)} alt="" />
         <div className="event-page__cover-art" />
         <div className="event-page__cover-bar">
           <Link to="/calendar" className="event-page__back">
@@ -171,41 +228,56 @@ export default function EventDetailPage() {
           </div>
           <div className="event-page__strip-actions">
             {event.rsvp_link && (
-              <a
-                className="event-page__btn event-page__btn--primary"
-                href={event.rsvp_link}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              <ButtonLink href={event.rsvp_link} external>
                 RSVP <ExternalLink size={15} aria-hidden="true" />
-              </a>
+              </ButtonLink>
             )}
-            <button
-              type="button"
-              className="event-page__btn event-page__btn--ghost"
-              onClick={() => downloadIcs(scheduleEvent)}
-            >
+            <Button variant="ghost" onClick={() => downloadIcs(scheduleEvent)}>
               <CalendarPlus size={16} aria-hidden="true" /> Add to calendar
-            </button>
+            </Button>
           </div>
         </div>
 
-        <nav className="event-page__tabs" aria-label="Sections">
+        <nav
+          className="event-page__tabs"
+          aria-label="Sections"
+          role="tablist"
+        >
           <button
             type="button"
             role="tab"
-            className="event-page__tab"
+            id={aboutTabId}
+            aria-controls={aboutPanelId}
             aria-selected={tab === "about"}
+            tabIndex={tab === "about" ? 0 : -1}
+            className="event-page__tab"
+            ref={(el) => { tabRefs.current[0] = el; }}
             onClick={() => setTab("about")}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowRight") { e.preventDefault(); focusTab(1); }
+              else if (e.key === "ArrowLeft") { e.preventDefault(); focusTab(1); }
+              else if (e.key === "Home") { e.preventDefault(); focusTab(0); }
+              else if (e.key === "End") { e.preventDefault(); focusTab(1); }
+            }}
           >
             About the night
           </button>
           <button
             type="button"
             role="tab"
-            className="event-page__tab"
+            id={albumTabId}
+            aria-controls={albumPanelId}
             aria-selected={tab === "album"}
+            tabIndex={tab === "album" ? 0 : -1}
+            className="event-page__tab"
+            ref={(el) => { tabRefs.current[1] = el; }}
             onClick={() => setTab("album")}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowRight") { e.preventDefault(); focusTab(0); }
+              else if (e.key === "ArrowLeft") { e.preventDefault(); focusTab(0); }
+              else if (e.key === "Home") { e.preventDefault(); focusTab(0); }
+              else if (e.key === "End") { e.preventDefault(); focusTab(1); }
+            }}
           >
             Photo album
             {event.gallery?.length ? (
@@ -215,7 +287,12 @@ export default function EventDetailPage() {
         </nav>
 
         {tab === "about" ? (
-          <div className="event-page__columns">
+          <div
+            id={aboutPanelId}
+            role="tabpanel"
+            aria-labelledby={aboutTabId}
+            className="event-page__columns"
+          >
             <div className="event-page__main">
               <section>
                 <h2 className="event-page__h2">About the night</h2>
@@ -254,55 +331,47 @@ export default function EventDetailPage() {
                 </div>
               )}
 
-              {(event.location || event.address) && (
-                <div className="event-page__card">
-                  <div className="event-page__aside-label">Where</div>
-                  {event.location && <div className="event-page__venue">{event.location}</div>}
-                  {event.address && <div className="event-page__muted">{event.address}</div>}
-                  {mapHref && (
-                    <a
-                      className="event-page__map-link"
-                      href={mapHref}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Open map <ExternalLink size={14} aria-hidden="true" />
-                    </a>
-                  )}
-                </div>
-              )}
+              <VenueMapCard
+                venueName={event.location}
+                streetAddress={event.address}
+                cityLabel={CITY_LABELS[event.city]}
+                directionsHref={mapHref}
+              />
 
               <div className="event-page__card">
                 <div className="event-page__aside-label">Share this night</div>
                 <div className="event-page__share">
-                  <button
-                    type="button"
-                    className="event-page__btn event-page__btn--ghost event-page__btn--sm"
-                    onClick={handleCopyLink}
-                  >
-                    {copied ? "Copied" : "Copy link"}
-                  </button>
-                  <button
-                    type="button"
-                    className="event-page__btn event-page__btn--ghost event-page__btn--sm"
-                    onClick={handleInstagramShare}
-                  >
-                    Instagram
-                  </button>
-                  <a
-                    className="event-page__btn event-page__btn--ghost event-page__btn--sm"
-                    href={whatsappHref}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    WhatsApp
-                  </a>
+                  <Button variant="ghost" size="compact" onClick={() => void handleCopyLink()}>
+                    <LinkIcon size={14} aria-hidden="true" /> {copied ? "Copied" : "Copy link"}
+                  </Button>
+                  <Button variant="ghost" size="compact" onClick={handleShare}>
+                    <Share2 size={14} aria-hidden="true" /> Share
+                  </Button>
+                  <ButtonLink href={whatsappHref} external variant="ghost" size="compact">
+                    <MessageCircle size={14} aria-hidden="true" /> WhatsApp
+                  </ButtonLink>
                 </div>
+                <InstagramStoryShare
+                  event={scheduleEvent}
+                  flyerUrl={event.image_url}
+                  cachedFlyerUrl={event.poster_image_url ?? null}
+                  shareUrl={shareUrl}
+                />
+                {shareFeedback && (
+                  <p role={shareFeedback.kind === "error" ? "alert" : "status"}>
+                    {shareFeedback.message}
+                  </p>
+                )}
               </div>
             </aside>
           </div>
         ) : (
-          <section className="event-page__album">
+          <section
+            id={albumPanelId}
+            role="tabpanel"
+            aria-labelledby={albumTabId}
+            className="event-page__album"
+          >
             <div className="event-page__album-head">
               <h2 className="event-page__album-title">Photo album</h2>
             </div>
@@ -330,6 +399,6 @@ export default function EventDetailPage() {
           hasStrictWindowEvents={relatedSelection.hasStrictWindowEvents}
         />
       </div>
-    </main>
+    </div>
   );
 }

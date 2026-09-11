@@ -1,0 +1,615 @@
+import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Flag, PauseCircle, Ban } from "lucide-react";
+import { useEscapeKey } from "../features/calendar/hooks/useEscapeKey";
+import { useAuth } from "../contexts/useAuth";
+import { useOwnProfile } from "../hooks/useOwnProfile";
+import {
+  capabilityCardsFor,
+  ROLE_LABEL,
+  resolveIdentity,
+  initialsFor,
+  memberSinceLabel,
+  statusMessageFor,
+  type AccountStatus,
+} from "../features/account/model/account";
+import AccountDeletionDialog from "./AccountDeletionDialog";
+import {
+  checkAccountDeletionEligibility,
+  deleteCurrentAccount,
+  type DeletionBlocker,
+  type DeletionEligibility,
+} from "../features/account/api/accountDeletion";
+import Button from "../components/ui/Button";
+import ButtonLink from "../components/ui/ButtonLink";
+import "./AccountPage.css";
+
+const STATUS_ICON: Partial<Record<AccountStatus, typeof Flag>> = {
+  flagged: Flag,
+  suspended: PauseCircle,
+  banned: Ban,
+};
+
+function deletionBlockerMessage(blocker: DeletionBlocker): string {
+  switch (blocker) {
+    case "role":
+      return "Self-service deletion is not available for organizer, moderator, or admin accounts.";
+    case "event_history":
+      return "Self-service deletion is not available while your account has event or submission history.";
+    case "organizer":
+      return "Self-service deletion is not available while you have organizer access or an organizer request.";
+    case "operational_history":
+      return "Self-service deletion is not available while your account has protected operational history.";
+    case "storage":
+      return "Self-service deletion is not available while you own uploaded files.";
+    case "unknown":
+      return "We cannot verify whether your account can be deleted right now.";
+  }
+}
+
+function AccountSkeleton() {
+  return (
+    <div className="account-page__card account-page__skeleton" aria-busy="true">
+      <p role="status" className="account-page__visually-hidden">
+        Loading your account…
+      </p>
+      <span className="account-page__skel account-page__skel--avatar" aria-hidden="true" />
+      <div className="account-page__skel-lines" aria-hidden="true">
+        <span className="account-page__skel account-page__skel--line" />
+        <span className="account-page__skel account-page__skel--line account-page__skel--short" />
+        <span className="account-page__skel account-page__skel--line account-page__skel--short" />
+      </div>
+    </div>
+  );
+}
+
+function SignOutEverywhereDialog({
+  error,
+  isPending,
+  onCancel,
+  onConfirm,
+}: {
+  error: string | null;
+  isPending: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const titleId = useId();
+  const descriptionId = useId();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const cancelRef = useRef<HTMLButtonElement>(null);
+  const previousFocusRef = useRef<Element | null>(null);
+
+  useEscapeKey(() => {
+    if (!isPending) {
+      onCancel();
+    }
+  });
+
+  useEffect(() => {
+    previousFocusRef.current = document.activeElement;
+    cancelRef.current?.focus();
+
+    return () => {
+      if (previousFocusRef.current instanceof HTMLElement) {
+        previousFocusRef.current.focus();
+      }
+    };
+  }, []);
+
+  const trapFocus = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== "Tab") {
+      return;
+    }
+
+    const focusable = dialogRef.current?.querySelectorAll<HTMLButtonElement>("button:not([disabled])");
+    if (!focusable || focusable.length === 0) {
+      return;
+    }
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
+
+  const cancel = () => {
+    if (!isPending) {
+      onCancel();
+    }
+  };
+
+  return (
+    <div className="account-page__dialog-overlay" onMouseDown={cancel}>
+      <div
+        aria-describedby={descriptionId}
+        aria-labelledby={titleId}
+        aria-modal="true"
+        className="account-page__dialog"
+        onKeyDown={trapFocus}
+        onMouseDown={(event) => event.stopPropagation()}
+        ref={dialogRef}
+        role="dialog"
+      >
+        <h2 id={titleId}>Sign out everywhere?</h2>
+        <p id={descriptionId}>
+          This ends every session, including this browser. People using another device may keep access until
+          their current access token expires.
+        </p>
+        {error && (
+          <p className="account-page__session-error" role="alert">
+            {error}
+          </p>
+        )}
+        <div className="account-page__dialog-actions">
+          <Button
+            aria-label="Cancel sign out everywhere"
+            variant="secondary"
+            disabled={isPending}
+            onClick={cancel}
+            ref={cancelRef}
+          >
+            Cancel
+          </Button>
+          <Button
+            aria-label={isPending ? "Signing out everywhere" : "Confirm sign out everywhere"}
+            variant="danger"
+            className="account-page__btn--session-global"
+            disabled={isPending}
+            onClick={onConfirm}
+          >
+            {isPending ? "Signing out everywhere" : "Confirm sign out everywhere"}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function AccountPage() {
+  const { user, role, signOut, clearDeletedAccount } = useAuth();
+  const navigate = useNavigate();
+  const { profile, isLoading, error, refetch } = useOwnProfile(user?.id);
+  const [pendingAction, setPendingAction] = useState<"local" | "others" | "global" | null>(null);
+  const [sessionActionError, setSessionActionError] = useState<string | null>(null);
+  const [otherSessionsMessage, setOtherSessionsMessage] = useState<string | null>(null);
+  const [isGlobalDialogOpen, setIsGlobalDialogOpen] = useState(false);
+  const [globalSignOutError, setGlobalSignOutError] = useState<string | null>(null);
+  const [deletionEligibility, setDeletionEligibility] = useState<DeletionEligibility | null>(null);
+  const [deletionEligibilityError, setDeletionEligibilityError] = useState<string | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const deletionRequestInFlightRef = useRef(false);
+  const eligibilityRequestRef = useRef(0);
+
+  const roleLabel = ROLE_LABEL[role ?? "user"];
+  const statusMessage = profile ? statusMessageFor(profile.status) : null;
+  const identity = profile ? resolveIdentity(profile) : null;
+  const StatusIcon = profile ? STATUS_ICON[profile.status] : undefined;
+  const capabilityCards = profile ? capabilityCardsFor(role) : [];
+  const isSessionActionPending = pendingAction !== null;
+
+  const handleScopedSignOut = async (scope: "local" | "others") => {
+    if (isSessionActionPending) {
+      return;
+    }
+
+    setPendingAction(scope);
+    setSessionActionError(null);
+    setOtherSessionsMessage(null);
+
+    try {
+      const { error } = await signOut(scope);
+      if (error) {
+        setSessionActionError(
+          scope === "local"
+            ? "We couldn't sign you out on this device. Please try again."
+            : "We couldn't sign out your other devices. Please try again."
+        );
+        return;
+      }
+
+      if (scope === "local") {
+        navigate("/", { replace: true });
+        return;
+      }
+
+      setOtherSessionsMessage(
+        "Other sessions were ended. Their current access may continue until each access token expires."
+      );
+    } catch {
+      setSessionActionError(
+        scope === "local"
+          ? "We couldn't sign you out on this device. Please try again."
+          : "We couldn't sign out your other devices. Please try again."
+      );
+    } finally {
+      setPendingAction(null);
+    }
+  };
+
+  const openGlobalSignOutDialog = () => {
+    if (isSessionActionPending) {
+      return;
+    }
+
+    setSessionActionError(null);
+    setOtherSessionsMessage(null);
+    setGlobalSignOutError(null);
+    setIsGlobalDialogOpen(true);
+  };
+
+  const closeGlobalSignOutDialog = () => {
+    if (!isSessionActionPending) {
+      setIsGlobalDialogOpen(false);
+    }
+  };
+
+  const handleGlobalSignOut = async () => {
+    if (isSessionActionPending) {
+      return;
+    }
+
+    setPendingAction("global");
+    setGlobalSignOutError(null);
+
+    try {
+      const { error } = await signOut("global");
+      if (error) {
+        setGlobalSignOutError("We couldn't sign you out everywhere. Please try again.");
+        return;
+      }
+
+      navigate("/", { replace: true });
+    } catch {
+      setGlobalSignOutError("We couldn't sign you out everywhere. Please try again.");
+    } finally {
+      setPendingAction(null);
+    }
+  };
+
+  const [eligibilityRetryCount, setEligibilityRetryCount] = useState(0);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    const requestId = ++eligibilityRequestRef.current;
+    checkAccountDeletionEligibility()
+      .then((eligibility) => {
+        if (requestId === eligibilityRequestRef.current) {
+          setDeletionEligibility(eligibility);
+          setDeletionEligibilityError(null);
+        }
+      })
+      .catch(() => {
+        if (requestId === eligibilityRequestRef.current) {
+          setDeletionEligibilityError(
+            "We couldn't check whether account deletion is available. Please try again."
+          );
+        }
+      });
+    return () => {
+      eligibilityRequestRef.current += 1;
+    };
+  }, [user?.id, eligibilityRetryCount]);
+
+  const openDeleteDialog = () => {
+    if (deletionEligibility?.outcome !== "eligible" || isDeleting) return;
+    setDeleteError(null);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const closeDeleteDialog = () => {
+    if (!isDeleting) setIsDeleteDialogOpen(false);
+  };
+
+  const handleAccountDeletion = async () => {
+    if (deletionRequestInFlightRef.current) return;
+
+    deletionRequestInFlightRef.current = true;
+    setIsDeleting(true);
+    setDeleteError(null);
+
+    try {
+      const result = await deleteCurrentAccount();
+      if (result.outcome === "blocked") {
+        setDeletionEligibility(result);
+        setIsDeleteDialogOpen(false);
+        return;
+      }
+
+      clearDeletedAccount();
+      navigate("/", { replace: true });
+    } catch {
+      setDeleteError("We couldn't delete your account. Please try again.");
+    } finally {
+      deletionRequestInFlightRef.current = false;
+      setIsDeleting(false);
+    }
+  };
+
+  return (
+    <main className="account-page">
+      <div className="account-page__intro">
+        <span className="account-page__eyebrow">My account</span>
+        <h1 className="account-page__h1">Account</h1>
+        <p className="account-page__lede">
+          Your identity, account status, and profile access.
+        </p>
+      </div>
+
+      {statusMessage && (
+        <div
+          className={`account-page__status-banner account-page__status-banner--${profile?.status}`}
+          role="alert"
+        >
+          {StatusIcon && <StatusIcon size={18} aria-hidden="true" />}
+          <div>
+            <p className="account-page__status-title">{statusMessage.title}</p>
+            <p className="account-page__status-body">{statusMessage.body}</p>
+          </div>
+        </div>
+      )}
+
+      {isLoading && <AccountSkeleton />}
+
+      {!isLoading && error && (
+        <div className="account-page__card account-page__error" role="alert">
+          <p>We couldn't load your account details.</p>
+          <Button variant="secondary" onClick={() => refetch()}>
+            Try Again
+          </Button>
+        </div>
+      )}
+
+      {!isLoading && !error && !profile && (
+        <div className="account-page__card account-page__missing">
+          <p className="account-page__missing-title">We couldn't find an account profile for this login.</p>
+          <p className="account-page__missing-body">
+            This can happen for older or partially set-up accounts. Try refreshing, or contact us if this
+            keeps happening.
+          </p>
+          {user?.email && (
+            <p className="account-page__missing-email">
+              Signed in as <strong>{user.email}</strong>
+            </p>
+          )}
+          <Button variant="secondary" onClick={() => refetch()}>
+            Try Again
+          </Button>
+        </div>
+      )}
+
+      {!isLoading && !error && profile && identity && (
+        <section className="account-page__card account-page__identity">
+          {profile.avatar_url ? (
+            <img
+              className="account-page__avatar"
+              src={profile.avatar_url}
+              alt=""
+              loading="lazy"
+              width={64}
+              height={64}
+            />
+          ) : (
+            <span className="account-page__avatar account-page__avatar--initials" aria-hidden="true">
+              {initialsFor(identity)}
+            </span>
+          )}
+
+          <div className="account-page__identity-body">
+            <div className="account-page__identity-name-row">
+              <span className="account-page__name">{identity.name}</span>
+              <span className="account-page__role-badge">{roleLabel}</span>
+            </div>
+
+            {identity.usernameLine && (
+              <span className="account-page__muted">{identity.usernameLine}</span>
+            )}
+            {identity.usernameMissing && (
+              <span className="account-page__muted account-page__username-missing">Username not set</span>
+            )}
+
+            {user?.email && (
+              <span className="account-page__muted">
+                <span className="account-page__meta-label">Account email:</span> {user.email}
+              </span>
+            )}
+            <span className="account-page__hint">Used for sign-in and account security.</span>
+
+            <span className="account-page__muted">Member since {memberSinceLabel(profile.created_at)}</span>
+          </div>
+
+          <div className="account-page__identity-actions">
+            <ButtonLink to="/profile" variant="primary">
+              View Profile
+            </ButtonLink>
+          </div>
+        </section>
+      )}
+
+      {!isLoading && !error && profile && identity && (
+        <section className="account-page__capabilities" aria-labelledby="account-capabilities-heading">
+          <div className="account-page__capabilities-heading">
+            <span className="account-page__eyebrow">What you can do</span>
+            <h2 id="account-capabilities-heading">What you can do</h2>
+          </div>
+          <div className="account-page__capability-grid">
+            {capabilityCards.map((card) => (
+              <article className="account-page__card account-page__capability-card" key={card.title}>
+                <div className="account-page__capability-title-row">
+                  <h3>{card.title}</h3>
+                  <span className="account-page__availability">Available</span>
+                </div>
+                <p>{card.description}</p>
+                <div className="account-page__capability-actions">
+                  {card.links.map((link) => (
+                    <Link
+                      className={`account-page__capability-link${
+                        link.primary ? " account-page__capability-link--primary" : ""
+                      }`}
+                      key={link.to}
+                      to={link.to}
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {!isLoading && !error && profile && identity && (
+        <section
+          className="account-page__card account-page__notifications"
+          aria-labelledby="account-notifications-heading"
+        >
+          <h2 id="account-notifications-heading">Email &amp; notifications</h2>
+          <p>Required account and security emails are always sent to your account email.</p>
+          <p>Optional email preferences aren&rsquo;t available yet.</p>
+        </section>
+      )}
+
+      {user && (
+        <section
+          className="account-page__card account-page__security"
+          aria-labelledby="account-security-heading"
+        >
+          <h2 id="account-security-heading">Security &amp; sessions</h2>
+          <p className="account-page__security-intro">
+            Manage your current sign-in and protect your account.
+          </p>
+
+          {sessionActionError && (
+            <p className="account-page__session-error" role="alert">
+              {sessionActionError}
+            </p>
+          )}
+          {otherSessionsMessage && (
+            <p className="account-page__session-success" role="status">
+              {otherSessionsMessage}
+            </p>
+          )}
+
+          <div className="account-page__session-group">
+            <h3>Current session</h3>
+            <div className="account-page__session-row">
+              <div>
+                <div className="account-page__session-name-row">
+                  <span className="account-page__session-name">This browser</span>
+                  <span className="account-page__session-current">Current</span>
+                </div>
+                {user.email && <p className="account-page__session-email">Signed in as {user.email}</p>}
+              </div>
+              <Button
+                variant="secondary"
+                disabled={isSessionActionPending}
+                onClick={() => void handleScopedSignOut("local")}
+              >
+                {pendingAction === "local" ? "Signing out on this device" : "Sign out on this device"}
+              </Button>
+            </div>
+          </div>
+
+          <div className="account-page__session-group">
+            <h3>Other sessions</h3>
+            <p>End sessions on your other browsers and devices. A current access token may continue until it expires.</p>
+            <Button
+              variant="secondary"
+              disabled={isSessionActionPending}
+              onClick={() => void handleScopedSignOut("others")}
+            >
+              {pendingAction === "others" ? "Signing out other devices" : "Sign out other devices"}
+            </Button>
+          </div>
+
+          <div className="account-page__session-group account-page__session-group--global">
+            <h3>All sessions</h3>
+            <p>End every session, including this browser.</p>
+            <Button
+              variant="danger"
+              className="account-page__btn--session-global"
+              disabled={isSessionActionPending}
+              onClick={openGlobalSignOutDialog}
+            >
+              Sign out everywhere
+            </Button>
+          </div>
+        </section>
+      )}
+
+      {user && (
+        <section className="account-page__card account-page__danger" aria-labelledby="account-danger-heading">
+          <h2 id="account-danger-heading">Danger zone</h2>
+          <p className="account-page__danger-intro">Permanently delete your SalsaSegura account.</p>
+          <p className="account-page__danger-copy">
+            This permanently removes your sign-in and eligible personal account data. Some event, organizer,
+            or moderation records may need to be retained first.
+          </p>
+
+          {deletionEligibility === null && !deletionEligibilityError && (
+            <p aria-live="polite" className="account-page__danger-status">
+              Checking whether account deletion is available…
+            </p>
+          )}
+          {deletionEligibilityError && (
+            <div className="account-page__danger-error" role="alert">
+              <p>{deletionEligibilityError}</p>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setDeletionEligibility(null);
+                  setDeletionEligibilityError(null);
+                  setEligibilityRetryCount((c) => c + 1);
+                }}
+              >
+                Check again
+              </Button>
+            </div>
+          )}
+          {deletionEligibility?.outcome === "blocked" && (
+            <p className="account-page__danger-blocker" role="status">
+              {deletionBlockerMessage(deletionEligibility.blocker)}{" "}
+              <Link to="/contact">Contact us</Link> if you need help with this account.
+            </p>
+          )}
+          {deletionEligibility?.outcome === "eligible" && (
+            <Button
+              aria-label="Delete account"
+              variant="danger"
+              disabled={isDeleting}
+              onClick={openDeleteDialog}
+            >
+              Delete account
+            </Button>
+          )}
+        </section>
+      )}
+
+      {isDeleteDialogOpen && (
+        <AccountDeletionDialog
+          error={deleteError}
+          isPending={isDeleting}
+          onCancel={closeDeleteDialog}
+          onConfirm={() => void handleAccountDeletion()}
+        />
+      )}
+
+      {isGlobalDialogOpen && (
+        <SignOutEverywhereDialog
+          error={globalSignOutError}
+          isPending={pendingAction === "global"}
+          onCancel={closeGlobalSignOutDialog}
+          onConfirm={() => void handleGlobalSignOut()}
+        />
+      )}
+    </main>
+  );
+}

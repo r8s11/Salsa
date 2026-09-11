@@ -52,6 +52,6 @@ describe("AdminEventEditor", () => {
       </MemoryRouter>
     );
 
-    expect(screen.getAllByRole("img", { name: "Event flyer preview" })).toHaveLength(1);
+    expect(screen.getAllByRole("img", { name: "Current event flyer" })).toHaveLength(1);
   });
 });

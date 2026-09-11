@@ -1,5 +1,6 @@
 /* ========================================
    Hero — Ritmo Vivo
+   Choreographed entrance: atmosphere → eyebrow → headline → copy → action
    ======================================== */
 
 .hero {
@@ -16,33 +17,238 @@
   inset: 0;
   pointer-events: none;
 }
+/* Vinyl record — spindle pinned to the middle of the section's right edge.
+   Every layer is the same centred circle so a non-square wrapper never
+   squashes the record. */
+.hero-vinyl {
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  z-index: 3;
+  width: clamp(288px, 84vw, 1120px);
+  aspect-ratio: 1;
+  height: auto;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.hero-vinyl__glow,
+.hero-vinyl__disc,
+.hero-vinyl__grooves,
+.hero-vinyl__label,
+.hero-vinyl__sheen {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  height: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+}
+
+.hero-vinyl__glow {
+  height: 114%;
+  background: radial-gradient(
+    circle closest-side,
+    transparent 46%,
+    rgba(225, 29, 72, 0.2) 72%,
+    transparent 100%
+  );
+}
+
+.hero-vinyl__disc {
+  overflow: hidden;
+  animation: heroVinylSpin 11s linear infinite;
+  background:
+    radial-gradient(
+      circle closest-side,
+      transparent 0 34.1%,
+      rgba(255, 255, 255, 0.055) 34.5% 36.6%,
+      rgba(255, 255, 255, 0.02) 36.6% 37.3%,
+      transparent 37.5%
+    ),
+    radial-gradient(circle closest-side at 38% 30%, #191325 0%, #0e0a16 58%, #070510 90%, #0b0714 100%);
+  box-shadow: 0 42px 120px rgba(0, 0, 0, 0.6);
+}
+
+/* Groove pitch is in px so it stays physical instead of scaling with the disc. */
+.hero-vinyl__grooves {
+  background:
+    radial-gradient(
+      circle closest-side,
+      transparent 0 60.5%,
+      rgba(255, 255, 255, 0.07) 60.5% 61.4%,
+      transparent 61.4% 71%,
+      rgba(255, 255, 255, 0.06) 71% 71.8%,
+      transparent 71.8% 82%,
+      rgba(255, 255, 255, 0.055) 82% 82.7%,
+      transparent 82.7% 90.5%,
+      rgba(255, 255, 255, 0.05) 90.5% 91.2%,
+      transparent 91.2%
+    ),
+    radial-gradient(
+      circle closest-side,
+      transparent 0 96.4%,
+      rgba(255, 255, 255, 0.09) 96.6% 98.6%,
+      rgba(255, 255, 255, 0.16) 98.8% 99.6%,
+      transparent 99.8%
+    ),
+    repeating-radial-gradient(
+      circle closest-side,
+      rgba(255, 255, 255, 0.075) 0 0.7px,
+      rgba(0, 0, 0, 0.34) 0.7px 2.2px
+    );
+  mask-image: radial-gradient(
+    circle closest-side,
+    transparent 0 34.4%,
+    #000 37.4% 96.4%,
+    rgba(0, 0, 0, 0.55) 96.6% 99.4%,
+    transparent 99.8%
+  );
+  -webkit-mask-image: radial-gradient(
+    circle closest-side,
+    transparent 0 34.4%,
+    #000 37.4% 96.4%,
+    rgba(0, 0, 0, 0.55) 96.6% 99.4%,
+    transparent 99.8%
+  );
+}
+
+.hero-vinyl__label {
+  background:
+    radial-gradient(
+      circle closest-side,
+      #08060f 0 2.4%,
+      rgba(0, 0, 0, 0.6) 2.4% 2.9%,
+      rgba(233, 195, 73, 0.75) 2.9% 3.3%,
+      transparent 3.3%
+    ),
+    radial-gradient(
+      circle closest-side,
+      transparent 0 9.4%,
+      rgba(255, 255, 255, 0.22) 9.4% 9.6%,
+      transparent 9.6% 24%,
+      rgba(255, 255, 255, 0.16) 24% 24.2%,
+      transparent 24.2%
+    ),
+    radial-gradient(
+      circle closest-side,
+      transparent 0 31.4%,
+      rgba(233, 195, 73, 0.85) 31.6% 32.4%,
+      rgba(0, 0, 0, 0.42) 32.6% 33.6%,
+      transparent 33.9%
+    ),
+    repeating-conic-gradient(
+      from 0deg,
+      rgba(255, 255, 255, 0.022) 0deg 1.1deg,
+      transparent 1.1deg 2.2deg
+    ),
+    radial-gradient(circle closest-side at 40% 32%, #ef2c58 0%, #dc1b45 48%, #9c1035 100%);
+  mask-image: radial-gradient(circle closest-side, #000 0 33.9%, transparent 34.2%);
+  -webkit-mask-image: radial-gradient(circle closest-side, #000 0 33.9%, transparent 34.2%);
+}
+
+/* Curved label printing — rides the label, so it turns with the record. */
+.hero-vinyl__print {
+  position: absolute;
+  inset: 0;
+  width: 33.8%;
+  height: 33.8%;
+  margin: auto;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.hero-vinyl__print-title {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 6.6px;
+  fill: #fff;
+}
+
+.hero-vinyl__print-meta {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 3.6px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  fill: var(--gold-light);
+}
+
+/* Static specular — the light stays put while the record turns. */
+.hero-vinyl__sheen {
+  mix-blend-mode: screen;
+  background:
+    radial-gradient(
+      circle closest-side at 36% 26%,
+      rgba(255, 255, 255, 0.14) 0%,
+      rgba(255, 255, 255, 0.03) 34%,
+      transparent 58%
+    ),
+    conic-gradient(
+      from -62deg,
+      rgba(255, 255, 255, 0.115) 0deg,
+      transparent 24deg,
+      transparent 156deg,
+      rgba(255, 224, 168, 0.085) 180deg,
+      transparent 208deg,
+      transparent 336deg,
+      rgba(255, 255, 255, 0.115) 360deg
+    );
+  mask-image: radial-gradient(circle closest-side, transparent 0 33%, #000 36% 99.2%, transparent 99.8%);
+  -webkit-mask-image: radial-gradient(
+    circle closest-side,
+    transparent 0 33%,
+    #000 36% 99.2%,
+    transparent 99.8%
+  );
+}
+
+@keyframes heroVinylSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 1040px) {
+  .hero-vinyl__glow,
+  .hero-vinyl__disc,
+  .hero-vinyl__sheen {
+    opacity: 0.55;
+  }
+}
 
 /* Crimson spotlight, upper-right */
 .hero-glow {
   position: absolute;
   inset: 0;
+  z-index: 1;
   background:
     radial-gradient(90% 70% at 78% 8%, rgba(225, 29, 72, 0.22), transparent 60%),
     radial-gradient(70% 60% at 8% 90%, rgba(233, 195, 73, 0.12), transparent 55%);
+  animation: heroGlowPulse 12s ease-in-out infinite;
+  will-change: opacity, transform;
 }
 
 /* Subtle line grid */
 .hero-grid {
   position: absolute;
   inset: 0;
+  z-index: 2;
   background-image:
     linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
   background-size: 52px 52px;
   mask-image: radial-gradient(80% 70% at 50% 30%, #000, transparent);
   -webkit-mask-image: radial-gradient(80% 70% at 50% 30%, #000, transparent);
+  animation: heroGridDrift 20s ease-in-out infinite;
+  will-change: background-position;
 }
 
 /* ── Content ── */
 .hero .container {
   position: relative;
-  z-index: 2;
-  padding: 3.25rem 24px 3.75rem;
+  z-index: 4;
+  padding: 4.5rem 28px 3.75rem;
 }
 
 .hero-content {
@@ -55,7 +261,6 @@
   align-items: center;
   gap: 12px;
   margin-bottom: 1.6rem;
-  animation: heroFadeUp 0.9s ease-out both;
 }
 
 .hero-eyebrow-line {
@@ -82,7 +287,6 @@
   letter-spacing: -0.02em;
   font-size: clamp(3.25rem, 9vw, 8rem);
   margin: 0;
-  animation: heroFadeUp 0.9s ease-out 0.05s both;
 }
 
 .hero-heading-line {
@@ -106,7 +310,6 @@
   max-width: 540px;
   line-height: 1.5;
   margin-top: 1.4rem;
-  animation: heroFadeUp 0.9s ease-out 0.12s both;
 }
 
 .hero-subtitle-city {
@@ -119,7 +322,6 @@
   flex-wrap: wrap;
   gap: 0.9rem;
   margin-top: 2.1rem;
-  animation: heroFadeUp 0.9s ease-out 0.18s both;
 }
 
 .hero-btn {
@@ -132,7 +334,6 @@
   display: flex;
   gap: 2.25rem;
   margin-top: 2.75rem;
-  animation: heroFadeUp 0.9s ease-out 0.24s both;
 }
 
 .hero-stat-num {
@@ -186,15 +387,26 @@
   color: var(--red);
 }
 
-/* ── Keyframes ── */
-@keyframes heroFadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(28px);
-  }
-  to {
+
+/* Subtle ambient glow pulse */
+@keyframes heroGlowPulse {
+  0%, 100% {
     opacity: 1;
-    transform: translateY(0);
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.88;
+    transform: scale(1.015);
+  }
+}
+
+/* Subtle grid drift */
+@keyframes heroGridDrift {
+  0%, 100% {
+    background-position: 0 0;
+  }
+  50% {
+    background-position: 26px 26px;
   }
 }
 
@@ -207,37 +419,160 @@
   }
 }
 
-/* ── Reduced Motion ── */
-@media (prefers-reduced-motion: reduce) {
-  .hero-ticker-track {
-    animation: none;
+/* ── CTA hover feedback ── */
+@media (hover: hover) and (pointer: fine) {
+  .hero-btn {
+    transition: transform 0.15s ease-out, box-shadow 0.2s ease-out;
+  }
+
+  .hero-btn:hover {
+    transform: translateY(-1px);
+  }
+
+  .hero-btn:active {
+    transform: translateY(0);
   }
 }
 
-/* ── Mobile ── */
-@media (max-width: 768px) {
-  .hero .container {
-    padding: 2.25rem 20px 2.5rem;
+/* ── Reduced Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .hero-glow,
+  .hero-grid,
+  .hero-ticker-track,
+  .hero-vinyl__disc {
+    animation: none;
   }
 
-  .hero-heading {
-    font-size: clamp(2.75rem, 14vw, 4.5rem);
+  .hero-btn:hover {
+    transform: none;
   }
+}
 
-  .hero-cta {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .hero-btn {
+/* ── Tablet: centre the column so the record frames it ── */
+@media (min-width: 641px) and (max-width: 1040px) {
+  .hero-content {
+    max-width: none;
     text-align: center;
   }
 
+  .hero-eyebrow,
+  .hero-cta,
   .hero-stats {
-    gap: 1.5rem;
+    justify-content: center;
+  }
+
+  .hero-subtitle {
+    margin-inline: auto;
+  }
+}
+
+/* ── Mobile: a focused, thumb-friendly guide ── */
+@media (max-width: 640px) {
+  .hero {
+    padding-top: 1rem;
+  }
+
+  .hero .container {
+    padding: 1.75rem 20px 2rem;
+  }
+  .hero-vinyl__glow,
+  .hero-vinyl__disc,
+  .hero-vinyl__sheen {
+    opacity: 0.42;
+  }
+
+  .hero-glow {
+    background:
+      radial-gradient(100% 60% at 100% 0%, rgba(225, 29, 72, 0.2), transparent 65%),
+      radial-gradient(80% 50% at 0% 100%, rgba(233, 195, 73, 0.1), transparent 60%);
+  }
+
+  .hero-grid {
+    background-size: 40px 40px;
+  }
+
+  .hero-eyebrow {
+    gap: 8px;
+    margin-bottom: 1rem;
+  }
+
+  .hero-eyebrow-line {
+    width: 22px;
+  }
+
+  .hero-eyebrow span:last-child {
+    font-size: 0.66rem;
+    letter-spacing: 0.16em;
+  }
+
+  .hero-heading {
+    font-size: clamp(3.25rem, 17vw, 4.75rem);
+    line-height: 0.9;
+  }
+
+  .hero-subtitle {
+    display: none;
+  }
+
+  .hero-cta {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1.75rem;
+  }
+
+  .hero-btn {
+    align-items: center;
+    justify-content: center;
+    min-height: 3.25rem;
+    text-align: center;
+  }
+
+  .hero-btn--secondary {
+    padding-block: 0.75rem;
+  }
+
+  .hero-stats--compact {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+    margin-top: 1.75rem;
+    border-block: 1px solid var(--border);
+  }
+
+  .hero-stats--compact .hero-stat {
+    min-width: 0;
+    padding: 0.85rem 0.45rem;
+    text-align: center;
+  }
+
+  .hero-stats--compact .hero-stat + .hero-stat {
+    border-left: 1px solid var(--border);
   }
 
   .hero-stat-num {
-    font-size: 1.5rem;
+    font-size: 1.45rem;
+  }
+
+  .hero-stat-label {
+    font-size: 0.58rem;
+    letter-spacing: 0.08em;
+    line-height: 1.25;
+    margin-top: 0.3rem;
+  }
+
+  .hero-ticker {
+    display: none;
+  }
+}
+
+/* ── Pointer Parallax (desktop only) ── */
+@media (hover: hover) and (pointer: fine) {
+  .hero-bg {
+    transform: translate(
+      var(--hero-parallax-x, 0px),
+      var(--hero-parallax-y, 0px)
+    );
+    transition: transform 0.3s ease-out;
   }
 }

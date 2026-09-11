@@ -1,0 +1,331 @@
+/* Host event import page — mirrors AdminImportEventsPage's section-card convention. */
+
+.host-import-page__no-organizer {
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.host-import-page__no-organizer p {
+  margin: 0 0 16px;
+  color: var(--admin-text-muted);
+}
+
+/* ── Instructions ── */
+
+.host-import-page__instructions {
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.host-import-page__instructions h2 {
+  margin: 0 0 16px;
+  font-size: 1.1rem;
+  color: var(--admin-text-strong);
+}
+
+.host-import-page__instructions ol {
+  margin: 0 0 16px;
+  padding-left: 20px;
+  color: var(--admin-text-muted);
+  font-size: 0.9rem;
+}
+
+.host-import-page__instructions ol li {
+  margin-bottom: 4px;
+}
+
+.host-import-page__organizer-select {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+  color: var(--admin-text-primary);
+}
+
+.host-import-page__organizer-select select {
+  padding: 8px 12px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  background: var(--admin-surface);
+  color: var(--admin-text-primary);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.host-import-page__organizer-select select:focus {
+  outline: none;
+  border-color: var(--admin-brand);
+  box-shadow: 0 0 0 2px var(--admin-brand-ring);
+}
+
+.host-import-page__rules {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--admin-border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.host-import-page__rules p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--admin-text-muted);
+}
+
+.host-import-page__rules strong {
+  color: var(--admin-text-primary);
+}
+
+.host-import-page__rules code {
+  background: var(--admin-surface-secondary);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  color: var(--admin-text-primary);
+}
+
+/* ── Upload / Processing ── */
+
+.host-import-page__upload-card {
+  padding: 20px;
+}
+
+.host-import-page__status-card {
+  padding: 20px;
+}
+
+/* ── File summary + actions ── */
+
+.host-import-page__summary {
+  padding: 20px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.host-import-page__filename {
+  margin: 0;
+  font-weight: 600;
+  color: var(--admin-text-strong);
+}
+
+.host-import-page__filesize {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  color: var(--admin-text-muted);
+}
+
+.host-import-page__counts {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.host-import-page__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+/* ── Status badges ── */
+
+.host-import-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.host-import-status--valid {
+  background: rgba(34, 197, 94, 0.12);
+  color: #16a34a;
+}
+
+.host-import-status--warning {
+  background: rgba(234, 179, 8, 0.12);
+  color: #ca8a04;
+}
+
+.host-import-status--invalid {
+  background: rgba(239, 68, 68, 0.12);
+  color: #dc2626;
+}
+
+/* ── Validation table ── */
+
+.host-import-page__table-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.host-import-page__table-scroll {
+  display: block;
+  overflow-x: auto;
+}
+
+.host-import-page__table {
+  width: 100%;
+  min-width: 0;
+  border-collapse: collapse;
+}
+
+.host-import-page__table thead tr {
+  background: var(--admin-surface-subtle);
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.host-import-page__table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--admin-text-muted);
+  white-space: nowrap;
+}
+
+.host-import-page__table tbody tr {
+  border-bottom: 1px solid var(--admin-border);
+  transition: background-color 0.15s ease;
+}
+
+.host-import-page__table tbody tr:last-child {
+  border-bottom: 0;
+}
+
+.host-import-page__table tbody tr:hover {
+  background: var(--admin-surface-subtle);
+}
+
+.host-import-page__table td {
+  padding: 12px 16px;
+  vertical-align: top;
+  font-size: 0.9rem;
+  color: var(--admin-text-primary);
+}
+
+.host-import-page__row-number {
+  color: var(--admin-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.host-import-page__event-title {
+  font-weight: 600;
+  color: var(--admin-text-strong);
+}
+
+.host-import-page__date {
+  white-space: nowrap;
+  color: var(--admin-text-muted);
+}
+
+.host-import-page__ok {
+  color: var(--admin-text-muted);
+}
+
+.host-import-page__issues {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.host-import-page__issue--error {
+  color: var(--admin-danger);
+}
+
+.host-import-page__issue--warning {
+  color: var(--admin-warning);
+}
+
+.host-import-page__include {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  color: var(--admin-text-muted);
+}
+
+/* ── Mobile card stack ── */
+
+.host-import-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+.host-import-cards__item {
+  padding: 12px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  background: var(--admin-surface);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.host-import-cards__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.host-import-cards__row {
+  display: flex;
+  gap: 6px;
+  font-size: 0.85rem;
+}
+
+.host-import-cards__label {
+  color: var(--admin-text-muted);
+}
+
+@media (min-width: 768px) {
+  .host-import-cards {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .host-import-page__table-scroll {
+    display: none;
+  }
+}
+
+/* ── Results ── */
+
+.host-import-page__results {
+  padding: 20px;
+}
+
+.host-import-page__results h2 {
+  margin: 0 0 16px;
+  font-size: 1.1rem;
+  color: var(--admin-text-strong);
+}
+
+.host-import-page__results-counts {
+  margin: 0 0 16px;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.9rem;
+  color: var(--admin-text-primary);
+}

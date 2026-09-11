@@ -84,6 +84,13 @@ describe("hostEvents", () => {
     });
   });
 
+  it("keeps drafts in the Host workspace instead of linking to the public calendar", () => {
+    expect(hostEventAction({ ...baseEvent, id: "draft-1", status: "draft" })).toEqual({
+      label: "View draft",
+      to: "/host/events/draft-1",
+    });
+  });
+
   it("falls back to the existing Calendar detail for a non-editable, non-approved event", () => {
     expect(
       hostEventAction({ ...baseEvent, id: "cancelled-1", city: "boston", status: "cancelled" })

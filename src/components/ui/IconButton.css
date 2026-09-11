@@ -1,0 +1,66 @@
+/* ========================================
+   ICON BUTTON
+   44×44px icon-only control
+   ======================================== */
+
+.ui-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.ui-icon-button:focus-visible {
+  outline: 2px solid var(--red-bright);
+  outline-offset: 2px;
+}
+
+.ui-icon-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ── Ghost (default) ── */
+.ui-icon-button--ghost {
+  background: transparent;
+}
+
+.ui-icon-button--ghost:hover:not(:disabled) {
+  background: var(--card);
+  color: var(--red-bright);
+}
+
+/* ── Outline ── */
+.ui-icon-button--outline {
+  border: 1px solid var(--border-md);
+  background: var(--card);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+}
+
+.ui-icon-button--outline:hover:not(:disabled) {
+  background: var(--card-hover);
+  border-color: var(--border-lg);
+  color: var(--red-bright);
+}
+
+/* ── Danger ── */
+.ui-icon-button--danger {
+  color: var(--red-bright);
+}
+
+.ui-icon-button--danger:hover:not(:disabled) {
+  background: var(--red-dim);
+}

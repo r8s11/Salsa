@@ -1,0 +1,680 @@
+/* ========================================
+   Event Modal — Tambora structure, Ritmo Vivo skin
+   Desktop: centered card with two-column grid
+   Mobile:  full-bleed bottom sheet with sticky CTA bar
+   ======================================== */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: rgba(11, 19, 38, 0.62);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 20px;
+  overflow-y: auto;
+}
+
+.modal-content {
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow:
+    var(--glow-primary),
+    0 30px 60px -18px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+/* ── Drag handle (mobile only) ── */
+.modal-drag-handle {
+  display: none;
+}
+
+/* ── Poster header ── */
+.modal-poster {
+  position: relative;
+  width: 100%;
+  height: 248px;
+  aspect-ratio: 4 / 5;
+  background-color: var(--surface-high);
+  background-image: linear-gradient(150deg, var(--surface-high), var(--red));
+  background-size: cover;
+  background-position: center;
+}
+
+.modal-poster::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(11, 19, 38, 0.82), transparent 55%);
+}
+
+/* ── Quick look header & facts ── */
+.quick-look-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.quick-look-date {
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.quick-facts {
+  display: flex;
+  padding: 16px 28px;
+  gap: 20px;
+  background: var(--color-bg-subtle);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.fact {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9em;
+}
+
+.price-tag {
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+/* ── Back-pill button ── */
+.back-pill {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--card);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius-full);
+  padding: 8px 14px;
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.back-pill:hover {
+  background: var(--card-hover);
+  border-color: var(--border-lg);
+}
+
+.poster-overlay {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: 18px;
+  z-index: 2;
+}
+
+.poster-overlay h2 {
+  font-family: var(--font-display);
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin: 8px 0 0;
+}
+
+/* ── Calendar type chips ── */
+.chip-social {
+  background: var(--red-dim);
+  color: #ffccd4;
+}
+.chip-class {
+  background: rgba(124, 147, 233, 0.18);
+  color: #dfe3ff;
+}
+.chip-workshop {
+  background: var(--gold-dim);
+  color: var(--gold-light);
+}
+
+.modal-content .style-chip {
+  padding: 3px 8px;
+}
+
+/* ── Scrollable body ── */
+.modal-body {
+  /* On desktop this just passes through; on mobile it becomes scrollable */
+}
+
+/* ── Body grid (desktop two-column) ── */
+.modal-grid {
+  display: grid;
+  grid-template-columns: 1.45fr 1fr;
+}
+
+.modal-details {
+  padding: 28px;
+}
+
+.meta-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--text);
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.address-link {
+  color: var(--text-link, inherit);
+  text-decoration: none;
+}
+.address-link:hover {
+  color: var(--text-link-hover, var(--primary));
+}
+
+.meta-row svg {
+  color: var(--gold);
+  flex-shrink: 0;
+}
+
+.meta-row > span:not(.repeat-pill) {
+  flex: 1;
+  min-width: 0;
+}
+
+.modal-style-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.meta-row:has(.modal-style-chips) {
+  margin-bottom: 2px;
+}
+
+.repeat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--tertiary-dim);
+  color: var(--tertiary);
+  border-radius: var(--radius-full);
+  padding: 3px 10px;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.modal-description {
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin: 10px 0 0;
+}
+
+/* ── Gallery ── */
+.gallery {
+  margin-top: 20px;
+}
+
+.gallery-eyebrow {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0 0 10px;
+}
+
+.gallery-row {
+  display: flex;
+  gap: 8px;
+}
+
+.gallery-thumb {
+  width: 60px;
+  height: 60px;
+  border-radius: var(--radius);
+  object-fit: cover;
+}
+
+.gallery-more {
+  width: 60px;
+  height: 60px;
+  border-radius: var(--radius);
+  background: var(--card);
+  border: 1px solid var(--border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+/* ── Desktop RSVP sidebar ── */
+.modal-rsvp {
+  padding: 28px;
+  background: rgba(0, 0, 0, 0.22);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.price-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.price-amount {
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.price-note {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.modal-rsvp .rsvp-button,
+.modal-rsvp .ics-button,
+.modal-rsvp .modal-full-details,
+.modal-rsvp .poster-toggle-btn,
+.modal-rsvp .copy-link-btn {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  /* <button> defaults to line-height: normal; anchors inherit the body's.
+     Inherit explicitly so both element types render the same height. */
+  line-height: inherit;
+}
+
+/* .btn-primary has no border while .btn-secondary carries a 1px gold one;
+   match the box height so all four actions line up. */
+.modal-rsvp .rsvp-button,
+.modal-mobile-actions .rsvp-button {
+  border: 1px solid transparent;
+}
+
+.reassurance {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--text-dim);
+  text-align: center;
+  margin: 0;
+}
+
+/* ── Shareable Poster ── */
+.poster-download-section {
+  margin-top: 4px;
+}
+
+.poster-toggle-btn:hover {
+  color: var(--text);
+}
+
+/* ── Contact block ── */
+.contact-block {
+  display: grid;
+  gap: 8px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.contact-eyebrow {
+  margin: 0 0 4px;
+  color: var(--gold);
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.contact-block a {
+  color: var(--gold-light);
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+  text-decoration: none;
+}
+
+.contact-block a:focus-visible {
+  outline: 2px solid var(--gold-light);
+  outline-offset: 3px;
+}
+
+/* ── Series ── */
+.series {
+  margin-top: 8px;
+}
+
+.series h3 {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0 0 4px;
+}
+
+.series-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 0;
+  border-top: 1px solid var(--border);
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--text);
+}
+
+.series-item a {
+  color: var(--gold);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.series-item a:hover {
+  color: var(--gold-light);
+  text-decoration: underline;
+}
+
+/* ── Mobile extras (hidden on desktop, shown on mobile) ── */
+.modal-mobile-extras {
+  display: none;
+}
+
+/* ── Mobile sticky action bar (hidden on desktop) ── */
+.modal-mobile-actions {
+  display: none;
+}
+
+/* ── Sticky close (X) button ── */
+.modal-close-x {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius-full);
+  background: var(--card);
+  color: var(--text);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.modal-close-x:hover {
+  background: var(--card-hover);
+  border-color: var(--border-lg);
+  color: var(--red-bright);
+}
+
+/* ========================================
+   MOBILE — Bottom sheet redesign
+   ======================================== */
+@media (max-width: 720px) {
+  /* ── Overlay: flush to edges, sheet slides up from bottom ── */
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+    overflow-y: hidden;
+  }
+
+  /* ── Sheet: rounded top corners, fills 92% of viewport height ── */
+  .modal-content {
+    max-width: none;
+    border-radius: 20px 20px 0 0;
+    border-bottom: none;
+    max-height: 92dvh;
+    display: flex;
+    flex-direction: column;
+    animation: modalSlideUp 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  @keyframes modalSlideUp {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  /* ── Drag handle ── */
+  .modal-drag-handle {
+    display: block;
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 12;
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border-md);
+  }
+
+  /* ── Close X — always visible top-right, over poster ── */
+  .modal-close-x {
+    display: inline-flex;
+    top: 8px;
+    right: 12px;
+    z-index: 12;
+  }
+
+  /* ── Back pill — hidden on mobile (X button replaces it) ── */
+  .back-pill {
+    display: none;
+  }
+
+  /* ── Poster — taller, full-bleed into top corners ── */
+  .modal-poster {
+    height: 240px;
+    border-radius: 20px 20px 0 0;
+    flex-shrink: 0;
+  }
+
+  .poster-overlay {
+    left: 20px;
+    right: 20px;
+    bottom: 14px;
+  }
+
+  .poster-overlay h2 {
+    font-size: 24px;
+    line-height: 1.1;
+  }
+
+  .quick-look-header {
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .quick-look-date {
+    font-size: 0.8rem;
+  }
+
+  /* ── Quick facts — compact, wrapped row ── */
+  .quick-facts {
+    padding: 12px 20px;
+    gap: 12px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    font-size: 0.85em;
+  }
+
+  .quick-facts .fact {
+    font-size: 0.82em;
+    white-space: nowrap;
+  }
+
+  .quick-facts .fact a {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 160px;
+  }
+
+  /* ── Scrollable body ── */
+  .modal-body {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+  }
+
+  /* ── Single-column grid ── */
+  .modal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-details {
+    padding: 20px 20px 8px;
+  }
+
+  /* ── Sidebar — hidden on mobile ── */
+  .modal-rsvp {
+    display: none;
+  }
+
+  /* ── Mobile extras (contacts, series — shown inline) ── */
+  .modal-mobile-extras {
+    display: block;
+    padding: 8px 20px 16px;
+  }
+
+  .modal-mobile-extras .contact-block {
+    margin-top: 12px;
+    padding-top: 12px;
+  }
+
+  .modal-mobile-extras .contact-block a {
+    font-size: 0.9rem;
+    padding: 6px 0;
+  }
+
+  .modal-mobile-extras .series {
+    margin-top: 14px;
+  }
+
+  .modal-mobile-extras .series-item {
+    font-size: 15px;
+    padding: 10px 0;
+  }
+
+  /* ── Sticky mobile action bar ── */
+  .modal-mobile-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    flex-shrink: 0;
+    gap: 8px;
+    padding: 10px 16px;
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.3);
+  }
+
+  /* The Share button is wrapped in a section div for the desktop sidebar;
+   * dissolve it so the button itself becomes a grid cell. */
+  .modal-mobile-actions .poster-download-section {
+    display: contents;
+  }
+
+  .modal-mobile-actions .rsvp-button,
+  .modal-mobile-actions .ics-button,
+  .modal-mobile-actions .modal-full-details,
+  .modal-mobile-actions .poster-toggle-btn,
+  .modal-mobile-actions .copy-link-btn {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.7rem;
+    padding: 0.6rem 0.4rem;
+    white-space: nowrap;
+    line-height: inherit;
+    text-align: center;
+  }
+
+  .modal-mobile-actions .reassurance {
+    display: none;
+  }
+}
+
+/* ── Small phones (≤400px) — tighter spacing ── */
+@media (max-width: 400px) {
+  .modal-poster {
+    height: 200px;
+  }
+
+  .poster-overlay h2 {
+    font-size: 20px;
+  }
+
+  .modal-details {
+    padding: 16px 16px 4px;
+  }
+
+  .modal-mobile-actions {
+    padding: 10px 12px;
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+    gap: 6px;
+  }
+
+  .modal-mobile-actions .rsvp-button,
+  .modal-mobile-actions .ics-button,
+  .modal-mobile-actions .modal-full-details,
+  .modal-mobile-actions .poster-toggle-btn,
+  .modal-mobile-actions .copy-link-btn {
+    font-size: 0.68rem;
+    padding: 0.55rem 0.3rem;
+  }
+
+  .modal-mobile-extras {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}

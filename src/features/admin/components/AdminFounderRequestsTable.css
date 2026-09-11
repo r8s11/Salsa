@@ -1,0 +1,376 @@
+/* Founder Requests admin table — Phase 5 redesign.
+   Desktop: 5-column table with explicit width distribution.
+   Mobile:   stacked card per request (table semantics preserved on desktop). */
+
+.admin-founder-requests-table-container {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.admin-founder-requests-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+  table-layout: fixed;
+}
+
+.admin-founder-requests-table th,
+.admin-founder-requests-table td {
+  min-width: 0;
+  padding: var(--space-md);
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.admin-founder-requests-table th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--surface);
+  white-space: nowrap;
+}
+
+.admin-founder-requests-table tbody tr {
+  transition: background var(--transition-fast);
+}
+
+.admin-founder-requests-table tbody tr:hover {
+  background: var(--surface-hover);
+}
+
+/* Desktop column widths — proportional, not fixed pixels.
+   Applicant/Org and Contact get the bulk of the width; Submitted/Status/Actions
+   stay compact. */
+.admin-founder-requests-table .col-applicant {
+  width: 34%;
+  max-width: 34%;
+}
+
+.admin-founder-requests-table .col-contact {
+  width: 27%;
+  max-width: 27%;
+}
+
+.admin-founder-requests-table .col-submitted {
+  width: 14%;
+  max-width: 14%;
+}
+
+.admin-founder-requests-table .col-status {
+  width: 17%;
+  max-width: 17%;
+}
+
+.admin-founder-requests-table .col-actions {
+  width: 8%;
+  max-width: 8%;
+  text-align: right;
+}
+
+.admin-founder-requests-table .actions-header {
+  text-align: right;
+}
+
+/* ── Desktop row: stacked cells ── */
+.founder-stacked-cell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3xs);
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.founder-primary {
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.3;
+  /* text truncation fallback */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.founder-secondary {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  line-height: 1.3;
+}
+
+.founder-tertiary {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+.founder-primary,
+.founder-secondary,
+.founder-tertiary {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.founder-link {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--primary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-decoration: underline;
+  text-underline-offset: 1px;
+}
+
+.founder-link:hover {
+  text-decoration-thickness: 1px;
+}
+
+.founder-link:focus-visible {
+  outline: 2px solid var(--admin-brand);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Contact meta items — vertically stacked, icon + text, wrap-aware */
+.founder-contact-cell .founder-meta-item {
+  max-width: 100%;
+}
+
+.founder-meta-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3xs);
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.founder-meta-item__icon {
+  flex-shrink: 0;
+  width: 12px;
+  height: 12px;
+  color: var(--text-muted);
+}
+
+.founder-meta-item__value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Date cell */
+.founder-date-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3xs);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* Status cell — icon + label line, review metadata line beneath */
+.founder-status-cell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3xs);
+}
+
+.founder-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3xs);
+  padding: var(--space-3xs) var(--space-sm);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: capitalize;
+  line-height: 1.2;
+}
+
+.founder-status-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.founder-status-badge--pending {
+  background: var(--warning-bg);
+  color: var(--warning-text);
+}
+
+.founder-status-badge--approved {
+  background: var(--success-bg);
+  color: var(--success-text);
+}
+
+.founder-status-badge--rejected {
+  background: var(--destructive-bg);
+  color: var(--destructive-text);
+}
+
+.founder-status-meta {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+/* Actions cell — right aligned, consistent across rows */
+.founder-actions-cell {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Ensure the actions trigger is a comfortable touch target */
+.admin-action-menu__trigger {
+  min-width: 36px;
+  min-height: 36px;
+  padding: 4px;
+}
+
+/* ── Loading / empty ── */
+.founder-loading-row td {
+  padding: var(--space-xl) 0;
+}
+
+.founder-empty-state {
+  padding: var(--space-2xl);
+  text-align: center;
+  color: var(--text-muted);
+}
+
+/* ── Skeletons ── */
+.founder-loading-placeholder {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  max-width: 90%;
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--border) 25%,
+    var(--surface-hover) 50%,
+    var(--border) 75%
+  );
+  background-size: 200% 100%;
+  animation: founder-skeleton-loading 1.5s infinite;
+  border-radius: var(--radius-sm);
+}
+
+.skeleton-title {
+  height: 16px;
+  width: 60%;
+}
+
+.skeleton-meta {
+  height: 12px;
+  width: 40%;
+}
+
+.skeleton-meta.short {
+  width: 25%;
+}
+
+@keyframes founder-skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ── Desktop rows / mobile cards ── */
+/* Desktop rows are the table default. Mobile cards replace them below 768px. */
+
+.founder-mobile-card {
+  display: none;
+}
+
+/* Narrow screens: hide desktop rows and reveal one stacked card per request. */
+@media (max-width: 768px) {
+  .admin-founder-requests-table {
+    table-layout: fixed;
+  }
+
+  .founder-request-row {
+    display: none;
+  }
+
+  .founder-mobile-card {
+    display: table-row;
+  }
+
+  .founder-mobile-card__body {
+    padding: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .founder-mobile-card__actions {
+    display: flex;
+    justify-content: flex-end;
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  /* Two columns of card fields: label | value, using ::before data-label. */
+  .founder-mobile-card__field {
+    flex: 1;
+    min-width: 0;
+    padding: 6px var(--space-md);
+    overflow: hidden;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .founder-mobile-card__field:last-of-type {
+    border-bottom: none;
+  }
+
+  .founder-mobile-card__field::before {
+    content: attr(data-label);
+    display: block;
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 4px;
+  }
+
+  /* Stack the two fields side by side on very narrow screens. */
+  .founder-mobile-card__row {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  @media (min-width: 520px) {
+    .founder-mobile-card__row {
+      flex-direction: row;
+      gap: var(--border);
+    }
+    .founder-mobile-card__field {
+      flex: 1;
+    }
+  }
+
+  /* Headers: show only a single compact header row on mobile. */
+  .admin-founder-requests-table thead {
+    display: none;
+  }
+}

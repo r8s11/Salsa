@@ -1,0 +1,158 @@
+/* ========================================
+   PUBLIC BUTTON SYSTEM
+   Consolidated from global .btn-* families
+   ======================================== */
+
+/* ── Base ── */
+.ui-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0.8rem 1.75rem;
+  border: 0;
+  border-radius: var(--radius-xl);
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  line-height: 1.2;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  z-index: 0;
+  transition:
+    box-shadow 0.25s ease,
+    background-color 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease;
+}
+
+/* ── Focus ── */
+.ui-button:focus-visible {
+  outline: 2px solid var(--red-bright);
+  outline-offset: 2px;
+}
+
+/* ── Primary ── */
+.ui-button--primary {
+  background: linear-gradient(180deg, #ff3d63, #e11d48);
+  color: #fff;
+}
+
+.ui-button--primary:hover:not(:disabled) {
+  box-shadow: var(--glow-primary);
+}
+
+.ui-button--primary::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--red-bright);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  z-index: -1;
+}
+
+.ui-button--primary:hover:not(:disabled)::before {
+  transform: translateX(0);
+}
+
+/* ── Secondary ── */
+.ui-button--secondary {
+  background: transparent;
+  color: var(--gold);
+  border: 1px solid var(--gold);
+}
+
+.ui-button--secondary:hover:not(:disabled) {
+  background: var(--gold-dim);
+  color: var(--gold-light);
+}
+
+/* ── Ghost ── */
+.ui-button--ghost {
+  background: none;
+  border: none;
+  color: var(--text);
+  padding: 0.8rem 0.5rem;
+}
+
+.ui-button--ghost::after {
+  content: "";
+  position: absolute;
+  left: 0.5rem;
+  right: 0.5rem;
+  bottom: 0.35rem;
+  height: 2px;
+  background: var(--red-bright);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.25s ease;
+}
+
+.ui-button--ghost:hover:not(:disabled)::after {
+  transform: scaleX(1);
+}
+
+/* ── Danger ── */
+.ui-button--danger {
+  background: transparent;
+  color: var(--red-bright);
+  border: 1px solid var(--red-bright);
+}
+
+.ui-button--danger:hover:not(:disabled) {
+  background: var(--red-dim);
+  color: var(--red-bright);
+}
+
+/* ── Sizes ── */
+.ui-button--compact {
+  min-height: 36px;
+  padding: 6px 14px;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+}
+
+/* ── Full width ── */
+.ui-button--block {
+  display: flex;
+  width: 100%;
+}
+
+/* ── Disabled ── */
+.ui-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ── Loading ── */
+.ui-button--loading {
+  cursor: wait;
+}
+
+.ui-button--loading::before {
+  display: none;
+}
+
+.ui-button__spinner {
+  width: 1.1em;
+  height: 1.1em;
+  flex-shrink: 0;
+  animation: ui-button-spin 0.7s linear infinite;
+}
+
+@keyframes ui-button-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── ButtonLink (renders <a> or <Link> with button styling) ── */
+a.ui-button {
+  text-decoration: none;
+}

@@ -20,13 +20,13 @@ Deno.test("normalizeDisplayName", () => {
 });
 
 Deno.test("inviteRedirectUrl", () => {
-  assertEquals(inviteRedirectUrl("local"), "http://localhost:3000/auth/invite-confirm");
-  assertEquals(inviteRedirectUrl("production"), "https://salsasegura.com/auth/invite-confirm");
+  assertEquals(inviteRedirectUrl("local"), "http://localhost:5173/auth/invite");
+  assertEquals(inviteRedirectUrl("production"), "https://www.salsasegura.com/auth/invite");
 });
 
 Deno.test("isAllowedInviteRedirect", () => {
-  assertEquals(isAllowedInviteRedirect("http://localhost:3000/auth/invite-confirm"), true);
-  assertEquals(isAllowedInviteRedirect("https://salsasegura.com/auth/invite-confirm"), true);
+  assertEquals(isAllowedInviteRedirect("http://localhost:5173/auth/invite"), true);
+  assertEquals(isAllowedInviteRedirect("https://www.salsasegura.com/auth/invite"), true);
   assertEquals(isAllowedInviteRedirect("/"), false);
   assertEquals(isAllowedInviteRedirect("/auth/callback"), false);
   assertEquals(isAllowedInviteRedirect("//evil.com"), false);

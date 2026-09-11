@@ -28,7 +28,6 @@
     "@tanstack/react-query": "^5.101.4",
     "@vectorize-io/hindsight-ai-sdk": "^0.5.1",
     "@vectorize-io/hindsight-client": "^0.9.1",
-    "codegraph": "^1.0.0",
     "html-to-image": "^1.11.13",
     "lucide-react": "^1.24.0",
     "motion": "^13.2.0",

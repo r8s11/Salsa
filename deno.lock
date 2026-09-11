@@ -201,7 +201,6 @@
         "npm:@vectorize-io/hindsight-ai-sdk@~0.5.1",
         "npm:@vectorize-io/hindsight-client@~0.9.1",
         "npm:@vitejs/plugin-react@^5.1.4",
-        "npm:codegraph@1",
         "npm:eslint-config-prettier@^10.1.8",
         "npm:eslint-plugin-react-hooks@^7.0.1",
         "npm:eslint-plugin-react-refresh@0.5",

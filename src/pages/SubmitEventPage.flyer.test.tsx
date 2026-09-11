@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { act, render, screen, fireEvent, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import userEvent, { type UserEvent } from "@testing-library/user-event";
 import * as submissionsRepo from "../features/admin/api/submissionsRepo";
 import SubmitEventPage from "./SubmitEventPage";
 
@@ -15,9 +15,7 @@ const mockEventFlyers = vi.hoisted(() => ({
   uploadEventFlyer: vi.fn(),
   removeEventFlyer: vi.fn(),
 }));
-const mockFlyerExtraction = vi.hoisted(() => ({
-  extractEventFromFlyer: vi.fn(),
-}));
+const mockExtractionClient = vi.hoisted(() => ({ extractEventFromFlyer: vi.fn() }));
 
 vi.mock("../contexts/useAuth", () => ({ useAuth: () => ({ user: mockAuth.user }) }));
 vi.mock("../contexts/useCity", () => ({ useCity: () => ({ city: "boston" }) }));
@@ -39,7 +37,9 @@ vi.mock("../features/events/api/eventFlyers", () => ({
       ? null
       : "Choose a JPEG, PNG, or WebP image.",
 }));
-vi.mock("../features/flyer-extraction/client", () => mockFlyerExtraction);
+vi.mock("../features/flyer-extraction/client", () => ({
+  extractEventFromFlyer: mockExtractionClient.extractEventFromFlyer,
+}));
 
 const FLYER_URL =
   "https://project.supabase.co/storage/v1/object/public/event-flyers/test-user-id/submission-abc/havana.png";
@@ -53,8 +53,8 @@ const renderPage = () => {
 describe("SubmitEventPage flyer (Phase 1)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // jsdom does not implement Element.scrollIntoView; stub so the "Continue
-    // manually" dismiss flow (which focuses the form) does not crash the test.
+    // jsdom does not implement Element.scrollIntoView; stub so the extract-and-focus
+    // flow (which focuses the form) does not crash the test.
     Element.prototype.scrollIntoView = Element.prototype.scrollIntoView ?? (() => {});
     mockAuth.user = { id: "test-user-id", email: "test@example.com" };
     mockSubmissionAccess.useSubmissionAccess.mockReturnValue({
@@ -116,6 +116,91 @@ describe("SubmitEventPage flyer (Phase 1)", () => {
     expect(
       await screen.findByRole("button", { name: /Extract Event Details/i })
     ).toBeInTheDocument();
+  });
+
+  const uploadFlyerAndExtract = async (user: UserEvent) => {
+    renderPage();
+    await user.upload(
+      screen.getByLabelText("Event flyer"),
+      new File(["png"], "havana-friday.png", { type: "image/png" })
+    );
+    await screen.findByRole("button", { name: /Extract Event Details/i });
+    await user.click(screen.getByRole("button", { name: /Extract Event Details/i }));
+  };
+
+  it("fills the form from the extraction and reports what was filled", async () => {
+    const user = userEvent.setup();
+    mockExtractionClient.extractEventFromFlyer.mockResolvedValue({
+      title: "Havana Friday Social",
+      date: "2026-09-18",
+      start_time: "21:00",
+      end_time: null,
+      venue_name: "Havana Club",
+      address: null,
+      city: "Brooklyn",
+      dance_styles: ["Salsa"],
+      event_type: "Social",
+      price: "$20",
+      organizer_name: null,
+      instagram: null,
+      website: null,
+      details: [],
+    });
+
+    await uploadFlyerAndExtract(user);
+
+    expect(mockExtractionClient.extractEventFromFlyer).toHaveBeenCalledWith(FLYER_URL);
+    expect(screen.getByLabelText(/Event Title \*/i)).toHaveValue("Havana Friday Social");
+    expect(screen.getByLabelText(/Date \*/i)).toHaveValue("2026-09-18");
+    expect(screen.getByRole("button", { name: "New York City" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
+    const notice = await screen.findByRole("status");
+    expect(notice).toHaveTextContent(/Filled .* from your flyer/i);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("leaves unmappable fields alone and says what it could not determine", async () => {
+    const user = userEvent.setup();
+    mockExtractionClient.extractEventFromFlyer.mockResolvedValue({
+      title: "Warehouse Party",
+      date: null,
+      start_time: null,
+      end_time: null,
+      venue_name: null,
+      address: null,
+      city: "Cambridgeport",
+      dance_styles: [],
+      event_type: null,
+      price: "Suggested donation",
+      organizer_name: null,
+      instagram: null,
+      website: null,
+      details: [],
+    });
+
+    await uploadFlyerAndExtract(user);
+
+    expect(screen.getByLabelText(/Event Title \*/i)).toHaveValue("Warehouse Party");
+    expect(screen.getByRole("button", { name: "Boston" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
+    const notice = await screen.findByRole("status");
+    expect(notice).toHaveTextContent(/Couldn't determine: city, price/i);
+  });
+
+  it("shows the extraction failure without touching the form", async () => {
+    const user = userEvent.setup();
+    mockExtractionClient.extractEventFromFlyer.mockRejectedValue(
+      new Error("We couldn't read this flyer. Please try again.")
+    );
+
+    await uploadFlyerAndExtract(user);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/We couldn't read this flyer/i);
+    expect(screen.getByLabelText(/Event Title \*/i)).toHaveValue("");
   });
 
   it("persists the uploaded flyer URL into submitted_data on submit — one upload only", async () => {

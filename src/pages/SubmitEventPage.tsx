@@ -3,6 +3,7 @@ import { Sparkles } from "lucide-react";
 import { useAuth } from "../contexts/useAuth";
 import EventForm, { CAPABILITIES } from "../features/events/components/EventForm";
 import EventFlyerField from "../features/events/components/EventFlyerField";
+import FlyerExtractionPanel from "../features/flyer-extraction/FlyerExtractionPanel";
 import SuccessCard from "../features/submit-event/components/SuccessCard";
 import { useSubmissionAccess } from "../features/submit-event/hooks/useSubmissionAccess";
 import { useSubmitEventForm } from "../features/submit-event/hooks/useSubmitEventForm";
@@ -54,6 +55,11 @@ export default function SubmitEventPage() {
     handleFlyerChange,
     handleFlyerRetry,
     handleFlyerRemove,
+    extractionStatus,
+    extractionResult,
+    extractionError,
+    handleExtractFlyer,
+    dismissExtractionError,
   } = useSubmitEventForm();
   const submissionAccess = useSubmissionAccess(Boolean(user));
   const [pristineForm] = useState(form);
@@ -61,8 +67,6 @@ export default function SubmitEventPage() {
   const [entryMode, setEntryMode] = useState<EntryMode>("choice");
 
   const formRef = useRef<HTMLFormElement>(null);
-  const [showComingSoon, setShowComingSoon] = useState(false);
-  const comingSoonRef = useRef<HTMLDivElement>(null);
 
   // Only the Host-facing entry point warns before losing typed work — the
   // public submitter flow is intentionally left unchanged in Phase 2.
@@ -82,11 +86,6 @@ export default function SubmitEventPage() {
       const firstField = formEl.querySelector<HTMLElement>("input, textarea, button, [tabindex]");
       firstField?.focus();
     }
-  };
-
-  const closeComingSoon = () => {
-    setShowComingSoon(false);
-    focusForm();
   };
 
   if (isSubmitted) return <SuccessCard onReset={resetSubmitted} />;
@@ -130,8 +129,8 @@ export default function SubmitEventPage() {
                   Start with a flyer
                 </h2>
                 <p className="submit-flyer__subhead">
-                  Upload an event flyer and SalsaSegura will eventually help fill in the event
-                  details for you.
+                  Upload an event flyer and SalsaSegura can read the event details from it for you
+                  to review.
                 </p>
 
                 {user ? (
@@ -155,12 +154,25 @@ export default function SubmitEventPage() {
                   </p>
                 )}
 
-                {flyerReady && (
+                {flyerReady && extractionStatus === "idle" && (
                   <div className="submit-flyer__actions">
-                    <Button variant="secondary" onClick={() => setShowComingSoon(true)}>
+                    <Button variant="secondary" onClick={handleExtractFlyer}>
                       <Sparkles size={16} aria-hidden /> Extract Event Details
                     </Button>
                   </div>
+                )}
+
+                {flyerReady && extractionStatus !== "idle" && (
+                  <FlyerExtractionPanel
+                    status={extractionStatus}
+                    result={extractionResult}
+                    error={extractionError}
+                    onRetry={handleExtractFlyer}
+                    onDismiss={() => {
+                      dismissExtractionError();
+                      focusForm();
+                    }}
+                  />
                 )}
               </section>
             )}
@@ -191,31 +203,6 @@ export default function SubmitEventPage() {
           </>
         )}
       </div>
-
-      {/* ── Coming Soon (honest, not a silent no-op) ── */}
-      {showComingSoon && (
-        <div className="submit-comingsoon-overlay" onClick={closeComingSoon} role="presentation">
-          <div
-            className="submit-comingsoon"
-            onClick={(event) => event.stopPropagation()}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="coming-soon-title"
-            ref={comingSoonRef}
-          >
-            <h2 id="coming-soon-title">
-              <Sparkles size={18} aria-hidden /> Extract Event Details
-            </h2>
-            <p className="submit-comingsoon__badge">Coming soon</p>
-            <p>
-              AI flyer extraction is coming soon. Your flyer is already saved and will be used as
-              the event image.
-            </p>
-            <p>You can continue adding the event details in the form.</p>
-            <Button onClick={closeComingSoon}>Back to event form</Button>
-          </div>
-        </div>
-      )}
     </section>
   );
 }

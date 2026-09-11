@@ -20,6 +20,12 @@ const mockEventFlyers = vi.hoisted(() => ({
 
 vi.mock("../../events/api/eventFlyers", () => mockEventFlyers);
 
+const mockFlyerExtraction = vi.hoisted(() => ({
+  extractEventFromFlyer: vi.fn(),
+}));
+
+vi.mock("../../flyer-extraction/client", () => mockFlyerExtraction);
+
 vi.mock("../../../contexts/useCity", () => ({
   useCity: () => ({ city: "boston" }),
 }));
@@ -33,6 +39,22 @@ vi.mock("../../../contexts/useAuth", () => ({
 
 const pngFile = () => new File(["png"], "flyer.png", { type: "image/png" });
 const flyerUrl = "https://project.supabase.co/storage/v1/object/public/event-flyers/user123/submission-abc/flyer.png";
+const extractionFixture = {
+  title: "Boston Salsa Night",
+  date: "2026-09-18",
+  start_time: "21:00",
+  end_time: "01:00",
+  venue_name: "Havana Club",
+  address: "288 Green Street",
+  city: "Cambridge",
+  dance_styles: ["Salsa", "Bachata"],
+  event_type: null,
+  price: "$20",
+  organizer_name: "SalsaSegura",
+  instagram: "@salsasegura",
+  website: null,
+  details: [],
+};
 
 describe("useSubmitEventForm", () => {
   beforeEach(() => {
@@ -458,5 +480,212 @@ describe("useSubmitEventForm", () => {
 
     expect(result.current.serverError).toBeNull();
     expect(createSubmission).toHaveBeenCalledTimes(1);
+  });
+
+  // ── Flyer extraction (Phase 3): review-only ──
+
+  describe("flyer extraction", () => {
+    beforeEach(() => {
+      mockFlyerExtraction.extractEventFromFlyer.mockReset();
+    });
+
+    it("extracts against the persisted flyer URL and stores the result", async () => {
+      mockFlyerExtraction.extractEventFromFlyer.mockResolvedValue(extractionFixture);
+      const { result } = renderHook(() => useSubmitEventForm());
+
+      await act(async () => {
+        result.current.handleFlyerChange(pngFile());
+      });
+      expect(result.current.extractionStatus).toBe("idle");
+
+      await act(async () => {
+        result.current.handleExtractFlyer();
+      });
+
+      expect(mockFlyerExtraction.extractEventFromFlyer).toHaveBeenCalledWith(flyerUrl);
+      expect(result.current.extractionStatus).toBe("success");
+      expect(result.current.extractionResult).toEqual(extractionFixture);
+      expect(result.current.extractionError).toBeNull();
+    });
+
+    it("does nothing before a flyer is persisted", async () => {
+      const { result } = renderHook(() => useSubmitEventForm());
+
+      await act(async () => {
+        result.current.handleExtractFlyer();
+      });
+
+      expect(mockFlyerExtraction.extractEventFromFlyer).not.toHaveBeenCalled();
+      expect(result.current.extractionStatus).toBe("idle");
+    });
+
+    it("surfaces a safe error and lets the user retry into success", async () => {
+      mockFlyerExtraction.extractEventFromFlyer.mockRejectedValueOnce(
+        new Error("We couldn't read this flyer. Please try again.")
+      );
+      const { result } = renderHook(() => useSubmitEventForm());
+      await act(async () => {
+        result.current.handleFlyerChange(pngFile());
+      });
+
+      await act(async () => {
+        result.current.handleExtractFlyer();
+      });
+      expect(result.current.extractionStatus).toBe("error");
+      expect(result.current.extractionError).toBe("We couldn't read this flyer. Please try again.");
+      expect(result.current.extractionResult).toBeNull();
+
+      mockFlyerExtraction.extractEventFromFlyer.mockResolvedValueOnce(extractionFixture);
+      await act(async () => {
+        result.current.handleExtractFlyer();
+      });
+
+      expect(result.current.extractionStatus).toBe("success");
+      expect(result.current.extractionResult).toEqual(extractionFixture);
+      expect(result.current.extractionError).toBeNull();
+      expect(mockFlyerExtraction.extractEventFromFlyer).toHaveBeenCalledTimes(2);
+    });
+
+    it("ignores a second extraction click while one is already in flight", async () => {
+      let resolveExtraction!: (value: typeof extractionFixture) => void;
+      mockFlyerExtraction.extractEventFromFlyer.mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveExtraction = resolve;
+        })
+      );
+      const { result } = renderHook(() => useSubmitEventForm());
+      await act(async () => {
+        result.current.handleFlyerChange(pngFile());
+      });
+
+      await act(async () => {
+        // Both calls happen inside the same act — the second must be a no-op
+        // against the same in-flight request, not a second network call.
+        result.current.handleExtractFlyer();
+        result.current.handleExtractFlyer();
+      });
+      expect(mockFlyerExtraction.extractEventFromFlyer).toHaveBeenCalledTimes(1);
+      expect(result.current.extractionStatus).toBe("loading");
+
+      await act(async () => {
+        resolveExtraction(extractionFixture);
+      });
+      expect(result.current.extractionStatus).toBe("success");
+    });
+
+    it("clears the extraction result when the flyer is replaced", async () => {
+      mockFlyerExtraction.extractEventFromFlyer.mockResolvedValue(extractionFixture);
+      const { result } = renderHook(() => useSubmitEventForm());
+      await act(async () => {
+        result.current.handleFlyerChange(pngFile());
+      });
+      await act(async () => {
+        result.current.handleExtractFlyer();
+      });
+      expect(result.current.extractionStatus).toBe("success");
+
+      await act(async () => {
+        result.current.handleFlyerChange(pngFile());
+      });
+
+      expect(result.current.extractionStatus).toBe("idle");
+      expect(result.current.extractionResult).toBeNull();
+      expect(result.current.extractionError).toBeNull();
+    });
+
+    it("clears the extraction result when the flyer is removed", async () => {
+      mockFlyerExtraction.extractEventFromFlyer.mockResolvedValue(extractionFixture);
+      const { result } = renderHook(() => useSubmitEventForm());
+      await act(async () => {
+        result.current.handleFlyerChange(pngFile());
+      });
+      await act(async () => {
+        result.current.handleExtractFlyer();
+      });
+      expect(result.current.extractionStatus).toBe("success");
+
+      await act(async () => {
+        await result.current.handleFlyerRemove();
+      });
+
+      expect(result.current.extractionStatus).toBe("idle");
+      expect(result.current.extractionResult).toBeNull();
+      expect(result.current.flyerReady).toBe(false);
+    });
+
+    it("discards a stale response after the flyer changes mid-request", async () => {
+      let resolveFirst!: (value: typeof extractionFixture) => void;
+      mockFlyerExtraction.extractEventFromFlyer.mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveFirst = resolve;
+        })
+      );
+      const { result } = renderHook(() => useSubmitEventForm());
+      await act(async () => {
+        result.current.handleFlyerChange(pngFile());
+      });
+
+      await act(async () => {
+        result.current.handleExtractFlyer();
+      });
+      expect(result.current.extractionStatus).toBe("loading");
+
+      // The flyer is replaced while the first request is still pending —
+      // this bumps the generation and must invalidate that request.
+      await act(async () => {
+        result.current.handleFlyerChange(pngFile());
+      });
+      expect(result.current.extractionStatus).toBe("idle");
+
+      // The stale request now resolves. Its result must never appear.
+      await act(async () => {
+        resolveFirst(extractionFixture);
+      });
+
+      expect(result.current.extractionStatus).toBe("idle");
+      expect(result.current.extractionResult).toBeNull();
+    });
+
+    it("never mutates the manual form while extracting", async () => {
+      mockFlyerExtraction.extractEventFromFlyer.mockResolvedValue(extractionFixture);
+      const { result } = renderHook(() => useSubmitEventForm());
+
+      await act(async () => {
+        result.current.update("title", "My Own Title");
+        result.current.update("city", "new-york-city");
+      });
+      await act(async () => {
+        result.current.handleFlyerChange(pngFile());
+      });
+      await act(async () => {
+        result.current.handleExtractFlyer();
+      });
+
+      expect(result.current.extractionStatus).toBe("success");
+      // The fixture's title/city differ from what was typed — proving the
+      // manual field survived, not merely that it was never assigned to.
+      expect(result.current.form.title).toBe("My Own Title");
+      expect(result.current.form.city).toBe("new-york-city");
+    });
+
+    it("dismissing a failed extraction clears the error without touching the flyer", async () => {
+      mockFlyerExtraction.extractEventFromFlyer.mockRejectedValueOnce(new Error("read failed"));
+      const { result } = renderHook(() => useSubmitEventForm());
+      await act(async () => {
+        result.current.handleFlyerChange(pngFile());
+      });
+      await act(async () => {
+        result.current.handleExtractFlyer();
+      });
+      expect(result.current.extractionStatus).toBe("error");
+
+      await act(async () => {
+        result.current.dismissExtractionError();
+      });
+
+      expect(result.current.extractionStatus).toBe("idle");
+      expect(result.current.extractionError).toBeNull();
+      expect(result.current.flyerReady).toBe(true);
+    });
   });
 });

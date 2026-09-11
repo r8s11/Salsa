@@ -1,0 +1,62 @@
+{
+  "nodes": [
+    {
+      "id": "src_assets_brand_mark_white_brand_mark",
+      "label": "White Brand Mark",
+      "file_type": "image",
+      "source_file": "/home/r8s/code/Salsa/src/assets/brand/mark-white.png",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "src_assets_brand_mark_white_monochrome_logo_treatment",
+      "label": "Monochrome Logo Treatment",
+      "file_type": "concept",
+      "source_file": "/home/r8s/code/Salsa/src/assets/brand/mark-white.png",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "src_assets_brand_mark_white_dark_background_contrast",
+      "label": "Dark Background Contrast",
+      "file_type": "concept",
+      "source_file": "/home/r8s/code/Salsa/src/assets/brand/mark-white.png",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "src_assets_brand_mark_white_brand_mark",
+      "target": "src_assets_brand_mark_white_monochrome_logo_treatment",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "/home/r8s/code/Salsa/src/assets/brand/mark-white.png",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "src_assets_brand_mark_white_brand_mark",
+      "target": "src_assets_brand_mark_white_dark_background_contrast",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "/home/r8s/code/Salsa/src/assets/brand/mark-white.png",
+      "source_location": null,
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": [],
+  "input_tokens": 0,
+  "output_tokens": 0
+}

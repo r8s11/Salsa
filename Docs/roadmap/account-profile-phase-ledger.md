@@ -259,65 +259,33 @@ withheld.
 
 ## Repository state reconciliation — 2026-09-09 (late)
 
-Recorded because the planning ledger's branch/worktree facts had gone stale and Phase 8's
-tested content existed only as uncommitted files in a worktree that was then discarded.
-All facts below were checked directly in `/Users/roosevelt/work/Salsa`.
+### Phase 8 recovery
 
-### Canonical source
+The worktree holding Phase 8 was discarded while its work was still uncommitted. The tested
+content is now commit `2010b54dfada610d5226b67c8aeaade4338cdff9` on the unpushed branch
+`feat/account-profile-phase8` (base `2e659ff`), restored from the acceptance patch
+`cb0d05f988c26e7d9cb08f54fb1759a3764d4ca7c76e3eae84d390e48841f930`. Its reports, advisor
+output and browser screenshots are retained independently of that deleted worktree.
 
-| Item | Value |
-|------|-------|
-| `origin/main` = local `main` | `2f459e5` |
-| Preceding canonical merge | `2e659ff` (PR #18, Phase 6 correction package) |
-| New on main since | `3f18fcc` design work → `0560577` merge → `2f459e5` hero label/scale |
+Phase 8 stays **blocked on real Supabase/GoTrue parity** — GoTrue-issued sessions,
+`scripts/phase8-verify/verify-dance-identity.mjs` exiting 0 against a confirmed disposable
+Supabase stack, and `supabase db lint` itself. It is neither accepted nor released, and its
+branch is not merged.
 
-`2f459e5` carries the Ritmo Vivo hero record (layered vinyl with printed featured-event
-label, 0.8× scale), the full-screen mobile nav sheet, the two-tone gold/rose wordmark, and
-the previously uncommitted button/host-capability/founder-confirmation work from the primary
-checkout. Gates at that revision: 171 files / 1,607 tests, `tsc -b` 0, lint 0, build 0.
-The primary checkout is therefore no longer the "dirty, unusable for Account work" tree the
-earlier ledger described — that backlog item is closed. It has since accumulated new
-in-flight edits again, so Account phases still start from a clean worktree off `origin/main`.
+### Corrected commit
 
-### Phase branch inventory
+`c5b32ff` was pushed as a ledger update but actually carried an accidental broad path
+migration: 326 exact-content renames across `src/`, `Docs/`, `sql/` and `supabase/` (largely
+case-only, e.g. `Docs/` to `docs/`) plus 11 deletions, including the tracked Host SQL
+contract test `sql/host-phase-2/001_create_organizer_event.test.ts`. It carried no ledger
+text at all. The relocated TypeScript kept its old relative imports, so a clean checkout of
+that revision failed to type-check. The changes came from the primary checkout's dirty index,
+which `git commit` staged despite a path-scoped `git add`. This commit reverts that migration
+in full and carries the intended ledger update instead.
 
-| Branch | Tip | State |
-|--------|-----|-------|
-| `feat/account-security-phase4` | `cb78404` | merged via `f572899`; worktree retained (untracked `graphify-out/`) |
-| `feat/account-danger-zone-phase5` | `f572899` | stale pointer; Phase 5 implementation is `a9afbd85`, merged at `714c12d` |
-| `feat/account-profile-phase6` | `50b7a1a` | committed correction package on the older `76367d8` base; deferred, unaccepted |
-| `feat/account-profile-phase7` | `5480938` | committed, source-complete, acceptance blocked; worktree pruned (branch retained) |
-| `feat/account-profile-phase8` | `2010b54` | **now committed** (see below); acceptance still blocked |
-| `feat/ritmo-vivo-hero-nav-logo` | `3f18fcc` | merged into `main`, pushed |
+### Working-copy hygiene
 
-### Phase 8 tested content rescued from an uncommitted worktree
-
-`/Users/roosevelt/work/Salsa-profile-phase8` and `/Users/roosevelt/work/Salsa-profile-phase6`
-were moved to `~/.Trash`. Phase 6 survived that as a commit (`50b7a1a`); Phase 8 did not —
-its 17 source/migration/harness files, evidence bundle and patch were untracked.
-
-Recovery performed:
-
-- Evidence copied out of the Trash to `/Users/roosevelt/work/salsa-phase-evidence/{phase8,phase6}`
-  (reports, screenshots, advisor output, patches). Phase 8 patch sha256 verified unchanged:
-  `cb0d05f988c26e7d9cb08f54fb1759a3764d4ca7c76e3eae84d390e48841f930`.
-- That patch applied to `feat/account-profile-phase8` at base `2e659ff` and committed as
-  `2010b54` (22 files). The branch tip is now the tested content, not the base SHA. Not pushed.
-
-### Phase 8 status carried forward
-
-Source corrections complete; database/API/browser acceptance executed only on a substitute
-non-Docker stack (Homebrew Postgres 17.11 + PostgREST 16.2 + locally signed JWTs):
-SQL acceptance 16/16, HTTP ownership matrix 25/25, real-storage browser save/reload/
-account-switch/failure-retry, advisor equivalents with no Phase 8 security ERROR, and a
-non-destructive rollback exercised. Reports live in the rescued evidence directory
-(`phase8-acceptance-report.md`, `phase8-corrected-report.md`).
-
-Outstanding for acceptance, all requiring a real Supabase stack:
-
-1. GoTrue-issued sessions (password policy, email confirmation, refresh rotation, `auth.users` lifecycle).
-2. `scripts/phase8-verify/verify-dance-identity.mjs` exit 0 against a confirmed disposable Supabase project — it currently exits 2 at its environment gate, which is correct behaviour, not a pass.
-3. `supabase db lint` itself; the standalone Postgres lacks `plpgsql_check`, so only reimplemented rules ran.
-
-Phase 9 remains unstarted. Phase 6 stays deferred; Phase 7 stays blocked on a disposable
-development database. Nothing in this reconciliation accepts, merges, or releases a phase.
+`/Users/roosevelt/work/Salsa` remains heavily dirty with unrelated in-flight work, and its
+index can hold staged changes that belong to no phase. Start every future Account or Profile
+phase in a clean worktree from current `origin/main`, and commit with explicit pathspecs
+(`git commit -- <paths>`) rather than trusting the shared index.

@@ -4,7 +4,7 @@ import {
   FOUNDER_REQUEST_SORT_OPTIONS,
   type FounderRequestFilters,
   type FounderRequestSort,
-} from "../model/founderRequestsQuery";
+} from "../../features/admin/model/founderRequestsQuery";
 import "./AdminFounderRequestsFilterDrawer.css";
 
 interface AdminFounderRequestsFilterDrawerProps {

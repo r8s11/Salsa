@@ -1,6 +1,6 @@
 import { useState } from "react";
 import AdminConfirmDialog from "./AdminConfirmDialog";
-import { useFounderInvitation } from "../hooks/useFounderInvitation";
+import { useFounderInvitation } from "../../features/admin/hooks/useFounderInvitation";
 import {
   deriveInvitationDisplayStatus,
   deriveEmailDisplayStatus,
@@ -10,7 +10,7 @@ import {
   founderInvitationAcceptUrl,
   FOUNDER_INVITATION_DISPLAY_LABEL,
   FOUNDER_INVITATION_EMAIL_DISPLAY_LABEL,
-} from "../model/founderInvitationQuery";
+} from "../../features/admin/model/founderInvitationQuery";
 
 export default function AdminFounderInvitationSection({
   founderRequestId,

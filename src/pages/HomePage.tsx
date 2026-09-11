@@ -1,5 +1,5 @@
 import Hero from "../components/Hero/Hero";
-import Events from "../features/events/components/Events/Events";
+import Events from "../components/Events/Events";
 
 function HomePage() {
   return (

@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import AdminPageHeader from "../../features/admin/components/AdminPageHeader";
-import AdminImportDropzone from "../../features/admin/components/AdminImportDropzone";
+import AdminPageHeader from "../../components/Admin/AdminPageHeader";
+import AdminImportDropzone from "../../components/Admin/AdminImportDropzone";
 import { useCsvEventImport } from "../../features/admin/hooks/useCsvEventImport";
 import type { CsvRowWithDuplicates } from "../../features/admin/hooks/useCsvEventImport";
 import type { CsvRowStatus } from "../../features/admin/model/csvImportValidation";

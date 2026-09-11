@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, type KeyboardEvent } from "react";
 import { X } from "lucide-react";
-import { useEscapeKey } from "../../calendar/hooks/useEscapeKey";
-import type { EventSubmission, SubmissionStatus } from "../model/submissions";
+import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
+import type { EventSubmission, SubmissionStatus } from "../../features/admin/model/submissions";
 
 export interface SubmissionFilters {
   status: SubmissionStatus | null;

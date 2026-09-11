@@ -1,15 +1,15 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { SlidersHorizontal } from "lucide-react";
-import AdminPageHeader from "../../features/admin/components/AdminPageHeader";
-import AdminViewTabs from "../../features/admin/components/AdminViewTabs";
+import AdminPageHeader from "../../components/Admin/AdminPageHeader";
+import AdminViewTabs from "../../components/Admin/AdminViewTabs";
 import AdminSubmissionsTable, {
   type SubmissionRowAction,
-} from "../../features/admin/components/AdminSubmissionsTable";
+} from "../../components/Admin/AdminSubmissionsTable";
 import AdminSubmissionsFilterDrawer, {
   type SubmissionFilters,
-} from "../../features/admin/components/AdminSubmissionsFilterDrawer";
-import AdminRejectSubmissionDialog from "../../features/admin/components/AdminRejectSubmissionDialog";
+} from "../../components/Admin/AdminSubmissionsFilterDrawer";
+import AdminRejectSubmissionDialog from "../../components/Admin/AdminRejectSubmissionDialog";
 import { useAdminSubmissions } from "../../features/admin/hooks/useAdminSubmissionList";
 import { type EventSubmission } from "../../features/admin/model/submissions";
 import { notifySubmissionRejected } from "../../features/submit-event/api/submissionNotification";

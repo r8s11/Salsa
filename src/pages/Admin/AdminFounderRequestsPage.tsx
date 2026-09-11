@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
-import AdminFounderRequestsTable from "../../features/admin/components/AdminFounderRequestsTable";
-import AdminFounderRequestsFilterDrawer from "../../features/admin/components/AdminFounderRequestsFilterDrawer";
-import AdminApproveDialog from "../../features/admin/components/AdminApproveDialog";
-import AdminRejectFounderDialog from "../../features/admin/components/AdminRejectFounderDialog";
+import AdminFounderRequestsTable from "../../components/Admin/AdminFounderRequestsTable";
+import AdminFounderRequestsFilterDrawer from "../../components/Admin/AdminFounderRequestsFilterDrawer";
+import AdminApproveDialog from "../../components/Admin/AdminApproveDialog";
+import AdminRejectFounderDialog from "../../components/Admin/AdminRejectFounderDialog";
 import { useFounderRequests } from "../../features/admin/hooks/useFounderRequests";
 import {
   applyFounderRequestView,

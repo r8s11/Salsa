@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import AdminUserForm from "./AdminUserForm";
-import type { CreatedAccount } from "../api/profilesRepo";
+import type { CreatedAccount } from "../../features/admin/api/profilesRepo";
 
 const emailInviteCreated: CreatedAccount = {
   delivery: "email_invitation",

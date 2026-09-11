@@ -4,7 +4,7 @@ import {
   slugifyTaxonomyName,
   validateTaxonomyForm,
   type TaxonomyForm,
-} from "../model/taxonomy";
+} from "../../features/admin/model/taxonomy";
 
 export default function AdminTaxonomyForm({
   initial,

@@ -13,7 +13,7 @@ import type {
   OrganizerProfileUpdatePayload,
 } from "../../features/host/api/organizerAccessRepo";
 import { ORGANIZER_TYPE_LABEL, type OrganizerType } from "../../features/admin/model/organizerRequestsQuery";
-import AdminPageHeader from "../../features/admin/components/AdminPageHeader";
+import AdminPageHeader from "../../components/Admin/AdminPageHeader";
 import "./HostOrganizationPage.css";
 
 /* ── Types ── */

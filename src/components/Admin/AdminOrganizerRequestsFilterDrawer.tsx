@@ -1,12 +1,12 @@
 import { useEffect, useRef, type KeyboardEvent } from "react";
 import { X } from "lucide-react";
-import { useEscapeKey } from "../../calendar/hooks/useEscapeKey";
+import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
 import {
   ORGANIZER_TYPE_LABEL,
   type OrganizerType,
   type RequestFilters,
-} from "../model/organizerRequestsQuery";
-import { ACCOUNT_STATUS_LABEL, type AccountStatus } from "../model/usersQuery";
+} from "../../features/admin/model/organizerRequestsQuery";
+import { ACCOUNT_STATUS_LABEL, type AccountStatus } from "../../features/admin/model/usersQuery";
 import "./AdminOrganizerRequestsFilterDrawer.css";
 
 const EMPTY_FILTERS: Pick<RequestFilters, "type" | "accountStatus" | "from" | "to"> = {

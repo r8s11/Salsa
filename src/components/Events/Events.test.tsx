@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
-import type { ScheduleXEvent } from "../../../../types/events";
+import type { ScheduleXEvent } from "../../types/events";
 import Events from "./Events";
 
 const events: ScheduleXEvent[] = [
@@ -22,7 +22,7 @@ const events: ScheduleXEvent[] = [
   },
 ];
 
-vi.mock("../../hooks/useEvent", () => ({
+vi.mock("../../features/events/hooks/useEvent", () => ({
   useEvents: () => ({ events, loading: false, error: null }),
 }));
 vi.mock("../EventModal/EventModal", () => ({

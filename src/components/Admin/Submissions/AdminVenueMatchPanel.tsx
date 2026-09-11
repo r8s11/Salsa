@@ -1,6 +1,6 @@
-import { findVenueMatch } from "../model/venueMatching";
-import type { EventSubmission } from "../model/submissions";
-import type { DatabaseEvent } from "../../events/model/types";
+import { findVenueMatch } from "../../../features/admin/model/venueMatching";
+import type { EventSubmission } from "../../../features/admin/model/submissions";
+import type { DatabaseEvent } from "../../../features/events/model/types";
 
 interface Props {
   submission: EventSubmission;

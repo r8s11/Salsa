@@ -1,14 +1,14 @@
 // Purpose: Display the home page event feed — a featured event plus a
 // filterable grid of the rest of this week's floor.
 import { useMemo, useState } from "react";
-import ButtonLink from "../../../../components/ui/ButtonLink";
+import ButtonLink from "../ui/ButtonLink";
 import "./Events.css";
-import { useEvents } from "../../hooks/useEvent";
+import { useEvents } from "../../features/events/hooks/useEvent";
 import EventCard from "./EventCard";
 import FeaturedEventCard from "./FeaturedEventCard";
 import EventModal from "../EventModal/EventModal";
-import { filterEventsByType, TypeFilter } from "../../../../utils/filterEvents";
-import type { ScheduleXEvent } from "../../../../types/events";
+import { filterEventsByType, TypeFilter } from "../../utils/filterEvents";
+import type { ScheduleXEvent } from "../../types/events";
 
 const FILTER_OPTIONS: { value: TypeFilter; label: string }[] = [
   { value: "all", label: "All" },

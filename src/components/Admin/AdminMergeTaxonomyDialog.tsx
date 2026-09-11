@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { TaxonomyTerm } from "../model/taxonomy";
+import type { TaxonomyTerm } from "../../features/admin/model/taxonomy";
 
 export default function AdminMergeTaxonomyDialog({
   source,

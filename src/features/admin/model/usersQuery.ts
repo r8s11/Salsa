@@ -1,5 +1,5 @@
 import { ListChecks, UserCog, Flag, FlagOff, PauseCircle, Ban, RotateCcw } from "lucide-react";
-import type { ActionMenuItem } from "../components/AdminActionMenu";
+import type { ActionMenuItem } from "../../../components/Admin/AdminActionMenu";
 
 export type AccountKind = "profile" | "guest";
 export type UserRole = "user" | "moderator" | "organizer" | "admin";

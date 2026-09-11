@@ -7,10 +7,10 @@ import {
   normalizePayload,
   type FounderRequestPayload,
   type FounderRequestErrors,
-} from "../../../lib/founderRequest";
-import FormFieldError from "../../../shared/forms/FormFieldError";
-import Button from "../../../components/ui/Button";
-import ButtonLink from "../../../components/ui/ButtonLink";
+} from "../../lib/founderRequest";
+import FormFieldError from "../../shared/forms/FormFieldError";
+import Button from "../ui/Button";
+import ButtonLink from "../ui/ButtonLink";
 import "./FounderRequestForm.css";
 
 interface Props {

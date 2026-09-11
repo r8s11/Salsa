@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import AdminTaxonomyStatusBadge from "./AdminTaxonomyStatusBadge";
-import type { TaxonomyCategory, TaxonomyTerm } from "../model/taxonomy";
+import type { TaxonomyCategory, TaxonomyTerm } from "../../features/admin/model/taxonomy";
 import "./AdminTaxonomyTable.css";
 
 const categoryLabel: Record<TaxonomyCategory, string> = {

@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import type { DatabaseEvent } from "../../events/model/types";
-import type { DuplicateCandidate } from "../model/submissions";
+import type { DatabaseEvent } from "../../../features/events/model/types";
+import type { DuplicateCandidate } from "../../../features/admin/model/submissions";
 import AdminDuplicateCheckPanel from "./AdminDuplicateCheckPanel";
 
 const mockEvent = {

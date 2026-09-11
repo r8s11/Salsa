@@ -14,13 +14,13 @@ import {
   type AdminUserRow,
   type UserRowAction,
 } from "../../features/admin/model/usersQuery";
-import AdminUserAvatar from "../../features/admin/components/AdminUserAvatar";
-import AdminRoleBadge from "../../features/admin/components/AdminRoleBadge";
-import AdminAccountStatusBadge from "../../features/admin/components/AdminAccountStatusBadge";
-import AdminStatusBadge from "../../features/admin/components/AdminStatusBadge";
-import AdminRoleChangeDialog from "../../features/admin/components/AdminRoleChangeDialog";
-import AdminFlagUserDialog from "../../features/admin/components/AdminFlagUserDialog";
-import AdminConfirmDialog from "../../features/admin/components/AdminConfirmDialog";
+import AdminUserAvatar from "../../components/Admin/AdminUserAvatar";
+import AdminRoleBadge from "../../components/Admin/AdminRoleBadge";
+import AdminAccountStatusBadge from "../../components/Admin/AdminAccountStatusBadge";
+import AdminStatusBadge from "../../components/Admin/AdminStatusBadge";
+import AdminRoleChangeDialog from "../../components/Admin/AdminRoleChangeDialog";
+import AdminFlagUserDialog from "../../components/Admin/AdminFlagUserDialog";
+import AdminConfirmDialog from "../../components/Admin/AdminConfirmDialog";
 import { useResendOrganizerInvitation } from "../../features/admin/hooks/useResendOrganizerInvitation";
 import "./AdminUserDetailPage.css";
 

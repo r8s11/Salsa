@@ -1,7 +1,7 @@
 import { useEffect, useRef, type KeyboardEvent } from "react";
 import { X } from "lucide-react";
-import { useEscapeKey } from "../../calendar/hooks/useEscapeKey";
-import { type AccountKind, type UserFilters } from "../model/usersQuery";
+import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
+import { type AccountKind, type UserFilters } from "../../features/admin/model/usersQuery";
 import "./AdminUsersFilterDrawer.css";
 
 const EMPTY_FILTERS: Pick<UserFilters, "kind" | "from" | "to"> = {

@@ -11,7 +11,7 @@ import {
   Users,
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
-import { RelatedEventsStrip } from "../features/events/components/Events/RelatedEventsStrip";
+import { RelatedEventsStrip } from "../components/Events/RelatedEventsStrip";
 import { fetchApprovedEventById, fetchApprovedEvents } from "../features/events/api/eventsRepo";
 import InstagramStoryShare from "../features/events/components/InstagramStoryShare";
 import VenueMapCard from "../features/events/components/VenueMapCard";
@@ -23,7 +23,7 @@ import {
   buildPublicEventUrl,
 } from "../features/events/model/eventSharing";
 import { downloadIcs, mapsUrl } from "../utils/ics";
-import { resolveEventModalImage } from "../features/events/components/EventModal/eventModalImage";
+import { resolveEventModalImage } from "../components/EventModal/eventModalImage";
 import Button from "../components/ui/Button";
 import ButtonLink from "../components/ui/ButtonLink";
 import NotFoundPage from "./NotFoundPage";

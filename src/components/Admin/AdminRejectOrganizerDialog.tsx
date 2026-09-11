@@ -3,8 +3,8 @@ import { X } from "lucide-react";
 import {
   REJECTION_REASON_LABEL,
   type RejectionReasonCode,
-} from "../model/organizerRequestsQuery";
-import { useAccessibleDialog } from "../../../shared/a11y/useAccessibleDialog";
+} from "../../features/admin/model/organizerRequestsQuery";
+import { useAccessibleDialog } from "../../shared/a11y/useAccessibleDialog";
 import "./AdminRejectOrganizerDialog.css";
 
 const REJECTION_REASONS: RejectionReasonCode[] = [

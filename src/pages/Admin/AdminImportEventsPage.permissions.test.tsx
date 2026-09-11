@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { describe, expect, it, vi, type Mock } from "vitest";
 import type { User } from "@supabase/supabase-js";
-import RequireReviewer from "../../features/auth/components/RequireReviewer";
+import RequireReviewer from "../../components/Auth/RequireReviewer";
 import { useAuth } from "../../contexts/useAuth";
 import type { AuthContextValue } from "../../contexts/authContextObject";
 

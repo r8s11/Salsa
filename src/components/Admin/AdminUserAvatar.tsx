@@ -1,5 +1,5 @@
 import { UserRound } from "lucide-react";
-import { initialsFor, type AdminUserRow } from "../model/usersQuery";
+import { initialsFor, type AdminUserRow } from "../../features/admin/model/usersQuery";
 
 export default function AdminUserAvatar({ row, size = 40 }: { row: AdminUserRow; size?: number }) {
   if (row.kind === "guest") {

@@ -1,12 +1,12 @@
 import { useId, useState } from "react";
 import type { FormEvent } from "react";
-import { useEscapeKey } from "../../calendar/hooks/useEscapeKey";
-import { ROLE_LABEL, type UserRole } from "../model/usersQuery";
+import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
+import { ROLE_LABEL, type UserRole } from "../../features/admin/model/usersQuery";
 import type {
   CreateUserParams,
   CreatedAccount,
   InviteDelivery,
-} from "../api/profilesRepo";
+} from "../../features/admin/api/profilesRepo";
 import "./AdminUserForm.css";
 
 interface AdminUserFormProps {

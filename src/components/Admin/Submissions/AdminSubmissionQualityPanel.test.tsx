@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
 import AdminSubmissionQualityPanel from "./AdminSubmissionQualityPanel";
-import { QualityGap } from "../model/quality";
+import { QualityGap } from "../../../features/admin/model/quality";
 
 describe("AdminSubmissionQualityPanel", () => {
   it("renders 'All information provided' when there are no gaps", () => {

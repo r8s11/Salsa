@@ -4,7 +4,7 @@ import { ChevronRight, Menu, X } from "lucide-react";
 import { useAuth } from "../contexts/useAuth";
 import { useTheme } from "../contexts/useTheme";
 import { useEscapeKey } from "../features/calendar/hooks/useEscapeKey";
-import AdminSidebar from "../features/admin/components/AdminSidebar";
+import AdminSidebar from "../components/Admin/AdminSidebar";
 import "../styles/admin.css";
 import "./AdminLayout.css";
 

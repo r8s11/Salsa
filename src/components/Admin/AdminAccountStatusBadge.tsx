@@ -1,5 +1,5 @@
 import { Flag, PauseCircle, Ban } from "lucide-react";
-import { ACCOUNT_STATUS_LABEL, type AccountStatus } from "../model/usersQuery";
+import { ACCOUNT_STATUS_LABEL, type AccountStatus } from "../../features/admin/model/usersQuery";
 
 // Escalation is carried by four distinct visual mechanisms (dot, icon,
 // icon, inversion) rather than by hue alone, so the state reads correctly

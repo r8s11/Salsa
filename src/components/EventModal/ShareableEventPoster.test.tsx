@@ -1,6 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import type { ScheduleXEvent } from "../../../../types/events";
+import type { ScheduleXEvent } from "../../types/events";
 import ShareableEventPoster from "./ShareableEventPoster";
 
 const event: ScheduleXEvent = {

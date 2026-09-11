@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { TriangleAlert } from "lucide-react";
-import { useEscapeKey } from "../../calendar/hooks/useEscapeKey";
+import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
 import "./AdminQualityBadge.css";
 
 interface AdminQualityBadgeProps<T extends string> {

@@ -1,5 +1,5 @@
 import React from "react";
-import { ScheduleXEvent } from "../../../../types/events";
+import { ScheduleXEvent } from "../../types/events";
 import { resolveEventModalImage } from "../EventModal/eventModalImage";
 
 const TYPE_LABELS: Record<string, string> = {

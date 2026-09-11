@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import AdminTaxonomyForm from "./AdminTaxonomyForm";
-import { EMPTY_TAXONOMY_FORM } from "../model/taxonomy";
+import { EMPTY_TAXONOMY_FORM } from "../../features/admin/model/taxonomy";
 
 describe("AdminTaxonomyForm", () => {
   it("blocks an empty name and reports the validation error", async () => {

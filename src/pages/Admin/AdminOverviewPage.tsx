@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import { useAuth } from "../../contexts/useAuth";
-import ModeratorOverview from "../../features/admin/components/ModeratorOverview";
-import PlatformAdminOverview from "../../features/admin/components/PlatformAdminOverview";
-import { AttentionItem } from "../../features/admin/components/AdminNeedsAttention";
+import ModeratorOverview from "../../components/Moderator/ModeratorOverview";
+import PlatformAdminOverview from "../../components/Admin/PlatformAdminOverview";
+import { AttentionItem } from "../../components/Admin/AdminNeedsAttention";
 import { useAdminEvents } from "../../features/admin/hooks/useAdminEvents";
 import { useAdminUsers } from "../../features/admin/hooks/useAdminUsers";
 import { useAdminVenues } from "../../features/admin/hooks/useAdminVenues";

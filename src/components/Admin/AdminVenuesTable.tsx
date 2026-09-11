@@ -6,12 +6,12 @@ import type {
   VenueSort,
   SortDir,
   VenueAction,
-} from "../model/venuesQuery";
-import { venueActionItems, venueDisplayAddress } from "../model/venuesQuery";
+} from "../../features/admin/model/venuesQuery";
+import { venueActionItems, venueDisplayAddress } from "../../features/admin/model/venuesQuery";
 import AdminVenueStatusBadge from "./AdminVenueStatusBadge";
 import AdminActionMenu from "./AdminActionMenu";
 import AdminQualityBadge from "./AdminQualityBadge";
-import { VENUE_QUALITY_ISSUE_LABEL } from "../model/venuesQuery";
+import { VENUE_QUALITY_ISSUE_LABEL } from "../../features/admin/model/venuesQuery";
 import "./AdminVenuesTable.css";
 
 function formatDate(iso: string): string {

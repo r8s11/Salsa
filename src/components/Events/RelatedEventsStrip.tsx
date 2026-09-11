@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import type { City, DatabaseEvent } from "../../model/types";
+import type { City, DatabaseEvent } from "../../features/events/model/types";
 import "./RelatedEventsStrip.css";
 
 const CITY_LABELS: Record<City, string> = {

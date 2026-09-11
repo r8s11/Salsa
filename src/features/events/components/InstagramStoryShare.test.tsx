@@ -24,7 +24,7 @@ vi.mock("../../calendar/hooks/useShareablePoster", () => ({
   }),
 }));
 
-vi.mock("./EventModal/ShareableEventPoster", () => ({
+vi.mock("../../../components/EventModal/ShareableEventPoster", () => ({
   default: (props: { event: ScheduleXEvent; imageUrl?: string }) => {
     posterProps.push(props);
     return <div data-testid="poster" />;

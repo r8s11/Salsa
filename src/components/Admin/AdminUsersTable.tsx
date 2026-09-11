@@ -9,9 +9,9 @@ import {
   identityLineFor,
   rowActionItems,
   type UserRowAction,
-} from "../model/usersQuery";
+} from "../../features/admin/model/usersQuery";
 
-export type { UserRowAction } from "../model/usersQuery";
+export type { UserRowAction } from "../../features/admin/model/usersQuery";
 import AdminRoleBadge from "./AdminRoleBadge";
 import AdminAccountStatusBadge from "./AdminAccountStatusBadge";
 import AdminActionMenu from "./AdminActionMenu";

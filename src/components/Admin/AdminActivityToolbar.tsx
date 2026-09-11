@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Search, SlidersHorizontal, ChevronDown } from "lucide-react";
-import { useEscapeKey } from "../../calendar/hooks/useEscapeKey";
+import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
 import {
   ACTIVITY_VIEWS,
   CATEGORY_LABEL,
@@ -8,7 +8,7 @@ import {
   type ActivitySortKey,
   type ActivityView,
   type ActivityFilters,
-} from "../model/auditActivityQuery";
+} from "../../features/admin/model/auditActivityQuery";
 import AdminViewTabs from "./AdminViewTabs";
 import "./AdminActivityToolbar.css";
 

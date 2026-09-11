@@ -16,15 +16,15 @@ import {
   type OrganizerRequestRow,
 } from "../../features/admin/model/organizerRequestsQuery";
 import { PAGE_SIZE_OPTIONS, DEFAULT_PAGE_SIZE } from "../../features/admin/model/eventsQuery";
-import AdminPageHeader from "../../features/admin/components/AdminPageHeader";
-import AdminViewTabs from "../../features/admin/components/AdminViewTabs";
-import AdminOrganizerRequestsToolbar from "../../features/admin/components/AdminOrganizerRequestsToolbar";
-import AdminOrganizerRequestsFilterDrawer from "../../features/admin/components/AdminOrganizerRequestsFilterDrawer";
-import AdminOrganizerRequestsTable from "../../features/admin/components/AdminOrganizerRequestsTable";
-import AdminPagination from "../../features/admin/components/AdminPagination";
-import AdminConfirmDialog from "../../features/admin/components/AdminConfirmDialog";
-import AdminRejectOrganizerDialog from "../../features/admin/components/AdminRejectOrganizerDialog";
-import type { ActionMenuItem } from "../../features/admin/components/AdminActionMenu";
+import AdminPageHeader from "../../components/Admin/AdminPageHeader";
+import AdminViewTabs from "../../components/Admin/AdminViewTabs";
+import AdminOrganizerRequestsToolbar from "../../components/Admin/AdminOrganizerRequestsToolbar";
+import AdminOrganizerRequestsFilterDrawer from "../../components/Admin/AdminOrganizerRequestsFilterDrawer";
+import AdminOrganizerRequestsTable from "../../components/Admin/AdminOrganizerRequestsTable";
+import AdminPagination from "../../components/Admin/AdminPagination";
+import AdminConfirmDialog from "../../components/Admin/AdminConfirmDialog";
+import AdminRejectOrganizerDialog from "../../components/Admin/AdminRejectOrganizerDialog";
+import type { ActionMenuItem } from "../../components/Admin/AdminActionMenu";
 import "./AdminOrganizerRequestsPage.css";
 
 /** Pending action + the request it applies to, so the dialog knows the target. */

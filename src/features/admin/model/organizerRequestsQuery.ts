@@ -1,7 +1,7 @@
 import { Clock, CircleCheck, CircleX } from "lucide-react";
 import type { ComponentType } from "react";
 import type { AccountStatus, UserRole } from "./usersQuery";
-import type { ActionMenuItem } from "../components/AdminActionMenu";
+import type { ActionMenuItem } from "../../../components/Admin/AdminActionMenu";
 
 /**
  * The request-level status vocabulary — distinct from both the event-status

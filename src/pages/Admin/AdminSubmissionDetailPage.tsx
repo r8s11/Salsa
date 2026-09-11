@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useActiveTaxonomyTerms } from "../../features/admin/hooks/useAdminTaxonomy";
 import { useAdminSubmissions } from "../../features/admin/hooks/useAdminSubmissionList";
-import AdminRejectSubmissionDialog from "../../features/admin/components/AdminRejectSubmissionDialog";
+import AdminRejectSubmissionDialog from "../../components/Admin/AdminRejectSubmissionDialog";
 import type { EventSubmission } from "../../features/admin/model/submissions";
 import {
   notifySubmissionApproved,

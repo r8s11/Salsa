@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import AdminPageHeader from "../../features/admin/components/AdminPageHeader";
-import AdminActivityToolbar from "../../features/admin/components/AdminActivityToolbar";
-import AdminActivityFilterDrawer from "../../features/admin/components/AdminActivityFilterDrawer";
-import AdminActivityTable from "../../features/admin/components/AdminActivityTable";
-import AdminPagination from "../../features/admin/components/AdminPagination";
+import AdminPageHeader from "../../components/Admin/AdminPageHeader";
+import AdminActivityToolbar from "../../components/Admin/AdminActivityToolbar";
+import AdminActivityFilterDrawer from "../../components/Admin/AdminActivityFilterDrawer";
+import AdminActivityTable from "../../components/Admin/AdminActivityTable";
+import AdminPagination from "../../components/Admin/AdminPagination";
 import { useAdminActivity } from "../../features/admin/hooks/useAdminActivity";
 import {
   ACTIVITY_VIEWS,

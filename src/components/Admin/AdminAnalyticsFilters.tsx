@@ -6,7 +6,7 @@ import {
   type TimeRange,
   type Granularity,
   type DateRange,
-} from "../model/analyticsQuery";
+} from "../../features/admin/model/analyticsQuery";
 import "./AdminAnalyticsFilters.css";
 
 interface AdminAnalyticsFiltersProps {

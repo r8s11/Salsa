@@ -17,13 +17,13 @@ import {
   type VenueRow,
   type VenueAction,
 } from "../../features/admin/model/venuesQuery";
-import AdminPageHeader from "../../features/admin/components/AdminPageHeader";
-import AdminVenuesToolbar from "../../features/admin/components/AdminVenuesToolbar";
-import AdminVenuesFilterDrawer from "../../features/admin/components/AdminVenuesFilterDrawer";
-import AdminVenuesTable from "../../features/admin/components/AdminVenuesTable";
-import AdminPagination from "../../features/admin/components/AdminPagination";
-import AdminConfirmDialog from "../../features/admin/components/AdminConfirmDialog";
-import type { ActionMenuItem } from "../../features/admin/components/AdminActionMenu";
+import AdminPageHeader from "../../components/Admin/AdminPageHeader";
+import AdminVenuesToolbar from "../../components/Admin/AdminVenuesToolbar";
+import AdminVenuesFilterDrawer from "../../components/Admin/AdminVenuesFilterDrawer";
+import AdminVenuesTable from "../../components/Admin/AdminVenuesTable";
+import AdminPagination from "../../components/Admin/AdminPagination";
+import AdminConfirmDialog from "../../components/Admin/AdminConfirmDialog";
+import type { ActionMenuItem } from "../../components/Admin/AdminActionMenu";
 import "./AdminVenuesPage.css";
 
 const VALID_VIEWS = VENUE_VIEWS.map((entry) => entry.view);

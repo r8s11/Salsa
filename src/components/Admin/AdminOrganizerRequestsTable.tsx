@@ -1,19 +1,19 @@
 import { Fragment } from "react";
 import { Link } from "react-router-dom";
 import { ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
-import type { OrganizerRequestRow } from "../model/organizerRequestsQuery";
+import type { OrganizerRequestRow } from "../../features/admin/model/organizerRequestsQuery";
 import {
   displayNameFor,
   identityLineFor,
   type AdminUserRow,
-} from "../model/usersQuery";
+} from "../../features/admin/model/usersQuery";
 import {
   ORGANIZER_TYPE_LABEL,
   type RequestRowAction,
   requestActionItems,
   type RequestStatus,
   type SortDir,
-} from "../model/organizerRequestsQuery";
+} from "../../features/admin/model/organizerRequestsQuery";
 import AdminUserAvatar from "./AdminUserAvatar";
 import AdminAccountStatusBadge from "./AdminAccountStatusBadge";
 import AdminRequestStatusBadge from "./AdminRequestStatusBadge";

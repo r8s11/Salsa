@@ -1,20 +1,20 @@
 import { useMemo } from "react";
 import { CalendarDays, ClipboardCheck, Users, Plus, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useAdminEvents } from "../hooks/useAdminEvents";
-import { useAdminUserCount } from "../hooks/useAdminUserCount";
-import { useAdminUsers } from "../hooks/useAdminUsers";
-import { useAdminVenues } from "../hooks/useAdminVenues";
-import { useOrganizerRequests } from "../hooks/useOrganizerRequests";
+import { useAdminEvents } from "../../features/admin/hooks/useAdminEvents";
+import { useAdminUserCount } from "../../features/admin/hooks/useAdminUserCount";
+import { useAdminUsers } from "../../features/admin/hooks/useAdminUsers";
+import { useAdminVenues } from "../../features/admin/hooks/useAdminVenues";
+import { useOrganizerRequests } from "../../features/admin/hooks/useOrganizerRequests";
 import {
   deriveOverviewMetrics,
   deriveUpcomingEvents,
-} from "../model/overviewMetrics";
+} from "../../features/admin/model/overviewMetrics";
 import AdminPageHeader from "./AdminPageHeader";
 import AdminMetricCard from "./AdminMetricCard";
 import AdminNeedsAttention, { AttentionItem } from "./AdminNeedsAttention";
 import AdminUpcomingEvents from "./AdminUpcomingEvents";
-import "../../../pages/admin/AdminOverviewPage.css";
+import "../../pages/admin/AdminOverviewPage.css";
 
 export default function PlatformAdminOverview() {
   const { events: queried, isLoading, error, refetch } = useAdminEvents();

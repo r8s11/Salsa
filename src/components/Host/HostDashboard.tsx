@@ -1,18 +1,18 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Building2, CalendarDays, ClipboardCheck, FileEdit, ListChecks, MapPin } from "lucide-react";
-import { useAuth } from "../../../contexts/useAuth";
-import { useMySubmissions } from "../../account/hooks/useMySubmissions";
-import { useMyOrganizers } from "../hooks/useMyOrganizers";
-import { useMyOrganizerEvents } from "../hooks/useMyOrganizerEvents";
-import type { OrganizerMemberRole } from "../api/organizerAccessRepo";
+import { useAuth } from "../../contexts/useAuth";
+import { useMySubmissions } from "../../features/account/hooks/useMySubmissions";
+import { useMyOrganizers } from "../../features/host/hooks/useMyOrganizers";
+import { useMyOrganizerEvents } from "../../features/host/hooks/useMyOrganizerEvents";
+import type { OrganizerMemberRole } from "../../features/host/api/organizerAccessRepo";
 import {
   deriveHostEventRows,
   findNextHostEvent,
   isUpcomingHostEvent,
-} from "../model/hostEvents";
-import AdminMetricCard from "../../admin/components/AdminMetricCard";
-import AdminPageHeader from "../../admin/components/AdminPageHeader";
+} from "../../features/host/model/hostEvents";
+import AdminMetricCard from "../Admin/AdminMetricCard";
+import AdminPageHeader from "../Admin/AdminPageHeader";
 import "./HostDashboard.css";
 
 const ROLE_LABELS: Record<OrganizerMemberRole, string> = {

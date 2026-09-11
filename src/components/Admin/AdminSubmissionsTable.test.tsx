@@ -2,7 +2,7 @@ import type { ComponentProps } from "react";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import type { EventSubmission } from "../model/submissions";
+import type { EventSubmission } from "../../features/admin/model/submissions";
 import AdminSubmissionsTable from "./AdminSubmissionsTable";
 
 function makeSubmission(overrides: Partial<EventSubmission> = {}): EventSubmission {

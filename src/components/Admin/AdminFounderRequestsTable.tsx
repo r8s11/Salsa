@@ -4,7 +4,7 @@ import AdminActionMenu from "./AdminActionMenu";
 import {
   founderRequestActionItems,
   type FounderAccessRequestRow,
-} from "../model/founderRequestsQuery";
+} from "../../features/admin/model/founderRequestsQuery";
 import "./AdminFounderRequestsTable.css";
 
 function formatDateLocal(iso: string): string {

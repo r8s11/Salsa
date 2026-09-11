@@ -8,8 +8,8 @@ import { useMyOrganizerEvents } from "../../features/host/hooks/useMyOrganizerEv
 import { useEventAttendanceSummaries } from "../../features/host/hooks/useEventAttendanceSummaries";
 import { isUpcomingHostEvent } from "../../features/host/model/hostEvents";
 import type { DatabaseEvent } from "../../features/events/model/types";
-import AdminPageHeader from "../../features/admin/components/AdminPageHeader";
-import AdminStatusBadge from "../../features/admin/components/AdminStatusBadge";
+import AdminPageHeader from "../../components/Admin/AdminPageHeader";
+import AdminStatusBadge from "../../components/Admin/AdminStatusBadge";
 import EventShareControls from "../../features/events/components/EventShareControls";
 import { fromEventDateInstant, formatTimeLabel } from "../../features/events/model/eventDateTime";
 import "./HostMyEventsPage.css";

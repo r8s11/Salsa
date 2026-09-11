@@ -1,5 +1,5 @@
 import { useId, useRef } from "react";
-import { useAccessibleDialog } from "../../../shared/a11y/useAccessibleDialog";
+import { useAccessibleDialog } from "../../shared/a11y/useAccessibleDialog";
 import "./AdminApproveDialog.css";
 
 interface AdminApproveDialogProps {

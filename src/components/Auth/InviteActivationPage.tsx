@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../../../lib/supabase";
-import { roleFromUser } from "../../../contexts/authContextObject";
-import { publicErrorMessage } from "../../../shared/forms/errorMessage";
-import FormFieldError from "../../../shared/forms/FormFieldError";
-import { fieldErrorProps } from "../../../shared/forms/fieldErrorProps";
-import Button from "../../../components/ui/Button";
-import ButtonLink from "../../../components/ui/ButtonLink";
+import { supabase } from "../../lib/supabase";
+import { roleFromUser } from "../../contexts/authContextObject";
+import { publicErrorMessage } from "../../shared/forms/errorMessage";
+import FormFieldError from "../../shared/forms/FormFieldError";
+import { fieldErrorProps } from "../../shared/forms/fieldErrorProps";
+import Button from "../ui/Button";
+import ButtonLink from "../ui/ButtonLink";
 import "./InviteActivationPage.css";
 
 type ActivationError = "invalid" | "not-organizer" | "unknown";

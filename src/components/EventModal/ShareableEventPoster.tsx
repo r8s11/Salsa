@@ -1,6 +1,6 @@
 import { Clock, MapPin } from "lucide-react";
-import { ScheduleXEvent } from "../../../../types/events";
-import SalsaSeguraLogo from "../../../../components/brand/SalsaSeguraLogo";
+import { ScheduleXEvent } from "../../types/events";
+import SalsaSeguraLogo from "../brand/SalsaSeguraLogo";
 import "./ShareableEventPoster.css";
 
 interface ShareableEventPosterProps {

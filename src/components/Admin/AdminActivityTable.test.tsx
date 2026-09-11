@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
 import { render, screen } from "@testing-library/react";
 import type { ComponentProps } from "react";
-import type { ActivityAuditLog } from "../model/auditActivityQuery";
+import type { ActivityAuditLog } from "../../features/admin/model/auditActivityQuery";
 import AdminActivityTable from "./AdminActivityTable";
 
 const baseEntry: ActivityAuditLog = {

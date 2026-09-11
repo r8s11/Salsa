@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import type { AdminUserRow } from "../model/usersQuery";
+import type { AdminUserRow } from "../../features/admin/model/usersQuery";
 import AdminSubmitterPanel from "./AdminSubmitterPanel";
 
 describe("AdminSubmitterPanel", () => {

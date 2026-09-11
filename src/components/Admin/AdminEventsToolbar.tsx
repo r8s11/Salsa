@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Search, SlidersHorizontal, ChevronDown } from "lucide-react";
-import { useEscapeKey } from "../../calendar/hooks/useEscapeKey";
-import type { DatabaseEvent } from "../../events/model/types";
-import type { EventFilters, SortDir, SortKey } from "../model/eventsQuery";
+import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
+import type { DatabaseEvent } from "../../features/events/model/types";
+import type { EventFilters, SortDir, SortKey } from "../../features/admin/model/eventsQuery";
 import "./AdminEventsToolbar.css";
 
 const STATUS_OPTIONS: { value: DatabaseEvent["status"]; label: string }[] = [

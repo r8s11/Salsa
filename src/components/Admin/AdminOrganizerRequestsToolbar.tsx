@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Search, SlidersHorizontal, ChevronDown } from "lucide-react";
-import { useEscapeKey } from "../../calendar/hooks/useEscapeKey";
+import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
 import {
   ORGANIZER_TYPE_LABEL,
   type OrganizerType,
   type RequestFilters,
   REQUEST_SORT_OPTIONS,
   type SortDir,
-} from "../model/organizerRequestsQuery";
+} from "../../features/admin/model/organizerRequestsQuery";
 import "./AdminOrganizerRequestsToolbar.css";
 
 interface AdminOrganizerRequestsToolbarProps {

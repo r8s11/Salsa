@@ -17,6 +17,8 @@ const mockEventFlyers = vi.hoisted(() => ({
 const mockFlyerExtraction = vi.hoisted(() => ({
   extractEventFromFlyer: vi.fn(),
 }));
+const mockReconciliation = vi.hoisted(() => ({ reconcileVenue: vi.fn() }));
+
 
 vi.mock("../contexts/useAuth", () => ({ useAuth: () => ({ user: mockAuth.user }) }));
 vi.mock("../contexts/useCity", () => ({ useCity: () => ({ city: "boston" }) }));
@@ -38,6 +40,8 @@ vi.mock("../features/events/api/eventFlyers", () => ({
       : "Choose a JPEG, PNG, or WebP image.",
 }));
 vi.mock("../features/flyer-extraction/client", () => mockFlyerExtraction);
+vi.mock("../features/entity-matching/reconcileClient", () => mockReconciliation);
+
 
 const FLYER_URL =
   "https://project.supabase.co/storage/v1/object/public/event-flyers/test-user-id/submission-abc/havana.png";
@@ -105,6 +109,7 @@ describe("SubmitEventPage flyer extraction (Phase 3)", () => {
       url: FLYER_URL,
     });
     mockEventFlyers.removeEventFlyer.mockResolvedValue(undefined);
+    mockReconciliation.reconcileVenue.mockResolvedValue({ venue: { status: "none", match: null } });
   });
 
   it("shows no extraction button before a flyer is persisted", () => {
@@ -177,6 +182,20 @@ describe("SubmitEventPage flyer extraction (Phase 3)", () => {
     expect(within(panel as HTMLElement).queryByText("Website")).not.toBeInTheDocument();
     expect(screen.getByText(/wasn't visible on the flyer/i)).toBeInTheDocument();
   });
+  it("shows venue enrichment failure without blocking extracted form details", async () => {
+    const user = userEvent.setup();
+    mockFlyerExtraction.extractEventFromFlyer.mockResolvedValueOnce(FULL_EXTRACTION);
+    mockReconciliation.reconcileVenue.mockRejectedValueOnce(new Error("network failure"));
+    renderPage();
+    await uploadFlyer(user);
+    await user.click(screen.getByRole("button", { name: /Extract Event Details/i }));
+
+    expect(await screen.findByText(/Venue enrichment is unavailable/i)).toBeInTheDocument();
+    expect(screen.getByText("Boston Salsa Night")).toBeInTheDocument();
+    expect(screen.getByLabelText(/Event Title \*/i)).toHaveValue("Boston Salsa Night");
+    expect(screen.getAllByRole("status").length).toBeGreaterThan(0);
+  });
+
 
   it("shows a safe failure message with Try Again and Continue manually, and never blocks the form", async () => {
     const user = userEvent.setup();

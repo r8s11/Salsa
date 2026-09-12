@@ -68,6 +68,24 @@ describe("EventFlyerField", () => {
     // After removal the dropzone returns.
     expect(await screen.findByLabelText(/Choose a flyer image to upload/i)).toBeInTheDocument();
   });
+  it("Replace button opens file picker even when preview is visible", async () => {
+    const user = userEvent.setup();
+    const onFileChange = vi.fn();
+    const onRemove = vi.fn();
+    const clickSpy = vi.spyOn(HTMLInputElement.prototype, "click").mockImplementation(() => {});
+
+    render(
+      <EventFlyerField
+        currentUrl="https://example.com/flyer.png"
+        onFileChange={onFileChange}
+        onRemove={onRemove}
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: /Replace/i }));
+    expect(clickSpy).toHaveBeenCalled();
+    clickSpy.mockRestore();
+  });
 
   it("renders an upload-error state with an accessible alert", () => {
     render(

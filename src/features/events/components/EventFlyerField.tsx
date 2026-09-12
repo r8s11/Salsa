@@ -232,21 +232,24 @@ export default function EventFlyerField({
           >
             {previewUrl ? "Choose a different flyer" : "Choose Flyer"}
           </button>
-          <input
-            ref={inputRef}
-            id={inputId}
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            onChange={handleChange}
-            disabled={disabled || isBusy}
-            className="event-flyer-field__input"
-            tabIndex={-1}
-            aria-hidden
-            aria-invalid={hasAlert ? "true" : undefined}
-            aria-describedby={hasAlert ? alertId : undefined}
-          />
-        </div>
+      </div>
       )}
+
+      {/* hidden file input – always mounted so Replace works */}
+      <input
+        ref={inputRef}
+        id={inputId}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        onChange={handleChange}
+        disabled={disabled || isBusy}
+        className="event-flyer-field__input"
+        tabIndex={-1}
+        aria-hidden
+        aria-invalid={hasAlert ? "true" : undefined}
+        aria-describedby={hasAlert ? alertId : undefined}
+      />
+
 
       {showPreview && (currentUrl || previewUrl) && (
         <div className="event-flyer-field__actions">

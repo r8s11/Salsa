@@ -198,18 +198,18 @@ export default function SubmitEventPage() {
                         )}
                       </div>
                     )}
-                    {reconciliation.status !== "idle" && (
+                    {reconciliation.status === "loading" && (
                       <p className="submit-flyer__notice" role="status">
-                        {reconciliation.status === "loading"
-                          ? "Checking the venue details…"
-                          : reconciliation.status === "error"
-                            ? "Venue enrichment is unavailable. You can still review and submit the extracted details."
-                            : reconciliation.response?.venue.status === "exact" ||
-                                reconciliation.response?.venue.status === "strong"
-                              ? "Venue details matched a known venue. Review the extracted details before submitting."
-                              : "No confident venue match found. Review the extracted details before submitting."}
+                        Checking the venue details…
                       </p>
                     )}
+                    {reconciliation.status === "success" &&
+                      (reconciliation.response?.venue.status === "exact" ||
+                        reconciliation.response?.venue.status === "strong") && (
+                        <p className="submit-flyer__notice" role="status">
+                          Matched to an existing SalsaSegura venue.
+                        </p>
+                      )}
                   </>
                 )}
               </section>

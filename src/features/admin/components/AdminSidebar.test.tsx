@@ -8,7 +8,7 @@ import AdminSidebar from "./AdminSidebar";
 import type {
   OrganizerMemberRole,
   OrganizerMembership,
-} from "../../features/host/api/organizerAccessRepo";
+} from "../../host/api/organizerAccessRepo";
 
 function makeTestQueryClient() {
   return new QueryClient({

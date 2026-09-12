@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import type { DatabaseEvent } from "../features/events/model/types";
 import HostEventDetailPage from "./HostEventDetailPage";
-import RequireOrganizer from "../components/Auth/RequireOrganizer";
+import RequireOrganizer from "../features/auth/components/RequireOrganizer";
 
 const { useAuth } = vi.hoisted(() => ({ useAuth: vi.fn() }));
 const { useMySubmissions } = vi.hoisted(() => ({ useMySubmissions: vi.fn() }));

@@ -1,6 +1,6 @@
 import { Ban, CircleX, Clock } from "lucide-react";
-import type { DatabaseEvent } from "../../features/events/model/types";
-import type { SubmissionStatus } from "../../features/admin/model/submissions";
+import type { DatabaseEvent } from "../../events/components/EventForm/types";
+import type { SubmissionStatus } from "../model/submissions";
 
 type AdminStatus = DatabaseEvent["status"] | SubmissionStatus;
 

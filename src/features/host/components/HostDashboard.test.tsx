@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import type { DatabaseEvent } from "../../features/events/model/types";
+import type { DatabaseEvent } from "../../events/components/EventForm/types";
 import HostDashboard from "./HostDashboard";
-import RequireOrganizer from "../Auth/RequireOrganizer";
+import RequireOrganizer from "../../auth/components/RequireOrganizer";
 
 const { useAuth } = vi.hoisted(() => ({ useAuth: vi.fn() }));
 const { useMySubmissions } = vi.hoisted(() => ({ useMySubmissions: vi.fn() }));

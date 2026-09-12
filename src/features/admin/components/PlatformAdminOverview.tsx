@@ -1,19 +1,19 @@
 import { useMemo } from "react";
 import { CalendarDays, ClipboardCheck, Users, Plus, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useAdminEvents } from "../../hooks/useAdminEvents";
-import { useAdminUserCount } from "../../hooks/useAdminUserCount";
-import { useAdminUsers } from "../../hooks/useAdminUsers";
-import { useAdminVenues } from "../../features/admin/hooks/useAdminVenues";
-import { useOrganizerRequests } from "../../features/admin/hooks/useOrganizerRequests";
+import { useAdminEvents } from "../../../hooks/useAdminEvents";
+import { useAdminUserCount } from "../../../hooks/useAdminUserCount";
+import { useAdminUsers } from "../../../hooks/useAdminUsers";
+import { useAdminVenues } from "../hooks/useAdminVenues";
+import { useOrganizerRequests } from "../hooks/useOrganizerRequests";
 import {
   deriveOverviewMetrics,
   deriveUpcomingEvents,
-} from "../../features/admin/model/overviewMetrics";
-import AdminPageHeader from "../Admin/AdminPageHeader";
-import AdminMetricCard from "../Admin/AdminMetricCard";
-import AdminNeedsAttention, { AttentionItem } from "../Admin/AdminNeedsAttention";
-import AdminUpcomingEvents from "../Admin/AdminUpcomingEvents";
+} from "../model/overviewMetrics";
+import AdminPageHeader from "AdminPageHeader";
+import AdminMetricCard from "AdminMetricCard";
+import AdminNeedsAttention, { AttentionItem } from "AdminNeedsAttention";
+import AdminUpcomingEvents from "AdminUpcomingEvents";
 import "../../pages/AdminOverviewPage.css";
 
 export default function PlatformAdminOverview() {

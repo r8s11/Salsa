@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "../../contexts/useAuth";
+import { useAuth } from "../../../contexts/useAuth";
 
 /**
  * Protects a route by requiring an authenticated session AND the admin

@@ -13,19 +13,19 @@ import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import "temporal-polyfill/global";
 import "./Calendar.css";
 import "@schedule-x/theme-default/dist/index.css";
-import { ScheduleXEvent, CALENDARS_CONFIG, City, EventType } from "../../types/events";
-import { filterEventsByType, TypeFilter } from "../../utils/filterEvents";
-import { getUpcomingSeriesDates } from "../../utils/series";
-import { useCity } from "../../contexts/useCity";
-import EventModal from "../EventModal/EventModal";
-import { useEvents } from "../../hooks/useEvent";
-import { generateEventsListStructuredData, injectStructuredData } from "../../utils/seo";
-import { useDocumentMeta } from "../../shared/seo/useDocumentMeta";
-import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
-import { useEventDeepLink } from "../../features/calendar/hooks/useEventDeepLink";
-import CalendarLegend from "../../features/calendar/components/CalendarLegend";
-import CalendarStatus from "../../features/calendar/components/CalendarStatus";
-import CalendarSidebar from "../../features/calendar/components/CalendarSidebar";
+import { ScheduleXEvent, CALENDARS_CONFIG, City, EventType } from "../../../types/events";
+import { filterEventsByType, TypeFilter } from "../../../utils/filterEvents";
+import { getUpcomingSeriesDates } from "../../../utils/series";
+import { useCity } from "../../../contexts/useCity";
+import EventModal from "../../events/components/EventModal/EventModal";
+import { useEvents } from "../../../hooks/useEvent";
+import { generateEventsListStructuredData, injectStructuredData } from "../../../utils/seo";
+import { useDocumentMeta } from "../../../shared/seo/useDocumentMeta";
+import { useEscapeKey } from "../hooks/useEscapeKey";
+import { useEventDeepLink } from "../hooks/useEventDeepLink";
+import CalendarLegend from "CalendarLegend";
+import CalendarStatus from "CalendarStatus";
+import CalendarSidebar from "CalendarSidebar";
 import {
   calendarPeriodRange,
   formatPeriodLabel,
@@ -34,7 +34,7 @@ import {
   filterEventsByDanceStyle,
   countEventsInRange,
   eventCountLabel as formatEventCountLabel,
-} from "../../features/calendar/model/calendarSidebar";
+} from "../model/calendarSidebar";
 
 type CalendarView = "month-grid" | "week" | "list";
 

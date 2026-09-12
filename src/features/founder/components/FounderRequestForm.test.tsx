@@ -3,7 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import FounderRequestForm from "./FounderRequestForm";
-import type { FounderRequestPayload } from "../../lib/founderRequest";
+import type { FounderRequestPayload } from "../../../lib/founderRequest";
 
 const validPayload: FounderRequestPayload = {
   applicantName: "John Doe",

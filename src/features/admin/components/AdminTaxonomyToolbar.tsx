@@ -3,8 +3,8 @@ import type {
   TaxonomyCategory,
   TaxonomyFilters,
   TaxonomyStatus,
-} from "../../features/admin/model/taxonomy";
-import { DEFAULT_TAXONOMY_FILTERS } from "../../features/admin/model/taxonomy";
+} from "../model/taxonomy";
+import { DEFAULT_TAXONOMY_FILTERS } from "../model/taxonomy";
 
 export default function AdminTaxonomyToolbar({
   filters,

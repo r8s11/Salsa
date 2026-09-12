@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "../../contexts/useAuth";
-import { useHostCapabilities } from "../../features/host/hooks/useHostCapabilities";
+import { useAuth } from "../../../contexts/useAuth";
+import { useHostCapabilities } from "../../host/hooks/useHostCapabilities";
 
 /**
  * Protects the Host area by requiring an authenticated session. The /host

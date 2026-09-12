@@ -19,11 +19,11 @@ import { useMyOrganizers } from "../features/host/hooks/useMyOrganizers";
 import { deriveHostEventRows } from "../features/host/model/hostEvents";
 import type { DatabaseEvent } from "../features/events/model/types";
 import { fromEventDateInstant, formatTimeLabel } from "../features/events/model/eventDateTime";
-import AdminStatusBadge from "../components/Admin/AdminStatusBadge";
+import AdminStatusBadge from "../features/admin/components/AdminStatusBadge";
 import EventShareControls from "../features/events/components/EventShareControls";
 import { useEventAttendees } from "../features/host/hooks/useEventAttendees";
 import { useEventCheckIns } from "../features/host/hooks/useEventCheckIns";
-import AdminConfirmDialog from "../components/Admin/AdminConfirmDialog";
+import AdminConfirmDialog from "../features/admin/components/AdminConfirmDialog";
 import { deleteOrganizerEvent } from "../features/host/api/organizerAccessRepo";
 import "./HostEventDetailPage.css";
 

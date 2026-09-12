@@ -1,12 +1,12 @@
 import { useEffect, useRef } from "react";
 import type { MouseEvent } from "react";
 import { X } from "lucide-react";
-import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
+import { useEscapeKey } from "../../calendar/hooks/useEscapeKey";
 import {
   VENUE_STATUS_LABEL,
   type VenueFilters,
   type VenueStatus,
-} from "../../features/admin/model/venuesQuery";
+} from "../model/venuesQuery";
 
 interface AdminVenuesFilterDrawerProps {
   filters: VenueFilters;

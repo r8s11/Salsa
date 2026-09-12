@@ -4,7 +4,7 @@ import { render as rtlRender, screen, fireEvent, waitFor, act } from "@testing-l
 import { MemoryRouter } from "react-router-dom";
 import EventModal from "./EventModal";
 import { DEFAULT_EVENT_BANNER_URL } from "./eventModalImage";
-import { ScheduleXEvent } from "../../types/events";
+import { ScheduleXEvent } from "../../../../types/events";
 
 const {
   mockEnsureContainer,

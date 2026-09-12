@@ -1,4 +1,4 @@
-import type { TaxonomyStatus } from "../../features/admin/model/taxonomy";
+import type { TaxonomyStatus } from "../model/taxonomy";
 
 const labels: Record<TaxonomyStatus, string> = {
   active: "Active",

@@ -1,11 +1,11 @@
 import { ClipboardCheck, Users, AlertTriangle, CalendarDays } from "lucide-react";
-import type { AttentionItem } from "../Admin/AdminNeedsAttention";
-import AdminPageHeader from "../Admin/AdminPageHeader";
-import AdminMetricCard from "../Admin/AdminMetricCard";
-import AdminNeedsAttention from "../Admin/AdminNeedsAttention";
-import type { OverviewMetrics } from "../../features/admin/model/overviewMetrics";
-import AdminUpcomingEvents from "../Admin/AdminUpcomingEvents";
-import type { DatabaseEvent } from "../../features/events/model/types";
+import type { AttentionItem } from "AdminNeedsAttention";
+import AdminPageHeader from "AdminPageHeader";
+import AdminMetricCard from "AdminMetricCard";
+import AdminNeedsAttention from "AdminNeedsAttention";
+import type { OverviewMetrics } from "../model/overviewMetrics";
+import AdminUpcomingEvents from "AdminUpcomingEvents";
+import type { DatabaseEvent } from "../../events/components/EventForm/types";
 
 interface Props {
   isLoading: boolean;

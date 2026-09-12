@@ -4,9 +4,9 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import AuthCallback from "./AuthCallback";
-import { supabase } from "../../lib/supabase";
-import { useAuth } from "../../contexts/useAuth";
-import { setAuthIntent } from "../../lib/authIntent";
+import { supabase } from "../../../lib/supabase";
+import { useAuth } from "../../../contexts/useAuth";
+import { setAuthIntent } from "../../../lib/authIntent";
 
 vi.mock("../../lib/supabase", () => ({
   supabase: {

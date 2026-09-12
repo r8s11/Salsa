@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAdminUsers } from "../hooks/useAdminUsers";
-import AdminUserForm from "../components/Admin/AdminUserForm";
+import AdminUserForm from "../features/admin/components/AdminUserForm";
 import { useAuth } from "../contexts/useAuth";
 import {
   applyUserView,
@@ -23,15 +23,15 @@ import {
 } from "../features/admin/model/usersQuery";
 import type { CreatedAccount } from "../features/admin/api/profilesRepo";
 import { PAGE_SIZE_OPTIONS, DEFAULT_PAGE_SIZE } from "../features/admin/model/eventsQuery";
-import AdminPageHeader from "../components/Admin/AdminPageHeader";
-import AdminViewTabs from "../components/Admin/AdminViewTabs";
-import AdminUsersToolbar from "../components/Admin/AdminUsersToolbar";
-import AdminUsersFilterDrawer from "../components/Admin/AdminUsersFilterDrawer";
-import AdminUsersTable, { type UserRowAction } from "../components/Admin/AdminUsersTable";
-import AdminPagination from "../components/Admin/AdminPagination";
-import AdminConfirmDialog from "../components/Admin/AdminConfirmDialog";
-import AdminRoleChangeDialog from "../components/Admin/AdminRoleChangeDialog";
-import AdminFlagUserDialog from "../components/Admin/AdminFlagUserDialog";
+import AdminPageHeader from "../features/admin/components/AdminPageHeader";
+import AdminViewTabs from "../features/admin/components/AdminViewTabs";
+import AdminUsersToolbar from "../features/admin/components/AdminUsersToolbar";
+import AdminUsersFilterDrawer from "../features/admin/components/AdminUsersFilterDrawer";
+import AdminUsersTable, { type UserRowAction } from "../features/admin/components/AdminUsersTable";
+import AdminPagination from "../features/admin/components/AdminPagination";
+import AdminConfirmDialog from "../features/admin/components/AdminConfirmDialog";
+import AdminRoleChangeDialog from "../features/admin/components/AdminRoleChangeDialog";
+import AdminFlagUserDialog from "../features/admin/components/AdminFlagUserDialog";
 import "./AdminUsersPage.css";
 
 type PendingUserAction =

@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
-import type { DatabaseEvent } from "../../features/events/model/types";
-import { fromEventDateInstant } from "../../features/events/model/eventDateTime";
-import { submitterDisplay } from "../../features/admin/model/eventsQuery";
+import type { DatabaseEvent } from "../../events/components/EventForm/types";
+import { fromEventDateInstant } from "../../events/model/eventDateTime";
+import { submitterDisplay } from "../model/eventsQuery";
 import AdminStatusBadge from "./AdminStatusBadge";
 import "./AdminUpcomingEvents.css";
 

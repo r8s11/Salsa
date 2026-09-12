@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useRef, type KeyboardEvent } from "react";
 import { X } from "lucide-react";
-import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
-import type { City, DatabaseEvent } from "../../features/events/model/types";
+import { useEscapeKey } from "../../calendar/hooks/useEscapeKey";
+import type { City, DatabaseEvent } from "../../events/components/EventForm/types";
 import {
   CITY_LABEL,
   DANCE_STYLES,
   SOURCE_TYPE_LABEL,
   type EventFilters,
-} from "../../features/admin/model/eventsQuery";
+} from "../model/eventsQuery";
 import "./AdminEventsFilterDrawer.css";
 
 const CITIES: City[] = ["boston", "new-york-city"];

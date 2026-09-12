@@ -13,7 +13,8 @@ import type { EventFlyerStatus } from "../../events/components/EventFlyerField";
 import { extractEventFromFlyer } from "../../flyer-extraction/client";
 import { applyExtractionToDraft, type PrefillResult } from "../../flyer-extraction/prefill";
 import type { ExtractedEvent, FlyerExtractionStatus } from "../../flyer-extraction/types";
-import { reconcileVenue, type ReconciliationResponse } from "../../entity-matching/reconcileClient";
+import { reconcileVenue } from "../../entity-matching/reconcileClient";
+import type { ReconciliationResponse } from "../../entity-matching/types";
 type ReconciliationState = { status: "idle" | "loading" | "success" | "error"; response: ReconciliationResponse | null; error: string | null };
 
 function buildSubmitDraft(city: EventFormDraft["city"]): EventFormDraft {

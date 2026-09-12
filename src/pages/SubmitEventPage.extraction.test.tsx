@@ -160,6 +160,29 @@ describe("SubmitEventPage flyer extraction (Phase 3)", () => {
     // A full extraction has nothing missing — no partial-results note.
     expect(screen.queryByText(/wasn't visible on the flyer/i)).not.toBeInTheDocument();
   });
+  it.each([
+    ["exact", /Venue details matched a known venue/i],
+    ["strong", /Venue details matched a known venue/i],
+  ] as const)("shows a known venue notice for %s reconciliation", async (status, notice) => {
+    const user = userEvent.setup();
+    mockFlyerExtraction.extractEventFromFlyer.mockResolvedValueOnce(FULL_EXTRACTION);
+    mockReconciliation.reconcileVenue.mockResolvedValueOnce({ venue: { status, match: { id: "v1", name: "Havana Club", address: null, city: "Boston" } } });
+    renderPage();
+    await uploadFlyer(user);
+    await user.click(screen.getByRole("button", { name: /Extract Event Details/i }));
+    expect(await screen.findByText(notice)).toBeInTheDocument();
+  });
+
+  it("shows a no-confident-match notice for ambiguous reconciliation", async () => {
+    const user = userEvent.setup();
+    mockFlyerExtraction.extractEventFromFlyer.mockResolvedValueOnce(FULL_EXTRACTION);
+    mockReconciliation.reconcileVenue.mockResolvedValueOnce({ venue: { status: "ambiguous", match: null } });
+    renderPage();
+    await uploadFlyer(user);
+    await user.click(screen.getByRole("button", { name: /Extract Event Details/i }));
+    expect(await screen.findByText(/No confident venue match found/i)).toBeInTheDocument();
+  });
+
 
   it("shows only populated fields and a partial-results note for an incomplete flyer", async () => {
     const user = userEvent.setup();

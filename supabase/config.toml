@@ -480,3 +480,8 @@ verify_jwt = false
 # Authenticated user endpoint; the handler also validates the caller JWT before
 # reading the owner-prefixed flyer and contacting OpenAI.
 verify_jwt = true
+
+[functions.reconcile-flyer]
+# Authenticated user endpoint; the handler validates the caller JWT before
+# querying active canonical venues with a service-role client.
+verify_jwt = true

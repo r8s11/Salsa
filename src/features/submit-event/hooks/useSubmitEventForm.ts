@@ -237,18 +237,41 @@ export function useSubmitEventForm() {
     setExtractionError(null);
     extractEventFromFlyer(uploadedFlyerUrl)
       .then(async (result) => {
-        // Generation check BEFORE anything else — a stale response must
-        // never render, and (critically) must never reach the form.
         if (extractionGeneration.current !== generation) return;
         setExtractionResult(result);
-        setReconciliation({ status: "loading", response: null, error: null });
         let enriched = result;
-        if (result.venue_name?.trim()) { try { const response = await reconcileVenue({ venue: { name: result.venue_name, address: result.address, city: result.city } }); if (extractionGeneration.current !== generation) return; setReconciliation({ status: "success", response, error: null }); if ((response.venue.status === "exact" || response.venue.status === "strong") && response.venue.match) enriched = { ...result, venue_name: response.venue.match.name, address: response.venue.match.address ?? result.address, city: response.venue.match.city ?? result.city }; } catch (err) { if (extractionGeneration.current !== generation) return; setReconciliation({ status: "error", response: null, error: err instanceof Error ? err.message : "We couldn't verify this venue." }); } }
+        // Keep the duplicate guard set until reconciliation and prefill finish.
+        if (result.venue_name?.trim()) {
+          setReconciliation({ status: "loading", response: null, error: null });
+          try {
+            const response = await reconcileVenue({
+              venue: { name: result.venue_name, address: result.address, city: result.city },
+            });
+            if (extractionGeneration.current !== generation) return;
+            setReconciliation({ status: "success", response, error: null });
+            if (
+              (response.venue.status === "exact" || response.venue.status === "strong") &&
+              response.venue.match
+            ) {
+              enriched = {
+                ...result,
+                venue_name: response.venue.match.name,
+                address: response.venue.match.address ?? result.address,
+                city: response.venue.match.city ?? result.city,
+              };
+            }
+            // Ambiguous/none deliberately retain raw extraction values.
+          } catch (err) {
+            if (extractionGeneration.current !== generation) return;
+            setReconciliation({
+              status: "error",
+              response: null,
+              error: err instanceof Error ? err.message : "We couldn't verify this venue.",
+            });
+          }
+        }
         if (extractionGeneration.current !== generation) return;
         setExtractionStatus("success");
-        // Prefill against the latest form, not a closure captured when this
-        // request started — a manual edit made while extraction was in
-        // flight must still win.
         const { draft, filled, skipped } = applyExtractionToDraft(enriched, formRef.current);
         onChange(draft);
         setPrefillFeedback({ filled, skipped });

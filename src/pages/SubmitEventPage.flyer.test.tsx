@@ -50,7 +50,7 @@ const FLYER_URL =
 
 const renderPage = () => {
   const rendered = render(<SubmitEventPage />);
-  fireEvent.click(screen.getByRole("button", { name: /Choose to upload a flyer to start/i }));
+  fireEvent.click(screen.getByRole("button", { name: /Upload a flyer to start/i }));
   return rendered;
 };
 

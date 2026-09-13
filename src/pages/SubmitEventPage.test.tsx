@@ -29,7 +29,7 @@ const renderSubmitEventPage = () => {
     </CityProvider>
   );
   const manualEntry = screen.queryByRole("button", {
-    name: /Choose to enter event details manually/i,
+    name: /Enter event details manually/i,
   });
   if (manualEntry) fireEvent.click(manualEntry);
   return rendered;
@@ -69,10 +69,10 @@ describe("SubmitEventPage", () => {
 
     expect(screen.getByRole("group", { name: /How would you like to start/i })).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /Choose to upload a flyer to start/i })
+      screen.getByRole("button", { name: /Upload a flyer to start/i })
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /Choose to enter event details manually/i })
+      screen.getByRole("button", { name: /Enter event details manually/i })
     ).toBeInTheDocument();
   });
 

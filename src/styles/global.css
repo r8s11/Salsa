@@ -44,6 +44,8 @@
   --font-display: "Epilogue", "Helvetica Neue", sans-serif;
   --font-ui: "Epilogue", "Helvetica Neue", sans-serif;
   --font-body: "Be Vietnam Pro", "Helvetica Neue", sans-serif;
+  /* Additional display step for card/surface headings */
+  --font-size-card-title: 1.4rem;
   --font-logo: "Great Vibes", cursive;
 
   /* Header (glass) */

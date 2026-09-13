@@ -1,7 +1,9 @@
 /* ========================================
-   Submit Event Page — Ritmo Vivo
+   Submit Event — Ritmo Vivo
+   Replacement visual world
    ======================================== */
 
+/* ── Page shell ── */
 .submit-event {
   background: var(--bg);
   color: var(--text);
@@ -9,243 +11,203 @@
   min-height: calc(100dvh - 68px);
 }
 
-.submit-event .section-title {
-  color: var(--text);
+.submit-event__header {
+  text-align: center;
+  margin-bottom: var(--space-xl);
 }
 
 .submit-event__eyebrow {
-  font-family: var(--font-ui);
-  font-size: 0.72rem;
-  font-weight: 700;
+  font: 700 0.72rem var(--font-display);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--gold);
-  text-align: center;
-  margin-bottom: 0.5rem;
+  margin: 0 0 var(--space-sm);
 }
 
-.submit-intro {
-  font-family: var(--font-ui);
-  font-size: 0.8rem;
-  font-weight: 300;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  text-align: center;
-  margin-top: -1.5rem;
-  margin-bottom: 3rem;
-  max-width: 560px;
-  margin-inline: auto;
-  line-height: 1.8;
-  /* undo uppercase for readability on long text */
-  text-transform: none;
-  font-size: 0.95rem;
-  letter-spacing: 0.02em;
-}
-
-/* ── Success Card ── */
-.success-card {
-  max-width: 520px;
-  margin: 4rem auto;
-  text-align: center;
-  background: var(--card);
-  border: 1px solid var(--border);
-  padding: 3rem 2rem;
-  border-radius: var(--radius-lg);
-}
-
-.success-card h2 {
-  font-family: var(--font-display);
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 1rem;
-}
-
-.success-card p {
-  color: var(--text-muted);
-  margin-bottom: 2rem;
-  line-height: 1.7;
-  font-size: 0.95rem;
-}
-
-/* ── Create Event entry choice (Phase 1) ── */
-.flyer-choice-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-  margin: 2rem auto 0;
-  max-width: 720px;
-}
-
-.flyer-choice-card {
-  background: var(--surface);
-  border: 1px solid var(--border-md);
-  border-radius: var(--radius-lg);
-  padding: 2rem;
-  text-align: center;
-  cursor: pointer;
-  transition:
-    border-color 0.2s ease,
-    transform 0.2s ease;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.flyer-choice-card:hover {
-  border-color: var(--red);
-  transform: translateY(-3px);
-}
-
-.flyer-choice-card h2 {
-  font-family: var(--font-display);
-  font-size: 1.25rem;
+.submit-event__title {
+  font: 800 clamp(2rem, 4vw, 3rem) var(--font-display);
+  letter-spacing: -0.02em;
+  line-height: 1.05;
   color: var(--text);
   margin: 0;
 }
 
-.flyer-choice-card p {
+.submit-event__intro {
+  font: 400 0.95rem var(--font-body);
   color: var(--text-muted);
-  font-size: 0.9rem;
-  line-height: 1.5;
+  max-width: 560px;
+  margin: var(--space-md) auto 0;
+  line-height: 1.7;
+}
+
+.submit-event__status {
+  text-align: center;
+  padding: var(--space-xl) 0;
+  color: var(--text-muted);
+  font: 400 1rem var(--font-body);
+}
+
+.submit-event__banner {
+  padding: var(--space-md) var(--space-lg);
+  border-radius: var(--radius-md);
+  text-align: center;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.submit-event__banner--error {
+  background: var(--red-dim);
+  border: 1px solid var(--red);
+  color: var(--red-bright);
+}
+
+.submit-event__banner p {
+  margin: 0;
+  font: 400 0.95rem var(--font-body);
+}
+
+/* ── Entry choice (flyer vs manual) ── */
+.submit-entry {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: var(--space-lg);
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.submit-entry__card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding: var(--space-xl);
+  border-radius: var(--radius-lg);
+  border: 1.5px solid var(--border-md);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.25s ease,
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+  overflow: hidden;
+}
+
+.submit-entry__card:hover {
+  transform: translateY(-4px);
+}
+
+.submit-entry__card:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
+/* Flyer card: rose glow, dominant */
+.submit-entry__card--flyer {
+  border-color: var(--red);
+  box-shadow: var(--glow-primary);
+  background: linear-gradient(180deg, var(--red-dim) 0%, var(--surface) 60%);
+}
+
+.submit-entry__card--flyer:hover {
+  border-color: var(--red-bright);
+  box-shadow: 0 0 32px var(--red-glow);
+}
+
+.submit-entry__card--flyer .submit-entry__card-cta {
+  color: var(--red-bright);
+}
+
+/* Manual card: gold accent, subdued */
+.submit-entry__card--manual {
+  background: var(--surface-high);
+}
+
+.submit-entry__card--manual:hover {
+  border-color: var(--gold);
+  box-shadow: 0 0 24px var(--gold-dim);
+}
+
+.submit-entry__card--manual .submit-entry__card-cta {
+  color: var(--gold);
+}
+
+.submit-entry__card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius);
+  background: var(--red-dim);
+  color: var(--red-bright);
+}
+
+.submit-entry__card-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius);
+  background: var(--gold-dim);
+  color: var(--gold);
+  font-size: var(--font-size-card-title);
+}
+
+.submit-entry__card-title {
+  font: 700 var(--font-size-card-title) var(--font-display);
+  color: var(--text);
+  margin: 0;
+}
+
+.submit-entry__card-text {
+  font: 400 0.95rem var(--font-body);
+  color: var(--text-muted);
+  line-height: 1.6;
   margin: 0;
   flex-grow: 1;
 }
 
-/* ── Flyer fieldset ── */
-.submit-event__flyer-fieldset {
-  border: 1px solid var(--border-md);
-  border-radius: var(--radius-lg);
-  padding: 1.75rem;
-  background: var(--surface);
-}
-
-.submit-event__flyer-fieldset legend {
-  font-family: var(--font-ui);
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  padding: 0 0.75rem;
-}
-
-/* ── Flyer dropzone/preview ── */
-.flyer-dropzone {
-  margin-top: 1rem;
-}
-
-.flyer-preview {
-  margin-top: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.75rem;
-}
-
-.flyer-preview__status {
-  color: var(--red-bright);
-  font-family: var(--font-ui);
-  font-size: 0.8rem;
-  font-weight: 700;
+.submit-entry__card-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font: 700 0.72rem var(--font-display);
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  margin: 0;
+  margin-top: var(--space-sm);
+  transition: gap 0.2s ease;
 }
 
-.flyer-preview__frame {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  max-width: 360px;
-}
-
-.flyer-preview__image {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  display: block;
-}
-
-.flyer-preview__meta {
-  font-family: var(--font-body);
-  font-size: 0.8rem;
-  color: var(--text-dim);
-  margin: 0;
-}
-
-.flyer-preview__actions {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.flyer-preview__file-input {
-  display: none;
-}
-
-.flyer-preview__file-label {
-  cursor: pointer;
-}
-
-.flyer-preview__extract {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.flyer-preview__extract-hint {
-  color: var(--text-dim);
-  font-size: 0.8rem;
-  font-family: var(--font-body);
-}
-
-.flyer-status {
-  margin-top: 0.75rem;
-  font-family: var(--font-body);
-  font-size: 0.9rem;
-  color: var(--text-muted);
-}
-
-.flyer-continue-hint {
-  margin-top: 1rem;
-  font-family: var(--font-body);
-  font-size: 0.85rem;
-  color: var(--text-dim);
-}
-
-/* ── Mobile ── */
-@media (max-width: 600px) {
-  .submit-event {
-    padding: 48px 0 72px;
-  }
-
-  .flyer-choice-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* ── Flyer-first entry point (Phase 1) ── */
-.submit-flyer {
-  max-width: 680px;
-  margin: 0 auto 2.5rem;
-  padding: 2rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--surface);
-  display: grid;
+.submit-entry__card:hover .submit-entry__card-cta {
   gap: var(--space-md);
 }
 
+/* ── Flow wrapper ── */
+.submit-event__flow {
+  display: grid;
+  gap: var(--space-xl);
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+/* ── Flyer section ── */
+.submit-flyer {
+  display: grid;
+  gap: var(--space-md);
+  padding: var(--space-xl);
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, var(--gold-dim) 0%, var(--surface) 80%);
+  position: relative;
+  overflow: hidden;
+}
+
 .submit-flyer__heading {
-  font-family: var(--font-display);
-  font-size: 1.4rem;
-  font-weight: 700;
+  font: 700 var(--font-size-card-title) var(--font-display);
   color: var(--text);
   margin: 0;
 }
@@ -253,17 +215,17 @@
 .submit-flyer__subhead {
   margin: 0;
   color: var(--text-muted);
-  font-size: 0.95rem;
+  font: 400 0.95rem var(--font-body);
   line-height: 1.6;
 }
 
 .submit-flyer__guest-note {
   margin: 0;
-  padding: 0.6rem 0.85rem;
+  padding: var(--space-sm) var(--space-md);
   border-radius: var(--radius-sm);
   background: var(--gold-dim);
   color: var(--gold-light);
-  font-size: 0.85rem;
+  font: 400 0.85rem var(--font-body);
 }
 
 .submit-flyer__actions {
@@ -271,15 +233,16 @@
   flex-wrap: wrap;
   gap: var(--space-sm);
   align-items: center;
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--border);
 }
 
 .submit-flyer__notice {
-  margin: 0;
-  padding: 0.6rem 0.85rem;
+  padding: var(--space-sm) var(--space-md);
   border-radius: var(--radius-sm);
   background: var(--gold-dim);
   color: var(--gold-light);
-  font-size: 0.85rem;
+  font: 400 0.85rem var(--font-body);
   display: grid;
   gap: 0.35rem;
 }
@@ -288,13 +251,144 @@
   margin: 0;
   line-height: 1.5;
 }
-@media (max-width: 600px) {
-  .submit-flyer {
-    padding: 1.25rem;
+
+/* ── Form ── */
+.submit-form {
+  display: grid;
+  gap: var(--space-lg);
+}
+
+.submit-form__card {
+  position: relative;
+  display: grid;
+  gap: var(--space-lg);
+  padding: var(--space-xl);
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, var(--card) 0%, var(--surface) 60%);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  overflow: hidden;
+}
+
+.submit-form__required-legend {
+  font: 600 0.72rem var(--font-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin: 0;
+}
+
+/* ── Sticky submit bar (mobile) ── */
+.submit-form__bar {
+  display: block;
+}
+
+/* ── EventForm overrides within submit context ── */
+.submit-form .event-form__section {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.submit-form .event-form__section + .event-form__section {
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--border);
+}
+
+.submit-form .event-form__section h2 {
+  font: 700 0.8rem var(--font-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--red-bright);
+  margin: 0 0 var(--space-md);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.submit-form .event-form__section h2::before {
+  content: "";
+  width: 4px;
+  height: 16px;
+  border-radius: var(--radius-sm);
+  background: var(--red);
+}
+
+.submit-form .event-form label,
+.submit-form .event-form__label {
+  color: var(--text-muted);
+}
+
+/* ── Success card override ── */
+.submit-event .success-card {
+  max-width: 560px;
+  margin: var(--space-xxl) auto;
+  text-align: center;
+  background: linear-gradient(180deg, var(--gold-dim) 0%, var(--surface) 50%);
+  border: 1px solid var(--border-md);
+  padding: var(--space-xl);
+  border-radius: var(--radius-lg);
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+}
+
+.submit-event .success-card h2 {
+  font: 700 1.75rem var(--font-display);
+  color: var(--text);
+  margin-bottom: var(--space-md);
+}
+
+.submit-event .success-card p {
+  color: var(--text-muted);
+  margin-bottom: var(--space-xl);
+  line-height: 1.7;
+  font: 400 0.95rem var(--font-body);
+}
+
+/* ── Mobile ── */
+@media (max-width: 768px) {
+  .submit-event {
+    padding: 48px 0 140px; /* extra bottom for sticky bar */
   }
 
-  .submit-flyer__actions {
-    flex-direction: column;
-    align-items: stretch;
+  .submit-entry {
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+  }
+
+  .submit-entry__card {
+    padding: var(--space-lg);
+  }
+
+  .submit-flyer {
+    padding: var(--space-lg);
+  }
+
+  .submit-form__card {
+    padding: var(--space-lg);
+  }
+
+  .submit-form__bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: var(--space-md) var(--space-lg);
+    padding-bottom: calc(var(--space-md) + env(safe-area-inset-bottom, 0px));
+    background: var(--header-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border-top: 1px solid var(--border-md);
+    z-index: 50;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .submit-entry__card,
+  .submit-entry__card-cta {
+    transition: none;
   }
 }

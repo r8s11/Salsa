@@ -15,11 +15,6 @@ import "./SubmitEventPage.css";
 
 type EntryMode = "choice" | "flyer" | "manual";
 
-/**
- * Maps each `SubmitFieldName` to the DOM id `EventForm` renders it with, in
- * form order — drives both the error summary's link targets and the order
- * its list is built in.
- */
 const FIELD_ORDER: { field: SubmitFieldName; id: string }[] = [
   { field: "title", id: "event-title" },
   { field: "event_type", id: "event-type" },
@@ -70,8 +65,6 @@ export default function SubmitEventPage() {
 
   const formRef = useRef<HTMLFormElement>(null);
 
-  // Only the Host-facing entry point warns before losing typed work — the
-  // public submitter flow is intentionally left unchanged in Phase 2.
   useEffect(() => {
     if (!isOrganizer || !isDirty) return;
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -95,36 +88,63 @@ export default function SubmitEventPage() {
   return (
     <section className="submit-event">
       <div className="container">
-        {isOrganizer && <p className="submit-event__eyebrow">Host · Create Event</p>}
-        <h1 className="section-title">{isOrganizer ? "Create a new event" : "Submit an Event"}</h1>
-        <p className="submit-intro">
-          {isOrganizer
-            ? "Add the details dancers need to discover and attend your event. It goes through moderation review before it appears on the calendar."
-            : "Know about a salsa, bachata, or dance event in Greater Boston or NYC? Share it with the community! All submissions are reviewed before appearing on the calendar."}
-        </p>
+        <header className="submit-event__header">
+          {isOrganizer && <p className="submit-event__eyebrow">Host · Create Event</p>}
+          <h1 className="submit-event__title">
+            {isOrganizer ? "Create a new event" : "Submit an Event"}
+          </h1>
+          <p className="submit-event__intro">
+            {isOrganizer
+              ? "Add the details dancers need to discover and attend your event. It goes through moderation review before it appears on the calendar."
+              : "Know about a salsa, bachata, or dance event in Greater Boston or NYC? Share it with the community! All submissions are reviewed before appearing on the calendar."}
+          </p>
+        </header>
+
         {submissionAccess.isLoading ? (
-          <p role="status">Checking whether submissions are open…</p>
+          <p className="submit-event__status" role="status">
+            Checking whether submissions are open…
+          </p>
         ) : submissionAccess.error ? (
-          <div className="error-banner" role="alert">
+          <div className="submit-event__banner submit-event__banner--error" role="alert">
             <p>❌ Event submissions are currently unavailable. Please try again later.</p>
           </div>
         ) : !submissionAccess.canSubmit ? (
-          <p className="submit-intro">Event submissions are currently closed.</p>
+          <p className="submit-event__status">Event submissions are currently closed.</p>
         ) : entryMode === "choice" ? (
-          <div className="flyer-choice-grid" role="group" aria-label="How would you like to start?">
-            <div className="flyer-choice-card" role="group" aria-label="Upload a flyer">
-              <h2>Upload a Flyer</h2>
-              <p>Let SalsaSegura help prepare your event using your flyer as the event image.</p>
-              <Button onClick={() => setEntryMode("flyer")} aria-label="Choose to upload a flyer to start">Upload Flyer</Button>
-            </div>
-            <div className="flyer-choice-card" role="group" aria-label="Enter manually">
-              <h2>Enter Manually</h2>
-              <p>Fill in the event details yourself from the start.</p>
-              <Button variant="secondary" onClick={() => setEntryMode("manual")} aria-label="Choose to enter event details manually">Start Manually</Button>
-            </div>
+          <div className="submit-entry" role="group" aria-label="How would you like to start?">
+            <button
+              type="button"
+              className="submit-entry__card submit-entry__card--flyer"
+              onClick={() => setEntryMode("flyer")}
+              aria-label="Upload a flyer to start"
+            >
+              <span className="submit-entry__card-icon" aria-hidden="true">
+                <Sparkles />
+              </span>
+              <h2 className="submit-entry__card-title">I have a flyer</h2>
+              <p className="submit-entry__card-text">
+                Upload your flyer and SalsaSegura will help fill in the details for you — review everything before submitting.
+              </p>
+              <span className="submit-entry__card-cta">Upload Flyer</span>
+            </button>
+            <button
+              type="button"
+              className="submit-entry__card submit-entry__card--manual"
+              onClick={() => setEntryMode("manual")}
+              aria-label="Enter event details manually"
+            >
+              <span className="submit-entry__card-glyph" aria-hidden="true">
+                ✎
+              </span>
+              <h2 className="submit-entry__card-title">Start manually</h2>
+              <p className="submit-entry__card-text">
+                Fill in the event details yourself from the start.
+              </p>
+              <span className="submit-entry__card-cta">Enter Manually</span>
+            </button>
           </div>
         ) : (
-          <>
+          <div className="submit-event__flow">
             {entryMode === "flyer" && (
               <section className="submit-flyer" aria-labelledby="submit-flyer-heading">
                 <h2 id="submit-flyer-heading" className="submit-flyer__heading">
@@ -215,30 +235,33 @@ export default function SubmitEventPage() {
               </section>
             )}
 
-            {/* ── Canonical event form ── */}
             <form ref={formRef} onSubmit={handleSubmit} className="submit-form" noValidate>
-              <FormErrorSummary
-                id="submit-error-summary"
-                items={FIELD_ORDER.filter(({ field }) => fieldErrors[field]).map(({ field, id }) => ({
-                  fieldId: id,
-                  message: fieldErrors[field] as string,
-                }))}
-                serverMessage={serverError}
-                focusKey={failedAttempt}
-              />
-              <p className="submit-form__required-legend">* Required</p>
-              <EventForm
-                draft={form}
-                onChange={onChange}
-                capabilities={CAPABILITIES.submit}
-                requireSubmitterContact={!user}
-                errors={fieldErrors}
-              />
-              <Button type="submit" block loading={isSubmitting} loadingLabel="Submitting...">
-                {isOrganizer ? "Submit for review" : "Submit Event"}
-              </Button>
+              <div className="submit-form__card">
+                <FormErrorSummary
+                  id="submit-error-summary"
+                  items={FIELD_ORDER.filter(({ field }) => fieldErrors[field]).map(({ field, id }) => ({
+                    fieldId: id,
+                    message: fieldErrors[field] as string,
+                  }))}
+                  serverMessage={serverError}
+                  focusKey={failedAttempt}
+                />
+                <p className="submit-form__required-legend">* Required</p>
+                <EventForm
+                  draft={form}
+                  onChange={onChange}
+                  capabilities={CAPABILITIES.submit}
+                  requireSubmitterContact={!user}
+                  errors={fieldErrors}
+                />
+              </div>
+              <div className="submit-form__bar">
+                <Button type="submit" block loading={isSubmitting} loadingLabel="Submitting...">
+                  {isOrganizer ? "Submit for review" : "Submit Event"}
+                </Button>
+              </div>
             </form>
-          </>
+          </div>
         )}
       </div>
     </section>

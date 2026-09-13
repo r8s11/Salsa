@@ -169,3 +169,18 @@ Comprehensive*/
 
 # Generated code-analysis caches (tools keep their conventional locations)
 graphify-out/
+
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+/graft/
+
+# Agent / assistant tool state (regenerated per session, never imported)
+.cursor/
+.gemini/
+.grok/
+.kiro/
+.windsurf/
+.ignore
+.mcp.json
+opencode.json
+GEMINI.md
+.github/copilot-instructions.md

@@ -16,6 +16,10 @@ const mockEventFlyers = vi.hoisted(() => ({
   removeEventFlyer: vi.fn(),
 }));
 const mockExtractionClient = vi.hoisted(() => ({ extractEventFromFlyer: vi.fn() }));
+const mockReconciliation = vi.hoisted(() => ({ reconcileVenue: vi.fn() }));
+
+vi.mock("../features/entity-matching/reconcileClient", () => mockReconciliation);
+
 
 vi.mock("../contexts/useAuth", () => ({ useAuth: () => ({ user: mockAuth.user }) }));
 vi.mock("../contexts/useCity", () => ({ useCity: () => ({ city: "boston" }) }));
@@ -67,6 +71,9 @@ describe("SubmitEventPage flyer (Phase 1)", () => {
       url: FLYER_URL,
     });
     mockEventFlyers.removeEventFlyer.mockResolvedValue(undefined);
+    mockReconciliation.reconcileVenue.mockResolvedValue({
+      venue: { status: "none", match: null },
+    });
   });
 
   it("flows directly from the flyer section into the event form without a manual continuation control", () => {

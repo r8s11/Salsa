@@ -17,6 +17,8 @@ const mockEventFlyers = vi.hoisted(() => ({
 const mockFlyerExtraction = vi.hoisted(() => ({
   extractEventFromFlyer: vi.fn(),
 }));
+const mockReconciliation = vi.hoisted(() => ({ reconcileVenue: vi.fn() }));
+
 
 vi.mock("../contexts/useAuth", () => ({ useAuth: () => ({ user: mockAuth.user }) }));
 vi.mock("../contexts/useCity", () => ({ useCity: () => ({ city: "boston" }) }));
@@ -38,6 +40,8 @@ vi.mock("../features/events/api/eventFlyers", () => ({
       : "Choose a JPEG, PNG, or WebP image.",
 }));
 vi.mock("../features/flyer-extraction/client", () => mockFlyerExtraction);
+vi.mock("../features/entity-matching/reconcileClient", () => mockReconciliation);
+
 
 const FLYER_URL =
   "https://project.supabase.co/storage/v1/object/public/event-flyers/test-user-id/submission-abc/havana.png";
@@ -76,6 +80,8 @@ const PARTIAL_EXTRACTION = {
   details: [],
 };
 
+
+
 const renderPage = () => {
   const rendered = render(<SubmitEventPage />);
   fireEvent.click(screen.getByRole("button", { name: /Choose to upload a flyer to start/i }));
@@ -105,6 +111,7 @@ describe("SubmitEventPage flyer extraction (Phase 3)", () => {
       url: FLYER_URL,
     });
     mockEventFlyers.removeEventFlyer.mockResolvedValue(undefined);
+    mockReconciliation.reconcileVenue.mockResolvedValue({ venue: { status: "none", match: null } });
   });
 
   it("shows no extraction button before a flyer is persisted", () => {
@@ -155,7 +162,23 @@ describe("SubmitEventPage flyer extraction (Phase 3)", () => {
     // A full extraction has nothing missing — no partial-results note.
     expect(screen.queryByText(/wasn't visible on the flyer/i)).not.toBeInTheDocument();
   });
-
+  it.each([
+    ["exact", /Matched to an existing SalsaSegura venue\./i],
+    ["strong", /Matched to an existing SalsaSegura venue\./i],
+  ] as const)("shows a restrained known venue notice for %s reconciliation", async (status, notice) => {
+    const user = userEvent.setup();
+    mockFlyerExtraction.extractEventFromFlyer.mockResolvedValueOnce(FULL_EXTRACTION);
+    mockReconciliation.reconcileVenue.mockResolvedValueOnce({
+      venue: {
+        status,
+        match: { id: "v1", name: "Havana Club", address: null, city: "Boston" },
+      },
+    });
+    renderPage();
+    await uploadFlyer(user);
+    await user.click(screen.getByRole("button", { name: /Extract Event Details/i }));
+    expect(await screen.findByText(notice)).toBeInTheDocument();
+  });
   it("shows only populated fields and a partial-results note for an incomplete flyer", async () => {
     const user = userEvent.setup();
     mockFlyerExtraction.extractEventFromFlyer.mockResolvedValueOnce(PARTIAL_EXTRACTION);
@@ -167,9 +190,6 @@ describe("SubmitEventPage flyer extraction (Phase 3)", () => {
     const panel = screen.getByText(/Flyer analyzed/i).closest(".flyer-extraction-panel");
     if (!panel) throw new Error("extraction panel not found");
     expect(within(panel as HTMLElement).getByText("Casa Latina")).toBeInTheDocument();
-    // Populated fields render; absent ones (address, price, organizer,
-    // instagram, website, event type) must not appear as empty rows. Scoped
-    // to the panel — the manual event form has its own "Address" label.
     expect(within(panel as HTMLElement).queryByText("Address")).not.toBeInTheDocument();
     expect(within(panel as HTMLElement).queryByText("Price")).not.toBeInTheDocument();
     expect(within(panel as HTMLElement).queryByText("Organizer")).not.toBeInTheDocument();
@@ -177,6 +197,53 @@ describe("SubmitEventPage flyer extraction (Phase 3)", () => {
     expect(within(panel as HTMLElement).queryByText("Website")).not.toBeInTheDocument();
     expect(screen.getByText(/wasn't visible on the flyer/i)).toBeInTheDocument();
   });
+
+
+  it("silently falls back for an ambiguous venue match", async () => {
+    const user = userEvent.setup();
+    mockFlyerExtraction.extractEventFromFlyer.mockResolvedValueOnce(FULL_EXTRACTION);
+    mockReconciliation.reconcileVenue.mockResolvedValueOnce({
+      venue: { status: "ambiguous", match: null },
+    });
+    renderPage();
+    await uploadFlyer(user);
+    await user.click(screen.getByRole("button", { name: /Extract Event Details/i }));
+
+    expect(await screen.findByText("Havana Club")).toBeInTheDocument();
+    expect(screen.getByLabelText(/Event Title \*/i)).toHaveValue("Boston Salsa Night");
+    expect(screen.queryByText(/No confident venue match found/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Venue enrichment is unavailable/i)).not.toBeInTheDocument();
+  });
+
+  it("silently falls back for an unknown venue", async () => {
+    const user = userEvent.setup();
+    mockFlyerExtraction.extractEventFromFlyer.mockResolvedValueOnce(FULL_EXTRACTION);
+    mockReconciliation.reconcileVenue.mockResolvedValueOnce({
+      venue: { status: "none", match: null },
+    });
+    renderPage();
+    await uploadFlyer(user);
+    await user.click(screen.getByRole("button", { name: /Extract Event Details/i }));
+
+    expect(await screen.findByText("Havana Club")).toBeInTheDocument();
+    expect(screen.getByLabelText(/Event Title \*/i)).toHaveValue("Boston Salsa Night");
+    expect(screen.queryByText(/No confident venue match found/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Venue enrichment is unavailable/i)).not.toBeInTheDocument();
+  });
+
+  it("silently falls back when venue reconciliation fails", async () => {
+    const user = userEvent.setup();
+    mockFlyerExtraction.extractEventFromFlyer.mockResolvedValueOnce(FULL_EXTRACTION);
+    mockReconciliation.reconcileVenue.mockRejectedValueOnce(new Error("network failure"));
+    renderPage();
+    await uploadFlyer(user);
+    await user.click(screen.getByRole("button", { name: /Extract Event Details/i }));
+
+    expect(await screen.findByText("Havana Club")).toBeInTheDocument();
+    expect(screen.getByLabelText(/Event Title \*/i)).toHaveValue("Boston Salsa Night");
+    expect(screen.queryByText(/Venue enrichment is unavailable/i)).not.toBeInTheDocument();
+  });
+
 
   it("shows a safe failure message with Try Again and Continue manually, and never blocks the form", async () => {
     const user = userEvent.setup();

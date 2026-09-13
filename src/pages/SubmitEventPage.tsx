@@ -59,6 +59,7 @@ export default function SubmitEventPage() {
     extractionResult,
     extractionError,
     prefillFeedback,
+    reconciliation,
     handleExtractFlyer,
     dismissExtractionError,
   } = useSubmitEventForm();
@@ -197,6 +198,18 @@ export default function SubmitEventPage() {
                         )}
                       </div>
                     )}
+                    {reconciliation.status === "loading" && (
+                      <p className="submit-flyer__notice" role="status">
+                        Checking the venue details…
+                      </p>
+                    )}
+                    {reconciliation.status === "success" &&
+                      (reconciliation.response?.venue.status === "exact" ||
+                        reconciliation.response?.venue.status === "strong") && (
+                        <p className="submit-flyer__notice" role="status">
+                          Matched to an existing SalsaSegura venue.
+                        </p>
+                      )}
                   </>
                 )}
               </section>

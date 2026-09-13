@@ -26,6 +26,9 @@ const mockFlyerExtraction = vi.hoisted(() => ({
 
 vi.mock("../../flyer-extraction/client", () => mockFlyerExtraction);
 
+const mockReconciliation = vi.hoisted(() => ({ reconcileVenue: vi.fn() }));
+vi.mock("../../entity-matching/reconcileClient", () => mockReconciliation);
+
 vi.mock("../../../contexts/useCity", () => ({
   useCity: () => ({ city: "boston" }),
 }));
@@ -66,6 +69,7 @@ describe("useSubmitEventForm", () => {
     });
     mockEventFlyers.removeEventFlyer.mockResolvedValue(undefined);
     vi.mocked(createSubmission).mockResolvedValue("submission-abc");
+    mockReconciliation.reconcileVenue.mockResolvedValue({ venue: { status: "none", match: null } });
   });
 
   it("submits dance_styles as an empty array when nothing is selected", async () => {
@@ -506,6 +510,28 @@ describe("useSubmitEventForm", () => {
       expect(result.current.extractionStatus).toBe("success");
       expect(result.current.extractionResult).toEqual(extractionFixture);
       expect(result.current.extractionError).toBeNull();
+    });
+
+    it("enriches exact venue matches without setting venue_id", async () => {
+      mockFlyerExtraction.extractEventFromFlyer.mockResolvedValue(extractionFixture);
+      mockReconciliation.reconcileVenue.mockResolvedValue({ venue: { status: "exact", match: { id: "v1", name: "Canonical Club", address: "1 Main", city: "Boston" } } });
+      const { result } = renderHook(() => useSubmitEventForm());
+      await act(async () => { result.current.handleFlyerChange(pngFile()); });
+      await act(async () => { await Promise.resolve(); result.current.handleExtractFlyer(); await Promise.resolve(); await Promise.resolve(); });
+      expect(result.current.form.location).toBe("Canonical Club");
+      expect(result.current.form.address).toBe("1 Main");
+      expect(result.current.form.venue_id).toBe("");
+      expect(result.current.extractionResult?.venue_name).toBe("Havana Club");
+    });
+
+    it("keeps raw values for ambiguous reconciliation", async () => {
+      mockFlyerExtraction.extractEventFromFlyer.mockResolvedValue(extractionFixture);
+      mockReconciliation.reconcileVenue.mockResolvedValue({ venue: { status: "ambiguous", match: null } });
+      const { result } = renderHook(() => useSubmitEventForm());
+      await act(async () => { result.current.handleFlyerChange(pngFile()); });
+      await act(async () => { await Promise.resolve(); result.current.handleExtractFlyer(); await Promise.resolve(); await Promise.resolve(); });
+      expect(result.current.form.location).toBe("Havana Club");
+      expect(result.current.form.address).toBe("288 Green Street");
     });
 
     it("does nothing before a flyer is persisted", async () => {

@@ -32,9 +32,12 @@ export function databaseEventToScheduleX(event: DatabaseEvent): ScheduleXEvent {
     contactEmail: event.contact_email ?? undefined,
     contactInstagram: event.contact_instagram ?? undefined,
     contactWebsite: event.contact_website ?? undefined,
-    danceStyles: event.taxonomy_terms
-      .filter((term) => term.category === "dance_style")
-      .map((term) => term.name),
+    danceStyles:
+      event.taxonomy_terms.length > 0
+        ? event.taxonomy_terms
+            .filter((term) => term.category === "dance_style")
+            .map((term) => term.name)
+        : event.dance_styles ?? [],
     imageUrl: event.image_url ?? undefined,
     posterImageUrl: event.poster_image_url ?? undefined,
     priceType: event.price_type ?? undefined,

@@ -9,6 +9,7 @@ import {
 } from "./eventsRepo";
 
 const mocks = vi.hoisted(() => ({
+  from: vi.fn(),
   insert: vi.fn(),
   update: vi.fn(),
   delete: vi.fn(),
@@ -25,10 +26,11 @@ const queryBuilder = {
   single: vi.fn(),
   maybeSingle: mocks.maybeSingle,
 };
+mocks.from.mockReturnValue(queryBuilder);
 
 vi.mock("../../../lib/supabase", () => ({
   supabase: {
-    from: () => queryBuilder,
+    from: mocks.from,
   },
 }));
 vi.mock("../../admin/api/taxonomyRepo", () => ({
@@ -94,12 +96,13 @@ describe("eventsRepo taxonomy persistence", () => {
 
 describe("fetchApprovedEventById", () => {
   beforeEach(() => {
+    mocks.from.mockClear();
     queryBuilder.select.mockClear();
     queryBuilder.eq.mockClear();
     mocks.maybeSingle.mockReset();
   });
 
-  it("queries only the requested approved event and projects taxonomy", async () => {
+  it("reads approved public event detail from the public view", async () => {
     mocks.maybeSingle.mockResolvedValue({
       data: {
         ...source,
@@ -116,6 +119,7 @@ describe("fetchApprovedEventById", () => {
       taxonomy_terms: source.taxonomy_terms,
     });
 
+    expect(mocks.from).toHaveBeenCalledWith("public_events");
     expect(queryBuilder.eq).toHaveBeenNthCalledWith(1, "id", "source-id");
     expect(queryBuilder.eq).toHaveBeenNthCalledWith(2, "status", "approved");
   });

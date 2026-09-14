@@ -144,4 +144,15 @@ describe("databaseEventToScheduleX", () => {
     const result = databaseEventToScheduleX(event);
     expect(result.danceStyles).toEqual(["Salsa", "Beginner"]);
   });
+
+  it("uses public view dance_styles when taxonomy relationships are absent", () => {
+    const result = databaseEventToScheduleX(
+      mockEvent({
+        dance_styles: ["Salsa", "Bachata"],
+        taxonomy_terms: [],
+      })
+    );
+
+    expect(result.danceStyles).toEqual(["Salsa", "Bachata"]);
+  });
 });

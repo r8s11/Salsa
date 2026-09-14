@@ -50,10 +50,8 @@ export async function fetchApprovedEvents(city: City): Promise<DatabaseEvent[]> 
   today.setDate(today.getDate() - 1);
   const floorDate = today.toISOString();
   const { data, error } = await supabase
-    .from("events")
-    .select(
-      "*, event_taxonomy_terms(taxonomy_term_id, taxonomy_terms(id, name, slug, category, status))"
-    )
+    .from("public_events")
+    .select("*")
     .eq("status", "approved")
     .eq("city", city)
     .gte("event_date", floorDate)
@@ -64,10 +62,8 @@ export async function fetchApprovedEvents(city: City): Promise<DatabaseEvent[]> 
 
 export async function fetchApprovedEventById(id: string): Promise<DatabaseEvent | null> {
   const { data, error } = await supabase
-    .from("events")
-    .select(
-      "*, event_taxonomy_terms(taxonomy_term_id, taxonomy_terms(id, name, slug, category, status))"
-    )
+    .from("public_events")
+    .select("*")
     .eq("id", id)
     .eq("status", "approved")
     .maybeSingle();

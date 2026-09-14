@@ -271,7 +271,8 @@ describe("createEventAsAdmin", () => {
     expect(mocks.from).toHaveBeenCalledWith("events");
     expect(mocks.from).not.toHaveBeenCalledWith("event_submissions");
 
-    const [inserted] = mocks.insert.mock.calls.at(-1) as [Record<string, unknown>];
+    const { calls } = mocks.insert.mock;
+    const [inserted] = calls[calls.length - 1] as [Record<string, unknown>];
     expect(inserted.source_type).toBe("admin");
     expect(inserted.status).toBe("approved");
     expect(inserted.submitter_id).toBe("admin-1");

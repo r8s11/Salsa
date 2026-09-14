@@ -18,6 +18,8 @@ import { filterEventsByType, TypeFilter } from "../../utils/filterEvents";
 import { getUpcomingSeriesDates } from "../../utils/series";
 import { useCity } from "../../contexts/useCity";
 import EventModal from "../EventModal/EventModal";
+import EventCard from "../Events/EventCard";
+import "../Events/Events.css";
 import { useEvents } from "../../features/events/hooks/useEvent";
 import { generateEventsListStructuredData, injectStructuredData } from "../../utils/seo";
 import { useDocumentMeta } from "../../shared/seo/useDocumentMeta";
@@ -37,7 +39,7 @@ import {
 } from "../../features/calendar/model/calendarSidebar";
 import { clampEndToStartDay } from "../../features/calendar/model/eventSpan";
 
-type CalendarView = "month-grid" | "week" | "list";
+type CalendarView = "month-grid" | "week" | "list" | "cards";
 
 const CITY_OPTIONS: { value: City; label: string }[] = [
   { value: "boston", label: "Boston" },
@@ -48,6 +50,7 @@ const VIEW_OPTIONS: { value: CalendarView; label: string }[] = [
   { value: "month-grid", label: "Month" },
   { value: "week", label: "Week" },
   { value: "list", label: "List" },
+  { value: "cards", label: "Cards" },
 ];
 
 const TYPE_OPTIONS: { value: TypeFilter; label: string }[] = [
@@ -57,10 +60,10 @@ const TYPE_OPTIONS: { value: TypeFilter; label: string }[] = [
   { value: "workshop", label: "Workshop" },
 ];
 
-// The compact list-view switch (Schedule-X view + toolbar) and the desktop
-// filter sidebar are separate breakpoints: between them (tablet widths) the
-// calendar grid still needs its full width, so filtering stays in the compact
-// toolbar instead of a stacked full-width sidebar.
+// The compact list/cards switch (Schedule-X list view + toolbar) and the
+// desktop filter sidebar are separate breakpoints: between them (tablet
+// widths) the calendar grid still needs its full width, so filtering stays
+// in the compact toolbar instead of a stacked full-width sidebar.
 const COMPACT_QUERY = "(max-width: 768px)";
 const SIDEBAR_QUERY = "(min-width: 1024px)";
 
@@ -224,7 +227,9 @@ export default function Calendar() {
 
   const handleViewChange = (view: CalendarView) => {
     setActiveView(view);
-    calendarControls.setView(view);
+    if (view !== "cards") {
+      calendarControls.setView(view);
+    }
   };
 
   useDocumentMeta({
@@ -239,10 +244,15 @@ export default function Calendar() {
   const monthTitle = visibleDate.toLocaleString("en-US", { month: "long", year: "numeric" });
   const isEmpty = !loading && !error && eventList.length === 0;
   const hasNoMatches = !loading && !error && eventList.length > 0 && filteredEvents.length === 0;
-  const showCalendar = !loading && !error && expandedEvents.length > 0;
+  const showCalendar = !loading && !error && expandedEvents.length > 0 && activeView !== "cards";
+  const showCards = !loading && !error && expandedEvents.length > 0 && activeView === "cards";
   const showSubmitCta = !loading && !error && eventList.length > 0;
   const today = Temporal.Now.plainDateISO();
-  const periodRange = calendarPeriodRange(visibleDate, activeView, today);
+  const periodRange = calendarPeriodRange(
+    visibleDate,
+    activeView === "cards" ? "month-grid" : activeView,
+    today
+  );
   const periodLabel = formatPeriodLabel(periodRange);
   const typeCountsInStyleContext = countEventsByType(
     filterEventsByDanceStyle(eventList, styleFilter)
@@ -316,7 +326,11 @@ export default function Calendar() {
               {/* Event-type filtering lives in exactly one place per layout:
                   the desktop sidebar, or these compact toolbar pills. */}
               {!hasSidebar && (
-                <div className="pill-group" role="group" aria-label="Filter by event type">
+                <div
+                  className="pill-group calendar-type-pills"
+                  role="group"
+                  aria-label="Filter by event type"
+                >
                   {TYPE_OPTIONS.map((option) => (
                     <button
                       key={option.value}
@@ -329,20 +343,27 @@ export default function Calendar() {
                   ))}
                 </div>
               )}
-              {!isCompact && (
-                <div className="pill-group" role="group" aria-label="Calendar view">
-                  {VIEW_OPTIONS.map((option) => (
-                    <button
-                      key={option.value}
-                      className={`pill ${activeView === option.value ? "pill-active-view" : ""}`}
-                      aria-pressed={activeView === option.value}
-                      onClick={() => handleViewChange(option.value)}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              )}
+              <div
+                className="pill-group calendar-view-pills"
+                role="group"
+                aria-label="Calendar view"
+              >
+                {(isCompact
+                  ? VIEW_OPTIONS.filter(
+                      (option) => option.value === "list" || option.value === "cards"
+                    )
+                  : VIEW_OPTIONS
+                ).map((option) => (
+                  <button
+                    key={option.value}
+                    className={`pill ${activeView === option.value ? "pill-active-view" : ""}`}
+                    aria-pressed={activeView === option.value}
+                    onClick={() => handleViewChange(option.value)}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
               {!isCompact && <CalendarLegend />}
             </div>
           </div>
@@ -363,6 +384,16 @@ export default function Calendar() {
           {showCalendar && (
             <div className="calendar-main">
               <ScheduleXCalendar calendarApp={calendar} />
+            </div>
+          )}
+
+          {showCards && (
+            <div className="calendar-card-view" aria-label="Events as cards">
+              <div className="calendar-card-grid">
+                {expandedEvents.map((event) => (
+                  <EventCard key={event.id} event={event} onSelect={setSelectedEvent} />
+                ))}
+              </div>
             </div>
           )}
 

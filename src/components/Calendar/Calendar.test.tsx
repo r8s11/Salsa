@@ -88,6 +88,17 @@ describe("Calendar", () => {
     expect(screen.getByRole("button", { name: "Month" })).toBeInTheDocument();
     expect(screen.getByTestId("schedule-x-calendar")).toBeInTheDocument();
   });
+  it("switches to flyer cards without invoking Schedule-X", () => {
+    renderCalendar();
+    fireEvent.click(screen.getByRole("button", { name: "Cards" }));
+    expect(screen.getByRole("button", { name: /Boston Social/ })).toBeInTheDocument();
+    expect(screen.queryByTestId("schedule-x-calendar")).not.toBeInTheDocument();
+    expect(calendarControls.setView).not.toHaveBeenCalledWith("cards");
+
+    fireEvent.click(screen.getByRole("button", { name: "Month" }));
+    expect(screen.getByTestId("schedule-x-calendar")).toBeInTheDocument();
+    expect(calendarControls.setView).toHaveBeenLastCalledWith("month-grid");
+  });
 
   it("starts compact Schedule-X in list view without month or week controls", () => {
     compact = true;
@@ -95,6 +106,8 @@ describe("Calendar", () => {
     expect(useCalendarApp).toHaveBeenCalledWith(expect.objectContaining({ defaultView: "list" }));
     expect(screen.queryByRole("button", { name: "Month" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Week" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "List" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Cards" })).toBeInTheDocument();
   });
 
   it("controls date, city, view, and type filtering", () => {
@@ -199,7 +212,12 @@ describe("Calendar", () => {
   });
 
   it("narrows Schedule-X events when a sidebar dance style is chosen", () => {
-    const bachataEvent = { ...event, id: "event-2", calendarId: "class" as const, danceStyles: ["Bachata"] };
+    const bachataEvent = {
+      ...event,
+      id: "event-2",
+      calendarId: "class" as const,
+      danceStyles: ["Bachata"],
+    };
     useEvents.mockReturnValue({
       events: [event, bachataEvent],
       loading: false,
@@ -225,10 +243,7 @@ describe("Calendar", () => {
     const socialRow = screen.getByRole("button", { name: "Social 1" });
     expect(socialRow).toHaveAttribute("aria-pressed", "true");
     fireEvent.click(screen.getByRole("button", { name: "Class 0" }));
-    expect(screen.getByRole("button", { name: "Class 0" })).toHaveAttribute(
-      "aria-pressed",
-      "true"
-    );
+    expect(screen.getByRole("button", { name: "Class 0" })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("button", { name: "Social 1" })).toHaveAttribute(
       "aria-pressed",
       "false"

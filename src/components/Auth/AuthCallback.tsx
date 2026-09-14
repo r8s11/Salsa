@@ -102,6 +102,11 @@ export default function AuthCallback() {
           hashParams.get("error");
         const code = params.get("code");
 
+        // DEBUG: Log what's received for troubleshooting
+        console.log("[AuthCallback] URL search:", location.search);
+        console.log("[AuthCallback] URL hash:", location.hash);
+        console.log("[AuthCallback] Parsed params - code:", code, "error:", errorParam);
+
         if (errorParam) {
           // e.g. expired or already-used confirmation/recovery link
           console.warn("Auth callback returned an error:", errorParam);

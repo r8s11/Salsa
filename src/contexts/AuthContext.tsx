@@ -6,6 +6,18 @@ import { setAuthIntent } from "../lib/authIntent";
 import { AuthContext, roleFromUser } from "./authContextObject";
 import type { AuthContextValue, AuthSignOutScope } from "./authContextObject";
 
+// Production callback URL - explicit to ensure Supabase redirect matching.
+// Both www and non-www variants are supported in Supabase's allowed URLs.
+const PRODUCTION_ORIGIN = "https://www.salsasegura.com";
+const getCallbackUrl = () => {
+  // In production (non-localhost), prefer explicit production URL for consistency
+  const isLocal = window.location.origin === "http://localhost:5173" || 
+                   window.location.origin === "http://localhost:3000" ||
+                   window.location.origin === "http://127.0.0.1:5173" ||
+                   window.location.origin === "http://127.0.0.1:3000";
+  return isLocal ? `${window.location.origin}/auth/callback` : `${PRODUCTION_ORIGIN}/auth/callback`;
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -57,7 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         password,
         options: {
           // Confirmation emails return to the app's own callback route.
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: getCallbackUrl(),
         },
       });
       const freshUser = data.session?.user ?? null;
@@ -80,7 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email,
         options: {
           // Confirmation emails return to the app's own callback route.
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: getCallbackUrl(),
         },
       });
       return { error: error as Error | null };
@@ -97,7 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Recovery emails return to the app's own callback route, which
         // detects the PASSWORD_RECOVERY auth event and shows a "set new
         // password" form instead of navigating away immediately.
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: getCallbackUrl(),
       });
       return { error: error as Error | null };
     } finally {
@@ -113,7 +125,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         {
           // Change confirmation emails return to the app's own callback
           // route, same as signup and recovery.
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: getCallbackUrl(),
         }
       );
       return { error: error as Error | null };

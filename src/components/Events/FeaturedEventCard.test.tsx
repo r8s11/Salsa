@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import FeaturedEventCard from "./FeaturedEventCard";
@@ -39,6 +39,18 @@ describe("FeaturedEventCard", () => {
     expect(screen.getByText(/rotating DJs/)).toBeInTheDocument();
   });
 
+  it("shows the recently approved indicator for moderator-approved events", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-09-01T12:00:00Z"));
+    renderCard({
+      ...baseEvent,
+      createdAt: "2026-08-31T12:00:00Z",
+      sourceType: "moderator",
+    });
+
+    expect(screen.getByText("Just approved")).toBeInTheDocument();
+  });
+
   it("uses the public default banner when no flyer is available", () => {
     const { container } = renderCard({ ...baseEvent, imageUrl: undefined });
     const media = container.querySelector(".featured-card-media") as HTMLElement;
@@ -62,4 +74,8 @@ describe("FeaturedEventCard", () => {
     const { container } = renderCard({ ...baseEvent, calendarId: "workshop" });
     expect(container.querySelector(".featured-card-media--workshop")).toBeInTheDocument();
   });
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });

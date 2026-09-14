@@ -1,5 +1,6 @@
 import React from "react";
-import { ScheduleXEvent } from "../../types/events";
+import type { ScheduleXEvent } from "../../types/events";
+import { isRecentlyApproved } from "../../features/events/model/recentlyApproved";
 import { resolveEventModalImage } from "../EventModal/eventModalImage";
 
 const TYPE_LABELS: Record<string, string> = {
@@ -36,6 +37,10 @@ export default function EventCard({
   };
 
   const imageUrl = resolveEventModalImage(event);
+  const showRecentlyApproved = isRecentlyApproved({
+    createdAt: event.createdAt,
+    sourceType: event.sourceType,
+  });
 
   return (
     <article
@@ -53,6 +58,7 @@ export default function EventCard({
         <span className={`event-card-chip event-card-chip--${event.calendarId}`}>
           {TYPE_LABELS[event.calendarId] ?? event.calendarId}
         </span>
+        {showRecentlyApproved && <span className="recently-approved-badge">Just approved</span>}
         <div className="event-card-date-overlay">
           <span className="event-card-day">{day}</span>
           <span className="event-card-monthday">

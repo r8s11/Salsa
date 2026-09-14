@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import EventCard from "./EventCard";
@@ -33,6 +33,18 @@ describe("EventCard", () => {
     expect(screen.getByRole("heading", { name: "Rooftop Sunset Social" })).toBeInTheDocument();
     expect(screen.getByText("29")).toBeInTheDocument();
     expect(screen.getByText("Social Dance")).toBeInTheDocument();
+  });
+
+  it("shows the recently approved indicator for moderator-approved events", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-09-01T12:00:00Z"));
+    renderCard({
+      ...baseEvent,
+      createdAt: "2026-08-31T12:00:00Z",
+      sourceType: "moderator",
+    });
+
+    expect(screen.getByText("Just approved")).toBeInTheDocument();
   });
 
   it("uses the public default banner when no flyer is available", () => {
@@ -71,4 +83,8 @@ describe("EventCard", () => {
     renderCard({ ...baseEvent, calendarId: "class" });
     expect(screen.getByText("Class")).toHaveClass("event-card-chip--class");
   });
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });

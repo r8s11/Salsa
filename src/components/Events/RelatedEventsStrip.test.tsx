@@ -1,6 +1,6 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { describe, expect, it } from "vitest";
 import type { DatabaseEvent } from "../../features/events/model/types";
 import { RelatedEventsStrip } from "./RelatedEventsStrip";
 
@@ -52,11 +52,43 @@ describe("RelatedEventsStrip", () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByRole("heading", { name: "More this week in Greater Boston" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "More this week in Greater Boston" })
+    ).toBeInTheDocument();
     expect(screen.getAllByRole("link")).toHaveLength(3);
-    expect(screen.getByRole("link", { name: /first event/i })).toHaveAttribute("href", "/events/first");
-    expect(screen.getByRole("link", { name: /second event/i })).toHaveAttribute("href", "/events/second");
-    expect(screen.getByRole("link", { name: /third event/i })).toHaveAttribute("href", "/events/third");
+    expect(screen.getByRole("link", { name: /first event/i })).toHaveAttribute(
+      "href",
+      "/events/first"
+    );
+    expect(screen.getByRole("link", { name: /second event/i })).toHaveAttribute(
+      "href",
+      "/events/second"
+    );
+    expect(screen.getByRole("link", { name: /third event/i })).toHaveAttribute(
+      "href",
+      "/events/third"
+    );
+  });
+
+  it("shows the recently approved indicator for moderator-approved events", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-09-01T12:00:00Z"));
+    const recentlyApproved = makeEvent({
+      created_at: "2026-08-31T12:00:00Z",
+      source_type: "moderator",
+    });
+
+    render(
+      <MemoryRouter>
+        <RelatedEventsStrip
+          events={[recentlyApproved]}
+          city="boston"
+          hasStrictWindowEvents={false}
+        />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText("Just approved")).toBeInTheDocument();
   });
 
   it("caps rendering at three links when more events are provided", () => {
@@ -76,7 +108,11 @@ describe("RelatedEventsStrip", () => {
 
     const { rerender } = render(
       <MemoryRouter>
-        <RelatedEventsStrip events={[fallback]} city="new-york-city" hasStrictWindowEvents={false} />
+        <RelatedEventsStrip
+          events={[fallback]}
+          city="new-york-city"
+          hasStrictWindowEvents={false}
+        />
       </MemoryRouter>
     );
     expect(screen.getByRole("heading", { name: "More in New York City" })).toBeInTheDocument();
@@ -88,4 +124,8 @@ describe("RelatedEventsStrip", () => {
     );
     expect(screen.queryByRole("region", { name: /more/i })).not.toBeInTheDocument();
   });
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });

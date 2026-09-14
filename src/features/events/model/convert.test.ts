@@ -56,6 +56,18 @@ describe("databaseEventToScheduleX", () => {
     expect(result.end).toBe("2026-07-01 12:00"); // 08:00 + 4 hours = 12:00
   });
 
+  it("preserves approval provenance for public discovery indicators", () => {
+    const result = databaseEventToScheduleX(
+      mockEvent({
+        created_at: "2026-08-31T12:00:00Z",
+        source_type: "moderator",
+      })
+    );
+
+    expect(result.createdAt).toBe("2026-08-31T12:00:00Z");
+    expect(result.sourceType).toBe("moderator");
+  });
+
   it("handles DST fall-back (EST transition) correctly", () => {
     const event = mockEvent({ event_date: "2026-11-01T12:00:00Z" });
     const result = databaseEventToScheduleX(event);

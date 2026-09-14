@@ -81,4 +81,6 @@ export interface ScheduleXEvent {
   contactInstagram?: string;
   contactWebsite?: string;
   danceStyles?: string[];
+  createdAt?: string;
+  sourceType?: DatabaseEvent["source_type"];
 }

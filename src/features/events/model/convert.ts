@@ -39,6 +39,8 @@ export function databaseEventToScheduleX(event: DatabaseEvent): ScheduleXEvent {
     posterImageUrl: event.poster_image_url ?? undefined,
     priceType: event.price_type ?? undefined,
     priceAmount: event.price_amount ?? undefined,
+    createdAt: event.created_at,
+    sourceType: event.source_type,
   };
 }
 

@@ -1,5 +1,6 @@
 import React from "react";
-import { ScheduleXEvent } from "../../types/events";
+import type { ScheduleXEvent } from "../../types/events";
+import { isRecentlyApproved } from "../../features/events/model/recentlyApproved";
 import { resolveEventModalImage } from "../EventModal/eventModalImage";
 
 const TYPE_LABELS: Record<string, string> = {
@@ -36,6 +37,10 @@ export default function FeaturedEventCard({
   };
 
   const imageUrl = resolveEventModalImage(event);
+  const showRecentlyApproved = isRecentlyApproved({
+    createdAt: event.createdAt,
+    sourceType: event.sourceType,
+  });
 
   return (
     <article
@@ -50,6 +55,7 @@ export default function FeaturedEventCard({
         className={`featured-card-media featured-card-media--${event.calendarId}`}
         style={{ backgroundImage: `url(${imageUrl})` }}
       >
+        {showRecentlyApproved && <span className="recently-approved-badge">Just approved</span>}
         <div className="featured-card-date">
           <span>{weekday}</span>
           <strong>{day}</strong>

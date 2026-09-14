@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import type { City, DatabaseEvent } from "../../features/events/model/types";
+import { isRecentlyApproved } from "../../features/events/model/recentlyApproved";
 import "./RelatedEventsStrip.css";
 
 const CITY_LABELS: Record<City, string> = {
@@ -16,7 +17,11 @@ interface RelatedEventsStripProps {
   hasStrictWindowEvents: boolean;
 }
 
-export function RelatedEventsStrip({ events, city, hasStrictWindowEvents }: RelatedEventsStripProps) {
+export function RelatedEventsStrip({
+  events,
+  city,
+  hasStrictWindowEvents,
+}: RelatedEventsStripProps) {
   const headingId = "related-events-heading";
   const cityLabel = CITY_LABELS[city];
 
@@ -35,15 +40,17 @@ export function RelatedEventsStrip({ events, city, hasStrictWindowEvents }: Rela
         day: valid ? dayFormatter.format(date) : "",
         month: valid ? monthFormatter.format(date) : "",
         time: valid && event.event_time ? timeFormatter.format(date) : null,
+        showRecentlyApproved: isRecentlyApproved({
+          createdAt: event.created_at,
+          sourceType: event.source_type,
+        }),
       };
     });
   }, [events]);
 
   if (events.length === 0) return null;
 
-  const heading = hasStrictWindowEvents
-    ? `More this week in ${cityLabel}`
-    : `More in ${cityLabel}`;
+  const heading = hasStrictWindowEvents ? `More this week in ${cityLabel}` : `More in ${cityLabel}`;
 
   return (
     <section className="related-events-strip" aria-labelledby={headingId}>
@@ -51,18 +58,24 @@ export function RelatedEventsStrip({ events, city, hasStrictWindowEvents }: Rela
         {heading}
       </h2>
       <ul className="related-events-strip__list">
-        {cards.map(({ event, weekday, day, month, time }) => (
+        {cards.map(({ event, weekday, day, month, time, showRecentlyApproved }) => (
           <li key={event.id} className="related-events-strip__item">
             <Link
               to={`/events/${event.id}`}
               className={`related-events-strip__card related-events-strip__card--${event.event_type}`}
             >
-              <span className={`related-events-strip__badge related-events-strip__badge--${event.event_type}`} aria-hidden="true">
+              <span
+                className={`related-events-strip__badge related-events-strip__badge--${event.event_type}`}
+                aria-hidden="true"
+              >
                 <span className="related-events-strip__badge-weekday">{weekday}</span>
                 <span className="related-events-strip__badge-day">{day}</span>
                 <span className="related-events-strip__badge-month">{month}</span>
               </span>
               <span className="related-events-strip__body">
+                {showRecentlyApproved && (
+                  <span className="recently-approved-badge">Just approved</span>
+                )}
                 <span className="related-events-strip__title">{event.title}</span>
                 {time && <time className="related-events-strip__time">{time}</time>}
               </span>

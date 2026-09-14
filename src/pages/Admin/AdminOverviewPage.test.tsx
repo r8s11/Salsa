@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import type { DatabaseEvent } from "../../features/events/model/types";
 import type { AdminUserRow } from "../../features/admin/model/usersQuery";
@@ -16,6 +17,7 @@ const { useAdminEvents, useAdminUserCount, useAdminUsers, useOrganizerRequests, 
   }));
 
 const { useAuth } = vi.hoisted(() => ({ useAuth: vi.fn() }));
+const { useAdminSubmissions } = vi.hoisted(() => ({ useAdminSubmissions: vi.fn() }));
 const { useMySubmissions } = vi.hoisted(() => ({ useMySubmissions: vi.fn() }));
 vi.mock("../../features/account/hooks/useMySubmissions", () => ({ useMySubmissions }));
 
@@ -24,6 +26,7 @@ vi.mock("../../features/admin/hooks/useAdminUserCount", () => ({ useAdminUserCou
 vi.mock("../../features/admin/hooks/useAdminUsers", () => ({ useAdminUsers }));
 vi.mock("../../features/admin/hooks/useOrganizerRequests", () => ({ useOrganizerRequests }));
 vi.mock("../../features/admin/hooks/useAdminVenues", () => ({ useAdminVenues }));
+vi.mock("../../features/admin/hooks/useAdminSubmissionList", () => ({ useAdminSubmissions }));
 vi.mock("../../contexts/useAuth", () => ({ useAuth }));
 
 // The component derives its metrics from the real clock (`new Date()` inside
@@ -44,8 +47,8 @@ function authState(role: AuthContextValue["role"]): AuthContextValue {
     isOrganizer: role === "organizer",
     signInWithPassword: vi.fn(),
     resendConfirmation: vi.fn(),
-      requestPasswordReset: vi.fn(),
-      updateEmail: vi.fn(),
+    requestPasswordReset: vi.fn(),
+    updateEmail: vi.fn(),
     signUp: vi.fn(),
     signOut: vi.fn().mockResolvedValue(undefined),
     clearDeletedAccount: vi.fn(),
@@ -203,18 +206,63 @@ const defaultOrganizerRequestsState = {
   revokeError: null,
 };
 
+const defaultSubmissionsState = {
+  submissions: [] as unknown[],
+  isLoading: false,
+  error: null,
+  updateSubmission: vi.fn(),
+  isUpdating: false,
+  updateError: null,
+  approveSubmissionWithTaxonomy: vi.fn(),
+  isApproving: false,
+  approveError: null,
+};
+
+function submission(id: string, title: string, dayOffset: number) {
+  return {
+    id,
+    submitter_id: null,
+    submitter_email: "ada@salsa.test",
+    submitter_name: "Ada",
+    status: "pending",
+    submitted_data: {
+      title,
+      event_date: daysFromNow(dayOffset),
+      location: "Havana Club",
+      image_url: "https://example.com/flyer.jpg",
+      taxonomy_term_ids: [],
+    },
+    edited_data: null,
+    submitted_at: daysFromNow(-1),
+    reviewed_by: null,
+    reviewed_at: null,
+    rejection_reason: null,
+    rejection_message: null,
+    internal_note: null,
+    duplicate_of_event_id: null,
+    dismissed_duplicate_ids: [],
+    approved_event_id: null,
+    created_at: daysFromNow(-1),
+    updated_at: daysFromNow(-1),
+  };
+}
+
 function renderPage() {
   return render(<AdminOverviewPage />, { wrapper: MemoryRouter });
 }
 
-function metricCard(label: string): HTMLElement {
-  return screen
-    .getByLabelText(new RegExp(`^${label}:`))
-    .closest(".admin-metric-card") as HTMLElement;
+/** The standing rule states each count as "<figure> <label>". */
+function countFigure(label: RegExp): string {
+  const node = screen.getByText(label).closest(".desk__count") as HTMLElement;
+  return within(node).getByText(/^\d+$/).textContent ?? "";
 }
 
-function attentionSection(): HTMLElement {
-  return screen.getByText("Needs attention").closest("section") as HTMLElement;
+function galley(): HTMLElement {
+  return screen.getByRole("region", { name: "Galley" });
+}
+
+function column(): HTMLElement {
+  return screen.getByRole("region", { name: "Set for the week" });
 }
 
 // Host (organizer) coverage lives in src/components/Host/HostDashboard.test.tsx:
@@ -233,43 +281,103 @@ describe("AdminOverviewPage", () => {
       error: null,
       refetch: vi.fn(),
     });
+    vi.mocked(useAdminSubmissions).mockReturnValue({ ...defaultSubmissionsState });
   });
 
-  it("computes the five metric card values from a fixture of known statuses/dates", () => {
+  it("states only the counts that represent work left to do", () => {
+    vi.mocked(useAdminSubmissions).mockReturnValue({
+      ...defaultSubmissionsState,
+      submissions: [submission("s-1", "Unset One", 3), submission("s-2", "Unset Two", 4)],
+    });
+    vi.mocked(useOrganizerRequests).mockReturnValue({
+      ...defaultOrganizerRequestsState,
+      pendingCount: 3,
+    });
     renderPage();
 
-    expect(metricCard("Upcoming Events")).toHaveTextContent("2");
-    expect(metricCard("Pending Submissions")).toHaveTextContent("0");
-    expect(metricCard("Organizer Requests")).toHaveTextContent("0");
-    expect(metricCard("Total Venues")).toHaveTextContent("0");
-    expect(metricCard("Total Users")).toHaveTextContent("4");
+    expect(countFigure(/entries unset/)).toBe("2");
+    expect(countFigure(/organizer requests/)).toBe("3");
+    expect(countFigure(/flagged account/)).toBe("1");
+
+    // The retired stat grid reported inventory. The desk reports work only.
+    expect(screen.queryByText(/Total Users/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Total Venues/i)).not.toBeInTheDocument();
   });
 
-  it("shows suggested item for incomplete upcoming events", () => {
+  it("sets approved upcoming events into the week and leaves everything else out", () => {
     renderPage();
 
-    expect(
-      screen.getByText(/1 upcoming event missing venue, time, or image/).closest("li")
-    ).toBeInTheDocument();
+    // event-1 is 10 days out and event-2 is 15, both beyond the seven
+    // divisions the column shows, so the week reads as empty rather than
+    // silently pulling distant events forward.
+    expect(within(column()).getAllByText("Nothing set.")).toHaveLength(7);
+    expect(within(column()).queryByText("Pending One")).not.toBeInTheDocument();
+    expect(within(column()).queryByText("Past Approved Event")).not.toBeInTheDocument();
   });
 
-  it("shows the caught-up row when there is nothing to review, flag, or fix", () => {
+  it("positions an approved event on its own night inside the week", () => {
     vi.mocked(useAdminEvents).mockReturnValue({
       ...defaultEventsState,
-      events: events.filter((event) => event.id === "event-1"),
-    });
-    vi.mocked(useAdminUsers).mockReturnValue({
-      ...defaultUsersState,
-      users: [baseUser],
+      events: [{ ...baseEvent, id: "soon", title: "Friday Social", event_date: daysFromNow(2) }],
     });
     renderPage();
 
-    expect(within(attentionSection()).getByText(/You're all caught up/)).toBeInTheDocument();
-    expect(within(attentionSection()).queryByRole("listitem")).not.toBeInTheDocument();
+    expect(within(column()).getByText("Friday Social")).toBeInTheDocument();
   });
 
-  it("shows a section-level error with a working Try Again", async () => {
+  it("reports a clear galley rather than an empty panel", () => {
+    renderPage();
+
+    expect(within(galley()).getByText(/Galley is clear/)).toBeInTheDocument();
+  });
+
+  it("lists an unset entry in the galley with its flyer", () => {
+    vi.mocked(useAdminSubmissions).mockReturnValue({
+      ...defaultSubmissionsState,
+      submissions: [submission("s-1", "Unset One", 3)],
+    });
+    renderPage();
+
+    expect(within(galley()).getByText("Unset One")).toBeInTheDocument();
+    expect(within(galley()).getByRole("img", { name: "Awaiting decision" })).toBeInTheDocument();
+  });
+
+  it("opens an entry in place instead of routing away", async () => {
+    const user = userEvent.setup();
+    vi.mocked(useAdminSubmissions).mockReturnValue({
+      ...defaultSubmissionsState,
+      submissions: [submission("s-1", "Unset One", 3)],
+    });
+    renderPage();
+
+    await user.click(within(galley()).getByRole("button", { name: "Unset One" }));
+
+    expect(within(galley()).getByRole("button", { name: "Approve" })).toBeInTheDocument();
+    expect(within(galley()).getByRole("button", { name: "Reject" })).toBeInTheDocument();
+  });
+
+  it("approves an entry through the real mutation", async () => {
+    const approveSubmissionWithTaxonomy = vi.fn();
+    const user = userEvent.setup();
+    vi.mocked(useAdminSubmissions).mockReturnValue({
+      ...defaultSubmissionsState,
+      submissions: [submission("s-1", "Unset One", 3)],
+      approveSubmissionWithTaxonomy,
+    });
+    renderPage();
+
+    await user.click(within(galley()).getByRole("button", { name: "Unset One" }));
+    await user.click(within(galley()).getByRole("button", { name: "Approve" }));
+
+    expect(approveSubmissionWithTaxonomy).toHaveBeenCalledWith(
+      { submissionId: "s-1", taxonomyTermIds: [] },
+      expect.anything()
+    );
+  });
+
+  it("shows an error with a working retry when the week fails to load", async () => {
     const refetch = vi.fn();
+    const user = userEvent.setup();
     vi.mocked(useAdminEvents).mockReturnValue({
       ...defaultEventsState,
       events: undefined,
@@ -278,32 +386,11 @@ describe("AdminOverviewPage", () => {
     });
     renderPage();
 
-    const banners = screen.getAllByRole("alert");
-    expect(banners.length).toBeGreaterThan(0);
-    for (const banner of banners) {
-      within(banner).getByRole("button", { name: "Try Again" }).click();
-    }
+    await user.click(within(screen.getByRole("alert")).getByRole("button", { name: "Try again" }));
     expect(refetch).toHaveBeenCalled();
   });
 
-  it("keeps cards 1-5 and both sections rendered when only the user-count query fails", () => {
-    vi.mocked(useAdminUserCount).mockReturnValue({
-      count: undefined,
-      isLoading: false,
-      error: "profiles unreachable",
-      refetch: vi.fn(),
-    });
-    renderPage();
-
-    expect(metricCard("Pending Submissions")).toHaveTextContent("0");
-    expect(metricCard("Organizer Requests")).toHaveTextContent("0"); // organizer_requests table is wired via useOrganizerRequests
-    expect(metricCard("Total Users")).toHaveTextContent("—");
-    expect(screen.getByText("Needs attention")).toBeInTheDocument();
-    expect(screen.getByText("Upcoming events")).toBeInTheDocument();
-    expect(screen.getByRole("table")).toBeInTheDocument();
-  });
-
-  it("shows a loading status while fetching", () => {
+  it("reports loading without collapsing the desk", () => {
     vi.mocked(useAdminEvents).mockReturnValue({
       ...defaultEventsState,
       isLoading: true,
@@ -311,49 +398,33 @@ describe("AdminOverviewPage", () => {
     });
     renderPage();
 
-    expect(screen.getAllByRole("status").length).toBeGreaterThan(0);
+    expect(screen.getByRole("region", { name: "Galley" })).toBeInTheDocument();
+    expect(column().querySelector("[aria-busy='true']")).toBeInTheDocument();
   });
 
-  it("surfaces pending organizer requests in Needs Attention", () => {
-    vi.mocked(useOrganizerRequests).mockReturnValue({
-      ...defaultOrganizerRequestsState,
-      pendingCount: 3,
-    });
-    renderPage();
-
-    expect(metricCard("Organizer Requests")).toHaveTextContent("3");
-    expect(
-      within(attentionSection()).getByText(/3 organizer requests? waiting for review/)
-    ).toBeInTheDocument();
-  });
-
-  it("renders the moderator dashboard with moderation KPIs when role is moderator", () => {
+  it("gives a moderator the same desk without create-event or flagged accounts", () => {
     vi.mocked(useAuth).mockReturnValue(authState("moderator"));
     renderPage();
 
-    expect(screen.getByRole("heading", { name: "Moderator Dashboard" })).toBeInTheDocument();
-    expect(metricCard("Flagged Users")).toBeInTheDocument();
-    expect(metricCard("Pending Submissions")).toBeInTheDocument();
-    expect(metricCard("Organizer Requests")).toBeInTheDocument();
-    expect(metricCard("Upcoming Events")).toBeInTheDocument();
-    // Moderator dashboard does not show Total Users (admin-only)
-    expect(screen.queryByText("Total Users")).not.toBeInTheDocument();
+    expect(galley()).toBeInTheDocument();
+    expect(column()).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Create event/ })).not.toBeInTheDocument();
+    expect(screen.queryByText(/flagged account/)).not.toBeInTheDocument();
   });
 
   it("never renders a Host surface for a role that cannot reach /admin", () => {
     vi.mocked(useAuth).mockReturnValue(authState("organizer"));
     renderPage();
 
-    expect(screen.queryByRole("heading", { name: "Host dashboard" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Your organizers")).not.toBeInTheDocument();
   });
 
-  it("renders the full admin dashboard by default (admin role)", () => {
-    vi.mocked(useAuth).mockReturnValue(authState("admin"));
+  it("offers event creation to an admin", () => {
     renderPage();
 
-    expect(screen.getByRole("heading", { name: "Overview" })).toBeInTheDocument();
-    expect(metricCard("Total Users")).toBeInTheDocument();
-    expect(screen.getByText("Needs attention")).toBeInTheDocument();
-    expect(screen.getByText("Upcoming events")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Create event/ })).toHaveAttribute(
+      "href",
+      "/admin/events?new=1"
+    );
   });
 });

@@ -1,18 +1,25 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { Building2, CalendarDays, ClipboardCheck, FileEdit, ListChecks, MapPin } from "lucide-react";
+import { Building2, Plus } from "lucide-react";
 import { useAuth } from "../../contexts/useAuth";
 import { useMySubmissions } from "../../features/account/hooks/useMySubmissions";
 import { useMyOrganizers } from "../../features/host/hooks/useMyOrganizers";
 import { useMyOrganizerEvents } from "../../features/host/hooks/useMyOrganizerEvents";
 import type { OrganizerMemberRole } from "../../features/host/api/organizerAccessRepo";
+import type { DatabaseEvent } from "../../features/events/model/types";
+import { deriveHostEventRows, isUpcomingHostEvent } from "../../features/host/model/hostEvents";
 import {
-  deriveHostEventRows,
-  findNextHostEvent,
-  isUpcomingHostEvent,
-} from "../../features/host/model/hostEvents";
-import AdminMetricCard from "../Admin/AdminMetricCard";
-import AdminPageHeader from "../Admin/AdminPageHeader";
+  Desk,
+  DeskColumn,
+  DeskEmpty,
+  DeskEntry,
+  DeskError,
+  DeskMeasure,
+  DeskMeasures,
+  DeskRule,
+  DeskSkeleton,
+} from "../Desk/Desk";
+import type { DeskCount, DeskListing, DeskState } from "../Desk/deskModel";
 import "./HostDashboard.css";
 
 const ROLE_LABELS: Record<OrganizerMemberRole, string> = {
@@ -21,6 +28,11 @@ const ROLE_LABELS: Record<OrganizerMemberRole, string> = {
   editor: "Editor",
 };
 
+/**
+ * The host reads the same desk as the platform, in a single measure: their
+ * own entries, with state in the hanging margin and the week they are set
+ * into underneath.
+ */
 export default function HostDashboard() {
   const { user, isAdmin, isModerator } = useAuth();
   const { submissions, approvedEvents, isLoading, error, refetch } = useMySubmissions(user?.id);
@@ -31,6 +43,7 @@ export default function HostDashboard() {
     refetch: refetchOrganizers,
   } = useMyOrganizers();
   const organizerEvents = useMyOrganizerEvents();
+
   const canCreate = organizers.some(
     (organizer) =>
       organizer.organizerStatus === "active" &&
@@ -38,223 +51,174 @@ export default function HostDashboard() {
   );
   const dashboardLoading = isLoading || organizerEvents.isLoading;
   const dashboardError = error || organizersError?.message || organizerEvents.error;
+
+  // Retry every query behind the desk, and let one missing refetch not
+  // block the others.
   const refetchAll = () => {
-    void refetch();
-    void refetchOrganizers?.();
-    void organizerEvents.refetch();
+    refetch?.();
+    refetchOrganizers?.();
+    organizerEvents.refetch?.();
   };
 
-  // `new Date()` stays inside useMemo — calling it in the render body trips
-  // react-hooks/purity, the same constraint AdminOverviewPage documents.
-  const { rows, nextRow, upcomingCount, pendingCount, draftCount } = useMemo(() => {
+  // `new Date()` stays inside useMemo, matching the constraint the admin
+  // overview documents.
+  const { today, listings, unsetCount, standingCount, upcomingCount } = useMemo(() => {
     const now = new Date();
+    // An organizer-owned event can arrive from both the submissions query
+    // and the organizer query. Dedupe by id so it is one entry, not two.
     const byId = new Map(
-      [...submissions, ...approvedEvents, ...organizerEvents.events].map((event) => [event.id, event] as const)
+      [...submissions, ...approvedEvents, ...organizerEvents.events].map(
+        (event) => [event.id, event] as const
+      )
     );
     const owned = [...byId.values()];
-    const derived = deriveHostEventRows(owned);
-    const next = findNextHostEvent(owned, now);
+    const rows = deriveHostEventRows(owned);
 
     return {
-      rows: derived,
-      nextRow: next ? (derived.find((row) => row.event.id === next.id) ?? null) : null,
+      today: now,
+      listings: rows.map((row) => toHostListing(row.event, now)),
+      unsetCount: owned.filter((event) => event.status === "pending").length,
+      standingCount: owned.filter((event) => event.status === "draft").length,
       upcomingCount: owned.filter((event) => isUpcomingHostEvent(event, now)).length,
-      pendingCount: owned.filter((event) => event.status === "pending").length,
-      draftCount: owned.filter((event) => event.status === "draft").length,
     };
   }, [submissions, approvedEvents, organizerEvents.events]);
 
-
-  const otherRows = rows.filter((row) => row.event.id !== nextRow?.event.id);
+  const counts: DeskCount[] = [
+    {
+      id: "unset",
+      value: unsetCount,
+      label: unsetCount === 1 ? "awaiting review" : "awaiting review",
+      work: unsetCount > 0,
+      to: "/host/events",
+    },
+    {
+      id: "standing",
+      value: standingCount,
+      label: standingCount === 1 ? "draft" : "drafts",
+      work: standingCount > 0,
+      to: "/host/events?filter=drafts",
+    },
+    {
+      id: "upcoming",
+      value: upcomingCount,
+      label: upcomingCount === 1 ? "night ahead" : "nights ahead",
+      to: "/host/events",
+    },
+  ];
 
   return (
-    <>
-      <div className="host-dashboard__intro">
-        <p className="host-dashboard__eyebrow">Host workspace</p>
-        <AdminPageHeader
-          title="Welcome back"
-          description="Your submitted and published events, with next steps that match their status."
-            actions={
-              <>
-                {canCreate && <Link to="/host/events/new" className="admin-btn admin-btn--primary">+ Create Event</Link>}
-                <Link to="/submit" className="admin-btn admin-btn--secondary">Submit an event</Link>
-              </>
-            }
-        />
-      </div>
+    <Desk>
+      <DeskRule
+        date={today.toLocaleDateString("en-US", {
+          weekday: "long",
+          month: "long",
+          day: "numeric",
+        })}
+        dateline="Salsa Segura · Host desk"
+        counts={counts}
+        actions={
+          <div className="desk__actions">
+            {canCreate && (
+              <Link to="/host/events/new" className="desk__action desk__action--set">
+                <Plus size={15} aria-hidden /> Create event
+              </Link>
+            )}
+            <Link to="/submit" className="desk__action">
+              Submit an event
+            </Link>
+          </div>
+        }
+      />
 
-      <section className="host-dashboard__organizers" aria-labelledby="host-organizers">
-        <h2 id="host-organizers" className="host-dashboard__eyebrow">
+      {dashboardError && <DeskError message="We couldn't load your events." onRetry={refetchAll} />}
+
+      <DeskMeasures>
+        <DeskMeasure title="Your entries" link={{ to: "/host/events", label: "All my events" }}>
+          {dashboardLoading ? (
+            <DeskSkeleton rows={4} />
+          ) : listings.length === 0 ? (
+            <DeskEmpty>
+              {canCreate
+                ? "No entries yet. Create an event and it appears here."
+                : "No entries yet. Submit an event and it appears here."}
+            </DeskEmpty>
+          ) : (
+            <ul className="desk__list">
+              {listings.map((listing) => (
+                <DeskEntry key={listing.id} listing={listing} />
+              ))}
+            </ul>
+          )}
+        </DeskMeasure>
+
+        <DeskMeasure title="Set for the week">
+          {dashboardLoading ? (
+            <DeskSkeleton rows={5} />
+          ) : (
+            <DeskColumn
+              listings={listings.filter((listing) => listing.state !== "killed")}
+              now={today}
+            />
+          )}
+        </DeskMeasure>
+      </DeskMeasures>
+
+      <section className="host-desk__organizers" aria-labelledby="host-organizers">
+        <h2 id="host-organizers" className="desk__measure-title">
           Your organizers
         </h2>
+
         {organizersLoading ? (
-          <p role="status" className="admin-overview-page__status">
-            Checking organizer access…
-          </p>
+          <DeskSkeleton rows={2} />
         ) : organizers.length > 0 ? (
-          <ul className="host-dashboard__organizer-list">
+          <ul className="desk__list">
             {organizers.map((organizer) => (
-              <li key={organizer.organizerId} className="host-dashboard__organizer-card">
-                <div className="host-dashboard__organizer-main">
-                  <Building2 size={18} aria-hidden />
-                  <div>
-                    <h3>{organizer.organizerName}</h3>
-                    <p>{ROLE_LABELS[organizer.memberRole]}</p>
-                  </div>
-                </div>
-                <span className="host-dashboard__status host-dashboard__status--approved">
-                  Organizer access confirmed
+              <li key={organizer.organizerId} className="host-desk__organizer">
+                <Building2 size={16} aria-hidden />
+                <span className="host-desk__organizer-name">{organizer.organizerName}</span>
+                <span className="host-desk__organizer-role">
+                  {ROLE_LABELS[organizer.memberRole]}
                 </span>
               </li>
             ))}
           </ul>
         ) : isAdmin || isModerator ? (
-          <p className="host-dashboard__organizer-note">
+          <p className="host-desk__note">
             No organizer memberships on this account. Platform tools live in{" "}
             <Link to="/admin">Admin</Link>.
           </p>
         ) : (
-          <p className="host-dashboard__organizer-note">
+          <p className="host-desk__note">
             No organizer access yet. Organizer access is granted by the Salsa Segura team once an
-            organizer request is approved.{" "}
-            <Link to="/contact">Contact Salsa Segura</Link> to get started.
+            organizer request is approved. <Link to="/contact">Contact Salsa Segura</Link> to get
+            started.
           </p>
         )}
       </section>
-
-      {dashboardError && (
-        <div className="admin-banner admin-banner--error" role="alert">
-          <p>We couldn&apos;t load your events.</p>
-          <button type="button" className="admin-btn admin-btn--secondary" onClick={refetchAll}>
-            Try Again
-          </button>
-        </div>
-      )}
-
-      {!dashboardError && (
-        <div className="admin-overview-page__body">
-          <div className="admin-overview-page__metrics">
-            <AdminMetricCard
-              label="Upcoming Events"
-              value={upcomingCount}
-              subLabel="Your next dates"
-              icon={CalendarDays}
-              tone="informational"
-              to="/host/events"
-              actionLabel="View events"
-              isLoading={dashboardLoading}
-            />
-            <AdminMetricCard
-              label="Drafts"
-              value={draftCount}
-              subLabel="Events in progress"
-              icon={FileEdit}
-              tone="informational"
-              to="/host/events?filter=drafts"
-              actionLabel="Continue editing"
-              isLoading={dashboardLoading}
-            />
-            <AdminMetricCard
-              label="Awaiting Review"
-              value={pendingCount}
-              subLabel="Submitted, not yet published"
-              icon={ClipboardCheck}
-              tone="attention"
-              to="/host/events"
-              actionLabel="Review"
-              isLoading={dashboardLoading}
-            />
-            <AdminMetricCard
-              label="Total Events"
-              value={rows.length}
-              subLabel="Submitted or published"
-              icon={ListChecks}
-              tone="informational"
-              to="/host/events"
-              actionLabel="Manage"
-              isLoading={dashboardLoading}
-            />
-          </div>
-
-          {dashboardLoading && (
-            <p role="status" className="admin-overview-page__status">
-              Loading your events…
-            </p>
-          )}
-
-          {!dashboardLoading && nextRow && (
-            <section className="admin-card host-dashboard__next" aria-labelledby="host-next-event">
-              <h2 id="host-next-event" className="host-dashboard__eyebrow">
-                Next event
-              </h2>
-              <p className="host-dashboard__next-date">{nextRow.dateLabel}</p>
-              <h3 className="host-dashboard__next-title">
-                <Link to={`/host/events/${nextRow.event.id}`}>{nextRow.event.title}</Link>
-              </h3>
-              <p className="host-dashboard__next-venue">
-                <MapPin size={15} aria-hidden />
-                {nextRow.event.location || "Venue not set"}
-              </p>
-              <div className="host-dashboard__next-actions">
-                <span
-                  className={`host-dashboard__status host-dashboard__status--${nextRow.event.status}`}
-                >
-                  {nextRow.statusLabel}
-                </span>
-                <Link className="admin-btn admin-btn--secondary" to={nextRow.action.to}>
-                  {nextRow.action.label}
-                </Link>
-              </div>
-            </section>
-          )}
-
-          {!dashboardLoading && !nextRow && (
-            <section className="admin-card host-dashboard__empty">
-              <h2 className="host-dashboard__next-title">No upcoming events yet</h2>
-              <p>{canCreate ? "Create an event and it will appear here once it is scheduled." : "Submit an event and it appears here once it is scheduled."}</p>
-              <Link className="admin-btn admin-btn--primary" to={canCreate ? "/host/events/new" : "/submit"}>
-                {canCreate ? "Create an event" : "Submit an event"}
-              </Link>
-              {canCreate && <Link className="admin-btn admin-btn--secondary" to="/submit">Submit an event</Link>}
-            </section>
-          )}
-
-          {!dashboardLoading && otherRows.length > 0 && (
-            <section className="admin-card host-dashboard__events" aria-labelledby="host-events">
-              <div className="host-dashboard__events-head">
-                <h2 id="host-events" className="host-dashboard__eyebrow">
-                  Your other events
-                </h2>
-                <Link className="host-dashboard__all" to="/host/events">
-                  All my events →
-                </Link>
-              </div>
-              <ul className="host-dashboard__list">
-                {otherRows.map((row) => (
-                  <li key={row.event.id} className="host-dashboard__row">
-                    <div className="host-dashboard__row-main">
-                      <h3 className="host-dashboard__row-title">
-                        <Link to={`/host/events/${row.event.id}`}>{row.event.title}</Link>
-                      </h3>
-                      <p className="host-dashboard__row-meta">
-                        {row.dateLabel} · {row.event.location || "Venue not set"}
-                      </p>
-                    </div>
-                    <span
-                      className={`host-dashboard__status host-dashboard__status--${row.event.status}`}
-                    >
-                      {row.statusLabel}
-                    </span>
-                    <Link className="host-dashboard__row-action" to={row.action.to}>
-                      {row.action.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
-        </div>
-      )}
-    </>
+    </Desk>
   );
+}
+
+const HOST_STATE: Record<DatabaseEvent["status"], DeskState> = {
+  draft: "standing",
+  pending: "unset",
+  approved: "set",
+  rejected: "killed",
+  cancelled: "killed",
+  archived: "killed",
+};
+
+function toHostListing(event: DatabaseEvent, now: Date): DeskListing {
+  const state = HOST_STATE[event.status];
+  const isTonight =
+    state === "set" && new Date(event.event_date).toDateString() === now.toDateString();
+
+  return {
+    id: event.id,
+    title: event.title,
+    date: event.event_date,
+    venue: event.location,
+    state: isTonight ? "tonight" : state,
+    to: `/host/events/${event.id}`,
+  };
 }

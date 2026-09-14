@@ -184,3 +184,8 @@ graphify-out/
 opencode.json
 GEMINI.md
 .github/copilot-instructions.md
+
+# Impeccable: transient build evidence (screenshots, diffs). The durable
+# artifacts (design.json, surfaces/) are tracked.
+.impeccable/review/
+.impeccable/build/

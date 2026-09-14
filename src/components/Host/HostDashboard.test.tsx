@@ -115,86 +115,92 @@ describe("HostDashboard", () => {
     mockMyOrganizers();
   });
 
-  it("leads with the nearest upcoming owner event", async () => {
+  function entries() {
+    return within(screen.getByRole("region", { name: "Your entries" }));
+  }
+
+  function week() {
+    return within(screen.getByRole("region", { name: "Set for the week" }));
+  }
+
+  /** The standing rule states each count as "<figure> <label>". */
+  function countFigure(label: RegExp): string {
+    const node = screen.getByText(label).closest(".desk__count") as HTMLElement;
+    return within(node).getByText(/^\d+$/).textContent ?? "";
+  }
+
+  it("lists every owned entry with its state in the margin", async () => {
     renderDashboard();
 
-    const next = await screen.findByLabelText("Next event");
-    expect(next).toHaveTextContent("Rooftop Social");
-    expect(next).toHaveTextContent("Havana Club");
-    expect(next).toHaveTextContent("Approved");
+    expect(await entries().findByText("Rooftop Social")).toBeInTheDocument();
+    expect(entries().getByText("Mambo Workshop")).toBeInTheDocument();
+    expect(entries().getByText("Old Social")).toBeInTheDocument();
   });
 
-  it("frames the real next event in the Host workspace", async () => {
+  it("marks a pending entry as awaiting decision and an approved one as published", async () => {
     renderDashboard();
 
-    expect(await screen.findByText("Host workspace")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Welcome back" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Submit an event" })).toHaveAttribute(
-      "href",
-      "/submit"
-    );
+    await entries().findByText("Rooftop Social");
+    expect(entries().getAllByRole("img", { name: "Awaiting decision" })).toHaveLength(1);
+    expect(entries().getAllByRole("img", { name: "Published" })).toHaveLength(2);
   });
 
-  it("counts only the owner's upcoming and pending events", async () => {
+  it("states only the counts that represent work", async () => {
     renderDashboard();
 
-    expect(await screen.findByLabelText(/Upcoming Events: 2\./)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Awaiting Review: 1\./)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Total Events: 3\./)).toBeInTheDocument();
+    await entries().findByText("Rooftop Social");
+    expect(countFigure(/awaiting review/)).toBe("1");
+    expect(countFigure(/drafts?/)).toBe("0");
+    expect(countFigure(/nights? ahead/)).toBe("2");
   });
 
-  it("counts rejected owner submissions in total events", async () => {
+  it("keeps a rejected entry listed and struck rather than hiding it", async () => {
     mockOwnerEvents({
       submissions: [{ ...laterPending, id: "rejected-1", status: "rejected" }],
       approvedEvents: [nextApproved],
     });
     renderDashboard();
 
-    expect(await screen.findByLabelText(/Total Events: 2\./)).toBeInTheDocument();
-  });
-  it("routes pending events to the owner editor and published events to their public page", async () => {
-    renderDashboard();
-
-    const others = within(await screen.findByLabelText("Your other events"));
-    expect(others.getByRole("link", { name: "Edit submission" })).toHaveAttribute(
-      "href",
-      "/profile/edit/later-pending"
-    );
-    expect(others.getByRole("link", { name: "View public event" })).toHaveAttribute(
-      "href",
-      "/events/past-approved"
-    );
+    expect(await entries().findByRole("img", { name: "Rejected" })).toBeInTheDocument();
+    // A rejected entry is not set into the week.
+    expect(week().queryByText("Mambo Workshop")).not.toBeInTheDocument();
   });
 
-  it("links the next event's title to its Host detail page", async () => {
+  it("links every entry title to its Host detail page", async () => {
     renderDashboard();
 
-    const next = await screen.findByLabelText("Next event");
-    expect(within(next).getByRole("link", { name: "Rooftop Social" })).toHaveAttribute(
+    expect(await entries().findByRole("link", { name: "Rooftop Social" })).toHaveAttribute(
       "href",
       "/host/events/next-approved"
     );
-  });
-
-  it("links other event titles to their Host detail pages", async () => {
-    renderDashboard();
-
-    const others = within(await screen.findByLabelText("Your other events"));
-    expect(others.getByRole("link", { name: "Mambo Workshop" })).toHaveAttribute(
+    expect(entries().getByRole("link", { name: "Mambo Workshop" })).toHaveAttribute(
       "href",
       "/host/events/later-pending"
     );
-    expect(others.getByRole("link", { name: "Old Social" })).toHaveAttribute(
-      "href",
-      "/host/events/past-approved"
-    );
+  });
+
+  it("sets an entry inside the week onto its own night", async () => {
+    renderDashboard();
+
+    expect(await week().findByText("Rooftop Social")).toBeInTheDocument();
+    // 20 days out, past the seven divisions.
+    expect(week().queryByText("Mambo Workshop")).not.toBeInTheDocument();
   });
 
   it("invites a first submission when nothing is scheduled", async () => {
     mockOwnerEvents({ submissions: [], approvedEvents: [] });
     renderDashboard();
 
-    expect(await screen.findByText("No upcoming events yet")).toBeInTheDocument();
+    expect(await screen.findByText(/No entries yet/)).toBeInTheDocument();
+  });
+
+  it("offers submitting an event", async () => {
+    renderDashboard();
+
+    expect(await screen.findByRole("link", { name: "Submit an event" })).toHaveAttribute(
+      "href",
+      "/submit"
+    );
   });
 
   it("surfaces a load failure instead of empty metrics", async () => {
@@ -203,6 +209,7 @@ describe("HostDashboard", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent("We couldn't load your events.");
   });
+
   it("merges organizer-owned canonical events and dedupes by id", async () => {
     const organizerEvent = {
       ...nextApproved,
@@ -219,9 +226,9 @@ describe("HostDashboard", () => {
     });
     renderDashboard();
 
-    expect(await screen.findByRole("link", { name: "Organizer Draft" })).toBeInTheDocument();
-    expect(screen.getAllByText("Rooftop Social")).toHaveLength(1);
-    expect(screen.getByLabelText(/Total Events: 4\./)).toBeInTheDocument();
+    expect(await entries().findByRole("link", { name: "Organizer Draft" })).toBeInTheDocument();
+    expect(entries().getAllByText("Rooftop Social")).toHaveLength(1);
+    expect(countFigure(/drafts?/)).toBe("1");
   });
 
   it("surfaces organizer load failures and retries the organizer query", async () => {
@@ -235,10 +242,9 @@ describe("HostDashboard", () => {
     renderDashboard();
 
     expect(await screen.findByRole("alert")).toHaveTextContent("We couldn't load your events.");
-    within(screen.getByRole("alert")).getByRole("button", { name: "Try Again" }).click();
+    within(screen.getByRole("alert")).getByRole("button", { name: "Try again" }).click();
     expect(organizerRefetch).toHaveBeenCalledTimes(1);
   });
-
 });
 
 describe("HostDashboard organizer access foundation", () => {
@@ -252,7 +258,6 @@ describe("HostDashboard organizer access foundation", () => {
       error: null,
       refetch: vi.fn(),
     });
-
   });
 
   it("lists the signed-in user's active organizer memberships", async () => {
@@ -275,7 +280,6 @@ describe("HostDashboard organizer access foundation", () => {
     expect(organizerCard).not.toBeNull();
     expect(organizerCard).toHaveTextContent("Havana Club");
     expect(organizerCard).toHaveTextContent("Owner");
-    expect(organizerCard).toHaveTextContent("Organizer access confirmed");
   });
 
   it("shows the access-request state for signed-in users without memberships", async () => {
@@ -305,7 +309,6 @@ describe("RequireOrganizer", () => {
       error: null,
       refetch: vi.fn(),
     });
-
   });
 
   function renderGuardedHost() {
@@ -335,7 +338,7 @@ describe("RequireOrganizer", () => {
     });
     renderGuardedHost();
 
-    expect(await screen.findByRole("heading", { name: "Welcome back" })).toBeInTheDocument();
+    expect(await screen.findByRole("region", { name: "Your entries" })).toBeInTheDocument();
   });
 
   it("admits signed-in users without organizer access so the page can render the request state", async () => {

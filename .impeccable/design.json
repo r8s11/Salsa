@@ -1,0 +1,196 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-14T22:30:00.000Z",
+  "title": "Design System: Salsa Segura",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Rose Red",
+        "canonical": "#e11d48",
+        "tonalRamp": ["#ffb3b6", "#e11d48", "#be123c", "#920028", "#68001a"]
+      },
+      "secondary": {
+        "role": "secondary",
+        "displayName": "Stage Gold",
+        "canonical": "#e9c349",
+        "tonalRamp": ["#ffe088", "#e9c349", "#af8d11", "#574500"]
+      },
+      "tertiary": {
+        "role": "tertiary",
+        "displayName": "Warm Orange",
+        "canonical": "#ffb690",
+        "tonalRamp": ["#ffdbca", "#ffb690", "#bf5300", "#783200"]
+      },
+      "background": {
+        "role": "neutral",
+        "displayName": "Deep Slate",
+        "canonical": "#0b1326",
+        "tonalRamp": ["#2d3449", "#171f33", "#131b2e", "#0b1326", "#060e20"]
+      },
+      "desk-unset": {
+        "role": "state",
+        "displayName": "Unset Amber",
+        "canonical": "#b45309",
+        "tonalRamp": ["#fbbf24", "#b45309"],
+        "note": "Light theme #b45309, dark theme #fbbf24. Operator state only."
+      },
+      "desk-set": {
+        "role": "state",
+        "displayName": "Set Green",
+        "canonical": "#047857",
+        "tonalRamp": ["#34d399", "#047857"],
+        "note": "Light theme #047857, dark theme #34d399. Operator state only."
+      },
+      "desk-killed": {
+        "role": "state",
+        "displayName": "Killed Red",
+        "canonical": "#b91c1c",
+        "tonalRamp": ["#f87171", "#b91c1c"],
+        "note": "Light theme #b91c1c, dark theme #f87171. Operator state only."
+      },
+      "desk-standing": {
+        "role": "state",
+        "displayName": "Standing Slate",
+        "canonical": "#475569",
+        "tonalRamp": ["#94a3b8", "#475569"],
+        "note": "Light theme #475569, dark theme #94a3b8. Operator state only."
+      },
+      "desk-tonight": {
+        "role": "state",
+        "displayName": "Tonight Rose",
+        "canonical": "#be123c",
+        "tonalRamp": ["#fb7185", "#be123c"],
+        "note": "Light theme #be123c, dark theme #fb7185. Operator state only."
+      }
+    },
+    "typographyMeta": {
+      "display-lg": { "displayName": "Display Large", "purpose": "Public hero headlines only." },
+      "desk-agate": {
+        "displayName": "Agate",
+        "purpose": "Operator listing rows. Never used for controls."
+      },
+      "desk-entry-title": {
+        "displayName": "Entry Title",
+        "purpose": "The name of a night inside a listing row."
+      },
+      "desk-label": {
+        "displayName": "Desk Label",
+        "purpose": "Measure titles, day headings, count labels, state flags."
+      },
+      "desk-figure": {
+        "displayName": "Count Figure",
+        "purpose": "The work counts in the desk's standing rule."
+      }
+    },
+    "shadows": [
+      {
+        "name": "glow-primary",
+        "value": "0 0 24px rgba(225, 29, 72, 0.3)",
+        "purpose": "Public world only. Neon halo under active rose elements."
+      },
+      {
+        "name": "desk-none",
+        "value": "none",
+        "purpose": "The operator desk declares no elevation. Rules and measures divide; nothing lifts."
+      }
+    ],
+    "motion": [
+      {
+        "name": "desk-settle",
+        "value": "cubic-bezier(0.22, 0.9, 0.3, 1)",
+        "purpose": "Arrival and count-pulse easing for Set in place."
+      },
+      {
+        "name": "desk-leave",
+        "value": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "purpose": "A decided entry leaving the galley, 420ms."
+      },
+      {
+        "name": "desk-state",
+        "value": "0.15s ease",
+        "purpose": "Control border, background and colour changes."
+      }
+    ],
+    "breakpoints": [
+      { "name": "desk-stack", "value": "1080px", "note": "Desk measures stack below this." },
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "990px" }
+    ],
+    "deskMeasures": {
+      "divisions": 7,
+      "marginColumn": "22px",
+      "gutter": "14px",
+      "thumb": "44px",
+      "controlMinHeight": "34px"
+    }
+  },
+  "components": [
+    {
+      "name": "Desk Listing Row",
+      "kind": "custom",
+      "refersTo": "desk-entry",
+      "description": "One entry in the galley or the set column. The margin mark carries state; content hangs on a constant indent.",
+      "html": "<li class=\"ds-desk-entry\"><span class=\"ds-mark\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 14 14\"><circle cx=\"7\" cy=\"7\" r=\"4.5\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\"/></svg></span><div><h3 class=\"ds-desk-title\">Rooftop Bachata Social</h3><p class=\"ds-desk-meta\"><b>9:00 PM</b> · Havana Club</p><p class=\"ds-desk-flags\">No flyer</p></div></li>",
+      "css": ".ds-desk-entry { display: grid; grid-template-columns: 22px minmax(0,1fr); gap: 0 14px; padding: 10px 0; border-bottom: 1px solid #e2e8f0; font: 400 0.8125rem/1.35 'Be Vietnam Pro', sans-serif; font-variant-numeric: tabular-nums; list-style: none; } .ds-mark { color: #b45309; padding-top: 1px; } .ds-desk-title { margin: 0; font: 700 0.9375rem/1.3 'Be Vietnam Pro', sans-serif; color: #1e293b; } .ds-desk-meta { margin: 2px 0 0; color: #64748b; } .ds-desk-meta b { font-weight: 600; color: #0f172a; } .ds-desk-flags { margin: 4px 0 0; font: 600 0.6875rem/1.2 'Epilogue', sans-serif; letter-spacing: 0.05em; text-transform: uppercase; color: #b45309; }"
+    },
+    {
+      "name": "Desk Decision Button",
+      "kind": "button",
+      "refersTo": "desk-action",
+      "description": "Approve and Reject in the galley. Full UI size regardless of the agate rows around it.",
+      "html": "<button class=\"ds-desk-action ds-desk-action--set\">Approve</button>",
+      "css": ".ds-desk-action { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 14px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; color: #0f172a; font: 700 0.75rem 'Epilogue', sans-serif; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; transition: border-color .15s ease, background .15s ease, color .15s ease; } .ds-desk-action--set { border-color: #047857; color: #047857; } .ds-desk-action--set:hover { background: #ecfdf5; }"
+    },
+    {
+      "name": "Desk Division Head",
+      "kind": "custom",
+      "refersTo": "desk-division",
+      "description": "One of the week's seven divisions. Holds its place even when nothing is set.",
+      "html": "<div class=\"ds-division\"><span class=\"ds-division-day\">Tonight</span><span class=\"ds-division-date\">Sep 14</span><span class=\"ds-division-rule\"></span></div>",
+      "css": ".ds-division { display: flex; align-items: baseline; gap: 10px; padding: 16px 0 4px; } .ds-division-day { font: 800 0.6875rem 'Epilogue', sans-serif; letter-spacing: 0.14em; text-transform: uppercase; color: #be123c; } .ds-division-date { font: 400 0.6875rem 'Epilogue', sans-serif; letter-spacing: 0.06em; color: #64748b; } .ds-division-rule { flex: 1; height: 1px; background: #be123c; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Two worlds: Ritmo Vivo for the dance floor, The Listings Desk for the back of house",
+    "overview": "Salsa Segura is a listings publication with a public face and a working desk. Ritmo Vivo is the face: high-contrast, glassmorphic, built to feel like a night out. The Listings Desk is the desk: agate listings type, copy-desk proof marking, rules instead of cards, read for hours in a lit room. The desk exists because a curation back-office and a dance-floor poster have opposite jobs, and dressing one as the other fails both.",
+    "keyCharacteristics": [
+      "Public world is dark, glassmorphic and expressive; operator world is light-or-dark, ruled and dense",
+      "Five operator state colours are law and never decorate",
+      "The operator desk declares no elevation at all",
+      "Counts state work, never inventory",
+      "Decisions propagate once, in place, without routing"
+    ],
+    "rules": [
+      {
+        "name": "The State-Only Rule",
+        "body": "The five desk state colours are used for state and nothing else, so an operator reads a column of marks without reading a label.",
+        "section": "colors"
+      },
+      {
+        "name": "The Agate-Rows-Only Rule",
+        "body": "Listing scale governs rows. Every control stays at full UI size (34px minimum); the state palette carries the reading load.",
+        "section": "typography"
+      },
+      {
+        "name": "The One-Device Rule",
+        "body": "Border or shadow, never both. The desk chose the border and declares no elevation.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do keep the two worlds separate: Ritmo Vivo for dancers, The Listings Desk for operators.",
+      "Do state only counts that represent work in the desk's standing rule.",
+      "Do hold the five state colours to state alone, in both light and dark admin themes.",
+      "Do keep operator controls at 34px or larger even beside agate rows.",
+      "Do let a decision propagate once, across galley, column and counts together."
+    ],
+    "donts": [
+      "Don't put a KPI stat-card grid on an operator surface; inventory figures belong to the analytics page.",
+      "Don't add cards, panels or shadows to the desk.",
+      "Don't use glyphs or emoji as marks or icons; marks are drawn geometry and icons come from Lucide.",
+      "Don't shrink a control to match agate type, or grow agate type to match a control.",
+      "Don't route an operator to a separate page for a decision the galley can carry in place."
+    ]
+  }
+}

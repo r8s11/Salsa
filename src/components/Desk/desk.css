@@ -1,0 +1,698 @@
+/* ========================================
+   THE LISTINGS DESK — operator world
+   Agate listings setting + copy-desk proof marking.
+   Salsa Segura is a listings publication; this is its desk.
+   Scoped to .desk so the public Ritmo Vivo world is untouched.
+   ======================================== */
+
+.desk {
+  /* ── State palette law ──────────────────────────────────
+     One colour per state. These five tokens are used for
+     state and nothing else on the surface: no decorative
+     use, no borrowing for emphasis. An operator reads state
+     without reading a label. */
+  --desk-unset: #b45309;
+  --desk-unset-ink: #fffbeb;
+  --desk-set: #047857;
+  --desk-set-ink: #ecfdf5;
+  --desk-killed: #b91c1c;
+  --desk-killed-ink: #fef2f2;
+  --desk-standing: #475569;
+  --desk-standing-ink: #f1f5f9;
+  --desk-tonight: #be123c;
+  --desk-tonight-ink: #fff1f2;
+
+  /* ── Measure ────────────────────────────────────────────
+     The column is ruled, not carded. Rules divide; boxes do
+     not. Only one elevation device is ever declared. */
+  --desk-rule: var(--admin-border);
+  --desk-rule-strong: var(--admin-border-md);
+  --desk-margin-w: 22px;
+  --desk-thumb-w: 44px;
+  --desk-gutter: 14px;
+
+  /* ── Agate scale ────────────────────────────────────────
+     Governs listing rows only. Controls and decisions stay
+     at full UI size; the state palette carries the reading
+     load so the type never has to shout. */
+  --desk-agate: 0.8125rem;
+  --desk-agate-lh: 1.35;
+  --desk-label: 0.6875rem;
+
+  color: var(--admin-text-primary);
+  font-family: var(--font-body);
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-shell[data-theme="dark"] .desk {
+  --desk-unset: #fbbf24;
+  --desk-unset-ink: #251c07;
+  --desk-set: #34d399;
+  --desk-set-ink: #06251a;
+  --desk-killed: #f87171;
+  --desk-killed-ink: #2a0d0d;
+  --desk-standing: #94a3b8;
+  --desk-standing-ink: #161a21;
+  --desk-tonight: #fb7185;
+  --desk-tonight-ink: #2b0d15;
+}
+
+/* Browser surfaces belong to the design, not to the browser. */
+.desk ::selection {
+  background: var(--admin-brand);
+  color: #fff;
+}
+
+.desk :focus-visible {
+  outline: 2px solid var(--admin-brand-ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ── Standing rule ────────────────────────────────────────
+   The masthead of the desk: today's date, and only the
+   counts that represent work left to do. */
+.desk__rule {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--desk-gutter) var(--space-lg);
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--desk-rule-strong);
+}
+
+.desk__date {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.5rem;
+  letter-spacing: -0.02em;
+  color: var(--admin-text-strong);
+}
+
+.desk__dateline {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--desk-label);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--admin-text-secondary);
+}
+
+.desk__counts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px var(--space-lg);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.desk__count {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  font-size: var(--desk-label);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--admin-text-secondary);
+}
+
+.desk__count-figure {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.375rem;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--admin-text-strong);
+  transition: color 0.2s ease;
+}
+
+.desk__count--work .desk__count-figure {
+  color: var(--desk-unset);
+}
+
+a.desk__count {
+  text-decoration: none;
+}
+
+a.desk__count:hover .desk__count-figure {
+  color: var(--admin-brand-text);
+}
+
+/* A count that just changed pulses once, so a decision made
+   in the galley is visibly the same event as the count
+   dropping. One propagation, not two coincidences. */
+.desk__count-figure[data-settled="true"] {
+  animation: deskSettle 0.5s cubic-bezier(0.22, 0.9, 0.3, 1);
+}
+
+@keyframes deskSettle {
+  0% {
+    transform: translateY(-0.18em);
+    opacity: 0.4;
+  }
+  100% {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+/* ── Two measures ─────────────────────────────────────────
+   Left: the galley, entries awaiting decision.
+   Right: the set column, the week as it stands. */
+.desk__measures {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+  gap: 0 var(--space-xl);
+  margin-top: var(--space-lg);
+}
+
+.desk__measure {
+  min-width: 0;
+}
+
+.desk__measure + .desk__measure {
+  padding-left: var(--space-xl);
+  border-left: 1px solid var(--desk-rule);
+}
+
+.desk__measure-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--desk-rule-strong);
+}
+
+.desk__measure-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--desk-label);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--admin-text-primary);
+}
+
+.desk__measure-note {
+  font-size: var(--desk-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--admin-text-secondary);
+}
+
+.desk__measure-link {
+  font-size: var(--desk-label);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--admin-brand-text);
+  text-decoration: none;
+}
+
+.desk__measure-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ── Listing rows ─────────────────────────────────────────
+   The hanging margin carries the proof mark. Content hangs
+   to its right on one consistent indent, so a column of
+   marks reads vertically as the state of the whole week. */
+.desk__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.desk__entry {
+  display: grid;
+  grid-template-columns: var(--desk-margin-w) minmax(0, 1fr);
+  gap: 0 var(--desk-gutter);
+  padding: 10px 0;
+  border-bottom: 1px solid var(--desk-rule);
+  font-size: var(--desk-agate);
+  line-height: var(--desk-agate-lh);
+}
+
+.desk__entry--withthumb {
+  grid-template-columns: var(--desk-margin-w) var(--desk-thumb-w) minmax(0, 1fr);
+}
+
+.desk__entry:last-child {
+  border-bottom: none;
+}
+
+.desk__entry-mark {
+  padding-top: 1px;
+}
+
+/* The flyer is the entry's own evidence, at thumb size. */
+.desk__entry-thumb {
+  width: var(--desk-thumb-w);
+  height: calc(var(--desk-thumb-w) * 1.25);
+  object-fit: cover;
+  border: 1px solid var(--desk-rule);
+  background: var(--admin-surface-secondary);
+  display: block;
+}
+
+.desk__entry-thumb--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--admin-text-subtle);
+}
+
+.desk__entry-body {
+  min-width: 0;
+}
+
+.desk__entry-title {
+  margin: 0;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  line-height: 1.3;
+  color: var(--admin-text-strong);
+}
+
+.desk__entry-title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.desk__entry-title a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* The title is the control that opens the entry in place. It stays
+   type, never a button: a galley of buttons stops reading as a column. */
+.desk__entry-open {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.desk__entry-open:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.desk__entry-meta {
+  margin: 2px 0 0;
+  color: var(--admin-text-secondary);
+}
+
+.desk__entry-meta b {
+  font-weight: 600;
+  color: var(--admin-text-primary);
+}
+
+.desk__entry-sep {
+  padding: 0 5px;
+  color: var(--admin-text-subtle);
+}
+
+.desk__entry-flags {
+  margin: 4px 0 0;
+  color: var(--desk-unset);
+  font-size: var(--desk-label);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* ── Time axis ────────────────────────────────────────────
+   Every entry sits at its true position on one continuous
+   axis. Days with nothing set still occupy their division,
+   so a thin week looks thin. */
+.desk__division {
+  border-bottom: 1px solid var(--desk-rule);
+}
+
+.desk__division:last-child {
+  border-bottom: none;
+}
+
+.desk__division-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: var(--space-md) 0 4px;
+}
+
+.desk__division-day {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--desk-label);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--admin-text-primary);
+}
+
+.desk__division-date {
+  font-size: var(--desk-label);
+  letter-spacing: 0.06em;
+  color: var(--admin-text-secondary);
+}
+
+.desk__division--today .desk__division-day {
+  color: var(--desk-tonight);
+}
+
+.desk__division-rule {
+  flex: 1;
+  height: 1px;
+  background: var(--desk-rule);
+}
+
+.desk__division--today .desk__division-rule {
+  background: var(--desk-tonight);
+}
+
+.desk__division-empty {
+  margin: 0;
+  padding: 2px 0 var(--space-md);
+  padding-left: calc(var(--desk-margin-w) + var(--desk-gutter));
+  color: var(--admin-text-secondary);
+  font-size: var(--desk-agate);
+  font-style: italic;
+}
+
+.desk__division .desk__list {
+  padding-bottom: 6px;
+}
+
+/* ── Decisions ────────────────────────────────────────────
+   Full UI size. Agate governs the listing, never the
+   control an operator has to hit at speed. */
+.desk__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.desk__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--desk-rule-strong);
+  border-radius: var(--admin-radius);
+  background: var(--admin-surface);
+  color: var(--admin-text-primary);
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.desk__action:hover:not(:disabled) {
+  border-color: var(--admin-text-secondary);
+}
+
+.desk__action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.desk__action--set {
+  border-color: var(--desk-set);
+  color: var(--desk-set);
+}
+
+.desk__action--set:hover:not(:disabled) {
+  background: var(--desk-set-ink);
+  border-color: var(--desk-set);
+}
+
+.desk__action--kill {
+  border-color: var(--desk-killed);
+  color: var(--desk-killed);
+}
+
+.desk__action--kill:hover:not(:disabled) {
+  background: var(--desk-killed-ink);
+  border-color: var(--desk-killed);
+}
+
+/* ── Focus swells, the rest compresses ────────────────────
+   An entry opens to full working detail in place. There is
+   no separate review page to lose your position in. */
+.desk__entry--open {
+  background: var(--admin-surface-subtle);
+}
+
+.desk__list[data-has-open="true"] .desk__entry:not(.desk__entry--open) {
+  padding: 5px 0;
+}
+
+.desk__list[data-has-open="true"] .desk__entry:not(.desk__entry--open) .desk__entry-thumb,
+.desk__list[data-has-open="true"] .desk__entry:not(.desk__entry--open) .desk__entry-flags {
+  display: none;
+}
+
+.desk__list[data-has-open="true"] .desk__entry:not(.desk__entry--open) {
+  grid-template-columns: var(--desk-margin-w) minmax(0, 1fr);
+}
+
+.desk__detail {
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr);
+  gap: var(--space-md);
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--desk-rule);
+}
+
+.desk__detail-flyer {
+  width: 132px;
+  border: 1px solid var(--desk-rule);
+  display: block;
+}
+
+.desk__detail-body {
+  min-width: 0;
+}
+
+.desk__detail-text {
+  margin: 0 0 8px;
+  color: var(--admin-text-secondary);
+  max-width: 68ch;
+}
+
+.desk__detail-facts {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 3px var(--space-md);
+  margin: 0 0 10px;
+  font-size: var(--desk-agate);
+}
+
+.desk__detail-facts dt {
+  font-size: var(--desk-label);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--admin-text-subtle);
+  padding-top: 1px;
+}
+
+.desk__detail-facts dd {
+  margin: 0;
+  color: var(--admin-text-primary);
+}
+
+/* ── Set in place ─────────────────────────────────────────
+   The decided entry leaves the galley and arrives in the
+   column. One movement, one meaning. */
+.desk__entry[data-leaving="set"] {
+  animation: deskLeaveSet 0.42s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.desk__entry[data-leaving="killed"] {
+  animation: deskLeaveKilled 0.42s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.desk__entry[data-arriving="true"] {
+  animation: deskArrive 0.5s cubic-bezier(0.22, 0.9, 0.3, 1);
+}
+
+@keyframes deskLeaveSet {
+  0% {
+    opacity: 1;
+  }
+  35% {
+    opacity: 1;
+    transform: translateX(10px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(28px);
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+}
+
+@keyframes deskLeaveKilled {
+  0% {
+    opacity: 1;
+  }
+  30% {
+    opacity: 0.75;
+  }
+  100% {
+    opacity: 0;
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+}
+
+@keyframes deskArrive {
+  0% {
+    opacity: 0;
+    transform: translateX(-14px);
+    background: var(--desk-set-ink);
+  }
+  60% {
+    background: var(--desk-set-ink);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* A killed entry is struck through before it goes, the way
+   a spiked entry is struck on paper. */
+.desk__entry[data-leaving="killed"] .desk__entry-title {
+  text-decoration: line-through;
+  text-decoration-color: var(--desk-killed);
+  text-decoration-thickness: 2px;
+}
+
+/* ── States ───────────────────────────────────────────────*/
+.desk__empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: var(--space-lg) 0;
+  color: var(--admin-text-secondary);
+  font-size: var(--desk-agate);
+}
+
+.desk__empty-figure {
+  color: var(--desk-set);
+}
+
+.desk__skeleton {
+  height: 12px;
+  margin: 12px 0;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    90deg,
+    var(--admin-surface-secondary),
+    var(--admin-skeleton-highlight),
+    var(--admin-surface-secondary)
+  );
+  background-size: 200% 100%;
+  animation: deskShimmer 1.2s linear infinite;
+}
+
+.desk__skeleton:nth-child(2) {
+  width: 78%;
+}
+
+.desk__skeleton:nth-child(3) {
+  width: 62%;
+}
+
+@keyframes deskShimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.desk__error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md) 0;
+  border-top: 2px solid var(--desk-killed);
+  color: var(--admin-text-primary);
+  font-size: var(--desk-agate);
+}
+
+/* ── Adaptation ───────────────────────────────────────────
+   The measures stack rather than shrink: an agate column
+   squeezed below its measure stops being readable. */
+@media (max-width: 1080px) {
+  .desk__measures {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-xl) 0;
+  }
+
+  .desk__measure + .desk__measure {
+    padding-left: 0;
+    border-left: none;
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .desk__date {
+    font-size: 1.25rem;
+  }
+
+  .desk__counts {
+    gap: var(--space-md);
+  }
+
+  .desk__detail {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .desk__detail-flyer {
+    width: 100%;
+    max-width: 200px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .desk__entry[data-leaving="set"],
+  .desk__entry[data-leaving="killed"],
+  .desk__entry[data-arriving="true"],
+  .desk__count-figure[data-settled="true"] {
+    animation-duration: 0.01ms;
+  }
+
+  .desk__skeleton {
+    animation: none;
+  }
+}

@@ -17,7 +17,7 @@ function groupByDate(events: ScheduleXEvent[]): CalendarEventGroup[] {
 
   for (const event of sortCalendarEvents(events)) {
     const key = event.start.slice(0, 10) || "unknown";
-    const currentGroup = groups.at(-1);
+    const currentGroup = groups[groups.length - 1];
     if (currentGroup?.key === key) {
       currentGroup.events.push(event);
       continue;

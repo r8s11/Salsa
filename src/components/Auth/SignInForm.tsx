@@ -235,9 +235,22 @@ export default function SignInForm() {
     [emailLocked ? "email-locked-hint" : null, errorMsg ? "auth-form-error" : null]
       .filter(Boolean)
       .join(" ") || undefined;
+  const passwordHintIds =
+    [mode === "signup" ? "password-guidance" : null, errorMsg ? "auth-form-error" : null]
+      .filter(Boolean)
+      .join(" ") || undefined;
 
   return (
     <section className="auth-card">
+      {mode === "signup" && (
+        <div className="auth-card-intro">
+          <p className="auth-card-kicker">Join the dance floor</p>
+          <p className="auth-card-description">
+            Create your SalsaSegura account to discover events and stay connected to your local
+            dance community.
+          </p>
+        </div>
+      )}
       <h2>
         {mode === "reset"
           ? "Reset your password"
@@ -325,11 +338,7 @@ export default function SignInForm() {
                 disabled={loading}
                 minLength={6}
                 ref={passwordRef}
-                {...fieldErrorProps(
-                  "password-error",
-                  passwordError,
-                  errorMsg ? "auth-form-error" : undefined
-                )}
+                {...fieldErrorProps("password-error", passwordError, passwordHintIds)}
               />
               <IconButton
                 onClick={() => setShowPassword((isVisible) => !isVisible)}
@@ -339,6 +348,11 @@ export default function SignInForm() {
                 {showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
               </IconButton>
             </div>
+            {mode === "signup" && (
+              <p id="password-guidance" className="password-guidance">
+                Use at least 6 characters.
+              </p>
+            )}
             <FormFieldError id="password-error" message={passwordError} />
             {mode === "signin" && (
               <div className="forgot-password-row">
@@ -369,7 +383,13 @@ export default function SignInForm() {
             </div>
           )}
 
-          <Button type="submit" block loading={loading} loadingLabel="Please wait…">
+          <Button
+            type="submit"
+            block
+            className="auth-submit"
+            loading={loading}
+            loadingLabel="Please wait…"
+          >
             {loading ? undefined : mode === "signin" ? "Sign In" : "Sign Up"}
           </Button>
         </form>

@@ -44,8 +44,12 @@ export function layout(params: {
     .map(
       ([label, value]) =>
         `<tr>` +
-        `<td style="padding:6px 12px 6px 0;color:#8b8b8b;font-size:14px;vertical-align:top;white-space:nowrap;">${escapeHtml(label)}</td>` +
-        `<td style="padding:6px 0;color:#1a1a1a;font-size:14px;vertical-align:top;">${escapeHtml(value)}</td>` +
+        `<td style="padding:6px 12px 6px 0;color:#8b8b8b;font-size:14px;vertical-align:top;white-space:nowrap;">${escapeHtml(
+          label
+        )}</td>` +
+        `<td style="padding:6px 0;color:#1a1a1a;font-size:14px;vertical-align:top;">${escapeHtml(
+          value
+        )}</td>` +
         `</tr>`
     )
     .join("");
@@ -56,7 +60,9 @@ export function layout(params: {
 
   const ctaBlock = params.cta
     ? `<p style="margin:0 0 24px;">` +
-      `<a href="${escapeHtml(params.cta.url)}" style="display:inline-block;padding:12px 24px;background:#e11d48;color:#ffffff;text-decoration:none;border-radius:6px;font-size:15px;font-weight:600;">` +
+      `<a href="${escapeHtml(
+        params.cta.url
+      )}" style="display:inline-block;padding:12px 24px;background:#e11d48;color:#ffffff;text-decoration:none;border-radius:6px;font-size:15px;font-weight:600;">` +
       `${escapeHtml(params.cta.label)}</a></p>`
     : "";
 
@@ -68,11 +74,18 @@ export function layout(params: {
     `<body style="margin:0;padding:24px 12px;background:#f6f6f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">`,
     `<table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:100%;max-width:520px;margin:0 auto;background:#ffffff;border-radius:10px;">`,
     `<tr><td style="padding:28px 28px 0;">`,
-    `<p style="margin:0 0 20px;font-size:15px;font-weight:700;letter-spacing:0.02em;color:#e11d48;">${escapeHtml(params.platformName)}</p>`,
-    `<h1 style="margin:0 0 16px;font-size:20px;line-height:1.3;color:#1a1a1a;font-weight:700;">${escapeHtml(params.heading)}</h1>`,
+    `<img src="https://www.salsasegura.com/images/brand/mark-brand.png" alt="Salsa Segura logo" width="64" height="64" style="display:block;width:64px;height:64px;margin:0 0 16px;border:0;line-height:100%;">`,
+    `<p style="margin:0 0 20px;font-size:15px;font-weight:700;letter-spacing:0.02em;color:#e11d48;">${escapeHtml(
+      params.platformName
+    )}</p>`,
+    `<h1 style="margin:0 0 16px;font-size:20px;line-height:1.3;color:#1a1a1a;font-weight:700;">${escapeHtml(
+      params.heading
+    )}</h1>`,
     ...params.paragraphs.map(
       (text) =>
-        `<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#3a3a3a;">${escapeHtml(text)}</p>`
+        `<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#3a3a3a;">${escapeHtml(
+          text
+        )}</p>`
     ),
     detailsBlock,
     ctaBlock,
@@ -80,7 +93,9 @@ export function layout(params: {
     `<tr><td style="padding:0 28px 28px;border-top:1px solid #ececec;">`,
     ...params.footerLines.map(
       (text) =>
-        `<p style="margin:16px 0 0;font-size:12px;line-height:1.5;color:#8b8b8b;">${escapeHtml(text)}</p>`
+        `<p style="margin:16px 0 0;font-size:12px;line-height:1.5;color:#8b8b8b;">${escapeHtml(
+          text
+        )}</p>`
     ),
     `</td></tr>`,
     `</table></body></html>`,
@@ -96,7 +111,9 @@ export function plainText(params: {
   footerLines: string[];
 }): string {
   const blocks = [params.platformName, "", params.heading, "", ...params.paragraphs];
-  for (const [label, value] of params.rows ?? []) blocks.push(`${label}: ${value}`);
+  for (const [label, value] of params.rows ?? []) {
+    blocks.push(`${label}: ${value}`);
+  }
   if (params.cta) blocks.push("", `${params.cta.label}: ${params.cta.url}`);
   blocks.push("", ...params.footerLines);
   return blocks.join("\n");
@@ -118,9 +135,15 @@ export function classifyResendFailure(result: ResendResult | null, thrown: unkno
   }
   const name = (result?.error?.name ?? "").toLowerCase();
   const message = (result?.error?.message ?? "").toLowerCase();
-  if (name.includes("rate") || message.includes("rate limit")) return "rate_limited";
-  if (message.includes("invalid") && message.includes("to")) return "invalid_recipient";
-  if (name.includes("validation") || message.includes("domain")) return "invalid_sender";
+  if (name.includes("rate") || message.includes("rate limit")) {
+    return "rate_limited";
+  }
+  if (message.includes("invalid") && message.includes("to")) {
+    return "invalid_recipient";
+  }
+  if (name.includes("validation") || message.includes("domain")) {
+    return "invalid_sender";
+  }
   if (!result?.data?.id) return "provider_error";
   return "provider_error";
 }

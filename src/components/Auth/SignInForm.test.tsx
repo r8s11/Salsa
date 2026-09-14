@@ -250,9 +250,7 @@ describe("SignInForm", () => {
 
     const user = userEvent.setup();
     render(
-      <MemoryRouter
-        initialEntries={[{ pathname: "/signin", state: { from: "/host/events/abc" } }]}
-      >
+      <MemoryRouter initialEntries={[{ pathname: "/signin", state: { from: "/host/events/abc" } }]}>
         <Routes>
           <Route path="/signin" element={<SignInForm />} />
           <Route path="/host/events/abc" element={<div>Event Detail Page</div>} />
@@ -295,9 +293,7 @@ describe("SignInForm", () => {
 
     const user = userEvent.setup();
     render(
-      <MemoryRouter
-        initialEntries={[{ pathname: "/signin", state: { from: "https://evil.com" } }]}
-      >
+      <MemoryRouter initialEntries={[{ pathname: "/signin", state: { from: "https://evil.com" } }]}>
         <Routes>
           <Route path="/signin" element={<SignInForm />} />
           <Route path="/host" element={<div>Host Dashboard</div>} />
@@ -841,6 +837,26 @@ describe("SignInForm heading hierarchy", () => {
 
     const heading = screen.getByRole("heading", { name: "Create your account" });
     expect(heading.tagName).toBe("H2");
+  });
+  it("adds signup guidance without changing the signup controls", async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <SignInForm />
+      </MemoryRouter>
+    );
+
+    await user.click(screen.getByRole("button", { name: "Sign up" }));
+
+    expect(screen.getByText("Join the dance floor")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Create your SalsaSegura account to discover events and stay connected to your local dance community."
+      )
+    ).toBeInTheDocument();
+    expect(screen.getByText("Use at least 6 characters.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^sign up$/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Sign in" })).toBeInTheDocument();
   });
 
   it("renders password reset heading at level 2", async () => {

@@ -20,6 +20,22 @@
   outline: 2px solid var(--gold-light);
   outline-offset: 4px;
 }
+.auth-logo {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 4px;
+  border-radius: var(--radius);
+  transition: color 0.2s ease;
+}
+
+.auth-logo:hover {
+  color: var(--gold);
+}
+
+.auth-shell {
+  align-items: center;
+}
 
 .auth-shell {
   display: grid;

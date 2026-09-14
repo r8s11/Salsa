@@ -209,7 +209,7 @@ export default function OperatorDesk({
         counts={counts}
         actions={
           role === "admin" ? (
-            <Link to="/admin/events?new=1" className="desk__action desk__action--set">
+            <Link to="/admin/events?new=1" className="desk__action desk__action--primary">
               <Plus size={15} aria-hidden /> Create event
             </Link>
           ) : undefined

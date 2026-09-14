@@ -73,12 +73,11 @@
    The masthead of the desk: today's date, and only the
    counts that represent work left to do. */
 .desk__rule {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--desk-gutter) var(--space-lg);
-  padding-bottom: 10px;
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto auto;
+  align-items: end;
+  gap: var(--space-md) var(--space-xl);
+  padding: 4px 0 14px;
   border-bottom: 2px solid var(--desk-rule-strong);
 }
 
@@ -104,11 +103,21 @@
 .desk__counts {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: 10px var(--space-lg);
+  align-items: stretch;
+  gap: 0;
   margin: 0;
   padding: 0;
   list-style: none;
+}
+.desk__counts > li {
+  display: flex;
+  align-items: center;
+  padding: 2px var(--space-md);
+  border-left: 1px solid var(--desk-rule);
+}
+
+.desk__counts > li:last-child {
+  padding-right: 0;
 }
 
 .desk__count {
@@ -167,7 +176,7 @@ a.desk__count:hover .desk__count-figure {
    Right: the set column, the week as it stands. */
 .desk__measures {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.35fr);
   gap: 0 var(--space-xl);
   margin-top: var(--space-lg);
 }
@@ -182,12 +191,12 @@ a.desk__count:hover .desk__count-figure {
 }
 
 .desk__measure-head {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-md);
-  padding-bottom: 6px;
+  gap: var(--space-sm) var(--space-md);
+  min-height: 28px;
+  padding-bottom: 7px;
   border-bottom: 1px solid var(--desk-rule-strong);
 }
 
@@ -202,6 +211,7 @@ a.desk__count:hover .desk__count-figure {
 }
 
 .desk__measure-note {
+  justify-self: start;
   font-size: var(--desk-label);
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -209,6 +219,7 @@ a.desk__count:hover .desk__count-figure {
 }
 
 .desk__measure-link {
+  justify-self: end;
   font-size: var(--desk-label);
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -434,6 +445,18 @@ a.desk__count:hover .desk__count-figure {
   border-color: var(--admin-text-secondary);
 }
 
+.desk__action--primary {
+  border-color: var(--admin-brand);
+  background: var(--admin-brand);
+  color: #fff;
+}
+
+.desk__action--primary:hover:not(:disabled) {
+  border-color: var(--admin-brand-hover);
+  background: var(--admin-brand-hover);
+  color: #fff;
+}
+
 .desk__action:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -653,6 +676,20 @@ a.desk__count:hover .desk__count-figure {
    The measures stack rather than shrink: an agate column
    squeezed below its measure stops being readable. */
 @media (max-width: 1080px) {
+  .desk__rule {
+    grid-template-columns: minmax(220px, 1fr) auto;
+  }
+
+  .desk__counts {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .desk__counts > li:first-child {
+    padding-left: 0;
+    border-left: none;
+  }
+
   .desk__measures {
     grid-template-columns: minmax(0, 1fr);
     gap: var(--space-xl) 0;
@@ -666,12 +703,46 @@ a.desk__count:hover .desk__count-figure {
 }
 
 @media (max-width: 640px) {
-  .desk__date {
-    font-size: 1.25rem;
+  .desk__rule {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .desk__rule > .desk__action {
+    grid-row: 2;
+    justify-self: start;
   }
 
   .desk__counts {
-    gap: var(--space-md);
+    grid-row: 3;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    border-top: 1px solid var(--desk-rule);
+  }
+
+  .desk__counts > li {
+    padding: 10px var(--space-sm) 0 0;
+    border-left: none;
+  }
+
+  .desk__date {
+    font-size: 1.5rem;
+  }
+
+  .desk__measure-head {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .desk__measure-note {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .desk__measure-link {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
   }
 
   .desk__detail {

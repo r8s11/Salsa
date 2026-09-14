@@ -42,9 +42,7 @@ import AdminDuplicateEventDialog from "../../components/Admin/AdminDuplicateEven
 import "./AdminEventsPage.css";
 
 type AdminEventsView =
-  | { mode: "list" }
-  | { mode: "create" }
-  | { mode: "edit"; event: DatabaseEvent };
+  { mode: "list" } | { mode: "create" } | { mode: "edit"; event: DatabaseEvent };
 type PendingAction = {
   kind: "reject" | "cancel" | "archive" | "delete";
   event: DatabaseEvent;
@@ -197,6 +195,7 @@ export default function AdminEventsPage() {
     duplicate,
     isDuplicating,
     duplicateError,
+    actorId,
   } = useAdminEvents();
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -544,6 +543,7 @@ export default function AdminEventsPage() {
         error={saveError}
         eventId={isEdit ? formView.event.id : undefined}
         onSubmit={submitForm}
+        flyerOwnerId={actorId}
         onCancel={() => setFormView({ mode: "list" })}
       />
     );

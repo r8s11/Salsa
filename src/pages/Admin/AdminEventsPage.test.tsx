@@ -9,6 +9,7 @@ import AdminEventsPage from "./AdminEventsPage";
 
 const { useAdminEvents } = vi.hoisted(() => ({ useAdminEvents: vi.fn() }));
 const { usePlatformSettings } = vi.hoisted(() => ({ usePlatformSettings: vi.fn() }));
+const { extractEventFromFlyer } = vi.hoisted(() => ({ extractEventFromFlyer: vi.fn() }));
 const { uploadEventFlyer, removeEventFlyer } = vi.hoisted(() => ({
   uploadEventFlyer: vi.fn(),
   removeEventFlyer: vi.fn(),
@@ -17,6 +18,7 @@ const { uploadEventFlyer, removeEventFlyer } = vi.hoisted(() => ({
 vi.mock("../../features/admin/hooks/useAdminEvents", () => ({ useAdminEvents }));
 vi.mock("../../features/admin/hooks/usePlatformSettings", () => ({ usePlatformSettings }));
 vi.mock("../../features/events/api/eventFlyers", () => ({ uploadEventFlyer, removeEventFlyer }));
+vi.mock("../../features/flyer-extraction/client", () => ({ extractEventFromFlyer }));
 vi.mock("../../features/events/components/EventFlyerField", () => ({
   default: function MockEventFlyerField({
     onFileChange,
@@ -247,6 +249,77 @@ describe("AdminEventsPage", () => {
       ownerId: "user-1",
       eventId: "event-1",
     });
+  });
+
+  it("uploads a flyer when creating an admin event and persists its URL", async () => {
+    const user = userEvent.setup();
+    const saveAsync = vi.fn().mockResolvedValue(undefined);
+    vi.mocked(useAdminEvents).mockReturnValue({ ...defaultState, saveAsync });
+    uploadEventFlyer.mockResolvedValue({
+      path: "admin/event-new/flyer.png",
+      url: "https://project.supabase.co/admin-flyer.png",
+    });
+    renderPage();
+
+    await user.click(screen.getByRole("button", { name: /Create Event/i }));
+    await user.type(screen.getByLabelText("Event Title *"), "Admin Flyer Event");
+    await user.click(screen.getByRole("button", { name: "Social" }));
+    await user.type(screen.getByLabelText("Date *"), "2027-01-20");
+    await user.upload(
+      screen.getByLabelText("Event flyer"),
+      new File(["png"], "flyer.png", { type: "image/png" })
+    );
+    await user.click(screen.getByRole("button", { name: "Create event" }));
+
+    await waitFor(() => {
+      expect(saveAsync).toHaveBeenCalledWith({
+        id: null,
+        payload: expect.objectContaining({
+          image_url: "https://project.supabase.co/admin-flyer.png",
+        }),
+      });
+    });
+    expect(uploadEventFlyer).toHaveBeenCalledWith({
+      file: expect.objectContaining({ name: "flyer.png" }),
+      ownerId: "admin",
+      eventId: expect.any(String),
+    });
+  });
+
+  it("analyzes an uploaded flyer and applies extracted details", async () => {
+    const user = userEvent.setup();
+    uploadEventFlyer.mockResolvedValue({
+      path: "admin/draft/flyer.png",
+      url: "https://project.supabase.co/flyer.png",
+    });
+    extractEventFromFlyer.mockResolvedValue({
+      title: "Extracted Salsa Social",
+      date: null,
+      start_time: null,
+      end_time: null,
+      venue_name: null,
+      address: null,
+      city: null,
+      dance_styles: [],
+      event_type: null,
+      price: null,
+      organizer_name: null,
+      instagram: null,
+      website: null,
+      details: [],
+    });
+    renderPage();
+    await user.click(screen.getByRole("button", { name: /Create Event/i }));
+    await user.upload(
+      screen.getByLabelText("Event flyer"),
+      new File(["png"], "flyer.png", { type: "image/png" })
+    );
+    await user.click(await screen.findByRole("button", { name: /Analyze flyer/i }));
+    await user.click(await screen.findByRole("button", { name: "Use These Details" }));
+    await waitFor(() =>
+      expect(screen.getByLabelText("Event Title *")).toHaveValue("Extracted Salsa Social")
+    );
+    expect(screen.getByText(/Filled title from your flyer/i)).toBeInTheDocument();
   });
 
   it("confirms delete through the dialog and calls remove with the event id", async () => {

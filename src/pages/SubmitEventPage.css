@@ -66,126 +66,6 @@
   font: 400 0.95rem var(--font-body);
 }
 
-/* ── Entry choice (flyer vs manual) ── */
-.submit-entry {
-  display: grid;
-  grid-template-columns: 1.4fr 1fr;
-  gap: var(--space-lg);
-  max-width: 760px;
-  margin: 0 auto;
-}
-
-.submit-entry__card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-md);
-  padding: var(--space-xl);
-  border-radius: var(--radius-lg);
-  border: 1.5px solid var(--border-md);
-  background: var(--surface);
-  color: var(--text);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition:
-    border-color 0.25s ease,
-    transform 0.25s ease,
-    box-shadow 0.25s ease;
-  overflow: hidden;
-}
-
-.submit-entry__card:hover {
-  transform: translateY(-4px);
-}
-
-.submit-entry__card:focus-visible {
-  outline: 2px solid var(--gold);
-  outline-offset: 3px;
-}
-
-/* Flyer card: rose glow, dominant */
-.submit-entry__card--flyer {
-  border-color: var(--red);
-  box-shadow: var(--glow-primary);
-  background: linear-gradient(180deg, var(--red-dim) 0%, var(--surface) 60%);
-}
-
-.submit-entry__card--flyer:hover {
-  border-color: var(--red-bright);
-  box-shadow: 0 0 32px var(--red-glow);
-}
-
-.submit-entry__card--flyer .submit-entry__card-cta {
-  color: var(--red-bright);
-}
-
-/* Manual card: gold accent, subdued */
-.submit-entry__card--manual {
-  background: var(--surface-high);
-}
-
-.submit-entry__card--manual:hover {
-  border-color: var(--gold);
-  box-shadow: 0 0 24px var(--gold-dim);
-}
-
-.submit-entry__card--manual .submit-entry__card-cta {
-  color: var(--gold);
-}
-
-.submit-entry__card-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius);
-  background: var(--red-dim);
-  color: var(--red-bright);
-}
-
-.submit-entry__card-glyph {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius);
-  background: var(--gold-dim);
-  color: var(--gold);
-  font-size: var(--font-size-card-title);
-}
-
-.submit-entry__card-title {
-  font: 700 var(--font-size-card-title) var(--font-display);
-  color: var(--text);
-  margin: 0;
-}
-
-.submit-entry__card-text {
-  font: 400 0.95rem var(--font-body);
-  color: var(--text-muted);
-  line-height: 1.6;
-  margin: 0;
-  flex-grow: 1;
-}
-
-.submit-entry__card-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-sm);
-  font: 700 0.72rem var(--font-display);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  margin-top: var(--space-sm);
-  transition: gap 0.2s ease;
-}
-
-.submit-entry__card:hover .submit-entry__card-cta {
-  gap: var(--space-md);
-}
-
 /* ── Flow wrapper ── */
 .submit-event__flow {
   display: grid;
@@ -226,6 +106,24 @@
   background: var(--gold-dim);
   color: var(--gold-light);
   font: 400 0.85rem var(--font-body);
+}
+
+.submit-flyer__guest-note a {
+  color: var(--gold-light);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+
+.submit-flyer__guest-note a:hover {
+  text-decoration-thickness: 2px;
+}
+
+.submit-flyer__guest-note a:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
 }
 
 .submit-flyer__actions {
@@ -351,16 +249,8 @@
 /* ── Mobile ── */
 @media (max-width: 768px) {
   .submit-event {
-    padding: 48px 0 140px; /* extra bottom for sticky bar */
-  }
-
-  .submit-entry {
-    grid-template-columns: 1fr;
-    gap: var(--space-md);
-  }
-
-  .submit-entry__card {
-    padding: var(--space-lg);
+    /* Clears the sticky submit bar and, below 640px, the mobile tab bar. */
+    padding: 48px 0 calc(120px + var(--tab-bar-h));
   }
 
   .submit-flyer {
@@ -373,22 +263,23 @@
 
   .submit-form__bar {
     position: fixed;
-    bottom: 0;
+    /* Rides above the mobile tab bar instead of underneath it. */
+    bottom: var(--tab-bar-h);
     left: 0;
     right: 0;
     padding: var(--space-md) var(--space-lg);
-    padding-bottom: calc(var(--space-md) + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(var(--space-md) + env(safe-area-inset-bottom));
     background: var(--header-bg);
     backdrop-filter: blur(var(--glass-blur));
     -webkit-backdrop-filter: blur(var(--glass-blur));
     border-top: 1px solid var(--border-md);
     z-index: 50;
   }
-}
 
-@media (prefers-reduced-motion: reduce) {
-  .submit-entry__card,
-  .submit-entry__card-cta {
-    transition: none;
+  @media (max-width: 640px) {
+    /* The tab bar underneath already absorbs the bottom safe area. */
+    .submit-form__bar {
+      padding-bottom: var(--space-md);
+    }
   }
 }

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import * as submissionsRepo from "../features/admin/api/submissionsRepo";
 import SubmitEventPage from "./SubmitEventPage";
 import { CityProvider } from "../contexts/CityContext";
@@ -24,18 +25,14 @@ vi.mock("../features/submit-event/hooks/useSubmissionAccess", () => ({ useSubmis
 vi.mock("../contexts/useAuth", () => ({ useAuth }));
 vi.mock("../features/account/hooks/useOwnProfile", () => ({ useOwnProfile }));
 
-const renderSubmitEventPage = () => {
-  const rendered = render(
-    <CityProvider>
-      <SubmitEventPage />
-    </CityProvider>
+const renderSubmitEventPage = () =>
+  render(
+    <MemoryRouter initialEntries={["/submit"]}>
+      <CityProvider>
+        <SubmitEventPage />
+      </CityProvider>
+    </MemoryRouter>
   );
-  const manualEntry = screen.queryByRole("button", {
-    name: /Enter event details manually/i,
-  });
-  if (manualEntry) fireEvent.click(manualEntry);
-  return rendered;
-};
 
 const chooseEventType = (name: "Social" | "Class" | "Workshop") =>
   fireEvent.click(screen.getByRole("button", { name }));
@@ -68,18 +65,37 @@ describe("SubmitEventPage", () => {
       signOut: vi.fn(),
     });
   });
-  it("requires an explicit flyer or manual entry choice", () => {
-    render(
-      <CityProvider>
-        <SubmitEventPage />
-      </CityProvider>
-    );
+  it("leads with the flyer upload and shows the form underneath it, with no entry gate", () => {
+    renderSubmitEventPage();
 
-    expect(screen.getByRole("group", { name: /How would you like to start/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Upload a flyer to start/i })).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /Enter event details manually/i })
-    ).toBeInTheDocument();
+    const flyer = screen.getByRole("region", { name: /Start with the flyer/i });
+    const form = document.querySelector("form.submit-form") as HTMLElement;
+
+    expect(flyer).toBeInTheDocument();
+    expect(form).toBeInTheDocument();
+    expect(flyer.compareDocumentPosition(form) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.queryByRole("group", { name: /How would you like to start/i })).toBeNull();
+  });
+
+  it("offers sign-in instead of a dead upload control for a guest", () => {
+    vi.mocked(useAuth).mockReturnValue({
+      user: null,
+      session: null,
+      loading: false,
+      isAdmin: false,
+      isOrganizer: false,
+      signInWithPassword: vi.fn(),
+      resendConfirmation: vi.fn(),
+      requestPasswordReset: vi.fn(),
+      updateEmail: vi.fn(),
+      signUp: vi.fn(),
+      signOut: vi.fn(),
+    });
+
+    renderSubmitEventPage();
+
+    expect(screen.queryByLabelText("Event flyer")).toBeNull();
+    expect(screen.getByRole("link", { name: "Sign in" })).toHaveAttribute("href", "/signin");
   });
 
   it("renders the event submission form with noValidate and a required legend", () => {

@@ -2,6 +2,7 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { act, render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent, { type UserEvent } from "@testing-library/user-event";
 import * as submissionsRepo from "../features/admin/api/submissionsRepo";
+import { MemoryRouter } from "react-router-dom";
 import { CityProvider } from "../contexts/CityContext";
 import SubmitEventPage from "./SubmitEventPage";
 
@@ -50,15 +51,14 @@ vi.mock("../features/flyer-extraction/client", () => ({
 const FLYER_URL =
   "https://project.supabase.co/storage/v1/object/public/event-flyers/test-user-id/submission-abc/havana.png";
 
-const renderPage = () => {
-  const rendered = render(
-    <CityProvider>
-      <SubmitEventPage />
-    </CityProvider>
+const renderPage = () =>
+  render(
+    <MemoryRouter initialEntries={["/submit"]}>
+      <CityProvider>
+        <SubmitEventPage />
+      </CityProvider>
+    </MemoryRouter>
   );
-  fireEvent.click(screen.getByRole("button", { name: /Upload a flyer to start/i }));
-  return rendered;
-};
 
 describe("SubmitEventPage flyer (Phase 1)", () => {
   beforeEach(() => {
@@ -82,9 +82,9 @@ describe("SubmitEventPage flyer (Phase 1)", () => {
     });
   });
 
-  it("flows directly from the flyer section into the event form without a manual continuation control", () => {
+  it("leads with the flyer section and flows straight into the event form", () => {
     renderPage();
-    expect(screen.getByRole("heading", { name: /Start with a flyer/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /Start with the flyer/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Choose Flyer/i })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Continue manually/i })).not.toBeInTheDocument();
     expect(screen.getByLabelText(/Event Title \*/i)).toBeInTheDocument();
@@ -272,9 +272,10 @@ describe("SubmitEventPage flyer (Phase 1)", () => {
     vi.mocked(submissionsRepo.createSubmission).mockResolvedValueOnce("submission-id");
     renderPage();
 
-    // Guests are not offered the flyer upload — only an honest note.
+    // Guests get a way forward, not a dead upload control.
     expect(screen.queryByLabelText("Event flyer")).not.toBeInTheDocument();
-    expect(screen.getByRole("note")).toHaveTextContent(/signed in to upload a flyer/i);
+    expect(screen.getByRole("note")).toHaveTextContent(/to upload a flyer/i);
+    expect(screen.getByRole("link", { name: "Sign in" })).toHaveAttribute("href", "/signin");
 
     fireEvent.change(screen.getByLabelText(/Event Title \*/i), {
       target: { value: "Guest Social" },

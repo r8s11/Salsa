@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { Sparkles } from "lucide-react";
 import { useAuth } from "../contexts/useAuth";
 import { ADMIN_EVENT_CREATE_PATH } from "../lib/eventCreateDestination";
@@ -16,8 +16,6 @@ import FormErrorSummary from "../shared/forms/FormErrorSummary";
 import Button from "../components/ui/Button";
 import "../styles/forms.css";
 import "./SubmitEventPage.css";
-
-type EntryMode = "choice" | "flyer" | "manual";
 
 const FIELD_ORDER: { field: SubmitFieldName; id: string }[] = [
   { field: "title", id: "event-title" },
@@ -73,7 +71,6 @@ export default function SubmitEventPage() {
   const submissionAccess = useSubmissionAccess(Boolean(user));
   const [pristineForm] = useState(form);
   const isDirty = JSON.stringify(form) !== JSON.stringify(pristineForm);
-  const [entryMode, setEntryMode] = useState<EntryMode>("choice");
 
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -128,131 +125,97 @@ export default function SubmitEventPage() {
           </div>
         ) : !submissionAccess.canSubmit ? (
           <p className="submit-event__status">Event submissions are currently closed.</p>
-        ) : entryMode === "choice" ? (
-          <div className="submit-entry" role="group" aria-label="How would you like to start?">
-            <button
-              type="button"
-              className="submit-entry__card submit-entry__card--flyer"
-              onClick={() => setEntryMode("flyer")}
-              aria-label="Upload a flyer to start"
-            >
-              <span className="submit-entry__card-icon" aria-hidden="true">
-                <Sparkles />
-              </span>
-              <h2 className="submit-entry__card-title">I have a flyer</h2>
-              <p className="submit-entry__card-text">
-                Upload your flyer and SalsaSegura will help fill in the details for you — review
-                everything before submitting.
-              </p>
-              <span className="submit-entry__card-cta">Upload Flyer</span>
-            </button>
-            <button
-              type="button"
-              className="submit-entry__card submit-entry__card--manual"
-              onClick={() => setEntryMode("manual")}
-              aria-label="Enter event details manually"
-            >
-              <span className="submit-entry__card-glyph" aria-hidden="true">
-                ✎
-              </span>
-              <h2 className="submit-entry__card-title">Start manually</h2>
-              <p className="submit-entry__card-text">
-                Fill in the event details yourself from the start.
-              </p>
-              <span className="submit-entry__card-cta">Enter Manually</span>
-            </button>
-          </div>
         ) : (
           <div className="submit-event__flow">
-            {entryMode === "flyer" && (
-              <section className="submit-flyer" aria-labelledby="submit-flyer-heading">
-                <h2 id="submit-flyer-heading" className="submit-flyer__heading">
-                  Start with a flyer
-                </h2>
-                <p className="submit-flyer__subhead">
-                  Upload an event flyer and SalsaSegura will help fill in the event details for you
-                  — review everything before submitting.
+            <section className="submit-flyer" aria-labelledby="submit-flyer-heading">
+              <h2 id="submit-flyer-heading" className="submit-flyer__heading">
+                Start with the flyer
+              </h2>
+              <p className="submit-flyer__subhead">
+                Optional. Upload the event flyer and SalsaSegura reads the details off it, so the
+                form below starts mostly filled in. Prefer to type? Skip straight to the details.
+              </p>
+
+              {user ? (
+                <EventFlyerField
+                  currentUrl={uploadedFlyerUrl}
+                  onFileChange={handleFlyerChange}
+                  onRemove={handleFlyerRemove}
+                  onRetry={handleFlyerRetry}
+                  status={flyerStatus}
+                  errorMessage={flyerError}
+                  disabled={isSubmitting}
+                  label="Event flyer"
+                  sizeCaption={
+                    flyerFile ? `${(flyerFile.size / (1024 * 1024)).toFixed(1)} MB` : null
+                  }
+                />
+              ) : (
+                <p className="submit-flyer__guest-note" role="note">
+                  <Link to="/signin" state={{ from: "/submit" }}>
+                    Sign in
+                  </Link>{" "}
+                  to upload a flyer. You can still fill in the details yourself below.
                 </p>
+              )}
 
-                {user ? (
-                  <EventFlyerField
-                    currentUrl={uploadedFlyerUrl}
-                    onFileChange={handleFlyerChange}
-                    onRemove={handleFlyerRemove}
-                    onRetry={handleFlyerRetry}
-                    status={flyerStatus}
-                    errorMessage={flyerError}
-                    disabled={isSubmitting}
-                    label="Event flyer"
-                    sizeCaption={
-                      flyerFile ? `${(flyerFile.size / (1024 * 1024)).toFixed(1)} MB` : null
-                    }
+              {flyerReady && extractionStatus === "idle" && (
+                <div className="submit-flyer__actions">
+                  <Button variant="secondary" onClick={handleExtractFlyer}>
+                    <Sparkles size={16} aria-hidden /> Extract Event Details
+                  </Button>
+                </div>
+              )}
+
+              {flyerReady && extractionStatus !== "idle" && (
+                <>
+                  <FlyerExtractionPanel
+                    status={extractionStatus}
+                    result={extractionResult}
+                    error={extractionError}
+                    onRetry={handleExtractFlyer}
+                    onDismiss={() => {
+                      dismissExtractionError();
+                      focusForm();
+                    }}
                   />
-                ) : (
-                  <p className="submit-flyer__guest-note" role="note">
-                    You must be signed in to upload a flyer. You can still submit event details
-                    manually below.
-                  </p>
-                )}
-
-                {flyerReady && extractionStatus === "idle" && (
-                  <div className="submit-flyer__actions">
-                    <Button variant="secondary" onClick={handleExtractFlyer}>
-                      <Sparkles size={16} aria-hidden /> Extract Event Details
-                    </Button>
-                  </div>
-                )}
-
-                {flyerReady && extractionStatus !== "idle" && (
-                  <>
-                    <FlyerExtractionPanel
-                      status={extractionStatus}
-                      result={extractionResult}
-                      error={extractionError}
-                      onRetry={handleExtractFlyer}
-                      onDismiss={() => {
-                        dismissExtractionError();
-                        focusForm();
-                      }}
-                    />
-                    {extractionStatus === "success" && prefillFeedback && (
-                      <div className="submit-flyer__notice" role="status">
-                        {prefillFeedback.filled.length > 0 ? (
-                          <p>
-                            Filled {prefillFeedback.filled.join(", ").toLowerCase()} from your flyer
-                            — review below before submitting.
-                          </p>
-                        ) : (
-                          <p>
-                            Couldn&apos;t pull any details from this flyer — fill in the form
-                            manually.
-                          </p>
-                        )}
-                        {prefillFeedback.skipped.length > 0 && (
-                          <p>
-                            Couldn&apos;t determine:{" "}
-                            {prefillFeedback.skipped.join(", ").toLowerCase()} — fill those in
-                            manually.
-                          </p>
-                        )}
-                      </div>
-                    )}
-                    {reconciliation.status === "loading" && (
-                      <p className="submit-flyer__notice" role="status">
-                        Checking the venue details…
-                      </p>
-                    )}
-                    {reconciliation.status === "success" &&
-                      (reconciliation.response?.venue.status === "exact" ||
-                        reconciliation.response?.venue.status === "strong") && (
-                        <p className="submit-flyer__notice" role="status">
-                          Matched to an existing SalsaSegura venue.
+                  {extractionStatus === "success" && prefillFeedback && (
+                    <div className="submit-flyer__notice" role="status">
+                      {prefillFeedback.filled.length > 0 ? (
+                        <p>
+                          Filled {prefillFeedback.filled.join(", ").toLowerCase()} from your flyer —
+                          review below before submitting.
+                        </p>
+                      ) : (
+                        <p>
+                          Couldn&apos;t pull any details from this flyer — fill in the form
+                          manually.
                         </p>
                       )}
-                  </>
-                )}
-              </section>
-            )}
+                      {prefillFeedback.skipped.length > 0 && (
+                        <p>
+                          Couldn&apos;t determine:{" "}
+                          {prefillFeedback.skipped.join(", ").toLowerCase()} — fill those in
+                          manually.
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  {reconciliation.status === "loading" && (
+                    <p className="submit-flyer__notice" role="status">
+                      Checking the venue details…
+                    </p>
+                  )}
+                  {reconciliation.status === "success" &&
+                    (reconciliation.response?.venue.status === "exact" ||
+                      reconciliation.response?.venue.status === "strong") && (
+                      <p className="submit-flyer__notice" role="status">
+                        Matched to an existing SalsaSegura venue.
+                      </p>
+                    )}
+                </>
+              )}
+            </section>
 
             <form ref={formRef} onSubmit={handleSubmit} className="submit-form" noValidate>
               <div className="submit-form__card">

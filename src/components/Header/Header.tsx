@@ -33,9 +33,12 @@ function Header() {
   // public submission flow.
   const eventCreateTo = resolveEventCreateDestination(isAdmin ? "admin" : null);
 
+  // Labelled by which dashboard they open — the group heading already says
+  // "Dashboard", so repeating the word in every item reads as a stutter.
   const dashboardLinks: ReadonlyArray<{ to: string; label: string }> = [
-    ...(isOrganizer ? [{ to: "/host", label: "Host Dashboard" }] : []),
-    ...(isAdmin || isModerator ? [{ to: "/admin", label: "Dashboard" }] : []),
+    ...(isOrganizer ? [{ to: "/host", label: "Host" }] : []),
+    ...(isAdmin ? [{ to: "/admin", label: "Admin" }] : []),
+    ...(!isAdmin && isModerator ? [{ to: "/admin", label: "Moderator" }] : []),
   ];
 
   const closeNavigation = useCallback(() => {
@@ -123,7 +126,7 @@ function Header() {
                   </ButtonLink>
                   {dashboardLinks.length > 0 && (
                     <div className="mobile-nav__dashboards">
-                      <span className="mobile-nav__dashboards-label">Dashboards</span>
+                      <span className="mobile-nav__dashboards-label">Dashboard</span>
                       {dashboardLinks.map(({ to, label }) => (
                         <NavLink key={to} to={to} onClick={closeNavigation}>
                           {label}
@@ -202,7 +205,7 @@ function Header() {
             <div className="account-disclosure__menu">
               {dashboardLinks.length > 0 && (
                 <div className="account-disclosure__dashboards">
-                  <span className="account-disclosure__dashboards-label">Dashboards</span>
+                  <span className="account-disclosure__dashboards-label">Dashboard</span>
                   {dashboardLinks.map(({ to, label }) => (
                     <NavLink key={to} to={to} onClick={closeNavigation}>
                       {label}

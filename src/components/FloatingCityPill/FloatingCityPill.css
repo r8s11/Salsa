@@ -52,6 +52,6 @@
 @media (max-width: 640px) {
   .floating-city-pill {
     right: 16px;
-    bottom: calc(56px + 12px + env(safe-area-inset-bottom));
+    bottom: calc(var(--tab-bar-h) + 12px);
   }
 }

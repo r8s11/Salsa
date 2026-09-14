@@ -120,7 +120,7 @@ describe("Header", () => {
     expect(screen.queryAllByRole("link", { name: "Dashboard" })).toHaveLength(0);
   });
 
-  it("renders Dashboard for reviewers (admin or moderator)", () => {
+  it("labels the reviewer dashboard by role", () => {
     vi.mocked(useAuth).mockReturnValue(
       defaultAuth({ user: { id: "admin" } as User, isAdmin: true, isModerator: true })
     );
@@ -128,7 +128,20 @@ describe("Header", () => {
 
     renderHeader();
 
-    expect(screen.getAllByRole("link", { name: "Dashboard" })[0]).toHaveAttribute("href", "/admin");
+    expect(screen.getAllByRole("link", { name: "Admin" })[0]).toHaveAttribute("href", "/admin");
+    expect(screen.queryByRole("link", { name: "Moderator" })).not.toBeInTheDocument();
+  });
+
+  it("labels a moderator without admin as Moderator", () => {
+    vi.mocked(useAuth).mockReturnValue(
+      defaultAuth({ user: { id: "mod" } as User, isModerator: true })
+    );
+    vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
+
+    renderHeader();
+
+    expect(screen.getAllByRole("link", { name: "Moderator" })[0]).toHaveAttribute("href", "/admin");
+    expect(screen.queryByRole("link", { name: "Admin" })).not.toBeInTheDocument();
   });
 
   it("renders no DASHBOARDS section for a guest", () => {
@@ -137,9 +150,9 @@ describe("Header", () => {
 
     renderHeader();
 
-    expect(screen.queryByText("Dashboards")).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Host Dashboard" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Dashboard" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Dashboard")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Host" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Admin" })).not.toBeInTheDocument();
   });
 
   it("renders no DASHBOARDS section for a regular authenticated user with no role", () => {
@@ -148,12 +161,12 @@ describe("Header", () => {
 
     renderHeader();
 
-    expect(screen.queryByText("Dashboards")).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Host Dashboard" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Dashboard" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Dashboard")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Host" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Admin" })).not.toBeInTheDocument();
   });
 
-  it("renders Host Dashboard for organizers in both desktop and mobile blocks", async () => {
+  it("renders the Host dashboard link in both desktop and mobile blocks", async () => {
     vi.mocked(useAuth).mockReturnValue(
       defaultAuth({ user: { id: "organizer" } as User, isOrganizer: true })
     );
@@ -164,7 +177,7 @@ describe("Header", () => {
     const desktopAccount = screen
       .getByLabelText("Open account menu")
       .closest("details") as HTMLElement;
-    expect(within(desktopAccount).getByRole("link", { name: "Host Dashboard" })).toHaveAttribute(
+    expect(within(desktopAccount).getByRole("link", { name: "Host" })).toHaveAttribute(
       "href",
       "/host"
     );
@@ -172,7 +185,7 @@ describe("Header", () => {
     await user.click(screen.getByRole("button", { name: "Open menu" }));
     const drawer = document.getElementById("site-navigation") as HTMLElement;
     const mobileAccount = within(drawer).getByRole("region", { name: "Account" });
-    expect(within(mobileAccount).getByRole("link", { name: "Host Dashboard" })).toHaveAttribute(
+    expect(within(mobileAccount).getByRole("link", { name: "Host" })).toHaveAttribute(
       "href",
       "/host"
     );
@@ -188,7 +201,7 @@ describe("Header", () => {
     const user = userEvent.setup();
     const { rerender } = renderHeader();
 
-    expect(screen.getAllByRole("link", { name: "Dashboard" }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("link", { name: "Moderator" }).length).toBeGreaterThan(0);
 
     await user.click(screen.getAllByRole("button", { name: "Sign Out" })[0]);
     expect(signOut).toHaveBeenCalledWith("global");
@@ -212,7 +225,7 @@ describe("Header", () => {
     );
 
     await waitFor(() =>
-      expect(screen.queryByRole("link", { name: "Dashboard" })).not.toBeInTheDocument()
+      expect(screen.queryByRole("link", { name: "Moderator" })).not.toBeInTheDocument()
     );
   });
 
@@ -333,7 +346,7 @@ describe("Header", () => {
       "href",
       "/profile"
     );
-    expect(within(account).getByRole("link", { name: "Dashboard" })).toHaveAttribute(
+    expect(within(account).getByRole("link", { name: "Moderator" })).toHaveAttribute(
       "href",
       "/admin"
     );

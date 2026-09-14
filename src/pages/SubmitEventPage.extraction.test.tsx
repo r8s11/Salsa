@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { act, render, screen, fireEvent, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router-dom";
 import { CityProvider } from "../contexts/CityContext";
 import SubmitEventPage from "./SubmitEventPage";
 const mockAuth = vi.hoisted(() => ({
@@ -80,15 +81,14 @@ const PARTIAL_EXTRACTION = {
   details: [],
 };
 
-const renderPage = () => {
-  const rendered = render(
-    <CityProvider>
-      <SubmitEventPage />
-    </CityProvider>
+const renderPage = () =>
+  render(
+    <MemoryRouter initialEntries={["/submit"]}>
+      <CityProvider>
+        <SubmitEventPage />
+      </CityProvider>
+    </MemoryRouter>
   );
-  fireEvent.click(screen.getByRole("button", { name: /Upload a flyer to start/i }));
-  return rendered;
-};
 
 const uploadFlyer = async (user: ReturnType<typeof userEvent.setup>) => {
   await user.upload(

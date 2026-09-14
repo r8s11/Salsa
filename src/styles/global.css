@@ -51,6 +51,12 @@
   /* Header (glass) */
   --header-bg: rgba(11, 19, 38, 0.72);
 
+  /* Space the fixed mobile tab bar occupies, including the bottom safe area.
+     0 above its breakpoint so bottom-anchored UI can offset unconditionally.
+     Kept here, next to the override below, because a media query adds no
+     specificity — a later plain :root in another file would win. */
+  --tab-bar-h: 0px;
+
   /* Glass & glow */
   --glass-blur: 12px;
   --glow-primary: 0 0 24px rgba(225, 29, 72, 0.3);
@@ -73,6 +79,12 @@
   --radius-lg: 16px;
   --radius-xl: 24px;
   --radius-full: 9999px;
+}
+
+@media (max-width: 640px) {
+  :root {
+    --tab-bar-h: calc(58px + env(safe-area-inset-bottom));
+  }
 }
 
 /* ----------------------------------------

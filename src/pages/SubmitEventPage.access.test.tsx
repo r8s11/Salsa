@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import type { User } from "@supabase/supabase-js";
 import { CityProvider } from "../contexts/CityContext";
 import type { AuthContextValue } from "../contexts/authContextObject";
@@ -41,13 +42,14 @@ function authValue(overrides: Partial<AuthContextValue> = {}): AuthContextValue 
   } as AuthContextValue;
 }
 
-function renderManualSubmission() {
+function renderSubmission() {
   render(
-    <CityProvider>
-      <SubmitEventPage />
-    </CityProvider>
+    <MemoryRouter initialEntries={["/submit"]}>
+      <CityProvider>
+        <SubmitEventPage />
+      </CityProvider>
+    </MemoryRouter>
   );
-  fireEvent.click(screen.getByRole("button", { name: /Enter event details manually/i }));
 }
 
 beforeEach(() => {
@@ -70,18 +72,15 @@ describe("SubmitEventPage anonymous access contract", () => {
   it("renders the public page instead of redirecting while auth is still loading", () => {
     vi.mocked(useAuth).mockReturnValue(authValue({ loading: true }));
 
-    render(
-      <CityProvider>
-        <SubmitEventPage />
-      </CityProvider>
-    );
+    renderSubmission();
 
     expect(screen.getByRole("heading", { name: "Submit an Event" })).toBeInTheDocument();
-    expect(screen.queryByText(/sign in/i)).not.toBeInTheDocument();
+    // Not gated behind auth: the submission form itself is reachable.
+    expect(document.querySelector("form.submit-form")).toBeInTheDocument();
   });
 
   it("renders required name and email inputs for a confirmed anonymous visitor", () => {
-    renderManualSubmission();
+    renderSubmission();
 
     expect(screen.getByLabelText(/Your name/i)).toBeRequired();
     expect(screen.getByLabelText(/^Email$/i)).toBeRequired();
@@ -108,7 +107,7 @@ describe("SubmitEventPage authenticated access contract", () => {
       })
     );
 
-    renderManualSubmission();
+    renderSubmission();
 
     expect(
       screen.getByRole("heading", { name: /Submit an Event|Create a new event/i })
@@ -131,7 +130,7 @@ describe("SubmitEventPage authenticated access contract", () => {
       error: null,
       refetch: vi.fn(),
     });
-    renderManualSubmission();
+    renderSubmission();
     expect(screen.getByText("Your info")).toBeInTheDocument();
 
     expect(screen.getByText(/Submitting as/i)).toHaveTextContent("Maria Santos");

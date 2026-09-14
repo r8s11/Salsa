@@ -359,9 +359,11 @@ a.logo:hover .ss-logo__wordmark-accent {
   .desktop-nav-actions {
     display: none;
   }
+  /* One menu on mobile. The drawer already carries identity, dashboards,
+     account links and sign-out, so the avatar dropdown would be a second
+     menu covering the same ground. */
   .account-disclosure {
-    margin-left: auto;
-    margin-right: var(--space-sm);
+    display: none;
   }
   .hamburger {
     display: flex;
@@ -385,8 +387,7 @@ a.logo:hover .ss-logo__wordmark-accent {
     overflow-y: auto;
     background:
       radial-gradient(80% 55% at 88% 0%, rgba(225, 29, 72, 0.26), transparent 62%),
-      radial-gradient(70% 50% at 0% 100%, rgba(233, 195, 73, 0.12), transparent 58%),
-      var(--bg);
+      radial-gradient(70% 50% at 0% 100%, rgba(233, 195, 73, 0.12), transparent 58%), var(--bg);
   }
 
   .nav-links.active {

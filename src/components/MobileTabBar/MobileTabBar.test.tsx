@@ -34,13 +34,13 @@ function renderTabBar(initialEntry = "/") {
 }
 
 describe("MobileTabBar", () => {
-  it("renders Home, Calendar, Submit, and Me as the four primary destinations", () => {
+  it("renders Home, Calendar, and Me as the three primary destinations", () => {
     vi.mocked(useAuth).mockReturnValue(defaultAuth());
     renderTabBar();
 
+    expect(screen.getAllByRole("link")).toHaveLength(3);
     expect(screen.getByRole("link", { name: "Home" })).toHaveAttribute("href", "/");
     expect(screen.getByRole("link", { name: "Calendar" })).toHaveAttribute("href", "/calendar");
-    expect(screen.getByRole("link", { name: "Submit" })).toHaveAttribute("href", "/submit");
   });
 
   it("routes the Me tab to sign in when signed out", () => {
@@ -68,34 +68,29 @@ describe("MobileTabBar", () => {
   });
 });
 
-describe("MobileTabBar event creation tab", () => {
-  it("routes an admin to the canonical direct-create route", () => {
-    vi.mocked(useAuth).mockReturnValue(
-      defaultAuth({
-        user: { id: "admin-1" } as AuthContextValue["user"],
-        role: "admin",
-        isAdmin: true,
-      })
-    );
-    renderTabBar();
-
-    expect(screen.getByRole("link", { name: "Add" })).toHaveAttribute(
-      "href",
-      "/admin/events?new=1"
-    );
-    expect(screen.queryByRole("link", { name: "Submit" })).not.toBeInTheDocument();
-  });
-
-  it("keeps a moderator on the public submission flow", () => {
-    vi.mocked(useAuth).mockReturnValue(
+describe("MobileTabBar event creation", () => {
+  it("stays out of the tab bar for every role", () => {
+    for (const auth of [
+      defaultAuth(),
+      defaultAuth({ user: { id: "member-1" } as AuthContextValue["user"] }),
       defaultAuth({
         user: { id: "mod-1" } as AuthContextValue["user"],
         role: "moderator",
         isModerator: true,
-      })
-    );
-    renderTabBar();
+      }),
+      defaultAuth({
+        user: { id: "admin-1" } as AuthContextValue["user"],
+        role: "admin",
+        isAdmin: true,
+      }),
+    ]) {
+      vi.mocked(useAuth).mockReturnValue(auth);
+      const { unmount } = renderTabBar();
 
-    expect(screen.getByRole("link", { name: "Submit" })).toHaveAttribute("href", "/submit");
+      expect(screen.queryByRole("link", { name: "Submit" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("link", { name: "Add" })).not.toBeInTheDocument();
+
+      unmount();
+    }
   });
 });

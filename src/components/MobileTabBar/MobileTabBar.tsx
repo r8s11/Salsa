@@ -1,19 +1,16 @@
-import { CalendarDays, Home, PlusCircle, User } from "lucide-react";
+import { CalendarDays, Home, User } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../contexts/useAuth";
-import { resolveEventCreateDestination } from "../../lib/eventCreateDestination";
 import "./MobileTabBar.css";
 
 function MobileTabBar() {
-  const { user, isAdmin } = useAuth();
-  // Admins author platform events directly instead of entering the moderated
-  // submission queue.
-  const eventCreateTo = resolveEventCreateDestination(isAdmin ? "admin" : null);
+  const { user } = useAuth();
 
+  // Primary destinations only. Event creation lives in the header menu, which
+  // is the single place on mobile that carries role-dependent actions.
   const tabs = [
     { to: "/", label: "Home", icon: Home, end: true },
     { to: "/calendar", label: "Calendar", icon: CalendarDays, end: false },
-    { to: eventCreateTo, label: isAdmin ? "Add" : "Submit", icon: PlusCircle, end: false },
     { to: user ? "/profile" : "/signin", label: "Me", icon: User, end: false },
   ] as const;
 

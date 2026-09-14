@@ -146,13 +146,7 @@ export default function AdminLayout() {
                 <ChevronRight size={14} className="admin-breadcrumbs__sep" />
               </>
             )}
-            <span className="admin-breadcrumbs__crumb">{breadcrumbLabel}</span>
-            {!isHostRoute && pathname !== "/admin" && (
-              <>
-                <ChevronRight size={14} className="admin-breadcrumbs__sep" />
-                <span className="admin-breadcrumbs__current">{sectionLabel}</span>
-              </>
-            )}
+            <span className="admin-breadcrumbs__crumb admin-breadcrumbs__current">{breadcrumbLabel}</span>
           </nav>
         </div>
 

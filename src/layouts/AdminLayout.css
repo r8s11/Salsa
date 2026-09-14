@@ -80,7 +80,6 @@
 }
 
 .admin-main {
-  padding-top: var(--admin-header-h);
   padding: var(--admin-header-h) 16px 48px 16px;
 }
 

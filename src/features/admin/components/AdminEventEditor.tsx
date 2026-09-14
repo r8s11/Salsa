@@ -104,13 +104,21 @@ export default function AdminEventEditor({
       setFlyerStatus("empty");
       return;
     }
+    // Flyer analysis only accepts objects stored under the caller's own user
+    // id. A missing actor id (auth still resolving) would upload to a path no
+    // analysis call can ever read, so fail loudly instead.
+    if (!flyerOwnerId) {
+      setFlyerStatus("upload-error");
+      setFlyerError("Your admin session is still loading. Try the flyer again in a moment.");
+      return;
+    }
     setFlyerStatus("uploading");
     setSelectedFlyer(null);
     const previousUrl = form.image_url;
     try {
       const uploaded = await uploadEventFlyer({
         file,
-        ownerId: flyerOwnerId ?? "admin",
+        ownerId: flyerOwnerId,
         eventId: "admin-draft-" + crypto.randomUUID(),
       });
       if (previousUrl) void removeEventFlyer(previousUrl).catch(() => undefined);

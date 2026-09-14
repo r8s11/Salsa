@@ -5,6 +5,7 @@ import SubmitEventPage from "./SubmitEventPage";
 import { CityProvider } from "../contexts/CityContext";
 const { useSubmissionAccess } = vi.hoisted(() => ({ useSubmissionAccess: vi.fn() }));
 const { useAuth } = vi.hoisted(() => ({ useAuth: vi.fn() }));
+const { useOwnProfile } = vi.hoisted(() => ({ useOwnProfile: vi.fn() }));
 
 vi.mock("../features/events/api/eventsRepo", () => ({}));
 
@@ -21,6 +22,7 @@ vi.mock("../features/submit-event/api/submissionNotification", () => ({
 vi.mock("../features/submit-event/hooks/useSubmissionAccess", () => ({ useSubmissionAccess }));
 
 vi.mock("../contexts/useAuth", () => ({ useAuth }));
+vi.mock("../features/account/hooks/useOwnProfile", () => ({ useOwnProfile }));
 
 const renderSubmitEventPage = () => {
   const rendered = render(
@@ -41,6 +43,12 @@ const chooseEventType = (name: "Social" | "Class" | "Workshop") =>
 describe("SubmitEventPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(useOwnProfile).mockReturnValue({
+      profile: null,
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
     vi.mocked(useSubmissionAccess).mockReturnValue({
       isLoading: false,
       canSubmit: true,
@@ -68,9 +76,7 @@ describe("SubmitEventPage", () => {
     );
 
     expect(screen.getByRole("group", { name: /How would you like to start/i })).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /Upload a flyer to start/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Upload a flyer to start/i })).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /Enter event details manually/i })
     ).toBeInTheDocument();
@@ -86,7 +92,7 @@ describe("SubmitEventPage", () => {
     expect(screen.getByLabelText(/Date \*/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Venue Name/i)).toBeInTheDocument();
     expect(screen.getByRole("group", { name: /Price/i })).toBeInTheDocument();
-    expect(screen.getByLabelText(/Your Name/i)).toBeInTheDocument();
+    expect(screen.getByText(/Submitting as/i)).toBeInTheDocument();
     expect(document.querySelector("form.submit-form")).toHaveAttribute("noValidate", "");
     expect(screen.getByText("* Required")).toBeInTheDocument();
   });
@@ -183,9 +189,7 @@ describe("SubmitEventPage", () => {
     const titleInput = screen.getByLabelText(/Event Title \*/i);
     expect(titleInput).toHaveAttribute("aria-invalid", "true");
     expect(titleInput).toHaveAttribute("aria-describedby", "event-title-error");
-    expect(document.getElementById("event-title-error")).toHaveTextContent(
-      /enter an event title/i
-    );
+    expect(document.getElementById("event-title-error")).toHaveTextContent(/enter an event title/i);
 
     const eventTypeGroup = screen.getByRole("group", { name: /Event type/i });
     expect(eventTypeGroup).toHaveAttribute("aria-invalid", "true");
@@ -242,7 +246,9 @@ describe("SubmitEventPage", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /Submit Event/i }));
 
-    await waitFor(() => expect(document.getElementById("submit-error-summary")).toBeInTheDocument());
+    await waitFor(() =>
+      expect(document.getElementById("submit-error-summary")).toBeInTheDocument()
+    );
     const summary = document.getElementById("submit-error-summary") as HTMLElement;
     expect(summary).toHaveTextContent(/We couldn't submit your event\. Please try again\./i);
     expect(summary).not.toHaveTextContent(/duplicate key|constraint/i);
@@ -365,7 +371,9 @@ describe("SubmitEventPage", () => {
     // (the audit's own regex for "the request never reached the service"), so
     // it collapses to the safe connection copy rather than being echoed raw.
     expect(
-      await screen.findByText(/We couldn't reach the server\. Check your connection and try again\./i)
+      await screen.findByText(
+        /We couldn't reach the server\. Check your connection and try again\./i
+      )
     ).toBeInTheDocument();
     expect((screen.getByLabelText(/Event Title \*/i) as HTMLInputElement).value).toBe(
       "Havana Nights Social"

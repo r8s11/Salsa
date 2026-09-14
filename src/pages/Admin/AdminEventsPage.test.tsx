@@ -137,6 +137,9 @@ const defaultState = {
   duplicate: vi.fn(),
   isDuplicating: false,
   duplicateError: null,
+  // Flyer analysis only reads objects stored under the acting admin's own
+  // user id, so the editor refuses to upload without one.
+  actorId: "11111111-1111-4111-8111-111111111111",
 };
 
 function renderPage() {
@@ -279,10 +282,12 @@ describe("AdminEventsPage", () => {
         }),
       });
     });
+    // The acting admin's own user id — flyer analysis rejects any other
+    // owner segment, so a literal "admin" folder would be unanalyzable.
     expect(uploadEventFlyer).toHaveBeenCalledWith({
       file: expect.objectContaining({ name: "flyer.png" }),
-      ownerId: "admin",
-      eventId: expect.any(String),
+      ownerId: "11111111-1111-4111-8111-111111111111",
+      eventId: expect.stringMatching(/^admin-draft-/),
     });
   });
 

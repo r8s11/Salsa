@@ -4,7 +4,11 @@ import { createSubmission } from "../../admin/api/submissionsRepo";
 import { uploadEventFlyer, removeEventFlyer } from "../../events/api/eventFlyers";
 import { useCity } from "../../../contexts/useCity";
 import { useAuth } from "../../../contexts/useAuth";
-import { buildInitialForm, validateSubmitFormFields, type SubmitFieldErrors } from "../model/validation";
+import {
+  buildInitialForm,
+  validateSubmitFormFields,
+  type SubmitFieldErrors,
+} from "../model/validation";
 import { publicErrorMessage } from "../../../shared/forms/errorMessage";
 import { notifySubmissionReceived } from "../api/submissionNotification";
 import type { EventFormDraft } from "../../events/components/EventForm";
@@ -15,7 +19,11 @@ import { applyExtractionToDraft, type PrefillResult } from "../../flyer-extracti
 import type { ExtractedEvent, FlyerExtractionStatus } from "../../flyer-extraction/types";
 import { reconcileVenue } from "../../entity-matching/reconcileClient";
 import type { ReconciliationResponse } from "../../entity-matching/types";
-type ReconciliationState = { status: "idle" | "loading" | "success" | "error"; response: ReconciliationResponse | null; error: string | null };
+type ReconciliationState = {
+  status: "idle" | "loading" | "success" | "error";
+  response: ReconciliationResponse | null;
+  error: string | null;
+};
 
 function buildSubmitDraft(city: EventFormDraft["city"]): EventFormDraft {
   return {
@@ -30,7 +38,7 @@ function buildSubmitDraft(city: EventFormDraft["city"]): EventFormDraft {
   };
 }
 
-export function useSubmitEventForm() {
+export function useSubmitEventForm(authenticatedSubmitterName: string | null = null) {
   const { city: defaultCity } = useCity();
   const { user } = useAuth();
   const [form, setForm] = useState<EventFormDraft>(() => buildSubmitDraft(defaultCity));
@@ -84,7 +92,11 @@ export function useSubmitEventForm() {
     PrefillResult,
     "filled" | "skipped"
   > | null>(null);
-  const [reconciliation, setReconciliation] = useState<ReconciliationState>({ status: "idle", response: null, error: null });
+  const [reconciliation, setReconciliation] = useState<ReconciliationState>({
+    status: "idle",
+    response: null,
+    error: null,
+  });
   const extractionGeneration = useRef(0);
   // Synchronous duplicate-click guard: React state updates don't apply
   // mid-event-handler, so two calls to handleExtractFlyer in the same tick
@@ -341,7 +353,7 @@ export function useSubmitEventForm() {
     try {
       const submission = draftToSubmission(
         form,
-        user ? { id: user.id, email: user.email ?? null } : null
+        user ? { id: user.id, email: user.email ?? null, name: authenticatedSubmitterName } : null
       );
       const submissionId = await createSubmission(
         submission,

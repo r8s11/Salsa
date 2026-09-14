@@ -86,7 +86,7 @@ export const CAPABILITIES: Record<
   },
 };
 
-type Actor = { id: string; email: string | null } | null;
+type Actor = { id: string; email: string | null; name?: string | null } | null;
 
 function priceAmount(draft: EventFormDraft): number | null {
   if (draft.price_type !== "paid") return null;
@@ -98,7 +98,7 @@ export function draftToSubmission(draft: EventFormDraft, actor: Actor): Submissi
   return {
     submitter_id: actor?.id ?? null,
     submitter_email: actor?.email ?? (draft.submitter_email || null),
-    submitter_name: draft.submitter_name || null,
+    submitter_name: actor?.name ?? (draft.submitter_name || null),
     title: draft.title,
     description: draft.description || null,
     event_type: draft.event_type as EventType,
@@ -172,9 +172,7 @@ export function draftToOrganizerCreatePayload(draft: EventFormDraft): OrganizerC
  * Only includes fields the RPC whitelist permits — status, organizer_id,
  * submitter_id, source_type, venue_id, and created_at are excluded.
  */
-export function draftToOrganizerUpdatePayload(
-  draft: EventFormDraft
-): OrganizerUpdateDraftPayload {
+export function draftToOrganizerUpdatePayload(draft: EventFormDraft): OrganizerUpdateDraftPayload {
   return {
     title: draft.title,
     description: draft.description || null,

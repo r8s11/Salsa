@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from "react";
+import { Navigate } from "react-router-dom";
 import { Sparkles } from "lucide-react";
 import { useAuth } from "../contexts/useAuth";
+import { ADMIN_EVENT_CREATE_PATH } from "../lib/eventCreateDestination";
+import { useOwnProfile } from "../features/account/hooks/useOwnProfile";
+import { resolveIdentity } from "../features/account/model/account";
 import EventForm, { CAPABILITIES } from "../features/events/components/EventForm";
 import EventFlyerField from "../features/events/components/EventFlyerField";
 import FlyerExtractionPanel from "../features/flyer-extraction/FlyerExtractionPanel";
@@ -29,9 +33,17 @@ const FIELD_ORDER: { field: SubmitFieldName; id: string }[] = [
   { field: "submitter_name", id: "submitter-name" },
   { field: "submitter_email", id: "submitter-email" },
 ];
-
 export default function SubmitEventPage() {
-  const { user, isOrganizer } = useAuth();
+  const { user, isAdmin, isOrganizer } = useAuth();
+  const { profile } = useOwnProfile(user?.id);
+  const authenticatedSubmitterName = user
+    ? profile
+      ? resolveIdentity(profile).name
+      : (
+          (user.user_metadata as Record<string, unknown> | undefined)?.full_name as
+            string | undefined
+        )?.trim() || "SalsaSegura member"
+    : null;
   const {
     form,
     onChange,
@@ -57,7 +69,7 @@ export default function SubmitEventPage() {
     reconciliation,
     handleExtractFlyer,
     dismissExtractionError,
-  } = useSubmitEventForm();
+  } = useSubmitEventForm(authenticatedSubmitterName);
   const submissionAccess = useSubmissionAccess(Boolean(user));
   const [pristineForm] = useState(form);
   const isDirty = JSON.stringify(form) !== JSON.stringify(pristineForm);
@@ -82,6 +94,12 @@ export default function SubmitEventPage() {
       firstField?.focus();
     }
   };
+
+  // An Admin reaching the public flow (bookmark, deep link, or a shared CTA)
+  // intends to create a platform event, not file a moderated submission.
+  // /submit itself stays public — this only re-routes the Admin role, and the
+  // Admin create view never renders this page, so no redirect loop exists.
+  if (isAdmin) return <Navigate to={ADMIN_EVENT_CREATE_PATH} replace />;
 
   if (isSubmitted) return <SuccessCard onReset={resetSubmitted} />;
 
@@ -123,7 +141,8 @@ export default function SubmitEventPage() {
               </span>
               <h2 className="submit-entry__card-title">I have a flyer</h2>
               <p className="submit-entry__card-text">
-                Upload your flyer and SalsaSegura will help fill in the details for you — review everything before submitting.
+                Upload your flyer and SalsaSegura will help fill in the details for you — review
+                everything before submitting.
               </p>
               <span className="submit-entry__card-cta">Upload Flyer</span>
             </button>
@@ -151,8 +170,8 @@ export default function SubmitEventPage() {
                   Start with a flyer
                 </h2>
                 <p className="submit-flyer__subhead">
-                  Upload an event flyer and SalsaSegura will help fill in the event details for
-                  you — review everything before submitting.
+                  Upload an event flyer and SalsaSegura will help fill in the event details for you
+                  — review everything before submitting.
                 </p>
 
                 {user ? (
@@ -200,8 +219,8 @@ export default function SubmitEventPage() {
                       <div className="submit-flyer__notice" role="status">
                         {prefillFeedback.filled.length > 0 ? (
                           <p>
-                            Filled {prefillFeedback.filled.join(", ").toLowerCase()} from your
-                            flyer — review below before submitting.
+                            Filled {prefillFeedback.filled.join(", ").toLowerCase()} from your flyer
+                            — review below before submitting.
                           </p>
                         ) : (
                           <p>
@@ -239,10 +258,12 @@ export default function SubmitEventPage() {
               <div className="submit-form__card">
                 <FormErrorSummary
                   id="submit-error-summary"
-                  items={FIELD_ORDER.filter(({ field }) => fieldErrors[field]).map(({ field, id }) => ({
-                    fieldId: id,
-                    message: fieldErrors[field] as string,
-                  }))}
+                  items={FIELD_ORDER.filter(({ field }) => fieldErrors[field]).map(
+                    ({ field, id }) => ({
+                      fieldId: id,
+                      message: fieldErrors[field] as string,
+                    })
+                  )}
                   serverMessage={serverError}
                   focusKey={failedAttempt}
                 />
@@ -252,6 +273,7 @@ export default function SubmitEventPage() {
                   onChange={onChange}
                   capabilities={CAPABILITIES.submit}
                   requireSubmitterContact={!user}
+                  authenticatedSubmitterName={authenticatedSubmitterName}
                   errors={fieldErrors}
                 />
               </div>

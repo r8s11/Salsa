@@ -24,6 +24,8 @@ type Props = {
    * authenticated forms are unaffected.
    */
   requireSubmitterContact?: boolean;
+  /** Trusted display name for an authenticated public submission. */
+  authenticatedSubmitterName?: string | null;
   /**
    * Per-field validation errors, keyed the same way as
    * `validateSubmitFormFields`. Only `/submit` passes this today — admin and
@@ -50,6 +52,7 @@ export default function EventForm({
   renderFlyerField,
   taxonomyTerms,
   requireSubmitterContact = false,
+  authenticatedSubmitterName = null,
   errors = {},
 }: Props) {
   const update = <K extends keyof EventFormDraft>(key: K, value: EventFormDraft[K]) =>
@@ -387,38 +390,44 @@ export default function EventForm({
       {capabilities.submitterInfo && (
         <section className="event-form__section">
           <h2>Your info</h2>
-          {requireSubmitterContact && (
+          {requireSubmitterContact ? (
+            <>
+              <p className="event-form__hint">
+                We use these to confirm we got your event and to tell you once it has been reviewed.
+                No account needed.
+              </p>
+              <div className="event-form__field">
+                <label htmlFor="submitter-name">Your name</label>
+                <input
+                  id="submitter-name"
+                  value={draft.submitter_name}
+                  onChange={(event) => update("submitter_name", event.target.value)}
+                  required
+                  maxLength={300}
+                  {...fieldErrorProps("submitter-name-error", errors.submitter_name)}
+                />
+                <FormFieldError id="submitter-name-error" message={errors.submitter_name} />
+              </div>
+              <div className="event-form__field">
+                <label htmlFor="submitter-email">Email</label>
+                <input
+                  id="submitter-email"
+                  type="email"
+                  value={draft.submitter_email}
+                  onChange={(event) => update("submitter_email", event.target.value)}
+                  required
+                  maxLength={300}
+                  autoComplete="email"
+                  {...fieldErrorProps("submitter-email-error", errors.submitter_email)}
+                />
+                <FormFieldError id="submitter-email-error" message={errors.submitter_email} />
+              </div>
+            </>
+          ) : (
             <p className="event-form__hint">
-              We use these to confirm we got your event and to tell you once it has been
-              reviewed. No account needed.
+              Submitting as <strong>{authenticatedSubmitterName}</strong>
             </p>
           )}
-          <div className="event-form__field">
-            <label htmlFor="submitter-name">Your name</label>
-            <input
-              id="submitter-name"
-              value={draft.submitter_name}
-              onChange={(event) => update("submitter_name", event.target.value)}
-              required={requireSubmitterContact}
-              maxLength={300}
-              {...fieldErrorProps("submitter-name-error", errors.submitter_name)}
-            />
-            <FormFieldError id="submitter-name-error" message={errors.submitter_name} />
-          </div>
-          <div className="event-form__field">
-            <label htmlFor="submitter-email">Email</label>
-            <input
-              id="submitter-email"
-              type="email"
-              value={draft.submitter_email}
-              onChange={(event) => update("submitter_email", event.target.value)}
-              required={requireSubmitterContact}
-              maxLength={300}
-              autoComplete="email"
-              {...fieldErrorProps("submitter-email-error", errors.submitter_email)}
-            />
-            <FormFieldError id="submitter-email-error" message={errors.submitter_email} />
-          </div>
         </section>
       )}
     </div>

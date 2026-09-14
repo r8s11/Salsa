@@ -2,6 +2,7 @@ import "temporal-polyfill/global";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DatabaseEvent } from "../model/types";
 import {
+  createEventAsAdmin,
   deleteEventForUser,
   duplicateEvent,
   fetchApprovedEventById,
@@ -231,5 +232,48 @@ describe("eventsRepo user update", () => {
     });
 
     await expect(deleteEventForUser("event-id")).rejects.toThrow("Permission denied");
+  });
+});
+
+describe("createEventAsAdmin", () => {
+  it("writes an approved admin-provenance event straight to events", async () => {
+    mocks.insert.mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        single: vi.fn().mockResolvedValue({ data: { id: "new-id" }, error: null }),
+      }),
+    });
+
+    await createEventAsAdmin(
+      {
+        title: "Admin Social",
+        description: null,
+        event_type: "social",
+        event_date: "2026-10-01T00:00:00Z",
+        event_time: "21:00",
+        location: null,
+        address: null,
+        price_type: "free",
+        price_amount: null,
+        rsvp_link: null,
+        city: "boston",
+        recurrence: null,
+        host: null,
+        contact_email: null,
+        contact_instagram: null,
+        contact_website: null,
+        venue_id: null,
+        image_url: null,
+        taxonomy_term_ids: [],
+      } as Parameters<typeof createEventAsAdmin>[0],
+      { id: "admin-1", email: "admin@example.com" }
+    );
+
+    expect(mocks.from).toHaveBeenCalledWith("events");
+    expect(mocks.from).not.toHaveBeenCalledWith("event_submissions");
+
+    const [inserted] = mocks.insert.mock.calls.at(-1) as [Record<string, unknown>];
+    expect(inserted.source_type).toBe("admin");
+    expect(inserted.status).toBe("approved");
+    expect(inserted.submitter_id).toBe("admin-1");
   });
 });

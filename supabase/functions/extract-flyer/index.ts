@@ -14,8 +14,13 @@ const BUCKET = "event-flyers";
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const ALLOWED_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const USER_ID_PATTERN = "[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}";
+// Owner-scoped flyer objects the caller may analyze. The first path segment
+// MUST equal the caller's own user id (enforced in canonicalImageUrl), so
+// widening the draft folder does not widen who can read what.
+//   submission-<uuid>/   public moderated submission drafts (/submit)
+//   admin-draft-<uuid>/  Admin direct-create drafts (AdminEventEditor)
 const OWNER_FLYER_PATH = new RegExp(
-  `^/storage/v1/object/public/${BUCKET}/(${USER_ID_PATTERN})/submission-(${USER_ID_PATTERN})/([^/]+\\.(?:jpg|jpeg|png|webp))$`,
+  `^/storage/v1/object/public/${BUCKET}/(${USER_ID_PATTERN})/(?:submission|admin-draft)-(${USER_ID_PATTERN})/([^/]+\\.(?:jpg|jpeg|png|webp))$`,
   "i"
 );
 

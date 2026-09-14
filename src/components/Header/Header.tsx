@@ -8,6 +8,7 @@ import { useOwnProfile } from "../../features/account/hooks/useOwnProfile";
 import SalsaSeguraLogo from "../brand/SalsaSeguraLogo";
 import AccountAvatar from "./AccountAvatar";
 import ButtonLink from "../ui/ButtonLink";
+import { resolveEventCreateDestination } from "../../lib/eventCreateDestination";
 import "./Header.css";
 
 const PRIMARY_LINKS = [
@@ -28,6 +29,9 @@ function Header() {
   const { user, isModerator, isAdmin, isOrganizer, signOut } = useAuth();
   const { profile } = useOwnProfile(user?.id);
   const navigate = useNavigate();
+  // Admins author platform events directly; everyone else uses the moderated
+  // public submission flow.
+  const eventCreateTo = resolveEventCreateDestination(isAdmin ? "admin" : null);
 
   const dashboardLinks: ReadonlyArray<{ to: string; label: string }> = [
     ...(isOrganizer ? [{ to: "/host", label: "Host Dashboard" }] : []),
@@ -114,8 +118,8 @@ function Header() {
               </span>
               {user ? (
                 <>
-                  <ButtonLink to="/submit" size="compact" onClick={closeNavigation}>
-                    Submit Event
+                  <ButtonLink to={eventCreateTo} size="compact" onClick={closeNavigation}>
+                    {isAdmin ? "Add Event" : "Submit Event"}
                   </ButtonLink>
                   {dashboardLinks.length > 0 && (
                     <div className="mobile-nav__dashboards">
@@ -170,8 +174,8 @@ function Header() {
         <div className="desktop-nav-actions">
           {citySwitcher()}
           {user ? (
-            <ButtonLink to="/submit" size="compact" onClick={closeNavigation}>
-              Submit Event
+            <ButtonLink to={eventCreateTo} size="compact" onClick={closeNavigation}>
+              {isAdmin ? "Add Event" : "Submit Event"}
             </ButtonLink>
           ) : (
             <>

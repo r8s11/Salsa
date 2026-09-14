@@ -217,3 +217,27 @@ Deno.test("keeps a scheme-less domain and rejects a non-http website", async () 
   const nonsense = await extractionFrom({ title: "Salsa Night", website: "ask at the door" });
   assertEquals((await nonsense.json()).extraction.website, null);
 });
+
+Deno.test("analyzes an Admin direct-create draft flyer under the caller's own path", async () => {
+  const adminDraftUrl =
+    `https://project.supabase.co/storage/v1/object/public/event-flyers/${ownerId}` +
+    `/admin-draft-33333333-3333-4333-8333-333333333333/flyer.png`;
+
+  const response = await createExtractFlyerHandler(makeDependencies())(
+    request("POST", { imageUrl: adminDraftUrl })
+  );
+
+  assertEquals(response.status, 200);
+});
+
+Deno.test("rejects an Admin draft flyer owned by another user", async () => {
+  const foreignDraftUrl =
+    `https://project.supabase.co/storage/v1/object/public/event-flyers/${otherId}` +
+    `/admin-draft-33333333-3333-4333-8333-333333333333/flyer.png`;
+
+  const response = await createExtractFlyerHandler(makeDependencies())(
+    request("POST", { imageUrl: foreignDraftUrl })
+  );
+
+  assertEquals(response.status, 400);
+});

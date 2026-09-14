@@ -25,8 +25,8 @@ const defaultAuth = (overrides: Partial<AuthContextValue> = {}): AuthContextValu
   isOrganizer: false,
   signInWithPassword: vi.fn(),
   resendConfirmation: vi.fn(),
-      requestPasswordReset: vi.fn(),
-      updateEmail: vi.fn(),
+  requestPasswordReset: vi.fn(),
+  updateEmail: vi.fn(),
   signUp: vi.fn(),
   signOut: vi.fn().mockResolvedValue(undefined),
   clearDeletedAccount: vi.fn(),
@@ -364,7 +364,11 @@ describe("Header", () => {
     vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
     vi.mocked(useOwnProfile).mockReturnValue({
       ...defaultProfileQuery(),
-      profile: memberProfile({ display_name: "Sofia Martinez", username: "sofia", avatar_url: "https://example.com/sofia.jpg" }),
+      profile: memberProfile({
+        display_name: "Sofia Martinez",
+        username: "sofia",
+        avatar_url: "https://example.com/sofia.jpg",
+      }),
     });
 
     renderHeader();
@@ -445,7 +449,9 @@ describe("Header", () => {
 
     renderHeader();
 
-    const details = screen.getByLabelText("Open account menu").closest("details") as HTMLDetailsElement;
+    const details = screen
+      .getByLabelText("Open account menu")
+      .closest("details") as HTMLDetailsElement;
     details.open = true;
 
     expect(within(details).getByRole("link", { name: "My Account" })).toHaveAttribute(
@@ -457,5 +463,47 @@ describe("Header", () => {
       "/profile"
     );
     expect(within(details).getByRole("button", { name: "Sign Out" })).toBeInTheDocument();
+  });
+});
+
+describe("Header event creation call to action", () => {
+  beforeEach(() => {
+    vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
+    vi.mocked(useOwnProfile).mockReturnValue(defaultProfileQuery());
+  });
+
+  it("sends an anonymous visitor to the public submission flow", () => {
+    vi.mocked(useAuth).mockReturnValue(defaultAuth());
+
+    renderHeader();
+
+    for (const link of screen.getAllByRole("link", { name: "Submit Event" })) {
+      expect(link).toHaveAttribute("href", "/submit");
+    }
+  });
+
+  it("sends a regular authenticated member to the public submission flow", () => {
+    vi.mocked(useAuth).mockReturnValue(defaultAuth({ user: { id: "member" } as User }));
+
+    renderHeader();
+
+    for (const link of screen.getAllByRole("link", { name: "Submit Event" })) {
+      expect(link).toHaveAttribute("href", "/submit");
+    }
+  });
+
+  it("sends an admin to the canonical direct-create route instead of the moderated queue", () => {
+    vi.mocked(useAuth).mockReturnValue(
+      defaultAuth({ user: { id: "admin-1" } as User, role: "admin", isAdmin: true })
+    );
+
+    renderHeader();
+
+    const links = screen.getAllByRole("link", { name: "Add Event" });
+    expect(links.length).toBeGreaterThan(0);
+    for (const link of links) {
+      expect(link).toHaveAttribute("href", "/admin/events?new=1");
+    }
+    expect(screen.queryByRole("link", { name: "Submit Event" })).not.toBeInTheDocument();
   });
 });

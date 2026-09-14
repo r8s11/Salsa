@@ -2,6 +2,7 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { act, render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent, { type UserEvent } from "@testing-library/user-event";
 import * as submissionsRepo from "../features/admin/api/submissionsRepo";
+import { CityProvider } from "../contexts/CityContext";
 import SubmitEventPage from "./SubmitEventPage";
 
 const mockAuth = vi.hoisted(() => ({
@@ -20,9 +21,10 @@ const mockReconciliation = vi.hoisted(() => ({ reconcileVenue: vi.fn() }));
 
 vi.mock("../features/entity-matching/reconcileClient", () => mockReconciliation);
 
-
 vi.mock("../contexts/useAuth", () => ({ useAuth: () => ({ user: mockAuth.user }) }));
-vi.mock("../contexts/useCity", () => ({ useCity: () => ({ city: "boston" }) }));
+vi.mock("../features/account/hooks/useOwnProfile", () => ({
+  useOwnProfile: () => ({ profile: null, isLoading: false, error: null, refetch: vi.fn() }),
+}));
 vi.mock("../features/submit-event/hooks/useSubmissionAccess", () => ({
   useSubmissionAccess: mockSubmissionAccess.useSubmissionAccess,
 }));
@@ -49,7 +51,11 @@ const FLYER_URL =
   "https://project.supabase.co/storage/v1/object/public/event-flyers/test-user-id/submission-abc/havana.png";
 
 const renderPage = () => {
-  const rendered = render(<SubmitEventPage />);
+  const rendered = render(
+    <CityProvider>
+      <SubmitEventPage />
+    </CityProvider>
+  );
   fireEvent.click(screen.getByRole("button", { name: /Upload a flyer to start/i }));
   return rendered;
 };
@@ -190,10 +196,7 @@ describe("SubmitEventPage flyer (Phase 1)", () => {
     await uploadFlyerAndExtract(user);
 
     expect(screen.getByLabelText(/Event Title \*/i)).toHaveValue("Warehouse Party");
-    expect(screen.getByRole("button", { name: "Boston" })).toHaveAttribute(
-      "aria-pressed",
-      "true"
-    );
+    expect(screen.getByRole("button", { name: "Boston" })).toHaveAttribute("aria-pressed", "true");
     const notice = await screen.findByRole("status");
     expect(notice).toHaveTextContent(/Couldn't determine: city, price/i);
   });

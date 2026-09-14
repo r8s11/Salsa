@@ -17,8 +17,8 @@ const defaultAuth = (overrides: Partial<AuthContextValue> = {}): AuthContextValu
   isOrganizer: false,
   signInWithPassword: vi.fn(),
   resendConfirmation: vi.fn(),
-      requestPasswordReset: vi.fn(),
-      updateEmail: vi.fn(),
+  requestPasswordReset: vi.fn(),
+  updateEmail: vi.fn(),
   signUp: vi.fn(),
   signOut: vi.fn().mockResolvedValue(undefined),
   clearDeletedAccount: vi.fn(),
@@ -65,5 +65,37 @@ describe("MobileTabBar", () => {
 
     expect(screen.getByRole("link", { name: "Calendar" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: "Home" })).not.toHaveAttribute("aria-current");
+  });
+});
+
+describe("MobileTabBar event creation tab", () => {
+  it("routes an admin to the canonical direct-create route", () => {
+    vi.mocked(useAuth).mockReturnValue(
+      defaultAuth({
+        user: { id: "admin-1" } as AuthContextValue["user"],
+        role: "admin",
+        isAdmin: true,
+      })
+    );
+    renderTabBar();
+
+    expect(screen.getByRole("link", { name: "Add" })).toHaveAttribute(
+      "href",
+      "/admin/events?new=1"
+    );
+    expect(screen.queryByRole("link", { name: "Submit" })).not.toBeInTheDocument();
+  });
+
+  it("keeps a moderator on the public submission flow", () => {
+    vi.mocked(useAuth).mockReturnValue(
+      defaultAuth({
+        user: { id: "mod-1" } as AuthContextValue["user"],
+        role: "moderator",
+        isModerator: true,
+      })
+    );
+    renderTabBar();
+
+    expect(screen.getByRole("link", { name: "Submit" })).toHaveAttribute("href", "/submit");
   });
 });

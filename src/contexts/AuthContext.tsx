@@ -16,7 +16,9 @@ const getCallbackUrl = () => {
     window.location.origin === "http://localhost:3000" ||
     window.location.origin === "http://127.0.0.1:5173" ||
     window.location.origin === "http://127.0.0.1:3000";
-  const url = isLocal ? `${window.location.origin}/auth/callback` : `${PRODUCTION_ORIGIN}/auth/callback`;
+  const url = isLocal
+    ? `${window.location.origin}/auth/callback`
+    : `${PRODUCTION_ORIGIN}/auth/callback`;
   console.log("[Auth] getCallbackUrl:", { isLocal, windowOrigin: window.location.origin, url });
   return url;
 };

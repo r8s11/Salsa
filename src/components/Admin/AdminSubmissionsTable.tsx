@@ -1,5 +1,6 @@
-import { Clock, User, Mail } from "lucide-react";
+import { CalendarDays, Clock, MapPin, User, Mail } from "lucide-react";
 import { type EventSubmission } from "../../features/admin/model/submissions";
+import { resolveEventFlyer } from "../EventModal/eventModalImage";
 import AdminSubmissionStatusBadge from "./AdminSubmissionStatusBadge";
 import AdminActionMenu from "./AdminActionMenu";
 import "./AdminSubmissionsTable.css";
@@ -23,20 +24,55 @@ function formatDate(iso: string): string {
 }
 
 function SubmissionCell({ submission }: { submission: EventSubmission }) {
+  const title = (submission.submitted_data?.title as string) || "Untitled Event";
+  const date = submission.submitted_data?.event_date as string | undefined;
+  const location = submission.submitted_data?.location as string | undefined;
+  const imageUrl = submission.submitted_data?.image_url as string | undefined;
+
   return (
     <div className="admin-submissions-table__event">
-      <div className="admin-submissions-table__title">
-        {(submission.submitted_data?.title as string) || "Untitled Event"}
-      </div>
-      <div className="admin-submissions-table__meta">
-        <span>
-          <User size={14} aria-hidden="true" />
-          {submission.submitter_name || "Anonymous"}
-        </span>
-        <span>
-          <Mail size={14} aria-hidden="true" />
-          {submission.submitter_email || "No email"}
-        </span>
+      <img
+        className="admin-submissions-table__flyer"
+        src={resolveEventFlyer({
+          id: submission.id,
+          imageUrl: imageUrl ?? "",
+          calendarId: "social",
+        })}
+        alt=""
+        loading="lazy"
+      />
+      <div className="admin-submissions-table__event-copy">
+        <div className="admin-submissions-table__title">{title}</div>
+        <div className="admin-submissions-table__meta">
+          <span>
+            <User size={14} aria-hidden="true" />
+            {submission.submitter_name || "Anonymous"}
+          </span>
+          <span>
+            <Mail size={14} aria-hidden="true" />
+            {submission.submitter_email || "No email"}
+          </span>
+        </div>
+        {(date || location) && (
+          <div className="admin-submissions-table__event-facts">
+            {date && (
+              <span>
+                <CalendarDays size={14} aria-hidden="true" />
+                {new Date(date).toLocaleDateString(undefined, {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </span>
+            )}
+            {location && (
+              <span>
+                <MapPin size={14} aria-hidden="true" />
+                {location}
+              </span>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -71,7 +107,7 @@ export default function AdminSubmissionsTable({
               </td>
               <td>
                 <div className="admin-submissions-table__date">
-                  <Clock size={14} />
+                  <Clock size={14} aria-hidden="true" />
                   {formatDate(submission.submitted_at)}
                 </div>
               </td>

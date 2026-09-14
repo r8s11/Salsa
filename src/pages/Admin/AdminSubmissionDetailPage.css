@@ -1,9 +1,43 @@
 .admin-submission-detail-page {
+  max-width: 1120px;
   padding: 2rem;
 }
 
 .admin-submission-detail-page__header {
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.admin-submission-detail-page__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.admin-submission-detail-page__heading h1 {
+  max-width: 760px;
+  margin: 0.2rem 0 0;
+  color: var(--admin-text-strong);
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  line-height: 1.05;
+}
+
+.admin-submission-detail-page__eyebrow {
+  margin: 0;
+  color: var(--admin-text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-submission-detail-page__id {
+  margin: 0.5rem 0 0;
+  color: var(--admin-text-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.75rem;
 }
 
 .admin-submission-detail-page__body {
@@ -11,7 +45,239 @@
   gap: 1rem;
 }
 
+.admin-submission-detail-page__overview {
+  display: grid;
+  grid-template-columns: minmax(180px, 240px) minmax(0, 1fr);
+  gap: 1.5rem;
+  padding: 1.5rem;
+}
+
+.admin-submission-detail-page__flyer-wrap {
+  min-height: 240px;
+  overflow: hidden;
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  background: var(--admin-surface-subtle);
+}
+
+.admin-submission-detail-page__flyer {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 240px;
+  object-fit: cover;
+}
+
+.admin-submission-detail-page__overview-copy {
+  min-width: 0;
+}
+
+.admin-submission-detail-page__section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  color: var(--admin-text-muted);
+}
+
+.admin-submission-detail-page__section-heading h2 {
+  margin: 0.25rem 0 0;
+  color: var(--admin-text-strong);
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  line-height: 1.2;
+}
+
+.admin-submission-detail-page__facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 0;
+}
+
+.admin-submission-detail-page__facts > div {
+  min-width: 0;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--admin-border);
+}
+
+.admin-submission-detail-page__facts dt {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--admin-text-muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.admin-submission-detail-page__facts dd {
+  margin: 0.35rem 0 0;
+  color: var(--admin-text-primary);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.admin-submission-detail-page__description {
+  margin: 1.25rem 0 0;
+  color: var(--admin-text-primary);
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.admin-submission-detail-page__source,
+.admin-submission-detail-page__taxonomy {
+  padding: 1.5rem;
+}
+
+.admin-submission-detail-page__source .admin-submission-detail-page__section-heading {
+  margin-bottom: 0.9rem;
+}
+
+.admin-submission-detail-page__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.admin-submission-detail-page__chips span {
+  padding: 0.35rem 0.65rem;
+  border: 1px solid var(--admin-border);
+  border-radius: 999px;
+  background: var(--admin-surface-subtle);
+  color: var(--admin-text-primary);
+  font-size: 0.82rem;
+}
+
+.admin-submission-detail-page__muted {
+  color: var(--admin-text-muted);
+}
+
+.admin-submission-detail-page__payload {
+  margin-top: 1rem;
+  border-top: 1px solid var(--admin-border);
+}
+
+.admin-submission-detail-page__payload summary {
+  padding-top: 0.85rem;
+  color: var(--admin-text-muted);
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.admin-submission-detail-page__payload pre {
+  max-height: 280px;
+  margin: 0.8rem 0 0;
+  overflow: auto;
+  padding: 1rem;
+  border-radius: 8px;
+  background: var(--admin-surface-subtle);
+  color: var(--admin-text-primary);
+  font-size: 0.76rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.admin-submission-detail-page__taxonomy legend {
+  padding: 0 0.5rem;
+  color: var(--admin-text-strong);
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.admin-submission-detail-page__taxonomy > .admin-submission-detail-page__muted {
+  margin: 0 0 1rem;
+}
+
+.admin-submission-detail-page__taxonomy-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem 1rem;
+}
+
+.admin-submission-detail-page__taxonomy-options label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  color: var(--admin-text-primary);
+}
+
+.admin-submission-detail-page__taxonomy-options input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--admin-brand);
+}
+
+.admin-submission-detail-page__error {
+  margin: 0;
+  color: var(--admin-danger, #c33);
+}
+
 .admin-submission-detail-page__actions {
   display: flex;
-  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  background: var(--admin-surface-subtle);
+}
+
+.admin-submission-detail-page__actions strong {
+  display: block;
+  margin-top: 0.3rem;
+  color: var(--admin-text-strong);
+}
+
+.admin-submission-detail-page__action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.7rem;
+}
+
+@media (max-width: 767px) {
+  .admin-submission-detail-page {
+    padding: 1.25rem;
+  }
+
+  .admin-submission-detail-page__heading,
+  .admin-submission-detail-page__actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-submission-detail-page__overview {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+  }
+
+  .admin-submission-detail-page__flyer-wrap {
+    max-width: 240px;
+    min-height: 280px;
+  }
+
+  .admin-submission-detail-page__facts {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-submission-detail-page__source,
+  .admin-submission-detail-page__taxonomy,
+  .admin-submission-detail-page__actions {
+    padding: 1rem;
+  }
+
+  .admin-submission-detail-page__action-buttons {
+    justify-content: stretch;
+  }
+
+  .admin-submission-detail-page__action-buttons .admin-btn {
+    flex: 1;
+  }
 }

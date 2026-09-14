@@ -1,7 +1,7 @@
 import React from "react";
 import type { ScheduleXEvent } from "../../types/events";
 import { isRecentlyApproved } from "../../features/events/model/recentlyApproved";
-import { resolveEventModalImage } from "../EventModal/eventModalImage";
+import { resolveEventFlyer } from "../EventModal/eventModalImage";
 
 const TYPE_LABELS: Record<string, string> = {
   social: "Social Dance",
@@ -36,7 +36,8 @@ export default function EventCard({
     }
   };
 
-  const imageUrl = resolveEventModalImage(event);
+  const imageUrl = resolveEventFlyer(event);
+  const fallbackUrl = resolveEventFlyer({ ...event, imageUrl: undefined });
   const showRecentlyApproved = isRecentlyApproved({
     createdAt: event.createdAt,
     sourceType: event.sourceType,
@@ -51,10 +52,21 @@ export default function EventCard({
       tabIndex={0}
       aria-label={`${event.title} on ${weekday} ${month} ${day} at ${time}`}
     >
-      <div
-        className={`event-card-thumb event-card-thumb--${event.calendarId}`}
-        style={{ backgroundImage: `url(${imageUrl})` }}
-      >
+      <div className={`event-card-thumb event-card-thumb--${event.calendarId}`}>
+        <img
+          className="event-card-image"
+          src={imageUrl}
+          alt=""
+          loading="lazy"
+          onError={
+            event.imageUrl
+              ? (imageEvent) => {
+                  imageEvent.currentTarget.onerror = null;
+                  imageEvent.currentTarget.src = fallbackUrl;
+                }
+              : undefined
+          }
+        />
         <span className={`event-card-chip event-card-chip--${event.calendarId}`}>
           {TYPE_LABELS[event.calendarId] ?? event.calendarId}
         </span>

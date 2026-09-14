@@ -19,6 +19,7 @@ import { getUpcomingSeriesDates } from "../../utils/series";
 import { useCity } from "../../contexts/useCity";
 import EventModal from "../EventModal/EventModal";
 import EventCard from "../Events/EventCard";
+import CalendarListView from "./CalendarListView";
 import "../Events/Events.css";
 import { useEvents } from "../../features/events/hooks/useEvent";
 import { generateEventsListStructuredData, injectStructuredData } from "../../utils/seo";
@@ -38,6 +39,7 @@ import {
   eventCountLabel as formatEventCountLabel,
 } from "../../features/calendar/model/calendarSidebar";
 import { clampEndToStartDay } from "../../features/calendar/model/eventSpan";
+import { sortCalendarEvents } from "../../features/calendar/model/calendarEvents";
 
 type CalendarView = "month-grid" | "week" | "list" | "cards";
 
@@ -130,6 +132,7 @@ export default function Calendar() {
 
     return expanded;
   }, [filteredEvents]);
+  const sortedEvents = useMemo(() => sortCalendarEvents(expandedEvents), [expandedEvents]);
 
   useEffect(() => {
     eventListRef.current = eventList;
@@ -244,7 +247,13 @@ export default function Calendar() {
   const monthTitle = visibleDate.toLocaleString("en-US", { month: "long", year: "numeric" });
   const isEmpty = !loading && !error && eventList.length === 0;
   const hasNoMatches = !loading && !error && eventList.length > 0 && filteredEvents.length === 0;
-  const showCalendar = !loading && !error && expandedEvents.length > 0 && activeView !== "cards";
+  const showCalendar =
+    !loading &&
+    !error &&
+    expandedEvents.length > 0 &&
+    activeView !== "cards" &&
+    activeView !== "list";
+  const showList = !loading && !error && expandedEvents.length > 0 && activeView === "list";
   const showCards = !loading && !error && expandedEvents.length > 0 && activeView === "cards";
   const showSubmitCta = !loading && !error && eventList.length > 0;
   const today = Temporal.Now.plainDateISO();
@@ -386,11 +395,12 @@ export default function Calendar() {
               <ScheduleXCalendar calendarApp={calendar} />
             </div>
           )}
+          {showList && <CalendarListView events={sortedEvents} onSelect={setSelectedEvent} />}
 
           {showCards && (
             <div className="calendar-card-view" aria-label="Events as cards">
               <div className="calendar-card-grid">
-                {expandedEvents.map((event) => (
+                {sortedEvents.map((event) => (
                   <EventCard key={event.id} event={event} onSelect={setSelectedEvent} />
                 ))}
               </div>

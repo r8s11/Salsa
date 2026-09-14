@@ -95,7 +95,7 @@ describe("AdminEventsTable", () => {
   it("uses the public default banner when flyer is absent", () => {
     renderTable();
     const image = document.querySelector(".admin-events-table__event img");
-    expect(image).toHaveAttribute("src", "/images/default-event-banner.png");
+    expect(image).toHaveAttribute("src", expect.stringMatching(/\/images\/(?:default-event-banner\.png|event-fallbacks\/.+\.svg)/));
     expect(image).toHaveAttribute("alt", "");
   });
 

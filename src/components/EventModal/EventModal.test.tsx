@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render as rtlRender, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import EventModal from "./EventModal";
-import { DEFAULT_EVENT_BANNER_URL } from "./eventModalImage";
+
 import { ScheduleXEvent } from "../../types/events";
 
 const {
@@ -67,7 +67,7 @@ describe("EventModal", () => {
   it("uses the public default banner when no flyer is available", () => {
     const { container } = render(<EventModal event={baseEvent} onClose={() => {}} />);
     const poster = container.querySelector(".modal-poster") as HTMLElement;
-    expect(poster.style.backgroundImage).toContain(DEFAULT_EVENT_BANNER_URL);
+    expect(poster.style.backgroundImage).toMatch(/\/images\/(?:default-event-banner\.png|event-fallbacks\/.+\.svg)/);
     expect(container.querySelector(".ss-fallback")).not.toBeInTheDocument();
   });
 

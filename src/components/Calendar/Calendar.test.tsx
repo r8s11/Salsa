@@ -251,6 +251,31 @@ describe("Calendar", () => {
     expect(eventsService.set).toHaveBeenLastCalledWith([]);
   });
 
+  it("preserves the filtered collection while switching List and Cards", () => {
+    const bachataEvent = {
+      ...event,
+      id: "event-2",
+      title: "NYC Bachata",
+      danceStyles: ["Bachata"],
+    };
+    useEvents.mockReturnValue({
+      events: [event, bachataEvent],
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+
+    renderCalendar();
+    fireEvent.click(screen.getByRole("button", { name: "Salsa" }));
+    fireEvent.click(screen.getByRole("button", { name: "Cards" }));
+    expect(screen.getByRole("heading", { name: "Boston Social" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "NYC Bachata" })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "List" }));
+    expect(screen.getByRole("button", { name: /Boston Social/ })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /NYC Bachata/ })).not.toBeInTheDocument();
+  });
+
   it("gives the month heading an accessible Dance Calendar prefix", () => {
     renderCalendar();
     const heading = screen.getByRole("heading", { level: 1 });

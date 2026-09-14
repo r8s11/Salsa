@@ -1,7 +1,7 @@
 import React from "react";
 import type { ScheduleXEvent } from "../../types/events";
 import { isRecentlyApproved } from "../../features/events/model/recentlyApproved";
-import { resolveEventModalImage } from "../EventModal/eventModalImage";
+import { resolveEventFlyer } from "../EventModal/eventModalImage";
 
 const TYPE_LABELS: Record<string, string> = {
   social: "Social Dance",
@@ -36,7 +36,7 @@ export default function FeaturedEventCard({
     }
   };
 
-  const imageUrl = resolveEventModalImage(event);
+  const imageUrl = resolveEventFlyer(event);
   const showRecentlyApproved = isRecentlyApproved({
     createdAt: event.createdAt,
     sourceType: event.sourceType,

@@ -272,6 +272,14 @@
   background-image: linear-gradient(150deg, var(--surface-high), var(--red));
 }
 
+.event-card-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .event-card-thumb--class {
   background-image: linear-gradient(150deg, var(--surface-high), #4a5aa8);
 }

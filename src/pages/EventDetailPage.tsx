@@ -23,7 +23,7 @@ import {
   buildPublicEventUrl,
 } from "../features/events/model/eventSharing";
 import { downloadIcs, mapsUrl } from "../utils/ics";
-import { resolveEventModalImage } from "../components/EventModal/eventModalImage";
+import { resolveEventFlyer } from "../components/EventModal/eventModalImage";
 import Button from "../components/ui/Button";
 import ButtonLink from "../components/ui/ButtonLink";
 import NotFoundPage from "./NotFoundPage";
@@ -186,7 +186,7 @@ export default function EventDetailPage() {
   return (
     <div className="event-page">
       <div className="event-page__cover">
-        <img className="event-page__cover-img" src={resolveEventModalImage(scheduleEvent)} alt="" />
+        <img className="event-page__cover-img" src={resolveEventFlyer(scheduleEvent)} alt="" />
         <div className="event-page__cover-art" />
         <div className="event-page__cover-bar">
           <Link to="/calendar" className="event-page__back">

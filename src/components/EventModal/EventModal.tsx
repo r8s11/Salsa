@@ -17,7 +17,7 @@ import { useShareablePoster } from "../../features/calendar/hooks/useShareablePo
 import { resolvePosterImageForEvent } from "../../features/calendar/api/posterFlyers";
 import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
 import ShareableEventPoster from "./ShareableEventPoster";
-import { resolveEventModalImage } from "./eventModalImage";
+import { resolveEventFlyer } from "./eventModalImage";
 import Button from "../ui/Button";
 import IconButton from "../ui/IconButton";
 import ButtonLink from "../ui/ButtonLink";
@@ -151,7 +151,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
   const seriesDates = event.recurrence === "weekly" ? getUpcomingSeriesDates(event.start) : [];
   const galleryThumbs = event.gallery?.slice(0, 4) ?? [];
   const galleryExtra = (event.gallery?.length ?? 0) - galleryThumbs.length;
-  const resolvedImageUrl = resolveEventModalImage(event);
+  const resolvedImageUrl = resolveEventFlyer(event);
 
   const hasContacts = !!(event.contactEmail || event.contactInstagram || event.contactWebsite);
   const locationLabel = `${event.location}${event.address ? ` · ${event.address}` : ""}`;

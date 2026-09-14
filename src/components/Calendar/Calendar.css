@@ -613,3 +613,128 @@
     overflow-y: visible;
   }
 }
+
+/* ── Calendar list view ── */
+.calendar-list-view {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.calendar-list-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.calendar-list-date {
+  margin: 0;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.calendar-list-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.calendar-list-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 104px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--card);
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+.calendar-list-row:hover {
+  border-color: var(--border-lg);
+  background: var(--surface-high);
+}
+
+.calendar-list-row:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
+.calendar-list-thumbnail {
+  width: 64px;
+  height: 80px;
+  flex: 0 0 64px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-high);
+  object-fit: cover;
+}
+
+.calendar-list-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.calendar-list-title {
+  overflow: hidden;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 0.98rem;
+  font-weight: 800;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calendar-list-meta {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.calendar-list-location {
+  max-width: 34ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calendar-list-arrow {
+  flex: 0 0 auto;
+  color: var(--gold-light);
+  font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+  .calendar-list-row {
+    gap: 12px;
+    padding: 10px 12px;
+  }
+
+  .calendar-list-thumbnail {
+    width: 56px;
+    height: 72px;
+    flex-basis: 56px;
+  }
+
+  .calendar-list-title {
+    white-space: normal;
+  }
+}

@@ -47,11 +47,30 @@ describe("EventCard", () => {
     expect(screen.getByText("Just approved")).toBeInTheDocument();
   });
 
-  it("uses the public default banner when no flyer is available", () => {
+  it("uses a lazy deterministic public fallback flyer when no flyer is available", () => {
     const { container } = renderCard({ ...baseEvent, imageUrl: undefined });
-    const thumb = container.querySelector(".event-card-thumb") as HTMLElement;
-    expect(thumb.style.backgroundImage).toContain("/images/default-event-banner.png");
+    const image = container.querySelector(".event-card-image");
+    expect(image).toHaveAttribute("loading", "lazy");
+    expect(image).toHaveAttribute(
+      "src",
+      expect.stringMatching(/\/images\/(?:default-event-banner\.png|event-fallbacks\/.+\.svg)/)
+    );
     expect(container.querySelector(".ss-fallback")).not.toBeInTheDocument();
+  });
+
+  it("switches a broken real flyer to its deterministic fallback", () => {
+    const { container } = renderCard({
+      ...baseEvent,
+      imageUrl: "https://example.test/missing-flyer.jpg",
+    });
+    const image = container.querySelector(".event-card-image") as HTMLImageElement;
+
+    fireEvent.error(image);
+
+    expect(image).toHaveAttribute(
+      "src",
+      expect.stringMatching(/\/images\/(?:default-event-banner\.png|event-fallbacks\/.+\.svg)/)
+    );
   });
 
   it("shows location only when present", () => {

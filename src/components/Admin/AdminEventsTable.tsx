@@ -21,7 +21,7 @@ import {
   Ban,
 } from "lucide-react";
 import type { DatabaseEvent } from "../../features/events/model/types";
-import { resolveEventModalImage } from "../EventModal/eventModalImage";
+import { resolveEventFlyer } from "../EventModal/eventModalImage";
 import { fromEventDateInstant, formatTimeLabel } from "../../features/events/model/eventDateTime";
 import { qualityIssues, QUALITY_ISSUE_LABEL } from "../../features/admin/model/overviewMetrics";
 import {
@@ -205,7 +205,7 @@ function EventCell({
   return (
     <div className="admin-events-table__event">
       <img
-        src={resolveEventModalImage({
+        src={resolveEventFlyer({
           id: event.id,
           imageUrl: event.image_url ?? undefined,
           calendarId: event.event_type,

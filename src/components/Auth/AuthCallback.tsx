@@ -24,7 +24,8 @@ const ERROR_COPY: Record<CallbackError, { heading: string; message: string }> = 
   },
   recovery: {
     heading: "We couldn't reset your password",
-    message: "This password reset link has expired or was already used. Request a new reset email to continue.",
+    message:
+      "This password reset link has expired or was already used. Request a new reset email to continue.",
   },
   email_change: {
     heading: "We couldn't confirm your email change",
@@ -332,7 +333,10 @@ export default function AuthCallback() {
               ref={confirmPasswordRef}
               {...fieldErrorProps("recovery-confirm-password-error", confirmPasswordFieldError)}
             />
-            <FormFieldError id="recovery-confirm-password-error" message={confirmPasswordFieldError} />
+            <FormFieldError
+              id="recovery-confirm-password-error"
+              message={confirmPasswordFieldError}
+            />
           </div>
           <Button type="submit" block loading={busy} loadingLabel="Updating password…">
             Set new password

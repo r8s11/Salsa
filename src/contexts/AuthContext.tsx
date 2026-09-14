@@ -11,11 +11,14 @@ import type { AuthContextValue, AuthSignOutScope } from "./authContextObject";
 const PRODUCTION_ORIGIN = "https://www.salsasegura.com";
 const getCallbackUrl = () => {
   // In production (non-localhost), prefer explicit production URL for consistency
-  const isLocal = window.location.origin === "http://localhost:5173" || 
-                   window.location.origin === "http://localhost:3000" ||
-                   window.location.origin === "http://127.0.0.1:5173" ||
-                   window.location.origin === "http://127.0.0.1:3000";
-  return isLocal ? `${window.location.origin}/auth/callback` : `${PRODUCTION_ORIGIN}/auth/callback`;
+  const isLocal =
+    window.location.origin === "http://localhost:5173" ||
+    window.location.origin === "http://localhost:3000" ||
+    window.location.origin === "http://127.0.0.1:5173" ||
+    window.location.origin === "http://127.0.0.1:3000";
+  const url = isLocal ? `${window.location.origin}/auth/callback` : `${PRODUCTION_ORIGIN}/auth/callback`;
+  console.log("[Auth] getCallbackUrl:", { isLocal, windowOrigin: window.location.origin, url });
+  return url;
 };
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -151,7 +154,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error: null };
       } catch (error) {
         return {
-          error: error instanceof Error ? error : new Error("Unable to sign out. Please try again."),
+          error:
+            error instanceof Error ? error : new Error("Unable to sign out. Please try again."),
         };
       }
     },
@@ -164,7 +168,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryClient.clear();
     window.localStorage.removeItem(supabaseAuthStorageKey);
     window.localStorage.removeItem(`${supabaseAuthStorageKey}-user`);
-
   }, [queryClient]);
 
   const role = roleFromUser(user);

@@ -97,10 +97,60 @@
 
 .admin-shell .admin-event-editor .event-flyer-field__preview {
   width: min(100%, 360px);
-  max-height: 280px;
+  max-height: none;
   border-color: var(--admin-border);
   background: var(--admin-surface-secondary);
-  object-fit: contain;
+}
+
+.admin-shell .admin-event-editor .event-flyer-field__preview img {
+  max-height: 320px;
+}
+
+.admin-shell .admin-event-editor .flyer-extraction-panel {
+  max-width: none;
+  margin: 0;
+  padding: 20px;
+  border-color: var(--admin-border);
+  border-radius: var(--admin-radius-lg);
+  background: var(--admin-surface-secondary);
+  color: var(--admin-text-primary);
+  text-align: left;
+}
+
+.admin-shell .admin-event-editor .flyer-extraction-panel--error {
+  border-color: var(--admin-danger-border);
+  background: var(--admin-danger-tint);
+  color: var(--admin-danger-strong);
+}
+
+.admin-shell .admin-event-editor .flyer-extraction-panel--error p {
+  color: inherit;
+}
+
+.admin-shell .admin-event-editor .flyer-extraction-panel__actions {
+  align-items: center;
+}
+
+.admin-shell .admin-event-editor .flyer-extraction-panel .ui-button--secondary {
+  border-color: var(--admin-warning-border);
+  color: var(--admin-warning);
+}
+
+.admin-shell .admin-event-editor .flyer-extraction-panel .ui-button--secondary:hover:not(:disabled) {
+  background: var(--admin-warning-tint);
+  color: var(--admin-warning);
+}
+
+.admin-shell .admin-event-editor .flyer-extraction-panel .ui-button--ghost {
+  color: var(--admin-text-secondary);
+}
+
+.admin-shell .admin-event-editor .flyer-extraction-panel .ui-button--ghost:hover:not(:disabled) {
+  color: var(--admin-text-primary);
+}
+
+.admin-shell .admin-event-editor .flyer-extraction-panel .ui-button--ghost::after {
+  background: var(--admin-warning);
 }
 
 .admin-shell .admin-event-editor .event-flyer-field input[type="file"] {

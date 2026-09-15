@@ -12,17 +12,21 @@
   --admin-surface-subtle: #f8fafc;
   --admin-text-primary: #0f172a;
   --admin-text-strong: #1e293b;
-  --admin-text-secondary: #64748b;
-  --admin-text-muted: #64748b;
+  /* #64748b measured 4.34:1 on --admin-surface-secondary (#f1f5f9), under the
+     4.5:1 floor for body text. Deepened one step; now ≥4.9:1 on every light
+     desk surface. */
+  --admin-text-secondary: #5d6b80;
+  --admin-text-muted: #5d6b80;
   --admin-text-subtle: #94a3b8;
   --admin-nav-text: #475569;
   --admin-brand: #e11d48;
   --admin-brand-hover: #be123c;
-  /* Small-text-on-dark-surface variant. --admin-brand stays the fixed
-     button/border fill (its dark value is unchanged so white button
-     labels keep 4.7:1 contrast); this token is for standalone link/badge
-     TEXT only, which needs a brighter rose to clear 4.5:1 in dark mode. */
-  --admin-brand-text: #e11d48;
+  /* Standalone link/badge TEXT only — never a button or border fill.
+     --admin-brand stays the fixed fill so white button labels keep 4.7:1.
+     Light mode needs a deeper rose (#e11d48 measured 4.29:1 on
+     --admin-surface-secondary); dark mode needs a brighter one. */
+  --admin-brand-text: #be123c;
+  --admin-brand-text-hover: #8f0e2d;
   --admin-brand-tint: rgba(225, 29, 72, 0.04);
   --admin-brand-ring: rgba(225, 29, 72, 0.5);
   --admin-danger: #dc2626;
@@ -76,6 +80,7 @@
   --admin-brand: #e11d48;
   --admin-brand-hover: #f43f5e;
   --admin-brand-text: #fb7185;
+  --admin-brand-text-hover: #fda4af;
   --admin-brand-tint: rgba(225, 29, 72, 0.12);
   --admin-brand-ring: rgba(225, 29, 72, 0.6);
   --admin-danger: #f87171;
@@ -449,6 +454,32 @@
 .admin-shell [tabindex]:focus-visible {
   outline: 2px solid var(--admin-brand);
   outline-offset: 2px;
+}
+
+/* ----------------------------------------
+   Inline links
+   The desk inherits the public site's unclassed-anchor rule, whose gold
+   belongs to Ritmo Vivo and reads wrong on a lit operator surface. Anchors
+   without a component class take the desk's own brand voice instead.
+   ---------------------------------------- */
+.admin-shell a:not([class]) {
+  color: var(--admin-brand-text);
+  text-decoration: underline;
+  text-decoration-color: var(--admin-brand-ring);
+  text-underline-offset: 3px;
+  transition:
+    color 0.15s ease,
+    text-decoration-color 0.15s ease;
+}
+
+.admin-shell a:not([class]):hover {
+  color: var(--admin-brand-text-hover);
+  text-decoration-color: currentColor;
+}
+
+.admin-shell ::selection {
+  background: var(--admin-brand);
+  color: #fff;
 }
 
 /* ----------------------------------------

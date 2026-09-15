@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Calendar, MapPin, Search, Users, QrCode } from "lucide-react";
+import { Calendar, ImageOff, MapPin, Search, Users, QrCode } from "lucide-react";
 import { useAuth } from "../../contexts/useAuth";
 import { useMySubmissions } from "../../features/account/hooks/useMySubmissions";
 import { useMyOrganizers } from "../../features/host/hooks/useMyOrganizers";
@@ -133,7 +133,7 @@ function EventCard({ event, attendeeCount, checkedInCount, canManage }: EventCar
           />
         ) : (
           <div className="host-my-events__card-flyer-fallback">
-            <span className="host-my-events__card-flyer-icon" aria-hidden="true">💃</span>
+            <ImageOff className="host-my-events__card-flyer-icon" size={22} aria-hidden="true" />
           </div>
         )}
       </div>
@@ -240,8 +240,7 @@ export default function HostMyEventsPage() {
   // Derive permissions
   const canCreate = organizers.some(
     (o) =>
-      o.organizerStatus === "active" &&
-      (o.memberRole === "owner" || o.memberRole === "manager")
+      o.organizerStatus === "active" && (o.memberRole === "owner" || o.memberRole === "manager")
   );
   const isEditor = organizers.some(
     (o) => o.organizerStatus === "active" && o.memberRole === "editor"
@@ -305,7 +304,11 @@ export default function HostMyEventsPage() {
 
   // Collect event IDs for attendance summaries
   const eventIds = useMemo(() => searched.map((e) => e.id), [searched]);
-  const { summaries, isLoading: summariesLoading, error: summariesError } = useEventAttendanceSummaries(eventIds);
+  const {
+    summaries,
+    isLoading: summariesLoading,
+    error: summariesError,
+  } = useEventAttendanceSummaries(eventIds);
   const attendanceAvailable = !summariesLoading && !summariesError;
 
   // Loading state
@@ -322,7 +325,9 @@ export default function HostMyEventsPage() {
   // Current organizer name for header
   const currentOrganizerName = useMemo(() => {
     if (!selectedOrganizerId) return null;
-    return activeOrganizers.find((o) => o.organizerId === selectedOrganizerId)?.organizerName ?? null;
+    return (
+      activeOrganizers.find((o) => o.organizerId === selectedOrganizerId)?.organizerName ?? null
+    );
   }, [selectedOrganizerId, activeOrganizers]);
 
   // Group labels
@@ -475,7 +480,11 @@ export default function HostMyEventsPage() {
       {!isLoadingData && !hasError && visibleGroups.length > 0 && (
         <div className="host-my-events__groups">
           {visibleGroups.map((group) => (
-            <section key={group} className="host-my-events__group" aria-labelledby={`group-${group}`}>
+            <section
+              key={group}
+              className="host-my-events__group"
+              aria-labelledby={`group-${group}`}
+            >
               <h2 id={`group-${group}`} className="host-my-events__group-title">
                 {GROUP_LABELS[group]}
                 <span className="host-my-events__group-count">{groups[group].length}</span>

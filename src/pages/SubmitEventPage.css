@@ -234,9 +234,18 @@
 }
 
 .submit-event .success-card h2 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
   font: 700 1.75rem var(--font-display);
   color: var(--text);
   margin-bottom: var(--space-md);
+}
+
+.submit-event .success-card h2 svg {
+  color: var(--gold);
+  flex-shrink: 0;
 }
 
 .submit-event .success-card p {
@@ -244,6 +253,12 @@
   margin-bottom: var(--space-xl);
   line-height: 1.7;
   font: 400 0.95rem var(--font-body);
+}
+
+.submit-event .success-card__track {
+  margin-top: var(--space-lg);
+  margin-bottom: 0;
+  font: 400 0.9rem var(--font-body);
 }
 
 /* ── Mobile ── */

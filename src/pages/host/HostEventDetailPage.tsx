@@ -5,6 +5,7 @@ import {
   Calendar,
   MapPin,
   ExternalLink,
+  ImageOff,
   Users,
   QrCode,
   Mail,
@@ -47,9 +48,7 @@ function formatCity(city: string): string {
 }
 
 function formatLegacyDanceStyle(style: string): string {
-  return style
-    .replace(/[-_]+/g, " ")
-    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+  return style.replace(/[-_]+/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 function formatAddressLines(event: DatabaseEvent): { venue: string | null; street: string | null } {
@@ -142,12 +141,15 @@ export default function HostEventDetailPage() {
   /* ── Derived data ── */
 
   const membership = organizers.find((o) => o.organizerId === event.organizer_id);
-  const canEdit = membership && (membership.memberRole === "owner" || membership.memberRole === "manager");
+  const canEdit =
+    membership && (membership.memberRole === "owner" || membership.memberRole === "manager");
   const isEditor = membership && membership.memberRole === "editor";
   const organizer = organizers.find((o) => o.organizerId === event.organizer_id);
 
   const [row] = deriveHostEventRows([event]);
-  const taxonomyDanceStyles = event.taxonomy_terms.filter((term) => term.category === "dance_style");
+  const taxonomyDanceStyles = event.taxonomy_terms.filter(
+    (term) => term.category === "dance_style"
+  );
   const danceStyles =
     taxonomyDanceStyles.length > 0
       ? taxonomyDanceStyles
@@ -231,7 +233,9 @@ export default function HostEventDetailPage() {
 
       {/* ── Status message ── */}
       {STATUS_MESSAGE[event.status] && (
-        <div className={`host-event-detail__status-banner host-event-detail__status-banner--${event.status}`}>
+        <div
+          className={`host-event-detail__status-banner host-event-detail__status-banner--${event.status}`}
+        >
           <Info size={16} aria-hidden="true" />
           <p>{STATUS_MESSAGE[event.status]}</p>
         </div>
@@ -245,7 +249,9 @@ export default function HostEventDetailPage() {
 
       {isCancelled && event.cancellation_reason && (
         <div className="host-event-detail__status-banner host-event-detail__status-banner--cancelled">
-          <p><strong>Cancellation reason:</strong> {event.cancellation_reason}</p>
+          <p>
+            <strong>Cancellation reason:</strong> {event.cancellation_reason}
+          </p>
         </div>
       )}
 
@@ -268,9 +274,7 @@ export default function HostEventDetailPage() {
             Delete Event
           </button>
         )}
-        {isEditor && (
-          <span className="host-event-detail__view-only">View only</span>
-        )}
+        {isEditor && <span className="host-event-detail__view-only">View only</span>}
         {event.status === "pending" && !canEdit && !membership && (
           <Link className="admin-btn admin-btn--primary" to={`/profile/edit/${event.id}`}>
             Edit event
@@ -366,7 +370,8 @@ export default function HostEventDetailPage() {
             <img src={event.image_url} alt={`${event.title} flyer`} />
           ) : (
             <div className="host-event-detail__flyer-fallback">
-              <span className="host-event-detail__flyer-icon">💃</span>
+              <ImageOff className="host-event-detail__flyer-icon" size={26} aria-hidden="true" />
+              <span>No flyer yet</span>
             </div>
           )}
           {canEdit && (
@@ -397,10 +402,7 @@ export default function HostEventDetailPage() {
           {isPublic && (
             <div className="host-event-detail__link-card">
               <span className="host-event-detail__link-label">Public Event</span>
-              <Link
-                to={`/events/${event.id}`}
-                className="admin-btn admin-btn--secondary"
-              >
+              <Link to={`/events/${event.id}`} className="admin-btn admin-btn--secondary">
                 View public event
                 <ExternalLink size={14} aria-hidden="true" />
               </Link>
@@ -432,7 +434,10 @@ export default function HostEventDetailPage() {
               Contact Email
             </span>
             {event.contact_email ? (
-              <a href={`mailto:${event.contact_email}`} className="host-event-detail__contact-value">
+              <a
+                href={`mailto:${event.contact_email}`}
+                className="host-event-detail__contact-value"
+              >
                 {event.contact_email}
               </a>
             ) : (
@@ -501,7 +506,11 @@ export default function HostEventDetailPage() {
                   : `${attendees.length} ${attendees.length === 1 ? "person" : "people"} on the roster.`}
               </p>
             </div>
-            <ExternalLink size={14} aria-hidden="true" className="host-event-detail__operation-link" />
+            <ExternalLink
+              size={14}
+              aria-hidden="true"
+              className="host-event-detail__operation-link"
+            />
           </Link>
 
           <Link
@@ -519,7 +528,11 @@ export default function HostEventDetailPage() {
                   : `${checkIns.filter((c) => !c.reversedAt).length} checked in.`}
               </p>
             </div>
-            <ExternalLink size={14} aria-hidden="true" className="host-event-detail__operation-link" />
+            <ExternalLink
+              size={14}
+              aria-hidden="true"
+              className="host-event-detail__operation-link"
+            />
           </Link>
         </div>
       </section>

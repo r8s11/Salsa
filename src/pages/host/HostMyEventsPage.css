@@ -238,18 +238,20 @@
   object-fit: cover;
 }
 
+/* Was a hardcoded pink gradient, which ignored the desk tokens and stayed
+   light in dark mode. */
 .host-my-events__card-flyer-fallback {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 50%, #fbcfe8 100%);
+  border-right: 1px solid var(--admin-border);
+  background: var(--admin-surface-secondary);
 }
 
 .host-my-events__card-flyer-icon {
-  font-size: 2.5rem;
-  opacity: 0.6;
+  color: var(--admin-text-subtle);
 }
 
 /* ── Card body ── */

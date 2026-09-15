@@ -140,9 +140,7 @@ function mockMultipleOrganizers() {
 function mockEvents(events: DatabaseEvent[]) {
   const submissions = events.filter((e) => e.status === "pending");
   const approved = events.filter((e) => e.status === "approved");
-  const organizerEvts = events.filter(
-    (e) => e.source_type === "organizer" || e.status === "draft"
-  );
+  const organizerEvts = events.filter((e) => e.source_type === "organizer" || e.status === "draft");
 
   vi.mocked(useMySubmissions).mockReturnValue({
     submissions,
@@ -345,7 +343,8 @@ describe("HostMyEventsPage", () => {
     mockEvents([draftEvent]);
     renderPage();
     expect(await screen.findByText("New Year Bash")).toBeInTheDocument();
-    const fallbackIcon = screen.getByText("💃");
+    expect(screen.queryByRole("img", { name: /flyer/i })).not.toBeInTheDocument();
+    const fallbackIcon = document.querySelector(".host-my-events__card-flyer-icon");
     expect(fallbackIcon).toBeInTheDocument();
     expect(fallbackIcon).toHaveAttribute("aria-hidden", "true");
   });
@@ -354,9 +353,7 @@ describe("HostMyEventsPage", () => {
 
   it("shows real attendee and check-in counts", async () => {
     mockEvents([baseEvent]);
-    mockAttendance(
-      new Map([["base", { attendeeCount: 24, checkedInCount: 18 }]])
-    );
+    mockAttendance(new Map([["base", { attendeeCount: 24, checkedInCount: 18 }]]));
     renderPage();
 
     expect(await screen.findByText("24 attendees")).toBeInTheDocument();
@@ -365,9 +362,7 @@ describe("HostMyEventsPage", () => {
 
   it("shows zero attendees state", async () => {
     mockEvents([baseEvent]);
-    mockAttendance(
-      new Map([["base", { attendeeCount: 0, checkedInCount: 0 }]])
-    );
+    mockAttendance(new Map([["base", { attendeeCount: 0, checkedInCount: 0 }]]));
     renderPage();
 
     expect(await screen.findByText("No attendees yet")).toBeInTheDocument();

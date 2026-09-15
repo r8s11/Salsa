@@ -87,7 +87,10 @@ function mockOwnerEvents(overrides: Partial<OwnerEventState> = {}) {
   });
 }
 
-function mockOrganizerData(role: "owner" | "manager" | "editor" = "owner", events?: DatabaseEvent[]) {
+function mockOrganizerData(
+  role: "owner" | "manager" | "editor" = "owner",
+  events?: DatabaseEvent[]
+) {
   vi.mocked(useMyOrganizers).mockReturnValue({
     data: [
       {
@@ -162,7 +165,9 @@ describe("HostEventDetailPage — Operations Dashboard", () => {
   it("renders the event title and status badge", async () => {
     renderDetail("base");
 
-    expect(await screen.findByRole("heading", { name: "Havana Nights Social" })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Havana Nights Social" })
+    ).toBeInTheDocument();
     expect(screen.getByText("Pending Approval")).toBeInTheDocument();
   });
 
@@ -186,7 +191,9 @@ describe("HostEventDetailPage — Operations Dashboard", () => {
   it("shows draft status message", async () => {
     renderDetail("draft-1");
 
-    expect(await screen.findByRole("heading", { name: "Havana Nights Social" })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Havana Nights Social" })
+    ).toBeInTheDocument();
     expect(screen.getByText(/saved as a draft/i)).toBeInTheDocument();
     expect(screen.getByText("Draft")).toBeInTheDocument();
   });
@@ -287,7 +294,8 @@ describe("HostEventDetailPage — Operations Dashboard", () => {
     await screen.findByRole("heading", { name: "Havana Nights Social" });
 
     expect(screen.getByRole("heading", { name: "Event Flyer" })).toBeInTheDocument();
-    expect(screen.getByText("💃")).toBeInTheDocument();
+    expect(screen.getByText("No flyer yet")).toBeInTheDocument();
+    expect(screen.queryByRole("img", { name: /flyer/i })).not.toBeInTheDocument();
   });
 
   it("shows Manage Flyer link for owner/manager", async () => {
@@ -315,7 +323,9 @@ describe("HostEventDetailPage — Operations Dashboard", () => {
 
     await screen.findByRole("heading", { name: "Havana Nights Social" });
     expect(screen.getByRole("heading", { name: "Description" })).toBeInTheDocument();
-    expect(screen.getByText("Weekly salsa and bachata social with live DJ sets.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Weekly salsa and bachata social with live DJ sets.")
+    ).toBeInTheDocument();
   });
 
   it("hides description when absent", async () => {
@@ -337,7 +347,10 @@ describe("HostEventDetailPage — Operations Dashboard", () => {
     renderDetail("approved-1");
 
     await screen.findByRole("heading", { name: "Links & Contact" });
-    expect(screen.getByRole("link", { name: /View public event/i })).toHaveAttribute("href", "/events/approved-1");
+    expect(screen.getByRole("link", { name: /View public event/i })).toHaveAttribute(
+      "href",
+      "/events/approved-1"
+    );
   });
 
   it("hides public event link for non-approved events", async () => {
@@ -352,7 +365,10 @@ describe("HostEventDetailPage — Operations Dashboard", () => {
 
     await screen.findByRole("heading", { name: "Links & Contact" });
     expect(screen.getByText("RSVP / Tickets")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Open Link/i })).toHaveAttribute("href", "https://tickets.example.com/havana");
+    expect(screen.getByRole("link", { name: /Open Link/i })).toHaveAttribute(
+      "href",
+      "https://tickets.example.com/havana"
+    );
   });
 
   it("shows empty RSVP state when no link", async () => {
@@ -416,7 +432,10 @@ describe("HostEventDetailPage — Operations Dashboard", () => {
     renderDetail("base");
 
     await screen.findByRole("heading", { name: "Havana Nights Social" });
-    expect(screen.getByRole("link", { name: /Edit Event/i })).toHaveAttribute("href", "/host/events/base/edit");
+    expect(screen.getByRole("link", { name: /Edit Event/i })).toHaveAttribute(
+      "href",
+      "/host/events/base/edit"
+    );
   });
 
   it("shows Edit Event for manager", async () => {
@@ -424,7 +443,10 @@ describe("HostEventDetailPage — Operations Dashboard", () => {
 
     renderDetail("base");
     await screen.findByRole("heading", { name: "Havana Nights Social" });
-    expect(screen.getByRole("link", { name: /Edit Event/i })).toHaveAttribute("href", "/host/events/base/edit");
+    expect(screen.getByRole("link", { name: /Edit Event/i })).toHaveAttribute(
+      "href",
+      "/host/events/base/edit"
+    );
   });
 
   it("shows View only for editor", async () => {
@@ -442,7 +464,10 @@ describe("HostEventDetailPage — Operations Dashboard", () => {
     await screen.findByRole("heading", { name: "Havana Nights Social" });
     expect(screen.getByText("Share and promote")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Copy event link" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Edit Event/i })).toHaveAttribute("href", "/host/events/approved-1/edit");
+    expect(screen.getByRole("link", { name: /Edit Event/i })).toHaveAttribute(
+      "href",
+      "/host/events/approved-1/edit"
+    );
   });
 
   it("shows revise action for rejected events for submitter", async () => {
@@ -480,7 +505,10 @@ describe("HostEventDetailPage — Operations Dashboard", () => {
   it("provides an accessible back link to My Events", async () => {
     renderDetail("base");
 
-    expect(await screen.findByRole("link", { name: /my events/i })).toHaveAttribute("href", "/host/events");
+    expect(await screen.findByRole("link", { name: /my events/i })).toHaveAttribute(
+      "href",
+      "/host/events"
+    );
   });
 
   /* ── Flyer warning ── */

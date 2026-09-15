@@ -98,24 +98,23 @@
   color: var(--admin-text-muted);
 }
 
+/* These were light-only hex literals inside the admin shell, so they stayed
+   pale-on-pale in dark mode. Routed through the desk's own state tokens,
+   which already carry both themes. */
 .host-event-detail__status-banner--pending {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--admin-warning-tint);
+  color: var(--admin-warning);
 }
 
 .host-event-detail__status-banner--approved {
-  background: #d1fae5;
-  color: #065f46;
+  background: var(--admin-success-tint);
+  color: var(--admin-success);
 }
 
-.host-event-detail__status-banner--rejected {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
+.host-event-detail__status-banner--rejected,
 .host-event-detail__status-banner--cancelled {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--admin-danger-tint);
+  color: var(--admin-danger-strong);
 }
 
 /* Actions */
@@ -218,6 +217,28 @@
   border-radius: var(--admin-radius);
   aspect-ratio: 4 / 3;
   object-fit: cover;
+}
+
+/* The empty flyer slot was an unstyled glyph: give it the same footprint as
+   a real flyer so the card keeps its shape either way. */
+.host-event-detail__flyer-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 480px;
+  aspect-ratio: 4 / 3;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  background: var(--admin-surface-secondary);
+  color: var(--admin-text-muted);
+  font-size: 0.85rem;
+}
+
+.host-event-detail__flyer-icon {
+  color: var(--admin-text-subtle);
 }
 
 .host-event-detail__flyer-action {

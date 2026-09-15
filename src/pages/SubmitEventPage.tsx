@@ -98,7 +98,13 @@ export default function SubmitEventPage() {
   // Admin create view never renders this page, so no redirect loop exists.
   if (isAdmin) return <Navigate to={ADMIN_EVENT_CREATE_PATH} replace />;
 
-  if (isSubmitted) return <SuccessCard onReset={resetSubmitted} />;
+  if (isSubmitted)
+    return (
+      <SuccessCard
+        onReset={resetSubmitted}
+        trackPath={user ? (isOrganizer ? "/host/events" : "/profile") : null}
+      />
+    );
 
   return (
     <section className="submit-event">

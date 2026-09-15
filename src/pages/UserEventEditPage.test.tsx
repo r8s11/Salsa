@@ -315,7 +315,9 @@ describe("UserEventEditPage withdraw flow", () => {
     });
     expect(allWithdrawButtons).toHaveLength(2);
     // Focus starts on Cancel, never on the destructive control.
-    expect(within(screen.getByRole("dialog")).getByRole("button", { name: "Cancel" })).toHaveFocus();
+    expect(
+      within(screen.getByRole("dialog")).getByRole("button", { name: "Cancel" })
+    ).toHaveFocus();
     expect(mocks.deleteEventForUser).not.toHaveBeenCalled();
 
     fireEvent.click(allWithdrawButtons[1]);
@@ -413,7 +415,6 @@ describe("UserEventEditPage withdraw flow", () => {
     });
     expect(mocks.deleteEventForUser).not.toHaveBeenCalled();
   });
-
 });
 
 const rejectedEvent: DatabaseEvent = {

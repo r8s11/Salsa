@@ -191,4 +191,4 @@ GEMINI.md
 .impeccable/build/
 
 # Chisel Cache
-.chisel/index.db
+.chisel/

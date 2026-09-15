@@ -81,9 +81,9 @@
 .profile-bio {
   padding: 0 var(--gutter);
   margin-top: var(--space-md);
-  max-width: 60ch;
-  font-size: 0.95rem;
-  line-height: 1.7;
+  max-width: 65ch;
+  font-size: 1rem;
+  line-height: 1.75;
   color: var(--text-muted);
 }
 
@@ -93,7 +93,7 @@
   padding: 0 var(--gutter);
   margin-top: var(--space-md);
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
 }
 
 .profile-links a {
@@ -122,8 +122,8 @@
 
 .profile-numbers-title {
   font-weight: 800;
-  font-size: 0.68rem;
-  letter-spacing: 0.16em;
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--text-dim);
 }
@@ -135,7 +135,8 @@
 }
 
 .profile-numbers-note {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
+  line-height: 1.4;
   color: var(--text-dim);
 }
 
@@ -150,8 +151,8 @@
 
 .profile-audience-btn {
   font-weight: 700;
-  font-size: 0.7rem;
-  letter-spacing: 0.06em;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   padding: 7px 14px;
   border: none;
@@ -170,7 +171,8 @@
 }
 
 .profile-numbers-hidden {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
+  line-height: 1.55;
   color: var(--text-dim);
 }
 
@@ -187,8 +189,8 @@
 
 .profile-subsection-title {
   font-weight: 800;
-  font-size: 0.72rem;
-  letter-spacing: 0.18em;
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--tertiary);
   margin-bottom: var(--space-md);
@@ -297,18 +299,23 @@
 }
 
 .profile-name {
+  max-width: 100%;
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: clamp(24px, 3vw, 32px);
+  font-size: clamp(28px, 4vw, 40px);
+  line-height: 1.08;
   color: var(--text);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
 }
 
 .profile-member-since {
   font-family: var(--font-body);
-  font-size: 13.5px;
+  font-size: 0.9rem;
+  line-height: 1.5;
   color: var(--text-dim);
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 /* Actions */
@@ -340,15 +347,18 @@
 .profile-stat-num {
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: 24px;
+  font-size: 1.75rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
   color: var(--text);
 }
 
 .profile-stat-label {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 10.5px;
-  letter-spacing: 0.12em;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  line-height: 1.3;
   text-transform: uppercase;
   color: var(--text-dim);
 }
@@ -385,9 +395,11 @@
 .profile-submissions-header h2 {
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: clamp(28px, 4vw, 42px);
+  font-size: clamp(24px, 3.5vw, 34px);
+  line-height: 1.1;
   color: var(--text);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
 }
 
 .profile-empty {
@@ -470,24 +482,27 @@
 .profile-submission-title {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 15px;
+  font-size: 1rem;
+  line-height: 1.3;
   color: var(--text);
-  line-height: 1.25;
 }
 
 .profile-submission-meta {
   font-family: var(--font-body);
-  font-size: 12.5px;
+  font-size: 0.85rem;
+  line-height: 1.45;
   color: var(--text-dim);
-  margin-top: 3px;
+  margin-top: 4px;
 }
 
 .profile-submission-location {
   font-family: var(--font-body);
-  font-size: 12px;
+  font-size: 0.8rem;
+  line-height: 1.45;
   color: var(--text-dim);
-  margin-top: 2px;
+  margin-top: 3px;
 }
+
 
 .profile-submission-right {
   display: flex;

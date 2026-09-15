@@ -189,3 +189,6 @@ GEMINI.md
 # artifacts (design.json, surfaces/) are tracked.
 .impeccable/review/
 .impeccable/build/
+
+# Chisel Cache
+.chisel/

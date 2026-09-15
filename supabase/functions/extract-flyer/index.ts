@@ -14,13 +14,17 @@ const BUCKET = "event-flyers";
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const ALLOWED_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const USER_ID_PATTERN = "[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}";
-// Owner-scoped flyer objects the caller may analyze. The first path segment
-// MUST equal the caller's own user id (enforced in canonicalImageUrl), so
-// widening the draft folder does not widen who can read what.
+// Flyer objects whose owner the caller may analyze. For non-admin callers the
+// first path segment MUST equal the caller's own user id (enforced in
+// canonicalImageUrl), so widening the event-id segment does not widen who can
+// read what. Admins manage every event and may analyze any public flyer.
 //   submission-<uuid>/   public moderated submission drafts (/submit)
 //   admin-draft-<uuid>/  Admin direct-create drafts (AdminEventEditor)
+//   <uuid>/              persisted event flyers after admin edits (uploaded
+//                        under the submitter's id, or the literal "admin"
+//                        owner when the event has no submitter)
 const OWNER_FLYER_PATH = new RegExp(
-  `^/storage/v1/object/public/${BUCKET}/(${USER_ID_PATTERN})/(?:submission|admin-draft)-(${USER_ID_PATTERN})/([^/]+\\.(?:jpg|jpeg|png|webp))$`,
+  `^/storage/v1/object/public/${BUCKET}/(${USER_ID_PATTERN}|admin)/(?:(?:submission|admin-draft)-)?(${USER_ID_PATTERN})/([^/]+\\.(?:jpg|jpeg|png|webp))$`,
   "i"
 );
 
@@ -58,7 +62,7 @@ type ExtractedEvent = {
   details: string[];
 };
 
-type AuthResult = { userId: string | null; error?: boolean };
+type AuthResult = { userId: string | null; error?: boolean; isAdmin?: boolean };
 export type ExtractFlyerDependencies = {
   supabaseUrl: string;
   openaiKey?: string;
@@ -114,7 +118,11 @@ function error(message: string, status: number): Response {
   return json({ error: message }, status);
 }
 
-function canonicalImageUrl(value: unknown, supabaseUrl: string, userId: string): string | null {
+function canonicalImageUrl(
+  value: unknown,
+  supabaseUrl: string,
+  caller: { userId: string | null; isAdmin: boolean }
+): string | null {
   if (typeof value !== "string" || !value || value.length > 2048) return null;
   let parsed: URL;
   let base: URL;
@@ -144,7 +152,8 @@ function canonicalImageUrl(value: unknown, supabaseUrl: string, userId: string):
   if (pathname.includes("..") || pathname.includes("\\") || /%2e|%2f|%5c/i.test(parsed.pathname))
     return null;
   const match = pathname.match(OWNER_FLYER_PATH);
-  if (!match || match[1].toLowerCase() !== userId.toLowerCase()) return null;
+  if (!match) return null;
+  if (!caller.isAdmin && match[1].toLowerCase() !== caller.userId?.toLowerCase()) return null;
   return parsed.toString();
 }
 
@@ -296,7 +305,7 @@ export function createExtractFlyerHandler(dependencies: ExtractFlyerDependencies
     const imageUrl = canonicalImageUrl(
       (body as { imageUrl?: unknown }).imageUrl,
       dependencies.supabaseUrl,
-      caller.userId
+      { userId: caller.userId, isAdmin: caller.isAdmin === true }
     );
     if (!imageUrl) return error("Invalid flyer image URL", 400);
     if (!dependencies.openaiKey) return error("Flyer analysis is not configured", 503);
@@ -402,7 +411,13 @@ function runtimeDependencies(): ExtractFlyerDependencies {
         auth: { persistSession: false, autoRefreshToken: false },
       });
       const result = await client.auth.getUser();
-      return { userId: result.data.user?.id ?? null, error: Boolean(result.error) };
+      return {
+        userId: result.data.user?.id ?? null,
+        error: Boolean(result.error),
+        // Same admin signal the web app uses (useFounderRequests): a claim on
+        // the user's JWT app_metadata, not a client-supplied flag.
+        isAdmin: result.data.user?.app_metadata?.role === "admin",
+      };
     },
     fetchImage: (url) => fetch(url, { redirect: "manual" }),
     fetchOpenAI: (body, apiKey) =>

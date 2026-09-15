@@ -260,6 +260,13 @@ describe("ProfilePage", () => {
     expect(img.getAttribute("src")).toBe("https://cdn.test/fresh.png");
   });
 
+  it("shows the @username line under the display name", () => {
+    mocks.ownProfile.profile = savedProfile();
+    renderPage();
+
+    expect(screen.getByText("@mariasalsa")).toBeInTheDocument();
+  });
+
   it("never assigns a stored photo value the save path would reject", () => {
     mocks.ownProfile.profile = savedProfile({ avatar_url: "https://user:pass@cdn.test/x.png" });
     const { container } = renderPage();

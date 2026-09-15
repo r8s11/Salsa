@@ -117,6 +117,23 @@
   color: var(--admin-text-primary);
   text-align: left;
 }
+.admin-shell .admin-event-editor .flyer-extraction-panel__title {
+  color: var(--admin-text-primary);
+}
+
+.admin-shell .admin-event-editor .flyer-extraction-panel__count,
+.admin-shell .admin-event-editor .flyer-extraction-panel__partial-note,
+.admin-shell .admin-event-editor .flyer-extraction-panel__empty {
+  color: var(--admin-text-muted);
+}
+
+.admin-shell .admin-event-editor .flyer-extraction-panel__field dt {
+  color: var(--admin-text-secondary);
+}
+
+.admin-shell .admin-event-editor .flyer-extraction-panel__field dd {
+  color: var(--admin-text-primary);
+}
 
 .admin-shell .admin-event-editor .flyer-extraction-panel--error {
   border-color: var(--admin-danger-border);

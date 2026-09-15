@@ -475,6 +475,11 @@
   display: none !important;
 }
 
+/* Weekday header contrast — vendor default 4.08:1; override to --on-surface-variant (10.9:1) */
+.sx-react-calendar-wrapper .sx__month-grid-day__header-day-name {
+  color: var(--on-surface-variant);
+}
+
 /* ── Submit CTA ── */
 .calendar-cta {
   text-align: center;

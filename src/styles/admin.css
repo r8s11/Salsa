@@ -284,7 +284,7 @@
   border: none;
   border-radius: var(--admin-radius);
   background: transparent;
-  color: var(--admin-text-subtle);
+  color: var(--admin-text-secondary);
   cursor: pointer;
   transition:
     background-color 0.15s ease,

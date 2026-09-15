@@ -1,3 +1,4 @@
+import { Home } from "lucide-react";
 import ButtonLink from "../components/ui/ButtonLink";
 
 export default function NotFoundPage() {
@@ -8,7 +9,7 @@ export default function NotFoundPage() {
         <h2>Page Not Found</h2>
         <p>Oops! Looks like this page took a wrong turn on the dance floor.</p>
         <ButtonLink to="/" variant="primary">
-          🏠 Back to Home
+          <Home size={16} aria-hidden="true" /> Back to Home
         </ButtonLink>
       </div>
     </section>

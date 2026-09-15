@@ -9,7 +9,7 @@
 .admin-user-detail-page__back:hover,
 .admin-user-detail-page__back:focus {
   text-decoration: underline;
-  color: var(--admin-text-main);
+  color: var(--admin-text-primary);
 }
 
 .admin-user-detail-page__layout {
@@ -32,7 +32,7 @@
 
   .admin-user-detail-page__side-rail {
     position: sticky;
-    top: calc(var(--admin-header-height) + 1rem);
+    top: calc(var(--admin-header-h) + 1rem);
   }
 }
 

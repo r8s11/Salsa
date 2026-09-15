@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { AlertTriangle } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   useOrganizerRequests,
@@ -261,7 +262,8 @@ export default function AdminOrganizerRequestDetailPage() {
           </p>
           {hasModerationConcern && (
             <p className="admin-organizer-request-detail-page__moderation-banner">
-              ⚠ This account is currently {applicantStatus}.
+              <AlertTriangle size={14} aria-hidden="true" style={{ verticalAlign: "-0.15em" }} />{" "}
+              This account is currently {applicantStatus}.
             </p>
           )}
         </div>
@@ -429,7 +431,10 @@ export default function AdminOrganizerRequestDetailPage() {
             <p>No current moderation concerns.</p>
           ) : (
             <div>
-              <p>⚠ This account is currently {applicantStatus}.</p>
+              <p>
+                <AlertTriangle size={14} aria-hidden="true" style={{ verticalAlign: "-0.15em" }} />{" "}
+                This account is currently {applicantStatus}.
+              </p>
               {applicant!.status_reason && (
                 <p className="admin-organizer-request-detail-page__muted">
                   Reason: {applicant!.status_reason}
@@ -507,7 +512,8 @@ export default function AdminOrganizerRequestDetailPage() {
           <AdminAccountStatusBadge status={applicant!.status} reason={applicant!.status_reason} />
           {hasModerationConcern && (
             <p className="admin-organizer-request-detail-page__moderation-banner">
-              ⚠ {applicantStatus}
+              <AlertTriangle size={14} aria-hidden="true" style={{ verticalAlign: "-0.15em" }} />{" "}
+              {applicantStatus}
             </p>
           )}
 

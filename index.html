@@ -7,7 +7,8 @@
           var stored = localStorage.getItem("admin-theme");
           var theme = stored === "light" || stored === "dark" ? stored : null;
           if (!theme) {
-            var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+            var prefersDark =
+              window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
             theme = prefersDark ? "dark" : "light";
           }
           document.documentElement.dataset.pendingAdminTheme = theme;
@@ -198,8 +199,5 @@
   <body>
     <div id="app"></div>
     <script type="module" src="/src/main.tsx"></script>
-  <!-- impeccable-live-start -->
-<script src="http://localhost:8400/live.js?token=f3253390-1b92-4727-a141-7236fc7d88ac"></script>
-<!-- impeccable-live-end -->
-</body>
+  </body>
 </html>

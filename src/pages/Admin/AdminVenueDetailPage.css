@@ -8,7 +8,7 @@
   display: inline-block;
   margin-bottom: 16px;
   font-size: 0.9rem;
-  color: var(--admin-body-text);
+  color: var(--admin-text-primary);
   text-decoration: none;
 }
 
@@ -31,7 +31,7 @@
 
 .admin-venue-detail-page__address {
   margin: 4px 0 12px 0;
-  color: var(--admin-muted);
+  color: var(--admin-text-muted);
   font-size: 0.9rem;
 }
 
@@ -59,17 +59,17 @@
 }
 
 .admin-venue-detail-page__label {
-  color: var(--admin-muted);
+  color: var(--admin-text-muted);
   font-size: 0.8rem;
 }
 
 .admin-venue-detail-page__count {
   font-size: 0.8rem;
-  color: var(--admin-muted);
+  color: var(--admin-text-muted);
 }
 
 .admin-venue-detail-page__muted {
-  color: var(--admin-muted);
+  color: var(--admin-text-muted);
   font-size: 0.9rem;
 }
 
@@ -94,7 +94,7 @@
 }
 
 .admin-venue-detail-page__events-list a {
-  color: var(--admin-body-text);
+  color: var(--admin-text-primary);
   text-decoration: none;
 }
 

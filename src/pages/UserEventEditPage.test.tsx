@@ -263,7 +263,7 @@ describe("UserEventEditPage save flow", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /Save changes/i }));
 
-    expect(await screen.findByText(/❌ Permission denied/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Permission denied/i)).toBeInTheDocument();
   });
 
   it("redirects approved events to the profile page", async () => {
@@ -585,7 +585,7 @@ describe("UserEventEditPage withdrawal safety", () => {
     const allButtons = await screen.findAllByRole("button", { name: /Withdraw submission/i });
     fireEvent.click(allButtons[1]);
 
-    const errorMessage = await screen.findByText(/❌ Withdrawal network error/i);
+    const errorMessage = await screen.findByText(/Withdrawal network error/i);
     expect(errorMessage).toBeInTheDocument();
     const dialog = screen.getByRole("dialog");
     expect(dialog).toContainElement(errorMessage);

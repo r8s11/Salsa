@@ -26,10 +26,16 @@
   --red-dim: rgba(225, 29, 72, 0.18);
   --red-glow: rgba(225, 29, 72, 0.3);
 
+  /* Accent — Indigo (class events) */
+  --blue: #7c93e9;
+  --blue-deep: #2d3d82; /* AA-safe (7.75:1) background for var(--text) foreground */
+  --blue-dim: rgba(124, 147, 233, 0.15);
+
   /* Accent — Gold (secondary) */
   --gold: #e9c349;
   --gold-light: #ffe088;
   --gold-dim: rgba(233, 195, 73, 0.15);
+  --on-gold: #3c2f00; /* AA-safe (7.74:1) foreground for var(--gold) background */
 
   /* Accent — Warm Orange (tertiary) */
   --tertiary: #ffb690;
@@ -39,6 +45,7 @@
   --text: #dae2fd;
   --text-muted: #e5bdbe;
   --text-dim: #ac8889;
+  --text-dim-glass: #c5a3a4; /* AA-safe (5.98:1) on the .card glass composite */
 
   /* Typography */
   --font-display: "Epilogue", "Helvetica Neue", sans-serif;

@@ -1,5 +1,5 @@
 import type { ChangeEvent } from "react";
-import { X } from "lucide-react";
+import { ChevronDown, ClipboardList, Search, X } from "lucide-react";
 import {
   FOUNDER_REQUEST_SORT_OPTIONS,
   type FounderRequestFilters,
@@ -38,7 +38,10 @@ export default function AdminFounderRequestsFilterDrawer({
   };
 
   const handleSortChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    const [key, dir] = e.target.value.split("|") as [FounderRequestSort["key"], FounderRequestSort["dir"]];
+    const [key, dir] = e.target.value.split("|") as [
+      FounderRequestSort["key"],
+      FounderRequestSort["dir"],
+    ];
     onSortChange({ key, dir });
   };
 
@@ -61,7 +64,7 @@ export default function AdminFounderRequestsFilterDrawer({
         <div className="filter-drawer-content">
           <section className="filter-section">
             <label htmlFor="filter-search" className="filter-label">
-              <span className="icon">🔍</span>
+              <Search className="icon" size={14} aria-hidden="true" />
               Search
             </label>
             <input
@@ -76,7 +79,7 @@ export default function AdminFounderRequestsFilterDrawer({
 
           <section className="filter-section">
             <label htmlFor="filter-status" className="filter-label">
-              <span className="icon">📋</span>
+              <ClipboardList className="icon" size={14} aria-hidden="true" />
               Status
             </label>
             <select
@@ -94,7 +97,7 @@ export default function AdminFounderRequestsFilterDrawer({
 
           <section className="filter-section">
             <label htmlFor="filter-sort" className="filter-label">
-              <span className="icon">🔽</span>
+              <ChevronDown className="icon" size={14} aria-hidden="true" />
               Sort
             </label>
             <select

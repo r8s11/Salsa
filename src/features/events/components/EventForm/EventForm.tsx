@@ -26,6 +26,8 @@ type Props = {
   requireSubmitterContact?: boolean;
   /** Trusted display name for an authenticated public submission. */
   authenticatedSubmitterName?: string | null;
+  /** Renders Artwork as the first section (admin event editor leads with the flyer). */
+  flyerFirst?: boolean;
   /**
    * Per-field validation errors, keyed the same way as
    * `validateSubmitFormFields`. Only `/submit` passes this today — admin and
@@ -53,6 +55,7 @@ export default function EventForm({
   taxonomyTerms,
   requireSubmitterContact = false,
   authenticatedSubmitterName = null,
+  flyerFirst = false,
   errors = {},
 }: Props) {
   const update = <K extends keyof EventFormDraft>(key: K, value: EventFormDraft[K]) =>
@@ -72,8 +75,29 @@ export default function EventForm({
         : [...draft.taxonomy_term_ids, termId]
     );
 
+  const artworkSection = capabilities.flyer ? (
+    <section className="event-form__section">
+      <h2>Artwork</h2>
+      {renderFlyerField ? (
+        renderFlyerField()
+      ) : (
+        <label htmlFor="event-image-url">
+          Image URL
+          <input
+            id="event-image-url"
+            name="image_url"
+            type="url"
+            value={draft.image_url}
+            onChange={(event) => update("image_url", event.target.value)}
+          />
+        </label>
+      )}
+    </section>
+  ) : null;
+
   return (
     <div className="event-form">
+      {flyerFirst && artworkSection}
       <section className="event-form__section">
         <h2>Basics</h2>
         <div className="event-form__field">
@@ -202,6 +226,7 @@ export default function EventForm({
                   <label key={term.id}>
                     <input
                       type="checkbox"
+                      name="taxonomy_term_ids"
                       checked={draft.taxonomy_term_ids.includes(term.id)}
                       onChange={() => toggleTaxonomyTerm(term.id)}
                     />
@@ -216,6 +241,7 @@ export default function EventForm({
                     <label key={term.id}>
                       <input
                         type="checkbox"
+                        name="taxonomy_term_ids"
                         checked={draft.taxonomy_term_ids.includes(term.id)}
                         onChange={() => toggleTaxonomyTerm(term.id)}
                       />
@@ -254,6 +280,7 @@ export default function EventForm({
         <label className="event-form__check">
           <input
             type="checkbox"
+            name="recurrence"
             checked={draft.recurrence === "weekly"}
             onChange={(event) => update("recurrence", event.target.checked ? "weekly" : "")}
           />
@@ -338,33 +365,25 @@ export default function EventForm({
           <FormFieldError id="event-rsvp-link-error" message={errors.rsvp_link} />
         </div>
       </section>
-      {capabilities.flyer && (
-        <section className="event-form__section">
-          <h2>Artwork</h2>
-          {renderFlyerField ? (
-            renderFlyerField()
-          ) : (
-            <label>
-              Image URL
-              <input
-                type="url"
-                value={draft.image_url}
-                onChange={(event) => update("image_url", event.target.value)}
-              />
-            </label>
-          )}
-        </section>
-      )}
+      {!flyerFirst && artworkSection}
+
       {capabilities.hostAndContact && (
         <section className="event-form__section">
           <h2>Host & contact</h2>
           <label>
             Host
-            <input value={draft.host} onChange={(event) => update("host", event.target.value)} />
+            <input
+              id="event-host"
+              name="host"
+              value={draft.host}
+              onChange={(event) => update("host", event.target.value)}
+            />
           </label>
           <label>
             Contact email
             <input
+              id="event-contact-email"
+              name="contact_email"
               type="email"
               value={draft.contact_email}
               onChange={(event) => update("contact_email", event.target.value)}
@@ -373,6 +392,8 @@ export default function EventForm({
           <label>
             Instagram
             <input
+              id="event-contact-instagram"
+              name="contact_instagram"
               value={draft.contact_instagram}
               onChange={(event) => update("contact_instagram", event.target.value)}
             />
@@ -380,6 +401,8 @@ export default function EventForm({
           <label>
             Website
             <input
+              id="event-contact-website"
+              name="contact_website"
               type="url"
               value={draft.contact_website}
               onChange={(event) => update("contact_website", event.target.value)}

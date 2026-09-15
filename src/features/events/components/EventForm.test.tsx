@@ -67,7 +67,6 @@ describe("EventForm", () => {
     ]);
     expect(screen.getByText("Upload flyer")).toBeVisible();
     expect(screen.queryByRole("heading", { name: "Your info" })).not.toBeInTheDocument();
-
   });
 
   it("omits artwork for moderation submission edits without a canonical event id", () => {
@@ -139,5 +138,26 @@ describe("EventForm", () => {
     expect(screen.getByText("Flyer upload")).toBeVisible();
     expect(screen.getByRole("checkbox", { name: "Salsa" })).toBeInTheDocument();
     expect(screen.getByRole("checkbox", { name: "Outdoor" })).toBeInTheDocument();
+  });
+
+  it("renders admin artwork first when flyerFirst is enabled", () => {
+    render(
+      <EventForm
+        draft={draft}
+        onChange={vi.fn()}
+        capabilities={CAPABILITIES.admin}
+        flyerFirst
+        renderFlyerField={() => <p>Flyer upload</p>}
+      />
+    );
+    expect(sectionNames()).toEqual([
+      "Artwork",
+      "Basics",
+      "Styles & tags",
+      "When",
+      "Where",
+      "Pricing & RSVP",
+      "Host & contact",
+    ]);
   });
 });

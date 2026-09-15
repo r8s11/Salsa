@@ -21,6 +21,7 @@
 
 .admin-shell .admin-event-editor .event-form__section:nth-child(1),
 .admin-shell .admin-event-editor .event-form__section:nth-child(2),
+.admin-shell .admin-event-editor .event-form__section:nth-child(3),
 .admin-shell .admin-event-editor .event-form__section:nth-child(7) {
   grid-column: 1 / -1;
 }
@@ -136,7 +137,10 @@
   color: var(--admin-warning);
 }
 
-.admin-shell .admin-event-editor .flyer-extraction-panel .ui-button--secondary:hover:not(:disabled) {
+.admin-shell
+  .admin-event-editor
+  .flyer-extraction-panel
+  .ui-button--secondary:hover:not(:disabled) {
   background: var(--admin-warning-tint);
   color: var(--admin-warning);
 }

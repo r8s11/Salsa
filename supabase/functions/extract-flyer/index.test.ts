@@ -218,6 +218,55 @@ Deno.test("keeps a scheme-less domain and rejects a non-http website", async () 
   assertEquals((await nonsense.json()).extraction.website, null);
 });
 
+Deno.test("analyzes a persisted event flyer under the caller's own plain event id", async () => {
+  const persistedUrl =
+    `https://project.supabase.co/storage/v1/object/public/event-flyers/${ownerId}` +
+    `/33333333-3333-4333-8333-333333333333/flyer.png`;
+
+  const response = await createExtractFlyerHandler(makeDependencies())(
+    request("POST", { imageUrl: persistedUrl })
+  );
+
+  assertEquals(response.status, 200);
+});
+
+Deno.test("rejects a persisted event flyer owned by another user", async () => {
+  const foreignUrl =
+    `https://project.supabase.co/storage/v1/object/public/event-flyers/${otherId}` +
+    `/33333333-3333-4333-8333-333333333333/flyer.png`;
+
+  const response = await createExtractFlyerHandler(makeDependencies())(
+    request("POST", { imageUrl: foreignUrl })
+  );
+
+  assertEquals(response.status, 400);
+});
+
+Deno.test(
+  "lets an admin analyze any persisted event flyer, including another owner's",
+  async () => {
+    const adminDependencies = makeDependencies({
+      getUser: () => Promise.resolve({ userId: ownerId, isAdmin: true }),
+    });
+    const foreignUrl =
+      `https://project.supabase.co/storage/v1/object/public/event-flyers/${otherId}` +
+      `/33333333-3333-4333-8333-333333333333/flyer.png`;
+    const adminOwnerUrl =
+      `https://project.supabase.co/storage/v1/object/public/event-flyers/admin` +
+      `/33333333-3333-4333-8333-333333333333/flyer.png`;
+
+    const foreignResponse = await createExtractFlyerHandler(adminDependencies)(
+      request("POST", { imageUrl: foreignUrl })
+    );
+    const adminOwnerResponse = await createExtractFlyerHandler(adminDependencies)(
+      request("POST", { imageUrl: adminOwnerUrl })
+    );
+
+    assertEquals(foreignResponse.status, 200);
+    assertEquals(adminOwnerResponse.status, 200);
+  }
+);
+
 Deno.test("analyzes an Admin direct-create draft flyer under the caller's own path", async () => {
   const adminDraftUrl =
     `https://project.supabase.co/storage/v1/object/public/event-flyers/${ownerId}` +

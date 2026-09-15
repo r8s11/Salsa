@@ -66,7 +66,13 @@
       rgba(255, 255, 255, 0.02) 36.6% 37.3%,
       transparent 37.5%
     ),
-    radial-gradient(circle closest-side at 38% 30%, #191325 0%, #0e0a16 58%, #070510 90%, #0b0714 100%);
+    radial-gradient(
+      circle closest-side at 38% 30%,
+      #191325 0%,
+      #0e0a16 58%,
+      #070510 90%,
+      #0b0714 100%
+    );
   box-shadow: 0 42px 120px rgba(0, 0, 0, 0.6);
 }
 
@@ -194,7 +200,12 @@
       transparent 336deg,
       rgba(255, 255, 255, 0.115) 360deg
     );
-  mask-image: radial-gradient(circle closest-side, transparent 0 33%, #000 36% 99.2%, transparent 99.8%);
+  mask-image: radial-gradient(
+    circle closest-side,
+    transparent 0 33%,
+    #000 36% 99.2%,
+    transparent 99.8%
+  );
   -webkit-mask-image: radial-gradient(
     circle closest-side,
     transparent 0 33%,
@@ -205,7 +216,7 @@
 
 @keyframes heroVinylSpin {
   to {
-    transform: rotate(360deg);
+    transform: rotate(-360deg);
   }
 }
 
@@ -387,10 +398,10 @@
   color: var(--red);
 }
 
-
 /* Subtle ambient glow pulse */
 @keyframes heroGlowPulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }
@@ -402,7 +413,8 @@
 
 /* Subtle grid drift */
 @keyframes heroGridDrift {
-  0%, 100% {
+  0%,
+  100% {
     background-position: 0 0;
   }
   50% {
@@ -422,7 +434,9 @@
 /* ── CTA hover feedback ── */
 @media (hover: hover) and (pointer: fine) {
   .hero-btn {
-    transition: transform 0.15s ease-out, box-shadow 0.2s ease-out;
+    transition:
+      transform 0.15s ease-out,
+      box-shadow 0.2s ease-out;
   }
 
   .hero-btn:hover {
@@ -569,10 +583,7 @@
 /* ── Pointer Parallax (desktop only) ── */
 @media (hover: hover) and (pointer: fine) {
   .hero-bg {
-    transform: translate(
-      var(--hero-parallax-x, 0px),
-      var(--hero-parallax-y, 0px)
-    );
+    transform: translate(var(--hero-parallax-x, 0px), var(--hero-parallax-y, 0px));
     transition: transform 0.3s ease-out;
   }
 }

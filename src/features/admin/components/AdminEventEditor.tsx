@@ -190,6 +190,7 @@ export default function AdminEventEditor({
         onChange={setForm}
         capabilities={CAPABILITIES.admin}
         taxonomyTerms={{ danceStyles: danceStyles.terms, attributes: attributes.terms, archived }}
+        flyerFirst
         renderVenueField={() => (
           <>
             {venueCombobox.selectedId ? (
@@ -233,6 +234,8 @@ export default function AdminEventEditor({
             <label>
               Venue name
               <input
+                id="event-location"
+                name="location"
                 value={form.location}
                 onChange={(event) =>
                   setForm((current) => ({ ...current, location: event.target.value }))
@@ -242,6 +245,8 @@ export default function AdminEventEditor({
             <label>
               Address
               <input
+                id="event-address"
+                name="address"
                 value={form.address}
                 onChange={(event) =>
                   setForm((current) => ({ ...current, address: event.target.value }))

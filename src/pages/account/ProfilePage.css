@@ -373,16 +373,6 @@
   margin-top: var(--space-xl);
 }
 
-.profile-submissions-header h2 {
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: clamp(24px, 3.5vw, 34px);
-  line-height: 1.1;
-  color: var(--text);
-  letter-spacing: -0.02em;
-  text-wrap: balance;
-}
-
 .profile-empty {
   padding: var(--space-xl) var(--space-lg);
   border: 1px dashed var(--border-md);
@@ -604,6 +594,14 @@
     flex-direction: column;
     align-items: stretch;
     gap: var(--space-sm);
+  }
+
+  .profile-submission-date-block {
+    width: auto;
+    display: flex;
+    gap: 6px;
+    align-items: baseline;
+    padding: 6px 10px;
   }
 
   .profile-hosting-row {

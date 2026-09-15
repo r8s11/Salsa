@@ -264,7 +264,12 @@ describe("ProfilePage", () => {
     mocks.ownProfile.profile = savedProfile();
     renderPage();
 
-    expect(screen.getByText("@mariasalsa")).toBeInTheDocument();
+    const usernameEl = screen.getByText("@mariasalsa");
+    const nameEl = screen.getByRole("heading", { level: 1 });
+    expect(usernameEl).toBeInTheDocument();
+    expect(
+      nameEl.compareDocumentPosition(usernameEl) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
   });
 
   it("never assigns a stored photo value the save path would reject", () => {

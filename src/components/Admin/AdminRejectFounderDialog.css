@@ -24,7 +24,7 @@
   max-width: 479.98px;
   background: var(--surface);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-xl);
+  box-shadow: var(--admin-shadow-md);
   padding: var(--space-xl);
   animation: scale-in 0.2s ease-out;
 }

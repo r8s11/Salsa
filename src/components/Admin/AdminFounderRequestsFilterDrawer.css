@@ -22,7 +22,7 @@
   max-width: 360px;
   height: 100%;
   background: var(--surface);
-  box-shadow: var(--shadow-xl);
+  box-shadow: var(--admin-shadow-md);
   display: flex;
   flex-direction: column;
   animation: slide-in 0.2s ease-out;

@@ -6,16 +6,21 @@
    Motion: CSS-driven staggered reveals on mount.
    Poster parallax on modal scroll.
    Micro-interactions on gallery, buttons.
+
+   Bolder pass: rose atmosphere, deeper shadows, expressive
+   type treatment, warmth bleeding through every surface.
    ======================================== */
 
-/* ── Overlay ── */
+/* ── Overlay ──
+   Deeper, rose-tinted. The dancer is walking into the venue,
+   not peering through a neutral window. */
 .modal-overlay {
   position: fixed;
   inset: 0;
   z-index: 1100;
-  background: rgba(11, 19, 38, 0.62);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  background: rgba(8, 10, 24, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -23,7 +28,9 @@
   overflow-y: auto;
 }
 
-/* ── Content shell ── */
+/* ── Content shell ──
+   Rose-tinted shadow instead of neutral black. The card
+   bleeds warmth from the poster into the surrounding dark. */
 .modal-content {
   position: relative;
   width: 100%;
@@ -31,7 +38,9 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
-  box-shadow: 0 30px 60px -18px rgba(0, 0, 0, 0.5);
+  box-shadow:
+    0 40px 80px -20px rgba(180, 20, 50, 0.18),
+    0 20px 40px -12px rgba(0, 0, 0, 0.45);
   overflow: hidden;
   /* Entrance: scale up from 96% + fade, spring overshoot */
   opacity: 0;
@@ -58,27 +67,13 @@
   animation: revealUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
-.modal-content.modal--revealed [data-reveal="1"] {
-  animation-delay: 0.12s;
-}
-.modal-content.modal--revealed [data-reveal="2"] {
-  animation-delay: 0.2s;
-}
-.modal-content.modal--revealed [data-reveal="3"] {
-  animation-delay: 0.28s;
-}
-.modal-content.modal--revealed [data-reveal="4"] {
-  animation-delay: 0.36s;
-}
-.modal-content.modal--revealed [data-reveal="5"] {
-  animation-delay: 0.44s;
-}
-.modal-content.modal--revealed [data-reveal="6"] {
-  animation-delay: 0.52s;
-}
-.modal-content.modal--revealed [data-reveal="7"] {
-  animation-delay: 0.6s;
-}
+.modal-content.modal--revealed [data-reveal="1"] { animation-delay: 0.12s; }
+.modal-content.modal--revealed [data-reveal="2"] { animation-delay: 0.2s; }
+.modal-content.modal--revealed [data-reveal="3"] { animation-delay: 0.28s; }
+.modal-content.modal--revealed [data-reveal="4"] { animation-delay: 0.36s; }
+.modal-content.modal--revealed [data-reveal="5"] { animation-delay: 0.44s; }
+.modal-content.modal--revealed [data-reveal="6"] { animation-delay: 0.52s; }
+.modal-content.modal--revealed [data-reveal="7"] { animation-delay: 0.6s; }
 
 @keyframes revealUp {
   from {
@@ -96,12 +91,14 @@
   display: none;
 }
 
-/* ── Poster header ── */
+/* ── Poster header ──
+   Taller minimum. The poster IS the invitation — it should
+   command the first viewport. */
 .modal-poster {
   position: relative;
   width: 100%;
-  height: min(38vw, 320px);
-  min-height: 230px;
+  height: min(42vw, 360px);
+  min-height: 260px;
   background-color: var(--surface-high);
   background-image: linear-gradient(150deg, var(--surface-high), var(--red));
   background-size: cover;
@@ -111,28 +108,44 @@
   transition: transform 0.1s linear;
 }
 
+/* Two-layer gradient: directional sweep + radial vignette
+   that pulls the eye inward to the title. */
+.modal-poster::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 70% 60% at 30% 80%,
+    rgba(11, 19, 38, 0.0) 0%,
+    rgba(11, 19, 38, 0.55) 100%
+  );
+  z-index: 1;
+  pointer-events: none;
+}
+
 .modal-poster::after {
   content: "";
   position: absolute;
   inset: 0;
   background: linear-gradient(
     180deg,
-    rgba(11, 19, 38, 0.45) 0%,
-    transparent 32%,
-    rgba(11, 19, 38, 0.6) 72%,
-    var(--bg)
+    rgba(11, 19, 38, 0.5) 0%,
+    transparent 28%,
+    rgba(11, 19, 38, 0.5) 68%,
+    var(--bg) 100%
   );
+  z-index: 1;
   pointer-events: none;
 }
 
-/* Vinyl record accent — decorative element in poster header */
+/* Vinyl record accent — larger, more visible, warmer presence */
 .modal-vinyl {
   position: absolute;
   top: 50%;
-  right: -24px;
+  right: -14px;
   transform: translateY(-50%);
   z-index: 1;
-  opacity: 0.35;
+  opacity: 0.45;
   pointer-events: none;
   /* Subtle idle spin */
   animation: vinylSpin 12s linear infinite;
@@ -154,22 +167,24 @@
 
 .quick-look-date {
   font-weight: 500;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
 }
 
 /* ── Decision strip ──
-   The dancer sees the poster above; this is the first thing they read after
-   it. Time, location, price on the left; the RSVP decision on the right.
-   One compact row — the dancer's information is no longer scattered across
-   three separate regions. */
+   Brighter ground, rose accent bar on the left edge.
+   This is the dancer's first decision point — it should
+   feel like a distinct zone, not a muted divider. */
 .decision-strip {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
   padding: 14px 28px;
-  background: var(--surface-high);
+  background: linear-gradient(135deg, var(--surface-high) 0%, rgba(225, 29, 72, 0.06) 100%);
   border-bottom: 1px solid var(--border);
+  border-left: 3px solid var(--primary-container);
 }
 
 .decision-strip__facts {
@@ -190,9 +205,11 @@
 }
 
 .decision-strip__price {
-  font-weight: 700;
+  font-weight: 800;
   color: var(--gold);
-  font-size: 1rem;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+  text-shadow: 0 0 16px rgba(233, 195, 73, 0.25);
 }
 
 .decision-strip__rsvp {
@@ -209,13 +226,13 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: var(--card);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid var(--border-md);
+  background: rgba(17, 23, 40, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-full);
   padding: 8px 14px;
-  color: var(--text);
+  color: rgba(255, 255, 255, 0.9);
   font-family: var(--font-ui);
   font-size: 13px;
   font-weight: 700;
@@ -227,8 +244,8 @@
 }
 
 .back-pill:hover {
-  background: var(--card-hover);
-  border-color: var(--border-lg);
+  background: rgba(22, 30, 52, 0.8);
+  border-color: rgba(255, 255, 255, 0.2);
   transform: translateX(-2px);
 }
 
@@ -242,12 +259,16 @@
 
 .poster-overlay h2 {
   font-family: var(--font-display);
-  font-size: 34px;
+  font-size: 36px;
   font-weight: 800;
   line-height: 1.05;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
   color: #fff;
   margin: 8px 0 0;
+  /* Depth against any image */
+  text-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.5),
+    0 0 40px rgba(225, 29, 72, 0.15);
 }
 
 /* ── Calendar type chips ──
@@ -268,6 +289,11 @@
 
 .modal-content .style-chip {
   padding: 3px 8px;
+  transition: box-shadow 0.25s ease;
+}
+
+.modal-content .style-chip:hover {
+  box-shadow: 0 0 12px rgba(255, 179, 182, 0.25);
 }
 
 /* ── Scrollable body ── */
@@ -275,15 +301,16 @@
   margin-top: var(--space-lg);
 }
 
-/* ── Body grid (desktop two-column) ── */
+/* ── Body grid (desktop two-column) ──
+   Warm gradient divider between columns instead of a plain border. */
 .modal-grid {
   display: grid;
   grid-template-columns: 1.6fr 1fr;
-  gap: 40px;
+  gap: 0;
 }
 
 .modal-details {
-  padding: 28px;
+  padding: 28px 32px;
 }
 
 .meta-row {
@@ -322,7 +349,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  padding: 0 28px 16px;
+  padding: 0 32px 16px;
 }
 
 .modal-style-row .style-chip {
@@ -351,17 +378,24 @@
   text-transform: uppercase;
 }
 
+/* ── Description ──
+   Indented quote treatment: the event description is the host's
+   voice. Give it a warm left accent and distinct typographic
+   presence instead of burying it as plain body text. */
 .modal-description {
   font-family: var(--font-body);
   font-size: 15px;
   color: var(--text-muted);
-  line-height: 1.6;
-  margin: 10px 0 0;
+  line-height: 1.65;
+  margin: 14px 0 0;
+  padding: 14px 0 14px 18px;
+  border-left: 3px solid var(--primary-container);
+  background: linear-gradient(90deg, rgba(225, 29, 72, 0.04) 0%, transparent 60%);
 }
 
 /* ── Gallery ── */
 .gallery {
-  margin-top: 20px;
+  margin-top: 24px;
 }
 
 .gallery-eyebrow {
@@ -386,13 +420,18 @@
   object-fit: cover;
   transition:
     transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.3s ease;
+    box-shadow 0.3s ease,
+    filter 0.3s ease;
   cursor: pointer;
+  filter: brightness(0.92);
 }
 
 .gallery-thumb:hover {
-  transform: scale(1.08) translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+  transform: scale(1.12) translateY(-3px);
+  box-shadow:
+    0 12px 28px rgba(0, 0, 0, 0.4),
+    0 0 20px rgba(225, 29, 72, 0.12);
+  filter: brightness(1.05);
 }
 
 .gallery-more {
@@ -411,18 +450,22 @@
 }
 
 /* ── Desktop sidebar ──
-   Secondary actions, contact, and series. The RSVP is in the decision strip
-   now, so this column is no longer the decision region — it's supporting
-   context. Carries the warm surface to stay consistent with the mobile
-   action bar. */
+   Stronger separation from the detail column. The sidebar carries
+   secondary actions in a warm, self-contained zone. */
 .modal-sidebar {
   padding: 28px;
-  background: var(--surface-action);
+  background: linear-gradient(
+    180deg,
+    var(--surface-action) 0%,
+    rgba(225, 29, 72, 0.04) 100%
+  );
   border-radius: 0 18px 18px 0;
-  border-left: 1px solid var(--red-dim);
+  border-left: 1px solid rgba(225, 29, 72, 0.2);
   display: flex;
   flex-direction: column;
   gap: 14px;
+  /* Warm inner glow from the left edge */
+  box-shadow: inset 2px 0 24px -8px rgba(225, 29, 72, 0.06);
 }
 
 .price-row {
@@ -589,12 +632,12 @@
   justify-content: center;
   width: 44px;
   height: 44px;
-  border: 1px solid var(--border-md);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-full);
-  background: var(--card);
+  background: rgba(17, 23, 40, 0.6);
   color: var(--text);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   cursor: pointer;
   transition:
     background 0.2s ease,
@@ -604,8 +647,8 @@
 }
 
 .modal-close-x:hover {
-  background: var(--card-hover);
-  border-color: var(--border-lg);
+  background: rgba(180, 20, 50, 0.25);
+  border-color: rgba(225, 29, 72, 0.4);
   color: var(--red-bright);
 }
 
@@ -651,7 +694,7 @@
     width: 36px;
     height: 4px;
     border-radius: 2px;
-    background: var(--border-md);
+    background: rgba(255, 255, 255, 0.2);
   }
 
   /* ── Close X — always visible top-right, over poster ── */
@@ -669,7 +712,7 @@
 
   /* ── Poster — taller, full-bleed into top corners ── */
   .modal-poster {
-    height: 240px;
+    height: 260px;
     border-radius: 20px 20px 0 0;
     flex-shrink: 0;
     /* Disable parallax on mobile — no scroll container */
@@ -683,7 +726,7 @@
   }
 
   .poster-overlay h2 {
-    font-size: 24px;
+    font-size: 26px;
     line-height: 1.1;
   }
 
@@ -702,6 +745,7 @@
     gap: 12px;
     flex-shrink: 0;
     flex-wrap: wrap;
+    border-left-width: 2px;
   }
 
   .decision-strip__facts {
@@ -779,6 +823,11 @@
     height: 64px;
   }
 
+  /* ── Description — tighter on mobile ── */
+  .modal-description {
+    padding-left: 14px;
+  }
+
   /* ── Sticky mobile action bar ──
      The desktop sidebar is hidden here, so this bar carries secondary actions.
      The RSVP is in the decision strip above the fold. */
@@ -790,8 +839,8 @@
     padding: 10px 16px;
     padding-bottom: max(10px, env(safe-area-inset-bottom));
     background: var(--surface-action);
-    border-top: 1px solid var(--red-dim);
-    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.3);
+    border-top: 1px solid rgba(225, 29, 72, 0.2);
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.35);
   }
 
   /* The decision spans the bar; everything else is secondary by construction. */
@@ -835,15 +884,20 @@
 /* ── Small phones (≤400px) — tighter spacing ── */
 @media (max-width: 479.98px) {
   .modal-poster {
-    height: 200px;
+    height: 220px;
   }
 
   .poster-overlay h2 {
-    font-size: 20px;
+    font-size: 22px;
   }
 
   .modal-details {
     padding: 16px 16px 4px;
+  }
+
+  .modal-description {
+    padding-left: 12px;
+    font-size: 14px;
   }
 
   .modal-mobile-actions {
@@ -909,6 +963,7 @@
   .gallery-thumb:hover {
     transform: none;
     box-shadow: none;
+    filter: none;
   }
 
   .modal-sidebar .rsvp-button:active,

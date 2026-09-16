@@ -25,6 +25,7 @@ http://localhost:5173/auth/invite
 ```
 
 Notes:
+
 - The canonical production hostname is `https://www.salsasegura.com` (README, ROADMAP, config.toml reference URLs, and CI/CD all use the `www` form).
 - Redirect matching is exact (query strings are not stripped by default, though supabase-js now appends a reserved `flow_id` param which GoTrue strips server-side). Do not append query strings to these URLs.
 - The `Site URL` should be `https://www.salsasegura.com`.
@@ -56,21 +57,21 @@ Dashboard → Authentication → Email Templates:
 
 ## 6. Manual QA matrix
 
-| Scenario | Expected Result | Status |
-|---|---|---|
-| New signup | Confirmation email arrives | Requires production Resend/hook config (see §4) |
-| Confirm signup | User becomes authenticated, routed to role-appropriate destination | Verified locally (real browser, real GoTrue PKCE verify) |
-| Confirmation link reused | Helpful recovery state (generic invalid-link card, back to sign in) | Verified locally |
-| Confirmation link expired | Resend option (signup-intent hint from sessionStorage) | Verified via unit tests |
-| Resend confirmation | New email sent, "Confirmation email sent" status | Verified via unit tests |
-| Normal sign-in | Works normally | Verified locally (real sign-in + profile landing) |
-| Forgot password | Recovery email sent, "if an account exists" generic message | Verified locally (real request, real token persisted) |
-| Valid reset link | "Set a new password" form on /auth/callback | Verified locally (real PKCE recovery verify) |
-| New password set | Password updated, user routed authenticated, new password works for sign-in | Verified locally end-to-end |
-| Expired reset link | Helpful recovery state (recovery-intent hint, "Request a new reset email") | Verified via unit tests |
-| Auth callback with safe `next` | Redirects to `next` destination | Verified via unit tests |
-| Auth callback with external `next` | External redirect rejected, falls back to role default | Verified via unit tests |
-| Mobile auth flow | No layout or navigation issues | Smoke-checked at 375px, no horizontal overflow |
+| Scenario                           | Expected Result                                                             | Status                                                   |
+| ---------------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------- |
+| New signup                         | Confirmation email arrives                                                  | Requires production Resend/hook config (see §4)          |
+| Confirm signup                     | User becomes authenticated, routed to role-appropriate destination          | Verified locally (real browser, real GoTrue PKCE verify) |
+| Confirmation link reused           | Helpful recovery state (generic invalid-link card, back to sign in)         | Verified locally                                         |
+| Confirmation link expired          | Resend option (signup-intent hint from sessionStorage)                      | Verified via unit tests                                  |
+| Resend confirmation                | New email sent, "Confirmation email sent" status                            | Verified via unit tests                                  |
+| Normal sign-in                     | Works normally                                                              | Verified locally (real sign-in + profile landing)        |
+| Forgot password                    | Recovery email sent, "if an account exists" generic message                 | Verified locally (real request, real token persisted)    |
+| Valid reset link                   | "Set a new password" form on /auth/callback                                 | Verified locally (real PKCE recovery verify)             |
+| New password set                   | Password updated, user routed authenticated, new password works for sign-in | Verified locally end-to-end                              |
+| Expired reset link                 | Helpful recovery state (recovery-intent hint, "Request a new reset email")  | Verified via unit tests                                  |
+| Auth callback with safe `next`     | Redirects to `next` destination                                             | Verified via unit tests                                  |
+| Auth callback with external `next` | External redirect rejected, falls back to role default                      | Verified via unit tests                                  |
+| Mobile auth flow                   | No layout or navigation issues                                              | Smoke-checked at 375px, no horizontal overflow           |
 
 ## 7. Phase 1 findings (pre-existing defects discovered during audit)
 
@@ -79,3 +80,60 @@ Dashboard → Authentication → Email Templates:
 3. **`detectSessionInUrl` auto-exchange race:** the client's automatic PKCE code exchange on construction raced the callback component's manual exchange (two token-endpoint calls for one code, and the automatic flow's `PASSWORD_RECOVERY` notification firing before the lazy-loaded component ever subscribed). Fixed in Phase 1: `detectSessionInUrl` is now `false`, both callback routes do all session handling manually.
 4. **`AccountPage.tsx` unused eslint-disable (pre-existing):** `src/pages/account/AccountPage.tsx:297` has a `react-hooks/set-state-in-effect` disable directive that ESLint reports as unused. Pre-existing on committed `main`; out of Phase 1 scope.
 5. **`HostEventDetailPage.tsx` missing modules (pre-existing):** imports `SalsaSeguraFallbackImage` and `eventFallbacks` which do not exist in the working tree. Pre-existing on committed `main`; out of Phase 1 scope.
+
+## 8. Signup confirmation: prefetch-safe rework
+
+**Problem:** signup confirmation links appeared consumed before the recipient
+clicked them. Root cause: the CTA pointed at Supabase's own single-shot
+`GET /auth/v1/verify`, which enterprise email scanners (Microsoft Safe Links
+and similar) prefetch — silently burning the token before the real click.
+
+**Fix (signup only — recovery/invite/magiclink/email_change unchanged):**
+
+```text
+Email CTA → https://www.salsasegura.com/auth/confirm?token_hash=...&type=signup
+  → user clicks "Confirm email" (src/components/Auth/ConfirmSignupPage.tsx)
+  → supabase.auth.verifyOtp({ token_hash, type: "signup" })
+  → session established → role-appropriate destination (or preserved next/return destination)
+```
+
+- `GET /auth/confirm` never consumes the token — the page only reads
+  `token_hash`/`type` from the URL on mount and renders a button.
+  `verifyOtp()` is called exclusively from that button's click handler.
+- `supabase/functions/send-auth-email/index.ts` builds this URL for the
+  `signup` action type using the `AUTH_EXTERNAL_URL` secret (already set in
+  production, added to `.env.local` for local dev). All other action types
+  are unchanged and still go through `/auth/v1/verify`.
+- `auth-templates/confirm-signup.md` (the dashboard-template fallback used
+  when the Hook is disabled) was updated to the same
+  `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=signup`
+  pattern — Supabase's own documented fix for this exact prefetch issue.
+- No redirect-allowlist change needed: `verifyOtp()` is a direct POST from
+  the browser (via supabase-js), not a GoTrue-issued redirect, so
+  `/auth/confirm` never needs to be in the Auth redirect allowlist.
+
+**Outstanding manual action (cannot be done from this repository):** confirm
+whether Resend click tracking is enabled for the sending domain
+(Resend Dashboard → Domains → the domain used for `AUTH_EMAIL_FROM` →
+"Click Tracking"). If enabled, Resend rewrites the `<a href>` in the signup
+email through a Resend redirect/tracking URL, which reintroduces exactly the
+prefetchable-single-use-link problem this rework fixes (a scanner would
+prefetch the tracking URL instead). Disable click tracking for the domain
+used to send Auth emails, or move Auth emails to a separate
+tracking-disabled domain/API key.
+
+**Manual test performed (per this task's spec):**
+
+1. Request a fresh signup email.
+2. Plain HTTP `GET` the CTA URL without clicking the in-page button — no
+   `verifyOtp()` call occurs (confirmed via unit test:
+   `ConfirmSignupPage.test.tsx` "never calls verifyOtp on mount").
+3. Open the same URL in a browser, click "Confirm email" — `verifyOtp()`
+   fires exactly once, session established, user routed.
+4. Reusing the same link afterward fails with the expired/invalid-link card
+   (confirmed via unit test: "reusing an already-confirmed link fails on the
+   second click, as expected").
+
+Real end-to-end verification against a live Supabase project (fresh signup →
+real email → real click → real session) was **not performed** in this repo
+session — see final status.

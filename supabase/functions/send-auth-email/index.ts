@@ -20,6 +20,8 @@ export interface SendAuthEmailDependencies {
     };
   };
   authExternalUrl: string;
+  /** Trusted site origin (AUTH_EXTERNAL_URL) — never Supabase's own API URL. */
+  siteUrl: string;
   from: string;
 }
 
@@ -30,12 +32,7 @@ type AuthEmail = {
   html: string;
   text?: string;
 };
-type EmailActionType =
-  | "invite"
-  | "signup"
-  | "magiclink"
-  | "recovery"
-  | "email_change";
+type EmailActionType = "invite" | "signup" | "magiclink" | "recovery" | "email_change";
 type AuthHookPayload = {
   user: { email: string; new_email: string | null };
   email_data: {
@@ -51,7 +48,7 @@ const unauthorized = () =>
     { error: { http_code: 401, message: "Unauthorized" } },
     {
       status: 401,
-    },
+    }
   );
 
 function stringField(value: unknown): string | null {
@@ -68,31 +65,22 @@ function parsePayload(value: unknown): AuthHookPayload | null {
     }
   }
   if (
-    !payload || typeof payload !== "object" || !("user" in payload) ||
+    !payload ||
+    typeof payload !== "object" ||
+    !("user" in payload) ||
     !("email_data" in payload)
   ) {
     return null;
   }
   const user = payload.user;
   const emailData = payload.email_data;
-  if (
-    !user || typeof user !== "object" || !emailData ||
-    typeof emailData !== "object"
-  ) return null;
+  if (!user || typeof user !== "object" || !emailData || typeof emailData !== "object") return null;
   const email = "email" in user ? stringField(user.email) : null;
   const newEmail = "new_email" in user ? stringField(user.new_email) : null;
-  const tokenHash = "token_hash" in emailData
-    ? stringField(emailData.token_hash)
-    : null;
-  const tokenHashNew = "token_hash_new" in emailData
-    ? stringField(emailData.token_hash_new)
-    : null;
-  const redirectTo = "redirect_to" in emailData
-    ? stringField(emailData.redirect_to)
-    : null;
-  const action = "email_action_type" in emailData
-    ? stringField(emailData.email_action_type)
-    : null;
+  const tokenHash = "token_hash" in emailData ? stringField(emailData.token_hash) : null;
+  const tokenHashNew = "token_hash_new" in emailData ? stringField(emailData.token_hash_new) : null;
+  const redirectTo = "redirect_to" in emailData ? stringField(emailData.redirect_to) : null;
+  const action = "email_action_type" in emailData ? stringField(emailData.email_action_type) : null;
   if (!email || !tokenHash || !redirectTo || !isActionType(action)) return null;
   return {
     user: { email, new_email: newEmail },
@@ -119,19 +107,35 @@ function verifyLink(
   authExternalUrl: string,
   tokenHash: string,
   actionType: EmailActionType,
-  redirectTo: string,
+  redirectTo: string
 ): string {
   const base = authExternalUrl.replace(/\/$/, "");
-  return `${base}/auth/v1/verify?token=${encodeURIComponent(tokenHash)}&type=${
-    encodeURIComponent(
-      actionType,
-    )
-  }&redirect_to=${encodeURIComponent(redirectTo)}`;
+  return `${base}/auth/v1/verify?token=${encodeURIComponent(tokenHash)}&type=${encodeURIComponent(
+    actionType
+  )}&redirect_to=${encodeURIComponent(redirectTo)}`;
+}
+
+// Signup confirmation never uses Supabase's own single-shot /auth/v1/verify
+// GET endpoint — enterprise link scanners (e.g. Microsoft Safe Links) prefetch
+// it and silently consume the token before the recipient clicks. Instead the
+// CTA lands on our own /auth/confirm page, which requires an explicit click
+// before calling verifyOtp(). See src/components/Auth/ConfirmSignupPage.tsx.
+function confirmSignupLink(siteUrl: string, tokenHash: string, redirectTo: string): string {
+  const url = new URL("/auth/confirm", siteUrl);
+  url.searchParams.set("token_hash", tokenHash);
+  url.searchParams.set("type", "signup");
+  try {
+    const next = new URL(redirectTo).searchParams.get("next");
+    if (next) url.searchParams.set("next", next);
+  } catch {
+    // redirect_to isn't a URL — nothing to forward.
+  }
+  return url.toString();
 }
 
 function template(
   action: Exclude<EmailActionType, "email_change">,
-  url: string,
+  url: string
 ): Pick<AuthEmail, "subject" | "html" | "text"> {
   switch (action) {
     case "invite": {
@@ -166,10 +170,7 @@ export function createSendAuthEmailHandler(deps: SendAuthEmailDependencies) {
     const rawPayload = await req.text();
     let verified: unknown;
     try {
-      verified = deps.webhook.verify(
-        rawPayload,
-        Object.fromEntries(req.headers),
-      );
+      verified = deps.webhook.verify(rawPayload, Object.fromEntries(req.headers));
     } catch {
       return unauthorized();
     }
@@ -184,7 +185,7 @@ export function createSendAuthEmailHandler(deps: SendAuthEmailDependencies) {
           deps.authExternalUrl,
           payload.email_data.token_hash_new,
           "email_change",
-          payload.email_data.redirect_to,
+          payload.email_data.redirect_to
         );
         messages.push({
           from: deps.from,
@@ -197,7 +198,7 @@ export function createSendAuthEmailHandler(deps: SendAuthEmailDependencies) {
           deps.authExternalUrl,
           payload.email_data.token_hash,
           "email_change",
-          payload.email_data.redirect_to,
+          payload.email_data.redirect_to
         );
         messages.push({
           from: deps.from,
@@ -207,12 +208,19 @@ export function createSendAuthEmailHandler(deps: SendAuthEmailDependencies) {
       }
       if (messages.length === 0) return unauthorized();
     } else {
-      const url = verifyLink(
-        deps.authExternalUrl,
-        payload.email_data.token_hash,
-        payload.email_data.email_action_type,
-        payload.email_data.redirect_to,
-      );
+      const url =
+        payload.email_data.email_action_type === "signup"
+          ? confirmSignupLink(
+              deps.siteUrl,
+              payload.email_data.token_hash,
+              payload.email_data.redirect_to
+            )
+          : verifyLink(
+              deps.authExternalUrl,
+              payload.email_data.token_hash,
+              payload.email_data.email_action_type,
+              payload.email_data.redirect_to
+            );
       messages.push({
         from: deps.from,
         to: payload.user.email,
@@ -239,15 +247,13 @@ function requiredEnvironment(name: string): string {
 }
 
 function configuredHandler() {
-  const secret = requiredEnvironment("SEND_EMAIL_HOOK_SECRET").replace(
-    /^v1,whsec_/,
-    "",
-  );
+  const secret = requiredEnvironment("SEND_EMAIL_HOOK_SECRET").replace(/^v1,whsec_/, "");
   const resendKey = requiredEnvironment("RESEND_API_KEY");
   return createSendAuthEmailHandler({
     webhook: new Webhook(secret),
     resend: new Resend(resendKey),
     authExternalUrl: requiredEnvironment("SUPABASE_URL"),
+    siteUrl: requiredEnvironment("AUTH_EXTERNAL_URL"),
     from: requiredEnvironment("AUTH_EMAIL_FROM"),
   });
 }

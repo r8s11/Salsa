@@ -1,11 +1,5 @@
-import {
-  assertEquals,
-  assertStringIncludes,
-} from "https://deno.land/std@0.224.0/assert/mod.ts";
-import {
-  createSendAuthEmailHandler,
-  type SendAuthEmailDependencies,
-} from "./index.ts";
+import { assertEquals, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { createSendAuthEmailHandler, type SendAuthEmailDependencies } from "./index.ts";
 
 type EmailData = {
   token_hash?: string;
@@ -17,11 +11,7 @@ type EmailData = {
 
 type SentEmail = { from: string; to: string; subject: string; html: string };
 
-function signedRequest(
-  emailData: EmailData,
-  email = "organizer@example.com",
-  newEmail?: string,
-) {
+function signedRequest(emailData: EmailData, email = "organizer@example.com", newEmail?: string) {
   return new Request("http://localhost/send-auth-email", {
     method: "POST",
     headers: {
@@ -56,6 +46,7 @@ function dependencies(overrides: Partial<SendAuthEmailDependencies> = {}) {
       },
     },
     authExternalUrl: "https://project.supabase.co",
+    siteUrl: "https://app.example",
     from: "SalsaSegura <invites@salsasegura.com>",
     ...overrides,
   };
@@ -72,7 +63,7 @@ async function error(response: Response) {
 Deno.test("rejects non-POST requests before verification", async () => {
   const { deps, verified } = dependencies();
   const response = await createSendAuthEmailHandler(deps)(
-    new Request("http://localhost", { method: "GET" }),
+    new Request("http://localhost", { method: "GET" })
   );
   assertEquals(response.status, 405);
   assertEquals(verified, []);
@@ -82,8 +73,8 @@ Deno.test("rejects malformed JSON after a valid signature", async () => {
   const { deps } = dependencies({ webhook: { verify: () => "not-json" } });
   await error(
     await createSendAuthEmailHandler(deps)(
-      new Request("http://localhost", { method: "POST", body: "not-json" }),
-    ),
+      new Request("http://localhost", { method: "POST", body: "not-json" })
+    )
   );
 });
 
@@ -101,8 +92,8 @@ Deno.test("rejects an invalid signature before parsing or sending", async () => 
         token_hash: "hash",
         redirect_to: "https://app.example/auth/invite",
         email_action_type: "invite",
-      }),
-    ),
+      })
+    )
   );
   assertEquals(sent, []);
 });
@@ -142,7 +133,7 @@ Deno.test("rejects payloads missing the recipient email or verification fields",
       new Request("http://localhost", {
         method: "POST",
         body: JSON.stringify(payload),
-      }),
+      })
     );
     await error(response);
     assertEquals(sent, []);
@@ -159,7 +150,7 @@ Deno.test("sends invite mail using token_hash and the exact redirect URL", async
       token: rawToken,
       redirect_to: redirectTo,
       email_action_type: "invite",
-    }),
+    })
   );
   assertEquals(response.status, 200);
   assertEquals(await response.json(), {});
@@ -172,24 +163,24 @@ Deno.test("sends invite mail using token_hash and the exact redirect URL", async
   assertStringIncludes(message.html, "set a password");
   assertStringIncludes(
     message.html,
-    "https://project.supabase.co/auth/v1/verify?token=hash%2B%2F%3D&amp;type=invite&amp;redirect_to=http%3A%2F%2Flocalhost%3A5173%2Fauth%2Finvite%3Fsource%3Demail",
+    "https://project.supabase.co/auth/v1/verify?token=hash%2B%2F%3D&amp;type=invite&amp;redirect_to=http%3A%2F%2Flocalhost%3A5173%2Fauth%2Finvite%3Fsource%3Demail"
   );
   assertEquals(message.html.includes(rawToken), false);
 });
 
-for (
-  const [action, subjectFragment] of [["signup", "Confirm"], [
-    "magiclink",
-    "Sign in",
-  ], ["recovery", "Reset"]] as const
-) {
+for (const [action, subjectFragment] of [
+  ["magiclink", "Sign in"],
+  ["recovery", "Reset"],
+] as const) {
   Deno.test(`sends the ${action} email template with its verification URL`, async () => {
     const { deps, sent } = dependencies();
-    const response = await createSendAuthEmailHandler(deps)(signedRequest({
-      token_hash: "hash+/=",
-      redirect_to: "https://app.example/auth/callback?flow=email",
-      email_action_type: action,
-    }));
+    const response = await createSendAuthEmailHandler(deps)(
+      signedRequest({
+        token_hash: "hash+/=",
+        redirect_to: "https://app.example/auth/callback?flow=email",
+        email_action_type: action,
+      })
+    );
     assertEquals(response.status, 200);
     {
       assertStringIncludes(sent[0].subject, subjectFragment);
@@ -198,21 +189,76 @@ for (
     }
     assertStringIncludes(
       sent[0].html,
-      `https://project.supabase.co/auth/v1/verify?token=hash%2B%2F%3D&amp;type=${action}&amp;redirect_to=https%3A%2F%2Fapp.example%2Fauth%2Fcallback%3Fflow%3Demail`,
+      `https://project.supabase.co/auth/v1/verify?token=hash%2B%2F%3D&amp;type=${action}&amp;redirect_to=https%3A%2F%2Fapp.example%2Fauth%2Fcallback%3Fflow%3Demail`
     );
   });
 }
+
+// Signup confirmation is prefetch-safe: the CTA must never point at
+// Supabase's own single-shot GET /auth/v1/verify (link scanners consume it
+// before the recipient clicks). It must land on our own /auth/confirm page,
+// which only calls verifyOtp() after an explicit click.
+Deno.test(
+  "sends the signup confirmation email pointing at the app's own /auth/confirm page, not /auth/v1/verify",
+  async () => {
+    const { deps, sent } = dependencies();
+    const response = await createSendAuthEmailHandler(deps)(
+      signedRequest({
+        token_hash: "hash+/=",
+        redirect_to: "https://app.example/auth/callback?flow=email",
+        email_action_type: "signup",
+      })
+    );
+    assertEquals(response.status, 200);
+    assertStringIncludes(sent[0].subject, "Confirm");
+    assertStringIncludes(sent[0].html, "<!DOCTYPE html>");
+    assertStringIncludes(
+      sent[0].html,
+      "https://app.example/auth/confirm?token_hash=hash%2B%2F%3D&amp;type=signup"
+    );
+    assertEquals(sent[0].html.includes("/auth/v1/verify"), false);
+  }
+);
+
+Deno.test(
+  "forwards a safe next param embedded in redirect_to onto the signup confirm link",
+  async () => {
+    const { deps, sent } = dependencies();
+    await createSendAuthEmailHandler(deps)(
+      signedRequest({
+        token_hash: "hash",
+        redirect_to: "https://app.example/auth/callback?next=%2Fhost",
+        email_action_type: "signup",
+      })
+    );
+    assertStringIncludes(sent[0].html, "next=%2Fhost");
+  }
+);
+
+Deno.test("omits next from the signup confirm link when redirect_to carries none", async () => {
+  const { deps, sent } = dependencies();
+  await createSendAuthEmailHandler(deps)(
+    signedRequest({
+      token_hash: "hash",
+      redirect_to: "https://app.example/auth/callback",
+      email_action_type: "signup",
+    })
+  );
+  assertEquals(sent[0].html.includes("next="), false);
+});
 
 Deno.test("rejects a Resend response with no delivery data", async () => {
   const unavailable = dependencies({
     resend: { emails: { send: async () => ({ data: null, error: null }) } },
   });
   await error(
-    await createSendAuthEmailHandler(unavailable.deps)(signedRequest({
-      token_hash: "hash",
-      redirect_to: "https://app.example",
-      email_action_type: "invite",
-    })),
+    await createSendAuthEmailHandler(unavailable.deps)(
+      signedRequest({
+        token_hash: "hash",
+        redirect_to: "https://app.example",
+        email_action_type: "invite",
+      })
+    )
   );
 });
 
@@ -233,66 +279,78 @@ Deno.test("rejects Resend failures", async () => {
         token_hash: "hash",
         redirect_to: "https://app.example",
         email_action_type: "invite",
-      }),
-    ),
+      })
+    )
   );
 });
 
-Deno.test("sends both email_change confirmations when Secure Email Change provides two tokens", async () => {
-  const { deps, sent } = dependencies();
-  const response = await createSendAuthEmailHandler(deps)(signedRequest(
+Deno.test(
+  "sends both email_change confirmations when Secure Email Change provides two tokens",
+  async () => {
+    const { deps, sent } = dependencies();
+    const response = await createSendAuthEmailHandler(deps)(
+      signedRequest(
+        {
+          token_hash: "new-address-hash",
+          token_hash_new: "current-address-hash",
+          redirect_to: "https://app.example/auth/callback",
+          email_action_type: "email_change",
+        },
+        "old@example.com",
+        "new@example.com"
+      )
+    );
+    assertEquals(response.status, 200);
+    assertEquals(sent.length, 2);
+    const [toCurrent, toNew] = sent;
+    assertEquals(toCurrent.to, "old@example.com");
+    assertStringIncludes(toCurrent.html, "new@example.com");
+    assertStringIncludes(toCurrent.html, "token=current-address-hash");
+    assertStringIncludes(toCurrent.html, "type=email_change");
+    assertEquals(toNew.to, "new@example.com");
+    assertStringIncludes(toNew.html, "token=new-address-hash");
     {
-      token_hash: "new-address-hash",
-      token_hash_new: "current-address-hash",
-      redirect_to: "https://app.example/auth/callback",
-      email_action_type: "email_change",
-    },
-    "old@example.com",
-    "new@example.com",
-  ));
-  assertEquals(response.status, 200);
-  assertEquals(sent.length, 2);
-  const [toCurrent, toNew] = sent;
-  assertEquals(toCurrent.to, "old@example.com");
-  assertStringIncludes(toCurrent.html, "new@example.com");
-  assertStringIncludes(toCurrent.html, "token=current-address-hash");
-  assertStringIncludes(toCurrent.html, "type=email_change");
-  assertEquals(toNew.to, "new@example.com");
-  assertStringIncludes(toNew.html, "token=new-address-hash");
-  {
-    assertStringIncludes(toNew.html, "type=email_change");
-    assertStringIncludes(toCurrent.html, "<!DOCTYPE html>");
-    assertStringIncludes(toCurrent.html, "Salsa Segura");
-    assertStringIncludes(toNew.html, "<!DOCTYPE html>");
+      assertStringIncludes(toNew.html, "type=email_change");
+      assertStringIncludes(toCurrent.html, "<!DOCTYPE html>");
+      assertStringIncludes(toCurrent.html, "Salsa Segura");
+      assertStringIncludes(toNew.html, "<!DOCTYPE html>");
+    }
   }
-});
+);
 
-Deno.test("sends a single email_change confirmation to the new address when Secure Email Change is disabled", async () => {
-  const { deps, sent } = dependencies();
-  const response = await createSendAuthEmailHandler(deps)(signedRequest(
-    {
-      token_hash: "new-address-hash",
-      redirect_to: "https://app.example/auth/callback",
-      email_action_type: "email_change",
-    },
-    "old@example.com",
-    "new@example.com",
-  ));
-  assertEquals(response.status, 200);
-  assertEquals(sent.length, 1);
-  assertEquals(sent[0].to, "new@example.com");
-});
+Deno.test(
+  "sends a single email_change confirmation to the new address when Secure Email Change is disabled",
+  async () => {
+    const { deps, sent } = dependencies();
+    const response = await createSendAuthEmailHandler(deps)(
+      signedRequest(
+        {
+          token_hash: "new-address-hash",
+          redirect_to: "https://app.example/auth/callback",
+          email_action_type: "email_change",
+        },
+        "old@example.com",
+        "new@example.com"
+      )
+    );
+    assertEquals(response.status, 200);
+    assertEquals(sent.length, 1);
+    assertEquals(sent[0].to, "new@example.com");
+  }
+);
 
 Deno.test("rejects an email_change payload with no usable recipient", async () => {
   const { deps, sent } = dependencies();
-  const response = await createSendAuthEmailHandler(deps)(signedRequest(
-    {
-      token_hash: "new-address-hash",
-      redirect_to: "https://app.example/auth/callback",
-      email_action_type: "email_change",
-    },
-    "old@example.com",
-  ));
+  const response = await createSendAuthEmailHandler(deps)(
+    signedRequest(
+      {
+        token_hash: "new-address-hash",
+        redirect_to: "https://app.example/auth/callback",
+        email_action_type: "email_change",
+      },
+      "old@example.com"
+    )
+  );
   await error(response);
   assertEquals(sent, []);
 });

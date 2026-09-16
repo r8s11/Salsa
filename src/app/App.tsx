@@ -19,9 +19,12 @@ const Instructors = lazy(() => import("../pages/Instructors"));
 const Schools = lazy(() => import("../pages/Schools/Schools"));
 const NotFoundPage = lazy(() => import("../pages/NotFoundPage"));
 const AdminFounderRequestsPage = lazy(() => import("../pages/Admin/AdminFounderRequestsPage"));
-const AdminFounderRequestDetailPage = lazy(() => import("../pages/Admin/AdminFounderRequestDetailPage"));
+const AdminFounderRequestDetailPage = lazy(
+  () => import("../pages/Admin/AdminFounderRequestDetailPage")
+);
 const SignInPage = lazy(() => import("../pages/auth/SignInPage"));
 const AuthCallback = lazy(() => import("../components/Auth/AuthCallback"));
+const ConfirmSignupPage = lazy(() => import("../components/Auth/ConfirmSignupPage"));
 const InviteActivationPage = lazy(() => import("../components/Auth/InviteActivationPage"));
 const AdminLayout = lazy(() => import("../layouts/AdminLayout"));
 const AdminOverviewPage = lazy(() => import("../pages/Admin/AdminOverviewPage"));
@@ -71,6 +74,7 @@ function App() {
           <Routes>
             <Route path="/signin" element={<SignInPage />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/auth/confirm" element={<ConfirmSignupPage />} />
             <Route path="/auth/invite" element={<InviteActivationPage />} />
             <Route path="/founders" element={<FoundersPage />} />
             <Route path="/founders/accept" element={<FoundersAcceptPage />} />

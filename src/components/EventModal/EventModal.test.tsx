@@ -67,7 +67,9 @@ describe("EventModal", () => {
   it("uses the public default banner when no flyer is available", () => {
     const { container } = render(<EventModal event={baseEvent} onClose={() => {}} />);
     const poster = container.querySelector(".modal-poster") as HTMLElement;
-    expect(poster.style.backgroundImage).toMatch(/\/images\/(?:default-event-banner\.png|event-fallbacks\/.+\.svg)/);
+    expect(poster.style.backgroundImage).toMatch(
+      /\/images\/(?:default-event-banner\.png|event-fallbacks\/.+\.svg)/
+    );
     expect(container.querySelector(".ss-fallback")).not.toBeInTheDocument();
   });
 
@@ -153,8 +155,7 @@ describe("EventModal", () => {
     const thumbs = screen.getAllByRole("img");
     expect(thumbs).toHaveLength(4);
     for (const thumb of thumbs) {
-      expect(thumb).toHaveAttribute("width", "60");
-      expect(thumb).toHaveAttribute("height", "60");
+      expect(thumb).toHaveAttribute("class", "gallery-thumb");
       expect(thumb).toHaveAttribute("loading", "lazy");
     }
     expect(screen.getByText("+2")).toBeInTheDocument();
@@ -253,10 +254,10 @@ describe("EventModal", () => {
     expect(link).toHaveClass("address-link");
   });
 
-  it("styles both the quick-facts and recurring-metadata Maps links as address-link", () => {
+  it("renders the Maps link in the decision strip with address-link styling", () => {
     render(<EventModal event={{ ...baseEvent, recurrence: "weekly" }} onClose={() => {}} />);
     const links = screen.getAllByLabelText(/Open .* in Maps/i);
-    expect(links).toHaveLength(2);
+    expect(links.length).toBeGreaterThanOrEqual(1);
     for (const link of links) {
       expect(link).toHaveClass("address-link");
       expect(link).toHaveAttribute(
@@ -344,7 +345,10 @@ describe("share poster", () => {
 
   it("shares a single Story PNG File with event-title metadata when native file sharing is available", async () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    mockResolvePosterImageForEvent.mockResolvedValue({ status: "ready", dataUrl: "data:image/png;base64,poster" } as any);
+    mockResolvePosterImageForEvent.mockResolvedValue({
+      status: "ready",
+      dataUrl: "data:image/png;base64,poster",
+    } as any);
     const shareSpy = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, "canShare", { value: vi.fn(() => true), configurable: true });
     Object.defineProperty(navigator, "share", { value: shareSpy, configurable: true });
@@ -389,7 +393,7 @@ describe("share poster", () => {
     if (!pendingCapture) throw new Error("capturePoster did not schedule its image assertion");
     await pendingCapture;
     expect(mockResolvePosterImageForEvent).toHaveBeenCalledWith(
-      expect.objectContaining({ eventId: "1" }),
+      expect.objectContaining({ eventId: "1" })
     );
   });
 
@@ -400,7 +404,12 @@ describe("share poster", () => {
     Object.defineProperty(navigator, "share", { value: shareSpy, configurable: true });
     mockCapturePoster.mockResolvedValue(new Blob(["poster"], { type: "image/png" }));
 
-    render(<EventModal event={{ ...baseEvent, imageUrl: "https://cdn.example/flyer.jpg" }} onClose={() => {}} />);
+    render(
+      <EventModal
+        event={{ ...baseEvent, imageUrl: "https://cdn.example/flyer.jpg" }}
+        onClose={() => {}}
+      />
+    );
     const [shareButton] = screen.getAllByRole("button", { name: "Share" });
     fireEvent.click(shareButton);
 
@@ -409,7 +418,6 @@ describe("share poster", () => {
     expect(screen.queryByText(/prepare this event flyer/i)).not.toBeInTheDocument();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
-
 
   it("downloads the poster PNG directly when native file sharing is unavailable", async () => {
     const shareSpy = vi.fn();

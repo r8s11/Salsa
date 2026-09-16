@@ -221,14 +221,9 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
   };
 
   // ── Shared action buttons (used in desktop sidebar + mobile sticky bar) ──
+  // The RSVP is now in the decision strip; sidebar/mobile bar get secondary actions only.
   const renderActions = (inSidebar: boolean) => (
     <>
-      {event.rsvpLink && (
-        <ButtonLink href={event.rsvpLink} external className="rsvp-button">
-          {rsvpLabel}
-        </ButtonLink>
-      )}
-
       <ButtonLink to={`/events/${event.id}`} variant="secondary" onClick={onClose}>
         Full details
       </ButtonLink>
@@ -301,54 +296,59 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
           </div>
         </div>
 
-        {/* ── Quick facts strip ── */}
-        <div className="quick-facts">
-          <div className="fact">
-            <Clock size={16} aria-hidden />
-            <span>{formatTime(event.start, event.end)}</span>
-          </div>
-          {event.location && (
-            <div className="fact">
-              <MapPin size={16} aria-hidden />
-              <span>{renderLocationLink()}</span>
+        {/* ── Decision strip ──
+            The dancer sees the poster above; this is the first thing they
+            read after it. Time, location, price on the left; the RSVP
+            decision on the right. One compact row — the dancer's information
+            is no longer scattered across three separate regions. */}
+        <div className="decision-strip">
+          <div className="decision-strip__facts">
+            <div className="decision-strip__fact">
+              <Clock size={14} aria-hidden />
+              <span>{formatTime(event.start, event.end)}</span>
             </div>
-          )}
-          <div className="fact">
-            <span className="price-tag">{priceLabel}</span>
+            {event.location && (
+              <div className="decision-strip__fact">
+                <MapPin size={14} aria-hidden />
+                <span>{renderLocationLink()}</span>
+              </div>
+            )}
+            <div className="decision-strip__fact">
+              <span className="decision-strip__price">{priceLabel}</span>
+            </div>
           </div>
+          {event.rsvpLink && (
+            <ButtonLink href={event.rsvpLink} external className="decision-strip__rsvp">
+              {rsvpLabel}
+            </ButtonLink>
+          )}
         </div>
+
+        {/* ── Dance styles (prominent, before description) ── */}
+        {event.danceStyles && event.danceStyles.length > 0 && (
+          <div className="modal-style-row">
+            {event.danceStyles.map((style) => (
+              <span key={style} className="style-chip">
+                {style}
+              </span>
+            ))}
+          </div>
+        )}
 
         {/* ── Scrollable body (details + desktop sidebar) ── */}
         <div className="modal-body">
           <div className="modal-grid">
             <div className="modal-details">
               {event.recurrence && (
-                <>
-                  <div className="meta-row">
-                    <Repeat size={18} aria-hidden />
-                    <span>{event.recurrence === "weekly" ? "Repeats weekly" : "Repeats"}</span>
-                  </div>
-                  <div className="meta-row">
-                    <MapPin size={18} aria-hidden />
-                    <span>{renderLocationLink()}</span>
-                  </div>
-                </>
+                <div className="meta-row">
+                  <Repeat size={18} aria-hidden />
+                  <span>{event.recurrence === "weekly" ? "Repeats weekly" : "Repeats"}</span>
+                </div>
               )}
               {event.host && (
                 <div className="meta-row">
                   <Users size={18} aria-hidden />
                   <span>with {event.host}</span>
-                </div>
-              )}
-              {event.danceStyles && event.danceStyles.length > 0 && (
-                <div className="meta-row">
-                  <span className="modal-style-chips">
-                    {event.danceStyles.map((style) => (
-                      <span key={style} className="style-chip">
-                        {style}
-                      </span>
-                    ))}
-                  </span>
                 </div>
               )}
               {event.description && <p className="modal-description">{event.description}</p>}
@@ -362,8 +362,6 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
                         className="gallery-thumb"
                         src={src}
                         alt={`${event.title} gallery image ${index + 1}`}
-                        width={60}
-                        height={60}
                         loading="lazy"
                       />
                     ))}
@@ -374,7 +372,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
             </div>
 
             {/* Desktop sidebar — hidden on mobile */}
-            <aside className="modal-rsvp">
+            <aside className="modal-sidebar">
               {renderActions(true)}
 
               {renderContactBlock()}

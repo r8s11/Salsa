@@ -75,29 +75,47 @@
   color: var(--text-muted);
 }
 
-/* The facts strip is the sheet's one quiet band: a raised neutral surface
-   that separates the poster from the detail column. It carried three
-   `--color-*` names from another system that were never declared here, so
-   until now it had no surface and no rule at all. */
-.quick-facts {
+/* ── Decision strip ──
+   The dancer sees the poster above; this is the first thing they read after
+   it. Time, location, price on the left; the RSVP decision on the right.
+   One compact row — the dancer's information is no longer scattered across
+   three separate regions. */
+.decision-strip {
   display: flex;
-  padding: 16px 28px;
-  gap: 20px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 28px;
   background: var(--surface-high);
   border-bottom: 1px solid var(--border);
 }
 
-.fact {
+.decision-strip__facts {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
-  font-size: 0.9em;
+  gap: 16px;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  min-width: 0;
 }
 
-/* Money is gold everywhere in this world. */
-.price-tag {
-  font-weight: 600;
+.decision-strip__fact {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.decision-strip__price {
+  font-weight: 700;
   color: var(--gold);
+  font-size: 1rem;
+}
+
+.decision-strip__rsvp {
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 /* ── Back-pill button ── */
@@ -226,14 +244,23 @@
   min-width: 0;
 }
 
+/* ── Dance style chips (prominent, before description) ── */
+.modal-style-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 28px 16px;
+}
+
+.modal-style-row .style-chip {
+  font-size: 0.72rem;
+  padding: 4px 10px;
+}
+
 .modal-style-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-}
-
-.meta-row:has(.modal-style-chips) {
-  margin-bottom: 2px;
 }
 
 .repeat-pill {
@@ -280,16 +307,21 @@
 }
 
 .gallery-thumb {
-  width: 60px;
-  height: 60px;
-  border-radius: var(--radius);
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-md);
   object-fit: cover;
+  transition: transform 0.15s ease;
+}
+
+.gallery-thumb:hover {
+  transform: scale(1.05);
 }
 
 .gallery-more {
-  width: 60px;
-  height: 60px;
-  border-radius: var(--radius);
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-md);
   background: var(--card);
   border: 1px solid var(--border);
   display: inline-flex;
@@ -301,12 +333,12 @@
   color: var(--text-muted);
 }
 
-/* ── Desktop RSVP sidebar ──
-   This column is where the dancer decides, so it is the one region carrying
-   the brand's heat, instead of the anonymous black scrim it used before.
-   Contrast on this surface is fixed: `--text` 12.6:1, `--text-muted`
-   9.6:1, `--text-dim` 5.1:1. */
-.modal-rsvp {
+/* ── Desktop sidebar ──
+   Secondary actions, contact, and series. The RSVP is in the decision strip
+   now, so this column is no longer the decision region — it's supporting
+   context. Carries the warm surface to stay consistent with the mobile
+   action bar. */
+.modal-sidebar {
   padding: 28px;
   background: var(--surface-action);
   border-radius: 0 18px 18px 0;
@@ -335,11 +367,11 @@
   color: var(--text-muted);
 }
 
-.modal-rsvp .rsvp-button,
-.modal-rsvp .ics-button,
-.modal-rsvp .modal-full-details,
-.modal-rsvp .poster-toggle-btn,
-.modal-rsvp .copy-link-btn {
+.modal-sidebar .rsvp-button,
+.modal-sidebar .ics-button,
+.modal-sidebar .modal-full-details,
+.modal-sidebar .poster-toggle-btn,
+.modal-sidebar .copy-link-btn {
   width: 100%;
   display: inline-flex;
   align-items: center;
@@ -353,7 +385,7 @@
 
 /* .btn-primary has no border while .btn-secondary carries a 1px gold one;
    match the box height so all four actions line up. */
-.modal-rsvp .rsvp-button,
+.modal-sidebar .rsvp-button,
 .modal-mobile-actions .rsvp-button {
   border: 1px solid transparent;
 }
@@ -569,25 +601,29 @@
     font-size: 0.8rem;
   }
 
-  /* ── Quick facts — compact, wrapped row ── */
-  .quick-facts {
+  /* ── Decision strip — compact on mobile ── */
+  .decision-strip {
     padding: 12px 20px;
     gap: 12px;
     flex-shrink: 0;
     flex-wrap: wrap;
-    font-size: 0.85em;
   }
 
-  .quick-facts .fact {
-    font-size: 0.82em;
-    white-space: nowrap;
+  .decision-strip__facts {
+    gap: 10px;
+    font-size: 0.82rem;
   }
 
-  .quick-facts .fact a {
+  .decision-strip__fact a {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     max-width: 160px;
+  }
+
+  .decision-strip__rsvp {
+    font-size: 0.78rem;
+    padding: 8px 14px;
   }
 
   /* ── Scrollable body ── */
@@ -608,7 +644,7 @@
   }
 
   /* ── Sidebar — hidden on mobile ── */
-  .modal-rsvp {
+  .modal-sidebar {
     display: none;
   }
 
@@ -637,14 +673,20 @@
     padding: 10px 0;
   }
 
-  /* ── Sticky mobile action bar ──
-     The desktop sidebar is hidden here, so this bar is where the decision
-     happens. It takes the same warm surface, or the sheet's colour logic
-     would only hold on one device class.
+  /* ── Gallery — smaller on mobile ── */
+  .modal-style-row {
+    padding: 0 20px 12px;
+  }
 
-     Five identical full-width pills gave the one decision the same weight as
-     four utilities and ate a third of the viewport, burying the description.
-     The RSVP keeps the full measure; the utilities pair off beneath it. */
+  .gallery-thumb,
+  .gallery-more {
+    width: 64px;
+    height: 64px;
+  }
+
+  /* ── Sticky mobile action bar ──
+     The desktop sidebar is hidden here, so this bar carries secondary actions.
+     The RSVP is in the decision strip above the fold. */
   .modal-mobile-actions {
     display: grid;
     grid-template-columns: 1fr 1fr;

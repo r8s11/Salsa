@@ -607,6 +607,18 @@
   }
 }
 
+/* The vinyl is centred with translate(-50%, -50%) and must never have its
+   transform touched — not even by the final state of heroEnter. An
+   opacity-only variant keeps the entrance without clobbering the centre. */
+@keyframes heroEnterOpacity {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .hero-enter {
   animation: heroEnter 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
   animation-delay: var(--hero-enter-delay, 0s);
@@ -617,10 +629,12 @@
   --hero-enter-delay: 0s;
 }
 /* Opacity only: the record's centring transform lives in CSS, so a translate
-   here would overwrite it. */
+   here would overwrite it. The animation's `to` state still sets
+   `transform: translateY(0)`, so the centre must be restated explicitly. */
 .hero-enter[data-enter="vinyl"] {
-  --hero-enter-y: 0px;
-  --hero-enter-delay: 0.08s;
+  animation: heroEnterOpacity 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 0.08s;
+  transform: translate(-50%, -50%);
 }
 .hero-enter[data-enter="eyebrow"] {
   --hero-enter-y: 10px;

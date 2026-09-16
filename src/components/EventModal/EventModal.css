@@ -2,8 +2,13 @@
    Event Modal — Tambora structure, Ritmo Vivo skin
    Desktop: centered card with two-column grid
    Mobile:  full-bleed bottom sheet with sticky CTA bar
+
+   Motion: CSS-driven staggered reveals on mount.
+   Poster parallax on modal scroll.
+   Micro-interactions on gallery, buttons.
    ======================================== */
 
+/* ── Overlay ── */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -18,6 +23,7 @@
   overflow-y: auto;
 }
 
+/* ── Content shell ── */
 .modal-content {
   position: relative;
   width: 100%;
@@ -25,11 +31,64 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
-  /* One elevation, stated once: a real offset shadow. The rose glow that
-     used to sit on top was a zero-offset halo, and it competed with the
-     RSVP column for the only warm emphasis in the sheet. */
   box-shadow: 0 30px 60px -18px rgba(0, 0, 0, 0.5);
   overflow: hidden;
+  /* Entrance: scale up from 96% + fade, spring overshoot */
+  opacity: 0;
+  transform: scale(0.96) translateY(12px);
+  transition:
+    opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal-content.modal--revealed {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+/* ── Staggered reveal children ──
+   Each child starts invisible + offset. The .modal--revealed ancestor
+   triggers them in sequence via animation-delay on [data-reveal]. */
+.modal-content [data-reveal] {
+  opacity: 0;
+  transform: translateY(14px);
+}
+
+.modal-content.modal--revealed [data-reveal] {
+  animation: revealUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.modal-content.modal--revealed [data-reveal="1"] {
+  animation-delay: 0.12s;
+}
+.modal-content.modal--revealed [data-reveal="2"] {
+  animation-delay: 0.2s;
+}
+.modal-content.modal--revealed [data-reveal="3"] {
+  animation-delay: 0.28s;
+}
+.modal-content.modal--revealed [data-reveal="4"] {
+  animation-delay: 0.36s;
+}
+.modal-content.modal--revealed [data-reveal="5"] {
+  animation-delay: 0.44s;
+}
+.modal-content.modal--revealed [data-reveal="6"] {
+  animation-delay: 0.52s;
+}
+.modal-content.modal--revealed [data-reveal="7"] {
+  animation-delay: 0.6s;
+}
+
+@keyframes revealUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ── Drag handle (mobile only) ── */
@@ -47,6 +106,9 @@
   background-image: linear-gradient(150deg, var(--surface-high), var(--red));
   background-size: cover;
   background-position: center;
+  /* Parallax: poster shifts up as modal scrolls */
+  will-change: transform;
+  transition: transform 0.1s linear;
 }
 
 .modal-poster::after {
@@ -60,6 +122,7 @@
     rgba(11, 19, 38, 0.6) 72%,
     var(--bg)
   );
+  pointer-events: none;
 }
 
 /* Vinyl record accent — decorative element in poster header */
@@ -71,6 +134,14 @@
   z-index: 1;
   opacity: 0.35;
   pointer-events: none;
+  /* Subtle idle spin */
+  animation: vinylSpin 12s linear infinite;
+}
+
+@keyframes vinylSpin {
+  to {
+    transform: translateY(-50%) rotate(360deg);
+  }
 }
 
 /* ── Quick look header & facts ── */
@@ -151,12 +222,14 @@
   cursor: pointer;
   transition:
     background 0.2s ease,
-    border-color 0.2s ease;
+    border-color 0.2s ease,
+    transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .back-pill:hover {
   background: var(--card-hover);
   border-color: var(--border-lg);
+  transform: translateX(-2px);
 }
 
 .poster-overlay {
@@ -178,16 +251,8 @@
 }
 
 /* ── Calendar type chips ──
-   The markup reuses `.style-chip`, whose base rule in global.css is the
-   *dance-style* chip (On1 / On2 / Cuban) — low-opacity tertiary with white
-   text. At equal specificity that base won on source order, so every event
-   type rendered in the same orange and the chip encoded nothing. Scoping
-   these to `.modal-content` settles it.
-
-   They also sit in the poster overlay, on a flyer photograph whose lightness
-   is unknowable at author time, so each states its own opaque ground — the
-   same deep tones the event cards use, so one type reads identically on the
-   card and in the sheet it opens. */
+   Scoped to .modal-content so event-type chips get opaque grounds
+   that read on any flyer lightness. */
 .modal-content .chip-social {
   background: var(--red-deep);
   color: var(--text);
@@ -207,7 +272,6 @@
 
 /* ── Scrollable body ── */
 .modal-body {
-  /* On desktop this just passes through; on mobile it becomes scrollable */
   margin-top: var(--space-lg);
 }
 
@@ -232,13 +296,11 @@
   margin-bottom: 8px;
   flex-wrap: wrap;
 }
-/* Both `--text-link` and its `--primary` fallback were undeclared, so the
-   venue address resolved to `inherit` and rendered as plain body text — a
-   link with no affordance. Gold is already the link role in this sheet
-   (contacts, series), so the address joins it. */
+
 .address-link {
   color: var(--gold);
   text-decoration: none;
+  transition: color 0.15s ease;
 }
 .address-link:hover {
   color: var(--gold-light);
@@ -322,11 +384,15 @@
   height: 80px;
   border-radius: var(--radius-md);
   object-fit: cover;
-  transition: transform 0.15s ease;
+  transition:
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.3s ease;
+  cursor: pointer;
 }
 
 .gallery-thumb:hover {
-  transform: scale(1.05);
+  transform: scale(1.08) translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
 }
 
 .gallery-more {
@@ -389,9 +455,18 @@
   justify-content: center;
   gap: 8px;
   text-align: center;
-  /* <button> defaults to line-height: normal; anchors inherit the body's.
-     Inherit explicitly so both element types render the same height. */
   line-height: inherit;
+  /* Press-scale micro-interaction */
+  transition:
+    transform 0.15s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.15s ease;
+}
+
+.modal-sidebar .rsvp-button:active,
+.modal-sidebar .ics-button:active,
+.modal-sidebar .copy-link-btn:active,
+.modal-mobile-actions .rsvp-button:active {
+  transform: scale(0.97);
 }
 
 /* .btn-primary has no border while .btn-secondary carries a 1px gold one;
@@ -443,6 +518,11 @@
   font-size: 0.875rem;
   overflow-wrap: anywhere;
   text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.contact-block a:hover {
+  color: var(--gold);
 }
 
 .contact-block a:focus-visible {
@@ -480,6 +560,7 @@
   color: var(--gold);
   font-weight: 600;
   text-decoration: none;
+  transition: color 0.15s ease;
 }
 
 .series-item a:hover {
@@ -518,13 +599,18 @@
   transition:
     background 0.2s ease,
     border-color 0.2s ease,
-    color 0.2s ease;
+    color 0.2s ease,
+    transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .modal-close-x:hover {
   background: var(--card-hover);
   border-color: var(--border-lg);
   color: var(--red-bright);
+}
+
+.modal-close-x:active {
+  transform: scale(0.92);
 }
 
 /* ========================================
@@ -546,16 +632,12 @@
     max-height: 92dvh;
     display: flex;
     flex-direction: column;
-    animation: modalSlideUp 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    /* Override desktop entrance for mobile bottom-sheet slide */
+    transform: translateY(100%) scale(1);
   }
 
-  @keyframes modalSlideUp {
-    from {
-      transform: translateY(100%);
-    }
-    to {
-      transform: translateY(0);
-    }
+  .modal-content.modal--revealed {
+    transform: translateY(0) scale(1);
   }
 
   /* ── Drag handle ── */
@@ -590,6 +672,8 @@
     height: 240px;
     border-radius: 20px 20px 0 0;
     flex-shrink: 0;
+    /* Disable parallax on mobile — no scroll container */
+    transform: none !important;
   }
 
   .poster-overlay {
@@ -741,6 +825,11 @@
   .modal-mobile-actions .reassurance {
     display: none;
   }
+
+  /* Vinyl spin stays on mobile but slower */
+  .modal-vinyl {
+    animation-duration: 20s;
+  }
 }
 
 /* ── Small phones (≤400px) — tighter spacing ── */
@@ -778,11 +867,54 @@
   }
 }
 
+/* ── Reduced motion ──
+   Strip all spatial movement. Keep fades so the modal still
+   announces itself. Kill parallax and vinyl spin. */
 @media (prefers-reduced-motion: reduce) {
-  /* The mobile sheet travels a full viewport height — the largest movement
-     in the app. The sheet's arrival still needs to read as an arrival, so it
-     keeps the fade and loses the slide. */
   .modal-content {
+    transition-duration: 0.01ms;
+    transform: none;
+  }
+
+  .modal-content.modal--revealed {
+    transform: none;
+  }
+
+  .modal-content [data-reveal] {
+    transform: none;
+  }
+
+  .modal-content.modal--revealed [data-reveal] {
     animation-name: reducedFade;
+    animation-duration: 0.01ms;
+    animation-delay: 0ms;
+  }
+
+  .modal-poster {
+    transform: none !important;
+  }
+
+  .modal-vinyl {
+    animation: none;
+  }
+
+  .back-pill:hover {
+    transform: none;
+  }
+
+  .modal-close-x:active {
+    transform: none;
+  }
+
+  .gallery-thumb:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .modal-sidebar .rsvp-button:active,
+  .modal-sidebar .ics-button:active,
+  .modal-sidebar .copy-link-btn:active,
+  .modal-mobile-actions .rsvp-button:active {
+    transform: none;
   }
 }

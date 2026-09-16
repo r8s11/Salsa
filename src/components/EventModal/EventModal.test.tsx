@@ -24,8 +24,7 @@ const {
   mockDownloadPoster: vi.fn(),
   mockRemoveTarget: vi.fn(),
   mockResolvePosterImage: vi.fn(async (url?: string) => url ?? null),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  mockResolvePosterImageForEvent: vi.fn(async () => ({ status: "missing" }) as any),
+  mockResolvePosterImageForEvent: vi.fn(async (): Promise<{ status: string; url?: string; message?: string }> => ({ status: "missing" })),
 }));
 
 vi.mock("../../features/calendar/hooks/useShareablePoster", () => ({
@@ -344,11 +343,10 @@ describe("share poster", () => {
   });
 
   it("shares a single Story PNG File with event-title metadata when native file sharing is available", async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockResolvePosterImageForEvent.mockResolvedValue({
       status: "ready",
-      dataUrl: "data:image/png;base64,poster",
-    } as any);
+      url: "data:image/png;base64,poster",
+    });
     const shareSpy = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, "canShare", { value: vi.fn(() => true), configurable: true });
     Object.defineProperty(navigator, "share", { value: shareSpy, configurable: true });

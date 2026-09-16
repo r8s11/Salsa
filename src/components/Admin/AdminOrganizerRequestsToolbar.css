@@ -102,7 +102,7 @@
   color: var(--admin-text-strong);
 }
 
-@media (max-width: 640px) {
+@media (max-width: 639.98px) {
   .admin-organizer-requests-toolbar__search {
     flex-basis: 100%;
     width: 100%;

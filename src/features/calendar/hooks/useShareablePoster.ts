@@ -1,5 +1,4 @@
 import { useCallback, useRef } from "react";
-import { toBlob } from "html-to-image";
 import { ScheduleXEvent } from "../../../types/events";
 
 /**
@@ -86,6 +85,12 @@ export function useShareablePoster() {
     if (!posterEl) {
       throw new Error("Poster element not found in container");
     }
+
+    // Dynamic import, deliberately: a static import puts html-to-image in
+    // the initial chunk, and poster capture only ever runs when a visitor
+    // asks to share. Splitting it out is the whole point, so a static import
+    // cannot express this. (ts-no-dynamic-import exception.)
+    const { toBlob } = await import("html-to-image");
 
     const blob = await toBlob(posterEl, {
       quality: 1,

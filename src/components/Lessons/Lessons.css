@@ -48,7 +48,7 @@
 }
 
 /* Mobile Styles */
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
   .lessons {
     padding: 60px 0;
   }
@@ -56,5 +56,12 @@
   .lessons-grid {
     grid-template-columns: 1fr;
     gap: 1.5rem;
+  }
+}
+
+/* The icon's bounce is decoration: it reports nothing and never stops. */
+@media (prefers-reduced-motion: reduce) {
+  .lesson-icon {
+    animation: none;
   }
 }

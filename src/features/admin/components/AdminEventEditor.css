@@ -193,7 +193,7 @@
   backdrop-filter: blur(8px);
 }
 
-@media (max-width: 720px) {
+@media (max-width: 767.98px) {
   .admin-shell .admin-event-editor .event-form {
     grid-template-columns: 1fr;
   }

@@ -24,7 +24,7 @@
 
 .instructor-avatar {
   width: 100%;
-  max-width: 400px;
+  max-width: 479.98px;
   border-radius: 50%;
   overflow: hidden;
   box-shadow: var(--glow-primary);
@@ -83,7 +83,7 @@
 }
 
 /* Mobile Styles */
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
   .instructor {
     padding: 60px 0;
   }

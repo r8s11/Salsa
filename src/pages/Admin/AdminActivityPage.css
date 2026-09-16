@@ -127,3 +127,10 @@
   margin: 0;
   color: var(--admin-text-subtle);
 }
+
+/* The skeleton's own shape already says "loading"; the pulse is decoration. */
+@media (prefers-reduced-motion: reduce) {
+  .admin-skeleton {
+    animation: none;
+  }
+}

@@ -456,7 +456,7 @@
   text-wrap: balance;
 }
 
-@media (min-width: 769px) and (max-width: 1199px) {
+@media (min-width: 768px) and (max-width: 1023.98px) {
   .calendar-card-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -534,7 +534,7 @@
 }
 
 /* ── Mobile ── */
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
   .calendar-page {
     padding: 0 0 72px;
   }
@@ -598,7 +598,7 @@
      nested `overflow-y: auto` pane (see .sx__view-container in
      @schedule-x/theme-default) — that's the desktop/grid-bounded behavior,
      which stays untouched above 768px. At and below 768px the component
-     always renders list view (see Calendar.tsx's max-width:768px media
+     always renders list view (see Calendar.tsx's max-width: 767.98px media
      listener), so it's safe to unconditionally free this container's
      height here. */
   .sx-react-calendar-wrapper {
@@ -727,7 +727,7 @@
   font-size: 1.1rem;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
   .calendar-list-row {
     gap: 12px;
     padding: 10px 12px;

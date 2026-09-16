@@ -11,13 +11,17 @@
 }
 
 @keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .admin-reject-dialog {
   width: 100%;
-  max-width: 480px;
+  max-width: 479.98px;
   background: var(--surface);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-xl);
@@ -26,8 +30,14 @@
 }
 
 @keyframes scale-in {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .admin-reject-dialog h2 {
@@ -73,7 +83,9 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .reason-select:focus {
@@ -93,7 +105,9 @@
   border-radius: var(--radius-md);
   resize: vertical;
   min-height: 80px;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .reject-note:focus,
@@ -125,7 +139,10 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    border-color var(--transition-fast);
 }
 
 .admin-reject-dialog .btn-secondary:hover:not(:disabled) {
@@ -154,4 +171,10 @@
 .admin-reject-dialog .btn-danger:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+/* A dialog appearing is a state change worth showing; the scale is not. */
+@media (prefers-reduced-motion: reduce) {
+  .admin-reject-dialog {
+    animation-name: reducedFade;
+  }
 }

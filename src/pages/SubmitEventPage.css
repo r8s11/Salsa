@@ -262,7 +262,7 @@
 }
 
 /* ── Mobile ── */
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
   .submit-event {
     /* Clears the sticky submit bar and, below 640px, the mobile tab bar. */
     padding: 48px 0 calc(120px + var(--tab-bar-h));
@@ -291,7 +291,7 @@
     z-index: 50;
   }
 
-  @media (max-width: 640px) {
+  @media (max-width: 639.98px) {
     /* The tab bar underneath already absorbs the bottom safe area. */
     .submit-form__bar {
       padding-bottom: var(--space-md);

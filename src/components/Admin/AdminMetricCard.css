@@ -99,7 +99,7 @@ a.admin-metric-card:hover {
   height: 11px;
 }
 
-@media (max-width: 639px) {
+@media (max-width: 639.98px) {
   .admin-metric-card__value {
     font-size: 24px;
   }

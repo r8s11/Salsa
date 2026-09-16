@@ -570,7 +570,7 @@
 }
 
 /* Responsive */
-@media (max-width: 640px) {
+@media (max-width: 639.98px) {
   .profile-cover {
     height: 160px;
     min-height: 0;

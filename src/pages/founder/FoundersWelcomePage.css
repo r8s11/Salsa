@@ -35,7 +35,7 @@
 
 .founders-welcome-card {
   width: 100%;
-  max-width: 480px;
+  max-width: 479.98px;
   padding: var(--space-xl);
   background: var(--card);
   border: 1px solid var(--border);
@@ -156,7 +156,7 @@
 
 }
 
-@media (max-width: 375px) {
+@media (max-width: 479.98px) {
   .founders-welcome-content {
     padding: var(--space-lg) var(--space-sm);
   }

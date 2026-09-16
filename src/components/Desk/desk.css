@@ -675,7 +675,7 @@ a.desk__count:hover .desk__count-figure {
 /* ── Adaptation ───────────────────────────────────────────
    The measures stack rather than shrink: an agate column
    squeezed below its measure stops being readable. */
-@media (max-width: 1080px) {
+@media (max-width: 1023.98px) {
   .desk__rule {
     grid-template-columns: minmax(220px, 1fr) auto;
   }
@@ -702,7 +702,7 @@ a.desk__count:hover .desk__count-figure {
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 639.98px) {
   .desk__rule {
     grid-template-columns: minmax(0, 1fr);
     align-items: start;

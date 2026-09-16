@@ -238,7 +238,7 @@
 }
 
 /* ── Responsive ── */
-@media (max-width: 600px) {
+@media (max-width: 599.98px) {
   .event-flyer-field__dropzone {
     padding: var(--space-md);
   }

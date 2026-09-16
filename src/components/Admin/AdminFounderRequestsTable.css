@@ -304,7 +304,7 @@
 }
 
 /* Narrow screens: hide desktop rows and reveal one stacked card per request. */
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
   .admin-founder-requests-table {
     table-layout: fixed;
   }
@@ -359,7 +359,7 @@
     gap: 0;
   }
 
-  @media (min-width: 520px) {
+  @media (min-width: 480px) {
     .founder-mobile-card__row {
       flex-direction: row;
       gap: var(--border);
@@ -372,5 +372,12 @@
   /* Headers: show only a single compact header row on mobile. */
   .admin-founder-requests-table thead {
     display: none;
+  }
+}
+
+/* The skeleton's own shape already says "loading"; the sweep is decoration. */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
   }
 }

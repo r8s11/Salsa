@@ -2,7 +2,7 @@
   display: none;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 639.98px) {
   /* Height is --tab-bar-h (declared in global.css) so every other
      bottom-anchored element can offset by it instead of guessing. */
   .mobile-tab-bar {

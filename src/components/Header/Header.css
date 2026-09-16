@@ -341,7 +341,7 @@ a.logo:hover .ss-logo__wordmark-accent {
   outline-offset: 2px;
 }
 
-@media (min-width: 991px) {
+@media (min-width: 1024px) {
   .nav-links > li > a,
   .city-switch__btn,
   .site-header .ui-button,
@@ -352,7 +352,7 @@ a.logo:hover .ss-logo__wordmark-accent {
   }
 }
 
-@media (max-width: 990px) {
+@media (max-width: 1023.98px) {
   .site-header nav {
     justify-content: space-between;
   }
@@ -625,7 +625,7 @@ a.logo:hover .ss-logo__wordmark-accent {
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 639.98px) {
   .site-header nav {
     padding-top: env(safe-area-inset-top);
   }

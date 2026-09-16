@@ -131,7 +131,7 @@
 }
 
 /* ── Mobile ── */
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
   .about-page {
     padding: 48px 0 72px;
   }
@@ -146,5 +146,12 @@
 
   .about-page section {
     padding: 1.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Keep the section's arrival legible, without the travel. */
+  .about-page section {
+    animation-name: reducedFade;
   }
 }

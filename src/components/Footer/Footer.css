@@ -75,7 +75,7 @@ footer {
 }
 
 /* Mobile */
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
   .footer-links {
     gap: 1.25rem;
   }

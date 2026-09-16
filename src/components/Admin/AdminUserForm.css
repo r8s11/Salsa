@@ -11,7 +11,7 @@
 
 .admin-user-form {
   width: 100%;
-  max-width: 400px;
+  max-width: 479.98px;
   padding: 24px;
 }
 
@@ -67,7 +67,7 @@
   color: var(--admin-danger, #dc2626);
 }
 
-@media (max-width: 480px) {
+@media (max-width: 479.98px) {
   .admin-user-form {
     padding: 16px;
   }

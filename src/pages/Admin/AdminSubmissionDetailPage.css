@@ -36,7 +36,7 @@
 .admin-submission-detail-page__id {
   margin: 0.5rem 0 0;
   color: var(--admin-text-muted);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: var(--font-mono);
   font-size: 0.75rem;
 }
 

@@ -480,6 +480,14 @@
   color: var(--on-surface-variant);
 }
 
+/* Month-grid event chips are the calendar's tap target for opening a night.
+   The vendor renders them 20px tall, under WCAG 2.5.8's 24px floor. */
+.sx-react-calendar-wrapper .sx__month-grid-day .sx__event {
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+}
+
 /* ── Submit CTA ── */
 .calendar-cta {
   text-align: center;

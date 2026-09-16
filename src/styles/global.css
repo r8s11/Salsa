@@ -55,6 +55,10 @@
   --font-display: "Epilogue", "Helvetica Neue", sans-serif;
   --font-ui: "Epilogue", "Helvetica Neue", sans-serif;
   --font-body: "Be Vietnam Pro", "Helvetica Neue", sans-serif;
+  /* Tabular identifiers — IDs, hashes, raw payloads. Referenced by
+     AdminActivityDetailPage before it was ever declared, so those two rules
+     were silently inheriting the body face. */
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
   /* Additional display step for card/surface headings */
   --font-size-card-title: 1.4rem;
   --font-logo: "Great Vibes", cursive;
@@ -333,24 +337,10 @@ main {
   outline-offset: 2px;
 }
 
-.contact-form button {
-  background: var(--red);
-  color: var(--text);
-  border: none;
-  border-radius: var(--radius-sm);
-  padding: 13px 20px;
-  font-family: var(--font-ui);
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-.contact-form button:hover {
-  background: var(--red-bright);
-}
+/* The only button inside .contact-form is the shared <Button> component, so
+   this file no longer re-skins it. The old rule set `--text` on `--red`
+   (3.64:1) and clobbered the component's gradient, overriding the white-on-
+   rose primary treatment DESIGN.md specifies. */
 
 /* ----------------------------------------
    7. Buttons (shared)

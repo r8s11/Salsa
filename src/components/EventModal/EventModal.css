@@ -25,9 +25,10 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
-  box-shadow:
-    var(--glow-primary),
-    0 30px 60px -18px rgba(0, 0, 0, 0.5);
+  /* One elevation, stated once: a real offset shadow. The rose glow that
+     used to sit on top was a zero-offset halo, and it competed with the
+     RSVP column for the only warm emphasis in the sheet. */
+  box-shadow: 0 30px 60px -18px rgba(0, 0, 0, 0.5);
   overflow: hidden;
 }
 
@@ -71,15 +72,19 @@
 
 .quick-look-date {
   font-weight: 500;
-  color: var(--color-text-muted);
+  color: var(--text-muted);
 }
 
+/* The facts strip is the sheet's one quiet band: a raised neutral surface
+   that separates the poster from the detail column. It carried three
+   `--color-*` names from another system that were never declared here, so
+   until now it had no surface and no rule at all. */
 .quick-facts {
   display: flex;
   padding: 16px 28px;
   gap: 20px;
-  background: var(--color-bg-subtle);
-  border-bottom: 1px solid var(--color-border);
+  background: var(--surface-high);
+  border-bottom: 1px solid var(--border);
 }
 
 .fact {
@@ -89,9 +94,10 @@
   font-size: 0.9em;
 }
 
+/* Money is gold everywhere in this world. */
 .price-tag {
   font-weight: 600;
-  color: var(--color-accent);
+  color: var(--gold);
 }
 
 /* ── Back-pill button ── */
@@ -142,18 +148,28 @@
   margin: 8px 0 0;
 }
 
-/* ── Calendar type chips ── */
-.chip-social {
-  background: var(--red-dim);
-  color: #ffccd4;
+/* ── Calendar type chips ──
+   The markup reuses `.style-chip`, whose base rule in global.css is the
+   *dance-style* chip (On1 / On2 / Cuban) — low-opacity tertiary with white
+   text. At equal specificity that base won on source order, so every event
+   type rendered in the same orange and the chip encoded nothing. Scoping
+   these to `.modal-content` settles it.
+
+   They also sit in the poster overlay, on a flyer photograph whose lightness
+   is unknowable at author time, so each states its own opaque ground — the
+   same deep tones the event cards use, so one type reads identically on the
+   card and in the sheet it opens. */
+.modal-content .chip-social {
+  background: var(--red-deep);
+  color: var(--text);
 }
-.chip-class {
-  background: rgba(124, 147, 233, 0.18);
-  color: #dfe3ff;
+.modal-content .chip-class {
+  background: var(--blue-deep);
+  color: var(--text);
 }
-.chip-workshop {
-  background: var(--gold-dim);
-  color: var(--gold-light);
+.modal-content .chip-workshop {
+  background: var(--gold);
+  color: var(--on-gold);
 }
 
 .modal-content .style-chip {
@@ -187,12 +203,17 @@
   margin-bottom: 8px;
   flex-wrap: wrap;
 }
+/* Both `--text-link` and its `--primary` fallback were undeclared, so the
+   venue address resolved to `inherit` and rendered as plain body text — a
+   link with no affordance. Gold is already the link role in this sheet
+   (contacts, series), so the address joins it. */
 .address-link {
-  color: var(--text-link, inherit);
+  color: var(--gold);
   text-decoration: none;
 }
 .address-link:hover {
-  color: var(--text-link-hover, var(--primary));
+  color: var(--gold-light);
+  text-decoration: underline;
 }
 
 .meta-row svg {
@@ -280,12 +301,16 @@
   color: var(--text-muted);
 }
 
-/* ── Desktop RSVP sidebar ── */
+/* ── Desktop RSVP sidebar ──
+   This column is where the dancer decides, so it is the one region carrying
+   the brand's heat, instead of the anonymous black scrim it used before.
+   Contrast on this surface is fixed: `--text` 12.6:1, `--text-muted`
+   9.6:1, `--text-dim` 5.1:1. */
 .modal-rsvp {
   padding: 28px;
-  background: rgba(0, 0, 0, 0.22);
+  background: var(--surface-action);
   border-radius: 0 18px 18px 0;
-  border-left: 1px solid var(--border);
+  border-left: 1px solid var(--red-dim);
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -612,17 +637,29 @@
     padding: 10px 0;
   }
 
-  /* ── Sticky mobile action bar ── */
+  /* ── Sticky mobile action bar ──
+     The desktop sidebar is hidden here, so this bar is where the decision
+     happens. It takes the same warm surface, or the sheet's colour logic
+     would only hold on one device class.
+
+     Five identical full-width pills gave the one decision the same weight as
+     four utilities and ate a third of the viewport, burying the description.
+     The RSVP keeps the full measure; the utilities pair off beneath it. */
   .modal-mobile-actions {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
     flex-shrink: 0;
     gap: 8px;
     padding: 10px 16px;
     padding-bottom: max(10px, env(safe-area-inset-bottom));
-    background: var(--surface);
-    border-top: 1px solid var(--border);
+    background: var(--surface-action);
+    border-top: 1px solid var(--red-dim);
     box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.3);
+  }
+
+  /* The decision spans the bar; everything else is secondary by construction. */
+  .modal-mobile-actions .rsvp-button {
+    grid-column: 1 / -1;
   }
 
   /* The Share button is wrapped in a section div for the desktop sidebar;

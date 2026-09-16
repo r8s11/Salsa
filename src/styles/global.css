@@ -11,6 +11,10 @@
   --bg: #0b1326;
   --surface: #131b2e;
   --surface-high: #171f33;
+  /* The surface a decision sits on — rose at 10% resolved over --surface.
+     Stated as a solid so contrast on it is fixed rather than depending on
+     whatever the translucent layer happens to cover. */
+  --surface-action: #281b31;
   --card: rgba(255, 255, 255, 0.08);
   --card-hover: rgba(255, 255, 255, 0.12);
 

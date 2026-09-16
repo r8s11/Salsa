@@ -9,6 +9,7 @@ import { resolvePosterImageForEvent } from "../../features/calendar/api/posterFl
 import { useAccessibleDialog } from "../../shared/a11y/useAccessibleDialog";
 import ShareableEventPoster from "./ShareableEventPoster";
 import { resolveEventFlyer } from "./eventModalImage";
+import VinylRecord from "../brand/VinylRecord";
 import Button from "../ui/Button";
 import IconButton from "../ui/IconButton";
 import ButtonLink from "../ui/ButtonLink";
@@ -284,6 +285,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
 
         {/* ── Poster header ── */}
         <div className="modal-poster" style={{ backgroundImage: `url(${resolvedImageUrl})` }}>
+          <VinylRecord size="lg" className="modal-vinyl" />
           <button ref={closeButtonRef} className="modal-close back-pill" onClick={onClose}>
             <ArrowLeft size={16} aria-hidden /> Back to calendar
           </button>

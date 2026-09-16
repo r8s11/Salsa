@@ -6,6 +6,7 @@ import type { City } from "../../contexts/CityContext";
 import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
 import { useOwnProfile } from "../../features/account/hooks/useOwnProfile";
 import SalsaSeguraLogo from "../brand/SalsaSeguraLogo";
+import VinylRecord from "../brand/VinylRecord";
 import AccountAvatar from "./AccountAvatar";
 import ButtonLink from "../ui/ButtonLink";
 import { resolveEventCreateDestination } from "../../lib/eventCreateDestination";
@@ -91,6 +92,7 @@ function Header() {
       <nav className="container" aria-label="Main navigation">
         <Link to="/" className="logo" onClick={closeNavigation}>
           <SalsaSeguraLogo variant="full" size="lg" tone="brand" />
+          <VinylRecord size="sm" className="header-vinyl" />
         </Link>
 
         <ul id="site-navigation" className={`nav-links ${mobileOpen ? "active" : ""}`}>

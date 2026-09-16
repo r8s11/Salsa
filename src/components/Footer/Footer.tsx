@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import VinylRecord from "../brand/VinylRecord";
 import "./Footer.css";
 
 function Footer() {
@@ -27,6 +28,8 @@ function Footer() {
             alt="Buy me a coffee"
           />
         </a>
+
+        <VinylRecord size="md" className="footer-vinyl" />
 
         <div className="copyright">
           &copy; {currentYear} Salsa Segura. All rights reserved. | Greater Boston &amp; NYC |

@@ -28,6 +28,55 @@ function focusableNodes(container: HTMLElement | null): HTMLElement[] {
   );
 }
 
+/**
+ * Inert every element that is not the dialog, its own subtree, or one of its
+ * ancestors, by walking the ancestor chain and inerting each level's other
+ * children. This contains assistive-tech and pointer access without moving
+ * the dialog into a portal, which would change its styling context.
+ */
+function inertBackground(dialog: HTMLElement): () => void {
+  const inerted: HTMLElement[] = [];
+
+  for (let node: HTMLElement = dialog; node !== document.body; ) {
+    const parent = node.parentElement;
+    if (!parent) break;
+    for (const sibling of Array.from(parent.children)) {
+      if (sibling === node || !(sibling instanceof HTMLElement)) continue;
+      // Never clear an `inert` an outer dialog already owns.
+      if (sibling.hasAttribute("inert")) continue;
+      sibling.setAttribute("inert", "");
+      inerted.push(sibling);
+    }
+    node = parent;
+  }
+
+  return () => {
+    for (const node of inerted) node.removeAttribute("inert");
+  };
+}
+
+/**
+ * Scroll lock is refcounted: stacked dialogs must not let the innermost one
+ * hand the background its scrollbar back while an outer dialog is still open.
+ */
+let scrollLockCount = 0;
+let scrollLockRestore = "";
+
+function lockBodyScroll(): () => void {
+  if (scrollLockCount === 0) {
+    scrollLockRestore = document.body.style.overflow;
+    // The stylesheet locks only overflow-x; the vertical axis is what lets a
+    // sheet slide over moving content.
+    document.body.style.overflow = "hidden";
+  }
+  scrollLockCount += 1;
+
+  return () => {
+    scrollLockCount -= 1;
+    if (scrollLockCount === 0) document.body.style.overflow = scrollLockRestore;
+  };
+}
+
 export interface AccessibleDialogOptions {
   /** Container carrying `role="dialog"`. */
   dialogRef: RefObject<HTMLElement | null>;
@@ -78,6 +127,22 @@ export function useAccessibleDialog({
     dismissRef.current = onDismiss;
   }, [isBusy, onDismiss]);
 
+  // Declared before the focus effect deliberately: React runs cleanups in
+  // declaration order, so the background must leave `inert` before focus is
+  // handed back — focusing a still-inert opener silently does nothing.
+  useEffect(() => {
+    const releaseScroll = lockBodyScroll();
+    const dialog = dialogRef.current;
+    const releaseInert = dialog ? inertBackground(dialog) : undefined;
+
+    return () => {
+      releaseInert?.();
+      releaseScroll();
+    };
+    // Containment is established once per mount, alongside focus.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     const opener = document.activeElement;
     const target = initialFocusRef?.current ?? focusableNodes(dialogRef.current)[0];
@@ -99,6 +164,7 @@ export function useAccessibleDialog({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
+
 
   const onKeyDown = useCallback(
     (event: ReactKeyboardEvent<HTMLElement>) => {

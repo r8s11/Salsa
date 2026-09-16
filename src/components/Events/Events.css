@@ -134,7 +134,7 @@
   font-family: var(--font-body);
   font-size: 0.92rem;
   line-height: 1.6;
-  color: var(--text-dim);
+  color: var(--text-dim-glass);
   max-width: 46ch;
   margin: 0;
 }
@@ -401,7 +401,7 @@
   gap: 0.25rem;
   font-family: var(--font-body);
   font-size: 0.8rem;
-  color: var(--text-dim);
+  color: var(--text-dim-glass);
 }
 
 .event-card-location {
@@ -423,21 +423,21 @@
 }
 
 .event-type.social {
-  background: rgba(225, 29, 72, 0.12);
-  color: var(--red-bright);
-  border: 1px solid rgba(225, 29, 72, 0.25);
+  background: var(--red-deep);
+  color: var(--text);
+  border: 1px solid var(--red);
 }
 
 .event-type.class {
-  background: rgba(124, 147, 233, 0.12);
-  color: #9fb1f0;
-  border: 1px solid rgba(124, 147, 233, 0.25);
+  background: var(--blue-deep);
+  color: var(--text);
+  border: 1px solid var(--blue);
 }
 
 .event-type.workshop {
-  background: var(--gold-dim);
-  color: var(--gold-light);
-  border: 1px solid rgba(233, 195, 73, 0.25);
+  background: var(--gold);
+  color: var(--on-gold);
+  border: 1px solid var(--gold);
 }
 
 /* ── Error State ── */

@@ -1,6 +1,7 @@
 import type { FormEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { XCircle } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../contexts/useAuth";
 import { useAccessibleDialog } from "../shared/a11y/useAccessibleDialog";
@@ -138,7 +139,13 @@ export default function UserEventEditPage() {
   }, [editingEvent, isDirty]);
 
   const saveMutation = useMutation({
-    mutationFn: async ({ event, payload }: { event: DatabaseEvent; payload: UserEventUpdatePayload }) => {
+    mutationFn: async ({
+      event,
+      payload,
+    }: {
+      event: DatabaseEvent;
+      payload: UserEventUpdatePayload;
+    }) => {
       if (event.submission_id) {
         await updateOwnEventSubmission(event.submission_id, submissionEditedData(payload));
         return;
@@ -267,7 +274,10 @@ export default function UserEventEditPage() {
       <main className="user-edit-page">
         <div className="container user-edit-page__content">
           <div className="error-banner" role="alert">
-            <p>❌ {loadError ?? "Event not found."}</p>
+            <p>
+              <XCircle size={16} aria-hidden="true" style={{ verticalAlign: "-0.15em" }} />{" "}
+              {loadError ?? "Event not found."}
+            </p>
           </div>
         </div>
       </main>
@@ -309,14 +319,18 @@ export default function UserEventEditPage() {
         {!isEditable && (
           <div className="error-banner" role="alert">
             <p>
-              ❌ This event has been approved and can no longer be edited. Contact an admin if you
-              need changes.
+              <XCircle size={16} aria-hidden="true" style={{ verticalAlign: "-0.15em" }} /> This
+              event has been approved and can no longer be edited. Contact an admin if you need
+              changes.
             </p>
           </div>
         )}
         {saveError && (
           <div className="error-banner" role="alert">
-            <p>❌ {saveError}</p>
+            <p>
+              <XCircle size={16} aria-hidden="true" style={{ verticalAlign: "-0.15em" }} />{" "}
+              {saveError}
+            </p>
           </div>
         )}
         {saveSuccess && (
@@ -350,12 +364,10 @@ export default function UserEventEditPage() {
               }
             />
             <div className="user-edit-page__actions">
-              <Button type="submit" loading={isSaving} loadingLabel="Saving…">Save changes</Button>
-              <Button
-                variant="secondary"
-                onClick={() => navigate(returnPath)}
-                disabled={isSaving}
-              >
+              <Button type="submit" loading={isSaving} loadingLabel="Saving…">
+                Save changes
+              </Button>
+              <Button variant="secondary" onClick={() => navigate(returnPath)} disabled={isSaving}>
                 Cancel
               </Button>
               {canWithdraw && (
@@ -426,24 +438,23 @@ function WithdrawConfirmDialog({
         aria-describedby="withdraw-body"
       >
         <h2 id="withdraw-title">Withdraw &ldquo;{title}&rdquo;?</h2>
-        <p id="withdraw-body">
-          This permanently deletes the submission and cannot be undone.
-        </p>
+        <p id="withdraw-body">This permanently deletes the submission and cannot be undone.</p>
         {error && (
           <p className="user-withdraw-dialog__error" role="alert">
-            ❌ {error}
+            <XCircle size={16} aria-hidden="true" style={{ verticalAlign: "-0.15em" }} /> {error}
           </p>
         )}
         <div className="user-withdraw-dialog__actions">
-          <Button
-            variant="secondary"
-            ref={cancelRef}
-            onClick={onCancel}
-            disabled={isBusy}
-          >
+          <Button variant="secondary" ref={cancelRef} onClick={onCancel} disabled={isBusy}>
             Cancel
           </Button>
-          <Button variant="danger" onClick={onConfirm} disabled={isBusy} loading={isBusy} loadingLabel="Withdrawing…">
+          <Button
+            variant="danger"
+            onClick={onConfirm}
+            disabled={isBusy}
+            loading={isBusy}
+            loadingLabel="Withdrawing…"
+          >
             Withdraw submission
           </Button>
         </div>

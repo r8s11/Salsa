@@ -136,19 +136,22 @@
 
 .event-form__check {
   display: flex !important;
-  grid-template-columns: auto 1fr;
   align-items: center;
+  min-height: 44px;
+  gap: 0.5rem;
   text-transform: none !important;
   letter-spacing: normal !important;
 }
 
 .event-form__check input {
-  width: auto;
+  width: 1.15rem;
+  height: 1.15rem;
 }
 
 .event-form input[type="checkbox"] {
-  width: auto;
-  accent-color: var(--admin-brand, var(--red));
+  width: 1.15rem;
+  height: 1.15rem;
+  accent-color: var(--red);
 }
 
 .event-form__taxonomy {

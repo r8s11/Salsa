@@ -17,6 +17,7 @@ import {
 } from "../../features/account/model/publicProfile";
 import { DANCE_STYLES } from "../../features/admin/model/eventsQuery";
 import type { DatabaseEvent } from "../../features/events/model/types";
+import { ArrowRight } from "lucide-react";
 import Button from "../../components/ui/Button";
 import ButtonLink from "../../components/ui/ButtonLink";
 import "./ProfilePage.css";
@@ -88,10 +89,7 @@ export default function ProfilePage() {
   }, [allEvents]);
 
   const hostingNext = useMemo(() => profileHostingNext(approvedEvents ?? []), [approvedEvents]);
-  const regularVenues = useMemo(
-    () => profileRegularVenues(approvedEvents ?? []),
-    [approvedEvents]
-  );
+  const regularVenues = useMemo(() => profileRegularVenues(approvedEvents ?? []), [approvedEvents]);
   const styleLabels = useMemo(
     () => profileStyleLabels(profile?.dance_styles ?? [], DANCE_STYLES),
     [profile?.dance_styles]
@@ -105,8 +103,7 @@ export default function ProfilePage() {
   const userName =
     identity?.name ??
     (((user?.user_metadata as Record<string, unknown> | null | undefined)?.full_name as
-      | string
-      | undefined) ||
+      string | undefined) ||
       user?.email?.split("@")[0] ||
       "Dancer");
 
@@ -203,13 +200,14 @@ export default function ProfilePage() {
             <h1 className="profile-name">{userName}</h1>
             {isOrganizer && <span className="profile-role-badge">Organizer</span>}
           </div>
+          {identity?.usernameLine && <p className="profile-username">{identity.usernameLine}</p>}
           <p className="profile-member-since">{tagline}</p>
         </div>
 
         <div className="profile-actions">
-          <Link className="profile-action-btn profile-action-btn--outline" to="/profile/edit">
+          <ButtonLink to="/profile/edit" variant="secondary">
             Profile settings
-          </Link>
+          </ButtonLink>
           <ButtonLink to="/submit" variant="primary">
             + Submit Event
           </ButtonLink>
@@ -252,7 +250,7 @@ export default function ProfilePage() {
       {/* Activity numbers, with an owner-only preview of the member-facing view */}
       <section className="profile-numbers" aria-labelledby="profile-numbers-heading">
         <div className="profile-numbers-head">
-          <h2 id="profile-numbers-heading" className="profile-numbers-title">
+          <h2 id="profile-numbers-heading" className="profile-subsection-title">
             Your numbers
           </h2>
           <div className="profile-numbers-controls">
@@ -325,7 +323,9 @@ export default function ProfilePage() {
                     {event.location ? ` · ${event.location}` : ""}
                   </span>
                 </span>
-                <span className="profile-hosting-cta">Details →</span>
+                <span className="profile-hosting-cta">
+                  Details <ArrowRight size={14} aria-hidden="true" />
+                </span>
               </Link>
             ))}
           </div>
@@ -350,11 +350,9 @@ export default function ProfilePage() {
       {/* Submission management section */}
       <section className="profile-submissions" aria-labelledby="submissions-heading">
         <div className="profile-submissions-header">
-          <div>
-            <span className="profile-section-rule" aria-hidden="true" />
-            <span className="profile-section-eyebrow">Activity</span>
-            <h2 id="submissions-heading">My submissions</h2>
-          </div>
+          <h2 id="submissions-heading" className="profile-subsection-title">
+            My submissions
+          </h2>
         </div>
 
         {allEvents.length === 0 && !isLoading && (

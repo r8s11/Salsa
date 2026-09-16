@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
-import { Sparkles } from "lucide-react";
+import { Sparkles, XCircle } from "lucide-react";
 import { useAuth } from "../contexts/useAuth";
 import { ADMIN_EVENT_CREATE_PATH } from "../lib/eventCreateDestination";
 import { useOwnProfile } from "../features/account/hooks/useOwnProfile";
@@ -127,7 +127,10 @@ export default function SubmitEventPage() {
           </p>
         ) : submissionAccess.error ? (
           <div className="submit-event__banner submit-event__banner--error" role="alert">
-            <p>❌ Event submissions are currently unavailable. Please try again later.</p>
+            <p>
+              <XCircle size={16} aria-hidden="true" style={{ verticalAlign: "-0.15em" }} /> Event
+              submissions are currently unavailable. Please try again later.
+            </p>
           </div>
         ) : !submissionAccess.canSubmit ? (
           <p className="submit-event__status">Event submissions are currently closed.</p>

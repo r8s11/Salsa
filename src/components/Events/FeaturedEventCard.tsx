@@ -1,4 +1,5 @@
 import React from "react";
+import { Clock, MapPin } from "lucide-react";
 import type { ScheduleXEvent } from "../../types/events";
 import { isRecentlyApproved } from "../../features/events/model/recentlyApproved";
 import { resolveEventFlyer } from "../EventModal/eventModalImage";
@@ -69,8 +70,14 @@ export default function FeaturedEventCard({
         </span>
         <h3>{event.title}</h3>
         <div className="featured-card-meta">
-          <span>🕐 {time}</span>
-          {event.location && <span>📍 {event.location}</span>}
+          <span>
+            <Clock size={14} aria-hidden="true" /> {time}
+          </span>
+          {event.location && (
+            <span>
+              <MapPin size={14} aria-hidden="true" /> {event.location}
+            </span>
+          )}
         </div>
         {event.description && <p className="featured-card-description">{event.description}</p>}
         <span className="featured-card-link">View details →</span>

@@ -263,7 +263,7 @@ describe("UserEventEditPage save flow", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /Save changes/i }));
 
-    expect(await screen.findByText(/❌ Permission denied/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Permission denied/i)).toBeInTheDocument();
   });
 
   it("redirects approved events to the profile page", async () => {
@@ -315,7 +315,9 @@ describe("UserEventEditPage withdraw flow", () => {
     });
     expect(allWithdrawButtons).toHaveLength(2);
     // Focus starts on Cancel, never on the destructive control.
-    expect(within(screen.getByRole("dialog")).getByRole("button", { name: "Cancel" })).toHaveFocus();
+    expect(
+      within(screen.getByRole("dialog")).getByRole("button", { name: "Cancel" })
+    ).toHaveFocus();
     expect(mocks.deleteEventForUser).not.toHaveBeenCalled();
 
     fireEvent.click(allWithdrawButtons[1]);
@@ -413,7 +415,6 @@ describe("UserEventEditPage withdraw flow", () => {
     });
     expect(mocks.deleteEventForUser).not.toHaveBeenCalled();
   });
-
 });
 
 const rejectedEvent: DatabaseEvent = {
@@ -585,7 +586,7 @@ describe("UserEventEditPage withdrawal safety", () => {
     const allButtons = await screen.findAllByRole("button", { name: /Withdraw submission/i });
     fireEvent.click(allButtons[1]);
 
-    const errorMessage = await screen.findByText(/❌ Withdrawal network error/i);
+    const errorMessage = await screen.findByText(/Withdrawal network error/i);
     expect(errorMessage).toBeInTheDocument();
     const dialog = screen.getByRole("dialog");
     expect(dialog).toContainElement(errorMessage);

@@ -1,21 +1,12 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
-import {
-  ArrowLeft,
-  CalendarPlus,
-  Clock,
-  Link2,
-  MapPin,
-  Repeat,
-  Users,
-  X,
-} from "lucide-react";
+import { ArrowLeft, CalendarPlus, Clock, Link2, MapPin, Repeat, Users, X } from "lucide-react";
 import { ScheduleXEvent } from "../../types/events";
 import { downloadIcs, mapsUrl, googleCalendarUrl } from "../../utils/ics";
 import { getUpcomingSeriesDates } from "../../utils/series";
 import { useShareablePoster } from "../../features/calendar/hooks/useShareablePoster";
 import { resolvePosterImageForEvent } from "../../features/calendar/api/posterFlyers";
-import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
+import { useAccessibleDialog } from "../../shared/a11y/useAccessibleDialog";
 import ShareableEventPoster from "./ShareableEventPoster";
 import { resolveEventFlyer } from "./eventModalImage";
 import Button from "../ui/Button";
@@ -61,53 +52,25 @@ const formatTime = (startVal: unknown, endVal: unknown) => {
   return `${startDate.toLocaleTimeString("en-US", opts)} - ${endDate.toLocaleTimeString("en-US", opts)}`;
 };
 
+/**
+ * Closed state renders nothing and — critically — mounts none of the dialog
+ * mechanics. Escape handling, the focus trap, background `inert` and the body
+ * scroll lock live in the inner component, so they exist only while a modal
+ * is actually on screen.
+ */
 export default function EventModal({ event, onClose }: EventModalProps) {
+  if (!event) return null;
+  return <EventModalDialog event={event} onClose={onClose} />;
+}
+
+function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: () => void }) {
   const modalRef = useRef<HTMLDivElement>(null);
-  const previousFocusRef = useRef<HTMLElement | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Focus management: move focus into modal on open, restore on close
-  useEffect(() => {
-    if (event) {
-      previousFocusRef.current = document.activeElement as HTMLElement;
-      // Focus the close button after render
-      const closeBtn = modalRef.current?.querySelector<HTMLButtonElement>(".modal-close");
-      closeBtn?.focus();
-    } else if (previousFocusRef.current) {
-      previousFocusRef.current.focus();
-      previousFocusRef.current = null;
-    }
-  }, [event]);
-
-  // Trap focus inside modal
-  useEffect(() => {
-    if (!event || !modalRef.current) return;
-
-    const handleTab = (e: KeyboardEvent) => {
-      if (e.key !== "Tab" || !modalRef.current) return;
-
-      const focusable = modalRef.current.querySelectorAll<HTMLElement>(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-      );
-      if (focusable.length === 0) return;
-
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
-    };
-
-    window.addEventListener("keydown", handleTab);
-    return () => window.removeEventListener("keydown", handleTab);
-  }, [event]);
-
-  useEscapeKey(() => {
-    if (event) onClose();
+  const { onKeyDown, onBackdropClick } = useAccessibleDialog({
+    dialogRef: modalRef,
+    onDismiss: onClose,
+    initialFocusRef: closeButtonRef,
   });
 
   const [isDownloading, setIsDownloading] = useState(false);
@@ -124,7 +87,6 @@ export default function EventModal({ event, onClose }: EventModalProps) {
   }, []);
 
   const handleCopyLink = async () => {
-    if (!event) return;
     const url = `${window.location.origin}/events/${event.id}`;
     try {
       await navigator.clipboard.writeText(url);
@@ -133,14 +95,6 @@ export default function EventModal({ event, onClose }: EventModalProps) {
       copiedTimerRef.current = window.setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error("Failed to copy event link:", err);
-    }
-  };
-
-  if (!event) return null;
-
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose();
     }
   };
 
@@ -296,12 +250,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
       {(() => {
         const calUrl = googleCalendarUrl(event);
         return calUrl ? (
-          <ButtonLink
-            href={calUrl}
-            external
-            variant="secondary"
-            className="ics-button"
-          >
+          <ButtonLink href={calUrl} external variant="secondary" className="ics-button">
             <CalendarPlus size={16} aria-hidden /> Add to calendar
           </ButtonLink>
         ) : (
@@ -311,11 +260,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
         );
       })()}
       {/* Copy Event Link */}
-      <Button
-        variant="secondary"
-        onClick={handleCopyLink}
-        className="copy-link-btn"
-      >
+      <Button variant="secondary" onClick={handleCopyLink} className="copy-link-btn">
         <Link2 size={16} aria-hidden />
         {copied ? "Copied" : "Copy link"}
       </Button>
@@ -327,7 +272,8 @@ export default function EventModal({ event, onClose }: EventModalProps) {
   return (
     <div
       className="modal-overlay"
-      onClick={handleBackdropClick}
+      onClick={onBackdropClick}
+      onKeyDown={onKeyDown}
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
@@ -342,11 +288,8 @@ export default function EventModal({ event, onClose }: EventModalProps) {
         </IconButton>
 
         {/* ── Poster header ── */}
-        <div
-          className="modal-poster"
-          style={{ backgroundImage: `url(${resolvedImageUrl})` }}
-        >
-          <button className="modal-close back-pill" onClick={onClose}>
+        <div className="modal-poster" style={{ backgroundImage: `url(${resolvedImageUrl})` }}>
+          <button ref={closeButtonRef} className="modal-close back-pill" onClick={onClose}>
             <ArrowLeft size={16} aria-hidden /> Back to calendar
           </button>
           <div className="poster-overlay">

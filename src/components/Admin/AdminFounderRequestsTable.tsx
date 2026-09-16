@@ -1,5 +1,6 @@
 import { Fragment, type ComponentType, type ReactNode } from "react";
 import { Clock, MapPin, Globe } from "lucide-react";
+import MarginMark from "../Desk/MarginMark";
 import AdminActionMenu from "./AdminActionMenu";
 import {
   founderRequestActionItems,
@@ -132,9 +133,9 @@ function RequestRowDesktop({
             aria-label={request.status}
           >
             <span className="founder-status-icon" aria-hidden="true">
-              {request.status === "pending" && "⏳"}
-              {request.status === "approved" && "✓"}
-              {request.status === "rejected" && "✕"}
+              {request.status === "pending" && <MarginMark state="unset" />}
+              {request.status === "approved" && <MarginMark state="set" />}
+              {request.status === "rejected" && <MarginMark state="killed" />}
             </span>
             <span className="founder-status-label">
               {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
@@ -264,9 +265,9 @@ function RequestRowMobileCard({
                 aria-label={request.status}
               >
                 <span className="founder-status-icon" aria-hidden="true">
-                  {request.status === "pending" && "⏳"}
-                  {request.status === "approved" && "✓"}
-                  {request.status === "rejected" && "✕"}
+                  {request.status === "pending" && <MarginMark state="unset" />}
+                  {request.status === "approved" && <MarginMark state="set" />}
+                  {request.status === "rejected" && <MarginMark state="killed" />}
                 </span>
                 <span className="founder-status-label">
                   {request.status.charAt(0).toUpperCase() + request.status.slice(1)}

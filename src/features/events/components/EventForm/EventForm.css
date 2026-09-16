@@ -106,10 +106,12 @@
   cursor: pointer;
 }
 
+/* White on rose, the primary treatment DESIGN.md specifies (4.70:1).
+   This was `--surface` — dark navy on rose, 3.65:1. */
 .event-form__chips button[aria-pressed="true"] {
   border-color: var(--red);
   background: var(--red);
-  color: var(--surface);
+  color: #fff;
 }
 
 .event-form__segmented {
@@ -131,7 +133,7 @@
 .event-form__segmented button[aria-pressed="true"] {
   border-color: var(--red);
   background: var(--red);
-  color: var(--surface);
+  color: #fff;
 }
 
 .event-form__check {

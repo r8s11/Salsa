@@ -724,3 +724,12 @@
     padding-right: 16px;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  /* The mobile sheet travels a full viewport height — the largest movement
+     in the app. The sheet's arrival still needs to read as an arrival, so it
+     keeps the fade and loses the slide. */
+  .modal-content {
+    animation-name: reducedFade;
+  }
+}

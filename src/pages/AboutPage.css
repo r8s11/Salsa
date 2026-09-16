@@ -148,3 +148,10 @@
     padding: 1.5rem;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  /* Keep the section's arrival legible, without the travel. */
+  .about-page section {
+    animation-name: reducedFade;
+  }
+}

@@ -58,3 +58,10 @@
     gap: 1.5rem;
   }
 }
+
+/* The icon's bounce is decoration: it reports nothing and never stops. */
+@media (prefers-reduced-motion: reduce) {
+  .lesson-icon {
+    animation: none;
+  }
+}

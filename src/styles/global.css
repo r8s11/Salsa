@@ -629,14 +629,32 @@ a.logo:focus-visible {
 
 /* ----------------------------------------
    12. Reduced Motion
+
+   Policy, not a blanket switch. This used to be
+   `*, *::before, *::after { animation-duration: .01ms !important }`, which
+   won over every per-component alternative in the codebase and did real
+   damage: loading spinners froze at a random angle, so the one signal that
+   work was in progress disappeared, and toasts and skeletons jump-cut with
+   no indication anything had changed.
+
+   Reduced motion means less movement, not less meaning. So:
+     - Ambient loops that report nothing stop.       (handled per component)
+     - Spatial entrances lose their travel, keep their fade — via
+       `reducedFade` below.
+     - Spinners keep turning. They are the only in-progress feedback, and a
+       small rotating glyph is not what triggers vestibular discomfort.
+     - Short colour and opacity transitions stay. They confirm actions.
+
+   Each rule lives with the component that owns the animation, so a
+   component can keep the feedback it needs instead of a global rule
+   guessing on its behalf.
    ---------------------------------------- */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+@keyframes reducedFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 /* ----------------------------------------

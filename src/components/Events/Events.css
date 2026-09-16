@@ -544,3 +544,16 @@
     align-items: flex-start;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  /* The card grid still appears as a list, so keep the stagger's fade and
+     drop only its 20px rise. */
+  .events-grid .event-card {
+    animation-name: reducedFade;
+  }
+
+  /* The skeleton's own shape already says "loading"; the sweep is decoration. */
+  .events-skeleton .event-card.skeleton {
+    animation: none;
+  }
+}

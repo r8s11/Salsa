@@ -11,8 +11,12 @@
 }
 
 @keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .admin-approve-dialog {
@@ -26,8 +30,14 @@
 }
 
 @keyframes scale-in {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .admin-approve-dialog h2 {
@@ -78,7 +88,10 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    border-color var(--transition-fast);
 }
 
 .admin-approve-dialog .btn-secondary:hover:not(:disabled) {
@@ -107,4 +120,10 @@
 
 .admin-approve-dialog .btn-primary:hover:not(:disabled) {
   background: var(--primary-hover);
+}
+/* A dialog appearing is a state change worth showing; the scale is not. */
+@media (prefers-reduced-motion: reduce) {
+  .admin-approve-dialog {
+    animation-name: reducedFade;
+  }
 }

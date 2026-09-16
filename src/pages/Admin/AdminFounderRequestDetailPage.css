@@ -12,15 +12,24 @@
 }
 
 .admin-request-detail-page .skeleton {
-  background: linear-gradient(90deg, var(--admin-border) 25%, var(--admin-surface-secondary) 50%, var(--admin-border) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--admin-border) 25%,
+    var(--admin-surface-secondary) 50%,
+    var(--admin-border) 75%
+  );
   background-size: 200% 100%;
   animation: skeleton-loading 1.5s infinite;
   border-radius: 4px;
 }
 
 @keyframes skeleton-loading {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .admin-request-detail-page .skeleton-title {
@@ -222,7 +231,10 @@
   font-weight: 600;
   border-radius: var(--admin-radius);
   cursor: pointer;
-  transition: background 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    background-color 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .btn-primary {
@@ -281,7 +293,6 @@
 .invitation-email-status--attempting {
   color: var(--admin-warning);
 }
-
 
 .invitation-email-status--sent {
   color: var(--admin-success);
@@ -413,7 +424,6 @@
   margin-top: 8px;
 }
 
-
 @media (max-width: 768px) {
   .admin-request-detail-page {
     padding: 16px;
@@ -431,5 +441,12 @@
   .header-actions {
     width: 100%;
     justify-content: flex-start;
+  }
+}
+
+/* The skeleton's own shape already says "loading"; the sweep is decoration. */
+@media (prefers-reduced-motion: reduce) {
+  .admin-request-detail-page .skeleton {
+    animation: none;
   }
 }

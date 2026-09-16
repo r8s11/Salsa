@@ -374,3 +374,10 @@
     display: none;
   }
 }
+
+/* The skeleton's own shape already says "loading"; the sweep is decoration. */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}

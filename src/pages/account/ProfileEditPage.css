@@ -1,7 +1,7 @@
 /* ── Profile Edit Page ── */
 
 .profile-edit-page {
-  max-width: 720px;
+  max-width: 767.98px;
   margin: 0 auto;
   padding: var(--space-xl) var(--gutter) var(--space-xxl);
 }
@@ -515,7 +515,7 @@
 
 /* ── Responsive ── */
 
-@media (max-width: 640px) {
+@media (max-width: 639.98px) {
   .profile-edit-page__identity-row {
     flex-direction: column;
     align-items: stretch;

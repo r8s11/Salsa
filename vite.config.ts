@@ -4,6 +4,29 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   assetsInclude: ["**/*.md"],
+  build: {
+    rollupOptions: {
+      output: {
+        /**
+         * Keep the Supabase SDK out of the entry chunk. It is the largest
+         * dependency in the app (~838 KB of source across auth, postgrest,
+         * storage, realtime and phoenix) and it changes only when the SDK is
+         * upgraded, so bundling it with app code means every deploy
+         * invalidates it in visitors' caches.
+         *
+         * This splits it, it does not defer it: the landing page's event list
+         * needs Supabase, so the chunk is still fetched on load — in parallel
+         * with the entry rather than inside it. Actually deferring it needs an
+         * async client accessor across all 39 importers; see the note in
+         * src/lib/supabase.ts.
+         */
+        manualChunks(id: string): string | undefined {
+          if (id.includes("node_modules/@supabase/")) return "supabase";
+          return undefined;
+        },
+      },
+    },
+  },
   test: {
     globals: true,
     environment: "jsdom",

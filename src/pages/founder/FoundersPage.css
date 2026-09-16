@@ -12,7 +12,7 @@
 }
 
 .founders-header-content {
-  max-width: 640px;
+  max-width: 639.98px;
   margin: 0 auto;
 }
 
@@ -59,7 +59,7 @@
 
 .founders-card {
   width: 100%;
-  max-width: 480px;
+  max-width: 479.98px;
   padding: var(--space-xl);
   background: var(--card);
   border: 1px solid var(--border);
@@ -80,7 +80,7 @@
   line-height: 1.6;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 639.98px) {
   .founders-header {
     padding: var(--space-md);
   }

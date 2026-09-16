@@ -21,7 +21,7 @@
 .modal-content {
   position: relative;
   width: 100%;
-  max-width: 900px;
+  max-width: 767.98px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
@@ -487,7 +487,7 @@
 /* ========================================
    MOBILE — Bottom sheet redesign
    ======================================== */
-@media (max-width: 720px) {
+@media (max-width: 767.98px) {
   /* ── Overlay: flush to edges, sheet slides up from bottom ── */
   .modal-overlay {
     align-items: flex-end;
@@ -691,7 +691,7 @@
 }
 
 /* ── Small phones (≤400px) — tighter spacing ── */
-@media (max-width: 400px) {
+@media (max-width: 479.98px) {
   .modal-poster {
     height: 200px;
   }

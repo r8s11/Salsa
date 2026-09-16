@@ -125,7 +125,7 @@
   font-size: 0.8rem;
 }
 
-@media (min-width: 1100px) {
+@media (min-width: 1024px) {
   .admin-events-toolbar {
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;

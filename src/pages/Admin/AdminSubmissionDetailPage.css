@@ -242,7 +242,7 @@
   gap: 0.7rem;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 767.98px) {
   .admin-submission-detail-page {
     padding: 1.25rem;
   }

@@ -92,7 +92,7 @@
   --radius-full: 9999px;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 639.98px) {
   :root {
     --tab-bar-h: calc(58px + env(safe-area-inset-bottom));
   }
@@ -552,7 +552,7 @@ main {
 /* ----------------------------------------
    10. Mobile Responsive (Global)
    ---------------------------------------- */
-@media (max-width: 985px) {
+@media (max-width: 1023.98px) {
   .section-title {
     font-size: 2rem;
   }
@@ -665,7 +665,7 @@ a.logo:focus-visible {
    below 991px the mobile drawer lives inside .site-header and must always
    stay above the calendar banner and the fixed mobile tab bar.
    ---------------------------------------- */
-@media (min-width: 991px) {
+@media (min-width: 1024px) {
   body.calendar-page-open .site-header {
     z-index: 50;
   }

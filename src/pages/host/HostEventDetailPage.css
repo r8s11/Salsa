@@ -213,7 +213,7 @@
 .host-event-detail__flyer img {
   display: block;
   width: 100%;
-  max-width: 480px;
+  max-width: 479.98px;
   border-radius: var(--admin-radius);
   aspect-ratio: 4 / 3;
   object-fit: cover;
@@ -228,7 +228,7 @@
   justify-content: center;
   gap: 8px;
   width: 100%;
-  max-width: 480px;
+  max-width: 479.98px;
   aspect-ratio: 4 / 3;
   border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius);

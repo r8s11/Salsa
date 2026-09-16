@@ -162,7 +162,7 @@
   }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 767.98px) {
   .admin-organizer-requests-table__scroll {
     display: none;
   }

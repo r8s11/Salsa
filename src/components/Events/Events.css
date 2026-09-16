@@ -519,7 +519,7 @@
 }
 
 /* ── Mobile ── */
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
   .featured-card {
     grid-template-columns: 1fr;
     min-height: unset;
@@ -530,7 +530,7 @@
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 479.98px) {
   .events {
     padding: 60px 0;
   }

@@ -147,14 +147,14 @@
 .admin-venue-detail-page__form-container {
   background: var(--admin-surface);
   border-radius: var(--admin-radius);
-  max-width: 600px;
+  max-width: 599.98px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
 }
 
 /* --- Mobile (sticky footer: decision panel moves below the fold) --- */
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
   .admin-venue-detail-page__body {
     grid-template-columns: 1fr;
   }

@@ -69,7 +69,7 @@
   color: var(--admin-text-muted);
 }
 
-@media (max-width: 640px) {
+@media (max-width: 639.98px) {
   .host-create-event__actions {
     flex-direction: column-reverse;
   }

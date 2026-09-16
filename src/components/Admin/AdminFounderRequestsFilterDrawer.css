@@ -179,7 +179,7 @@
   background: var(--primary-hover);
 }
 
-@media (max-width: 640px) {
+@media (max-width: 639.98px) {
   .filter-drawer {
     width: 100%;
     max-width: 100%;

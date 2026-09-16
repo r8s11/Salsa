@@ -19,7 +19,7 @@
 .host-my-events__search {
   position: relative;
   width: 100%;
-  max-width: 400px;
+  max-width: 479.98px;
 }
 
 .host-my-events__search-icon {
@@ -347,7 +347,7 @@
 
 /* ── Responsive ── */
 
-@media (max-width: 640px) {
+@media (max-width: 639.98px) {
   .host-my-events__cards {
     grid-template-columns: 1fr;
   }

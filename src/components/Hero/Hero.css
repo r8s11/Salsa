@@ -220,7 +220,7 @@
   }
 }
 
-@media (max-width: 1040px) {
+@media (max-width: 1023.98px) {
   .hero-vinyl__glow,
   .hero-vinyl__disc,
   .hero-vinyl__sheen {
@@ -463,7 +463,7 @@
 }
 
 /* ── Tablet: centre the column so the record frames it ── */
-@media (min-width: 641px) and (max-width: 1040px) {
+@media (min-width: 640px) and (max-width: 1023.98px) {
   .hero-content {
     max-width: none;
     text-align: center;
@@ -481,7 +481,7 @@
 }
 
 /* ── Mobile: a focused, thumb-friendly guide ── */
-@media (max-width: 640px) {
+@media (max-width: 639.98px) {
   .hero {
     padding-top: 1rem;
   }
@@ -585,5 +585,66 @@
   .hero-bg {
     transform: translate(var(--hero-parallax-x, 0px), var(--hero-parallax-y, 0px));
     transition: transform 0.3s ease-out;
+  }
+}
+
+/* ── Staggered entrance ──
+   Ported from Motion, which was the entry chunk's second-largest dependency
+   (439 KB raw) and used here for nothing but six opacity+translateY fades.
+   Same duration, same ease, same per-element delay and distance as before.
+   `both` holds the from-state during the delay so nothing flashes in at full
+   opacity first. */
+@keyframes heroEnter {
+  from {
+    opacity: 0;
+    transform: translateY(var(--hero-enter-y, 18px));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-enter {
+  animation: heroEnter 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--hero-enter-delay, 0s);
+}
+
+.hero-enter[data-enter="bg"] {
+  --hero-enter-y: 0px;
+  --hero-enter-delay: 0s;
+}
+/* Opacity only: the record's centring transform lives in CSS, so a translate
+   here would overwrite it. */
+.hero-enter[data-enter="vinyl"] {
+  --hero-enter-y: 0px;
+  --hero-enter-delay: 0.08s;
+}
+.hero-enter[data-enter="eyebrow"] {
+  --hero-enter-y: 10px;
+  --hero-enter-delay: 0.12s;
+}
+.hero-enter[data-enter="heading"] {
+  --hero-enter-y: 18px;
+  --hero-enter-delay: 0.22s;
+}
+.hero-enter[data-enter="subtitle"] {
+  --hero-enter-y: 14px;
+  --hero-enter-delay: 0.36s;
+}
+.hero-enter[data-enter="cta"] {
+  --hero-enter-y: 14px;
+  --hero-enter-delay: 0.48s;
+}
+.hero-enter[data-enter="stats"] {
+  --hero-enter-y: 12px;
+  --hero-enter-delay: 0.58s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Motion's useReducedMotion path set `initial: false` — no entrance at all.
+     Keep that intent, but land on the final state rather than animating. */
+  .hero-enter {
+    animation: none;
   }
 }

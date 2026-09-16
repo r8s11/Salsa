@@ -437,7 +437,7 @@
 
 /* ---------- responsive ---------- */
 
-@media (max-width: 900px) {
+@media (max-width: 767.98px) {
   .event-page__columns {
     grid-template-columns: 1fr;
     gap: 30px;
@@ -447,7 +447,7 @@
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 639.98px) {
   .event-page {
     padding-bottom: calc(110px + env(safe-area-inset-bottom));
   }

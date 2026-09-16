@@ -10,7 +10,7 @@
 }
 
 .user-edit-page__content {
-  max-width: 720px;
+  max-width: 767.98px;
 }
 
 .user-edit-page__header {
@@ -200,7 +200,7 @@
   gap: 12px;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 599.98px) {
   .user-edit-page {
     padding: 42px 0 72px;
   }

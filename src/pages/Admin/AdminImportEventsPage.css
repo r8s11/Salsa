@@ -246,7 +246,7 @@
   }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 767.98px) {
   .admin-import-page__table-scroll {
     display: none;
   }

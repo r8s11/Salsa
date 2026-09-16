@@ -150,7 +150,7 @@
   white-space: nowrap;
 }
 
-@media (max-width: 639px) {
+@media (max-width: 639.98px) {
   .admin-breadcrumbs__crumb,
   .admin-breadcrumbs__sep {
     display: none;
@@ -268,7 +268,7 @@
    rail. At this width the rail exposed destination names only through
    `title`, which touch users never see. Admin keeps its rail here.
    ---------------------------------------- */
-@media (min-width: 768px) and (max-width: 1023px) {
+@media (min-width: 768px) and (max-width: 1023.98px) {
   .admin-shell[data-mode="host"] .admin-drawer[data-open="true"] {
     display: block;
   }

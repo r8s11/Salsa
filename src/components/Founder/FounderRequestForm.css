@@ -1,5 +1,5 @@
 .founder-request-card {
-  max-width: 640px;
+  max-width: 639.98px;
   margin: 0 auto;
   padding: var(--space-xl);
   background: var(--surface);
@@ -36,7 +36,7 @@
   gap: var(--space-md);
 }
 
-@media (max-width: 640px) {
+@media (max-width: 639.98px) {
   .form-row {
     grid-template-columns: 1fr;
   }

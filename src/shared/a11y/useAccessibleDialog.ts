@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useRef } from "react";
-import type { MouseEvent as ReactMouseEvent, KeyboardEvent as ReactKeyboardEvent, RefObject } from "react";
+import type {
+  MouseEvent as ReactMouseEvent,
+  KeyboardEvent as ReactKeyboardEvent,
+  RefObject,
+} from "react";
 
 /**
  * Every interactive descendant a modal can contain. Disabled controls are
@@ -37,7 +41,7 @@ function focusableNodes(container: HTMLElement | null): HTMLElement[] {
 function inertBackground(dialog: HTMLElement): () => void {
   const inerted: HTMLElement[] = [];
 
-  for (let node: HTMLElement = dialog; node !== document.body; ) {
+  for (let node: HTMLElement = dialog; node !== document.body;) {
     const parent = node.parentElement;
     if (!parent) break;
     for (const sibling of Array.from(parent.children)) {
@@ -164,7 +168,6 @@ export function useAccessibleDialog({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
-
 
   const onKeyDown = useCallback(
     (event: ReactKeyboardEvent<HTMLElement>) => {

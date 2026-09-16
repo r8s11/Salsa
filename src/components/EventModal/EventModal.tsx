@@ -1,15 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
-import {
-  ArrowLeft,
-  CalendarPlus,
-  Clock,
-  Link2,
-  MapPin,
-  Repeat,
-  Users,
-  X,
-} from "lucide-react";
+import { ArrowLeft, CalendarPlus, Clock, Link2, MapPin, Repeat, Users, X } from "lucide-react";
 import { ScheduleXEvent } from "../../types/events";
 import { downloadIcs, mapsUrl, googleCalendarUrl } from "../../utils/ics";
 import { getUpcomingSeriesDates } from "../../utils/series";
@@ -72,13 +63,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
   return <EventModalDialog event={event} onClose={onClose} />;
 }
 
-function EventModalDialog({
-  event,
-  onClose,
-}: {
-  event: ScheduleXEvent;
-  onClose: () => void;
-}) {
+function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: () => void }) {
   const modalRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -265,12 +250,7 @@ function EventModalDialog({
       {(() => {
         const calUrl = googleCalendarUrl(event);
         return calUrl ? (
-          <ButtonLink
-            href={calUrl}
-            external
-            variant="secondary"
-            className="ics-button"
-          >
+          <ButtonLink href={calUrl} external variant="secondary" className="ics-button">
             <CalendarPlus size={16} aria-hidden /> Add to calendar
           </ButtonLink>
         ) : (
@@ -280,11 +260,7 @@ function EventModalDialog({
         );
       })()}
       {/* Copy Event Link */}
-      <Button
-        variant="secondary"
-        onClick={handleCopyLink}
-        className="copy-link-btn"
-      >
+      <Button variant="secondary" onClick={handleCopyLink} className="copy-link-btn">
         <Link2 size={16} aria-hidden />
         {copied ? "Copied" : "Copy link"}
       </Button>
@@ -312,10 +288,7 @@ function EventModalDialog({
         </IconButton>
 
         {/* ── Poster header ── */}
-        <div
-          className="modal-poster"
-          style={{ backgroundImage: `url(${resolvedImageUrl})` }}
-        >
+        <div className="modal-poster" style={{ backgroundImage: `url(${resolvedImageUrl})` }}>
           <button ref={closeButtonRef} className="modal-close back-pill" onClick={onClose}>
             <ArrowLeft size={16} aria-hidden /> Back to calendar
           </button>

@@ -25,26 +25,23 @@ describe("Hero", () => {
     render(
       <MemoryRouter>
         <Hero />
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     expect(screen.getByRole("link", { name: "Tonight on the floor" })).toHaveClass(
-      "hero-btn--primary",
+      "hero-btn--primary"
     );
-    expect(screen.getByRole("link", { name: "Full calendar" })).toHaveClass(
-      "hero-btn--secondary",
-    );
+    expect(screen.getByRole("link", { name: "Full calendar" })).toHaveClass("hero-btn--secondary");
     expect(screen.getByText("Events This Week").closest(".hero-stats")).toHaveClass(
-      "hero-stats--compact",
+      "hero-stats--compact"
     );
   });
-
 
   it("renders the decorative record as layered, non-announced background art", () => {
     const { container } = render(
       <MemoryRouter>
         <Hero />
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     const vinyl = container.querySelector(".hero-vinyl");
@@ -55,5 +52,4 @@ describe("Hero", () => {
     expect(vinyl?.querySelector(".hero-vinyl__glow")).toBeInTheDocument();
     expect(vinyl?.querySelector(".hero-vinyl__sheen")).toBeInTheDocument();
   });
-
 });

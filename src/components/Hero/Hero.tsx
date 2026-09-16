@@ -154,7 +154,9 @@ function Hero() {
           </div>
 
           <h1 className="hero-heading hero-enter" data-enter="heading">
-            <span className="hero-heading-line" data-line="1">Find Your</span>
+            <span className="hero-heading-line" data-line="1">
+              Find Your
+            </span>
             <span className="hero-heading-line" data-line="2">
               <span className="hero-heading-accent">Rhythm</span>
               <span className="hero-heading-dot">.</span>

@@ -1,6 +1,11 @@
+<<<<<<< Updated upstream
 import { Fragment, type ComponentType, type ReactNode } from "react";
 import { Clock, MapPin, Globe } from "lucide-react";
 import MarginMark from "../Desk/MarginMark";
+=======
+import React from "react";
+import { Clock, MapPin, Globe } from "lucide-react";
+>>>>>>> Stashed changes
 import AdminActionMenu from "./AdminActionMenu";
 import {
   founderRequestActionItems,
@@ -24,8 +29,13 @@ function MetaItem({
 }: {
   // lucide icons accept an optional className via the SVG props; the broader
   // type is used because tsc -b strictly checks prop spread.
+<<<<<<< Updated upstream
   icon: ComponentType<{ size?: number; className?: string }>;
   children: ReactNode;
+=======
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  children: React.ReactNode;
+>>>>>>> Stashed changes
   title?: string;
 }) {
   return (
@@ -52,9 +62,13 @@ function RequestRowDesktop({
   const applicantName = request.applicant_name || "—";
   const email = request.email;
   const orgName = request.organization_name;
+<<<<<<< Updated upstream
   const location = request.city
     ? `${request.city}${request.region ? `, ${request.region}` : ""}`
     : null;
+=======
+  const location = request.city ? `${request.city}${request.region ? `, ${request.region}` : ""}` : null;
+>>>>>>> Stashed changes
 
   return (
     <tr className="founder-request-row" data-request-id={request.id}>
@@ -100,11 +114,15 @@ function RequestRowDesktop({
           {request.website ? (
             <MetaItem icon={Globe} title={request.website}>
               <a
+<<<<<<< Updated upstream
                 href={
                   request.website.match(/^https?:\/\//)
                     ? request.website
                     : `https://${request.website}`
                 }
+=======
+                href={request.website.match(/^https?:\/\//) ? request.website : `https://${request.website}`}
+>>>>>>> Stashed changes
                 className="founder-link"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -133,6 +151,7 @@ function RequestRowDesktop({
             aria-label={request.status}
           >
             <span className="founder-status-icon" aria-hidden="true">
+<<<<<<< Updated upstream
               {request.status === "pending" && <MarginMark state="unset" />}
               {request.status === "approved" && <MarginMark state="set" />}
               {request.status === "rejected" && <MarginMark state="killed" />}
@@ -146,6 +165,18 @@ function RequestRowDesktop({
               className="founder-status-meta"
               aria-label={`Reviewed ${formatDateLocal(request.reviewed_at)}`}
             >
+=======
+              {request.status === "pending" && "⏳"}
+              {request.status === "approved" && "✓"}
+              {request.status === "rejected" && "✕"}
+            </span>
+            <span className="founder-status-label">
+              {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+            </span>
+          </span>
+          {request.reviewed_at ? (
+            <div className="founder-status-meta" aria-label={`Reviewed ${formatDateLocal(request.reviewed_at)}`}>
+>>>>>>> Stashed changes
               Reviewed {formatDateLocal(request.reviewed_at)}
             </div>
           ) : null}
@@ -178,9 +209,13 @@ function RequestRowMobileCard({
   const applicantName = request.applicant_name || "—";
   const email = request.email;
   const orgName = request.organization_name;
+<<<<<<< Updated upstream
   const location = request.city
     ? `${request.city}${request.region ? `, ${request.region}` : ""}`
     : null;
+=======
+  const location = request.city ? `${request.city}${request.region ? `, ${request.region}` : ""}` : null;
+>>>>>>> Stashed changes
 
   return (
     <tr className="founder-mobile-card" data-request-id={request.id}>
@@ -234,11 +269,15 @@ function RequestRowMobileCard({
               {request.website ? (
                 <MetaItem icon={Globe} title={request.website}>
                   <a
+<<<<<<< Updated upstream
                     href={
                       request.website.match(/^https?:\/\//)
                         ? request.website
                         : `https://${request.website}`
                     }
+=======
+                    href={request.website.match(/^https?:\/\//) ? request.website : `https://${request.website}`}
+>>>>>>> Stashed changes
                     className="founder-link"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -265,25 +304,41 @@ function RequestRowMobileCard({
                 aria-label={request.status}
               >
                 <span className="founder-status-icon" aria-hidden="true">
+<<<<<<< Updated upstream
                   {request.status === "pending" && <MarginMark state="unset" />}
                   {request.status === "approved" && <MarginMark state="set" />}
                   {request.status === "rejected" && <MarginMark state="killed" />}
+=======
+                  {request.status === "pending" && "⏳"}
+                  {request.status === "approved" && "✓"}
+                  {request.status === "rejected" && "✕"}
+>>>>>>> Stashed changes
                 </span>
                 <span className="founder-status-label">
                   {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
                 </span>
               </span>
               {request.reviewed_at ? (
+<<<<<<< Updated upstream
                 <div className="founder-status-meta">
                   Reviewed {formatDateLocal(request.reviewed_at)}
                 </div>
+=======
+                <div className="founder-status-meta">Reviewed {formatDateLocal(request.reviewed_at)}</div>
+>>>>>>> Stashed changes
               ) : null}
             </div>
           </div>
         </div>
+<<<<<<< Updated upstream
         <div className="founder-mobile-card__actions">
           <AdminActionMenu label={`Actions for ${applicantName}`} items={items} />
         </div>
+=======
+      </td>
+      <td className="founder-mobile-card__actions">
+        <AdminActionMenu label={`Actions for ${applicantName}`} items={items} />
+>>>>>>> Stashed changes
       </td>
     </tr>
   );
@@ -318,6 +373,7 @@ export default function AdminFounderRequestsTable({
     return (
       <div className="admin-founder-requests-table-container">
         <table className="admin-founder-requests-table">
+<<<<<<< Updated upstream
           <colgroup>
             <col className="col-applicant" />
             <col className="col-contact" />
@@ -325,6 +381,8 @@ export default function AdminFounderRequestsTable({
             <col className="col-status" />
             <col className="col-actions" />
           </colgroup>
+=======
+>>>>>>> Stashed changes
           <thead>
             <tr>
               <th className="col-applicant">Applicant / Organization</th>
@@ -357,6 +415,7 @@ export default function AdminFounderRequestsTable({
   return (
     <div className="admin-founder-requests-table-container">
       <table className="admin-founder-requests-table">
+<<<<<<< Updated upstream
         <colgroup>
           <col className="col-applicant" />
           <col className="col-contact" />
@@ -364,6 +423,8 @@ export default function AdminFounderRequestsTable({
           <col className="col-status" />
           <col className="col-actions" />
         </colgroup>
+=======
+>>>>>>> Stashed changes
         <thead>
           <tr>
             <th className="col-applicant">Applicant / Organization</th>
@@ -375,10 +436,32 @@ export default function AdminFounderRequestsTable({
         </thead>
         <tbody>
           {requests.map((request) => (
+<<<<<<< Updated upstream
             <Fragment key={request.id}>
               <RequestRowDesktop request={request} onAction={onAction} isAdmin={isAdmin} />
               <RequestRowMobileCard request={request} onAction={onAction} isAdmin={isAdmin} />
             </Fragment>
+=======
+            <>
+              <tr
+                key={request.id}
+                className="founder-request-row--desktop"
+                aria-hidden="true"
+              />
+              <RequestRowDesktop
+                key={`d-${request.id}`}
+                request={request}
+                onAction={onAction}
+                isAdmin={isAdmin}
+              />
+              <RequestRowMobileCard
+                key={`m-${request.id}`}
+                request={request}
+                onAction={onAction}
+                isAdmin={isAdmin}
+              />
+            </>
+>>>>>>> Stashed changes
           ))}
         </tbody>
       </table>

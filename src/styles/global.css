@@ -55,6 +55,10 @@
   --font-display: "Epilogue", "Helvetica Neue", sans-serif;
   --font-ui: "Epilogue", "Helvetica Neue", sans-serif;
   --font-body: "Be Vietnam Pro", "Helvetica Neue", sans-serif;
+  /* Tabular identifiers — IDs, hashes, raw payloads. Referenced by
+     AdminActivityDetailPage before it was ever declared, so those two rules
+     were silently inheriting the body face. */
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
   /* Additional display step for card/surface headings */
   --font-size-card-title: 1.4rem;
   --font-logo: "Great Vibes", cursive;

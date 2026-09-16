@@ -121,6 +121,15 @@ typography:
     fontWeight: "800"
     lineHeight: "1"
     letterSpacing: -0.02em
+  wordmark:
+    fontFamily: Great Vibes
+    fontWeight: "400"
+    lineHeight: "1"
+  identifier:
+    fontFamily: ui-monospace
+    fontSize: 0.8125rem
+    fontWeight: "400"
+    lineHeight: "1.4"
 rounded:
   sm: 0.25rem
   DEFAULT: 0.5rem
@@ -188,6 +197,26 @@ The typography strategy is "Rhythmic Hierarchy." **Epilogue** provides a geometr
 
 For large display text, use tight letter-spacing to create a compact, high-energy impact. Labels and overlines should always be uppercase with generous letter-spacing to provide a modern, structural contrast to the fluid imagery of dance.
 
+### Two faces beyond the pair
+
+Epilogue and Be Vietnam Pro carry the system, but production has always
+shipped two more, unrecorded until now. Both are legitimate roles, not
+drift, so they are stated here rather than removed.
+
+- **Wordmark** (Great Vibes): the script "Salsa Segura" lockup, and the
+  only place this face appears. Declared as `--font-logo` and used by the
+  header, the sign-in page, and the work-in-progress screen. It is a
+  logotype, never a heading, never body copy, never a decorative flourish
+  on a section title.
+- **Identifier** (`ui-monospace, SFMono-Regular, Menlo, monospace`,
+  0.8125rem): tabular identifiers an operator reads character by
+  character — record IDs, hashes, raw payloads, submission diffs.
+  Declared as `--font-mono`. Monospace here is for data that must align
+  and must not be misread, never a costume for "technical".
+
+Both are operator- and chrome-level roles. Neither is part of the public
+reading experience: a dancer sees the wordmark and nothing else.
+
 ### The Listings Desk — agate setting
 
 The desk sets listings the way a printed club-listings column does:
@@ -247,6 +276,34 @@ ground (`--admin-surface-subtle`), never by lifting it.
 
 **The One-Device Rule.** Border or shadow, never both. The desk chose
 the border.
+
+#### What the no-cards law governs
+
+**The law governs the desk, not the whole operator world.** The desk is
+the standing rule: the admin, moderator and host overviews, built from
+`src/components/Desk/`. Those surfaces carry no cards today and must keep
+carrying none — a galley and a set column are a column of type, and a card
+around an entry destroys the vertical read the proof marks exist for.
+
+Everywhere else an operator works — record tables, forms, detail pages,
+dialogs, settings — `.admin-card` is the sanctioned container, and the
+122 occurrences across 49 files are correct rather than debt. A listing
+column and an edit form are different jobs: a form needs a stated edge
+because it bounds a set of fields the operator is committing, and a detail
+page needs one because it separates a record from the page around it.
+Forcing the agate treatment onto them would make both harder to use.
+
+So the boundary is by job, not by URL:
+
+- **Desk surfaces** (a standing column of entries): rules and measures,
+  never a card. Ground change marks state; nothing lifts.
+- **Record surfaces** (a form, a table, one record, a dialog):
+  `.admin-card` is correct, bounded by three rules — one level deep and
+  never nested, border-only elevation per the One-Device Rule, and never
+  a card per row where a table belongs.
+
+`AdminMetricCard` remains the one figure-card exemption, confined to the
+analytics page.
 
 ## Shapes
 
@@ -320,6 +377,9 @@ review page to lose your position in.
   analytics page; the desk reports work, not scale.
 - **Don't** add cards, panels, or shadows to the desk. Rules and
   measures do the dividing.
+- **Don't** nest one `.admin-card` inside another, and don't give each
+  row of a table its own card — a table is the container there. The card
+  is for a form, a record, or a dialog, one level deep.
 - **Don't** use glyphs or emoji as marks or icons anywhere. Marks are
   drawn geometry; icons come from the Lucide set already in use.
 - **Don't** shrink a control to match agate type, and don't grow agate

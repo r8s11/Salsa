@@ -66,12 +66,6 @@ footer {
   opacity: 1;
 }
 
-/* Vinyl record accent — decorative separator */
-.footer-vinyl {
-  margin: 0.5rem 0;
-  opacity: 0.6;
-}
-
 .copyright {
   font-family: var(--font-ui);
   font-size: 0.68rem;

@@ -19,7 +19,12 @@
   transition:
     background-color 0.2s ease,
     color 0.2s ease,
-    border-color 0.2s ease;
+    border-color 0.2s ease,
+    transform 0.12s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.ui-icon-button:active:not(:disabled) {
+  transform: scale(0.95);
 }
 
 .ui-icon-button:focus-visible {

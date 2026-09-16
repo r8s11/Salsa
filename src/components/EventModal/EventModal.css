@@ -2,35 +2,27 @@
    Event Modal — Tambora structure, Ritmo Vivo skin
    Desktop: centered card with two-column grid
    Mobile:  full-bleed bottom sheet with sticky CTA bar
-
-   Motion: CSS-driven staggered reveals on mount.
-   Poster parallax on modal scroll.
-   Micro-interactions on gallery, buttons.
-
-   Bolder pass: rose atmosphere, deeper shadows, expressive
-   type treatment, warmth bleeding through every surface.
    ======================================== */
 
-/* ── Overlay ──
-   Deeper, rose-tinted. The dancer is walking into the venue,
-   not peering through a neutral window. */
 .modal-overlay {
   position: fixed;
   inset: 0;
   z-index: 1100;
-  background: rgba(8, 10, 24, 0.78);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(11, 19, 38, 0.62);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   display: flex;
   align-items: flex-start;
   justify-content: center;
   padding: 40px 20px;
   overflow-y: auto;
+  transition: opacity 200ms ease-out;
+
+  @starting-style {
+    opacity: 0;
+  }
 }
 
-/* ── Content shell ──
-   Rose-tinted shadow instead of neutral black. The card
-   bleeds warmth from the poster into the surrounding dark. */
 .modal-content {
   position: relative;
   width: 100%;
@@ -38,65 +30,29 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
-  box-shadow:
-    0 40px 80px -20px rgba(0, 0, 0, 0.5),
-    0 20px 40px -12px rgba(0, 0, 0, 0.45);
+  /* One elevation, stated once: a real offset shadow. The rose glow that
+     used to sit on top was a zero-offset halo, and it competed with the
+     RSVP column for the only warm emphasis in the sheet. */
+  box-shadow: 0 30px 60px -18px rgba(0, 0, 0, 0.5);
   overflow: hidden;
-  /* Entrance: scale up from 96% + fade, spring overshoot */
-  opacity: 0;
-  transform: scale(0.96) translateY(12px);
-  transition:
-    opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.modal-content.modal--revealed {
-  opacity: 1;
-  transform: scale(1) translateY(0);
-}
-
-/* ── Staggered reveal children ──
-   Each child starts invisible + offset. The .modal--revealed ancestor
-   triggers them in sequence via animation-delay on [data-reveal]. */
-.modal-content [data-reveal] {
-  opacity: 0;
-  transform: translateY(14px);
-}
-
-.modal-content.modal--revealed [data-reveal] {
-  animation: revealUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
-.modal-content.modal--revealed [data-reveal="1"] {
-  animation-delay: 0.12s;
-}
-.modal-content.modal--revealed [data-reveal="2"] {
-  animation-delay: 0.2s;
-}
-.modal-content.modal--revealed [data-reveal="3"] {
-  animation-delay: 0.28s;
-}
-.modal-content.modal--revealed [data-reveal="4"] {
-  animation-delay: 0.36s;
-}
-.modal-content.modal--revealed [data-reveal="5"] {
-  animation-delay: 0.44s;
-}
-.modal-content.modal--revealed [data-reveal="6"] {
-  animation-delay: 0.52s;
-}
-.modal-content.modal--revealed [data-reveal="7"] {
-  animation-delay: 0.6s;
-}
-
-@keyframes revealUp {
-  from {
-    opacity: 0;
-    transform: translateY(14px);
+/* Desktop entrance: the mobile sheet already announces its arrival with the
+   modalSlideUp keyframe below; this is the equivalent for the centered
+   card, so appearing at all doesn't read as a jump-cut. Scale starts at
+   0.96, never 0 — the card has a shape the instant it exists. */
+@media (min-width: 768px) {
+  .modal-content {
+    transition:
+      opacity 220ms cubic-bezier(0.23, 1, 0.32, 1),
+      transform 220ms cubic-bezier(0.23, 1, 0.32, 1);
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+
+  @starting-style {
+    .modal-content {
+      opacity: 0;
+      transform: scale(0.96);
+    }
   }
 }
 
@@ -105,72 +61,29 @@
   display: none;
 }
 
-/* ── Poster header ──
-   Taller minimum. The poster IS the invitation — it should
-   command the first viewport. */
+/* ── Poster header ── */
 .modal-poster {
   position: relative;
   width: 100%;
-  height: min(42vw, 360px);
-  min-height: 260px;
+  height: min(38vw, 320px);
+  min-height: 230px;
   background-color: var(--surface-high);
   background-image: linear-gradient(150deg, var(--surface-high), var(--red));
   background-size: cover;
   background-position: center;
-  /* Parallax: poster shifts up as modal scrolls */
-  will-change: transform;
-  transition: transform 0.1s linear;
-}
-
-/* Atmospheric gradient: directional sweep that warms the title
-   zone. The radial vignette concentrates light in the lower-left
-   quadrant — where the poster overlay title sits — turning the
-   entire poster into the single warm focal surface of the modal. */
-.modal-poster::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-    ellipse 80% 70% at 25% 85%,
-    rgba(225, 29, 72, 0.18) 0%,
-    rgba(11, 19, 38, 0.0) 55%
-  );
-  z-index: 1;
-  pointer-events: none;
 }
 
 .modal-poster::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: var(--surface-action); /* 
+  background: linear-gradient(
     180deg,
-    rgba(11, 19, 38, 0.5) 0%,
-    transparent 28%,
-    rgba(11, 19, 38, 0.5) 68%,
-    var(--bg) 100%
+    rgba(11, 19, 38, 0.45) 0%,
+    transparent 32%,
+    rgba(11, 19, 38, 0.6) 72%,
+    var(--bg)
   );
-  z-index: 1;
-  pointer-events: none;
-}
-
-/* Vinyl record accent — larger, more visible, warmer presence */
-.modal-vinyl {
-  position: absolute;
-  top: 50%;
-  right: -14px;
-  transform: translateY(-50%);
-  z-index: 1;
-  opacity: 0.45;
-  pointer-events: none;
-  /* Subtle idle spin */
-  animation: vinylSpin 12s linear infinite;
-}
-
-@keyframes vinylSpin {
-  to {
-    transform: translateY(-50%) rotate(360deg);
-  }
 }
 
 /* ── Quick look header & facts ── */
@@ -183,15 +96,14 @@
 
 .quick-look-date {
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.72);
-  font-size: 0.82rem;
-  letter-spacing: 0.02em;
+  color: var(--text-muted);
 }
 
 /* ── Decision strip ──
-   Brighter ground, rose accent bar on the left edge.
-   This is the dancer's first decision point — it should
-   feel like a distinct zone, not a muted divider. */
+   The dancer sees the poster above; this is the first thing they read after
+   it. Time, location, price on the left; the RSVP decision on the right.
+   One compact row — the dancer's information is no longer scattered across
+   three separate regions. */
 .decision-strip {
   display: flex;
   align-items: center;
@@ -200,7 +112,6 @@
   padding: 14px 28px;
   background: var(--surface-high);
   border-bottom: 1px solid var(--border);
-  border-left: 3px solid var(--primary-container);
 }
 
 .decision-strip__facts {
@@ -221,10 +132,9 @@
 }
 
 .decision-strip__price {
-  font-weight: 800;
+  font-weight: 700;
   color: var(--gold);
-  font-size: 1.05rem;
-  letter-spacing: -0.01em;
+  font-size: 1rem;
 }
 
 .decision-strip__rsvp {
@@ -255,13 +165,16 @@
   transition:
     background 0.2s ease,
     border-color 0.2s ease,
-    transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+    transform 0.12s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .back-pill:hover {
   background: var(--card-hover);
   border-color: var(--border-lg);
-  transform: translateX(-2px);
+}
+
+.back-pill:active {
+  transform: scale(0.97);
 }
 
 .poster-overlay {
@@ -274,19 +187,25 @@
 
 .poster-overlay h2 {
   font-family: var(--font-display);
-  font-size: 36px;
+  font-size: 34px;
   font-weight: 800;
   line-height: 1.05;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.02em;
   color: #fff;
   margin: 8px 0 0;
-  /* Pure white on the warm poster spotlight — no glow needed.
-     The radial gradient already burns the title zone. */
 }
 
 /* ── Calendar type chips ──
-   Scoped to .modal-content so event-type chips get opaque grounds
-   that read on any flyer lightness. */
+   The markup reuses `.style-chip`, whose base rule in global.css is the
+   *dance-style* chip (On1 / On2 / Cuban) — low-opacity tertiary with white
+   text. At equal specificity that base won on source order, so every event
+   type rendered in the same orange and the chip encoded nothing. Scoping
+   these to `.modal-content` settles it.
+
+   They also sit in the poster overlay, on a flyer photograph whose lightness
+   is unknowable at author time, so each states its own opaque ground — the
+   same deep tones the event cards use, so one type reads identically on the
+   card and in the sheet it opens. */
 .modal-content .chip-social {
   background: var(--red-deep);
   color: var(--text);
@@ -302,17 +221,15 @@
 
 .modal-content .style-chip {
   padding: 3px 8px;
-  transition: box-shadow 0.25s ease;
 }
-
 
 /* ── Scrollable body ── */
 .modal-body {
+  /* On desktop this just passes through; on mobile it becomes scrollable */
   margin-top: var(--space-lg);
 }
 
-/* ── Body grid (desktop two-column) ──
-   Warm gradient divider between columns instead of a plain border. */
+/* ── Body grid (desktop two-column) ── */
 .modal-grid {
   display: grid;
   grid-template-columns: 1.6fr 1fr;
@@ -320,7 +237,7 @@
 }
 
 .modal-details {
-  padding: 28px 32px;
+  padding: 28px;
 }
 
 .meta-row {
@@ -333,11 +250,13 @@
   margin-bottom: 8px;
   flex-wrap: wrap;
 }
-
+/* Both `--text-link` and its `--primary` fallback were undeclared, so the
+   venue address resolved to `inherit` and rendered as plain body text — a
+   link with no affordance. Gold is already the link role in this sheet
+   (contacts, series), so the address joins it. */
 .address-link {
   color: var(--gold);
   text-decoration: none;
-  transition: color 0.15s ease;
 }
 .address-link:hover {
   color: var(--gold-light);
@@ -359,7 +278,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  padding: 0 32px 16px;
+  padding: 0 28px 16px;
 }
 
 .modal-style-row .style-chip {
@@ -388,23 +307,17 @@
   text-transform: uppercase;
 }
 
-/* ── Description ──
-   Indented quote treatment: the event description is the host's
-   voice. Give it a warm left accent and distinct typographic
-   presence instead of burying it as plain body text. */
 .modal-description {
   font-family: var(--font-body);
   font-size: 15px;
   color: var(--text-muted);
-  line-height: 1.65;
-  margin: 14px 0 0;
-  padding: 12px 0 12px 18px;
-  border-left: 3px solid var(--primary-container);
+  line-height: 1.6;
+  margin: 10px 0 0;
 }
 
 /* ── Gallery ── */
 .gallery {
-  margin-top: 24px;
+  margin-top: 20px;
 }
 
 .gallery-eyebrow {
@@ -427,19 +340,13 @@
   height: 80px;
   border-radius: var(--radius-md);
   object-fit: cover;
-  transition:
-    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.3s ease,
-    filter 0.3s ease;
-  cursor: pointer;
-  filter: brightness(0.92);
+  transition: transform 0.15s ease;
 }
 
-.gallery-thumb:hover {
-  transform: scale(1.12) translateY(-3px);
-  box-shadow:
-    0 8px 20px rgba(0, 0, 0, 0.35); /* [one-spotlight] rose shadow removed */
-  filter: brightness(1.05);
+@media (hover: hover) and (pointer: fine) {
+  .gallery-thumb:hover {
+    transform: scale(1.05);
+  }
 }
 
 .gallery-more {
@@ -458,17 +365,18 @@
 }
 
 /* ── Desktop sidebar ──
-   Stronger separation from the detail column. The sidebar carries
-   secondary actions in a warm, self-contained zone. */
+   Secondary actions, contact, and series. The RSVP is in the decision strip
+   now, so this column is no longer the decision region — it's supporting
+   context. Carries the warm surface to stay consistent with the mobile
+   action bar. */
 .modal-sidebar {
   padding: 28px;
   background: var(--surface-action);
   border-radius: 0 18px 18px 0;
-  border-left: 1px solid rgba(225, 29, 72, 0.2);
+  border-left: 1px solid var(--red-dim);
   display: flex;
   flex-direction: column;
   gap: 14px;
-  /* Warm inner glow from the left edge */
 }
 
 .price-row {
@@ -501,18 +409,9 @@
   justify-content: center;
   gap: 8px;
   text-align: center;
+  /* <button> defaults to line-height: normal; anchors inherit the body's.
+     Inherit explicitly so both element types render the same height. */
   line-height: inherit;
-  /* Press-scale micro-interaction */
-  transition:
-    transform 0.15s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.15s ease;
-}
-
-.modal-sidebar .rsvp-button:active,
-.modal-sidebar .ics-button:active,
-.modal-sidebar .copy-link-btn:active,
-.modal-mobile-actions .rsvp-button:active {
-  transform: scale(0.97);
 }
 
 /* .btn-primary has no border while .btn-secondary carries a 1px gold one;
@@ -564,11 +463,6 @@
   font-size: 0.875rem;
   overflow-wrap: anywhere;
   text-decoration: none;
-  transition: color 0.15s ease;
-}
-
-.contact-block a:hover {
-  color: var(--gold);
 }
 
 .contact-block a:focus-visible {
@@ -606,7 +500,6 @@
   color: var(--gold);
   font-weight: 600;
   text-decoration: none;
-  transition: color 0.15s ease;
 }
 
 .series-item a:hover {
@@ -646,7 +539,7 @@
     background 0.2s ease,
     border-color 0.2s ease,
     color 0.2s ease,
-    transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+    transform 0.12s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .modal-close-x:hover {
@@ -656,7 +549,7 @@
 }
 
 .modal-close-x:active {
-  transform: scale(0.92);
+  transform: scale(0.95);
 }
 
 /* ========================================
@@ -678,12 +571,16 @@
     max-height: 92dvh;
     display: flex;
     flex-direction: column;
-    /* Override desktop entrance for mobile bottom-sheet slide */
-    transform: translateY(100%) scale(1);
+    animation: modalSlideUp 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  .modal-content.modal--revealed {
-    transform: translateY(0) scale(1);
+  @keyframes modalSlideUp {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
   }
 
   /* ── Drag handle ── */
@@ -715,11 +612,9 @@
 
   /* ── Poster — taller, full-bleed into top corners ── */
   .modal-poster {
-    height: 260px;
+    height: 240px;
     border-radius: 20px 20px 0 0;
     flex-shrink: 0;
-    /* Disable parallax on mobile — no scroll container */
-    transform: none !important;
   }
 
   .poster-overlay {
@@ -729,7 +624,7 @@
   }
 
   .poster-overlay h2 {
-    font-size: 26px;
+    font-size: 24px;
     line-height: 1.1;
   }
 
@@ -748,7 +643,6 @@
     gap: 12px;
     flex-shrink: 0;
     flex-wrap: wrap;
-    border-left-width: 2px;
   }
 
   .decision-strip__facts {
@@ -826,11 +720,6 @@
     height: 64px;
   }
 
-  /* ── Description — tighter on mobile ── */
-  .modal-description {
-    padding-left: 14px;
-  }
-
   /* ── Sticky mobile action bar ──
      The desktop sidebar is hidden here, so this bar carries secondary actions.
      The RSVP is in the decision strip above the fold. */
@@ -842,8 +731,8 @@
     padding: 10px 16px;
     padding-bottom: max(10px, env(safe-area-inset-bottom));
     background: var(--surface-action);
-    border-top: 1px solid rgba(225, 29, 72, 0.2);
-    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.35);
+    border-top: 1px solid var(--red-dim);
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.3);
   }
 
   /* The decision spans the bar; everything else is secondary by construction. */
@@ -877,30 +766,20 @@
   .modal-mobile-actions .reassurance {
     display: none;
   }
-
-  /* Vinyl spin stays on mobile but slower */
-  .modal-vinyl {
-    animation-duration: 20s;
-  }
 }
 
 /* ── Small phones (≤400px) — tighter spacing ── */
 @media (max-width: 479.98px) {
   .modal-poster {
-    height: 220px;
+    height: 200px;
   }
 
   .poster-overlay h2 {
-    font-size: 22px;
+    font-size: 20px;
   }
 
   .modal-details {
     padding: 16px 16px 4px;
-  }
-
-  .modal-description {
-    padding-left: 12px;
-    font-size: 14px;
   }
 
   .modal-mobile-actions {
@@ -924,55 +803,30 @@
   }
 }
 
-/* ── Reduced motion ──
-   Strip all spatial movement. Keep fades so the modal still
-   announces itself. Kill parallax and vinyl spin. */
 @media (prefers-reduced-motion: reduce) {
+  @keyframes reducedFade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* The mobile sheet travels a full viewport height — the largest movement
+     in the app. The sheet's arrival still needs to read as an arrival, so it
+     keeps the fade and loses the slide. */
   .modal-content {
-    transition-duration: 0.01ms;
-    transform: none;
-  }
-
-  .modal-content.modal--revealed {
-    transform: none;
-  }
-
-  .modal-content [data-reveal] {
-    transform: none;
-  }
-
-  .modal-content.modal--revealed [data-reveal] {
     animation-name: reducedFade;
-    animation-duration: 0.01ms;
-    animation-delay: 0ms;
   }
+}
 
-  .modal-poster {
-    transform: none !important;
-  }
-
-  .modal-vinyl {
-    animation: none;
-  }
-
-  .back-pill:hover {
-    transform: none;
-  }
-
-  .modal-close-x:active {
-    transform: none;
-  }
-
-  .gallery-thumb:hover {
-    transform: none;
-    box-shadow: none;
-    filter: none;
-  }
-
-  .modal-sidebar .rsvp-button:active,
-  .modal-sidebar .ics-button:active,
-  .modal-sidebar .copy-link-btn:active,
-  .modal-mobile-actions .rsvp-button:active {
-    transform: none;
+/* Desktop entrance keeps its fade but drops the scale — same rule as the
+   mobile slide above, applied to the card's own motion. */
+@media (min-width: 768px) and (prefers-reduced-motion: reduce) {
+  @starting-style {
+    .modal-content {
+      transform: scale(1);
+    }
   }
 }

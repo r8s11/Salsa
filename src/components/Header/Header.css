@@ -34,17 +34,6 @@ a.logo:hover .ss-logo__wordmark-accent {
   color: var(--gold-light);
 }
 
-/* Vinyl record accent — spins slowly next to the logo */
-.header-vinyl {
-  margin-left: 0.25rem;
-  opacity: 0.7;
-  transition: opacity 0.2s ease;
-}
-
-a.logo:hover .header-vinyl {
-  opacity: 1;
-}
-
 /* Drawer-only ornaments: the numeral and the diamond marker exist for the
    full-screen mobile sheet and never render in the desktop bar. */
 .nav-links__num,

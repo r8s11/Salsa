@@ -9,7 +9,6 @@ import { resolvePosterImageForEvent } from "../../features/calendar/api/posterFl
 import { useAccessibleDialog } from "../../shared/a11y/useAccessibleDialog";
 import ShareableEventPoster from "./ShareableEventPoster";
 import { resolveEventFlyer } from "./eventModalImage";
-import VinylRecord from "../brand/VinylRecord";
 import Button from "../ui/Button";
 import IconButton from "../ui/IconButton";
 import ButtonLink from "../ui/ButtonLink";
@@ -67,8 +66,6 @@ export default function EventModal({ event, onClose }: EventModalProps) {
 function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: () => void }) {
   const modalRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const posterRef = useRef<HTMLDivElement>(null);
-  const [revealed, setRevealed] = useState(false);
 
   const { onKeyDown, onBackdropClick } = useAccessibleDialog({
     dialogRef: modalRef,
@@ -81,28 +78,6 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
   const copiedTimerRef = useRef<number | null>(null);
   const { ensureContainer, capturePoster, posterFilename, downloadPoster, removeTarget } =
     useShareablePoster();
-
-  // Trigger staggered reveal on mount — one frame after paint so the
-  // initial opacity:0 / transform state is committed before transitioning.
-  useEffect(() => {
-    const raf = requestAnimationFrame(() => setRevealed(true));
-    return () => cancelAnimationFrame(raf);
-  }, []);
-
-  // Poster parallax: shift poster up as modal body scrolls
-  useEffect(() => {
-    const overlay = modalRef.current;
-    if (!overlay) return;
-    const handleScroll = () => {
-      const scrollY = overlay.scrollTop;
-      if (posterRef.current) {
-        // Subtle parallax: poster moves up at 30% of scroll speed
-        posterRef.current.style.transform = `translateY(${scrollY * -0.3}px)`;
-      }
-    };
-    overlay.addEventListener("scroll", handleScroll, { passive: true });
-    return () => overlay.removeEventListener("scroll", handleScroll);
-  }, []);
 
   // Clear the "Copied" feedback timer on close/unmount.
   useEffect(() => {
@@ -299,7 +274,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
       aria-labelledby="modal-title"
       ref={modalRef}
     >
-      <div className={`modal-content${revealed ? " modal--revealed" : ""}`}>
+      <div className="modal-content">
         {/* Drag handle — visible only on mobile */}
         <div className="modal-drag-handle" aria-hidden />
 
@@ -308,12 +283,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
         </IconButton>
 
         {/* ── Poster header ── */}
-        <div
-          className="modal-poster"
-          ref={posterRef}
-          style={{ backgroundImage: `url(${resolvedImageUrl})` }}
-        >
-          <VinylRecord size="lg" className="modal-vinyl" />
+        <div className="modal-poster" style={{ backgroundImage: `url(${resolvedImageUrl})` }}>
           <button ref={closeButtonRef} className="modal-close back-pill" onClick={onClose}>
             <ArrowLeft size={16} aria-hidden /> Back to calendar
           </button>
@@ -331,7 +301,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
             read after it. Time, location, price on the left; the RSVP
             decision on the right. One compact row — the dancer's information
             is no longer scattered across three separate regions. */}
-        <div className="decision-strip" data-reveal="1">
+        <div className="decision-strip">
           <div className="decision-strip__facts">
             <div className="decision-strip__fact">
               <Clock size={14} aria-hidden />
@@ -356,7 +326,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
 
         {/* ── Dance styles (prominent, before description) ── */}
         {event.danceStyles && event.danceStyles.length > 0 && (
-          <div className="modal-style-row" data-reveal="2">
+          <div className="modal-style-row">
             {event.danceStyles.map((style) => (
               <span key={style} className="style-chip">
                 {style}
@@ -370,24 +340,20 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
           <div className="modal-grid">
             <div className="modal-details">
               {event.recurrence && (
-                <div className="meta-row" data-reveal="3">
+                <div className="meta-row">
                   <Repeat size={18} aria-hidden />
                   <span>{event.recurrence === "weekly" ? "Repeats weekly" : "Repeats"}</span>
                 </div>
               )}
               {event.host && (
-                <div className="meta-row" data-reveal="3">
+                <div className="meta-row">
                   <Users size={18} aria-hidden />
                   <span>with {event.host}</span>
                 </div>
               )}
-              {event.description && (
-                <p className="modal-description" data-reveal="4">
-                  {event.description}
-                </p>
-              )}
+              {event.description && <p className="modal-description">{event.description}</p>}
               {galleryThumbs.length > 0 && (
-                <div className="gallery" data-reveal="5">
+                <div className="gallery">
                   <h3 className="gallery-eyebrow">Photos from past nights</h3>
                   <div className="gallery-row">
                     {galleryThumbs.map((src, index) => (
@@ -406,7 +372,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
             </div>
 
             {/* Desktop sidebar — hidden on mobile */}
-            <aside className="modal-sidebar" data-reveal="6">
+            <aside className="modal-sidebar">
               {renderActions(true)}
 
               {renderContactBlock()}
@@ -415,16 +381,14 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
           </div>
 
           {/* Additional content shown inline on mobile (hidden in desktop sidebar) */}
-          <div className="modal-mobile-extras" data-reveal="6">
+          <div className="modal-mobile-extras">
             {renderContactBlock()}
             {renderSeries()}
           </div>
         </div>
 
         {/* ── Mobile sticky action bar ── */}
-        <div className="modal-mobile-actions" data-reveal="7">
-          {renderActions(false)}
-        </div>
+        <div className="modal-mobile-actions">{renderActions(false)}</div>
       </div>
     </div>
   );

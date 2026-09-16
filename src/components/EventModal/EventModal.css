@@ -39,7 +39,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   box-shadow:
-    0 40px 80px -20px rgba(180, 20, 50, 0.18),
+    0 40px 80px -20px rgba(0, 0, 0, 0.5),
     0 20px 40px -12px rgba(0, 0, 0, 0.45);
   overflow: hidden;
   /* Entrance: scale up from 96% + fade, spring overshoot */
@@ -67,13 +67,27 @@
   animation: revealUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
-.modal-content.modal--revealed [data-reveal="1"] { animation-delay: 0.12s; }
-.modal-content.modal--revealed [data-reveal="2"] { animation-delay: 0.2s; }
-.modal-content.modal--revealed [data-reveal="3"] { animation-delay: 0.28s; }
-.modal-content.modal--revealed [data-reveal="4"] { animation-delay: 0.36s; }
-.modal-content.modal--revealed [data-reveal="5"] { animation-delay: 0.44s; }
-.modal-content.modal--revealed [data-reveal="6"] { animation-delay: 0.52s; }
-.modal-content.modal--revealed [data-reveal="7"] { animation-delay: 0.6s; }
+.modal-content.modal--revealed [data-reveal="1"] {
+  animation-delay: 0.12s;
+}
+.modal-content.modal--revealed [data-reveal="2"] {
+  animation-delay: 0.2s;
+}
+.modal-content.modal--revealed [data-reveal="3"] {
+  animation-delay: 0.28s;
+}
+.modal-content.modal--revealed [data-reveal="4"] {
+  animation-delay: 0.36s;
+}
+.modal-content.modal--revealed [data-reveal="5"] {
+  animation-delay: 0.44s;
+}
+.modal-content.modal--revealed [data-reveal="6"] {
+  animation-delay: 0.52s;
+}
+.modal-content.modal--revealed [data-reveal="7"] {
+  animation-delay: 0.6s;
+}
 
 @keyframes revealUp {
   from {
@@ -108,16 +122,18 @@
   transition: transform 0.1s linear;
 }
 
-/* Two-layer gradient: directional sweep + radial vignette
-   that pulls the eye inward to the title. */
+/* Atmospheric gradient: directional sweep that warms the title
+   zone. The radial vignette concentrates light in the lower-left
+   quadrant — where the poster overlay title sits — turning the
+   entire poster into the single warm focal surface of the modal. */
 .modal-poster::before {
   content: "";
   position: absolute;
   inset: 0;
   background: radial-gradient(
-    ellipse 70% 60% at 30% 80%,
-    rgba(11, 19, 38, 0.0) 0%,
-    rgba(11, 19, 38, 0.55) 100%
+    ellipse 80% 70% at 25% 85%,
+    rgba(225, 29, 72, 0.18) 0%,
+    rgba(11, 19, 38, 0.0) 55%
   );
   z-index: 1;
   pointer-events: none;
@@ -127,7 +143,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(
+  background: var(--surface-action); /* 
     180deg,
     rgba(11, 19, 38, 0.5) 0%,
     transparent 28%,
@@ -182,7 +198,7 @@
   justify-content: space-between;
   gap: 16px;
   padding: 14px 28px;
-  background: linear-gradient(135deg, var(--surface-high) 0%, rgba(225, 29, 72, 0.06) 100%);
+  background: var(--surface-high);
   border-bottom: 1px solid var(--border);
   border-left: 3px solid var(--primary-container);
 }
@@ -209,7 +225,6 @@
   color: var(--gold);
   font-size: 1.05rem;
   letter-spacing: -0.01em;
-  text-shadow: 0 0 16px rgba(233, 195, 73, 0.25);
 }
 
 .decision-strip__rsvp {
@@ -226,13 +241,13 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(17, 23, 40, 0.65);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--card);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--border-md);
   border-radius: var(--radius-full);
   padding: 8px 14px;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text);
   font-family: var(--font-ui);
   font-size: 13px;
   font-weight: 700;
@@ -244,8 +259,8 @@
 }
 
 .back-pill:hover {
-  background: rgba(22, 30, 52, 0.8);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: var(--card-hover);
+  border-color: var(--border-lg);
   transform: translateX(-2px);
 }
 
@@ -265,10 +280,8 @@
   letter-spacing: -0.025em;
   color: #fff;
   margin: 8px 0 0;
-  /* Depth against any image */
-  text-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.5),
-    0 0 40px rgba(225, 29, 72, 0.15);
+  /* Pure white on the warm poster spotlight — no glow needed.
+     The radial gradient already burns the title zone. */
 }
 
 /* ── Calendar type chips ──
@@ -292,9 +305,6 @@
   transition: box-shadow 0.25s ease;
 }
 
-.modal-content .style-chip:hover {
-  box-shadow: 0 0 12px rgba(255, 179, 182, 0.25);
-}
 
 /* ── Scrollable body ── */
 .modal-body {
@@ -306,7 +316,7 @@
 .modal-grid {
   display: grid;
   grid-template-columns: 1.6fr 1fr;
-  gap: 0;
+  gap: 40px;
 }
 
 .modal-details {
@@ -388,9 +398,8 @@
   color: var(--text-muted);
   line-height: 1.65;
   margin: 14px 0 0;
-  padding: 14px 0 14px 18px;
+  padding: 12px 0 12px 18px;
   border-left: 3px solid var(--primary-container);
-  background: linear-gradient(90deg, rgba(225, 29, 72, 0.04) 0%, transparent 60%);
 }
 
 /* ── Gallery ── */
@@ -429,8 +438,7 @@
 .gallery-thumb:hover {
   transform: scale(1.12) translateY(-3px);
   box-shadow:
-    0 12px 28px rgba(0, 0, 0, 0.4),
-    0 0 20px rgba(225, 29, 72, 0.12);
+    0 8px 20px rgba(0, 0, 0, 0.35); /* [one-spotlight] rose shadow removed */
   filter: brightness(1.05);
 }
 
@@ -454,18 +462,13 @@
    secondary actions in a warm, self-contained zone. */
 .modal-sidebar {
   padding: 28px;
-  background: linear-gradient(
-    180deg,
-    var(--surface-action) 0%,
-    rgba(225, 29, 72, 0.04) 100%
-  );
+  background: var(--surface-action);
   border-radius: 0 18px 18px 0;
   border-left: 1px solid rgba(225, 29, 72, 0.2);
   display: flex;
   flex-direction: column;
   gap: 14px;
   /* Warm inner glow from the left edge */
-  box-shadow: inset 2px 0 24px -8px rgba(225, 29, 72, 0.06);
 }
 
 .price-row {
@@ -632,12 +635,12 @@
   justify-content: center;
   width: 44px;
   height: 44px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--border-md);
   border-radius: var(--radius-full);
-  background: rgba(17, 23, 40, 0.6);
+  background: var(--card);
   color: var(--text);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
   cursor: pointer;
   transition:
     background 0.2s ease,
@@ -647,8 +650,8 @@
 }
 
 .modal-close-x:hover {
-  background: rgba(180, 20, 50, 0.25);
-  border-color: rgba(225, 29, 72, 0.4);
+  background: var(--card-hover);
+  border-color: var(--border-lg);
   color: var(--red-bright);
 }
 
@@ -694,7 +697,7 @@
     width: 36px;
     height: 4px;
     border-radius: 2px;
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--border-md);
   }
 
   /* ── Close X — always visible top-right, over poster ── */

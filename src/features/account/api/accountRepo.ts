@@ -5,7 +5,7 @@ import type { NotificationPrefs, OwnProfile } from "../model/account";
 // Every column the profile screens read. Kept in one place so the fetch and
 // the update round-trip cannot drift apart.
 const OWN_PROFILE_COLUMNS =
-  "id, display_name, username, avatar_url, status, status_reason, created_at, bio, city, dance_styles, instagram, website, cover_url, public_profile, stats_public, notification_prefs" as const;
+  "id, display_name, username, avatar_url, status, status_reason, created_at, bio, city, dance_styles, instagram, website, cover_url, public_profile, stats_public, notification_prefs, onboarding_completed_at" as const;
 
 /**
  * The signed-in user's own `profiles` row, enforced by the "Users read own
@@ -22,6 +22,29 @@ export async function fetchOwnProfile(userId: string): Promise<OwnProfile | null
     .maybeSingle();
   if (error) throw new Error(error.message);
   return data as OwnProfile | null;
+}
+
+/**
+ * Self-provision the caller's own `profiles` row when it is missing.
+ * handle_new_user normally creates it, but pre-migration or partially
+ * provisioned accounts can authenticate without one — previously every
+ * avatar/cover save then failed with PostgREST PGRST116 (zero rows).
+ * Scoped by the "Users insert own profile row" policy (id = auth.uid()).
+ */
+export async function ensureOwnProfileRow(userId: string): Promise<OwnProfile> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .insert({ id: userId })
+    .select(OWN_PROFILE_COLUMNS)
+    .single();
+  if (error) throw new Error(error.message);
+  return data as OwnProfile;
+}
+
+function isZeroRowsError(error: { code?: string; message?: string } | null): boolean {
+  if (!error) return false;
+  if (error.code === "PGRST116") return true;
+  return /zero rows|0 rows/i.test(error.message ?? "");
 }
 
 export type OwnProfileUpdate = {
@@ -63,12 +86,58 @@ export async function updateOwnProfile(
   userId: string,
   patch: OwnProfileUpdate
 ): Promise<OwnProfile> {
-  const { data, error } = await supabase
-    .from("profiles")
-    .update(patch)
-    .eq("id", userId)
-    .select(OWN_PROFILE_COLUMNS)
-    .single();
+  const runUpdate = () =>
+    supabase
+      .from("profiles")
+      .update(patch)
+      .eq("id", userId)
+      .select(OWN_PROFILE_COLUMNS)
+      .single();
+
+  const { data, error } = await runUpdate();
+  if (!error) return data as OwnProfile;
+  // Legitimate accounts can exist without a profile row. Provision exactly
+  // the caller's own row once, then retry — never another user's row.
+  if (isZeroRowsError(error)) {
+    await ensureOwnProfileRow(userId);
+    const retried = await runUpdate();
+    if (retried.error) throw new Error(retried.error.message);
+    return retried.data as OwnProfile;
+  }
+  throw new Error(error.message);
+}
+
+// ── Onboarding RPCs ───────────────────────────────────────────────
+// These call SECURITY DEFINER functions on the server, so the client
+// never writes username, onboarding_completed_at, or other columns
+// that the column-level UPDATE grant blocks.
+
+export async function setOnboardingProfile(params: {
+  display_name: string;
+  username: string;
+  city: string;
+  bio?: string;
+  avatar_url?: string;
+}): Promise<void> {
+  const { error } = await supabase.rpc("set_onboarding_profile", {
+    p_display_name: params.display_name,
+    p_username: params.username,
+    p_city: params.city,
+    p_bio: params.bio ?? null,
+    p_avatar_url: params.avatar_url ?? null,
+  });
   if (error) throw new Error(error.message);
-  return data as OwnProfile;
+}
+
+export async function markOnboardingComplete(): Promise<void> {
+  const { error } = await supabase.rpc("mark_onboarding_complete");
+  if (error) throw new Error(error.message);
+}
+
+export async function checkUsernameAvailable(username: string): Promise<boolean> {
+  const { data, error } = await supabase.rpc("check_username_available", {
+    p_username: username,
+  });
+  if (error) throw new Error(error.message);
+  return data as boolean;
 }

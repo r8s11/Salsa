@@ -17,7 +17,7 @@ import {
 } from "../../features/account/model/publicProfile";
 import { DANCE_STYLES } from "../../features/admin/model/eventsQuery";
 import type { DatabaseEvent } from "../../features/events/model/types";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Camera } from "lucide-react";
 import Button from "../../components/ui/Button";
 import ButtonLink from "../../components/ui/ButtonLink";
 import "./ProfilePage.css";
@@ -117,6 +117,9 @@ export default function ProfilePage() {
     ? new Date(user.created_at).toLocaleDateString("en-US", { month: "short", year: "numeric" })
     : null;
   const isOrganizer = role === "organizer" || role === "admin";
+  // This route always renders the signed-in member's own profile. Gating the
+  // in-place photo controls on that match keeps them off a future public view.
+  const isOwnProfile = Boolean(user?.id) && (profile === null || profile.id === user?.id);
   const tagline = profileTagline(profile?.city ?? null, memberSince);
 
   // Links are rendered only for values the database's http(s) CHECK
@@ -159,7 +162,8 @@ export default function ProfilePage() {
 
   return (
     <main className="profile-page">
-      {/* Cover photo */}
+      {/* Cover photo. On your own profile the cover is editable in place:
+          the control sits on the artwork it changes, not in a button row. */}
       <div className="profile-cover">
         {showCover ? (
           <img
@@ -172,52 +176,74 @@ export default function ProfilePage() {
           />
         ) : null}
         <div className="profile-cover-gradient" aria-hidden="true" />
+        {isOwnProfile && (
+          <Link to="/profile/edit?focus=cover" className="profile-photo-edit profile-photo-edit--cover">
+            <Camera size={15} aria-hidden="true" />
+            {showCover ? "Change cover" : "Add a cover"}
+          </Link>
+        )}
       </div>
 
       {/* Profile header */}
       <div className="profile-header">
-        <div className="profile-avatar-wrapper">
-          {showPhoto ? (
-            <img
-              className="profile-avatar-large profile-avatar-large--photo"
-              src={savedPhotoUrl}
-              alt=""
-              width={128}
-              height={128}
-              loading="lazy"
-              referrerPolicy="no-referrer"
-              onError={() => setFailedPhotoUrl(savedPhotoUrl)}
-            />
-          ) : (
-            <div className="profile-avatar-large" aria-hidden="true">
-              {userInitial}
-            </div>
+        <div className="profile-avatar-block">
+          <div className="profile-avatar-wrapper">
+            {showPhoto ? (
+              <img
+                className="profile-avatar-large profile-avatar-large--photo"
+                src={savedPhotoUrl}
+                alt=""
+                width={128}
+                height={128}
+                loading="lazy"
+                referrerPolicy="no-referrer"
+                onError={() => setFailedPhotoUrl(savedPhotoUrl)}
+              />
+            ) : (
+              <div className="profile-avatar-large" aria-hidden="true">
+                {userInitial}
+              </div>
+            )}
+          </div>
+          {isOwnProfile && (
+            <Link
+              to="/profile/edit?focus=photo"
+              className="profile-photo-edit profile-photo-edit--avatar"
+              aria-label={showPhoto ? "Change profile photo" : "Add a profile photo"}
+              title={showPhoto ? "Change profile photo" : "Add a profile photo"}
+            >
+              <Camera size={16} aria-hidden="true" />
+            </Link>
           )}
         </div>
 
-        <div className="profile-identity">
-          <div className="profile-name-row">
-            <h1 className="profile-name">{userName}</h1>
-            {isOrganizer && <span className="profile-role-badge">Organizer</span>}
+        <div className="profile-identity-row">
+          <div className="profile-identity">
+            <div className="profile-name-row">
+              <h1 className="profile-name">{userName}</h1>
+              {isOrganizer && <span className="profile-role-badge">Organizer</span>}
+            </div>
+            {identity?.usernameLine && <p className="profile-username">{identity.usernameLine}</p>}
+            <p className="profile-member-since">{tagline}</p>
           </div>
-          {identity?.usernameLine && <p className="profile-username">{identity.usernameLine}</p>}
-          <p className="profile-member-since">{tagline}</p>
+
+          {isOwnProfile && (
+            <ButtonLink to="/profile/edit" variant="primary" className="profile-edit-action">
+              Edit profile
+            </ButtonLink>
+          )}
         </div>
 
-        <div className="profile-actions">
-          <ButtonLink to="/profile/edit" variant="secondary">
-            Profile settings
-          </ButtonLink>
-          <ButtonLink to="/submit" variant="primary">
-            + Submit Event
-          </ButtonLink>
-          <ButtonLink to="/calendar" variant="secondary">
-            View Calendar
-          </ButtonLink>
-          <Button variant="secondary" onClick={() => signOut("global")}>
-            Sign Out
-          </Button>
-        </div>
+        {isOwnProfile && (
+          <div className="profile-utility-actions">
+            <ButtonLink to="/calendar" variant="secondary">
+              View Calendar
+            </ButtonLink>
+            <Button variant="secondary" onClick={() => signOut("global")}>
+              Sign Out
+            </Button>
+          </div>
+        )}
       </div>
 
       {styleLabels.length > 0 && (

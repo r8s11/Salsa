@@ -106,12 +106,12 @@ describe("ProfileEditPage", () => {
     mocks.update.error = null;
   });
 
-  it("renders a single h1, the eyebrow, and the lede", () => {
+  it("renders a single h1 and the lede, with no eyebrow label above it", () => {
     mocks.profile.profile = baseProfile();
     renderPage();
 
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
-    expect(screen.getByText("PROFILE SETTINGS")).toBeInTheDocument();
+    expect(screen.queryByText("PROFILE SETTINGS")).not.toBeInTheDocument();
     expect(
       screen.getByText(/update how you appear across salsasegura/i)
     ).toBeInTheDocument();
@@ -156,7 +156,7 @@ describe("ProfileEditPage", () => {
     mocks.profile.profile = baseProfile({ display_name: "Maria Santos", avatar_url: null });
     renderPage();
 
-    const heading = await screen.findByRole("heading", { name: "PHOTOS & NAME" });
+    const heading = await screen.findByRole("heading", { name: "PHOTOS" });
     const section = heading.closest("section") as HTMLElement;
     expect(within(section).getByText("M")).toBeInTheDocument();
   });
@@ -165,7 +165,7 @@ describe("ProfileEditPage", () => {
     mocks.profile.profile = baseProfile({ avatar_url: "https://cdn.test/maria.png" });
     renderPage();
 
-    const heading = await screen.findByRole("heading", { name: "PHOTOS & NAME" });
+    const heading = await screen.findByRole("heading", { name: "PHOTOS" });
     const section = heading.closest("section") as HTMLElement;
     const img = within(section).getByRole("presentation", { hidden: true }) as HTMLImageElement;
     expect(img.getAttribute("src")).toBe("https://cdn.test/maria.png");
@@ -388,7 +388,7 @@ describe("ProfileEditPage", () => {
   // These assert the rendered DOM, not just a validator return value.
 
   function photoSection() {
-    const heading = screen.getByRole("heading", { name: "PHOTOS & NAME" });
+    const heading = screen.getByRole("heading", { name: "PHOTOS" });
     return heading.closest("section") as HTMLElement;
   }
 
@@ -498,7 +498,7 @@ describe("ProfileEditPage", () => {
     const photoUrl = (await screen.findByLabelText("Photo URL")) as HTMLInputElement;
     const hintId = photoUrl.getAttribute("aria-describedby");
     expect(hintId).toBeTruthy();
-    expect(document.getElementById(hintId as string)?.textContent).toMatch(/hosted image/i);
+    expect(document.getElementById(hintId as string)?.textContent).toMatch(/hosted square image/i);
     expect(photoUrl.getAttribute("aria-invalid")).toBeNull();
 
     await user.type(photoUrl, "not-a-url");

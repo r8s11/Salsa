@@ -256,6 +256,13 @@
   margin-top: -66px;
 }
 
+/* The avatar and its edit badge share one positioning context so the badge
+   rides the ring instead of being placed against the page. */
+.profile-avatar-block {
+  position: relative;
+  width: 132px;
+}
+
 .profile-avatar-wrapper {
   width: 132px;
   height: 132px;
@@ -288,9 +295,20 @@
   background: var(--ink-800, #14161c);
 }
 
-.profile-identity {
+/* Identity and its one primary action sit on the same line from 640px up:
+   the name leads, editing answers it. Below that the action drops under the
+   name at full width rather than crowding it. */
+.profile-identity-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-md);
   margin-top: var(--space-md);
-  margin-bottom: var(--space-lg);
+  margin-bottom: var(--space-md);
+}
+
+.profile-identity {
+  min-width: 0;
 }
 
 .profile-name {
@@ -322,12 +340,104 @@
   margin-top: 2px;
 }
 
-/* Actions */
-.profile-actions {
+.profile-edit-action {
+  flex-shrink: 0;
+}
+
+/* Account-level errands, deliberately quieter than editing the profile and
+   separated from it by a rule. */
+.profile-utility-actions {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-sm);
+  padding-top: var(--space-md);
   margin-bottom: var(--space-lg);
+  border-top: 1px solid var(--border);
+}
+
+.profile-utility-actions .ui-button {
+  font-size: 0.78rem;
+  padding-block: 9px;
+}
+
+/* In-place photo controls (own profile only) */
+.profile-photo-edit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border-radius: 9999px;
+  border: 1px solid var(--border-md);
+  background: rgba(11, 19, 38, 0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.profile-photo-edit:hover,
+.profile-photo-edit:focus-visible {
+  background: var(--red-deep);
+  border-color: var(--red-bright);
+  color: #fff;
+}
+
+.profile-photo-edit--cover {
+  position: absolute;
+  right: var(--gutter);
+  bottom: calc(66px + var(--space-sm));
+  z-index: 1;
+  min-height: 36px;
+  padding: 0 14px;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.profile-photo-edit--avatar {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 2px solid var(--bg);
+  background: var(--surface-high);
+}
+
+.profile-photo-edit--avatar:hover,
+.profile-photo-edit--avatar:focus-visible {
+  transform: translateY(-1px);
+}
+
+@media (max-width: 639.98px) {
+  .profile-identity-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .profile-edit-action {
+    justify-content: center;
+  }
+
+  .profile-photo-edit--cover {
+    bottom: calc(44px + var(--space-xs));
+    right: var(--space-md);
+    min-height: 34px;
+    padding: 0 12px;
+  }
+
+  .profile-photo-edit--avatar {
+    width: 32px;
+    height: 32px;
+  }
 }
 
 /* Stats bar */

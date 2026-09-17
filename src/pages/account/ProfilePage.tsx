@@ -18,8 +18,6 @@ import {
 import { DANCE_STYLES } from "../../features/admin/model/eventsQuery";
 import type { DatabaseEvent } from "../../features/events/model/types";
 import { ArrowRight, Camera } from "lucide-react";
-import Button from "../../components/ui/Button";
-import ButtonLink from "../../components/ui/ButtonLink";
 import "./ProfilePage.css";
 
 function formatEventDate(isoDate: string): string {
@@ -65,7 +63,7 @@ function eventTypeLabel(type: DatabaseEvent["event_type"]): string {
 type StatsAudience = "you" | "everyone";
 
 export default function ProfilePage() {
-  const { user, role, signOut } = useAuth();
+  const { user, role } = useAuth();
   const { submissions, approvedEvents, isLoading, error, refetch } = useMySubmissions(user?.id);
   const { profile } = useOwnProfile(user?.id);
   // The exact photo URL whose <img> raised onError; a new URL retries.
@@ -217,33 +215,14 @@ export default function ProfilePage() {
           )}
         </div>
 
-        <div className="profile-identity-row">
-          <div className="profile-identity">
-            <div className="profile-name-row">
-              <h1 className="profile-name">{userName}</h1>
-              {isOrganizer && <span className="profile-role-badge">Organizer</span>}
-            </div>
-            {identity?.usernameLine && <p className="profile-username">{identity.usernameLine}</p>}
-            <p className="profile-member-since">{tagline}</p>
+        <div className="profile-identity">
+          <div className="profile-name-row">
+            <h1 className="profile-name">{userName}</h1>
+            {isOrganizer && <span className="profile-role-badge">Organizer</span>}
           </div>
-
-          {isOwnProfile && (
-            <ButtonLink to="/profile/edit" variant="primary" className="profile-edit-action">
-              Edit profile
-            </ButtonLink>
-          )}
+          {identity?.usernameLine && <p className="profile-username">{identity.usernameLine}</p>}
+          <p className="profile-member-since">{tagline}</p>
         </div>
-
-        {isOwnProfile && (
-          <div className="profile-utility-actions">
-            <ButtonLink to="/calendar" variant="secondary">
-              View Calendar
-            </ButtonLink>
-            <Button variant="secondary" onClick={() => signOut("global")}>
-              Sign Out
-            </Button>
-          </div>
-        )}
       </div>
 
       {styleLabels.length > 0 && (

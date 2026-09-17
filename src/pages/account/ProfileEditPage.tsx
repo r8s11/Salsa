@@ -1,5 +1,5 @@
-import { useEffect, useId, useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useId, useRef, useState, type FormEvent } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Camera } from "lucide-react";
 import { useAuth } from "../../contexts/useAuth";
 import { useOwnProfile } from "../../features/account/hooks/useOwnProfile";
@@ -82,6 +82,7 @@ export default function ProfileEditPage() {
   const avatarUrlHintId = useId();
   const avatarUrlErrorId = useId();
   const coverUrlId = useId();
+  const coverUrlHintId = useId();
   const coverUrlErrorId = useId();
   const bioId = useId();
   const bioHintId = useId();
@@ -98,6 +99,22 @@ export default function ProfileEditPage() {
   // value means replacing the URL automatically re-attempts the load.
   const [failedPreviewUrl, setFailedPreviewUrl] = useState<string | null>(null);
   const [failedCoverPreviewUrl, setFailedCoverPreviewUrl] = useState<string | null>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
+  const [searchParams] = useSearchParams();
+  const focusTarget = searchParams.get("focus");
+
+  // /profile puts "Change photo" and "Change cover" on the artwork itself and
+  // links here with ?focus=. Landing on the matching field — rather than at
+  // the top of a long form — is what makes those controls feel direct.
+  const formReady = form !== null;
+  useEffect(() => {
+    if (!formReady || (focusTarget !== "photo" && focusTarget !== "cover")) return;
+    const field = focusTarget === "cover" ? coverInputRef.current : avatarInputRef.current;
+    if (!field) return;
+    field.focus({ preventScroll: true });
+    field.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [focusTarget, formReady]);
 
   useEffect(() => {
     if (profile) {
@@ -233,11 +250,8 @@ export default function ProfileEditPage() {
           <ArrowLeft size={16} aria-hidden="true" />
           Back to my profile
         </Link>
-        <span className="profile-edit-page__eyebrow">PROFILE SETTINGS</span>
         <h1 className="profile-edit-page__h1">Edit profile</h1>
-        <p className="profile-edit-page__lede">
-          Update how you appear across SalsaSegura.
-        </p>
+        <p className="profile-edit-page__lede">Update how you appear across SalsaSegura.</p>
       </div>
 
       {isLoading && (
@@ -277,16 +291,39 @@ export default function ProfileEditPage() {
             </p>
           )}
 
+          {/* Photos first, composed the way /profile renders them, so the
+              cover and the avatar are judged against each other while you
+              change them. */}
           <section
-            className="profile-edit-page__card profile-edit-page__identity"
-            aria-labelledby="profile-edit-identity-heading"
+            className="profile-edit-page__card profile-edit-page__photos"
+            aria-labelledby="profile-edit-photos-heading"
           >
-            <h2 id="profile-edit-identity-heading" className="profile-edit-page__section-title">
-              PHOTOS &amp; NAME
+            <h2 id="profile-edit-photos-heading" className="profile-edit-page__section-title">
+              PHOTOS
             </h2>
 
-            <div className="profile-edit-page__identity-row">
-              <div className="profile-edit-page__avatar-column">
+            <div className="profile-edit-page__stage">
+              <div className="profile-edit-page__cover-stage">
+                {showCoverPreview ? (
+                  <img
+                    className="profile-edit-page__cover-preview"
+                    src={trimmedCoverUrl}
+                    alt=""
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                    onError={() => setFailedCoverPreviewUrl(trimmedCoverUrl)}
+                  />
+                ) : (
+                  <span className="profile-edit-page__cover-empty">
+                    {trimmedCoverUrl.length > 0 && !coverUrlError
+                      ? "That cover image didn't load"
+                      : "No cover photo yet"}
+                  </span>
+                )}
+                <span className="profile-edit-page__cover-scrim" aria-hidden="true" />
+              </div>
+
+              <div className="profile-edit-page__stage-avatar">
                 {showPreview ? (
                   <img
                     className="profile-edit-page__avatar"
@@ -303,116 +340,124 @@ export default function ProfileEditPage() {
                     className="profile-edit-page__avatar profile-edit-page__avatar--initials"
                     aria-hidden="true"
                   >
-                    <Camera size={28} />
+                    <Camera size={22} />
                     <span className="profile-edit-page__avatar-initials">{initials}</span>
                   </span>
                 )}
-                <p id={avatarUrlHintId} className="profile-edit-page__avatar-hint">
-                  Photo URL — link to a hosted image. Uploads arrive in a later update.
-                </p>
-              </div>
-
-              <div className="profile-edit-page__identity-fields">
-                <div className="profile-edit-page__field">
-                  <label htmlFor={displayNameId} className="profile-edit-page__label">
-                    Display Name <span aria-hidden="true">*</span>
-                  </label>
-                  <input
-                    id={displayNameId}
-                    className="profile-edit-page__input"
-                    type="text"
-                    required
-                    value={form.display_name}
-                    onChange={(event) => patchForm({ display_name: event.target.value })}
-                    placeholder={SAFE_NAME_FALLBACK}
-                    maxLength={80}
-                    aria-invalid={displayNameBlank ? true : undefined}
-                    aria-describedby={displayNameBlank ? displayNameErrorId : undefined}
-                  />
-                  {displayNameBlank && (
-                    <p id={displayNameErrorId} className="profile-edit-page__error" role="alert">
-                      A display name is required.
-                    </p>
-                  )}
-                </div>
-
-                <div className="profile-edit-page__field">
-                  <label htmlFor={usernameId} className="profile-edit-page__label">
-                    Username
-                  </label>
-                  <input
-                    id={usernameId}
-                    className="profile-edit-page__input profile-edit-page__input--readonly"
-                    type="text"
-                    readOnly
-                    disabled
-                    aria-readonly="true"
-                    aria-describedby={usernameHelpId}
-                    value={currentUsername ?? ""}
-                    placeholder="Not set"
-                  />
-                  <p id={usernameHelpId} className="profile-edit-page__hint">
-                    {currentUsername
-                      ? `salsasegura.com/u/${currentUsername}`
-                      : "No username set yet."}{" "}
-                    Username changes arrive in a later update.
-                  </p>
-                </div>
               </div>
             </div>
 
-            <div className="profile-edit-page__field">
-              <label htmlFor={avatarUrlId} className="profile-edit-page__label">
-                Photo URL
-              </label>
-              <input
-                id={avatarUrlId}
-                className="profile-edit-page__input"
-                type="url"
-                value={form.avatar_url}
-                onChange={(event) => handleAvatarUrlChange(event.target.value)}
-                placeholder="https://"
-                aria-invalid={avatarUrlError ? true : undefined}
-                aria-describedby={
-                  avatarUrlError ? `${avatarUrlHintId} ${avatarUrlErrorId}` : avatarUrlHintId
-                }
-              />
-              {avatarUrlError && (
-                <p id={avatarUrlErrorId} className="profile-edit-page__error" role="alert">
-                  {avatarUrlError}
-                </p>
-              )}
-            </div>
-
-            <div className="profile-edit-page__field">
-              <label htmlFor={coverUrlId} className="profile-edit-page__label">
-                Cover Photo URL
-              </label>
-              {showCoverPreview && (
-                <img
-                  className="profile-edit-page__cover-preview"
-                  src={trimmedCoverUrl}
-                  alt=""
-                  loading="lazy"
-                  referrerPolicy="no-referrer"
-                  onError={() => setFailedCoverPreviewUrl(trimmedCoverUrl)}
+            <div className="profile-edit-page__photo-fields">
+              <div className="profile-edit-page__field">
+                <label htmlFor={avatarUrlId} className="profile-edit-page__label">
+                  Photo URL
+                </label>
+                <input
+                  id={avatarUrlId}
+                  ref={avatarInputRef}
+                  className="profile-edit-page__input"
+                  type="url"
+                  value={form.avatar_url}
+                  onChange={(event) => handleAvatarUrlChange(event.target.value)}
+                  placeholder="https://"
+                  aria-invalid={avatarUrlError ? true : undefined}
+                  aria-describedby={
+                    avatarUrlError ? `${avatarUrlHintId} ${avatarUrlErrorId}` : avatarUrlHintId
+                  }
                 />
-              )}
-              <input
-                id={coverUrlId}
-                className="profile-edit-page__input"
-                type="url"
-                value={form.cover_url}
-                onChange={(event) => patchForm({ cover_url: event.target.value })}
-                placeholder="https://"
-                aria-invalid={coverUrlError ? true : undefined}
-                aria-describedby={coverUrlError ? coverUrlErrorId : undefined}
-              />
-              {coverUrlError && (
-                <p id={coverUrlErrorId} className="profile-edit-page__error" role="alert">
-                  {coverUrlError}
+                {avatarUrlError && (
+                  <p id={avatarUrlErrorId} className="profile-edit-page__error" role="alert">
+                    {avatarUrlError}
+                  </p>
+                )}
+                <p id={avatarUrlHintId} className="profile-edit-page__hint">
+                  Link to a hosted square image. Uploads arrive in a later update.
                 </p>
-              )}
+              </div>
+
+              <div className="profile-edit-page__field">
+                <label htmlFor={coverUrlId} className="profile-edit-page__label">
+                  Cover Photo URL
+                </label>
+                <input
+                  id={coverUrlId}
+                  ref={coverInputRef}
+                  className="profile-edit-page__input"
+                  type="url"
+                  value={form.cover_url}
+                  onChange={(event) => patchForm({ cover_url: event.target.value })}
+                  placeholder="https://"
+                  aria-invalid={coverUrlError ? true : undefined}
+                  aria-describedby={
+                    coverUrlError ? `${coverUrlHintId} ${coverUrlErrorId}` : coverUrlHintId
+                  }
+                />
+                {coverUrlError && (
+                  <p id={coverUrlErrorId} className="profile-edit-page__error" role="alert">
+                    {coverUrlError}
+                  </p>
+                )}
+                <p id={coverUrlHintId} className="profile-edit-page__hint">
+                  A wide image reads best — it is cropped to the banner above.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <section
+            className="profile-edit-page__card profile-edit-page__identity"
+            aria-labelledby="profile-edit-identity-heading"
+          >
+            <h2 id="profile-edit-identity-heading" className="profile-edit-page__section-title">
+              NAME
+            </h2>
+
+            <div className="profile-edit-page__identity-fields">
+              <div className="profile-edit-page__field">
+                <label htmlFor={displayNameId} className="profile-edit-page__label">
+                  Display Name <span aria-hidden="true">*</span>
+                </label>
+                <input
+                  id={displayNameId}
+                  className="profile-edit-page__input"
+                  type="text"
+                  required
+                  value={form.display_name}
+                  onChange={(event) => patchForm({ display_name: event.target.value })}
+                  placeholder={SAFE_NAME_FALLBACK}
+                  maxLength={80}
+                  aria-invalid={displayNameBlank ? true : undefined}
+                  aria-describedby={displayNameBlank ? displayNameErrorId : undefined}
+                />
+                {displayNameBlank && (
+                  <p id={displayNameErrorId} className="profile-edit-page__error" role="alert">
+                    A display name is required.
+                  </p>
+                )}
+              </div>
+
+              <div className="profile-edit-page__field">
+                <label htmlFor={usernameId} className="profile-edit-page__label">
+                  Username
+                </label>
+                <input
+                  id={usernameId}
+                  className="profile-edit-page__input profile-edit-page__input--readonly"
+                  type="text"
+                  readOnly
+                  disabled
+                  aria-readonly="true"
+                  aria-describedby={usernameHelpId}
+                  value={currentUsername ?? ""}
+                  placeholder="Not set"
+                />
+                <p id={usernameHelpId} className="profile-edit-page__hint">
+                  {currentUsername
+                    ? `salsasegura.com/u/${currentUsername}`
+                    : "No username set yet."}{" "}
+                  Username changes arrive in a later update.
+                </p>
+              </div>
             </div>
           </section>
 

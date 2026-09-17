@@ -116,12 +116,29 @@ describe("ProfilePage", () => {
     renderPage();
 
     expect(screen.getByText("dancer")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "+ Submit Event" })).toHaveAttribute("href", "/submit");
+    expect(screen.getByRole("link", { name: "Edit profile" })).toHaveAttribute(
+      "href",
+      "/profile/edit"
+    );
+    expect(screen.queryByRole("link", { name: "+ Submit Event" })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "View Calendar" })).toHaveAttribute(
       "href",
       "/calendar"
     );
     expect(screen.getByRole("button", { name: "Sign Out" })).toBeInTheDocument();
+  });
+
+  it("offers in-place photo and cover editing on your own profile", () => {
+    renderPage();
+
+    expect(screen.getByRole("link", { name: /cover/i })).toHaveAttribute(
+      "href",
+      "/profile/edit?focus=cover"
+    );
+    expect(screen.getByRole("link", { name: "Add a profile photo" })).toHaveAttribute(
+      "href",
+      "/profile/edit?focus=photo"
+    );
   });
 
   it("shows stats derived from submissions", () => {

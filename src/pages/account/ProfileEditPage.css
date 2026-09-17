@@ -35,15 +35,69 @@
   border-color: var(--red);
 }
 
-.profile-edit-page__eyebrow {
-  display: block;
+/* ── Photo stage: cover with the avatar overlapping it, the same
+   composition /profile renders, so both are judged together ── */
+
+.profile-edit-page__stage {
+  position: relative;
+  margin-bottom: 58px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+}
+
+.profile-edit-page__cover-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 1;
+  min-height: 132px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-md);
+  background:
+    linear-gradient(135deg, rgba(225, 29, 72, 0.14), rgba(233, 195, 73, 0.08)),
+    var(--surface);
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+
+.profile-edit-page__cover-preview {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-edit-page__cover-empty {
+  position: relative;
+  z-index: 1;
   font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 11px;
-  letter-spacing: 0.14em;
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--gold);
-  margin-bottom: var(--space-xs);
+  color: var(--text-dim);
+}
+
+.profile-edit-page__cover-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 38%, rgba(11, 19, 38, 0.66));
+  pointer-events: none;
+}
+
+.profile-edit-page__stage-avatar {
+  position: absolute;
+  left: var(--space-lg);
+  bottom: -46px;
+}
+
+.profile-edit-page__photo-fields {
+  display: grid;
+  gap: var(--space-md);
 }
 
 .profile-edit-page__h1 {
@@ -102,23 +156,8 @@
   margin-bottom: var(--space-md);
 }
 
-/* ── Identity layout: avatar + fields ── */
+/* ── Avatar tile (shared by the stage and the empty state) ── */
 
-.profile-edit-page__identity-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 20px;
-  flex-wrap: wrap;
-}
-
-.profile-edit-page__avatar-column {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-sm);
-  flex-shrink: 0;
-  width: 160px;
-}
 
 .profile-edit-page__avatar {
   width: 148px;
@@ -155,13 +194,7 @@
   z-index: 1;
 }
 
-.profile-edit-page__avatar-hint {
-  font-family: var(--font-body);
-  font-size: 11px;
-  color: var(--text-dim);
-  text-align: center;
-  line-height: 1.4;
-}
+
 
 .profile-edit-page__identity-fields {
   flex: 1;
@@ -244,14 +277,6 @@
   box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.25);
 }
 
-.profile-edit-page__cover-preview {
-  width: 100%;
-  height: 120px;
-  object-fit: cover;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-md);
-  margin-bottom: var(--space-sm);
-}
 
 .profile-edit-page__fieldset {
   border: none;
@@ -516,19 +541,29 @@
 /* ── Responsive ── */
 
 @media (max-width: 639.98px) {
-  .profile-edit-page__identity-row {
-    flex-direction: column;
-    align-items: stretch;
+  .profile-edit-page__stage {
+    margin-bottom: 44px;
   }
 
-  .profile-edit-page__avatar-column {
-    width: 100%;
-    align-items: center;
+  .profile-edit-page__cover-stage {
+    aspect-ratio: 5 / 2;
+  }
+
+  .profile-edit-page__stage-avatar {
+    left: var(--space-md);
+    bottom: -34px;
+  }
+
+  .profile-edit-page__stage-avatar .profile-edit-page__avatar {
+    width: 104px;
+    height: 104px;
+    font-size: 30px;
   }
 
   .profile-edit-page__identity-fields {
     min-width: 0;
   }
+
 
   .profile-edit-page__actions {
     flex-direction: column-reverse;

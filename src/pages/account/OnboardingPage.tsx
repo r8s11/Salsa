@@ -135,9 +135,22 @@ export default function OnboardingPage() {
     }
 
     const RESERVED = new Set([
-      "admin", "moderator", "organizer", "salsa", "bachata",
-      "salsasegura", "submit", "calendar", "profile", "account",
-      "signin", "auth", "api", "about", "contact", "events",
+      "admin",
+      "moderator",
+      "organizer",
+      "salsa",
+      "bachata",
+      "salsasegura",
+      "submit",
+      "calendar",
+      "profile",
+      "account",
+      "signin",
+      "auth",
+      "api",
+      "about",
+      "contact",
+      "events",
     ]);
     if (RESERVED.has(trimmed.toLowerCase())) {
       setUsernameStatus({ state: "taken" });
@@ -268,16 +281,20 @@ export default function OnboardingPage() {
   const initials =
     form.display_name.trim().length > 0 ? form.display_name.trim()[0].toUpperCase() : "?";
   const trimmedBio = form.bio.trim();
-  const showAvatarPreview =
-    avatarPreviewUrl != null && !failedAvatarPreviewUrl;
+  const showAvatarPreview = avatarPreviewUrl != null && !failedAvatarPreviewUrl;
 
   const usernameStatusText = (() => {
     switch (usernameStatus.state) {
-      case "checking": return "Checking…";
-      case "available": return `${form.username} is available`;
-      case "taken": return "That username is already taken";
-      case "invalid": return usernameStatus.message;
-      default: return null;
+      case "checking":
+        return "Checking…";
+      case "available":
+        return `${form.username} is available`;
+      case "taken":
+        return "That username is already taken";
+      case "invalid":
+        return usernameStatus.message;
+      default:
+        return null;
     }
   })();
 
@@ -426,7 +443,9 @@ export default function OnboardingPage() {
           >
             <option value="">Choose your city</option>
             {CITY_OPTIONS.map(([value, label]) => (
-              <option key={value} value={value}>{label}</option>
+              <option key={value} value={value}>
+                {label}
+              </option>
             ))}
           </select>
           {cityMissing && error && (

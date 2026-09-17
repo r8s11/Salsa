@@ -4,6 +4,7 @@ import { ArrowLeft, Camera } from "lucide-react";
 import { useAuth } from "../../contexts/useAuth";
 import { useOwnProfile } from "../../features/account/hooks/useOwnProfile";
 import { useUpdateOwnProfile } from "../../features/account/hooks/useUpdateOwnProfile";
+import { useProfileMedia } from "../../features/account/hooks/useProfileMedia";
 import {
   resolveIdentity,
   initialsFor,
@@ -73,6 +74,9 @@ export default function ProfileEditPage() {
   const navigate = useNavigate();
   const { profile, isLoading, error, refetch } = useOwnProfile(user?.id);
   const { update, isSaving, error: saveError } = useUpdateOwnProfile(user?.id);
+  const media = useProfileMedia(user?.id);
+  const avatarFileRef = useRef<HTMLInputElement | null>(null);
+  const coverFileRef = useRef<HTMLInputElement | null>(null);
 
   const displayNameId = useId();
   const displayNameErrorId = useId();
@@ -81,6 +85,10 @@ export default function ProfileEditPage() {
   const avatarUrlId = useId();
   const avatarUrlHintId = useId();
   const avatarUrlErrorId = useId();
+  const avatarMediaErrorId = useId();
+  const avatarMediaStatusId = useId();
+  const coverMediaErrorId = useId();
+  const coverMediaStatusId = useId();
   const coverUrlId = useId();
   const coverUrlHintId = useId();
   const coverUrlErrorId = useId();
@@ -163,6 +171,8 @@ export default function ProfileEditPage() {
 
   const canSave =
     !isSaving &&
+    !media.avatar.isBusy &&
+    !media.cover.isBusy &&
     form !== null &&
     profile !== null &&
     dirty &&
@@ -220,6 +230,51 @@ export default function ProfileEditPage() {
       setAvatarUrlError(null);
     } else {
       setAvatarUrlError("Use a full link starting with https://");
+    }
+  };
+
+  // Media uploads save ONLY their own column straight to the profile row
+  // (never the rest of the form) and then sync the local form value so the
+  // editor does not go dirty with a stale URL.
+  const handleAvatarFile = async (file: File | undefined) => {
+    if (!file) return;
+    try {
+      const url = await media.avatar.upload(file);
+      setFailedPreviewUrl(null);
+      patchForm({ avatar_url: url });
+    } catch {
+      // The hook already stores the readable message in media.avatar.error.
+    }
+  };
+
+  const handleAvatarRemove = async () => {
+    try {
+      await media.avatar.remove();
+      setFailedPreviewUrl(null);
+      patchForm({ avatar_url: "" });
+    } catch {
+      // The hook already stores the readable message in media.avatar.error.
+    }
+  };
+
+  const handleCoverFile = async (file: File | undefined) => {
+    if (!file) return;
+    try {
+      const url = await media.cover.upload(file);
+      setFailedCoverPreviewUrl(null);
+      patchForm({ cover_url: url });
+    } catch {
+      // The hook already stores the readable message in media.cover.error.
+    }
+  };
+
+  const handleCoverRemove = async () => {
+    try {
+      await media.cover.remove();
+      setFailedCoverPreviewUrl(null);
+      patchForm({ cover_url: "" });
+    } catch {
+      // The hook already stores the readable message in media.cover.error.
     }
   };
 
@@ -344,6 +399,57 @@ export default function ProfileEditPage() {
                     <span className="profile-edit-page__avatar-initials">{initials}</span>
                   </span>
                 )}
+                <div className="profile-edit-page__media-controls">
+                  <input
+                    ref={avatarFileRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="profile-edit-page__visually-hidden"
+                    aria-label="Choose a profile photo to upload"
+                    tabIndex={-1}
+                    disabled={media.avatar.isBusy}
+                    onChange={(event) => {
+                      void handleAvatarFile(event.target.files?.[0]);
+                      event.target.value = "";
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="profile-edit-page__btn profile-edit-page__btn--outline"
+                    disabled={media.avatar.isBusy || profile === null}
+                    onClick={() => avatarFileRef.current?.click()}
+                  >
+                    {trimmedAvatarUrl ? "Replace photo" : "Upload photo"}
+                  </button>
+                  {trimmedAvatarUrl && (
+                    <button
+                      type="button"
+                      className="profile-edit-page__btn profile-edit-page__btn--outline"
+                      disabled={media.avatar.isBusy || profile === null}
+                      onClick={() => void handleAvatarRemove()}
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+                {media.avatar.isBusy && (
+                  <p
+                    id={avatarMediaStatusId}
+                    className="profile-edit-page__hint"
+                    role="status"
+                  >
+                    Uploading photo…
+                  </p>
+                )}
+                {media.avatar.error && (
+                  <p
+                    id={avatarMediaErrorId}
+                    className="profile-edit-page__error"
+                    role="alert"
+                  >
+                    {media.avatar.error}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -371,7 +477,7 @@ export default function ProfileEditPage() {
                   </p>
                 )}
                 <p id={avatarUrlHintId} className="profile-edit-page__hint">
-                  Link to a hosted square image. Uploads arrive in a later update.
+                  Link to a hosted square image — or upload one with the buttons above.
                 </p>
               </div>
 
@@ -398,8 +504,52 @@ export default function ProfileEditPage() {
                   </p>
                 )}
                 <p id={coverUrlHintId} className="profile-edit-page__hint">
-                  A wide image reads best — it is cropped to the banner above.
+                  A wide image reads best — it is cropped to the banner above. Or upload
+                  one directly below.
                 </p>
+                <div className="profile-edit-page__media-controls">
+                  <input
+                    ref={coverFileRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="profile-edit-page__visually-hidden"
+                    aria-label="Choose a cover photo to upload"
+                    tabIndex={-1}
+                    disabled={media.cover.isBusy}
+                    onChange={(event) => {
+                      void handleCoverFile(event.target.files?.[0]);
+                      event.target.value = "";
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="profile-edit-page__btn profile-edit-page__btn--outline"
+                    disabled={media.cover.isBusy || profile === null}
+                    onClick={() => coverFileRef.current?.click()}
+                  >
+                    {trimmedCoverUrl ? "Replace cover" : "Upload cover"}
+                  </button>
+                  {trimmedCoverUrl && (
+                    <button
+                      type="button"
+                      className="profile-edit-page__btn profile-edit-page__btn--outline"
+                      disabled={media.cover.isBusy || profile === null}
+                      onClick={() => void handleCoverRemove()}
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+                {media.cover.isBusy && (
+                  <p id={coverMediaStatusId} className="profile-edit-page__hint" role="status">
+                    Uploading cover…
+                  </p>
+                )}
+                {media.cover.error && (
+                  <p id={coverMediaErrorId} className="profile-edit-page__error" role="alert">
+                    {media.cover.error}
+                  </p>
+                )}
               </div>
             </div>
           </section>

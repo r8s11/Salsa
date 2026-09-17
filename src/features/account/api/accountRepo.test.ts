@@ -1,18 +1,23 @@
-import { describe, expect, it, vi } from "vitest";
-import { fetchOwnProfile, updateOwnProfile } from "./accountRepo";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ensureOwnProfileRow, fetchOwnProfile, updateOwnProfile } from "./accountRepo";
 
-const { maybeSingle, single, eq, update: updateOp, select, from } = vi.hoisted(() => ({
+const { maybeSingle, single, eq, update: updateOp, select, from, insert } = vi.hoisted(() => ({
   maybeSingle: vi.fn(),
   single: vi.fn(),
   eq: vi.fn(),
   update: vi.fn(),
   select: vi.fn(),
   from: vi.fn(),
+  insert: vi.fn(),
 }));
 
 vi.mock("../../../lib/supabase", () => ({
   supabase: { from },
 }));
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
 
 describe("fetchOwnProfile", () => {
   it("selects the caller's own profile row by id", async () => {
@@ -120,5 +125,63 @@ describe("updateOwnProfile", () => {
     single.mockResolvedValue({ data: null, error: { message: "RLS denied" } });
 
     await expect(updateOwnProfile("user-4", { display_name: "x" })).rejects.toThrow("RLS denied");
+  });
+
+  it("self-provisions the caller's own row on PGRST116, then retries the update", async () => {
+    // First update hits the missing-row case (the 406/PGRST116 edge).
+    from.mockReturnValueOnce({ update: updateOp });
+    updateOp.mockReturnValueOnce({ eq });
+    eq.mockReturnValueOnce({ select });
+    select.mockReturnValueOnce({ single });
+    single.mockResolvedValueOnce({
+      data: null,
+      error: { code: "PGRST116", message: "0 rows" },
+    });
+    // Provision exactly the caller's row.
+    from.mockReturnValueOnce({ insert });
+    insert.mockReturnValueOnce({ select });
+    select.mockReturnValueOnce({ single });
+    single.mockResolvedValueOnce({
+      data: { id: "user-5", display_name: null },
+      error: null,
+    });
+    // Retry succeeds.
+    const updatedRow = { id: "user-5", avatar_url: "https://cdn.test/a.webp" };
+    from.mockReturnValueOnce({ update: updateOp });
+    updateOp.mockReturnValueOnce({ eq });
+    eq.mockReturnValueOnce({ select });
+    select.mockReturnValueOnce({ single });
+    single.mockResolvedValueOnce({ data: updatedRow, error: null });
+
+    const result = await updateOwnProfile("user-5", {
+      avatar_url: "https://cdn.test/a.webp",
+    });
+
+    expect(insert).toHaveBeenCalledWith({ id: "user-5" });
+    expect(result).toEqual(updatedRow);
+  });
+
+  it("does not self-provision on non-missing-row errors", async () => {
+    from.mockReturnValue({ update: updateOp });
+    updateOp.mockReturnValue({ eq });
+    eq.mockReturnValue({ select });
+    select.mockReturnValue({ single });
+    single.mockResolvedValue({ data: null, error: { message: "RLS denied" } });
+
+    await expect(updateOwnProfile("user-6", { bio: "hi" })).rejects.toThrow("RLS denied");
+    expect(insert).not.toHaveBeenCalled();
+  });
+});
+
+describe("ensureOwnProfileRow", () => {
+  it("inserts exactly the caller's own row", async () => {
+    from.mockReturnValue({ insert });
+    insert.mockReturnValue({ select });
+    select.mockReturnValue({ single });
+    const row = { id: "user-7", display_name: null };
+    single.mockResolvedValue({ data: row, error: null });
+
+    await expect(ensureOwnProfileRow("user-7")).resolves.toEqual(row);
+    expect(insert).toHaveBeenCalledWith({ id: "user-7" });
   });
 });

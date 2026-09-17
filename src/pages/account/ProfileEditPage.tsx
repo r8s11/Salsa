@@ -107,13 +107,14 @@ export default function ProfileEditPage() {
   // /profile puts "Change photo" and "Change cover" on the artwork itself and
   // links here with ?focus=. Landing on the matching field — rather than at
   // the top of a long form — is what makes those controls feel direct.
+  const formReady = form !== null;
   useEffect(() => {
-    if (!form || (focusTarget !== "photo" && focusTarget !== "cover")) return;
+    if (!formReady || (focusTarget !== "photo" && focusTarget !== "cover")) return;
     const field = focusTarget === "cover" ? coverInputRef.current : avatarInputRef.current;
     if (!field) return;
     field.focus({ preventScroll: true });
     field.scrollIntoView({ block: "center", behavior: "smooth" });
-  }, [focusTarget, form !== null]);
+  }, [focusTarget, formReady]);
 
   useEffect(() => {
     if (profile) {

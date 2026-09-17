@@ -57,6 +57,7 @@ const memberProfile = (overrides: Partial<OwnProfile> = {}): OwnProfile => ({
   public_profile: true,
   stats_public: true,
   notification_prefs: {},
+  onboarding_completed_at: null,
   ...overrides,
 });
 

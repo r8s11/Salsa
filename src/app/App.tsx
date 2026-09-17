@@ -60,10 +60,12 @@ const HostCheckInPage = lazy(() => import("../pages/host/HostCheckInPage"));
 const HostEventImportPage = lazy(() => import("../pages/host/HostEventImportPage"));
 const HostOrganizationPage = lazy(() => import("../pages/host/HostOrganizationPage"));
 const UserEventEditPage = lazy(() => import("../pages/UserEventEditPage"));
+const OnboardingPage = lazy(() => import("../pages/account/OnboardingPage"));
 import RequireAuth from "../components/Auth/RequireAuth";
 import RequireAdmin from "../components/Auth/RequireAdmin";
 import RequireReviewer from "../components/Auth/RequireReviewer";
 import RequireOrganizer from "../components/Auth/RequireOrganizer";
+import RequireOnboarding from "../components/Auth/RequireOnboarding";
 
 function App() {
   return (
@@ -210,6 +212,14 @@ function App() {
               <Route path="events/:eventId/attendees" element={<HostAttendeeListPage />} />
               <Route path="events/:eventId/check-in" element={<HostCheckInPage />} />
             </Route>
+            <Route
+              path="/onboarding"
+              element={
+                <RequireAuth>
+                  <OnboardingPage />
+                </RequireAuth>
+              }
+            />
             <Route path="/" element={<MainLayout />}>
               <Route index element={<HomePage />} />
               <Route path="about" element={<AboutPage />} />
@@ -221,7 +231,9 @@ function App() {
                 path="profile"
                 element={
                   <RequireAuth>
-                    <ProfilePage />
+                    <RequireOnboarding>
+                      <ProfilePage />
+                    </RequireOnboarding>
                   </RequireAuth>
                 }
               />
@@ -229,7 +241,9 @@ function App() {
                 path="profile/edit"
                 element={
                   <RequireAuth>
-                    <ProfileEditPage />
+                    <RequireOnboarding>
+                      <ProfileEditPage />
+                    </RequireOnboarding>
                   </RequireAuth>
                 }
               />
@@ -237,7 +251,9 @@ function App() {
                 path="account"
                 element={
                   <RequireAuth>
-                    <AccountPage />
+                    <RequireOnboarding>
+                      <AccountPage />
+                    </RequireOnboarding>
                   </RequireAuth>
                 }
               />
@@ -245,7 +261,9 @@ function App() {
                 path="profile/edit/:eventId"
                 element={
                   <RequireAuth>
-                    <UserEventEditPage />
+                    <RequireOnboarding>
+                      <UserEventEditPage />
+                    </RequireOnboarding>
                   </RequireAuth>
                 }
               />

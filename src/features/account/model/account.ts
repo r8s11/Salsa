@@ -32,6 +32,7 @@ export interface OwnProfile {
   public_profile: boolean;
   stats_public: boolean;
   notification_prefs: NotificationPrefs;
+  onboarding_completed_at: string | null;
 }
 
 /** Notification toggles, keyed by preference slug (profiles.notification_prefs). */
@@ -95,7 +96,9 @@ export interface ResolvedIdentity {
  * display_name → username → safe generic fallback. The email address is
  * never used as a display-style name.
  */
-export function resolveIdentity(profile: Pick<OwnProfile, "display_name" | "username">): ResolvedIdentity {
+export function resolveIdentity(
+  profile: Pick<OwnProfile, "display_name" | "username">
+): ResolvedIdentity {
   const displayName = profile.display_name?.trim() || "";
   const username = profile.username?.trim() || "";
 
@@ -149,7 +152,10 @@ export function resolveAvatarIdentity(
   email?: string | null
 ): { name: string; initials: string } {
   const name =
-    profile?.display_name?.trim() || profile?.username?.trim() || email?.trim() || SAFE_NAME_FALLBACK;
+    profile?.display_name?.trim() ||
+    profile?.username?.trim() ||
+    email?.trim() ||
+    SAFE_NAME_FALLBACK;
   return { name, initials: avatarInitials(name) };
 }
 
@@ -250,7 +256,8 @@ const SUBMIT_EVENT_CARD: AccountCapabilityCard = {
 const ROLE_CAPABILITY_CARD: Record<Exclude<UserRole, null>, AccountCapabilityCard> = {
   organizer: {
     title: "Host Events",
-    description: "Submit events for review, manage eligible submissions, and promote approved listings.",
+    description:
+      "Submit events for review, manage eligible submissions, and promote approved listings.",
     links: [
       { label: "Open Host Dashboard", to: "/host", primary: true },
       { label: "My Events", to: "/host/events", primary: false },

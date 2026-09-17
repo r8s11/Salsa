@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { resolveAvatarIdentity } from "../../features/account/model/account";
 import type { OwnProfile } from "../../features/account/model/account";
 
@@ -17,7 +18,10 @@ export default function AccountAvatar({
   email,
   size = 40,
 }: AccountAvatarProps) {
-  if (avatarUrl) {
+  // A stored URL can dangle (object deleted, cache miss). Fall back to
+  // initials rather than a broken-image icon; a new URL retries the load.
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
+  if (avatarUrl && failedUrl !== avatarUrl) {
     return (
       <img
         className="account-avatar"
@@ -26,6 +30,7 @@ export default function AccountAvatar({
         width={size}
         height={size}
         loading="lazy"
+        onError={() => setFailedUrl(avatarUrl)}
       />
     );
   }

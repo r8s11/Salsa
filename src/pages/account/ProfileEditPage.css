@@ -163,6 +163,17 @@
   line-height: 1.4;
 }
 
+.profile-edit-page__media-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.profile-edit-page__media-controls .profile-edit-page__btn {
+  min-height: 44px;
+}
+
 .profile-edit-page__identity-fields {
   flex: 1;
   min-width: 260px;

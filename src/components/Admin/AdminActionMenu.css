@@ -29,7 +29,8 @@
   font-weight: 600;
 }
 
-.admin-shell .admin-action-menu .admin-action-menu__trigger--labeled:hover:not(:disabled) {
+.admin-shell .admin-action-menu .admin-action-menu__trigger--labeled:hover:not(:disabled),
+.admin-shell .admin-action-menu .admin-action-menu__trigger--labeled:focus-visible {
   background: var(--admin-surface-secondary);
 }
 

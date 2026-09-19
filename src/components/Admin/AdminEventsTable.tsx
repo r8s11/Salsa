@@ -19,6 +19,8 @@ import {
   ArchiveRestore,
   Trash2,
   Ban,
+  ImagePlus,
+  ImageOff,
 } from "lucide-react";
 import type { DatabaseEvent } from "../../features/events/model/types";
 import { resolveEventFlyer } from "../EventModal/eventModalImage";
@@ -41,6 +43,9 @@ import "./AdminTables.css";
 export type RowAction =
   | "edit"
   | "duplicate"
+  | "upload-flyer"
+  | "replace-flyer"
+  | "remove-flyer"
   | "publish"
   | "unpublish"
   | "reject"
@@ -152,19 +157,48 @@ function rowActionItems(
     onSelect: () => onAction("delete", event),
   };
 
+  // Flyer quick actions — grouped with a separator
+  const hasFlyer = Boolean(event.image_url);
+  const flyerItems: ActionMenuItem[] = hasFlyer
+    ? [
+        {
+          id: "replace-flyer",
+          label: "Replace flyer",
+          icon: ImagePlus,
+          separatorBefore: true,
+          onSelect: () => onAction("replace-flyer", event),
+        },
+        {
+          id: "remove-flyer",
+          label: "Remove flyer",
+          icon: ImageOff,
+          tone: "danger" as const,
+          onSelect: () => onAction("remove-flyer", event),
+        },
+      ]
+    : [
+        {
+          id: "upload-flyer",
+          label: "Upload flyer",
+          icon: ImagePlus,
+          separatorBefore: true,
+          onSelect: () => onAction("upload-flyer", event),
+        },
+      ];
+
   switch (event.status) {
     case "draft":
-      return [edit, duplicate, publish, archive, del];
+      return [edit, duplicate, ...flyerItems, publish, archive, del];
     case "pending":
-      return [edit, duplicate, publish, reject, archive, del];
+      return [edit, duplicate, ...flyerItems, publish, reject, archive, del];
     case "approved":
-      return [edit, duplicate, unpublish, cancel, archive, del];
+      return [edit, duplicate, ...flyerItems, unpublish, cancel, archive, del];
     case "rejected":
-      return [edit, duplicate, publish, archive, del];
+      return [edit, duplicate, ...flyerItems, publish, archive, del];
     case "cancelled":
-      return [edit, duplicate, publish, archive, del];
+      return [edit, duplicate, ...flyerItems, publish, archive, del];
     case "archived":
-      return [edit, duplicate, restore, del];
+      return [edit, duplicate, ...flyerItems, restore, del];
   }
 }
 

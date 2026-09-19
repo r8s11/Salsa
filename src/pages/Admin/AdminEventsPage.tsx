@@ -1,8 +1,9 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Plus, Upload, X } from "lucide-react";
 import { useAdminEvents } from "../../features/admin/hooks/useAdminEvents";
-import { removeEventFlyer, uploadEventFlyer } from "../../features/events/api/eventFlyers";
+import { removeEventFlyer, uploadEventFlyer, validateEventFlyer } from "../../features/events/api/eventFlyers";
+import { updateEventFlyer } from "../../features/events/api/eventsRepo";
 import { useCity } from "../../contexts/useCity";
 import { usePlatformSettings } from "../../features/admin/hooks/usePlatformSettings";
 import type { DatabaseEvent, City } from "../../features/events/model/types";
@@ -206,6 +207,19 @@ export default function AdminEventsPage() {
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [duplicatingEvent, setDuplicatingEvent] = useState<DatabaseEvent | null>(null);
   const [lastRowAction, setLastRowAction] = useState<RowAction | null>(null);
+
+  // Flyer quick-action state
+  const flyerInputRef = useRef<HTMLInputElement>(null);
+  const [flyerTarget, setFlyerTarget] = useState<{
+    event: DatabaseEvent;
+    action: "upload" | "replace";
+  } | null>(null);
+  const [flyerBusy, setFlyerBusy] = useState<{
+    id: string;
+    action: "upload-flyer" | "replace-flyer" | "remove-flyer";
+  } | null>(null);
+  const [flyerError, setFlyerError] = useState<{ id: string; message: string } | null>(null);
+  const [pendingRemoveFlyer, setPendingRemoveFlyer] = useState<DatabaseEvent | null>(null);
 
   const events = useMemo(() => queriedEvents ?? [], [queriedEvents]);
 
@@ -417,13 +431,15 @@ export default function AdminEventsPage() {
 
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const busy = changingStatusId
-    ? { id: changingStatusId, action: lastRowAction ?? "publish" }
-    : removingId
-      ? { id: removingId, action: "delete" as const }
-      : null;
-  const errorId = changeStatusErrorId ?? removeErrorId;
-  const rowError = changeStatusErrorId ? changeStatusError : removeErrorId ? removeError : null;
+  const busy = flyerBusy
+    ?? (changingStatusId
+      ? { id: changingStatusId, action: lastRowAction ?? "publish" }
+      : removingId
+        ? { id: removingId, action: "delete" as const }
+        : null);
+  const errorId = flyerError?.id ?? changeStatusErrorId ?? removeErrorId;
+  const rowError = flyerError?.message
+    ?? (changeStatusErrorId ? changeStatusError : removeErrorId ? removeError : null);
 
   const handleRowAction = (action: RowAction, event: DatabaseEvent) => {
     setLastRowAction(action);
@@ -454,6 +470,11 @@ export default function AdminEventsPage() {
       case "delete":
         setPendingAction({ kind: "delete", event });
         break;
+      case "upload-flyer":
+      case "replace-flyer":
+      case "remove-flyer":
+        handleFlyerMenuAction(action, event);
+        break;
     }
   };
 
@@ -476,6 +497,112 @@ export default function AdminEventsPage() {
     setPendingAction(null);
   };
 
+  // --- Quick flyer actions ---
+
+  const handleFlyerMenuAction = (action: RowAction, event: DatabaseEvent) => {
+    setFlyerError(null);
+    if (action === "remove-flyer") {
+      setPendingRemoveFlyer(event);
+      return;
+    }
+    // upload-flyer or replace-flyer → open file picker
+    setFlyerTarget({ event, action: action === "upload-flyer" ? "upload" : "replace" });
+    // Reset input so re-selecting the same file fires onChange
+    if (flyerInputRef.current) flyerInputRef.current.value = "";
+    flyerInputRef.current?.click();
+  };
+
+  const handleFlyerFileChange = async (e: { target: { files?: FileList | null; value: string } }) => {
+    const file = e.target.files?.[0];
+    if (!file || !flyerTarget) return;
+    const { event, action } = flyerTarget;
+    const busyAction = action === "upload" ? "upload-flyer" : "replace-flyer";
+    setFlyerTarget(null);
+    setFlyerBusy({ id: event.id, action: busyAction });
+    setFlyerError(null);
+
+    const validationError = validateEventFlyer(file);
+    if (validationError) {
+      setFlyerError({ id: event.id, message: validationError });
+      setFlyerBusy(null);
+      return;
+    }
+
+    const previousFlyerUrl = event.image_url;
+    let uploadedFlyerUrl: string | null = null;
+
+    try {
+      const uploaded = await uploadEventFlyer({
+        file,
+        ownerId: actorId!,
+        eventId: event.id,
+      });
+      uploadedFlyerUrl = uploaded.url;
+
+      await updateEventFlyer(event.id, uploaded.url);
+
+      // DB updated — now best-effort delete the old object
+      if (previousFlyerUrl) {
+        try {
+          await removeEventFlyer(previousFlyerUrl);
+        } catch {
+          // Cleanup failure is non-blocking; the event already points to the new flyer.
+        }
+      }
+
+      refetch();
+    } catch (err) {
+      // If DB update failed after upload, clean up the newly uploaded object
+      if (uploadedFlyerUrl) {
+        try {
+          await removeEventFlyer(uploadedFlyerUrl);
+        } catch {
+          // Best-effort cleanup
+        }
+      }
+      const message =
+        err instanceof Error && err.message
+          ? err.message
+          : action === "upload"
+            ? "Unable to upload flyer."
+            : "Unable to replace flyer.";
+      setFlyerError({ id: event.id, message });
+    } finally {
+      setFlyerBusy(null);
+    }
+  };
+
+  const confirmRemoveFlyer = async () => {
+    if (!pendingRemoveFlyer) return;
+    const event = pendingRemoveFlyer;
+    setPendingRemoveFlyer(null);
+    setFlyerBusy({ id: event.id, action: "remove-flyer" });
+    setFlyerError(null);
+
+    try {
+      await updateEventFlyer(event.id, null);
+      // DB cleared — now best-effort delete the old object
+      if (event.image_url) {
+        try {
+          await removeEventFlyer(event.image_url);
+        } catch {
+          // Cleanup failure is non-blocking
+        }
+      }
+      refetch();
+    } catch (err) {
+      const message =
+        err instanceof Error && err.message
+          ? err.message
+          : "Unable to remove flyer.";
+      setFlyerError({ id: event.id, message });
+    } finally {
+      setFlyerBusy(null);
+    }
+  };
+
+  // --- End quick flyer actions ---
+
   const isPendingActionBusy =
     pendingAction?.kind === "delete"
       ? removingId === pendingAction.event.id
@@ -491,7 +618,7 @@ export default function AdminEventsPage() {
       if (flyer && formView.mode === "edit") {
         const uploadedFlyer = await uploadEventFlyer({
           file: flyer,
-          ownerId: formView.event.submitter_id ?? "admin",
+          ownerId: actorId!,
           eventId: formView.event.id,
         });
         uploadedFlyerUrl = uploadedFlyer.url;
@@ -801,6 +928,27 @@ export default function AdminEventsPage() {
             );
           }}
           onCancel={() => setDuplicatingEvent(null)}
+        />
+      )}
+
+      {/* Hidden file input for quick flyer upload/replace */}
+      <input
+        ref={flyerInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        hidden
+        onChange={handleFlyerFileChange}
+      />
+
+      {pendingRemoveFlyer && (
+        <AdminConfirmDialog
+          title="Remove flyer"
+          body={`Remove the flyer from "${pendingRemoveFlyer.title}"? The event will show the default image.`}
+          confirmLabel="Remove flyer"
+          tone="danger"
+          isBusy={flyerBusy?.id === pendingRemoveFlyer.id && flyerBusy.action === "remove-flyer"}
+          onConfirm={confirmRemoveFlyer}
+          onCancel={() => setPendingRemoveFlyer(null)}
         />
       )}
     </>

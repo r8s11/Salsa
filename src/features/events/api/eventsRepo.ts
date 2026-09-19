@@ -130,6 +130,26 @@ export async function updateEvent(id: string, payload: AdminEventPayload): Promi
   await replaceEventTaxonomyTerms(id, taxonomy_term_ids);
 }
 
+/**
+ * Narrow update: set or clear the flyer image for a single event.
+ * Touches ONLY `image_url` — no taxonomy, no other fields.
+ * Verifies the row was actually updated to guard against zero-row updates
+ * (e.g. RLS policy denying the write).
+ */
+export async function updateEventFlyer(
+  eventId: string,
+  imageUrl: string | null
+): Promise<void> {
+  const { data, error } = await supabase
+    .from("events")
+    .update({ image_url: imageUrl })
+    .eq("id", eventId)
+    .select("id, image_url")
+    .single();
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Event not found or update denied by policy.");
+}
+
 // Fields a submitter may edit on their own pending/rejected event.
 // Everything excluded here (status, source_type, submitter_*, host,
 // contact_*, venue_id, gallery) is admin/moderator-only or immutable after

@@ -99,6 +99,7 @@
   padding: var(--space-xs) 0;
   text-decoration: underline;
   text-underline-offset: 3px;
+  transition: color 180ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .onboarding-page__avatar-btn:hover {
@@ -176,7 +177,9 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   outline: none;
-  transition: border-color 0.15s ease;
+  transition:
+    border-color 120ms cubic-bezier(0.23, 1, 0.32, 1),
+    box-shadow 120ms cubic-bezier(0.23, 1, 0.32, 1);
   box-sizing: border-box;
 }
 
@@ -201,7 +204,9 @@
   outline: none;
   resize: vertical;
   min-height: 80px;
-  transition: border-color 0.15s ease;
+  transition:
+    border-color 120ms cubic-bezier(0.23, 1, 0.32, 1),
+    box-shadow 120ms cubic-bezier(0.23, 1, 0.32, 1);
   box-sizing: border-box;
 }
 
@@ -254,10 +259,17 @@
   border-radius: var(--radius-md);
   border: none;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition:
+    background-color 150ms cubic-bezier(0.23, 1, 0.32, 1),
+    box-shadow 150ms cubic-bezier(0.23, 1, 0.32, 1),
+    transform 150ms cubic-bezier(0.23, 1, 0.32, 1);
   min-height: 44px;
   min-width: 44px;
   text-align: center;
+}
+
+.onboarding-page__btn:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 .onboarding-page__btn:disabled {
@@ -322,7 +334,7 @@
     var(--surface-container-high, rgba(255, 255, 255, 0.06)) 75%
   );
   background-size: 200% 100%;
-  animation: onboarding-skeleton-pulse 1.8s ease-in-out infinite;
+  animation: onboarding-skeleton-pulse 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
 .onboarding-page__skel--h1 {
@@ -355,6 +367,14 @@
 @media (prefers-reduced-motion: reduce) {
   .onboarding-page__skel {
     animation: none;
+  }
+
+  .onboarding-page__btn--primary:hover:not(:disabled) {
+    transform: none;
+  }
+
+  .onboarding-page__btn:active:not(:disabled) {
+    transform: none;
   }
 }
 

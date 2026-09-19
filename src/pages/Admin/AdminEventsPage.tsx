@@ -2,7 +2,11 @@ import { useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Plus, Upload, X } from "lucide-react";
 import { useAdminEvents } from "../../features/admin/hooks/useAdminEvents";
-import { removeEventFlyer, uploadEventFlyer, validateEventFlyer } from "../../features/events/api/eventFlyers";
+import {
+  removeEventFlyer,
+  uploadEventFlyer,
+  validateEventFlyer,
+} from "../../features/events/api/eventFlyers";
 import { updateEventFlyer } from "../../features/events/api/eventsRepo";
 import { useCity } from "../../contexts/useCity";
 import { usePlatformSettings } from "../../features/admin/hooks/usePlatformSettings";
@@ -431,15 +435,17 @@ export default function AdminEventsPage() {
 
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const busy = flyerBusy
-    ?? (changingStatusId
+  const busy =
+    flyerBusy ??
+    (changingStatusId
       ? { id: changingStatusId, action: lastRowAction ?? "publish" }
       : removingId
         ? { id: removingId, action: "delete" as const }
         : null);
   const errorId = flyerError?.id ?? changeStatusErrorId ?? removeErrorId;
-  const rowError = flyerError?.message
-    ?? (changeStatusErrorId ? changeStatusError : removeErrorId ? removeError : null);
+  const rowError =
+    flyerError?.message ??
+    (changeStatusErrorId ? changeStatusError : removeErrorId ? removeError : null);
 
   const handleRowAction = (action: RowAction, event: DatabaseEvent) => {
     setLastRowAction(action);
@@ -512,7 +518,9 @@ export default function AdminEventsPage() {
     flyerInputRef.current?.click();
   };
 
-  const handleFlyerFileChange = async (e: { target: { files?: FileList | null; value: string } }) => {
+  const handleFlyerFileChange = async (e: {
+    target: { files?: FileList | null; value: string };
+  }) => {
     const file = e.target.files?.[0];
     if (!file || !flyerTarget) return;
     const { event, action } = flyerTarget;
@@ -591,10 +599,7 @@ export default function AdminEventsPage() {
       }
       refetch();
     } catch (err) {
-      const message =
-        err instanceof Error && err.message
-          ? err.message
-          : "Unable to remove flyer.";
+      const message = err instanceof Error && err.message ? err.message : "Unable to remove flyer.";
       setFlyerError({ id: event.id, message });
     } finally {
       setFlyerBusy(null);

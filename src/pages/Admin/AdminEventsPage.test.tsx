@@ -574,8 +574,12 @@ describe("AdminEventsPage", () => {
       renderWithEvents([noFlyerEvent]);
       const menu = await openRowMenu(user, "No Flyer Social");
       expect(within(menu).getByRole("menuitem", { name: "Upload flyer" })).toBeInTheDocument();
-      expect(within(menu).queryByRole("menuitem", { name: "Replace flyer" })).not.toBeInTheDocument();
-      expect(within(menu).queryByRole("menuitem", { name: "Remove flyer" })).not.toBeInTheDocument();
+      expect(
+        within(menu).queryByRole("menuitem", { name: "Replace flyer" })
+      ).not.toBeInTheDocument();
+      expect(
+        within(menu).queryByRole("menuitem", { name: "Remove flyer" })
+      ).not.toBeInTheDocument();
     });
 
     it("shows Replace and Remove flyer when image_url is set", async () => {
@@ -584,7 +588,9 @@ describe("AdminEventsPage", () => {
       const menu = await openRowMenu(user, "Flyer A Social");
       expect(within(menu).getByRole("menuitem", { name: "Replace flyer" })).toBeInTheDocument();
       expect(within(menu).getByRole("menuitem", { name: "Remove flyer" })).toBeInTheDocument();
-      expect(within(menu).queryByRole("menuitem", { name: "Upload flyer" })).not.toBeInTheDocument();
+      expect(
+        within(menu).queryByRole("menuitem", { name: "Upload flyer" })
+      ).not.toBeInTheDocument();
     });
 
     it("upload flyer: validates, uploads with actorId, updates DB, refetches", async () => {
@@ -616,7 +622,10 @@ describe("AdminEventsPage", () => {
           ownerId: "11111111-1111-4111-8111-111111111111",
           eventId: "event-noflyer",
         });
-        expect(updateEventFlyer).toHaveBeenCalledWith("event-noflyer", "https://storage.example.com/new.jpg");
+        expect(updateEventFlyer).toHaveBeenCalledWith(
+          "event-noflyer",
+          "https://storage.example.com/new.jpg"
+        );
         expect(refetch).toHaveBeenCalled();
       });
     });
@@ -648,7 +657,10 @@ describe("AdminEventsPage", () => {
           ownerId: "11111111-1111-4111-8111-111111111111",
           eventId: "event-flyer-a",
         });
-        expect(updateEventFlyer).toHaveBeenCalledWith("event-flyer-a", "https://storage.example.com/new-b.jpg");
+        expect(updateEventFlyer).toHaveBeenCalledWith(
+          "event-flyer-a",
+          "https://storage.example.com/new-b.jpg"
+        );
         expect(removeEventFlyer).toHaveBeenCalledWith("https://storage.example.com/flyer-a.jpg");
         expect(refetch).toHaveBeenCalled();
       });
@@ -674,7 +686,9 @@ describe("AdminEventsPage", () => {
         // New object B should be cleaned up
         expect(removeEventFlyer).toHaveBeenCalledWith("https://storage.example.com/new-b.jpg");
         // Old object A should NOT be deleted
-        expect(removeEventFlyer).not.toHaveBeenCalledWith("https://storage.example.com/flyer-a.jpg");
+        expect(removeEventFlyer).not.toHaveBeenCalledWith(
+          "https://storage.example.com/flyer-a.jpg"
+        );
       });
     });
 

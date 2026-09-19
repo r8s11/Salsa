@@ -7,6 +7,7 @@ import {
   type KeyboardEvent,
 } from "react";
 import { ChevronDown, MoreHorizontal } from "lucide-react";
+import { createPortal } from "react-dom";
 import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
 import "./AdminActionMenu.css";
 
@@ -33,10 +34,11 @@ export default function AdminActionMenu({
   triggerText,
 }: AdminActionMenuProps) {
   const [open, setOpen] = useState(false);
-  const [openUpward, setOpenUpward] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLUListElement>(null);
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
+  const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const close = () => {
@@ -52,7 +54,8 @@ export default function AdminActionMenu({
     if (!open) return;
 
     const handlePointerDown = (event: PointerEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (!wrapperRef.current?.contains(target) && !panelRef.current?.contains(target)) {
         setOpen(false);
       }
     };
@@ -60,16 +63,40 @@ export default function AdminActionMenu({
     return () => document.removeEventListener("pointerdown", handlePointerDown);
   }, [open]);
 
+  useEffect(() => {
+    if (!open) return;
+    const closeForViewportChange = () => setOpen(false);
+    window.addEventListener("scroll", closeForViewportChange, true);
+    window.addEventListener("resize", closeForViewportChange, true);
+    return () => {
+      window.removeEventListener("scroll", closeForViewportChange, true);
+      window.removeEventListener("resize", closeForViewportChange, true);
+    };
+  }, [open]);
+
   useLayoutEffect(() => {
     if (!open) return;
-    itemRefs.current[0]?.focus();
-
     const trigger = triggerRef.current;
     const panel = panelRef.current;
     if (!trigger || !panel) return;
+
     const triggerRect = trigger.getBoundingClientRect();
-    const panelHeight = panel.offsetHeight;
-    setOpenUpward(triggerRect.bottom + panelHeight > window.innerHeight);
+    const panelWidth = panel.offsetWidth || panel.getBoundingClientRect().width;
+    const panelHeight = panel.offsetHeight || panel.getBoundingClientRect().height;
+    const gutter = 8;
+    const gap = 4;
+    const maxLeft = Math.max(gutter, window.innerWidth - panelWidth - gutter);
+    const left = Math.min(Math.max(triggerRect.right - panelWidth, gutter), maxLeft);
+    const below = triggerRect.bottom + gap;
+    const above = triggerRect.top - panelHeight - gap;
+    const maxTop = Math.max(gutter, window.innerHeight - panelHeight - gutter);
+    const top =
+      below + panelHeight <= window.innerHeight - gutter || above < gutter
+        ? Math.min(Math.max(below, gutter), maxTop)
+        : Math.max(above, gutter);
+
+    setPosition({ top, left });
+    itemRefs.current[0]?.focus();
   }, [open]);
 
   const focusItem = (index: number) => {
@@ -99,67 +126,83 @@ export default function AdminActionMenu({
     }
   };
 
-  return (
-    <div className="admin-action-menu" ref={wrapperRef}>
-      <button
-        type="button"
-        ref={triggerRef}
-        className={`admin-icon-btn admin-action-menu__trigger${triggerText ? " admin-action-menu__trigger--labeled" : ""}`}
-        aria-haspopup="menu"
-        aria-expanded={open}
-        aria-label={label}
-        disabled={disabled}
-        onClick={() => setOpen((value) => !value)}
-      >
-        {triggerText ? (
-          <>
-            <span>{triggerText}</span>
-            <ChevronDown size={14} />
-          </>
-        ) : (
-          <MoreHorizontal size={16} />
-        )}
-      </button>
 
-      {open && (
-        <ul
-          className={`admin-action-menu__panel${openUpward ? " admin-action-menu__panel--up" : ""}`}
-          role="menu"
-          ref={panelRef}
+  const panel = open ? (
+    <ul
+      className="admin-action-menu__panel"
+      role="menu"
+      ref={panelRef}
+      style={{
+        position: "fixed",
+        top: position?.top ?? 0,
+        left: position?.left ?? 0,
+        visibility: position ? "visible" : "hidden",
+      }}
+    >
+      {items.map((item, index) => {
+        const Icon = item.icon;
+        return (
+          <li
+            key={item.id}
+            role="none"
+            className={item.separatorBefore ? "admin-action-menu__separator-before" : undefined}
+          >
+            {item.separatorBefore && (
+              <hr role="separator" className="admin-action-menu__separator" />
+            )}
+            <button
+              type="button"
+              role="menuitem"
+              ref={(el) => {
+                itemRefs.current[index] = el;
+              }}
+              className={`admin-action-menu__item${item.tone === "danger" ? " admin-action-menu__item--danger" : ""}`}
+              onKeyDown={(event) => handleItemKeyDown(event, index)}
+              onClick={() => {
+                setOpen(false);
+                triggerRef.current?.focus();
+                item.onSelect();
+              }}
+            >
+              {Icon && <Icon size={14} />}
+              {item.label}
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+  ) : null;
+
+  return (
+    <>
+      <div className="admin-action-menu" ref={wrapperRef}>
+        <button
+          type="button"
+          ref={triggerRef}
+          className={`admin-icon-btn admin-action-menu__trigger${triggerText ? " admin-action-menu__trigger--labeled" : ""}`}
+          aria-haspopup="menu"
+          aria-expanded={open}
+          aria-label={label}
+          disabled={disabled}
+          onClick={(event) => {
+            if (!open) {
+              setPosition(null);
+              setPortalTarget(event.currentTarget.closest<HTMLElement>(".admin-shell") ?? document.body);
+            }
+            setOpen((value) => !value);
+          }}
         >
-          {items.map((item, index) => {
-            const Icon = item.icon;
-            return (
-              <li
-                key={item.id}
-                role="none"
-                className={item.separatorBefore ? "admin-action-menu__separator-before" : undefined}
-              >
-                {item.separatorBefore && (
-                  <hr role="separator" className="admin-action-menu__separator" />
-                )}
-                <button
-                  type="button"
-                  role="menuitem"
-                  ref={(el) => {
-                    itemRefs.current[index] = el;
-                  }}
-                  className={`admin-action-menu__item${item.tone === "danger" ? " admin-action-menu__item--danger" : ""}`}
-                  onKeyDown={(event) => handleItemKeyDown(event, index)}
-                  onClick={() => {
-                    setOpen(false);
-                    triggerRef.current?.focus();
-                    item.onSelect();
-                  }}
-                >
-                  {Icon && <Icon size={14} />}
-                  {item.label}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </div>
+          {triggerText ? (
+            <>
+              <span>{triggerText}</span>
+              <ChevronDown size={14} />
+            </>
+          ) : (
+            <MoreHorizontal size={16} />
+          )}
+        </button>
+      </div>
+      {panel && portalTarget ? createPortal(panel, portalTarget) : null}
+    </>
   );
 }

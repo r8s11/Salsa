@@ -289,8 +289,8 @@ export default function AdminVenuesPage() {
             onOpenDrawer={() => setDrawerOpen(true)}
           />
 
-          <div className="admin-card admin-venues-page__toolbar-card">
-            {chips.length > 0 && (
+          {chips.length > 0 && (
+            <div className="admin-card admin-venues-page__toolbar-card">
               <div className="admin-venues-page__chips">
                 {chips.map((chip) => (
                   <div key={chip.key} className="admin-chip admin-filter-chip">
@@ -305,18 +305,16 @@ export default function AdminVenuesPage() {
                     </button>
                   </div>
                 ))}
-                {chips.length >= 1 && (
-                  <button
-                    type="button"
-                    className="admin-btn admin-btn--ghost admin-venues-page__clear-all"
-                    onClick={clearAllFilters}
-                  >
-                    Clear all
-                  </button>
-                )}
+                <button
+                  type="button"
+                  className="admin-btn admin-btn--ghost admin-venues-page__clear-all"
+                  onClick={clearAllFilters}
+                >
+                  Clear all
+                </button>
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           <p role="status" className="admin-venues-page__result-count">
             {total} venue{total === 1 ? "" : "s"}

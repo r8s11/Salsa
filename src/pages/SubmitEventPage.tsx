@@ -151,34 +151,34 @@ export default function SubmitEventPage() {
                 form below starts mostly filled in. Prefer to type? Skip straight to the details.
               </p>
 
-              {user ? (
-                <EventFlyerField
-                  currentUrl={uploadedFlyerUrl}
-                  onFileChange={handleFlyerChange}
-                  onRemove={handleFlyerRemove}
-                  onRetry={handleFlyerRetry}
-                  status={flyerStatus}
-                  errorMessage={flyerError}
-                  disabled={isSubmitting}
-                  label="Event flyer"
-                  sizeCaption={
-                    flyerFile ? `${(flyerFile.size / (1024 * 1024)).toFixed(1)} MB` : null
-                  }
-                />
-              ) : (
-                <p className="submit-flyer__guest-note" role="note">
-                  <Link to="/signin" state={{ from: "/submit" }}>
-                    Sign in
-                  </Link>{" "}
-                  to upload a flyer. You can still fill in the details yourself below.
-                </p>
-              )}
+              <EventFlyerField
+                currentUrl={uploadedFlyerUrl}
+                onFileChange={handleFlyerChange}
+                onRemove={handleFlyerRemove}
+                onRetry={handleFlyerRetry}
+                status={flyerStatus}
+                errorMessage={flyerError}
+                disabled={isSubmitting}
+                label="Event flyer"
+                sizeCaption={
+                  flyerFile ? `${(flyerFile.size / (1024 * 1024)).toFixed(1)} MB` : null
+                }
+              />
 
               {flyerReady && extractionStatus === "idle" && (
                 <div className="submit-flyer__actions">
-                  <Button variant="secondary" onClick={handleExtractFlyer}>
-                    <Sparkles size={16} aria-hidden /> Extract Event Details
-                  </Button>
+                  {user ? (
+                    <Button variant="secondary" onClick={handleExtractFlyer}>
+                      <Sparkles size={16} aria-hidden /> Extract Event Details
+                    </Button>
+                  ) : (
+                    <p className="submit-flyer__guest-note" role="note">
+                      <strong>Extract details with AI</strong>
+                      <Link to="/signin" target="_blank" rel="noreferrer">
+                        Sign in to automatically extract event details from your flyer.
+                      </Link>
+                    </p>
+                  )}
                 </div>
               )}
 

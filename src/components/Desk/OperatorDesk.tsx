@@ -266,7 +266,7 @@ function eventToListing(event: DatabaseEvent, now: Date): DeskListing {
     date: event.event_date,
     venue: event.location,
     state: isToday(event.event_date, now) ? "tonight" : "set",
-    to: `/admin/events/${event.id}`,
+    to: `/admin/events?edit=${event.id}`,
     flags: missing.map((field) => MISSING_LABEL[field]),
   };
 }

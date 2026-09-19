@@ -122,12 +122,17 @@ export default function AdminRejectFounderDialog({
         </div>
 
         <div className="admin-reject-dialog__actions">
-          <button type="button" className="btn-secondary" onClick={onCancel} disabled={isBusy}>
+          <button
+            type="button"
+            className="admin-btn admin-btn--secondary"
+            onClick={onCancel}
+            disabled={isBusy}
+          >
             Cancel
           </button>
           <button
             type="button"
-            className="btn-danger"
+            className="admin-btn admin-btn--danger"
             onClick={() => onConfirm(requestId, reason, message || note)}
             disabled={confirmDisabled}
           >

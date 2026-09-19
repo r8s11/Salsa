@@ -137,23 +137,25 @@ export default function AdminOrganizerRequestsTable({
 }: AdminOrganizerRequestsTableProps) {
   if (isLoading) {
     return (
-      <div className="admin-organizer-requests-table__scroll">
+      <div className="admin-organizer-requests-table__scroll" aria-busy="true">
         <table className="admin-organizer-requests-table">
-          <caption className="admin-visually-hidden">Organizer requests</caption>
+          <caption className="admin-visually-hidden">Organizer requests — loading</caption>
           <thead>
             <tr>
               <th scope="col">Applicant</th>
-              <th scope="col">Brand</th>
+              <th scope="col">Brand / Organization</th>
               <th scope="col">Type</th>
-              <th scope="col">Status</th>
-              <th scope="col">Submitted</th>
+              <th scope="col">Requested</th>
+              <th scope="col">Event Activity</th>
+              <th scope="col">Account Status</th>
+              <th scope="col">Request Status</th>
               <th scope="col">Actions</th>
             </tr>
           </thead>
           <tbody>
             {[...Array(5)].map((_, i) => (
               <tr key={i} className="admin-organizer-requests-table__loading-row">
-                <td colSpan={6}>
+                <td colSpan={8}>
                   <div className="admin-table-loading">
                     <div className="admin-skeleton admin-skeleton--title"></div>
                     <div className="admin-skeleton admin-skeleton--meta"></div>

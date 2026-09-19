@@ -56,7 +56,7 @@ export default function AdminFlagUserDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        aria-describedby={descId}
+        aria-describedby={error ? `${descId} ${titleId}-error` : descId}
         onKeyDown={onKeyDown}
         onClick={onDialogClick}
       >
@@ -95,7 +95,7 @@ export default function AdminFlagUserDialog({
         </div>
 
         {error && (
-          <p className="admin-field__error" role="alert">
+          <p id={`${titleId}-error`} className="admin-field__error" role="alert">
             {error}
           </p>
         )}

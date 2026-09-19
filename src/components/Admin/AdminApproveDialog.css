@@ -79,7 +79,7 @@
   margin-top: 24px;
 }
 
-.admin-approve-dialog .btn-secondary {
+.admin-approve-dialog .admin-btn--secondary {
   padding: 8px 24px;
   font-size: 0.9rem;
   font-weight: 500;
@@ -94,19 +94,19 @@
     border-color 0.15s ease;
 }
 
-.admin-approve-dialog .btn-secondary:hover:not(:disabled) {
+.admin-approve-dialog .admin-btn--secondary:hover:not(:disabled) {
   background: var(--admin-surface-secondary);
   color: var(--admin-text-strong);
   border-color: var(--admin-text-muted);
 }
 
-.admin-approve-dialog .btn-secondary:disabled,
-.admin-approve-dialog .btn-primary:disabled {
+.admin-approve-dialog .admin-btn--secondary:disabled,
+.admin-approve-dialog .admin-btn--brand:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-.admin-approve-dialog .btn-primary {
+.admin-approve-dialog .admin-btn--brand {
   padding: 8px 24px;
   font-size: 0.9rem;
   font-weight: 600;
@@ -118,9 +118,9 @@
   transition: transform 140ms cubic-bezier(0.23, 1, 0.32, 1), background 0.15s ease;
 }
 
-.admin-approve-dialog .btn-primary:hover:not(:disabled) {
+.admin-approve-dialog .admin-btn--brand:hover:not(:disabled) {
   background: var(--admin-brand-hover);
 }
-.admin-approve-dialog .btn-primary:active:not(:disabled) {
+.admin-approve-dialog .admin-btn--brand:active:not(:disabled) {
   transform: scale(0.97);
 }

@@ -56,7 +56,7 @@ export default function AdminRejectSubmissionDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        aria-describedby={descriptionId}
+        aria-describedby={error ? `${descriptionId} ${titleId}-error` : descriptionId}
         onClick={onDialogClick}
         onKeyDown={onKeyDown}
       >
@@ -72,7 +72,7 @@ export default function AdminRejectSubmissionDialog({
         </p>
 
         {error && (
-          <div className="admin-banner admin-banner--error" role="alert">
+          <div id={`${titleId}-error`} className="admin-banner admin-banner--error" role="alert">
             {error}
           </div>
         )}

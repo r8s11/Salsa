@@ -62,6 +62,7 @@ export default function AdminDuplicateEventDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
+        aria-describedby={error ? `${titleId}-error` : undefined}
         onKeyDown={onKeyDown}
         onClick={onDialogClick}
       >
@@ -129,7 +130,7 @@ export default function AdminDuplicateEventDialog({
         </label>
 
         {error && (
-          <p className="admin-banner admin-banner--error" role="alert">
+          <p id={`${titleId}-error`} className="admin-banner admin-banner--error" role="alert">
             {error}
           </p>
         )}

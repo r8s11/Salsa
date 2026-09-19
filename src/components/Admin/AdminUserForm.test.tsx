@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import AdminUserForm from "./AdminUserForm";
 import type { CreatedAccount } from "../../features/admin/api/profilesRepo";
@@ -27,6 +27,16 @@ const tempPasswordCreated: CreatedAccount = {
 };
 
 describe("AdminUserForm", () => {
+  it("ignores repeated form submissions while account creation is busy", () => {
+    const onSubmit = vi.fn();
+    const props = { error: null, created: null, onSubmit, onCancel: vi.fn() };
+    const { rerender } = render(<AdminUserForm {...props} isBusy={false} />);
+    fireEvent.change(screen.getByLabelText("Email"), { target: { value: "test@example.com" } });
+    rerender(<AdminUserForm {...props} isBusy />);
+    fireEvent.submit(screen.getByLabelText("Email").closest("form")!);
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
   it("does not show a delivery control for the default non-Organizer role", () => {
     render(
       <AdminUserForm

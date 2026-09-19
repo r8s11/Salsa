@@ -43,6 +43,8 @@ export default function AdminTaxonomyForm({
           <label htmlFor="taxonomy-name">Name *</label>
           <input
             id="taxonomy-name"
+            aria-invalid={Boolean(errors.name) || undefined}
+            aria-describedby={errors.name ? "taxonomy-name-error" : undefined}
             className="admin-input"
             value={form.name}
             onChange={(e) => {
@@ -51,7 +53,7 @@ export default function AdminTaxonomyForm({
               if (!slugEdited) update("slug", slugifyTaxonomyName(name));
             }}
           />
-          {errors.name && <p className="admin-field__error">{errors.name}</p>}
+          {errors.name && <p id="taxonomy-name-error" className="admin-field__error" role="alert">{errors.name}</p>}
         </div>
         <div className="admin-field">
           <label htmlFor="taxonomy-category">Category *</label>
@@ -75,6 +77,8 @@ export default function AdminTaxonomyForm({
           <label htmlFor="taxonomy-slug">Slug *</label>
           <input
             id="taxonomy-slug"
+            aria-invalid={Boolean(errors.slug) || undefined}
+            aria-describedby={errors.slug ? "taxonomy-slug-error" : undefined}
             className="admin-input"
             value={form.slug}
             onChange={(e) => {
@@ -82,7 +86,7 @@ export default function AdminTaxonomyForm({
               update("slug", e.target.value);
             }}
           />
-          {errors.slug && <p className="admin-field__error">{errors.slug}</p>}
+          {errors.slug && <p id="taxonomy-slug-error" className="admin-field__error" role="alert">{errors.slug}</p>}
         </div>
         <div className="admin-field">
           <label htmlFor="taxonomy-description">Description</label>

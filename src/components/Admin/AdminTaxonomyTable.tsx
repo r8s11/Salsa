@@ -15,12 +15,46 @@ export default function AdminTaxonomyTable({
   onArchive,
   onRestore,
   onDelete,
+  isLoading = false,
 }: {
   terms: TaxonomyTerm[];
   onArchive: (term: TaxonomyTerm) => void;
   onRestore: (id: string) => void;
   onDelete: (term: TaxonomyTerm) => void;
+  isLoading?: boolean;
 }) {
+  if (isLoading) {
+    return (
+      <div className="admin-taxonomy-table__scroll" aria-busy="true">
+        <table className="admin-taxonomy-table">
+          <caption className="admin-visually-hidden">Taxonomy — loading</caption>
+          <thead>
+            <tr>
+              {["Name", "Category", "Slug", "Usage", "Status", "Updated", "Actions"].map((label) => (
+                <th key={label} scope="col">{label}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {Array.from({ length: 5 }, (_, index) => (
+              <tr key={index}>
+                <td colSpan={7}>
+                  <div className="admin-table-loading" aria-hidden="true">
+                    <div className="admin-skeleton admin-skeleton--title" />
+                    <div className="admin-skeleton admin-skeleton--meta" />
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+  if (terms.length === 0) {
+    return <div className="admin-table-empty" role="status"><p>No taxonomy terms found.</p></div>;
+  }
+
   const action = (term: TaxonomyTerm) => (
     <div className="admin-taxonomy-table__actions">
       {term.status === "archived" ? (

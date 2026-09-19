@@ -73,3 +73,19 @@
 .admin-pagination__ellipsis {
   padding: 0 4px;
 }
+
+.admin-shell .admin-pagination .admin-icon-btn {
+  width: 44px;
+  height: 44px;
+}
+
+.admin-shell .admin-pagination .admin-select {
+  min-height: 44px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-pagination__page-btn {
+    transition: none;
+    transform: none;
+  }
+}

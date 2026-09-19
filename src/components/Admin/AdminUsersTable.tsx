@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Mail, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import {
@@ -115,7 +115,56 @@ export default function AdminUsersTable({
   busy,
   errorId,
   error,
+  isLoading = false,
 }: AdminUsersTableProps) {
+  const actionItemsByRowId = useMemo(() => {
+    const map = new Map<string, ReturnType<typeof rowActionItems>>();
+    for (const row of users) {
+      map.set(row.id, rowActionItems(row, currentUserId, adminCount, isAdmin, onAction));
+    }
+    return map;
+  }, [users, currentUserId, adminCount, isAdmin, onAction]);
+
+  if (isLoading) {
+    return (
+      <div className="admin-users-table__scroll" aria-busy="true">
+        <table className="admin-users-table">
+          <caption className="admin-visually-hidden">Users — loading</caption>
+          <thead>
+            <tr>
+              {["User", "Email", "Role", "Status", "Joined", "Contributions", "Actions"].map(
+                (label) => (
+                  <th key={label} scope="col">
+                    {label}
+                  </th>
+                )
+              )}
+            </tr>
+          </thead>
+          <tbody>
+            {Array.from({ length: 5 }, (_, index) => (
+              <tr key={index}>
+                <td colSpan={7}>
+                  <div className="admin-table-loading" aria-hidden="true">
+                    <div className="admin-skeleton admin-skeleton--title" />
+                    <div className="admin-skeleton admin-skeleton--meta" />
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+  if (users.length === 0) {
+    return (
+      <div className="admin-table-empty" role="status">
+        <p>No users found.</p>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="admin-users-table__scroll">
@@ -178,7 +227,7 @@ export default function AdminUsersTable({
                     <td>
                       <AdminActionMenu
                         label={`Actions for ${displayNameFor(row)}`}
-                        items={rowActionItems(row, currentUserId, adminCount, isAdmin, onAction)}
+                        items={actionItemsByRowId.get(row.id)!}
                         disabled={isBusy}
                       />
                     </td>
@@ -249,7 +298,7 @@ export default function AdminUsersTable({
               <div className="admin-users-cards__actions">
                 <AdminActionMenu
                   label={`Actions for ${displayNameFor(row)}`}
-                  items={rowActionItems(row, currentUserId, adminCount, isAdmin, onAction)}
+                  items={actionItemsByRowId.get(row.id)!}
                   disabled={isBusy}
                 />
               </div>

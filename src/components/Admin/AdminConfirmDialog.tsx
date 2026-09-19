@@ -93,6 +93,7 @@ export default function AdminConfirmDialog({
               className="admin-textarea"
               placeholder={reasonField.placeholder}
               required={reasonField.required}
+              aria-invalid={showRequiredError || undefined}
               aria-describedby={showRequiredError ? requiredErrorId : undefined}
               value={reason}
               onChange={(event) => setReason(event.target.value)}

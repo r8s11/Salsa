@@ -74,6 +74,7 @@ a.admin-metric-card:hover {
   align-self: flex-start;
   margin-top: 8px;
   min-height: 44px;
+  min-width: 44px;
   padding: 10px 0;
   border: none;
   background: none;

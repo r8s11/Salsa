@@ -1,6 +1,6 @@
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 import type { FormEvent } from "react";
-import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
+import { useAccessibleDialog } from "../../shared/a11y/useAccessibleDialog";
 import { ROLE_LABEL, type UserRole } from "../../features/admin/model/usersQuery";
 import type {
   CreateUserParams,
@@ -28,19 +28,22 @@ export default function AdminUserForm({
   onCancel,
 }: AdminUserFormProps) {
   const titleId = useId();
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   const [email, setEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [role, setRole] = useState<UserRole>("user");
   const [delivery, setDelivery] = useState<InviteDelivery>("email_invitation");
 
-  useEscapeKey(() => {
-    if (!isBusy) onCancel();
+  const { onKeyDown, onBackdropClick } = useAccessibleDialog({
+    dialogRef,
+    onDismiss: onCancel,
+    isBusy,
   });
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!email.trim()) return;
+    if (isBusy || !email.trim()) return;
     onSubmit({
       email: email.trim(),
       display_name: displayName.trim() || undefined,
@@ -50,13 +53,14 @@ export default function AdminUserForm({
   };
 
   return (
-    <div className="admin-user-form__overlay" onClick={isBusy ? undefined : onCancel}>
+    <div className="admin-user-form__overlay" onMouseDown={onBackdropClick}>
       <div
+        ref={dialogRef}
         className="admin-user-form admin-card"
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        onClick={(event) => event.stopPropagation()}
+        onKeyDown={onKeyDown}
       >
         <h2 id={titleId}>{created ? "Account created" : "Add User"}</h2>
 
@@ -67,7 +71,11 @@ export default function AdminUserForm({
             <AdminUserCredentials created={created} onDone={onCancel} />
           )
         ) : (
-          <form onSubmit={handleSubmit} aria-busy={isBusy || undefined}>
+          <form
+            onSubmit={handleSubmit}
+            aria-busy={isBusy || undefined}
+            aria-describedby={error ? `${titleId}-error` : undefined}
+          >
             <div className="admin-field">
               <label htmlFor="admin-user-form-email">Email</label>
               <input
@@ -148,7 +156,7 @@ export default function AdminUserForm({
             </p>
 
             {error && (
-              <p className="admin-field__error" role="alert">
+              <p id={`${titleId}-error`} className="admin-field__error" role="alert">
                 {error}
               </p>
             )}

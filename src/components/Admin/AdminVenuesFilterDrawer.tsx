@@ -28,6 +28,7 @@ export default function AdminVenuesFilterDrawer({
   const dialogRef = useRef<HTMLDivElement>(null);
   const { onKeyDown, onBackdropClick, onDialogClick } = useAccessibleDialog({
     dialogRef,
+    isOpen,
     onDismiss: onClose,
   });
 

@@ -130,7 +130,7 @@
   margin-top: 24px;
 }
 
-.admin-reject-dialog .btn-secondary {
+.admin-reject-dialog .admin-btn--secondary {
   padding: 8px 24px;
   font-size: 0.9rem;
   font-weight: 500;
@@ -145,13 +145,13 @@
     border-color 0.15s ease;
 }
 
-.admin-reject-dialog .btn-secondary:hover:not(:disabled) {
+.admin-reject-dialog .admin-btn--secondary:hover:not(:disabled) {
   background: var(--admin-surface-secondary);
   color: var(--admin-text-strong);
   border-color: var(--admin-text-muted);
 }
 
-.admin-reject-dialog .btn-danger {
+.admin-reject-dialog .admin-btn--danger {
   padding: 8px 24px;
   font-size: 0.9rem;
   font-weight: 600;
@@ -163,16 +163,16 @@
   transition: background 0.15s ease;
 }
 
-.admin-reject-dialog .btn-danger:hover:not(:disabled) {
+.admin-reject-dialog .admin-btn--danger:hover:not(:disabled) {
   background: var(--admin-danger-strong);
 }
 
-.admin-reject-dialog .btn-secondary:disabled,
-.admin-reject-dialog .btn-danger:disabled {
+.admin-reject-dialog .admin-btn--secondary:disabled,
+.admin-reject-dialog .admin-btn--danger:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
-.admin-reject-dialog .btn-secondary:active:not(:disabled),
-.admin-reject-dialog .btn-danger:active:not(:disabled) {
+.admin-reject-dialog .admin-btn--secondary:active:not(:disabled),
+.admin-reject-dialog .admin-btn--danger:active:not(:disabled) {
   transform: scale(0.97);
 }

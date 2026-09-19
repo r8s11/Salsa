@@ -56,13 +56,18 @@ export default function AdminApproveDialog({
         </p>
 
         <div className="admin-approve-dialog__actions">
-          <button type="button" className="btn-secondary" onClick={onCancel} disabled={isBusy}>
+          <button
+            type="button"
+            className="admin-btn admin-btn--secondary"
+            onClick={onCancel}
+            disabled={isBusy}
+          >
             Cancel
           </button>
           <button
             ref={confirmRef}
             type="button"
-            className="btn-primary"
+            className="admin-btn admin-btn--brand"
             onClick={() => onConfirm(requestId)}
             disabled={isBusy}
           >

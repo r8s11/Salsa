@@ -494,7 +494,7 @@
 
 .admin-shell ::selection {
   background: var(--admin-brand);
-  color: #fff;
+  color: var(--admin-text-on-brand);
 }
 
 /* ----------------------------------------
@@ -841,6 +841,6 @@
 
 .admin-shell .admin-status--account-banned {
   background: var(--admin-danger-strong);
-  color: #fff;
+  color: var(--admin-text-on-brand);
   border-color: var(--admin-danger-strong);
 }

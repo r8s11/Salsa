@@ -14,23 +14,34 @@ export default function AdminEditedFieldDisclosure({
 
   return (
     <div className="admin-field">
-      <div className="flex items-center justify-between">
-        <label className="font-medium">{label}</label>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <label style={{ fontWeight: 500 }}>{label}</label>
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="admin-chip flex items-center gap-1"
+          className="admin-chip"
+          style={{ display: "flex", alignItems: "center", gap: "var(--admin-space-1)" }}
           aria-expanded={isOpen}
         >
           Edited {isOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
         </button>
       </div>
-      <div className="font-medium">{value}</div>
+      <div style={{ fontWeight: 500 }}>{value}</div>
       {isOpen && (
-        <div className="admin-card mt-2 p-2 text-sm bg-gray-50">
-          <div className="text-xs text-gray-500">Original value:</div>
-          <div className="text-gray-700">{originalValue}</div>
-          <div className="text-xs text-gray-500 mt-2">Updated value:</div>
-          <div className="text-gray-700">{value}</div>
+        <div
+          className="admin-card"
+          style={{ marginTop: "var(--admin-space-2)", padding: "var(--admin-space-2)" }}
+        >
+          <div className="admin-text-xs" style={{ color: "var(--admin-text-secondary)" }}>
+            Original value:
+          </div>
+          <div style={{ color: "var(--admin-text-secondary)" }}>{originalValue}</div>
+          <div
+            className="admin-text-xs"
+            style={{ color: "var(--admin-text-secondary)", marginTop: "var(--admin-space-2)" }}
+          >
+            Updated value:
+          </div>
+          <div style={{ color: "var(--admin-text-secondary)" }}>{value}</div>
         </div>
       )}
     </div>

@@ -82,19 +82,12 @@ function lockBodyScroll(): () => void {
 }
 
 export interface AccessibleDialogOptions {
-  /** Container carrying `role="dialog"`. */
   dialogRef: RefObject<HTMLElement | null>;
-  /** Escape / backdrop dismissal. Never invoked while `isBusy`. */
   onDismiss: () => void;
-  /**
-   * Mutation in flight: Escape and backdrop clicks are ignored so the result
-   * or error stays on screen. Callers must also disable their Cancel control.
-   */
   isBusy?: boolean;
-  /** Focused on mount; falls back to the first focusable descendant. */
   initialFocusRef?: RefObject<HTMLElement | null>;
-  /** Dialogs holding unsaved input can opt out of backdrop dismissal. */
   dismissOnBackdrop?: boolean;
+  isOpen?: boolean;
 }
 
 export interface AccessibleDialogHandles {
@@ -120,9 +113,9 @@ export function useAccessibleDialog({
   isBusy = false,
   initialFocusRef,
   dismissOnBackdrop = true,
+  isOpen = true,
 }: AccessibleDialogOptions): AccessibleDialogHandles {
-  // The Escape listener is bound once per mount, so it reads the latest busy
-  // flag and dismiss handler through refs synced after each render.
+  // Escape reads current handlers without reinstalling the listener on each render.
   const busyRef = useRef(isBusy);
   const dismissRef = useRef(onDismiss);
 
@@ -135,6 +128,7 @@ export function useAccessibleDialog({
   // declaration order, so the background must leave `inert` before focus is
   // handed back — focusing a still-inert opener silently does nothing.
   useEffect(() => {
+    if (!isOpen) return;
     const releaseScroll = lockBodyScroll();
     const dialog = dialogRef.current;
     const releaseInert = dialog ? inertBackground(dialog) : undefined;
@@ -143,11 +137,10 @@ export function useAccessibleDialog({
       releaseInert?.();
       releaseScroll();
     };
-    // Containment is established once per mount, alongside focus.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [dialogRef, isOpen]);
 
   useEffect(() => {
+    if (!isOpen) return;
     const opener = document.activeElement;
     const target = initialFocusRef?.current ?? focusableNodes(dialogRef.current)[0];
     target?.focus();
@@ -155,23 +148,21 @@ export function useAccessibleDialog({
     return () => {
       if (opener instanceof HTMLElement) opener.focus();
     };
-    // Focus is placed once per mount: re-running on ref identity would steal
-    // focus back mid-interaction.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [dialogRef, initialFocusRef, isOpen]);
 
   useEffect(() => {
+    if (!isOpen) return;
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape" || busyRef.current) return;
       dismissRef.current();
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [isOpen]);
 
   const onKeyDown = useCallback(
     (event: ReactKeyboardEvent<HTMLElement>) => {
-      if (event.key !== "Tab") return;
+      if (!isOpen || event.key !== "Tab") return;
       const focusable = focusableNodes(dialogRef.current);
       if (focusable.length === 0) return;
 
@@ -182,21 +173,21 @@ export function useAccessibleDialog({
       if (event.shiftKey && (active === first || !dialogRef.current?.contains(active))) {
         event.preventDefault();
         last.focus();
-      } else if (!event.shiftKey && active === last) {
+      } else if (!event.shiftKey && (active === last || !dialogRef.current?.contains(active))) {
         event.preventDefault();
         first.focus();
       }
     },
-    [dialogRef]
+    [dialogRef, isOpen]
   );
 
   const onBackdropClick = useCallback(
     (event: ReactMouseEvent<HTMLElement>) => {
-      if (!dismissOnBackdrop || isBusy) return;
+      if (!isOpen || !dismissOnBackdrop || isBusy) return;
       if (event.target !== event.currentTarget) return;
       onDismiss();
     },
-    [dismissOnBackdrop, isBusy, onDismiss]
+    [dismissOnBackdrop, isBusy, isOpen, onDismiss]
   );
 
   const onDialogClick = useCallback((event: ReactMouseEvent<HTMLElement>) => {

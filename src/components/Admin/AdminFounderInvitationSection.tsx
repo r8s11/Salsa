@@ -145,7 +145,7 @@ export default function AdminFounderInvitationSection({
           {canIssue && (
             <button
               type="button"
-              className="btn-primary"
+              className="admin-btn admin-btn--brand"
               onClick={handleSend}
               disabled={isSending || isCreating}
             >
@@ -155,7 +155,7 @@ export default function AdminFounderInvitationSection({
           {invitation && canRevokeFounderInvitation(displayStatus) && (
             <button
               type="button"
-              className="btn-danger"
+              className="admin-btn admin-btn--danger"
               onClick={handleRevoke}
               disabled={isRevoking}
             >
@@ -165,7 +165,7 @@ export default function AdminFounderInvitationSection({
           {invitation && canReissueFounderInvitation(displayStatus) && (
             <button
               type="button"
-              className="btn-secondary"
+              className="admin-btn admin-btn--secondary"
               onClick={handleOpenReissue}
               disabled={isReissuing || isSending || isCreating}
             >
@@ -226,7 +226,7 @@ export default function AdminFounderInvitationSection({
           </p>
           <div className="invitation-link-row">
             <code>{`${window.location.origin}${founderInvitationAcceptUrl(createdInvitation.token)}`}</code>
-            <button type="button" className="btn-secondary" onClick={handleCopy}>
+            <button type="button" className="admin-btn admin-btn--secondary" onClick={handleCopy}>
               {copied ? "Copied" : "Copy"}
             </button>
           </div>

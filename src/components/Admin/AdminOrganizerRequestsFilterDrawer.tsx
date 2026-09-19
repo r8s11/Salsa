@@ -33,6 +33,7 @@ export default function AdminOrganizerRequestsFilterDrawer({
   const dialogRef = useRef<HTMLDivElement>(null);
   const { onKeyDown, onBackdropClick, onDialogClick } = useAccessibleDialog({
     dialogRef,
+    isOpen: open,
     onDismiss: onClose,
   });
 

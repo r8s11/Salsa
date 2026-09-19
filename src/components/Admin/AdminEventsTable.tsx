@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, useMemo } from "react";
 import { Link } from "react-router-dom";
 import {
   Clock,
@@ -253,6 +253,14 @@ export default function AdminEventsTable({
   error,
   isLoading = false,
 }: AdminEventsTableProps) {
+  const actionItemsByEventId = useMemo(() => {
+    const map = new Map<string, ActionMenuItem[]>();
+    for (const event of events) {
+      map.set(event.id, rowActionItems(event, onAction));
+    }
+    return map;
+  }, [events, onAction]);
+
   if (isLoading) {
     return (
       <div className="admin-events-table__scroll">
@@ -372,7 +380,7 @@ export default function AdminEventsTable({
                       <div className="admin-events-table__actions">
                         <AdminActionMenu
                           label={`Actions for ${event.title}`}
-                          items={rowActionItems(event, onAction)}
+                          items={actionItemsByEventId.get(event.id)!}
                           disabled={isBusy}
                           triggerText="Manage"
                         />
@@ -448,7 +456,7 @@ export default function AdminEventsTable({
               <div className="admin-events-cards__actions">
                 <AdminActionMenu
                   label={`Actions for ${event.title}`}
-                  items={rowActionItems(event, onAction)}
+                  items={actionItemsByEventId.get(event.id)!}
                   disabled={isBusy}
                 />
               </div>

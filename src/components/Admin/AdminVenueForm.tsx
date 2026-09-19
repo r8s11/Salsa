@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import type { FormEvent } from "react";
 import { ChevronDown } from "lucide-react";
 import {
@@ -36,6 +36,12 @@ export default function AdminVenueForm({
   });
 
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [invalidFieldId, setInvalidFieldId] = useState<string | null>(null);
+  const validationErrorId = useId();
+  const validationProps = (id: string) => ({
+    "aria-invalid": validationError && invalidFieldId === id ? true : undefined,
+    "aria-describedby": validationError && invalidFieldId === id ? validationErrorId : undefined,
+  });
 
   const update = (field: keyof VenueForm, value: string) => {
     setValidationError(null);
@@ -68,16 +74,23 @@ export default function AdminVenueForm({
   }, [form.name, initial?.id]);
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (isSaving) return;
     const formError = validateVenueForm(form);
     if (formError) {
       setValidationError(formError);
+      const invalidField = Array.from(
+        event.currentTarget.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[required]")
+      ).find((field) => !field.value.trim()) ??
+        event.currentTarget.querySelector<HTMLInputElement>("#venue-website");
+      setInvalidFieldId(invalidField?.id ?? null);
+      invalidField?.focus();
       return;
     }
     onSubmit(form);
   };
 
   return (
-    <form className="admin-form" onSubmit={handleSubmit} noValidate>
+    <form className="admin-form" onSubmit={handleSubmit} noValidate aria-busy={isSaving || undefined}>
       <div className="admin-form__header">
         <h2>{initial ? "Edit Venue" : "New Venue"}</h2>
       </div>
@@ -89,7 +102,7 @@ export default function AdminVenueForm({
       )}
 
       {validationError && (
-        <div className="admin-banner admin-banner--error" role="alert">
+        <div id={validationErrorId} className="admin-banner admin-banner--error" role="alert">
           <p>{validationError}</p>
         </div>
       )}
@@ -118,6 +131,7 @@ export default function AdminVenueForm({
           <label htmlFor="venue-name">Venue Name *</label>
           <input
             id="venue-name"
+            {...validationProps("venue-name")}
             type="text"
             className="admin-input"
             placeholder="e.g. Havana Club"
@@ -131,6 +145,7 @@ export default function AdminVenueForm({
           <label htmlFor="venue-website">Website</label>
           <input
             id="venue-website"
+            {...validationProps("venue-website")}
             type="url"
             className="admin-input"
             placeholder="https://..."
@@ -171,6 +186,7 @@ export default function AdminVenueForm({
           <label htmlFor="venue-address-line1">Address Line 1 *</label>
           <input
             id="venue-address-line1"
+            {...validationProps("venue-address-line1")}
             type="text"
             className="admin-input"
             placeholder="e.g. 288 Green St"
@@ -197,6 +213,7 @@ export default function AdminVenueForm({
             <label htmlFor="venue-city">City *</label>
             <input
               id="venue-city"
+              {...validationProps("venue-city")}
               type="text"
               className="admin-input"
               value={form.city}
@@ -208,6 +225,7 @@ export default function AdminVenueForm({
             <label htmlFor="venue-state">State / Region *</label>
             <input
               id="venue-state"
+              {...validationProps("venue-state")}
               type="text"
               className="admin-input"
               placeholder="e.g. MA"
@@ -235,6 +253,7 @@ export default function AdminVenueForm({
             <div className="admin-select-wrap">
               <select
                 id="venue-country"
+                {...validationProps("venue-country")}
                 className="admin-select"
                 value={form.country}
                 onChange={(event) => update("country", event.target.value)}

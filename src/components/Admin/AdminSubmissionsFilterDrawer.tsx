@@ -51,6 +51,7 @@ export default function AdminSubmissionsFilterDrawer({
   const dialogRef = useRef<HTMLDivElement>(null);
   const { onKeyDown, onBackdropClick, onDialogClick } = useAccessibleDialog({
     dialogRef,
+    isOpen: open,
     onDismiss: onClose,
   });
 

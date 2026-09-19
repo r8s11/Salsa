@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { CalendarDays, Clock, MapPin, User, Mail } from "lucide-react";
 import { type EventSubmission } from "../../features/admin/model/submissions";
 import { resolveEventFlyer } from "../EventModal/eventModalImage";
@@ -43,6 +44,8 @@ function SubmissionCell({ submission }: { submission: EventSubmission }) {
         })}
         alt=""
         loading="lazy"
+        width={48}
+        height={60}
       />
       <div className="admin-submissions-table__event-copy">
         <div className="admin-submissions-table__title">{title}</div>
@@ -88,24 +91,35 @@ export default function AdminSubmissionsTable({
   error,
   isLoading = false,
 }: AdminSubmissionsTableProps) {
+  const actionItemsBySubmissionId = useMemo(() => {
+    const map = new Map<string, Array<{ id: string; label: string; onSelect: () => void }>>();
+    for (const sub of submissions) {
+      map.set(sub.id, [
+        { id: "view", label: "View Details", onSelect: () => onAction("view", sub) },
+        { id: "approve", label: "Approve", onSelect: () => onAction("approve", sub) },
+        { id: "reject", label: "Reject", onSelect: () => onAction("reject", sub) },
+      ]);
+    }
+    return map;
+  }, [submissions, onAction]);
+
   if (isLoading) {
     return (
-      <div className="admin-submissions-table-container">
+      <div className="admin-submissions-table-container" aria-busy="true">
         <table className="admin-submissions-table">
-          <caption className="admin-visually-hidden">Event submissions</caption>
+          <caption className="admin-visually-hidden">Event submissions — loading</caption>
           <thead>
             <tr>
               <th scope="col">Event Details</th>
               <th scope="col">Status</th>
-              <th scope="col">Source</th>
-              <th scope="col">Organizer</th>
+              <th scope="col">Submitted At</th>
               <th scope="col">Actions</th>
             </tr>
           </thead>
           <tbody>
             {[...Array(5)].map((_, i) => (
               <tr key={i} className="admin-submissions-table__loading-row">
-                <td colSpan={5}>
+                <td colSpan={4}>
                   <div className="admin-table-loading">
                     <div className="admin-skeleton admin-skeleton--title"></div>
                     <div className="admin-skeleton admin-skeleton--meta"></div>
@@ -126,7 +140,6 @@ export default function AdminSubmissionsTable({
       </div>
     );
   }
-
   return (
     <div className="admin-submissions-table-container">
       {error && <div className="admin-banner admin-banner--error">{error}</div>}
@@ -160,23 +173,7 @@ export default function AdminSubmissionsTable({
               <td className="admin-submissions-table__actions">
                 <AdminActionMenu
                   label={`Actions for ${submission.submitted_data?.title || "submission"}`}
-                  items={[
-                    {
-                      id: "view",
-                      label: "View Details",
-                      onSelect: () => onAction("view", submission),
-                    },
-                    {
-                      id: "approve",
-                      label: "Approve",
-                      onSelect: () => onAction("approve", submission),
-                    },
-                    {
-                      id: "reject",
-                      label: "Reject",
-                      onSelect: () => onAction("reject", submission),
-                    },
-                  ]}
+                  items={actionItemsBySubmissionId.get(submission.id)!}
                 />
               </td>
             </tr>

@@ -31,6 +31,7 @@ export default function AdminFounderRequestsFilterDrawer({
   const baseId = useId();
   const { onKeyDown, onBackdropClick, onDialogClick } = useAccessibleDialog({
     dialogRef,
+    isOpen: open,
     onDismiss: onClose,
   });
 
@@ -55,10 +56,10 @@ export default function AdminFounderRequestsFilterDrawer({
   if (!open) return null;
 
   return (
-    <div className="filter-drawer-overlay" onClick={onBackdropClick}>
+    <div className="admin-founder-filter-drawer-overlay" onClick={onBackdropClick}>
       <div
         ref={dialogRef}
-        className="filter-drawer"
+        className="admin-founder-filter-drawer"
         role="dialog"
         aria-modal="true"
         aria-label="Filters"
@@ -66,15 +67,15 @@ export default function AdminFounderRequestsFilterDrawer({
         onClick={onDialogClick}
         onKeyDown={onKeyDown}
       >
-        <header className="filter-drawer-header">
+        <header className="admin-founder-filter-drawer-header">
           <h2>Filters</h2>
           <button type="button" className="close-btn" onClick={onClose} aria-label="Close filters">
             <X className="icon" size={18} aria-hidden="true" />
           </button>
         </header>
-        <div className="filter-drawer-content">
-          <section className="filter-section">
-            <label htmlFor={`${baseId}-search`} className="filter-label">
+        <div className="admin-founder-filter-drawer-content">
+          <section className="admin-founder-filter-section">
+            <label htmlFor={`${baseId}-search`} className="admin-founder-filter-label">
               <Search className="icon" size={14} aria-hidden="true" />
               Search
             </label>
@@ -84,11 +85,11 @@ export default function AdminFounderRequestsFilterDrawer({
               placeholder="Search name, email, organization..."
               value={filters.search}
               onChange={handleSearchChange}
-              className="filter-input"
+              className="admin-founder-filter-input"
             />
           </section>
-          <section className="filter-section">
-            <label htmlFor={`${baseId}-status`} className="filter-label">
+          <section className="admin-founder-filter-section">
+            <label htmlFor={`${baseId}-status`} className="admin-founder-filter-label">
               <ClipboardList className="icon" size={14} aria-hidden="true" />
               Status
             </label>
@@ -96,7 +97,7 @@ export default function AdminFounderRequestsFilterDrawer({
               id={`${baseId}-status`}
               value={filters.status}
               onChange={handleStatusChange}
-              className="filter-select"
+              className="admin-founder-filter-select"
             >
               <option value="all">All</option>
               <option value="pending">Pending</option>
@@ -104,8 +105,8 @@ export default function AdminFounderRequestsFilterDrawer({
               <option value="rejected">Rejected</option>
             </select>
           </section>
-          <section className="filter-section">
-            <label htmlFor={`${baseId}-sort`} className="filter-label">
+          <section className="admin-founder-filter-section">
+            <label htmlFor={`${baseId}-sort`} className="admin-founder-filter-label">
               <ChevronDown className="icon" size={14} aria-hidden="true" />
               Sort
             </label>
@@ -113,7 +114,7 @@ export default function AdminFounderRequestsFilterDrawer({
               id={`${baseId}-sort`}
               value={`${sort.key}|${sort.dir}`}
               onChange={handleSortChange}
-              className="filter-select"
+              className="admin-founder-filter-select"
             >
               {FOUNDER_REQUEST_SORT_OPTIONS.flatMap((option) => [
                 <option key={`${option.key}|asc`} value={`${option.key}|asc`}>
@@ -129,7 +130,7 @@ export default function AdminFounderRequestsFilterDrawer({
             Clear all filters
           </button>
         </div>
-        <footer className="filter-drawer-footer">
+        <footer className="admin-founder-filter-drawer-footer">
           <span className="results-count">{resultCount} result(s)</span>
           <button type="button" className="apply-btn" onClick={onClose}>
             Apply

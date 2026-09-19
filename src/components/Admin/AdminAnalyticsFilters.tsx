@@ -34,11 +34,14 @@ export default function AdminAnalyticsFilters({
   const toRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const listboxRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   useEffect(() => {
-    if (dropdownOpen) listboxRef.current?.focus();
+    if (dropdownOpen) {
+      listboxRef.current?.querySelector<HTMLElement>('[aria-selected="true"]')?.focus();
+    }
   }, [dropdownOpen]);
 
   // Close dropdown on outside click / Escape
@@ -48,14 +51,9 @@ export default function AdminAnalyticsFilters({
         setDropdownOpen(false);
       }
     };
-    const handleKey = (event: globalThis.KeyboardEvent) => {
-      if (event.key === "Escape") setDropdownOpen(false);
-    };
     document.addEventListener("mousedown", handleClick);
-    document.addEventListener("keydown", handleKey);
     return () => {
       document.removeEventListener("mousedown", handleClick);
-      document.removeEventListener("keydown", handleKey);
     };
   }, []);
 
@@ -67,11 +65,16 @@ export default function AdminAnalyticsFilters({
         nextIndex = (currentIndex + 1) % TIME_RANGE_OPTIONS.length;
       } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
         nextIndex = (currentIndex - 1 + TIME_RANGE_OPTIONS.length) % TIME_RANGE_OPTIONS.length;
+      } else if (event.key === "Home") {
+        nextIndex = 0;
+      } else if (event.key === "End") {
+        nextIndex = TIME_RANGE_OPTIONS.length - 1;
       } else {
         return;
       }
       event.preventDefault();
       onRangeChange(TIME_RANGE_OPTIONS[nextIndex].value);
+      event.currentTarget.querySelectorAll<HTMLElement>('[role="radio"]')[nextIndex]?.focus();
     },
     [range, onRangeChange]
   );
@@ -84,18 +87,22 @@ export default function AdminAnalyticsFilters({
         nextIndex = (currentIndex + 1) % GRANULARITY_OPTIONS.length;
       } else if (event.key === "ArrowUp") {
         nextIndex = (currentIndex - 1 + GRANULARITY_OPTIONS.length) % GRANULARITY_OPTIONS.length;
-      } else if (event.key === "Enter" || event.key === " ") {
+      } else if (event.key === "Home") {
+        nextIndex = 0;
+      } else if (event.key === "End") {
+        nextIndex = GRANULARITY_OPTIONS.length - 1;
+      } else if (event.key === "Enter" || event.key === " " || event.key === "Escape") {
         event.preventDefault();
+        event.stopPropagation();
         setDropdownOpen(false);
-        return;
-      } else if (event.key === "Escape") {
-        setDropdownOpen(false);
+        triggerRef.current?.focus();
         return;
       } else {
         return;
       }
       event.preventDefault();
       onGranularityChange(GRANULARITY_OPTIONS[nextIndex].value);
+      listboxRef.current?.querySelectorAll<HTMLElement>('[role="option"]')[nextIndex]?.focus();
     },
     [granularity, onGranularityChange]
   );
@@ -116,6 +123,7 @@ export default function AdminAnalyticsFilters({
               type="button"
               role="radio"
               aria-checked={range === option.value}
+              tabIndex={range === option.value ? 0 : -1}
               className={
                 "admin-analytics-filters__pill " +
                 (range === option.value ? "admin-analytics-filters__pill--active" : "")
@@ -156,16 +164,24 @@ export default function AdminAnalyticsFilters({
         </div>
 
         {/* Granularity selector (dropdown) */}
-        <div className="admin-analytics-filters__granularity" ref={dropdownRef}>
+        <div
+          className="admin-analytics-filters__granularity"
+          ref={dropdownRef}
+          onBlur={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget)) setDropdownOpen(false);
+          }}
+        >
           <button
             type="button"
+            ref={triggerRef}
+            onClick={() => setDropdownOpen((prev) => !prev)}
             aria-haspopup="listbox"
             aria-expanded={dropdownOpen}
             aria-controls="admin-analytics-granularity-listbox"
             onKeyDown={(event) => {
-              if (event.key === "Enter" || event.key === " ") {
+              if (event.key === "ArrowDown" || event.key === "ArrowUp") {
                 event.preventDefault();
-                setDropdownOpen((prev) => !prev);
+                setDropdownOpen(true);
               }
             }}
           >
@@ -187,7 +203,7 @@ export default function AdminAnalyticsFilters({
                   key={option.value}
                   type="button"
                   role="option"
-                  tabIndex={0}
+                  tabIndex={granularity === option.value ? 0 : -1}
                   aria-selected={granularity === option.value}
                   className={
                     "admin-analytics-filters__granularity-option " +
@@ -198,6 +214,7 @@ export default function AdminAnalyticsFilters({
                   onClick={() => {
                     onGranularityChange(option.value);
                     setDropdownOpen(false);
+                    triggerRef.current?.focus();
                   }}
                 >
                   {option.label}

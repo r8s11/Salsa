@@ -138,6 +138,9 @@ export default function AdminSubmissionDetailPage() {
               className="admin-submission-detail-page__flyer"
               src={resolveEventFlyer({ id: submission.id, imageUrl, calendarId: "social" })}
               alt={`Flyer for ${title}`}
+              width={240}
+              height={300}
+              loading="lazy"
             />
           </div>
           <div className="admin-submission-detail-page__overview-copy">

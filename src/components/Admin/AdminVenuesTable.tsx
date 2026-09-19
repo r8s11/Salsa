@@ -61,6 +61,7 @@ interface AdminVenuesTableProps {
   busy: { id: string; action: VenueAction } | null;
   errorId: string | null;
   error: string | null;
+  isLoading?: boolean;
 }
 
 export default function AdminVenuesTable({
@@ -71,7 +72,40 @@ export default function AdminVenuesTable({
   busy,
   errorId,
   error,
+  isLoading = false,
 }: AdminVenuesTableProps) {
+  if (isLoading) {
+    return (
+      <div className="admin-venues-table__scroll" aria-busy="true">
+        <table className="admin-venues-table">
+          <caption className="admin-visually-hidden">Venues — loading</caption>
+          <thead>
+            <tr>
+              {["Venue", "City", "Address", "Upcoming Events", "Status", "Updated", "Actions"].map((label) => (
+                <th key={label} scope="col">{label}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {Array.from({ length: 5 }, (_, index) => (
+              <tr key={index}>
+                <td colSpan={7}>
+                  <div className="admin-table-loading" aria-hidden="true">
+                    <div className="admin-skeleton admin-skeleton--title" />
+                    <div className="admin-skeleton admin-skeleton--meta" />
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+  if (venues.length === 0) {
+    return <div className="admin-table-empty" role="status"><p>No venues found.</p></div>;
+  }
+
   return (
     <>
       <div className="admin-venues-table__scroll">

@@ -10,14 +10,26 @@ import AdminEventsPage from "./AdminEventsPage";
 const { useAdminEvents } = vi.hoisted(() => ({ useAdminEvents: vi.fn() }));
 const { usePlatformSettings } = vi.hoisted(() => ({ usePlatformSettings: vi.fn() }));
 const { extractEventFromFlyer } = vi.hoisted(() => ({ extractEventFromFlyer: vi.fn() }));
-const { uploadEventFlyer, removeEventFlyer } = vi.hoisted(() => ({
+const { uploadEventFlyer, removeEventFlyer, validateEventFlyer } = vi.hoisted(() => ({
   uploadEventFlyer: vi.fn(),
   removeEventFlyer: vi.fn(),
+  validateEventFlyer: vi.fn(),
+}));
+const { updateEventFlyer } = vi.hoisted(() => ({
+  updateEventFlyer: vi.fn(),
 }));
 
 vi.mock("../../features/admin/hooks/useAdminEvents", () => ({ useAdminEvents }));
 vi.mock("../../features/admin/hooks/usePlatformSettings", () => ({ usePlatformSettings }));
-vi.mock("../../features/events/api/eventFlyers", () => ({ uploadEventFlyer, removeEventFlyer }));
+vi.mock("../../features/events/api/eventFlyers", () => ({
+  uploadEventFlyer,
+  removeEventFlyer,
+  validateEventFlyer,
+}));
+vi.mock("../../features/events/api/eventsRepo", async (importOriginal) => ({
+  ...(await importOriginal()),
+  updateEventFlyer,
+}));
 vi.mock("../../features/flyer-extraction/client", () => ({ extractEventFromFlyer }));
 vi.mock("../../features/events/components/EventFlyerField", () => ({
   default: function MockEventFlyerField({
@@ -249,7 +261,7 @@ describe("AdminEventsPage", () => {
     });
     expect(uploadEventFlyer).toHaveBeenCalledWith({
       file: expect.objectContaining({ name: "flyer.png" }),
-      ownerId: "user-1",
+      ownerId: "11111111-1111-4111-8111-111111111111",
       eventId: "event-1",
     });
   });
@@ -525,5 +537,252 @@ describe("AdminEventsPage", () => {
       }),
       expect.anything()
     );
+  });
+
+  describe("quick flyer actions", () => {
+    const noFlyerEvent: DatabaseEvent = {
+      ...baseEvent,
+      id: "event-noflyer",
+      title: "No Flyer Social",
+      image_url: null,
+    };
+
+    const flyerAEvent: DatabaseEvent = {
+      ...baseEvent,
+      id: "event-flyer-a",
+      title: "Flyer A Social",
+      image_url: "https://storage.example.com/flyer-a.jpg",
+    };
+
+    beforeEach(() => {
+      validateEventFlyer.mockReturnValue(null);
+      updateEventFlyer.mockReset().mockResolvedValue(undefined);
+      uploadEventFlyer.mockReset();
+      removeEventFlyer.mockReset().mockResolvedValue(undefined);
+    });
+
+    function renderWithEvents(evts: DatabaseEvent[]) {
+      vi.mocked(useAdminEvents).mockReturnValue({
+        ...defaultState,
+        events: evts,
+      });
+      renderPage();
+    }
+
+    it("shows Upload flyer when image_url is null", async () => {
+      const user = userEvent.setup();
+      renderWithEvents([noFlyerEvent]);
+      const menu = await openRowMenu(user, "No Flyer Social");
+      expect(within(menu).getByRole("menuitem", { name: "Upload flyer" })).toBeInTheDocument();
+      expect(within(menu).queryByRole("menuitem", { name: "Replace flyer" })).not.toBeInTheDocument();
+      expect(within(menu).queryByRole("menuitem", { name: "Remove flyer" })).not.toBeInTheDocument();
+    });
+
+    it("shows Replace and Remove flyer when image_url is set", async () => {
+      const user = userEvent.setup();
+      renderWithEvents([flyerAEvent]);
+      const menu = await openRowMenu(user, "Flyer A Social");
+      expect(within(menu).getByRole("menuitem", { name: "Replace flyer" })).toBeInTheDocument();
+      expect(within(menu).getByRole("menuitem", { name: "Remove flyer" })).toBeInTheDocument();
+      expect(within(menu).queryByRole("menuitem", { name: "Upload flyer" })).not.toBeInTheDocument();
+    });
+
+    it("upload flyer: validates, uploads with actorId, updates DB, refetches", async () => {
+      const user = userEvent.setup();
+      const refetch = vi.fn();
+      vi.mocked(useAdminEvents).mockReturnValue({
+        ...defaultState,
+        events: [noFlyerEvent],
+        refetch,
+      });
+      uploadEventFlyer.mockResolvedValue({
+        path: "admin/event-noflyer/new.jpg",
+        url: "https://storage.example.com/new.jpg",
+      });
+      renderPage();
+
+      const menu = await openRowMenu(user, "No Flyer Social");
+      await user.click(within(menu).getByRole("menuitem", { name: "Upload flyer" }));
+
+      const file = new File(["img"], "flyer.jpg", { type: "image/jpeg" });
+      const input = document.querySelector('input[type="file"][hidden]') as HTMLInputElement;
+      expect(input).toBeTruthy();
+      await user.upload(input, file);
+
+      await waitFor(() => {
+        expect(validateEventFlyer).toHaveBeenCalledWith(file);
+        expect(uploadEventFlyer).toHaveBeenCalledWith({
+          file,
+          ownerId: "11111111-1111-4111-8111-111111111111",
+          eventId: "event-noflyer",
+        });
+        expect(updateEventFlyer).toHaveBeenCalledWith("event-noflyer", "https://storage.example.com/new.jpg");
+        expect(refetch).toHaveBeenCalled();
+      });
+    });
+
+    it("replace flyer: uploads B, updates DB to B, then deletes A", async () => {
+      const user = userEvent.setup();
+      const refetch = vi.fn();
+      vi.mocked(useAdminEvents).mockReturnValue({
+        ...defaultState,
+        events: [flyerAEvent],
+        refetch,
+      });
+      uploadEventFlyer.mockResolvedValue({
+        path: "admin/event-flyer-a/new-b.jpg",
+        url: "https://storage.example.com/new-b.jpg",
+      });
+      renderPage();
+
+      const menu = await openRowMenu(user, "Flyer A Social");
+      await user.click(within(menu).getByRole("menuitem", { name: "Replace flyer" }));
+
+      const file = new File(["img"], "flyer-b.jpg", { type: "image/jpeg" });
+      const input = document.querySelector('input[type="file"][hidden]') as HTMLInputElement;
+      await user.upload(input, file);
+
+      await waitFor(() => {
+        expect(uploadEventFlyer).toHaveBeenCalledWith({
+          file,
+          ownerId: "11111111-1111-4111-8111-111111111111",
+          eventId: "event-flyer-a",
+        });
+        expect(updateEventFlyer).toHaveBeenCalledWith("event-flyer-a", "https://storage.example.com/new-b.jpg");
+        expect(removeEventFlyer).toHaveBeenCalledWith("https://storage.example.com/flyer-a.jpg");
+        expect(refetch).toHaveBeenCalled();
+      });
+    });
+
+    it("DB failure after upload: cleans up new object, keeps old, shows error", async () => {
+      const user = userEvent.setup();
+      renderWithEvents([flyerAEvent]);
+      uploadEventFlyer.mockResolvedValue({
+        path: "admin/event-flyer-a/new-b.jpg",
+        url: "https://storage.example.com/new-b.jpg",
+      });
+      updateEventFlyer.mockRejectedValue(new Error("row not found"));
+
+      const menu = await openRowMenu(user, "Flyer A Social");
+      await user.click(within(menu).getByRole("menuitem", { name: "Replace flyer" }));
+
+      const file = new File(["img"], "flyer-b.jpg", { type: "image/jpeg" });
+      const input = document.querySelector('input[type="file"][hidden]') as HTMLInputElement;
+      await user.upload(input, file);
+
+      await waitFor(() => {
+        // New object B should be cleaned up
+        expect(removeEventFlyer).toHaveBeenCalledWith("https://storage.example.com/new-b.jpg");
+        // Old object A should NOT be deleted
+        expect(removeEventFlyer).not.toHaveBeenCalledWith("https://storage.example.com/flyer-a.jpg");
+      });
+    });
+
+    it("upload failure: no DB call, error shown", async () => {
+      const user = userEvent.setup();
+      renderWithEvents([noFlyerEvent]);
+      uploadEventFlyer.mockRejectedValue(new Error("storage quota exceeded"));
+
+      const menu = await openRowMenu(user, "No Flyer Social");
+      await user.click(within(menu).getByRole("menuitem", { name: "Upload flyer" }));
+
+      const file = new File(["img"], "flyer.jpg", { type: "image/jpeg" });
+      const input = document.querySelector('input[type="file"][hidden]') as HTMLInputElement;
+      await user.upload(input, file);
+
+      await waitFor(() => {
+        expect(updateEventFlyer).not.toHaveBeenCalled();
+      });
+    });
+
+    it("remove flyer: confirm dialog, DB null first, then delete object", async () => {
+      const user = userEvent.setup();
+      const refetch = vi.fn();
+      vi.mocked(useAdminEvents).mockReturnValue({
+        ...defaultState,
+        events: [flyerAEvent],
+        refetch,
+      });
+      renderPage();
+
+      const menu = await openRowMenu(user, "Flyer A Social");
+      await user.click(within(menu).getByRole("menuitem", { name: "Remove flyer" }));
+
+      const dialog = screen.getByRole("dialog", { name: /Remove flyer/ });
+      await user.click(within(dialog).getByRole("button", { name: "Remove flyer" }));
+
+      await waitFor(() => {
+        expect(updateEventFlyer).toHaveBeenCalledWith("event-flyer-a", null);
+        expect(removeEventFlyer).toHaveBeenCalledWith("https://storage.example.com/flyer-a.jpg");
+        expect(refetch).toHaveBeenCalled();
+      });
+    });
+
+    it("remove flyer DB failure: object NOT deleted", async () => {
+      const user = userEvent.setup();
+      renderWithEvents([flyerAEvent]);
+      updateEventFlyer.mockRejectedValue(new Error("RLS denied"));
+
+      const menu = await openRowMenu(user, "Flyer A Social");
+      await user.click(within(menu).getByRole("menuitem", { name: "Remove flyer" }));
+
+      const dialog = screen.getByRole("dialog", { name: /Remove flyer/ });
+      await user.click(within(dialog).getByRole("button", { name: "Remove flyer" }));
+
+      await waitFor(() => {
+        expect(updateEventFlyer).toHaveBeenCalledWith("event-flyer-a", null);
+        expect(removeEventFlyer).not.toHaveBeenCalled();
+      });
+    });
+
+    it("validation failure: no upload, no DB call", async () => {
+      const user = userEvent.setup();
+      renderWithEvents([noFlyerEvent]);
+      validateEventFlyer.mockReturnValue("Only JPEG, PNG, or WebP images are allowed.");
+
+      const menu = await openRowMenu(user, "No Flyer Social");
+      await user.click(within(menu).getByRole("menuitem", { name: "Upload flyer" }));
+
+      const file = new File(["pdf"], "flyer.pdf", { type: "application/pdf" });
+      const input = document.querySelector('input[type="file"][hidden]') as HTMLInputElement;
+      await user.upload(input, file);
+
+      await waitFor(() => {
+        expect(uploadEventFlyer).not.toHaveBeenCalled();
+        expect(updateEventFlyer).not.toHaveBeenCalled();
+      });
+    });
+
+    it("upload uses actorId, not submitter_id", async () => {
+      const user = userEvent.setup();
+      const eventWithDifferentSubmitter: DatabaseEvent = {
+        ...noFlyerEvent,
+        submitter_id: "some-other-user",
+      };
+      vi.mocked(useAdminEvents).mockReturnValue({
+        ...defaultState,
+        events: [eventWithDifferentSubmitter],
+      });
+      uploadEventFlyer.mockResolvedValue({
+        path: "admin/evt/new.jpg",
+        url: "https://storage.example.com/new.jpg",
+      });
+      renderPage();
+
+      const menu = await openRowMenu(user, "No Flyer Social");
+      await user.click(within(menu).getByRole("menuitem", { name: "Upload flyer" }));
+
+      const file = new File(["img"], "flyer.jpg", { type: "image/jpeg" });
+      const input = document.querySelector('input[type="file"][hidden]') as HTMLInputElement;
+      await user.upload(input, file);
+
+      await waitFor(() => {
+        expect(uploadEventFlyer).toHaveBeenCalledWith({
+          file,
+          ownerId: "11111111-1111-4111-8111-111111111111",
+          eventId: "event-noflyer",
+        });
+      });
+    });
   });
 });

@@ -6,6 +6,7 @@ import {
   deleteEventForUser,
   duplicateEvent,
   fetchApprovedEventById,
+  updateEventFlyer,
   updateEventForUser,
 } from "./eventsRepo";
 
@@ -276,5 +277,79 @@ describe("createEventAsAdmin", () => {
     expect(inserted.source_type).toBe("admin");
     expect(inserted.status).toBe("approved");
     expect(inserted.submitter_id).toBe("admin-1");
+  });
+});
+
+describe("updateEventFlyer", () => {
+  beforeEach(() => {
+    mocks.update.mockReset();
+    queryBuilder.select.mockClear();
+    queryBuilder.eq.mockClear();
+    queryBuilder.single.mockReset();
+  });
+
+  it("updates only image_url and verifies the row changed", async () => {
+    const eqMock = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        single: vi.fn().mockResolvedValue({
+          data: { id: "evt-1", image_url: "https://storage.example.com/flyer.jpg" },
+          error: null,
+        }),
+      }),
+    });
+    mocks.update.mockReturnValue({ eq: eqMock });
+
+    await expect(
+      updateEventFlyer("evt-1", "https://storage.example.com/flyer.jpg")
+    ).resolves.toBeUndefined();
+
+    expect(mocks.from).toHaveBeenCalledWith("events");
+    expect(mocks.update).toHaveBeenCalledWith({
+      image_url: "https://storage.example.com/flyer.jpg",
+    });
+    expect(eqMock).toHaveBeenCalledWith("id", "evt-1");
+  });
+
+  it("clears image_url when called with null", async () => {
+    const eqMock = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        single: vi.fn().mockResolvedValue({
+          data: { id: "evt-1", image_url: null },
+          error: null,
+        }),
+      }),
+    });
+    mocks.update.mockReturnValue({ eq: eqMock });
+
+    await expect(updateEventFlyer("evt-1", null)).resolves.toBeUndefined();
+
+    expect(mocks.update).toHaveBeenCalledWith({ image_url: null });
+  });
+
+  it("throws when Supabase returns an error", async () => {
+    const eqMock = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        single: vi.fn().mockResolvedValue({
+          data: null,
+          error: { message: "permission denied" },
+        }),
+      }),
+    });
+    mocks.update.mockReturnValue({ eq: eqMock });
+
+    await expect(updateEventFlyer("evt-1", "url")).rejects.toThrow("permission denied");
+  });
+
+  it("throws when no row is returned (zero-row update)", async () => {
+    const eqMock = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        single: vi.fn().mockResolvedValue({ data: null, error: null }),
+      }),
+    });
+    mocks.update.mockReturnValue({ eq: eqMock });
+
+    await expect(updateEventFlyer("evt-1", "url")).rejects.toThrow(
+      "Event not found or update denied by policy."
+    );
   });
 });

@@ -7,7 +7,6 @@ import {
   formatExtractedDate,
   formatInstagramHandle,
   formatTimeRange,
-  hasPartialExtraction,
 } from "./formatters";
 import "./FlyerExtractionPanel.css";
 
@@ -57,6 +56,8 @@ type FlyerExtractionPanelProps = {
   error: string | null;
   onRetry: () => void;
   onDismiss: () => void;
+  /** How many more extraction attempts the user may still start. */
+  remainingRetries: number;
 };
 
 export default function FlyerExtractionPanel({
@@ -65,6 +66,7 @@ export default function FlyerExtractionPanel({
   error,
   onRetry,
   onDismiss,
+  remainingRetries,
 }: FlyerExtractionPanelProps) {
   if (status === "loading") {
     return (
@@ -105,7 +107,6 @@ export default function FlyerExtractionPanel({
   if (status === "success" && result) {
     const rows = buildResultRows(result);
     const count = countPopulatedFields(result);
-    const partial = hasPartialExtraction(result);
     return (
       <div className="flyer-extraction-panel flyer-extraction-panel--success">
         <div className="flyer-extraction-panel__header">
@@ -132,14 +133,19 @@ export default function FlyerExtractionPanel({
             We couldn't find any details on this flyer.
           </p>
         )}
-        {partial && (
-          <p className="flyer-extraction-panel__partial-note">
-            Some information wasn't visible on the flyer.
-          </p>
-        )}
         <div className="flyer-extraction-panel__actions">
-          <Button type="button" variant="secondary" onClick={onRetry}>
-            Try Again
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={onRetry}
+            disabled={remainingRetries <= 0}
+            title={
+              remainingRetries <= 0
+                ? "No extraction attempts remaining for this flyer."
+                : undefined
+            }
+          >
+            {remainingRetries <= 0 ? "No attempts remaining" : "Try Again"}
           </Button>
         </div>
       </div>

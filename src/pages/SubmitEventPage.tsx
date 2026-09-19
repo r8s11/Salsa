@@ -63,6 +63,7 @@ export default function SubmitEventPage() {
     extractionStatus,
     extractionResult,
     extractionError,
+    extractionAttempts,
     prefillFeedback,
     reconciliation,
     handleExtractFlyer,
@@ -193,6 +194,7 @@ export default function SubmitEventPage() {
                       dismissExtractionError();
                       focusForm();
                     }}
+                    remainingRetries={Math.max(0, 3 - extractionAttempts)}
                   />
                   {extractionStatus === "success" && prefillFeedback && (
                     <div className="submit-flyer__notice" role="status">

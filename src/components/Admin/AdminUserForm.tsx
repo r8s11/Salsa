@@ -34,7 +34,9 @@ export default function AdminUserForm({
   const [role, setRole] = useState<UserRole>("user");
   const [delivery, setDelivery] = useState<InviteDelivery>("email_invitation");
 
-  useEscapeKey(onCancel);
+  useEscapeKey(() => {
+    if (!isBusy) onCancel();
+  });
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -48,7 +50,7 @@ export default function AdminUserForm({
   };
 
   return (
-    <div className="admin-user-form__overlay" onClick={onCancel}>
+    <div className="admin-user-form__overlay" onClick={isBusy ? undefined : onCancel}>
       <div
         className="admin-user-form admin-card"
         role="dialog"
@@ -65,7 +67,7 @@ export default function AdminUserForm({
             <AdminUserCredentials created={created} onDone={onCancel} />
           )
         ) : (
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} aria-busy={isBusy || undefined}>
             <div className="admin-field">
               <label htmlFor="admin-user-form-email">Email</label>
               <input
@@ -77,6 +79,7 @@ export default function AdminUserForm({
                 autoComplete="email"
                 autoFocus
                 required
+                disabled={isBusy}
               />
             </div>
 
@@ -89,6 +92,7 @@ export default function AdminUserForm({
                 value={displayName}
                 onChange={(event) => setDisplayName(event.target.value)}
                 placeholder="Optional"
+                disabled={isBusy}
               />
             </div>
 
@@ -99,6 +103,7 @@ export default function AdminUserForm({
                 className="admin-select"
                 value={role}
                 onChange={(event) => setRole(event.target.value as UserRole)}
+                disabled={isBusy}
               >
                 {ROLE_OPTIONS.map((r) => (
                   <option key={r} value={r}>
@@ -118,6 +123,7 @@ export default function AdminUserForm({
                     value="email_invitation"
                     checked={delivery === "email_invitation"}
                     onChange={() => setDelivery("email_invitation")}
+                    disabled={isBusy}
                   />
                   Email invitation
                 </label>
@@ -128,6 +134,7 @@ export default function AdminUserForm({
                     value="temporary_password"
                     checked={delivery === "temporary_password"}
                     onChange={() => setDelivery("temporary_password")}
+                    disabled={isBusy}
                   />
                   Temporary password
                 </label>

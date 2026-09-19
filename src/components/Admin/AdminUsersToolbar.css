@@ -116,7 +116,7 @@
   padding: 0 5px;
   border-radius: 9999px;
   background: var(--admin-brand);
-  color: #ffffff;
+  color: var(--admin-text-on-brand);
   font-size: 0.7rem;
   font-weight: 700;
 }

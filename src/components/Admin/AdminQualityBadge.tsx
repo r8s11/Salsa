@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { TriangleAlert } from "lucide-react";
 import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
 import "./AdminQualityBadge.css";
@@ -20,6 +20,7 @@ export default function AdminQualityBadge<T extends string>({
 }: AdminQualityBadgeProps<T>) {
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const popoverId = useId();
 
   useEscapeKey(() => {
     if (open) setOpen(false);
@@ -43,10 +44,10 @@ export default function AdminQualityBadge<T extends string>({
   return (
     <div className="admin-quality-badge" ref={wrapperRef}>
       <button
-        type="button"
-        className="admin-quality-badge__trigger"
-        aria-haspopup="dialog"
+        aria-haspopup="true"
         aria-expanded={open}
+        aria-describedby={open ? popoverId : undefined}
+        aria-controls={open ? popoverId : undefined}
         aria-label={`${issues.length} quality issue${issues.length === 1 ? "" : "s"}: ${issues
           .map(labelFor)
           .join(", ")}`}
@@ -59,10 +60,12 @@ export default function AdminQualityBadge<T extends string>({
 
       {open && (
         <div
+          id={popoverId}
           className="admin-quality-badge__popover"
-          role="dialog"
-          aria-label={`Quality issues for ${eventTitle}`}
+          role="tooltip"
+          aria-live="polite"
         >
+          <span className="sr-only">Quality issues for {eventTitle}: </span>
           <ul>
             {issues.map((issue) => (
               <li key={issue}>{labelFor(issue)}</li>

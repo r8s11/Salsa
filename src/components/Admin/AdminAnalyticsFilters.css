@@ -30,7 +30,7 @@
 
 .admin-analytics-filters__pill--active {
   background: var(--admin-brand);
-  color: #ffffff;
+  color: var(--admin-text-on-brand);
   border-color: var(--admin-brand);
 }
 

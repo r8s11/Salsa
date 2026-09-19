@@ -46,8 +46,8 @@ export default function AdminAnalyticsPage() {
     TIME_RANGE_OPTIONS.some((o) => o.value === rangeParam) ? rangeParam! : "30d"
   );
 
-  // Date range — derived from pills OR custom dates
   const defaultRange = dateRangeFor(range);
+  const hasCustomRange = Boolean(fromParam || toParam);
   const [dateRange, setDateRange] = useState({
     from: fromParam ? new Date(fromParam) : defaultRange.from,
     to: toParam ? new Date(toParam) : defaultRange.to,
@@ -73,7 +73,7 @@ export default function AdminAnalyticsPage() {
 
   const handleRangeChange = (next: TimeRange) => {
     setRange(next);
-    if (!fromParam && !toParam) setDateRange(dateRangeFor(next));
+    if (!hasCustomRange) setDateRange(dateRangeFor(next));
     setGranularity(granularityForRange(next));
   };
   const handleGranularityChange = (next: Granularity) => setGranularity(next);

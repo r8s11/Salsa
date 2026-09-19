@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, type KeyboardEvent } from "react";
+import { useState, useEffect, useRef, useCallback, type KeyboardEvent } from "react";
 import { ChevronDown } from "lucide-react";
 import {
   TIME_RANGE_OPTIONS,
@@ -33,23 +33,83 @@ export default function AdminAnalyticsFilters({
   const fromRef = useRef<HTMLInputElement>(null);
   const toRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const listboxRef = useRef<HTMLDivElement>(null);
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
+  useEffect(() => {
+    if (dropdownOpen) listboxRef.current?.focus();
+  }, [dropdownOpen]);
+
   // Close dropdown on outside click / Escape
   useEffect(() => {
-    const handleKey = (event: KeyboardEvent | globalThis.KeyboardEvent) => {
+    const handleClick = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    const handleKey = (event: globalThis.KeyboardEvent) => {
       if (event.key === "Escape") setDropdownOpen(false);
     };
+    document.addEventListener("mousedown", handleClick);
     document.addEventListener("keydown", handleKey);
-    return () => document.removeEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+      document.removeEventListener("keydown", handleKey);
+    };
   }, []);
+
+  const handleRadioKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      const currentIndex = TIME_RANGE_OPTIONS.findIndex((o) => o.value === range);
+      let nextIndex = currentIndex;
+      if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+        nextIndex = (currentIndex + 1) % TIME_RANGE_OPTIONS.length;
+      } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+        nextIndex = (currentIndex - 1 + TIME_RANGE_OPTIONS.length) % TIME_RANGE_OPTIONS.length;
+      } else {
+        return;
+      }
+      event.preventDefault();
+      onRangeChange(TIME_RANGE_OPTIONS[nextIndex].value);
+    },
+    [range, onRangeChange]
+  );
+
+  const handleListboxKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      const currentIndex = GRANULARITY_OPTIONS.findIndex((o) => o.value === granularity);
+      let nextIndex = currentIndex;
+      if (event.key === "ArrowDown") {
+        nextIndex = (currentIndex + 1) % GRANULARITY_OPTIONS.length;
+      } else if (event.key === "ArrowUp") {
+        nextIndex = (currentIndex - 1 + GRANULARITY_OPTIONS.length) % GRANULARITY_OPTIONS.length;
+      } else if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        setDropdownOpen(false);
+        return;
+      } else if (event.key === "Escape") {
+        setDropdownOpen(false);
+        return;
+      } else {
+        return;
+      }
+      event.preventDefault();
+      onGranularityChange(GRANULARITY_OPTIONS[nextIndex].value);
+    },
+    [granularity, onGranularityChange]
+  );
 
   return (
     <div className="admin-analytics-filters">
       <div className="admin-analytics-filters__row">
         {/* Time range pills */}
-        <div className="admin-analytics-filters__pills" role="radiogroup" aria-label="Time range">
+        <div
+          className="admin-analytics-filters__pills"
+          role="radiogroup"
+          aria-label="Time range"
+          onKeyDown={handleRadioKeyDown}
+        >
           {TIME_RANGE_OPTIONS.map((option) => (
             <button
               key={option.value}
@@ -99,25 +159,35 @@ export default function AdminAnalyticsFilters({
         <div className="admin-analytics-filters__granularity" ref={dropdownRef}>
           <button
             type="button"
-            className="admin-analytics-filters__granularity-btn admin-btn admin-btn--secondary"
             aria-haspopup="listbox"
             aria-expanded={dropdownOpen}
-            onClick={() => setDropdownOpen((prev: boolean) => !prev)}
+            aria-controls="admin-analytics-granularity-listbox"
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                setDropdownOpen((prev) => !prev);
+              }
+            }}
           >
             {GRANULARITY_OPTIONS.find((g) => g.value === granularity)?.label ?? "Weekly"}
             <ChevronDown size={16} />
           </button>
           {dropdownOpen && (
             <div
+              id="admin-analytics-granularity-listbox"
+              ref={listboxRef}
               className="admin-analytics-filters__granularity-panel"
               role="listbox"
-              aria-label="Granularity"
+              aria-label="Analytics granularity"
+              tabIndex={-1}
+              onKeyDown={handleListboxKeyDown}
             >
               {GRANULARITY_OPTIONS.map((option) => (
                 <button
                   key={option.value}
                   type="button"
                   role="option"
+                  tabIndex={0}
                   aria-selected={granularity === option.value}
                   className={
                     "admin-analytics-filters__granularity-option " +

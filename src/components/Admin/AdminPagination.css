@@ -33,9 +33,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 32px;
-  height: 32px;
-  padding: 0 8px;
+  min-width: 44px;
+  height: 44px;
+  padding: 0 10px;
   border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius);
   background: var(--admin-surface-elevated);
@@ -47,7 +47,7 @@
 .admin-pagination__page-btn--active {
   background: var(--admin-brand);
   border-color: var(--admin-brand);
-  color: #ffffff;
+  color: var(--admin-text-on-brand);
 }
 
 .admin-pagination__ellipsis {

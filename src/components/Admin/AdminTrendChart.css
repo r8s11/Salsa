@@ -59,3 +59,9 @@
   text-align: center;
   color: var(--admin-text-subtle);
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-trend-chart__bar {
+    transition: none;
+  }
+}

@@ -10,11 +10,12 @@
 }
 
 .admin-duplicate-dialog {
+  display: flex;
+  flex-direction: column;
   max-width: 440px;
   padding: 24px;
   gap: 16px;
 }
-
 .admin-duplicate-dialog h2 {
   margin: 0;
   font-family: var(--font-display);

@@ -1,4 +1,6 @@
 import { useMemo, useRef } from "react";
+import "./AdminSubmissionsFilterDrawer.css";
+
 import { X } from "lucide-react";
 import { useAccessibleDialog } from "../../shared/a11y/useAccessibleDialog";
 import type { EventSubmission, SubmissionStatus } from "../../features/admin/model/submissions";
@@ -63,10 +65,10 @@ export default function AdminSubmissionsFilterDrawer({
   if (!open) return null;
 
   return (
-    <div className="admin-events-filter-drawer__overlay" onClick={onBackdropClick}>
+    <div className="admin-submissions-filter-drawer__overlay" onClick={onBackdropClick}>
       <div
         ref={dialogRef}
-        className="admin-events-filter-drawer admin-card"
+        className="admin-submissions-filter-drawer admin-card"
         role="dialog"
         aria-modal="true"
         aria-label="Filter submissions"
@@ -74,7 +76,7 @@ export default function AdminSubmissionsFilterDrawer({
         onClick={onDialogClick}
         onKeyDown={onKeyDown}
       >
-        <div className="admin-events-filter-drawer__header">
+        <div className="admin-submissions-filter-drawer__header">
           <h2>Filters</h2>
           <button
             type="button"
@@ -86,7 +88,7 @@ export default function AdminSubmissionsFilterDrawer({
           </button>
         </div>
 
-        <div className="admin-events-filter-drawer__body">
+        <div className="admin-submissions-filter-drawer__body">
           <div className="admin-field">
             <label htmlFor="admin-filter-status">Status</label>
             <select
@@ -129,7 +131,7 @@ export default function AdminSubmissionsFilterDrawer({
           </div>
         </div>
 
-        <div className="admin-events-filter-drawer__footer">
+        <div className="admin-submissions-filter-drawer__footer">
           <button
             type="button"
             className="admin-btn admin-btn--ghost"

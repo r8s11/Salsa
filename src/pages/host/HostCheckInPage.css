@@ -103,7 +103,7 @@
 
 .host-checkin__method-btn--active {
   background: #e11d48;
-  color: #ffffff;
+  color: var(--admin-text-on-brand);
 }
 
 .host-checkin__method-btn:not(.host-checkin__method-btn--active):hover {

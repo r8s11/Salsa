@@ -37,6 +37,8 @@ export default function AdminConfirmDialog({
 }: AdminConfirmDialogProps) {
   const titleId = useId();
   const bodyId = useId();
+  const requiredErrorId = useId();
+  const mutationErrorId = useId();
   const reasonId = useId();
   const cancelRef = useRef<HTMLButtonElement>(null);
   const confirmRef = useRef<HTMLButtonElement>(null);
@@ -75,7 +77,7 @@ export default function AdminConfirmDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        aria-describedby={bodyId}
+        aria-describedby={error ? `${bodyId} ${mutationErrorId}` : bodyId}
         ref={dialogRef}
         onKeyDown={onKeyDown}
         onClick={onDialogClick}
@@ -91,18 +93,19 @@ export default function AdminConfirmDialog({
               className="admin-textarea"
               placeholder={reasonField.placeholder}
               required={reasonField.required}
+              aria-describedby={showRequiredError ? requiredErrorId : undefined}
               value={reason}
               onChange={(event) => setReason(event.target.value)}
             />
             {reasonField.required && showRequiredError && (
-              <p className="admin-field__error" role="alert">
+              <p id={requiredErrorId} className="admin-field__error" role="alert">
                 A reason is required.
               </p>
             )}
           </div>
         )}
         {error && (
-          <p className="admin-field__error" role="alert">
+          <p id={mutationErrorId} className="admin-field__error" role="alert">
             {error}
           </p>
         )}

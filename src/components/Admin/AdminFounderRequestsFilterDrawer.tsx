@@ -1,10 +1,11 @@
-import type { ChangeEvent } from "react";
+import { useId, useRef, type ChangeEvent } from "react";
 import { ChevronDown, ClipboardList, Search, X } from "lucide-react";
 import {
   FOUNDER_REQUEST_SORT_OPTIONS,
   type FounderRequestFilters,
   type FounderRequestSort,
 } from "../../features/admin/model/founderRequestsQuery";
+import { useAccessibleDialog } from "../../shared/a11y/useAccessibleDialog";
 import "./AdminFounderRequestsFilterDrawer.css";
 
 interface AdminFounderRequestsFilterDrawerProps {
@@ -26,15 +27,19 @@ export default function AdminFounderRequestsFilterDrawer({
   resultCount,
   onClose,
 }: AdminFounderRequestsFilterDrawerProps) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const baseId = useId();
+  const { onKeyDown, onBackdropClick, onDialogClick } = useAccessibleDialog({
+    dialogRef,
+    onDismiss: onClose,
+  });
+
   const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
     onFiltersChange({ ...filters, search: e.target.value });
   };
 
   const handleStatusChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    onFiltersChange({
-      ...filters,
-      status: e.target.value as FounderRequestFilters["status"],
-    });
+    onFiltersChange({ ...filters, status: e.target.value as FounderRequestFilters["status"] });
   };
 
   const handleSortChange = (e: ChangeEvent<HTMLSelectElement>) => {
@@ -45,36 +50,36 @@ export default function AdminFounderRequestsFilterDrawer({
     onSortChange({ key, dir });
   };
 
-  const handleClear = () => {
-    onFiltersChange({ status: "all", search: "" });
-  };
+  const handleClear = () => onFiltersChange({ status: "all", search: "" });
 
   if (!open) return null;
 
   return (
-    <div className="filter-drawer-overlay" onClick={onClose} role="presentation">
+    <div className="filter-drawer-overlay" onClick={onBackdropClick}>
       <div
+        ref={dialogRef}
         className="filter-drawer"
         role="dialog"
         aria-modal="true"
         aria-label="Filters"
-        onClick={(e) => e.stopPropagation()}
+        tabIndex={-1}
+        onClick={onDialogClick}
+        onKeyDown={onKeyDown}
       >
         <header className="filter-drawer-header">
           <h2>Filters</h2>
-          <button className="close-btn" onClick={onClose} aria-label="Close filters">
+          <button type="button" className="close-btn" onClick={onClose} aria-label="Close filters">
             <X className="icon" size={18} aria-hidden="true" />
           </button>
         </header>
-
         <div className="filter-drawer-content">
           <section className="filter-section">
-            <label htmlFor="filter-search" className="filter-label">
+            <label htmlFor={`${baseId}-search`} className="filter-label">
               <Search className="icon" size={14} aria-hidden="true" />
               Search
             </label>
             <input
-              id="filter-search"
+              id={`${baseId}-search`}
               type="text"
               placeholder="Search name, email, organization..."
               value={filters.search}
@@ -82,14 +87,13 @@ export default function AdminFounderRequestsFilterDrawer({
               className="filter-input"
             />
           </section>
-
           <section className="filter-section">
-            <label htmlFor="filter-status" className="filter-label">
+            <label htmlFor={`${baseId}-status`} className="filter-label">
               <ClipboardList className="icon" size={14} aria-hidden="true" />
               Status
             </label>
             <select
-              id="filter-status"
+              id={`${baseId}-status`}
               value={filters.status}
               onChange={handleStatusChange}
               className="filter-select"
@@ -100,14 +104,13 @@ export default function AdminFounderRequestsFilterDrawer({
               <option value="rejected">Rejected</option>
             </select>
           </section>
-
           <section className="filter-section">
-            <label htmlFor="filter-sort" className="filter-label">
+            <label htmlFor={`${baseId}-sort`} className="filter-label">
               <ChevronDown className="icon" size={14} aria-hidden="true" />
               Sort
             </label>
             <select
-              id="filter-sort"
+              id={`${baseId}-sort`}
               value={`${sort.key}|${sort.dir}`}
               onChange={handleSortChange}
               className="filter-select"
@@ -122,15 +125,13 @@ export default function AdminFounderRequestsFilterDrawer({
               ])}
             </select>
           </section>
-
           <button type="button" className="clear-btn" onClick={handleClear}>
             Clear all filters
           </button>
         </div>
-
         <footer className="filter-drawer-footer">
           <span className="results-count">{resultCount} result(s)</span>
-          <button className="apply-btn" onClick={onClose}>
+          <button type="button" className="apply-btn" onClick={onClose}>
             Apply
           </button>
         </footer>

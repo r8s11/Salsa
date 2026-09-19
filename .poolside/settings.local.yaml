@@ -1,0 +1,35 @@
+tools:
+    shell:
+        allow:
+            - ls *
+            - cat *
+            - echo *
+            - find *
+            - head *
+            - wc *
+            - sort
+            - cd *
+            - grep *
+            - git log *
+            - sed *
+            - which npm
+            - npm *
+            - which bun
+            - bun *
+            - git ls-files
+            - stat *
+            - which supabase
+            - npx supabase *
+            - supabase *
+            - python3 *
+            - rmdir *
+            - npx tsc *
+            - tail *
+            - npx vite *
+            - npx vitest run *
+            - npx eslint *
+            - git diff *
+            - git show *
+            - git status
+            - git add *
+            - git commit *

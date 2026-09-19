@@ -17,8 +17,8 @@
 
 .admin-shell .admin-action-menu .admin-action-menu__trigger--labeled {
   width: auto;
-  height: 34px;
-  min-height: 34px;
+  height: 44px;
+  min-height: 44px;
   gap: 4px;
   padding: 0 10px;
   border: 1px solid var(--admin-border);
@@ -31,14 +31,6 @@
 
 .admin-shell .admin-action-menu .admin-action-menu__trigger--labeled:hover:not(:disabled) {
   background: var(--admin-surface-secondary);
-}
-
-@media (pointer: coarse) {
-  .admin-shell .admin-action-menu .admin-action-menu__trigger--labeled {
-    width: auto;
-    height: 44px;
-    min-height: 44px;
-  }
 }
 
 .admin-action-menu__panel {
@@ -66,8 +58,8 @@
   align-items: center;
   gap: 8px;
   width: 100%;
-  min-height: 36px;
-  padding: 6px 10px;
+  min-height: 44px;
+  padding: 8px 10px;
   border: none;
   border-radius: calc(var(--admin-radius) - 2px);
   background: transparent;
@@ -95,10 +87,4 @@
   margin: 4px 6px;
   border: none;
   border-top: 1px solid var(--admin-border);
-}
-
-@media (pointer: coarse) {
-  .admin-action-menu__item {
-    min-height: 44px;
-  }
 }

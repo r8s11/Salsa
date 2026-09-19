@@ -18,6 +18,8 @@
   --admin-text-secondary: #5d6b80;
   --admin-text-muted: #5d6b80;
   --admin-text-subtle: #94a3b8;
+  /* Text colour on brand/danger solid backgrounds — always #fff in both themes. */
+  --admin-text-on-brand: #ffffff;
   --admin-nav-text: #475569;
   --admin-brand: #e11d48;
   --admin-brand-hover: #be123c;
@@ -76,6 +78,8 @@
   --admin-text-secondary: #94a3b8;
   --admin-text-muted: #94a3b8;
   --admin-text-subtle: #64748b;
+  /* Text colour on brand/danger solid backgrounds — always #fff in both themes. */
+  --admin-text-on-brand: #ffffff;
   --admin-nav-text: #cbd5e1;
   --admin-brand: #e11d48;
   --admin-brand-hover: #f43f5e;
@@ -187,9 +191,12 @@
   white-space: nowrap;
   cursor: pointer;
   transition:
+    transform 140ms cubic-bezier(0.23, 1, 0.32, 1),
     background-color 0.15s ease,
     border-color 0.15s ease,
     color 0.15s ease;
+.admin-shell .admin-btn:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 .admin-shell .admin-btn:disabled {
@@ -200,7 +207,7 @@
 .admin-shell .admin-btn--primary {
   background: var(--admin-brand);
   border-color: var(--admin-brand);
-  color: #ffffff;
+  color: var(--admin-text-on-brand);
 }
 
 .admin-shell .admin-btn--primary:hover:not(:disabled) {
@@ -221,7 +228,7 @@
 .admin-shell .admin-btn--danger {
   background: var(--admin-danger);
   border-color: var(--admin-danger);
-  color: #ffffff;
+  color: var(--admin-text-on-brand);
 }
 
 .admin-shell .admin-btn--danger:hover:not(:disabled) {
@@ -287,8 +294,11 @@
   color: var(--admin-text-secondary);
   cursor: pointer;
   transition:
+    transform 140ms cubic-bezier(0.23, 1, 0.32, 1),
     background-color 0.15s ease,
     color 0.15s ease;
+.admin-shell .admin-icon-btn:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 .admin-shell .admin-icon-btn:hover:not(:disabled) {

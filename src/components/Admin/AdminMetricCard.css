@@ -73,7 +73,8 @@ a.admin-metric-card:hover {
 .admin-metric-card__retry {
   align-self: flex-start;
   margin-top: 8px;
-  padding: 0;
+  min-height: 44px;
+  padding: 10px 0;
   border: none;
   background: none;
   font-size: 0.85rem;

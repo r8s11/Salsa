@@ -13,6 +13,26 @@ function rowFor(values: Partial<Record<string, string>>): string {
 }
 
 describe("parseCsvFile — file-level checks", () => {
+  it.each([
+    "",
+    "text/csv",
+    "text/x-csv",
+    "text/comma-separated-values",
+    "text/x-comma-separated-values",
+    "application/csv",
+    "application/x-csv",
+    "application/vnd.ms-excel",
+  ])("accepts a .csv file reported as %s", async (type) => {
+    const result = await parseCsvFile(
+      csvFile(
+        `${HEADER}\n${rowFor({ title: "Salsa", event_type: "social", event_date: "2026-09-15", city: "boston" })}\n`,
+        "events.csv",
+        type
+      )
+    );
+    expect(result.ok).toBe(true);
+  });
+
   it("rejects a non-csv extension", async () => {
     const result = await parseCsvFile(csvFile("a,b", "events.txt", "text/plain"));
     expect(result.ok).toBe(false);

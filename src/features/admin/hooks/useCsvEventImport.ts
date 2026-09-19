@@ -35,12 +35,21 @@ export interface CsvEventImportState {
   /** How many rows "Import Valid Events" would actually insert right now. */
   importableCount: number;
   excludedDuplicateCount: number;
+  /**
+   * Human-readable reason the import button is disabled, or null when at
+   * least one row is importable. Rendered next to the disabled button so the
+   * page never leaves "Import Valid Events (0)" unexplained.
+   */
+  importBlockedReason: string | null;
   importResult: ImportBatchSummary | null;
   importError: string | null;
   handleFile: (file: File) => Promise<void>;
   runImport: () => Promise<void>;
   reset: () => void;
   taxonomyLoading: boolean;
+  /** Raw taxonomy prerequisite failure, if either taxonomy query failed. */
+  taxonomyError: string | null;
+  retryTaxonomy: () => void;
 }
 
 export function useCsvEventImport(): CsvEventImportState {
@@ -159,8 +168,41 @@ export function useCsvEventImport(): CsvEventImportState {
     (row) => row.duplicates.length > 0 && !includedDuplicates.has(row.rowNumber)
   ).length;
 
+  const taxonomyError = danceStyles.error ?? eventAttributes.error ?? null;
+  const retryTaxonomy = useCallback(() => {
+    danceStyles.retry();
+    eventAttributes.retry();
+  }, [danceStyles, eventAttributes]);
+
+  // Why the import button is disabled, in the moderator's own language.
+  // Null whenever at least one row is importable — the button speaks for
+  // itself then ("Import Valid Events (N)").
+  let importBlockedReason: string | null = null;
+  if (importableRows.length === 0 && rows.length > 0) {
+    if (excludedDuplicateCount > 0 && counts.invalid === 0) {
+      importBlockedReason =
+        "All valid rows were flagged as possible duplicates. Select “Import anyway” for the rows you want to create.";
+    } else if (counts.invalid > 0 && excludedDuplicateCount === 0) {
+      importBlockedReason = "Fix the validation errors below before importing.";
+    } else {
+      importBlockedReason = "No events are currently eligible to import.";
+    }
+  } else if (importableRows.length === 0) {
+    importBlockedReason = "No events are currently eligible to import.";
+  }
+
   const runImport = useCallback(async () => {
-    if (!user || stage === "importing" || stage === "done" || importableRows.length === 0) return;
+    if (stage === "importing" || stage === "done") return;
+    if (!user) {
+      setImportError("You must be signed in to import events. Refresh the page and sign in again.");
+      return;
+    }
+    if (importableRows.length === 0) {
+      // The button is disabled in this state, but keyboard/scripted callers
+      // and stale closures can still land here — say why instead of vanishing.
+      setImportError(importBlockedReason ?? "No events are currently eligible to import.");
+      return;
+    }
     setStage("importing");
     setImportError(null);
     try {
@@ -177,7 +219,15 @@ export function useCsvEventImport(): CsvEventImportState {
       setImportError(err instanceof Error ? err.message : "Import failed.");
       setStage("reviewing");
     }
-  }, [excludedDuplicateCount, fileName, importableRows, rows.length, stage, user]);
+  }, [
+    excludedDuplicateCount,
+    fileName,
+    importBlockedReason,
+    importableRows,
+    rows.length,
+    stage,
+    user,
+  ]);
 
   return {
     stage,
@@ -190,11 +240,14 @@ export function useCsvEventImport(): CsvEventImportState {
     toggleIncludeDuplicate,
     importableCount: importableRows.length,
     excludedDuplicateCount,
+    importBlockedReason,
     importResult,
     importError,
     handleFile,
     runImport,
     reset,
     taxonomyLoading: danceStyles.isLoading || eventAttributes.isLoading,
+    taxonomyError,
+    retryTaxonomy,
   };
 }

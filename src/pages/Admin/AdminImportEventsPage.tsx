@@ -62,12 +62,15 @@ export default function AdminImportEventsPage() {
     includedDuplicates,
     toggleIncludeDuplicate,
     importableCount,
+    importBlockedReason,
     importResult,
     importError,
     handleFile,
     runImport,
     reset,
     taxonomyLoading,
+    taxonomyError,
+    retryTaxonomy,
   } = useCsvEventImport();
 
   const isImporting = stage === "importing";
@@ -109,7 +112,25 @@ export default function AdminImportEventsPage() {
 
       {stage === "idle" && (
         <section className="admin-card admin-import-page__upload-card">
-          <AdminImportDropzone onFileSelected={handleFile} disabled={taxonomyLoading} />
+          <AdminImportDropzone
+            onFileSelected={handleFile}
+            disabled={taxonomyLoading || taxonomyError !== null}
+          />
+          {taxonomyError !== null && (
+            <div className="admin-banner admin-banner--error" role="alert">
+              <p>
+                Unable to load event taxonomy. Import is unavailable until this data loads
+                successfully.
+              </p>
+              <button
+                type="button"
+                className="admin-btn admin-btn--secondary"
+                onClick={retryTaxonomy}
+              >
+                Try Again
+              </button>
+            </div>
+          )}
           {fileErrors.length > 0 && (
             <div className="admin-banner admin-banner--error" role="alert">
               {fileName && (
@@ -179,6 +200,11 @@ export default function AdminImportEventsPage() {
                 {isImporting ? "Importing…" : `Import Valid Events (${importableCount})`}
               </button>
             </div>
+            {importBlockedReason !== null && !isImporting && (
+              <p className="admin-import-page__blocked-note" role="note">
+                {importBlockedReason}
+              </p>
+            )}
             {importError && (
               <div className="admin-banner admin-banner--error" role="alert">
                 <p>{importError}</p>

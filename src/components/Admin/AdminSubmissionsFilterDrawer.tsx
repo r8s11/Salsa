@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, type KeyboardEvent } from "react";
+import { useMemo, useRef } from "react";
 import { X } from "lucide-react";
-import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
+import { useAccessibleDialog } from "../../shared/a11y/useAccessibleDialog";
 import type { EventSubmission, SubmissionStatus } from "../../features/admin/model/submissions";
 
 export interface SubmissionFilters {
@@ -47,31 +47,10 @@ export default function AdminSubmissionsFilterDrawer({
   onClose,
 }: AdminSubmissionsFilterDrawerProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
-
-  useEscapeKey(() => {
-    if (open) onClose();
+  const { onKeyDown, onBackdropClick, onDialogClick } = useAccessibleDialog({
+    dialogRef,
+    onDismiss: onClose,
   });
-
-  useEffect(() => {
-    if (open) dialogRef.current?.focus();
-  }, [open]);
-
-  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key !== "Tab" || !dialogRef.current) return;
-    const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
-      'button, [href], select, input, textarea, [tabindex]:not([tabindex="-1"])'
-    );
-    if (focusable.length === 0) return;
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    if (event.shiftKey && document.activeElement === first) {
-      event.preventDefault();
-      last.focus();
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault();
-      first.focus();
-    }
-  };
 
   const submitters = useMemo(
     () =>
@@ -84,7 +63,7 @@ export default function AdminSubmissionsFilterDrawer({
   if (!open) return null;
 
   return (
-    <div className="admin-events-filter-drawer__overlay" onClick={onClose}>
+    <div className="admin-events-filter-drawer__overlay" onClick={onBackdropClick}>
       <div
         ref={dialogRef}
         className="admin-events-filter-drawer admin-card"
@@ -92,8 +71,8 @@ export default function AdminSubmissionsFilterDrawer({
         aria-modal="true"
         aria-label="Filter submissions"
         tabIndex={-1}
-        onClick={(event) => event.stopPropagation()}
-        onKeyDown={handleKeyDown}
+        onClick={onDialogClick}
+        onKeyDown={onKeyDown}
       >
         <div className="admin-events-filter-drawer__header">
           <h2>Filters</h2>

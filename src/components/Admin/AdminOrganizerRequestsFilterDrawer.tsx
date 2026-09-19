@@ -1,6 +1,6 @@
-import { useEffect, useRef, type KeyboardEvent } from "react";
+import { useRef } from "react";
 import { X } from "lucide-react";
-import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
+import { useAccessibleDialog } from "../../shared/a11y/useAccessibleDialog";
 import {
   ORGANIZER_TYPE_LABEL,
   type OrganizerType,
@@ -8,6 +8,7 @@ import {
 } from "../../features/admin/model/organizerRequestsQuery";
 import { ACCOUNT_STATUS_LABEL, type AccountStatus } from "../../features/admin/model/usersQuery";
 import "./AdminOrganizerRequestsFilterDrawer.css";
+import { toggleArrayItem } from "../../shared/utils/toggleArrayItem";
 
 const EMPTY_FILTERS: Pick<RequestFilters, "type" | "accountStatus" | "from" | "to"> = {
   type: [],
@@ -30,45 +31,17 @@ export default function AdminOrganizerRequestsFilterDrawer({
   onClose,
 }: AdminOrganizerRequestsFilterDrawerProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
-
-  useEscapeKey(() => {
-    if (open) onClose();
+  const { onKeyDown, onBackdropClick, onDialogClick } = useAccessibleDialog({
+    dialogRef,
+    onDismiss: onClose,
   });
 
-  useEffect(() => {
-    if (open) dialogRef.current?.focus();
-  }, [open]);
-
-  // Keeps Tab/Shift+Tab cycling within the drawer while it's open.
-  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key !== "Tab" || !dialogRef.current) return;
-    const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
-      'button, [href], select, input, textarea, [tabindex]:not([tabindex="-1"])'
-    );
-    if (focusable.length === 0) return;
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    if (event.shiftKey && document.activeElement === first) {
-      event.preventDefault();
-      last.focus();
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault();
-      first.focus();
-    }
-  };
-
   const toggleType = (value: OrganizerType) => {
-    const next = filters.type.includes(value)
-      ? filters.type.filter((t) => t !== value)
-      : [...filters.type, value];
-    onFiltersChange({ ...filters, type: next });
+    onFiltersChange({ ...filters, type: toggleArrayItem(filters.type, value) });
   };
 
   const toggleStatus = (value: AccountStatus) => {
-    const next = filters.accountStatus.includes(value)
-      ? filters.accountStatus.filter((s) => s !== value)
-      : [...filters.accountStatus, value];
-    onFiltersChange({ ...filters, accountStatus: next });
+    onFiltersChange({ ...filters, accountStatus: toggleArrayItem(filters.accountStatus, value) });
   };
 
   const typeOptions: OrganizerType[] = [
@@ -87,7 +60,7 @@ export default function AdminOrganizerRequestsFilterDrawer({
   if (!open) return null;
 
   return (
-    <div className="admin-organizer-requests-filter-drawer__overlay" onClick={onClose}>
+    <div className="admin-organizer-requests-filter-drawer__overlay" onClick={onBackdropClick}>
       <div
         ref={dialogRef}
         className="admin-organizer-requests-filter-drawer admin-card"
@@ -95,8 +68,8 @@ export default function AdminOrganizerRequestsFilterDrawer({
         aria-modal="true"
         aria-label="More filters"
         tabIndex={-1}
-        onClick={(event) => event.stopPropagation()}
-        onKeyDown={handleKeyDown}
+        onClick={onDialogClick}
+        onKeyDown={onKeyDown}
       >
         <div className="admin-organizer-requests-filter-drawer__header">
           <h2>More Filters</h2>

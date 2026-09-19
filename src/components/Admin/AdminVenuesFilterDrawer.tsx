@@ -1,12 +1,12 @@
-import { useEffect, useRef } from "react";
-import type { MouseEvent } from "react";
+import { useRef } from "react";
 import { X } from "lucide-react";
-import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
+import { useAccessibleDialog } from "../../shared/a11y/useAccessibleDialog";
 import {
   VENUE_STATUS_LABEL,
   type VenueFilters,
   type VenueStatus,
 } from "../../features/admin/model/venuesQuery";
+import { toggleArrayItem } from "../../shared/utils/toggleArrayItem";
 
 interface AdminVenuesFilterDrawerProps {
   filters: VenueFilters;
@@ -25,43 +25,22 @@ export default function AdminVenuesFilterDrawer({
   onClose,
   isOpen,
 }: AdminVenuesFilterDrawerProps) {
-  const overlayRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
-  useEscapeKey(onClose);
-
-  // Focus trap (same pattern as AdminUsersFilterDrawer)
-  useEffect(() => {
-    if (!isOpen) return;
-    const previouslyFocused = document.activeElement;
-    (dialogRef.current?.querySelector("input, button, select") as HTMLElement | null)?.focus();
-    return () => {
-      if (previouslyFocused instanceof HTMLElement) previouslyFocused.focus();
-    };
-  }, [isOpen]);
+  const { onKeyDown, onBackdropClick, onDialogClick } = useAccessibleDialog({
+    dialogRef,
+    onDismiss: onClose,
+  });
 
   const toggleStatus = (status: VenueStatus) => {
-    const next = filters.status.includes(status)
-      ? filters.status.filter((s) => s !== status)
-      : [...filters.status, status];
-    onChange({ ...filters, status: next });
+    onChange({ ...filters, status: toggleArrayItem(filters.status, status) });
   };
 
   const toggleCity = (city: string) => {
-    const next = filters.city.includes(city)
-      ? filters.city.filter((c) => c !== city)
-      : [...filters.city, city];
-    onChange({ ...filters, city: next });
+    onChange({ ...filters, city: toggleArrayItem(filters.city, city) });
   };
 
   const toggleState = (state: string) => {
-    const next = filters.state.includes(state)
-      ? filters.state.filter((s) => s !== state)
-      : [...filters.state, state];
-    onChange({ ...filters, state: next });
-  };
-
-  const handleOverlayClick = (event: MouseEvent) => {
-    if (event.target === overlayRef.current) onClose();
+    onChange({ ...filters, state: toggleArrayItem(filters.state, state) });
   };
 
   // Known cities/states — in a real app these come from a distinct() query;
@@ -73,12 +52,17 @@ export default function AdminVenuesFilterDrawer({
   if (!isOpen) return null;
 
   return (
-    <div
-      className="admin-venues-filter-drawer__overlay"
-      ref={overlayRef}
-      onClick={handleOverlayClick}
-    >
-      <div className="admin-venues-filter-drawer admin-card" ref={dialogRef}>
+    <div className="admin-venues-filter-drawer__overlay" onClick={onBackdropClick}>
+      <div
+        ref={dialogRef}
+        className="admin-venues-filter-drawer admin-card"
+        role="dialog"
+        aria-modal="true"
+        aria-label="More Filters"
+        tabIndex={-1}
+        onKeyDown={onKeyDown}
+        onClick={onDialogClick}
+      >
         <div className="admin-venues-filter-drawer__header">
           <h2>More Filters</h2>
           <button

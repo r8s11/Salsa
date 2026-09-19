@@ -696,6 +696,35 @@
 }
 
 /* ----------------------------------------
+   Taxonomy status badge (AdminTaxonomyStatusBadge)
+   Prefixed `--taxonomy-` to avoid colliding with event-status,
+   account-status, request-status, or venue-status modifiers.
+   ---------------------------------------- */
+.admin-shell .admin-status--taxonomy-active {
+  background: var(--admin-success-tint);
+  color: var(--admin-success-strong);
+  border-color: var(--admin-success-border);
+}
+.admin-shell .admin-status--taxonomy-active::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--admin-success-strong);
+}
+.admin-shell .admin-status--taxonomy-needs_review {
+  background: var(--admin-warning-tint);
+  color: var(--admin-warning);
+  border-color: var(--admin-warning-border);
+}
+.admin-shell .admin-status--taxonomy-archived {
+  background: var(--admin-surface-secondary);
+  color: var(--admin-text-subtle);
+  border-color: var(--admin-border);
+}
+
+/* ----------------------------------------
    CSV import row status (AdminImportEventsPage)
    Prefixed `--import-` to avoid colliding with event-status,
    account-status, request-status, or venue-status modifiers. These

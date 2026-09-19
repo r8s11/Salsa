@@ -1,6 +1,4 @@
-import { useEffect, useRef, useState } from "react";
 import { Search, SlidersHorizontal, ChevronDown } from "lucide-react";
-import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
 import {
   ROLE_LABEL,
   ACCOUNT_STATUS_LABEL,
@@ -10,6 +8,9 @@ import {
   type SortDir,
   type UserSortKey,
 } from "../../features/admin/model/usersQuery";
+import { toggleArrayItem } from "../../shared/utils/toggleArrayItem";
+import { useDebouncedSearch } from "../../shared/hooks/useDebouncedSearch";
+import { useDropdown } from "../../shared/hooks/useDropdown";
 import "./AdminUsersToolbar.css";
 
 const ROLE_OPTIONS: { value: UserRole; label: string }[] = [
@@ -51,51 +52,15 @@ export default function AdminUsersToolbar({
   drawerFilterCount,
   onOpenDrawer,
 }: AdminUsersToolbarProps) {
-  // Search: the input echoes every keystroke instantly; the filter itself
-  // applies 200ms after typing stops.
-  const [searchInput, setSearchInput] = useState(filters.q);
-  const [syncedQ, setSyncedQ] = useState(filters.q);
-  if (filters.q !== syncedQ) {
-    setSyncedQ(filters.q);
-    setSearchInput(filters.q);
-  }
-
-  const debounceRef = useRef<number | null>(null);
-  const handleSearchInput = (value: string) => {
-    setSearchInput(value);
-    clearTimeout(debounceRef.current ?? undefined);
-    debounceRef.current = window.setTimeout(() => {
-      onFiltersChange({ ...filters, q: value });
-    }, 200);
-  };
-  useEffect(
-    () => () => {
-      clearTimeout(debounceRef.current ?? undefined);
-    },
-    []
+  const { input: searchInput, handleInput: handleSearchInput } = useDebouncedSearch(
+    filters.q,
+    (q) => onFiltersChange({ ...filters, q })
   );
 
-  const [roleOpen, setRoleOpen] = useState(false);
-  const roleWrapRef = useRef<HTMLDivElement>(null);
-  useEscapeKey(() => {
-    if (roleOpen) setRoleOpen(false);
-  });
-  useEffect(() => {
-    if (!roleOpen) return;
-    const handlePointerDown = (event: PointerEvent) => {
-      if (roleWrapRef.current && !roleWrapRef.current.contains(event.target as Node)) {
-        setRoleOpen(false);
-      }
-    };
-    document.addEventListener("pointerdown", handlePointerDown);
-    return () => document.removeEventListener("pointerdown", handlePointerDown);
-  }, [roleOpen]);
+  const { open: roleOpen, toggle: toggleRoleDropdown, wrapRef: roleWrapRef } = useDropdown();
 
   const toggleRole = (value: UserRole) => {
-    const next = filters.role.includes(value)
-      ? filters.role.filter((role) => role !== value)
-      : [...filters.role, value];
-    onFiltersChange({ ...filters, role: next });
+    onFiltersChange({ ...filters, role: toggleArrayItem(filters.role, value) });
   };
 
   const roleSummary =
@@ -105,27 +70,10 @@ export default function AdminUsersToolbar({
         ? ROLE_OPTIONS.find((option) => option.value === filters.role[0])?.label
         : `Role (${filters.role.length})`;
 
-  const [statusOpen, setStatusOpen] = useState(false);
-  const statusWrapRef = useRef<HTMLDivElement>(null);
-  useEscapeKey(() => {
-    if (statusOpen) setStatusOpen(false);
-  });
-  useEffect(() => {
-    if (!statusOpen) return;
-    const handlePointerDown = (event: PointerEvent) => {
-      if (statusWrapRef.current && !statusWrapRef.current.contains(event.target as Node)) {
-        setStatusOpen(false);
-      }
-    };
-    document.addEventListener("pointerdown", handlePointerDown);
-    return () => document.removeEventListener("pointerdown", handlePointerDown);
-  }, [statusOpen]);
+  const { open: statusOpen, toggle: toggleStatusDropdown, wrapRef: statusWrapRef } = useDropdown();
 
   const toggleStatus = (value: AccountStatus) => {
-    const next = filters.status.includes(value)
-      ? filters.status.filter((status) => status !== value)
-      : [...filters.status, value];
-    onFiltersChange({ ...filters, status: next });
+    onFiltersChange({ ...filters, status: toggleArrayItem(filters.status, value) });
   };
 
   const statusSummary =
@@ -160,7 +108,7 @@ export default function AdminUsersToolbar({
             className="admin-btn admin-btn--secondary"
             aria-haspopup="menu"
             aria-expanded={roleOpen}
-            onClick={() => setRoleOpen((value) => !value)}
+            onClick={toggleRoleDropdown}
           >
             {roleSummary}
             <ChevronDown size={14} />
@@ -189,7 +137,7 @@ export default function AdminUsersToolbar({
             className="admin-btn admin-btn--secondary"
             aria-haspopup="menu"
             aria-expanded={statusOpen}
-            onClick={() => setStatusOpen((value) => !value)}
+            onClick={toggleStatusDropdown}
           >
             {statusSummary}
             <ChevronDown size={14} />

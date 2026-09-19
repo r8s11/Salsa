@@ -1,6 +1,6 @@
-import { useEffect, useRef, type KeyboardEvent } from "react";
+import { useRef } from "react";
 import { X } from "lucide-react";
-import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
+import { useAccessibleDialog } from "../../shared/a11y/useAccessibleDialog";
 import { type AccountKind, type UserFilters } from "../../features/admin/model/usersQuery";
 import "./AdminUsersFilterDrawer.css";
 
@@ -24,37 +24,15 @@ export default function AdminUsersFilterDrawer({
   onClose,
 }: AdminUsersFilterDrawerProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
-
-  useEscapeKey(() => {
-    if (open) onClose();
+  const { onKeyDown, onBackdropClick, onDialogClick } = useAccessibleDialog({
+    dialogRef,
+    onDismiss: onClose,
   });
-
-  useEffect(() => {
-    if (open) dialogRef.current?.focus();
-  }, [open]);
-
-  // Keeps Tab/Shift+Tab cycling within the drawer while it's open.
-  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key !== "Tab" || !dialogRef.current) return;
-    const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
-      'button, [href], select, input, textarea, [tabindex]:not([tabindex="-1"])'
-    );
-    if (focusable.length === 0) return;
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    if (event.shiftKey && document.activeElement === first) {
-      event.preventDefault();
-      last.focus();
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault();
-      first.focus();
-    }
-  };
 
   if (!open) return null;
 
   return (
-    <div className="admin-users-filter-drawer__overlay" onClick={onClose}>
+    <div className="admin-users-filter-drawer__overlay" onClick={onBackdropClick}>
       <div
         ref={dialogRef}
         className="admin-users-filter-drawer admin-card"
@@ -62,8 +40,8 @@ export default function AdminUsersFilterDrawer({
         aria-modal="true"
         aria-label="More filters"
         tabIndex={-1}
-        onClick={(event) => event.stopPropagation()}
-        onKeyDown={handleKeyDown}
+        onClick={onDialogClick}
+        onKeyDown={onKeyDown}
       >
         <div className="admin-users-filter-drawer__header">
           <h2>More Filters</h2>

@@ -1,0 +1,48 @@
+.admin-venue-match-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.admin-venue-match-panel__heading {
+  font-size: var(--admin-text-lg);
+  font-weight: 600;
+  margin: 0;
+}
+
+.admin-venue-match-panel__no-match {
+  font-size: 14px;
+  color: var(--admin-text-muted);
+}
+
+.admin-venue-match-panel__status {
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.admin-venue-match-panel__status--exact {
+  color: var(--admin-success-strong);
+}
+
+.admin-venue-match-panel__status--fuzzy {
+  color: var(--admin-warning);
+}
+
+.admin-venue-match-panel__existing {
+  background: var(--admin-surface-secondary);
+  padding: 12px;
+  border-radius: var(--admin-radius);
+  font-size: 14px;
+}
+
+.admin-venue-match-panel__existing-label {
+  font-weight: 500;
+  color: var(--admin-text-strong);
+}
+
+.admin-venue-match-panel__existing-address {
+  color: var(--admin-text-muted);
+}

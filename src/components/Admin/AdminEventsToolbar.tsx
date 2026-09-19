@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Search, SlidersHorizontal, ChevronDown } from "lucide-react";
-import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
 import type { DatabaseEvent } from "../../features/events/model/types";
 import type { EventFilters, SortDir, SortKey } from "../../features/admin/model/eventsQuery";
+import { toggleArrayItem } from "../../shared/utils/toggleArrayItem";
+import { useDebouncedSearch } from "../../shared/hooks/useDebouncedSearch";
+import { useDropdown } from "../../shared/hooks/useDropdown";
 import "./AdminEventsToolbar.css";
 
 const STATUS_OPTIONS: { value: DatabaseEvent["status"]; label: string }[] = [
@@ -27,8 +29,6 @@ function toDateInputValue(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
-// Resolves a preset to the same from/to pair the Custom… date inputs would
-// produce — one filtering mechanism, not two.
 function resolvePreset(preset: DatePreset, now: Date): { from: string | null; to: string | null } {
   const today = toDateInputValue(now);
   switch (preset) {
@@ -70,28 +70,9 @@ export default function AdminEventsToolbar({
   drawerFilterCount,
   onOpenDrawer,
 }: AdminEventsToolbarProps) {
-  // Search: the input echoes every keystroke instantly; the filter itself
-  // applies 200ms after typing stops.
-  const [searchInput, setSearchInput] = useState(filters.q);
-  const [syncedQ, setSyncedQ] = useState(filters.q);
-  if (filters.q !== syncedQ) {
-    setSyncedQ(filters.q);
-    setSearchInput(filters.q);
-  }
-
-  const debounceRef = useRef<number | null>(null);
-  const handleSearchInput = (value: string) => {
-    setSearchInput(value);
-    clearTimeout(debounceRef.current ?? undefined);
-    debounceRef.current = window.setTimeout(() => {
-      onFiltersChange({ ...filters, q: value });
-    }, 200);
-  };
-  useEffect(
-    () => () => {
-      clearTimeout(debounceRef.current ?? undefined);
-    },
-    []
+  const { input: searchInput, handleInput: handleSearchInput } = useDebouncedSearch(
+    filters.q,
+    (q) => onFiltersChange({ ...filters, q })
   );
 
   const [datePreset, setDatePreset] = useState<DatePreset>(() =>
@@ -100,32 +81,15 @@ export default function AdminEventsToolbar({
 
   const handleDatePresetChange = (preset: DatePreset) => {
     setDatePreset(preset);
-    if (preset === "custom") return; // reveal custom inputs, keep current bounds
+    if (preset === "custom") return;
     const { from, to } = resolvePreset(preset, new Date());
     onFiltersChange({ ...filters, from, to });
   };
 
-  const [statusOpen, setStatusOpen] = useState(false);
-  const statusWrapRef = useRef<HTMLDivElement>(null);
-  useEscapeKey(() => {
-    if (statusOpen) setStatusOpen(false);
-  });
-  useEffect(() => {
-    if (!statusOpen) return;
-    const handlePointerDown = (event: PointerEvent) => {
-      if (statusWrapRef.current && !statusWrapRef.current.contains(event.target as Node)) {
-        setStatusOpen(false);
-      }
-    };
-    document.addEventListener("pointerdown", handlePointerDown);
-    return () => document.removeEventListener("pointerdown", handlePointerDown);
-  }, [statusOpen]);
+  const { open: statusOpen, toggle: toggleStatusDropdown, wrapRef: statusWrapRef } = useDropdown();
 
   const toggleStatus = (value: DatabaseEvent["status"]) => {
-    const next = filters.status.includes(value)
-      ? filters.status.filter((status) => status !== value)
-      : [...filters.status, value];
-    onFiltersChange({ ...filters, status: next });
+    onFiltersChange({ ...filters, status: toggleArrayItem(filters.status, value) });
   };
 
   const statusSummary =
@@ -197,7 +161,7 @@ export default function AdminEventsToolbar({
             className="admin-btn admin-btn--secondary admin-btn--sm"
             aria-haspopup="menu"
             aria-expanded={statusOpen}
-            onClick={() => setStatusOpen((value) => !value)}
+            onClick={toggleStatusDropdown}
           >
             {statusSummary}
             <ChevronDown size={14} />

@@ -1,6 +1,4 @@
-import { useEffect, useRef, useState } from "react";
 import { Search, SlidersHorizontal, ChevronDown } from "lucide-react";
-import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
 import {
   ACTIVITY_VIEWS,
   CATEGORY_LABEL,
@@ -9,6 +7,9 @@ import {
   type ActivityView,
   type ActivityFilters,
 } from "../../features/admin/model/auditActivityQuery";
+import { toggleArrayItem } from "../../shared/utils/toggleArrayItem";
+import { useDebouncedSearch } from "../../shared/hooks/useDebouncedSearch";
+import { useDropdown } from "../../shared/hooks/useDropdown";
 import AdminViewTabs from "./AdminViewTabs";
 import "./AdminActivityToolbar.css";
 
@@ -35,50 +36,19 @@ export default function AdminActivityToolbar({
   onOpenDrawer,
   counts,
 }: AdminActivityToolbarProps) {
-  // Search: instant input echo, debounced filter update (same as AdminVenuesToolbar)
-  const [searchInput, setSearchInput] = useState(filters.q);
-  const [syncedQ, setSyncedQ] = useState(filters.q);
-  if (filters.q !== syncedQ) {
-    setSyncedQ(filters.q);
-    setSearchInput(filters.q);
-  }
-  const debounceRef = useRef<number | null>(null);
-  const handleSearchInput = (value: string) => {
-    setSearchInput(value);
-    clearTimeout(debounceRef.current ?? undefined);
-    debounceRef.current = window.setTimeout(() => {
-      onFiltersChange({ ...filters, q: value });
-    }, 200);
-  };
-  useEffect(
-    () => () => {
-      clearTimeout(debounceRef.current ?? undefined);
-    },
-    []
+  const { input: searchInput, handleInput: handleSearchInput } = useDebouncedSearch(
+    filters.q,
+    (q) => onFiltersChange({ ...filters, q })
   );
 
-  // Category dropdown (visible in toolbar)
-  const [categoryOpen, setCategoryOpen] = useState(false);
-  const categoryWrapRef = useRef<HTMLDivElement>(null);
-  useEscapeKey(() => {
-    if (categoryOpen) setCategoryOpen(false);
-  });
-  useEffect(() => {
-    if (!categoryOpen) return;
-    const handlePointerDown = (event: PointerEvent) => {
-      if (categoryWrapRef.current && !categoryWrapRef.current.contains(event.target as Node)) {
-        setCategoryOpen(false);
-      }
-    };
-    document.addEventListener("pointerdown", handlePointerDown);
-    return () => document.removeEventListener("pointerdown", handlePointerDown);
-  }, [categoryOpen]);
+  const {
+    open: categoryOpen,
+    toggle: toggleCategoryDropdown,
+    wrapRef: categoryWrapRef,
+  } = useDropdown();
 
   const toggleCategory = (category: ActivityCategory) => {
-    const next = filters.category.includes(category)
-      ? filters.category.filter((c) => c !== category)
-      : [...filters.category, category];
-    onFiltersChange({ ...filters, category: next });
+    onFiltersChange({ ...filters, category: toggleArrayItem(filters.category, category) });
   };
 
   const categoryOptions: ActivityCategory[] = [
@@ -145,7 +115,7 @@ export default function AdminActivityToolbar({
             className="admin-btn admin-btn--secondary"
             aria-haspopup="menu"
             aria-expanded={categoryOpen}
-            onClick={() => setCategoryOpen((value) => !value)}
+            onClick={toggleCategoryDropdown}
           >
             {categorySummary}
             <ChevronDown size={14} />

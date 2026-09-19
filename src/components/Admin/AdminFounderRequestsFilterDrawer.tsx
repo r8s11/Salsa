@@ -52,8 +52,14 @@ export default function AdminFounderRequestsFilterDrawer({
   if (!open) return null;
 
   return (
-    <div className="filter-drawer-overlay" onClick={onClose}>
-      <div className="filter-drawer" onClick={(e) => e.stopPropagation()}>
+    <div className="filter-drawer-overlay" onClick={onClose} role="presentation">
+      <div
+        className="filter-drawer"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Filters"
+        onClick={(e) => e.stopPropagation()}
+      >
         <header className="filter-drawer-header">
           <h2>Filters</h2>
           <button className="close-btn" onClick={onClose} aria-label="Close filters">

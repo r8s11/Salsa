@@ -1,6 +1,4 @@
-import { useEffect, useRef, useState } from "react";
 import { Search, SlidersHorizontal, ChevronDown } from "lucide-react";
-import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
 import {
   ORGANIZER_TYPE_LABEL,
   type OrganizerType,
@@ -8,6 +6,9 @@ import {
   REQUEST_SORT_OPTIONS,
   type SortDir,
 } from "../../features/admin/model/organizerRequestsQuery";
+import { toggleArrayItem } from "../../shared/utils/toggleArrayItem";
+import { useDebouncedSearch } from "../../shared/hooks/useDebouncedSearch";
+import { useDropdown } from "../../shared/hooks/useDropdown";
 import "./AdminOrganizerRequestsToolbar.css";
 
 interface AdminOrganizerRequestsToolbarProps {
@@ -27,51 +28,15 @@ export default function AdminOrganizerRequestsToolbar({
   drawerFilterCount,
   onOpenDrawer,
 }: AdminOrganizerRequestsToolbarProps) {
-  // Search: the input echoes every keystroke instantly; the filter itself
-  // applies 200ms after typing stops. Same pattern as AdminUsersToolbar.
-  const [searchInput, setSearchInput] = useState(filters.q);
-  const [syncedQ, setSyncedQ] = useState(filters.q);
-  if (filters.q !== syncedQ) {
-    setSyncedQ(filters.q);
-    setSearchInput(filters.q);
-  }
-
-  const debounceRef = useRef<number | null>(null);
-  const handleSearchInput = (value: string) => {
-    setSearchInput(value);
-    clearTimeout(debounceRef.current ?? undefined);
-    debounceRef.current = window.setTimeout(() => {
-      onFiltersChange({ ...filters, q: value });
-    }, 200);
-  };
-  useEffect(
-    () => () => {
-      clearTimeout(debounceRef.current ?? undefined);
-    },
-    []
+  const { input: searchInput, handleInput: handleSearchInput } = useDebouncedSearch(
+    filters.q,
+    (q) => onFiltersChange({ ...filters, q })
   );
 
-  const [typeOpen, setTypeOpen] = useState(false);
-  const typeWrapRef = useRef<HTMLDivElement>(null);
-  useEscapeKey(() => {
-    if (typeOpen) setTypeOpen(false);
-  });
-  useEffect(() => {
-    if (!typeOpen) return;
-    const handlePointerDown = (event: PointerEvent) => {
-      if (typeWrapRef.current && !typeWrapRef.current.contains(event.target as Node)) {
-        setTypeOpen(false);
-      }
-    };
-    document.addEventListener("pointerdown", handlePointerDown);
-    return () => document.removeEventListener("pointerdown", handlePointerDown);
-  }, [typeOpen]);
+  const { open: typeOpen, toggle: toggleTypeDropdown, wrapRef: typeWrapRef } = useDropdown();
 
   const toggleType = (value: OrganizerType) => {
-    const next = filters.type.includes(value)
-      ? filters.type.filter((t) => t !== value)
-      : [...filters.type, value];
-    onFiltersChange({ ...filters, type: next });
+    onFiltersChange({ ...filters, type: toggleArrayItem(filters.type, value) });
   };
 
   const typeOptions: OrganizerType[] = [
@@ -117,7 +82,7 @@ export default function AdminOrganizerRequestsToolbar({
             className="admin-btn admin-btn--secondary admin-btn--sm"
             aria-haspopup="menu"
             aria-expanded={typeOpen}
-            onClick={() => setTypeOpen((value) => !value)}
+            onClick={toggleTypeDropdown}
           >
             {typeSummary}
             <ChevronDown size={14} />

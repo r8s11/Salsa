@@ -40,18 +40,21 @@ export default function AdminDuplicateCheckPanel({
               <button
                 className="admin-btn admin-btn--secondary"
                 onClick={() => onViewEvent(candidate.event)}
+                aria-label={`View Existing Event: ${candidate.event.title}`}
               >
                 View Existing
               </button>
               <button
                 className="admin-btn admin-btn--secondary"
                 onClick={() => onNotADuplicate(candidate.event)}
+                aria-label={`Not a Duplicate: ${candidate.event.title}`}
               >
                 Not a Duplicate
               </button>
               <button
                 className="admin-btn admin-btn--danger"
                 onClick={() => onRejectAsDuplicate(candidate.event)}
+                aria-label={`Reject as Duplicate: ${candidate.event.title}`}
               >
                 Reject as Duplicate
               </button>

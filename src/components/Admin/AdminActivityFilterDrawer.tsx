@@ -1,12 +1,13 @@
-import { useEffect, useRef, type KeyboardEvent } from "react";
+import { useRef } from "react";
 import { X } from "lucide-react";
-import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
+import { useAccessibleDialog } from "../../shared/a11y/useAccessibleDialog";
 import {
   CATEGORY_LABEL,
   type ActivityCategory,
   type ActivityFilters,
 } from "../../features/admin/model/auditActivityQuery";
 import "./AdminActivityFilterDrawer.css";
+import { toggleArrayItem } from "../../shared/utils/toggleArrayItem";
 
 interface AdminActivityFilterDrawerProps {
   open: boolean;
@@ -74,58 +75,27 @@ export default function AdminActivityFilterDrawer({
   onClose,
 }: AdminActivityFilterDrawerProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
-
-  useEscapeKey(() => {
-    if (open) onClose();
+  const { onKeyDown, onBackdropClick, onDialogClick } = useAccessibleDialog({
+    dialogRef,
+    onDismiss: onClose,
   });
 
-  useEffect(() => {
-    if (open) dialogRef.current?.focus();
-  }, [open]);
-
-  // Tab cycling within the drawer
-  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key !== "Tab" || !dialogRef.current) return;
-    const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
-      "button, [href], select, input, textarea, [tabindex]:not([tabindex='-1'])"
-    );
-    if (focusable.length === 0) return;
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    if (event.shiftKey && document.activeElement === first) {
-      event.preventDefault();
-      last.focus();
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault();
-      first.focus();
-    }
-  };
-
   const toggleCategory = (value: ActivityCategory) => {
-    const next = filters.category.includes(value)
-      ? filters.category.filter((c) => c !== value)
-      : [...filters.category, value];
-    onFiltersChange({ ...filters, category: next });
+    onFiltersChange({ ...filters, category: toggleArrayItem(filters.category, value) });
   };
 
   const toggleAction = (value: string) => {
-    const next = filters.action.includes(value)
-      ? filters.action.filter((a) => a !== value)
-      : [...filters.action, value];
-    onFiltersChange({ ...filters, action: next });
+    onFiltersChange({ ...filters, action: toggleArrayItem(filters.action, value) });
   };
 
   const toggleTargetType = (value: string) => {
-    const next = filters.targetType.includes(value)
-      ? filters.targetType.filter((t) => t !== value)
-      : [...filters.targetType, value];
-    onFiltersChange({ ...filters, targetType: next });
+    onFiltersChange({ ...filters, targetType: toggleArrayItem(filters.targetType, value) });
   };
 
   if (!open) return null;
 
   return (
-    <div className="admin-activity-filter-drawer__overlay" onClick={onClose}>
+    <div className="admin-activity-filter-drawer__overlay" onClick={onBackdropClick}>
       <div
         ref={dialogRef}
         className="admin-activity-filter-drawer admin-card"
@@ -133,8 +103,8 @@ export default function AdminActivityFilterDrawer({
         aria-modal="true"
         aria-label="More filters"
         tabIndex={-1}
-        onClick={(event) => event.stopPropagation()}
-        onKeyDown={handleKeyDown}
+        onClick={onDialogClick}
+        onKeyDown={onKeyDown}
       >
         <div className="admin-activity-filter-drawer__header">
           <h2>More Filters</h2>

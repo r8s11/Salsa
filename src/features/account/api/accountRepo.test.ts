@@ -1,7 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ensureOwnProfileRow, fetchOwnProfile, updateOwnProfile } from "./accountRepo";
 
-const { maybeSingle, single, eq, update: updateOp, select, from, insert } = vi.hoisted(() => ({
+const {
+  maybeSingle,
+  single,
+  eq,
+  update: updateOp,
+  select,
+  from,
+  insert,
+} = vi.hoisted(() => ({
   maybeSingle: vi.fn(),
   single: vi.fn(),
   eq: vi.fn(),
@@ -25,8 +33,15 @@ describe("fetchOwnProfile", () => {
     select.mockReturnValue({ eq });
     eq.mockReturnValue({ maybeSingle });
     maybeSingle.mockResolvedValue({
-      data: { id: "user-1", display_name: "Maria", username: null, avatar_url: null,
-        status: "active", status_reason: null, created_at: "2026-01-01T00:00:00Z" },
+      data: {
+        id: "user-1",
+        display_name: "Maria",
+        username: null,
+        avatar_url: null,
+        status: "active",
+        status_reason: null,
+        created_at: "2026-01-01T00:00:00Z",
+      },
       error: null,
     });
 
@@ -59,9 +74,15 @@ describe("fetchOwnProfile", () => {
 
 describe("updateOwnProfile", () => {
   it("updates the caller's own profile row by id and returns the refreshed row", async () => {
-    const updatedRow = { id: "user-1", display_name: "Maria L.", username: "maria99",
-      avatar_url: "https://cdn.test/me.png", status: "active", status_reason: null,
-      created_at: "2026-01-01T00:00:00Z" };
+    const updatedRow = {
+      id: "user-1",
+      display_name: "Maria L.",
+      username: "maria99",
+      avatar_url: "https://cdn.test/me.png",
+      status: "active",
+      status_reason: null,
+      created_at: "2026-01-01T00:00:00Z",
+    };
     from.mockReturnValue({ update: updateOp });
     updateOp.mockReturnValue({ eq });
     eq.mockReturnValue({ select });

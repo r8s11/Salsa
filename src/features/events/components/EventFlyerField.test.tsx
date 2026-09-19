@@ -26,7 +26,10 @@ describe("EventFlyerField", () => {
     const user = userEvent.setup({ applyAccept: false });
     const onFileChange = vi.fn();
     render(
-      <EventFlyerField currentUrl="https://example.com/current-flyer.jpg" onFileChange={onFileChange} />
+      <EventFlyerField
+        currentUrl="https://example.com/current-flyer.jpg"
+        onFileChange={onFileChange}
+      />
     );
 
     await user.upload(
@@ -39,9 +42,7 @@ describe("EventFlyerField", () => {
   });
 
   it("shows a preview with an accessible name for an already-persisted flyer", () => {
-    render(
-      <EventFlyerField currentUrl="https://example.com/flyer.png" onFileChange={vi.fn()} />
-    );
+    render(<EventFlyerField currentUrl="https://example.com/flyer.png" onFileChange={vi.fn()} />);
 
     expect(screen.getByRole("img", { name: "Current event flyer" })).toHaveAttribute(
       "src",
@@ -145,9 +146,7 @@ describe("EventFlyerField", () => {
   });
 
   it("labels a persisted flyer 'Flyer ready'", () => {
-    render(
-      <EventFlyerField currentUrl="https://example.com/flyer.png" onFileChange={vi.fn()} />
-    );
+    render(<EventFlyerField currentUrl="https://example.com/flyer.png" onFileChange={vi.fn()} />);
 
     expect(screen.getByText("Flyer ready")).toBeInTheDocument();
   });

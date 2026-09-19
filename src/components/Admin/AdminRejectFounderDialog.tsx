@@ -62,7 +62,12 @@ export default function AdminRejectFounderDialog({
         </p>
 
         <div className="admin-field">
-          <label htmlFor="reject-reason">Reason <span className="required" aria-hidden="true">*</span></label>
+          <label htmlFor="reject-reason">
+            Reason{" "}
+            <span className="required" aria-hidden="true">
+              *
+            </span>
+          </label>
           <select
             id="reject-reason"
             ref={reasonSelectRef}
@@ -81,7 +86,12 @@ export default function AdminRejectFounderDialog({
 
         {reason === "other" && (
           <div className="admin-field">
-            <label htmlFor="reject-note">Details <span className="required" aria-hidden="true">*</span></label>
+            <label htmlFor="reject-note">
+              Details{" "}
+              <span className="required" aria-hidden="true">
+                *
+              </span>
+            </label>
             <textarea
               id="reject-note"
               value={note}
@@ -112,12 +122,7 @@ export default function AdminRejectFounderDialog({
         </div>
 
         <div className="admin-reject-dialog__actions">
-          <button
-            type="button"
-            className="btn-secondary"
-            onClick={onCancel}
-            disabled={isBusy}
-          >
+          <button type="button" className="btn-secondary" onClick={onCancel} disabled={isBusy}>
             Cancel
           </button>
           <button

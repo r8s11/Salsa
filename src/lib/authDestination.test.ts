@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { isSafeInternalPath, resolveAuthorizedDestination, resolveCallbackDestination } from "./authDestination";
+import {
+  isSafeInternalPath,
+  resolveAuthorizedDestination,
+  resolveCallbackDestination,
+} from "./authDestination";
 
 describe("resolveAuthorizedDestination", () => {
   it("returns /host for organizer", () => {

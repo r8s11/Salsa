@@ -116,7 +116,9 @@ function PasswordResetTrigger() {
   const [result, setResult] = useState<{ error: Error | null } | undefined>();
   return (
     <div>
-      <div data-testid="reset-error">{result ? (result.error ? result.error.message : "none") : "pending"}</div>
+      <div data-testid="reset-error">
+        {result ? (result.error ? result.error.message : "none") : "pending"}
+      </div>
       <button
         onClick={async () => {
           setResult(await requestPasswordReset("user@example.com"));
@@ -239,7 +241,9 @@ describe("AuthContext scoped sign-out", () => {
       </QueryClientProvider>
     );
 
-    await waitFor(() => expect(screen.getByTestId("sign-out-user-id")).toHaveTextContent(organizer.id));
+    await waitFor(() =>
+      expect(screen.getByTestId("sign-out-user-id")).toHaveTextContent(organizer.id)
+    );
 
     await act(async () => {
       screen.getByText("sign out").click();
@@ -268,7 +272,9 @@ describe("AuthContext scoped sign-out", () => {
       </QueryClientProvider>
     );
 
-    await waitFor(() => expect(screen.getByTestId("sign-out-user-id")).toHaveTextContent(organizer.id));
+    await waitFor(() =>
+      expect(screen.getByTestId("sign-out-user-id")).toHaveTextContent(organizer.id)
+    );
 
     await act(async () => {
       screen.getByText("sign out").click();
@@ -278,7 +284,9 @@ describe("AuthContext scoped sign-out", () => {
     expect(capturedSignOut?.error).toBeNull();
     expect(screen.getByTestId("sign-out-user-id")).toHaveTextContent(organizer.id);
     expect(screen.getByTestId("sign-out-session")).toHaveTextContent("present");
-    expect(queryClient.getQueryData(["private", organizer.id])).toEqual({ secret: "private event data" });
+    expect(queryClient.getQueryData(["private", organizer.id])).toEqual({
+      secret: "private event data",
+    });
   });
 });
 
@@ -289,7 +297,9 @@ describe("AuthContext deleted-account cleanup", () => {
     const queryClient = new QueryClient();
     queryClient.setQueryData(["private", organizer.id], { secret: "private event data" });
     vi.mocked(supabase.auth.getSession).mockResolvedValue({ data: { session } } as never);
-    vi.mocked(supabase.auth.signOut).mockResolvedValue({ error: new Error("Auth user no longer exists") } as never);
+    vi.mocked(supabase.auth.signOut).mockResolvedValue({
+      error: new Error("Auth user no longer exists"),
+    } as never);
 
     render(
       <QueryClientProvider client={queryClient}>
@@ -301,8 +311,9 @@ describe("AuthContext deleted-account cleanup", () => {
     localStorage.setItem(supabaseAuthStorageKey, JSON.stringify(session));
     localStorage.setItem(`${supabaseAuthStorageKey}-user`, JSON.stringify({ user: organizer }));
 
-
-    await waitFor(() => expect(screen.getByTestId("deleted-user-id")).toHaveTextContent(organizer.id));
+    await waitFor(() =>
+      expect(screen.getByTestId("deleted-user-id")).toHaveTextContent(organizer.id)
+    );
 
     await act(async () => {
       screen.getByText("clear deleted account").click();
@@ -318,7 +329,10 @@ describe("AuthContext deleted-account cleanup", () => {
 
 describe("AuthContext password recovery", () => {
   it("sends a recovery email to the app's own callback route", async () => {
-    vi.mocked(supabase.auth.resetPasswordForEmail).mockResolvedValue({ data: {}, error: null } as never);
+    vi.mocked(supabase.auth.resetPasswordForEmail).mockResolvedValue({
+      data: {},
+      error: null,
+    } as never);
 
     render(
       <QueryClientProvider client={new QueryClient()}>

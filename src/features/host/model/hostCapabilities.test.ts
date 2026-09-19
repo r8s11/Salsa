@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { deriveHostCapabilities } from "./hostCapabilities";
-import type {
-  OrganizerMemberRole,
-  OrganizerMembership,
-} from "../api/organizerAccessRepo";
+import type { OrganizerMemberRole, OrganizerMembership } from "../api/organizerAccessRepo";
 
 function membership(
   memberRole: OrganizerMemberRole,

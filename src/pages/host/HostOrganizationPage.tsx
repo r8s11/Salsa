@@ -12,7 +12,10 @@ import type {
   OrganizerMembership,
   OrganizerProfileUpdatePayload,
 } from "../../features/host/api/organizerAccessRepo";
-import { ORGANIZER_TYPE_LABEL, type OrganizerType } from "../../features/admin/model/organizerRequestsQuery";
+import {
+  ORGANIZER_TYPE_LABEL,
+  type OrganizerType,
+} from "../../features/admin/model/organizerRequestsQuery";
 import AdminPageHeader from "../../components/Admin/AdminPageHeader";
 import "./HostOrganizationPage.css";
 
@@ -44,15 +47,21 @@ function formFromOrganizer(org: OrganizerMembership): OrganizerForm {
   };
 }
 
-function buildPayload(form: OrganizerForm, original: OrganizerMembership): OrganizerProfileUpdatePayload {
+function buildPayload(
+  form: OrganizerForm,
+  original: OrganizerMembership
+): OrganizerProfileUpdatePayload {
   const payload: OrganizerProfileUpdatePayload = {};
   if (form.name !== original.organizerName) payload.name = form.name;
-  if (form.description !== (original.description ?? "")) payload.description = form.description || null;
+  if (form.description !== (original.description ?? ""))
+    payload.description = form.description || null;
   if (form.logo_url !== (original.logoUrl ?? "")) payload.logo_url = form.logo_url || null;
   if (form.website !== (original.website ?? "")) payload.website = form.website || null;
   if (form.instagram !== (original.instagram ?? "")) payload.instagram = form.instagram || null;
-  if (form.organizer_type !== (original.organizerType ?? "")) payload.organizer_type = form.organizer_type || null;
-  if (form.primary_city !== (original.primaryCity ?? "")) payload.primary_city = form.primary_city || null;
+  if (form.organizer_type !== (original.organizerType ?? ""))
+    payload.organizer_type = form.organizer_type || null;
+  if (form.primary_city !== (original.primaryCity ?? ""))
+    payload.primary_city = form.primary_city || null;
   return payload;
 }
 
@@ -60,10 +69,14 @@ function validateForm(form: OrganizerForm): FieldErrors {
   const errors: FieldErrors = {};
   if (!form.name.trim()) errors.name = "Organization name is required.";
   else if (form.name.length > 200) errors.name = "Name must be 200 characters or fewer.";
-  if (form.description.length > 2000) errors.description = "Description must be 2000 characters or fewer.";
-  if (form.logo_url && !isValidUrl(form.logo_url)) errors.logo_url = "Must be a valid http:// or https:// URL.";
-  if (form.website && !isValidUrl(form.website)) errors.website = "Must be a valid http:// or https:// URL.";
-  if (form.instagram.length > 100) errors.instagram = "Instagram handle must be 100 characters or fewer.";
+  if (form.description.length > 2000)
+    errors.description = "Description must be 2000 characters or fewer.";
+  if (form.logo_url && !isValidUrl(form.logo_url))
+    errors.logo_url = "Must be a valid http:// or https:// URL.";
+  if (form.website && !isValidUrl(form.website))
+    errors.website = "Must be a valid http:// or https:// URL.";
+  if (form.instagram.length > 100)
+    errors.instagram = "Instagram handle must be 100 characters or fewer.";
   if (form.organizer_type && !(form.organizer_type in ORGANIZER_TYPE_LABEL)) {
     errors.organizer_type = "Invalid organizer type.";
   }
@@ -102,7 +115,8 @@ function StatusBadge({ status }: { status: string }) {
 export default function HostOrganizationPage() {
   const { data: organizers = [], isLoading, error: organizersError, refetch } = useMyOrganizers();
   const activeOrganizers = useMemo(
-    () => organizers.filter((o) => o.organizerStatus === "active" || o.organizerStatus === "suspended"),
+    () =>
+      organizers.filter((o) => o.organizerStatus === "active" || o.organizerStatus === "suspended"),
     [organizers]
   );
   const [selectedOrganizerId, setSelectedOrganizerId] = useState<string>(
@@ -110,7 +124,8 @@ export default function HostOrganizationPage() {
   );
 
   const selectedMembership = activeOrganizers.find((o) => o.organizerId === selectedOrganizerId);
-  const canEdit = selectedMembership?.memberRole === "owner" || selectedMembership?.memberRole === "manager";
+  const canEdit =
+    selectedMembership?.memberRole === "owner" || selectedMembership?.memberRole === "manager";
 
   const [organizer, setOrganizer] = useState<OrganizerMembership | null>(null);
   const [loading, setLoading] = useState<boolean>(() => selectedOrganizerId !== "");
@@ -143,12 +158,15 @@ export default function HostOrganizationPage() {
         if (!cancelled) setOrganizer(profile);
       })
       .catch((err) => {
-        if (!cancelled) setLoadError(err instanceof Error ? err.message : "Failed to load organizer.");
+        if (!cancelled)
+          setLoadError(err instanceof Error ? err.message : "Failed to load organizer.");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [selectedOrganizerId, retryCount]);
 
   const startEditing = () => {
@@ -193,7 +211,9 @@ export default function HostOrganizationPage() {
       if (err instanceof OrganizerAccessError) {
         setSaveError("You don't have permission to edit this organization.");
       } else {
-        setSaveError(err instanceof Error ? err.message : "We couldn't save these changes. Please try again.");
+        setSaveError(
+          err instanceof Error ? err.message : "We couldn't save these changes. Please try again."
+        );
       }
     } finally {
       setSaving(false);
@@ -203,8 +223,13 @@ export default function HostOrganizationPage() {
   if (isLoading) {
     return (
       <div className="admin-shell">
-        <AdminPageHeader title="Organization" description="View and manage your organizer identity." />
-        <p role="status" className="host-org__status-msg">Checking organizer access…</p>
+        <AdminPageHeader
+          title="Organization"
+          description="View and manage your organizer identity."
+        />
+        <p role="status" className="host-org__status-msg">
+          Checking organizer access…
+        </p>
       </div>
     );
   }
@@ -212,10 +237,17 @@ export default function HostOrganizationPage() {
   if (organizersError) {
     return (
       <div className="admin-shell">
-        <AdminPageHeader title="Organization" description="View and manage your organizer identity." />
+        <AdminPageHeader
+          title="Organization"
+          description="View and manage your organizer identity."
+        />
         <div className="admin-banner admin-banner--error" role="alert">
           <p>We couldn&apos;t load your organizers.</p>
-          <button type="button" className="admin-btn admin-btn--secondary" onClick={() => void refetch()}>
+          <button
+            type="button"
+            className="admin-btn admin-btn--secondary"
+            onClick={() => void refetch()}
+          >
             Try Again
           </button>
         </div>
@@ -226,10 +258,15 @@ export default function HostOrganizationPage() {
   if (activeOrganizers.length === 0) {
     return (
       <div className="admin-shell">
-        <AdminPageHeader title="Organization" description="View and manage your organizer identity." />
+        <AdminPageHeader
+          title="Organization"
+          description="View and manage your organizer identity."
+        />
         <div className="admin-card host-org__empty">
           <p>You don&apos;t have access to any organizations yet.</p>
-          <Link to="/host" className="admin-btn admin-btn--primary">Back to Dashboard</Link>
+          <Link to="/host" className="admin-btn admin-btn--primary">
+            Back to Dashboard
+          </Link>
         </div>
       </div>
     );
@@ -271,7 +308,11 @@ export default function HostOrganizationPage() {
         </div>
       )}
 
-      {loading && <p role="status" className="host-org__status-msg">Loading…</p>}
+      {loading && (
+        <p role="status" className="host-org__status-msg">
+          Loading…
+        </p>
+      )}
 
       {loadError && (
         <div className="admin-banner admin-banner--error" role="alert">
@@ -311,7 +352,8 @@ export default function HostOrganizationPage() {
               <h2>{organizer.organizerName}</h2>
               {organizer.organizerType && (
                 <p className="host-org__type">
-                  {ORGANIZER_TYPE_LABEL[organizer.organizerType as OrganizerType] ?? organizer.organizerType}
+                  {ORGANIZER_TYPE_LABEL[organizer.organizerType as OrganizerType] ??
+                    organizer.organizerType}
                 </p>
               )}
               {organizer.primaryCity && (
@@ -332,9 +374,7 @@ export default function HostOrganizationPage() {
                 Edit Organization
               </button>
             )}
-            {!canEdit && (
-              <span className="host-org__view-only">View only</span>
-            )}
+            {!canEdit && <span className="host-org__view-only">View only</span>}
           </div>
 
           <div className="host-org__fields">
@@ -372,7 +412,13 @@ export default function HostOrganizationPage() {
             {selectedMembership && (
               <div className="host-org__field">
                 <h3>Your Access</h3>
-                <p>{selectedMembership.memberRole === "owner" ? "Owner" : selectedMembership.memberRole === "manager" ? "Manager" : "Editor"}</p>
+                <p>
+                  {selectedMembership.memberRole === "owner"
+                    ? "Owner"
+                    : selectedMembership.memberRole === "manager"
+                      ? "Manager"
+                      : "Editor"}
+                </p>
               </div>
             )}
           </div>
@@ -411,7 +457,9 @@ export default function HostOrganizationPage() {
               rows={4}
               placeholder="Tell dancers about your organization…"
             />
-            {fieldErrors.description && <p className="host-org__field-error">{fieldErrors.description}</p>}
+            {fieldErrors.description && (
+              <p className="host-org__field-error">{fieldErrors.description}</p>
+            )}
           </div>
 
           <div className="host-org__form-field">
@@ -423,10 +471,14 @@ export default function HostOrganizationPage() {
             >
               <option value="">Select type…</option>
               {Object.entries(ORGANIZER_TYPE_LABEL).map(([value, label]) => (
-                <option key={value} value={value}>{label}</option>
+                <option key={value} value={value}>
+                  {label}
+                </option>
               ))}
             </select>
-            {fieldErrors.organizer_type && <p className="host-org__field-error">{fieldErrors.organizer_type}</p>}
+            {fieldErrors.organizer_type && (
+              <p className="host-org__field-error">{fieldErrors.organizer_type}</p>
+            )}
           </div>
 
           <div className="host-org__form-field">
@@ -463,7 +515,9 @@ export default function HostOrganizationPage() {
               maxLength={100}
               placeholder="@handle"
             />
-            {fieldErrors.instagram && <p className="host-org__field-error">{fieldErrors.instagram}</p>}
+            {fieldErrors.instagram && (
+              <p className="host-org__field-error">{fieldErrors.instagram}</p>
+            )}
           </div>
 
           <div className="host-org__form-field">
@@ -475,11 +529,17 @@ export default function HostOrganizationPage() {
               onChange={(e) => setForm({ ...form, logo_url: e.target.value })}
               placeholder="https://"
             />
-            {fieldErrors.logo_url && <p className="host-org__field-error">{fieldErrors.logo_url}</p>}
+            {fieldErrors.logo_url && (
+              <p className="host-org__field-error">{fieldErrors.logo_url}</p>
+            )}
           </div>
 
           <div className="host-org__form-actions">
-            <button type="button" className="admin-btn admin-btn--secondary" onClick={cancelEditing}>
+            <button
+              type="button"
+              className="admin-btn admin-btn--secondary"
+              onClick={cancelEditing}
+            >
               Cancel
             </button>
             <button type="submit" className="admin-btn admin-btn--primary" disabled={saving}>

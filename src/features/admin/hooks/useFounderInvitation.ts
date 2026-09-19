@@ -42,13 +42,15 @@ export function useFounderInvitation(founderRequestId: string | null) {
   });
 
   const sendMutation = useMutation({
-    mutationFn: (idempotencyKey: string) => sendFounderInvitation(founderRequestId!, idempotencyKey),
+    mutationFn: (idempotencyKey: string) =>
+      sendFounderInvitation(founderRequestId!, idempotencyKey),
     onSuccess: () => invalidate(),
     onError: () => invalidate(),
   });
 
   const reissueMutation = useMutation({
-    mutationFn: (idempotencyKey: string) => reissueFounderInvitation(founderRequestId!, idempotencyKey),
+    mutationFn: (idempotencyKey: string) =>
+      reissueFounderInvitation(founderRequestId!, idempotencyKey),
     onSuccess: () => invalidate(),
     onError: () => invalidate(),
   });

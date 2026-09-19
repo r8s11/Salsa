@@ -19,11 +19,9 @@ type DrawnSize = { width: number; height: number };
  * fetch -> createImageBitmap -> canvas draw -> JPEG data URL. Records the
  * size each bitmap is drawn at so tests can assert the downscale cap.
  */
-function stubImageDecoding(options: {
-  width?: number;
-  height?: number;
-  decodeFails?: boolean;
-}): { drawnSizes: DrawnSize[] } {
+function stubImageDecoding(options: { width?: number; height?: number; decodeFails?: boolean }): {
+  drawnSizes: DrawnSize[];
+} {
   const drawnSizes: DrawnSize[] = [];
 
   globalThis.fetch = vi.fn().mockResolvedValue({
@@ -80,7 +78,10 @@ describe("poster flyer client", () => {
     const httpError = {
       name: "FunctionsHttpError",
       context: {
-        json: async () => ({ status: "unavailable", message: "Flyer source cannot be used for sharing." }),
+        json: async () => ({
+          status: "unavailable",
+          message: "Flyer source cannot be used for sharing.",
+        }),
       },
     };
 
@@ -96,7 +97,7 @@ describe("poster flyer client", () => {
         eventId: "event-1",
         sourceUrl: "https://blocked.test/flyer.jpg",
         cachedUrl: null,
-      }),
+      })
     ).resolves.toEqual({ status: "unavailable" });
   });
 
@@ -104,7 +105,7 @@ describe("poster flyer client", () => {
     const { resolvePosterImageForEvent } = await import("./posterFlyers");
 
     await expect(
-      resolvePosterImageForEvent({ eventId: "event-1", sourceUrl: null, cachedUrl: null }),
+      resolvePosterImageForEvent({ eventId: "event-1", sourceUrl: null, cachedUrl: null })
     ).resolves.toEqual({ status: "missing" });
   });
 
@@ -117,14 +118,15 @@ describe("poster flyer client", () => {
       resolvePosterImageForEvent({
         eventId: "event-1",
         sourceUrl: "https://cdn.example/flyer.jpg",
-        cachedUrl: "https://project.supabase.co/storage/v1/object/public/event-flyers/poster-cache/event-1/hash.jpg",
-      }),
+        cachedUrl:
+          "https://project.supabase.co/storage/v1/object/public/event-flyers/poster-cache/event-1/hash.jpg",
+      })
     ).resolves.toEqual({ status: "ready", dataUrl: "data:image/jpeg;base64,STUB" });
 
     expect(invokeMock).not.toHaveBeenCalled();
     expect(globalThis.fetch).toHaveBeenCalledWith(
       "https://project.supabase.co/storage/v1/object/public/event-flyers/poster-cache/event-1/hash.jpg",
-      expect.anything(),
+      expect.anything()
     );
     // Already under the cap — kept at native size.
     expect(drawnSizes).toEqual([{ width: 800, height: 600 }]);
@@ -140,7 +142,7 @@ describe("poster flyer client", () => {
         eventId: "event-1",
         sourceUrl: null,
         cachedUrl: "https://project.supabase.co/storage/v1/object/public/event-flyers/big.png",
-      }),
+      })
     ).resolves.toEqual({ status: "ready", dataUrl: "data:image/jpeg;base64,STUB" });
 
     // Longest edge capped at 1440, aspect ratio preserved.
@@ -157,7 +159,7 @@ describe("poster flyer client", () => {
         eventId: "event-1",
         sourceUrl: null,
         cachedUrl: "https://project.supabase.co/storage/v1/object/public/event-flyers/broken.png",
-      }),
+      })
     ).resolves.toEqual({ status: "unavailable" });
   });
 });

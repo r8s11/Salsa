@@ -61,7 +61,9 @@ export default function AdminRejectSubmissionDialog({
         onKeyDown={onKeyDown}
       >
         <h2 id={titleId}>
-          {submissionLabel ? `Reject \u201c${submissionLabel}\u201d?` : `Reject Submission ${submissionId}?`}
+          {submissionLabel
+            ? `Reject \u201c${submissionLabel}\u201d?`
+            : `Reject Submission ${submissionId}?`}
         </h2>
 
         <p id={descriptionId} className="admin-reject-submission-dialog__description">

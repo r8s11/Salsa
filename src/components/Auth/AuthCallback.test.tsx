@@ -98,11 +98,12 @@ describe("AuthCallback", () => {
       error: null,
     } as never);
 
-    renderCallbackWithRoutes([{ path: "/profile", text: "Profile Page" }], "/auth/callback?code=abc123");
-
-    await waitFor(() =>
-      expect(screen.getByText("Profile Page")).toBeInTheDocument()
+    renderCallbackWithRoutes(
+      [{ path: "/profile", text: "Profile Page" }],
+      "/auth/callback?code=abc123"
     );
+
+    await waitFor(() => expect(screen.getByText("Profile Page")).toBeInTheDocument());
     expect(screen.queryByText(/couldn't complete/i)).not.toBeInTheDocument();
     expect(supabase.auth.exchangeCodeForSession).toHaveBeenCalledWith("abc123");
   });
@@ -120,9 +121,7 @@ describe("AuthCallback", () => {
 
     renderCallbackWithRoutes([{ path: "/host", text: "Host Page" }], "/auth/callback?code=abc123");
 
-    await waitFor(() =>
-      expect(screen.getByText("Host Page")).toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.getByText("Host Page")).toBeInTheDocument());
   });
 
   it("navigates an admin or moderator session to /admin", async () => {
@@ -136,11 +135,12 @@ describe("AuthCallback", () => {
       error: null,
     } as never);
 
-    renderCallbackWithRoutes([{ path: "/admin", text: "Admin Page" }], "/auth/callback?code=abc123");
-
-    await waitFor(() =>
-      expect(screen.getByText("Admin Page")).toBeInTheDocument()
+    renderCallbackWithRoutes(
+      [{ path: "/admin", text: "Admin Page" }],
+      "/auth/callback?code=abc123"
     );
+
+    await waitFor(() => expect(screen.getByText("Admin Page")).toBeInTheDocument());
   });
 
   it("navigates a regular user session (no role) to /profile", async () => {
@@ -154,11 +154,12 @@ describe("AuthCallback", () => {
       error: null,
     } as never);
 
-    renderCallbackWithRoutes([{ path: "/profile", text: "Profile Page" }], "/auth/callback?code=abc123");
-
-    await waitFor(() =>
-      expect(screen.getByText("Profile Page")).toBeInTheDocument()
+    renderCallbackWithRoutes(
+      [{ path: "/profile", text: "Profile Page" }],
+      "/auth/callback?code=abc123"
     );
+
+    await waitFor(() => expect(screen.getByText("Profile Page")).toBeInTheDocument());
   });
 
   it("routes a completed email-change confirmation to the account page", async () => {
@@ -172,11 +173,12 @@ describe("AuthCallback", () => {
       error: null,
     } as never);
 
-    renderCallbackWithRoutes([{ path: "/account", text: "Account Page" }], "/auth/callback?code=abc123");
-
-    await waitFor(() =>
-      expect(screen.getByText("Account Page")).toBeInTheDocument()
+    renderCallbackWithRoutes(
+      [{ path: "/account", text: "Account Page" }],
+      "/auth/callback?code=abc123"
     );
+
+    await waitFor(() => expect(screen.getByText("Account Page")).toBeInTheDocument());
   });
 
   it("routes an email-change confirmation to the account page using the local intent hint when the exchange reports no redirect type", async () => {
@@ -199,9 +201,7 @@ describe("AuthCallback", () => {
       "/auth/callback?code=abc123"
     );
 
-    await waitFor(() =>
-      expect(screen.getByText("Account Page")).toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.getByText("Account Page")).toBeInTheDocument());
     expect(screen.queryByText("Profile Page")).not.toBeInTheDocument();
   });
 
@@ -221,9 +221,7 @@ describe("AuthCallback", () => {
       "/auth/callback?code=abc123&next=%2Ffounders%2Faccept"
     );
 
-    await waitFor(() =>
-      expect(screen.getByText("Founder Acceptance Page")).toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.getByText("Founder Acceptance Page")).toBeInTheDocument());
   });
 
   it("ignores an unsafe ?next= destination and falls back to the role default", async () => {
@@ -242,9 +240,7 @@ describe("AuthCallback", () => {
       "/auth/callback?code=abc123&next=https%3A%2F%2Fevil.com"
     );
 
-    await waitFor(() =>
-      expect(screen.getByText("Profile Page")).toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.getByText("Profile Page")).toBeInTheDocument());
   });
 
   it("shows a set-new-password form when the exchange reports a recovery redirect", async () => {
@@ -277,9 +273,7 @@ describe("AuthCallback", () => {
     await user.click(screen.getByRole("button", { name: /set new password/i }));
 
     expect(supabase.auth.updateUser).toHaveBeenCalledWith({ password: "new-strong-password" });
-    await waitFor(() =>
-      expect(screen.getByText("Profile Page")).toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.getByText("Profile Page")).toBeInTheDocument());
   });
 
   it("shows a set-new-password form for a legacy implicit recovery hash link", async () => {
@@ -331,10 +325,14 @@ describe("AuthCallback", () => {
   it("shows recovery-specific copy and a resend link for an expired reset link", async () => {
     setAuthIntent("recovery", "user@example.com");
 
-    renderCallback("/auth/callback?error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired");
+    renderCallback(
+      "/auth/callback?error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired"
+    );
 
     await waitFor(() =>
-      expect(screen.getByRole("heading", { name: "We couldn't reset your password" })).toBeInTheDocument()
+      expect(
+        screen.getByRole("heading", { name: "We couldn't reset your password" })
+      ).toBeInTheDocument()
     );
     expect(screen.getByText(/password reset link has expired/i)).toBeInTheDocument();
     const resendLink = screen.getByRole("link", { name: /request a new reset email/i });
@@ -344,12 +342,18 @@ describe("AuthCallback", () => {
   it("shows email-change-specific copy for an expired confirmation link", async () => {
     setAuthIntent("email_change", "new@example.com");
 
-    renderCallback("/auth/callback?error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired");
+    renderCallback(
+      "/auth/callback?error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired"
+    );
 
     await waitFor(() =>
-      expect(screen.getByRole("heading", { name: "We couldn't confirm your email change" })).toBeInTheDocument()
+      expect(
+        screen.getByRole("heading", { name: "We couldn't confirm your email change" })
+      ).toBeInTheDocument()
     );
-    expect(screen.getByText(/request the change again from your account page/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/request the change again from your account page/i)
+    ).toBeInTheDocument();
   });
 
   it("shows signup-specific copy and an inline resend action for an expired confirmation link", async () => {
@@ -373,18 +377,20 @@ describe("AuthCallback", () => {
     });
 
     const user = userEvent.setup();
-    renderCallback("/auth/callback?error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired");
+    renderCallback(
+      "/auth/callback?error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired"
+    );
 
     await waitFor(() =>
-      expect(screen.getByRole("heading", { name: "We couldn't confirm your email" })).toBeInTheDocument()
+      expect(
+        screen.getByRole("heading", { name: "We couldn't confirm your email" })
+      ).toBeInTheDocument()
     );
     expect(screen.getByText(/already confirmed your email, try signing in/i)).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /resend confirmation email/i }));
     expect(resendConfirmation).toHaveBeenCalledWith("user@example.com");
-    await waitFor(() =>
-      expect(screen.getByText(/confirmation email sent/i)).toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.getByText(/confirmation email sent/i)).toBeInTheDocument());
   });
 
   it("shows a generic invalid-link message when the exchange fails and no intent hint was recorded", async () => {
@@ -405,7 +411,9 @@ describe("AuthCallback", () => {
     renderCallback("/auth/callback?code=stale-code");
 
     await waitFor(() =>
-      expect(screen.getByRole("heading", { name: "We couldn't complete your sign-in" })).toBeInTheDocument()
+      expect(
+        screen.getByRole("heading", { name: "We couldn't complete your sign-in" })
+      ).toBeInTheDocument()
     );
     expect(screen.getByText(/invalid or incomplete/i)).toBeInTheDocument();
     const backLink = screen.getByRole("link", { name: /back to sign in/i });
@@ -420,12 +428,8 @@ describe("AuthCallback", () => {
 
     renderCallback();
 
-    await waitFor(() =>
-      expect(screen.getByRole("alert")).toBeInTheDocument()
-    );
-    expect(
-      screen.getByRole("link", { name: /back to sign in/i })
-    ).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole("alert")).toBeInTheDocument());
+    expect(screen.getByRole("link", { name: /back to sign in/i })).toBeInTheDocument();
     expect(supabase.auth.exchangeCodeForSession).not.toHaveBeenCalled();
     expect(supabase.auth.setSession).not.toHaveBeenCalled();
   });

@@ -133,14 +133,10 @@ describe("AdminSubmissionsPage", () => {
       </MemoryRouter>
     );
 
-    await userEvent.click(
-      screen.getByRole("button", { name: /Actions for Pending Social/i })
-    );
+    await userEvent.click(screen.getByRole("button", { name: /Actions for Pending Social/i }));
     await userEvent.click(screen.getByRole("menuitem", { name: /Reject/i }));
 
-    expect(
-      screen.getByRole("dialog", { name: /Reject “Pending Social”\?/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: /Reject “Pending Social”\?/i })).toBeInTheDocument();
     expect(updateSubmission).not.toHaveBeenCalled();
 
     await userEvent.click(screen.getByRole("button", { name: /^Cancel$/i }));
@@ -168,9 +164,7 @@ describe("AdminSubmissionsPage", () => {
       </MemoryRouter>
     );
 
-    await userEvent.click(
-      screen.getByRole("button", { name: /Actions for Pending Social/i })
-    );
+    await userEvent.click(screen.getByRole("button", { name: /Actions for Pending Social/i }));
     await userEvent.click(screen.getByRole("menuitem", { name: /Reject/i }));
 
     fireEvent.change(screen.getByRole("textbox", { name: /Message to submitter/i }), {
@@ -212,9 +206,7 @@ describe("AdminSubmissionsPage", () => {
       </MemoryRouter>
     );
 
-    await userEvent.click(
-      screen.getByRole("button", { name: /Actions for Pending Social/i })
-    );
+    await userEvent.click(screen.getByRole("button", { name: /Actions for Pending Social/i }));
     await userEvent.click(screen.getByRole("menuitem", { name: /Reject/i }));
 
     expect(screen.getByRole("dialog")).toBeInTheDocument();
@@ -252,9 +244,7 @@ describe("AdminSubmissionsPage", () => {
       </MemoryRouter>
     );
 
-    await userEvent.click(
-      screen.getByRole("button", { name: /Actions for Pending Social/i })
-    );
+    await userEvent.click(screen.getByRole("button", { name: /Actions for Pending Social/i }));
     await userEvent.click(screen.getByRole("menuitem", { name: /Reject/i }));
 
     (useAdminSubmissions as Mock).mockReturnValue({
@@ -299,9 +289,7 @@ describe("AdminSubmissionsPage", () => {
       </MemoryRouter>
     );
 
-    await userEvent.click(
-      screen.getByRole("button", { name: /Actions for Pending Social/i })
-    );
+    await userEvent.click(screen.getByRole("button", { name: /Actions for Pending Social/i }));
     await userEvent.click(screen.getByRole("menuitem", { name: /Reject/i }));
 
     expect(screen.getByLabelText(/Reason for rejection/i)).toHaveFocus();

@@ -29,8 +29,10 @@ export type AuthIntent = {
 function isAuthIntent(value: unknown): value is AuthIntent {
   if (!value || typeof value !== "object") return false;
   if (!("kind" in value)) return false;
-  if (value.kind !== "signup" && value.kind !== "recovery" && value.kind !== "email_change") return false;
-  if ("email" in value && typeof value.email !== "string" && value.email !== undefined) return false;
+  if (value.kind !== "signup" && value.kind !== "recovery" && value.kind !== "email_change")
+    return false;
+  if ("email" in value && typeof value.email !== "string" && value.email !== undefined)
+    return false;
   return true;
 }
 

@@ -20,7 +20,9 @@ describe("founderInvitationToken", () => {
   describe("setFounderInvitationToken", () => {
     it("stores a valid 64-hex token", () => {
       setFounderInvitationToken(VALID_TOKEN);
-      expect(window.sessionStorage.getItem("salsasegura-founder-invitation-token")).toBe(VALID_TOKEN);
+      expect(window.sessionStorage.getItem("salsasegura-founder-invitation-token")).toBe(
+        VALID_TOKEN
+      );
     });
   });
 
@@ -60,12 +62,20 @@ describe("founderInvitationToken", () => {
   describe("sessionStorage unavailability", () => {
     it("all operations are best-effort and never throw", () => {
       const throwingStorage = {
-        getItem: () => { throw new Error("unavailable"); },
-        setItem: () => { throw new Error("unavailable"); },
-        removeItem: () => { throw new Error("unavailable"); },
+        getItem: () => {
+          throw new Error("unavailable");
+        },
+        setItem: () => {
+          throw new Error("unavailable");
+        },
+        removeItem: () => {
+          throw new Error("unavailable");
+        },
       };
       const original = window.sessionStorage;
-    vi.spyOn(window, "sessionStorage", "get").mockReturnValue(throwingStorage as unknown as Storage);
+      vi.spyOn(window, "sessionStorage", "get").mockReturnValue(
+        throwingStorage as unknown as Storage
+      );
 
       expect(() => setFounderInvitationToken(VALID_TOKEN)).not.toThrow();
       expect(() => getFounderInvitationToken()).not.toThrow();

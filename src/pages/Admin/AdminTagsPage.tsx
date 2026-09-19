@@ -15,7 +15,10 @@ import {
   type TaxonomyFilters,
   type TaxonomyTerm,
 } from "../../features/admin/model/taxonomy";
-import { taxonomyArchiveCopy, taxonomyDeleteCopy } from "../../features/admin/model/taxonomyConfirmCopy";
+import {
+  taxonomyArchiveCopy,
+  taxonomyDeleteCopy,
+} from "../../features/admin/model/taxonomyConfirmCopy";
 import "./AdminTagsPage.css";
 
 function parseFilters(searchParams: URLSearchParams): TaxonomyFilters {
@@ -44,9 +47,10 @@ export default function AdminTagsPage() {
   const [params, setParams] = useSearchParams();
   const urlFilters = parseFilters(params);
   const { terms, isLoading, error, archive, restore, remove } = useAdminTaxonomy(urlFilters);
-  const [pendingAction, setPendingAction] = useState<
-    { kind: "archive" | "delete"; term: TaxonomyTerm } | null
-  >(null);
+  const [pendingAction, setPendingAction] = useState<{
+    kind: "archive" | "delete";
+    term: TaxonomyTerm;
+  } | null>(null);
 
   const viewableTerms = useMemo(
     () => applyTaxonomyView(terms ?? [], urlFilters.view),

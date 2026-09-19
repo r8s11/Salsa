@@ -18,7 +18,9 @@ const validPayload: FounderRequestPayload = {
 };
 
 function renderForm(
-  onSubmit: (p: FounderRequestPayload) => Promise<{ success: boolean }> = vi.fn().mockResolvedValue({ success: true })
+  onSubmit: (p: FounderRequestPayload) => Promise<{ success: boolean }> = vi
+    .fn()
+    .mockResolvedValue({ success: true })
 ) {
   return render(
     <MemoryRouter>
@@ -30,7 +32,10 @@ function renderForm(
 async function fillRequiredFields(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText(/your name \*/i), validPayload.applicantName);
   await user.type(screen.getByLabelText(/email \*/i), validPayload.email);
-  await user.type(screen.getByLabelText(/organization \/ event brand \*/i), validPayload.organizationName);
+  await user.type(
+    screen.getByLabelText(/organization \/ event brand \*/i),
+    validPayload.organizationName
+  );
 }
 
 describe("FounderRequestForm", () => {
@@ -120,7 +125,10 @@ describe("FounderRequestForm", () => {
     await user.type(screen.getByLabelText(/city/i), validPayload.city!);
     await user.type(screen.getByLabelText(/region \/ state/i), validPayload.region!);
     await user.type(screen.getByLabelText(/tell us about your events/i), validPayload.description!);
-    await user.type(screen.getByLabelText(/anything else you.d like us to know/i), validPayload.message!);
+    await user.type(
+      screen.getByLabelText(/anything else you.d like us to know/i),
+      validPayload.message!
+    );
 
     await user.click(screen.getByRole("button", { name: /submit request/i }));
 

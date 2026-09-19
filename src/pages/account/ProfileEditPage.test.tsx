@@ -112,9 +112,7 @@ describe("ProfileEditPage", () => {
 
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
     expect(screen.queryByText("PROFILE SETTINGS")).not.toBeInTheDocument();
-    expect(
-      screen.getByText(/update how you appear across salsasegura/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/update how you appear across salsasegura/i)).toBeInTheDocument();
   });
 
   it("links back to the public profile", () => {
@@ -136,7 +134,6 @@ describe("ProfileEditPage", () => {
     expect(save).toBeDisabled();
   });
 
-
   it("shows the public URL hint with the current username and the Phase 7 deferral", async () => {
     mocks.profile.profile = baseProfile();
     renderPage();
@@ -147,8 +144,10 @@ describe("ProfileEditPage", () => {
       if (!element) return false;
       if (element.tagName !== "P") return false;
       const text = element.textContent ?? "";
-      return text.includes("salsasegura.com/u/mariasalsa") &&
-        text.includes("Username changes arrive in a later update");
+      return (
+        text.includes("salsasegura.com/u/mariasalsa") &&
+        text.includes("Username changes arrive in a later update")
+      );
     });
     expect(hint).toBeInTheDocument();
   });
@@ -279,7 +278,9 @@ describe("ProfileEditPage", () => {
 
   it("shows a clean page error without leaking the raw Supabase message", async () => {
     mocks.profile.profile = baseProfile();
-    mocks.update.update.mockRejectedValue(new Error("duplicate key value violates unique constraint"));
+    mocks.update.update.mockRejectedValue(
+      new Error("duplicate key value violates unique constraint")
+    );
     mocks.update.error = "duplicate key value violates unique constraint";
     const user = userEvent.setup();
     renderPage();

@@ -19,7 +19,6 @@ export default function AdminFounderInvitationSection({
   founderRequestId: string;
   isAdmin: boolean;
 }) {
-
   const {
     invitation,
     isLoading,
@@ -115,7 +114,8 @@ export default function AdminFounderInvitationSection({
             )}
             {invitation && displayStatus === "revoked" && invitation.revoked_at && (
               <span className="invitation-meta">
-                {invitation.revoked_by ? "Revoked" : "Superseded"} {new Date(invitation.revoked_at).toLocaleString()}
+                {invitation.revoked_by ? "Revoked" : "Superseded"}{" "}
+                {new Date(invitation.revoked_at).toLocaleString()}
               </span>
             )}
             {invitation && displayStatus === "accepted" && invitation.accepted_at && (
@@ -126,7 +126,9 @@ export default function AdminFounderInvitationSection({
           </div>
 
           <div className="invitation-status-row">
-            <span className={`invitation-email-status invitation-email-status--${emailDisplayStatus}`}>
+            <span
+              className={`invitation-email-status invitation-email-status--${emailDisplayStatus}`}
+            >
               {FOUNDER_INVITATION_EMAIL_DISPLAY_LABEL[emailDisplayStatus]}
             </span>
             {invitation?.latest_delivery_attempted_at && (
@@ -201,7 +203,9 @@ export default function AdminFounderInvitationSection({
       )}
       {reissueError && !reissueIdempotencyKey && (
         <p className="invitation-error" role="alert">
-          {reissueError instanceof Error ? reissueError.message : "Unable to reissue the invitation."}
+          {reissueError instanceof Error
+            ? reissueError.message
+            : "Unable to reissue the invitation."}
         </p>
       )}
 
@@ -243,7 +247,9 @@ export default function AdminFounderInvitationSection({
         {invitationHistory.map((historyInvitation) => (
           <article className="invitation-history__item" key={historyInvitation.id}>
             <div className="invitation-history__heading">
-              <strong>{FOUNDER_INVITATION_DISPLAY_LABEL[deriveInvitationDisplayStatus(historyInvitation)]}</strong>
+              <strong>
+                {FOUNDER_INVITATION_DISPLAY_LABEL[deriveInvitationDisplayStatus(historyInvitation)]}
+              </strong>
               <span>{new Date(historyInvitation.created_at).toLocaleString()}</span>
             </div>
             {(deliveryAttemptsByInvitation[historyInvitation.id] ?? []).map((attempt) => (

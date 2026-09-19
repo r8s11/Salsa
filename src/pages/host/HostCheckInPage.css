@@ -127,7 +127,9 @@
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 0.625rem;
-  transition: border-color 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
 }
 
 .host-checkin__card--checked-in {

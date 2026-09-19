@@ -141,7 +141,11 @@ function AddAttendeeForm({ onAdd, isAdding }: AddAttendeeFormProps) {
         </label>
       </div>
 
-      {error && <p className="attendee-form__error" role="alert">{error}</p>}
+      {error && (
+        <p className="attendee-form__error" role="alert">
+          {error}
+        </p>
+      )}
 
       <button
         type="submit"
@@ -156,15 +160,8 @@ function AddAttendeeForm({ onAdd, isAdding }: AddAttendeeFormProps) {
 
 export default function HostAttendeeListPage() {
   const { eventId } = useParams<{ eventId: string }>();
-  const {
-    attendees,
-    isLoading,
-    error,
-    refetch,
-    addAttendee,
-    isAdding,
-    deleteAttendee,
-  } = useEventAttendees(eventId);
+  const { attendees, isLoading, error, refetch, addAttendee, isAdding, deleteAttendee } =
+    useEventAttendees(eventId);
 
   const totalPartySize = attendees.reduce((sum, a) => sum + a.partySize, 0);
 
@@ -191,10 +188,7 @@ export default function HostAttendeeListPage() {
   return (
     <div className="admin-shell">
       <div className="host-attendee-list">
-        <Link
-          to={`/host/events/${eventId}`}
-          className="host-attendee-list__back"
-        >
+        <Link to={`/host/events/${eventId}`} className="host-attendee-list__back">
           <ArrowLeft size={16} aria-hidden="true" />
           Back to Event
         </Link>
@@ -337,9 +331,7 @@ function RemoveAttendeeDialog({
         aria-describedby="remove-attendee-body"
       >
         <h2 id="remove-attendee-title">Remove attendee &ldquo;{displayName}&rdquo;?</h2>
-        <p id="remove-attendee-body">
-          This removes their attendance record from this event.
-        </p>
+        <p id="remove-attendee-body">This removes their attendance record from this event.</p>
         {error && (
           <p className="attendee-remove-dialog__error" role="alert">
             {error}

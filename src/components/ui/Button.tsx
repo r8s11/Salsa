@@ -28,7 +28,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       type,
       ...rest
     },
-    ref,
+    ref
   ) => {
     const resolvedType = type ?? "button";
     const isDisabled = disabled || loading;
@@ -53,13 +53,11 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         aria-busy={loading || undefined}
         {...rest}
       >
-        {loading && (
-          <Loader2 className="ui-button__spinner" aria-hidden="true" />
-        )}
+        {loading && <Loader2 className="ui-button__spinner" aria-hidden="true" />}
         {loading && loadingLabel ? loadingLabel : children}
       </button>
     );
-  },
+  }
 );
 
 Button.displayName = "Button";

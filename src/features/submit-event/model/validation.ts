@@ -160,10 +160,7 @@ export type SubmitFieldErrors = Partial<Record<SubmitFieldName, string>>;
  * future-only event date today, and the P2-4 audit found no evidence such a
  * rule ever existed. Adding one now would be new, unrequested scope.
  */
-export function validateSubmitFormFields(
-  form: SubmitForm,
-  isAnonymous = false
-): SubmitFieldErrors {
+export function validateSubmitFormFields(form: SubmitForm, isAnonymous = false): SubmitFieldErrors {
   const errors: SubmitFieldErrors = {};
 
   if (form.title.trim() === "") {

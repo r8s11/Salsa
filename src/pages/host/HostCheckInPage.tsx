@@ -36,10 +36,7 @@ export default function HostCheckInPage() {
   const [search, setSearch] = useState("");
   const [method, setMethod] = useState<"manual" | "door">("manual");
 
-  const activeCheckIns = useMemo(
-    () => checkIns.filter((c) => !c.reversedAt),
-    [checkIns]
-  );
+  const activeCheckIns = useMemo(() => checkIns.filter((c) => !c.reversedAt), [checkIns]);
 
   const checkedInIds = useMemo(
     () => new Set(activeCheckIns.map((c) => c.attendeeId)),
@@ -50,9 +47,7 @@ export default function HostCheckInPage() {
     if (!search.trim()) return attendees;
     const q = search.toLowerCase();
     return attendees.filter(
-      (a) =>
-        a.displayName.toLowerCase().includes(q) ||
-        a.email?.toLowerCase().includes(q)
+      (a) => a.displayName.toLowerCase().includes(q) || a.email?.toLowerCase().includes(q)
     );
   }, [attendees, search]);
 
@@ -83,10 +78,7 @@ export default function HostCheckInPage() {
   return (
     <div className="admin-shell">
       <div className="host-checkin">
-        <Link
-          to={`/host/events/${eventId}`}
-          className="host-checkin__back"
-        >
+        <Link to={`/host/events/${eventId}`} className="host-checkin__back">
           <ArrowLeft size={16} aria-hidden="true" />
           Back to Event
         </Link>
@@ -97,17 +89,15 @@ export default function HostCheckInPage() {
         </p>
 
         {isLoading && (
-          <p className="host-checkin__status" role="status">Loading…</p>
+          <p className="host-checkin__status" role="status">
+            Loading…
+          </p>
         )}
 
         {error && (
           <div className="admin-banner admin-banner--error" role="alert">
             <p>{error}</p>
-            <button
-              type="button"
-              className="admin-btn admin-btn--secondary"
-              onClick={refetch}
-            >
+            <button type="button" className="admin-btn admin-btn--secondary" onClick={refetch}>
               Try Again
             </button>
           </div>
@@ -162,9 +152,7 @@ export default function HostCheckInPage() {
                       className={`host-checkin__card ${isCheckedIn ? "host-checkin__card--checked-in" : ""}`}
                     >
                       <div className="host-checkin__card-info">
-                        <span className="host-checkin__card-name">
-                          {attendee.displayName}
-                        </span>
+                        <span className="host-checkin__card-name">{attendee.displayName}</span>
                         <span className="host-checkin__card-meta">
                           {attendee.category.replace("_", " ")}
                           {attendee.partySize > 1 && ` · +${attendee.partySize - 1}`}

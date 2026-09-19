@@ -14,7 +14,9 @@ const mocks = vi.hoisted(() => ({
   removeEventFlyer: vi.fn(),
 }));
 vi.mock("../../contexts/useAuth", () => ({ useAuth: mocks.useAuth }));
-vi.mock("../../features/host/hooks/useMyOrganizers", () => ({ useMyOrganizers: mocks.useMyOrganizers }));
+vi.mock("../../features/host/hooks/useMyOrganizers", () => ({
+  useMyOrganizers: mocks.useMyOrganizers,
+}));
 vi.mock("../../features/host/api/organizerAccessRepo", () => ({
   createOrganizerEvent: mocks.createOrganizerEvent,
   updateOrganizerEvent: mocks.updateOrganizerEvent,
@@ -41,11 +43,17 @@ describe("HostCreateEventPage", () => {
     vi.clearAllMocks();
   });
 
-
   it("uses the only active manageable organizer without showing a selector", async () => {
     mocks.useAuth.mockReturnValue({ user: { id: "user-1", email: "host@example.com" } });
     mocks.useMyOrganizers.mockReturnValue({
-      data: [{ organizerId: "org-1", organizerName: "Boston Salsa Collective", organizerStatus: "active", memberRole: "owner" }],
+      data: [
+        {
+          organizerId: "org-1",
+          organizerName: "Boston Salsa Collective",
+          organizerStatus: "active",
+          memberRole: "owner",
+        },
+      ],
       isLoading: false,
       error: null,
     });
@@ -56,7 +64,10 @@ describe("HostCreateEventPage", () => {
     expect(screen.getByText("Boston Salsa Collective")).toBeInTheDocument();
     expect(screen.queryByLabelText("Organizer")).not.toBeInTheDocument();
     expect(screen.getByRole("group", { name: "Creating event for" })).toBeInTheDocument();
-    expect(screen.getByText("Creating event for")).toHaveAttribute("id", "host-event-organizer-label");
+    expect(screen.getByText("Creating event for")).toHaveAttribute(
+      "id",
+      "host-event-organizer-label"
+    );
     expect(screen.queryByLabelText("Organizer")).not.toBeInTheDocument();
     expect(mocks.createOrganizerEvent).not.toHaveBeenCalled();
   });
@@ -73,16 +84,27 @@ describe("HostCreateEventPage", () => {
 
     expect(screen.getByRole("alert")).toHaveTextContent(/couldn't check organizer access/i);
     expect(screen.getByRole("button", { name: "Try Again" })).toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: "Create an Organizer first" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Create an Organizer first" })
+    ).not.toBeInTheDocument();
   });
-
 
   it("excludes inactive organizers and editors from creation access", () => {
     mocks.useAuth.mockReturnValue({ user: { id: "user-1", email: "host@example.com" } });
     mocks.useMyOrganizers.mockReturnValue({
       data: [
-        { organizerId: "org-1", organizerName: "Suspended Club", organizerStatus: "suspended", memberRole: "owner" },
-        { organizerId: "org-2", organizerName: "Editor Club", organizerStatus: "active", memberRole: "editor" },
+        {
+          organizerId: "org-1",
+          organizerName: "Suspended Club",
+          organizerStatus: "suspended",
+          memberRole: "owner",
+        },
+        {
+          organizerId: "org-2",
+          organizerName: "Editor Club",
+          organizerStatus: "active",
+          memberRole: "editor",
+        },
       ],
       isLoading: false,
       error: null,
@@ -90,7 +112,9 @@ describe("HostCreateEventPage", () => {
 
     renderPage();
 
-    expect(screen.getByRole("heading", { name: "You don't have create access" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "You don't have create access" })
+    ).toBeInTheDocument();
     expect(screen.getByText(/owners and managers can create/i)).toBeInTheDocument();
     expect(screen.queryByText("Suspended Club")).not.toBeInTheDocument();
     expect(screen.queryByText("Editor Club")).not.toBeInTheDocument();
@@ -101,8 +125,18 @@ describe("HostCreateEventPage", () => {
     mocks.useAuth.mockReturnValue({ user: { id: "user-1", email: "host@example.com" } });
     mocks.useMyOrganizers.mockReturnValue({
       data: [
-        { organizerId: "org-1", organizerName: "Boston Salsa Collective", organizerStatus: "active", memberRole: "owner" },
-        { organizerId: "org-2", organizerName: "NYC Dance Co", organizerStatus: "active", memberRole: "manager" },
+        {
+          organizerId: "org-1",
+          organizerName: "Boston Salsa Collective",
+          organizerStatus: "active",
+          memberRole: "owner",
+        },
+        {
+          organizerId: "org-2",
+          organizerName: "NYC Dance Co",
+          organizerStatus: "active",
+          memberRole: "manager",
+        },
       ],
       isLoading: false,
       error: null,
@@ -129,11 +163,20 @@ describe("HostCreateEventPage", () => {
     const user = userEvent.setup();
     mocks.useAuth.mockReturnValue({ user: { id: "user-1", email: "host@example.com" } });
     mocks.useMyOrganizers.mockReturnValue({
-      data: [{ organizerId: "org-1", organizerName: "Boston Salsa Collective", organizerStatus: "active", memberRole: "owner" }],
+      data: [
+        {
+          organizerId: "org-1",
+          organizerName: "Boston Salsa Collective",
+          organizerStatus: "active",
+          memberRole: "owner",
+        },
+      ],
       isLoading: false,
       error: null,
     });
-    mocks.createOrganizerEvent.mockRejectedValue(new Error("active owner or manager membership required"));
+    mocks.createOrganizerEvent.mockRejectedValue(
+      new Error("active owner or manager membership required")
+    );
 
     renderPage();
     await user.type(screen.getByLabelText("Event Title *"), "Tuesday Social");
@@ -148,7 +191,14 @@ describe("HostCreateEventPage", () => {
     const user = userEvent.setup();
     mocks.useAuth.mockReturnValue({ user: { id: "user-1", email: "host@example.com" } });
     mocks.useMyOrganizers.mockReturnValue({
-      data: [{ organizerId: "org-1", organizerName: "Boston Salsa Collective", organizerStatus: "active", memberRole: "owner" }],
+      data: [
+        {
+          organizerId: "org-1",
+          organizerName: "Boston Salsa Collective",
+          organizerStatus: "active",
+          memberRole: "owner",
+        },
+      ],
       isLoading: false,
       error: null,
     });
@@ -162,7 +212,10 @@ describe("HostCreateEventPage", () => {
     await user.type(screen.getByLabelText("Date *"), "2099-10-24");
     const input = view.container.querySelector('input[type="file"]');
     expect(input).not.toBeNull();
-    await user.upload(input as HTMLInputElement, new File(["flyer"], "flyer.jpg", { type: "image/jpeg" }));
+    await user.upload(
+      input as HTMLInputElement,
+      new File(["flyer"], "flyer.jpg", { type: "image/jpeg" })
+    );
     await user.click(screen.getByRole("button", { name: "Save Draft" }));
 
     await waitFor(() => expect(mocks.updateOrganizerEvent).toHaveBeenCalledTimes(1));

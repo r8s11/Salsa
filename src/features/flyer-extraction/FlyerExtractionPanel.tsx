@@ -35,13 +35,19 @@ function buildResultRows(result: ExtractedEvent): ResultRow[] {
     rows.push({
       label: "Website",
       content: (
-        <a href={result.website} target="_blank" rel="noreferrer" aria-label={`Open website ${result.website}`}>
+        <a
+          href={result.website}
+          target="_blank"
+          rel="noreferrer"
+          aria-label={`Open website ${result.website}`}
+        >
           {result.website}
         </a>
       ),
     });
   }
-  if (result.details.length > 0) rows.push({ label: "Details", content: result.details.join(", ") });
+  if (result.details.length > 0)
+    rows.push({ label: "Details", content: result.details.join(", ") });
   return rows;
 }
 
@@ -79,7 +85,10 @@ export default function FlyerExtractionPanel({
 
   if (status === "error") {
     return (
-      <div className="flyer-extraction-panel flyer-extraction-panel--error error-banner" role="alert">
+      <div
+        className="flyer-extraction-panel flyer-extraction-panel--error error-banner"
+        role="alert"
+      >
         <p>{error ?? "We couldn't read this flyer."}</p>
         <div className="flyer-extraction-panel__actions">
           <Button type="button" variant="secondary" onClick={onRetry}>
@@ -119,7 +128,9 @@ export default function FlyerExtractionPanel({
             ))}
           </dl>
         ) : (
-          <p className="flyer-extraction-panel__empty">We couldn't find any details on this flyer.</p>
+          <p className="flyer-extraction-panel__empty">
+            We couldn't find any details on this flyer.
+          </p>
         )}
         {partial && (
           <p className="flyer-extraction-panel__partial-note">

@@ -21,7 +21,9 @@ describe("account deletion client", () => {
     mocks.invoke.mockResolvedValue({ data: expected, error: null });
 
     await expect(checkAccountDeletionEligibility()).resolves.toEqual(expected);
-    expect(mocks.invoke).toHaveBeenCalledWith("delete-account", { body: { action: "eligibility" } });
+    expect(mocks.invoke).toHaveBeenCalledWith("delete-account", {
+      body: { action: "eligibility" },
+    });
   });
 
   it("returns a server-confirmed deletion only after the trusted request succeeds", async () => {

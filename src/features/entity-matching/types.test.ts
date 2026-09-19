@@ -29,13 +29,21 @@ describe("reconciliation response validation", () => {
   });
 
   it("validates all status values", () => {
-    const statuses: Array<"exact" | "strong" | "ambiguous" | "none"> = ["exact", "strong", "ambiguous", "none"];
+    const statuses: Array<"exact" | "strong" | "ambiguous" | "none"> = [
+      "exact",
+      "strong",
+      "ambiguous",
+      "none",
+    ];
 
     for (const status of statuses) {
       const response = parseReconciliationResponse({
         venue: {
           status,
-          match: status === "none" || status === "ambiguous" ? null : { id: "1", name: "Test", address: null, city: null },
+          match:
+            status === "none" || status === "ambiguous"
+              ? null
+              : { id: "1", name: "Test", address: null, city: null },
         },
       });
       expect(response.venue.status).toBe(status);
@@ -75,19 +83,31 @@ describe("reconciliation response validation", () => {
   });
 
   it("rejects malformed structure - missing venue", () => {
-    expect(() => parseReconciliationResponse({ status: "exact" })).toThrow("Invalid reconciliation response structure");
+    expect(() => parseReconciliationResponse({ status: "exact" })).toThrow(
+      "Invalid reconciliation response structure"
+    );
   });
 
   it("rejects malformed structure - non-object venue", () => {
-    expect(() => parseReconciliationResponse({ venue: "exact" })).toThrow("Invalid reconciliation response structure");
-    expect(() => parseReconciliationResponse({ venue: null })).toThrow("Invalid reconciliation response structure");
-    expect(() => parseReconciliationResponse({ venue: ["array"] })).toThrow("Invalid reconciliation response structure");
+    expect(() => parseReconciliationResponse({ venue: "exact" })).toThrow(
+      "Invalid reconciliation response structure"
+    );
+    expect(() => parseReconciliationResponse({ venue: null })).toThrow(
+      "Invalid reconciliation response structure"
+    );
+    expect(() => parseReconciliationResponse({ venue: ["array"] })).toThrow(
+      "Invalid reconciliation response structure"
+    );
   });
 
   it("rejects missing or invalid status field", () => {
     expect(() => parseReconciliationResponse({ venue: {} })).toThrow("missing or invalid status");
-    expect(() => parseReconciliationResponse({ venue: { status: 123 } })).toThrow("missing or invalid status");
-    expect(() => parseReconciliationResponse({ venue: { status: null } })).toThrow("missing or invalid status");
+    expect(() => parseReconciliationResponse({ venue: { status: 123 } })).toThrow(
+      "missing or invalid status"
+    );
+    expect(() => parseReconciliationResponse({ venue: { status: null } })).toThrow(
+      "missing or invalid status"
+    );
   });
 
   it("rejects invalid status value", () => {
@@ -212,10 +232,18 @@ describe("reconciliation response validation", () => {
   });
 
   it("rejects non-object/array input", () => {
-    expect(() => parseReconciliationResponse(null)).toThrow("Invalid reconciliation response structure");
-    expect(() => parseReconciliationResponse("string")).toThrow("Invalid reconciliation response structure");
-    expect(() => parseReconciliationResponse(123)).toThrow("Invalid reconciliation response structure");
-    expect(() => parseReconciliationResponse(["array"])).toThrow("Invalid reconciliation response structure");
+    expect(() => parseReconciliationResponse(null)).toThrow(
+      "Invalid reconciliation response structure"
+    );
+    expect(() => parseReconciliationResponse("string")).toThrow(
+      "Invalid reconciliation response structure"
+    );
+    expect(() => parseReconciliationResponse(123)).toThrow(
+      "Invalid reconciliation response structure"
+    );
+    expect(() => parseReconciliationResponse(["array"])).toThrow(
+      "Invalid reconciliation response structure"
+    );
   });
 
   it("rejects extra fields in response (strict structural validation)", () => {

@@ -202,13 +202,34 @@
   letter-spacing: 0.03em;
 }
 
-.badge--blue { background: #dbeafe; color: #1d4ed8; }
-.badge--gray { background: #f1f5f9; color: #64748b; }
-.badge--green { background: #dcfce7; color: #15803d; }
-.badge--yellow { background: #fef9c3; color: #a16207; }
-.badge--purple { background: #f3e8ff; color: #7e22ce; }
-.badge--cyan { background: #cffafe; color: #0e7490; }
-.badge--orange { background: #ffedd5; color: #c2410c; }
+.badge--blue {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+.badge--gray {
+  background: #f1f5f9;
+  color: #64748b;
+}
+.badge--green {
+  background: #dcfce7;
+  color: #15803d;
+}
+.badge--yellow {
+  background: #fef9c3;
+  color: #a16207;
+}
+.badge--purple {
+  background: #f3e8ff;
+  color: #7e22ce;
+}
+.badge--cyan {
+  background: #cffafe;
+  color: #0e7490;
+}
+.badge--orange {
+  background: #ffedd5;
+  color: #c2410c;
+}
 
 /* ── Action buttons ── */
 

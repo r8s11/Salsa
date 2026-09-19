@@ -34,7 +34,11 @@ describe("resolveIdentity", () => {
 
   it("falls back to a safe generic name when both are empty, never the email", () => {
     const identity = resolveIdentity({ display_name: "", username: "" });
-    expect(identity).toEqual({ name: SAFE_NAME_FALLBACK, usernameLine: null, usernameMissing: true });
+    expect(identity).toEqual({
+      name: SAFE_NAME_FALLBACK,
+      usernameLine: null,
+      usernameMissing: true,
+    });
   });
 
   it("trims whitespace-only display_name and username", () => {
@@ -46,11 +50,15 @@ describe("resolveIdentity", () => {
 
 describe("initialsFor", () => {
   it("takes the first letter of the resolved name", () => {
-    expect(initialsFor({ name: "Maria Santos", usernameLine: null, usernameMissing: false })).toBe("M");
+    expect(initialsFor({ name: "Maria Santos", usernameLine: null, usernameMissing: false })).toBe(
+      "M"
+    );
   });
 
   it("skips a leading @ when the name is a username fallback", () => {
-    expect(initialsFor({ name: "@mariasalsa", usernameLine: null, usernameMissing: false })).toBe("M");
+    expect(initialsFor({ name: "@mariasalsa", usernameLine: null, usernameMissing: false })).toBe(
+      "M"
+    );
   });
 });
 
@@ -177,7 +185,8 @@ describe("capabilityCardsFor", () => {
     ]);
     expect(cards[2]).toEqual({
       title: "Host Events",
-      description: "Submit events for review, manage eligible submissions, and promote approved listings.",
+      description:
+        "Submit events for review, manage eligible submissions, and promote approved listings.",
       links: [
         { label: "Open Host Dashboard", to: "/host", primary: true },
         { label: "My Events", to: "/host/events", primary: false },

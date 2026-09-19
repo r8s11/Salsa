@@ -346,8 +346,8 @@ export default function AdminUserDetailPage() {
             <section className="admin-card admin-user-detail-page__invitation">
               <h2>Pending invitation</h2>
               <p>
-                {user.email} has not accepted their invitation yet. Resending mints a new
-                single-use link and invalidates the previous one.
+                {user.email} has not accepted their invitation yet. Resending mints a new single-use
+                link and invalidates the previous one.
               </p>
               <button
                 type="button"

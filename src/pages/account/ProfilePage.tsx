@@ -175,7 +175,10 @@ export default function ProfilePage() {
         ) : null}
         <div className="profile-cover-gradient" aria-hidden="true" />
         {isOwnProfile && (
-          <Link to="/profile/edit?focus=cover" className="profile-photo-edit profile-photo-edit--cover">
+          <Link
+            to="/profile/edit?focus=cover"
+            className="profile-photo-edit profile-photo-edit--cover"
+          >
             <Camera size={15} aria-hidden="true" />
             {showCover ? "Change cover" : "Add a cover"}
           </Link>

@@ -1,6 +1,11 @@
 import "temporal-polyfill/global";
 import { describe, expect, it } from "vitest";
-import { draftToAdminPayload, draftToOrganizerCreatePayload, draftToSubmission, draftToUserPayload } from "./types";
+import {
+  draftToAdminPayload,
+  draftToOrganizerCreatePayload,
+  draftToSubmission,
+  draftToUserPayload,
+} from "./types";
 import type { EventFormDraft } from "./types";
 
 const draft: EventFormDraft = {

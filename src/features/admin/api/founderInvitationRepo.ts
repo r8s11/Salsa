@@ -63,14 +63,22 @@ export async function sendFounderInvitation(
   founderRequestId: string,
   idempotencyKey: string
 ): Promise<SendFounderInvitationResult> {
-  return invokeFounderInvitationDelivery("send-founder-invitation", founderRequestId, idempotencyKey);
+  return invokeFounderInvitationDelivery(
+    "send-founder-invitation",
+    founderRequestId,
+    idempotencyKey
+  );
 }
 
 export async function reissueFounderInvitation(
   founderRequestId: string,
   idempotencyKey: string
 ): Promise<SendFounderInvitationResult> {
-  return invokeFounderInvitationDelivery("reissue-founder-invitation", founderRequestId, idempotencyKey);
+  return invokeFounderInvitationDelivery(
+    "reissue-founder-invitation",
+    founderRequestId,
+    idempotencyKey
+  );
 }
 
 async function invokeFounderInvitationDelivery(
@@ -78,9 +86,12 @@ async function invokeFounderInvitationDelivery(
   founderRequestId: string,
   idempotencyKey: string
 ): Promise<SendFounderInvitationResult> {
-  const { data, error } = await supabase.functions.invoke<SendFounderInvitationResult>(functionName, {
-    body: { founderRequestId, idempotencyKey },
-  });
+  const { data, error } = await supabase.functions.invoke<SendFounderInvitationResult>(
+    functionName,
+    {
+      body: { founderRequestId, idempotencyKey },
+    }
+  );
   if (error) {
     let message = error.message;
     if (error instanceof FunctionsHttpError) {

@@ -74,7 +74,9 @@ export function useProfileMedia(userId: string | undefined) {
     try {
       const url =
         kind === "avatar"
-          ? await uploadAvatarFile(file, userId, crop)
+          ? crop !== undefined
+            ? await uploadAvatarFile(file, userId, crop)
+            : await uploadAvatarFile(file, userId)
           : await uploadCoverFile(file, userId);
       try {
         await updateOwnProfile(userId, {

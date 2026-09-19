@@ -10,11 +10,8 @@
 }
 
 .admin-duplicate-dialog {
-  width: 100%;
-  max-width: 420px;
+  max-width: 440px;
   padding: 24px;
-  display: flex;
-  flex-direction: column;
   gap: 16px;
 }
 

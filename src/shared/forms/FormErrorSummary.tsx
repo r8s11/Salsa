@@ -49,7 +49,9 @@ export default function FormErrorSummary({
 
   return (
     <div className="form-error-summary" id={id} ref={ref} role="alert" tabIndex={-1}>
-      <p className="form-error-summary__heading">{serverMessage ? "We couldn't submit this" : heading}</p>
+      <p className="form-error-summary__heading">
+        {serverMessage ? "We couldn't submit this" : heading}
+      </p>
       {serverMessage && <p className="form-error-summary__server">{serverMessage}</p>}
       {items.length > 0 && (
         <ul className="form-error-summary__list">

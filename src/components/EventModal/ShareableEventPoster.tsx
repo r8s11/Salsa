@@ -42,7 +42,7 @@ export default function ShareableEventPoster({ event, imageUrl }: ShareableEvent
     };
     return `${startDate.toLocaleTimeString(
       "en-US",
-      opts,
+      opts
     )} – ${endDate.toLocaleTimeString("en-US", opts)}`;
   };
 

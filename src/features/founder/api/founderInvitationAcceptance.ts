@@ -15,9 +15,7 @@ export interface ValidatedFounderInvitation {
   expiresAt: string;
 }
 
-export type FounderInvitationValidationResult =
-  | ValidatedFounderInvitation
-  | { valid: false };
+export type FounderInvitationValidationResult = ValidatedFounderInvitation | { valid: false };
 
 export async function validateFounderInvitation(
   token: string
@@ -55,9 +53,7 @@ export interface AcceptedFounderInvitation {
   founderRequestId: string;
 }
 
-export async function acceptFounderInvitation(
-  token: string
-): Promise<AcceptedFounderInvitation> {
+export async function acceptFounderInvitation(token: string): Promise<AcceptedFounderInvitation> {
   const { data, error } = await supabase.rpc("accept_founder_invitation", {
     p_token: token,
   });

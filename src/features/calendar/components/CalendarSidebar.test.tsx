@@ -38,10 +38,7 @@ describe("CalendarSidebar", () => {
       "aria-pressed",
       "true"
     );
-    expect(screen.getByRole("button", { name: "Class 1" })).toHaveAttribute(
-      "aria-pressed",
-      "true"
-    );
+    expect(screen.getByRole("button", { name: "Class 1" })).toHaveAttribute("aria-pressed", "true");
   });
 
   it("marks only the selected type row pressed for a specific filter", () => {
@@ -65,7 +62,9 @@ describe("CalendarSidebar", () => {
     expect(onTypeFilterChange).toHaveBeenCalledWith("all");
 
     onTypeFilterChange.mockClear();
-    rerender(<CalendarSidebar {...baseProps} typeFilter="all" onTypeFilterChange={onTypeFilterChange} />);
+    rerender(
+      <CalendarSidebar {...baseProps} typeFilter="all" onTypeFilterChange={onTypeFilterChange} />
+    );
     screen.getByRole("button", { name: "Class 1" }).click();
     expect(onTypeFilterChange).toHaveBeenCalledWith("class");
   });

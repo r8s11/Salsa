@@ -46,14 +46,14 @@ export function normalizeEmail(value: string): string {
 
 /** Normalize organization name: trim, collapse whitespace, lowercase. */
 export function normalizeOrgName(value: string): string {
-  return value.trim().replace(/\s+/g, ' ').toLowerCase();
+  return value.trim().replace(/\s+/g, " ").toLowerCase();
 }
 
 /** Normalize Instagram handle: remove leading @, lowercase. */
 export function normalizeInstagram(value: string): string | null {
   const trimmed = value.trim();
   if (!trimmed) return null;
-  return trimmed.replace(/^@/, '').toLowerCase();
+  return trimmed.replace(/^@/, "").toLowerCase();
 }
 
 /** Normalize website: trim, ensure protocol. */
@@ -68,35 +68,35 @@ export function normalizeWebsite(value: string): string | null {
 
 /** Validate email format. */
 export function validateEmail(value: string): string | null {
-  if (!value.trim()) return 'Email is required';
-  if (value.trim().length > 255) return 'Email too long (max 255 characters)';
+  if (!value.trim()) return "Email is required";
+  if (value.trim().length > 255) return "Email too long (max 255 characters)";
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) {
-    return 'Invalid email format';
+    return "Invalid email format";
   }
   return null;
 }
 
 /** Validate applicant name. */
 export function validateApplicantName(value: string): string | null {
-  if (!value.trim()) return 'Your name is required';
-  if (value.trim().length > 255) return 'Name too long (max 255 characters)';
+  if (!value.trim()) return "Your name is required";
+  if (value.trim().length > 255) return "Name too long (max 255 characters)";
   return null;
 }
 
 /** Validate organization name. */
 export function validateOrganizationName(value: string): string | null {
-  if (!value.trim()) return 'Organization name is required';
-  if (value.trim().length > 255) return 'Organization name too long (max 255 characters)';
+  if (!value.trim()) return "Organization name is required";
+  if (value.trim().length > 255) return "Organization name too long (max 255 characters)";
   return null;
 }
 
 /** Validate Instagram handle. */
 export function validateInstagram(value: string | undefined): string | null {
   if (!value || !value.trim()) return null;
-  if (value.trim().length > 100) return 'Instagram handle too long (max 100 characters)';
-  const handle = value.trim().replace(/^@/, '').toLowerCase();
+  if (value.trim().length > 100) return "Instagram handle too long (max 100 characters)";
+  const handle = value.trim().replace(/^@/, "").toLowerCase();
   if (!/^[a-z0-9._]+$/.test(handle)) {
-    return 'Enter a valid Instagram handle (letters, numbers, periods, underscores)';
+    return "Enter a valid Instagram handle (letters, numbers, periods, underscores)";
   }
   return null;
 }
@@ -105,9 +105,9 @@ export function validateInstagram(value: string | undefined): string | null {
 export function validateWebsite(value: string | undefined): string | null {
   if (!value || !value.trim()) return null;
   const trimmed = value.trim();
-  if (trimmed.length > 500) return 'Website URL too long (max 500 characters)';
+  if (trimmed.length > 500) return "Website URL too long (max 500 characters)";
   if (!/^https?:\/\//i.test(trimmed)) {
-    return 'Website must start with http:// or https://';
+    return "Website must start with http:// or https://";
   }
   return null;
 }
@@ -115,28 +115,28 @@ export function validateWebsite(value: string | undefined): string | null {
 /** Validate city. */
 export function validateCity(value: string | undefined): string | null {
   if (!value || !value.trim()) return null;
-  if (value.trim().length > 100) return 'City too long (max 100 characters)';
+  if (value.trim().length > 100) return "City too long (max 100 characters)";
   return null;
 }
 
 /** Validate region. */
 export function validateRegion(value: string | undefined): string | null {
   if (!value || !value.trim()) return null;
-  if (value.trim().length > 100) return 'Region too long (max 100 characters)';
+  if (value.trim().length > 100) return "Region too long (max 100 characters)";
   return null;
 }
 
 /** Validate description. */
 export function validateDescription(value: string | undefined): string | null {
   if (!value || !value.trim()) return null;
-  if (value.trim().length > 5000) return 'Description too long (max 5000 characters)';
+  if (value.trim().length > 5000) return "Description too long (max 5000 characters)";
   return null;
 }
 
 /** Validate message. */
 export function validateMessage(value: string | undefined): string | null {
   if (!value || !value.trim()) return null;
-  if (value.trim().length > 5000) return 'Message too long (max 5000 characters)';
+  if (value.trim().length > 5000) return "Message too long (max 5000 characters)";
   return null;
 }
 
@@ -185,8 +185,8 @@ export function normalizePayload(payload: FounderRequestPayload): FounderRequest
     applicantName: payload.applicantName.trim(),
     email: normalizeEmail(payload.email),
     organizationName: payload.organizationName.trim(),
-    instagram: payload.instagram ? normalizeInstagram(payload.instagram) ?? undefined : undefined,
-    website: payload.website ? normalizeWebsite(payload.website) ?? undefined : undefined,
+    instagram: payload.instagram ? (normalizeInstagram(payload.instagram) ?? undefined) : undefined,
+    website: payload.website ? (normalizeWebsite(payload.website) ?? undefined) : undefined,
     city: payload.city?.trim(),
     region: payload.region?.trim(),
     description: payload.description?.trim(),

@@ -51,7 +51,10 @@ describe("InviteActivationPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     setCallbackUrl();
-    mocks.exchangeCodeForSession.mockResolvedValue({ data: { session: null, user: null }, error: null });
+    mocks.exchangeCodeForSession.mockResolvedValue({
+      data: { session: null, user: null },
+      error: null,
+    });
     mocks.setSession.mockResolvedValue({ data: { session: null, user: null }, error: null });
     mocks.verifyOtp.mockResolvedValue({ data: { session: null, user: null }, error: null });
     mocks.getSession.mockResolvedValue({ data: { session: null }, error: null });
@@ -63,8 +66,13 @@ describe("InviteActivationPage", () => {
     setCallbackUrl("/auth/invite?error=access_denied&error_description=Invitation%20expired");
     renderPage();
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(/invalid|expired|already been used/i);
-    expect(screen.getByRole("link", { name: /back to sign in/i })).toHaveAttribute("href", "/signin");
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      /invalid|expired|already been used/i
+    );
+    expect(screen.getByRole("link", { name: /back to sign in/i })).toHaveAttribute(
+      "href",
+      "/signin"
+    );
     expect(mocks.exchangeCodeForSession).not.toHaveBeenCalled();
   });
 
@@ -74,7 +82,9 @@ describe("InviteActivationPage", () => {
     );
     renderPage();
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(/invalid|expired|already been used/i);
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      /invalid|expired|already been used/i
+    );
     expect(mocks.setSession).not.toHaveBeenCalled();
     // A hash-carried error must short-circuit before any session lookup. Without
     // hash parsing, this exact URL falls through to the no-session fallback path
@@ -85,8 +95,14 @@ describe("InviteActivationPage", () => {
 
   it("exchanges a PKCE code exactly once and shows organizer password setup", async () => {
     setCallbackUrl("/auth/invite?code=pkce-code");
-    mocks.exchangeCodeForSession.mockResolvedValue({ data: { session: {}, user: null }, error: null });
-    mocks.getSession.mockResolvedValue({ data: { session: { user: userWithRole("organizer") } }, error: null });
+    mocks.exchangeCodeForSession.mockResolvedValue({
+      data: { session: {}, user: null },
+      error: null,
+    });
+    mocks.getSession.mockResolvedValue({
+      data: { session: { user: userWithRole("organizer") } },
+      error: null,
+    });
     mocks.getUser.mockResolvedValue({ data: { user: userWithRole("organizer") }, error: null });
     const { rerender } = renderPage();
 
@@ -112,19 +128,28 @@ describe("InviteActivationPage", () => {
   it("sets an explicit hash session exactly once before showing organizer setup", async () => {
     setCallbackUrl("/auth/invite#access_token=access&refresh_token=refresh");
     mocks.setSession.mockResolvedValue({ data: { session: {}, user: null }, error: null });
-    mocks.getSession.mockResolvedValue({ data: { session: { user: userWithRole("organizer") } }, error: null });
+    mocks.getSession.mockResolvedValue({
+      data: { session: { user: userWithRole("organizer") } },
+      error: null,
+    });
     mocks.getUser.mockResolvedValue({ data: { user: userWithRole("organizer") }, error: null });
     renderPage();
 
     await expectOrganizerForm();
     expect(mocks.setSession).toHaveBeenCalledTimes(1);
-    expect(mocks.setSession).toHaveBeenCalledWith({ access_token: "access", refresh_token: "refresh" });
+    expect(mocks.setSession).toHaveBeenCalledWith({
+      access_token: "access",
+      refresh_token: "refresh",
+    });
   });
 
   it("verifies a token-hash invite link exactly once and shows organizer setup", async () => {
     setCallbackUrl("/auth/invite?token_hash=hash-value&type=invite");
     mocks.verifyOtp.mockResolvedValue({ data: { session: {}, user: null }, error: null });
-    mocks.getSession.mockResolvedValue({ data: { session: { user: userWithRole("organizer") } }, error: null });
+    mocks.getSession.mockResolvedValue({
+      data: { session: { user: userWithRole("organizer") } },
+      error: null,
+    });
     mocks.getUser.mockResolvedValue({ data: { user: userWithRole("organizer") }, error: null });
     renderPage();
 
@@ -136,7 +161,10 @@ describe("InviteActivationPage", () => {
   it("still completes and reaches organizer setup under React StrictMode's double-invoked effects", async () => {
     setCallbackUrl("/auth/invite#access_token=access&refresh_token=refresh");
     mocks.setSession.mockResolvedValue({ data: { session: {}, user: null }, error: null });
-    mocks.getSession.mockResolvedValue({ data: { session: { user: userWithRole("organizer") } }, error: null });
+    mocks.getSession.mockResolvedValue({
+      data: { session: { user: userWithRole("organizer") } },
+      error: null,
+    });
     mocks.getUser.mockResolvedValue({ data: { user: userWithRole("organizer") }, error: null });
 
     render(
@@ -163,33 +191,46 @@ describe("InviteActivationPage", () => {
     });
     renderPage();
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(/invalid|expired|already been used/i);
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      /invalid|expired|already been used/i
+    );
     expect(mocks.exchangeCodeForSession).toHaveBeenCalledTimes(1);
   });
 
   it("rejects an invitation that does not establish a session", async () => {
     renderPage();
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(/invalid|expired|already been used/i);
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      /invalid|expired|already been used/i
+    );
     expect(screen.queryByLabelText(/^password$/i)).not.toBeInTheDocument();
   });
 
   it.each([null, "moderator", "admin"])(
     "denies a non-organizer role (%s) without setup or host navigation",
     async (role) => {
-      mocks.getSession.mockResolvedValue({ data: { session: { user: userWithRole(role) } }, error: null });
+      mocks.getSession.mockResolvedValue({
+        data: { session: { user: userWithRole(role) } },
+        error: null,
+      });
       mocks.getUser.mockResolvedValue({ data: { user: userWithRole(role) }, error: null });
       renderPage();
 
       expect(await screen.findByRole("alert")).toHaveTextContent(/organizer invitation/i);
-      expect(screen.getByRole("link", { name: /back to sign in/i })).toHaveAttribute("href", "/signin");
+      expect(screen.getByRole("link", { name: /back to sign in/i })).toHaveAttribute(
+        "href",
+        "/signin"
+      );
       expect(screen.queryByLabelText(/^password$/i)).not.toBeInTheDocument();
       expect(screen.queryByText("Host dashboard")).not.toBeInTheDocument();
     }
   );
 
   it("keeps password update unavailable for short or mismatched passwords", async () => {
-    mocks.getSession.mockResolvedValue({ data: { session: { user: userWithRole("organizer") } }, error: null });
+    mocks.getSession.mockResolvedValue({
+      data: { session: { user: userWithRole("organizer") } },
+      error: null,
+    });
     mocks.getUser.mockResolvedValue({ data: { user: userWithRole("organizer") }, error: null });
     const user = userEvent.setup();
     renderPage();
@@ -204,9 +245,15 @@ describe("InviteActivationPage", () => {
   });
 
   it("keeps the organizer form usable after update failure", async () => {
-    mocks.getSession.mockResolvedValue({ data: { session: { user: userWithRole("organizer") } }, error: null });
+    mocks.getSession.mockResolvedValue({
+      data: { session: { user: userWithRole("organizer") } },
+      error: null,
+    });
     mocks.getUser.mockResolvedValue({ data: { user: userWithRole("organizer") }, error: null });
-    mocks.updateUser.mockResolvedValue({ data: { user: null }, error: { message: "Password rejected" } });
+    mocks.updateUser.mockResolvedValue({
+      data: { user: null },
+      error: { message: "Password rejected" },
+    });
     const user = userEvent.setup();
     renderPage();
     await expectOrganizerForm();
@@ -220,7 +267,10 @@ describe("InviteActivationPage", () => {
   });
 
   it("updates a valid organizer password and only then navigates to host", async () => {
-    mocks.getSession.mockResolvedValue({ data: { session: { user: userWithRole("organizer") } }, error: null });
+    mocks.getSession.mockResolvedValue({
+      data: { session: { user: userWithRole("organizer") } },
+      error: null,
+    });
     mocks.getUser.mockResolvedValue({ data: { user: userWithRole("organizer") }, error: null });
     const user = userEvent.setup();
     renderPage();
@@ -235,7 +285,10 @@ describe("InviteActivationPage", () => {
   });
 
   it("associates the short-password error with the password field and moves focus there", async () => {
-    mocks.getSession.mockResolvedValue({ data: { session: { user: userWithRole("organizer") } }, error: null });
+    mocks.getSession.mockResolvedValue({
+      data: { session: { user: userWithRole("organizer") } },
+      error: null,
+    });
     mocks.getUser.mockResolvedValue({ data: { user: userWithRole("organizer") }, error: null });
     const user = userEvent.setup();
     renderPage();
@@ -253,7 +306,10 @@ describe("InviteActivationPage", () => {
   });
 
   it("associates a mismatch error with the confirm-password field and moves focus there", async () => {
-    mocks.getSession.mockResolvedValue({ data: { session: { user: userWithRole("organizer") } }, error: null });
+    mocks.getSession.mockResolvedValue({
+      data: { session: { user: userWithRole("organizer") } },
+      error: null,
+    });
     mocks.getUser.mockResolvedValue({ data: { user: userWithRole("organizer") }, error: null });
     const user = userEvent.setup();
     renderPage();
@@ -272,7 +328,10 @@ describe("InviteActivationPage", () => {
   });
 
   it("maps an internal-looking updateUser error to safe copy instead of raw provider text", async () => {
-    mocks.getSession.mockResolvedValue({ data: { session: { user: userWithRole("organizer") } }, error: null });
+    mocks.getSession.mockResolvedValue({
+      data: { session: { user: userWithRole("organizer") } },
+      error: null,
+    });
     mocks.getUser.mockResolvedValue({ data: { user: userWithRole("organizer") }, error: null });
     mocks.updateUser.mockResolvedValue({
       data: { user: null },

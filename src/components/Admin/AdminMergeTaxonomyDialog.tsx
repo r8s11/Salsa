@@ -1,4 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
+import { useAccessibleDialog } from "../../shared/a11y/useAccessibleDialog";
+import "./AdminMergeTaxonomyDialog.css";
 import type { TaxonomyTerm } from "../../features/admin/model/taxonomy";
 
 export default function AdminMergeTaxonomyDialog({
@@ -12,60 +14,43 @@ export default function AdminMergeTaxonomyDialog({
   onClose: () => void;
   onMerge: (ids: { keepId: string; mergeId: string }) => void;
 }) {
+  const titleId = useId();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const keepSelectRef = useRef<HTMLSelectElement>(null);
   const sameCategory = candidates.filter((candidate) => candidate.category === source.category);
   const [keepId, setKeepId] = useState(sameCategory[0]?.id ?? "");
-  const titleRef = useRef<HTMLHeadingElement>(null);
-  const dialogRef = useRef<HTMLElement>(null);
-  const openerRef = useRef<HTMLElement | null>(null);
-  useEffect(() => {
-    openerRef.current =
-      document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    titleRef.current?.focus();
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        onClose();
-        openerRef.current?.focus();
-        return;
-      }
-      if (event.key !== "Tab" || !dialogRef.current) return;
-      const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
-        "button:not([disabled]), select:not([disabled]), input:not([disabled]), textarea:not([disabled]), a[href]"
-      );
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      if (!first || !last) return;
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, [onClose]);
+
+  const { onKeyDown, onBackdropClick, onDialogClick } = useAccessibleDialog({
+    dialogRef,
+    onDismiss: onClose,
+    isBusy: false,
+    initialFocusRef: keepSelectRef,
+  });
+
   const keep = sameCategory.find((candidate) => candidate.id === keepId);
+
   return (
-    <div className="admin-dialog-backdrop" role="presentation">
-      <section
+    <div className="admin-dialog-backdrop" onClick={onBackdropClick}>
+      <div
         ref={dialogRef}
-        className="admin-dialog"
+        className="admin-card admin-card--dialog"
         role="dialog"
         aria-modal="true"
-        aria-labelledby="merge-taxonomy-title"
+        aria-labelledby={titleId}
+        onKeyDown={onKeyDown}
+        onClick={onDialogClick}
       >
-        <h2 id="merge-taxonomy-title" ref={titleRef} tabIndex={-1}>
-          Merge taxonomy terms
-        </h2>
-        <p>
+        <h2 id={titleId}>Merge taxonomy terms</h2>
+
+        <p className="merge-taxonomy__summary">
           <strong>Merge:</strong> {source.name}
         </p>
-        <label htmlFor="merge-keep">
+
+        <label htmlFor="merge-keep" className="admin-field">
           Keep
           <select
             id="merge-keep"
+            ref={keepSelectRef}
             className="admin-select"
             value={keepId}
             onChange={(event) => setKeepId(event.target.value)}
@@ -77,21 +62,19 @@ export default function AdminMergeTaxonomyDialog({
             ))}
           </select>
         </label>
+
         {keep && (
-          <p>
+          <p className="merge-taxonomy__impact">
             {source.usage_count} event relationships will move to {keep.name}.
           </p>
         )}
-        <p>The source term will be archived. This cannot be undone automatically.</p>
+
+        <p className="merge-taxonomy__warning">
+          The source term will be archived. This cannot be undone automatically.
+        </p>
+
         <div className="admin-dialog__actions">
-          <button
-            type="button"
-            className="admin-btn admin-btn--secondary"
-            onClick={() => {
-              onClose();
-              openerRef.current?.focus();
-            }}
-          >
+          <button type="button" className="admin-btn admin-btn--secondary" onClick={onClose}>
             Cancel
           </button>
           <button
@@ -103,7 +86,7 @@ export default function AdminMergeTaxonomyDialog({
             Merge terms
           </button>
         </div>
-      </section>
+      </div>
     </div>
   );
 }

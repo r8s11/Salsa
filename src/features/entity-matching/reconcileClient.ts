@@ -1,7 +1,13 @@
 import { supabase } from "../../lib/supabase";
-import { parseReconciliationResponse, type ReconciliationResponse, type ReconciliationRequest } from "./types";
+import {
+  parseReconciliationResponse,
+  type ReconciliationResponse,
+  type ReconciliationRequest,
+} from "./types";
 
-export async function reconcileVenue(request: ReconciliationRequest): Promise<ReconciliationResponse> {
+export async function reconcileVenue(
+  request: ReconciliationRequest
+): Promise<ReconciliationResponse> {
   // Validate input: at least one field should have a value
   const { venue } = request;
   if (!venue.name?.trim() && !venue.address?.trim() && !venue.city?.trim()) {

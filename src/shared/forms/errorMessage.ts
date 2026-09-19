@@ -21,7 +21,8 @@ export interface PublicErrorOptions {
  * visitor. They are treated as "no usable message" so the caller's fallback
  * wins.
  */
-const OPAQUE_MESSAGE = /^(failed to fetch|load failed|network ?error|networkerror when attempting to fetch resource\.?|unknown error|error|fetch failed)$/i;
+const OPAQUE_MESSAGE =
+  /^(failed to fetch|load failed|network ?error|networkerror when attempting to fetch resource\.?|unknown error|error|fetch failed)$/i;
 
 /** Internals that must never reach a public form. */
 const INTERNAL_LEAK =

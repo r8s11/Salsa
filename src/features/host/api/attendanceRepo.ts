@@ -117,7 +117,9 @@ export async function addEventAttendee(
 
 export async function updateEventAttendee(
   attendeeId: string,
-  updates: Partial<Pick<HostAttendeeInput, "displayName" | "email" | "category" | "partySize" | "notes">>
+  updates: Partial<
+    Pick<HostAttendeeInput, "displayName" | "email" | "category" | "partySize" | "notes">
+  >
 ): Promise<HostAttendee> {
   const patch: Record<string, unknown> = {};
   if (updates.displayName !== undefined) patch.display_name = updates.displayName.trim();
@@ -137,17 +139,11 @@ export async function updateEventAttendee(
 }
 
 export async function deleteEventAttendee(attendeeId: string): Promise<void> {
-  const { error } = await supabase
-    .from("event_attendees")
-    .delete()
-    .eq("id", attendeeId);
+  const { error } = await supabase.from("event_attendees").delete().eq("id", attendeeId);
   if (error) throw new Error(error.message);
 }
 
-export async function checkInAttendee(
-  eventId: string,
-  input: CheckInInput
-): Promise<HostCheckIn> {
+export async function checkInAttendee(eventId: string, input: CheckInInput): Promise<HostCheckIn> {
   const { data, error } = await supabase
     .from("event_check_ins")
     .insert({

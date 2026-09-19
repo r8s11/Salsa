@@ -44,7 +44,8 @@ vi.mock("../../features/account/api/accountRepo", () => ({
 vi.mock("../../features/account/api/profileMedia", () => ({
   validateProfileImage: (...args: unknown[]) => mocks.profileMedia.validateProfileImage(...args),
   uploadAvatarFile: (...args: unknown[]) => mocks.profileMedia.uploadAvatarFile(...args),
-  profileMediaErrorMessage: (...args: unknown[]) => mocks.profileMedia.profileMediaErrorMessage(...args),
+  profileMediaErrorMessage: (...args: unknown[]) =>
+    mocks.profileMedia.profileMediaErrorMessage(...args),
 }));
 
 function renderPage(initialPath = "/onboarding") {
@@ -328,7 +329,9 @@ describe("OnboardingPage", () => {
     });
     render(
       <QueryClientProvider client={queryClient}>
-        <MemoryRouter initialEntries={[{ pathname: "/onboarding", state: { returnTo: "/calendar" } }]}>
+        <MemoryRouter
+          initialEntries={[{ pathname: "/onboarding", state: { returnTo: "/calendar" } }]}
+        >
           <Routes>
             <Route path="/onboarding" element={<OnboardingPage />} />
             <Route path="/calendar" element={<p>Calendar destination</p>} />

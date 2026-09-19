@@ -28,13 +28,9 @@ describe("ShareableEventPoster", () => {
   });
 
   it("renders the resolved poster image in the Instagram Story poster", () => {
-    render(
-      <ShareableEventPoster event={event} imageUrl="data:image/png;base64,banner" />
-    );
+    render(<ShareableEventPoster event={event} imageUrl="data:image/png;base64,banner" />);
 
-    expect(
-      screen.getByRole("img", { name: /instagram story poster/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: /instagram story poster/i })).toBeInTheDocument();
     expect(document.querySelector(".poster-artwork-fill img")).toHaveAttribute(
       "src",
       "data:image/png;base64,banner"
@@ -65,7 +61,11 @@ describe("ShareableEventPoster", () => {
   });
 
   it("omits optional fields the event does not carry", () => {
-    render(<ShareableEventPoster event={{ ...event, location: undefined, priceType: "free", priceAmount: undefined }} />);
+    render(
+      <ShareableEventPoster
+        event={{ ...event, location: undefined, priceType: "free", priceAmount: undefined }}
+      />
+    );
 
     const poster = screen.getByRole("img", { name: /instagram story poster/i });
     expect(within(poster).queryByText("South Boston")).not.toBeInTheDocument();

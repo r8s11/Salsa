@@ -1,0 +1,56 @@
+/* ── Shared table loading/empty states ── */
+
+.admin-table-empty {
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--admin-text-muted);
+}
+
+.admin-table-empty p {
+  margin: 0;
+  font-size: 0.9375rem;
+}
+
+.admin-table-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem 0;
+}
+
+.admin-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--admin-surface-secondary) 25%,
+    var(--admin-surface-subtle) 50%,
+    var(--admin-surface-secondary) 75%
+  );
+  background-size: 200% 100%;
+  animation: admin-skeleton-loading 1.5s infinite;
+  border-radius: 4px;
+}
+
+.admin-skeleton--title {
+  height: 1.25rem;
+  width: 60%;
+}
+
+.admin-skeleton--meta {
+  height: 0.875rem;
+  width: 40%;
+}
+
+@keyframes admin-skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-skeleton {
+    animation: none;
+  }
+}

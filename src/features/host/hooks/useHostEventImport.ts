@@ -8,10 +8,7 @@ import {
   type CsvDuplicateMatch,
 } from "../../admin/model/csvImportDuplicates";
 import { searchVenues } from "../../admin/api/venuesRepo";
-import {
-  createOrganizerEvent,
-  fetchOrganizerEvents,
-} from "../api/organizerAccessRepo";
+import { createOrganizerEvent, fetchOrganizerEvents } from "../api/organizerAccessRepo";
 import type { OrganizerEventCreatePayload } from "../api/organizerAccessRepo";
 
 /* ── Types ── */
@@ -222,7 +219,11 @@ export function useHostEventImport(): HostCsvEventImportState {
           try {
             const payload = toHostPayload(row);
             await createOrganizerEvent(organizerId, payload, false);
-            outcomes.push({ rowNumber: row.rowNumber, title: row.payload!.title, outcome: "created" });
+            outcomes.push({
+              rowNumber: row.rowNumber,
+              title: row.payload!.title,
+              outcome: "created",
+            });
           } catch (err) {
             outcomes.push({
               rowNumber: row.rowNumber,

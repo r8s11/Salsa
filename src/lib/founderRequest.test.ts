@@ -68,7 +68,9 @@ describe("validateEmail", () => {
     expect(validateEmail("not-an-email")).toBe("Invalid email format");
   });
   it("rejects too long", () => {
-    expect(validateEmail("a".repeat(250) + "@example.com")).toBe("Email too long (max 255 characters)");
+    expect(validateEmail("a".repeat(250) + "@example.com")).toBe(
+      "Email too long (max 255 characters)"
+    );
   });
   it("accepts valid", () => {
     expect(validateEmail("user@example.com")).toBeNull();
@@ -92,7 +94,9 @@ describe("validateOrganizationName", () => {
     expect(validateOrganizationName("")).toBe("Organization name is required");
   });
   it("rejects too long", () => {
-    expect(validateOrganizationName("a".repeat(256))).toBe("Organization name too long (max 255 characters)");
+    expect(validateOrganizationName("a".repeat(256))).toBe(
+      "Organization name too long (max 255 characters)"
+    );
   });
   it("accepts valid", () => {
     expect(validateOrganizationName("Salsa Nights Boston")).toBeNull();
@@ -105,7 +109,9 @@ describe("validateInstagram", () => {
     expect(validateInstagram(undefined)).toBeNull();
   });
   it("rejects too long", () => {
-    expect(validateInstagram("a".repeat(101))).toBe("Instagram handle too long (max 100 characters)");
+    expect(validateInstagram("a".repeat(101))).toBe(
+      "Instagram handle too long (max 100 characters)"
+    );
   });
   it("accepts valid", () => {
     expect(validateInstagram("@havanaclub")).toBeNull();
@@ -128,7 +134,9 @@ describe("validateWebsite", () => {
     expect(validateWebsite(undefined)).toBeNull();
   });
   it("rejects too long", () => {
-    expect(validateWebsite("https://" + "a".repeat(495))).toBe("Website URL too long (max 500 characters)");
+    expect(validateWebsite("https://" + "a".repeat(495))).toBe(
+      "Website URL too long (max 500 characters)"
+    );
   });
   it("rejects missing protocol", () => {
     expect(validateWebsite("example.com")).toBe("Website must start with http:// or https://");
@@ -164,7 +172,9 @@ describe("validateDescription", () => {
     expect(validateDescription("")).toBeNull();
   });
   it("rejects too long", () => {
-    expect(validateDescription("a".repeat(5001))).toBe("Description too long (max 5000 characters)");
+    expect(validateDescription("a".repeat(5001))).toBe(
+      "Description too long (max 5000 characters)"
+    );
   });
 });
 

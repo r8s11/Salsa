@@ -1,13 +1,13 @@
 import { FunctionsHttpError } from "@supabase/supabase-js";
 import { supabase } from "../../../lib/supabase";
 
-export type DeletionBlocker = "role" | "event_history" | "organizer" | "operational_history" | "storage" | "unknown";
+export type DeletionBlocker =
+  "role" | "event_history" | "organizer" | "operational_history" | "storage" | "unknown";
 export type BlockedDeletion = { outcome: "blocked"; blocker: DeletionBlocker };
 export type DeletionEligibility = { outcome: "eligible" } | BlockedDeletion;
 export type DeleteAccountResult = { outcome: "deleted" } | BlockedDeletion;
 type DeletionResponse = DeletionEligibility | DeleteAccountResult;
 type Action = "eligibility" | "delete";
-
 
 function isDeletionBlocker(value: unknown): value is DeletionBlocker {
   return (
@@ -21,7 +21,8 @@ function isDeletionBlocker(value: unknown): value is DeletionBlocker {
 }
 
 function parseDeletionResponse(value: unknown): DeletionResponse | null {
-  if (!value || typeof value !== "object" || Array.isArray(value) || !("outcome" in value)) return null;
+  if (!value || typeof value !== "object" || Array.isArray(value) || !("outcome" in value))
+    return null;
   const { outcome } = value;
   if (outcome === "eligible" || outcome === "deleted") return { outcome };
   if (outcome === "blocked" && "blocker" in value && isDeletionBlocker(value.blocker)) {

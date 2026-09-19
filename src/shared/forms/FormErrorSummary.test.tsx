@@ -60,7 +60,9 @@ describe("FormErrorSummary", () => {
     );
 
     const summary = screen.getByRole("alert");
-    expect(summary).toHaveTextContent("We couldn't reach the server. Check your connection and try again.");
+    expect(summary).toHaveTextContent(
+      "We couldn't reach the server. Check your connection and try again."
+    );
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
     expect(summary).toHaveFocus();
   });

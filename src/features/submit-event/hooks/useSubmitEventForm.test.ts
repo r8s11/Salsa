@@ -41,7 +41,8 @@ vi.mock("../../../contexts/useAuth", () => ({
 }));
 
 const pngFile = () => new File(["png"], "flyer.png", { type: "image/png" });
-const flyerUrl = "https://project.supabase.co/storage/v1/object/public/event-flyers/user123/submission-abc/flyer.png";
+const flyerUrl =
+  "https://project.supabase.co/storage/v1/object/public/event-flyers/user123/submission-abc/flyer.png";
 const extractionFixture = {
   title: "Boston Salsa Night",
   date: "2026-09-18",
@@ -514,10 +515,22 @@ describe("useSubmitEventForm", () => {
 
     it("enriches exact venue matches without setting venue_id", async () => {
       mockFlyerExtraction.extractEventFromFlyer.mockResolvedValue(extractionFixture);
-      mockReconciliation.reconcileVenue.mockResolvedValue({ venue: { status: "exact", match: { id: "v1", name: "Canonical Club", address: "1 Main", city: "Boston" } } });
+      mockReconciliation.reconcileVenue.mockResolvedValue({
+        venue: {
+          status: "exact",
+          match: { id: "v1", name: "Canonical Club", address: "1 Main", city: "Boston" },
+        },
+      });
       const { result } = renderHook(() => useSubmitEventForm());
-      await act(async () => { result.current.handleFlyerChange(pngFile()); });
-      await act(async () => { await Promise.resolve(); result.current.handleExtractFlyer(); await Promise.resolve(); await Promise.resolve(); });
+      await act(async () => {
+        result.current.handleFlyerChange(pngFile());
+      });
+      await act(async () => {
+        await Promise.resolve();
+        result.current.handleExtractFlyer();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
       expect(result.current.form.location).toBe("Canonical Club");
       expect(result.current.form.address).toBe("1 Main");
       expect(result.current.form.venue_id).toBe("");
@@ -526,10 +539,19 @@ describe("useSubmitEventForm", () => {
 
     it("keeps raw values for ambiguous reconciliation", async () => {
       mockFlyerExtraction.extractEventFromFlyer.mockResolvedValue(extractionFixture);
-      mockReconciliation.reconcileVenue.mockResolvedValue({ venue: { status: "ambiguous", match: null } });
+      mockReconciliation.reconcileVenue.mockResolvedValue({
+        venue: { status: "ambiguous", match: null },
+      });
       const { result } = renderHook(() => useSubmitEventForm());
-      await act(async () => { result.current.handleFlyerChange(pngFile()); });
-      await act(async () => { await Promise.resolve(); result.current.handleExtractFlyer(); await Promise.resolve(); await Promise.resolve(); });
+      await act(async () => {
+        result.current.handleFlyerChange(pngFile());
+      });
+      await act(async () => {
+        await Promise.resolve();
+        result.current.handleExtractFlyer();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
       expect(result.current.form.location).toBe("Havana Club");
       expect(result.current.form.address).toBe("288 Green Street");
     });

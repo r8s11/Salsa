@@ -83,7 +83,10 @@ describe("profile media storage", () => {
   it("uploads with upsert and returns a cache-busted public URL", async () => {
     mocks.upload.mockResolvedValue({ error: null });
     mocks.getPublicUrl.mockReturnValue({
-      data: { publicUrl: "https://project.supabase.co/storage/v1/object/public/profile-media/user-1/avatar.webp" },
+      data: {
+        publicUrl:
+          "https://project.supabase.co/storage/v1/object/public/profile-media/user-1/avatar.webp",
+      },
     });
 
     const result = await uploadProfileMedia({
@@ -109,9 +112,7 @@ describe("profile media storage", () => {
 
   it("appends a cache-busting version without stacking params", () => {
     expect(withCacheBust("https://cdn.test/a.webp", 123)).toBe("https://cdn.test/a.webp?v=123");
-    expect(withCacheBust("https://cdn.test/a.webp?v=1", 2)).toBe(
-      "https://cdn.test/a.webp?v=1&v=2"
-    );
+    expect(withCacheBust("https://cdn.test/a.webp?v=1", 2)).toBe("https://cdn.test/a.webp?v=1&v=2");
   });
 
   it("removes only exact stable avatar/cover paths", async () => {
@@ -148,9 +149,7 @@ describe("profile media storage", () => {
   });
 
   it("maps failures to readable messages without internals", () => {
-    expect(profileMediaErrorMessage(new Error("row-level security policy"))).toMatch(
-      /permission/i
-    );
+    expect(profileMediaErrorMessage(new Error("row-level security policy"))).toMatch(/permission/i);
     expect(profileMediaErrorMessage(new Error("file too large"))).toMatch(/5 MB/);
     expect(profileMediaErrorMessage(new Error("JWT xyz"))).toBe(
       "We couldn't save this photo. Try again."

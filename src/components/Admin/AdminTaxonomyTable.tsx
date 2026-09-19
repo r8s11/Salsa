@@ -3,6 +3,8 @@ import AdminTaxonomyStatusBadge from "./AdminTaxonomyStatusBadge";
 import type { TaxonomyCategory, TaxonomyTerm } from "../../features/admin/model/taxonomy";
 import "./AdminTaxonomyTable.css";
 
+import "./AdminTables.css";
+
 const categoryLabel: Record<TaxonomyCategory, string> = {
   dance_style: "Dance Style",
   event_attribute: "Attribute",
@@ -56,15 +58,16 @@ export default function AdminTaxonomyTable({
     <>
       <div className="admin-taxonomy-table__scroll">
         <table className="admin-taxonomy-table">
+          <caption className="admin-visually-hidden">Taxonomy</caption>
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Category</th>
-              <th>Slug</th>
-              <th>Usage</th>
-              <th>Status</th>
-              <th>Updated</th>
-              <th>Actions</th>
+              <th scope="col">Name</th>
+              <th scope="col">Category</th>
+              <th scope="col">Slug</th>
+              <th scope="col">Usage</th>
+              <th scope="col">Status</th>
+              <th scope="col">Updated</th>
+              <th scope="col">Actions</th>
             </tr>
           </thead>
           <tbody>

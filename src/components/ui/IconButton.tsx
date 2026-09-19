@@ -18,21 +18,12 @@ function IconButton({
 }: IconButtonProps) {
   const resolvedType = type ?? "button";
 
-  const classes = [
-    "ui-icon-button",
-    `ui-icon-button--${variant}`,
-    className,
-  ]
+  const classes = ["ui-icon-button", `ui-icon-button--${variant}`, className]
     .filter(Boolean)
     .join(" ");
 
   return (
-    <button
-      type={resolvedType}
-      className={classes}
-      disabled={disabled}
-      {...rest}
-    >
+    <button type={resolvedType} className={classes} disabled={disabled} {...rest}>
       {children}
     </button>
   );

@@ -2,7 +2,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import Contact from "./Contact";
 
-type MockFetch = { mockRejectedValue: (v: unknown) => void; mockResolvedValue: (v: unknown) => void; mockReturnValue: (v: unknown) => void };
+type MockFetch = {
+  mockRejectedValue: (v: unknown) => void;
+  mockResolvedValue: (v: unknown) => void;
+  mockReturnValue: (v: unknown) => void;
+};
 
 describe("Contact", () => {
   beforeEach(() => {

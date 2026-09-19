@@ -87,12 +87,7 @@ export async function updateOwnProfile(
   patch: OwnProfileUpdate
 ): Promise<OwnProfile> {
   const runUpdate = () =>
-    supabase
-      .from("profiles")
-      .update(patch)
-      .eq("id", userId)
-      .select(OWN_PROFILE_COLUMNS)
-      .single();
+    supabase.from("profiles").update(patch).eq("id", userId).select(OWN_PROFILE_COLUMNS).single();
 
   const { data, error } = await runUpdate();
   if (!error) return data as OwnProfile;

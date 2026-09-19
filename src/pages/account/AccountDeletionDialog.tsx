@@ -74,8 +74,8 @@ export default function AccountDeletionDialog({
         <h2 id={titleId}>Permanently delete account?</h2>
         <div className="account-page__dialog-copy" id={descriptionId}>
           <p>
-            This permanently removes your sign-in and the personal account data that is safe to remove.
-            Event, organizer, and moderation records are never removed by this action.
+            This permanently removes your sign-in and the personal account data that is safe to
+            remove. Event, organizer, and moderation records are never removed by this action.
           </p>
           <p>This cannot be undone through SalsaSegura.</p>
           <p>An access token already issued may remain usable until it expires.</p>

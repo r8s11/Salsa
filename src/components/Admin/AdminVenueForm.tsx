@@ -35,7 +35,10 @@ export default function AdminVenueForm({
     return buildEmptyVenueForm();
   });
 
+  const [validationError, setValidationError] = useState<string | null>(null);
+
   const update = (field: keyof VenueForm, value: string) => {
+    setValidationError(null);
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -63,12 +66,11 @@ export default function AdminVenueForm({
       clearTimeout(timer);
     };
   }, [form.name, initial?.id]);
-
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const validationError = validateVenueForm(form);
-    if (validationError) {
-      // Could surface via a banner — for now the parent passes `error`
+    const formError = validateVenueForm(form);
+    if (formError) {
+      setValidationError(formError);
       return;
     }
     onSubmit(form);
@@ -83,6 +85,12 @@ export default function AdminVenueForm({
       {error && (
         <div className="admin-banner admin-banner--error" role="alert">
           <p>{error}</p>
+        </div>
+      )}
+
+      {validationError && (
+        <div className="admin-banner admin-banner--error" role="alert">
+          <p>{validationError}</p>
         </div>
       )}
 
@@ -268,7 +276,7 @@ export default function AdminVenueForm({
                 type="button"
                 className="admin-btn admin-btn--secondary admin-btn--small"
                 onClick={() => {
-                  /* In the real impl, this opens the geocoding correction flow */
+                  document.getElementById("venue-address-line1")?.focus();
                 }}
               >
                 Edit

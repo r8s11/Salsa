@@ -26,8 +26,8 @@ function authValue(overrides: Partial<AuthContextValue>): AuthContextValue {
     role: null,
     signInWithPassword: vi.fn(),
     resendConfirmation: vi.fn(),
-      requestPasswordReset: vi.fn(),
-      updateEmail: vi.fn(),
+    requestPasswordReset: vi.fn(),
+    updateEmail: vi.fn(),
     signUp: vi.fn(),
     signOut: vi.fn(),
     ...overrides,
@@ -133,17 +133,27 @@ describe("RequireOrganizer", () => {
 
   it("admits a nested Host route on organizer_members alone — no global role required (Phase 8 spec §2)", () => {
     vi.mocked(useAuth).mockReturnValue(
-      authValue({ user: { id: "u1", app_metadata: {} } as unknown as User, isOrganizer: false, role: null })
+      authValue({
+        user: { id: "u1", app_metadata: {} } as unknown as User,
+        isOrganizer: false,
+        role: null,
+      })
     );
 
-    renderAtNestedRoute([{ organizerId: "org-1", organizerName: "Riverside Salsa Co", memberRole: "owner" }]);
+    renderAtNestedRoute([
+      { organizerId: "org-1", organizerName: "Riverside Salsa Co", memberRole: "owner" },
+    ]);
 
     expect(screen.getByText("Host Events Page")).toBeInTheDocument();
   });
 
   it("denies a nested Host route for a signed-in user with no role and no membership", () => {
     vi.mocked(useAuth).mockReturnValue(
-      authValue({ user: { id: "u1", app_metadata: {} } as unknown as User, isOrganizer: false, role: null })
+      authValue({
+        user: { id: "u1", app_metadata: {} } as unknown as User,
+        isOrganizer: false,
+        role: null,
+      })
     );
 
     renderAtNestedRoute([]);

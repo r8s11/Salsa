@@ -128,7 +128,12 @@ describe("AdminConfirmDialog", () => {
     expect(confirm).toHaveFocus();
 
     // Interior nodes are reachable and not hijacked by the trap.
-    for (const node of [screen.getByLabelText("pick"), link, screen.getByLabelText("Reason"), cancel]) {
+    for (const node of [
+      screen.getByLabelText("pick"),
+      link,
+      screen.getByLabelText("Reason"),
+      cancel,
+    ]) {
       node.focus();
       fireEvent.keyDown(dialog, { key: "Tab" });
       expect(node).toHaveFocus();

@@ -46,7 +46,11 @@ describe("Button", () => {
   });
 
   it("shows spinner and loading label when loading", () => {
-    render(<Button loading loadingLabel="Saving...">Save</Button>);
+    render(
+      <Button loading loadingLabel="Saving...">
+        Save
+      </Button>
+    );
     const btn = screen.getByRole("button", { name: "Saving..." });
     expect(btn).toHaveClass("ui-button--loading");
     expect(btn).toHaveAttribute("aria-busy", "true");
@@ -59,7 +63,11 @@ describe("Button", () => {
   });
 
   it("disables button when loading", () => {
-    render(<Button loading loadingLabel="Saving...">Save</Button>);
+    render(
+      <Button loading loadingLabel="Saving...">
+        Save
+      </Button>
+    );
     expect(screen.getByRole("button")).toBeDisabled();
   });
 

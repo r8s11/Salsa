@@ -4,7 +4,11 @@ import { ArrowLeft } from "lucide-react";
 import AdminApproveDialog from "../../components/Admin/AdminApproveDialog";
 import AdminRejectFounderDialog from "../../components/Admin/AdminRejectFounderDialog";
 import AdminFounderInvitationSection from "../../components/Admin/AdminFounderInvitationSection";
-import { useFounderHostState, useFounderRequest, useFounderRequests } from "../../features/admin/hooks/useFounderRequests";
+import {
+  useFounderHostState,
+  useFounderRequest,
+  useFounderRequests,
+} from "../../features/admin/hooks/useFounderRequests";
 import {
   type FounderRejectionReasonCode,
   FOUNDER_REQUEST_STATUS_LABEL,
@@ -96,9 +100,7 @@ export default function AdminFounderRequestDetailPage() {
             {request.status === "rejected" && <span className="icon">✕</span>}
             {FOUNDER_REQUEST_STATUS_LABEL[request.status]}
             {request.reviewed_at && (
-              <span className="reviewed-badge">
-                Reviewed {formatDate(request.reviewed_at)}
-              </span>
+              <span className="reviewed-badge">Reviewed {formatDate(request.reviewed_at)}</span>
             )}
           </span>
         </div>
@@ -140,7 +142,11 @@ export default function AdminFounderRequestDetailPage() {
             <div className="detail-field">
               <label>Instagram</label>
               {request.instagram ? (
-                <a href={`https://instagram.com/${request.instagram}`} target="_blank" rel="noopener noreferrer">
+                <a
+                  href={`https://instagram.com/${request.instagram}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   @{request.instagram}
                 </a>
               ) : (

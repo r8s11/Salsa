@@ -111,8 +111,8 @@ export default function FounderRequestForm({ onSubmit }: Props) {
             Request received
           </h1>
           <p className="success-message">
-            Thanks for your interest in hosting events on SalsaSegura.
-            We&rsquo;ll review your request before granting access.
+            Thanks for your interest in hosting events on SalsaSegura. We&rsquo;ll review your
+            request before granting access.
           </p>
           <p className="duplicate-notice">
             If you&rsquo;ve already submitted a request, there&rsquo;s no need to submit again.
@@ -130,10 +130,10 @@ export default function FounderRequestForm({ onSubmit }: Props) {
       <header className="founder-header">
         <h1>Request Host Access</h1>
         <p className="founder-tagline">
-          SalsaSegura is gradually opening organizer access to dance brands, venues,
-          promoters, and event organizers. Approved hosts will be able to manage and
-          promote their events. Submitting a request doesn&rsquo;t create an account —
-          requests are reviewed before access is granted.
+          SalsaSegura is gradually opening organizer access to dance brands, venues, promoters, and
+          event organizers. Approved hosts will be able to manage and promote their events.
+          Submitting a request doesn&rsquo;t create an account — requests are reviewed before access
+          is granted.
         </p>
       </header>
 
@@ -163,7 +163,10 @@ export default function FounderRequestForm({ onSubmit }: Props) {
         <div className="form-row">
           <div className="form-group">
             <label htmlFor="applicantName">
-              Your name <span className="required" aria-hidden="true">*</span>
+              Your name{" "}
+              <span className="required" aria-hidden="true">
+                *
+              </span>
             </label>
             <input
               id="applicantName"
@@ -182,7 +185,10 @@ export default function FounderRequestForm({ onSubmit }: Props) {
 
           <div className="form-group">
             <label htmlFor="email">
-              Email <span className="required" aria-hidden="true">*</span>
+              Email{" "}
+              <span className="required" aria-hidden="true">
+                *
+              </span>
             </label>
             <input
               id="email"
@@ -203,7 +209,10 @@ export default function FounderRequestForm({ onSubmit }: Props) {
 
         <div className="form-group">
           <label htmlFor="organizationName">
-            Organization / Event Brand <span className="required" aria-hidden="true">*</span>
+            Organization / Event Brand{" "}
+            <span className="required" aria-hidden="true">
+              *
+            </span>
           </label>
           <input
             id="organizationName"
@@ -224,7 +233,9 @@ export default function FounderRequestForm({ onSubmit }: Props) {
           <div className="form-group">
             <label htmlFor="instagram">Instagram</label>
             <div className="instagram-input">
-              <span className="instagram-prefix" aria-hidden="true">@</span>
+              <span className="instagram-prefix" aria-hidden="true">
+                @
+              </span>
               <input
                 id="instagram"
                 name="instagram"
@@ -338,8 +349,8 @@ export default function FounderRequestForm({ onSubmit }: Props) {
         </Button>
 
         <p className="form-footer">
-          By submitting, you agree to be contacted about organizer access.
-          We don&rsquo;t share your information.
+          By submitting, you agree to be contacted about organizer access. We don&rsquo;t share your
+          information.
         </p>
       </form>
     </section>

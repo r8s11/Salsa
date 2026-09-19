@@ -16,7 +16,10 @@ import type { EventFormDraft } from "../../features/events/components/EventForm"
 import EventForm from "../../features/events/components/EventForm";
 import EventFlyerField from "../../features/events/components/EventFlyerField";
 import { removeEventFlyer, uploadEventFlyer } from "../../features/events/api/eventFlyers";
-import { buildEmptyAdminForm, validateAdminEventForm } from "../../features/admin/model/adminEventForm";
+import {
+  buildEmptyAdminForm,
+  validateAdminEventForm,
+} from "../../features/admin/model/adminEventForm";
 import { useCity } from "../../contexts/useCity";
 import "./HostCreateEventPage.css";
 
@@ -56,7 +59,9 @@ export default function HostCreateEventPage() {
       return;
     }
     if (!selectedOrganizerId) {
-      setError("Choose an active organizer with owner or manager access before creating this event.");
+      setError(
+        "Choose an active organizer with owner or manager access before creating this event."
+      );
       return;
     }
     if (!user) {
@@ -108,16 +113,26 @@ export default function HostCreateEventPage() {
   };
 
   if (isLoading) {
-    return <p className="host-create-event__status" role="status">Checking organizer access…</p>;
+    return (
+      <p className="host-create-event__status" role="status">
+        Checking organizer access…
+      </p>
+    );
   }
 
   if (organizersError) {
     return (
       <section className="host-create-event">
-        <Link to="/host/events" className="host-create-event__back">← My Events</Link>
+        <Link to="/host/events" className="host-create-event__back">
+          ← My Events
+        </Link>
         <div className="admin-banner admin-banner--error" role="alert">
           <p>We couldn&apos;t check organizer access. Please try again.</p>
-          <button type="button" className="admin-btn admin-btn--secondary" onClick={() => void refetchOrganizers()}>
+          <button
+            type="button"
+            className="admin-btn admin-btn--secondary"
+            onClick={() => void refetchOrganizers()}
+          >
             Try Again
           </button>
         </div>
@@ -129,7 +144,9 @@ export default function HostCreateEventPage() {
     const hasMembership = organizers.length > 0;
     return (
       <section className="host-create-event">
-        <Link to="/host/events" className="host-create-event__back">← My Events</Link>
+        <Link to="/host/events" className="host-create-event__back">
+          ← My Events
+        </Link>
         <section className="admin-card host-create-event__empty">
           <p className="host-dashboard__eyebrow">Create event</p>
           <h1>{hasMembership ? "You don't have create access" : "Create an Organizer first"}</h1>
@@ -138,7 +155,9 @@ export default function HostCreateEventPage() {
               ? "Only active Organizer owners and managers can create events. Ask an owner to update your access."
               : "You need an approved Organizer with owner or manager access before you can create events."}
           </p>
-          <Link to="/host/events" className="admin-btn admin-btn--primary">Back to My Events</Link>
+          <Link to="/host/events" className="admin-btn admin-btn--primary">
+            Back to My Events
+          </Link>
         </section>
       </section>
     );
@@ -146,7 +165,9 @@ export default function HostCreateEventPage() {
 
   return (
     <section className="host-create-event">
-      <Link to="/host/events" className="host-create-event__back">← My Events</Link>
+      <Link to="/host/events" className="host-create-event__back">
+        ← My Events
+      </Link>
       <header className="host-create-event__header">
         <p className="host-dashboard__eyebrow">Create event</p>
         <h1>Create an event</h1>
@@ -154,7 +175,11 @@ export default function HostCreateEventPage() {
       </header>
 
       <form onSubmit={submit}>
-        <section className="admin-card host-create-event__organizer" role="group" aria-labelledby="host-event-organizer-label">
+        <section
+          className="admin-card host-create-event__organizer"
+          role="group"
+          aria-labelledby="host-event-organizer-label"
+        >
           <p id="host-event-organizer-label">Creating event for</p>
           {manageable.length === 1 ? (
             <strong>{manageable[0].organizerName}</strong>
@@ -176,25 +201,37 @@ export default function HostCreateEventPage() {
           )}
         </section>
 
-        {error && <div className="admin-banner admin-banner--error" role="alert">{error}</div>}
+        {error && (
+          <div className="admin-banner admin-banner--error" role="alert">
+            {error}
+          </div>
+        )}
         <EventForm
           draft={form}
           onChange={setForm}
           capabilities={CAPABILITIES.organizerCreate}
           renderFlyerField={() => (
-            <EventFlyerField
-              currentUrl={null}
-              onFileChange={setFlyer}
-              disabled={isSaving}
-            />
+            <EventFlyerField currentUrl={null} onFileChange={setFlyer} disabled={isSaving} />
           )}
         />
         <div className="host-create-event__actions">
-          <Link to="/host/events" className="admin-btn admin-btn--secondary">Cancel</Link>
-          <button type="submit" value="draft" className="admin-btn admin-btn--secondary" disabled={isSaving}>
+          <Link to="/host/events" className="admin-btn admin-btn--secondary">
+            Cancel
+          </Link>
+          <button
+            type="submit"
+            value="draft"
+            className="admin-btn admin-btn--secondary"
+            disabled={isSaving}
+          >
             {isSaving ? "Saving…" : "Save Draft"}
           </button>
-          <button type="submit" value="publish" className="admin-btn admin-btn--primary" disabled={isSaving}>
+          <button
+            type="submit"
+            value="publish"
+            className="admin-btn admin-btn--primary"
+            disabled={isSaving}
+          >
             {isSaving ? "Publishing…" : "Publish Event"}
           </button>
         </div>

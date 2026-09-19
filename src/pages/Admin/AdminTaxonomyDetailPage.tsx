@@ -3,9 +3,15 @@ import { useNavigate, useParams } from "react-router-dom";
 import AdminConfirmDialog from "../../components/Admin/AdminConfirmDialog";
 import AdminMergeTaxonomyDialog from "../../components/Admin/AdminMergeTaxonomyDialog";
 import AdminTaxonomyForm from "../../components/Admin/AdminTaxonomyForm";
-import { useAdminTaxonomy, useAdminTaxonomyTerm } from "../../features/admin/hooks/useAdminTaxonomy";
+import {
+  useAdminTaxonomy,
+  useAdminTaxonomyTerm,
+} from "../../features/admin/hooks/useAdminTaxonomy";
 import { DEFAULT_TAXONOMY_FILTERS } from "../../features/admin/model/taxonomy";
-import { taxonomyArchiveCopy, taxonomyDeleteCopy } from "../../features/admin/model/taxonomyConfirmCopy";
+import {
+  taxonomyArchiveCopy,
+  taxonomyDeleteCopy,
+} from "../../features/admin/model/taxonomyConfirmCopy";
 
 export default function AdminTaxonomyDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -127,7 +133,9 @@ export default function AdminTaxonomyDetailPage() {
           {...(pendingAction === "archive"
             ? taxonomyArchiveCopy(term.name)
             : taxonomyDeleteCopy(term.name))}
-          isBusy={pendingAction === "archive" ? actions.archive.isPending : actions.remove.isPending}
+          isBusy={
+            pendingAction === "archive" ? actions.archive.isPending : actions.remove.isPending
+          }
           error={
             pendingAction === "archive"
               ? (actions.archive.error?.message ?? null)

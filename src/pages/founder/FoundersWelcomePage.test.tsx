@@ -51,7 +51,10 @@ function mockOnboarding(overrides: Partial<UseFounderOnboardingResult> = {}) {
 describe("FoundersWelcomePage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    useAuth.mockReturnValue({ user: { id: "user-1", email: "founder@example.com" }, loading: false });
+    useAuth.mockReturnValue({
+      user: { id: "user-1", email: "founder@example.com" },
+      loading: false,
+    });
   });
 
   it("redirects a signed-out visitor to sign-in and preserves the return destination", async () => {
@@ -63,7 +66,9 @@ describe("FoundersWelcomePage", () => {
       expect(setAuthReturnDestination).toHaveBeenCalledWith("/founders/welcome");
       expect(navigateSpy).toHaveBeenCalledWith(
         "/signin",
-        expect.objectContaining({ state: expect.objectContaining({ from: "/founders/welcome", mode: "signin" }) })
+        expect.objectContaining({
+          state: expect.objectContaining({ from: "/founders/welcome", mode: "signin" }),
+        })
       );
     });
   });
@@ -79,8 +84,13 @@ describe("FoundersWelcomePage", () => {
     mockOnboarding({ state: { state: "not_founder" } });
     renderPage();
 
-    expect(screen.getByRole("heading", { name: /no founder invitation found/i })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /request founder access/i })).toHaveAttribute("href", "/founders");
+    expect(
+      screen.getByRole("heading", { name: /no founder invitation found/i })
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /request founder access/i })).toHaveAttribute(
+      "href",
+      "/founders"
+    );
     expect(screen.queryByText(/welcome to salsasegura/i)).not.toBeInTheDocument();
   });
 
@@ -94,21 +104,35 @@ describe("FoundersWelcomePage", () => {
   });
 
   it("auto-provisions when accepted_not_provisioned, then the real welcome renders once the query re-resolves", async () => {
-    const provision = vi.fn().mockResolvedValue({ organizerId: "org-1", organizationName: "Co", role: "owner" });
+    const provision = vi
+      .fn()
+      .mockResolvedValue({ organizerId: "org-1", organizationName: "Co", role: "owner" });
     mockOnboarding({
-      state: { state: "accepted_not_provisioned", founderRequestId: "req-1", organizationName: "Riverside Salsa Co" },
+      state: {
+        state: "accepted_not_provisioned",
+        founderRequestId: "req-1",
+        organizationName: "Riverside Salsa Co",
+      },
       provision,
     });
     renderPage();
 
-    expect(screen.getByRole("heading", { name: /setting up your organization/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /setting up your organization/i })
+    ).toBeInTheDocument();
     await waitFor(() => expect(provision).toHaveBeenCalledTimes(1));
   });
 
   it("does not call provision more than once across re-renders while still accepted_not_provisioned", async () => {
-    const provision = vi.fn().mockResolvedValue({ organizerId: "org-1", organizationName: "Co", role: "owner" });
+    const provision = vi
+      .fn()
+      .mockResolvedValue({ organizerId: "org-1", organizationName: "Co", role: "owner" });
     mockOnboarding({
-      state: { state: "accepted_not_provisioned", founderRequestId: "req-1", organizationName: "Co" },
+      state: {
+        state: "accepted_not_provisioned",
+        founderRequestId: "req-1",
+        organizationName: "Co",
+      },
       provision,
     });
     const { rerender } = renderPage();
@@ -129,7 +153,11 @@ describe("FoundersWelcomePage", () => {
   it("shows a retryable error, not an infinite auto-retry, when provisioning fails", async () => {
     const provision = vi.fn().mockRejectedValue(new Error("db down"));
     mockOnboarding({
-      state: { state: "accepted_not_provisioned", founderRequestId: "req-1", organizationName: "Co" },
+      state: {
+        state: "accepted_not_provisioned",
+        founderRequestId: "req-1",
+        organizationName: "Co",
+      },
       provision,
     });
     renderPage();
@@ -149,15 +177,26 @@ describe("FoundersWelcomePage", () => {
 
   it("renders the real welcome with confirmed organizer, org name, and correct CTAs", () => {
     mockOnboarding({
-      state: { state: "provisioned", organizerId: "org-1", organizationName: "Riverside Salsa Co", role: "owner" },
+      state: {
+        state: "provisioned",
+        organizerId: "org-1",
+        organizationName: "Riverside Salsa Co",
+        role: "owner",
+      },
     });
     renderPage();
 
     expect(screen.getByRole("heading", { name: /welcome to salsasegura/i })).toBeInTheDocument();
     expect(screen.getByText("Riverside Salsa Co")).toBeInTheDocument();
     expect(screen.getByText(/owner/i)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /go to host dashboard/i })).toHaveAttribute("href", "/host");
-    expect(screen.getByRole("link", { name: /view your events/i })).toHaveAttribute("href", "/host/events");
+    expect(screen.getByRole("link", { name: /go to host dashboard/i })).toHaveAttribute(
+      "href",
+      "/host"
+    );
+    expect(screen.getByRole("link", { name: /view your events/i })).toHaveAttribute(
+      "href",
+      "/host/events"
+    );
   });
 
   it("lists only confirmed capabilities — no analytics, team management, billing, or messaging claims", () => {
@@ -187,8 +226,14 @@ describe("FoundersWelcomePage", () => {
   it("does not request the welcome email for any non-provisioned state", async () => {
     const requestWelcomeEmail = vi.fn();
     mockOnboarding({
-      state: { state: "accepted_not_provisioned", founderRequestId: "req-1", organizationName: "Co" },
-      provision: vi.fn().mockResolvedValue({ organizerId: "org-1", organizationName: "Co", role: "owner" }),
+      state: {
+        state: "accepted_not_provisioned",
+        founderRequestId: "req-1",
+        organizationName: "Co",
+      },
+      provision: vi
+        .fn()
+        .mockResolvedValue({ organizerId: "org-1", organizationName: "Co", role: "owner" }),
       requestWelcomeEmail,
     });
     renderPage();
@@ -202,7 +247,9 @@ describe("FoundersWelcomePage", () => {
     mockOnboarding({ isError: true, refetch });
     renderPage();
 
-    expect(screen.getByRole("heading", { name: /couldn.t load your account/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /couldn.t load your account/i })
+    ).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: /try again/i }));
     expect(refetch).toHaveBeenCalledTimes(1);
   });
@@ -212,6 +259,8 @@ describe("FoundersWelcomePage", () => {
       state: { state: "provisioned", organizerId: "org-1", organizationName: "Co", role: "owner" },
     });
     renderPage();
-    expect(document.activeElement).toBe(screen.getByRole("heading", { name: /welcome to salsasegura/i }));
+    expect(document.activeElement).toBe(
+      screen.getByRole("heading", { name: /welcome to salsasegura/i })
+    );
   });
 });

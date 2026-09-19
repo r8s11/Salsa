@@ -29,7 +29,13 @@ const tempPasswordCreated: CreatedAccount = {
 describe("AdminUserForm", () => {
   it("does not show a delivery control for the default non-Organizer role", () => {
     render(
-      <AdminUserForm isBusy={false} error={null} created={null} onSubmit={vi.fn()} onCancel={vi.fn()} />
+      <AdminUserForm
+        isBusy={false}
+        error={null}
+        created={null}
+        onSubmit={vi.fn()}
+        onCancel={vi.fn()}
+      />
     );
 
     expect(screen.queryByText("Delivery")).not.toBeInTheDocument();
@@ -38,7 +44,13 @@ describe("AdminUserForm", () => {
   it("shows a delivery control defaulted to Email invitation when role is Organizer", async () => {
     const user = userEvent.setup();
     render(
-      <AdminUserForm isBusy={false} error={null} created={null} onSubmit={vi.fn()} onCancel={vi.fn()} />
+      <AdminUserForm
+        isBusy={false}
+        error={null}
+        created={null}
+        onSubmit={vi.fn()}
+        onCancel={vi.fn()}
+      />
     );
 
     await user.selectOptions(screen.getByLabelText("Role"), "organizer");
@@ -52,7 +64,13 @@ describe("AdminUserForm", () => {
   it("removes the delivery control when switching away from Organizer", async () => {
     const user = userEvent.setup();
     render(
-      <AdminUserForm isBusy={false} error={null} created={null} onSubmit={vi.fn()} onCancel={vi.fn()} />
+      <AdminUserForm
+        isBusy={false}
+        error={null}
+        created={null}
+        onSubmit={vi.fn()}
+        onCancel={vi.fn()}
+      />
     );
 
     await user.selectOptions(screen.getByLabelText("Role"), "organizer");
@@ -66,7 +84,13 @@ describe("AdminUserForm", () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();
     render(
-      <AdminUserForm isBusy={false} error={null} created={null} onSubmit={onSubmit} onCancel={vi.fn()} />
+      <AdminUserForm
+        isBusy={false}
+        error={null}
+        created={null}
+        onSubmit={onSubmit}
+        onCancel={vi.fn()}
+      />
     );
 
     await user.type(screen.getByLabelText("Email"), "maria@salsa.test");
@@ -85,7 +109,13 @@ describe("AdminUserForm", () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();
     render(
-      <AdminUserForm isBusy={false} error={null} created={null} onSubmit={onSubmit} onCancel={vi.fn()} />
+      <AdminUserForm
+        isBusy={false}
+        error={null}
+        created={null}
+        onSubmit={onSubmit}
+        onCancel={vi.fn()}
+      />
     );
 
     await user.type(screen.getByLabelText("Email"), "maria@salsa.test");
@@ -105,7 +135,13 @@ describe("AdminUserForm", () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();
     render(
-      <AdminUserForm isBusy={false} error={null} created={null} onSubmit={onSubmit} onCancel={vi.fn()} />
+      <AdminUserForm
+        isBusy={false}
+        error={null}
+        created={null}
+        onSubmit={onSubmit}
+        onCancel={vi.fn()}
+      />
     );
 
     await user.type(screen.getByLabelText("Email"), "newmod@salsa.test");

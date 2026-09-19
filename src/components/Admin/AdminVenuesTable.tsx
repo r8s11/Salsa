@@ -14,6 +14,8 @@ import AdminQualityBadge from "./AdminQualityBadge";
 import { VENUE_QUALITY_ISSUE_LABEL } from "../../features/admin/model/venuesQuery";
 import "./AdminVenuesTable.css";
 
+import "./AdminTables.css";
+
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", {
     month: "short",
@@ -38,7 +40,7 @@ function SortableHeader({
   const Icon = isActive ? (sort.dir === "asc" ? ArrowUp : ArrowDown) : ArrowUpDown;
 
   return (
-    <th aria-sort={ariaSort}>
+    <th scope="col" aria-sort={ariaSort}>
       <button
         type="button"
         className="admin-venues-table__sort-btn"
@@ -74,6 +76,7 @@ export default function AdminVenuesTable({
     <>
       <div className="admin-venues-table__scroll">
         <table className="admin-venues-table">
+          <caption className="admin-visually-hidden">Venues</caption>
           <thead>
             <tr>
               <SortableHeader
@@ -82,12 +85,24 @@ export default function AdminVenuesTable({
                 sort={sort}
                 onSortChange={onSortChange}
               />
-              <th className="admin-venues-table__col--city">City</th>
-              <th className="admin-venues-table__col--address">Address</th>
-              <th className="admin-venues-table__col--upcoming">Upcoming Events</th>
-              <th className="admin-venues-table__col--status">Status</th>
-              <th className="admin-venues-table__col--updated">Updated</th>
-              <th className="admin-venues-table__col--actions">Actions</th>
+              <th scope="col" className="admin-venues-table__col--city">
+                City
+              </th>
+              <th scope="col" className="admin-venues-table__col--address">
+                Address
+              </th>
+              <th scope="col" className="admin-venues-table__col--upcoming">
+                Upcoming Events
+              </th>
+              <th scope="col" className="admin-venues-table__col--status">
+                Status
+              </th>
+              <th scope="col" className="admin-venues-table__col--updated">
+                Updated
+              </th>
+              <th scope="col" className="admin-venues-table__col--actions">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody>

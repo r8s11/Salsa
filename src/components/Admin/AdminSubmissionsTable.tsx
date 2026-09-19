@@ -5,6 +5,8 @@ import AdminSubmissionStatusBadge from "./AdminSubmissionStatusBadge";
 import AdminActionMenu from "./AdminActionMenu";
 import "./AdminSubmissionsTable.css";
 
+import "./AdminTables.css";
+
 export type SubmissionRowAction = "approve" | "reject" | "view" | "edit";
 
 interface AdminSubmissionsTableProps {
@@ -13,6 +15,7 @@ interface AdminSubmissionsTableProps {
   busy?: boolean;
   errorId?: string | null;
   error?: string | null;
+  isLoading?: boolean;
 }
 
 function formatDate(iso: string): string {
@@ -83,17 +86,60 @@ export default function AdminSubmissionsTable({
   onAction,
   busy,
   error,
+  isLoading = false,
 }: AdminSubmissionsTableProps) {
+  if (isLoading) {
+    return (
+      <div className="admin-submissions-table-container">
+        <table className="admin-submissions-table">
+          <caption className="admin-visually-hidden">Event submissions</caption>
+          <thead>
+            <tr>
+              <th scope="col">Event Details</th>
+              <th scope="col">Status</th>
+              <th scope="col">Source</th>
+              <th scope="col">Organizer</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[...Array(5)].map((_, i) => (
+              <tr key={i} className="admin-submissions-table__loading-row">
+                <td colSpan={5}>
+                  <div className="admin-table-loading">
+                    <div className="admin-skeleton admin-skeleton--title"></div>
+                    <div className="admin-skeleton admin-skeleton--meta"></div>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
+  if (submissions.length === 0) {
+    return (
+      <div className="admin-table-empty" role="status">
+        <p>No submissions found.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="admin-submissions-table-container">
       {error && <div className="admin-banner admin-banner--error">{error}</div>}
       <table className="admin-submissions-table">
+        <caption className="admin-visually-hidden">Event submissions</caption>
         <thead>
           <tr>
-            <th>Event Details</th>
-            <th>Status</th>
-            <th>Submitted At</th>
-            <th className="admin-submissions-table__actions-header">Actions</th>
+            <th scope="col">Event Details</th>
+            <th scope="col">Status</th>
+            <th scope="col">Submitted At</th>
+            <th scope="col" className="admin-submissions-table__actions-header">
+              Actions
+            </th>
           </tr>
         </thead>
         <tbody>

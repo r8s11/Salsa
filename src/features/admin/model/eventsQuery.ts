@@ -4,13 +4,7 @@ import { fromEventDateInstant } from "../../events/model/eventDateTime";
 import { qualityIssues } from "./overviewMetrics";
 
 export type EventView =
-  | "all"
-  | "upcoming"
-  | "drafts"
-  | "pending"
-  | "published"
-  | "cancelled"
-  | "archived";
+  "all" | "upcoming" | "drafts" | "pending" | "published" | "cancelled" | "archived";
 export type SortKey = "event_date" | "created_at" | "updated_at" | "title";
 export type SortDir = "asc" | "desc";
 

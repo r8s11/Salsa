@@ -87,7 +87,9 @@ const PAID_PRICE_PATTERN =
 
 function mapDanceStyles(values: string[]): string[] {
   const mapped = values.map((value) => DANCE_STYLE_ALIASES[value.trim().toLowerCase()] ?? null);
-  return mapped.filter((slug, index): slug is string => slug !== null && mapped.indexOf(slug) === index);
+  return mapped.filter(
+    (slug, index): slug is string => slug !== null && mapped.indexOf(slug) === index
+  );
 }
 
 function mapEventType(value: string): EventType | null {
@@ -114,7 +116,7 @@ function mapPrice(value: string): { price_type: "free" | "paid"; price_amount: s
 
 export function applyExtractionToDraft(
   extraction: ExtractedEvent,
-  draft: EventFormDraft,
+  draft: EventFormDraft
 ): PrefillResult {
   const next: EventFormDraft = { ...draft, dance_styles: [...draft.dance_styles] };
   const filled: string[] = [];
@@ -123,7 +125,7 @@ export function applyExtractionToDraft(
   const fillText = (
     key: "title" | "description" | "location" | "address" | "rsvp_link",
     value: string | null,
-    label: string,
+    label: string
   ) => {
     if (value && !next[key]) {
       next[key] = value;
@@ -191,10 +193,7 @@ export function applyExtractionToDraft(
     next.dance_styles = [...next.dance_styles, ...fresh];
     filled.push("Dance styles");
   }
-  if (
-    extraction.dance_styles.length > 0 &&
-    mappedStyles.length === 0
-  ) {
+  if (extraction.dance_styles.length > 0 && mappedStyles.length === 0) {
     skipped.push("Dance styles");
   }
 

@@ -1,12 +1,7 @@
 import { Clock, Search, Info, CheckCircle, CircleX, Undo2 } from "lucide-react";
 
 type SubmissionStatus =
-  | "pending"
-  | "in_review"
-  | "needs_information"
-  | "approved"
-  | "rejected"
-  | "withdrawn";
+  "pending" | "in_review" | "needs_information" | "approved" | "rejected" | "withdrawn";
 
 const STATUS_LABEL: Record<SubmissionStatus, string> = {
   pending: "Pending",

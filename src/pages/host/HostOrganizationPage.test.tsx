@@ -211,7 +211,9 @@ describe("HostOrganizationPage — edit form", () => {
     });
     await userEvent.click(screen.getByRole("button", { name: /Edit Organization/ }));
     expect(screen.getByLabelText("Organization name")).toHaveValue("Boston Salsa Collective");
-    expect(screen.getByLabelText("About")).toHaveValue("Weekly salsa socials around Greater Boston.");
+    expect(screen.getByLabelText("About")).toHaveValue(
+      "Weekly salsa socials around Greater Boston."
+    );
   });
 
   it("validates name is required", async () => {

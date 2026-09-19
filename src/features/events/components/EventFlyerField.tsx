@@ -1,16 +1,18 @@
 import { ChangeEvent, DragEvent, useEffect, useId, useRef, useState } from "react";
-import { ImageUp, RotateCw, Trash2, Loader2, AlertTriangle, CheckCircle2, RefreshCw } from "lucide-react";
+import {
+  ImageUp,
+  RotateCw,
+  Trash2,
+  Loader2,
+  AlertTriangle,
+  CheckCircle2,
+  RefreshCw,
+} from "lucide-react";
 import { validateEventFlyer } from "../api/eventFlyers";
 import "./EventFlyerField.css";
 
 export type EventFlyerStatus =
-  | "empty"
-  | "drag-over"
-  | "uploading"
-  | "uploaded"
-  | "upload-error"
-  | "replacing"
-  | "removing";
+  "empty" | "drag-over" | "uploading" | "uploaded" | "upload-error" | "replacing" | "removing";
 
 type EventFlyerFieldProps = {
   /** Public URL of an already-persisted flyer (if any). */
@@ -232,7 +234,7 @@ export default function EventFlyerField({
           >
             {previewUrl ? "Choose a different flyer" : "Choose Flyer"}
           </button>
-      </div>
+        </div>
       )}
 
       {/* hidden file input – always mounted so Replace works */}
@@ -249,7 +251,6 @@ export default function EventFlyerField({
         aria-invalid={hasAlert ? "true" : undefined}
         aria-describedby={hasAlert ? alertId : undefined}
       />
-
 
       {showPreview && (currentUrl || previewUrl) && (
         <div className="event-flyer-field__actions">

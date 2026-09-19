@@ -111,14 +111,20 @@ describe("AdminFounderInvitationSection", () => {
     render(<AdminFounderInvitationSection founderRequestId="request-1" isAdmin />);
 
     expect(screen.queryByRole("button", { name: "Revoke Invitation" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Reissue Fresh Invitation" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Reissue Fresh Invitation" })
+    ).not.toBeInTheDocument();
   });
 
   it("keeps moderator history read-only", () => {
     render(<AdminFounderInvitationSection founderRequestId="request-1" isAdmin={false} />);
 
-    expect(screen.getByRole("heading", { name: "Invitation and email history" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Invitation and email history" })
+    ).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Revoke Invitation" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Reissue Fresh Invitation" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Reissue Fresh Invitation" })
+    ).not.toBeInTheDocument();
   });
 });

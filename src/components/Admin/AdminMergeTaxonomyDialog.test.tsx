@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import AdminMergeTaxonomyDialog from "./AdminMergeTaxonomyDialog";
@@ -39,26 +39,28 @@ describe("AdminMergeTaxonomyDialog", () => {
     expect(onMerge).toHaveBeenCalledWith({ keepId: "keep", mergeId: "source" });
   });
 
-  it("defaults to a same-category target and restores opener focus on Escape", async () => {
-    const user = userEvent.setup();
+  it("defaults to a same-category target and restores opener focus on Escape", () => {
+    const opener = document.createElement("button");
+    opener.textContent = "Open merge";
+    document.body.appendChild(opener);
+    opener.focus();
+
     const onClose = vi.fn();
-    const { rerender } = render(<button type="button">Open merge</button>);
-    screen.getByRole("button", { name: "Open merge" }).focus();
-    rerender(
-      <>
-        <button type="button">Open merge</button>
-        <AdminMergeTaxonomyDialog
-          source={source}
-          candidates={[wrongCategory, keep]}
-          onClose={onClose}
-          onMerge={vi.fn()}
-        />
-      </>
+    const { unmount } = render(
+      <AdminMergeTaxonomyDialog
+        source={source}
+        candidates={[wrongCategory, keep]}
+        onClose={onClose}
+        onMerge={vi.fn()}
+      />
     );
+    expect(opener).not.toHaveFocus();
     expect(screen.getByRole("combobox")).toHaveValue("keep");
-    await user.keyboard("{Escape}");
+    fireEvent.keyDown(window, { key: "Escape" });
     expect(onClose).toHaveBeenCalledOnce();
-    expect(screen.getByRole("button", { name: "Open merge" })).toHaveFocus();
+    unmount();
+    expect(opener).toHaveFocus();
+    opener.remove();
   });
 
   it("contains Tab navigation", async () => {

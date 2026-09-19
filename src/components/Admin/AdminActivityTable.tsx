@@ -50,13 +50,14 @@ export default function AdminActivityTable({
     <>
       <div className="admin-activity-table__scroll">
         <table className="admin-activity-table">
+          <caption className="admin-visually-hidden">Activity log</caption>
           <thead>
             <tr>
-              <th>Action</th>
-              <th>Target</th>
-              <th>Actor</th>
-              <th>Category</th>
-              <th>Date & Time</th>
+              <th scope="col">Action</th>
+              <th scope="col">Target</th>
+              <th scope="col">Actor</th>
+              <th scope="col">Category</th>
+              <th scope="col">Date &amp; Time</th>
             </tr>
           </thead>
           <tbody>

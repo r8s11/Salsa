@@ -22,7 +22,10 @@ describe("FormFieldError", () => {
   it("associates a control with its error and resolves the reference", () => {
     render(
       <>
-        <input aria-label="Event title" {...fieldErrorProps("event-title-error", "Event title is required.")} />
+        <input
+          aria-label="Event title"
+          {...fieldErrorProps("event-title-error", "Event title is required.")}
+        />
         <FormFieldError id="event-title-error" message="Event title is required." />
       </>
     );
@@ -30,7 +33,9 @@ describe("FormFieldError", () => {
     const input = screen.getByLabelText("Event title");
     expect(input).toHaveAttribute("aria-invalid", "true");
     expect(input.getAttribute("aria-describedby")).toBe("event-title-error");
-    expect(document.getElementById("event-title-error")).toHaveTextContent("Event title is required.");
+    expect(document.getElementById("event-title-error")).toHaveTextContent(
+      "Event title is required."
+    );
   });
 });
 

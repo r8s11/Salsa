@@ -6,13 +6,7 @@
  */
 
 export type AttendeeCategory =
-  | "registered"
-  | "guest"
-  | "comp"
-  | "staff"
-  | "performer"
-  | "instructor"
-  | "walk_in";
+  "registered" | "guest" | "comp" | "staff" | "performer" | "instructor" | "walk_in";
 
 export type AttendeeSource = "host" | "door" | "future_registration" | "system";
 

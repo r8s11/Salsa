@@ -135,7 +135,11 @@ describe("createOrganizerEvent", () => {
     mocks.rpc.mockResolvedValue({ data: "evt-new", error: null });
 
     await expect(
-      createOrganizerEvent("org-1", { title: "Salsa Night", event_type: "social", dance_styles: [] }, true)
+      createOrganizerEvent(
+        "org-1",
+        { title: "Salsa Night", event_type: "social", dance_styles: [] },
+        true
+      )
     ).resolves.toBe("evt-new");
     expect(mocks.rpc).toHaveBeenCalledWith("organizer_create_event", {
       p_organizer_id: "org-1",

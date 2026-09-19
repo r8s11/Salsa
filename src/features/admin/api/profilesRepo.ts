@@ -179,7 +179,8 @@ export async function resendOrganizerInvitation(
  * `admin_invite_user`, unchanged.
  */
 export async function createUserAccount(userData: CreateUserParams): Promise<CreatedAccount> {
-  const wantsEmailInvite = userData.role === "organizer" && userData.delivery !== "temporary_password";
+  const wantsEmailInvite =
+    userData.role === "organizer" && userData.delivery !== "temporary_password";
   if (wantsEmailInvite) {
     return inviteOrganizerByEmail(userData.email, userData.display_name);
   }

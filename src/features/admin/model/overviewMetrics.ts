@@ -67,13 +67,7 @@ export function deriveIncompleteEvents(
 }
 
 export type QualityIssue =
-  | "venue"
-  | "time"
-  | "image"
-  | "organizer"
-  | "description"
-  | "pricing"
-  | "duplicate";
+  "venue" | "time" | "image" | "organizer" | "description" | "pricing" | "duplicate";
 
 export const QUALITY_ISSUE_LABEL: Record<QualityIssue, string> = {
   venue: "Missing venue",

@@ -18,6 +18,8 @@ import AdminActionMenu from "./AdminActionMenu";
 import AdminUserAvatar from "./AdminUserAvatar";
 import "./AdminUsersTable.css";
 
+import "./AdminTables.css";
+
 function formatJoined(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", {
     month: "short",
@@ -42,6 +44,7 @@ interface AdminUsersTableProps {
   busy?: { id: string; action: UserRowAction } | null;
   errorId?: string | null;
   error?: string | null;
+  isLoading?: boolean;
 }
 
 function SortableHeader({
@@ -62,7 +65,7 @@ function SortableHeader({
   const Icon = isActive ? (sort.dir === "asc" ? ArrowUp : ArrowDown) : ArrowUpDown;
 
   return (
-    <th aria-sort={ariaSort} className={className}>
+    <th scope="col" aria-sort={ariaSort} className={className}>
       <button
         type="button"
         className="admin-users-table__sort-btn"
@@ -117,12 +120,15 @@ export default function AdminUsersTable({
     <>
       <div className="admin-users-table__scroll">
         <table className="admin-users-table">
+          <caption className="admin-visually-hidden">Users</caption>
           <thead>
             <tr>
               <SortableHeader label="User" sortKey="name" sort={sort} onSortChange={onSortChange} />
-              <th className="admin-users-table__col--email">Email</th>
-              <th>Role</th>
-              <th>Status</th>
+              <th scope="col" className="admin-users-table__col--email">
+                Email
+              </th>
+              <th scope="col">Role</th>
+              <th scope="col">Status</th>
               <SortableHeader
                 label="Joined"
                 sortKey="joined"
@@ -136,7 +142,7 @@ export default function AdminUsersTable({
                 sort={sort}
                 onSortChange={onSortChange}
               />
-              <th>Actions</th>
+              <th scope="col">Actions</th>
             </tr>
           </thead>
           <tbody>

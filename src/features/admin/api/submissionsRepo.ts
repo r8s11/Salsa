@@ -48,7 +48,12 @@ export async function createSubmission(
   const submitter_id = submission.submitter_id;
   const submitter_email = submission.submitter_email;
   const submitter_name = submission.submitter_name;
-  const { submitter_id: _s, submitter_email: _e, submitter_name: _n, ...submitted_data } = submission;
+  const {
+    submitter_id: _s,
+    submitter_email: _e,
+    submitter_name: _n,
+    ...submitted_data
+  } = submission;
 
   const id = crypto.randomUUID();
 

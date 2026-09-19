@@ -16,7 +16,9 @@ vi.mock("../../features/founder/api/founderInvitationAcceptance", () => ({
   acceptFounderInvitation,
 }));
 
-const { provisionFounderOrganization } = vi.hoisted(() => ({ provisionFounderOrganization: vi.fn() }));
+const { provisionFounderOrganization } = vi.hoisted(() => ({
+  provisionFounderOrganization: vi.fn(),
+}));
 vi.mock("../../features/founder/api/founderOnboarding", () => ({ provisionFounderOrganization }));
 
 // sessionStorage-backed in the real module; mocked here so the test drives
@@ -78,7 +80,9 @@ describe("FoundersAcceptPage — acceptance success path (Phase 8 delta)", () =>
     // Provisioning must be called AFTER acceptance succeeds, not before.
     expect(provisionFounderOrganization).toHaveBeenCalledTimes(1);
 
-    expect(await screen.findByRole("heading", { name: /invitation accepted/i })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: /invitation accepted/i })
+    ).toBeInTheDocument();
     const continueLink = screen.getByRole("link", { name: /continue/i });
     expect(continueLink).toHaveAttribute("href", "/founders/welcome");
     // The old Phase 6 destination must not remain.
@@ -101,8 +105,13 @@ describe("FoundersAcceptPage — acceptance success path (Phase 8 delta)", () =>
     await waitFor(() => expect(provisionFounderOrganization).toHaveBeenCalledTimes(1));
     // Never a generic error screen just because the best-effort provisioning
     // call failed — the accepted state renders regardless (spec §19).
-    expect(await screen.findByRole("heading", { name: /invitation accepted/i })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /continue/i })).toHaveAttribute("href", "/founders/welcome");
+    expect(
+      await screen.findByRole("heading", { name: /invitation accepted/i })
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /continue/i })).toHaveAttribute(
+      "href",
+      "/founders/welcome"
+    );
   });
 
   it("does not provision when acceptance itself fails", async () => {
@@ -116,7 +125,9 @@ describe("FoundersAcceptPage — acceptance success path (Phase 8 delta)", () =>
     await userEvent.click(acceptButton);
 
     await waitFor(() =>
-      expect(screen.getByRole("heading", { name: /invalid, expired, or no longer available/i })).toBeInTheDocument()
+      expect(
+        screen.getByRole("heading", { name: /invalid, expired, or no longer available/i })
+      ).toBeInTheDocument()
     );
     expect(provisionFounderOrganization).not.toHaveBeenCalled();
   });

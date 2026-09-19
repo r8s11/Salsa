@@ -55,7 +55,8 @@ export interface CreateFounderInvitationResult {
  * database status (spec §18) — "expired" only exists here, computed from
  * `expires_at` against the current time.
  */
-export type FounderInvitationDisplayStatus = "none" | "pending" | "expired" | "revoked" | "accepted";
+export type FounderInvitationDisplayStatus =
+  "none" | "pending" | "expired" | "revoked" | "accepted";
 
 export const FOUNDER_INVITATION_DISPLAY_LABEL: Record<FounderInvitationDisplayStatus, string> = {
   none: "No invitation created",
@@ -109,7 +110,9 @@ export function canRevokeFounderInvitation(displayStatus: FounderInvitationDispl
  * (use "Send Founder Invitation" instead), and "accepted" requests are
  * already onboarded so reissue is not a recovery path.
  */
-export function canReissueFounderInvitation(displayStatus: FounderInvitationDisplayStatus): boolean {
+export function canReissueFounderInvitation(
+  displayStatus: FounderInvitationDisplayStatus
+): boolean {
   return displayStatus === "pending" || displayStatus === "expired" || displayStatus === "revoked";
 }
 
@@ -133,7 +136,10 @@ export function founderInvitationAcceptUrl(token: string): string {
  */
 export type FounderInvitationEmailDisplayStatus = "not_sent" | "attempting" | "sent" | "failed";
 
-export const FOUNDER_INVITATION_EMAIL_DISPLAY_LABEL: Record<FounderInvitationEmailDisplayStatus, string> = {
+export const FOUNDER_INVITATION_EMAIL_DISPLAY_LABEL: Record<
+  FounderInvitationEmailDisplayStatus,
+  string
+> = {
   not_sent: "Not invited",
   attempting: "Email delivery attempting",
   sent: "Invitation email sent",

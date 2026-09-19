@@ -73,10 +73,18 @@ export function parseReconciliationResponse(raw: unknown): ReconciliationRespons
     }
 
     // Validate optional match fields
-    if (matchObj.address !== null && matchObj.address !== undefined && typeof matchObj.address !== "string") {
+    if (
+      matchObj.address !== null &&
+      matchObj.address !== undefined &&
+      typeof matchObj.address !== "string"
+    ) {
       throw new Error("Invalid reconciliation response: invalid address type");
     }
-    if (matchObj.city !== null && matchObj.city !== undefined && typeof matchObj.city !== "string") {
+    if (
+      matchObj.city !== null &&
+      matchObj.city !== undefined &&
+      typeof matchObj.city !== "string"
+    ) {
       throw new Error("Invalid reconciliation response: invalid city type");
     }
 

@@ -66,11 +66,7 @@ export function useFounderRequests() {
   });
 
   const rejectMutation = useMutation({
-    mutationFn: (params: {
-      requestId: string;
-      reasonCode: string;
-      message?: string;
-    }) =>
+    mutationFn: (params: { requestId: string; reasonCode: string; message?: string }) =>
       reviewFounderRequest({
         requestId: params.requestId,
         decision: "reject",
@@ -109,7 +105,6 @@ export function useFounderRequests() {
  * the page is opened directly via URL (no directory in cache yet).
  */
 export function useFounderRequest(id: string | null) {
-
   return useQuery({
     queryKey: ["admin", "founder-request", id],
     enabled: !!id,

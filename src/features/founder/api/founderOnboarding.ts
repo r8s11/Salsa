@@ -18,7 +18,12 @@ export type FounderOnboardingState =
   | { state: "not_founder" }
   | { state: "accepted_not_provisioned"; founderRequestId: string; organizationName: string }
   | { state: "manual_resolution_required"; founderRequestId: string }
-  | { state: "provisioned"; organizerId: string; organizationName: string; role: OrganizerMemberRole };
+  | {
+      state: "provisioned";
+      organizerId: string;
+      organizationName: string;
+      role: OrganizerMemberRole;
+    };
 
 /**
  * Resolves the authenticated caller's Founder onboarding state. This is

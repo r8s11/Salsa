@@ -11,7 +11,9 @@ describe("reconcileVenue", () => {
 
   it("calls reconcile-flyer with trimmed venue data", async () => {
     invoke.mockResolvedValue({
-      data: { venue: { status: "exact", match: { id: "1", name: "Club", address: null, city: null } } },
+      data: {
+        venue: { status: "exact", match: { id: "1", name: "Club", address: null, city: null } },
+      },
       error: null,
     });
 

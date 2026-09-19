@@ -30,7 +30,9 @@ function formatBytes(bytes: number): string {
 
 function StatusBadge({ status }: { status: CsvRowStatus }) {
   return (
-    <span className={`host-import-status host-import-status--${status}`}>{STATUS_LABEL[status]}</span>
+    <span className={`host-import-status host-import-status--${status}`}>
+      {STATUS_LABEL[status]}
+    </span>
   );
 }
 
@@ -75,7 +77,11 @@ export default function HostEventImportPage() {
 
   const { data: organizers = [] } = useMyOrganizers();
   const activeOrganizers = useMemo(
-    () => organizers.filter((o) => o.organizerStatus === "active" && (o.memberRole === "owner" || o.memberRole === "manager")),
+    () =>
+      organizers.filter(
+        (o) =>
+          o.organizerStatus === "active" && (o.memberRole === "owner" || o.memberRole === "manager")
+      ),
     [organizers]
   );
   const [selectedOrganizerId, setSelectedOrganizerId] = useState<string>(
@@ -254,7 +260,9 @@ export default function HostEventImportPage() {
               </p>
             </div>
             <div className="host-import-page__counts">
-              <span className="host-import-status host-import-status--valid">{counts.valid} valid</span>
+              <span className="host-import-status host-import-status--valid">
+                {counts.valid} valid
+              </span>
               <span className="host-import-status host-import-status--warning">
                 {counts.warning} warning
               </span>

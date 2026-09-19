@@ -104,8 +104,7 @@ function Contact() {
       setError(
         publicErrorMessage(err, {
           fallback: "We couldn't send your message. Please try again in a moment.",
-          networkFallback:
-            "We couldn't send your message. Check your connection and try again.",
+          networkFallback: "We couldn't send your message. Check your connection and try again.",
         })
       );
     } finally {
@@ -123,7 +122,9 @@ function Contact() {
 
         <div className="contact-grid">
           <div className="contact-form-card">
-            <h2><span aria-hidden="true">📬</span> Send a Message</h2>
+            <h2>
+              <span aria-hidden="true">📬</span> Send a Message
+            </h2>
             {error && (
               <div role="alert" className="contact-error-banner">
                 {error}
@@ -203,12 +204,7 @@ function Contact() {
                 ></textarea>
                 <FormFieldError id="contact-message-error" message={errors.message} />
               </div>
-              <Button
-                type="submit"
-                block
-                loading={isSubmitting}
-                loadingLabel="Sending..."
-              >
+              <Button type="submit" block loading={isSubmitting} loadingLabel="Sending...">
                 {isSubmitted ? "Message Sent! ✓" : "Send Message"}
               </Button>
             </form>

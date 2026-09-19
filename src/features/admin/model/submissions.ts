@@ -1,10 +1,5 @@
 export type SubmissionStatus =
-  | "pending"
-  | "in_review"
-  | "needs_information"
-  | "approved"
-  | "rejected"
-  | "withdrawn";
+  "pending" | "in_review" | "needs_information" | "approved" | "rejected" | "withdrawn";
 
 export type RejectionReason =
   | "duplicate"

@@ -20,6 +20,8 @@ import AdminRequestStatusBadge from "./AdminRequestStatusBadge";
 import AdminActionMenu, { type ActionMenuItem } from "./AdminActionMenu";
 import "./AdminOrganizerRequestsTable.css";
 
+import "./AdminTables.css";
+
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", {
     month: "short",
@@ -70,7 +72,7 @@ function SortableHeader({
   const Icon = isActive ? (sort.dir === "asc" ? ArrowUp : ArrowDown) : ArrowUpDown;
 
   return (
-    <th aria-sort={ariaSort}>
+    <th scope="col" aria-sort={ariaSort}>
       <button
         type="button"
         className="admin-organizer-requests-table__sort-btn"
@@ -91,6 +93,7 @@ interface AdminOrganizerRequestsTableProps {
   busy: { id: string; action: RequestRowAction } | null;
   errorId: string | null;
   error: string | null;
+  isLoading?: boolean;
 }
 
 function BrandCell({ request }: { request: OrganizerRequestRow }) {
@@ -130,11 +133,53 @@ export default function AdminOrganizerRequestsTable({
   busy,
   errorId,
   error,
+  isLoading = false,
 }: AdminOrganizerRequestsTableProps) {
+  if (isLoading) {
+    return (
+      <div className="admin-organizer-requests-table__scroll">
+        <table className="admin-organizer-requests-table">
+          <caption className="admin-visually-hidden">Organizer requests</caption>
+          <thead>
+            <tr>
+              <th scope="col">Applicant</th>
+              <th scope="col">Brand</th>
+              <th scope="col">Type</th>
+              <th scope="col">Status</th>
+              <th scope="col">Submitted</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[...Array(5)].map((_, i) => (
+              <tr key={i} className="admin-organizer-requests-table__loading-row">
+                <td colSpan={6}>
+                  <div className="admin-table-loading">
+                    <div className="admin-skeleton admin-skeleton--title"></div>
+                    <div className="admin-skeleton admin-skeleton--meta"></div>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
+  if (requests.length === 0) {
+    return (
+      <div className="admin-table-empty" role="status">
+        <p>No organizer requests found.</p>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="admin-organizer-requests-table__scroll">
         <table className="admin-organizer-requests-table">
+          <caption className="admin-visually-hidden">Organizer requests</caption>
           <thead>
             <tr>
               <SortableHeader
@@ -143,18 +188,22 @@ export default function AdminOrganizerRequestsTable({
                 sort={sort}
                 onSortChange={onSortChange}
               />
-              <th className="admin-organizer-requests-table__col--brand">Brand / Organization</th>
-              <th className="admin-organizer-requests-table__col--type">Type</th>
+              <th scope="col" className="admin-organizer-requests-table__col--brand">
+                Brand / Organization
+              </th>
+              <th scope="col" className="admin-organizer-requests-table__col--type">
+                Type
+              </th>
               <SortableHeader
                 label="Requested"
                 sortKey="requested"
                 sort={sort}
                 onSortChange={onSortChange}
               />
-              <th>Event Activity</th>
-              <th>Account Status</th>
-              <th>Request Status</th>
-              <th>Actions</th>
+              <th scope="col">Event Activity</th>
+              <th scope="col">Account Status</th>
+              <th scope="col">Request Status</th>
+              <th scope="col">Actions</th>
             </tr>
           </thead>
           <tbody>

@@ -4,7 +4,10 @@ import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import HostEventImportPage from "./HostEventImportPage";
 import { useHostEventImport } from "../../features/host/hooks/useHostEventImport";
-import type { HostCsvEventImportState, HostCsvRowWithDuplicates } from "../../features/host/hooks/useHostEventImport";
+import type {
+  HostCsvEventImportState,
+  HostCsvRowWithDuplicates,
+} from "../../features/host/hooks/useHostEventImport";
 import { useMyOrganizers } from "../../features/host/hooks/useMyOrganizers";
 import { CSV_ALL_KEYS } from "../../features/admin/model/csvImportTemplate";
 

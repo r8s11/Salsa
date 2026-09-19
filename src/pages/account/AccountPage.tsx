@@ -107,7 +107,8 @@ function SignOutEverywhereDialog({
       return;
     }
 
-    const focusable = dialogRef.current?.querySelectorAll<HTMLButtonElement>("button:not([disabled])");
+    const focusable =
+      dialogRef.current?.querySelectorAll<HTMLButtonElement>("button:not([disabled])");
     if (!focusable || focusable.length === 0) {
       return;
     }
@@ -143,8 +144,8 @@ function SignOutEverywhereDialog({
       >
         <h2 id={titleId}>Sign out everywhere?</h2>
         <p id={descriptionId}>
-          This ends every session, including this browser. People using another device may keep access until
-          their current access token expires.
+          This ends every session, including this browser. People using another device may keep
+          access until their current access token expires.
         </p>
         {error && (
           <p className="account-page__session-error" role="alert">
@@ -382,9 +383,7 @@ export default function AccountPage() {
       <div className="account-page__intro">
         <span className="account-page__eyebrow">My account</span>
         <h1 className="account-page__h1">Account</h1>
-        <p className="account-page__lede">
-          Your identity, account status, and profile access.
-        </p>
+        <p className="account-page__lede">Your identity, account status, and profile access.</p>
       </div>
 
       {statusMessage && (
@@ -419,10 +418,12 @@ export default function AccountPage() {
 
       {!isLoading && !error && !profile && (
         <div className="account-page__card account-page__missing">
-          <p className="account-page__missing-title">We couldn't find an account profile for this login.</p>
+          <p className="account-page__missing-title">
+            We couldn't find an account profile for this login.
+          </p>
           <p className="account-page__missing-body">
-            This can happen for older or partially set-up accounts. Try refreshing, or contact us if this
-            keeps happening.
+            This can happen for older or partially set-up accounts. Try refreshing, or contact us if
+            this keeps happening.
           </p>
           {user?.email && (
             <p className="account-page__missing-email">
@@ -447,7 +448,10 @@ export default function AccountPage() {
               height={64}
             />
           ) : (
-            <span className="account-page__avatar account-page__avatar--initials" aria-hidden="true">
+            <span
+              className="account-page__avatar account-page__avatar--initials"
+              aria-hidden="true"
+            >
               {initialsFor(identity)}
             </span>
           )}
@@ -462,7 +466,9 @@ export default function AccountPage() {
               <span className="account-page__muted">{identity.usernameLine}</span>
             )}
             {identity.usernameMissing && (
-              <span className="account-page__muted account-page__username-missing">Username not set</span>
+              <span className="account-page__muted account-page__username-missing">
+                Username not set
+              </span>
             )}
 
             {user?.email && (
@@ -472,7 +478,9 @@ export default function AccountPage() {
             )}
             <span className="account-page__hint">Used for sign-in and account security.</span>
 
-            <span className="account-page__muted">Member since {memberSinceLabel(profile.created_at)}</span>
+            <span className="account-page__muted">
+              Member since {memberSinceLabel(profile.created_at)}
+            </span>
           </div>
 
           <div className="account-page__identity-actions">
@@ -484,14 +492,20 @@ export default function AccountPage() {
       )}
 
       {!isLoading && !error && profile && identity && (
-        <section className="account-page__capabilities" aria-labelledby="account-capabilities-heading">
+        <section
+          className="account-page__capabilities"
+          aria-labelledby="account-capabilities-heading"
+        >
           <div className="account-page__capabilities-heading">
             <span className="account-page__eyebrow">What you can do</span>
             <h2 id="account-capabilities-heading">What you can do</h2>
           </div>
           <div className="account-page__capability-grid">
             {capabilityCards.map((card) => (
-              <article className="account-page__card account-page__capability-card" key={card.title}>
+              <article
+                className="account-page__card account-page__capability-card"
+                key={card.title}
+              >
                 <div className="account-page__capability-title-row">
                   <h3>{card.title}</h3>
                   <span className="account-page__availability">Available</span>
@@ -551,15 +565,19 @@ export default function AccountPage() {
           <div className="account-page__session-group">
             <h3>Account email</h3>
             <p>
-              Changing your email sends a confirmation link to both your current and new address before
-              the change takes effect.
+              Changing your email sends a confirmation link to both your current and new address
+              before the change takes effect.
             </p>
             {emailChangeStatus === "sent" ? (
               <p className="account-page__session-success" role="status">
                 Check both your current and new inbox for confirmation links to finish the change.
               </p>
             ) : (
-              <form onSubmit={(e) => void handleEmailChangeSubmit(e)} className="account-page__email-form" noValidate>
+              <form
+                onSubmit={(e) => void handleEmailChangeSubmit(e)}
+                className="account-page__email-form"
+                noValidate
+              >
                 {emailFormError && (
                   <p className="account-page__session-error" role="alert">
                     {emailFormError}
@@ -601,21 +619,28 @@ export default function AccountPage() {
                   <span className="account-page__session-name">This browser</span>
                   <span className="account-page__session-current">Current</span>
                 </div>
-                {user.email && <p className="account-page__session-email">Signed in as {user.email}</p>}
+                {user.email && (
+                  <p className="account-page__session-email">Signed in as {user.email}</p>
+                )}
               </div>
               <Button
                 variant="secondary"
                 disabled={isSessionActionPending}
                 onClick={() => void handleScopedSignOut("local")}
               >
-                {pendingAction === "local" ? "Signing out on this device" : "Sign out on this device"}
+                {pendingAction === "local"
+                  ? "Signing out on this device"
+                  : "Sign out on this device"}
               </Button>
             </div>
           </div>
 
           <div className="account-page__session-group">
             <h3>Other sessions</h3>
-            <p>End sessions on your other browsers and devices. A current access token may continue until it expires.</p>
+            <p>
+              End sessions on your other browsers and devices. A current access token may continue
+              until it expires.
+            </p>
             <Button
               variant="secondary"
               disabled={isSessionActionPending}
@@ -641,12 +666,15 @@ export default function AccountPage() {
       )}
 
       {user && (
-        <section className="account-page__card account-page__danger" aria-labelledby="account-danger-heading">
+        <section
+          className="account-page__card account-page__danger"
+          aria-labelledby="account-danger-heading"
+        >
           <h2 id="account-danger-heading">Danger zone</h2>
           <p className="account-page__danger-intro">Permanently delete your SalsaSegura account.</p>
           <p className="account-page__danger-copy">
-            This permanently removes your sign-in and eligible personal account data. Some event, organizer,
-            or moderation records may need to be retained first.
+            This permanently removes your sign-in and eligible personal account data. Some event,
+            organizer, or moderation records may need to be retained first.
           </p>
 
           {deletionEligibility === null && !deletionEligibilityError && (

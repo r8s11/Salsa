@@ -1,6 +1,6 @@
 import "temporal-polyfill/global";
-import { useEffect, useId, useRef, useState } from "react";
-import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
+import { useId, useRef, useState } from "react";
+import { useAccessibleDialog } from "../../shared/a11y/useAccessibleDialog";
 import type { DatabaseEvent } from "../../features/events/model/types";
 import { fromEventDateInstant } from "../../features/events/model/eventDateTime";
 import "./AdminDuplicateEventDialog.css";
@@ -36,32 +36,34 @@ export default function AdminDuplicateEventDialog({
   onCancel,
 }: AdminDuplicateEventDialogProps) {
   const titleId = useId();
+  const dialogRef = useRef<HTMLDivElement>(null);
   const dateRef = useRef<HTMLInputElement>(null);
-
   const original = fromEventDateInstant(event.event_date);
   // Weekly recurrence is the dominant case for this product.
   const [date, setDate] = useState(() => resolveQuickSet(original.date, "1week"));
   const [time, setTime] = useState(original.time);
   const [publish, setPublish] = useState(false);
-
-  useEscapeKey(onCancel);
-
-  useEffect(() => {
-    dateRef.current?.focus();
-  }, []);
+  const { onKeyDown, onBackdropClick, onDialogClick } = useAccessibleDialog({
+    dialogRef,
+    onDismiss: onCancel,
+    isBusy,
+    initialFocusRef: dateRef,
+  });
 
   const applyQuickSet = (quickSet: QuickSet) => {
     setDate(resolveQuickSet(original.date, quickSet));
   };
 
   return (
-    <div className="admin-duplicate-dialog__overlay" onClick={onCancel}>
+    <div className="admin-duplicate-dialog__overlay" onClick={onBackdropClick}>
       <div
+        ref={dialogRef}
         className="admin-duplicate-dialog admin-card"
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        onClick={(clickEvent) => clickEvent.stopPropagation()}
+        onKeyDown={onKeyDown}
+        onClick={onDialogClick}
       >
         <h2 id={titleId}>Duplicate &quot;{event.title}&quot;</h2>
 

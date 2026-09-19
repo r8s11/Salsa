@@ -168,10 +168,10 @@ export default function AdminFounderRequestsPage() {
                   {view === "pending"
                     ? "No pending founder requests."
                     : view === "approved"
-                    ? "No approved founder requests yet."
-                    : view === "rejected"
-                    ? "No rejected founder requests yet."
-                    : "No founder requests found."}
+                      ? "No approved founder requests yet."
+                      : view === "rejected"
+                        ? "No rejected founder requests yet."
+                        : "No founder requests found."}
                 </p>
               </div>
             )}

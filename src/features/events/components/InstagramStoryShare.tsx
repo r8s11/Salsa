@@ -187,10 +187,7 @@ export default function InstagramStoryShare({
         Creates a 9:16 Story image you can post from your phone's share sheet.
       </p>
       {feedback && (
-        <p
-          className="story-share__feedback"
-          role={feedback.kind === "error" ? "alert" : "status"}
-        >
+        <p className="story-share__feedback" role={feedback.kind === "error" ? "alert" : "status"}>
           {feedback.message}
         </p>
       )}

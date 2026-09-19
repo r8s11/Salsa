@@ -135,7 +135,9 @@ describe("AccountPage", () => {
     renderPage();
 
     expect(screen.getByText("@mariasalsa")).toBeInTheDocument();
-    expect(screen.queryByText("maria@example.com", { selector: ".account-page__name" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("maria@example.com", { selector: ".account-page__name" })
+    ).not.toBeInTheDocument();
   });
 
   it("renders an initials avatar fallback when avatar_url is missing", () => {
@@ -237,7 +239,10 @@ describe("AccountPage", () => {
       "href",
       "/profile"
     );
-    expect(screen.getByRole("link", { name: "Submit an Event" })).toHaveAttribute("href", "/submit");
+    expect(screen.getByRole("link", { name: "Submit an Event" })).toHaveAttribute(
+      "href",
+      "/submit"
+    );
     expect(screen.queryByText("Host Events")).not.toBeInTheDocument();
     expect(screen.queryByText("Moderation")).not.toBeInTheDocument();
     expect(screen.queryByText("Administration")).not.toBeInTheDocument();
@@ -249,7 +254,10 @@ describe("AccountPage", () => {
     renderPage();
 
     expect(screen.getByText("Host Events")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Open Host Dashboard" })).toHaveAttribute("href", "/host");
+    expect(screen.getByRole("link", { name: "Open Host Dashboard" })).toHaveAttribute(
+      "href",
+      "/host"
+    );
     expect(screen.getByRole("link", { name: "My Events" })).toHaveAttribute("href", "/host/events");
     expect(screen.queryByRole("link", { name: "Open Moderation Queue" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Open Admin Dashboard" })).not.toBeInTheDocument();
@@ -276,7 +284,10 @@ describe("AccountPage", () => {
     renderPage();
 
     expect(screen.getByText("Administration")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Open Admin Dashboard" })).toHaveAttribute("href", "/admin");
+    expect(screen.getByRole("link", { name: "Open Admin Dashboard" })).toHaveAttribute(
+      "href",
+      "/admin"
+    );
     expect(screen.queryByRole("link", { name: "Open Host Dashboard" })).not.toBeInTheDocument();
   });
 
@@ -284,7 +295,9 @@ describe("AccountPage", () => {
     mocks.profile.isLoading = true;
     renderPage();
 
-    expect(screen.queryByRole("heading", { level: 2, name: "What you can do" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { level: 2, name: "What you can do" })
+    ).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Open Admin Dashboard" })).not.toBeInTheDocument();
   });
 
@@ -294,7 +307,10 @@ describe("AccountPage", () => {
     renderPage();
 
     expect(screen.getByRole("alert")).toHaveTextContent("Account suspended");
-    expect(screen.getByRole("link", { name: "Open Host Dashboard" })).toHaveAttribute("href", "/host");
+    expect(screen.getByRole("link", { name: "Open Host Dashboard" })).toHaveAttribute(
+      "href",
+      "/host"
+    );
   });
 
   it("renders a truthful, non-interactive Email & notifications section", () => {
@@ -347,7 +363,9 @@ describe("AccountPage", () => {
       mocks.profile.profile = baseProfile();
       renderPage();
 
-      expect(screen.getByRole("heading", { level: 2, name: "Security & sessions" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { level: 2, name: "Security & sessions" })
+      ).toBeInTheDocument();
     }
   );
 
@@ -362,13 +380,17 @@ describe("AccountPage", () => {
     expect(screen.getByRole("button", { name: "Sign out on this device" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Sign out other devices" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Sign out everywhere" })).toBeInTheDocument();
-    expect(section).not.toHaveTextContent(/iPhone 15|MacBook Pro|Boston|New York City|Last active/i);
+    expect(section).not.toHaveTextContent(
+      /iPhone 15|MacBook Pro|Boston|New York City|Last active/i
+    );
   });
 
   it("keeps the current-session controls available when an authenticated account has no profile row", () => {
     renderPage();
 
-    expect(screen.getByRole("heading", { level: 2, name: "Security & sessions" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 2, name: "Security & sessions" })
+    ).toBeInTheDocument();
     expect(screen.getByText("Signed in as maria@example.com")).toBeInTheDocument();
   });
 
@@ -381,9 +403,7 @@ describe("AccountPage", () => {
     await user.click(screen.getByRole("button", { name: "Change email" }));
 
     expect(mocks.auth.updateEmail).toHaveBeenCalledWith("new@example.com");
-    expect(
-      await screen.findByText(/check both your current and new inbox/i)
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/check both your current and new inbox/i)).toBeInTheDocument();
     expect(screen.queryByLabelText("New email address")).not.toBeInTheDocument();
   });
 
@@ -469,7 +489,9 @@ describe("AccountPage", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "We couldn't sign you out on this device. Please try again."
     );
-    expect(screen.getByRole("heading", { level: 2, name: "Security & sessions" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 2, name: "Security & sessions" })
+    ).toBeInTheDocument();
     expect(screen.queryByText("Signed out destination")).not.toBeInTheDocument();
   });
 
@@ -535,7 +557,9 @@ describe("AccountPage", () => {
     expect(await within(dialog).findByRole("alert")).toHaveTextContent(
       "We couldn't sign you out everywhere. Please try again."
     );
-    expect(within(dialog).getByRole("button", { name: "Confirm sign out everywhere" })).toBeEnabled();
+    expect(
+      within(dialog).getByRole("button", { name: "Confirm sign out everywhere" })
+    ).toBeEnabled();
     expect(screen.queryByText("Signed out destination")).not.toBeInTheDocument();
   });
 
@@ -550,7 +574,9 @@ describe("AccountPage", () => {
     expect(await screen.findByRole("status")).toHaveTextContent(
       "Other sessions were ended. Their current access may continue until each access token expires."
     );
-    expect(screen.getByRole("heading", { level: 2, name: "Security & sessions" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 2, name: "Security & sessions" })
+    ).toBeInTheDocument();
     expect(screen.queryByText("Signed out destination")).not.toBeInTheDocument();
   });
 
@@ -589,23 +615,35 @@ describe("AccountPage", () => {
 
   it.each([
     ["role", "Self-service deletion is not available for organizer, moderator, or admin accounts."],
-    ["event_history", "Self-service deletion is not available while your account has event or submission history."],
-    ["organizer", "Self-service deletion is not available while you have organizer access or an organizer request."],
-    ["operational_history", "Self-service deletion is not available while your account has protected operational history."],
+    [
+      "event_history",
+      "Self-service deletion is not available while your account has event or submission history.",
+    ],
+    [
+      "organizer",
+      "Self-service deletion is not available while you have organizer access or an organizer request.",
+    ],
+    [
+      "operational_history",
+      "Self-service deletion is not available while your account has protected operational history.",
+    ],
     ["storage", "Self-service deletion is not available while you own uploaded files."],
     ["unknown", "We cannot verify whether your account can be deleted right now."],
-  ] as const)("blocks the %s eligibility state without an executable deletion path", async (blocker, message) => {
-    mocks.profile.profile = baseProfile();
-    mocks.deletion.check.mockResolvedValue({ outcome: "blocked", blocker });
-    renderPage();
+  ] as const)(
+    "blocks the %s eligibility state without an executable deletion path",
+    async (blocker, message) => {
+      mocks.profile.profile = baseProfile();
+      mocks.deletion.check.mockResolvedValue({ outcome: "blocked", blocker });
+      renderPage();
 
-    await waitFor(() =>
-      expect(within(screen.getByRole("region", { name: "Danger zone" })).getByRole("status")).toHaveTextContent(
-        message
-      )
-    );
-    expect(screen.queryByRole("button", { name: "Delete account" })).not.toBeInTheDocument();
-  });
+      await waitFor(() =>
+        expect(
+          within(screen.getByRole("region", { name: "Danger zone" })).getByRole("status")
+        ).toHaveTextContent(message)
+      );
+      expect(screen.queryByRole("button", { name: "Delete account" })).not.toBeInTheDocument();
+    }
+  );
 
   it("keeps deletion disabled when eligibility cannot be checked and allows recovery", async () => {
     mocks.profile.profile = baseProfile();
@@ -667,7 +705,10 @@ describe("AccountPage", () => {
 
     await user.click(await screen.findByRole("button", { name: "Delete account" }));
     const dialog = screen.getByRole("dialog", { name: "Permanently delete account?" });
-    await user.type(within(dialog).getByRole("textbox", { name: "Type DELETE to confirm" }), "DELETE");
+    await user.type(
+      within(dialog).getByRole("textbox", { name: "Type DELETE to confirm" }),
+      "DELETE"
+    );
     const confirm = within(dialog).getByRole("button", { name: "Permanently delete account" });
     await user.click(confirm);
     await user.click(confirm);
@@ -713,11 +754,16 @@ describe("AccountPage", () => {
 
     await user.click(await screen.findByRole("button", { name: "Delete account" }));
     const dialog = screen.getByRole("dialog", { name: "Permanently delete account?" });
-    await user.type(within(dialog).getByRole("textbox", { name: "Type DELETE to confirm" }), "DELETE");
+    await user.type(
+      within(dialog).getByRole("textbox", { name: "Type DELETE to confirm" }),
+      "DELETE"
+    );
     await user.click(within(dialog).getByRole("button", { name: "Permanently delete account" }));
 
     await waitFor(() =>
-      expect(within(screen.getByRole("region", { name: "Danger zone" })).getByRole("status")).toHaveTextContent(
+      expect(
+        within(screen.getByRole("region", { name: "Danger zone" })).getByRole("status")
+      ).toHaveTextContent(
         "Self-service deletion is not available while your account has event or submission history."
       )
     );
@@ -725,5 +771,4 @@ describe("AccountPage", () => {
     expect(mocks.auth.clearDeletedAccount).not.toHaveBeenCalled();
     expect(screen.queryByText("Signed out destination")).not.toBeInTheDocument();
   });
-
 });

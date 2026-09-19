@@ -124,9 +124,7 @@ export default function FoundersWelcomePage() {
         </h1>
         <p className="founders-welcome-detail">Please try again in a moment.</p>
         <div className="founders-welcome-actions">
-          <Button onClick={() => void refetch()}>
-            Try Again
-          </Button>
+          <Button onClick={() => void refetch()}>Try Again</Button>
         </div>
       </section>
     );
@@ -167,9 +165,7 @@ export default function FoundersWelcomePage() {
         </h1>
         <p className="founders-welcome-detail">Please try again in a moment.</p>
         <div className="founders-welcome-actions">
-          <Button onClick={retryProvisioning}>
-            Try Again
-          </Button>
+          <Button onClick={retryProvisioning}>Try Again</Button>
         </div>
       </section>
     );
@@ -187,7 +183,10 @@ export default function FoundersWelcomePage() {
     );
   } else if (resolved?.state === "provisioned") {
     body = (
-      <section className="founders-welcome-card founders-welcome-card--success" aria-labelledby="welcome-heading">
+      <section
+        className="founders-welcome-card founders-welcome-card--success"
+        aria-labelledby="welcome-heading"
+      >
         <h1 id="welcome-heading" ref={headingRef} tabIndex={-1}>
           Welcome to SalsaSegura
         </h1>

@@ -64,7 +64,9 @@ export async function reviewFounderRequest(
   if (error) {
     // Handle concurrency conflict
     if (error.code === "55000" || error.message?.includes("already reviewed")) {
-      throw new Error("This request was already reviewed by another admin. Refresh to see the latest status.");
+      throw new Error(
+        "This request was already reviewed by another admin. Refresh to see the latest status."
+      );
     }
     if (error.code === "42501") {
       throw new Error("Admin role required to review founder requests.");
@@ -101,9 +103,6 @@ export function isRequestPending(request: { status: string }): boolean {
  * Type guard to check if a request is editable (pending + current user is admin).
  * Used for conditional rendering of action buttons.
  */
-export function canEditRequest(
-  request: { status: string },
-  isAdmin: boolean
-): boolean {
+export function canEditRequest(request: { status: string }, isAdmin: boolean): boolean {
   return request.status === "pending" && isAdmin;
 }

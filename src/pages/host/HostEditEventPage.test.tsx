@@ -342,7 +342,9 @@ describe("HostEditEventPage", () => {
 
     renderEdit();
 
-    expect(await screen.findByRole("button", { name: /Choose a flyer image to upload/i })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("button", { name: /Choose a flyer image to upload/i })
+    ).toBeInTheDocument();
   });
 
   it("manager can edit event", async () => {

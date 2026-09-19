@@ -24,7 +24,9 @@ const {
   mockDownloadPoster: vi.fn(),
   mockRemoveTarget: vi.fn(),
   mockResolvePosterImage: vi.fn(async (url?: string) => url ?? null),
-  mockResolvePosterImageForEvent: vi.fn(async (): Promise<{ status: string; url?: string; message?: string }> => ({ status: "missing" })),
+  mockResolvePosterImageForEvent: vi.fn(
+    async (): Promise<{ status: string; url?: string; message?: string }> => ({ status: "missing" })
+  ),
 }));
 
 vi.mock("../../features/calendar/hooks/useShareablePoster", () => ({

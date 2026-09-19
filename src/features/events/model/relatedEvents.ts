@@ -1,4 +1,4 @@
-import type { DatabaseEvent } from './types';
+import type { DatabaseEvent } from "./types";
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -13,20 +13,29 @@ export interface RelatedEventsSelection {
 }
 
 export function selectRelatedEvents(
-  current: Pick<DatabaseEvent, 'id' | 'city' | 'event_date'>,
+  current: Pick<DatabaseEvent, "id" | "city" | "event_date">,
   candidates: readonly DatabaseEvent[]
 ): RelatedEventsSelection {
   const currentTime = eventTime(current.event_date);
   if (currentTime === null) return { events: [], hasStrictWindowEvents: false };
 
-  const future = candidates
-    .filter((event) => {
-      const time = eventTime(event.event_date);
-      return event.id !== current.id && event.status === 'approved' && event.city === current.city && time !== null && time > currentTime;
-    });
+  const future = candidates.filter((event) => {
+    const time = eventTime(event.event_date);
+    return (
+      event.id !== current.id &&
+      event.status === "approved" &&
+      event.city === current.city &&
+      time !== null &&
+      time > currentTime
+    );
+  });
 
-  const strict = future.filter((event) => Date.parse(event.event_date) <= currentTime + SEVEN_DAYS_MS);
-  const beyond = future.filter((event) => Date.parse(event.event_date) > currentTime + SEVEN_DAYS_MS);
+  const strict = future.filter(
+    (event) => Date.parse(event.event_date) <= currentTime + SEVEN_DAYS_MS
+  );
+  const beyond = future.filter(
+    (event) => Date.parse(event.event_date) > currentTime + SEVEN_DAYS_MS
+  );
 
   const sortedStrict = strict.sort((a, b) => Date.parse(a.event_date) - Date.parse(b.event_date));
   const sortedBeyond = beyond.sort((a, b) => Date.parse(a.event_date) - Date.parse(b.event_date));

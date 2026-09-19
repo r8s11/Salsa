@@ -1,13 +1,7 @@
 export type TaxonomyCategory = "dance_style" | "event_attribute";
 export type TaxonomyStatus = "active" | "needs_review" | "archived";
 export type TaxonomyView =
-  | "all"
-  | "active"
-  | "dance_styles"
-  | "attributes"
-  | "unused"
-  | "needs_review"
-  | "archived";
+  "all" | "active" | "dance_styles" | "attributes" | "unused" | "needs_review" | "archived";
 
 export type TaxonomyForm = {
   name: string;

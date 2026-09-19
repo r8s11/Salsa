@@ -15,16 +15,19 @@ interface ButtonLinkBaseProps {
 }
 
 interface ButtonLinkInternalProps
-  extends ButtonLinkBaseProps,
-    Omit<LinkProps, "to" | "className" | "children" | "onClick"> {
+  extends ButtonLinkBaseProps, Omit<LinkProps, "to" | "className" | "children" | "onClick"> {
   to: string;
   href?: never;
   external?: false;
 }
 
 interface ButtonLinkExternalProps
-  extends ButtonLinkBaseProps,
-    Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href" | "className" | "children" | "onClick" | "target" | "rel"> {
+  extends
+    ButtonLinkBaseProps,
+    Omit<
+      AnchorHTMLAttributes<HTMLAnchorElement>,
+      "href" | "className" | "children" | "onClick" | "target" | "rel"
+    > {
   href: string;
   to?: never;
   external?: true;
@@ -52,7 +55,10 @@ function ButtonLink({
     .join(" ");
 
   if ("href" in rest && rest.href) {
-    const { href, external, ...linkRest } = rest as ButtonLinkExternalProps & { href: string; external?: boolean };
+    const { href, external, ...linkRest } = rest as ButtonLinkExternalProps & {
+      href: string;
+      external?: boolean;
+    };
     return (
       <a
         href={href}

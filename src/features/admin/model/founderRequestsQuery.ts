@@ -196,7 +196,9 @@ export function applyFounderRequestFilters(
         r.region,
         r.description ?? "",
         r.message ?? "",
-      ].join(" ").toLowerCase();
+      ]
+        .join(" ")
+        .toLowerCase();
       if (!haystack.includes(q)) return false;
     }
     return true;

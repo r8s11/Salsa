@@ -259,7 +259,7 @@ describe("AdminFounderRequestsTable", () => {
 
     const mobileCard = container.querySelector(".founder-mobile-card");
     expect(mobileCard?.children).toHaveLength(1);
-    expect(mobileCard?.firstElementChild).toHaveAttribute("colspan", "5");
+    expect(mobileCard?.firstElementChild).toHaveClass("founder-mobile-card__body");
     expect(mobileCard?.querySelector(".founder-mobile-card__actions")).toBeInTheDocument();
   });
 

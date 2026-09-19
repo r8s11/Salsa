@@ -10,7 +10,7 @@ const UNAVAILABLE_MESSAGE = "Flyer source cannot be used for sharing.";
 export async function requestPosterFlyer(eventId: string): Promise<PosterFlyerResponse> {
   const { data, error } = await supabase.functions.invoke<PosterFlyerResponse>(
     "resolve-poster-flyer",
-    { body: { eventId } },
+    { body: { eventId } }
   );
 
   if (!error && data) return data;
@@ -85,9 +85,7 @@ async function fetchAssetAsDataUrl(url: string): Promise<string | null> {
 }
 
 export type PosterImageResolution =
-  | { status: "ready"; dataUrl: string }
-  | { status: "missing" }
-  | { status: "unavailable" };
+  { status: "ready"; dataUrl: string } | { status: "missing" } | { status: "unavailable" };
 
 export async function resolvePosterImageForEvent(params: {
   eventId: string;

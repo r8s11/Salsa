@@ -39,7 +39,6 @@ function repositoryError(error: { message: string; code?: string }): Error {
   return new Error(error.message);
 }
 
-
 interface OrganizerMemberRow {
   member_role: OrganizerMemberRole;
   status: string;
@@ -125,7 +124,9 @@ export async function fetchOrganizerEvents(organizerId: string): Promise<Databas
 
   const { data, error } = await supabase
     .from("events")
-    .select("*, event_taxonomy_terms(taxonomy_term_id, taxonomy_terms(id, name, slug, category, status))")
+    .select(
+      "*, event_taxonomy_terms(taxonomy_term_id, taxonomy_terms(id, name, slug, category, status))"
+    )
     .eq("organizer_id", organizerId)
     .order("event_date", { ascending: false });
   if (error) throw new Error(error.message);
@@ -224,16 +225,25 @@ export type OrganizerProfileUpdatePayload = {
 export async function fetchOrganizerProfile(organizerId: string): Promise<OrganizerMembership> {
   const { data, error } = await supabase
     .from("organizers")
-    .select("id, name, slug, status, description, logo_url, website, instagram, organizer_type, primary_city")
+    .select(
+      "id, name, slug, status, description, logo_url, website, instagram, organizer_type, primary_city"
+    )
     .eq("id", organizerId)
     .maybeSingle();
   if (error) throw new Error(error.message);
   if (!data) throw new Error("Organizer not found.");
 
   const org = data as {
-    id: string; name: string; slug: string | null; status: string;
-    description: string | null; logo_url: string | null; website: string | null;
-    instagram: string | null; organizer_type: string | null; primary_city: string | null;
+    id: string;
+    name: string;
+    slug: string | null;
+    status: string;
+    description: string | null;
+    logo_url: string | null;
+    website: string | null;
+    instagram: string | null;
+    organizer_type: string | null;
+    primary_city: string | null;
   };
 
   return {

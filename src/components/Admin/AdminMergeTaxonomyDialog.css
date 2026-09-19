@@ -1,0 +1,47 @@
+.admin-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--admin-overlay);
+}
+
+.admin-card--dialog {
+  width: 100%;
+  max-width: 420px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.admin-card--dialog h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: var(--admin-text-strong);
+}
+
+.merge-taxonomy__summary {
+  margin: 0;
+}
+
+.merge-taxonomy__summary strong {
+  color: var(--admin-text-strong);
+}
+
+.merge-taxonomy__impact,
+.merge-taxonomy__warning {
+  margin: 0;
+  color: var(--admin-text-muted);
+  font-size: 0.875rem;
+}
+
+.admin-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}

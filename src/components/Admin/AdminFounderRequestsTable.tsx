@@ -1,4 +1,4 @@
-import { Fragment, type ComponentType, type ReactNode } from "react";
+import { type ComponentType, type ReactNode } from "react";
 import { Clock, MapPin, Globe } from "lucide-react";
 import MarginMark from "../Desk/MarginMark";
 import AdminActionMenu from "./AdminActionMenu";
@@ -183,8 +183,8 @@ function RequestRowMobileCard({
     : null;
 
   return (
-    <tr className="founder-mobile-card" data-request-id={request.id}>
-      <td className="founder-mobile-card__body" colSpan={5}>
+    <li className="admin-card founder-mobile-card" data-request-id={request.id}>
+      <div className="founder-mobile-card__body">
         <div className="founder-mobile-card__row">
           <div className="founder-mobile-card__field" data-label="Applicant / Organization">
             <div className="founder-stacked-cell">
@@ -284,8 +284,8 @@ function RequestRowMobileCard({
         <div className="founder-mobile-card__actions">
           <AdminActionMenu label={`Actions for ${applicantName}`} items={items} />
         </div>
-      </td>
-    </tr>
+      </div>
+    </li>
   );
 }
 
@@ -318,6 +318,7 @@ export default function AdminFounderRequestsTable({
     return (
       <div className="admin-founder-requests-table-container">
         <table className="admin-founder-requests-table">
+          <caption className="admin-visually-hidden">Founder requests</caption>
           <colgroup>
             <col className="col-applicant" />
             <col className="col-contact" />
@@ -327,11 +328,21 @@ export default function AdminFounderRequestsTable({
           </colgroup>
           <thead>
             <tr>
-              <th className="col-applicant">Applicant / Organization</th>
-              <th className="col-contact">Contact</th>
-              <th className="col-submitted">Submitted</th>
-              <th className="col-status">Status</th>
-              <th className="col-actions actions-header">Actions</th>
+              <th scope="col" className="col-applicant">
+                Applicant / Organization
+              </th>
+              <th scope="col" className="col-contact">
+                Contact
+              </th>
+              <th scope="col" className="col-submitted">
+                Submitted
+              </th>
+              <th scope="col" className="col-status">
+                Status
+              </th>
+              <th scope="col" className="col-actions actions-header">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -355,33 +366,58 @@ export default function AdminFounderRequestsTable({
   }
 
   return (
-    <div className="admin-founder-requests-table-container">
-      <table className="admin-founder-requests-table">
-        <colgroup>
-          <col className="col-applicant" />
-          <col className="col-contact" />
-          <col className="col-submitted" />
-          <col className="col-status" />
-          <col className="col-actions" />
-        </colgroup>
-        <thead>
-          <tr>
-            <th className="col-applicant">Applicant / Organization</th>
-            <th className="col-contact">Contact</th>
-            <th className="col-submitted">Submitted</th>
-            <th className="col-status">Status</th>
-            <th className="col-actions actions-header">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {requests.map((request) => (
-            <Fragment key={request.id}>
-              <RequestRowDesktop request={request} onAction={onAction} isAdmin={isAdmin} />
-              <RequestRowMobileCard request={request} onAction={onAction} isAdmin={isAdmin} />
-            </Fragment>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <>
+      <div className="admin-founder-requests-table-container">
+        <table className="admin-founder-requests-table">
+          <caption className="admin-visually-hidden">Founder requests</caption>
+          <colgroup>
+            <col className="col-applicant" />
+            <col className="col-contact" />
+            <col className="col-submitted" />
+            <col className="col-status" />
+            <col className="col-actions" />
+          </colgroup>
+          <thead>
+            <tr>
+              <th scope="col" className="col-applicant">
+                Applicant / Organization
+              </th>
+              <th scope="col" className="col-contact">
+                Contact
+              </th>
+              <th scope="col" className="col-submitted">
+                Submitted
+              </th>
+              <th scope="col" className="col-status">
+                Status
+              </th>
+              <th scope="col" className="col-actions actions-header">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {requests.map((request) => (
+              <RequestRowDesktop
+                key={request.id}
+                request={request}
+                onAction={onAction}
+                isAdmin={isAdmin}
+              />
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <ul className="founder-requests-cards">
+        {requests.map((request) => (
+          <RequestRowMobileCard
+            key={request.id}
+            request={request}
+            onAction={onAction}
+            isAdmin={isAdmin}
+          />
+        ))}
+      </ul>
+    </>
   );
 }

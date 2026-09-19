@@ -12,7 +12,6 @@
   border-collapse: collapse;
   font-size: var(--text-sm);
   table-layout: fixed;
-<<<<<<< Updated upstream
 }
 
 .admin-founder-requests-table th,
@@ -22,18 +21,6 @@
   border-bottom: 1px solid var(--border);
   vertical-align: top;
 }
-
-=======
-}
-
-.admin-founder-requests-table th,
-.admin-founder-requests-table td {
-  padding: var(--space-md) var(--space-md);
-  border-bottom: 1px solid var(--border);
-  vertical-align: top;
-}
-
->>>>>>> Stashed changes
 .admin-founder-requests-table th {
   text-align: left;
   font-weight: 600;
@@ -88,13 +75,9 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-3xs);
-<<<<<<< Updated upstream
   width: 100%;
   min-width: 0;
   overflow: hidden;
-=======
-  min-width: 0;
->>>>>>> Stashed changes
 }
 
 .founder-primary {
@@ -117,7 +100,6 @@
   font-size: var(--text-xs);
   color: var(--text-muted);
   line-height: 1.3;
-<<<<<<< Updated upstream
 }
 
 .founder-primary,
@@ -171,50 +153,6 @@
   line-height: 1.4;
   white-space: nowrap;
 }
-
-=======
-}
-
-.founder-link {
-  color: var(--primary);
-  text-decoration: underline;
-  text-underline-offset: 1px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  display: inline-block;
-  max-width: 100%;
-}
-
-.founder-link:hover {
-  text-decoration-thickness: 1px;
-}
-
-.founder-link:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
-  border-radius: var(--radius-sm);
-}
-
-/* Contact meta items — vertically stacked, icon + text, wrap-aware */
-.founder-contact-cell .founder-meta-item {
-  max-width: 100%;
-}
-
-.founder-meta-item {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-3xs);
-  font-size: var(--text-sm);
-  color: var(--text-secondary);
-  line-height: 1.4;
-  /* never let a long URL/email push layout or overflow its cell */
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
->>>>>>> Stashed changes
 .founder-meta-item__icon {
   flex-shrink: 0;
   width: 12px;
@@ -223,11 +161,8 @@
 }
 
 .founder-meta-item__value {
-<<<<<<< Updated upstream
   flex: 1;
   min-width: 0;
-=======
->>>>>>> Stashed changes
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -325,16 +260,12 @@
 }
 
 .skeleton {
-<<<<<<< Updated upstream
   background: linear-gradient(
     90deg,
     var(--border) 25%,
     var(--surface-hover) 50%,
     var(--border) 75%
   );
-=======
-  background: linear-gradient(90deg, var(--border) 25%, var(--surface-hover) 50%, var(--border) 75%);
->>>>>>> Stashed changes
   background-size: 200% 100%;
   animation: founder-skeleton-loading 1.5s infinite;
   border-radius: var(--radius-sm);
@@ -355,7 +286,6 @@
 }
 
 @keyframes founder-skeleton-loading {
-<<<<<<< Updated upstream
   0% {
     background-position: 200% 0;
   }
@@ -364,142 +294,88 @@
   }
 }
 
-/* ── Desktop rows / mobile cards ── */
-/* Desktop rows are the table default. Mobile cards replace them below 768px. */
-=======
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-/* ── Desktop-only rows / Mobile-only cards ── */
-/* The desktop <tr> (bare, aria-hidden) + RequestRowDesktop render on desktop.
-   The RequestRowMobileCard renders as a stacked card on mobile.
-   Toggle by column-visibility on the mobile card wrapper. */
-.founder-request-row--desktop {
-  display: table-row;
-}
->>>>>>> Stashed changes
-
-.founder-mobile-card {
+/* ── Mobile cards container ── */
+.founder-requests-cards {
   display: none;
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
-<<<<<<< Updated upstream
-/* Narrow screens: hide desktop rows and reveal one stacked card per request. */
-@media (max-width: 767.98px) {
-=======
-/* Narrow screens: flip — hide the multi-column desktop rows, show cards. */
-@media (max-width: 768px) {
->>>>>>> Stashed changes
-  .admin-founder-requests-table {
-    table-layout: fixed;
-  }
+/* ── Mobile card (block, not table-row) ── */
+.founder-mobile-card {
+  margin-bottom: var(--space-sm);
+}
 
-<<<<<<< Updated upstream
-  .founder-request-row {
-    display: none;
-  }
+.founder-mobile-card__body {
+  padding: 0;
+}
 
-=======
-  /* Hide every desktop body row (the bare one and the real one). */
-  .founder-request-row--desktop,
-  .founder-request-row--desktop ~ tr,
-  .founder-request-row,
-  .founder-request-row ~ tr {
-    display: none;
-  }
+/* Two columns of card fields: label | value, using ::before data-label. */
+.founder-mobile-card__field {
+  flex: 1;
+  min-width: 0;
+  padding: 6px var(--space-md);
+  overflow: hidden;
+  border-bottom: 1px solid var(--border);
+}
 
-  /* Reveal stacked cards. */
->>>>>>> Stashed changes
-  .founder-mobile-card {
-    display: table-row;
-  }
+.founder-mobile-card__field:last-of-type {
+  border-bottom: none;
+}
 
-  .founder-mobile-card__body {
-    padding: 0;
-    border-bottom: 1px solid var(--border);
-  }
+.founder-mobile-card__field::before {
+  content: attr(data-label);
+  display: block;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 4px;
+}
 
-  .founder-mobile-card__actions {
-<<<<<<< Updated upstream
-    display: flex;
-    justify-content: flex-end;
-    padding: var(--space-sm) var(--space-md);
-=======
-    padding: var(--space-sm) var(--space-md);
-    text-align: right;
->>>>>>> Stashed changes
-  }
+.founder-mobile-card__actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: var(--space-sm) var(--space-md);
+}
 
-  /* Two columns of card fields: label | value, using ::before data-label. */
-  .founder-mobile-card__field {
-<<<<<<< Updated upstream
-    flex: 1;
-    min-width: 0;
-    padding: 6px var(--space-md);
-    overflow: hidden;
-=======
-    padding: 6px var(--space-md);
->>>>>>> Stashed changes
-    border-bottom: 1px solid var(--border);
-  }
+/* Stack the two fields side by side on very narrow screens. */
+.founder-mobile-card__row {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
 
-  .founder-mobile-card__field:last-of-type {
-    border-bottom: none;
-  }
-
-  .founder-mobile-card__field::before {
-    content: attr(data-label);
-    display: block;
-    font-size: var(--text-xs);
-    font-weight: 600;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    margin-bottom: 4px;
-  }
-
-  /* Stack the two fields side by side on very narrow screens. */
+@media (min-width: 480px) {
   .founder-mobile-card__row {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
+    flex-direction: row;
+    gap: var(--border);
+  }
+  .founder-mobile-card__field {
+    flex: 1;
+  }
+}
+
+/* ── Visibility toggle: desktop table ↔ mobile cards ── */
+@media (max-width: 767.98px) {
+  .admin-founder-requests-table-container {
+    display: none;
   }
 
-<<<<<<< Updated upstream
-  @media (min-width: 480px) {
-=======
-  @media (min-width: 520px) {
->>>>>>> Stashed changes
-    .founder-mobile-card__row {
-      flex-direction: row;
-      gap: var(--border);
-    }
-    .founder-mobile-card__field {
-      flex: 1;
-    }
+  .founder-requests-cards {
+    display: block;
   }
 
-  /* Headers: show only a single compact header row on mobile. */
   .admin-founder-requests-table thead {
     display: none;
   }
 }
 
-<<<<<<< Updated upstream
-/* The skeleton's own shape already says "loading"; the sweep is decoration. */
+/* Reduced motion: disable skeleton sweep. Shape already says "loading". */
 @media (prefers-reduced-motion: reduce) {
   .skeleton {
     animation: none;
-=======
-/* Re-hide mobile card on desktop. */
-@media (min-width: 769px) {
-  .founder-mobile-card {
-    display: none;
-  }
-  .founder-request-row--desktop,
-  .founder-request-row {
-    display: table-row;
->>>>>>> Stashed changes
   }
 }

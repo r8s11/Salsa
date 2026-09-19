@@ -36,6 +36,8 @@ import AdminQualityBadge from "./AdminQualityBadge";
 import AdminActionMenu, { type ActionMenuItem } from "./AdminActionMenu";
 import "./AdminEventsTable.css";
 
+import "./AdminTables.css";
+
 export type RowAction =
   | "edit"
   | "duplicate"
@@ -56,6 +58,7 @@ interface AdminEventsTableProps {
   busy: { id: string; action: RowAction } | null;
   errorId: string | null;
   error: string | null;
+  isLoading?: boolean;
 }
 
 const SOURCE_ICON: Record<DatabaseEvent["source_type"], typeof Shield> = {
@@ -181,7 +184,7 @@ function SortableHeader({
   const Icon = isActive ? (sort.dir === "asc" ? ArrowUp : ArrowDown) : ArrowUpDown;
 
   return (
-    <th aria-sort={ariaSort}>
+    <th scope="col" aria-sort={ariaSort}>
       <button
         type="button"
         className="admin-events-table__sort-btn"
@@ -239,7 +242,6 @@ function EventCell({
     </div>
   );
 }
-
 export default function AdminEventsTable({
   events,
   duplicateIds,
@@ -249,11 +251,54 @@ export default function AdminEventsTable({
   busy,
   errorId,
   error,
+  isLoading = false,
 }: AdminEventsTableProps) {
+  if (isLoading) {
+    return (
+      <div className="admin-events-table__scroll">
+        <table className="admin-events-table">
+          <caption className="admin-visually-hidden">Events</caption>
+          <thead>
+            <tr>
+              <th scope="col">Event</th>
+              <th scope="col">Date & Time</th>
+              <th scope="col">Venue</th>
+              <th scope="col">Organizer</th>
+              <th scope="col">Source</th>
+              <th scope="col">Status</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[...Array(5)].map((_, i) => (
+              <tr key={i} className="admin-events-table__loading-row">
+                <td colSpan={7}>
+                  <div className="admin-table-loading">
+                    <div className="admin-skeleton admin-skeleton--title"></div>
+                    <div className="admin-skeleton admin-skeleton--meta"></div>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
+  if (events.length === 0) {
+    return (
+      <div className="admin-table-empty" role="status">
+        <p>No events found.</p>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="admin-events-table__scroll">
         <table className="admin-events-table">
+          <caption className="admin-visually-hidden">Events</caption>
           <thead>
             <tr>
               <SortableHeader
@@ -268,11 +313,17 @@ export default function AdminEventsTable({
                 sort={sort}
                 onSortChange={onSortChange}
               />
-              <th className="admin-events-table__col--venue">Venue</th>
-              <th className="admin-events-table__col--organizer">Organizer</th>
-              <th className="admin-events-table__col--source">Source</th>
-              <th>Status</th>
-              <th>Actions</th>
+              <th scope="col" className="admin-events-table__col--venue">
+                Venue
+              </th>
+              <th scope="col" className="admin-events-table__col--organizer">
+                Organizer
+              </th>
+              <th scope="col" className="admin-events-table__col--source">
+                Source
+              </th>
+              <th scope="col">Status</th>
+              <th scope="col">Actions</th>
             </tr>
           </thead>
           <tbody>

@@ -5,9 +5,9 @@ const options = { fallback: "We couldn't submit your event. Please try again." }
 
 describe("publicErrorMessage", () => {
   it("keeps a useful Error message", () => {
-    expect(publicErrorMessage(new Error("Event title must be 120 characters or fewer"), options)).toBe(
-      "Event title must be 120 characters or fewer"
-    );
+    expect(
+      publicErrorMessage(new Error("Event title must be 120 characters or fewer"), options)
+    ).toBe("Event title must be 120 characters or fewer");
   });
 
   it("turns a fetch TypeError into connection copy, never “Failed to fetch”", () => {
@@ -34,7 +34,7 @@ describe("publicErrorMessage", () => {
 
   it("hides internal database detail behind the fallback", () => {
     for (const error of [
-      { code: "42501", message: "new row violates row-level security policy for table \"events\"" },
+      { code: "42501", message: 'new row violates row-level security policy for table "events"' },
       { code: "23503", message: "insert or update violates foreign key constraint" },
       new Error("JWT expired"),
     ]) {

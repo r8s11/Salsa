@@ -41,27 +41,40 @@ describe("deriveInvitationDisplayStatus", () => {
   });
 
   it("returns pending for a live pending invitation", () => {
-    expect(deriveInvitationDisplayStatus(invitation({ status: "pending", expires_at: "2026-09-03T00:00:00Z" }), NOW)).toBe(
-      "pending"
-    );
+    expect(
+      deriveInvitationDisplayStatus(
+        invitation({ status: "pending", expires_at: "2026-09-03T00:00:00Z" }),
+        NOW
+      )
+    ).toBe("pending");
   });
 
   it("returns expired for a pending invitation past expires_at", () => {
     expect(
-      deriveInvitationDisplayStatus(invitation({ status: "pending", expires_at: "2026-08-30T00:00:00Z" }), NOW)
+      deriveInvitationDisplayStatus(
+        invitation({ status: "pending", expires_at: "2026-08-30T00:00:00Z" }),
+        NOW
+      )
     ).toBe("expired");
   });
 
   it("treats expires_at exactly equal to now as expired", () => {
     expect(
-      deriveInvitationDisplayStatus(invitation({ status: "pending", expires_at: NOW.toISOString() }), NOW)
+      deriveInvitationDisplayStatus(
+        invitation({ status: "pending", expires_at: NOW.toISOString() }),
+        NOW
+      )
     ).toBe("expired");
   });
 
   it("returns revoked regardless of expires_at", () => {
     expect(
       deriveInvitationDisplayStatus(
-        invitation({ status: "revoked", expires_at: "2026-09-05T00:00:00Z", revoked_at: "2026-08-31T12:00:00Z" }),
+        invitation({
+          status: "revoked",
+          expires_at: "2026-09-05T00:00:00Z",
+          revoked_at: "2026-08-31T12:00:00Z",
+        }),
         NOW
       )
     ).toBe("revoked");
@@ -143,7 +156,6 @@ describe("deriveEmailDisplayStatus", () => {
   it("returns not_sent when an invitation exists but no delivery attempt was recorded", () => {
     expect(deriveEmailDisplayStatus(invitation({ latest_delivery_status: null }))).toBe("not_sent");
   });
-
 
   it("keeps an incomplete delivery distinct from sent and failed", () => {
     expect(

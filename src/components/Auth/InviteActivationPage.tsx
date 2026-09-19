@@ -239,7 +239,10 @@ export default function InviteActivationPage() {
               ref={confirmPasswordRef}
               {...fieldErrorProps("invite-confirm-password-error", confirmPasswordFieldError)}
             />
-            <FormFieldError id="invite-confirm-password-error" message={confirmPasswordFieldError} />
+            <FormFieldError
+              id="invite-confirm-password-error"
+              message={confirmPasswordFieldError}
+            />
           </div>
           <Button type="submit" block loading={busy} loadingLabel="Setting password…">
             Set password &amp; continue

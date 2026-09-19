@@ -238,11 +238,7 @@ export default function EventDetailPage() {
           </div>
         </div>
 
-        <nav
-          className="event-page__tabs"
-          aria-label="Sections"
-          role="tablist"
-        >
+        <nav className="event-page__tabs" aria-label="Sections" role="tablist">
           <button
             type="button"
             role="tab"
@@ -251,13 +247,24 @@ export default function EventDetailPage() {
             aria-selected={tab === "about"}
             tabIndex={tab === "about" ? 0 : -1}
             className="event-page__tab"
-            ref={(el) => { tabRefs.current[0] = el; }}
+            ref={(el) => {
+              tabRefs.current[0] = el;
+            }}
             onClick={() => setTab("about")}
             onKeyDown={(e) => {
-              if (e.key === "ArrowRight") { e.preventDefault(); focusTab(1); }
-              else if (e.key === "ArrowLeft") { e.preventDefault(); focusTab(1); }
-              else if (e.key === "Home") { e.preventDefault(); focusTab(0); }
-              else if (e.key === "End") { e.preventDefault(); focusTab(1); }
+              if (e.key === "ArrowRight") {
+                e.preventDefault();
+                focusTab(1);
+              } else if (e.key === "ArrowLeft") {
+                e.preventDefault();
+                focusTab(1);
+              } else if (e.key === "Home") {
+                e.preventDefault();
+                focusTab(0);
+              } else if (e.key === "End") {
+                e.preventDefault();
+                focusTab(1);
+              }
             }}
           >
             About the night
@@ -270,13 +277,24 @@ export default function EventDetailPage() {
             aria-selected={tab === "album"}
             tabIndex={tab === "album" ? 0 : -1}
             className="event-page__tab"
-            ref={(el) => { tabRefs.current[1] = el; }}
+            ref={(el) => {
+              tabRefs.current[1] = el;
+            }}
             onClick={() => setTab("album")}
             onKeyDown={(e) => {
-              if (e.key === "ArrowRight") { e.preventDefault(); focusTab(0); }
-              else if (e.key === "ArrowLeft") { e.preventDefault(); focusTab(0); }
-              else if (e.key === "Home") { e.preventDefault(); focusTab(0); }
-              else if (e.key === "End") { e.preventDefault(); focusTab(1); }
+              if (e.key === "ArrowRight") {
+                e.preventDefault();
+                focusTab(0);
+              } else if (e.key === "ArrowLeft") {
+                e.preventDefault();
+                focusTab(0);
+              } else if (e.key === "Home") {
+                e.preventDefault();
+                focusTab(0);
+              } else if (e.key === "End") {
+                e.preventDefault();
+                focusTab(1);
+              }
             }}
           >
             Photo album

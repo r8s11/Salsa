@@ -13,7 +13,9 @@ describe("authReturnDestination", () => {
   describe("setAuthReturnDestination", () => {
     it("stores a safe internal path", () => {
       setAuthReturnDestination("/founders/accept");
-      expect(window.sessionStorage.getItem("salsasegura-auth-return-destination")).toBe("/founders/accept");
+      expect(window.sessionStorage.getItem("salsasegura-auth-return-destination")).toBe(
+        "/founders/accept"
+      );
     });
 
     it("refuses to store an external URL", () => {

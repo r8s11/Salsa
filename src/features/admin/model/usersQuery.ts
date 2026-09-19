@@ -177,13 +177,7 @@ export function userViewCounts(rows: AdminUserRow[]): Record<UserView, number> {
 }
 
 export type UserRowAction =
-  | "view-contributions"
-  | "change-role"
-  | "flag"
-  | "unflag"
-  | "suspend"
-  | "ban"
-  | "restore";
+  "view-contributions" | "change-role" | "flag" | "unflag" | "suspend" | "ban" | "restore";
 
 // Row action menu contents by row identity/status — this matrix is the contract.
 export function rowActionItems(

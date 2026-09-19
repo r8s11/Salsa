@@ -58,10 +58,7 @@ export default function HostEditEventPage() {
   const { events, isLoading: eventsLoading } = useMyOrganizerEvents();
   const { data: organizers = [], isLoading: organizersLoading } = useMyOrganizers();
 
-  const event = useMemo(
-    () => events.find((e) => e.id === eventId) ?? null,
-    [events, eventId]
-  );
+  const event = useMemo(() => events.find((e) => e.id === eventId) ?? null, [events, eventId]);
 
   const [form, setForm] = useState<EventFormDraft | null>(null);
   const [flyer, setFlyer] = useState<File | null>(null);
@@ -89,9 +86,7 @@ export default function HostEditEventPage() {
     const checkAccess = async () => {
       try {
         const membership = await assertOrganizerAccess(event.organizer_id!);
-        setHasWriteAccess(
-          membership.memberRole === "owner" || membership.memberRole === "manager"
-        );
+        setHasWriteAccess(membership.memberRole === "owner" || membership.memberRole === "manager");
       } catch {
         setHasWriteAccess(false);
       }
@@ -118,7 +113,11 @@ export default function HostEditEventPage() {
       let flyerWarning: string | null = null;
       if (flyer && user) {
         try {
-          const uploaded = await uploadEventFlyer({ file: flyer, ownerId: user.id, eventId: event.id });
+          const uploaded = await uploadEventFlyer({
+            file: flyer,
+            ownerId: user.id,
+            eventId: event.id,
+          });
           try {
             await updateOrganizerEvent(event.id, { image_url: uploaded.url });
           } catch {
@@ -173,7 +172,10 @@ export default function HostEditEventPage() {
         </Link>
         <section className="admin-card host-edit-event__empty">
           <h1>Event not found</h1>
-          <p>The event you&apos;re looking for doesn&apos;t exist or you don&apos;t have access to it.</p>
+          <p>
+            The event you&apos;re looking for doesn&apos;t exist or you don&apos;t have access to
+            it.
+          </p>
           <Link to="/host/events" className="admin-btn admin-btn--primary">
             Back to My Events
           </Link>
@@ -242,7 +244,11 @@ export default function HostEditEventPage() {
         )}
 
         {organizer && (
-          <section className="admin-card host-edit-event__organizer" role="group" aria-labelledby="host-edit-organizer-label">
+          <section
+            className="admin-card host-edit-event__organizer"
+            role="group"
+            aria-labelledby="host-edit-organizer-label"
+          >
             <p id="host-edit-organizer-label">Organizer</p>
             <strong>{organizer.organizerName}</strong>
           </section>

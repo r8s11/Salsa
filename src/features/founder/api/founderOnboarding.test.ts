@@ -35,7 +35,12 @@ describe("founderOnboarding", () => {
 
     it("returns the provisioned state exactly as the RPC returned it", async () => {
       rpc.mockResolvedValueOnce({
-        data: { state: "provisioned", organizerId: "org-1", organizationName: "Riverside Salsa Co", role: "owner" },
+        data: {
+          state: "provisioned",
+          organizerId: "org-1",
+          organizationName: "Riverside Salsa Co",
+          role: "owner",
+        },
         error: null,
       });
       const result = await fetchFounderOnboardingState();
@@ -49,7 +54,11 @@ describe("founderOnboarding", () => {
 
     it("returns accepted_not_provisioned as-is", async () => {
       rpc.mockResolvedValueOnce({
-        data: { state: "accepted_not_provisioned", founderRequestId: "req-1", organizationName: "Co" },
+        data: {
+          state: "accepted_not_provisioned",
+          founderRequestId: "req-1",
+          organizationName: "Co",
+        },
         error: null,
       });
       const result = await fetchFounderOnboardingState();
@@ -89,7 +98,11 @@ describe("founderOnboarding", () => {
         error: null,
       });
       const result = await provisionFounderOrganization();
-      expect(result).toEqual({ organizerId: "org-9", organizationName: "Havana Club Boston", role: "owner" });
+      expect(result).toEqual({
+        organizerId: "org-9",
+        organizationName: "Havana Club Boston",
+        role: "owner",
+      });
     });
 
     it("refreshes the session after a successful provision, so isOrganizer reflects the new role immediately", async () => {

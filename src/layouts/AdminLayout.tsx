@@ -146,7 +146,9 @@ export default function AdminLayout() {
                 <ChevronRight size={14} className="admin-breadcrumbs__sep" />
               </>
             )}
-            <span className="admin-breadcrumbs__crumb admin-breadcrumbs__current">{breadcrumbLabel}</span>
+            <span className="admin-breadcrumbs__crumb admin-breadcrumbs__current">
+              {breadcrumbLabel}
+            </span>
           </nav>
         </div>
 

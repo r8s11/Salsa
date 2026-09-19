@@ -33,7 +33,13 @@ type AcceptanceState =
   | { kind: "loading" }
   | { kind: "valid-signed-out"; organizationName: string; invitedEmail: string; expiresAt: string }
   | { kind: "valid-matching"; organizationName: string; invitedEmail: string; expiresAt: string }
-  | { kind: "valid-wrong-user"; organizationName: string; invitedEmail: string; expiresAt: string; authEmail: string }
+  | {
+      kind: "valid-wrong-user";
+      organizationName: string;
+      invitedEmail: string;
+      expiresAt: string;
+      authEmail: string;
+    }
   | { kind: "invalid" }
   | { kind: "accepting"; organizationName: string }
   | { kind: "accepted"; organizationName: string }
@@ -210,9 +216,7 @@ export default function FoundersAcceptPage() {
               {formatDate(state.expiresAt)}.
             </p>
             <div className="founders-accept-actions">
-              <Button onClick={() => goSignIn("signin")}>
-                Sign In
-              </Button>
+              <Button onClick={() => goSignIn("signin")}>Sign In</Button>
               <Button variant="secondary" onClick={() => goSignIn("signup")}>
                 Create Account
               </Button>
@@ -253,9 +257,7 @@ export default function FoundersAcceptPage() {
               accept it.
             </p>
             <div className="founders-accept-actions">
-              <Button onClick={handleSwitchAccount}>
-                Sign in with a different account
-              </Button>
+              <Button onClick={handleSwitchAccount}>Sign in with a different account</Button>
             </div>
           </section>
         )}
@@ -285,7 +287,10 @@ export default function FoundersAcceptPage() {
         )}
 
         {state.kind === "accepted" && (
-          <section className="founders-accept-card founders-accept-card--success" aria-labelledby="accept-heading">
+          <section
+            className="founders-accept-card founders-accept-card--success"
+            aria-labelledby="accept-heading"
+          >
             <h1 id="accept-heading" ref={headingRef} tabIndex={-1}>
               Invitation accepted
             </h1>
@@ -307,9 +312,7 @@ export default function FoundersAcceptPage() {
             </h1>
             <p className="founders-accept-detail">Please try again in a moment.</p>
             <div className="founders-accept-actions">
-              <Button onClick={() => window.location.reload()}>
-                Try Again
-              </Button>
+              <Button onClick={() => window.location.reload()}>Try Again</Button>
             </div>
           </section>
         )}

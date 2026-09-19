@@ -257,8 +257,8 @@ export default function AdminSidebar({
           const badge = isOrganizerRequests
             ? pendingCount
             : isFounderRequests
-            ? founderPendingCount
-            : null;
+              ? founderPendingCount
+              : null;
 
           const isActive = isNavItemActive(item, pathname);
 

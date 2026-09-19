@@ -184,7 +184,7 @@ describe("SubmitEventPage flyer extraction (Phase 3)", () => {
       expect(await screen.findByText(notice)).toBeInTheDocument();
     }
   );
-  it("shows only populated fields and a partial-results note for an incomplete flyer", async () => {
+  it("shows only populated fields and hides the partial-results note", async () => {
     const user = userEvent.setup();
     mockFlyerExtraction.extractEventFromFlyer.mockResolvedValueOnce(PARTIAL_EXTRACTION);
     renderPage();
@@ -200,7 +200,9 @@ describe("SubmitEventPage flyer extraction (Phase 3)", () => {
     expect(within(panel as HTMLElement).queryByText("Organizer")).not.toBeInTheDocument();
     expect(within(panel as HTMLElement).queryByText("Instagram")).not.toBeInTheDocument();
     expect(within(panel as HTMLElement).queryByText("Website")).not.toBeInTheDocument();
-    expect(screen.getByText(/wasn't visible on the flyer/i)).toBeInTheDocument();
+    // The "Some information wasn't visible on the flyer" note is hidden; the
+    // panel shows only what the flyer actually contained.
+    expect(screen.queryByText(/wasn't visible on the flyer/i)).not.toBeInTheDocument();
   });
 
   it("silently falls back for an ambiguous venue match", async () => {

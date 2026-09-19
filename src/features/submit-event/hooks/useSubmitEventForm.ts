@@ -103,6 +103,11 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
   // would both read `extractionStatus` as "idle" from the same render
   // closure. This ref flips immediately, before any state update or await.
   const isExtracting = useRef(false);
+  // Extraction attempts are capped so a low-quality flyer cannot loop the user
+  // into endless retries. The counter resets whenever the flyer identity
+  // changes (replace/remove), so a new flyer gets a fresh budget.
+  const MAX_EXTRACTION_ATTEMPTS = 3;
+  const [extractionAttempts, setExtractionAttempts] = useState(0);
 
   // Drops a field's error the moment its value changes — stale "Choose an
   // event type" text must not survive the user fixing it.
@@ -165,10 +170,6 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
     flyerUploadPromise.current = promise;
     return promise;
   };
-
-  // Invalidates any in-flight extraction and clears its result — called
-  // whenever the flyer identity changes (replace/remove) so a response that
-  // arrives afterward is recognized as stale and ignored.
   const resetExtraction = () => {
     extractionGeneration.current += 1;
     isExtracting.current = false;
@@ -177,6 +178,7 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
     setExtractionError(null);
     setPrefillFeedback(null);
     setReconciliation({ status: "idle", response: null, error: null });
+    setExtractionAttempts(0);
   };
 
   const handleFlyerChange = (file: File | null) => {
@@ -237,57 +239,53 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
     }
   };
 
-  // Runs (or re-runs) extraction for the currently persisted flyer. Guards
-  // against duplicate concurrent requests and stamps a generation so a
-  // response is only applied if the flyer has not changed since the request
-  // started.
   const handleExtractFlyer = () => {
     if (!uploadedFlyerUrl || isExtracting.current) return;
+    if (extractionAttempts >= MAX_EXTRACTION_ATTEMPTS) return;
+    setExtractionAttempts((attempt) => attempt + 1);
     isExtracting.current = true;
     const generation = ++extractionGeneration.current;
     setExtractionStatus("loading");
     setExtractionError(null);
-    extractEventFromFlyer(uploadedFlyerUrl)
-      .then(async (result) => {
-        if (extractionGeneration.current !== generation) return;
-        setExtractionResult(result);
-        let enriched = result;
-        // Keep the duplicate guard set until reconciliation and prefill finish.
-        if (result.venue_name?.trim()) {
-          setReconciliation({ status: "loading", response: null, error: null });
-          try {
-            const response = await reconcileVenue({
-              venue: { name: result.venue_name, address: result.address, city: result.city },
-            });
-            if (extractionGeneration.current !== generation) return;
-            setReconciliation({ status: "success", response, error: null });
-            if (
-              (response.venue.status === "exact" || response.venue.status === "strong") &&
-              response.venue.match
-            ) {
-              enriched = {
-                ...result,
-                venue_name: response.venue.match.name,
-                address: response.venue.match.address ?? result.address,
-                city: response.venue.match.city ?? result.city,
-              };
-            }
-            // Ambiguous/none deliberately retain raw extraction values.
-          } catch (err) {
-            if (extractionGeneration.current !== generation) return;
-            setReconciliation({
-              status: "error",
-              response: null,
-              error: err instanceof Error ? err.message : "We couldn't verify this venue.",
-            });
+    extractEventFromFlyer(uploadedFlyerUrl).then(async (result) => {
+      if (extractionGeneration.current !== generation) return;
+      setExtractionResult(result);
+      let enriched = result;
+      if (result.venue_name?.trim()) {
+        setReconciliation({ status: "loading", response: null, error: null });
+        try {
+          const response = await reconcileVenue({
+            venue: { name: result.venue_name, address: result.address, city: result.city },
+          });
+          if (extractionGeneration.current !== generation) return;
+          setReconciliation({ status: "success", response, error: null });
+          if (
+            (response.venue.status === "exact" || response.venue.status === "strong") &&
+            response.venue.match
+          ) {
+            enriched = {
+              ...result,
+              venue_name: response.venue.match.name,
+              address: response.venue.match.address ?? result.address,
+              city: response.venue.match.city ?? result.city,
+            };
           }
+          // Ambiguous/none deliberately retain raw extraction values.
+        } catch (err) {
+          if (extractionGeneration.current !== generation) return;
+          setReconciliation({
+            status: "error",
+            response: null,
+            error: err instanceof Error ? err.message : "We couldn't verify this venue.",
+          });
         }
-        if (extractionGeneration.current !== generation) return;
-        setExtractionStatus("success");
-        const { draft, filled, skipped } = applyExtractionToDraft(enriched, formRef.current);
-        onChange(draft);
-        setPrefillFeedback({ filled, skipped });
-        isExtracting.current = false;
+      }
+      if (extractionGeneration.current !== generation) return;
+      setExtractionStatus("success");
+      const { draft, filled, skipped } = applyExtractionToDraft(enriched, formRef.current);
+      onChange(draft);
+      setPrefillFeedback({ filled, skipped });
+      isExtracting.current = false;
       })
       .catch((err) => {
         if (extractionGeneration.current !== generation) return;
@@ -426,6 +424,7 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
     extractionStatus,
     extractionResult,
     extractionError,
+    extractionAttempts,
     prefillFeedback,
     reconciliation,
     handleExtractFlyer,

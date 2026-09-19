@@ -51,6 +51,7 @@ export default function AdminEventEditor({
     initial.image_url ? "uploaded" : "empty"
   );
   const [flyerError, setFlyerError] = useState<string | null>(null);
+  const [extractionAttempts, setExtractionAttempts] = useState(0);
   const [extractionStatus, setExtractionStatus] = useState<FlyerExtractionStatus>("idle");
   const [extractionResult, setExtractionResult] = useState<ExtractedEvent | null>(null);
   const [extractionError, setExtractionError] = useState<string | null>(null);
@@ -90,17 +91,13 @@ export default function AdminEventEditor({
     setExtractionStatus("idle");
     setExtractionResult(null);
     setExtractionError(null);
+    setExtractionAttempts(0);
     setPrefillFeedback(null);
     setFlyerError(null);
     if (!file) {
       if (form.image_url) await removeEventFlyer(form.image_url).catch(() => undefined);
       setForm((current) => ({ ...current, image_url: "" }));
       setSelectedFlyer(null);
-      setFlyerStatus("empty");
-      return;
-    }
-    if (_eventId) {
-      setSelectedFlyer(file);
       setFlyerStatus("empty");
       return;
     }
@@ -133,8 +130,9 @@ export default function AdminEventEditor({
   };
   const handleExtractFlyer = async () => {
     if (!form.image_url || extractionStatus === "loading") return;
+    if (extractionAttempts >= 3) return;
+    setExtractionAttempts((attempt) => attempt + 1);
     setExtractionStatus("loading");
-    setExtractionError(null);
     try {
       const result = await extractEventFromFlyer(form.image_url);
       setExtractionResult(result);
@@ -283,6 +281,7 @@ export default function AdminEventEditor({
                   error={extractionError}
                   onRetry={() => void handleExtractFlyer()}
                   onDismiss={dismissExtractionError}
+                  remainingRetries={Math.max(0, 3 - extractionAttempts)}
                 />
                 {extractionStatus === "success" && (
                   <button

@@ -216,7 +216,7 @@ describe("AdminFounderRequestsTable", () => {
     const button = within(row).getByRole("button", { name: "Actions for Test User" });
     expect(button).toHaveAttribute("aria-haspopup", "menu");
     await user.click(button);
-    const menu = await within(row).findByRole("menu");
+    const menu = await screen.findByRole("menu");
     expect(within(menu).getByRole("menuitem", { name: "View Details" })).toBeInTheDocument();
     expect(within(menu).getByRole("menuitem", { name: "Approve" })).toBeInTheDocument();
     expect(within(menu).getByRole("menuitem", { name: "Reject" })).toBeInTheDocument();
@@ -227,7 +227,7 @@ describe("AdminFounderRequestsTable", () => {
     const { desktopRow, onAction } = renderTable([baseRequest], true);
     const row = desktopRow(baseRequest.id);
     await user.click(within(row).getByRole("button", { name: "Actions for Test User" }));
-    await user.click(await within(row).findByRole("menuitem", { name: "View Details" }));
+    await user.click(await screen.findByRole("menuitem", { name: "View Details" }));
     expect(onAction).toHaveBeenCalledWith("view", baseRequest);
   });
 
@@ -236,9 +236,9 @@ describe("AdminFounderRequestsTable", () => {
     const { desktopRow } = renderTable([baseRequest], false);
     const row = desktopRow(baseRequest.id);
     await user.click(within(row).getByRole("button", { name: "Actions for Test User" }));
-    expect(within(row).queryByRole("menuitem", { name: "Approve" })).not.toBeInTheDocument();
-    expect(within(row).queryByRole("menuitem", { name: "Reject" })).not.toBeInTheDocument();
-    expect(await within(row).findByRole("menuitem", { name: "View Details" })).toBeInTheDocument();
+    expect(screen.queryByRole("menuitem", { name: "Approve" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("menuitem", { name: "Reject" })).not.toBeInTheDocument();
+    expect(await screen.findByRole("menuitem", { name: "View Details" })).toBeInTheDocument();
   });
 
   it("renders a mobile stacked card below the 768px breakpoint layout", () => {

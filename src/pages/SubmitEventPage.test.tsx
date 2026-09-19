@@ -77,7 +77,7 @@ describe("SubmitEventPage", () => {
     expect(screen.queryByRole("group", { name: /How would you like to start/i })).toBeNull();
   });
 
-  it("offers sign-in instead of a dead upload control for a guest", () => {
+  it("offers flyer upload to a guest before the AI sign-in prompt is relevant", () => {
     vi.mocked(useAuth).mockReturnValue({
       user: null,
       session: null,
@@ -94,8 +94,7 @@ describe("SubmitEventPage", () => {
 
     renderSubmitEventPage();
 
-    expect(screen.queryByLabelText("Event flyer")).toBeNull();
-    expect(screen.getByRole("link", { name: "Sign in" })).toHaveAttribute("href", "/signin");
+    expect(screen.getByLabelText("Event flyer")).toBeInTheDocument();
   });
 
   it("renders the event submission form with noValidate and a required legend", () => {

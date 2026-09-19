@@ -267,38 +267,28 @@ describe("SubmitEventPage flyer (Phase 1)", () => {
     ).toBeInTheDocument();
   });
 
-  it("submits without a flyer when the guest is not authenticated", async () => {
+  it("lets anonymous visitors upload a flyer and gates AI extraction behind sign-in", async () => {
+    const user = userEvent.setup();
+    const file = new File(["png"], "guest-flyer.png", { type: "image/png" });
     mockAuth.user = null;
-    vi.mocked(submissionsRepo.createSubmission).mockResolvedValueOnce("submission-id");
     renderPage();
 
-    // Guests get a way forward, not a dead upload control.
-    expect(screen.queryByLabelText("Event flyer")).not.toBeInTheDocument();
-    expect(screen.getByRole("note")).toHaveTextContent(/to upload a flyer/i);
-    expect(screen.getByRole("link", { name: "Sign in" })).toHaveAttribute("href", "/signin");
+    await user.upload(screen.getByLabelText("Event flyer"), file);
 
-    fireEvent.change(screen.getByLabelText(/Event Title \*/i), {
-      target: { value: "Guest Social" },
+    expect(mockEventFlyers.uploadEventFlyer).toHaveBeenCalledWith({
+      file,
+      ownerId: "anonymous",
+      eventId: expect.stringMatching(/^submission-/),
     });
-    fireEvent.click(screen.getByRole("button", { name: /Social/i }));
-    fireEvent.change(screen.getByLabelText(/Date \*/i), {
-      target: { value: "2026-09-05" },
-    });
-    // Anonymous submissions now require submitter contact details — they are
-    // the only channel for the confirmation and review-outcome emails.
-    fireEvent.change(screen.getByLabelText(/Your name/i), {
-      target: { value: "Guest Dancer" },
-    });
-    fireEvent.change(screen.getByLabelText(/^Email/i), {
-      target: { value: "guest@example.com" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: /Submit Event/i }));
+    expect(await screen.findByText("Extract details with AI")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Extract Event Details/i })).not.toBeInTheDocument();
 
-    await waitFor(() => {
-      expect(submissionsRepo.createSubmission).toHaveBeenCalledTimes(1);
+    const signIn = screen.getByRole("link", {
+      name: /Sign in to automatically extract event details from your flyer/i,
     });
-    // No flyer persisted for a guest.
-    const [, extra] = vi.mocked(submissionsRepo.createSubmission).mock.calls[0];
-    expect(extra).toBeUndefined();
+    expect(signIn).toHaveAttribute("href", "/signin");
+    expect(signIn).toHaveAttribute("target", "_blank");
+    expect(signIn).toHaveAttribute("rel", "noreferrer");
+    expect(mockExtractionClient.extractEventFromFlyer).not.toHaveBeenCalled();
   });
 });

@@ -296,16 +296,21 @@ describe("useSubmitEventForm", () => {
     expect(mockEventFlyers.removeEventFlyer).toHaveBeenCalledWith(flyerUrl);
   });
 
-  it("does not upload a flyer for a guest (no auth.uid) and submits manually", async () => {
+  it("uploads an anonymous flyer's persisted URL with the submission", async () => {
     mockAuth.user = null;
+    const file = pngFile();
     const { result } = renderHook(() => useSubmitEventForm());
 
     await act(async () => {
-      result.current.handleFlyerChange(pngFile());
+      result.current.handleFlyerChange(file);
     });
 
-    expect(mockEventFlyers.uploadEventFlyer).not.toHaveBeenCalled();
-    expect(result.current.flyerReady).toBe(false);
+    expect(mockEventFlyers.uploadEventFlyer).toHaveBeenCalledWith({
+      file,
+      ownerId: "anonymous",
+      eventId: expect.stringMatching(/^submission-/),
+    });
+    expect(result.current.flyerReady).toBe(true);
 
     await act(async () => {
       result.current.update("title", "Guest Event");
@@ -323,7 +328,7 @@ describe("useSubmitEventForm", () => {
 
     expect(createSubmission).toHaveBeenCalledWith(
       expect.objectContaining({ submitter_id: null }),
-      undefined
+      { image_url: flyerUrl }
     );
   });
 

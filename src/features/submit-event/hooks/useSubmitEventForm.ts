@@ -138,14 +138,13 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
   };
 
   const uploadFlyerFile = (file: File): Promise<string | null> => {
-    if (!user) return Promise.resolve(null);
     setFlyerStatus("uploading");
     setFlyerError(null);
     const promise = uploadEventFlyer({
       file,
-      ownerId: user.id,
-      // No canonical event id yet — use a submission-scoped path so the owner
-      // RLS policy (foldername[1] = auth.uid()) still matches.
+      ownerId: user?.id ?? "anonymous",
+      // No canonical event id yet. Authenticated paths remain owner-scoped;
+      // public submissions use the policy-limited anonymous namespace.
       eventId: `submission-${crypto.randomUUID()}`,
     })
       .then((uploaded) => {

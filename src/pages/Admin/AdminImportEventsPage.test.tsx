@@ -26,12 +26,15 @@ function hookState(overrides: Partial<CsvEventImportState> = {}): CsvEventImport
     toggleIncludeDuplicate: vi.fn(),
     importableCount: 0,
     excludedDuplicateCount: 0,
+    importBlockedReason: null,
     importResult: null,
     importError: null,
     handleFile: vi.fn(),
     runImport: vi.fn(),
     reset: vi.fn(),
     taxonomyLoading: false,
+    taxonomyError: null,
+    retryTaxonomy: vi.fn(),
     ...overrides,
   } as CsvEventImportState;
 }
@@ -433,5 +436,93 @@ describe("AdminImportEventsPage — results", () => {
         "/admin/events"
       );
     });
+  });
+});
+
+describe("AdminImportEventsPage — disabled import explains why", () => {
+  it("tells the moderator to opt in when every valid row is a possible duplicate", () => {
+    (useCsvEventImport as Mock).mockReturnValue(
+      hookState({
+        stage: "reviewing",
+        fileName: "f.csv",
+        fileSize: 100,
+        rows: [reviewingRow({ status: "warning" })],
+        counts: { total: 1, valid: 0, warning: 1, invalid: 0 },
+        importableCount: 0,
+        excludedDuplicateCount: 1,
+        importBlockedReason:
+          "All valid rows were flagged as possible duplicates. Select “Import anyway” for the rows you want to create.",
+      })
+    );
+    renderPage();
+    expect(screen.getByRole("button", { name: /Import Valid Events/ })).toBeDisabled();
+    expect(screen.getByRole("note")).toHaveTextContent(/Import anyway/);
+  });
+
+  it("tells the moderator to fix validation errors when nothing is importable", () => {
+    (useCsvEventImport as Mock).mockReturnValue(
+      hookState({
+        stage: "reviewing",
+        fileName: "f.csv",
+        fileSize: 100,
+        rows: [reviewingRow({ status: "invalid", payload: null })],
+        counts: { total: 1, valid: 0, warning: 0, invalid: 1 },
+        importableCount: 0,
+        importBlockedReason: "Fix the validation errors below before importing.",
+      })
+    );
+    renderPage();
+    expect(screen.getByRole("button", { name: /Import Valid Events/ })).toBeDisabled();
+    expect(screen.getByRole("note")).toHaveTextContent(/Fix the validation errors/);
+  });
+
+  it("shows no blocking note when rows are importable", () => {
+    (useCsvEventImport as Mock).mockReturnValue(
+      hookState({
+        stage: "reviewing",
+        fileName: "f.csv",
+        fileSize: 100,
+        rows: [reviewingRow()],
+        counts: { total: 1, valid: 1, warning: 0, invalid: 0 },
+        importableCount: 1,
+        importBlockedReason: null,
+      })
+    );
+    renderPage();
+    expect(screen.queryByRole("note")).not.toBeInTheDocument();
+  });
+});
+
+describe("AdminImportEventsPage — taxonomy prerequisite failure", () => {
+  it("blocks the dropzone and explains with retry when taxonomy fails to load", async () => {
+    const retryTaxonomy = vi.fn();
+    (useCsvEventImport as Mock).mockReturnValue(
+      hookState({ taxonomyLoading: false, taxonomyError: "taxonomy RPC down", retryTaxonomy })
+    );
+    renderPage();
+    const alert = screen.getByRole("alert");
+    expect(alert).toHaveTextContent(/Unable to load event taxonomy/);
+    await userEvent.click(screen.getByRole("button", { name: "Try Again" }));
+    expect(retryTaxonomy).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("AdminImportEventsPage — import button invokes the import", () => {
+  it("calls runImport when an enabled import button is clicked", async () => {
+    const runImport = vi.fn();
+    (useCsvEventImport as Mock).mockReturnValue(
+      hookState({
+        stage: "reviewing",
+        fileName: "f.csv",
+        fileSize: 100,
+        rows: [reviewingRow()],
+        counts: { total: 1, valid: 1, warning: 0, invalid: 0 },
+        importableCount: 1,
+        runImport,
+      })
+    );
+    renderPage();
+    await userEvent.click(screen.getByRole("button", { name: "Import Valid Events (1)" }));
+    expect(runImport).toHaveBeenCalledTimes(1);
   });
 });

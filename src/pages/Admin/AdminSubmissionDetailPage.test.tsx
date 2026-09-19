@@ -45,7 +45,7 @@ const mockSubmission: EventSubmission = {
 
 describe("AdminSubmissionDetailPage", () => {
   it("renders submission details", async () => {
-    vi.mocked(useActiveTaxonomyTerms).mockReturnValue({ terms: [], isLoading: false, error: null });
+    vi.mocked(useActiveTaxonomyTerms).mockReturnValue({ terms: [], isLoading: false, error: null, retry: vi.fn() });
     vi.mocked(useAdminSubmissions.useAdminSubmissions).mockReturnValue({
       submissions: [mockSubmission],
       isLoading: false,
@@ -105,6 +105,7 @@ describe("AdminSubmissionDetailPage", () => {
       ],
       isLoading: false,
       error: null,
+      retry: vi.fn(),
     });
     render(
       <MemoryRouter initialEntries={["/admin/submissions/sub-1"]}>
@@ -124,7 +125,7 @@ describe("AdminSubmissionDetailPage", () => {
 
   it("opens the reject dialog and submits rejection via updateSubmission", async () => {
     const updateSubmission = vi.fn();
-    vi.mocked(useActiveTaxonomyTerms).mockReturnValue({ terms: [], isLoading: false, error: null });
+    vi.mocked(useActiveTaxonomyTerms).mockReturnValue({ terms: [], isLoading: false, error: null, retry: vi.fn() });
     vi.mocked(useAdminSubmissions.useAdminSubmissions).mockReturnValue({
       submissions: [mockSubmission],
       isLoading: false,

@@ -69,5 +69,8 @@ export function useActiveTaxonomyTerms(category: TaxonomyCategory) {
     terms: query.data ?? [],
     isLoading: query.isPending,
     error: query.error ? query.error.message : null,
+    retry: () => {
+      void query.refetch();
+    },
   };
 }

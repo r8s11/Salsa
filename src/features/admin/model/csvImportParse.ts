@@ -25,6 +25,24 @@ function fileErrorResult(fileErrors: string[]): CsvParseResult {
 }
 
 /**
+ * Browsers disagree about the MIME type for .csv files (Chrome, Safari, and
+ * Excel-exported files report text/csv, application/csv, text/x-csv, or
+ * application/vnd.ms-excel; some report nothing at all). Accept every known
+ * CSV MIME while still requiring the .csv extension, so a legitimate file is
+ * never rejected for its reporter's vocabulary.
+ */
+const CSV_MIME_TYPES = new Set([
+  "",
+  "text/csv",
+  "text/x-csv",
+  "text/comma-separated-values",
+  "text/x-comma-separated-values",
+  "application/csv",
+  "application/x-csv",
+  "application/vnd.ms-excel",
+]);
+
+/**
  * Validates the file itself (type, size) and parses it with Papa Parse,
  * which handles quoted commas, escaped quotes, and UTF-8 correctly out of
  * the box (papaparse — the standard, well-maintained browser CSV parser;
@@ -32,8 +50,7 @@ function fileErrorResult(fileErrors: string[]): CsvParseResult {
  */
 export function parseCsvFile(file: File): Promise<CsvParseResult> {
   const nameIsCsv = file.name.toLowerCase().endsWith(".csv");
-  const typeIsCsv =
-    file.type === "" || file.type === "text/csv" || file.type === "application/vnd.ms-excel";
+  const typeIsCsv = CSV_MIME_TYPES.has(file.type);
   if (!nameIsCsv || !typeIsCsv) {
     return Promise.resolve(fileErrorResult(["File must be a .csv file."]));
   }

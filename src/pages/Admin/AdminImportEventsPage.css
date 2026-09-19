@@ -3,7 +3,7 @@
    font — the display font is reserved for the page-level h1 in admin.css. */
 .admin-import-page__instructions {
   padding: 20px;
-  margin-bottom: 16px;
+  margin-top: 16px;
 }
 
 .admin-import-page__instructions h2 {

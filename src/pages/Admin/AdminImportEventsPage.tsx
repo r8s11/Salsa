@@ -107,50 +107,6 @@ export default function AdminImportEventsPage() {
         }
       />
 
-      <section className="admin-card admin-import-page__instructions">
-        <h2>How it works</h2>
-        <ol>
-          <li>Download the template below.</li>
-          <li>Add your events, one per row.</li>
-          <li>Upload the completed CSV.</li>
-          <li>Fix any errors it finds.</li>
-          <li>Review the events it detected.</li>
-          <li>Import.</li>
-        </ol>
-        <button
-          type="button"
-          className="admin-btn admin-btn--primary"
-          onClick={() => downloadCsv("salsasegura-event-import-template.csv", buildCsvTemplate())}
-        >
-          Download CSV Template
-        </button>
-        <div className="admin-import-page__rules">
-          <p>
-            <strong>Dates:</strong> YYYY-MM-DD (e.g. 2026-09-15). <strong>Times:</strong> 24-hour
-            HH:MM (e.g. 20:00).
-          </p>
-          <p>
-            <strong>Multiple values</strong> (dance styles, event attributes, gallery images):
-            separate with a semicolon, e.g. <code>Salsa; Bachata On1</code>.
-          </p>
-          <p>
-            <strong>Required columns:</strong> title, event_type, event_date, city. Everything else
-            is optional and can be left blank.
-          </p>
-          <p>
-            <strong>Recurring events:</strong> set recurrence to <code>weekly</code>, or leave it
-            blank for a one-time event.
-          </p>
-          <p>
-            <strong>Blank cells are fine</strong> for every optional column.
-          </p>
-          <p>
-            <strong>Maximum {CSV_MAX_ROWS} event rows</strong> per upload — split larger batches
-            into multiple files.
-          </p>
-        </div>
-      </section>
-
       {stage === "idle" && (
         <section className="admin-card admin-import-page__upload-card">
           <AdminImportDropzone onFileSelected={handleFile} disabled={taxonomyLoading} />
@@ -324,6 +280,49 @@ export default function AdminImportEventsPage() {
           </div>
         </section>
       )}
+      <section className="admin-card admin-import-page__instructions">
+        <h2>How it works</h2>
+        <ol>
+          <li>Download the template below.</li>
+          <li>Add your events, one per row.</li>
+          <li>Upload the completed CSV.</li>
+          <li>Fix any errors it finds.</li>
+          <li>Review the events it detected.</li>
+          <li>Import.</li>
+        </ol>
+        <button
+          type="button"
+          className="admin-btn admin-btn--primary"
+          onClick={() => downloadCsv("salsasegura-event-import-template.csv", buildCsvTemplate())}
+        >
+          Download CSV Template
+        </button>
+        <div className="admin-import-page__rules">
+          <p>
+            <strong>Dates:</strong> YYYY-MM-DD (e.g. 2026-09-15). <strong>Times:</strong> 24-hour
+            HH:MM (e.g. 20:00).
+          </p>
+          <p>
+            <strong>Multiple values</strong> (dance styles, event attributes, gallery images):
+            separate with a semicolon, e.g. <code>Salsa; Bachata On1</code>.
+          </p>
+          <p>
+            <strong>Required columns:</strong> title, event_type, event_date, city. Everything else
+            is optional and can be left blank.
+          </p>
+          <p>
+            <strong>Recurring events:</strong> set recurrence to <code>weekly</code>, or leave it
+            blank for a one-time event.
+          </p>
+          <p>
+            <strong>Blank cells are fine</strong> for every optional column.
+          </p>
+          <p>
+            <strong>Maximum {CSV_MAX_ROWS} event rows</strong> per upload — split larger batches
+            into multiple files.
+          </p>
+        </div>
+      </section>
     </>
   );
 }

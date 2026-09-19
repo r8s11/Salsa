@@ -66,8 +66,8 @@
   font-family: var(--font-body);
   font-size: 0.9rem;
   transition:
-    border-color 0.25s ease,
-    background 0.25s ease;
+    border-color 0.25s cubic-bezier(0.23, 1, 0.32, 1),
+    background 0.25s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .submit-form .form-group input::placeholder,
@@ -157,13 +157,20 @@
   font-size: 0.85rem;
   cursor: pointer;
   transition:
-    border-color 0.25s ease,
-    background 0.25s ease;
+    border-color 0.25s cubic-bezier(0.23, 1, 0.32, 1),
+    background 0.25s cubic-bezier(0.23, 1, 0.32, 1),
+    transform 0.12s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.form-dance-style-chip:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: var(--red);
+.form-dance-style-chip:active {
+  transform: scale(0.97);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .form-dance-style-chip:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: var(--red);
+  }
 }
 
 .form-dance-style-chip input[type="checkbox"] {
@@ -192,5 +199,13 @@
 
   .submit-form fieldset {
     padding: 1.25rem;
+  }
+}
+
+/* ── Reduced motion: strip transform on press ── */
+
+@media (prefers-reduced-motion: reduce) {
+  .form-dance-style-chip:active {
+    transform: none;
   }
 }

@@ -16,7 +16,7 @@
   justify-content: center;
   padding: 40px 20px;
   overflow-y: auto;
-  transition: opacity 200ms ease-out;
+  transition: opacity 200ms cubic-bezier(0.23, 1, 0.32, 1);
 
   @starting-style {
     opacity: 0;
@@ -163,14 +163,16 @@
   font-weight: 700;
   cursor: pointer;
   transition:
-    background 0.2s ease,
-    border-color 0.2s ease,
+    background 200ms cubic-bezier(0.23, 1, 0.32, 1),
+    border-color 200ms cubic-bezier(0.23, 1, 0.32, 1),
     transform 0.12s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.back-pill:hover {
-  background: var(--card-hover);
-  border-color: var(--border-lg);
+@media (hover: hover) and (pointer: fine) {
+  .back-pill:hover {
+    background: var(--card-hover);
+    border-color: var(--border-lg);
+  }
 }
 
 .back-pill:active {
@@ -340,7 +342,12 @@
   height: 80px;
   border-radius: var(--radius-md);
   object-fit: cover;
-  transition: transform 0.15s ease;
+  transition: transform 0.15s cubic-bezier(0.23, 1, 0.32, 1);
+  cursor: pointer;
+}
+
+.gallery-thumb:active {
+  transform: scale(0.94);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -536,20 +543,22 @@
   -webkit-backdrop-filter: blur(var(--glass-blur));
   cursor: pointer;
   transition:
-    background 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease,
+    background 0.2s cubic-bezier(0.23, 1, 0.32, 1),
+    border-color 0.2s cubic-bezier(0.23, 1, 0.32, 1),
+    color 0.2s cubic-bezier(0.23, 1, 0.32, 1),
     transform 0.12s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.modal-close-x:hover {
-  background: var(--card-hover);
-  border-color: var(--border-lg);
-  color: var(--red-bright);
+@media (hover: hover) and (pointer: fine) {
+  .modal-close-x:hover {
+    background: var(--card-hover);
+    border-color: var(--border-lg);
+    color: var(--red-bright);
+  }
 }
 
 .modal-close-x:active {
-  transform: scale(0.95);
+  transform: scale(0.97);
 }
 
 /* ========================================
@@ -571,7 +580,7 @@
     max-height: 92dvh;
     display: flex;
     flex-direction: column;
-    animation: modalSlideUp 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    animation: modalSlideUp 0.3s cubic-bezier(0.23, 1, 0.32, 1);
   }
 
   @keyframes modalSlideUp {
@@ -818,6 +827,16 @@
      keeps the fade and loses the slide. */
   .modal-content {
     animation-name: reducedFade;
+  }
+
+  /* Strip all transform-based hover and active feedback */
+  .back-pill:hover,
+  .back-pill:active,
+  .modal-close-x:hover,
+  .modal-close-x:active,
+  .gallery-thumb:hover,
+  .gallery-thumb:active {
+    transform: none;
   }
 }
 

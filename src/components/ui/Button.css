@@ -25,10 +25,10 @@
   overflow: hidden;
   z-index: 0;
   transition:
-    box-shadow 0.25s ease,
-    background-color 0.25s ease,
-    color 0.25s ease,
-    border-color 0.25s ease,
+    box-shadow 0.25s cubic-bezier(0.23, 1, 0.32, 1),
+    background-color 0.25s cubic-bezier(0.23, 1, 0.32, 1),
+    color 0.25s cubic-bezier(0.23, 1, 0.32, 1),
+    border-color 0.25s cubic-bezier(0.23, 1, 0.32, 1),
     transform 0.12s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
@@ -58,12 +58,8 @@
   inset: 0;
   background: var(--red-bright);
   transform: translateX(-100%);
-  transition: transform 0.3s ease;
+  transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
   z-index: -1;
-}
-
-.ui-button--primary:hover:not(:disabled)::before {
-  transform: translateX(0);
 }
 
 /* ── Secondary ── */
@@ -71,11 +67,6 @@
   background: transparent;
   color: var(--gold);
   border: 1px solid var(--gold);
-}
-
-.ui-button--secondary:hover:not(:disabled) {
-  background: var(--gold-dim);
-  color: var(--gold-light);
 }
 
 /* ── Ghost ── */
@@ -96,11 +87,7 @@
   background: var(--red-bright);
   transform: scaleX(0);
   transform-origin: left;
-  transition: transform 0.25s ease;
-}
-
-.ui-button--ghost:hover:not(:disabled)::after {
-  transform: scaleX(1);
+  transition: transform 0.25s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 /* ── Danger ── */
@@ -160,4 +147,39 @@
 /* ── ButtonLink (renders <a> or <Link> with button styling) ── */
 a.ui-button {
   text-decoration: none;
+}
+
+/* ── Hover states (fine-pointer / true-hover only) ── */
+
+@media (hover: hover) and (pointer: fine) {
+  .ui-button--primary:hover:not(:disabled) {
+    box-shadow: var(--glow-primary);
+  }
+
+  .ui-button--primary:hover:not(:disabled)::before {
+    transform: translateX(0);
+  }
+
+  .ui-button--secondary:hover:not(:disabled) {
+    background: var(--gold-dim);
+    color: var(--gold-light);
+  }
+
+  .ui-button--ghost:hover:not(:disabled)::after {
+    transform: scaleX(1);
+  }
+
+  .ui-button--danger:hover:not(:disabled) {
+    background: var(--red-dim);
+    color: var(--red-bright);
+  }
+}
+
+/* ── Reduced motion: strip transform-based hover effects ── */
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-button--primary:hover:not(:disabled)::before,
+  .ui-button--ghost:hover:not(:disabled)::after {
+    transform: none;
+  }
 }

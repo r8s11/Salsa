@@ -114,10 +114,13 @@
   text-decoration: underline;
   text-underline-offset: 3px;
   text-decoration-thickness: 1px;
+  transition: text-decoration-thickness 180ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.submit-flyer__guest-note a:hover {
-  text-decoration-thickness: 2px;
+@media (hover: hover) and (pointer: fine) {
+  .submit-flyer__guest-note a:hover {
+    text-decoration-thickness: 2px;
+  }
 }
 
 .submit-flyer__guest-note a:focus-visible {

@@ -17,14 +17,14 @@
   cursor: pointer;
   flex-shrink: 0;
   transition:
-    background-color 0.2s ease,
-    color 0.2s ease,
-    border-color 0.2s ease,
+    background-color 0.2s cubic-bezier(0.23, 1, 0.32, 1),
+    color 0.2s cubic-bezier(0.23, 1, 0.32, 1),
+    border-color 0.2s cubic-bezier(0.23, 1, 0.32, 1),
     transform 0.12s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .ui-icon-button:active:not(:disabled) {
-  transform: scale(0.95);
+  transform: scale(0.97);
 }
 
 .ui-icon-button:focus-visible {
@@ -42,11 +42,6 @@
   background: transparent;
 }
 
-.ui-icon-button--ghost:hover:not(:disabled) {
-  background: var(--card);
-  color: var(--red-bright);
-}
-
 /* ── Outline ── */
 .ui-icon-button--outline {
   border: 1px solid var(--border-md);
@@ -55,17 +50,34 @@
   -webkit-backdrop-filter: blur(var(--glass-blur));
 }
 
-.ui-icon-button--outline:hover:not(:disabled) {
-  background: var(--card-hover);
-  border-color: var(--border-lg);
-  color: var(--red-bright);
-}
-
 /* ── Danger ── */
 .ui-icon-button--danger {
   color: var(--red-bright);
 }
 
-.ui-icon-button--danger:hover:not(:disabled) {
-  background: var(--red-dim);
+/* ── Hover states (fine-pointer / true-hover only) ── */
+
+@media (hover: hover) and (pointer: fine) {
+  .ui-icon-button--ghost:hover:not(:disabled) {
+    background: var(--card);
+    color: var(--red-bright);
+  }
+
+  .ui-icon-button--outline:hover:not(:disabled) {
+    background: var(--card-hover);
+    border-color: var(--border-lg);
+    color: var(--red-bright);
+  }
+
+  .ui-icon-button--danger:hover:not(:disabled) {
+    background: var(--red-dim);
+  }
+}
+
+/* ── Reduced motion: strip active scale ── */
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-icon-button:active:not(:disabled) {
+    transform: none;
+  }
 }

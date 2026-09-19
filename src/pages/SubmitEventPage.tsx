@@ -86,7 +86,13 @@ export default function SubmitEventPage() {
   const focusForm = () => {
     const formEl = formRef.current;
     if (formEl) {
-      formEl.scrollIntoView({ behavior: "smooth", block: "start" });
+      const prefersReducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches;
+      formEl.scrollIntoView({
+        behavior: prefersReducedMotion ? "auto" : "smooth",
+        block: "start",
+      });
       const firstField = formEl.querySelector<HTMLElement>("input, textarea, button, [tabindex]");
       firstField?.focus();
     }

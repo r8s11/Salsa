@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useId, useRef, useState, type FormEvent, type PointerEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Camera } from "lucide-react";
 import { useAuth } from "../../contexts/useAuth";
@@ -18,6 +18,7 @@ import {
 } from "../../features/account/model/account";
 import { CITY_LABEL, DANCE_STYLES } from "../../features/admin/model/eventsQuery";
 import type { City } from "../../features/events/model/types";
+import type { CropGeometry } from "../../features/account/api/profileMedia";
 import "./ProfileEditPage.css";
 
 const BIO_MAX_LENGTH = 600;
@@ -124,6 +125,16 @@ export default function ProfileEditPage() {
   const coverFocusRef = useRef<HTMLButtonElement>(null);
   const [searchParams] = useSearchParams();
   const focusTarget = searchParams.get("focus");
+
+  // ── Avatar crop overlay ──
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [pendingCropUrl, setPendingCropUrl] = useState<string | null>(null);
+  const [cropOffset, setCropOffset] = useState(0);
+  const cropContainerRef = useRef<HTMLDivElement>(null);
+  const cropImgRef = useRef<HTMLImageElement>(null);
+  const [cropImgNatural, setCropImgNatural] = useState<{ w: number; h: number } | null>(null);
+  const [cropFillScale, setCropFillScale] = useState(1);
+  const cropDragRef = useRef<{ startY: number; startOffset: number } | null>(null);
 
   // /profile puts "Change photo" and "Change cover" on the artwork itself and
   // links here with ?focus=. Landing on the matching field — rather than at
@@ -236,17 +247,6 @@ export default function ProfileEditPage() {
   // Media uploads save ONLY their own column straight to the profile row
   // (never the rest of the form) and then sync the local form value so the
   // editor does not go dirty with a stale URL.
-  const handleAvatarFile = async (file: File | undefined) => {
-    if (!file) return;
-    try {
-      const url = await media.avatar.upload(file);
-      setFailedPreviewUrl(null);
-      patchForm({ avatar_url: url });
-    } catch {
-      // The hook already stores the readable message in media.avatar.error.
-    }
-  };
-
   const handleAvatarRemove = async () => {
     try {
       await media.avatar.remove();
@@ -277,6 +277,87 @@ export default function ProfileEditPage() {
       // The hook already stores the readable message in media.cover.error.
     }
   };
+
+  // ── Avatar crop handlers ──
+
+  const AVATAR_CROP_SIZE = 240;
+
+  const handleAvatarFileSelect = (file: File | undefined) => {
+    if (!file) return;
+    setPendingFile(file);
+    setPendingCropUrl(URL.createObjectURL(file));
+    setCropOffset(0);
+    setCropImgNatural(null);
+    setCropFillScale(1);
+  };
+
+  const handleAvatarCropConfirm = async () => {
+    if (!pendingFile || !cropImgNatural) return;
+    const file = pendingFile;
+    const imgW = cropImgNatural.w;
+    const imgH = cropImgNatural.h;
+    const fillScale = cropFillScale;
+    cancelCrop();
+
+    // The visible crop window in source pixels.
+    const cropSize = AVATAR_CROP_SIZE / fillScale;
+    const centerX = (imgW - cropSize) / 2;
+    const centerY = (imgH - cropSize) / 2;
+
+    // maxOffset: how far (in display px) the image can be dragged from center.
+    const displayH = imgH * fillScale;
+    const maxOffset = Math.max(0, (displayH - AVATAR_CROP_SIZE) / 2);
+    const clampedOffset = Math.max(-maxOffset, Math.min(maxOffset, cropOffset));
+
+    const crop: CropGeometry = {
+      sx: Math.max(0, centerX),
+      sy: Math.max(0, Math.min(imgH - cropSize, centerY - clampedOffset * fillScale)),
+      sw: cropSize,
+      sh: cropSize,
+    };
+
+    try {
+      const url = await media.avatar.upload(file, crop);
+      setFailedPreviewUrl(null);
+      patchForm({ avatar_url: url });
+    } catch {
+      // The hook already stores the readable message in media.avatar.error.
+    }
+  };
+
+  const cancelCrop = () => {
+    if (pendingCropUrl) URL.revokeObjectURL(pendingCropUrl);
+    setPendingFile(null);
+    setPendingCropUrl(null);
+    setCropOffset(0);
+    setCropImgNatural(null);
+    setCropFillScale(1);
+  };
+
+  const onCropPointerDown = useCallback(
+    (e: PointerEvent) => {
+      if (!cropContainerRef.current) return;
+      e.preventDefault();
+      cropContainerRef.current.setPointerCapture(e.pointerId);
+      cropDragRef.current = { startY: e.clientY, startOffset: cropOffset };
+    },
+    [cropOffset],
+  );
+
+  const onCropPointerMove = useCallback((e: PointerEvent) => {
+    if (!cropDragRef.current || !cropContainerRef.current) return;
+    const dy = e.clientY - cropDragRef.current.startY;
+    const imgH = cropImgNatural?.h ?? 0;
+    const fillScale = cropFillScale;
+    const displayH = imgH * fillScale;
+    const maxOffset = Math.max(0, (displayH - AVATAR_CROP_SIZE) / 2);
+    const raw = cropDragRef.current.startOffset + dy;
+    setCropOffset(Math.max(-maxOffset, Math.min(maxOffset, raw)));
+  }, [cropImgNatural, cropFillScale]);
+
+  const onCropPointerUp = useCallback(() => {
+    cropDragRef.current = null;
+  }, []);
 
   const toggleStyle = (value: string) => {
     if (!form) return;
@@ -409,7 +490,7 @@ export default function ProfileEditPage() {
                     tabIndex={-1}
                     disabled={media.avatar.isBusy}
                     onChange={(event) => {
-                      void handleAvatarFile(event.target.files?.[0]);
+                      handleAvatarFileSelect(event.target.files?.[0]);
                       event.target.value = "";
                     }}
                   />
@@ -813,6 +894,61 @@ export default function ProfileEditPage() {
             </button>
           </div>
         </form>
+      )}
+
+      {/* ── Avatar crop overlay ── */}
+      {pendingCropUrl && (
+        <div className="profile-edit-page__crop-overlay" onMouseDown={cancelCrop}>
+          <div
+            ref={cropContainerRef}
+            className="profile-edit-page__crop-container"
+            onPointerDown={onCropPointerDown}
+            onPointerMove={onCropPointerMove}
+            onPointerUp={onCropPointerUp}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <img
+              ref={cropImgRef}
+              className="profile-edit-page__crop-img"
+              src={pendingCropUrl}
+              alt="Adjust your profile photo position"
+              draggable={false}
+              onPointerDown={(e) => e.stopPropagation()}
+              onLoad={(e) => {
+                const img = e.currentTarget;
+                const nw = img.naturalWidth;
+                const nh = img.naturalHeight;
+                // fillScale makes the shorter dimension fill the container,
+                // so the longer dimension overflows and can be dragged.
+                const fs = Math.max(AVATAR_CROP_SIZE / nw, AVATAR_CROP_SIZE / nh);
+                setCropImgNatural({ w: nw, h: nh });
+                setCropFillScale(fs);
+                img.style.width = `${nw * fs}px`;
+                img.style.height = `${nh * fs}px`;
+              }}
+              style={{ transform: `translate(-50%, calc(-50% + ${cropOffset}px))` }}
+            />
+            <span className="profile-edit-page__crop-ring" aria-hidden="true" />
+          </div>
+          <p className="profile-edit-page__crop-hint">Drag to position your photo</p>
+          <div className="profile-edit-page__crop-actions">
+            <button
+              type="button"
+              className="profile-edit-page__btn profile-edit-page__btn--outline"
+              onClick={cancelCrop}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="profile-edit-page__btn profile-edit-page__btn--primary"
+              disabled={!cropImgNatural}
+              onClick={() => void handleAvatarCropConfirm()}
+            >
+              Use This Photo
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

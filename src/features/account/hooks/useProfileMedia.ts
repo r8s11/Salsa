@@ -8,6 +8,7 @@ import {
   removeCoverFile,
   uploadAvatarFile,
   uploadCoverFile,
+  type CropGeometry,
   type ProfileMediaKind,
 } from "../api/profileMedia";
 
@@ -64,12 +65,16 @@ export function useProfileMedia(userId: string | undefined) {
     });
   };
 
-  const upload = async (kind: ProfileMediaKind, file: File): Promise<string> => {
+  const upload = async (
+    kind: ProfileMediaKind,
+    file: File,
+    crop?: CropGeometry
+  ): Promise<string> => {
     setSlot(kind, { isBusy: true, error: null });
     try {
       const url =
         kind === "avatar"
-          ? await uploadAvatarFile(file, userId)
+          ? await uploadAvatarFile(file, userId, crop)
           : await uploadCoverFile(file, userId);
       try {
         await updateOwnProfile(userId, {
@@ -126,7 +131,7 @@ export function useProfileMedia(userId: string | undefined) {
   return {
     avatar: {
       ...avatar,
-      upload: (file: File) => upload("avatar", file),
+      upload: (file: File, crop?: CropGeometry) => upload("avatar", file, crop),
       remove: () => remove("avatar"),
     },
     cover: {

@@ -77,14 +77,16 @@ export function computeCoverCrop(
 }
 
 /**
- * Normalize any supported image to a WebP blob at the target size using
- * cover-crop geometry. Orientation is honored via createImageBitmap so
- * phone photos do not arrive rotated.
+ * Normalize any supported image to a WebP blob at the target size.
+ * If `crop` is provided, use those coordinates (sx, sy, sw, sh) instead of
+ * center-cropping. This lets callers supply custom crop geometry (e.g. from
+ * a UI drag‑to‑position step).
  */
 export async function normalizeToWebp(
   file: File | Blob,
   dstWidth: number,
-  dstHeight: number
+  dstHeight: number,
+  crop?: CropGeometry
 ): Promise<Blob> {
   let bitmap: ImageBitmap;
   try {
@@ -93,36 +95,32 @@ export async function normalizeToWebp(
     throw new Error("We couldn't read this image. Try a different file.");
   }
 
-  try {
-    const crop = computeCoverCrop(bitmap.width, bitmap.height, dstWidth, dstHeight);
-    const canvas = document.createElement("canvas");
-    canvas.width = dstWidth;
-    canvas.height = dstHeight;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) throw new Error("We couldn't process this image. Try a different file.");
-    ctx.drawImage(
-      bitmap,
-      crop.sx,
-      crop.sy,
-      crop.sw,
-      crop.sh,
-      0,
-      0,
-      dstWidth,
-      dstHeight
-    );
-    const blob = await new Promise<Blob | null>((resolve) =>
-      canvas.toBlob(resolve, "image/webp", 0.85)
-    );
-    if (!blob) throw new Error("We couldn't process this image. Try a different file.");
-    return blob;
-  } finally {
-    bitmap.close();
-  }
+  const actualCrop = crop ?? computeCoverCrop(bitmap.width, bitmap.height, dstWidth, dstHeight);
+  const canvas = document.createElement("canvas");
+  canvas.width = dstWidth;
+  canvas.height = dstHeight;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("We couldn't process this image. Try a different file.");
+  ctx.drawImage(
+    bitmap,
+    actualCrop.sx,
+    actualCrop.sy,
+    actualCrop.sw,
+    actualCrop.sh,
+    0,
+    0,
+    dstWidth,
+    dstHeight
+  );
+  const blob = await new Promise<Blob | null>((resolve) =>
+    canvas.toBlob(resolve, "image/webp", 0.85)
+  );
+  if (!blob) throw new Error("We couldn't process this image. Try a different file.");
+  return blob;
 }
 
-export function normalizeAvatar(file: File): Promise<Blob> {
-  return normalizeToWebp(file, AVATAR_SIZE, AVATAR_SIZE);
+export function normalizeAvatar(file: File, crop?: CropGeometry): Promise<Blob> {
+  return normalizeToWebp(file, AVATAR_SIZE, AVATAR_SIZE, crop);
 }
 
 export function normalizeCover(file: File): Promise<Blob> {
@@ -172,10 +170,14 @@ export async function uploadProfileMedia({
  * Validate → normalize → upload → versioned public URL. One call per kind
  * so avatar and cover keep their own target geometry.
  */
-export async function uploadAvatarFile(file: File, ownerId: string): Promise<string> {
+export async function uploadAvatarFile(
+  file: File,
+  ownerId: string,
+  crop?: CropGeometry
+): Promise<string> {
   const validationError = validateProfileImage(file);
   if (validationError) throw new Error(validationError);
-  const blob = await normalizeAvatar(file);
+  const blob = await normalizeAvatar(file, crop);
   const { url } = await uploadProfileMedia({ blob, ownerId, kind: "avatar" });
   return url;
 }
@@ -193,9 +195,7 @@ export async function uploadCoverFile(file: File, ownerId: string): Promise<stri
  * `<ownerId>/avatar.webp` or `<ownerId>/cover.webp` — traversal-free by
  * construction, validated again before any delete is issued.
  */
-export async function removeProfileMediaByPath(
-  path: string | null | undefined
-): Promise<void> {
+export async function removeProfileMediaByPath(path: string | null | undefined): Promise<void> {
   if (!path) return;
   if (path.startsWith("/") || path.includes("../")) return;
   const segments = path.split("/");

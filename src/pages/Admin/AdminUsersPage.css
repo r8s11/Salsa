@@ -6,8 +6,8 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 12px;
-  padding: 32px;
+  gap: 16px;
+  padding: 48px 32px;
 }
 
 .admin-users-page__empty h2 {
@@ -23,7 +23,8 @@
 }
 
 .admin-users-page__toolbar-card {
-  margin-bottom: 16px;
+  margin-bottom: 24px;
+  padding: 16px;
 }
 
 .admin-users-page__chips {
@@ -46,6 +47,15 @@
 
 .admin-users-page__table-card {
   position: relative;
+}
+
+@media (max-width: 767.98px) {
+  .admin-users-page__table-card {
+    overflow-x: auto;
+  }
+  .admin-users-page__table-card table {
+    min-width: 640px;
+  }
 }
 
 @media (min-width: 768px) {

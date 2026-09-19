@@ -229,24 +229,6 @@ describe("ProfileEditPage", () => {
     expect(patch.notification_prefs).toMatchObject({ weekly_digest: true });
   });
 
-  it("rejects malformed photo URLs but enables Save when corrected", async () => {
-    mocks.profile.profile = baseProfile();
-    const user = userEvent.setup();
-    renderPage();
-
-    const photoUrl = await screen.findByLabelText("Photo URL");
-    await user.type(photoUrl, "not-a-url");
-
-    expect(await screen.findByRole("alert")).toHaveTextContent(/use a full link starting with https/i);
-    expect(screen.getByRole("button", { name: "Save Changes" })).toBeDisabled();
-
-    await user.clear(photoUrl);
-    await user.type(photoUrl, "https://cdn.test/me.png");
-    await waitFor(() => {
-      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-    });
-  });
-
   it("never sends username, role, or status to the update hook", async () => {
     mocks.profile.profile = baseProfile();
     mocks.update.update.mockResolvedValue(baseProfile());
@@ -256,7 +238,6 @@ describe("ProfileEditPage", () => {
     const displayName = await screen.findByLabelText(/display name/i);
     await user.clear(displayName);
     await user.type(displayName, "  Maria Lucia  ");
-    await user.type(screen.getByLabelText("Photo URL"), "https://cdn.test/maria.png");
 
     await user.click(screen.getByRole("button", { name: "Save Changes" }));
 
@@ -264,7 +245,6 @@ describe("ProfileEditPage", () => {
     const [patch] = mocks.update.update.mock.calls[0];
     expect(patch).toMatchObject({
       display_name: "Maria Lucia",
-      avatar_url: "https://cdn.test/maria.png",
     });
     expect(patch).not.toHaveProperty("username");
     expect(patch).not.toHaveProperty("role");
@@ -326,7 +306,6 @@ describe("ProfileEditPage", () => {
     const displayName = await screen.findByLabelText(/display name/i);
     await user.clear(displayName);
     await user.type(displayName, "  Maria Lucia  ");
-    await user.type(screen.getByLabelText("Photo URL"), "https://cdn.test/maria.png");
 
     await user.click(screen.getByRole("button", { name: "Save Changes" }));
 
@@ -334,9 +313,6 @@ describe("ProfileEditPage", () => {
     // The component trims only on submit; the input still reflects
     // what the user typed so they can retry without re-typing.
     expect((displayName as HTMLInputElement).value).toBe("  Maria Lucia  ");
-    expect(
-      (screen.getByLabelText("Photo URL") as HTMLInputElement).value
-    ).toBe("https://cdn.test/maria.png");
   });
 
   it("disables Save when the display name is blank", async () => {
@@ -382,42 +358,14 @@ describe("ProfileEditPage", () => {
     expect(mocks.profile.refetch).toHaveBeenCalledOnce();
   });
 
-  // ---- Phase 6 correction: preview must obey the save-time URL rule ----
-  // Previously the preview rendered whenever the string was non-empty, so a
-  // malformed URL or one with embedded credentials was assigned to src.
-  // These assert the rendered DOM, not just a validator return value.
-
   function photoSection() {
     const heading = screen.getByRole("heading", { name: "PHOTOS" });
     return heading.closest("section") as HTMLElement;
   }
 
-  it.each([
-    ["a malformed value", "not-a-url"],
-    ["a scheme-relative value", "//cdn.test/x.png"],
-    ["a file: scheme", "file:///etc/passwd"],
-    ["a javascript: scheme", "javascript:alert(1)"],
-    ["a data: scheme", "data:image/png;base64,iVBORw0KGgo="],
-    ["credentials in the authority", "https://user:pass@cdn.test/x.png"],
-  ])("never assigns %s to the preview src", async (_label, value) => {
-    mocks.profile.profile = baseProfile({ avatar_url: null });
-    const user = userEvent.setup();
+  it("shows the avatar preview only for a URL already on the profile, never from typed input", () => {
+    mocks.profile.profile = baseProfile({ avatar_url: "https://cdn.test/ok.png" });
     renderPage();
-
-    await user.type(await screen.findByLabelText("Photo URL"), value);
-
-    const section = photoSection();
-    expect(section.querySelector("img")).toBeNull();
-    // and the initials fallback is what the user sees instead
-    expect(within(section).getByText("M")).toBeInTheDocument();
-  });
-
-  it("previews a valid URL and keeps referrers off the request", async () => {
-    mocks.profile.profile = baseProfile({ avatar_url: null });
-    const user = userEvent.setup();
-    renderPage();
-
-    await user.type(await screen.findByLabelText("Photo URL"), "https://cdn.test/ok.png");
 
     const img = photoSection().querySelector("img") as HTMLImageElement;
     expect(img).not.toBeNull();
@@ -437,36 +385,13 @@ describe("ProfileEditPage", () => {
     expect(within(section).getByText("M")).toBeInTheDocument();
   });
 
-  it("retries the preview after a failed URL is replaced with a new one", async () => {
-    mocks.profile.profile = baseProfile({ avatar_url: "https://cdn.test/gone.png" });
-    const user = userEvent.setup();
-    renderPage();
-
-    fireEvent.error((await screen.findByRole("presentation", { hidden: true })) as HTMLImageElement);
-    expect(photoSection().querySelector("img")).toBeNull();
-
-    const photoUrl = screen.getByLabelText("Photo URL");
-    await user.clear(photoUrl);
-    await user.type(photoUrl, "https://cdn.test/fresh.png");
-
-    const img = photoSection().querySelector("img") as HTMLImageElement;
-    expect(img).not.toBeNull();
-    expect(img.getAttribute("src")).toBe("https://cdn.test/fresh.png");
-  });
-
-  it("blocks Save for a credential-bearing URL the same way it blocks malformed input", async () => {
+  it("has no Photo URL text field — avatar changes only through upload", async () => {
     mocks.profile.profile = baseProfile();
-    const user = userEvent.setup();
     renderPage();
 
-    await user.type(
-      await screen.findByLabelText("Photo URL"),
-      "https://user:pass@cdn.test/x.png"
-    );
-
-    expect(await screen.findByRole("alert")).toHaveTextContent(/full link starting with https/i);
-    expect(screen.getByRole("button", { name: "Save Changes" })).toBeDisabled();
-    expect(mocks.update.update).not.toHaveBeenCalled();
+    await screen.findByRole("heading", { name: "PHOTOS" });
+    expect(screen.queryByLabelText("Photo URL")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Upload photo" })).toBeInTheDocument();
   });
 
   // ---- Phase 6 correction: accessibility claims must be true ----
@@ -490,23 +415,13 @@ describe("ProfileEditPage", () => {
     expect(help?.textContent).toMatch(/username changes arrive in a later update/i);
   });
 
-  it("associates the photo hint with the photo input, and swaps in the error when invalid", async () => {
+  it("has no Cover Photo URL text field — cover changes only through upload", async () => {
     mocks.profile.profile = baseProfile();
-    const user = userEvent.setup();
     renderPage();
 
-    const photoUrl = (await screen.findByLabelText("Photo URL")) as HTMLInputElement;
-    const hintId = photoUrl.getAttribute("aria-describedby");
-    expect(hintId).toBeTruthy();
-    expect(document.getElementById(hintId as string)?.textContent).toMatch(/hosted square image/i);
-    expect(photoUrl.getAttribute("aria-invalid")).toBeNull();
-
-    await user.type(photoUrl, "not-a-url");
-
-    expect(photoUrl.getAttribute("aria-invalid")).toBe("true");
-    const ids = (photoUrl.getAttribute("aria-describedby") ?? "").split(/\s+/);
-    const texts = ids.map((id) => document.getElementById(id)?.textContent ?? "").join(" ");
-    expect(texts).toMatch(/full link starting with https/i);
+    await screen.findByRole("heading", { name: "PHOTOS" });
+    expect(screen.queryByLabelText("Cover Photo URL")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Upload cover" })).toBeInTheDocument();
   });
 
   it("marks a blank required display name as invalid", async () => {

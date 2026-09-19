@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Plus, Upload } from "lucide-react";
+import { Plus, Upload, X } from "lucide-react";
 import { useAdminEvents } from "../../features/admin/hooks/useAdminEvents";
 import { removeEventFlyer, uploadEventFlyer } from "../../features/events/api/eventFlyers";
 import { useCity } from "../../contexts/useCity";
@@ -622,7 +622,7 @@ export default function AdminEventsPage() {
                       aria-label={`Remove ${chip.label} filter`}
                       onClick={chip.onRemove}
                     >
-                      ×
+                      <X size={14} />
                     </button>
                   </div>
                 ))}
@@ -654,7 +654,7 @@ export default function AdminEventsPage() {
                 <p role="status" className="admin-events-page__status">
                   Loading events…
                 </p>
-                {Array.from({ length: 8 }, (_, index) => (
+                {Array.from({ length: size }, (_, index) => (
                   <div key={index} className="admin-events-page__skeleton-row" aria-hidden="true">
                     <span className="admin-skeleton admin-events-page__skeleton-thumb" />
                     <span className="admin-events-page__skeleton-lines">

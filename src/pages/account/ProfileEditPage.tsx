@@ -48,7 +48,7 @@ function formStateFromProfile(profile: OwnProfile): FormState {
     bio: profile.bio ?? "",
     city: profile.city ?? "",
     dance_styles: [...(profile.dance_styles ?? [])],
-    instagram: profile.instagram ?? "",
+    instagram: instagramHandle(profile.instagram ?? ""),
     website: profile.website ?? "",
     public_profile: profile.public_profile,
     stats_public: profile.stats_public,
@@ -62,6 +62,25 @@ function formStateFromProfile(profile: OwnProfile): FormState {
  * anything else before the round-trip rather than surfacing a raw
  * constraint violation.
  */
+function instagramHandle(value: string): string {
+  return value
+    .trim()
+    .replace(/^https?:\/\/(www\.)?instagram\.com\//i, "")
+    .replace(/^@/, "");
+}
+
+function instagramUrl(handle: string): string {
+  return handle ? "https://instagram.com/" + handle : "";
+}
+
+function instagramLinkError(value: string): string | null {
+  const handle = instagramHandle(value);
+  if (handle.length === 0) return null;
+  if (/\s/.test(handle)) return "No spaces allowed";
+  if (handle.includes("/")) return "No slashes allowed";
+  return null;
+}
+
 function linkError(value: string): string | null {
   const trimmed = value.trim();
   if (trimmed.length === 0) return null;
@@ -82,16 +101,11 @@ export default function ProfileEditPage() {
   const displayNameErrorId = useId();
   const usernameId = useId();
   const usernameHelpId = useId();
-  const avatarUrlId = useId();
-  const avatarUrlHintId = useId();
-  const avatarUrlErrorId = useId();
   const avatarMediaErrorId = useId();
   const avatarMediaStatusId = useId();
   const coverMediaErrorId = useId();
   const coverMediaStatusId = useId();
-  const coverUrlId = useId();
-  const coverUrlHintId = useId();
-  const coverUrlErrorId = useId();
+  const coverLabelId = useId();
   const bioId = useId();
   const bioHintId = useId();
   const cityId = useId();
@@ -101,14 +115,13 @@ export default function ProfileEditPage() {
   const websiteErrorId = useId();
 
   const [form, setForm] = useState<FormState | null>(null);
-  const [avatarUrlError, setAvatarUrlError] = useState<string | null>(null);
   const [saved, setSaved] = useState<SavedNotice | null>(null);
   // The exact URL whose <img> raised onError. Comparing against the current
   // value means replacing the URL automatically re-attempts the load.
   const [failedPreviewUrl, setFailedPreviewUrl] = useState<string | null>(null);
   const [failedCoverPreviewUrl, setFailedCoverPreviewUrl] = useState<string | null>(null);
-  const avatarInputRef = useRef<HTMLInputElement>(null);
-  const coverInputRef = useRef<HTMLInputElement>(null);
+  const avatarFocusRef = useRef<HTMLButtonElement>(null);
+  const coverFocusRef = useRef<HTMLButtonElement>(null);
   const [searchParams] = useSearchParams();
   const focusTarget = searchParams.get("focus");
 
@@ -118,7 +131,7 @@ export default function ProfileEditPage() {
   const formReady = form !== null;
   useEffect(() => {
     if (!formReady || (focusTarget !== "photo" && focusTarget !== "cover")) return;
-    const field = focusTarget === "cover" ? coverInputRef.current : avatarInputRef.current;
+    const field = focusTarget === "cover" ? coverFocusRef.current : avatarFocusRef.current;
     if (!field) return;
     field.focus({ preventScroll: true });
     field.scrollIntoView({ block: "center", behavior: "smooth" });
@@ -145,8 +158,7 @@ export default function ProfileEditPage() {
   const showCoverPreview =
     isDisplayablePhotoUrl(trimmedCoverUrl) && failedCoverPreviewUrl !== trimmedCoverUrl;
 
-  const coverUrlError = form ? linkError(form.cover_url) : null;
-  const instagramError = form ? linkError(form.instagram) : null;
+  const instagramError = form ? instagramLinkError(form.instagram) : null;
   const websiteError = form ? linkError(form.website) : null;
 
   const dirty =
@@ -157,7 +169,7 @@ export default function ProfileEditPage() {
       form.cover_url !== (profile.cover_url ?? "") ||
       form.bio !== (profile.bio ?? "") ||
       form.city !== (profile.city ?? "") ||
-      form.instagram !== (profile.instagram ?? "") ||
+      form.instagram !== instagramHandle(profile.instagram ?? "") ||
       form.website !== (profile.website ?? "") ||
       form.public_profile !== profile.public_profile ||
       form.stats_public !== profile.stats_public ||
@@ -177,8 +189,6 @@ export default function ProfileEditPage() {
     profile !== null &&
     dirty &&
     form.display_name.trim().length > 0 &&
-    !avatarUrlError &&
-    !coverUrlError &&
     !instagramError &&
     !websiteError;
 
@@ -206,7 +216,7 @@ export default function ProfileEditPage() {
         bio: orNull(form.bio),
         city: form.city === "" ? null : form.city,
         dance_styles: form.dance_styles,
-        instagram: orNull(form.instagram),
+        instagram: form.instagram.trim() ? instagramUrl(form.instagram.trim()) : null,
         website: orNull(form.website),
         public_profile: form.public_profile,
         stats_public: form.stats_public,
@@ -221,16 +231,6 @@ export default function ProfileEditPage() {
 
   const handleCancel = () => {
     navigate("/profile");
-  };
-
-  const handleAvatarUrlChange = (value: string) => {
-    patchForm({ avatar_url: value });
-    const trimmed = value.trim();
-    if (trimmed.length === 0 || isDisplayablePhotoUrl(trimmed)) {
-      setAvatarUrlError(null);
-    } else {
-      setAvatarUrlError("Use a full link starting with https://");
-    }
   };
 
   // Media uploads save ONLY their own column straight to the profile row
@@ -370,7 +370,7 @@ export default function ProfileEditPage() {
                   />
                 ) : (
                   <span className="profile-edit-page__cover-empty">
-                    {trimmedCoverUrl.length > 0 && !coverUrlError
+                    {trimmedCoverUrl.length > 0
                       ? "That cover image didn't load"
                       : "No cover photo yet"}
                   </span>
@@ -415,6 +415,7 @@ export default function ProfileEditPage() {
                   />
                   <button
                     type="button"
+                    ref={avatarFocusRef}
                     className="profile-edit-page__btn profile-edit-page__btn--outline"
                     disabled={media.avatar.isBusy || profile === null}
                     onClick={() => avatarFileRef.current?.click()}
@@ -455,57 +456,11 @@ export default function ProfileEditPage() {
 
             <div className="profile-edit-page__photo-fields">
               <div className="profile-edit-page__field">
-                <label htmlFor={avatarUrlId} className="profile-edit-page__label">
-                  Photo URL
-                </label>
-                <input
-                  id={avatarUrlId}
-                  ref={avatarInputRef}
-                  className="profile-edit-page__input"
-                  type="url"
-                  value={form.avatar_url}
-                  onChange={(event) => handleAvatarUrlChange(event.target.value)}
-                  placeholder="https://"
-                  aria-invalid={avatarUrlError ? true : undefined}
-                  aria-describedby={
-                    avatarUrlError ? `${avatarUrlHintId} ${avatarUrlErrorId}` : avatarUrlHintId
-                  }
-                />
-                {avatarUrlError && (
-                  <p id={avatarUrlErrorId} className="profile-edit-page__error" role="alert">
-                    {avatarUrlError}
-                  </p>
-                )}
-                <p id={avatarUrlHintId} className="profile-edit-page__hint">
-                  Link to a hosted square image — or upload one with the buttons above.
-                </p>
-              </div>
-
-              <div className="profile-edit-page__field">
-                <label htmlFor={coverUrlId} className="profile-edit-page__label">
-                  Cover Photo URL
-                </label>
-                <input
-                  id={coverUrlId}
-                  ref={coverInputRef}
-                  className="profile-edit-page__input"
-                  type="url"
-                  value={form.cover_url}
-                  onChange={(event) => patchForm({ cover_url: event.target.value })}
-                  placeholder="https://"
-                  aria-invalid={coverUrlError ? true : undefined}
-                  aria-describedby={
-                    coverUrlError ? `${coverUrlHintId} ${coverUrlErrorId}` : coverUrlHintId
-                  }
-                />
-                {coverUrlError && (
-                  <p id={coverUrlErrorId} className="profile-edit-page__error" role="alert">
-                    {coverUrlError}
-                  </p>
-                )}
-                <p id={coverUrlHintId} className="profile-edit-page__hint">
-                  A wide image reads best — it is cropped to the banner above. Or upload
-                  one directly below.
+                <span className="profile-edit-page__label" id={coverLabelId}>
+                  Cover photo
+                </span>
+                <p className="profile-edit-page__hint">
+                  A wide image reads best — it is cropped to the banner above.
                 </p>
                 <div className="profile-edit-page__media-controls">
                   <input
@@ -523,8 +478,10 @@ export default function ProfileEditPage() {
                   />
                   <button
                     type="button"
+                    ref={coverFocusRef}
                     className="profile-edit-page__btn profile-edit-page__btn--outline"
                     disabled={media.cover.isBusy || profile === null}
+                    aria-describedby={coverLabelId}
                     onClick={() => coverFileRef.current?.click()}
                   >
                     {trimmedCoverUrl ? "Replace cover" : "Upload cover"}
@@ -697,10 +654,10 @@ export default function ProfileEditPage() {
               <input
                 id={instagramId}
                 className="profile-edit-page__input"
-                type="url"
+                type="text"
                 value={form.instagram}
                 onChange={(event) => patchForm({ instagram: event.target.value })}
-                placeholder="https://instagram.com/…"
+                placeholder="@username"
                 aria-invalid={instagramError ? true : undefined}
                 aria-describedby={instagramError ? instagramErrorId : undefined}
               />

@@ -1,12 +1,12 @@
 .admin-approve-dialog__overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  z-index: 80;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 200;
-  padding: var(--space-md);
+  padding: 16px;
+  background: var(--admin-overlay);
   animation: fade-in 0.15s ease-out;
 }
 
@@ -22,10 +22,10 @@
 .admin-approve-dialog {
   width: 100%;
   max-width: 440px;
-  background: var(--surface);
-  border-radius: var(--radius-lg);
+  background: var(--admin-surface);
+  border-radius: var(--admin-radius-lg);
   box-shadow: var(--admin-shadow-md);
-  padding: var(--space-xl);
+  padding: 24px;
   animation: scale-in 0.2s ease-out;
 }
 
@@ -41,63 +41,63 @@
 }
 
 .admin-approve-dialog h2 {
-  margin: 0 0 var(--space-sm);
-  font-size: var(--text-xl);
-  font-weight: 600;
-  color: var(--text-primary);
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: var(--admin-text-strong);
 }
 
 .approve-message {
-  margin: 0 0 var(--space-md);
-  color: var(--text-secondary);
+  margin: 0 0 16px;
+  color: var(--admin-text-secondary);
   line-height: 1.6;
 }
 
 .approve-message strong {
-  color: var(--text-primary);
+  color: var(--admin-text-strong);
 }
 
 .approve-note {
-  margin: 0 0 var(--space-lg);
-  padding: var(--space-md);
-  background: var(--info-bg);
-  border: 1px solid var(--info-border);
-  border-radius: var(--radius-md);
-  color: var(--info-text);
-  font-size: var(--text-sm);
+  margin: 0 0 24px;
+  padding: 16px;
+  background: var(--admin-information-tint);
+  border: 1px solid var(--admin-information-border);
+  border-radius: var(--admin-radius);
+  color: var(--admin-information);
+  font-size: 0.85rem;
   line-height: 1.6;
 }
 
 .approve-note strong {
-  color: var(--info-text);
+  color: var(--admin-information);
 }
 
 .admin-approve-dialog__actions {
   display: flex;
   justify-content: flex-end;
-  gap: var(--space-md);
-  margin-top: var(--space-lg);
+  gap: 16px;
+  margin-top: 24px;
 }
 
 .admin-approve-dialog .btn-secondary {
-  padding: var(--space-sm) var(--space-lg);
-  font-size: var(--text-base);
+  padding: 8px 24px;
+  font-size: 0.9rem;
   font-weight: 500;
-  color: var(--text-secondary);
+  color: var(--admin-text-secondary);
   background: transparent;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
   cursor: pointer;
   transition:
-    background var(--transition-fast),
-    color var(--transition-fast),
-    border-color var(--transition-fast);
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .admin-approve-dialog .btn-secondary:hover:not(:disabled) {
-  background: var(--surface-hover);
-  color: var(--text-primary);
-  border-color: var(--text-muted);
+  background: var(--admin-surface-secondary);
+  color: var(--admin-text-strong);
+  border-color: var(--admin-text-muted);
 }
 
 .admin-approve-dialog .btn-secondary:disabled,
@@ -107,21 +107,26 @@
 }
 
 .admin-approve-dialog .btn-primary {
-  padding: var(--space-sm) var(--space-lg);
-  font-size: var(--text-base);
+  padding: 8px 24px;
+  font-size: 0.9rem;
   font-weight: 600;
-  color: var(--primary-contrast);
-  background: var(--primary);
+  color: #ffffff;
+  background: var(--admin-brand);
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: var(--admin-radius);
   cursor: pointer;
-  transition: background var(--transition-fast);
+  transition: background 0.15s ease;
 }
 
 .admin-approve-dialog .btn-primary:hover:not(:disabled) {
-  background: var(--primary-hover);
+  background: var(--admin-brand-hover);
 }
-/* A dialog appearing is a state change worth showing; the scale is not. */
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-approve-dialog {
+    animation-name: reducedFade;
+  }
+}ppearing is a state change worth showing; the scale is not. */
 @media (prefers-reduced-motion: reduce) {
   .admin-approve-dialog {
     animation-name: reducedFade;

@@ -1,12 +1,12 @@
 .admin-reject-dialog__overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  z-index: 80;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 200;
-  padding: var(--space-md);
+  padding: 16px;
+  background: var(--admin-overlay);
   animation: fade-in 0.15s ease-out;
 }
 
@@ -21,11 +21,11 @@
 
 .admin-reject-dialog {
   width: 100%;
-  max-width: 479.98px;
-  background: var(--surface);
-  border-radius: var(--radius-lg);
+  max-width: 480px;
+  background: var(--admin-surface);
+  border-radius: var(--admin-radius-lg);
   box-shadow: var(--admin-shadow-md);
-  padding: var(--space-xl);
+  padding: 24px;
   animation: scale-in 0.2s ease-out;
 }
 
@@ -41,51 +41,51 @@
 }
 
 .admin-reject-dialog h2 {
-  margin: 0 0 var(--space-sm);
-  font-size: var(--text-xl);
-  font-weight: 600;
-  color: var(--text-primary);
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: var(--admin-text-strong);
 }
 
 .reject-message {
-  margin: 0 0 var(--space-md);
-  color: var(--text-secondary);
+  margin: 0 0 16px;
+  color: var(--admin-text-secondary);
   line-height: 1.6;
 }
 
 .reject-message strong {
-  color: var(--text-primary);
+  color: var(--admin-text-strong);
 }
 
 .admin-field {
-  margin-bottom: var(--space-md);
+  margin-bottom: 16px;
 }
 
 .admin-field label {
   display: block;
-  margin-bottom: var(--space-xs);
-  font-size: var(--text-sm);
+  margin-bottom: 4px;
+  font-size: 0.85rem;
   font-weight: 500;
-  color: var(--text-primary);
+  color: var(--admin-text-strong);
 }
 
 .required {
-  color: var(--destructive);
+  color: var(--admin-danger);
 }
 
 .reason-select {
   width: 100%;
-  padding: var(--space-sm) var(--space-md);
-  font-size: var(--text-base);
+  padding: 8px 16px;
+  font-size: 0.9rem;
   font-family: inherit;
-  color: var(--text-primary);
-  background: var(--background);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  color: var(--admin-text-primary);
+  background: var(--admin-background);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
   cursor: pointer;
   transition:
-    border-color var(--transition-fast),
-    box-shadow var(--transition-fast);
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .reason-select:focus {
@@ -96,18 +96,18 @@
 .reject-note,
 .reject-message {
   width: 100%;
-  padding: var(--space-sm) var(--space-md);
-  font-size: var(--text-base);
+  padding: 8px 16px;
+  font-size: 0.9rem;
   font-family: inherit;
-  color: var(--text-primary);
-  background: var(--background);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  color: var(--admin-text-primary);
+  background: var(--admin-background);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
   resize: vertical;
   min-height: 80px;
   transition:
-    border-color var(--transition-fast),
-    box-shadow var(--transition-fast);
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .reject-note:focus,
@@ -118,56 +118,66 @@
 
 .field-hint {
   display: block;
-  margin-top: var(--space-xs);
-  font-size: var(--text-xs);
-  color: var(--text-muted);
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: var(--admin-text-muted);
 }
 
 .admin-reject-dialog__actions {
   display: flex;
   justify-content: flex-end;
-  gap: var(--space-md);
-  margin-top: var(--space-lg);
+  gap: 16px;
+  margin-top: 24px;
 }
 
 .admin-reject-dialog .btn-secondary {
-  padding: var(--space-sm) var(--space-lg);
-  font-size: var(--text-base);
+  padding: 8px 24px;
+  font-size: 0.9rem;
   font-weight: 500;
-  color: var(--text-secondary);
+  color: var(--admin-text-secondary);
   background: transparent;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
   cursor: pointer;
   transition:
-    background var(--transition-fast),
-    color var(--transition-fast),
-    border-color var(--transition-fast);
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .admin-reject-dialog .btn-secondary:hover:not(:disabled) {
-  background: var(--surface-hover);
-  color: var(--text-primary);
-  border-color: var(--text-muted);
+  background: var(--admin-surface-secondary);
+  color: var(--admin-text-strong);
+  border-color: var(--admin-text-muted);
 }
 
 .admin-reject-dialog .btn-danger {
-  padding: var(--space-sm) var(--space-lg);
-  font-size: var(--text-base);
+  padding: 8px 24px;
+  font-size: 0.9rem;
   font-weight: 600;
-  color: var(--destructive-contrast);
-  background: var(--destructive);
+  color: #ffffff;
+  background: var(--admin-danger);
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: var(--admin-radius);
   cursor: pointer;
-  transition: background var(--transition-fast);
+  transition: background 0.15s ease;
 }
 
 .admin-reject-dialog .btn-danger:hover:not(:disabled) {
-  background: var(--destructive-hover);
+  background: var(--admin-danger-strong);
 }
 
 .admin-reject-dialog .btn-secondary:disabled,
+.admin-reject-dialog .btn-danger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-reject-dialog {
+    animation-name: reducedFade;
+  }
+}in-reject-dialog .btn-secondary:disabled,
 .admin-reject-dialog .btn-danger:disabled {
   opacity: 0.6;
   cursor: not-allowed;

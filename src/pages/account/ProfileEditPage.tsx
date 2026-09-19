@@ -216,7 +216,7 @@ export default function ProfileEditPage() {
         bio: orNull(form.bio),
         city: form.city === "" ? null : form.city,
         dance_styles: form.dance_styles,
-        instagram: form.instagram.trim() ? instagramUrl(form.instagram.trim()) : null,
+        instagram: form.instagram.trim() ? (form.instagram.trim().startsWith("https://") ? form.instagram.trim() : instagramUrl(form.instagram.trim())) : null,
         website: orNull(form.website),
         public_profile: form.public_profile,
         stats_public: form.stats_public,

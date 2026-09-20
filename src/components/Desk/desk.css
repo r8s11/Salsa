@@ -706,6 +706,15 @@ a.desk__count:hover .desk__count-figure {
   .desk__rule {
     grid-template-columns: minmax(0, 1fr);
     align-items: start;
+    position: sticky;
+    top: var(--admin-header-h);
+    z-index: 5;
+    background: var(--admin-surface);
+    padding-top: max(8px, env(safe-area-inset-top));
+    margin-left: calc(var(--space-md) * -1);
+    margin-right: calc(var(--space-md) * -1);
+    padding-left: var(--space-md);
+    padding-right: var(--space-md);
   }
 
   .desk__rule > .desk__action {
@@ -752,6 +761,58 @@ a.desk__count:hover .desk__count-figure {
   .desk__detail-flyer {
     width: 100%;
     max-width: 200px;
+  }
+
+  /* Mobile host management: stacked measures read as separate
+     ruled sections, not one long run. */
+  .desk__measures {
+    gap: var(--space-lg) 0;
+  }
+
+  .desk__measure + .desk__measure {
+    padding-top: var(--space-md);
+    border-top: 2px solid var(--desk-rule-strong);
+  }
+
+  /* Thumb-first actions: full-width, stacked, within thumb reach. */
+  .desk__rule > .desk__actions,
+  .desk__rule .desk__actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+  }
+
+  .desk__action {
+    justify-content: center;
+    width: 100%;
+    min-height: 44px;
+  }
+
+  /* Agate stays agate; the hit area grows, not the type. */
+  .desk__entry-title a,
+  .desk__entry-open {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .desk {
+    padding-bottom: max(var(--space-lg), env(safe-area-inset-bottom));
+  }
+}
+
+/* Coarse pointers get 44px targets at any width: touch laptops,
+   tablets with keyboards. Type stays at its measure. */
+@media (pointer: coarse) {
+  .desk__action {
+    min-height: 44px;
+  }
+
+  .desk__entry-title a,
+  .desk__entry-open {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
   }
 }
 

@@ -59,3 +59,28 @@
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+
+/* ── Mobile host management ─────────────────────────────
+   Single measure, thumb-first. Rules divide; nothing lifts.
+   Agate governs rows only: hit areas grow, type does not. */
+@media (max-width: 639.98px) {
+  .host-desk__organizers {
+    margin-top: var(--space-lg);
+    padding-bottom: max(var(--space-md), env(safe-area-inset-bottom));
+  }
+
+  .host-desk__organizer {
+    min-height: 44px;
+    gap: 12px;
+  }
+
+  .host-desk__note {
+    max-width: 100%;
+  }
+}
+
+@media (pointer: coarse) {
+  .host-desk__organizer {
+    min-height: 44px;
+  }
+}

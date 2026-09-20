@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import type { City, DatabaseEvent } from "../../features/events/model/types";
 import { isRecentlyApproved } from "../../features/events/model/recentlyApproved";
+import { resolveEventFlyer } from "../EventModal/eventModalImage";
 import "./RelatedEventsStrip.css";
 
 const CITY_LABELS: Record<City, string> = {
@@ -40,6 +41,11 @@ export function RelatedEventsStrip({
         day: valid ? dayFormatter.format(date) : "",
         month: valid ? monthFormatter.format(date) : "",
         time: valid && event.event_time ? timeFormatter.format(date) : null,
+        thumbSrc: resolveEventFlyer({
+          id: event.id,
+          imageUrl: event.image_url ?? undefined,
+          calendarId: event.event_type,
+        }),
         showRecentlyApproved: isRecentlyApproved({
           createdAt: event.created_at,
           sourceType: event.source_type,
@@ -58,12 +64,20 @@ export function RelatedEventsStrip({
         {heading}
       </h2>
       <ul className="related-events-strip__list">
-        {cards.map(({ event, weekday, day, month, time, showRecentlyApproved }) => (
+        {cards.map(({ event, weekday, day, month, time, thumbSrc, showRecentlyApproved }) => (
           <li key={event.id} className="related-events-strip__item">
             <Link
               to={`/events/${event.id}`}
               className={`related-events-strip__card related-events-strip__card--${event.event_type}`}
             >
+              <img
+                className="related-events-strip__thumb"
+                src={thumbSrc}
+                alt=""
+                width={48}
+                height={48}
+                loading="lazy"
+              />
               <span
                 className={`related-events-strip__badge related-events-strip__badge--${event.event_type}`}
                 aria-hidden="true"

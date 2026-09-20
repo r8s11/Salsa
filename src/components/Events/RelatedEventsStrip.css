@@ -81,6 +81,10 @@
   font-weight: 600;
 }
 
+.related-events-strip__thumb {
+  display: none;
+}
+
 .related-events-strip__body {
   display: flex;
   flex-direction: column;
@@ -136,5 +140,17 @@
     min-width: 200px;
     width: 100%;
     box-sizing: border-box;
+  }
+
+  /* Small glanceable flyer thumb, mobile-only: desktop keeps the
+     badge-led incumbent layout unchanged. */
+  .related-events-strip__thumb {
+    display: block;
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+    border-radius: 0.5rem;
+    object-fit: cover;
+    background-color: var(--surface-high);
   }
 }

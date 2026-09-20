@@ -116,8 +116,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border: none;
   border-radius: var(--admin-radius);
   background: transparent;
@@ -151,6 +151,17 @@
 }
 
 @media (max-width: 639.98px) {
+  .admin-main {
+    padding-right: max(16px, env(safe-area-inset-right));
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-bottom: max(40px, env(safe-area-inset-bottom));
+  }
+
+  .admin-shell .admin-topbar {
+    padding-right: max(12px, env(safe-area-inset-right));
+    padding-left: max(12px, env(safe-area-inset-left));
+  }
+
   .admin-breadcrumbs__crumb,
   .admin-breadcrumbs__sep {
     display: none;

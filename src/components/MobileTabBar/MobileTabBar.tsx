@@ -18,8 +18,10 @@ function MobileTabBar() {
     <nav className="mobile-tab-bar" aria-label="Primary">
       {tabs.map(({ to, label, icon: Icon, end }) => (
         <NavLink key={label} to={to} end={end} className="mobile-tab-bar__tab">
-          <Icon size={20} aria-hidden />
-          <span>{label}</span>
+          <span className="mobile-tab-bar__icon" aria-hidden="true">
+            <Icon size={21} />
+          </span>
+          <span className="mobile-tab-bar__label">{label}</span>
         </NavLink>
       ))}
     </nav>

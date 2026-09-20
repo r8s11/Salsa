@@ -145,7 +145,7 @@ export default function HostDashboard() {
           ) : (
             <ul className="desk__list">
               {listings.map((listing) => (
-                <DeskEntry key={listing.id} listing={listing} />
+                <DeskEntry key={listing.id} listing={listing} showThumb />
               ))}
             </ul>
           )}
@@ -220,5 +220,6 @@ function toHostListing(event: DatabaseEvent, now: Date): DeskListing {
     venue: event.location,
     state: isTonight ? "tonight" : state,
     to: `/host/events/${event.id}`,
+    flyerUrl: event.image_url,
   };
 }

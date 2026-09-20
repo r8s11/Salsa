@@ -98,7 +98,7 @@
 
 @media (max-width: 639.98px) {
   :root {
-    --tab-bar-h: calc(58px + env(safe-area-inset-bottom));
+    --tab-bar-h: calc(78px + env(safe-area-inset-bottom));
   }
 }
 

@@ -16,7 +16,7 @@
   border-color: var(--admin-border);
   border-radius: var(--admin-radius-lg);
   background: var(--admin-surface);
-  box-shadow: var(--admin-shadow-sm);
+  box-shadow: none;
 }
 
 .admin-shell .admin-event-editor .event-form__section:nth-child(1),
@@ -189,7 +189,7 @@
   border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius-lg);
   background: color-mix(in srgb, var(--admin-surface) 94%, transparent);
-  box-shadow: var(--admin-shadow-md);
+  box-shadow: none;
   backdrop-filter: blur(8px);
 }
 

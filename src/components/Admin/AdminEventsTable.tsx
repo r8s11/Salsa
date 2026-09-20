@@ -451,23 +451,44 @@ export default function AdminEventsTable({
               }
               style={isBusy ? { opacity: 0.6 } : undefined}
             >
-              <div className="admin-events-cards__head">
-                <Link to={`/admin/events?edit=${event.id}`} className="admin-events-table__title">
-                  {event.title}
-                </Link>
-                <AdminStatusBadge status={event.status} />
+              <div className="admin-events-cards__summary">
+                <img
+                  className="admin-events-cards__flyer"
+                  src={resolveEventFlyer({
+                    id: event.id,
+                    imageUrl: event.image_url ?? undefined,
+                    calendarId: event.event_type,
+                  })}
+                  alt=""
+                  loading="lazy"
+                  width={72}
+                  height={90}
+                />
+                <div className="admin-events-cards__summary-body">
+                  <div className="admin-events-cards__head">
+                    <Link
+                      to={`/admin/events?edit=${event.id}`}
+                      className="admin-events-table__title"
+                    >
+                      {event.title}
+                    </Link>
+                    <AdminStatusBadge status={event.status} />
+                  </div>
+                  <div className="admin-events-table__chips">
+                    <span className="admin-chip admin-chip--type">
+                      {titleCase(event.event_type)}
+                    </span>
+                    <span className="admin-chip">{CITY_LABEL[event.city]}</span>
+                  </div>
+                  <AdminQualityBadge
+                    issues={issues}
+                    labelFor={(issue) => QUALITY_ISSUE_LABEL[issue]}
+                    eventTitle={event.title}
+                    cancellationReason={event.cancellation_reason}
+                    triggerLabel={issues.includes("organizer") ? "Needs organizer" : undefined}
+                  />
+                </div>
               </div>
-              <div className="admin-events-table__chips">
-                <span className="admin-chip admin-chip--type">{titleCase(event.event_type)}</span>
-                <span className="admin-chip">{CITY_LABEL[event.city]}</span>
-              </div>
-              <AdminQualityBadge
-                issues={issues}
-                labelFor={(issue) => QUALITY_ISSUE_LABEL[issue]}
-                eventTitle={event.title}
-                cancellationReason={event.cancellation_reason}
-                triggerLabel={issues.includes("organizer") ? "Needs organizer" : undefined}
-              />
               <div className="admin-events-cards__row">
                 <span className="admin-events-cards__label">Date</span>
                 <span>

@@ -28,7 +28,7 @@
   width: 100%;
   max-width: 767.98px;
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: none;
   border-radius: var(--radius-xl);
   /* One elevation, stated once: a real offset shadow. The rose glow that
      used to sit on top was a zero-offset halo, and it competed with the
@@ -572,12 +572,11 @@
     overflow-y: hidden;
   }
 
-  /* ── Sheet: rounded top corners, fills 92% of viewport height ── */
+  /* ── Sheet: rounded top corners, nearly full height without hiding context ── */
   .modal-content {
     max-width: none;
     border-radius: 20px 20px 0 0;
-    border-bottom: none;
-    max-height: 92dvh;
+    max-height: 96dvh;
     display: flex;
     flex-direction: column;
     animation: modalSlideUp 0.3s cubic-bezier(0.23, 1, 0.32, 1);
@@ -621,9 +620,10 @@
 
   /* ── Poster — taller, full-bleed into top corners ── */
   .modal-poster {
-    height: 240px;
+    height: clamp(210px, 30dvh, 280px);
     border-radius: 20px 20px 0 0;
     flex-shrink: 0;
+    background-position: center 28%;
   }
 
   .poster-overlay {
@@ -648,25 +648,40 @@
 
   /* ── Decision strip — compact on mobile ── */
   .decision-strip {
-    padding: 12px 20px;
-    gap: 12px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 12px 16px;
+    gap: 10px 12px;
     flex-shrink: 0;
-    flex-wrap: wrap;
   }
 
   .decision-strip__facts {
-    gap: 10px;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 6px 12px;
     font-size: 0.82rem;
+  }
+
+  .decision-strip__fact {
+    min-width: 0;
+  }
+
+  .decision-strip__fact:nth-child(2) {
+    overflow: hidden;
   }
 
   .decision-strip__fact a {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    max-width: 160px;
+    display: block;
+    max-width: 100%;
   }
 
   .decision-strip__rsvp {
+    align-self: stretch;
+    display: inline-flex;
+    align-items: center;
     font-size: 0.78rem;
     padding: 8px 14px;
   }
@@ -676,7 +691,9 @@
     flex: 1;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
     padding-bottom: 8px;
+    scrollbar-color: var(--border-md) transparent;
   }
 
   /* ── Single-column grid ── */
@@ -741,7 +758,6 @@
     padding-bottom: max(10px, env(safe-area-inset-bottom));
     background: var(--surface-action);
     border-top: 1px solid var(--red-dim);
-    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.3);
   }
 
   /* The decision spans the bar; everything else is secondary by construction. */
@@ -765,8 +781,9 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    font-size: 0.7rem;
-    padding: 0.6rem 0.4rem;
+    min-height: 44px;
+    font-size: 0.75rem;
+    padding: 0.55rem 0.4rem;
     white-space: nowrap;
     line-height: inherit;
     text-align: center;
@@ -780,7 +797,7 @@
 /* ── Small phones (≤400px) — tighter spacing ── */
 @media (max-width: 479.98px) {
   .modal-poster {
-    height: 200px;
+    height: clamp(184px, 27dvh, 220px);
   }
 
   .poster-overlay h2 {
@@ -802,8 +819,17 @@
   .modal-mobile-actions .modal-full-details,
   .modal-mobile-actions .poster-toggle-btn,
   .modal-mobile-actions .copy-link-btn {
-    font-size: 0.68rem;
+    font-size: 0.7rem;
     padding: 0.55rem 0.3rem;
+  }
+
+  .decision-strip {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .decision-strip__rsvp {
+    justify-content: center;
+    min-height: 44px;
   }
 
   .modal-mobile-extras {

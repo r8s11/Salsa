@@ -1,6 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { ArrowLeft, CalendarPlus, Clock, Link2, MapPin, Repeat, Users, X } from "lucide-react";
+import {
+  ArrowLeft,
+  CalendarPlus,
+  Clock,
+  Eye,
+  Link2,
+  MapPin,
+  Repeat,
+  Share2,
+  Users,
+  X,
+} from "lucide-react";
 import { ScheduleXEvent } from "../../types/events";
 import { downloadIcs, mapsUrl, googleCalendarUrl } from "../../utils/ics";
 import { getUpcomingSeriesDates } from "../../utils/series";
@@ -225,6 +236,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
   const renderActions = (inSidebar: boolean) => (
     <>
       <ButtonLink to={`/events/${event.id}`} variant="secondary" onClick={onClose}>
+        <Eye size={16} aria-hidden />
         Full details
       </ButtonLink>
 
@@ -237,6 +249,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
           loading={isDownloading}
           loadingLabel="Generating…"
         >
+          <Share2 size={16} aria-hidden />
           Share
         </Button>
       </div>

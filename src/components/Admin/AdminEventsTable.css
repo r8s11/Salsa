@@ -124,12 +124,41 @@
   padding: 16px;
 }
 
+.admin-events-cards__summary {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.admin-events-cards__flyer {
+  width: 72px;
+  height: 90px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  background: var(--admin-surface-secondary);
+  object-fit: cover;
+}
+
+.admin-events-cards__summary-body {
+  min-width: 0;
+}
+
+.admin-events-cards__summary-body .admin-quality-badge {
+  margin-top: 8px;
+}
+
 .admin-events-cards__head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 8px;
+}
+
+.admin-events-cards__head .admin-events-table__title {
+  min-width: 0;
+  margin-bottom: 0;
 }
 
 .admin-events-cards__row {

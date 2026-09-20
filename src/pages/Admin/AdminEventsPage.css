@@ -51,10 +51,13 @@
 
 @media (max-width: 767.98px) {
   .admin-events-page__table-card {
-    overflow-x: auto;
+    overflow: visible;
+    border: 0;
+    background: transparent;
   }
-  .admin-events-page__table-card table {
-    min-width: 640px;
+
+  .admin-events-page__table-card .admin-events-cards {
+    padding: 0;
   }
 }
 

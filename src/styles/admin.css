@@ -17,7 +17,10 @@
      desk surface. */
   --admin-text-secondary: #5d6b80;
   --admin-text-muted: #5d6b80;
-  --admin-text-subtle: #94a3b8;
+  /* #94a3b8 measured 2.56:1 on --admin-surface (#ffffff), well under the
+     4.5:1 floor for small text (used at 0.75rem/0.8rem). Deepened; now
+     ≥4.6:1 on every light desk surface. */
+  --admin-text-subtle: #657386;
   /* Text colour on brand/danger solid backgrounds — always #fff in both themes. */
   --admin-text-on-brand: #ffffff;
   --admin-nav-text: #475569;
@@ -77,7 +80,9 @@
   --admin-text-strong: #ffffff;
   --admin-text-secondary: #94a3b8;
   --admin-text-muted: #94a3b8;
-  --admin-text-subtle: #64748b;
+  /* #64748b measured 3.66:1 on --admin-surface (#171a20), under the 4.5:1
+     floor. Lightened; now ≥4.7:1 on every dark desk surface. */
+  --admin-text-subtle: #7e8895;
   /* Text colour on brand/danger solid backgrounds — always #fff in both themes. */
   --admin-text-on-brand: #ffffff;
   --admin-nav-text: #cbd5e1;

@@ -87,6 +87,7 @@
 }
 
 .host-checkin__method-btn {
+  min-height: 44px;
   padding: 0.5rem 1rem;
   font-size: 0.8125rem;
   font-weight: 500;

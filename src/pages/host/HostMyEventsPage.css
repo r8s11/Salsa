@@ -82,7 +82,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 36px;
+  min-height: 44px;
   padding: 6px 14px;
   border: 1px solid var(--admin-border);
   border-radius: 999px;

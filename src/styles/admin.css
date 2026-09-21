@@ -87,6 +87,14 @@
   --admin-brand-text-hover: #fda4af;
   --admin-brand-tint: rgba(225, 29, 72, 0.12);
   --admin-brand-ring: rgba(225, 29, 72, 0.6);
+  /* Solid-fill button backgrounds only. --admin-brand-hover, --admin-danger,
+     and --admin-danger-strong double as link/text/icon colors on dark
+     surfaces, so they stay light for that role. White button labels need
+     darker fills; these exist so the fill fix never regresses text contrast
+     elsewhere. */
+  --admin-brand-solid-hover: #be123c; /* 6.29:1 vs white */
+  --admin-danger-solid: #dc2626; /* 4.83:1 vs white */
+  --admin-danger-solid-hover: #b91c1c; /* 6.47:1 vs white */
   --admin-danger: #f87171;
   --admin-danger-strong: #fca5a5;
   --admin-danger-tint: rgba(220, 38, 38, 0.14);
@@ -201,7 +209,6 @@
   transform: scale(0.97);
 }
 
-
 .admin-shell .admin-btn:disabled {
   opacity: 0.55;
   cursor: not-allowed;
@@ -214,8 +221,8 @@
 }
 
 .admin-shell .admin-btn--primary:hover:not(:disabled) {
-  background: var(--admin-brand-hover);
-  border-color: var(--admin-brand-hover);
+  background: var(--admin-brand-solid-hover);
+  border-color: var(--admin-brand-solid-hover);
 }
 
 .admin-shell .admin-btn--secondary {
@@ -229,14 +236,14 @@
 }
 
 .admin-shell .admin-btn--danger {
-  background: var(--admin-danger);
-  border-color: var(--admin-danger);
+  background: var(--admin-danger-solid);
+  border-color: var(--admin-danger-solid);
   color: var(--admin-text-on-brand);
 }
 
 .admin-shell .admin-btn--danger:hover:not(:disabled) {
-  background: var(--admin-danger-strong);
-  border-color: var(--admin-danger-strong);
+  background: var(--admin-danger-solid-hover);
+  border-color: var(--admin-danger-solid-hover);
 }
 
 .admin-shell .admin-btn--ghost {
@@ -840,7 +847,7 @@
 }
 
 .admin-shell .admin-status--account-banned {
-  background: var(--admin-danger-strong);
+  background: var(--admin-danger-solid);
   color: var(--admin-text-on-brand);
-  border-color: var(--admin-danger-strong);
+  border-color: var(--admin-danger-solid);
 }

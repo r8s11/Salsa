@@ -452,8 +452,8 @@ a.desk__count:hover .desk__count-figure {
 }
 
 .desk__action--primary:hover:not(:disabled) {
-  border-color: var(--admin-brand-hover);
-  background: var(--admin-brand-hover);
+  border-color: var(--admin-brand-solid-hover);
+  background: var(--admin-brand-solid-hover);
   color: #fff;
 }
 

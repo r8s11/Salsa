@@ -138,7 +138,7 @@
   cursor: pointer;
 }
 .apply-btn:hover {
-  background: var(--admin-brand-hover);
+  background: var(--admin-brand-solid-hover);
 }
 
 @media (max-width: 639.98px) {

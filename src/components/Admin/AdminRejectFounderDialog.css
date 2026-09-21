@@ -156,7 +156,7 @@
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--admin-text-on-brand);
-  background: var(--admin-danger);
+  background: var(--admin-danger-solid);
   border: none;
   border-radius: var(--admin-radius);
   cursor: pointer;
@@ -164,7 +164,7 @@
 }
 
 .admin-reject-dialog .admin-btn--danger:hover:not(:disabled) {
-  background: var(--admin-danger-strong);
+  background: var(--admin-danger-solid-hover);
 }
 
 .admin-reject-dialog .admin-btn--secondary:disabled,

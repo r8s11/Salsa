@@ -1,5 +1,7 @@
 import ButtonLink from "../ui/ButtonLink";
-import { useMemo, useEffect, useRef } from "react";
+import IconButton from "../ui/IconButton";
+import { Pause, Play } from "lucide-react";
+import { useMemo, useEffect, useRef, useState } from "react";
 import "./Hero.css";
 import { useEvents } from "../../features/events/hooks/useEvent";
 import { useCity } from "../../contexts/useCity";
@@ -70,6 +72,8 @@ function Hero() {
     { num: venueCount, label: "Venues" },
     { num: cityShort, label: "On The Floor" },
   ];
+
+  const [tickerPaused, setTickerPaused] = useState(false);
 
   const heroRef = useRef<HTMLDivElement>(null);
 
@@ -191,8 +195,11 @@ function Hero() {
       </div>
 
       {tickerItems.length > 0 && (
-        <div className="hero-ticker" aria-hidden="true">
-          <div className="hero-ticker-track">
+        <div className="hero-ticker">
+          <div
+            className={`hero-ticker-track${tickerPaused ? " is-paused" : ""}`}
+            aria-hidden="true"
+          >
             {[...tickerItems, ...tickerItems].map((title, i) => (
               <span className="hero-ticker-item" key={i}>
                 {title}
@@ -200,6 +207,19 @@ function Hero() {
               </span>
             ))}
           </div>
+          <IconButton
+            className="hero-ticker-control"
+            variant="outline"
+            aria-label={tickerPaused ? "Resume event ticker" : "Pause event ticker"}
+            aria-pressed={tickerPaused}
+            onClick={() => setTickerPaused((paused) => !paused)}
+          >
+            {tickerPaused ? (
+              <Play size={16} aria-hidden="true" />
+            ) : (
+              <Pause size={16} aria-hidden="true" />
+            )}
+          </IconButton>
         </div>
       )}
     </section>

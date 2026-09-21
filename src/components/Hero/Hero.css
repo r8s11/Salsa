@@ -383,6 +383,22 @@
   will-change: transform;
 }
 
+.hero-ticker-track.is-paused {
+  animation-play-state: paused;
+}
+
+.hero-ticker-control {
+  position: absolute;
+  z-index: 1;
+  inset-block: 50%;
+  inset-inline-end: 12px;
+  transform: translateY(-50%);
+  background: var(--surface);
+}
+.hero-ticker-control:active:not(:disabled) {
+  transform: translateY(-50%) scale(0.97);
+}
+
 .hero-ticker-item {
   font-family: var(--font-display);
   font-weight: 700;

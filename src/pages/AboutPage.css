@@ -1,157 +1,316 @@
 /* ========================================
-   About Page — Ritmo Vivo
+   About Page — Ritmo Vivo, cinematic rebuild
+   Scoped to /about only: GSAP + Lenis (see AboutPage.motion.ts), disposed
+   with the component. The rest of the app stays on native scroll + CSS.
    ======================================== */
 
-.about-page {
+.about-cinematic {
   background: var(--bg);
   color: var(--text);
-  padding: 72px 0 100px;
-  min-height: calc(100dvh - 68px);
 }
 
-.about-page .container {
+.about-cinematic .container {
   max-width: 760px;
   margin: 0 auto;
   padding: 0 1.5rem;
 }
 
-/* ── Headings ── */
-.about-page h1 {
-  font-family: var(--font-display);
-  font-size: clamp(2.25rem, 5vw, 3.25rem);
-  font-weight: 900;
-  letter-spacing: -0.02em;
-  color: var(--text);
-  text-align: center;
-  margin-bottom: 0.5rem;
-  position: relative;
+/* ── Word-split headings (see AboutPage.motion.ts) ── */
+.about-split-wrapper {
+  display: inline;
+}
+
+.about-split-word {
   display: inline-block;
-  width: 100%;
+  will-change: transform, opacity;
 }
 
-.about-page h1::after {
-  content: "";
-  display: block;
-  width: 48px;
-  height: 3px;
-  background: var(--red);
-  margin: 0.875rem auto 0;
-}
-
-/* ── Divider Rule ── */
-.about-rule {
+/* ── Hero ── */
+.about-hero {
+  position: relative;
+  overflow: hidden;
+  min-height: 62vh;
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin: 1.25rem auto 2.5rem;
-  max-width: 200px;
+  padding: 6rem 0 4rem;
 }
 
-.about-rule-line {
-  flex: 1;
-  height: 1px;
-  background: var(--red);
-  opacity: 0.5;
-}
-
-.about-rule-diamond {
-  font-size: 0.55rem;
-  color: var(--red-bright); /* AA-safe (6.08:1) text on --bg; var(--red) measured 3.94:1 */
-  flex: none;
-}
-
-.about-page h2 {
-  font-family: var(--font-ui);
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--gold);
-  margin-top: 2.75rem;
-  margin-bottom: 1rem;
-}
-
-/* ── Content ── */
-.about-page p {
-  font-size: 1.05rem;
-  line-height: 1.8;
-  margin-bottom: 1.5rem;
-  color: rgba(245, 240, 232, 0.85);
-}
-
-/* ── Lists ── */
-.about-page ul {
-  list-style: none;
-  padding: 0;
-  margin: 0.75rem 0 2rem;
-}
-
-.about-page li {
-  padding: 0.65rem 0 0.65rem 1.75rem;
-  font-size: 1rem;
-  line-height: 1.65;
-  color: rgba(245, 240, 232, 0.85);
+.about-hero__content {
   position: relative;
+  z-index: 2;
+  text-align: center;
 }
 
-.about-page li::before {
-  content: "";
+.about-hero__eyebrow {
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--tertiary);
+  margin: 0 0 1rem;
+}
+
+.about-hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 6vw, 4.25rem);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  color: var(--text);
+  margin: 0 0 1.25rem;
+}
+
+.about-hero__intro {
+  max-width: 560px;
+  margin: 0 auto;
+  font-size: 1.1rem;
+  line-height: 1.75;
+  color: rgba(245, 240, 232, 0.85);
+}
+
+/* Disc — a smaller, self-contained cousin of the Hero vinyl motif (same
+   radial/conic-gradient technique, not a shared import, so this page stays
+   bounded and doesn't couple to Hero.css). */
+.about-hero__disc {
   position: absolute;
-  left: 0;
   top: 50%;
-  transform: translateY(-50%);
-  width: 6px;
-  height: 6px;
-  background: var(--red);
+  right: -8%;
+  z-index: 1;
+  width: clamp(220px, 46vw, 460px);
+  aspect-ratio: 1;
+  transform: translateY(-50%) rotate(var(--about-tilt-x, 0deg));
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+.about-hero__disc-glow,
+.about-hero__disc-face,
+.about-hero__disc-grooves,
+.about-hero__disc-label {
+  position: absolute;
+  inset: 0;
   border-radius: 50%;
 }
 
-/* ── Content Sections (card blocks) ── */
-.about-page section {
+.about-hero__disc-glow {
+  background: radial-gradient(
+    circle closest-side,
+    transparent 46%,
+    rgba(225, 29, 72, 0.18) 72%,
+    transparent 100%
+  );
+}
+
+.about-hero__disc-face {
+  animation: aboutDiscSpin 16s linear infinite;
+  background:
+    radial-gradient(
+      circle closest-side,
+      transparent 0 94%,
+      rgba(255, 255, 255, 0.16) 95% 97%,
+      transparent 98%
+    ),
+    radial-gradient(
+      circle closest-side at 38% 30%,
+      #191325 0%,
+      #0e0a16 58%,
+      #070510 90%,
+      #0b0714 100%
+    );
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.5);
+}
+
+.about-hero__disc-grooves {
+  animation: aboutDiscSpin 16s linear infinite;
+  background: repeating-radial-gradient(
+    circle closest-side,
+    rgba(255, 255, 255, 0.06) 0 0.7px,
+    rgba(0, 0, 0, 0.28) 0.7px 3px
+  );
+  mask-image: radial-gradient(
+    circle closest-side,
+    transparent 0 32%,
+    #000 36% 96%,
+    transparent 99%
+  );
+  -webkit-mask-image: radial-gradient(
+    circle closest-side,
+    transparent 0 32%,
+    #000 36% 96%,
+    transparent 99%
+  );
+}
+
+.about-hero__disc-label {
+  width: 32%;
+  height: 32%;
+  margin: auto;
+  background: radial-gradient(
+    circle closest-side at 40% 32%,
+    #ef2c58 0%,
+    #dc1b45 48%,
+    #9c1035 100%
+  );
+}
+
+@keyframes aboutDiscSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Pointer parallax — desktop only, additive; touch/keyboard get the
+   centered disc from `.about-hero__disc`'s base transform. */
+@media (hover: hover) and (pointer: fine) {
+  .about-hero__disc {
+    transform: translateY(-50%) rotate(var(--about-tilt-x, 0deg)) rotateX(var(--about-tilt-y, 0deg));
+    transition: transform 0.3s ease-out;
+    transform-style: preserve-3d;
+  }
+}
+
+/* ── Progress rail ──
+   The one scrubbed timeline on this page (see AboutPage.motion.ts): fills
+   alongside the story chapter, a visible marker of scroll position rather
+   than decoration with no narrative role. */
+.about-progress {
+  position: sticky;
+  top: 50%;
+  z-index: 3;
+  float: right;
+  margin-right: max(1.5rem, calc((100vw - 760px) / 2 - 24px));
+  width: 2px;
+  height: 120px;
+  transform: translateY(-50%);
+}
+
+.about-progress__track,
+.about-progress__fill {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+}
+
+.about-progress__track {
+  background: var(--border);
+}
+
+.about-progress__fill {
+  background: var(--red);
+  transform-origin: top;
+  transform: scaleY(0);
+}
+
+@media (max-width: 1023.98px) {
+  .about-progress {
+    display: none;
+  }
+}
+
+/* ── Chapters ── */
+.about-chapter {
+  padding: 5rem 0;
+}
+
+.about-chapter--story {
+  border-top: 1px solid var(--border);
+}
+
+.about-chapter h2 {
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin: 0 0 1.25rem;
+}
+
+.about-chapter p {
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: rgba(245, 240, 232, 0.85);
+  margin: 0;
+}
+
+.about-chapter--everyone {
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.about-chapter__inner--centered {
+  text-align: center;
+  max-width: 560px;
+}
+
+.about-chapter__inner--centered p {
+  margin: 0 auto 2rem;
+}
+
+.about-cta__btn {
+  padding: 0.95rem 2.25rem;
+  font-size: 0.95rem;
+}
+
+/* ── Pillars ── */
+.about-pillars {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.about-pillars__item {
+  padding: 1.5rem;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 2rem;
-  margin: 2rem 0;
-  animation: fadeInUp 0.5s ease-out both;
 }
 
-.about-page section:nth-of-type(1) {
-  animation-delay: 0.1s;
-}
-.about-page section:nth-of-type(2) {
-  animation-delay: 0.2s;
-}
-.about-page section:nth-of-type(3) {
-  animation-delay: 0.3s;
+.about-pillars__item h3 {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text);
+  margin: 0 0 0.5rem;
 }
 
-.about-page section h2 {
-  margin-top: 0;
+.about-pillars__item p {
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--text-dim-glass);
 }
 
 /* ── Mobile ── */
 @media (max-width: 767.98px) {
-  .about-page {
-    padding: 48px 0 72px;
+  .about-hero {
+    min-height: auto;
+    padding: 4rem 0 3rem;
   }
 
-  .about-page .container {
-    padding: 0 1rem;
+  .about-hero__disc {
+    opacity: 0.35;
   }
 
-  .about-page h1 {
-    font-size: 2rem;
+  .about-chapter {
+    padding: 3.5rem 0;
   }
 
-  .about-page section {
-    padding: 1.5rem;
+  .about-pillars {
+    grid-template-columns: 1fr;
   }
 }
 
+/* ── Reduced motion ──
+   The motion hook already renders final states with no animation; this
+   only stops the disc's continuous spin, which is decorative and reports
+   nothing. */
 @media (prefers-reduced-motion: reduce) {
-  /* Keep the section's arrival legible, without the travel. */
-  .about-page section {
-    animation-name: reducedFade;
+  .about-hero__disc-face,
+  .about-hero__disc-grooves {
+    animation: none;
   }
 }

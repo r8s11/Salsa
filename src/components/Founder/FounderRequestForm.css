@@ -55,7 +55,7 @@
 }
 
 .required {
-  color: var(--red);
+  color: var(--red-bright); /* AA-safe (5.64:1) text on --surface; var(--red) measured 3.94:1 */
 }
 
 .form-group input,

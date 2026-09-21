@@ -612,14 +612,28 @@
   animation-delay: var(--hero-enter-delay, 0s);
 }
 
+/* Opacity-only entrance for the two layers that already own a `transform`:
+   the record's centring at :31 and the pointer parallax at :588. An animated
+   `transform` replaces those for the whole `both` fill — even `translateY(0)`,
+   which is why zeroing --hero-enter-y did not save them. That left the record
+   at left:100% with no centring (0px visible, every viewport) and pinned the
+   parallax layer at the identity matrix. */
+@keyframes heroEnterFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .hero-enter[data-enter="bg"] {
-  --hero-enter-y: 0px;
+  animation-name: heroEnterFade;
   --hero-enter-delay: 0s;
 }
-/* Opacity only: the record's centring transform lives in CSS, so a translate
-   here would overwrite it. */
+
 .hero-enter[data-enter="vinyl"] {
-  --hero-enter-y: 0px;
+  animation-name: heroEnterFade;
   --hero-enter-delay: 0.08s;
 }
 .hero-enter[data-enter="eyebrow"] {

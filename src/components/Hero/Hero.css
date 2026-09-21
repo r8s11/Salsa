@@ -252,7 +252,6 @@
   mask-image: radial-gradient(80% 70% at 50% 30%, #000, transparent);
   -webkit-mask-image: radial-gradient(80% 70% at 50% 30%, #000, transparent);
   animation: heroGridDrift 20s ease-in-out infinite;
-  will-change: background-position;
 }
 
 /* ── Content ── */

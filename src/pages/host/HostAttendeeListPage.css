@@ -258,6 +258,10 @@
   color: #dc2626;
   border-color: #fecaca;
 }
+.attendee-action-btn--danger {
+  width: 44px;
+  height: 44px;
+}
 
 /* ── Remove attendee confirmation dialog ── */
 

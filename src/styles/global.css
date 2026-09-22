@@ -29,11 +29,19 @@
   --red-deep: #be123c; /* AA-safe (4.87:1) background for var(--text) foreground */
   --red-dim: rgba(225, 29, 72, 0.18);
   --red-glow: rgba(225, 29, 72, 0.3);
+  /* Error text on dark grounds — AA on --bg and --surface. */
+  --red-error: #ff8080;
+  --red-error-strong: #ffb3b3;
+  --red-line: rgba(196, 18, 48, 0.35);
+  /* DESIGN.md primary: subtle top-down gloss. */
+  --gradient-primary: linear-gradient(180deg, #ff3d63, #e11d48);
 
   /* Accent — Indigo (class events) */
   --blue: #7c93e9;
   --blue-deep: #2d3d82; /* AA-safe (7.75:1) background for var(--text) foreground */
   --blue-dim: rgba(124, 147, 233, 0.15);
+  --blue-mid: #4a5aa8;
+  --blue-pale: #9fb1f0;
 
   /* Accent — Gold (secondary) */
   --gold: #e9c349;
@@ -247,7 +255,7 @@ main {
 
 .style-card h3 {
   font-family: var(--font-display);
-  font-size: 1.35rem;
+  font-size: 1.375rem;
   color: var(--text);
   margin-bottom: 0.75rem;
 }
@@ -256,7 +264,7 @@ main {
 .quote {
   font-family: var(--font-display);
   font-style: italic;
-  font-size: 1.15rem;
+  font-size: 1.125rem;
   margin: 2rem 0;
   text-align: center;
   color: var(--text-muted);
@@ -315,7 +323,7 @@ main {
   border: 1px solid var(--border-md);
   background: rgba(255, 255, 255, 0.04);
   color: var(--text);
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   font-family: var(--font-body);
   transition: border-color 0.25s ease;
 }
@@ -351,13 +359,13 @@ main {
   justify-content: center;
   min-height: 44px;
   padding: 0.8rem 1.75rem;
-  background: linear-gradient(180deg, #ff3d63, #e11d48);
+  background: var(--gradient-primary);
   color: #fff;
   text-decoration: none;
   border: 0;
   border-radius: var(--radius-xl);
   font-family: var(--font-ui);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -411,7 +419,7 @@ main {
   border: 1px solid var(--gold);
   border-radius: var(--radius-xl);
   font-family: var(--font-ui);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -435,7 +443,7 @@ main {
   color: var(--text);
   text-decoration: none;
   font-family: var(--font-ui);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -453,7 +461,7 @@ main {
   border: 1px solid var(--red-bright);
   border-radius: var(--radius-xl);
   font-family: var(--font-ui);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -493,7 +501,7 @@ main {
   color: #fff;
   border-radius: var(--radius-full);
   font-family: var(--font-ui);
-  font-size: 0.7rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -587,7 +595,7 @@ button:focus-visible,
 .nav-links a:focus-visible {
   outline: 2px solid var(--red-bright);
   outline-offset: 2px;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
 }
 
 .event-card:focus-visible {
@@ -599,7 +607,7 @@ button:focus-visible,
 a.logo:focus-visible {
   outline: 2px solid var(--gold-light);
   outline-offset: 4px;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
 }
 
 .footer-links a:focus-visible {

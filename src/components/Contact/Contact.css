@@ -15,7 +15,7 @@
 
 .contact-intro {
   font-family: var(--font-ui);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   font-weight: 300;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -48,7 +48,7 @@
 
 .contact-form-card h2 {
   font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-size: 1.375rem;
   font-weight: 700;
   color: var(--text);
   margin-bottom: 1.75rem;
@@ -57,7 +57,7 @@
 /* ── Form Fields ── */
 .contact-required-legend {
   margin: 0 0 1rem;
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   color: var(--text-muted);
 }
 
@@ -68,7 +68,7 @@
 .form-group label {
   display: block;
   font-family: var(--font-ui);
-  font-size: 0.68rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -86,7 +86,7 @@
   background: rgba(255, 255, 255, 0.03);
   color: var(--text);
   font-family: var(--font-body);
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   transition:
     border-color 0.25s ease,
     background 0.25s ease;
@@ -142,8 +142,8 @@
   background: var(--red-dim);
   border: 1px solid rgba(225, 29, 72, 0.35);
   border-radius: var(--radius-sm);
-  color: #ff8080;
-  font-size: 0.85rem;
+  color: var(--red-error);
+  font-size: 0.875rem;
 }
 
 /* ── Info Cards ── */
@@ -172,13 +172,19 @@
 }
 
 .contact-icon {
-  font-size: 1.75rem;
+  display: flex;
+  color: var(--gold);
   margin-bottom: 0.6rem;
+}
+
+.contact-heading-icon {
+  vertical-align: -0.15em;
+  color: var(--gold);
 }
 
 .contact-card h2 {
   font-family: var(--font-ui);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -194,7 +200,7 @@
   padding: 4px 8px;
   color: var(--gold-light);
   text-decoration: none;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   transition: color 0.2s ease;
 }
 

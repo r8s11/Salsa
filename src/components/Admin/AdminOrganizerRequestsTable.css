@@ -5,7 +5,7 @@
 .admin-organizer-requests-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
 }
 
 .admin-organizer-requests-table th {
@@ -55,24 +55,24 @@
 
 .admin-organizer-requests-table__identity {
   margin: 2px 0 0;
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   color: var(--admin-text-muted);
 }
 
 .admin-organizer-requests-table__muted {
   color: var(--admin-text-muted);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
 }
 
 .admin-organizer-requests-table__existing-badge {
   display: inline-block;
   margin-left: 6px;
-  font-size: 9px;
+  font-size: 0.6875rem;
   font-weight: 700;
   color: var(--admin-information);
   background: var(--admin-information-tint);
   border: 1px solid var(--admin-information-border);
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   padding: 0 8px;
 }
 
@@ -152,7 +152,7 @@
 
 .admin-organizer-requests-cards__error {
   margin-top: 8px;
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
 }
 
 /* The table-only card list hides on desktop; the table scrolls. */

@@ -28,7 +28,7 @@
 
 .admin-venues-filter-drawer__section h3 {
   margin: 0 0 12px 0;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: var(--admin-text-muted);
 }
@@ -44,7 +44,7 @@
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
 }
 
 .admin-venues-filter-drawer__actions {

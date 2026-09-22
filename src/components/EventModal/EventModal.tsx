@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { createRoot } from "react-dom/client";
 import {
   ArrowLeft,
@@ -77,6 +77,17 @@ export default function EventModal({ event, onClose }: EventModalProps) {
 function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: () => void }) {
   const modalRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const dragCloseTimerRef = useRef<number | null>(null);
+  const dragRef = useRef<{
+    pointerId: number;
+    startY: number;
+    lastY: number;
+    lastT: number;
+    velocity: number;
+    handle: HTMLDivElement;
+    onBlur: () => void;
+  } | null>(null);
 
   const { onKeyDown, onBackdropClick } = useAccessibleDialog({
     dialogRef: modalRef,
@@ -90,10 +101,11 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
   const { ensureContainer, capturePoster, posterFilename, downloadPoster, removeTarget } =
     useShareablePoster();
 
-  // Clear the "Copied" feedback timer on close/unmount.
+  // Clear the "Copied" and drag-close timers on close/unmount.
   useEffect(() => {
     return () => {
       if (copiedTimerRef.current !== null) window.clearTimeout(copiedTimerRef.current);
+      if (dragCloseTimerRef.current !== null) window.clearTimeout(dragCloseTimerRef.current);
     };
   }, []);
 
@@ -107,6 +119,85 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
     } catch (err) {
       console.error("Failed to copy event link:", err);
     }
+  };
+
+  // ── Sheet drag-to-dismiss (mobile) ──
+  // The handle drags the sheet down; release past a distance or a flick
+  // closes it. Interrupted gestures (pointercancel, lost capture, blur, or
+  // a second finger landing mid-drag) end the drag cleanly and never
+  // dismiss — and the next drag works without a reload.
+  const DRAG_DISMISS_DISTANCE = 96;
+  const DRAG_FLICK_VELOCITY = 0.5; // px/ms
+
+  const finishSheetDrag = (mode: "snap" | "cancel" | "dismiss") => {
+    const drag = dragRef.current;
+    const content = contentRef.current;
+    dragRef.current = null;
+    if (drag) {
+      window.removeEventListener("blur", drag.onBlur);
+      try {
+        drag.handle.releasePointerCapture(drag.pointerId);
+      } catch {
+        // capture already released (pointercancel / lostpointercapture)
+      }
+    }
+    if (!content) return;
+    content.classList.remove("is-dragging");
+    if (mode === "dismiss") {
+      content.style.setProperty("--sheet-drag", "100dvh");
+      dragCloseTimerRef.current = window.setTimeout(onClose, 200);
+    } else {
+      content.style.setProperty("--sheet-drag", "0px");
+    }
+  };
+
+  const onSheetDragStart = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!event.isPrimary || (event.pointerType === "mouse" && event.button !== 0)) return;
+    if (dragRef.current) return; // a second finger never steals the drag
+    const content = contentRef.current;
+    if (!content) return;
+    const handle = event.currentTarget;
+    handle.setPointerCapture(event.pointerId);
+    const onBlur = () => finishSheetDrag("cancel");
+    dragRef.current = {
+      pointerId: event.pointerId,
+      startY: event.clientY,
+      lastY: event.clientY,
+      lastT: event.timeStamp,
+      velocity: 0,
+      handle,
+      onBlur,
+    };
+    window.addEventListener("blur", onBlur);
+    content.classList.add("is-dragging");
+    event.preventDefault();
+  };
+
+  const onSheetDragMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current;
+    const content = contentRef.current;
+    if (!drag || !content || event.pointerId !== drag.pointerId) return;
+    const dt = event.timeStamp - drag.lastT;
+    if (dt > 0) drag.velocity = (event.clientY - drag.lastY) / dt;
+    drag.lastY = event.clientY;
+    drag.lastT = event.timeStamp;
+    const dy = event.clientY - drag.startY;
+    // Upward drags resist — the sheet never travels above its rest.
+    content.style.setProperty("--sheet-drag", `${dy < 0 ? dy * 0.15 : dy}px`);
+  };
+
+  const onSheetDragEnd = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current;
+    if (!drag || event.pointerId !== drag.pointerId) return;
+    const dy = event.clientY - drag.startY;
+    const flick = drag.velocity > DRAG_FLICK_VELOCITY;
+    finishSheetDrag(dy > DRAG_DISMISS_DISTANCE || (flick && dy > 24) ? "dismiss" : "snap");
+  };
+
+  const onSheetDragAbort = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current;
+    if (!drag || event.pointerId !== drag.pointerId) return;
+    finishSheetDrag("cancel");
   };
 
   // ── Shared action buttons (used in desktop sidebar + mobile sticky bar) ──
@@ -287,9 +378,17 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
       aria-labelledby="modal-title"
       ref={modalRef}
     >
-      <div className="modal-content">
-        {/* Drag handle — visible only on mobile */}
-        <div className="modal-drag-handle" aria-hidden />
+      <div className="modal-content" ref={contentRef}>
+        {/* Drag handle — visible only on mobile; drag down to dismiss */}
+        <div
+          className="modal-drag-handle"
+          aria-hidden
+          onPointerDown={onSheetDragStart}
+          onPointerMove={onSheetDragMove}
+          onPointerUp={onSheetDragEnd}
+          onPointerCancel={onSheetDragAbort}
+          onLostPointerCapture={onSheetDragAbort}
+        />
 
         <IconButton aria-label="Close" onClick={onClose} className="modal-close-x">
           <X size={20} aria-hidden />

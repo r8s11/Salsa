@@ -16,7 +16,7 @@
 
 .admin-organizer-requests-page__result-count {
   margin: 0 16px 12px;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   color: var(--admin-text-muted);
 }
 
@@ -55,7 +55,7 @@
 
 .admin-organizer-requests-page__skeleton-line {
   height: 14px;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
 }
 
 .admin-organizer-requests-page__skeleton-line--short {
@@ -65,13 +65,13 @@
 .admin-organizer-requests-page__skeleton-pill {
   width: 80px;
   height: 16px;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   margin-left: auto;
 }
 
 .admin-organizer-requests-page__status {
   margin-bottom: 12px;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   color: var(--admin-text-muted);
 }
 
@@ -83,7 +83,7 @@
 .admin-organizer-requests-page__empty h2 {
   margin: 0 0 8px;
   font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-size: 1.375rem;
   color: var(--admin-text-strong);
 }
 

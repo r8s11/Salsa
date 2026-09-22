@@ -5,7 +5,7 @@
 .admin-venues-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
 }
 
 .admin-venues-table th,
@@ -19,7 +19,7 @@
 .admin-venues-table th {
   background: var(--admin-surface-secondary);
   font-weight: 600;
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--admin-text-muted);
@@ -52,7 +52,7 @@
 }
 
 .admin-venues-table__identity {
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   color: var(--admin-text-muted);
   margin: 2px 0 0 0;
 }
@@ -72,7 +72,7 @@
 
 .admin-venues-table__col--address {
   color: var(--admin-text-muted);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
 }
 
 .admin-venues-table__col--upcoming {
@@ -99,7 +99,7 @@
 .admin-venues-cards__item {
   padding: 16px;
   border: 1px solid var(--admin-border);
-  border-radius: 6px;
+  border-radius: var(--admin-radius);
   margin-bottom: 8px;
 }
 
@@ -124,7 +124,7 @@
   display: flex;
   justify-content: space-between;
   padding: 6px 0;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
 }
 
 .admin-venues-cards__label {
@@ -134,7 +134,7 @@
 
 .admin-venues-cards__error {
   color: var(--admin-danger-strong);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   margin: 8px 0 0 0;
 }
 

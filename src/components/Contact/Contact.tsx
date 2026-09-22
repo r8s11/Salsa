@@ -2,6 +2,7 @@ import { useState, FormEvent, useRef } from "react";
 import FormFieldError from "../../shared/forms/FormFieldError";
 import { fieldErrorProps } from "../../shared/forms/fieldErrorProps";
 import { publicErrorMessage } from "../../shared/forms/errorMessage";
+import { Mail, Phone, Send } from "lucide-react";
 import Button from "../ui/Button";
 import "./Contact.css";
 
@@ -123,7 +124,7 @@ function Contact() {
         <div className="contact-grid">
           <div className="contact-form-card">
             <h2>
-              <span aria-hidden="true">📬</span> Send a Message
+              <Send size={18} aria-hidden="true" className="contact-heading-icon" /> Send a Message
             </h2>
             {error && (
               <div role="alert" className="contact-error-banner">
@@ -212,7 +213,9 @@ function Contact() {
 
           <div className="contact-info-cards">
             <div className="contact-card" style={{ wordBreak: "break-all" }}>
-              <div className="contact-icon">📧</div>
+              <div className="contact-icon">
+                <Mail size={28} aria-hidden="true" />
+              </div>
               <h2>Email</h2>
               <a
                 href="mailto:info@SalsaSegura.com"
@@ -226,7 +229,9 @@ function Contact() {
             </div>
 
             <div className="contact-card">
-              <div className="contact-icon">📞</div>
+              <div className="contact-icon">
+                <Phone size={28} aria-hidden="true" />
+              </div>
               <h2>Phone</h2>
               <a href="tel:+19784440922">(978) 444-0922</a>
             </div>

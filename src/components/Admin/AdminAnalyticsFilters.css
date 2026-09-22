@@ -20,7 +20,7 @@
 .admin-analytics-filters__pill {
   padding: 6px 14px;
   border: 1px solid var(--admin-border);
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   background: var(--admin-surface-secondary);
   color: var(--admin-text-primary);
   font-size: 0.875rem;
@@ -111,7 +111,7 @@
 
 .admin-analytics-filters__range-hint {
   margin-top: 4px;
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   color: var(--admin-text-muted);
 }
 

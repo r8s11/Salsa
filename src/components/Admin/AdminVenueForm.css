@@ -11,8 +11,8 @@
   padding: 6px 8px;
   border-left: 2px solid var(--admin-warning-border);
   background: var(--admin-warning-tint);
-  border-radius: 4px;
-  font-size: 0.85rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
 }
 
 .admin-venue-form__address-confirmation {
@@ -25,9 +25,9 @@
   gap: 4px;
   padding: 12px 14px;
   border: 1px dashed var(--admin-border);
-  border-radius: 6px;
+  border-radius: var(--admin-radius);
   background: var(--admin-surface);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
 }
 
 .admin-venue-form__confirmation-address {
@@ -36,7 +36,7 @@
 
 .admin-venue-form__confirmation-tz {
   color: var(--admin-text-subtle);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
 }
 
 .admin-venue-form__confirmation-card strong {

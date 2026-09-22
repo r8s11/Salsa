@@ -43,7 +43,7 @@
 .admin-reject-dialog h2 {
   margin: 0 0 8px;
   font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-size: 1.375rem;
   color: var(--admin-text-strong);
 }
 
@@ -64,7 +64,7 @@
 .admin-field label {
   display: block;
   margin-bottom: 4px;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--admin-text-strong);
 }
@@ -76,7 +76,7 @@
 .reason-select {
   width: 100%;
   padding: 8px 16px;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   font-family: inherit;
   color: var(--admin-text-primary);
   background: var(--admin-background);
@@ -97,7 +97,7 @@
 .reject-message {
   width: 100%;
   padding: 8px 16px;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   font-family: inherit;
   color: var(--admin-text-primary);
   background: var(--admin-background);
@@ -132,7 +132,7 @@
 
 .admin-reject-dialog .admin-btn--secondary {
   padding: 8px 24px;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--admin-text-secondary);
   background: transparent;
@@ -153,7 +153,7 @@
 
 .admin-reject-dialog .admin-btn--danger {
   padding: 8px 24px;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: var(--admin-text-on-brand);
   background: var(--admin-danger-solid);

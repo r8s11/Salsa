@@ -3,7 +3,7 @@
   margin-bottom: 1rem;
   color: var(--admin-text-muted);
   text-decoration: none;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
 }
 
 .admin-user-detail-page__back:hover,
@@ -68,7 +68,7 @@
 
 .admin-user-detail-page__timeline-date {
   display: block;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   color: var(--admin-text-muted);
 }
 

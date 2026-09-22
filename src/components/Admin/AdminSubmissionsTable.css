@@ -63,7 +63,7 @@
   height: 60px;
   flex: 0 0 auto;
   border: 1px solid var(--admin-border);
-  border-radius: 8px;
+  border-radius: var(--admin-radius);
   background: var(--admin-surface-subtle);
   object-fit: cover;
 }
@@ -87,7 +87,7 @@
   flex-wrap: wrap;
   gap: 5px 14px;
   color: var(--admin-text-muted);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
 }
 
 .admin-submissions-table__meta {
@@ -97,7 +97,7 @@
 .admin-submissions-table__event-facts {
   margin-top: 4px;
   color: var(--admin-text-primary);
-  font-size: 0.78rem;
+  font-size: 0.75rem;
 }
 
 .admin-submissions-table__meta span,

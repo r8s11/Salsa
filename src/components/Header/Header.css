@@ -56,7 +56,7 @@ a.logo:hover .ss-logo__wordmark-accent {
 .drawer-sign-out {
   color: var(--text-muted);
   font-family: var(--font-ui);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-decoration: none;
@@ -193,7 +193,7 @@ a.logo:hover .ss-logo__wordmark-accent {
   color: #fff;
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 
 .account-disclosure__menu {
@@ -224,7 +224,7 @@ a.logo:hover .ss-logo__wordmark-accent {
 .account-disclosure__dashboards-label,
 .mobile-nav__dashboards-label {
   padding: 0 var(--space-sm);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -417,7 +417,7 @@ a.logo:hover .ss-logo__wordmark-accent {
     flex-shrink: 0;
     font-family: var(--font-display);
     font-weight: 700;
-    font-size: 0.7rem;
+    font-size: 0.6875rem;
     letter-spacing: 0.14em;
     color: var(--red-bright);
   }
@@ -433,7 +433,7 @@ a.logo:hover .ss-logo__wordmark-accent {
   .nav-links__marker {
     display: block;
     margin-left: auto;
-    font-size: 0.85rem;
+    font-size: 0.875rem;
     line-height: 1;
     color: var(--gold);
   }
@@ -453,7 +453,7 @@ a.logo:hover .ss-logo__wordmark-accent {
   .mobile-nav__label {
     font-family: var(--font-display);
     font-weight: 700;
-    font-size: 0.66rem;
+    font-size: 0.6875rem;
     letter-spacing: 0.2em;
     color: var(--text-dim);
     text-transform: uppercase;
@@ -498,14 +498,14 @@ a.logo:hover .ss-logo__wordmark-accent {
   .city-switch__name {
     font-family: var(--font-display);
     font-weight: 800;
-    font-size: 0.92rem;
+    font-size: 0.9375rem;
     letter-spacing: 0.02em;
   }
 
   .city-switch__region {
     font-family: var(--font-display);
     font-weight: 600;
-    font-size: 0.62rem;
+    font-size: 0.6875rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
     opacity: 0.62;
@@ -575,7 +575,7 @@ a.logo:hover .ss-logo__wordmark-accent {
   .mobile-nav__identity-name {
     font-family: var(--font-display);
     font-weight: 700;
-    font-size: 0.94rem;
+    font-size: 0.9375rem;
     color: var(--text);
   }
 
@@ -593,7 +593,7 @@ a.logo:hover .ss-logo__wordmark-accent {
     flex-shrink: 0;
     font-family: var(--font-display);
     font-weight: 700;
-    font-size: 0.66rem;
+    font-size: 0.6875rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--gold);

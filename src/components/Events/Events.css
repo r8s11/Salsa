@@ -22,7 +22,7 @@
 .events-eyebrow {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 0.82rem;
+  font-size: 0.8125rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--tertiary);
@@ -58,7 +58,7 @@
 }
 
 .featured-card-media--class {
-  background-image: linear-gradient(150deg, var(--surface-high), #4a5aa8);
+  background-image: linear-gradient(150deg, var(--surface-high), var(--blue-mid));
 }
 
 .featured-card-media--workshop {
@@ -82,7 +82,7 @@
 .featured-card-date span:first-child {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.68rem;
+  font-size: 0.6875rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   opacity: 0.85;
@@ -98,7 +98,7 @@
 .featured-card-date span:last-child {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.68rem;
+  font-size: 0.6875rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
@@ -126,13 +126,13 @@
   flex-wrap: wrap;
   gap: 1.1rem;
   font-family: var(--font-body);
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   color: var(--text-muted);
 }
 
 .featured-card-description {
   font-family: var(--font-body);
-  font-size: 0.92rem;
+  font-size: 0.9375rem;
   line-height: 1.6;
   color: var(--text-dim-glass);
   max-width: 46ch;
@@ -142,7 +142,7 @@
 .featured-card-link {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--red-bright);
@@ -180,7 +180,7 @@
   min-height: 44px;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   padding: 0.55rem 1rem;
@@ -281,7 +281,7 @@
 }
 
 .event-card-thumb--class {
-  background-image: linear-gradient(150deg, var(--surface-high), #4a5aa8);
+  background-image: linear-gradient(150deg, var(--surface-high), var(--blue-mid));
 }
 
 .event-card-thumb--workshop {
@@ -294,7 +294,7 @@
   left: 12px;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.62rem;
+  font-size: 0.6875rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   padding: 5px 11px;
@@ -311,7 +311,7 @@
 }
 
 .event-card-chip--class {
-  color: #9fb1f0;
+  color: var(--blue-pale);
   border-color: rgba(124, 147, 233, 0.35);
 }
 
@@ -325,7 +325,7 @@
   align-items: center;
   width: fit-content;
   font-family: var(--font-ui);
-  font-size: 0.62rem;
+  font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -369,7 +369,7 @@
 .event-card-monthday {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.68rem;
+  font-size: 0.6875rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   padding-bottom: 4px;
@@ -389,7 +389,7 @@
 .event-card-body h3 {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 1.08rem;
+  font-size: 1.125rem;
   line-height: 1.15;
   color: var(--text);
   margin: 0;
@@ -400,7 +400,7 @@
   flex-direction: column;
   gap: 0.25rem;
   font-family: var(--font-body);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   color: var(--text-dim-glass);
 }
 
@@ -413,12 +413,12 @@
 /* Event type badge — shared by featured card */
 .event-type {
   font-family: var(--font-ui);
-  font-size: 0.65rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   padding: 3px 9px;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   align-self: flex-start;
 }
 
@@ -448,6 +448,9 @@
 }
 
 .events-error button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   margin-top: 0.75rem;
   padding: 0.5rem 1.5rem;
   background: var(--red-dim);
@@ -493,7 +496,7 @@
   padding: 3rem;
   color: var(--text-muted);
   font-family: var(--font-ui);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   letter-spacing: 0.08em;
   border: 1px dashed var(--border-md);
   border-radius: var(--radius-lg);
@@ -513,7 +516,7 @@
 
 .events-cta p {
   font-family: var(--font-body);
-  font-size: 0.95rem;
+  font-size: 0.9375rem;
   color: var(--text-muted);
   margin-bottom: 0.75rem;
 }

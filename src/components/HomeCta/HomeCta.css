@@ -27,7 +27,7 @@
 }
 
 .home-cta__body {
-  font-size: 1.05rem;
+  font-size: 1rem;
   line-height: 1.6;
   color: var(--text-muted);
   margin: 0 0 2rem;
@@ -35,7 +35,7 @@
 
 .home-cta__btn {
   padding: 0.95rem 2.25rem;
-  font-size: 0.95rem;
+  font-size: 0.9375rem;
 }
 
 @media (max-width: 639.98px) {

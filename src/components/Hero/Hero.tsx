@@ -106,6 +106,20 @@ function Hero() {
     };
   }, []);
 
+  // Park the ambient animations while the hero is off-screen: the glow
+  // pulse, grid drift, marquee and disc spin run forever by design, but
+  // there is no reason to composite them behind the fold.
+  useEffect(() => {
+    const hero = heroRef.current;
+    if (!hero || typeof IntersectionObserver !== "function") return;
+    const observer = new IntersectionObserver(
+      ([entry]) => hero.classList.toggle("hero--idle", !entry.isIntersecting),
+      { rootMargin: "80px" }
+    );
+    observer.observe(hero);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <section id="home" className="hero" ref={heroRef}>
       {/* Atmospheric background */}

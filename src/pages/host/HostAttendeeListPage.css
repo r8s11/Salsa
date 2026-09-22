@@ -8,7 +8,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  color: #64748b;
+  color: var(--admin-text-muted);
   text-decoration: none;
   font-size: 0.875rem;
   margin-bottom: 1rem;
@@ -16,43 +16,43 @@
 }
 
 .host-attendee-list__back:hover {
-  color: #0f172a;
+  color: var(--admin-text-primary);
 }
 
 .host-attendee-list__title {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--admin-text-primary);
   margin: 0 0 0.25rem;
 }
 
 .host-attendee-list__subtitle {
   font-size: 0.875rem;
-  color: #64748b;
+  color: var(--admin-text-muted);
   margin: 0 0 1.5rem;
 }
 
 .host-attendee-list__status {
   text-align: center;
-  color: #64748b;
+  color: var(--admin-text-muted);
   padding: 2rem;
 }
 
 .host-attendee-list__empty {
   text-align: center;
-  color: #64748b;
+  color: var(--admin-text-muted);
   padding: 3rem 2rem;
-  background: #f8fafc;
-  border-radius: 0.75rem;
-  border: 1px dashed #e2e8f0;
+  background: var(--admin-surface-subtle);
+  border-radius: var(--admin-radius-lg);
+  border: 1px dashed var(--admin-border);
 }
 
 /* ── Add form ── */
 
 .attendee-form {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.75rem;
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-lg);
   padding: 1.25rem;
   margin-bottom: 1.5rem;
 }
@@ -63,7 +63,7 @@
   gap: 0.5rem;
   font-size: 1rem;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--admin-text-primary);
   margin: 0 0 1rem;
 }
 
@@ -90,30 +90,35 @@
 .attendee-form__label {
   font-size: 0.75rem;
   font-weight: 500;
-  color: #64748b;
+  color: var(--admin-text-muted);
 }
 
 .attendee-form__input,
 .attendee-form__select {
   padding: 0.5rem 0.75rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.375rem;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
   font-size: 0.875rem;
-  color: #0f172a;
-  background: #ffffff;
+  color: var(--admin-text-primary);
+  background: var(--admin-surface);
   transition: border-color 0.15s;
 }
 
 .attendee-form__input:focus,
 .attendee-form__select:focus {
-  outline: none;
-  border-color: #e11d48;
-  box-shadow: 0 0 0 2px rgba(225, 29, 72, 0.15);
+  border-color: var(--admin-brand);
+}
+
+.attendee-form__input:focus-visible,
+.attendee-form__select:focus-visible {
+  outline: 2px solid var(--admin-brand);
+  outline-offset: 2px;
+  border-color: var(--admin-brand);
 }
 
 .attendee-form__error {
-  color: #dc2626;
-  font-size: 0.8rem;
+  color: var(--admin-danger);
+  font-size: 0.8125rem;
   margin: 0.5rem 0;
 }
 
@@ -121,9 +126,9 @@
 
 .attendee-table-wrap {
   overflow-x: auto;
-  border-radius: 0.75rem;
-  border: 1px solid #e2e8f0;
-  background: #ffffff;
+  border-radius: var(--admin-radius-lg);
+  border: 1px solid var(--admin-border);
+  background: var(--admin-surface);
 }
 
 .attendee-table {
@@ -136,9 +141,9 @@
   text-align: left;
   padding: 0.75rem 1rem;
   font-weight: 600;
-  color: #64748b;
-  background: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
+  color: var(--admin-text-muted);
+  background: var(--admin-surface-subtle);
+  border-bottom: 1px solid var(--admin-border);
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -146,8 +151,8 @@
 
 .attendee-table td {
   padding: 0.75rem 1rem;
-  border-bottom: 1px solid #f1f5f9;
-  color: #0f172a;
+  border-bottom: 1px solid var(--admin-surface-secondary);
+  color: var(--admin-text-primary);
 }
 
 .attendee-table tr:last-child td {
@@ -155,7 +160,7 @@
 }
 
 .attendee-table tr:hover td {
-  background: #f8fafc;
+  background: var(--admin-surface-subtle);
 }
 
 .attendee-table__name {
@@ -171,7 +176,7 @@
 }
 
 .attendee-table__muted {
-  color: #94a3b8;
+  color: var(--admin-text-subtle);
   max-width: 160px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -195,40 +200,40 @@
 .attendee-badge {
   display: inline-block;
   padding: 0.125rem 0.5rem;
-  border-radius: 9999px;
-  font-size: 0.7rem;
+  border-radius: var(--radius-full);
+  font-size: 0.6875rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
 
 .badge--blue {
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: var(--admin-chip-blue-tint);
+  color: var(--admin-chip-blue-ink);
 }
 .badge--gray {
-  background: #f1f5f9;
-  color: #64748b;
+  background: var(--admin-surface-secondary);
+  color: var(--admin-text-muted);
 }
 .badge--green {
-  background: #dcfce7;
-  color: #15803d;
+  background: var(--admin-chip-green-tint);
+  color: var(--admin-chip-green-ink);
 }
 .badge--yellow {
-  background: #fef9c3;
-  color: #a16207;
+  background: var(--admin-chip-yellow-tint);
+  color: var(--admin-chip-yellow-ink);
 }
 .badge--purple {
-  background: #f3e8ff;
-  color: #7e22ce;
+  background: var(--admin-chip-purple-tint);
+  color: var(--admin-chip-purple-ink);
 }
 .badge--cyan {
-  background: #cffafe;
-  color: #0e7490;
+  background: var(--admin-chip-cyan-tint);
+  color: var(--admin-chip-cyan-ink);
 }
 .badge--orange {
-  background: #ffedd5;
-  color: #c2410c;
+  background: var(--admin-chip-orange-tint);
+  color: var(--admin-chip-orange-ink);
 }
 
 /* ── Action buttons ── */
@@ -237,26 +242,33 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 0.375rem;
-  border: 1px solid #e2e8f0;
-  background: #ffffff;
-  color: #64748b;
+  min-width: 34px;
+  min-height: 34px;
+  border-radius: var(--admin-radius);
+  border: 1px solid var(--admin-border);
+  background: var(--admin-surface);
+  color: var(--admin-text-muted);
   cursor: pointer;
   text-decoration: none;
   transition: all 0.15s;
 }
 
 .attendee-action-btn:hover {
-  background: #f1f5f9;
-  color: #0f172a;
+  background: var(--admin-surface-secondary);
+  color: var(--admin-text-primary);
 }
 
 .attendee-action-btn--danger:hover {
-  background: #fef2f2;
-  color: #dc2626;
-  border-color: #fecaca;
+  background: var(--admin-danger-tint);
+  color: var(--admin-danger);
+  border-color: var(--admin-danger-border);
+}
+
+@media (pointer: coarse) {
+  .attendee-action-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
 }
 .attendee-action-btn--danger {
   width: 44px;
@@ -280,27 +292,27 @@
   width: 100%;
   max-width: 420px;
   padding: 24px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-lg);
 }
 
 .attendee-remove-dialog h2 {
   margin: 0 0 8px;
-  font-size: 1.15rem;
-  color: #0f172a;
+  font-size: 1.125rem;
+  color: var(--admin-text-primary);
 }
 
 .attendee-remove-dialog p {
   margin: 0 0 20px;
-  color: #64748b;
-  font-size: 0.9rem;
+  color: var(--admin-text-muted);
+  font-size: 0.875rem;
 }
 
 .attendee-remove-dialog__error {
   margin: -8px 0 20px;
-  color: #dc2626;
-  font-size: 0.85rem;
+  color: var(--admin-danger);
+  font-size: 0.875rem;
 }
 
 .attendee-remove-dialog__actions {

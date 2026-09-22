@@ -1,4 +1,4 @@
-import { Search, SlidersHorizontal, ChevronDown } from "lucide-react";
+import { Search, SlidersHorizontal, ChevronDown, ArrowUp, ArrowDown } from "lucide-react";
 import {
   ROLE_LABEL,
   ACCOUNT_STATUS_LABEL,
@@ -207,7 +207,11 @@ export default function AdminUsersToolbar({
           aria-label={sort.dir === "asc" ? "Sort ascending" : "Sort descending"}
           onClick={() => onSortChange({ key: sort.key, dir: sort.dir === "asc" ? "desc" : "asc" })}
         >
-          {sort.dir === "asc" ? "↑" : "↓"}
+          {sort.dir === "asc" ? (
+            <ArrowUp size={16} aria-hidden="true" />
+          ) : (
+            <ArrowDown size={16} aria-hidden="true" />
+          )}
         </button>
       </div>
     </div>

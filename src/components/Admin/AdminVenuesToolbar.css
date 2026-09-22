@@ -18,7 +18,7 @@
   align-items: center;
   padding-left: 8px;
   border: 1px solid var(--admin-border);
-  border-radius: 6px;
+  border-radius: var(--admin-radius);
   background: var(--admin-surface);
 }
 
@@ -48,7 +48,7 @@
   padding: 4px 0;
   background: var(--admin-surface);
   border: 1px solid var(--admin-border);
-  border-radius: 6px;
+  border-radius: var(--admin-radius);
   box-shadow: var(--admin-shadow-md);
 }
 
@@ -63,7 +63,7 @@
   gap: 8px;
   padding: 6px 12px;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 .admin-venues-toolbar__status-option:hover {
@@ -75,7 +75,7 @@
   padding: 0 6px;
   background: var(--admin-brand-tint);
   color: var(--admin-brand-text);
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   font-size: 0.75rem;
 }
 
@@ -88,6 +88,6 @@
 }
 
 .admin-venues-toolbar__sort-label {
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   color: var(--admin-text-muted);
 }

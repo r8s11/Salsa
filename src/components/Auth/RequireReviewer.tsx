@@ -19,7 +19,7 @@ export default function RequireReviewer({ children }: { children: ReactNode }) {
           alignItems: "center",
           minHeight: "40vh",
           fontSize: "1.1rem",
-          color: "var(--muted, #666)",
+          color: "var(--text-dim)",
         }}
       >
         Checking session…

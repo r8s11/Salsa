@@ -11,12 +11,12 @@
 }
 
 .admin-venue-match-panel__no-match {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--admin-text-muted);
 }
 
 .admin-venue-match-panel__status {
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 500;
   display: flex;
   align-items: center;
@@ -35,7 +35,7 @@
   background: var(--admin-surface-secondary);
   padding: 12px;
   border-radius: var(--admin-radius);
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
 .admin-venue-match-panel__existing-label {

@@ -283,7 +283,7 @@
 .hero-eyebrow span:last-child {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   letter-spacing: 0.24em;
   text-transform: uppercase;
   color: var(--tertiary);
@@ -336,7 +336,7 @@
 
 .hero-btn {
   padding: 0.95rem 1.9rem;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
 }
 
 /* Stats */
@@ -401,7 +401,7 @@
 .hero-ticker-item {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -463,6 +463,14 @@
   .hero-btn:active {
     transform: translateY(0);
   }
+}
+
+/* ── Idle park: off-screen, the ambient layers pause ── */
+.hero--idle .hero-glow,
+.hero--idle .hero-grid,
+.hero--idle .hero-ticker-track,
+.hero--idle .hero-vinyl__disc {
+  animation-play-state: paused;
 }
 
 /* ── Reduced Motion ── */
@@ -532,7 +540,7 @@
   }
 
   .hero-eyebrow span:last-child {
-    font-size: 0.66rem;
+    font-size: 0.6875rem;
     letter-spacing: 0.16em;
   }
 
@@ -582,7 +590,7 @@
   }
 
   .hero-stat-num {
-    font-size: 1.45rem;
+    font-size: 1.5rem;
   }
 
   .hero-stat-label {

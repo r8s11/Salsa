@@ -18,7 +18,7 @@
 
 .admin-venues-page__result-count {
   margin: 8px 0 0 0;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   color: var(--admin-text-muted);
   padding: 0 4px;
 }
@@ -76,13 +76,13 @@
 .admin-venues-page__skeleton-pill {
   width: 60px;
   height: 20px;
-  border-radius: 10px;
+  border-radius: var(--admin-radius-lg);
   margin-left: auto;
 }
 
 .admin-venues-page__status {
   margin: 0 0 8px 0;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
 }
 
 .admin-venues-page__empty h2 {

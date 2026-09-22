@@ -32,14 +32,14 @@
 
 .admin-analytics-page__recent h2 {
   margin-top: 0;
-  font-size: 1.1rem;
+  font-size: 1.125rem;
   color: var(--admin-text-strong);
 }
 
 .admin-analytics-page__empty {
   padding: 16px;
   color: var(--admin-text-muted);
-  font-size: 0.9rem;
+  font-size: 0.875rem;
 }
 
 .admin-analytics-page__loading {

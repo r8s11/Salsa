@@ -10,7 +10,7 @@
   min-height: 28px;
   padding: 4px 8px;
   border: 1px solid var(--admin-warning-border);
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   background: var(--admin-warning-tint);
   color: var(--admin-warning);
   font-family: var(--font-ui);
@@ -39,7 +39,7 @@
   background: var(--admin-surface-elevated);
   box-shadow: var(--admin-shadow-md);
   color: var(--admin-text-primary);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
 }
 
 .admin-quality-badge__popover ul {

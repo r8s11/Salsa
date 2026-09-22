@@ -22,7 +22,7 @@
 
 .event-form__hint {
   margin: 0 0 var(--space-sm);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   line-height: 1.5;
   color: var(--text-muted);
   text-transform: none;

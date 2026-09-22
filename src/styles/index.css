@@ -23,7 +23,7 @@
   justify-content: center;
   min-height: 60vh;
   font-family: var(--font-ui);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--text-dim);
@@ -52,7 +52,7 @@
 
 .not-found-page h2 {
   font-family: var(--font-ui);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--text-muted);

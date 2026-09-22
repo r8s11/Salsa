@@ -33,7 +33,7 @@ a.admin-metric-card:hover {
 
 .admin-metric-card__value {
   font-family: var(--font-display);
-  font-size: 28px;
+  font-size: 1.75rem;
   font-weight: 700;
   line-height: 1.1;
   color: var(--admin-text-strong);
@@ -44,7 +44,7 @@ a.admin-metric-card:hover {
 }
 
 .admin-metric-card__label {
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -52,13 +52,13 @@ a.admin-metric-card:hover {
 }
 
 .admin-metric-card__sub-label {
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   color: var(--admin-text-muted);
 }
 
 .admin-metric-card__action {
   margin-top: 8px;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 600;
 }
 
@@ -78,7 +78,7 @@ a.admin-metric-card:hover {
   padding: 10px 0;
   border: none;
   background: none;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: var(--admin-brand-text);
   cursor: pointer;
@@ -103,7 +103,7 @@ a.admin-metric-card:hover {
 
 @media (max-width: 639.98px) {
   .admin-metric-card__value {
-    font-size: 24px;
+    font-size: 1.5rem;
   }
 
   .admin-metric-card__action {
@@ -113,6 +113,6 @@ a.admin-metric-card:hover {
 
 @media (min-width: 1024px) {
   .admin-metric-card__value {
-    font-size: 32px;
+    font-size: 2rem;
   }
 }

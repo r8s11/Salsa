@@ -37,7 +37,7 @@
 .host-create-event__organizer p {
   margin: 0;
   color: var(--admin-text-muted);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;

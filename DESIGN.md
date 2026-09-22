@@ -191,11 +191,26 @@ used for state and for nothing else.
 the colour once and then reads a column of marks without reading a
 label; borrowing one for emphasis destroys exactly that.
 
+**Category chips are not state.** Taxonomy categories (attendee type,
+dance style) are labelled by the `--admin-chip-*` palette in
+`src/styles/admin.css` — one tint/ink pair per hue, light and dark. A
+chip names a category and never reports an entry's state; the five
+colours stay reserved for state.
+
 ## Typography
 
 The typography strategy is "Rhythmic Hierarchy." **Epilogue** provides a geometric, editorial weight that feels decisive and bold—perfect for capturing the "hit" of a beat. **Be Vietnam Pro** offers a warm, approachable counterpoint for long-form content, ensuring readability for class descriptions and event details.
 
 For large display text, use tight letter-spacing to create a compact, high-energy impact. Labels and overlines should always be uppercase with generous letter-spacing to provide a modern, structural contrast to the fluid imagery of dance.
+
+### The type ramp and the display band
+
+UI type sits on the role ramp above, in rem (0.6875 / 0.75 / 0.8125 /
+0.875 / 0.9375 / 1 / 1.125 / 1.375 / 1.5rem). Display composition above
+24px is a band, not a step list: poster titles, hero figures and splash
+headings set 1.5–4.5rem per surface, anchored by display-md (3rem) and
+display-lg (4.5rem). SVG artwork lettering (the vinyl label print) is
+artwork and answers to no ramp.
 
 ### Two faces beyond the pair
 

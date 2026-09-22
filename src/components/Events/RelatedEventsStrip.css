@@ -4,7 +4,7 @@
 
 .related-events-strip__heading {
   font-family: var(--font-display);
-  font-size: 1.1rem;
+  font-size: 1.125rem;
   color: var(--text);
   margin: 0 0 0.75rem;
 }
@@ -28,7 +28,7 @@
   padding: 0.6rem 0.75rem;
   background-color: var(--surface-high);
   border: 1px solid var(--border);
-  border-radius: 0.75rem;
+  border-radius: var(--radius-md);
   text-decoration: none;
   color: var(--text);
   transition:
@@ -50,7 +50,7 @@
   min-width: 3rem;
   min-height: 3rem;
   padding: 0.25rem;
-  border-radius: 0.5rem;
+  border-radius: var(--radius);
   background-color: var(--red-deep);
   color: var(--text);
   font-family: var(--font-display);
@@ -71,7 +71,7 @@
 
 .related-events-strip__badge-weekday,
 .related-events-strip__badge-month {
-  font-size: 0.62rem;
+  font-size: 0.6875rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -100,7 +100,7 @@
 }
 
 .related-events-strip__time {
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
 }
 
@@ -109,7 +109,7 @@
   align-items: center;
   width: fit-content;
   font-family: var(--font-ui);
-  font-size: 0.58rem;
+  font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -149,7 +149,7 @@
     width: 48px;
     height: 48px;
     flex: 0 0 48px;
-    border-radius: 0.5rem;
+    border-radius: var(--radius);
     object-fit: cover;
     background-color: var(--surface-high);
   }

@@ -109,7 +109,7 @@
 .onboarding-page__avatar-btn:focus-visible {
   outline: 2px solid var(--gold);
   outline-offset: 2px;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
 }
 
 /* ── Username row ── */
@@ -312,7 +312,7 @@
   justify-content: center;
   align-items: center;
   min-height: 40vh;
-  font-size: 1.1rem;
+  font-size: 1.125rem;
   color: var(--text-muted);
 }
 
@@ -386,7 +386,7 @@
   }
 
   .onboarding-page__h1 {
-    font-size: 1.625rem;
+    font-size: 1.5rem;
   }
 
   .onboarding-page__card {

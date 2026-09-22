@@ -15,7 +15,7 @@
   align-items: center;
   gap: 8px;
   padding: 9px 16px;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   background: rgba(11, 19, 38, 0.6);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -23,7 +23,7 @@
   color: var(--text);
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 13px;
+  font-size: 0.8125rem;
   letter-spacing: 0.04em;
   text-decoration: none;
   margin-bottom: var(--space-sm);
@@ -79,7 +79,7 @@
   z-index: 1;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 12px;
+  font-size: 0.75rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-dim);
@@ -115,7 +115,7 @@
   font-family: var(--font-body);
   color: var(--text-dim);
   margin-top: var(--space-xs);
-  font-size: 15px;
+  font-size: 0.9375rem;
   max-width: 56ch;
 }
 
@@ -138,7 +138,7 @@
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 18px;
+  border-radius: var(--radius-lg);
   padding: var(--space-lg);
   margin-bottom: var(--space-md);
 }
@@ -152,7 +152,7 @@
 .profile-edit-page__section-title {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 11px;
+  font-size: 0.6875rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--gold);
@@ -178,7 +178,7 @@
   color: var(--gold-light);
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: 42px;
+  font-size: 2.625rem;
   position: relative;
   border: 2px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
@@ -226,7 +226,7 @@
 .profile-edit-page__label {
   font-family: var(--font-body);
   font-weight: 600;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--text);
 }
 
@@ -243,7 +243,7 @@
 
 .profile-edit-page__input {
   font-family: var(--font-body);
-  font-size: 15px;
+  font-size: 0.9375rem;
   color: var(--text);
   background: var(--bg);
   border: 1px solid var(--border);
@@ -268,7 +268,7 @@
 /* Bio — same field treatment as inputs, but growable. */
 .profile-edit-page__textarea {
   font-family: var(--font-body);
-  font-size: 15px;
+  font-size: 0.9375rem;
   line-height: 1.6;
   color: var(--text);
   background: var(--bg);
@@ -306,7 +306,7 @@
 .profile-edit-page__chip {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 12px;
+  font-size: 0.75rem;
   padding: 8px 15px;
   border-radius: var(--radius-full);
   border: 1px solid var(--border-md);
@@ -350,7 +350,7 @@
 
 .profile-edit-page__toggle-label {
   font-family: var(--font-body);
-  font-size: 13.5px;
+  font-size: 0.875rem;
   color: var(--text);
 }
 
@@ -388,21 +388,21 @@
 
 .profile-edit-page__hint {
   font-family: var(--font-body);
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-dim);
   margin-top: 2px;
 }
 
 .profile-edit-page__error {
   font-family: var(--font-body);
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--red-bright);
   margin-top: 2px;
 }
 
 .profile-edit-page__notice {
   font-family: var(--font-body);
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--gold-light);
   background: var(--gold-dim);
   border: 1px solid rgba(233, 195, 73, 0.35);
@@ -425,7 +425,7 @@
 .profile-edit-page__btn {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 14px;
+  font-size: 0.875rem;
   letter-spacing: 0.04em;
   border-radius: var(--radius-md);
   padding: 12px 28px;
@@ -582,7 +582,7 @@
   .profile-edit-page__stage-avatar .profile-edit-page__avatar {
     width: 104px;
     height: 104px;
-    font-size: 30px;
+    font-size: 1.875rem;
   }
 
   .profile-edit-page__identity-fields {
@@ -650,7 +650,7 @@
 .profile-edit-page__crop-hint {
   color: rgba(255, 255, 255, 0.7);
   font-family: var(--font-display);
-  font-size: 13px;
+  font-size: 0.8125rem;
   letter-spacing: 0.03em;
   text-align: center;
   margin: 0;

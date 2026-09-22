@@ -19,7 +19,7 @@
 .admin-duplicate-dialog h2 {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-size: 1.375rem;
   color: var(--admin-text-strong);
 }
 
@@ -32,14 +32,14 @@
 .admin-duplicate-dialog__copied {
   margin: 0;
   color: var(--admin-text-muted);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
 }
 
 .admin-duplicate-dialog__publish {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
 }
 
 .admin-duplicate-dialog__actions {

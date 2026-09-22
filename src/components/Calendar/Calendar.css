@@ -83,7 +83,7 @@
 .sidebar-section-label {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 11px;
+  font-size: 0.6875rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--text-dim);
@@ -92,7 +92,7 @@
 
 .sidebar-period-label {
   font-family: var(--font-ui);
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   color: var(--text);
   margin: 0;
 }
@@ -115,7 +115,7 @@
   background: transparent;
   color: var(--text-muted);
   font-family: var(--font-ui);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
   text-align: left;
@@ -149,7 +149,7 @@
 
 .sidebar-footer {
   font-family: var(--font-ui);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   color: var(--text-dim);
   margin: 0;
   padding-top: var(--space-sm);
@@ -200,7 +200,7 @@
 
 .stage-eyebrow {
   font-family: var(--font-ui);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -247,7 +247,7 @@
   border: 1.5px solid var(--border-md);
   background: transparent;
   color: var(--text);
-  font-size: 1.1rem;
+  font-size: 1.125rem;
   line-height: 1;
   cursor: pointer;
   transition:
@@ -272,7 +272,7 @@
   padding: 0 16px;
   border-radius: var(--radius-full);
   font-family: var(--font-ui);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -296,7 +296,7 @@
   background: transparent;
   color: var(--text-muted);
   font-family: var(--font-ui);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -416,7 +416,7 @@
   border: none;
   border-radius: var(--radius-sm);
   font-family: var(--font-ui);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -704,7 +704,7 @@
   overflow: hidden;
   color: var(--text);
   font-family: var(--font-display);
-  font-size: 0.98rem;
+  font-size: 1rem;
   font-weight: 800;
   line-height: 1.25;
   text-overflow: ellipsis;
@@ -718,7 +718,7 @@
   gap: 6px 14px;
   color: var(--text-muted);
   font-family: var(--font-body);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   line-height: 1.35;
 }
 
@@ -732,7 +732,7 @@
 .calendar-list-arrow {
   flex: 0 0 auto;
   color: var(--gold-light);
-  font-size: 1.1rem;
+  font-size: 1.125rem;
 }
 
 @media (max-width: 767.98px) {

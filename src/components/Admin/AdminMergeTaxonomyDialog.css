@@ -21,7 +21,7 @@
 .admin-card--dialog h2 {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-size: 1.375rem;
   color: var(--admin-text-strong);
 }
 

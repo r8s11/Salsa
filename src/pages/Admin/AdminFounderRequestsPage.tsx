@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Loader2 } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 import AdminFounderRequestsTable from "../../components/Admin/AdminFounderRequestsTable";
 import AdminFounderRequestsFilterDrawer from "../../components/Admin/AdminFounderRequestsFilterDrawer";
 import AdminApproveDialog from "../../components/Admin/AdminApproveDialog";
@@ -126,7 +126,7 @@ export default function AdminFounderRequestsPage() {
 
         <div className="page-actions">
           <button type="button" className="filter-btn" onClick={() => setFilterDrawerOpen(true)}>
-            <span className="icon">🔍</span>
+            <Search size={16} aria-hidden="true" />
             Filters
           </button>
         </div>

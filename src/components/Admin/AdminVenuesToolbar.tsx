@@ -1,4 +1,4 @@
-import { Search, SlidersHorizontal, ChevronDown } from "lucide-react";
+import { Search, SlidersHorizontal, ChevronDown, ArrowUp, ArrowDown } from "lucide-react";
 import {
   VENUE_SORT_OPTIONS,
   VENUE_VIEWS,
@@ -167,7 +167,11 @@ export default function AdminVenuesToolbar({
             })
           }
         >
-          {sort.dir === "asc" ? "↑" : "↓"}
+          {sort.dir === "asc" ? (
+            <ArrowUp size={16} aria-hidden="true" />
+          ) : (
+            <ArrowDown size={16} aria-hidden="true" />
+          )}
         </button>
       </div>
     </div>

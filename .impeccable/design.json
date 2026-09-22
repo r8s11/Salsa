@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-14T22:30:00.000Z",
+  "generatedAt": "2026-09-22T00:00:00.000Z",
   "title": "Design System: Salsa Segura",
   "extensions": {
     "colorMeta": {
@@ -64,6 +64,39 @@
         "note": "Light theme #be123c, dark theme #fb7185. Operator state only."
       }
     },
+    "categoryChips": {
+      "note": "Taxonomy categories (attendee type, dance style). A chip names a category and never reports state; the five desk state colours stay reserved for state. Tokens live in src/styles/admin.css as --admin-chip-<hue>-tint / -ink with dark variants.",
+      "palette": [
+        { "name": "blue", "tint": "#dbeafe", "ink": "#1d4ed8", "darkTint": "rgba(59, 130, 246, 0.16)", "darkInk": "#93c5fd" },
+        { "name": "green", "tint": "#dcfce7", "ink": "#15803d", "darkTint": "rgba(34, 197, 94, 0.16)", "darkInk": "#86efac" },
+        { "name": "yellow", "tint": "#fef9c3", "ink": "#a16207", "darkTint": "rgba(234, 179, 8, 0.16)", "darkInk": "#fde047" },
+        { "name": "purple", "tint": "#f3e8ff", "ink": "#7e22ce", "darkTint": "rgba(168, 85, 247, 0.16)", "darkInk": "#d8b4fe" },
+        { "name": "cyan", "tint": "#cffafe", "ink": "#0e7490", "darkTint": "rgba(34, 211, 238, 0.16)", "darkInk": "#67e8f9" },
+        { "name": "orange", "tint": "#ffedd5", "ink": "#c2410c", "darkTint": "rgba(249, 115, 22, 0.16)", "darkInk": "#fdba74" },
+        { "name": "rose", "tint": "#ffe4e6", "ink": "#be123c", "darkTint": "rgba(244, 63, 94, 0.16)", "darkInk": "#fda4af" }
+      ],
+      "logoFallback": {
+        "light": "linear-gradient(135deg, #fdf2f8 0%, #fce7f3 50%, #fbcfe8 100%)",
+        "dark": "linear-gradient(135deg, rgba(244, 63, 94, 0.1) 0%, rgba(244, 63, 94, 0.18) 50%, rgba(244, 63, 94, 0.26) 100%)",
+        "purpose": "Decorative brand-rose ground for logo/monogram fallback tiles on operator surfaces."
+      }
+    },
+    "cssRoles": {
+      "red-error": { "value": "#ff8080", "purpose": "Error text on dark grounds (public forms). AA on --bg and --surface." },
+      "red-error-strong": { "value": "#ffb3b3", "purpose": "Error headings and error-link hover on dark grounds." },
+      "red-line": { "value": "rgba(196, 18, 48, 0.35)", "purpose": "Error banner borders on dark grounds." },
+      "blue-mid": { "value": "#4a5aa8", "purpose": "Class-event indigo mid tone; gradient stop on card media." },
+      "blue-pale": { "value": "#9fb1f0", "purpose": "Class-event indigo pale tone; secondary text on indigo grounds." },
+      "gradient-primary": { "value": "linear-gradient(180deg, #ff3d63, #e11d48)", "purpose": "DESIGN.md primary button gloss: subtle top-down shine over Rose Red." }
+    },
+    "typeRamp": {
+      "uiStepsRem": [0.6875, 0.75, 0.8125, 0.875, 0.9375, 1, 1.125, 1.375, 1.5],
+      "displayBand": {
+        "range": "1.5rem–4.5rem",
+        "purpose": "Poster titles, hero figures and splash headings set per surface; anchored by display-md (3rem) and display-lg (4.5rem). Not a step list."
+      },
+      "artworkExemption": "SVG artwork lettering (the vinyl label print, 3.6px/6.6px) answers to no ramp."
+    },
     "typographyMeta": {
       "display-lg": { "displayName": "Display Large", "purpose": "Public hero headlines only." },
       "desk-agate": {
@@ -81,6 +114,14 @@
       "desk-figure": {
         "displayName": "Count Figure",
         "purpose": "The work counts in the desk's standing rule."
+      },
+      "wordmark": {
+        "displayName": "Wordmark",
+        "purpose": "The script Salsa Segura lockup. The only place Great Vibes appears; never a heading or flourish."
+      },
+      "identifier": {
+        "displayName": "Identifier",
+        "purpose": "Tabular mono identifiers an operator reads character by character: IDs, hashes, raw payloads."
       }
     },
     "shadows": [
@@ -90,12 +131,42 @@
         "purpose": "Public world only. Neon halo under active rose elements."
       },
       {
+        "name": "sheet-elevation",
+        "value": "0 30px 60px -18px rgba(0, 0, 0, 0.5)",
+        "purpose": "The one stated elevation for the event sheet/dialog: a real offset shadow. The rose glow that used to stack on top was a zero-offset halo and is gone."
+      },
+      {
+        "name": "admin-sm",
+        "value": "0 1px 2px rgba(15, 23, 42, 0.06)",
+        "purpose": "Record-surface cards and dialogs (light theme; dark: 0 1px 2px rgba(0,0,0,0.3)). Desk surfaces still take none."
+      },
+      {
+        "name": "admin-md",
+        "value": "0 4px 12px rgba(15, 23, 42, 0.08)",
+        "purpose": "Overlays on record surfaces (dark: 0 4px 12px rgba(0,0,0,0.4))."
+      },
+      {
         "name": "desk-none",
         "value": "none",
         "purpose": "The operator desk declares no elevation. Rules and measures divide; nothing lifts."
       }
     ],
     "motion": [
+      {
+        "name": "ease-out-enter",
+        "value": "cubic-bezier(0.23, 1, 0.32, 1)",
+        "purpose": "System standard easing: entrances, state transitions, sheet motion across both worlds."
+      },
+      {
+        "name": "sheet-drag",
+        "value": "transform 220ms cubic-bezier(0.23, 1, 0.32, 1)",
+        "purpose": "Sheet snap-back after an incomplete drag. No transition mid-drag (finger-follower); reduced motion drops it to a jump cut."
+      },
+      {
+        "name": "page-fade",
+        "value": "opacity 450ms cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "Page-content arrival."
+      },
       {
         "name": "desk-settle",
         "value": "cubic-bezier(0.22, 0.9, 0.3, 1)",
@@ -114,6 +185,7 @@
     ],
     "breakpoints": [
       { "name": "desk-stack", "value": "1080px", "note": "Desk measures stack below this." },
+      { "name": "sheet", "value": "768px", "note": "The event modal becomes a drag-to-dismiss bottom sheet below this (max-width: 767.98px)." },
       { "name": "sm", "value": "640px" },
       { "name": "md", "value": "990px" }
     ],
@@ -140,15 +212,47 @@
       "refersTo": "desk-action",
       "description": "Approve and Reject in the galley. Full UI size regardless of the agate rows around it.",
       "html": "<button class=\"ds-desk-action ds-desk-action--set\">Approve</button>",
-      "css": ".ds-desk-action { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 14px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; color: #0f172a; font: 700 0.75rem 'Epilogue', sans-serif; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; transition: border-color .15s ease, background .15s ease, color .15s ease; } .ds-desk-action--set { border-color: #047857; color: #047857; } .ds-desk-action--set:hover { background: #ecfdf5; }"
+      "css": ".ds-desk-action { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 14px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; color: #0f172a; font: 700 0.75rem 'Epilogue', sans-serif; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; transition: border-color .15s ease, background .15s ease, color .15s ease; } .ds-desk-action--set { border-color: #047857; color: #047857; } .ds-desk-action--set:hover { background: #ecfdf5; } .ds-desk-action:focus-visible { outline: 2px solid #e11d48; outline-offset: 2px; }"
     },
     {
       "name": "Desk Division Head",
       "kind": "custom",
       "refersTo": "desk-division",
       "description": "One of the week's seven divisions. Holds its place even when nothing is set.",
-      "html": "<div class=\"ds-division\"><span class=\"ds-division-day\">Tonight</span><span class=\"ds-division-date\">Sep 14</span><span class=\"ds-division-rule\"></span></div>",
+      "html": "<div class=\"ds-division\"><span class=\"ds-division-day\">Tonight</span><span class=\"ds-division-date\">Sep 22</span><span class=\"ds-division-rule\"></span></div>",
       "css": ".ds-division { display: flex; align-items: baseline; gap: 10px; padding: 16px 0 4px; } .ds-division-day { font: 800 0.6875rem 'Epilogue', sans-serif; letter-spacing: 0.14em; text-transform: uppercase; color: #be123c; } .ds-division-date { font: 400 0.6875rem 'Epilogue', sans-serif; letter-spacing: 0.06em; color: #64748b; } .ds-division-rule { flex: 1; height: 1px; background: #be123c; }"
+    },
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The public world's commit action: solid Rose Red with a subtle top-down gloss, white label, uppercase tracked label type.",
+      "html": "<button class=\"ds-btn-primary\">Book Now</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0.8rem 1.75rem; background: linear-gradient(180deg, #ff3d63, #e11d48); color: #fff; border: 0; border-radius: 24px; font-family: 'Epilogue', sans-serif; font-size: 0.8125rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: box-shadow 0.25s ease; } .ds-btn-primary:hover { box-shadow: 0 0 24px rgba(225, 29, 72, 0.3); } .ds-btn-primary:active { transform: scale(0.97); } .ds-btn-primary:focus-visible { outline: 2px solid #ffe088; outline-offset: 3px; }"
+    },
+    {
+      "name": "Category Chip",
+      "kind": "chip",
+      "refersTo": "admin-chip",
+      "description": "Operator taxonomy chip: a category label, never a state report. Light values shown; dark variants in extensions.categoryChips.",
+      "html": "<span class=\"ds-chip ds-chip--rose\">Instructor</span> <span class=\"ds-chip ds-chip--blue\">Registered</span>",
+      "css": ".ds-chip { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 9999px; font-family: 'Epilogue', sans-serif; font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; } .ds-chip--rose { background: #ffe4e6; color: #be123c; } .ds-chip--blue { background: #dbeafe; color: #1d4ed8; }"
+    },
+    {
+      "name": "Gold Text Link",
+      "kind": "custom",
+      "refersTo": "address-link",
+      "description": "The sheet's link role (address, contacts, series). Gold on dark; the target clears the 24px minimum and 44px on coarse pointers.",
+      "html": "<a class=\"ds-gold-link\" href=\"#\">Melody Hall · 123 Union Sq</a>",
+      "css": ".ds-gold-link { display: inline-flex; align-items: center; min-height: 24px; color: #e9c349; font-family: 'Be Vietnam Pro', sans-serif; text-decoration: none; } .ds-gold-link:hover { color: #ffe088; text-decoration: underline; } .ds-gold-link:focus-visible { outline: 2px solid #ffe088; outline-offset: 3px; } @media (pointer: coarse) { .ds-gold-link { min-height: 44px; } }"
+    },
+    {
+      "name": "Event Sheet with Drag Handle",
+      "kind": "custom",
+      "refersTo": "modal-content",
+      "description": "The mobile event sheet. One elevation shadow; a full-width 28px grab strip at the lip drags to dismiss (96px or flick), snaps back otherwise, and never fires on interrupted gestures.",
+      "html": "<section class=\"ds-sheet\"><div class=\"ds-sheet-handle\"></div><h2 class=\"ds-sheet-title\">Tuesday Night Social</h2></section>",
+      "css": ".ds-sheet { position: relative; max-height: 96dvh; display: flex; flex-direction: column; border-radius: 24px 24px 0 0; background: #131b2e; box-shadow: 0 30px 60px -18px rgba(0, 0, 0, 0.5); transform: translateY(var(--sheet-drag, 0px)); transition: transform 220ms cubic-bezier(0.23, 1, 0.32, 1); } .ds-sheet.is-dragging { transition: none; } .ds-sheet-handle { display: flex; height: 28px; align-items: center; justify-content: center; touch-action: none; cursor: grab; } .ds-sheet-handle::before { content: \"\"; width: 36px; height: 4px; border-radius: 9999px; background: rgba(255, 255, 255, 0.16); } .ds-sheet-title { margin: 0; padding: 8px 20px 16px; font: 800 1.5rem/1.1 'Epilogue', sans-serif; color: #dae2fd; } @media (prefers-reduced-motion: reduce) { .ds-sheet { transition: none; } }"
     }
   ],
   "narrative": {
@@ -159,12 +263,18 @@
       "Five operator state colours are law and never decorate",
       "The operator desk declares no elevation at all",
       "Counts state work, never inventory",
-      "Decisions propagate once, in place, without routing"
+      "Decisions propagate once, in place, without routing",
+      "UI type sits on a nine-step rem ramp; display composition is a documented band"
     ],
     "rules": [
       {
         "name": "The State-Only Rule",
         "body": "The five desk state colours are used for state and nothing else, so an operator reads a column of marks without reading a label.",
+        "section": "colors"
+      },
+      {
+        "name": "Category chips are not state",
+        "body": "Taxonomy categories are labelled by the --admin-chip-* palette. A chip names a category and never reports an entry's state; the five state colours stay reserved for state.",
         "section": "colors"
       },
       {

@@ -25,6 +25,7 @@ function Footer() {
           <img
             src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=☕&slug=rseg&button_colour=059669&font_colour=ffffff&font_family=Poppins&outline_colour=059669&coffee_colour=FFDD00"
             alt="Buy me a coffee"
+            loading="lazy"
           />
         </a>
 

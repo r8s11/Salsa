@@ -7,9 +7,9 @@
   margin: 0 auto 1.5rem;
   padding: 1rem 1.25rem;
   background: var(--red-dim);
-  border: 1px solid rgba(196, 18, 48, 0.35);
+  border: 1px solid var(--red-line);
   border-radius: var(--radius-md);
-  color: #ff8080;
+  color: var(--red-error);
   font-family: var(--font-body);
   font-size: 0.875rem;
   text-align: left;
@@ -25,7 +25,7 @@
   margin: 0;
   font-family: var(--font-display);
   font-weight: 800;
-  color: #ffb3b3;
+  color: var(--red-error-strong);
 }
 
 .form-error-summary__server {
@@ -40,12 +40,12 @@
 }
 
 .form-error-summary__list a {
-  color: #ff8080;
+  color: var(--red-error);
   text-decoration: underline;
 }
 
 .form-error-summary__list a:hover {
-  color: #ffb3b3;
+  color: var(--red-error-strong);
 }
 
 .form-error-summary__list a:focus-visible {

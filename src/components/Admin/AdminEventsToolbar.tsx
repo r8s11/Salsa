@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, SlidersHorizontal, ChevronDown } from "lucide-react";
+import { Search, SlidersHorizontal, ChevronDown, ArrowUp, ArrowDown } from "lucide-react";
 import type { DatabaseEvent } from "../../features/events/model/types";
 import type { EventFilters, SortDir, SortKey } from "../../features/admin/model/eventsQuery";
 import { toggleArrayItem } from "../../shared/utils/toggleArrayItem";
@@ -228,7 +228,11 @@ export default function AdminEventsToolbar({
           aria-label={sort.dir === "asc" ? "Sort ascending" : "Sort descending"}
           onClick={() => onSortChange({ key: sort.key, dir: sort.dir === "asc" ? "desc" : "asc" })}
         >
-          {sort.dir === "asc" ? "↑" : "↓"}
+          {sort.dir === "asc" ? (
+            <ArrowUp size={16} aria-hidden="true" />
+          ) : (
+            <ArrowDown size={16} aria-hidden="true" />
+          )}
         </button>
       </div>
     </div>

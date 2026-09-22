@@ -105,10 +105,10 @@
   min-width: 18px;
   height: 18px;
   padding: 0 5px;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   background: var(--admin-brand);
   color: var(--admin-text-on-brand);
-  font-size: 0.7rem;
+  font-size: 0.6875rem;
   font-weight: 700;
 }
 
@@ -122,7 +122,7 @@
 
 .admin-events-toolbar__sort-label {
   color: var(--admin-text-muted);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
 }
 
 @media (min-width: 1024px) {

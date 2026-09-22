@@ -50,11 +50,11 @@
 .profile-role-badge {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.65rem;
+  font-size: 0.6875rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 4px 11px;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   background: var(--gold-dim);
   color: var(--gold-light);
   border: 1px solid rgba(233, 195, 73, 0.35);
@@ -72,9 +72,9 @@
 
 .profile-style-chip {
   font-weight: 700;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   padding: 6px 13px;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   background: rgba(255, 182, 144, 0.14);
   color: var(--tertiary);
   border: 1px solid rgba(255, 182, 144, 0.3);
@@ -95,7 +95,7 @@
   padding: 0 var(--gutter);
   margin-top: var(--space-md);
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
 }
 
 .profile-links a {
@@ -130,7 +130,7 @@
 }
 
 .profile-numbers-note {
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   line-height: 1.4;
   color: var(--text-dim);
 }
@@ -140,7 +140,7 @@
   gap: 3px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border);
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   padding: 3px;
 }
 
@@ -151,7 +151,7 @@
   text-transform: uppercase;
   padding: 7px 14px;
   border: none;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   background: transparent;
   color: var(--text-dim);
   cursor: pointer;
@@ -170,7 +170,7 @@
 }
 
 .profile-numbers-hidden {
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   line-height: 1.55;
   color: var(--text-dim);
 }
@@ -188,7 +188,7 @@
 
 .profile-subsection-title {
   font-weight: 800;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--tertiary);
@@ -206,7 +206,7 @@
   gap: 16px;
   align-items: center;
   padding: 14px;
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--border);
   background: var(--surface);
   text-decoration: none;
@@ -253,9 +253,9 @@
 
 .profile-venue-pill {
   font-weight: 700;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   padding: 10px 16px;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   border: 1px solid var(--border-md);
   color: var(--text);
 }
@@ -277,7 +277,7 @@
 .profile-avatar-wrapper {
   width: 132px;
   height: 132px;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   overflow: hidden;
   border: 3px solid var(--bg);
   box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5);
@@ -326,7 +326,7 @@
 
 .profile-member-since {
   font-family: var(--font-body);
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   line-height: 1.5;
   color: var(--text-dim);
   margin-top: 6px;
@@ -334,7 +334,7 @@
 
 .profile-username {
   font-family: var(--font-body);
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   font-weight: 600;
   line-height: 1.5;
   color: var(--gold-light);
@@ -347,7 +347,7 @@
   align-items: center;
   justify-content: center;
   gap: 7px;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   border: 1px solid var(--border-md);
   background: rgba(11, 19, 38, 0.72);
   backdrop-filter: blur(10px);
@@ -377,7 +377,7 @@
   z-index: 1;
   min-height: 36px;
   padding: 0 14px;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -443,7 +443,7 @@
 .profile-stat-label {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   letter-spacing: 0.1em;
   line-height: 1.3;
   text-transform: uppercase;
@@ -462,7 +462,7 @@
   border-radius: var(--radius-lg);
   text-align: center;
   font-family: var(--font-body);
-  font-size: 14.5px;
+  font-size: 0.9375rem;
   color: var(--text-dim);
 }
 
@@ -488,7 +488,7 @@
   gap: 16px;
   align-items: center;
   padding: 14px;
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--border);
   background: var(--surface);
   transition:
@@ -510,7 +510,7 @@
   width: 56px;
   text-align: center;
   background: linear-gradient(135deg, var(--red-dim), rgba(225, 29, 72, 0.08));
-  border-radius: 11px;
+  border-radius: var(--radius-md);
   padding: 10px 4px;
   color: var(--text);
   border: 1px solid var(--border);
@@ -520,7 +520,7 @@
   display: block;
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: 22px;
+  font-size: 1.375rem;
   line-height: 1;
 }
 
@@ -528,7 +528,7 @@
   display: block;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 10px;
+  font-size: 0.6875rem;
   letter-spacing: 0.08em;
   margin-top: 2px;
 }
@@ -559,7 +559,7 @@
 
 .profile-submission-meta {
   font-family: var(--font-body);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   line-height: 1.45;
   color: var(--text-dim);
   margin-top: 4px;
@@ -567,7 +567,7 @@
 
 .profile-submission-location {
   font-family: var(--font-body);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   line-height: 1.45;
   color: var(--text-dim);
   margin-top: 3px;
@@ -584,7 +584,7 @@
 .profile-submission-badge {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 10.5px;
+  font-size: 0.6875rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 4px 11px;
@@ -630,7 +630,7 @@
 .profile-submission-link {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--gold);
   text-decoration: none;
   white-space: nowrap;
@@ -647,7 +647,7 @@
   text-align: center;
   color: var(--text-muted);
   font-family: var(--font-ui);
-  font-size: 14.5px;
+  font-size: 0.9375rem;
 }
 
 .profile-page-error {
@@ -718,7 +718,7 @@
   }
 
   .profile-submission-day {
-    font-size: 16px;
+    font-size: 1rem;
   }
 
   .profile-submission-right {

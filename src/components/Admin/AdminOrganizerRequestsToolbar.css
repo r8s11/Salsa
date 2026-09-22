@@ -63,7 +63,7 @@
   padding: 6px 10px;
   border-radius: var(--admin-radius);
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
 }
 
 .admin-organizer-requests-toolbar__type-option:hover {
@@ -83,10 +83,10 @@
   min-width: 20px;
   height: 20px;
   padding: 0 6px;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   background: var(--admin-brand);
   color: var(--admin-text-on-brand);
-  font-size: 10px;
+  font-size: 0.6875rem;
   font-weight: 700;
 }
 
@@ -97,7 +97,7 @@
 }
 
 .admin-organizer-requests-toolbar__sort-label {
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--admin-text-strong);
 }

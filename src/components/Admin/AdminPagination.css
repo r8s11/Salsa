@@ -7,7 +7,7 @@
   padding: 16px;
   background: var(--admin-surface-subtle);
   border-top: 1px solid var(--admin-border);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   color: var(--admin-text-muted);
 }
 
@@ -41,7 +41,7 @@
   background: var(--admin-surface-elevated);
   color: var(--admin-text-primary);
   font-family: var(--font-ui);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   cursor: pointer;
   transition:
     transform 140ms cubic-bezier(0.23, 1, 0.32, 1),

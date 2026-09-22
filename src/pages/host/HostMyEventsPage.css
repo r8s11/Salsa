@@ -85,7 +85,7 @@
   min-height: 44px;
   padding: 6px 14px;
   border: 1px solid var(--admin-border);
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   background: var(--admin-surface);
   color: var(--admin-text-muted);
   font: inherit;
@@ -112,7 +112,7 @@
   min-width: 18px;
   height: 18px;
   padding: 0 5px;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   background: var(--admin-surface-secondary);
   font-size: 0.6875rem;
   font-weight: 700;
@@ -147,7 +147,7 @@
 
 .host-my-events__empty-title {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 1.125rem;
   font-weight: 700;
   color: var(--admin-text-strong);
 }
@@ -190,7 +190,7 @@
   min-width: 22px;
   height: 22px;
   padding: 0 6px;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   background: var(--admin-surface-secondary);
   color: var(--admin-text-muted);
   font-size: 0.75rem;
@@ -215,11 +215,11 @@
   border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius);
   background: var(--admin-surface);
-  transition: box-shadow 0.15s;
+  transition: border-color 0.15s;
 }
 
 .host-my-events__card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border-color: var(--admin-border-md);
 }
 
 /* ── Card flyer ── */

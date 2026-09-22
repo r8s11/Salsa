@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import MarginMark from "../../components/Desk/MarginMark";
 import AdminApproveDialog from "../../components/Admin/AdminApproveDialog";
 import AdminRejectFounderDialog from "../../components/Admin/AdminRejectFounderDialog";
 import AdminFounderInvitationSection from "../../components/Admin/AdminFounderInvitationSection";
@@ -95,9 +96,9 @@ export default function AdminFounderRequestDetailPage() {
         </Link>
         <div className="header-actions">
           <span className={`status-badge status-${request.status}`}>
-            {request.status === "pending" && <span className="icon">⏳</span>}
-            {request.status === "approved" && <span className="icon">✓</span>}
-            {request.status === "rejected" && <span className="icon">✕</span>}
+            {request.status === "pending" && <MarginMark state="unset" />}
+            {request.status === "approved" && <MarginMark state="set" />}
+            {request.status === "rejected" && <MarginMark state="killed" />}
             {FOUNDER_REQUEST_STATUS_LABEL[request.status]}
             {request.reviewed_at && (
               <span className="reviewed-badge">Reviewed {formatDate(request.reviewed_at)}</span>

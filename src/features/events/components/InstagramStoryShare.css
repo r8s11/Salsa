@@ -89,7 +89,7 @@
   margin: 0;
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 12px;
+  font-size: 0.75rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--text-dim);

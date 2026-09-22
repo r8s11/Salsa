@@ -10,7 +10,7 @@
   font-family: var(--font-body);
   font-size: 0.8125rem;
   line-height: 1.4;
-  color: #ff8080; /* matches .error-banner text, AA on --bg and --surface */
+  color: var(--red-error); /* matches .error-banner text, AA on --bg and --surface */
 }
 
 /* Invalid controls in public forms get the same border treatment. */

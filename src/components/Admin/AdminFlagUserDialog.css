@@ -21,19 +21,19 @@
 .admin-flag-user-dialog h2 {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-size: 1.375rem;
   color: var(--admin-text-strong);
 }
 
 .admin-flag-user-dialog p {
   margin: 0;
   color: var(--admin-text-muted);
-  font-size: 0.9rem;
+  font-size: 0.875rem;
 }
 
 .admin-flag-user-dialog .admin-field__error {
   color: var(--admin-danger);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   margin: 0;
 }
 

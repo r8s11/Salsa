@@ -27,7 +27,7 @@
   );
   background-size: 200% 100%;
   animation: admin-skeleton-loading 1.5s infinite;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 .admin-skeleton--title {

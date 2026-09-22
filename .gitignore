@@ -173,23 +173,3 @@ graphify-out/
 
 # graft's local graph cache — regenerable, not committed (run `graft build`).
 /graft/
-
-# Agent / assistant tool state (regenerated per session, never imported)
-.cursor/
-.gemini/
-.grok/
-.kiro/
-.windsurf/
-.ignore
-.mcp.json
-opencode.json
-GEMINI.md
-.github/copilot-instructions.md
-
-# Impeccable: transient build evidence (screenshots, diffs). The durable
-# artifacts (design.json, surfaces/) are tracked.
-.impeccable/review/
-.impeccable/build/
-
-# Chisel Cache
-.chisel/

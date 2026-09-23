@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { ScheduleXEvent } from "../../types/events";
 import Events from "./Events";
 
-const events: ScheduleXEvent[] = [
+let mockedEvents: ScheduleXEvent[] = [
   {
     id: "featured",
     title: "Featured Social",
@@ -23,7 +23,11 @@ const events: ScheduleXEvent[] = [
 ];
 
 vi.mock("../../features/events/hooks/useEvent", () => ({
-  useEvents: () => ({ events, loading: false, error: null }),
+  useEvents: () => ({ events: mockedEvents, loading: false, error: null }),
+}));
+
+vi.mock("../../contexts/useCity", () => ({
+  useCity: () => ({ city: "boston" }),
 }));
 vi.mock("../EventModal/EventModal", () => ({
   default: function MockEventModal({
@@ -65,5 +69,18 @@ describe("Events homepage modal", () => {
     await user.click(screen.getByRole("button", { name: "Close event details" }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(screen.getByTestId("location")).toHaveTextContent("/");
+  });
+
+  it("turns an empty city feed into clear next steps", () => {
+    mockedEvents = [];
+    render(
+      <MemoryRouter>
+        <Events />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByRole("heading", { name: "Nothing on floor in Greater Boston yet." })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "View Full Calendar" })).toHaveAttribute("href", "/calendar");
+    expect(screen.getByRole("link", { name: "Submit an Event" })).toHaveAttribute("href", "/submit");
   });
 });

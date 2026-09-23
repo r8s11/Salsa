@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import type { DatabaseEvent } from "../../features/events/model/types";
@@ -374,6 +374,62 @@ describe("AdminOverviewPage", () => {
       expect.anything()
     );
   });
+
+it("keeps an approval failure open without starting the leave animation", async () => {
+  const user = userEvent.setup();
+  let callbacks!: { onSuccess?: () => void; onError?: (error: Error) => void };
+  const approveSubmissionWithTaxonomy = vi.fn(
+    (_payload, receivedCallbacks) => {
+      callbacks = receivedCallbacks;
+    }
+  );
+  vi.mocked(useAdminSubmissions).mockReturnValue({
+    ...defaultSubmissionsState,
+    submissions: [submission("s-1", "Unset One", 3)],
+    approveSubmissionWithTaxonomy,
+  });
+  renderPage();
+
+  await user.click(within(galley()).getByRole("button", { name: "Unset One" }));
+  await user.click(within(galley()).getByRole("button", { name: "Approve" }));
+  await act(async () => {
+    callbacks.onError?.(new Error("Approval failed"));
+  });
+
+  const entry = within(galley()).getByRole("button", { name: "Unset One" }).closest("li");
+  expect(entry).not.toHaveAttribute("data-leaving");
+  expect(within(galley()).getByText("Approval failed")).toBeInTheDocument();
+  expect(within(column()).queryByText("Unset One")).not.toBeInTheDocument();
+});
+
+it("focuses the next unresolved entry after a successful approval", async () => {
+  const user = userEvent.setup();
+  let callbacks!: { onSuccess?: () => void; onError?: (error: Error) => void };
+  const approveSubmissionWithTaxonomy = vi.fn(
+    (_payload, receivedCallbacks) => {
+      callbacks = receivedCallbacks;
+    }
+  );
+  vi.mocked(useAdminSubmissions).mockReturnValue({
+    ...defaultSubmissionsState,
+    submissions: [submission("s-1", "Unset One", 3), submission("s-2", "Unset Two", 4)],
+    approveSubmissionWithTaxonomy,
+  });
+  renderPage();
+
+  await user.click(within(galley()).getByRole("button", { name: "Unset One" }));
+  await user.click(within(galley()).getByRole("button", { name: "Approve" }));
+  await act(async () => {
+    callbacks.onSuccess?.();
+    const { promise, resolve } = Promise.withResolvers<void>();
+    window.setTimeout(resolve, 450);
+    await promise;
+  });
+
+  expect(within(galley()).queryByRole("button", { name: "Unset One" })).not.toBeInTheDocument();
+  expect(within(column()).getByText("Unset One")).toBeInTheDocument();
+  expect(within(galley()).getByRole("button", { name: "Unset Two" })).toHaveFocus();
+});
 
   it("shows an error with a working retry when the week fails to load", async () => {
     const refetch = vi.fn();

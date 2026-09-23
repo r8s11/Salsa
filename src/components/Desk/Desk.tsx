@@ -115,6 +115,7 @@ export function DeskEntry({
    */
   stamp = "date",
   onOpen,
+  titleButtonRef,
   children,
 }: {
   listing: DeskListing;
@@ -124,6 +125,7 @@ export function DeskEntry({
   arriving?: boolean;
   stamp?: "date" | "time";
   onOpen?: () => void;
+  titleButtonRef?: (node: HTMLButtonElement | null) => void;
   children?: ReactNode;
 }) {
   const when = stamp === "time" ? formatEntryTime(listing.date) : formatEntryDate(listing.date);
@@ -155,6 +157,7 @@ export function DeskEntry({
               className="desk__entry-open"
               onClick={onOpen}
               aria-expanded={open}
+              ref={titleButtonRef}
             >
               {listing.title}
             </button>
@@ -302,9 +305,17 @@ function formatEntryTime(iso: string | null): string {
 
 /* ── States ─────────────────────────────────────────────── */
 
-export function DeskEmpty({ children }: { children: ReactNode }) {
+export function DeskEmpty({
+  children,
+  focusRef,
+  tabIndex,
+}: {
+  children: ReactNode;
+  focusRef?: React.Ref<HTMLParagraphElement>;
+  tabIndex?: number;
+}) {
   return (
-    <p className="desk__empty">
+    <p ref={focusRef} className="desk__empty" tabIndex={tabIndex}>
       <CircleCheck size={18} className="desk__empty-figure" aria-hidden />
       {children}
     </p>

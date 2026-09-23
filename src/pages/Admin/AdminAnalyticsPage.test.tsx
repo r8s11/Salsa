@@ -11,7 +11,8 @@ vi.mock("../../features/admin/hooks/useAdminSubmissionList");
 const mockMetrics = {
   published_events: { current: 86, previous: 80, delta: 6 },
   new_users: { current: 42, previous: 38, delta: 4 },
-  rsvps: { current: 318, previous: 300, delta: 18 },
+  event_views: { current: 512, previous: 470, delta: 42 },
+  rsvp_clicks: { current: 97, previous: 88, delta: 9 },
   submissions: { current: 29, previous: 25, delta: 4 },
 };
 
@@ -19,6 +20,14 @@ const mockSeries = {
   events: [
     { label: "Aug 4", value: 12 },
     { label: "Aug 11", value: 15 },
+  ],
+  views: [
+    { label: "Aug 4", value: 40 },
+    { label: "Aug 11", value: 55 },
+  ],
+  rsvpClicks: [
+    { label: "Aug 4", value: 7 },
+    { label: "Aug 11", value: 11 },
   ],
   submissions: [
     { label: "Aug 4", value: 3 },
@@ -63,6 +72,10 @@ describe("AdminAnalyticsPage", () => {
     expect(screen.getAllByText("86").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("New Users").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("42").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Event Views").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("512").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("RSVP Clicks").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("97").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("Submissions").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("29").length).toBeGreaterThanOrEqual(1);
   });
@@ -76,6 +89,8 @@ describe("AdminAnalyticsPage", () => {
 
     expect(screen.getAllByText("Published Events").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("Submissions").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Event Views").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("RSVP Clicks").length).toBeGreaterThanOrEqual(1);
   });
 
   it("renders the Refresh button", () => {

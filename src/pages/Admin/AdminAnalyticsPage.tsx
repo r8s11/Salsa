@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import type { ComponentType } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { CalendarDays, Users, Link, FileText } from "lucide-react";
+import { CalendarDays, Users, Eye, ExternalLink, FileText } from "lucide-react";
 import AdminPageHeader from "../../components/Admin/AdminPageHeader";
 import AdminMetricCard from "../../components/Admin/AdminMetricCard";
 import AdminAnalyticsFilters from "../../components/Admin/AdminAnalyticsFilters";
@@ -174,6 +174,20 @@ export default function AdminAnalyticsPage() {
             isLoading={isLoading}
           />
         </section>
+        <section className="admin-card">
+          <AdminTrendChart
+            label="Event Views"
+            data={series?.views ?? []}
+            isLoading={isLoading}
+          />
+        </section>
+        <section className="admin-card">
+          <AdminTrendChart
+            label="RSVP Clicks"
+            data={series?.rsvpClicks ?? []}
+            isLoading={isLoading}
+          />
+        </section>
       </div>
 
       <section className="admin-card admin-analytics-page__recent">
@@ -236,7 +250,18 @@ const METRIC_CONFIG: {
     icon: CalendarDays,
   },
   { key: "new_users", label: "New Users", subLabel: "Registered profiles in range", icon: Users },
-  { key: "rsvps", label: "RSVPs", subLabel: "Events with RSVP links", icon: Link },
+  {
+    key: "event_views",
+    label: "Event Views",
+    subLabel: "Detail views in range",
+    icon: Eye,
+  },
+  {
+    key: "rsvp_clicks",
+    label: "RSVP Clicks",
+    subLabel: "Outbound RSVP link clicks",
+    icon: ExternalLink,
+  },
   {
     key: "submissions",
     label: "Submissions",

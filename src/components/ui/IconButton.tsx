@@ -1,4 +1,4 @@
-import { type ButtonHTMLAttributes, type ReactNode } from "react";
+import { type ButtonHTMLAttributes, type ReactNode, type Ref } from "react";
 import "./IconButton.css";
 
 type IconButtonVariant = "ghost" | "outline" | "danger";
@@ -6,6 +6,7 @@ type IconButtonVariant = "ghost" | "outline" | "danger";
 interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: IconButtonVariant;
   children: ReactNode;
+  ref?: Ref<HTMLButtonElement>;
 }
 
 function IconButton({
@@ -14,6 +15,7 @@ function IconButton({
   className,
   children,
   type,
+  ref,
   ...rest
 }: IconButtonProps) {
   const resolvedType = type ?? "button";
@@ -23,7 +25,7 @@ function IconButton({
     .join(" ");
 
   return (
-    <button type={resolvedType} className={classes} disabled={disabled} {...rest}>
+    <button type={resolvedType} ref={ref} className={classes} disabled={disabled} {...rest}>
       {children}
     </button>
   );

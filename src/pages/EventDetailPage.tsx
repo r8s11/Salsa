@@ -12,9 +12,14 @@ import {
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { RelatedEventsStrip } from "../components/Events/RelatedEventsStrip";
-import { fetchApprovedEventById, fetchApprovedEvents } from "../features/events/api/eventsRepo";
+import {
+  fetchApprovedEventById,
+  fetchApprovedEvents,
+  recordEventTouch,
+} from "../features/events/api/eventsRepo";
 import InstagramStoryShare from "../features/events/components/InstagramStoryShare";
 import VenueMapCard from "../features/events/components/VenueMapCard";
+import { useEventViewTouch } from "../features/events/hooks/useEventViewTouch";
 import { databaseEventToScheduleX } from "../features/events/model/convert";
 import { selectRelatedEvents } from "../features/events/model/relatedEvents";
 import type { City, EventType } from "../features/events/model/types";
@@ -88,6 +93,8 @@ export default function EventDetailPage() {
     queryFn: () => fetchApprovedEvents(event!.city),
     enabled: Boolean(event?.city),
   });
+
+  useEventViewTouch(event?.id ?? null);
 
   const tabListId = useId();
   const aboutTabId = `${tabListId}-tab-about`;
@@ -228,7 +235,11 @@ export default function EventDetailPage() {
           </div>
           <div className="event-page__strip-actions">
             {event.rsvp_link && (
-              <ButtonLink href={event.rsvp_link} external>
+              <ButtonLink
+                href={event.rsvp_link}
+                external
+                onClick={() => void recordEventTouch(event.id, "rsvp_click")}
+              >
                 RSVP <ExternalLink size={15} aria-hidden="true" />
               </ButtonLink>
             )}

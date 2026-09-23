@@ -288,3 +288,27 @@ export async function duplicateEvent(
   if (error) throw new Error(error.message);
   await replaceEventTaxonomyTerms(data.id, taxonomyTermIds);
 }
+
+export type EventTouchKind = "view" | "rsvp_click";
+
+/**
+ * Demand telemetry: records an event-detail view or an outbound RSVP-link
+ * click via the record_event_touch RPC. Deduped per browser per event per
+ * UTC day (sessionStorage), so re-mounts, StrictMode double-effects and
+ * repeat clicks on the same day send nothing new.
+ *
+ * Sends only event id + kind — no user id, no session id, no PII. Never
+ * rejects: telemetry must not break the page (storage unavailable, RPC
+ * missing locally, network down — all swallowed).
+ */
+export async function recordEventTouch(eventId: string, kind: EventTouchKind): Promise<void> {
+  try {
+    const day = new Date().toISOString().slice(0, 10);
+    const key = `salsasegura-touch:${kind}:${eventId}:${day}`;
+    if (window.sessionStorage.getItem(key)) return;
+    window.sessionStorage.setItem(key, day);
+    await supabase.rpc("record_event_touch", { p_event_id: eventId, p_kind: kind });
+  } catch {
+    // Fire-and-forget: failures are invisible by design.
+  }
+}

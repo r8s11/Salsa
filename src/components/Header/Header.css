@@ -155,6 +155,20 @@ a.logo:hover .ss-logo__wordmark-accent {
   border-color: var(--red-bright);
 }
 
+/* Equal specificity with the compact restatement above (0,2,0) — declared
+   later so demoted header/drawer actions (Sign In) keep the gold outline
+   instead of filling solid. */
+.site-header .ui-button--secondary {
+  background: transparent;
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.site-header .ui-button--secondary:hover:not(:disabled) {
+  background: var(--gold-dim);
+  color: var(--gold-light);
+}
+
 .account-disclosure {
   position: relative;
   margin-left: var(--space-sm);
@@ -386,7 +400,6 @@ a.logo:hover .ss-logo__wordmark-accent {
     padding: var(--space-lg) 20px calc(var(--space-xl) + env(safe-area-inset-bottom));
     overflow-y: auto;
     background:
-      radial-gradient(80% 55% at 88% 0%, rgba(225, 29, 72, 0.26), transparent 62%),
       radial-gradient(70% 50% at 0% 100%, rgba(233, 195, 73, 0.12), transparent 58%), var(--bg);
   }
 
@@ -514,9 +527,10 @@ a.logo:hover .ss-logo__wordmark-accent {
   .mobile-nav__account {
     display: grid;
     gap: var(--space-sm);
-    /* Anchors the account block to the bottom of the sheet, matching the
-       redesign, instead of stacking everything against the nav list. */
-    margin-top: auto;
+    /* Route to City to Account stack: the cluster follows the city block
+       at the shared 24px group gap instead of pinning to the sheet bottom,
+       so the break stays a fixed design value rather than whatever height
+       the viewport happens to leave over. */
     padding-top: var(--space-md);
     border-top: 1px solid var(--border);
   }

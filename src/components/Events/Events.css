@@ -76,7 +76,8 @@
   color: #fff;
   border-radius: var(--radius-md);
   padding: 10px 16px;
-  box-shadow: 0 8px 24px rgba(225, 29, 72, 0.4);
+  /* Date sits over noisy flyer art: use directional depth, not a floating halo. */
+  box-shadow: 0 10px 22px rgba(104, 0, 26, 0.36);
 }
 
 .featured-card-date span:first-child {
@@ -213,6 +214,12 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(288px, 1fr));
   gap: 1.25rem;
+}
+
+/* One or two listings are a deliberate short set, not stretched leftovers. */
+.events-grid--thin {
+  grid-template-columns: repeat(auto-fit, minmax(288px, 360px));
+  justify-content: start;
 }
 
 /* ── Card ── */
@@ -502,6 +509,40 @@
   border-radius: var(--radius-lg);
 }
 
+.no-events--all {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 2rem 0;
+  text-align: left;
+  letter-spacing: normal;
+  border: 0;
+  border-block: 1px solid var(--border);
+  border-radius: 0;
+}
+
+.no-events--all h3 {
+  margin: 0;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.no-events--all p {
+  margin: 0.4rem 0 0;
+  max-width: 42ch;
+}
+
+.no-events__actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
 /* ── Footer CTAs ── */
 .events-footer {
   text-align: center;
@@ -546,7 +587,21 @@
     flex-direction: column;
     align-items: flex-start;
   }
+
+  .no-events--all {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .no-events__actions {
+    width: 100%;
+  }
+
+  .no-events__actions .ui-button {
+    flex: 1 1 12rem;
+  }
 }
+
 
 @media (prefers-reduced-motion: reduce) {
   /* The card grid still appears as a list, so keep the stagger's fade and

@@ -16,7 +16,9 @@ const event: ScheduleXEvent = {
 
 describe("ShareableEventPoster", () => {
   it("renders a Story-native poster with type and event details in its safe content region", () => {
-    render(<ShareableEventPoster event={event} />);
+    render(
+      <ShareableEventPoster event={event} eventUrl="https://salsasegura.com/events/event-1" />
+    );
 
     const poster = screen.getByRole("img", {
       name: "Instagram Story poster for Live Band Latin Night at PKL",
@@ -28,7 +30,13 @@ describe("ShareableEventPoster", () => {
   });
 
   it("renders the resolved poster image in the Instagram Story poster", () => {
-    render(<ShareableEventPoster event={event} imageUrl="data:image/png;base64,banner" />);
+    render(
+      <ShareableEventPoster
+        event={event}
+        imageUrl="data:image/png;base64,banner"
+        eventUrl="https://salsasegura.com/events/event-1"
+      />
+    );
 
     expect(screen.getByRole("img", { name: /instagram story poster/i })).toBeInTheDocument();
     expect(document.querySelector(".poster-artwork-fill img")).toHaveAttribute(
@@ -43,14 +51,18 @@ describe("ShareableEventPoster", () => {
   });
 
   it("uses the identical information panel when an event has no flyer", () => {
-    render(<ShareableEventPoster event={event} />);
+    render(
+      <ShareableEventPoster event={event} eventUrl="https://salsasegura.com/events/event-1" />
+    );
 
     expect(document.querySelector(".poster-artwork-frame")).not.toBeInTheDocument();
     expect(document.querySelector(".poster-info-panel")).toBeInTheDocument();
   });
 
   it("renders the required Story fields and the price when the event carries one", () => {
-    render(<ShareableEventPoster event={event} />);
+    render(
+      <ShareableEventPoster event={event} eventUrl="https://salsasegura.com/events/event-1" />
+    );
 
     const poster = screen.getByRole("img", { name: /instagram story poster/i });
     expect(within(poster).getByText("Saturday, August 29, 2026")).toBeInTheDocument();
@@ -58,12 +70,14 @@ describe("ShareableEventPoster", () => {
     expect(within(poster).getByText("South Boston")).toBeInTheDocument();
     expect(within(poster).getByText("$25")).toBeInTheDocument();
     expect(within(poster).getByText("More at salsasegura.com")).toBeInTheDocument();
+    expect(within(poster).getByText("https://salsasegura.com/events/event-1")).toBeInTheDocument();
   });
 
   it("omits optional fields the event does not carry", () => {
     render(
       <ShareableEventPoster
         event={{ ...event, location: undefined, priceType: "free", priceAmount: undefined }}
+        eventUrl="https://salsasegura.com/events/event-1"
       />
     );
 

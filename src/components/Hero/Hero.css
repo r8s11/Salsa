@@ -473,17 +473,56 @@
   animation-play-state: paused;
 }
 
-/* ── Reduced Motion ── */
+/* ── Reduced Motion ──
+   Every spatial loop stops: the record rests, the grid holds, the ticker
+   sets as a still line, and the backdrop no longer follows the pointer.
+   The spotlight keeps an opacity-only breath — no scale, no travel — so the
+   floor still reads as lit rather than frozen. */
 @media (prefers-reduced-motion: reduce) {
-  .hero-glow,
   .hero-grid,
   .hero-ticker-track,
   .hero-vinyl__disc {
     animation: none;
   }
 
+  .hero-glow {
+    animation-name: heroGlowBreath;
+    will-change: auto;
+  }
+
+  .hero-ticker-track {
+    will-change: auto;
+  }
+
+  /* A still line runs off the edge instead of stopping dead at it. The fade
+     sits inside the rules so the ticker's borders stay full-width. */
+  .hero-ticker::after {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    inset-inline-end: 0;
+    width: 15%;
+    background: linear-gradient(90deg, transparent, var(--bg));
+    pointer-events: none;
+  }
+
+  /* Nothing moves, so Pause/Resume would control nothing. */
+  .hero-ticker-control {
+    display: none;
+  }
+
   .hero-btn:hover {
     transform: none;
+  }
+}
+
+@keyframes heroGlowBreath {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.88;
   }
 }
 
@@ -605,8 +644,8 @@
   }
 }
 
-/* ── Pointer Parallax (desktop only) ── */
-@media (hover: hover) and (pointer: fine) {
+/* ── Pointer Parallax (desktop only, motion allowed) ── */
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
   .hero-bg {
     transform: translate(var(--hero-parallax-x, 0px), var(--hero-parallax-y, 0px));
     transition: transform 0.3s ease-out;

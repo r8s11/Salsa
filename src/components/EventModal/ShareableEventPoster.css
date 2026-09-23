@@ -156,8 +156,9 @@
 
 .poster-qr-section {
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
   margin-top: 8px;
 }
 
@@ -167,6 +168,14 @@
   font-weight: 500;
   color: var(--text-dim);
   letter-spacing: 0.04em;
+}
+
+.poster-url {
+  font-family: var(--font-ui);
+  font-size: 1.125rem;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+  overflow-wrap: anywhere;
 }
 
 /* ── Hidden off-screen rendering container ── */

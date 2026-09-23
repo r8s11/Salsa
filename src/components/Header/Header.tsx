@@ -165,7 +165,12 @@ function Header() {
                   <ButtonLink to="/submit" size="compact" onClick={closeNavigation}>
                     Submit Event
                   </ButtonLink>
-                  <ButtonLink to="/signin" size="compact" onClick={closeNavigation}>
+                  <ButtonLink
+                    to="/signin"
+                    size="compact"
+                    variant="secondary"
+                    onClick={closeNavigation}
+                  >
                     Sign In
                   </ButtonLink>
                 </>

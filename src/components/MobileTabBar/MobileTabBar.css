@@ -7,7 +7,7 @@
      bottom-anchored element can offset by it instead of guessing. */
   .mobile-tab-bar {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     position: fixed;
     left: max(12px, env(safe-area-inset-left));
     right: max(12px, env(safe-area-inset-right));
@@ -41,10 +41,12 @@
     color: var(--text-dim);
     font-family: var(--font-ui);
     font-weight: 700;
-    /* 0.6rem was below the platform floor for a tab label; three tabs leave
-       room for the documented label-sm step. */
-    font-size: 0.75rem;
-    letter-spacing: 0.04em;
+    /* Four tabs: label box is 62px at 320px viewport. Measured CALENDAR at
+       12px/0.04em = 70.69px (ellipsizes); label-sm 11px with zero tracking
+       lands near 61.3px and fits. label-sm is the documented ramp step and
+       the accessible name comes from the text, not the tracking. */
+    font-size: 0.6875rem;
+    letter-spacing: 0;
     text-decoration: none;
     text-transform: uppercase;
     transition:
@@ -96,5 +98,30 @@
     .mobile-tab-bar__icon {
       transition: none;
     }
+  }
+
+  /* City context rides the bar's top edge as a non-interactive capsule so
+     the four label boxes stay untouched at 320px. The landmark name
+     ("Primary, Boston events") carries it for assistive tech. */
+  .mobile-tab-bar__city {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 2px 8px;
+    border: 1px solid var(--border-md);
+    border-radius: var(--radius-full);
+    background: color-mix(in srgb, var(--surface-high) 92%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: var(--gold);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.6875rem;
+    letter-spacing: 0.1em;
+    line-height: 1.2;
+    text-transform: uppercase;
+    white-space: nowrap;
+    pointer-events: none;
   }
 }

@@ -5,12 +5,17 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DatabaseEvent } from "../features/events/model/types";
-import { fetchApprovedEventById, fetchApprovedEvents } from "../features/events/api/eventsRepo";
+import {
+  fetchApprovedEventById,
+  fetchApprovedEvents,
+  recordEventTouch,
+} from "../features/events/api/eventsRepo";
 import EventDetailPage from "./EventDetailPage";
 
 vi.mock("../features/events/api/eventsRepo", () => ({
   fetchApprovedEventById: vi.fn(),
   fetchApprovedEvents: vi.fn(),
+  recordEventTouch: vi.fn(),
 }));
 
 const event: DatabaseEvent = {
@@ -342,5 +347,19 @@ describe("EventDetailPage", () => {
     await user.keyboard("{ArrowRight}");
 
     expect(screen.getByRole("tab", { name: /photo album/i })).toHaveFocus();
+  });
+
+  it("records a view touch on load and an rsvp_click touch on RSVP click", async () => {
+    vi.mocked(recordEventTouch).mockClear();
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByRole("heading", { name: "Havana Nights" });
+
+    expect(recordEventTouch).toHaveBeenCalledWith("event-1", "view");
+
+    const rsvpLink = screen.getByRole("link", { name: /RSVP/i });
+    await user.click(rsvpLink);
+
+    expect(recordEventTouch).toHaveBeenCalledWith("event-1", "rsvp_click");
   });
 });

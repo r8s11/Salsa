@@ -27,10 +27,11 @@ function AboutPage() {
   useAboutMotion(rootRef);
 
   // Pointer parallax on the disc — additive only. CSS gates the transform to
-  // `(hover: hover) and (pointer: fine)`, so touch/keyboard/coarse-pointer
-  // visitors just see the disc centered; nothing here is required for the
-  // hero to be complete.
+  // fine pointers with motion allowed, so touch/keyboard/reduced-motion
+  // visitors just see the disc centered; skip the per-move style writes for
+  // them too. Nothing here is required for the hero to be complete.
   function handlePointerMove(e: PointerEvent<HTMLElement>) {
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
     const bounds = e.currentTarget.getBoundingClientRect();
     const x = (e.clientX - bounds.left) / bounds.width - 0.5;
     const y = (e.clientY - bounds.top) / bounds.height - 0.5;

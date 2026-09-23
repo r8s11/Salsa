@@ -2,8 +2,8 @@
 // filterable grid of the rest of this week's floor.
 import { useMemo, useState } from "react";
 import ButtonLink from "../ui/ButtonLink";
-import "./Events.css";
 import { useEvents } from "../../features/events/hooks/useEvent";
+import { useCity } from "../../contexts/useCity";
 import EventCard from "./EventCard";
 import FeaturedEventCard from "./FeaturedEventCard";
 import EventModal from "../EventModal/EventModal";
@@ -17,10 +17,17 @@ const FILTER_OPTIONS: { value: TypeFilter; label: string }[] = [
   { value: "workshop", label: "Workshop" },
 ];
 
+const CITY_LABELS: Record<string, string> = {
+  boston: "Greater Boston",
+  "new-york-city": "NYC",
+};
+
 function Events() {
+  const { city } = useCity();
   const { events: allEvents, loading, error } = useEvents();
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [selectedEvent, setSelectedEvent] = useState<ScheduleXEvent | null>(null);
+  const cityLabel = CITY_LABELS[city] ?? city;
 
   const upcomingEvents = useMemo(() => {
     const now = new Date();
@@ -103,14 +110,22 @@ function Events() {
           </div>
 
           {upcomingEvents.length === 0 ? (
-            <div className="no-events">
-              <p>
-                No upcoming events scheduled. Check back soon, or follow @SalsaSegura on Instagram
-                for updates!
-              </p>
+            <div className="no-events no-events--all" role="status">
+              <div>
+                <h3>Nothing on floor in {cityLabel} yet.</h3>
+                <p>Check the full calendar or help set the next date.</p>
+              </div>
+              <div className="no-events__actions">
+                <ButtonLink to="/calendar" variant="secondary">
+                  View Full Calendar
+                </ButtonLink>
+                <ButtonLink to="/submit" variant="primary">
+                  Submit an Event
+                </ButtonLink>
+              </div>
             </div>
           ) : feedEvents.length > 0 ? (
-            <div className="events-grid">
+            <div className={`events-grid${feedEvents.length < 3 ? " events-grid--thin" : ""}`}>
               {feedEvents.map((event) => (
                 <EventCard key={event.id} event={event} onSelect={setSelectedEvent} />
               ))}
@@ -121,17 +136,19 @@ function Events() {
             </div>
           )}
 
-          <div className="events-footer">
-            <ButtonLink to="/calendar" variant="secondary">
-              View Full Calendar
-            </ButtonLink>
-            <div className="events-cta">
-              <p>Want to host a pop-up class or private event?</p>
-              <ButtonLink to="/submit" variant="primary">
-                Submit an Event
+          {upcomingEvents.length > 0 && (
+            <div className="events-footer">
+              <ButtonLink to="/calendar" variant="secondary">
+                View Full Calendar
               </ButtonLink>
+              <div className="events-cta">
+                <p>Want to host a pop-up class or private event?</p>
+                <ButtonLink to="/submit" variant="primary">
+                  Submit an Event
+                </ButtonLink>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </section>
       <EventModal event={selectedEvent} onClose={() => setSelectedEvent(null)} />

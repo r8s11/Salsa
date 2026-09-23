@@ -19,7 +19,8 @@ export interface MetricValue {
 export interface AnalyticsMetrics {
   published_events: MetricValue;
   new_users: MetricValue;
-  rsvps: MetricValue;
+  event_views: MetricValue;
+  rsvp_clicks: MetricValue;
   submissions: MetricValue;
 }
 
@@ -30,6 +31,8 @@ export interface ChartDataPoint {
 
 export interface ChartSeries {
   events: ChartDataPoint[];
+  views: ChartDataPoint[];
+  rsvpClicks: ChartDataPoint[];
   submissions: ChartDataPoint[];
 }
 
@@ -175,10 +178,15 @@ export function parseMetrics(raw: Record<string, unknown> | null | undefined): A
       previous: num("new_users_prev"),
       delta: num("new_users_delta"),
     },
-    rsvps: {
-      current: num("rsvps"),
-      previous: num("rsvps_prev"),
-      delta: num("rsvps_delta"),
+    event_views: {
+      current: num("event_views"),
+      previous: num("event_views_prev"),
+      delta: num("event_views_delta"),
+    },
+    rsvp_clicks: {
+      current: num("rsvp_clicks"),
+      previous: num("rsvp_clicks_prev"),
+      delta: num("rsvp_clicks_delta"),
     },
     submissions: {
       current: num("submissions"),
@@ -209,6 +217,8 @@ export function parseSeries(raw: Record<string, unknown> | null | undefined): Ch
 
   return {
     events: arr("events_by_week"),
+    views: arr("views_by_week"),
+    rsvpClicks: arr("rsvp_clicks_by_week"),
     submissions: arr("submissions_by_week"),
   };
 }
@@ -218,7 +228,8 @@ function emptyMetrics(): AnalyticsMetrics {
   return {
     published_events: { ...zero },
     new_users: { ...zero },
-    rsvps: { ...zero },
+    event_views: { ...zero },
+    rsvp_clicks: { ...zero },
     submissions: { ...zero },
   };
 }

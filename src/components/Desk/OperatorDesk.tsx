@@ -67,6 +67,7 @@ export default function OperatorDesk({
   const [leaving, setLeaving] = useState<{ id: string; outcome: "set" | "killed" } | null>(null);
   const [arrivingId, setArrivingId] = useState<string | null>(null);
   const [settledListings, setSettledListings] = useState<DeskListing[]>([]);
+  const [settledId, setSettledId] = useState<string | null>(null);
   const [decideError, setDecideError] = useState<string | null>(null);
 
   const today = useMemo(() => now ?? new Date(), [now]);
@@ -98,6 +99,7 @@ export default function OperatorDesk({
             },
           ]);
           setArrivingId(submission.id);
+          setSettledId(submission.id);
           window.setTimeout(() => setArrivingId(null), 600);
         }
       }, LEAVE_MS);
@@ -111,29 +113,22 @@ export default function OperatorDesk({
       approveSubmissionWithTaxonomy(
         { submissionId: submission.id, taxonomyTermIds: view.taxonomyTermIds },
         {
-          // The approved event comes back from the events query under a new
-          // event id, so the optimistic row keyed by submission id has to go
-          // or the same night renders twice.
+          // Wait for the server before the entry leaves the galley. A failed
+          // approval stays in context, rather than briefly claiming it was set.
           onSuccess: () => {
             setSettledListings((previous) => previous.filter((row) => row.id !== submission.id));
+            settle(submission, "set");
           },
           onError: (mutationError: Error) => {
-            // The entry returns to the galley: the desk never claims a
-            // decision the server refused.
-            setDecided((previous) => {
-              const next = { ...previous };
-              delete next[submission.id];
-              return next;
-            });
-            setSettledListings((previous) => previous.filter((row) => row.id !== submission.id));
             setDecideError(mutationError.message || "We couldn't approve this entry.");
           },
         }
       );
-      settle(submission, "set");
     },
     [approveSubmissionWithTaxonomy, settle]
   );
+
+  const handleSettledFocus = useCallback(() => setSettledId(null), []);
 
   const handleKill = useCallback(
     (
@@ -228,6 +223,8 @@ export default function OperatorDesk({
             error={submissionsError ? "We couldn't load the galley." : null}
             leavingId={leaving?.id ?? null}
             leavingOutcome={leaving?.outcome ?? null}
+            settledId={settledId}
+            onSettledFocus={handleSettledFocus}
             onSet={handleSet}
             onKill={handleKill}
             isDeciding={isApproving || isUpdating}

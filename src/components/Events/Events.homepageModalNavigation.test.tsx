@@ -4,6 +4,7 @@ import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import type { ScheduleXEvent } from "../../types/events";
 import Events from "./Events";
+import { CityProvider } from "../../contexts/CityContext";
 
 // Deliberately does NOT mock EventModal — this test exercises the real
 // component to prove the homepage → EventModal → "Full details" → event
@@ -12,6 +13,11 @@ import Events from "./Events";
 // Details behavior than any other caller).
 vi.mock("../../features/events/hooks/useEvent", () => ({
   useEvents: () => ({ events, loading: false, error: null }),
+}));
+// The real EventModal records view/rsvp_click demand touches; keep them out
+// of the live Supabase while this test exercises navigation only.
+vi.mock("../../features/events/api/eventsRepo", () => ({
+  recordEventTouch: vi.fn(),
 }));
 
 const events: ScheduleXEvent[] = [
@@ -33,11 +39,13 @@ describe("Events homepage → EventModal Full Details navigation", () => {
     const user = userEvent.setup();
     render(
       <MemoryRouter initialEntries={["/"]}>
-        <LocationProbe />
-        <Routes>
-          <Route path="/" element={<Events />} />
-          <Route path="/events/:id" element={<p>Event detail page</p>} />
-        </Routes>
+        <CityProvider>
+          <LocationProbe />
+          <Routes>
+            <Route path="/" element={<Events />} />
+            <Route path="/events/:id" element={<p>Event detail page</p>} />
+          </Routes>
+        </CityProvider>
       </MemoryRouter>
     );
 

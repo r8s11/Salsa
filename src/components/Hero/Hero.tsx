@@ -82,7 +82,9 @@ function Hero() {
     if (!hero) return;
 
     if (typeof window.matchMedia !== "function") return;
-    const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const mq = window.matchMedia(
+      "(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)"
+    );
     if (!mq.matches) return;
 
     const handleMove = (e: MouseEvent) => {

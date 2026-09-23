@@ -6,13 +6,19 @@ import "./ShareableEventPoster.css";
 interface ShareableEventPosterProps {
   event: ScheduleXEvent;
   imageUrl?: string;
+  /** Canonical public event URL, printed so every shared poster converts. */
+  eventUrl: string;
 }
 
 /**
  * Renders a Story-native social-media event poster.
  * Designed for 1080×1920 Instagram Stories.
  */
-export default function ShareableEventPoster({ event, imageUrl }: ShareableEventPosterProps) {
+export default function ShareableEventPoster({
+  event,
+  imageUrl,
+  eventUrl,
+}: ShareableEventPosterProps) {
   const toDate = (val: unknown): Date => {
     if (typeof val === "string") {
       return new Date(val.replace(" ", "T"));
@@ -113,6 +119,7 @@ export default function ShareableEventPoster({ event, imageUrl }: ShareableEvent
                 : "Get tickets at salsasegura.com"
               : "More at salsasegura.com"}
           </span>
+          <span className="poster-url">{eventUrl}</span>
         </div>
       </section>
     </div>

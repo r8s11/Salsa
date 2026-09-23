@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import type { EventSubmission } from "../../features/admin/model/submissions";
 import AdminRejectSubmissionDialog from "../Admin/AdminRejectSubmissionDialog";
@@ -25,6 +25,9 @@ interface GalleyProps {
   /** Ids already decided this session; they animate out and stay out. */
   leavingId: string | null;
   leavingOutcome: "set" | "killed" | null;
+  /** An approved entry that just left the galley after its server confirmation. */
+  settledId: string | null;
+  onSettledFocus: () => void;
   onSet: (submission: EventSubmission) => void;
   onKill: (
     submission: EventSubmission,
@@ -43,6 +46,8 @@ export default function Galley({
   error,
   leavingId,
   leavingOutcome,
+  settledId,
+  onSettledFocus,
   onSet,
   onKill,
   isDeciding,
@@ -51,11 +56,32 @@ export default function Galley({
 }: GalleyProps) {
   const [openId, setOpenId] = useState<string | null>(null);
   const [killTarget, setKillTarget] = useState<EventSubmission | null>(null);
+  const titleButtons = useRef(new Map<string, HTMLButtonElement>());
+  const emptyStatus = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    if (!settledId) return;
+
+    const next = submissions.find((submission) => submission.id !== settledId);
+    setOpenId(null);
+
+    if (next) {
+      titleButtons.current.get(next.id)?.focus();
+    } else {
+      emptyStatus.current?.focus();
+    }
+
+    onSettledFocus();
+  }, [onSettledFocus, settledId, submissions]);
 
   if (isLoading) return <DeskSkeleton rows={4} />;
   if (error) return <DeskError message={error} onRetry={onRetry} />;
   if (submissions.length === 0) {
-    return <DeskEmpty>Galley is clear. Nothing is waiting on a decision.</DeskEmpty>;
+    return (
+      <DeskEmpty focusRef={emptyStatus} tabIndex={-1}>
+        Galley is clear. Nothing is waiting on a decision.
+      </DeskEmpty>
+    );
   }
 
   return (
@@ -74,6 +100,10 @@ export default function Galley({
               open={isOpen}
               leaving={leavingId === submission.id ? (leavingOutcome ?? undefined) : undefined}
               onOpen={() => setOpenId(isOpen ? null : submission.id)}
+              titleButtonRef={(node) => {
+                if (node) titleButtons.current.set(submission.id, node);
+                else titleButtons.current.delete(submission.id);
+              }}
             >
               {isOpen && (
                 <div className="desk__detail">

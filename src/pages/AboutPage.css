@@ -160,9 +160,10 @@
   }
 }
 
-/* Pointer parallax — desktop only, additive; touch/keyboard get the
-   centered disc from `.about-hero__disc`'s base transform. */
-@media (hover: hover) and (pointer: fine) {
+/* Pointer parallax — desktop only, additive, and only when motion is
+   welcome; touch/keyboard/reduced-motion visitors get the centered disc
+   from `.about-hero__disc`'s base transform. */
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
   .about-hero__disc {
     transform: translateY(-50%) rotate(var(--about-tilt-x, 0deg)) rotateX(var(--about-tilt-y, 0deg));
     transition: transform 0.3s ease-out;

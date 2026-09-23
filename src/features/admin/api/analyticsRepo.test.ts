@@ -22,9 +22,12 @@ describe("fetchAnalytics", () => {
             new_users: 42,
             new_users_prev: 38,
             new_users_delta: 4,
-            rsvps: 318,
-            rsvps_prev: 300,
-            rsvps_delta: 18,
+            event_views: 512,
+            event_views_prev: 470,
+            event_views_delta: 42,
+            rsvp_clicks: 97,
+            rsvp_clicks_prev: 88,
+            rsvp_clicks_delta: 9,
             submissions: 29,
             submissions_prev: 25,
             submissions_delta: 4,
@@ -36,6 +39,8 @@ describe("fetchAnalytics", () => {
         return {
           data: {
             events_by_week: [{ label: "Aug 4", value: 12 }],
+            views_by_week: [{ label: "Aug 4", value: 40 }],
+            rsvp_clicks_by_week: [{ label: "Aug 4", value: 7 }],
             submissions_by_week: [{ label: "Aug 4", value: 3 }],
           },
           error: null,
@@ -51,8 +56,12 @@ describe("fetchAnalytics", () => {
 
     expect(result.metrics.published_events.current).toBe(86);
     expect(result.metrics.new_users.current).toBe(42);
+    expect(result.metrics.event_views.current).toBe(512);
+    expect(result.metrics.rsvp_clicks.current).toBe(97);
     expect(result.series.events[0].label).toBe("Aug 4");
     expect(result.series.events[0].value).toBe(12);
+    expect(result.series.views[0].value).toBe(40);
+    expect(result.series.rsvpClicks[0].value).toBe(7);
   });
 
   it("throws on RPC error for metrics", async () => {

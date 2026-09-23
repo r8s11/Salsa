@@ -6,6 +6,7 @@ import {
   deleteEventForUser,
   duplicateEvent,
   fetchApprovedEventById,
+  recordEventTouch,
   updateEventFlyer,
   updateEventForUser,
 } from "./eventsRepo";
@@ -16,6 +17,7 @@ const mocks = vi.hoisted(() => ({
   update: vi.fn(),
   delete: vi.fn(),
   maybeSingle: vi.fn(),
+  rpc: vi.fn(),
   replaceEventTaxonomyTerms: vi.fn(),
 }));
 
@@ -33,6 +35,7 @@ mocks.from.mockReturnValue(queryBuilder);
 vi.mock("../../../lib/supabase", () => ({
   supabase: {
     from: mocks.from,
+    rpc: mocks.rpc,
   },
 }));
 vi.mock("../../admin/api/taxonomyRepo", () => ({
@@ -351,5 +354,37 @@ describe("updateEventFlyer", () => {
     await expect(updateEventFlyer("evt-1", "url")).rejects.toThrow(
       "Event not found or update denied by policy."
     );
+  });
+});
+
+describe("recordEventTouch", () => {
+  beforeEach(() => {
+    sessionStorage.clear();
+    mocks.rpc.mockReset();
+  });
+
+  it("sends event id and kind through the record_event_touch RPC", async () => {
+    await recordEventTouch("evt-touch-1", "view");
+
+    expect(mocks.rpc).toHaveBeenCalledWith("record_event_touch", {
+      p_event_id: "evt-touch-1",
+      p_kind: "view",
+    });
+  });
+
+  it("dedupes to one RPC call per event, kind and UTC day", async () => {
+    await recordEventTouch("evt-touch-2", "rsvp_click");
+    await recordEventTouch("evt-touch-2", "rsvp_click");
+
+    expect(mocks.rpc).toHaveBeenCalledTimes(1);
+    // A different kind on the same event still sends.
+    await recordEventTouch("evt-touch-2", "view");
+    expect(mocks.rpc).toHaveBeenCalledTimes(2);
+  });
+
+  it("resolves without throwing when the RPC rejects", async () => {
+    mocks.rpc.mockRejectedValue(new Error("network down"));
+
+    await expect(recordEventTouch("evt-touch-3", "view")).resolves.toBeUndefined();
   });
 });

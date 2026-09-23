@@ -33,8 +33,10 @@
   --red-error: #ff8080;
   --red-error-strong: #ffb3b3;
   --red-line: rgba(196, 18, 48, 0.35);
-  /* DESIGN.md primary: subtle top-down gloss. */
-  --gradient-primary: linear-gradient(180deg, #ff3d63, #e11d48);
+  /* DESIGN.md primary: subtle top-down gloss. Stops hold white text at
+     AA (4.70:1 at the lightest stop #e11d48, 5.92:1 at #be0037) — the old
+     gloss top (#ff3d63) failed at 3.44:1 under the button label. */
+  --gradient-primary: linear-gradient(180deg, #e11d48, #be0037);
 
   /* Accent — Indigo (class events) */
   --blue: #7c93e9;
@@ -384,7 +386,7 @@ main {
   content: "";
   position: absolute;
   inset: 0;
-  background: var(--red-bright);
+  background: var(--red-deep);
   transform: translateX(-100%);
   transition: transform 0.3s ease;
   z-index: -1;

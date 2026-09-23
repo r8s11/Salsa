@@ -117,9 +117,12 @@ describe("parseMetrics", () => {
       new_users: 42,
       new_users_prev: 38,
       new_users_delta: 4,
-      rsvps: 318,
-      rsvps_prev: 300,
-      rsvps_delta: 18,
+      event_views: 512,
+      event_views_prev: 470,
+      event_views_delta: 42,
+      rsvp_clicks: 97,
+      rsvp_clicks_prev: 88,
+      rsvp_clicks_delta: 9,
       submissions: 29,
       submissions_prev: 25,
       submissions_delta: 4,
@@ -130,6 +133,8 @@ describe("parseMetrics", () => {
     expect(result.published_events.previous).toBe(80);
     expect(result.published_events.delta).toBe(6);
     expect(result.new_users.current).toBe(42);
+    expect(result.event_views.current).toBe(512);
+    expect(result.rsvp_clicks.delta).toBe(9);
     expect(result.submissions.delta).toBe(4);
   });
 
@@ -147,9 +152,12 @@ describe("parseMetrics", () => {
       new_users: "42",
       new_users_prev: "38",
       new_users_delta: "4",
-      rsvps: "318",
-      rsvps_prev: "300",
-      rsvps_delta: "18",
+      event_views: "512",
+      event_views_prev: "470",
+      event_views_delta: "42",
+      rsvp_clicks: "97",
+      rsvp_clicks_prev: "88",
+      rsvp_clicks_delta: "9",
       submissions: "29",
       submissions_prev: "25",
       submissions_delta: "4",
@@ -167,6 +175,14 @@ describe("parseSeries", () => {
         { label: "Aug 4", value: 12 },
         { label: "Aug 11", value: 15 },
       ],
+      views_by_week: [
+        { label: "Aug 4", value: 40 },
+        { label: "Aug 11", value: 55 },
+      ],
+      rsvp_clicks_by_week: [
+        { label: "Aug 4", value: 7 },
+        { label: "Aug 11", value: 11 },
+      ],
       submissions_by_week: [
         { label: "Aug 4", value: 3 },
         { label: "Aug 11", value: 5 },
@@ -178,12 +194,16 @@ describe("parseSeries", () => {
     expect(result.events[0].label).toBe("Aug 4");
     expect(result.events[0].value).toBe(12);
     expect(result.submissions[1].value).toBe(5);
+    expect(result.views[0].value).toBe(40);
+    expect(result.rsvpClicks[1].value).toBe(11);
   });
 
   it("returns empty arrays for null input", () => {
     const result = parseSeries(null);
     expect(result.events).toEqual([]);
     expect(result.submissions).toEqual([]);
+    expect(result.views).toEqual([]);
+    expect(result.rsvpClicks).toEqual([]);
   });
 
   it("filters out malformed data points", () => {

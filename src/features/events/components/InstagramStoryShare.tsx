@@ -94,7 +94,9 @@ export default function InstagramStoryShare({
 
       const container = ensureContainer();
       root = createRoot(container);
-      root.render(<ShareableEventPoster event={event} imageUrl={posterImageUrl} />);
+      root.render(
+        <ShareableEventPoster event={event} imageUrl={posterImageUrl} eventUrl={shareUrl} />
+      );
       // Executor form: this project's tsconfig lib (ES2020) has no
       // Promise.withResolvers (see useShareablePoster's identical note).
       await new Promise((resolve) => setTimeout(resolve, POSTER_PAINT_MS));

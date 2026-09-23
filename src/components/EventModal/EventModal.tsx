@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-import { createRoot } from "react-dom/client";
+import { createRoot, type Root } from "react-dom/client";
 import {
   ArrowLeft,
   CalendarPlus,
   Clock,
   Eye,
+  MoreHorizontal,
   Link2,
   MapPin,
   Repeat,
@@ -15,9 +16,12 @@ import {
 import { ScheduleXEvent } from "../../types/events";
 import { downloadIcs, mapsUrl, googleCalendarUrl } from "../../utils/ics";
 import { getUpcomingSeriesDates } from "../../utils/series";
-import { useShareablePoster } from "../../features/calendar/hooks/useShareablePoster";
 import { resolvePosterImageForEvent } from "../../features/calendar/api/posterFlyers";
+import { useShareablePoster } from "../../features/calendar/hooks/useShareablePoster";
+import { buildPublicEventUrl } from "../../features/events/model/eventSharing";
 import { useAccessibleDialog } from "../../shared/a11y/useAccessibleDialog";
+import { recordEventTouch } from "../../features/events/api/eventsRepo";
+import { useEventViewTouch } from "../../features/events/hooks/useEventViewTouch";
 import ShareableEventPoster from "./ShareableEventPoster";
 import { resolveEventFlyer } from "./eventModalImage";
 import Button from "../ui/Button";
@@ -76,7 +80,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
 
 function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: () => void }) {
   const modalRef = useRef<HTMLDivElement>(null);
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const closeXRef = useRef<HTMLButtonElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const dragCloseTimerRef = useRef<number | null>(null);
   const dragRef = useRef<{
@@ -92,14 +96,26 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
   const { onKeyDown, onBackdropClick } = useAccessibleDialog({
     dialogRef: modalRef,
     onDismiss: onClose,
-    initialFocusRef: closeButtonRef,
+    initialFocusRef: closeXRef,
   });
-
   const [isDownloading, setIsDownloading] = useState(false);
   const [copied, setCopied] = useState(false);
+  // Visible action feedback, mirroring InstagramStoryShare: errors announce
+  // via role="alert", confirmations via role="status". Scoped to the region
+  // whose button was used, so exactly one live copy exists in the DOM.
+  type ActionRegion = "desktop" | "mobile";
+  const [feedback, setFeedback] = useState<{
+    kind: "status" | "error";
+    message: string;
+    region: ActionRegion;
+  } | null>(null);
   const copiedTimerRef = useRef<number | null>(null);
   const { ensureContainer, capturePoster, posterFilename, downloadPoster, removeTarget } =
     useShareablePoster();
+
+  useEventViewTouch(String(event.id));
+
+  const canonicalUrl = buildPublicEventUrl(String(event.id));
 
   // Clear the "Copied" and drag-close timers on close/unmount.
   useEffect(() => {
@@ -108,16 +124,16 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
       if (dragCloseTimerRef.current !== null) window.clearTimeout(dragCloseTimerRef.current);
     };
   }, []);
-
-  const handleCopyLink = async () => {
-    const url = `${window.location.origin}/events/${event.id}`;
+  const handleCopyLink = async (region: ActionRegion) => {
     try {
-      await navigator.clipboard.writeText(url);
+      if (!navigator.clipboard?.writeText) throw new Error("Clipboard unavailable");
+      await navigator.clipboard.writeText(canonicalUrl);
       setCopied(true);
+      setFeedback(null);
       if (copiedTimerRef.current !== null) window.clearTimeout(copiedTimerRef.current);
       copiedTimerRef.current = window.setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error("Failed to copy event link:", err);
+    } catch {
+      setFeedback({ kind: "error", message: "Could not copy event link.", region });
     }
   };
 
@@ -267,7 +283,12 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
               })}
             </span>
             {event.rsvpLink && (
-              <a href={event.rsvpLink} target="_blank" rel="noopener noreferrer">
+              <a
+                href={event.rsvpLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => void recordEventTouch(String(event.id), "rsvp_click")}
+              >
                 Reserve
               </a>
             )}
@@ -277,10 +298,16 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
     ) : null;
 
   // ── Poster sharing ──
-  const handleSharePoster = async () => {
+  // Same pipeline as InstagramStoryShare: off-screen ShareableEventPoster,
+  // capture, then the native files share with the canonical event URL in the
+  // text so every shared poster returns a dancer to this exact event.
+  // Failures surface as visible feedback (never console-only); a dismissed
+  // share sheet stays silent because that is a choice, not a failure.
+  const handleSharePoster = async (region: ActionRegion) => {
     if (isDownloading || !event) return;
     setIsDownloading(true);
-    let root: ReturnType<typeof createRoot> | null = null;
+    setFeedback(null);
+    let root: Root | null = null;
     try {
       const resolution = await resolvePosterImageForEvent({
         eventId: String(event.id),
@@ -288,33 +315,49 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
         cachedUrl: event.posterImageUrl ?? null,
       });
 
-      if (resolution.status === "unavailable") {
-        console.warn("Flyer unavailable, sharing without flyer");
-      }
-
       const posterImageUrl = resolution.status === "ready" ? resolution.dataUrl : undefined;
 
       const container = ensureContainer();
       root = createRoot(container);
-      root.render(<ShareableEventPoster event={event} imageUrl={posterImageUrl} />);
-      // Wait for the poster to render before capturing
+      root.render(
+        <ShareableEventPoster event={event} imageUrl={posterImageUrl} eventUrl={canonicalUrl} />
+      );
+      // Executor form: this project's tsconfig lib (ES2020) has no
+      // Promise.withResolvers (see useShareablePoster's identical note).
       await new Promise((resolve) => setTimeout(resolve, 300));
       const poster = await capturePoster(container);
       const file = new File([poster], posterFilename(event), { type: "image/png" });
 
       if (navigator.canShare?.({ files: [file] })) {
         try {
-          await navigator.share({ title: event.title, files: [file] });
+          await navigator.share({
+            files: [file],
+            title: event.title,
+            text: `${event.title} — ${canonicalUrl}`,
+          });
         } catch (err) {
           if (!(err instanceof DOMException && err.name === "AbortError")) {
-            console.error("Failed to share poster:", err);
+            setFeedback({
+              kind: "error",
+              message: "Poster sharing failed. Please try again.",
+              region,
+            });
           }
         }
       } else {
         downloadPoster(event, poster);
+        setFeedback({
+          kind: "status",
+          message: "Sharing isn't available here — the poster was downloaded instead.",
+          region,
+        });
       }
-    } catch (err) {
-      console.error("Failed to share poster:", err);
+    } catch {
+      setFeedback({
+        kind: "error",
+        message: "Could not create the poster. Please try again.",
+        region,
+      });
     } finally {
       root?.unmount();
       removeTarget();
@@ -322,49 +365,119 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
     }
   };
 
-  // ── Shared action buttons (used in desktop sidebar + mobile sticky bar) ──
-  // The RSVP is now in the decision strip; sidebar/mobile bar get secondary actions only.
-  const renderActions = (inSidebar: boolean) => (
+  // Desktop keeps the full utility set in its sidebar. Mobile gets a booking
+  // action plus two visible utilities; lower-frequency actions live under More.
+  const renderCalendarAction = () => {
+    const calUrl = googleCalendarUrl(event);
+    return calUrl ? (
+      <ButtonLink href={calUrl} external variant="secondary" className="ics-button">
+        <CalendarPlus size={16} aria-hidden /> Add to calendar
+      </ButtonLink>
+    ) : (
+      <Button variant="secondary" onClick={() => downloadIcs(event)} className="ics-button">
+        <CalendarPlus size={16} aria-hidden /> Add to calendar
+      </Button>
+    );
+  };
+
+  // Feedback renders only in the region whose button produced it, so exactly
+  // one live copy exists in the DOM.
+  const renderFeedback = (region: ActionRegion) =>
+    feedback && feedback.region === region ? (
+      <p className="action-feedback" role={feedback.kind === "error" ? "alert" : "status"}>
+        {feedback.message}
+      </p>
+    ) : null;
+
+  // Price-aware attendance note. Never invents a walk-in policy: without an
+  // RSVP link it only speaks when contact facts exist, and stays silent
+  // otherwise. Desktop-only; the sidebar sits directly above the contact
+  // block, so "below" is accurate there.
+  const renderReassurance = () => {
+    if (event.rsvpLink) {
+      return (
+        <p className="reassurance">
+          {isFree ? "RSVP on the host's page · free entry" : "Tickets on the host's page"}
+        </p>
+      );
+    }
+    if (hasContacts) {
+      return <p className="reassurance">No online tickets — reach the host below</p>;
+    }
+    return null;
+  };
+
+  const renderShareButton = (region: ActionRegion) => (
+    <Button
+      variant="secondary"
+      onClick={() => void handleSharePoster(region)}
+      disabled={isDownloading}
+      loading={isDownloading}
+      loadingLabel="Generating…"
+    >
+      <Share2 size={16} aria-hidden />
+      Share poster
+    </Button>
+  );
+
+  const renderCopyButton = (region: ActionRegion) => (
+    <Button
+      variant="secondary"
+      onClick={() => void handleCopyLink(region)}
+      className="copy-link-btn"
+    >
+      <Link2 size={16} aria-hidden />
+      {copied ? "Copied" : "Copy link"}
+    </Button>
+  );
+
+  const renderDesktopActions = () => (
     <>
       <ButtonLink to={`/events/${event.id}`} variant="secondary" onClick={onClose}>
         <Eye size={16} aria-hidden />
         Full details
       </ButtonLink>
+      <div className="poster-download-section">{renderShareButton("desktop")}</div>
+      {renderCalendarAction()}
+      {renderCopyButton("desktop")}
+      {renderReassurance()}
+      {renderFeedback("desktop")}
+    </>
+  );
 
-      {/* Shareable Poster */}
-      <div className="poster-download-section">
-        <Button
-          variant="secondary"
-          onClick={handleSharePoster}
-          disabled={isDownloading}
-          loading={isDownloading}
-          loadingLabel="Generating…"
+  const renderMobileActions = () => (
+    <>
+      {event.rsvpLink ? (
+        <ButtonLink
+          href={event.rsvpLink}
+          external
+          className="rsvp-button"
+          onClick={() => void recordEventTouch(String(event.id), "rsvp_click")}
         >
-          <Share2 size={16} aria-hidden />
-          Share
-        </Button>
-      </div>
-
-      {/* Add to Calendar */}
-      {(() => {
-        const calUrl = googleCalendarUrl(event);
-        return calUrl ? (
-          <ButtonLink href={calUrl} external variant="secondary" className="ics-button">
-            <CalendarPlus size={16} aria-hidden /> Add to calendar
+          {rsvpLabel}
+        </ButtonLink>
+      ) : (
+        <ButtonLink to={`/events/${event.id}`} className="rsvp-button" onClick={onClose}>
+          <Eye size={16} aria-hidden />
+          Full details
+        </ButtonLink>
+      )}
+      <div className="poster-download-section">{renderShareButton("mobile")}</div>
+      <details className="mobile-actions-overflow">
+        <summary className="ui-button ui-button--secondary mobile-actions-overflow__toggle">
+          <MoreHorizontal size={16} aria-hidden />
+          More
+        </summary>
+        <div className="mobile-actions-overflow__menu">
+          <ButtonLink to={`/events/${event.id}`} variant="secondary" onClick={onClose}>
+            <Eye size={16} aria-hidden />
+            Full details
           </ButtonLink>
-        ) : (
-          <Button variant="secondary" onClick={() => downloadIcs(event)} className="ics-button">
-            <CalendarPlus size={16} aria-hidden /> Add to calendar
-          </Button>
-        );
-      })()}
-      {/* Copy Event Link */}
-      <Button variant="secondary" onClick={handleCopyLink} className="copy-link-btn">
-        <Link2 size={16} aria-hidden />
-        {copied ? "Copied" : "Copy link"}
-      </Button>
-
-      {inSidebar && <p className="reassurance">RSVP opens the host's page · pay at the door</p>}
+          {renderCalendarAction()}
+          {renderCopyButton("mobile")}
+        </div>
+      </details>
+      {renderFeedback("mobile")}
     </>
   );
 
@@ -390,13 +503,15 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
           onLostPointerCapture={onSheetDragAbort}
         />
 
-        <IconButton aria-label="Close" onClick={onClose} className="modal-close-x">
+        {/* Close is always visible on both layouts, so it owns initial focus.
+            The Back pill is display:none on mobile and must never take it. */}
+        <IconButton ref={closeXRef} aria-label="Close" onClick={onClose} className="modal-close-x">
           <X size={20} aria-hidden />
         </IconButton>
 
         {/* ── Poster header ── */}
         <div className="modal-poster" style={{ backgroundImage: `url(${resolvedImageUrl})` }}>
-          <button ref={closeButtonRef} className="modal-close back-pill" onClick={onClose}>
+          <button className="modal-close back-pill" onClick={onClose}>
             <ArrowLeft size={16} aria-hidden /> Back to calendar
           </button>
           <div className="poster-overlay">
@@ -430,7 +545,12 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
             </div>
           </div>
           {event.rsvpLink && (
-            <ButtonLink href={event.rsvpLink} external className="decision-strip__rsvp">
+            <ButtonLink
+              href={event.rsvpLink}
+              external
+              className="decision-strip__rsvp"
+              onClick={() => void recordEventTouch(String(event.id), "rsvp_click")}
+            >
               {rsvpLabel}
             </ButtonLink>
           )}
@@ -483,10 +603,8 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
               )}
             </div>
 
-            {/* Desktop sidebar — hidden on mobile */}
             <aside className="modal-sidebar">
-              {renderActions(true)}
-
+              {renderDesktopActions()}
               {renderContactBlock()}
               {renderSeries()}
             </aside>
@@ -499,8 +617,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
           </div>
         </div>
 
-        {/* ── Mobile sticky action bar ── */}
-        <div className="modal-mobile-actions">{renderActions(false)}</div>
+        <div className="modal-mobile-actions">{renderMobileActions()}</div>
       </div>
     </div>
   );

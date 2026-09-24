@@ -1,57 +1,36 @@
 import type { ReactElement } from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import {
-  render as rtlRender,
-  screen,
-  fireEvent,
-  waitFor,
-  act,
-  within,
-} from "@testing-library/react";
+import { render as rtlRender, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import EventModal from "./EventModal";
 import { recordEventTouch } from "../../features/events/api/eventsRepo";
 
 import { ScheduleXEvent } from "../../types/events";
 
-const {
-  mockEnsureContainer,
-  mockCapturePoster,
-  mockPosterFilename,
-  mockDownloadPoster,
-  mockRemoveTarget,
-  mockResolvePosterImage,
-  mockResolvePosterImageForEvent,
-} = vi.hoisted(() => ({
-  mockEnsureContainer: vi.fn(),
-  mockCapturePoster: vi.fn(),
+const { mockCreatePoster, mockPosterFilename, mockDownloadPoster } = vi.hoisted(() => ({
+  mockCreatePoster: vi.fn(),
   mockPosterFilename: vi.fn(
-    (event: { title: string }) =>
-      `salsa-segura-${event.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.png`
+    (event: { title: string }, format: string = "story") =>
+      `salsa-segura-${event.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}${
+        format === "feed" ? "-feed" : ""
+      }.png`
   ),
   mockDownloadPoster: vi.fn(),
-  mockRemoveTarget: vi.fn(),
-  mockResolvePosterImage: vi.fn(async (url?: string) => url ?? null),
-  mockResolvePosterImageForEvent: vi.fn(
-    async (): Promise<{ status: string; url?: string; message?: string }> => ({ status: "missing" })
-  ),
 }));
 
 vi.mock("../../features/calendar/hooks/useShareablePoster", () => ({
-  resolvePosterImage: mockResolvePosterImage,
   useShareablePoster: () => ({
-    ensureContainer: mockEnsureContainer,
-    capturePoster: mockCapturePoster,
+    createPoster: mockCreatePoster,
     posterFilename: mockPosterFilename,
     downloadPoster: mockDownloadPoster,
-    removeTarget: mockRemoveTarget,
   }),
 }));
 
-vi.mock("../../features/calendar/api/posterFlyers", () => ({
-  resolvePosterImageForEvent: mockResolvePosterImageForEvent,
-  requestPosterFlyer: vi.fn(),
+vi.mock("./posterFonts", () => ({
+  ensurePosterFonts: vi.fn().mockResolvedValue(undefined),
+  posterFontEmbedCss: vi.fn().mockResolvedValue(""),
 }));
+
 vi.mock("../../features/events/api/eventsRepo", () => ({
   recordEventTouch: vi.fn(),
 }));
@@ -76,24 +55,24 @@ describe("EventModal", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("uses the public default banner when no flyer is available", () => {
+  it("uses the public default fallback art on the sleeve thumbnail when no flyer is available", () => {
     const { container } = render(<EventModal event={baseEvent} onClose={() => {}} />);
-    const poster = container.querySelector(".modal-poster") as HTMLElement;
-    expect(poster.style.backgroundImage).toMatch(
-      /\/images\/event-fallbacks\/.+\.svg/
-    );
-    expect(container.querySelector(".ss-fallback")).not.toBeInTheDocument();
+    const sleeveImg = container.querySelector(".night-card__sleeve img") as HTMLImageElement;
+    expect(sleeveImg.getAttribute("src")).toMatch(/\/images\/event-fallbacks\/.+\.svg/);
+    const art = container.querySelector(".night-card__sleeve .sleeve-cover__art");
+    expect(art).toHaveClass("sleeve-cover__art--fallback");
   });
 
   it("shows price and 'Get Tickets' for a paid event", () => {
-    render(<EventModal event={baseEvent} onClose={() => {}} />);
-    expect(screen.getByText("$20")).toBeInTheDocument();
+    const { container } = render(<EventModal event={baseEvent} onClose={() => {}} />);
+    const priceEl = container.querySelector(".night-card__price-amount");
+    expect(priceEl).toHaveTextContent("$20");
     const links = screen.getAllByRole("link", { name: /get tickets/i });
     expect(links.length).toBeGreaterThanOrEqual(1);
     expect(links[0]).toHaveAttribute("href", "https://example.com/rsvp");
   });
 
-  it("links to the event detail page and closes the quick look", () => {
+  it("links to the event detail page and closes the modal", () => {
     const onClose = vi.fn();
     render(<EventModal event={baseEvent} onClose={onClose} />);
 
@@ -123,13 +102,14 @@ describe("EventModal", () => {
   });
 
   it("shows 'Free' and 'RSVP · Free' for a free event", () => {
-    render(
+    const { container } = render(
       <EventModal
         event={{ ...baseEvent, priceType: "free", priceAmount: undefined }}
         onClose={() => {}}
       />
     );
-    expect(screen.getByText("Free")).toBeInTheDocument();
+    const priceEl = container.querySelector(".night-card__price-amount");
+    expect(priceEl).toHaveTextContent("Free");
     const links = screen.getAllByRole("link", { name: /rsvp · free/i });
     expect(links.length).toBeGreaterThanOrEqual(1);
   });
@@ -139,45 +119,13 @@ describe("EventModal", () => {
     expect(screen.queryByRole("link", { name: /get tickets/i })).not.toBeInTheDocument();
   });
 
-  it("puts RSVP first in the mobile bar and defers its utilities under More", () => {
-    const { container } = render(<EventModal event={baseEvent} onClose={() => {}} />);
-    const actions = container.querySelector(".modal-mobile-actions") as HTMLElement;
-    const directActions = Array.from(actions.children);
-
-    expect(directActions).toHaveLength(3);
-    expect(directActions[0]).toHaveClass("rsvp-button");
-    expect(directActions[0]).toHaveTextContent("Get Tickets");
-    expect(actions.querySelector(":scope > .copy-link-btn")).toBeNull();
-    expect(actions.querySelector(":scope > .ics-button")).toBeNull();
-
-    const overflow = actions.querySelector(".mobile-actions-overflow") as HTMLDetailsElement;
-    expect(overflow.open).toBe(false);
-    fireEvent.click(within(overflow).getByText("More"));
-
-    expect(overflow.open).toBe(true);
-    expect(within(overflow).getByRole("button", { name: "Copy link" })).toBeInTheDocument();
-    expect(within(overflow).getByRole("link", { name: "Add to calendar" })).toBeInTheDocument();
-  });
-
-  it("promotes Full details to the mobile first row when no RSVP link exists", () => {
-    const { container } = render(
-      <EventModal event={{ ...baseEvent, rsvpLink: undefined }} onClose={() => {}} />
-    );
-    const actions = container.querySelector(".modal-mobile-actions") as HTMLElement;
-    const directActions = Array.from(actions.children);
-
-    expect(directActions).toHaveLength(3);
-    expect(directActions[0]).toHaveClass("rsvp-button");
-    expect(directActions[0]).toHaveTextContent("Full details");
-  });
-
   it("gives initial focus to the always-visible Close control", () => {
     render(<EventModal event={baseEvent} onClose={() => {}} />);
     expect(screen.getByRole("button", { name: "Close" })).toHaveFocus();
   });
 
   it("keeps ticketing copy price-aware and never invents a walk-in policy", () => {
-    const { rerender, container } = render(<EventModal event={baseEvent} onClose={() => {}} />);
+    const { rerender } = render(<EventModal event={baseEvent} onClose={() => {}} />);
     expect(screen.getByText("Tickets on the host's page")).toBeInTheDocument();
     expect(screen.queryByText(/pay at the door/i)).not.toBeInTheDocument();
 
@@ -195,10 +143,10 @@ describe("EventModal", () => {
         onClose={() => {}}
       />
     );
-    expect(screen.getByText("No online tickets — reach the host below")).toBeInTheDocument();
+    expect(screen.getByText("No online tickets. Reach the host below.")).toBeInTheDocument();
 
     rerender(<EventModal event={{ ...baseEvent, rsvpLink: undefined }} onClose={() => {}} />);
-    expect(container.querySelector(".reassurance")).toBeNull();
+    expect(document.querySelector(".reassurance")).toBeNull();
   });
 
   it("shows the host row only when host is present", () => {
@@ -212,11 +160,8 @@ describe("EventModal", () => {
     const { rerender } = render(<EventModal event={baseEvent} onClose={() => {}} />);
     expect(screen.queryByText(/more dates in this series/i)).not.toBeInTheDocument();
     rerender(<EventModal event={{ ...baseEvent, recurrence: "weekly" }} onClose={() => {}} />);
-    // Heading appears in both desktop sidebar and mobile extras
-    const headings = screen.getAllByText(/more dates in this series/i);
-    expect(headings.length).toBeGreaterThanOrEqual(1);
-    // Reserve links appear in both desktop sidebar and mobile extras (= 6 total)
-    expect(screen.getAllByText("Reserve").length).toBeGreaterThanOrEqual(3);
+    expect(screen.getByText(/more dates in this series/i)).toBeInTheDocument();
+    expect(screen.getAllByText("Reserve")).toHaveLength(3);
     expect(screen.getByText("Repeats weekly")).toBeInTheDocument();
   });
 
@@ -226,7 +171,7 @@ describe("EventModal", () => {
     const gallery = ["a.jpg", "b.jpg", "c.jpg", "d.jpg", "e.jpg", "f.jpg"];
     rerender(<EventModal event={{ ...baseEvent, gallery }} onClose={() => {}} />);
     expect(screen.getByText(/photos from past nights/i)).toBeInTheDocument();
-    const thumbs = screen.getAllByRole("img");
+    const thumbs = screen.getAllByRole("img", { name: /gallery image/i });
     expect(thumbs).toHaveLength(4);
     for (const thumb of thumbs) {
       expect(thumb).toHaveAttribute("class", "gallery-thumb");
@@ -247,23 +192,16 @@ describe("EventModal", () => {
         onClose={() => {}}
       />
     );
-    const emailLinks = screen.getAllByRole("link", { name: "hola@studioazul.test" });
-    expect(emailLinks.length).toBeGreaterThanOrEqual(1);
-    expect(emailLinks[0]).toHaveAttribute("href", "mailto:hola@studioazul.test");
-    for (const link of emailLinks) {
-      expect(link.closest(".contact-block")).not.toBeNull();
-    }
+    const emailLink = screen.getByRole("link", { name: "hola@studioazul.test" });
+    expect(emailLink).toHaveAttribute("href", "mailto:hola@studioazul.test");
+    expect(emailLink.closest(".contact-block")).not.toBeNull();
 
-    const igLinks = screen.getAllByRole("link", { name: "@studioazul" });
-    expect(igLinks.length).toBeGreaterThanOrEqual(1);
-    expect(igLinks[0]).toHaveAttribute("href", "https://instagram.com/studioazul");
-    for (const link of igLinks) {
-      expect(link.closest(".contact-block")).not.toBeNull();
-    }
+    const igLink = screen.getByRole("link", { name: "@studioazul" });
+    expect(igLink).toHaveAttribute("href", "https://instagram.com/studioazul");
+    expect(igLink.closest(".contact-block")).not.toBeNull();
 
-    const webLinks = screen.getAllByRole("link", { name: "Visit website" });
-    expect(webLinks.length).toBeGreaterThanOrEqual(1);
-    expect(webLinks[0]).toHaveAttribute("href", "https://example.test/mambo");
+    const webLink = screen.getByRole("link", { name: "Visit website" });
+    expect(webLink).toHaveAttribute("href", "https://example.test/mambo");
   });
 
   it("renders only the email link when other contacts are absent", () => {
@@ -273,8 +211,7 @@ describe("EventModal", () => {
         onClose={() => {}}
       />
     );
-    const emailLinks = screen.getAllByRole("link", { name: "hola@studioazul.test" });
-    expect(emailLinks.length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByRole("link", { name: "hola@studioazul.test" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /instagram/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Visit website" })).not.toBeInTheDocument();
   });
@@ -284,9 +221,8 @@ describe("EventModal", () => {
     expect(screen.queryByRole("heading", { name: "Contact" })).not.toBeInTheDocument();
   });
 
-  it("closes via the back pill", () => {
+  it("shows the event title as the modal heading", () => {
     render(<EventModal event={baseEvent} onClose={() => {}} />);
-    expect(screen.getByRole("button", { name: /back to calendar/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Test Social" })).toHaveAttribute(
       "id",
       "modal-title"
@@ -302,7 +238,7 @@ describe("EventModal", () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it("closes when the Escape key is pressed", () => {
+  it("closes when the Escape key is pressed on the card view", () => {
     const onClose = vi.fn();
     render(<EventModal event={baseEvent} onClose={onClose} />);
     fireEvent.keyDown(window, { key: "Escape" });
@@ -326,36 +262,30 @@ describe("EventModal", () => {
     expect(link).toHaveAttribute("target", "_blank");
     expect(link).toHaveAttribute("rel", "noopener noreferrer");
     expect(link).toHaveClass("address-link");
+    expect(link).toHaveTextContent("Havana Club");
   });
 
-  it("renders the Maps link in the decision strip with address-link styling", () => {
-    render(<EventModal event={{ ...baseEvent, recurrence: "weekly" }} onClose={() => {}} />);
-    const links = screen.getAllByLabelText(/Open .* in Maps/i);
-    expect(links.length).toBeGreaterThanOrEqual(1);
-    for (const link of links) {
-      expect(link).toHaveClass("address-link");
-      expect(link).toHaveAttribute(
-        "href",
-        expect.stringContaining("https://maps.google.com/maps?q=")
-      );
-    }
+  it("renders a separate address note beside the venue link when address is present", () => {
+    const { container } = render(
+      <EventModal event={{ ...baseEvent, address: "123 Main St" }} onClose={() => {}} />
+    );
+    expect(container.querySelector(".night-card__address")).toHaveTextContent("123 Main St");
   });
 
   it("renders 'Add to calendar' as a Google Calendar link that opens the calendar", () => {
     render(<EventModal event={baseEvent} onClose={() => {}} />);
-    const calLinks = screen.getAllByRole("link", { name: /add to calendar/i });
-    expect(calLinks.length).toBeGreaterThanOrEqual(1);
-    expect(calLinks[0]).toHaveAttribute(
+    const calLink = screen.getByRole("link", { name: /add to calendar/i });
+    expect(calLink).toHaveAttribute(
       "href",
       expect.stringContaining("https://calendar.google.com/calendar/u/0/r/eventedit?")
     );
-    expect(calLinks[0]).toHaveAttribute("target", "_blank");
+    expect(calLink).toHaveAttribute("target", "_blank");
   });
 
   it("falls back to an .ics download button when the event has no start/end", () => {
     render(<EventModal event={{ ...baseEvent, start: "", end: "" }} onClose={() => {}} />);
-    const buttons = screen.getAllByRole("button", { name: /add to calendar/i });
-    expect(buttons.length).toBeGreaterThanOrEqual(1);
+    const button = screen.getByRole("button", { name: /add to calendar/i });
+    expect(button).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /add to calendar/i })).not.toBeInTheDocument();
   });
 });
@@ -371,13 +301,17 @@ describe("quick-look region", () => {
     priceType: "free",
   };
 
-  it("shows date, type, title, time, venue, and price in the quick-look region", () => {
-    render(<EventModal event={classEvent} onClose={vi.fn()} />);
-    expect(screen.getByText(/Monday, August 24, 2026/i)).toBeInTheDocument();
+  it("shows date, type, title, time, venue, and price in the night card", () => {
+    const { container } = render(<EventModal event={classEvent} onClose={vi.fn()} />);
+    // Date is shown without a year.
+    expect(screen.getByText(/Monday, August 24/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Monday, August 24, 2026/i)).not.toBeInTheDocument();
     expect(screen.getByText("class")).toBeInTheDocument();
-    expect(screen.getByText("Beginner Salsa Class")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Beginner Salsa Class", level: 2 })
+    ).toBeInTheDocument();
     expect(screen.getByText(/7:00 PM - 11:00 PM/i)).toBeInTheDocument();
-    expect(screen.getByText("Free")).toBeInTheDocument();
+    expect(container.querySelector(".night-card__price-amount")).toHaveTextContent("Free");
   });
 
   it("does not invent class metadata that is absent from the event", () => {
@@ -388,20 +322,10 @@ describe("quick-look region", () => {
 
 describe("share poster", () => {
   beforeEach(() => {
-    mockEnsureContainer.mockReset();
-    mockEnsureContainer.mockImplementation(() => document.createElement("div"));
-    mockCapturePoster.mockReset();
-    mockPosterFilename.mockReset();
-    mockPosterFilename.mockImplementation(
-      (event: { title: string }) =>
-        `salsa-segura-${event.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.png`
-    );
+    mockCreatePoster.mockReset();
+    mockCreatePoster.mockResolvedValue(new Blob(["poster"], { type: "image/png" }));
+    mockPosterFilename.mockClear();
     mockDownloadPoster.mockReset();
-    mockRemoveTarget.mockReset();
-    mockResolvePosterImage.mockReset();
-    mockResolvePosterImage.mockImplementation(async (url?: string) => url ?? null);
-    mockResolvePosterImageForEvent.mockReset();
-    mockResolvePosterImageForEvent.mockImplementation(async () => ({ status: "missing" }));
   });
 
   afterEach(() => {
@@ -409,32 +333,22 @@ describe("share poster", () => {
     Reflect.deleteProperty(navigator, "share");
   });
 
-  it("renders a single Share poster action in both action regions with no format-picker remnants", () => {
+  it("renders 'Send to friends' in both action regions (card and bar)", () => {
     render(<EventModal event={baseEvent} onClose={() => {}} />);
-    expect(screen.getAllByRole("button", { name: "Share poster" })).toHaveLength(2);
-    expect(screen.queryByText(/download poster/i)).not.toBeInTheDocument();
-    expect(screen.queryByText("1:1")).not.toBeInTheDocument();
-    expect(screen.queryByText("9:16")).not.toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "Send to friends" })).toHaveLength(2);
   });
 
-  it("shares a single Story PNG File with event-title metadata when native file sharing is available", async () => {
-    mockResolvePosterImageForEvent.mockResolvedValue({
-      status: "ready",
-      url: "data:image/png;base64,poster",
-    });
+  it("shares a single Story PNG File with event-title metadata and canonical URL text when native file sharing is available", async () => {
     const shareSpy = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, "canShare", { value: vi.fn(() => true), configurable: true });
     Object.defineProperty(navigator, "share", { value: shareSpy, configurable: true });
-    mockCapturePoster.mockImplementation(async (container: HTMLElement) => {
-      expect(container.firstElementChild).toHaveClass("shareable-poster", "poster-story");
-      return new Blob(["poster"], { type: "image/png" });
-    });
 
     render(<EventModal event={baseEvent} onClose={() => {}} />);
-    const [shareButton] = screen.getAllByRole("button", { name: "Share poster" });
+    const [shareButton] = screen.getAllByRole("button", { name: "Send to friends" });
     fireEvent.click(shareButton);
 
     await waitFor(() => expect(shareSpy).toHaveBeenCalledTimes(1));
+    expect(mockCreatePoster).toHaveBeenCalledWith(baseEvent, "story");
     const [{ title, text, files }] = shareSpy.mock.calls[0];
     expect(title).toBe(baseEvent.title);
     expect(text).toContain(`${window.location.origin}/events/1`);
@@ -443,72 +357,24 @@ describe("share poster", () => {
     expect(files[0].type).toBe("image/png");
     expect(files[0].name).toBe("salsa-segura-test-social.png");
     expect(mockDownloadPoster).not.toHaveBeenCalled();
-
-    await waitFor(() => expect(mockRemoveTarget).toHaveBeenCalled());
-    expect(shareButton).not.toBeDisabled();
+    await waitFor(() => expect(shareButton).not.toBeDisabled());
   });
 
-  it("renders the no-flyer gradient when no flyer is present", async () => {
-    mockResolvePosterImageForEvent.mockResolvedValue({ status: "missing" });
-    let captureAssertion: Promise<void> | undefined;
-    mockCapturePoster.mockImplementation((container: HTMLElement) => {
-      captureAssertion = Promise.resolve().then(() => {
-        expect(container.querySelector(".poster-bg-img")).toBeNull();
-      });
-      return captureAssertion.then(() => new Blob(["poster"], { type: "image/png" }));
-    });
-
-    render(<EventModal event={baseEvent} onClose={() => {}} />);
-    const [shareButton] = screen.getAllByRole("button", { name: "Share poster" });
-    fireEvent.click(shareButton);
-
-    await waitFor(() => expect(mockCapturePoster).toHaveBeenCalledTimes(1));
-    const pendingCapture = captureAssertion;
-    if (!pendingCapture) throw new Error("capturePoster did not schedule its image assertion");
-    await pendingCapture;
-    expect(mockResolvePosterImageForEvent).toHaveBeenCalledWith(
-      expect.objectContaining({ eventId: "1" })
-    );
-  });
-
-  it("falls back to no-flyer poster when normalization fails", async () => {
-    mockResolvePosterImageForEvent.mockResolvedValue({ status: "unavailable" });
-    const shareSpy = vi.fn().mockResolvedValue(undefined);
-    Object.defineProperty(navigator, "canShare", { value: vi.fn(() => true), configurable: true });
-    Object.defineProperty(navigator, "share", { value: shareSpy, configurable: true });
-    mockCapturePoster.mockResolvedValue(new Blob(["poster"], { type: "image/png" }));
-
-    render(
-      <EventModal
-        event={{ ...baseEvent, imageUrl: "https://cdn.example/flyer.jpg" }}
-        onClose={() => {}}
-      />
-    );
-    const [shareButton] = screen.getAllByRole("button", { name: "Share poster" });
-    fireEvent.click(shareButton);
-
-    await waitFor(() => expect(mockCapturePoster).toHaveBeenCalled());
-    await waitFor(() => expect(shareSpy).toHaveBeenCalled());
-    expect(screen.queryByText(/prepare this event flyer/i)).not.toBeInTheDocument();
-    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-  });
-
-  it("downloads the poster PNG directly when native file sharing is unavailable", async () => {
+  it("downloads the poster PNG directly with a status message when native file sharing is unavailable", async () => {
     const shareSpy = vi.fn();
     Object.defineProperty(navigator, "share", { value: shareSpy, configurable: true });
-    const blob = new Blob(["poster"], { type: "image/png" });
-    mockCapturePoster.mockResolvedValue(blob);
 
     render(<EventModal event={baseEvent} onClose={() => {}} />);
-    const [shareButton] = screen.getAllByRole("button", { name: "Share poster" });
+    const [shareButton] = screen.getAllByRole("button", { name: "Send to friends" });
     fireEvent.click(shareButton);
 
     await waitFor(() => expect(mockDownloadPoster).toHaveBeenCalledTimes(1));
-    expect(mockDownloadPoster).toHaveBeenCalledWith(baseEvent, blob);
+    expect(mockDownloadPoster).toHaveBeenCalledWith(baseEvent, expect.any(Blob), "story");
     expect(shareSpy).not.toHaveBeenCalled();
-    expect(await screen.findByRole("status")).toHaveTextContent(/downloaded instead/i);
-    await waitFor(() => expect(mockRemoveTarget).toHaveBeenCalled());
-    expect(shareButton).not.toBeDisabled();
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      "Sharing isn't available here, so the poster was downloaded instead."
+    );
+    await waitFor(() => expect(shareButton).not.toBeDisabled());
   });
 
   it("announces a retry when the native share fails without a user cancel", async () => {
@@ -517,50 +383,148 @@ describe("share poster", () => {
       value: vi.fn().mockRejectedValue(new Error("share sheet unavailable")),
       configurable: true,
     });
-    mockCapturePoster.mockResolvedValue(new Blob(["poster"], { type: "image/png" }));
 
     render(<EventModal event={baseEvent} onClose={() => {}} />);
-    const [shareButton] = screen.getAllByRole("button", { name: "Share poster" });
+    const [shareButton] = screen.getAllByRole("button", { name: "Send to friends" });
     fireEvent.click(shareButton);
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(/try again/i);
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Sending the poster failed. Please try again."
+    );
     expect(mockDownloadPoster).not.toHaveBeenCalled();
     await waitFor(() => expect(shareButton).not.toBeDisabled());
-    await waitFor(() => expect(mockRemoveTarget).toHaveBeenCalled());
   });
 
-  it("clears the generating state without a fallback download when the user cancels the native share sheet", async () => {
+  it("silently ignores an AbortError from a cancelled native share sheet", async () => {
     Object.defineProperty(navigator, "canShare", { value: vi.fn(() => true), configurable: true });
     const abortError = new DOMException("cancelled", "AbortError");
     Object.defineProperty(navigator, "share", {
       value: vi.fn().mockRejectedValue(abortError),
       configurable: true,
     });
-    mockCapturePoster.mockResolvedValue(new Blob(["poster"], { type: "image/png" }));
 
     render(<EventModal event={baseEvent} onClose={() => {}} />);
-    const [shareButton] = screen.getAllByRole("button", { name: "Share poster" });
+    const [shareButton] = screen.getAllByRole("button", { name: "Send to friends" });
     fireEvent.click(shareButton);
 
     await waitFor(() => expect(shareButton).not.toBeDisabled());
     expect(mockDownloadPoster).not.toHaveBeenCalled();
-    expect(mockRemoveTarget).toHaveBeenCalled();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 
-  it("announces a retry and removes the render target when poster capture fails", async () => {
-    mockCapturePoster.mockRejectedValue(new Error("Poster image could not be created"));
+  it("announces a retry and re-enables the button when poster capture fails", async () => {
+    mockCreatePoster.mockRejectedValue(new Error("Poster image could not be created"));
     const shareSpy = vi.fn();
     Object.defineProperty(navigator, "share", { value: shareSpy, configurable: true });
 
     render(<EventModal event={baseEvent} onClose={() => {}} />);
-    const [shareButton] = screen.getAllByRole("button", { name: "Share poster" });
+    const [shareButton] = screen.getAllByRole("button", { name: "Send to friends" });
     fireEvent.click(shareButton);
 
     expect(await screen.findByRole("alert")).toHaveTextContent(/could not create the poster/i);
     await waitFor(() => expect(shareButton).not.toBeDisabled());
     expect(shareSpy).not.toHaveBeenCalled();
     expect(mockDownloadPoster).not.toHaveBeenCalled();
-    expect(mockRemoveTarget).toHaveBeenCalled();
+  });
+});
+
+describe("poster preview", () => {
+  beforeEach(() => {
+    mockCreatePoster.mockReset();
+    mockCreatePoster.mockResolvedValue(new Blob(["poster"], { type: "image/png" }));
+    mockPosterFilename.mockClear();
+    mockDownloadPoster.mockReset();
+  });
+
+  afterEach(() => {
+    Reflect.deleteProperty(navigator, "canShare");
+    Reflect.deleteProperty(navigator, "share");
+  });
+
+  it("opens the poster preview when the sleeve thumbnail is clicked", () => {
+    render(<EventModal event={baseEvent} onClose={() => {}} />);
+    fireEvent.click(screen.getByRole("button", { name: "Preview the poster your friends get" }));
+
+    expect(screen.getByRole("heading", { name: "The poster your friends get" })).toHaveAttribute(
+      "id",
+      "modal-title"
+    );
+    expect(screen.getByRole("button", { name: "Back to the night" })).toBeInTheDocument();
+  });
+
+  it("toggles aria-pressed between Story and Feed format buttons", () => {
+    render(<EventModal event={baseEvent} onClose={() => {}} />);
+    fireEvent.click(screen.getByRole("button", { name: "Preview the poster your friends get" }));
+
+    const storyButton = screen.getByRole("button", { name: "Story · 9:16" });
+    const feedButton = screen.getByRole("button", { name: "Feed · 4:5" });
+    expect(storyButton).toHaveAttribute("aria-pressed", "true");
+    expect(feedButton).toHaveAttribute("aria-pressed", "false");
+
+    fireEvent.click(feedButton);
+
+    expect(storyButton).toHaveAttribute("aria-pressed", "false");
+    expect(feedButton).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("returns to the card and focuses the sleeve on Escape, closes the modal on the second Escape", async () => {
+    const onClose = vi.fn();
+    render(<EventModal event={baseEvent} onClose={onClose} />);
+    const sleeveButton = screen.getByRole("button", {
+      name: "Preview the poster your friends get",
+    });
+    fireEvent.click(sleeveButton);
+
+    expect(
+      screen.getByRole("heading", { name: "The poster your friends get" })
+    ).toBeInTheDocument();
+
+    fireEvent.keyDown(window, { key: "Escape" });
+
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { name: baseEvent.title })).toHaveAttribute(
+        "id",
+        "modal-title"
+      )
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Preview the poster your friends get" })
+      ).toHaveFocus()
+    );
+    expect(onClose).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("saves the image in the currently selected format", async () => {
+    render(<EventModal event={baseEvent} onClose={() => {}} />);
+    fireEvent.click(screen.getByRole("button", { name: "Preview the poster your friends get" }));
+    fireEvent.click(screen.getByRole("button", { name: "Feed · 4:5" }));
+
+    fireEvent.click(screen.getByRole("button", { name: "Save image" }));
+
+    await waitFor(() => expect(mockCreatePoster).toHaveBeenCalledWith(baseEvent, "feed"));
+    await waitFor(() =>
+      expect(mockDownloadPoster).toHaveBeenCalledWith(baseEvent, expect.any(Blob), "feed")
+    );
+    expect(await screen.findByRole("status")).toHaveTextContent("Poster saved to your downloads.");
+  });
+
+  it("sends this poster in the currently selected format from the preview", async () => {
+    const shareSpy = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "canShare", { value: vi.fn(() => true), configurable: true });
+    Object.defineProperty(navigator, "share", { value: shareSpy, configurable: true });
+
+    render(<EventModal event={baseEvent} onClose={() => {}} />);
+    fireEvent.click(screen.getByRole("button", { name: "Preview the poster your friends get" }));
+    fireEvent.click(screen.getByRole("button", { name: "Feed · 4:5" }));
+
+    fireEvent.click(screen.getByRole("button", { name: "Send this poster" }));
+    await waitFor(() => expect(mockCreatePoster).toHaveBeenCalledWith(baseEvent, "feed"));
+    await waitFor(() => expect(shareSpy).toHaveBeenCalledTimes(1));
   });
 });
 
@@ -568,6 +532,7 @@ describe("copy event link", () => {
   afterEach(() => {
     Reflect.deleteProperty(navigator, "clipboard");
   });
+
   it("copies the event URL to the clipboard and shows Copied feedback", async () => {
     vi.useFakeTimers();
     const writeText = vi.fn().mockResolvedValue(undefined);
@@ -575,20 +540,19 @@ describe("copy event link", () => {
 
     render(<EventModal event={baseEvent} onClose={() => {}} />);
 
-    const copyButtons = screen.getAllByRole("button", { name: "Copy link" });
-    expect(copyButtons.length).toBeGreaterThanOrEqual(1);
+    const copyButton = screen.getByRole("button", { name: "Copy link" });
     await act(async () => {
-      fireEvent.click(copyButtons[0]);
+      fireEvent.click(copyButton);
     });
 
     expect(writeText).toHaveBeenCalledTimes(1);
     expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/events/1`);
-    expect(copyButtons[0]).toHaveTextContent("Copied");
+    expect(copyButton).toHaveTextContent("Copied");
 
     act(() => {
       vi.advanceTimersByTime(2000);
     });
-    expect(copyButtons[0]).toHaveTextContent("Copy link");
+    expect(copyButton).toHaveTextContent("Copy link");
     vi.useRealTimers();
   });
 
@@ -597,7 +561,7 @@ describe("copy event link", () => {
     Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
 
     render(<EventModal event={baseEvent} onClose={() => {}} />);
-    const [copyButton] = screen.getAllByRole("button", { name: "Copy link" });
+    const copyButton = screen.getByRole("button", { name: "Copy link" });
     await act(async () => {
       fireEvent.click(copyButton);
     });
@@ -613,7 +577,7 @@ describe("demand telemetry", () => {
     vi.mocked(recordEventTouch).mockClear();
   });
 
-  it("records an rsvp_click touch when the decision-strip RSVP link is clicked", () => {
+  it("records an rsvp_click touch when an RSVP link is clicked", () => {
     render(<EventModal event={baseEvent} onClose={() => {}} />);
 
     const rsvpLinks = screen.getAllByRole("link", { name: /get tickets|RSVP · Free/i });

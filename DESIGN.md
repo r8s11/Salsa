@@ -56,6 +56,13 @@ colors:
   desk-killed: "#b91c1c"
   desk-standing: "#475569"
   desk-tonight: "#be123c"
+  sleeve-red: "#d7263d"
+  sleeve-red-deep: "#a8182c"
+  sleeve-mustard: "#f2b705"
+  sleeve-mustard-deep: "#c99400"
+  sleeve-midnight: "#1b1b3a"
+  sleeve-midnight-deep: "#10102a"
+  sleeve-cream: "#f4ecd8"
 typography:
   display-lg:
     fontFamily: Epilogue
@@ -130,6 +137,21 @@ typography:
     fontSize: 0.8125rem
     fontWeight: "400"
     lineHeight: "1.4"
+  poster-lettering:
+    fontFamily: Shrikhand
+    fontWeight: "400"
+    lineHeight: "1.02"
+    letterSpacing: -0.01em
+  poster-condensed:
+    fontFamily: Barlow Condensed
+    fontWeight: "600"
+    lineHeight: "1.15"
+    fontFeature: tabular-nums lining-nums
+  poster-condensed-bold:
+    fontFamily: Barlow Condensed
+    fontWeight: "800"
+    lineHeight: "1.15"
+    fontFeature: tabular-nums lining-nums
 rounded:
   sm: 0.25rem
   DEFAULT: 0.5rem
@@ -151,14 +173,24 @@ spacing:
 
 ## Brand & Style
 
-Salsa Segura carries **two worlds**, and they do not mix. Everything a
+Salsa Segura carries **three worlds**, and they do not mix. Everything a
 dancer sees is Ritmo Vivo, described throughout this file. Everything an
 operator uses — the admin, moderator and host dashboards — is **The
-Listings Desk**, recorded in its own subsections below. The desk exists
-because a curation back-office is read for hours in a lit room, while
-Ritmo Vivo is built to feel like a dark dance floor. Do not apply
-glassmorphism, glow, or the dark slate ground to an operator surface, and
-do not apply agate listing rules to a public one.
+Listings Desk**, recorded in its own subsections below. The one artifact
+that leaves the site — the shareable event poster, exported and sent to a
+friend's phone — is pressed in its own printed world, **The Sleeve**,
+also recorded in its own subsections below. The desk exists because a
+curation back-office is read for hours in a lit room, while Ritmo Vivo is
+built to feel like a dark dance floor; the Sleeve exists because a poster
+is judged against other posters in a story or a group chat, not against
+the site around it.
+
+**The Sleeve Boundary Rule.** The Sleeve never appears as site UI —
+only as the poster export itself and its thumbnail/preview inside the
+event modal. Ritmo Vivo's glassmorphism and glow never enter the poster,
+and the Sleeve's flat spot-colour fields never leak back into Ritmo
+Vivo. Do not apply glassmorphism, glow, or the dark slate ground to an
+operator surface; do not apply agate listing rules to a public one.
 
 This design system captures the fiery essence of salsa: movement, passion, and community. The brand personality is extroverted and rhythmic, balancing the heat of the dance floor with the structural professionalism of a premier academy.
 
@@ -196,6 +228,27 @@ dance style) are labelled by the `--admin-chip-*` palette in
 `src/styles/admin.css` — one tint/ink pair per hue, light and dark. A
 chip names a category and never reports an entry's state; the five
 colours stay reserved for state.
+
+### The Sleeve — pressing colours
+
+Every night is pressed in one of three flat spot-colour fields, chosen
+by event type — never decoration, always the type. A red back-cover
+label prints on every pressing regardless of field colour.
+
+- **Social pressing** (`#d7263d` field / `#a8182c` deep, on cream
+  `#f4ecd8`): the default social night.
+- **Class pressing** (`#f2b705` mustard field / `#c99400` deep, on
+  midnight `#1b1b3a`): recurring classes.
+- **Workshop pressing** (`#1b1b3a` midnight field / `#10102a` deep, on
+  mustard `#f2b705`): workshops and intensives.
+- **Cream stock** (`#f4ecd8`): the back cover's paper ground on every
+  pressing, printed in midnight ink with red (`#d7263d`) side labels and
+  track numbers.
+
+**The Pressing-Codes-Type Rule.** The field colour is the only signal
+of event type on the poster; it is never reused for anything else on
+the sleeve, and Side A/Side B labels print red on every pressing so the
+back cover reads the same regardless of which field it backs.
 
 ## Typography
 
@@ -249,6 +302,27 @@ else. Every control an operator hits at speed stays at full UI size
 (34px minimum), because the reading load belongs to the state palette,
 not to the type size.
 
+### The Sleeve — Poster Lettering and Poster Condensed
+
+The Sleeve sets its own faces, distinct from the Epilogue/Be Vietnam
+Pro pair above. **Shrikhand** (`--font-poster-lettering`, weight 400)
+is **Poster Lettering**: fat, condensed script reserved for the cover
+title band alone, never a heading, never body copy. **Barlow Condensed**
+(`--font-poster-condensed`, weights 600/800) is **Poster Condensed**:
+the masthead, sticker, track list and Side B, set with tabular lining
+numerals (`font-variant-numeric: tabular-nums lining-nums`) so figures
+align down the track list the way the desk's agate figures do.
+
+Both faces are self-hosted (`@fontsource`) and loaded only when a
+poster is shown; the same font bytes are embedded into the PNG capture
+(`posterFontEmbedCss`) so the exported poster matches the on-screen
+preview instead of falling back to a system sans.
+
+**The Artwork-Not-Ramp Rule.** The cover title's export-pixel size
+(54–128px story, ×0.8 on feed, stepped by character count) is artwork
+sized for the printed sleeve and answers to no UI type ramp — the same
+exemption the vinyl label print already has.
+
 ## Layout & Spacing
 
 The system uses a **Fluid Grid** based on a 12-column model for desktop and a 4-column model for mobile. Layouts should favor asymmetrical arrangements to evoke the spontaneity of salsa dance.
@@ -269,6 +343,23 @@ Hanging indents are constant: a 22px margin column for the proof mark,
 a 14px gutter, and a 44px flyer thumb where an entry carries evidence.
 Below 1080px the two measures stack rather than narrow — an agate
 column squeezed under its measure stops being readable.
+
+### The Sleeve — story and feed measures
+
+The poster exports at two fixed pixel sizes, never responsive: a
+**story** (1080×1920) and a **feed** cut (1080×1350, 4:5). Both stack
+the same three prints top to bottom — a label **masthead** (wordmark
+and a catalogue line, e.g. `SS-0924 · BOS`), the square **front cover**
+(flyer or fallback art, a lettered title band, a circular price
+sticker), and the cream **back cover** (Side A facts, Side B QR and
+short link). The feed cut adds a vertical **spine** beside the cover,
+carrying the title sideways the way a shelved record would, and lays
+Side A and Side B side-by-side instead of stacked.
+
+The night card's sleeve thumbnail reuses the front cover alone
+(`SleeveCover`), scaled down from its authored 968px art size — the
+thumbnail is the same component as the exported poster's cover, not an
+approximation of it.
 
 ## Elevation & Depth
 
@@ -320,11 +411,30 @@ So the boundary is by job, not by URL:
 `AdminMetricCard` remains the one figure-card exemption, confined to the
 analytics page.
 
+### The Sleeve — flat print
+
+The Sleeve declares **no elevation at all**, more strictly than the
+desk: it is printed matter, so there is no shadow anywhere on it, not
+even the desk's border-only device. Depth comes from the pressing's own
+layers — the cover's 6px frame, the band's 6px top rule, the sticker's
+6px ring — never from a cast or ambient shadow. Ritmo Vivo's glow and
+the desk's `admin-sm`/`admin-md` shadows both stop at the poster's edge.
+
 ## Shapes
 
 The shape language is **Rounded**, utilizing a 0.5rem (8px) base radius. This creates a friendly and social feel that balances the "hard" energy of the bold typography.
 
 For the gallery component, images should utilize the `rounded-lg` (16px) or `rounded-xl` (24px) settings to soften the visual impact of photography. Interactive elements like "Join Class" buttons should always use the `rounded-xl` setting to appear more inviting and tactile.
+
+### The Sleeve — cover frame and cream rules
+
+The Sleeve's shape language is flat print, not the rounded-corner
+language above. The cover is a hard-edged square framed in a 6px
+on-field-ink border; the price sticker is the one circle on the poster,
+a 6px-ringed disc rotated -9° like a stuck-on price tag; every other
+rule is straight. The cream back cover is divided by a 3px Side-label
+rule and 4px dotted track leaders, both in midnight or red ink — never
+the rounded, glassy language the rest of the system uses.
 
 ## Components
 
@@ -370,12 +480,46 @@ place to full working detail (flyer, description, submitter, address)
 while its siblings drop their thumbs and tighten. There is no separate
 review page to lose your position in.
 
+### The Sleeve — masthead, cover and track list
+
+**Masthead.** A label-style header: the "Salsa Segura" wordmark left,
+the catalogue line right (`SS-<MMDD> · <city code>`), closed by a 4px
+rule the full width.
+
+**Front cover.** Flyer art (shown whole, `object-fit: contain`) or
+fallback art (cropped, `object-fit: cover`) fills a square field-colour
+frame; a lettered title band sits below it; a circular price sticker
+("Entry" / amount or "Free") sits pinned to the cover's top-right
+corner, rotated -9°.
+
+**Track list.** Side A lists the night's facts — date, time, venue
+(with address as a second line), styles — as numbered tracks (A1, A2,
+…) with dotted leaders running from a Poster Condensed label to a bold
+tabular value, exactly like an LP's printed track list. Side B holds
+the QR ("Scan for the night"), the short link (`/e/<first 8 hex of the
+event id>`, printed host-relative with no scheme) and the host credit.
+
+### The Night Card — event modal (Ritmo Vivo, unchanged world)
+
+The event modal opens on the **night card**: a sleeve thumbnail
+(`SleeveCover`, tappable, opens the full poster preview with a
+Story/Feed toggle) beside the four facts — date, time, venue, price and
+type — with the title full-width below. Two equal-weight primary
+decisions follow, **Send to friends** and **RSVP/Get tickets**
+(`.night-actions`, a 1fr/1fr grid); calendar, copy-link and
+full-details drop to ghost-variant text-link utilities below them,
+never competing with the two decisions. The poster preview is a second
+view in the same dialog, not a new route. This is Ritmo Vivo throughout
+— dark ground, rose glow, gold links — right up to the thumbnail's
+edge, where the Sleeve Boundary Rule takes over.
+
 ## Do's and Don'ts
 
 ### Do
 
-- **Do** keep the two worlds separate: Ritmo Vivo for anything a dancer
-  sees, The Listings Desk for anything an operator works in.
+- **Do** keep the three worlds separate: Ritmo Vivo for anything a
+  dancer sees, The Listings Desk for anything an operator works in, and
+  The Sleeve for the one artifact that leaves the site.
 - **Do** state only counts that represent work in the desk's standing
   rule. Pending decisions, requests, and flags are work.
 - **Do** hold the five state colours to state alone, in both the light
@@ -384,6 +528,11 @@ review page to lose your position in.
   around them are set at agate scale.
 - **Do** let a decision propagate once, across galley, column and
   counts together.
+- **Do** press event type to field colour alone (red social, mustard
+  class, midnight workshop) and print Side A/Side B labels red on
+  every pressing.
+- **Do** set the Sleeve in Poster Lettering (titles) and Poster
+  Condensed (everything else), never Epilogue or Be Vietnam Pro.
 
 ### Don't
 
@@ -401,3 +550,9 @@ review page to lose your position in.
   type to match a control.
 - **Don't** route an operator to a separate page for a decision the
   galley can carry in place.
+- **Don't** let Ritmo Vivo's glassmorphism, glow or gradients reach the
+  Sleeve, and don't let the Sleeve's flat fields leak back into Ritmo
+  Vivo.
+- **Don't** show the Sleeve anywhere but the poster export and its
+  thumbnail/preview inside the event modal.
+- **Don't** add a shadow anywhere on the poster; the Sleeve prints flat.

@@ -1,6 +1,7 @@
 import { supabase } from "../../../lib/supabase";
 import { DatabaseEvent, City, EventType } from "../../../types/events";
 import { toEventDateInstant, formatTimeLabel } from "../model/eventDateTime";
+import { shortCodeIdRange } from "../model/shortLink";
 import { replaceEventTaxonomyTerms } from "../../admin/api/taxonomyRepo";
 
 export interface AdminEventPayload {
@@ -72,6 +73,35 @@ export async function fetchApprovedEventById(id: string): Promise<DatabaseEvent 
   return projectEventTaxonomy(data ? [data as EventWithTaxonomy] : null)[0] ?? null;
 }
 
+export interface ShortLinkMatch {
+  id: string;
+  title: string;
+}
+
+/**
+ * Approved public events whose UUID starts with the short-link code.
+ * Returns at most two so callers can tell a unique match from an ambiguous
+ * one without fetching every collision; titles let an ambiguous page name
+ * each night.
+ */
+export async function fetchShortLinkMatches(code: string): Promise<ShortLinkMatch[]> {
+  const { from, to } = shortCodeIdRange(code);
+  const { data, error } = await supabase
+    .from("public_events")
+    .select("id, title")
+    .eq("status", "approved")
+    .gte("id", from)
+    .lte("id", to)
+    .limit(2);
+
+  if (error) throw new Error(error.message);
+  return (data ?? []).flatMap((row: unknown) =>
+    row && typeof row === "object" && "id" in row && "title" in row
+      ? [{ id: String(row.id), title: String(row.title) }]
+      : []
+  );
+}
+
 export async function fetchMyApprovedEvents(userId: string): Promise<DatabaseEvent[]> {
   const { data, error } = await supabase
     .from("events")
@@ -136,10 +166,7 @@ export async function updateEvent(id: string, payload: AdminEventPayload): Promi
  * Verifies the row was actually updated to guard against zero-row updates
  * (e.g. RLS policy denying the write).
  */
-export async function updateEventFlyer(
-  eventId: string,
-  imageUrl: string | null
-): Promise<void> {
+export async function updateEventFlyer(eventId: string, imageUrl: string | null): Promise<void> {
   const { data, error } = await supabase
     .from("events")
     .update({ image_url: imageUrl })

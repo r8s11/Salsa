@@ -1,5 +1,14 @@
 import { useCallback, useRef } from "react";
+import { createRoot } from "react-dom/client";
 import { ScheduleXEvent } from "../../../types/events";
+import type { PosterFormat } from "../../../components/EventModal/posterFormat";
+import { ensurePosterFonts, posterFontEmbedCss } from "../../../components/EventModal/posterFonts";
+import { resolveEventFlyer } from "../../../components/EventModal/eventModalImage";
+import { buildShortEventUrl, shortEventLabel } from "../../events/model/shortLink";
+import { resolvePosterImageForEvent } from "../api/posterFlyers";
+
+/** Time for the off-screen poster (and its inlined flyer) to paint before capture. */
+const POSTER_PAINT_MS = 300;
 
 /**
  * Slugify for the poster filename.
@@ -92,15 +101,17 @@ export function useShareablePoster() {
     // cannot express this. (ts-no-dynamic-import exception.)
     const { toBlob } = await import("html-to-image");
 
+    // The poster sets its own self-hosted faces; embedding them explicitly
+    // keeps the export identical to the preview. html-to-image is never
+    // asked to scan stylesheets itself: Google Fonts is cross-origin and
+    // every scan logs a SecurityError. If the font bytes are unreachable the
+    // capture still succeeds on the declared fallback stacks.
+    const fontEmbedCSS = await posterFontEmbedCss().catch(() => null);
+
     const blob = await toBlob(posterEl, {
       quality: 1,
       pixelRatio: 1,
-      // Google Fonts is a cross-origin stylesheet. Browsers correctly block
-      // `CSSStyleSheet.cssRules`; html-to-image logs one SecurityError per
-      // capture while trying to inline it. The Story poster already declares
-      // system fallbacks, so skip this unsupported scan rather than emitting
-      // noisy console errors or aborting capture.
-      skipFonts: true,
+      ...(fontEmbedCSS ? { fontEmbedCSS } : { skipFonts: true }),
       // No cacheBust: flyer is already inlined as a data URL by
       // resolvePosterImage, and busting cache only forces needless re-fetches
       // of same-origin assets.
@@ -119,19 +130,19 @@ export function useShareablePoster() {
   /**
    * Returns the normalized filename shared by native sharing and download.
    */
-  const posterFilename = useCallback((event: ScheduleXEvent) => {
-    return `salsa-segura-${slugify(event.title)}.png`;
+  const posterFilename = useCallback((event: ScheduleXEvent, format: PosterFormat = "story") => {
+    return `salsa-segura-${slugify(event.title)}${format === "feed" ? "-feed" : ""}.png`;
   }, []);
 
   /**
    * Downloads the poster PNG using the shared filename convention.
    */
   const downloadPoster = useCallback(
-    (event: ScheduleXEvent, poster: Blob) => {
+    (event: ScheduleXEvent, poster: Blob, format: PosterFormat = "story") => {
       const url = URL.createObjectURL(poster);
       const link = document.createElement("a");
       link.href = url;
-      link.download = posterFilename(event);
+      link.download = posterFilename(event, format);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -140,9 +151,58 @@ export function useShareablePoster() {
     [posterFilename]
   );
 
+  /**
+   * Renders the event's sleeve poster off-screen in the requested format and
+   * captures it. Cover art priority: the normalized flyer cache, then the
+   * event flyer, then the on-brand fallback art for its type.
+   */
+  const createPoster = useCallback(
+    async (
+      event: ScheduleXEvent,
+      format: PosterFormat,
+      sources: { sourceUrl?: string | null; cachedUrl?: string | null } = {}
+    ): Promise<Blob> => {
+      const resolution = await resolvePosterImageForEvent({
+        eventId: String(event.id),
+        sourceUrl: sources.sourceUrl ?? event.imageUrl ?? null,
+        cachedUrl: sources.cachedUrl ?? event.posterImageUrl ?? null,
+      });
+      const flyer = resolution.status === "ready" ? resolution.dataUrl : null;
+      // The poster (and its QR encoder) loads only when a visitor shares.
+      const [{ default: ShareableEventPoster }] = await Promise.all([
+        import("../../../components/EventModal/ShareableEventPoster"),
+        ensurePosterFonts(),
+      ]);
+
+      const container = ensureContainer();
+      const root = createRoot(container);
+      try {
+        root.render(
+          <ShareableEventPoster
+            event={event}
+            format={format}
+            imageUrl={flyer ?? resolveEventFlyer({ ...event, imageUrl: undefined })}
+            artKind={flyer ? "flyer" : "fallback"}
+            shortUrl={buildShortEventUrl(String(event.id))}
+            shortLabel={shortEventLabel(String(event.id))}
+          />
+        );
+        // Executor form: this project's tsconfig lib (ES2020) has no
+        // Promise.withResolvers.
+        await new Promise((resolve) => setTimeout(resolve, POSTER_PAINT_MS));
+        return await capturePoster(container);
+      } finally {
+        root.unmount();
+        removeTarget();
+      }
+    },
+    [capturePoster, ensureContainer, removeTarget]
+  );
+
   return {
     ensureContainer,
     capturePoster,
+    createPoster,
     posterFilename,
     downloadPoster,
     removeTarget,

@@ -14,6 +14,7 @@ const FoundersPage = lazy(() => import("../pages/founder/FoundersPage"));
 const FoundersAcceptPage = lazy(() => import("../pages/founder/FoundersAcceptPage"));
 const FoundersWelcomePage = lazy(() => import("../pages/founder/FoundersWelcomePage"));
 const EventDetailPage = lazy(() => import("../pages/EventDetailPage"));
+const ShortEventLinkPage = lazy(() => import("../pages/ShortEventLinkPage"));
 const Lessons = lazy(() => import("../pages/Lessons"));
 const Instructors = lazy(() => import("../pages/Instructors"));
 const Schools = lazy(() => import("../pages/Schools/Schools"));
@@ -227,6 +228,7 @@ function App() {
               <Route path="calendar" element={<CalendarPage />} />
               <Route path="submit" element={<SubmitEventPage />} />
               <Route path="events/:id" element={<EventDetailPage />} />
+              <Route path="e/:code" element={<ShortEventLinkPage />} />
               <Route
                 path="profile"
                 element={

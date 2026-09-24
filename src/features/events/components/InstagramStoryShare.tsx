@@ -1,8 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { createRoot, type Root } from "react-dom/client";
 import { Camera, Download, Link2, Share2, X } from "lucide-react";
-import ShareableEventPoster from "../../../components/EventModal/ShareableEventPoster";
-import { resolvePosterImageForEvent } from "../../calendar/api/posterFlyers";
 import { useEscapeKey } from "../../calendar/hooks/useEscapeKey";
 import { useShareablePoster } from "../../calendar/hooks/useShareablePoster";
 import type { ScheduleXEvent } from "../model/types";
@@ -21,14 +18,10 @@ interface InstagramStoryShareProps {
 
 type Feedback = { kind: "status" | "error"; message: string };
 
-/** Time for the off-screen poster (and its inlined flyer) to paint before capture. */
-const POSTER_PAINT_MS = 300;
-
 /**
- * Story sharing for an event: renders the existing 1080x1920
- * `ShareableEventPoster` off-screen, captures it through the shared
- * `useShareablePoster` pipeline, previews the result, and hands the PNG to the
- * OS share sheet where Instagram can be picked.
+ * Story sharing for an event: renders the 1080x1920 sleeve poster off-screen
+ * through the shared `useShareablePoster` pipeline, previews the result, and
+ * hands the PNG to the OS share sheet where Instagram can be picked.
  *
  * The web platform cannot publish to a user's Instagram Story directly, so the
  * flow deliberately stops at the native share sheet and always offers the
@@ -40,8 +33,7 @@ export default function InstagramStoryShare({
   cachedFlyerUrl,
   shareUrl,
 }: InstagramStoryShareProps) {
-  const { ensureContainer, capturePoster, posterFilename, downloadPoster, removeTarget } =
-    useShareablePoster();
+  const { createPoster, posterFilename, downloadPoster } = useShareablePoster();
   const [isGenerating, setIsGenerating] = useState(false);
   const [story, setStory] = useState<{ blob: Blob; previewUrl: string } | null>(null);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
@@ -81,27 +73,11 @@ export default function InstagramStoryShare({
     if (isGenerating) return;
     setIsGenerating(true);
     setFeedback(null);
-    let root: Root | null = null;
     try {
-      // Story background priority: normalized flyer cache, then the event
-      // flyer, then the poster's own designed fallback artwork.
-      const resolution = await resolvePosterImageForEvent({
-        eventId: String(event.id),
+      const blob = await createPoster(event, "story", {
         sourceUrl: flyerUrl,
         cachedUrl: cachedFlyerUrl,
       });
-      const posterImageUrl = resolution.status === "ready" ? resolution.dataUrl : undefined;
-
-      const container = ensureContainer();
-      root = createRoot(container);
-      root.render(
-        <ShareableEventPoster event={event} imageUrl={posterImageUrl} eventUrl={shareUrl} />
-      );
-      // Executor form: this project's tsconfig lib (ES2020) has no
-      // Promise.withResolvers (see useShareablePoster's identical note).
-      await new Promise((resolve) => setTimeout(resolve, POSTER_PAINT_MS));
-
-      const blob = await capturePoster(container);
       releasePreview();
       const previewUrl = URL.createObjectURL(blob);
       previewUrlRef.current = previewUrl;
@@ -112,8 +88,6 @@ export default function InstagramStoryShare({
         message: "Could not create the Story image. Please try again.",
       });
     } finally {
-      root?.unmount();
-      removeTarget();
       setIsGenerating(false);
     }
   };

@@ -1,11 +1,19 @@
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-import { createRoot, type Root } from "react-dom/client";
+import {
+  lazy,
+  Suspense,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
 import {
   ArrowLeft,
   CalendarPlus,
   Clock,
+  Download,
   Eye,
-  MoreHorizontal,
   Link2,
   MapPin,
   Repeat,
@@ -16,18 +24,24 @@ import {
 import { ScheduleXEvent } from "../../types/events";
 import { downloadIcs, mapsUrl, googleCalendarUrl } from "../../utils/ics";
 import { getUpcomingSeriesDates } from "../../utils/series";
-import { resolvePosterImageForEvent } from "../../features/calendar/api/posterFlyers";
 import { useShareablePoster } from "../../features/calendar/hooks/useShareablePoster";
 import { buildPublicEventUrl } from "../../features/events/model/eventSharing";
+import { buildShortEventUrl, shortEventLabel } from "../../features/events/model/shortLink";
 import { useAccessibleDialog } from "../../shared/a11y/useAccessibleDialog";
 import { recordEventTouch } from "../../features/events/api/eventsRepo";
 import { useEventViewTouch } from "../../features/events/hooks/useEventViewTouch";
-import ShareableEventPoster from "./ShareableEventPoster";
+import SleeveCover from "./SleeveCover";
+import { POSTER_SIZE, type PosterFormat } from "./posterFormat";
+import { ensurePosterFonts } from "./posterFonts";
 import { resolveEventFlyer } from "./eventModalImage";
 import Button from "../ui/Button";
 import IconButton from "../ui/IconButton";
 import ButtonLink from "../ui/ButtonLink";
 import "./EventModal.css";
+
+// The full poster carries the QR encoder; it loads only when a dancer opens
+// the preview. The thumbnail uses SleeveCover, which does not need it.
+const ShareableEventPoster = lazy(() => import("./ShareableEventPoster"));
 
 interface EventModalProps {
   event: ScheduleXEvent | null;
@@ -51,7 +65,6 @@ const formatDate = (dateVal: unknown) => {
   const date = toDate(dateVal);
   return date.toLocaleDateString("en-US", {
     weekday: "long",
-    year: "numeric",
     month: "long",
     day: "numeric",
   });
@@ -93,27 +106,48 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
     onBlur: () => void;
   } | null>(null);
 
+  // The poster preview is a second view inside the same dialog. Escape backs
+  // out of it first; a second Escape closes the event.
+  const [view, setView] = useState<"card" | "poster">("card");
+  const [format, setFormat] = useState<PosterFormat>("story");
+  const sleeveButtonRef = useRef<HTMLButtonElement>(null);
+  const previewBackRef = useRef<HTMLButtonElement>(null);
+
+  const closePreview = () => {
+    setView("card");
+    // Return focus to the sleeve that opened the preview.
+    window.requestAnimationFrame(() => sleeveButtonRef.current?.focus());
+  };
+
   const { onKeyDown, onBackdropClick } = useAccessibleDialog({
     dialogRef: modalRef,
-    onDismiss: onClose,
+    onDismiss: view === "poster" ? closePreview : onClose,
     initialFocusRef: closeXRef,
   });
-  const [isDownloading, setIsDownloading] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
   const [copied, setCopied] = useState(false);
   // Visible action feedback, mirroring InstagramStoryShare: errors announce
   // via role="alert", confirmations via role="status". Scoped to the region
   // whose button was used, so exactly one live copy exists in the DOM.
-  type ActionRegion = "desktop" | "mobile";
+  type ActionRegion = "card" | "bar" | "preview" | "utilities";
   const [feedback, setFeedback] = useState<{
     kind: "status" | "error";
     message: string;
     region: ActionRegion;
   } | null>(null);
   const copiedTimerRef = useRef<number | null>(null);
-  const { ensureContainer, capturePoster, posterFilename, downloadPoster, removeTarget } =
-    useShareablePoster();
+  const { createPoster, posterFilename, downloadPoster } = useShareablePoster();
 
   useEventViewTouch(String(event.id));
+
+  // The sleeve thumbnail and preview set the poster's own faces.
+  useEffect(() => {
+    void ensurePosterFonts();
+  }, []);
+
+  useEffect(() => {
+    if (view === "poster") previewBackRef.current?.focus();
+  }, [view]);
 
   const canonicalUrl = buildPublicEventUrl(String(event.id));
 
@@ -216,36 +250,23 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
     finishSheetDrag("cancel");
   };
 
-  // ── Shared action buttons (used in desktop sidebar + mobile sticky bar) ──
+  // ── Shared facts and actions ──
   const isFree = event.priceType === "free" || event.priceAmount == null;
   const priceLabel = isFree ? "Free" : `$${event.priceAmount}`;
   const rsvpLabel = isFree ? "RSVP · Free" : "Get Tickets";
   const seriesDates = event.recurrence === "weekly" ? getUpcomingSeriesDates(event.start) : [];
   const galleryThumbs = event.gallery?.slice(0, 4) ?? [];
   const galleryExtra = (event.gallery?.length ?? 0) - galleryThumbs.length;
-  const resolvedImageUrl = resolveEventFlyer(event);
+  const coverUrl = resolveEventFlyer(event);
+  const coverKind = event.imageUrl?.trim() ? "flyer" : "fallback";
+  const shortUrl = buildShortEventUrl(String(event.id));
+  const shortLabel = shortEventLabel(String(event.id));
 
   const hasContacts = !!(event.contactEmail || event.contactInstagram || event.contactWebsite);
   const locationLabel = `${event.location}${event.address ? ` · ${event.address}` : ""}`;
   const locationUrl = mapsUrl(event);
 
-  // Location link, rendered identically in quick facts and meta rows
-  const renderLocationLink = () =>
-    locationUrl ? (
-      <a
-        href={locationUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="address-link"
-        aria-label={`Open ${locationLabel} in Maps`}
-      >
-        {locationLabel}
-      </a>
-    ) : (
-      <span>{locationLabel}</span>
-    );
-
-  // Contact block, rendered identically in desktop sidebar and mobile extras
+  // Contact block, in the side column of "About the night"
   const renderContactBlock = () =>
     hasContacts ? (
       <div className="contact-block">
@@ -268,7 +289,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
       </div>
     ) : null;
 
-  // Series dates list, rendered identically in desktop sidebar and mobile extras
+  // Series dates list, beside the contact block
   const renderSeries = () =>
     seriesDates.length > 0 ? (
       <div className="series">
@@ -298,35 +319,18 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
     ) : null;
 
   // ── Poster sharing ──
-  // Same pipeline as InstagramStoryShare: off-screen ShareableEventPoster,
-  // capture, then the native files share with the canonical event URL in the
-  // text so every shared poster returns a dancer to this exact event.
-  // Failures surface as visible feedback (never console-only); a dismissed
-  // share sheet stays silent because that is a choice, not a failure.
-  const handleSharePoster = async (region: ActionRegion) => {
-    if (isDownloading || !event) return;
-    setIsDownloading(true);
+  // The sleeve is rendered off-screen at export size, captured, and handed
+  // to the native files share with the event URL in the text, so every
+  // shared poster returns a dancer to this exact event. Failures surface as
+  // visible feedback (never console-only); a dismissed share sheet stays
+  // silent because that is a choice, not a failure.
+  const handleSharePoster = async (region: ActionRegion, posterFormat: PosterFormat) => {
+    if (isSharing) return;
+    setIsSharing(true);
     setFeedback(null);
-    let root: Root | null = null;
     try {
-      const resolution = await resolvePosterImageForEvent({
-        eventId: String(event.id),
-        sourceUrl: event.imageUrl ?? null,
-        cachedUrl: event.posterImageUrl ?? null,
-      });
-
-      const posterImageUrl = resolution.status === "ready" ? resolution.dataUrl : undefined;
-
-      const container = ensureContainer();
-      root = createRoot(container);
-      root.render(
-        <ShareableEventPoster event={event} imageUrl={posterImageUrl} eventUrl={canonicalUrl} />
-      );
-      // Executor form: this project's tsconfig lib (ES2020) has no
-      // Promise.withResolvers (see useShareablePoster's identical note).
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      const poster = await capturePoster(container);
-      const file = new File([poster], posterFilename(event), { type: "image/png" });
+      const poster = await createPoster(event, posterFormat);
+      const file = new File([poster], posterFilename(event, posterFormat), { type: "image/png" });
 
       if (navigator.canShare?.({ files: [file] })) {
         try {
@@ -339,16 +343,16 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
           if (!(err instanceof DOMException && err.name === "AbortError")) {
             setFeedback({
               kind: "error",
-              message: "Poster sharing failed. Please try again.",
+              message: "Sending the poster failed. Please try again.",
               region,
             });
           }
         }
       } else {
-        downloadPoster(event, poster);
+        downloadPoster(event, poster, posterFormat);
         setFeedback({
           kind: "status",
-          message: "Sharing isn't available here — the poster was downloaded instead.",
+          message: "Sharing isn't available here, so the poster was downloaded instead.",
           region,
         });
       }
@@ -359,22 +363,40 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
         region,
       });
     } finally {
-      root?.unmount();
-      removeTarget();
-      setIsDownloading(false);
+      setIsSharing(false);
     }
   };
 
-  // Desktop keeps the full utility set in its sidebar. Mobile gets a booking
-  // action plus two visible utilities; lower-frequency actions live under More.
+  const handleSavePoster = async () => {
+    if (isSharing) return;
+    setIsSharing(true);
+    setFeedback(null);
+    try {
+      downloadPoster(event, await createPoster(event, format), format);
+      setFeedback({
+        kind: "status",
+        message: "Poster saved to your downloads.",
+        region: "preview",
+      });
+    } catch {
+      setFeedback({
+        kind: "error",
+        message: "Could not create the poster. Please try again.",
+        region: "preview",
+      });
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
   const renderCalendarAction = () => {
     const calUrl = googleCalendarUrl(event);
     return calUrl ? (
-      <ButtonLink href={calUrl} external variant="secondary" className="ics-button">
+      <ButtonLink href={calUrl} external variant="ghost" className="night-utility">
         <CalendarPlus size={16} aria-hidden /> Add to calendar
       </ButtonLink>
     ) : (
-      <Button variant="secondary" onClick={() => downloadIcs(event)} className="ics-button">
+      <Button variant="ghost" onClick={() => downloadIcs(event)} className="night-utility">
         <CalendarPlus size={16} aria-hidden /> Add to calendar
       </Button>
     );
@@ -391,8 +413,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
 
   // Price-aware attendance note. Never invents a walk-in policy: without an
   // RSVP link it only speaks when contact facts exist, and stays silent
-  // otherwise. Desktop-only; the sidebar sits directly above the contact
-  // block, so "below" is accurate there.
+  // otherwise. The contact block sits in the details below it.
   const renderReassurance = () => {
     if (event.rsvpLink) {
       return (
@@ -402,83 +423,270 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
       );
     }
     if (hasContacts) {
-      return <p className="reassurance">No online tickets — reach the host below</p>;
+      return <p className="reassurance">No online tickets. Reach the host below.</p>;
     }
     return null;
   };
 
-  const renderShareButton = (region: ActionRegion) => (
-    <Button
-      variant="secondary"
-      onClick={() => void handleSharePoster(region)}
-      disabled={isDownloading}
-      loading={isDownloading}
-      loadingLabel="Generating…"
-    >
-      <Share2 size={16} aria-hidden />
-      Share poster
-    </Button>
-  );
-
-  const renderCopyButton = (region: ActionRegion) => (
-    <Button
-      variant="secondary"
-      onClick={() => void handleCopyLink(region)}
-      className="copy-link-btn"
-    >
-      <Link2 size={16} aria-hidden />
-      {copied ? "Copied" : "Copy link"}
-    </Button>
-  );
-
-  const renderDesktopActions = () => (
-    <>
-      <ButtonLink to={`/events/${event.id}`} variant="secondary" onClick={onClose}>
-        <Eye size={16} aria-hidden />
-        Full details
-      </ButtonLink>
-      <div className="poster-download-section">{renderShareButton("desktop")}</div>
-      {renderCalendarAction()}
-      {renderCopyButton("desktop")}
-      {renderReassurance()}
-      {renderFeedback("desktop")}
-    </>
-  );
-
-  const renderMobileActions = () => (
-    <>
+  // The two decisions, equal in size: bring friends, or commit. Rendered in
+  // the card on desktop and in the sheet's thumb-zone bar on mobile; CSS
+  // shows exactly one region per layout.
+  const renderDecisions = (region: "card" | "bar") => (
+    <div className={`night-actions night-actions--${region}`}>
+      <Button
+        variant="primary"
+        className="night-actions__send"
+        onClick={() => void handleSharePoster(region, "story")}
+        disabled={isSharing}
+        loading={isSharing}
+        loadingLabel="Pressing poster…"
+      >
+        <Share2 size={16} aria-hidden />
+        Send to friends
+      </Button>
       {event.rsvpLink ? (
         <ButtonLink
           href={event.rsvpLink}
           external
-          className="rsvp-button"
+          variant="secondary"
+          className="night-actions__rsvp"
           onClick={() => void recordEventTouch(String(event.id), "rsvp_click")}
         >
           {rsvpLabel}
         </ButtonLink>
       ) : (
-        <ButtonLink to={`/events/${event.id}`} className="rsvp-button" onClick={onClose}>
+        <ButtonLink
+          to={`/events/${event.id}`}
+          variant="secondary"
+          className="night-actions__rsvp"
+          onClick={onClose}
+        >
           <Eye size={16} aria-hidden />
           Full details
         </ButtonLink>
       )}
-      <div className="poster-download-section">{renderShareButton("mobile")}</div>
-      <details className="mobile-actions-overflow">
-        <summary className="ui-button ui-button--secondary mobile-actions-overflow__toggle">
-          <MoreHorizontal size={16} aria-hidden />
-          More
-        </summary>
-        <div className="mobile-actions-overflow__menu">
-          <ButtonLink to={`/events/${event.id}`} variant="secondary" onClick={onClose}>
-            <Eye size={16} aria-hidden />
-            Full details
-          </ButtonLink>
+      {renderFeedback(region)}
+    </div>
+  );
+
+  const hasDetails =
+    Boolean(event.recurrence || event.host || event.description) ||
+    galleryThumbs.length > 0 ||
+    hasContacts ||
+    seriesDates.length > 0;
+
+  const renderNight = () => (
+    <>
+      <div className="modal-scroll">
+        {/* ── Night card: the sleeve your friends get, beside the four facts ── */}
+        <header className="night-card">
+          <button
+            ref={sleeveButtonRef}
+            type="button"
+            className="night-card__sleeve"
+            onClick={() => setView("poster")}
+            aria-label="Preview the poster your friends get"
+          >
+            <span className={`sleeve sleeve--thumb sleeve--${event.calendarId}`} aria-hidden="true">
+              <SleeveCover event={event} imageUrl={coverUrl} artKind={coverKind} />
+            </span>
+            <span className="night-card__sleeve-hint" aria-hidden="true">
+              <Eye size={14} /> Preview poster
+            </span>
+          </button>
+
+          <div className="night-card__facts">
+            <p className="night-card__date">{formatDate(event.start)}</p>
+            <ul className="night-card__list">
+              <li>
+                <Clock size={16} aria-hidden />
+                <span>{formatTime(event.start, event.end)}</span>
+              </li>
+              {event.location && (
+                <li>
+                  <MapPin size={16} aria-hidden />
+                  <span className="night-card__venue">
+                    {locationUrl ? (
+                      <a
+                        href={locationUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="address-link"
+                        aria-label={`Open ${locationLabel} in Maps`}
+                      >
+                        {event.location}
+                      </a>
+                    ) : (
+                      <span>{event.location}</span>
+                    )}
+                    {event.address && <span className="night-card__address">{event.address}</span>}
+                  </span>
+                </li>
+              )}
+              <li className="night-card__price">
+                <span className="night-card__price-amount">{priceLabel}</span>
+                <span className={`style-chip chip-${event.calendarId}`}>{event.calendarId}</span>
+              </li>
+            </ul>
+          </div>
+        </header>
+
+        <h2 id="modal-title" className="night-card__title">
+          {event.title}
+        </h2>
+
+        {event.danceStyles && event.danceStyles.length > 0 && (
+          <div className="modal-style-row">
+            {event.danceStyles.map((style) => (
+              <span key={style} className="style-chip">
+                {style}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {renderDecisions("card")}
+        {renderReassurance()}
+
+        <div className="night-utilities">
           {renderCalendarAction()}
-          {renderCopyButton("mobile")}
+          <Button
+            variant="ghost"
+            onClick={() => void handleCopyLink("utilities")}
+            className="night-utility copy-link-btn"
+          >
+            <Link2 size={16} aria-hidden />
+            {copied ? "Copied" : "Copy link"}
+          </Button>
+          {event.rsvpLink && (
+            <ButtonLink
+              to={`/events/${event.id}`}
+              variant="ghost"
+              className="night-utility"
+              onClick={onClose}
+            >
+              <Eye size={16} aria-hidden />
+              Full details
+            </ButtonLink>
+          )}
         </div>
-      </details>
-      {renderFeedback("mobile")}
+        {renderFeedback("utilities")}
+
+        {hasDetails && (
+          <section className="night-details" aria-labelledby="night-details-title">
+            <h3 id="night-details-title" className="night-details__title">
+              About the night
+            </h3>
+            <div className="night-details__grid">
+              <div className="modal-details">
+                {event.recurrence && (
+                  <div className="meta-row">
+                    <Repeat size={18} aria-hidden />
+                    <span>{event.recurrence === "weekly" ? "Repeats weekly" : "Repeats"}</span>
+                  </div>
+                )}
+                {event.host && (
+                  <div className="meta-row">
+                    <Users size={18} aria-hidden />
+                    <span>with {event.host}</span>
+                  </div>
+                )}
+                {event.description && <p className="modal-description">{event.description}</p>}
+                {galleryThumbs.length > 0 && (
+                  <div className="gallery">
+                    <h3 className="gallery-eyebrow">Photos from past nights</h3>
+                    <div className="gallery-row">
+                      {galleryThumbs.map((src, index) => (
+                        <img
+                          key={src}
+                          className="gallery-thumb"
+                          src={src}
+                          alt={`${event.title} gallery image ${index + 1}`}
+                          loading="lazy"
+                        />
+                      ))}
+                      {galleryExtra > 0 && <span className="gallery-more">+{galleryExtra}</span>}
+                    </div>
+                  </div>
+                )}
+              </div>
+              {(hasContacts || seriesDates.length > 0) && (
+                <div className="night-details__side">
+                  {renderContactBlock()}
+                  {renderSeries()}
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+      </div>
+
+      {renderDecisions("bar")}
     </>
+  );
+
+  // ── Poster preview: exactly what friends receive, at either format ──
+  const renderPosterPreview = () => (
+    <section className="poster-preview" aria-labelledby="poster-preview-title">
+      <div className="poster-preview__head">
+        <button
+          ref={previewBackRef}
+          type="button"
+          className="poster-preview__back"
+          onClick={closePreview}
+        >
+          <ArrowLeft size={16} aria-hidden /> Back to the night
+        </button>
+        <h2 id="modal-title" className="poster-preview__title">
+          The poster your friends get
+        </h2>
+      </div>
+
+      <div className="poster-preview__formats" role="group" aria-label="Poster format">
+        {(["story", "feed"] as const).map((option) => (
+          <button
+            key={option}
+            type="button"
+            className="poster-preview__format"
+            aria-pressed={format === option}
+            onClick={() => setFormat(option)}
+          >
+            {option === "story" ? "Story · 9:16" : "Feed · 4:5"}
+          </button>
+        ))}
+      </div>
+
+      <PosterStage format={format}>
+        <Suspense fallback={null}>
+          <ShareableEventPoster
+            event={event}
+            format={format}
+            imageUrl={coverUrl}
+            artKind={coverKind}
+            shortUrl={shortUrl}
+            shortLabel={shortLabel}
+          />
+        </Suspense>
+      </PosterStage>
+
+      <div className="poster-preview__actions">
+        <Button
+          variant="primary"
+          onClick={() => void handleSharePoster("preview", format)}
+          disabled={isSharing}
+          loading={isSharing}
+          loadingLabel="Pressing poster…"
+        >
+          <Share2 size={16} aria-hidden />
+          Send this poster
+        </Button>
+        <Button variant="secondary" onClick={() => void handleSavePoster()} disabled={isSharing}>
+          <Download size={16} aria-hidden />
+          Save image
+        </Button>
+      </div>
+      {renderFeedback("preview")}
+    </section>
   );
 
   return (
@@ -491,7 +699,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
       aria-labelledby="modal-title"
       ref={modalRef}
     >
-      <div className="modal-content" ref={contentRef}>
+      <div className={`modal-content modal-content--${view}`} ref={contentRef}>
         {/* Drag handle — visible only on mobile; drag down to dismiss */}
         <div
           className="modal-drag-handle"
@@ -503,121 +711,48 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
           onLostPointerCapture={onSheetDragAbort}
         />
 
-        {/* Close is always visible on both layouts, so it owns initial focus.
-            The Back pill is display:none on mobile and must never take it. */}
+        {/* Close is always visible on both layouts, so it owns initial focus. */}
         <IconButton ref={closeXRef} aria-label="Close" onClick={onClose} className="modal-close-x">
           <X size={20} aria-hidden />
         </IconButton>
 
-        {/* ── Poster header ── */}
-        <div className="modal-poster" style={{ backgroundImage: `url(${resolvedImageUrl})` }}>
-          <button className="modal-close back-pill" onClick={onClose}>
-            <ArrowLeft size={16} aria-hidden /> Back to calendar
-          </button>
-          <div className="poster-overlay">
-            <div className="quick-look-header">
-              <span className={`style-chip chip-${event.calendarId}`}>{event.calendarId}</span>
-              <span className="quick-look-date">{formatDate(event.start)}</span>
-            </div>
-            <h2 id="modal-title">{event.title}</h2>
-          </div>
-        </div>
+        {view === "card" ? renderNight() : renderPosterPreview()}
+      </div>
+    </div>
+  );
+}
 
-        {/* ── Decision strip ──
-            The dancer sees the poster above; this is the first thing they
-            read after it. Time, location, price on the left; the RSVP
-            decision on the right. One compact row — the dancer's information
-            is no longer scattered across three separate regions. */}
-        <div className="decision-strip">
-          <div className="decision-strip__facts">
-            <div className="decision-strip__fact">
-              <Clock size={14} aria-hidden />
-              <span>{formatTime(event.start, event.end)}</span>
-            </div>
-            {event.location && (
-              <div className="decision-strip__fact">
-                <MapPin size={14} aria-hidden />
-                <span>{renderLocationLink()}</span>
-              </div>
-            )}
-            <div className="decision-strip__fact">
-              <span className="decision-strip__price">{priceLabel}</span>
-            </div>
-          </div>
-          {event.rsvpLink && (
-            <ButtonLink
-              href={event.rsvpLink}
-              external
-              className="decision-strip__rsvp"
-              onClick={() => void recordEventTouch(String(event.id), "rsvp_click")}
-            >
-              {rsvpLabel}
-            </ButtonLink>
-          )}
-        </div>
+/**
+ * Shows an export-size poster scaled to the width it is given, so the
+ * preview is the real artwork rather than an approximation of it.
+ */
+function PosterStage({ format, children }: { format: PosterFormat; children: ReactNode }) {
+  const stageRef = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(0);
+  const size = POSTER_SIZE[format];
 
-        {/* ── Dance styles (prominent, before description) ── */}
-        {event.danceStyles && event.danceStyles.length > 0 && (
-          <div className="modal-style-row">
-            {event.danceStyles.map((style) => (
-              <span key={style} className="style-chip">
-                {style}
-              </span>
-            ))}
-          </div>
-        )}
+  useLayoutEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    setWidth(stage.clientWidth);
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(([entry]) => setWidth(entry.contentRect.width));
+    observer.observe(stage);
+    return () => observer.disconnect();
+  }, []);
 
-        {/* ── Scrollable body (details + desktop sidebar) ── */}
-        <div className="modal-body">
-          <div className="modal-grid">
-            <div className="modal-details">
-              {event.recurrence && (
-                <div className="meta-row">
-                  <Repeat size={18} aria-hidden />
-                  <span>{event.recurrence === "weekly" ? "Repeats weekly" : "Repeats"}</span>
-                </div>
-              )}
-              {event.host && (
-                <div className="meta-row">
-                  <Users size={18} aria-hidden />
-                  <span>with {event.host}</span>
-                </div>
-              )}
-              {event.description && <p className="modal-description">{event.description}</p>}
-              {galleryThumbs.length > 0 && (
-                <div className="gallery">
-                  <h3 className="gallery-eyebrow">Photos from past nights</h3>
-                  <div className="gallery-row">
-                    {galleryThumbs.map((src, index) => (
-                      <img
-                        key={src}
-                        className="gallery-thumb"
-                        src={src}
-                        alt={`${event.title} gallery image ${index + 1}`}
-                        loading="lazy"
-                      />
-                    ))}
-                    {galleryExtra > 0 && <span className="gallery-more">+{galleryExtra}</span>}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <aside className="modal-sidebar">
-              {renderDesktopActions()}
-              {renderContactBlock()}
-              {renderSeries()}
-            </aside>
-          </div>
-
-          {/* Additional content shown inline on mobile (hidden in desktop sidebar) */}
-          <div className="modal-mobile-extras">
-            {renderContactBlock()}
-            {renderSeries()}
-          </div>
-        </div>
-
-        <div className="modal-mobile-actions">{renderMobileActions()}</div>
+  const scale = width / size.width;
+  return (
+    <div
+      ref={stageRef}
+      className={`poster-stage poster-stage--${format}`}
+      style={{ height: size.height * scale }}
+    >
+      <div
+        className="poster-stage__canvas"
+        style={{ width: size.width, height: size.height, transform: `scale(${scale})` }}
+      >
+        {children}
       </div>
     </div>
   );

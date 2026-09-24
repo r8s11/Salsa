@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-22T00:00:00.000Z",
+  "generatedAt": "2026-09-24T00:00:00.000Z",
   "title": "Design System: Salsa Segura",
   "extensions": {
     "colorMeta": {
@@ -62,6 +62,34 @@
         "canonical": "#be123c",
         "tonalRamp": ["#fb7185", "#be123c"],
         "note": "Light theme #be123c, dark theme #fb7185. Operator state only."
+      },
+      "sleeve-red": {
+        "role": "sleeve",
+        "displayName": "Social Pressing Red",
+        "canonical": "#d7263d",
+        "tonalRamp": ["#d7263d", "#a8182c"],
+        "note": "Social-event field colour. Deep variant #a8182c is the cover-art ground; also the back-cover Side A/B label ink on every pressing."
+      },
+      "sleeve-mustard": {
+        "role": "sleeve",
+        "displayName": "Class Pressing Mustard",
+        "canonical": "#f2b705",
+        "tonalRamp": ["#f2b705", "#c99400"],
+        "note": "Recurring-class field colour. Deep variant #c99400 is the cover-art ground; ink on this field is midnight."
+      },
+      "sleeve-midnight": {
+        "role": "sleeve",
+        "displayName": "Workshop Pressing Midnight",
+        "canonical": "#1b1b3a",
+        "tonalRamp": ["#1b1b3a", "#10102a"],
+        "note": "Workshop field colour and the back-cover text ink. Deep variant #10102a is the cover-art ground when this is the field."
+      },
+      "sleeve-cream": {
+        "role": "sleeve",
+        "displayName": "Back-Cover Cream Stock",
+        "canonical": "#f4ecd8",
+        "tonalRamp": ["#f4ecd8"],
+        "note": "The back cover's paper ground and every pressing's on-field ink/frame colour, regardless of which field it backs."
       }
     },
     "categoryChips": {
@@ -95,7 +123,7 @@
         "range": "1.5rem–4.5rem",
         "purpose": "Poster titles, hero figures and splash headings set per surface; anchored by display-md (3rem) and display-lg (4.5rem). Not a step list."
       },
-      "artworkExemption": "SVG artwork lettering (the vinyl label print, 3.6px/6.6px) answers to no ramp."
+      "artworkExemption": "SVG artwork lettering (the vinyl label print, 3.6px/6.6px) answers to no ramp. The Sleeve's cover title (54-128px, stepped by character count) carries the same exemption; see typographyMeta.poster-lettering."
     },
     "typographyMeta": {
       "display-lg": { "displayName": "Display Large", "purpose": "Public hero headlines only." },
@@ -122,13 +150,25 @@
       "identifier": {
         "displayName": "Identifier",
         "purpose": "Tabular mono identifiers an operator reads character by character: IDs, hashes, raw payloads."
+      },
+      "poster-lettering": {
+        "displayName": "Poster Lettering",
+        "purpose": "Shrikhand. The Sleeve's cover title band only — never a heading, never body copy. Sized 54-128px (story, stepped by character count), ×0.8 on feed; export-pixel artwork, answers to no UI ramp."
+      },
+      "poster-condensed": {
+        "displayName": "Poster Condensed",
+        "purpose": "Barlow Condensed 600/800. Everything on the Sleeve besides the cover title: masthead, sticker, track list, Side B. Tabular lining numerals throughout (font-variant-numeric: tabular-nums lining-nums)."
+      },
+      "poster-condensed-bold": {
+        "displayName": "Poster Condensed Bold",
+        "purpose": "Barlow Condensed 800. Track numbers/values, masthead, Side-label headings, price and scan CTA — the Sleeve's bold weight, paired with poster-condensed's 600 for labels."
       }
     },
     "shadows": [
       {
         "name": "glow-primary",
         "value": "0 0 24px rgba(225, 29, 72, 0.3)",
-        "purpose": "Public world only. Neon halo under active rose elements."
+        "purpose": "Public world only. Neon halo under active rose elements. Never reaches the Sleeve."
       },
       {
         "name": "sheet-elevation",
@@ -149,6 +189,11 @@
         "name": "desk-none",
         "value": "none",
         "purpose": "The operator desk declares no elevation. Rules and measures divide; nothing lifts."
+      },
+      {
+        "name": "sleeve-none",
+        "value": "none",
+        "purpose": "The Sleeve declares no elevation at all, more strictly than the desk: it is printed matter, so nothing on it ever casts a shadow, not even the desk's border-only device."
       }
     ],
     "motion": [
@@ -195,6 +240,18 @@
       "gutter": "14px",
       "thumb": "44px",
       "controlMinHeight": "34px"
+    },
+    "sleeveMeasures": {
+      "story": "1080×1920",
+      "feed": "1080×1350 (4:5)",
+      "pad": "56px (48px on feed)",
+      "coverWidth": "968px (820px on feed)",
+      "coverBorder": "6px",
+      "priceStickerRotation": "-9deg",
+      "backCoverSideLabelRule": "3px",
+      "trackLeaderRule": "4px dotted",
+      "mastheadRule": "4px",
+      "shortLinkPattern": "/e/<first 8 hex of the event id>"
     }
   },
   "components": [
@@ -253,18 +310,34 @@
       "description": "The mobile event sheet. One elevation shadow; a full-width 28px grab strip at the lip drags to dismiss (96px or flick), snaps back otherwise, and never fires on interrupted gestures.",
       "html": "<section class=\"ds-sheet\"><div class=\"ds-sheet-handle\"></div><h2 class=\"ds-sheet-title\">Tuesday Night Social</h2></section>",
       "css": ".ds-sheet { position: relative; max-height: 96dvh; display: flex; flex-direction: column; border-radius: 24px 24px 0 0; background: #131b2e; box-shadow: 0 30px 60px -18px rgba(0, 0, 0, 0.5); transform: translateY(var(--sheet-drag, 0px)); transition: transform 220ms cubic-bezier(0.23, 1, 0.32, 1); } .ds-sheet.is-dragging { transition: none; } .ds-sheet-handle { display: flex; height: 28px; align-items: center; justify-content: center; touch-action: none; cursor: grab; } .ds-sheet-handle::before { content: \"\"; width: 36px; height: 4px; border-radius: 9999px; background: rgba(255, 255, 255, 0.16); } .ds-sheet-title { margin: 0; padding: 8px 20px 16px; font: 800 1.5rem/1.1 'Epilogue', sans-serif; color: #dae2fd; } @media (prefers-reduced-motion: reduce) { .ds-sheet { transition: none; } }"
+    },
+    {
+      "name": "Sleeve Front Cover",
+      "kind": "custom",
+      "refersTo": "sleeve-cover",
+      "description": "The Sleeve's square front cover: flyer or fallback art, a lettered title band in Poster Lettering, and a circular price sticker. The same component renders full-size on the exported poster and scaled down as the night card's thumbnail.",
+      "html": "<div class=\"ds-sleeve-cover\"><div class=\"ds-sleeve-cover__art\"><img src=\"https://picsum.photos/seed/salsa/400\" alt=\"\" /></div><div class=\"ds-sleeve-cover__band\"><h1 class=\"ds-sleeve-cover__title\">Salsa Sunday</h1></div><span class=\"ds-sleeve-sticker\"><span class=\"ds-sleeve-sticker__label\">Entry</span><span class=\"ds-sleeve-sticker__price\">$15</span></span></div>",
+      "css": ".ds-sleeve-cover { position: relative; display: flex; flex-direction: column; width: 320px; aspect-ratio: 1; background: #a8182c; border: 6px solid #f4ecd8; font-family: 'Poster Condensed', 'Arial Narrow', sans-serif; } .ds-sleeve-cover__art { flex: 1; min-height: 0; overflow: hidden; } .ds-sleeve-cover__art img { display: block; width: 100%; height: 100%; object-fit: cover; } .ds-sleeve-cover__band { padding: 14px 18px; background: #d7263d; border-top: 6px solid #f4ecd8; } .ds-sleeve-cover__title { margin: 0; color: #f4ecd8; font-family: 'Poster Lettering', 'Arial Black', sans-serif; font-size: 34px; font-weight: 400; line-height: 1.02; letter-spacing: -0.01em; } .ds-sleeve-sticker { position: absolute; top: 14px; right: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 78px; aspect-ratio: 1; color: #1b1b3a; background: #f4ecd8; border: 3px solid #1b1b3a; border-radius: 50%; transform: rotate(-9deg); text-transform: uppercase; } .ds-sleeve-sticker__label { font-size: 10px; font-weight: 600; letter-spacing: 0.18em; } .ds-sleeve-sticker__price { font-size: 24px; font-weight: 800; line-height: 1; }"
+    },
+    {
+      "name": "Sleeve Track Row",
+      "kind": "custom",
+      "refersTo": "sleeve-track",
+      "description": "One line of the back-cover Side A track list: a numbered track, a Poster Condensed label, a dotted leader, and a bold tabular value — the poster's own vocabulary for event facts (date, time, venue, styles).",
+      "html": "<div class=\"ds-sleeve-track\"><span class=\"ds-sleeve-track__no\">A1</span><span class=\"ds-sleeve-track__label\">Date</span><span class=\"ds-sleeve-track__leader\"></span><span class=\"ds-sleeve-track__value\">Thursday, September 24</span></div>",
+      "css": ".ds-sleeve-track { display: grid; grid-template-columns: 30px auto 1fr auto; align-items: baseline; gap: 0 8px; padding: 10px 0; background: #f4ecd8; color: #1b1b3a; font-family: 'Poster Condensed', 'Arial Narrow', sans-serif; font-variant-numeric: tabular-nums lining-nums; text-transform: uppercase; } .ds-sleeve-track__no { color: #d7263d; font-weight: 800; font-size: 14px; } .ds-sleeve-track__label { font-weight: 600; font-size: 14px; letter-spacing: 0.06em; } .ds-sleeve-track__leader { align-self: end; min-width: 16px; margin-bottom: 4px; border-bottom: 3px dotted currentColor; opacity: 0.55; } .ds-sleeve-track__value { font-weight: 800; font-size: 14px; text-align: right; }"
     }
   ],
   "narrative": {
-    "northStar": "Two worlds: Ritmo Vivo for the dance floor, The Listings Desk for the back of house",
-    "overview": "Salsa Segura is a listings publication with a public face and a working desk. Ritmo Vivo is the face: high-contrast, glassmorphic, built to feel like a night out. The Listings Desk is the desk: agate listings type, copy-desk proof marking, rules instead of cards, read for hours in a lit room. The desk exists because a curation back-office and a dance-floor poster have opposite jobs, and dressing one as the other fails both.",
+    "northStar": "Three worlds: Ritmo Vivo for the dance floor, The Listings Desk for the back of house, and The Sleeve for the one artifact that leaves the site",
+    "overview": "Salsa Segura is a listings publication with a public face, a working desk, and a printed artifact that travels. Ritmo Vivo is the face: high-contrast, glassmorphic, built to feel like a night out. The Listings Desk is the desk: agate listings type, copy-desk proof marking, rules instead of cards, read for hours in a lit room. The Sleeve is the poster: every night pressed as a 1970s Fania-era salsa LP sleeve, spot-colour fields and Shrikhand lettering, judged against other posters in a friend's story or group chat rather than against the site around it. Each world exists because its job is opposite the others', and dressing one as another fails all three.",
     "keyCharacteristics": [
-      "Public world is dark, glassmorphic and expressive; operator world is light-or-dark, ruled and dense",
+      "Public world is dark, glassmorphic and expressive; operator world is light-or-dark, ruled and dense; the poster is flat 1970s LP-sleeve print",
       "Five operator state colours are law and never decorate",
-      "The operator desk declares no elevation at all",
+      "The operator desk and the Sleeve both declare no elevation at all",
       "Counts state work, never inventory",
       "Decisions propagate once, in place, without routing",
-      "UI type sits on a nine-step rem ramp; display composition is a documented band"
+      "UI type sits on a nine-step rem ramp; both display composition and the Sleeve's cover title are documented bands, not ramp steps"
     ],
     "rules": [
       {
@@ -286,21 +359,41 @@
         "name": "The One-Device Rule",
         "body": "Border or shadow, never both. The desk chose the border and declares no elevation.",
         "section": "elevation"
+      },
+      {
+        "name": "The Sleeve Boundary Rule",
+        "body": "The Sleeve never appears as site UI — only as the poster export itself and its thumbnail/preview inside the event modal. Ritmo Vivo's glassmorphism and glow never enter the poster, and the Sleeve's flat spot-colour fields never leak back into Ritmo Vivo.",
+        "section": "colors"
+      },
+      {
+        "name": "The Pressing-Codes-Type Rule",
+        "body": "The field colour is the only signal of event type on the poster; it is never reused for anything else on the sleeve, and Side A/Side B labels print red on every pressing regardless of which field it backs.",
+        "section": "colors"
+      },
+      {
+        "name": "The Artwork-Not-Ramp Rule",
+        "body": "The Sleeve's cover title size (54-128px story, ×0.8 feed, stepped by character count) is artwork sized for the printed sleeve and answers to no UI type ramp — the same exemption the vinyl label print already has.",
+        "section": "typography"
       }
     ],
     "dos": [
-      "Do keep the two worlds separate: Ritmo Vivo for dancers, The Listings Desk for operators.",
+      "Do keep the three worlds separate: Ritmo Vivo for dancers, The Listings Desk for operators, The Sleeve for the one artifact that leaves the site.",
       "Do state only counts that represent work in the desk's standing rule.",
       "Do hold the five state colours to state alone, in both light and dark admin themes.",
       "Do keep operator controls at 34px or larger even beside agate rows.",
-      "Do let a decision propagate once, across galley, column and counts together."
+      "Do let a decision propagate once, across galley, column and counts together.",
+      "Do press event type to field colour alone (red social, mustard class, midnight workshop) and print Side A/Side B labels red on every pressing.",
+      "Do set the Sleeve in Poster Lettering (titles) and Poster Condensed (everything else), never Epilogue or Be Vietnam Pro."
     ],
     "donts": [
       "Don't put a KPI stat-card grid on an operator surface; inventory figures belong to the analytics page.",
       "Don't add cards, panels or shadows to the desk.",
       "Don't use glyphs or emoji as marks or icons; marks are drawn geometry and icons come from Lucide.",
       "Don't shrink a control to match agate type, or grow agate type to match a control.",
-      "Don't route an operator to a separate page for a decision the galley can carry in place."
+      "Don't route an operator to a separate page for a decision the galley can carry in place.",
+      "Don't let Ritmo Vivo's glassmorphism, glow or gradients reach the Sleeve, and don't let the Sleeve's flat fields leak back into Ritmo Vivo.",
+      "Don't show the Sleeve anywhere but the poster export and its thumbnail/preview inside the event modal.",
+      "Don't add a shadow anywhere on the poster; the Sleeve prints flat."
     ]
   }
 }

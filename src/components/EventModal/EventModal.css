@@ -1,7 +1,9 @@
 /* ========================================
-   Event Modal — Tambora structure, Ritmo Vivo skin
-   Desktop: centered card with two-column grid
-   Mobile:  full-bleed bottom sheet with sticky CTA bar
+   Event Modal — the Night Card, Ritmo Vivo skin
+   Opens on the object a friend will receive: the poster's sleeve beside
+   the four facts, then two equal decisions (send to friends, commit).
+   Desktop: centered card. Mobile: bottom sheet whose decisions sit in a
+   thumb-zone bar. The poster preview is a second view in the same dialog.
    ======================================== */
 
 .modal-overlay {
@@ -26,21 +28,16 @@
 .modal-content {
   position: relative;
   width: 100%;
-  max-width: 767.98px;
+  max-width: 760px;
   background: var(--surface);
-  border: none;
   border-radius: var(--radius-xl);
-  /* One elevation, stated once: a real offset shadow. The rose glow that
-     used to sit on top was a zero-offset halo, and it competed with the
-     RSVP column for the only warm emphasis in the sheet. */
+  /* One elevation, stated once: a real offset shadow. */
   box-shadow: 0 30px 60px -18px rgba(0, 0, 0, 0.5);
   overflow: hidden;
 }
 
-/* Desktop entrance: the mobile sheet already announces its arrival with the
-   modalSlideUp keyframe below; this is the equivalent for the centered
-   card, so appearing at all doesn't read as a jump-cut. Scale starts at
-   0.96, never 0 — the card has a shape the instant it exists. */
+/* Desktop entrance: scale starts at 0.96, never 0, so the card has a shape
+   the instant it exists. */
 @media (min-width: 768px) {
   .modal-content {
     transition:
@@ -56,159 +53,169 @@
   }
 }
 
+.modal-scroll {
+  padding: 32px 32px 28px;
+}
+
 /* ── Drag handle (mobile only) ── */
 .modal-drag-handle {
   display: none;
 }
 
-/* ── Poster header ── */
-.modal-poster {
-  position: relative;
-  width: 100%;
-  height: min(38vw, 320px);
-  min-height: 230px;
-  background-color: var(--surface-high);
-  background-image: linear-gradient(150deg, var(--surface-high), var(--red));
-  background-size: cover;
-  background-position: center;
+/* ── Night card ── */
+.night-card {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  align-items: end;
+  gap: 28px;
+  /* Keeps the facts clear of the close control. */
+  padding-right: 56px;
 }
 
-.modal-poster::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    180deg,
-    rgba(11, 19, 38, 0.45) 0%,
-    transparent 32%,
-    rgba(11, 19, 38, 0.6) 72%,
-    var(--bg)
-  );
+/* The sleeve: a printed square lifted off the table, not a glass card. */
+.night-card__sleeve {
+  --thumb-size: 220px;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  width: var(--thumb-size);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
 }
 
-/* ── Quick look header & facts ── */
-.quick-look-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
+.sleeve--thumb {
+  display: block;
+  width: var(--thumb-size);
+  height: var(--thumb-size);
+  padding: 0;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  box-shadow: 0 18px 30px -14px rgba(6, 14, 32, 0.7);
+  transition: transform 260ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.quick-look-date {
-  font-weight: 500;
-  color: var(--text-muted);
+/* The cover is authored at export size (968px); the thumb scales it. */
+.sleeve--thumb .sleeve-cover {
+  transform: scale(calc(220 / 968));
+  transform-origin: 0 0;
 }
 
-/* ── Decision strip ──
-   The dancer sees the poster above; this is the first thing they read after
-   it. Time, location, price on the left; the RSVP decision on the right.
-   One compact row — the dancer's information is no longer scattered across
-   three separate regions. */
-.decision-strip {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 14px 28px;
-  background: var(--surface-high);
-  border-bottom: 1px solid var(--border);
-}
-
-.decision-strip__facts {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 16px;
-  font-size: 0.875rem;
-  color: var(--text-muted);
-  min-width: 0;
-}
-
-.decision-strip__fact {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-}
-
-.decision-strip__price {
-  font-weight: 700;
-  color: var(--gold);
-  font-size: 1rem;
-}
-
-.decision-strip__rsvp {
-  flex-shrink: 0;
-  white-space: nowrap;
-}
-
-/* ── Back-pill button ── */
-.back-pill {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  z-index: 2;
+.night-card__sleeve-hint {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: var(--card);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid var(--border-md);
-  border-radius: var(--radius-full);
-  padding: 8px 14px;
-  min-height: 44px;
-  color: var(--text);
+  min-height: 24px;
+  color: var(--gold);
   font-family: var(--font-ui);
-  font-size: 0.8125rem;
+  font-size: 0.6875rem;
   font-weight: 700;
-  cursor: pointer;
-  transition:
-    background 200ms cubic-bezier(0.23, 1, 0.32, 1),
-    border-color 200ms cubic-bezier(0.23, 1, 0.32, 1),
-    transform 0.12s cubic-bezier(0.23, 1, 0.32, 1);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
+/* Pulling a record from the crate: a small lift and tilt on intent. */
 @media (hover: hover) and (pointer: fine) {
-  .back-pill:hover {
-    background: var(--card-hover);
-    border-color: var(--border-lg);
+  .night-card__sleeve:hover .sleeve--thumb {
+    transform: translateY(-4px) rotate(-1.5deg);
+  }
+
+  .night-card__sleeve:hover .night-card__sleeve-hint {
+    color: var(--gold-light);
   }
 }
 
-.back-pill:active {
-  transform: scale(0.97);
+.night-card__sleeve:active .sleeve--thumb {
+  transform: scale(0.98);
 }
 
-.poster-overlay {
-  position: absolute;
-  left: 24px;
-  right: 24px;
-  bottom: 18px;
-  z-index: 2;
+.night-card__sleeve:focus-visible {
+  outline: 2px solid var(--red-bright);
+  outline-offset: 6px;
+  border-radius: var(--radius-sm);
 }
 
-.poster-overlay h2 {
+.night-card__facts {
+  min-width: 0;
+}
+
+.night-card__date {
+  margin: 0 0 12px;
+  color: var(--gold);
   font-family: var(--font-display);
-  font-size: 2.125rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.night-card__list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--text);
+}
+
+.night-card__list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+}
+
+.night-card__list svg {
+  flex-shrink: 0;
+  margin-top: 4px;
+  color: var(--gold);
+}
+
+.night-card__venue {
+  display: grid;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.night-card__address {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.night-card__price {
+  align-items: center;
+  margin-top: 4px;
+}
+
+.night-card__price-amount {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
   font-weight: 800;
-  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--text);
+}
+
+.night-card__title {
+  margin: 28px 0 12px;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 3.4vw, 2.5rem);
+  font-weight: 800;
   letter-spacing: -0.02em;
-  color: #fff;
-  margin: 8px 0 0;
+  line-height: 1.08;
+  text-wrap: balance;
 }
 
 /* ── Calendar type chips ──
-   The markup reuses `.style-chip`, whose base rule in global.css is the
-   *dance-style* chip (On1 / On2 / Cuban) — low-opacity tertiary with white
-   text. At equal specificity that base won on source order, so every event
-   type rendered in the same orange and the chip encoded nothing. Scoping
-   these to `.modal-content` settles it.
-
-   They also sit in the poster overlay, on a flyer photograph whose lightness
-   is unknowable at author time, so each states its own opaque ground — the
-   same deep tones the event cards use, so one type reads identically on the
-   card and in the sheet it opens. */
+   `.style-chip`'s base rule in global.css is the dance-style chip. Scoped
+   here so each event type states its own ground, matching the cards. */
 .modal-content .chip-social {
   background: var(--red-deep);
   color: var(--text);
@@ -226,65 +233,11 @@
   padding: 3px 8px;
 }
 
-/* ── Scrollable body ── */
-.modal-body {
-  /* On desktop this just passes through; on mobile it becomes scrollable */
-  margin-top: var(--space-lg);
-}
-
-/* ── Body grid (desktop two-column) ── */
-.modal-grid {
-  display: grid;
-  grid-template-columns: 1.6fr 1fr;
-  gap: 40px;
-}
-
-.modal-details {
-  padding: 28px;
-}
-
-.meta-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-family: var(--font-body);
-  font-size: 0.9375rem;
-  color: var(--text);
-  margin-bottom: 8px;
-  flex-wrap: wrap;
-}
-/* Both `--text-link` and its `--primary` fallback were undeclared, so the
-   venue address resolved to `inherit` and rendered as plain body text — a
-   link with no affordance. Gold is already the link role in this sheet
-   (contacts, series), so the address joins it. */
-.address-link {
-  display: inline-flex;
-  align-items: center;
-  min-height: 24px;
-  color: var(--gold);
-  text-decoration: none;
-}
-.address-link:hover {
-  color: var(--gold-light);
-  text-decoration: underline;
-}
-
-.meta-row svg {
-  color: var(--gold);
-  flex-shrink: 0;
-}
-
-.meta-row > span:not(.repeat-pill) {
-  flex: 1;
-  min-width: 0;
-}
-
-/* ── Dance style chips (prominent, before description) ── */
 .modal-style-row {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  padding: 0 28px 16px;
+  margin-bottom: 20px;
 }
 
 .modal-style-row .style-chip {
@@ -292,48 +245,149 @@
   padding: 4px 10px;
 }
 
-.modal-style-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
+/* ── Decisions ── */
+.night-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 
-.repeat-pill {
+.night-actions .ui-button {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  background: var(--tertiary-dim);
-  color: var(--tertiary);
-  border-radius: var(--radius-full);
-  padding: 3px 10px;
-  font-family: var(--font-ui);
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  justify-content: center;
+  gap: 8px;
+  min-height: 52px;
+  white-space: nowrap;
 }
 
-.modal-description {
-  font-family: var(--font-body);
-  font-size: 0.9375rem;
-  color: var(--text-muted);
-  line-height: 1.6;
+.night-actions .action-feedback {
+  grid-column: 1 / -1;
+}
+
+.night-actions--bar {
+  display: none;
+}
+
+.reassurance {
   margin: 10px 0 0;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
 }
 
-/* ── Gallery ── */
-.gallery {
-  margin-top: 20px;
+.night-utilities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  margin-top: 14px;
 }
 
-.gallery-eyebrow {
+.night-utilities .night-utility {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding-inline: 0;
+  font-size: 0.75rem;
+}
+
+/* ── Action feedback (share/copy outcomes) ── */
+.action-feedback {
+  margin: 8px 0 0;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+}
+
+.action-feedback[role="alert"] {
+  color: var(--red-bright);
+}
+
+/* ── About the night ── */
+.night-details {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+
+.night-details__title {
+  margin: 0 0 16px;
+  color: var(--gold);
   font-family: var(--font-ui);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+}
+
+.night-details__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: 32px;
+}
+
+.night-details__grid > :only-child {
+  grid-column: 1 / -1;
+}
+
+.meta-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+}
+
+.meta-row svg {
+  flex-shrink: 0;
+  color: var(--gold);
+}
+
+.meta-row > span {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Gold is the link role in this sheet (venue, contacts, series). */
+.address-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  color: var(--gold);
+  text-decoration: none;
+}
+
+.address-link:hover {
+  color: var(--gold-light);
+  text-decoration: underline;
+}
+
+.modal-description {
+  margin: 10px 0 0;
+  max-width: 62ch;
   color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+/* ── Gallery (static thumbnails; no interactive affordance) ── */
+.gallery {
+  margin-top: 20px;
+}
+
+.gallery-eyebrow {
   margin: 0 0 10px;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .gallery-row {
@@ -341,124 +395,33 @@
   gap: 8px;
 }
 
-.gallery-thumb {
-  width: 80px;
-  height: 80px;
-  border-radius: var(--radius-md);
-  object-fit: cover;
-}
-
+.gallery-thumb,
 .gallery-more {
   width: 80px;
   height: 80px;
   border-radius: var(--radius-md);
-  background: var(--card);
-  border: 1px solid var(--border);
+}
+
+.gallery-thumb {
+  object-fit: cover;
+}
+
+.gallery-more {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
   font-family: var(--font-ui);
   font-size: 0.8125rem;
   font-weight: 700;
-  color: var(--text-muted);
-}
-
-/* ── Desktop sidebar ──
-   Secondary actions, contact, and series. The RSVP is in the decision strip
-   now, so this column is no longer the decision region — it's supporting
-   context. Carries the warm surface to stay consistent with the mobile
-   action bar. */
-.modal-sidebar {
-  padding: 28px;
-  background: var(--surface-action);
-  border-radius: 0 18px 18px 0;
-  border-left: 1px solid var(--red-dim);
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.price-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-}
-
-.price-amount {
-  font-family: var(--font-display);
-  font-size: 1.875rem;
-  font-weight: 800;
-  color: var(--text);
-}
-
-.price-note {
-  font-family: var(--font-body);
-  font-size: 0.8125rem;
-  color: var(--text-muted);
-}
-
-.modal-sidebar .rsvp-button,
-.modal-sidebar .ics-button,
-.modal-sidebar .modal-full-details,
-.modal-sidebar .poster-toggle-btn,
-.modal-sidebar .copy-link-btn {
-  width: 100%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  text-align: center;
-  /* <button> defaults to line-height: normal; anchors inherit the body's.
-     Inherit explicitly so both element types render the same height. */
-  line-height: inherit;
-}
-
-/* .btn-primary has no border while .btn-secondary carries a 1px gold one;
-   match the box height so all four actions line up. */
-.modal-sidebar .rsvp-button,
-.modal-mobile-actions .rsvp-button {
-  border: 1px solid transparent;
-}
-
-.reassurance {
-  font-family: var(--font-body);
-  font-size: 0.75rem;
-  color: var(--text-dim);
-  text-align: center;
-  margin: 0;
-}
-
-/* ── Action feedback (share/copy outcomes) ──
-   Sibling vocabulary from InstagramStoryShare: muted confirmation, bright
-   error. Announced via role="status"/role="alert" at the markup level. */
-.action-feedback {
-  font-family: var(--font-body);
-  font-size: 0.8125rem;
-  color: var(--text-muted);
-  text-align: center;
-  margin: 0;
-}
-
-.action-feedback[role="alert"] {
-  color: var(--red-bright);
-}
-
-/* ── Shareable Poster ── */
-.poster-download-section {
-  margin-top: 4px;
-}
-
-.poster-toggle-btn:hover {
-  color: var(--text);
 }
 
 /* ── Contact block ── */
 .contact-block {
   display: grid;
   gap: 8px;
-  margin-top: 20px;
-  padding-top: 16px;
-  border-top: 1px solid var(--border);
 }
 
 .contact-eyebrow {
@@ -474,7 +437,7 @@
 .contact-block a {
   display: inline-flex;
   align-items: center;
-  min-height: 24px;
+  min-height: 44px;
   color: var(--gold-light);
   font-family: var(--font-ui);
   font-size: 0.875rem;
@@ -489,17 +452,21 @@
 
 /* ── Series ── */
 .series {
-  margin-top: 8px;
+  margin-top: 20px;
+}
+
+.series:first-child {
+  margin-top: 0;
 }
 
 .series h3 {
+  margin: 0 0 4px;
+  color: var(--text-muted);
   font-family: var(--font-ui);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--text-muted);
-  margin: 0 0 4px;
 }
 
 .series-item {
@@ -508,12 +475,15 @@
   justify-content: space-between;
   padding: 9px 0;
   border-top: 1px solid var(--border);
+  color: var(--text);
   font-family: var(--font-body);
   font-size: 0.875rem;
-  color: var(--text);
 }
 
 .series-item a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
   color: var(--gold);
   font-weight: 600;
   text-decoration: none;
@@ -524,17 +494,127 @@
   text-decoration: underline;
 }
 
-/* ── Mobile extras (hidden on desktop, shown on mobile) ── */
-.modal-mobile-extras {
-  display: none;
+/* ── Poster preview view ── */
+.poster-preview {
+  display: grid;
+  justify-items: center;
+  gap: 18px;
+  padding: 28px 32px 32px;
 }
 
-/* ── Mobile sticky action bar (hidden on desktop) ── */
-.modal-mobile-actions {
-  display: none;
+.poster-preview__head {
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+  width: 100%;
+  padding-right: 56px;
 }
 
-/* ── Sticky close (X) button ── */
+.poster-preview__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--gold);
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.poster-preview__back:hover {
+  color: var(--gold-light);
+}
+
+.poster-preview__back:focus-visible {
+  outline: 2px solid var(--red-bright);
+  outline-offset: 3px;
+}
+
+.poster-preview__title {
+  margin: 0;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.poster-preview__formats {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--card);
+}
+
+.poster-preview__format {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.poster-preview__format[aria-pressed="true"] {
+  background: var(--red-deep);
+  color: var(--text);
+}
+
+.poster-preview__format:focus-visible {
+  outline: 2px solid var(--red-bright);
+  outline-offset: 2px;
+}
+
+.poster-stage {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 24px 40px -18px rgba(6, 14, 32, 0.7);
+}
+
+.poster-stage--story {
+  width: min(300px, 100%);
+}
+
+.poster-stage--feed {
+  width: min(380px, 100%);
+}
+
+.poster-stage__canvas {
+  transform-origin: 0 0;
+}
+
+.poster-preview__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: min(420px, 100%);
+}
+
+.poster-preview__actions .ui-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  white-space: nowrap;
+}
+
+/* ── Close (X) ── */
 .modal-close-x {
   position: absolute;
   top: 16px;
@@ -549,8 +629,6 @@
   border-radius: var(--radius-full);
   background: var(--card);
   color: var(--text);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
   cursor: pointer;
   transition:
     background 0.2s cubic-bezier(0.23, 1, 0.32, 1),
@@ -572,23 +650,21 @@
 }
 
 /* ========================================
-   MOBILE — Bottom sheet redesign
+   MOBILE — bottom sheet
    ======================================== */
 @media (max-width: 767.98px) {
-  /* ── Overlay: flush to edges, sheet slides up from bottom ── */
   .modal-overlay {
     align-items: flex-end;
     padding: 0;
     overflow-y: hidden;
   }
 
-  /* ── Sheet: rounded top corners, nearly full height without hiding context ── */
   .modal-content {
-    max-width: none;
-    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-    max-height: 96dvh;
     display: flex;
     flex-direction: column;
+    max-width: none;
+    max-height: 96dvh;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
     transform: translateY(var(--sheet-drag, 0px));
     transition: transform 220ms cubic-bezier(0.23, 1, 0.32, 1);
     animation: modalSlideUp 0.3s cubic-bezier(0.23, 1, 0.32, 1);
@@ -614,18 +690,18 @@
     }
   }
 
-  /* ── Drag handle — a full-width grab strip over the sheet lip; the bar
-     is its ::before so the hit area clears the target floor ── */
+  /* A full-width grab strip over the sheet lip; the bar is its ::before so
+     the hit area clears the target floor. */
   .modal-drag-handle {
-    display: flex;
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
-    height: 28px;
+    z-index: 12;
+    display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 12;
+    height: 28px;
     touch-action: none;
     cursor: grab;
   }
@@ -642,158 +718,84 @@
     cursor: grabbing;
   }
 
-  /* ── Close X — always visible top-right, over poster ── */
   .modal-close-x {
-    display: inline-flex;
-    top: 8px;
+    top: 14px;
     right: 12px;
     z-index: 12;
   }
 
-  /* ── Back pill — hidden on mobile (X button replaces it) ── */
-  .back-pill {
-    display: none;
-  }
-
-  /* ── Poster — taller, full-bleed into top corners ── */
-  .modal-poster {
-    height: clamp(210px, 30dvh, 280px);
-    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-    flex-shrink: 0;
-    background-position: center 28%;
-  }
-
-  .poster-overlay {
-    left: 20px;
-    right: 20px;
-    bottom: 14px;
-  }
-
-  .poster-overlay h2 {
-    font-size: 1.5rem;
-    line-height: 1.1;
-  }
-
-  .quick-look-header {
-    gap: 8px;
-    margin-bottom: 6px;
-  }
-
-  .quick-look-date {
-    font-size: 0.8125rem;
-  }
-
-  /* ── Decision strip — compact on mobile ── */
-  .decision-strip {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    padding: 12px 16px;
-    gap: 10px 12px;
-    flex-shrink: 0;
-  }
-
-  .decision-strip__facts {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    gap: 6px 12px;
-    font-size: 0.8125rem;
-  }
-
-  .decision-strip__fact {
-    min-width: 0;
-  }
-
-  .decision-strip__fact:nth-child(2) {
-    overflow: hidden;
-  }
-
-  .decision-strip__fact a {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    display: block;
-    min-height: 44px;
-    max-width: 100%;
-  }
-
-  /* RSVP repeats in the fixed action bar; keep one mobile attendance action. */
-  .decision-strip__rsvp {
-    display: none;
-  }
-
-  /* ── Scrollable body ── */
-  .modal-body {
+  .modal-scroll,
+  .poster-preview {
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
-    padding-bottom: 8px;
     scrollbar-color: var(--border-md) transparent;
   }
 
-  /* ── Single-column grid ── */
-  .modal-grid {
-    grid-template-columns: 1fr;
+  .modal-scroll {
+    padding: 36px 20px 20px;
   }
 
-  .modal-details {
-    padding: 20px 20px 8px;
+  /* Only the date line shares a row with the close control, so only it
+     keeps clear of it; the rest of the facts use the full column. */
+  .night-card {
+    grid-template-columns: 124px minmax(0, 1fr);
+    align-items: start;
+    gap: 16px;
+    padding-right: 0;
   }
 
-  /* ── Sidebar — hidden on mobile ── */
-  .modal-sidebar {
+  .night-card__sleeve {
+    --thumb-size: 124px;
+    gap: 6px;
+  }
+
+  .sleeve--thumb .sleeve-cover {
+    transform: scale(calc(124 / 968));
+  }
+
+  .night-card__sleeve-hint {
+    font-size: 0.6875rem;
+    letter-spacing: 0.08em;
+  }
+
+  .night-card__date {
+    margin-bottom: 8px;
+    padding-right: 48px;
+    font-size: 0.75rem;
+  }
+
+  .night-card__list {
+    gap: 6px;
+    font-size: 0.875rem;
+  }
+
+  .night-card__list svg {
+    margin-top: 2px;
+  }
+
+  .night-card__price-amount {
+    font-size: 1.375rem;
+  }
+
+  .night-card__title {
+    margin: 20px 0 10px;
+    font-size: 1.625rem;
+  }
+
+  .modal-style-row {
+    margin-bottom: 4px;
+  }
+
+  /* The decisions live in the thumb-zone bar on mobile. */
+  .night-actions--card {
     display: none;
   }
 
-  /* ── Mobile extras (contacts, series — shown inline) ── */
-  .modal-mobile-extras {
-    display: block;
-    padding: 8px 20px 16px;
-  }
-
-  .modal-mobile-extras .contact-block {
-    margin-top: 12px;
-    padding-top: 12px;
-  }
-
-  .modal-mobile-extras .contact-block a {
-    font-size: 0.875rem;
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
-    padding: 6px 0;
-  }
-
-  .modal-mobile-extras .series {
-    margin-top: 14px;
-  }
-
-  .modal-mobile-extras .series-item {
-    font-size: 0.9375rem;
-    padding: 10px 0;
-  }
-
-  /* ── Gallery — smaller on mobile ── */
-  .modal-style-row {
-    padding: 0 20px 12px;
-  }
-
-  .gallery-thumb,
-  .gallery-more {
-    width: 64px;
-    height: 64px;
-  }
-
-  /* ── Sticky mobile action bar ──
-     RSVP owns the full first row. Share and More are the only peer utilities;
-     calendar, full details, and copy remain reachable on demand. */
-  .modal-mobile-actions {
+  .night-actions--bar {
     display: grid;
-    grid-template-areas:
-      "rsvp rsvp"
-      "share more"
-      "feedback feedback";
-    grid-template-columns: 1fr 1fr;
     flex-shrink: 0;
     gap: 8px;
     padding: 10px 16px;
@@ -802,118 +804,78 @@
     border-top: 1px solid var(--red-dim);
   }
 
-  .modal-mobile-actions .action-feedback {
-    grid-area: feedback;
-  }
-
-  .modal-mobile-actions .rsvp-button {
-    grid-area: rsvp;
-  }
-
-  /* Share is wrapped for the desktop sidebar; dissolve that wrapper only here. */
-  .modal-mobile-actions .poster-download-section {
-    display: contents;
-  }
-
-  .modal-mobile-actions .poster-download-section .ui-button {
-    grid-area: share;
-  }
-
-  .mobile-actions-overflow {
-    position: relative;
-    z-index: 1;
-    grid-area: more;
-  }
-
-  .mobile-actions-overflow__toggle {
-    width: 100%;
-    list-style: none;
-  }
-
-  .mobile-actions-overflow__toggle::-webkit-details-marker {
-    display: none;
-  }
-
-  .mobile-actions-overflow__menu {
-    position: absolute;
-    z-index: 2;
-    right: 0;
-    bottom: calc(100% + 8px);
-    display: grid;
-    width: max-content;
-    min-width: 12rem;
-    gap: 6px;
-    padding: 8px;
-    border: 1px solid var(--border-md);
-    border-radius: var(--radius-md);
-    background: var(--surface-action);
-  }
-
-  .mobile-actions-overflow:not([open]) .mobile-actions-overflow__menu {
-    display: none;
-  }
-
-  .modal-mobile-actions .rsvp-button,
-  .modal-mobile-actions .poster-download-section .ui-button,
-  .mobile-actions-overflow__toggle,
-  .mobile-actions-overflow__menu .ui-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    min-height: 44px;
+  .night-actions--bar .ui-button {
+    min-height: 48px;
+    padding-inline: 0.5rem;
     font-size: 0.75rem;
-    padding: 0.55rem 0.4rem;
-    white-space: nowrap;
-    line-height: inherit;
-    text-align: center;
   }
 
-  .mobile-actions-overflow__menu .ui-button {
-    width: 100%;
-  }
-}
-
-/* ── Small phones (≤400px) — tighter spacing ── */
-@media (max-width: 479.98px) {
-  .modal-poster {
-    height: clamp(184px, 27dvh, 220px);
+  .night-utilities {
+    gap: 0 16px;
   }
 
-  .poster-overlay h2 {
+  .night-details {
+    margin-top: 20px;
+    padding-top: 20px;
+  }
+
+  .night-details__grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .gallery-thumb,
+  .gallery-more {
+    width: 64px;
+    height: 64px;
+  }
+
+  .poster-preview {
+    padding: 36px 20px 20px;
+    gap: 14px;
+  }
+
+  .poster-stage--story {
+    width: min(58vw, 250px);
+  }
+
+  .poster-stage--feed {
+    width: min(78vw, 320px);
+  }
+
+  .poster-preview__title {
     font-size: 1.375rem;
   }
 
-  .modal-details {
-    padding: 16px 16px 4px;
+  .poster-preview__actions {
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
-  .modal-mobile-actions {
-    padding: 10px 12px;
-    padding-bottom: max(10px, env(safe-area-inset-bottom));
-    gap: 6px;
+  .poster-preview__actions .ui-button {
+    padding-inline: 0.5rem;
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 379.98px) {
+  .night-card {
+    grid-template-columns: 104px minmax(0, 1fr);
   }
 
-  .modal-mobile-actions .rsvp-button,
-  .modal-mobile-actions .poster-download-section .ui-button,
-  .mobile-actions-overflow__toggle,
-  .mobile-actions-overflow__menu .ui-button {
+  .night-card__sleeve {
+    --thumb-size: 104px;
+  }
+
+  .sleeve--thumb .sleeve-cover {
+    transform: scale(calc(104 / 968));
+  }
+
+  .night-actions--bar .ui-button {
     font-size: 0.6875rem;
-    padding: 0.55rem 0.3rem;
   }
 
-  .decision-strip {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .decision-strip__rsvp {
-    justify-content: center;
-    min-height: 44px;
-  }
-
-  .modal-mobile-extras {
-    padding-left: 16px;
-    padding-right: 16px;
+  .poster-preview__actions {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -927,24 +889,19 @@
     }
   }
 
-  /* The mobile sheet travels a full viewport height — the largest movement
-     in the app. The sheet's arrival still needs to read as an arrival, so it
-     keeps the fade and loses the slide. */
+  /* The sheet keeps its arrival as a fade and loses the slide. */
   .modal-content {
     animation-name: reducedFade;
   }
 
-  /* Strip all transform-based hover and active feedback */
-  .back-pill:hover,
-  .back-pill:active,
+  .night-card__sleeve:hover .sleeve--thumb,
+  .night-card__sleeve:active .sleeve--thumb,
   .modal-close-x:hover,
   .modal-close-x:active {
     transform: none;
   }
 }
 
-/* Desktop entrance keeps its fade but drops the scale — same rule as the
-   mobile slide above, applied to the card's own motion. */
 @media (min-width: 768px) and (prefers-reduced-motion: reduce) {
   @starting-style {
     .modal-content {

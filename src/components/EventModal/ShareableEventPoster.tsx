@@ -1,125 +1,148 @@
-import { Clock, MapPin } from "lucide-react";
-import { ScheduleXEvent } from "../../types/events";
-import SalsaSeguraLogo from "../brand/SalsaSeguraLogo";
+import { useMemo } from "react";
+import { create as createQr } from "qrcode";
+import type { ScheduleXEvent } from "../../types/events";
+import type { PosterFormat } from "./posterFormat";
+import SleeveCover from "./SleeveCover";
 import "./ShareableEventPoster.css";
 
 interface ShareableEventPosterProps {
   event: ScheduleXEvent;
-  imageUrl?: string;
-  /** Canonical public event URL, printed so every shared poster converts. */
-  eventUrl: string;
+  /** Cover art. A real flyer is shown whole; fallback art fills the square. */
+  imageUrl: string;
+  artKind: "flyer" | "fallback";
+  /** Short event URL the QR encodes, e.g. https://salsasegura.com/e/1a2b3c4d */
+  shortUrl: string;
+  /** The same URL as printed: host and path, no scheme. */
+  shortLabel: string;
+  format?: PosterFormat;
+}
+
+const CITY_CODE: Record<string, string> = { boston: "BOS", "new-york-city": "NYC" };
+
+const toDate = (val: unknown): Date => {
+  if (typeof val === "string") return new Date(val.replace(" ", "T"));
+  if (val && typeof val === "object" && "epochMilliseconds" in val) {
+    return new Date(Number(val.epochMilliseconds));
+  }
+  return new Date(String(val));
+};
+
+function QrCode({ value }: { value: string }) {
+  const { size, path } = useMemo(() => {
+    const { modules } = createQr(value, { errorCorrectionLevel: "M" });
+    let d = "";
+    for (let row = 0; row < modules.size; row++) {
+      for (let col = 0; col < modules.size; col++) {
+        if (modules.get(row, col)) d += `M${col + 2} ${row + 2}h1v1h-1z`;
+      }
+    }
+    return { size: modules.size + 4, path: d };
+  }, [value]);
+
+  return (
+    <svg
+      className="sleeve-qr"
+      viewBox={`0 0 ${size} ${size}`}
+      shapeRendering="crispEdges"
+      aria-hidden="true"
+    >
+      <rect width={size} height={size} fill="currentColor" className="sleeve-qr__ground" />
+      <path d={path} className="sleeve-qr__ink" />
+    </svg>
+  );
 }
 
 /**
- * Renders a Story-native social-media event poster.
- * Designed for 1080×1920 Instagram Stories.
+ * The shared event poster, pressed as a salsa LP sleeve: a label masthead,
+ * the square front cover, and a back-cover track list that carries the
+ * night's facts. Rendered at export size (Story 1080×1920 or feed 1080×1350)
+ * and captured to PNG.
  */
 export default function ShareableEventPoster({
   event,
   imageUrl,
-  eventUrl,
+  artKind,
+  shortUrl,
+  shortLabel,
+  format = "story",
 }: ShareableEventPosterProps) {
-  const toDate = (val: unknown): Date => {
-    if (typeof val === "string") {
-      return new Date(val.replace(" ", "T"));
-    }
-    if (val && typeof val === "object" && "epochMilliseconds" in val) {
-      return new Date(Number((val as { epochMilliseconds: bigint }).epochMilliseconds));
-    }
-    return new Date(String(val));
-  };
+  const start = toDate(event.start);
+  const end = toDate(event.end);
+  const dateLabel = start.toLocaleDateString("en-US", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+  const catalogue = `SS-${String(start.getMonth() + 1).padStart(2, "0")}${String(
+    start.getDate()
+  ).padStart(2, "0")}${event.city ? ` · ${CITY_CODE[event.city] ?? ""}` : ""}`;
+  const styles = event.danceStyles?.length ? event.danceStyles.join(" · ") : event.calendarId;
 
-  const formatPosterDate = (dateVal: unknown) => {
-    const date = toDate(dateVal);
-    return date.toLocaleDateString("en-US", {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
-
-  const formatTime = (startVal: unknown, endVal: unknown) => {
-    const startDate = toDate(startVal);
-    const endDate = toDate(endVal);
-    const opts: Intl.DateTimeFormatOptions = {
-      hour: "numeric",
-      minute: "2-digit",
-    };
-    return `${startDate.toLocaleTimeString(
-      "en-US",
-      opts
-    )} – ${endDate.toLocaleTimeString("en-US", opts)}`;
-  };
-
-  const isFree = event.priceType === "free" || event.priceAmount == null;
-  const priceLabel = isFree ? "FREE" : `$${event.priceAmount}`;
+  const tracks = [
+    { side: "A1", label: "Date", value: dateLabel },
+    {
+      side: "A2",
+      label: "Time",
+      value: [start, end]
+        .map((date) => date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }))
+        .join(" – "),
+    },
+    ...(event.location
+      ? [{ side: "A3", label: "Venue", value: event.location, note: event.address }]
+      : []),
+    { side: event.location ? "A4" : "A3", label: "Styles", value: styles },
+  ];
 
   return (
     <div
-      className="shareable-poster poster-story"
+      className={`shareable-poster sleeve sleeve--${format} sleeve--${event.calendarId}`}
       role="img"
-      aria-label={`Instagram Story poster for ${event.title}`}
+      aria-label={`${format === "story" ? "Instagram Story" : "Feed"} poster for ${event.title}`}
     >
-      {/* Background layer with blurred fill */}
-      <div className="poster-bg">
-        {imageUrl ? (
-          <div className="poster-artwork-fill" aria-hidden="true">
-            <img src={imageUrl} alt="" />
+      <header className="sleeve-masthead">
+        <span className="sleeve-masthead__label">Salsa Segura</span>
+        <span className="sleeve-masthead__catalogue">{catalogue}</span>
+      </header>
+
+      <div className="sleeve-front">
+        <SleeveCover event={event} imageUrl={imageUrl} artKind={artKind} format={format} />
+        {format === "feed" && (
+          <div className="sleeve-spine" aria-hidden="true">
+            <span>{event.title}</span>
           </div>
-        ) : null}
-        <div className="poster-bg-gradient" />
+        )}
       </div>
 
-      {/* Foreground framed flyer */}
-      {imageUrl ? (
-        <div className="poster-artwork-frame">
-          <img className="poster-artwork-image" src={imageUrl} alt="" />
-        </div>
-      ) : null}
-
-      {/* Content layer */}
-      <div className="poster-content">
-        {/* Top strip */}
-        <div className="poster-top">
-          <SalsaSeguraLogo
-            variant="mark"
-            tone="white"
-            className="poster-brand-mark"
-            ariaLabel="Salsa Segura"
-          />
-        </div>
-      </div>
-
-      {/* Information panel */}
-      <section className="poster-info-panel">
-        <span className="poster-chip">{event.calendarId}</span>
-        <p className="poster-date">{formatPosterDate(event.start)}</p>
-        <h1 className="poster-title">{event.title}</h1>
-
-        <div className="poster-meta">
-          <span className="poster-meta-item">
-            <Clock size={28} aria-hidden />
-            {formatTime(event.start, event.end)}
-          </span>
-          {event.location && (
-            <span className="poster-meta-item">
-              <MapPin size={28} aria-hidden />
-              {event.location}
-            </span>
-          )}
-          <span className="poster-price">{priceLabel}</span>
+      <section className="sleeve-back">
+        <div className="sleeve-back__side">
+          <p className="sleeve-back__side-label">Side A</p>
+          <ol className="sleeve-tracks">
+            {tracks.map((track) => (
+              <li key={track.side} className="sleeve-track">
+                <span className="sleeve-track__no">{track.side}</span>
+                <span className="sleeve-track__label">{track.label}</span>
+                <span className="sleeve-track__leader" aria-hidden="true" />
+                <span className="sleeve-track__value">
+                  {track.value}
+                  {"note" in track && track.note && format === "story" && (
+                    <span className="sleeve-track__note">{track.note}</span>
+                  )}
+                </span>
+              </li>
+            ))}
+          </ol>
         </div>
 
-        <div className="poster-qr-section">
-          <span className="poster-cta">
-            {event.rsvpLink
-              ? isFree
-                ? "RSVP at salsasegura.com"
-                : "Get tickets at salsasegura.com"
-              : "More at salsasegura.com"}
-          </span>
-          <span className="poster-url">{eventUrl}</span>
+        <div className="sleeve-back__side sleeve-back__side--b">
+          <p className="sleeve-back__side-label">Side B</p>
+          <div className="sleeve-scan">
+            <QrCode value={shortUrl} />
+            <div className="sleeve-scan__text">
+              <span className="sleeve-scan__cta">Scan for the night</span>
+              <span className="sleeve-scan__url">{shortLabel}</span>
+              {event.host && <span className="sleeve-scan__credit">Hosted by {event.host}</span>}
+            </div>
+          </div>
         </div>
       </section>
     </div>

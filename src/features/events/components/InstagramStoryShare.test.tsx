@@ -4,53 +4,36 @@ import userEvent from "@testing-library/user-event";
 import type { ScheduleXEvent } from "../model/types";
 import InstagramStoryShare from "./InstagramStoryShare";
 
-const posterProps: { event: ScheduleXEvent; imageUrl?: string }[] = [];
-const resolvePosterImageForEvent = vi.fn();
-const capturePoster = vi.fn();
-const downloadPoster = vi.fn();
-const removeTarget = vi.fn();
-
-vi.mock("../../calendar/api/posterFlyers", () => ({
-  resolvePosterImageForEvent: (params: unknown) => resolvePosterImageForEvent(params),
-}));
+const mockCreatePoster = vi.fn();
+const mockPosterFilename = vi.fn();
+const mockDownloadPoster = vi.fn();
 
 vi.mock("../../calendar/hooks/useShareablePoster", () => ({
   useShareablePoster: () => ({
-    ensureContainer: () => document.createElement("div"),
-    capturePoster: (container: HTMLElement) => capturePoster(container),
-    posterFilename: (event: ScheduleXEvent) => `salsa-segura-${event.id}.png`,
-    downloadPoster: (event: ScheduleXEvent, blob: Blob) => downloadPoster(event, blob),
-    removeTarget: () => removeTarget(),
+    createPoster: mockCreatePoster,
+    posterFilename: mockPosterFilename,
+    downloadPoster: mockDownloadPoster,
   }),
-}));
-
-vi.mock("../../../components/EventModal/ShareableEventPoster", () => ({
-  default: (props: { event: ScheduleXEvent; imageUrl?: string }) => {
-    posterProps.push(props);
-    return <div data-testid="poster" />;
-  },
 }));
 
 const event: ScheduleXEvent = {
   id: "event-1",
   title: "Stupid Cupido",
-  start: "2026-09-05 22:00",
-  end: "2026-09-06 02:00",
+  start: "2026-08-24 19:00",
+  end: "2026-08-24 23:00",
   calendarId: "social",
-  location: "Cambridge, MA",
-  priceType: "paid",
-  priceAmount: 25,
-  imageUrl: "https://cdn.example.com/flyer.jpg",
 };
 
 const SHARE_URL = "https://www.salsasegura.com/events/event-1";
+const FLYER_URL = "https://cdn.example.com/flyer.jpg";
+const CACHED_URL = "https://cdn.example.com/cached.jpg";
 
 function renderShare() {
   return render(
     <InstagramStoryShare
       event={event}
-      flyerUrl="https://cdn.example.com/flyer.jpg"
-      cachedFlyerUrl={null}
+      flyerUrl={FLYER_URL}
+      cachedFlyerUrl={CACHED_URL}
       shareUrl={SHARE_URL}
     />
   );
@@ -68,56 +51,46 @@ const originalCanShare = navigator.canShare;
 const clipboardWriteText = vi.fn();
 
 beforeEach(() => {
-  posterProps.length = 0;
-  vi.clearAllMocks();
-  resolvePosterImageForEvent.mockResolvedValue({
-    status: "ready",
-    dataUrl: "data:image/jpeg;base64,flyer",
-  });
-  capturePoster.mockResolvedValue(new Blob(["story"], { type: "image/png" }));
+  mockCreatePoster.mockReset();
+  mockCreatePoster.mockResolvedValue(new Blob(["poster"], { type: "image/png" }));
+  mockPosterFilename.mockReset();
+  mockPosterFilename.mockImplementation(
+    (evt: { title: string }) => `salsa-segura-${evt.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.png`
+  );
+  mockDownloadPoster.mockReset();
+  clipboardWriteText.mockReset();
   clipboardWriteText.mockResolvedValue(undefined);
-  URL.createObjectURL = vi.fn(() => "blob:story-preview");
-  URL.revokeObjectURL = vi.fn();
   Object.defineProperty(navigator, "clipboard", {
-    configurable: true,
     value: { writeText: clipboardWriteText },
+    configurable: true,
   });
+  globalThis.URL.createObjectURL = vi.fn(() => "blob:story-preview");
+  globalThis.URL.revokeObjectURL = vi.fn();
 });
 
 afterEach(() => {
-  Object.defineProperty(navigator, "share", { configurable: true, value: originalShare });
-  Object.defineProperty(navigator, "canShare", { configurable: true, value: originalCanShare });
+  Object.defineProperty(navigator, "share", { value: originalShare, configurable: true });
+  Object.defineProperty(navigator, "canShare", { value: originalCanShare, configurable: true });
+  Reflect.deleteProperty(navigator, "clipboard");
 });
 
 function stubSharing(canShare: boolean, share: () => Promise<void>) {
-  Object.defineProperty(navigator, "canShare", { configurable: true, value: () => canShare });
-  Object.defineProperty(navigator, "share", { configurable: true, value: vi.fn(share) });
+  Object.defineProperty(navigator, "canShare", { value: vi.fn(() => canShare), configurable: true });
+  Object.defineProperty(navigator, "share", { value: vi.fn(share), configurable: true });
 }
 
 describe("InstagramStoryShare", () => {
-  it("generates a Story image for the selected event and previews it", async () => {
+  it("generates a Story image for the selected event and previews it via createPoster", async () => {
     renderShare();
     await generateStory();
 
-    expect(resolvePosterImageForEvent).toHaveBeenCalledWith({
-      eventId: "event-1",
-      sourceUrl: "https://cdn.example.com/flyer.jpg",
-      cachedUrl: null,
+    expect(mockCreatePoster).toHaveBeenCalledWith(event, "story", {
+      sourceUrl: FLYER_URL,
+      cachedUrl: CACHED_URL,
     });
-    expect(capturePoster).toHaveBeenCalledOnce();
-    expect(posterProps[0].event).toBe(event);
-    expect(posterProps[0].imageUrl).toBe("data:image/jpeg;base64,flyer");
     expect(
       screen.getByRole("img", { name: "Instagram Story image for Stupid Cupido" })
     ).toHaveAttribute("src", "blob:story-preview");
-  });
-
-  it("falls back to the poster's own artwork when the flyer cannot be used", async () => {
-    resolvePosterImageForEvent.mockResolvedValue({ status: "unavailable" });
-    renderShare();
-    await generateStory();
-
-    expect(posterProps[0].imageUrl).toBeUndefined();
   });
 
   it("hands the Story file to the native share sheet with the canonical event URL", async () => {
@@ -171,7 +144,7 @@ describe("InstagramStoryShare", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "Share" }));
 
-    expect(downloadPoster).toHaveBeenCalledOnce();
+    expect(mockDownloadPoster).toHaveBeenCalledOnce();
     expect(clipboardWriteText).toHaveBeenCalledWith(SHARE_URL);
     expect(await screen.findByRole("status")).toHaveTextContent(
       "Story image ready. Save the image and share it to Instagram. Event link copied."
@@ -180,7 +153,7 @@ describe("InstagramStoryShare", () => {
   });
 
   it("reports a generation failure instead of failing silently", async () => {
-    capturePoster.mockRejectedValue(new Error("capture failed"));
+    mockCreatePoster.mockRejectedValue(new Error("capture failed"));
     renderShare();
 
     await userEvent.click(screen.getByRole("button", { name: /instagram story/i }));
@@ -189,7 +162,6 @@ describe("InstagramStoryShare", () => {
       "Could not create the Story image. Please try again."
     );
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    expect(removeTarget).toHaveBeenCalled();
   });
 
   it("offers save-image and copy-link actions from the preview", async () => {
@@ -198,7 +170,7 @@ describe("InstagramStoryShare", () => {
     await generateStory();
 
     await userEvent.click(screen.getByRole("button", { name: "Save image" }));
-    expect(downloadPoster).toHaveBeenCalledOnce();
+    expect(mockDownloadPoster).toHaveBeenCalledOnce();
     expect(await screen.findByRole("status")).toHaveTextContent(
       "Story image saved to your downloads."
     );

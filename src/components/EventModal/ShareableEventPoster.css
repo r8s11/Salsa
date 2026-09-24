@@ -1,184 +1,415 @@
 /* ========================================
-   Shareable Event Poster
-   1080×1920 Instagram Story output
+   Shareable poster — the Sleeve
+   Every night pressed as a 1970s salsa LP: label masthead, square front
+   cover, and a back-cover track list. This is the one public artifact with
+   its own printed world; it does not use Ritmo Vivo's glass or glow.
+   Pressing colours code the event type: social red, class mustard,
+   workshop midnight.
    ======================================== */
 
-.shareable-poster {
+.sleeve {
+  --sleeve-red: #d7263d;
+  --sleeve-mustard: #f2b705;
+  --sleeve-midnight: #1b1b3a;
+  --sleeve-cream: #f4ecd8;
+  --sleeve-pad: 56px;
+
+  /* Social pressing (default) */
+  --field: var(--sleeve-red);
+  --field-deep: #a8182c;
+  --on-field: var(--sleeve-cream);
+  /* Back-cover labels print in red on every pressing. */
+  --accent: var(--sleeve-red);
+
   position: relative;
-  width: 1080px;
-  height: 1920px;
-  overflow: hidden;
-  font-family: var(--font-display), "Helvetica Neue", sans-serif;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  background: var(--bg);
+  gap: 28px;
+  padding: var(--sleeve-pad);
+  overflow: hidden;
+  color: var(--on-field);
+  background: var(--field);
+  font-family: "Poster Condensed", "Arial Narrow", sans-serif;
+  font-variant-numeric: tabular-nums lining-nums;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* ── Story (1080×1920) ── */
-.shareable-poster.poster-story {
+.sleeve *,
+.sleeve *::before,
+.sleeve *::after {
+  box-sizing: border-box;
+}
+
+.sleeve--class {
+  --field: var(--sleeve-mustard);
+  --field-deep: #c99400;
+  --on-field: var(--sleeve-midnight);
+}
+
+.sleeve--workshop {
+  --field: var(--sleeve-midnight);
+  --field-deep: #10102a;
+  --on-field: var(--sleeve-mustard);
+}
+
+.sleeve--story {
   width: 1080px;
   height: 1920px;
 }
 
-/* ── Poster image layer ── */
-.poster-bg {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background:
-    radial-gradient(circle at 78% 14%, rgba(225, 29, 72, 0.28), transparent 34%),
-    linear-gradient(155deg, var(--surface-high), var(--bg) 58%);
+.sleeve--feed {
+  --sleeve-pad: 48px;
+  width: 1080px;
+  height: 1350px;
+  gap: 24px;
 }
 
-.poster-bg-img {
+/* ── Label masthead ── */
+.sleeve-masthead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 18px;
+  border-bottom: 4px solid currentColor;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.sleeve-masthead__label {
+  font-size: 46px;
+  letter-spacing: 0.16em;
+}
+
+.sleeve-masthead__catalogue {
+  font-size: 34px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+
+.sleeve--feed .sleeve-masthead__label {
+  font-size: 38px;
+}
+
+.sleeve--feed .sleeve-masthead__catalogue {
+  font-size: 28px;
+}
+
+/* ── Front cover ── */
+.sleeve-front {
+  display: flex;
+  gap: 24px;
+}
+
+.sleeve-cover {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 968px;
+  aspect-ratio: 1;
+  flex-shrink: 0;
+  background: var(--field-deep);
+  border: 6px solid var(--on-field);
+}
+
+.sleeve--feed .sleeve-cover {
+  width: 820px;
+}
+
+.sleeve-cover__art {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.sleeve-cover__art img {
+  display: block;
   width: 100%;
   height: 100%;
+}
+
+/* A real flyer carries its own text, so it is shown whole, never cropped. */
+.sleeve-cover__art--flyer img {
+  object-fit: contain;
+}
+
+/* Fallback art carries its own type label near the foot; crop above it. */
+.sleeve-cover__art--fallback img {
   object-fit: cover;
+  object-position: center 22%;
 }
 
-.poster-bg-gradient {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background: linear-gradient(
-    180deg,
-    rgba(11, 19, 38, 0.58) 0%,
-    rgba(11, 19, 38, 0.3) 38%,
-    rgba(11, 19, 38, 0.9) 74%,
-    rgba(11, 19, 38, 0.98) 100%
-  );
+.sleeve-cover__band {
+  padding: 26px 40px 34px;
+  background: var(--field);
+  border-top: 6px solid var(--on-field);
 }
 
-/* ── Poster content layering ── */
-.poster-content {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  padding: 180px 84px 300px;
-}
-
-/* ── Top strip: brand + type chip ── */
-.poster-top {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-}
-
-.poster-brand-mark .ss-logo__mark {
-  height: 56px;
-  filter: drop-shadow(0 2px 12px rgba(0, 0, 0, 0.5));
-}
-
-.poster-chip {
-  padding: 10px 28px;
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: var(--radius-full);
-  font-family: var(--font-ui);
-  font-size: 1.375rem;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: #fff;
-}
-
-/* ── Spacer keeps details inside Story safe area ── */
-.poster-spacer {
-  flex: 1;
-}
-
-/* ── Bottom: event details ── */
-.poster-bottom {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 22px;
-}
-
-.poster-date {
-  font-family: var(--font-ui);
-  font-size: 1.75rem;
-  font-weight: 600;
-  color: var(--gold-light);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.poster-title {
-  font-family: var(--font-display);
-  font-size: 4.5rem;
-  font-weight: 900;
-  line-height: 1.05;
-  letter-spacing: -0.02em;
-  color: #fff;
-  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+.sleeve-cover__title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  overflow: hidden;
   margin: 0;
-  max-width: 100%;
-  word-wrap: break-word;
-}
-
-.poster-meta {
-  display: flex;
-  align-items: center;
-  gap: 28px;
-  flex-wrap: wrap;
-  font-family: var(--font-body);
-  font-size: 1.5rem;
-  font-weight: 500;
-  color: var(--text-muted);
-}
-
-.poster-meta-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.poster-meta-item svg {
-  color: var(--gold);
-  flex-shrink: 0;
-}
-
-.poster-price {
-  display: inline-flex;
-  align-items: center;
-  padding: 8px 24px;
-  background: var(--red);
-  border-radius: var(--radius-full);
-  font-family: var(--font-ui);
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: #fff;
-}
-
-.poster-qr-section {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-  margin-top: 8px;
-}
-
-.poster-cta {
-  font-family: var(--font-ui);
-  font-size: 1.5rem;
-  font-weight: 500;
-  color: var(--text-dim);
-  letter-spacing: 0.04em;
-}
-
-.poster-url {
-  font-family: var(--font-ui);
-  font-size: 1.125rem;
-  color: var(--text-muted);
-  letter-spacing: 0.02em;
+  color: var(--on-field);
+  font-family: "Poster Lettering", "Arial Black", sans-serif;
+  font-size: var(--title-size, 96px);
+  font-weight: 400;
+  line-height: 1.02;
+  letter-spacing: -0.01em;
   overflow-wrap: anywhere;
 }
 
-/* ── Hidden off-screen rendering container ── */
+/* Price sticker, slapped on the cover's top-right corner. */
+.sleeve-sticker {
+  position: absolute;
+  top: 36px;
+  right: 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 210px;
+  aspect-ratio: 1;
+  color: var(--sleeve-midnight);
+  background: var(--sleeve-cream);
+  border: 6px solid var(--sleeve-midnight);
+  border-radius: 50%;
+  transform: rotate(-9deg);
+  text-transform: uppercase;
+}
+
+.sleeve-sticker__label {
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+}
+
+.sleeve-sticker__price {
+  font-size: 72px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.sleeve--feed .sleeve-sticker {
+  width: 170px;
+}
+
+.sleeve--feed .sleeve-sticker__label {
+  font-size: 24px;
+}
+
+.sleeve--feed .sleeve-sticker__price {
+  font-size: 56px;
+}
+
+/* Feed cut: the spine runs up the right of the cover. */
+.sleeve-spine {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  border: 6px solid var(--on-field);
+}
+
+.sleeve-spine span {
+  display: block;
+  max-height: 780px;
+  overflow: hidden;
+  font-size: 44px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+  writing-mode: vertical-rl;
+}
+
+/* ── Back cover ── */
+.sleeve-back {
+  display: grid;
+  flex: 1;
+  grid-template-rows: auto auto;
+  align-content: space-between;
+  gap: 20px;
+  min-height: 0;
+  padding: 32px 40px;
+  color: var(--sleeve-midnight);
+  background: var(--sleeve-cream);
+}
+
+.sleeve--feed .sleeve-back {
+  grid-template-columns: 1fr 360px;
+  grid-template-rows: 1fr;
+  gap: 32px;
+  padding: 26px 32px;
+}
+
+.sleeve-back__side-label {
+  margin: 0 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 3px solid var(--sleeve-midnight);
+  color: var(--accent);
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.sleeve--feed .sleeve-back__side-label {
+  display: none;
+}
+
+.sleeve-tracks {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sleeve--feed .sleeve-tracks {
+  gap: 8px;
+}
+
+.sleeve-track {
+  display: grid;
+  grid-template-columns: 76px auto 1fr auto;
+  align-items: baseline;
+  gap: 0 16px;
+  font-size: 38px;
+  line-height: 1.15;
+  text-transform: uppercase;
+}
+
+.sleeve--feed .sleeve-track {
+  grid-template-columns: 56px auto 1fr auto;
+  gap: 0 12px;
+  font-size: 30px;
+}
+
+.sleeve-track__no {
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.sleeve-track__label {
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.sleeve-track__leader {
+  align-self: end;
+  min-width: 24px;
+  margin-bottom: 10px;
+  border-bottom: 4px dotted currentColor;
+  opacity: 0.55;
+}
+
+.sleeve-track__value {
+  max-width: 600px;
+  font-weight: 800;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.sleeve--feed .sleeve-track__value {
+  max-width: 330px;
+}
+
+.sleeve-track__note {
+  display: block;
+  margin-top: 4px;
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  opacity: 0.8;
+}
+
+/* Side B: the way back to the exact event. */
+.sleeve-scan {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.sleeve--feed .sleeve-scan {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  height: 100%;
+}
+
+.sleeve-qr {
+  width: 210px;
+  height: 210px;
+  flex-shrink: 0;
+}
+
+.sleeve--feed .sleeve-qr {
+  width: 150px;
+  height: 150px;
+  align-self: flex-end;
+}
+
+.sleeve-qr__ground {
+  color: var(--sleeve-cream);
+}
+
+.sleeve-qr__ink {
+  fill: var(--sleeve-midnight);
+}
+
+.sleeve-scan__text {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.sleeve--feed .sleeve-scan__text {
+  gap: 4px;
+  text-align: right;
+}
+
+.sleeve-scan__cta {
+  color: var(--accent);
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.sleeve-scan__url {
+  font-size: 48px;
+  font-weight: 800;
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+
+.sleeve-scan__credit {
+  font-size: 30px;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.sleeve--feed .sleeve-scan__cta {
+  font-size: 22px;
+}
+
+.sleeve--feed .sleeve-scan__url {
+  font-size: 30px;
+}
+
+/* The feed cut has no room for the credit; the story carries it. */
+.sleeve--feed .sleeve-scan__credit {
+  display: none;
+}
+
+/* ── Off-screen capture target ── */
 .poster-render-target {
   position: fixed;
   top: 0;
@@ -186,55 +417,4 @@
   z-index: -1;
   visibility: visible;
   pointer-events: none;
-}
-
-/* ── Flyer-forward artwork ── */
-.poster-artwork-fill {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-}
-
-.poster-artwork-fill img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: blur(36px) scale(1.08);
-  opacity: 0.9;
-}
-
-.poster-artwork-frame {
-  position: absolute;
-  top: 176px;
-  left: 72px;
-  right: 72px;
-  height: 920px;
-  background: var(--surface-high);
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.poster-artwork-image {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.poster-info-panel {
-  position: absolute;
-  top: 1052px;
-  left: 0;
-  right: 0;
-  bottom: 176px;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 22px;
-  padding: 32px 72px;
-  background: rgba(11, 19, 38, 0.94);
 }

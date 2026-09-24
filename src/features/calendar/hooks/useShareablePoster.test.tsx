@@ -8,6 +8,20 @@ vi.mock("html-to-image", () => ({
   toBlob: vi.fn(),
 }));
 
+const mockEnsurePosterFonts = vi.fn();
+const mockPosterFontEmbedCss = vi.fn();
+
+vi.mock("../../../components/EventModal/posterFonts", () => ({
+  ensurePosterFonts: (...args: unknown[]) => mockEnsurePosterFonts(...args),
+  posterFontEmbedCss: (...args: unknown[]) => mockPosterFontEmbedCss(...args),
+}));
+
+const mockResolvePosterImageForEvent = vi.fn();
+
+vi.mock("../api/posterFlyers", () => ({
+  resolvePosterImageForEvent: (...args: unknown[]) => mockResolvePosterImageForEvent(...args),
+}));
+
 const testEvent: ScheduleXEvent = {
   id: "1",
   title: "Beginner Salsa Night!",
@@ -21,6 +35,12 @@ describe("useShareablePoster", () => {
     vi.mocked(toBlob).mockReset();
     globalThis.URL.createObjectURL = vi.fn(() => "blob:mock-poster-url");
     globalThis.URL.revokeObjectURL = vi.fn();
+    mockEnsurePosterFonts.mockReset();
+    mockEnsurePosterFonts.mockResolvedValue(undefined);
+    mockPosterFontEmbedCss.mockReset();
+    mockPosterFontEmbedCss.mockRejectedValue(new Error("fonts unavailable"));
+    mockResolvePosterImageForEvent.mockReset();
+    mockResolvePosterImageForEvent.mockResolvedValue({ status: "missing" });
   });
 
   afterEach(() => {
@@ -74,8 +94,19 @@ describe("useShareablePoster", () => {
     createElementSpy.mockRestore();
   });
 
-  it("passes an onImageErrorHandler so a broken flyer degrades instead of failing the capture", async () => {
+  it("appends a -feed suffix to the filename for the feed format", () => {
+    const { result } = renderHook(() => useShareablePoster());
+    expect(result.current.posterFilename(testEvent, "feed")).toBe(
+      "salsa-segura-beginner-salsa-night-feed.png"
+    );
+    expect(result.current.posterFilename(testEvent, "story")).toBe(
+      "salsa-segura-beginner-salsa-night.png"
+    );
+  });
+
+  it("passes an onImageErrorHandler and skipFonts when the font embed CSS cannot be built", async () => {
     vi.mocked(toBlob).mockResolvedValue(new Blob(["poster"], { type: "image/png" }));
+    mockPosterFontEmbedCss.mockRejectedValue(new Error("fonts unavailable"));
     const { result } = renderHook(() => useShareablePoster());
     const container = result.current.ensureContainer();
     container.appendChild(document.createElement("div"));
@@ -90,7 +121,98 @@ describe("useShareablePoster", () => {
       })
     );
     const options = vi.mocked(toBlob).mock.calls[0][1];
+    expect(options).not.toHaveProperty("fontEmbedCSS");
     expect(() => options?.onImageErrorHandler?.("", "img", 0)).not.toThrow();
+  });
+
+  it("passes the resolved fontEmbedCSS instead of skipFonts when poster fonts embed successfully", async () => {
+    vi.mocked(toBlob).mockResolvedValue(new Blob(["poster"], { type: "image/png" }));
+    mockPosterFontEmbedCss.mockResolvedValue("@font-face{font-family:'Poster Lettering';}");
+    const { result } = renderHook(() => useShareablePoster());
+    const container = result.current.ensureContainer();
+    container.appendChild(document.createElement("div"));
+
+    await result.current.capturePoster(container);
+
+    expect(toBlob).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        fontEmbedCSS: "@font-face{font-family:'Poster Lettering';}",
+      })
+    );
+    const options = vi.mocked(toBlob).mock.calls[0][1];
+    expect(options).not.toHaveProperty("skipFonts");
+  });
+
+  describe("createPoster", () => {
+    beforeEach(() => {
+      vi.mocked(toBlob).mockResolvedValue(new Blob(["poster"], { type: "image/png" }));
+    });
+
+    it("renders the resolved flyer as a data URL with artKind flyer when the flyer is ready", async () => {
+      mockResolvePosterImageForEvent.mockResolvedValue({
+        status: "ready",
+        dataUrl: "data:image/png;base64,FLYERBYTES",
+      });
+
+      const { result } = renderHook(() => useShareablePoster());
+      await result.current.createPoster(testEvent, "story");
+
+      const capturedEl = vi.mocked(toBlob).mock.calls[0][0] as HTMLElement;
+      const art = capturedEl.querySelector(".sleeve-cover__art");
+      expect(art).toHaveClass("sleeve-cover__art--flyer");
+      expect(capturedEl.querySelector(".sleeve-cover__art img")).toHaveAttribute(
+        "src",
+        "data:image/png;base64,FLYERBYTES"
+      );
+    });
+
+    it("renders the fallback art with artKind fallback when the flyer is not ready", async () => {
+      mockResolvePosterImageForEvent.mockResolvedValue({ status: "missing" });
+
+      const { result } = renderHook(() => useShareablePoster());
+      await result.current.createPoster(testEvent, "story");
+
+      const capturedEl = vi.mocked(toBlob).mock.calls[0][0] as HTMLElement;
+      const art = capturedEl.querySelector(".sleeve-cover__art");
+      expect(art).toHaveClass("sleeve-cover__art--fallback");
+      expect(capturedEl.querySelector(".sleeve-cover__art img")).toHaveAttribute(
+        "src",
+        "/images/event-fallbacks/social.svg"
+      );
+    });
+
+    it("also falls back to the on-brand art when the flyer resolution is unavailable", async () => {
+      mockResolvePosterImageForEvent.mockResolvedValue({ status: "unavailable" });
+
+      const { result } = renderHook(() => useShareablePoster());
+      await result.current.createPoster(testEvent, "story");
+
+      const capturedEl = vi.mocked(toBlob).mock.calls[0][0] as HTMLElement;
+      expect(capturedEl.querySelector(".sleeve-cover__art")).toHaveClass(
+        "sleeve-cover__art--fallback"
+      );
+    });
+
+    it("always removes the render target from the document, even when capture throws", async () => {
+      vi.mocked(toBlob).mockRejectedValue(new Error("capture exploded"));
+
+      const { result } = renderHook(() => useShareablePoster());
+
+      await expect(result.current.createPoster(testEvent, "story")).rejects.toThrow(
+        "capture exploded"
+      );
+
+      expect(document.querySelector(".poster-render-target")).not.toBeInTheDocument();
+    });
+
+    it("removes the render target after a successful capture too", async () => {
+      const { result } = renderHook(() => useShareablePoster());
+
+      await result.current.createPoster(testEvent, "story");
+
+      expect(document.querySelector(".poster-render-target")).not.toBeInTheDocument();
+    });
   });
 
   describe("resolvePosterImage", () => {

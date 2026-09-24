@@ -204,7 +204,8 @@
   font-size: 56px;
 }
 
-/* Feed cut: the spine runs up the right of the cover. */
+/* Feed cut: the spine runs up the right of the cover and carries the date,
+   the fact a friend needs first when the post is a thumbnail in a feed. */
 .sleeve-spine {
   display: flex;
   align-items: center;
@@ -219,10 +220,9 @@
   display: block;
   max-height: 780px;
   overflow: hidden;
-  font-size: 44px;
+  font-size: 48px;
   font-weight: 800;
   letter-spacing: 0.12em;
-  text-overflow: ellipsis;
   text-transform: uppercase;
   white-space: nowrap;
   writing-mode: vertical-rl;
@@ -241,11 +241,27 @@
   background: var(--sleeve-cream);
 }
 
+/* Feed back cover: the track list and the scan line on the left, one large
+   QR spanning the full height on the right, so it still scans from a feed
+   thumbnail. */
 .sleeve--feed .sleeve-back {
-  grid-template-columns: 1fr 360px;
-  grid-template-rows: 1fr;
-  gap: 32px;
+  grid-template-columns: minmax(0, 1fr) 232px;
+  grid-template-rows: 1fr auto;
+  grid-template-areas:
+    "tracks qr"
+    "scan qr";
+  gap: 12px 32px;
+  align-content: stretch;
   padding: 26px 32px;
+}
+
+.sleeve--feed .sleeve-back__side:first-child {
+  grid-area: tracks;
+}
+
+.sleeve--feed .sleeve-back__side--b,
+.sleeve--feed .sleeve-scan {
+  display: contents;
 }
 
 .sleeve-back__side-label {
@@ -301,10 +317,12 @@
   letter-spacing: 0.06em;
 }
 
+/* Pinned to the first line, so a value that wraps keeps its leader beside
+   the label instead of dropping it to the last line. */
 .sleeve-track__leader {
-  align-self: end;
+  align-self: start;
   min-width: 24px;
-  margin-bottom: 10px;
+  margin-top: calc(1.15em - 12px);
   border-bottom: 4px dotted currentColor;
   opacity: 0.55;
 }
@@ -317,7 +335,7 @@
 }
 
 .sleeve--feed .sleeve-track__value {
-  max-width: 330px;
+  max-width: 420px;
 }
 
 .sleeve-track__note {
@@ -337,13 +355,6 @@
   gap: 32px;
 }
 
-.sleeve--feed .sleeve-scan {
-  flex-direction: column;
-  align-items: stretch;
-  gap: 8px;
-  height: 100%;
-}
-
 .sleeve-qr {
   width: 210px;
   height: 210px;
@@ -351,9 +362,10 @@
 }
 
 .sleeve--feed .sleeve-qr {
-  width: 150px;
-  height: 150px;
-  align-self: flex-end;
+  grid-area: qr;
+  align-self: center;
+  width: 232px;
+  height: 232px;
 }
 
 .sleeve-qr__ground {
@@ -371,8 +383,10 @@
 }
 
 .sleeve--feed .sleeve-scan__text {
-  gap: 4px;
-  text-align: right;
+  grid-area: scan;
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
 }
 
 .sleeve-scan__cta {

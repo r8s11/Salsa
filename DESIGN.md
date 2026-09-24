@@ -352,9 +352,11 @@ the same three prints top to bottom — a label **masthead** (wordmark
 and a catalogue line, e.g. `SS-0924 · BOS`), the square **front cover**
 (flyer or fallback art, a lettered title band, a circular price
 sticker), and the cream **back cover** (Side A facts, Side B QR and
-short link). The feed cut adds a vertical **spine** beside the cover,
-carrying the title sideways the way a shelved record would, and lays
-Side A and Side B side-by-side instead of stacked.
+short link). The feed cut adds a vertical **spine** beside the cover
+carrying the date, the fact a friend needs first when the post is a
+thumbnail, and sets the back cover as the track list plus a one-line scan
+strip on the left with a single full-height QR on the right. Track leaders
+sit on a value's first line, so a wrapped venue never drops its leader.
 
 The night card's sleeve thumbnail reuses the front cover alone
 (`SleeveCover`), scaled down from its authored 968px art size — the

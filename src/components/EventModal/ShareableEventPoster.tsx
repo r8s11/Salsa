@@ -108,7 +108,7 @@ export default function ShareableEventPoster({
         <SleeveCover event={event} imageUrl={imageUrl} artKind={artKind} format={format} />
         {format === "feed" && (
           <div className="sleeve-spine" aria-hidden="true">
-            <span>{event.title}</span>
+            <span>{dateLabel}</span>
           </div>
         )}
       </div>

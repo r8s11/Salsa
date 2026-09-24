@@ -3,6 +3,7 @@ import { Clock, MapPin } from "lucide-react";
 import type { ScheduleXEvent } from "../../types/events";
 import { isRecentlyApproved } from "../../features/events/model/recentlyApproved";
 import { resolveEventFlyer } from "../EventModal/eventModalImage";
+import "./Events.css";
 
 const TYPE_LABELS: Record<string, string> = {
   social: "Social Dance",

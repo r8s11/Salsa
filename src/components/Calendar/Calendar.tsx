@@ -20,7 +20,6 @@ import { useCity } from "../../contexts/useCity";
 import EventModal from "../EventModal/EventModal";
 import EventCard from "../Events/EventCard";
 import CalendarListView from "./CalendarListView";
-import "../Events/Events.css";
 import { useEvents } from "../../features/events/hooks/useEvent";
 import { generateEventsListStructuredData, injectStructuredData } from "../../utils/seo";
 import { useDocumentMeta } from "../../shared/seo/useDocumentMeta";

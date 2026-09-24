@@ -9,6 +9,7 @@ import FeaturedEventCard from "./FeaturedEventCard";
 import EventModal from "../EventModal/EventModal";
 import { filterEventsByType, TypeFilter } from "../../utils/filterEvents";
 import type { ScheduleXEvent } from "../../types/events";
+import "./Events.css";
 
 const FILTER_OPTIONS: { value: TypeFilter; label: string }[] = [
   { value: "all", label: "All" },

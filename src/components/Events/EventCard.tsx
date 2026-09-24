@@ -1,4 +1,3 @@
-import React from "react";
 import { Clock, MapPin } from "lucide-react";
 import type { ScheduleXEvent } from "../../types/events";
 import { isRecentlyApproved } from "../../features/events/model/recentlyApproved";
@@ -31,13 +30,6 @@ export default function EventCard({
 
   const openDetail = () => onSelect(event);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      openDetail();
-    }
-  };
-
   const imageUrl = resolveEventFlyer(event);
   const fallbackUrl = resolveEventFlyer({ ...event, imageUrl: undefined });
   const showRecentlyApproved = isRecentlyApproved({
@@ -45,15 +37,11 @@ export default function EventCard({
     sourceType: event.sourceType,
   });
 
+  // The card is an article with a real heading; the title's button is the one
+  // control, and its ::after stretches over the whole card so any click on
+  // it still opens the event.
   return (
-    <article
-      className="event-card"
-      onClick={openDetail}
-      onKeyDown={handleKeyDown}
-      role="button"
-      tabIndex={0}
-      aria-label={`${event.title} on ${weekday} ${month} ${day} at ${time}`}
-    >
+    <article className="event-card">
       <div className={`event-card-thumb event-card-thumb--${event.calendarId}`}>
         <img
           className="event-card-image"
@@ -84,7 +72,11 @@ export default function EventCard({
       </div>
 
       <div className="event-card-body">
-        <h3>{event.title}</h3>
+        <h3>
+          <button type="button" className="event-card-open" onClick={openDetail}>
+            {event.title}
+          </button>
+        </h3>
         <div className="event-card-meta">
           <span>
             <Clock size={13} aria-hidden="true" /> {time}

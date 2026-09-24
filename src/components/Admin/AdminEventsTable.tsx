@@ -243,7 +243,7 @@ function EventCell({
     <div className="admin-events-table__event">
       <img
         src={resolveEventFlyer({
-          id: event.id,
+          danceStyles: event.dance_styles,
           imageUrl: event.image_url ?? undefined,
           calendarId: event.event_type,
         })}
@@ -455,7 +455,7 @@ export default function AdminEventsTable({
                 <img
                   className="admin-events-cards__flyer"
                   src={resolveEventFlyer({
-                    id: event.id,
+                    danceStyles: event.dance_styles,
                     imageUrl: event.image_url ?? undefined,
                     calendarId: event.event_type,
                   })}

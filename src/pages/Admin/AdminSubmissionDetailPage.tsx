@@ -136,7 +136,11 @@ export default function AdminSubmissionDetailPage() {
           <div className="admin-submission-detail-page__flyer-wrap">
             <img
               className="admin-submission-detail-page__flyer"
-              src={resolveEventFlyer({ id: submission.id, imageUrl, calendarId: "social" })}
+              src={resolveEventFlyer({
+                imageUrl,
+                calendarId: textValue(submission.submitted_data, "event_type") ?? undefined,
+                danceStyles: rawStyles,
+              })}
               alt={`Flyer for ${title}`}
               width={240}
               height={300}

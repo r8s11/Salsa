@@ -98,7 +98,7 @@ describe("EventDetailPage", () => {
     const coverImage = document.querySelector(".event-page__cover-img");
     expect(coverImage).toHaveAttribute(
       "src",
-      expect.stringMatching(/\/images\/(?:default-event-banner\.png|event-fallbacks\/.+\.svg)/)
+      expect.stringMatching(/\/images\/event-fallbacks\/.+\.svg/)
     );
     expect(coverImage).toHaveAttribute("alt", "");
 

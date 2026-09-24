@@ -32,15 +32,19 @@ function SubmissionCell({ submission }: { submission: EventSubmission }) {
   const date = submission.submitted_data?.event_date as string | undefined;
   const location = submission.submitted_data?.location as string | undefined;
   const imageUrl = submission.submitted_data?.image_url as string | undefined;
+  const rawStyles = submission.submitted_data?.dance_styles;
+  const danceStyles = Array.isArray(rawStyles)
+    ? rawStyles.filter((style): style is string => typeof style === "string")
+    : [];
 
   return (
     <div className="admin-submissions-table__event">
       <img
         className="admin-submissions-table__flyer"
         src={resolveEventFlyer({
-          id: submission.id,
           imageUrl: imageUrl ?? "",
-          calendarId: "social",
+          calendarId: submission.submitted_data?.event_type as string | undefined,
+          danceStyles,
         })}
         alt=""
         loading="lazy"

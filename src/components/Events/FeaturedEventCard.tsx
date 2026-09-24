@@ -1,4 +1,3 @@
-import React from "react";
 import { Clock, MapPin } from "lucide-react";
 import type { ScheduleXEvent } from "../../types/events";
 import { isRecentlyApproved } from "../../features/events/model/recentlyApproved";
@@ -31,13 +30,6 @@ export default function FeaturedEventCard({
 
   const openDetail = () => onSelect(event);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      openDetail();
-    }
-  };
-
   const imageUrl = resolveEventFlyer(event);
   const showRecentlyApproved = isRecentlyApproved({
     createdAt: event.createdAt,
@@ -45,14 +37,7 @@ export default function FeaturedEventCard({
   });
 
   return (
-    <article
-      className="featured-card"
-      role="button"
-      tabIndex={0}
-      onClick={openDetail}
-      onKeyDown={handleKeyDown}
-      aria-label={`Featured event: ${event.title} on ${weekday} ${month} ${day} at ${time}`}
-    >
+    <article className="featured-card">
       <div
         className={`featured-card-media featured-card-media--${event.calendarId}`}
         style={{ backgroundImage: `url(${imageUrl})` }}
@@ -69,7 +54,11 @@ export default function FeaturedEventCard({
         <span className={`event-type ${event.calendarId}`}>
           {TYPE_LABELS[event.calendarId] ?? event.calendarId}
         </span>
-        <h3>{event.title}</h3>
+        <h3>
+          <button type="button" className="event-card-open" onClick={openDetail}>
+            {event.title}
+          </button>
+        </h3>
         <div className="featured-card-meta">
           <span>
             <Clock size={14} aria-hidden="true" /> {time}
@@ -81,7 +70,9 @@ export default function FeaturedEventCard({
           )}
         </div>
         {event.description && <p className="featured-card-description">{event.description}</p>}
-        <span className="featured-card-link">View details →</span>
+        <span className="featured-card-link" aria-hidden="true">
+          View details →
+        </span>
       </div>
     </article>
   );

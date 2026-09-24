@@ -29,6 +29,35 @@
   margin-bottom: 1.4rem;
 }
 
+/* The diamond is drawn, not a glyph, so it holds its shape in every font. */
+.events-eyebrow::before {
+  content: "";
+  display: inline-block;
+  width: 0.5em;
+  height: 0.5em;
+  margin-inline-end: 0.7em;
+  vertical-align: 0.12em;
+  background: currentColor;
+  transform: rotate(45deg);
+}
+
+.events-eyebrow time {
+  font-variant-numeric: tabular-nums;
+}
+
+/* No night out today: say so plainly before offering the next one, so the
+   featured card below never reads as tonight's. */
+.events-featured-quiet {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.375rem;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  text-wrap: balance;
+  margin-bottom: 0.75rem;
+}
+
 .featured-card {
   position: relative;
   display: grid;
@@ -224,6 +253,7 @@
 
 /* ── Card ── */
 .event-card {
+  position: relative;
   background: var(--card);
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
@@ -243,6 +273,43 @@
   transform: translateY(-6px);
   border-color: var(--red-dim);
   box-shadow: var(--glow-primary);
+}
+
+/* ── Card open control ──
+   The title's button is the card's only control. Its ::after covers the
+   whole card, so the card stays clickable end to end while the heading
+   keeps its semantics and the button keeps its name. The focus ring moves
+   to the card, where the stretched hit area actually is. */
+.event-card-open {
+  all: unset;
+  cursor: pointer;
+  text-wrap: inherit;
+}
+
+.event-card-open::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+/* Without :has() the ring stays on the title, so focus is never invisible. */
+.event-card-open:focus-visible {
+  outline: 2px solid var(--red-bright);
+  outline-offset: 2px;
+}
+
+@supports selector(:has(*)) {
+  .event-card-open:focus-visible {
+    outline: none;
+  }
+
+  .event-card:has(.event-card-open:focus-visible),
+  .featured-card:has(.event-card-open:focus-visible) {
+    outline: 2px solid var(--red-bright);
+    outline-offset: 2px;
+    border-color: var(--red-dim);
+  }
 }
 
 /* ── Staggered entrance ── */
@@ -516,23 +583,12 @@
   gap: 0.75rem;
 }
 
-/* ── Footer CTAs ── */
+/* ── Footer link ── The submit ask lives in HomeCta directly below, so the
+   feed closes on the calendar alone. */
 .events-footer {
-  text-align: center;
-  margin-top: 3.5rem;
-  padding-top: 2.5rem;
-  border-top: 1px solid var(--border);
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.75rem;
-}
-
-.events-cta p {
-  font-family: var(--font-body);
-  font-size: 0.9375rem;
-  color: var(--text-muted);
-  margin-bottom: 0.75rem;
+  justify-content: center;
+  margin-top: 3rem;
 }
 
 /* ── Mobile ── */

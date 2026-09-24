@@ -1,5 +1,6 @@
 import { afterEach, describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import EventCard from "./EventCard";
 import { ScheduleXEvent } from "../../types/events";
@@ -53,7 +54,7 @@ describe("EventCard", () => {
     expect(image).toHaveAttribute("loading", "lazy");
     expect(image).toHaveAttribute(
       "src",
-      expect.stringMatching(/\/images\/(?:default-event-banner\.png|event-fallbacks\/.+\.svg)/)
+      expect.stringMatching(/\/images\/event-fallbacks\/.+\.svg/)
     );
     expect(container.querySelector(".ss-fallback")).not.toBeInTheDocument();
   });
@@ -69,7 +70,7 @@ describe("EventCard", () => {
 
     expect(image).toHaveAttribute(
       "src",
-      expect.stringMatching(/\/images\/(?:default-event-banner\.png|event-fallbacks\/.+\.svg)/)
+      expect.stringMatching(/\/images\/event-fallbacks\/.+\.svg/)
     );
   });
 
@@ -91,10 +92,16 @@ describe("EventCard", () => {
     expect(onSelect).toHaveBeenCalledWith(baseEvent);
   });
 
-  it("selects the event on Enter key", () => {
+  it("opens from the keyboard through a real button inside the title heading", async () => {
+    const user = userEvent.setup();
     const onSelect = vi.fn();
     renderCard(baseEvent, onSelect);
-    fireEvent.keyDown(screen.getByRole("button"), { key: "Enter" });
+    const heading = screen.getByRole("heading", { name: "Rooftop Sunset Social" });
+    const button = within(heading).getByRole("button", { name: "Rooftop Sunset Social" });
+
+    await user.tab();
+    expect(button).toHaveFocus();
+    await user.keyboard("{Enter}");
     expect(onSelect).toHaveBeenCalledWith(baseEvent);
   });
 

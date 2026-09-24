@@ -1,9 +1,11 @@
 // Purpose: Display the home page event feed — a featured event plus a
 // filterable grid of the rest of this week's floor.
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Button from "../ui/Button";
 import ButtonLink from "../ui/ButtonLink";
 import { useEvents } from "../../features/events/hooks/useEvent";
+import { useNewYorkToday } from "../../features/events/hooks/useNewYorkToday";
+import { nightOf } from "../../features/events/model/night";
 import { useCity } from "../../contexts/useCity";
 import EventCard from "./EventCard";
 import FeaturedEventCard from "./FeaturedEventCard";
@@ -26,15 +28,31 @@ const CITY_LABELS: Record<string, string> = {
 
 function Events() {
   const { city } = useCity();
-  const { events: allEvents, loading, fetching, error, refetch } = useEvents();
+  const { events: allEvents, loading, fetching, error, loadFailed, refetch } = useEvents();
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [selectedEvent, setSelectedEvent] = useState<ScheduleXEvent | null>(null);
   const cityLabel = CITY_LABELS[city] ?? city;
+  const today = useNewYorkToday();
 
   // The raw driver message is for us, not for dancers: log it, never render it.
   useEffect(() => {
     if (error) console.warn(`Events feed failed to load (${city}):`, error);
   }, [error, city]);
+
+  // Retry disables its button while the request runs, which drops keyboard
+  // focus to <body>. When the retry settles and the error is still showing,
+  // hand focus back so a keyboard user can try again from where they were.
+  const retryButtonRef = useRef<HTMLButtonElement>(null);
+  const retryPending = useRef(false);
+  useEffect(() => {
+    if (fetching || !retryPending.current) return;
+    retryPending.current = false;
+    retryButtonRef.current?.focus();
+  }, [fetching]);
+  const retry = () => {
+    retryPending.current = true;
+    void refetch();
+  };
 
   const upcomingEvents = useMemo(() => {
     const now = new Date();
@@ -48,6 +66,7 @@ function Events() {
   }, [allEvents]);
 
   const featuredEvent = upcomingEvents[0] ?? null;
+  const featuredNight = featuredEvent ? nightOf(featuredEvent.start, today) : null;
   const feedSource = featuredEvent ? upcomingEvents.slice(1) : upcomingEvents;
   const feedEvents = useMemo(
     () => filterEventsByType(feedSource, typeFilter).slice(0, 6),
@@ -56,7 +75,7 @@ function Events() {
   const activeFilterLabel =
     FILTER_OPTIONS.find((o) => o.value === typeFilter)?.label.toLowerCase() ?? "";
 
-  if (loading) {
+  if (loading && !loadFailed) {
     return (
       <section id="events" className="events">
         <div className="container">
@@ -73,7 +92,7 @@ function Events() {
     );
   }
 
-  if (error) {
+  if (loadFailed) {
     return (
       <section id="events" className="events">
         <div className="container">
@@ -87,10 +106,11 @@ function Events() {
             </div>
             <div className="no-events__actions">
               <Button
+                ref={retryButtonRef}
                 variant="primary"
                 loading={fetching}
                 loadingLabel="Trying again…"
-                onClick={() => void refetch()}
+                onClick={retry}
               >
                 Try again
               </Button>
@@ -108,9 +128,20 @@ function Events() {
     <>
       <section id="events" className="events">
         <div className="container">
-          {featuredEvent && (
+          {featuredEvent && featuredNight && (
             <div className="events-featured-wrap">
-              <h2 className="events-eyebrow">◆ Featured Tonight</h2>
+              {featuredNight.kind === "later" ? (
+                <>
+                  <h2 className="events-featured-quiet">Nothing on the floor tonight in {cityLabel}.</h2>
+                  <p className="events-eyebrow">
+                    Next up · <time dateTime={featuredNight.date}>{featuredNight.label}</time>
+                  </p>
+                </>
+              ) : (
+                <h2 className="events-eyebrow">
+                  {featuredNight.kind === "tonight" ? "Featured Tonight" : "Featured Today"}
+                </h2>
+              )}
               <FeaturedEventCard event={featuredEvent} onSelect={setSelectedEvent} />
             </div>
           )}
@@ -134,7 +165,7 @@ function Events() {
           {upcomingEvents.length === 0 ? (
             <div className="no-events no-events--all" role="status">
               <div>
-                <h3>Nothing on floor in {cityLabel} yet.</h3>
+                <h3>Nothing on the floor in {cityLabel} yet.</h3>
                 <p>Check the full calendar or help set the next date.</p>
               </div>
               <div className="no-events__actions">
@@ -163,12 +194,6 @@ function Events() {
               <ButtonLink to="/calendar" variant="secondary">
                 View Full Calendar
               </ButtonLink>
-              <div className="events-cta">
-                <p>Want to host a pop-up class or private event?</p>
-                <ButtonLink to="/submit" variant="primary">
-                  Submit an Event
-                </ButtonLink>
-              </div>
             </div>
           )}
         </div>

@@ -55,7 +55,7 @@ function Header() {
 
   const citySwitcher = (mobile = false) => (
     <div
-      className={`city-switch${mobile ? " city-switch--mobile" : ""}`}
+      className={`city-switch city-switch--${mobile ? "mobile" : "bar"}`}
       role="group"
       aria-label="Choose city"
     >
@@ -179,8 +179,9 @@ function Header() {
           </li>
         </ul>
 
+        {citySwitcher()}
+
         <div className="desktop-nav-actions">
-          {citySwitcher()}
           {user ? (
             <ButtonLink to={eventCreateTo} size="compact" onClick={closeNavigation}>
               {isAdmin ? "Add Event" : "Submit Event"}

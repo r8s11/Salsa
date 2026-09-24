@@ -1,6 +1,7 @@
 /* ========================================
    Home CTA — Ritmo Vivo
-   Closing banner: routes to /contact instead of duplicating its form.
+   Closing banner: the page ends on the record, asking hosts to submit
+   their night. Contact stays as a quiet secondary route.
    ======================================== */
 
 .home-cta {
@@ -24,18 +25,36 @@
   letter-spacing: -0.02em;
   color: var(--text);
   margin: 0 0 0.75rem;
+  text-wrap: balance;
 }
 
+/* Measure sized to ~65 characters of Be Vietnam Pro. `ch` is the width of
+   "0", which runs wide in this face (65ch rendered ~90 characters). The
+   body sets its own measure because `.container` can outrank the inner
+   max-width. */
 .home-cta__body {
+  max-width: 32rem;
   font-size: 1rem;
   line-height: 1.6;
   color: var(--text-muted);
-  margin: 0 0 2rem;
+  margin: 0 auto 2rem;
+  text-wrap: pretty;
+}
+
+.home-cta__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .home-cta__btn {
   padding: 0.95rem 2.25rem;
   font-size: 0.9375rem;
+}
+
+.home-cta__aside {
+  font-size: 0.875rem;
 }
 
 @media (max-width: 639.98px) {

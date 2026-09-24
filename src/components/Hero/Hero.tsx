@@ -5,6 +5,8 @@ import { useMemo, useEffect, useRef, useState } from "react";
 import "./Hero.css";
 import { useEvents } from "../../features/events/hooks/useEvent";
 import { useCity } from "../../contexts/useCity";
+import { useNewYorkToday } from "../../features/events/hooks/useNewYorkToday";
+import { nightOf } from "../../features/events/model/night";
 
 const CITY_LABELS: Record<string, string> = {
   boston: "Greater Boston",
@@ -18,9 +20,10 @@ const CITY_SHORT: Record<string, string> = {
 
 function Hero() {
   const { city } = useCity();
-  const { events, loading, error } = useEvents();
+  const { events, loading, loadFailed } = useEvents();
   const cityLabel = CITY_LABELS[city] ?? city;
   const cityShort = CITY_SHORT[city] ?? city;
+  const today = useNewYorkToday();
 
   // The staggered entrance is CSS (see `.hero-enter` in Hero.css): six
   // opacity+translateY fades were the only thing Motion was doing here, and
@@ -28,7 +31,7 @@ function Hero() {
   // record's centring transform and spin stay in CSS as before, so no inline
   // transform can overwrite them.
 
-  const { eventsThisWeek, venueCount, tickerItems, labelArt } = useMemo(() => {
+  const { featuredStart, eventsThisWeek, venueCount, tickerItems, labelArt } = useMemo(() => {
     const now = new Date();
     const weekFromNow = new Date(now);
     weekFromNow.setDate(now.getDate() + 7);
@@ -55,6 +58,7 @@ function Hero() {
       : null;
 
     return {
+      featuredStart: featured?.start ?? null,
       eventsThisWeek: thisWeek.length,
       venueCount: venues.size,
       tickerItems: upcoming.slice(0, 8).map((e) => e.title),
@@ -67,12 +71,25 @@ function Hero() {
     };
   }, [events]);
 
+  // Same rule as the featured card's heading: "Tonight" only when the next
+  // event is on New York's today. Until the feed has answered (loading or
+  // failed) nothing is claimed, and the button names the section it opens.
+  const featuredNight = featuredStart && !loadFailed ? nightOf(featuredStart, today) : null;
+  const floorLabel =
+    featuredNight?.kind === "tonight"
+      ? "Tonight on the floor"
+      : featuredNight?.kind === "today"
+        ? "Today on the floor"
+        : featuredNight?.kind === "later"
+          ? `Next up · ${featuredNight.label}`
+          : "This week's floor";
+
   // A failed load has no counts to report; a dash says "unknown" where a 0
-  // would claim the floor is empty.
-  const unavailable = error !== null;
+  // would claim the floor is empty. It holds through a retry so the stats
+  // don't blink out and back.
   const heroStats = [
-    { num: unavailable ? null : eventsThisWeek, label: "Events This Week" },
-    { num: unavailable ? null : venueCount, label: "Venues" },
+    { num: loadFailed ? null : eventsThisWeek, label: "Events This Week" },
+    { num: loadFailed ? null : venueCount, label: venueCount === 1 ? "Venue" : "Venues" },
     { num: cityShort, label: "On The Floor" },
   ];
 
@@ -187,20 +204,24 @@ function Hero() {
           </h1>
 
           <p className="hero-subtitle hero-enter" data-enter="subtitle">
-            Every salsa &amp; bachata social, pop-up class, and workshop across{" "}
-            <span className="hero-subtitle-city">{cityLabel}</span> — one place, always on the beat.
+            <span className="hero-subtitle-full">
+              Every salsa &amp; bachata social, pop-up class, and workshop across{" "}
+              <span className="hero-subtitle-city">{cityLabel}</span> — one place, always on the
+              beat.
+            </span>
+            <span className="hero-subtitle-short">Salsa &amp; bachata socials, classes, workshops.</span>
           </p>
 
           <div className="hero-cta hero-enter" data-enter="cta">
             <a href="#events" className="ui-button ui-button--primary hero-btn hero-btn--primary">
-              Tonight on the floor
+              {floorLabel}
             </a>
             <ButtonLink to="/calendar" variant="secondary" className="hero-btn hero-btn--secondary">
               Full calendar
             </ButtonLink>
           </div>
 
-          {!loading && (
+          {(!loading || loadFailed) && (
             <div className="hero-stats hero-stats--compact hero-enter" data-enter="stats">
               {heroStats.map((stat) => (
                 <div

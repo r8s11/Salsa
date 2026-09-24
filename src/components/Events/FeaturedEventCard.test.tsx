@@ -51,10 +51,10 @@ describe("FeaturedEventCard", () => {
     expect(screen.getByText("Just approved")).toBeInTheDocument();
   });
 
-  it("uses the public default banner when no flyer is available", () => {
+  it("uses a brand fallback flyer when no flyer is available", () => {
     const { container } = renderCard({ ...baseEvent, imageUrl: undefined });
     const media = container.querySelector(".featured-card-media") as HTMLElement;
-    expect(media.style.backgroundImage).toContain("/images/default-event-banner.png");
+    expect(media.style.backgroundImage).toMatch(/\/images\/event-fallbacks\/.+\.svg/);
     expect(container.querySelector(".ss-fallback")).not.toBeInTheDocument();
   });
 

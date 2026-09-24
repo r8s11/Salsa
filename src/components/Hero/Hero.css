@@ -326,6 +326,12 @@
   color: var(--gold-light);
 }
 
+/* The short line is the mobile subtitle; the full sentence is everything
+   wider. Hidden with display so only one is ever in the accessibility tree. */
+.hero-subtitle-short {
+  display: none;
+}
+
 /* CTA buttons */
 .hero-cta {
   display: flex;
@@ -381,6 +387,19 @@
   white-space: nowrap;
 }
 
+/* Items fade out before they reach the pause control, so no title ever
+   slides underneath it and reads half-covered. */
+.hero-ticker::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  z-index: 1;
+  width: 7rem;
+  background: linear-gradient(to right, transparent, var(--bg) 55%);
+  pointer-events: none;
+}
+
 .hero-ticker-track {
   display: inline-flex;
   animation: heroMarquee 34s linear infinite;
@@ -393,7 +412,7 @@
 
 .hero-ticker-control {
   position: absolute;
-  z-index: 1;
+  z-index: 2;
   inset-block: 50%;
   inset-inline-end: 12px;
   transform: translateY(-50%);
@@ -558,10 +577,18 @@
   .hero .container {
     padding: 1.75rem 20px 2rem;
   }
+  /* The record moves to the section's top-right corner and shrinks, so its
+     printed ring sweeps the empty corner beside the eyebrow and headline
+     instead of passing under the stacked buttons. */
+  .hero-vinyl {
+    top: 0;
+    width: 56vw;
+  }
+
   .hero-vinyl__glow,
   .hero-vinyl__disc,
   .hero-vinyl__sheen {
-    opacity: 0.42;
+    opacity: 0.55;
   }
 
   .hero-glow {
@@ -594,7 +621,17 @@
   }
 
   .hero-subtitle {
+    margin-top: 0.85rem;
+    font-size: clamp(0.8125rem, 3.85vw, 0.9375rem);
+    text-wrap: balance;
+  }
+
+  .hero-subtitle-full {
     display: none;
+  }
+
+  .hero-subtitle-short {
+    display: inline;
   }
 
   .hero-cta {

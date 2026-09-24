@@ -100,6 +100,12 @@ a.logo:hover .ss-logo__wordmark-accent {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
+  margin-left: var(--space-sm);
+}
+
+/* The bar switch leads the right-hand cluster on desktop and sits beside
+   the hamburger below 1024px, so the city is one tap away at every width. */
+.city-switch--bar {
   margin-left: auto;
 }
 
@@ -383,6 +389,27 @@ a.logo:hover .ss-logo__wordmark-accent {
     display: flex;
   }
 
+  /* Compact BOS/NYC toggle in the bar. The pill stays slim so the header
+     keeps its weight on the wordmark; each segment's hit area extends
+     vertically past the pill to a full 44px touch target. */
+  .city-switch--bar {
+    margin-right: var(--space-xs);
+  }
+  .city-switch--bar .city-switch__btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 34px;
+    padding: 0 10px;
+  }
+  .city-switch--bar .city-switch__btn::before {
+    content: "";
+    position: absolute;
+    inset: -5px 0;
+  }
+
   /* ── Full-screen sheet ───────────────────────────────────────────
      Sits under the sticky bar so the gold/rose logo and the X stay
      visible while the sheet is open. */
@@ -644,11 +671,22 @@ a.logo:hover .ss-logo__wordmark-accent {
     padding-top: env(safe-area-inset-top);
   }
 
-  .logo {
+  a.logo {
     font-size: 1.375rem;
   }
 
-  .logo .ss-logo--lg .ss-logo__mark {
+  a.logo .ss-logo--lg .ss-logo__mark {
     height: 22px;
+  }
+}
+
+/* Smallest phones: the wordmark alone carries the brand so the city
+   toggle and the menu keep their full touch targets. */
+@media (max-width: 374.98px) {
+  a.logo .ss-logo__mark {
+    display: none;
+  }
+  .city-switch--bar .city-switch__btn {
+    padding: 0 7px;
   }
 }

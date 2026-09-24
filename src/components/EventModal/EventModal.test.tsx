@@ -80,7 +80,7 @@ describe("EventModal", () => {
     const { container } = render(<EventModal event={baseEvent} onClose={() => {}} />);
     const poster = container.querySelector(".modal-poster") as HTMLElement;
     expect(poster.style.backgroundImage).toMatch(
-      /\/images\/(?:default-event-banner\.png|event-fallbacks\/.+\.svg)/
+      /\/images\/event-fallbacks\/.+\.svg/
     );
     expect(container.querySelector(".ss-fallback")).not.toBeInTheDocument();
   });

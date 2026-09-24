@@ -19,17 +19,20 @@ const FOCUSABLE_SELECTOR = [
   '[tabindex]:not([tabindex="-1"])',
 ].join(", ");
 
+function isRendered(node: HTMLElement): boolean {
+  if (node.hasAttribute("hidden") || node.getAttribute("aria-hidden") === "true") return false;
+  // Browsers answer from layout, so a control hidden by a stylesheet (a
+  // desktop-only or mobile-only action row) drops out of the trap. jsdom has
+  // no layout and no checkVisibility, so there only inline styles count.
+  if (typeof node.checkVisibility === "function") {
+    return node.checkVisibility({ visibilityProperty: true });
+  }
+  return node.style.display !== "none" && node.style.visibility !== "hidden";
+}
+
 function focusableNodes(container: HTMLElement | null): HTMLElement[] {
   if (!container) return [];
-  return [...container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)].filter(
-    (node) =>
-      !node.hasAttribute("hidden") &&
-      node.getAttribute("aria-hidden") !== "true" &&
-      // jsdom reports no layout boxes, so treat an unstyled node as visible and
-      // only drop nodes explicitly hidden by their computed style.
-      node.style.display !== "none" &&
-      node.style.visibility !== "hidden"
-  );
+  return [...container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)].filter(isRendered);
 }
 
 /**
@@ -40,21 +43,42 @@ function focusableNodes(container: HTMLElement | null): HTMLElement[] {
  */
 function inertBackground(dialog: HTMLElement): () => void {
   const inerted: HTMLElement[] = [];
+  const levels: { parent: HTMLElement; keep: Element }[] = [];
+
+  const inert = (sibling: Element, keep: Element) => {
+    if (sibling === keep || !(sibling instanceof HTMLElement)) return;
+    // Never clear an `inert` an outer dialog already owns.
+    if (sibling.hasAttribute("inert")) return;
+    sibling.setAttribute("inert", "");
+    inerted.push(sibling);
+  };
 
   for (let node: HTMLElement = dialog; node !== document.body;) {
     const parent = node.parentElement;
     if (!parent) break;
-    for (const sibling of Array.from(parent.children)) {
-      if (sibling === node || !(sibling instanceof HTMLElement)) continue;
-      // Never clear an `inert` an outer dialog already owns.
-      if (sibling.hasAttribute("inert")) continue;
-      sibling.setAttribute("inert", "");
-      inerted.push(sibling);
-    }
+    for (const sibling of Array.from(parent.children)) inert(sibling, node);
+    levels.push({ parent, keep: node });
     node = parent;
   }
 
+  // Background that mounts while the dialog is open (a scroll-revealed
+  // floating control, a toast) must be inert too, or focus walks into it.
+  const observer =
+    typeof MutationObserver === "function"
+      ? new MutationObserver((records) => {
+          for (const record of records) {
+            const level = levels.find((l) => l.parent === record.target);
+            if (!level) continue;
+            for (const added of Array.from(record.addedNodes)) {
+              if (added instanceof Element) inert(added, level.keep);
+            }
+          }
+        })
+      : null;
+  for (const { parent } of levels) observer?.observe(parent, { childList: true });
+
   return () => {
+    observer?.disconnect();
     for (const node of inerted) node.removeAttribute("inert");
   };
 }

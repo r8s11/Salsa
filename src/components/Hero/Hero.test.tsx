@@ -28,9 +28,12 @@ describe("Hero", () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByRole("link", { name: "Tonight on the floor" })).toHaveClass(
+    // The only event is in 2099, so the primary action names that night
+    // rather than claiming tonight.
+    expect(screen.getByRole("link", { name: /^Next up · \w{3} 1 Jan$/ })).toHaveClass(
       "hero-btn--primary"
     );
+    expect(screen.queryByRole("link", { name: "Tonight on the floor" })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Full calendar" })).toHaveClass("hero-btn--secondary");
     expect(screen.getByText("Events This Week").closest(".hero-stats")).toHaveClass(
       "hero-stats--compact"

@@ -22,8 +22,13 @@ let mockedEvents: ScheduleXEvent[] = [
   },
 ];
 
+type FeedState = { loading: boolean; fetching: boolean; error: string | null; loadFailed: boolean };
+const loadedFeed: FeedState = { loading: false, fetching: false, error: null, loadFailed: false };
+let mockedFeed: FeedState = loadedFeed;
+const refetch = vi.fn();
+
 vi.mock("../../features/events/hooks/useEvent", () => ({
-  useEvents: () => ({ events: mockedEvents, loading: false, error: null }),
+  useEvents: () => ({ events: mockedEvents, refetch, ...mockedFeed }),
 }));
 
 vi.mock("../../contexts/useCity", () => ({
@@ -71,6 +76,21 @@ describe("Events homepage modal", () => {
     expect(screen.getByTestId("location")).toHaveTextContent("/");
   });
 
+  it("says there is nothing tonight and names the next night when the featured event is later", () => {
+    render(
+      <MemoryRouter>
+        <Events />
+      </MemoryRouter>
+    );
+
+    // The featured event is on 1 Jan 2099, not tonight.
+    expect(
+      screen.getByRole("heading", { name: "Nothing on the floor tonight in Greater Boston." })
+    ).toBeInTheDocument();
+    expect(screen.getByText(/^Next up ·/)).toHaveTextContent(/Next up · \w{3} 1 Jan/);
+    expect(screen.queryByText("Featured Tonight")).not.toBeInTheDocument();
+  });
+
   it("turns an empty city feed into clear next steps", () => {
     mockedEvents = [];
     render(
@@ -79,8 +99,43 @@ describe("Events homepage modal", () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByRole("heading", { name: "Nothing on floor in Greater Boston yet." })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Nothing on the floor in Greater Boston yet." })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "View Full Calendar" })).toHaveAttribute("href", "/calendar");
     expect(screen.getByRole("link", { name: "Submit an Event" })).toHaveAttribute("href", "/submit");
+  });
+
+  it("names the city on a failed load, keeps the raw error out of the page, and retries in place", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    mockedEvents = [];
+    mockedFeed = { ...loadedFeed, error: "relation public_events does not exist", loadFailed: true };
+    const user = userEvent.setup();
+    const { rerender } = render(
+      <MemoryRouter>
+        <Events />
+      </MemoryRouter>
+    );
+
+    const alert = screen.getByRole("alert");
+    expect(alert).toHaveTextContent("We couldn't load Greater Boston's listings.");
+    expect(alert).not.toHaveTextContent("relation public_events");
+    expect(warn).toHaveBeenCalledWith(expect.any(String), "relation public_events does not exist");
+    expect(screen.getByRole("link", { name: "View Full Calendar" })).toHaveAttribute("href", "/calendar");
+
+    await user.click(screen.getByRole("button", { name: "Try again" }));
+    expect(refetch).toHaveBeenCalledOnce();
+
+    // Mid-retry the query is pending again with `error` cleared; the error
+    // state must hold (busy Retry) rather than fall back to the skeleton.
+    mockedFeed = { loading: true, fetching: true, error: null, loadFailed: true };
+    rerender(
+      <MemoryRouter>
+        <Events />
+      </MemoryRouter>
+    );
+    expect(screen.getByRole("alert")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Trying again…" })).toHaveAttribute("aria-busy", "true");
+
+    mockedFeed = loadedFeed;
+    warn.mockRestore();
   });
 });

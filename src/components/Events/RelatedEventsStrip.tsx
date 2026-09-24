@@ -42,7 +42,7 @@ export function RelatedEventsStrip({
         month: valid ? monthFormatter.format(date) : "",
         time: valid && event.event_time ? timeFormatter.format(date) : null,
         thumbSrc: resolveEventFlyer({
-          id: event.id,
+          danceStyles: event.dance_styles,
           imageUrl: event.image_url ?? undefined,
           calendarId: event.event_type,
         }),

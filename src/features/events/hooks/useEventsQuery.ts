@@ -3,7 +3,7 @@ import { fetchApprovedEvents } from "../api/eventsRepo";
 import { City, databaseEventToScheduleX } from "../../../types/events";
 
 export function useEventsQuery(city: City) {
-  const { data, isLoading, error, refetch } = useQuery({
+  const { data, isLoading, isFetching, error, refetch } = useQuery({
     queryKey: ["events", city],
     queryFn: () => fetchApprovedEvents(city),
   });
@@ -11,6 +11,7 @@ export function useEventsQuery(city: City) {
   return {
     events: data ? data.map(databaseEventToScheduleX) : [],
     loading: isLoading,
+    fetching: isFetching,
     error: error ? error.message : null,
     refetch,
   };

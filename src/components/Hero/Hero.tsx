@@ -18,7 +18,7 @@ const CITY_SHORT: Record<string, string> = {
 
 function Hero() {
   const { city } = useCity();
-  const { events, loading } = useEvents();
+  const { events, loading, error } = useEvents();
   const cityLabel = CITY_LABELS[city] ?? city;
   const cityShort = CITY_SHORT[city] ?? city;
 
@@ -67,9 +67,12 @@ function Hero() {
     };
   }, [events]);
 
+  // A failed load has no counts to report; a dash says "unknown" where a 0
+  // would claim the floor is empty.
+  const unavailable = error !== null;
   const heroStats = [
-    { num: eventsThisWeek, label: "Events This Week" },
-    { num: venueCount, label: "Venues" },
+    { num: unavailable ? null : eventsThisWeek, label: "Events This Week" },
+    { num: unavailable ? null : venueCount, label: "Venues" },
     { num: cityShort, label: "On The Floor" },
   ];
 
@@ -200,9 +203,21 @@ function Hero() {
           {!loading && (
             <div className="hero-stats hero-stats--compact hero-enter" data-enter="stats">
               {heroStats.map((stat) => (
-                <div className="hero-stat" key={stat.label}>
-                  <div className="hero-stat-num">{stat.num}</div>
-                  <div className="hero-stat-label">{stat.label}</div>
+                <div
+                  className="hero-stat"
+                  key={stat.label}
+                  role={stat.num === null ? "group" : undefined}
+                  aria-label={stat.num === null ? `${stat.label}: not available` : undefined}
+                >
+                  <div
+                    className={`hero-stat-num${stat.num === null ? " hero-stat-num--unavailable" : ""}`}
+                    aria-hidden={stat.num === null || undefined}
+                  >
+                    {stat.num ?? "—"}
+                  </div>
+                  <div className="hero-stat-label" aria-hidden={stat.num === null || undefined}>
+                    {stat.label}
+                  </div>
                 </div>
               ))}
             </div>

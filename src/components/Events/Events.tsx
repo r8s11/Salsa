@@ -1,6 +1,7 @@
 // Purpose: Display the home page event feed — a featured event plus a
 // filterable grid of the rest of this week's floor.
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import Button from "../ui/Button";
 import ButtonLink from "../ui/ButtonLink";
 import { useEvents } from "../../features/events/hooks/useEvent";
 import { useCity } from "../../contexts/useCity";
@@ -25,10 +26,15 @@ const CITY_LABELS: Record<string, string> = {
 
 function Events() {
   const { city } = useCity();
-  const { events: allEvents, loading, error } = useEvents();
+  const { events: allEvents, loading, fetching, error, refetch } = useEvents();
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [selectedEvent, setSelectedEvent] = useState<ScheduleXEvent | null>(null);
   const cityLabel = CITY_LABELS[city] ?? city;
+
+  // The raw driver message is for us, not for dancers: log it, never render it.
+  useEffect(() => {
+    if (error) console.warn(`Events feed failed to load (${city}):`, error);
+  }, [error, city]);
 
   const upcomingEvents = useMemo(() => {
     const now = new Date();
@@ -74,9 +80,24 @@ function Events() {
           <div className="events-feed-header">
             <h2 className="events-feed-title">This Week&apos;s Floor</h2>
           </div>
-          <div className="events-error">
-            <p>Failed to load events: {error}</p>
-            <button onClick={() => window.location.reload()}>Try again</button>
+          <div className="no-events no-events--all" role="alert">
+            <div>
+              <h3>We couldn&apos;t load {cityLabel}&apos;s listings.</h3>
+              <p>The events didn&apos;t come through this time. Try again, or open the full calendar.</p>
+            </div>
+            <div className="no-events__actions">
+              <Button
+                variant="primary"
+                loading={fetching}
+                loadingLabel="Trying again…"
+                onClick={() => void refetch()}
+              >
+                Try again
+              </Button>
+              <ButtonLink to="/calendar" variant="secondary">
+                View Full Calendar
+              </ButtonLink>
+            </div>
           </div>
         </div>
       </section>

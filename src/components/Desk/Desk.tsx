@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactNode, Ref } from "react";
 import { Link } from "react-router-dom";
 import { CircleCheck, ImageOff } from "lucide-react";
 import MarginMark from "./MarginMark";
@@ -311,7 +311,7 @@ export function DeskEmpty({
   tabIndex,
 }: {
   children: ReactNode;
-  focusRef?: React.Ref<HTMLParagraphElement>;
+  focusRef?: Ref<HTMLParagraphElement>;
   tabIndex?: number;
 }) {
   return (

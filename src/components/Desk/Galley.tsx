@@ -59,12 +59,23 @@ export default function Galley({
   const titleButtons = useRef(new Map<string, HTMLButtonElement>());
   const emptyStatus = useRef<HTMLParagraphElement>(null);
 
+  // Render-phase adjustment (React docs: "Resetting state when a prop
+  // changes"): closing the open row is a pure function of settledId
+  // changing, not a side effect, so it happens during render instead of an
+  // effect — no cascading extra render each time an entry settles.
+  const [prevSettledId, setPrevSettledId] = useState(settledId);
+  if (settledId !== prevSettledId) {
+    setPrevSettledId(settledId);
+    setOpenId(null);
+  }
+
+  // Focus is a real side effect (a DOM API, not React state), so it stays in
+  // an effect: move focus to the next row, or the empty state if the galley
+  // just emptied, then let the parent clear its one-shot settledId flag.
   useEffect(() => {
     if (!settledId) return;
 
     const next = submissions.find((submission) => submission.id !== settledId);
-    setOpenId(null);
-
     if (next) {
       titleButtons.current.get(next.id)?.focus();
     } else {

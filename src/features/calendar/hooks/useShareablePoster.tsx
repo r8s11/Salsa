@@ -108,7 +108,7 @@ export function useShareablePoster() {
     // capture still succeeds on the declared fallback stacks.
     const fontEmbedCSS = await posterFontEmbedCss().catch(() => null);
 
-    const blob = await toBlob(posterEl, {
+    const options = {
       quality: 1,
       pixelRatio: 1,
       ...(fontEmbedCSS ? { fontEmbedCSS } : { skipFonts: true }),
@@ -118,7 +118,18 @@ export function useShareablePoster() {
       // Flyer still cannot be inlined (unreadable host) degrades to a poster
       // without photo instead of rejecting whole capture.
       onImageErrorHandler: () => undefined,
-    });
+    };
+
+    // Every cover image must be decoded before the capture reads it.
+    await Promise.all(
+      Array.from(posterEl.querySelectorAll("img"), (img) => img.decode?.().catch(() => undefined))
+    );
+    // WebKit (every iOS browser) paints images inside the SVG snapshot only
+    // once they are cached from a previous draw, so the first capture comes
+    // back with an empty cover. A discarded warm-up render primes it; other
+    // engines pay one extra render on a user-initiated action.
+    await toBlob(posterEl, options).catch(() => null);
+    const blob = await toBlob(posterEl, options);
 
     if (!blob) {
       throw new Error("Poster image could not be created");

@@ -97,10 +97,21 @@
 }
 
 /* ── Front cover ── */
+/* The front row starts at the cover's full size and may shrink when the
+   back cover needs more height (wrapped facts). It is a size container, so
+   the square cover can follow the row's actual height instead of
+   overflowing it and sliding over the back cover. */
 .sleeve-front {
+  --cover-size: 968px;
   display: flex;
+  flex: 0 1 var(--cover-size);
   gap: 24px;
   min-height: 0;
+  container-type: size;
+}
+
+.sleeve--feed .sleeve-front {
+  --cover-size: 820px;
 }
 
 .sleeve-cover {
@@ -109,15 +120,13 @@
   flex-direction: column;
   width: 968px;
   aspect-ratio: 1;
-  /* The cover absorbs any height shortage (wrapped facts on the back
-     cover), shrinking as a square so the fixed poster never clips. */
-  flex-shrink: 1;
+  flex-shrink: 0;
   background: var(--field-deep);
   border: 6px solid var(--on-field);
 }
 
-.sleeve--feed .sleeve-cover {
-  width: 820px;
+.sleeve-front .sleeve-cover {
+  width: min(var(--cover-size), 100cqh);
 }
 
 .sleeve-cover__art {
@@ -388,11 +397,11 @@
   min-width: 0;
 }
 
+/* Label above the link: side by side, the production link
+   (www.salsasegura.com/e/xxxxxxxx) wrapped mid-code. */
 .sleeve--feed .sleeve-scan__text {
   grid-area: scan;
-  display: flex;
-  align-items: baseline;
-  gap: 16px;
+  gap: 2px;
 }
 
 .sleeve-scan__cta {
@@ -401,13 +410,15 @@
   font-weight: 800;
   letter-spacing: 0.18em;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
+/* A printed link is typed by hand, so it never breaks across lines. */
 .sleeve-scan__url {
-  font-size: 48px;
+  font-size: 44px;
   font-weight: 800;
   line-height: 1.05;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
 }
 
 .sleeve-scan__credit {

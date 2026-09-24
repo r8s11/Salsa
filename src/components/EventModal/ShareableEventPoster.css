@@ -100,6 +100,7 @@
 .sleeve-front {
   display: flex;
   gap: 24px;
+  min-height: 0;
 }
 
 .sleeve-cover {
@@ -108,7 +109,9 @@
   flex-direction: column;
   width: 968px;
   aspect-ratio: 1;
-  flex-shrink: 0;
+  /* The cover absorbs any height shortage (wrapped facts on the back
+     cover), shrinking as a square so the fixed poster never clips. */
+  flex-shrink: 1;
   background: var(--field-deep);
   border: 6px solid var(--on-field);
 }
@@ -231,7 +234,10 @@
 /* ── Back cover ── */
 .sleeve-back {
   display: grid;
-  flex: 1;
+  /* Grow to absorb slack, never shrink below the track list: shrinking
+     left the cream box shorter than its rows and the overflow painted
+     below the panel. */
+  flex: 1 0 auto;
   grid-template-rows: auto auto;
   align-content: space-between;
   gap: 20px;

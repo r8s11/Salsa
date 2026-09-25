@@ -18,7 +18,7 @@ function eventType(data: SubmissionData): EventType {
 }
 
 function city(data: SubmissionData): City {
-  return data.city === "new-york-city" ? "new-york-city" : "boston";
+  return typeof data.city === "string" ? data.city : "";
 }
 
 function priceType(data: SubmissionData): "free" | "paid" | null {

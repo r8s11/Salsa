@@ -4,10 +4,13 @@ import { MemoryRouter } from "react-router-dom";
 import type { AuthContextValue } from "../../contexts/authContextObject";
 import { useAuth } from "../../contexts/useAuth";
 import { useCity } from "../../contexts/useCity";
+import type { CityContextValue } from "../../contexts/cityContextObject";
+import { useMetroName } from "../../features/metros/hooks/useMetros";
 import MobileTabBar from "./MobileTabBar";
 
 vi.mock("../../contexts/useAuth", () => ({ useAuth: vi.fn() }));
 vi.mock("../../contexts/useCity", () => ({ useCity: vi.fn() }));
+vi.mock("../../features/metros/hooks/useMetros", () => ({ useMetroName: vi.fn() }));
 
 const defaultAuth = (overrides: Partial<AuthContextValue> = {}): AuthContextValue => ({
   user: null,
@@ -27,8 +30,21 @@ const defaultAuth = (overrides: Partial<AuthContextValue> = {}): AuthContextValu
   ...overrides,
 });
 
-function renderTabBar(initialEntry = "/", city: "boston" | "new-york-city" = "boston") {
-  vi.mocked(useCity).mockReturnValue({ city, setCity: vi.fn() });
+vi.mocked(useMetroName).mockReturnValue((slug: string | null | undefined) =>
+  slug === "boston" ? "Boston" : slug === "new-york-city" ? "New York City" : (slug ?? "")
+);
+
+function renderTabBar(initialEntry = "/", city: CityContextValue["city"] = "boston") {
+  vi.mocked(useCity).mockReturnValue({
+    city,
+    source: "explicit",
+    resolving: false,
+    setCity: vi.fn(),
+    chooseNearMe: vi.fn(),
+    activeMetros: [],
+    activeMetrosError: null,
+    locationStatus: "idle",
+  });
   return render(
     <MemoryRouter initialEntries={[initialEntry]}>
       <MobileTabBar />
@@ -130,7 +146,15 @@ describe("MobileTabBar city context", () => {
 
     expect(screen.getByText("NYC")).toBeInTheDocument();
     expect(
-      screen.getByRole("navigation", { name: "Primary, New York events" })
+      screen.getByRole("navigation", { name: "Primary, New York City events" })
     ).toBeInTheDocument();
+  });
+
+  it("falls back to a neutral label when no metro is chosen", () => {
+    vi.mocked(useAuth).mockReturnValue(defaultAuth());
+    renderTabBar("/", null);
+
+    expect(screen.getByText("Cities")).toBeInTheDocument();
+    expect(screen.getByRole("navigation", { name: "Primary, Cities events" })).toBeInTheDocument();
   });
 });

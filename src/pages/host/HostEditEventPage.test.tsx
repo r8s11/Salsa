@@ -25,6 +25,7 @@ const { validateEventFlyer } = vi.hoisted(() => ({
 }));
 
 vi.mock("../../contexts/useAuth", () => ({ useAuth }));
+vi.mock("../../features/metros/hooks/useMetros", () => import("../../test/mockMetros"));
 vi.mock("../../features/host/hooks/useMyOrganizers", () => ({ useMyOrganizers }));
 vi.mock("../../features/host/hooks/useMyOrganizerEvents", () => ({ useMyOrganizerEvents }));
 vi.mock("../../features/host/api/organizerAccessRepo", () => ({

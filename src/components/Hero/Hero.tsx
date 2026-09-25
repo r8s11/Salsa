@@ -1,29 +1,35 @@
 import ButtonLink from "../ui/ButtonLink";
 import IconButton from "../ui/IconButton";
-import { Pause, Play } from "lucide-react";
+import { LocateFixed, Pause, Play } from "lucide-react";
 import { useMemo, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./Hero.css";
 import { useEvents } from "../../features/events/hooks/useEvent";
 import { useCity } from "../../contexts/useCity";
 import { useNewYorkToday } from "../../features/events/hooks/useNewYorkToday";
 import { nightOf } from "../../features/events/model/night";
-
-const CITY_LABELS: Record<string, string> = {
-  boston: "Greater Boston",
-  "new-york-city": "NYC",
-};
-
-const CITY_SHORT: Record<string, string> = {
-  boston: "BOS",
-  "new-york-city": "NYC",
-};
+import { useMetroName } from "../../features/metros/hooks/useMetros";
+import { metroShortCode } from "../../features/metros/model/metro";
+import MetroExplorer from "../../features/metros/components/MetroExplorer";
 
 function Hero() {
-  const { city } = useCity();
+  const { city, source, chooseNearMe } = useCity();
   const { events, loading, loadFailed } = useEvents();
-  const cityLabel = CITY_LABELS[city] ?? city;
-  const cityShort = CITY_SHORT[city] ?? city;
+  const metroName = useMetroName();
+  const navigate = useNavigate();
+  const cityLabel = city ? metroName(city) : null;
+  const cityShort = cityLabel ? metroShortCode(cityLabel) : null;
+  // "Near" only when the visitor's area picked the metro; a person's own
+  // choice (or the inventory fallback) is stated as "in".
+  const nearby = source === "location";
+  // A person's pick sticks until they ask for their area again.
+  const pinnedByPerson = source === "explicit" || source === "profile" || source === "stored";
   const today = useNewYorkToday();
+
+  const showEventsNearMe = () => {
+    chooseNearMe();
+    navigate("/");
+  };
 
   // The staggered entrance is CSS (see `.hero-enter` in Hero.css): six
   // opacity+translateY fades were the only thing Motion was doing here, and
@@ -87,11 +93,13 @@ function Hero() {
   // A failed load has no counts to report; a dash says "unknown" where a 0
   // would claim the floor is empty. It holds through a retry so the stats
   // don't blink out and back.
-  const heroStats = [
-    { num: loadFailed ? null : eventsThisWeek, label: "Events This Week" },
-    { num: loadFailed ? null : venueCount, label: venueCount === 1 ? "Venue" : "Venues" },
-    { num: cityShort, label: "On The Floor" },
-  ];
+  const heroStats = cityShort
+    ? [
+        { num: loadFailed ? null : eventsThisWeek, label: "Events This Week" },
+        { num: loadFailed ? null : venueCount, label: venueCount === 1 ? "Venue" : "Venues" },
+        { num: cityShort, label: "On The Floor" },
+      ]
+    : [];
 
   const [tickerPaused, setTickerPaused] = useState(false);
 
@@ -190,7 +198,11 @@ function Hero() {
         <div className="hero-content">
           <div className="hero-eyebrow hero-enter" data-enter="eyebrow">
             <span className="hero-eyebrow-line" aria-hidden="true" />
-            <span>{cityLabel} · Live Dance Guide</span>
+            <span>
+              {cityLabel
+                ? `Salsa & Bachata Events ${nearby ? "near" : "in"} ${cityLabel}`
+                : "Salsa & Bachata Events"}
+            </span>
           </div>
 
           <h1 className="hero-heading hero-enter" data-enter="heading">
@@ -204,13 +216,37 @@ function Hero() {
           </h1>
 
           <p className="hero-subtitle hero-enter" data-enter="subtitle">
-            <span className="hero-subtitle-full">
-              Every salsa &amp; bachata social, pop-up class, and workshop across{" "}
-              <span className="hero-subtitle-city">{cityLabel}</span> — one place, always on the
-              beat.
-            </span>
-            <span className="hero-subtitle-short">Salsa &amp; bachata socials, classes, workshops.</span>
+            {cityLabel ? (
+              <>
+                <span className="hero-subtitle-full">
+                  Discover socials, parties, classes, and dance events happening{" "}
+                  {nearby ? (
+                    "near you"
+                  ) : (
+                    <>
+                      in <span className="hero-subtitle-city">{cityLabel}</span>
+                    </>
+                  )}
+                  .
+                </span>
+                <span className="hero-subtitle-short">
+                  Salsa &amp; bachata socials, classes, workshops.
+                </span>
+              </>
+            ) : (
+              "We're growing city by city. Explore events in other cities or submit one near you."
+            )}
           </p>
+
+          <div className="hero-metro hero-enter" data-enter="subtitle">
+            <MetroExplorer label="Explore other cities" />
+            {pinnedByPerson && (
+              <button type="button" className="hero-metro__near" onClick={showEventsNearMe}>
+                <LocateFixed size={16} aria-hidden="true" />
+                Events near me
+              </button>
+            )}
+          </div>
 
           <div className="hero-cta hero-enter" data-enter="cta">
             <a href="#events" className="ui-button ui-button--primary hero-btn hero-btn--primary">
@@ -221,7 +257,7 @@ function Hero() {
             </ButtonLink>
           </div>
 
-          {(!loading || loadFailed) && (
+          {heroStats.length > 0 && (!loading || loadFailed) && (
             <div className="hero-stats hero-stats--compact hero-enter" data-enter="stats">
               {heroStats.map((stat) => (
                 <div

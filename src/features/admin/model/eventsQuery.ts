@@ -1,5 +1,6 @@
 import "temporal-polyfill/global";
 import type { City, DatabaseEvent } from "../../events/model/types";
+import { metroLabelFromSlug } from "../../metros/model/metro";
 import { fromEventDateInstant } from "../../events/model/eventDateTime";
 import { qualityIssues } from "./overviewMetrics";
 
@@ -35,11 +36,6 @@ export const EVENT_VIEWS: { view: EventView; label: string }[] = [
 
 export const PAGE_SIZE_OPTIONS = [25, 50, 100] as const;
 export const DEFAULT_PAGE_SIZE = 25;
-
-export const CITY_LABEL: Record<City, string> = {
-  boston: "Boston",
-  "new-york-city": "New York City",
-};
 
 // The seven fixed dance-style filter values, in the order the migration's
 // backfill regex table lists them.
@@ -119,7 +115,7 @@ export function applyFilters(
 
   return events.filter((event) => {
     if (q) {
-      const cityLabel = CITY_LABEL[event.city];
+      const cityLabel = metroLabelFromSlug(event.city);
       const haystack = [
         event.title,
         event.location,

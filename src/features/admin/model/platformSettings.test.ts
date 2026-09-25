@@ -17,6 +17,8 @@ const validDefaults: EventDefaultsForm = {
   default_event_duration_minutes: 180,
 };
 
+const METRO_SLUGS = new Set(["boston", "new-york-city"]);
+
 describe("platform settings validation", () => {
   it("rejects a non-HTTPS public site URL without rejecting the other general fields", () => {
     expect(
@@ -27,16 +29,27 @@ describe("platform settings validation", () => {
   });
 
   it("requires duration defaults to use 30-minute increments within the supported range", () => {
-    expect(validateEventDefaults({ ...validDefaults, default_event_duration_minutes: 45 })).toEqual(
-      {
-        default_event_duration_minutes:
-          "Choose a duration from 30 minutes to 12 hours in 30-minute increments.",
-      }
-    );
+    expect(
+      validateEventDefaults(
+        { ...validDefaults, default_event_duration_minutes: 45 },
+        METRO_SLUGS
+      )
+    ).toEqual({
+      default_event_duration_minutes:
+        "Choose a duration from 30 minutes to 12 hours in 30-minute increments.",
+    });
+  });
+
+  it("rejects a city that is not a registered metro", () => {
+    expect(
+      validateEventDefaults({ ...validDefaults, default_city: "miami" }, METRO_SLUGS)
+    ).toEqual({
+      default_city: "Choose a registered city.",
+    });
   });
 
   it("accepts valid persisted settings values", () => {
     expect(validateGeneralSettings(validGeneral)).toEqual({});
-    expect(validateEventDefaults(validDefaults)).toEqual({});
+    expect(validateEventDefaults(validDefaults, METRO_SLUGS)).toEqual({});
   });
 });

@@ -10,6 +10,7 @@ const { useActiveTaxonomyTerms, useVenueCombobox } = vi.hoisted(() => ({
 }));
 
 vi.mock("../hooks/useAdminTaxonomy", () => ({ useActiveTaxonomyTerms }));
+vi.mock("../../metros/hooks/useMetros", () => import("../../../test/mockMetros"));
 vi.mock("../hooks/useVenueCombobox", () => ({ useVenueCombobox }));
 
 describe("AdminEventEditor", () => {

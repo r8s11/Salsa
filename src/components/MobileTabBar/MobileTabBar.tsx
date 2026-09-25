@@ -2,17 +2,15 @@ import { CalendarDays, Home, Plus, User } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../contexts/useAuth";
 import { useCity } from "../../contexts/useCity";
+import { useMetroName } from "../../features/metros/hooks/useMetros";
+import { metroShortCode } from "../../features/metros/model/metro";
 import { resolveEventCreateDestination } from "../../lib/eventCreateDestination";
 import "./MobileTabBar.css";
-
-const CITY_SHORT: Record<string, string> = {
-  boston: "BOS",
-  "new-york-city": "NYC",
-};
 
 function MobileTabBar() {
   const { user, isAdmin } = useAuth();
   const { city } = useCity();
+  const metroName = useMetroName();
 
   // Discovery first. Submit mirrors the header's role-aware destination
   // (admins direct to create, everyone else through the moderated flow),
@@ -30,8 +28,11 @@ function MobileTabBar() {
     },
     { to: user ? "/profile" : "/signin", label: "Me", icon: User, end: false },
   ] as const;
-  const cityShort = CITY_SHORT[city] ?? city.toUpperCase();
-  const cityFull = city === "boston" ? "Boston" : "New York";
+
+  // No metro chosen yet (resolving, or the visitor has no active metro
+  // nearby): the badge stays a neutral "Cities" rather than guessing.
+  const cityFull = city ? metroName(city) : "Cities";
+  const cityShort = city ? metroShortCode(cityFull) : "Cities";
 
   return (
     <nav className="mobile-tab-bar" aria-label={`Primary, ${cityFull} events`}>

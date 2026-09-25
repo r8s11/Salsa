@@ -9,6 +9,7 @@ const { useAuth } = vi.hoisted(() => ({ useAuth: vi.fn() }));
 const { useOwnProfile } = vi.hoisted(() => ({ useOwnProfile: vi.fn() }));
 
 vi.mock("../features/events/api/eventsRepo", () => ({}));
+vi.mock("../features/metros/hooks/useMetros", () => import("../test/mockMetros"));
 
 vi.mock("../features/admin/api/submissionsRepo", () => ({
   createSubmission: vi.fn(),
@@ -103,7 +104,7 @@ describe("SubmitEventPage", () => {
     expect(screen.getByRole("heading", { name: /Submit an Event/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/Event Title \*/i)).toBeInTheDocument();
     expect(screen.getByRole("group", { name: /Event type/i })).toBeInTheDocument();
-    expect(screen.getByRole("group", { name: /City/i })).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: /City/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/Date \*/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Venue Name/i)).toBeInTheDocument();
     expect(screen.getByRole("group", { name: /Price/i })).toBeInTheDocument();

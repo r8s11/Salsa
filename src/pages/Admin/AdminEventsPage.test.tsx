@@ -50,6 +50,18 @@ vi.mock("../../contexts/useCity", () => ({
   useCity: () => ({ city: "boston", setCity: vi.fn() }),
 }));
 
+vi.mock("../../features/metros/hooks/useMetros", () => ({
+  useMetros: () => ({
+    metros: [
+      { slug: "boston", name: "Boston" },
+      { slug: "new-york-city", name: "New York City" },
+    ],
+    loading: false,
+    error: null,
+  }),
+  useMetroName: () => (slug: string) => (slug === "new-york-city" ? "New York City" : "Boston"),
+}));
+
 vi.mock("../../features/admin/hooks/useAdminTaxonomy", () => ({
   useActiveTaxonomyTerms: () => ({ terms: [], isLoading: false, error: null }),
 }));
@@ -215,10 +227,7 @@ describe("AdminEventsPage", () => {
 
     await user.click(screen.getByRole("button", { name: /Create Event/i }));
 
-    expect(screen.getByRole("button", { name: "New York City" })).toHaveAttribute(
-      "aria-pressed",
-      "true"
-    );
+    expect(screen.getByLabelText("City *")).toHaveValue("new-york-city");
   });
 
   it("opens a prefilled form when Edit is chosen from the row menu", async () => {

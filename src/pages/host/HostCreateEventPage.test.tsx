@@ -14,6 +14,10 @@ const mocks = vi.hoisted(() => ({
   removeEventFlyer: vi.fn(),
 }));
 vi.mock("../../contexts/useAuth", () => ({ useAuth: mocks.useAuth }));
+vi.mock("../../features/metros/hooks/useMetros", () => import("../../test/mockMetros"));
+vi.mock("../../features/account/hooks/useOwnProfile", () => ({
+  useOwnProfile: () => ({ profile: null, isLoading: false, error: null }),
+}));
 vi.mock("../../features/host/hooks/useMyOrganizers", () => ({
   useMyOrganizers: mocks.useMyOrganizers,
 }));

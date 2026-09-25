@@ -186,7 +186,7 @@ describe("EventDetailPage", () => {
     renderPage();
 
     expect(
-      await screen.findByRole("heading", { name: "More this week in Greater Boston" })
+       await screen.findByRole("heading", { name: "More this week in Boston" })
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /within week/i })).toHaveAttribute(
       "href",

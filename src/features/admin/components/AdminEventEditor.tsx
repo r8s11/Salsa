@@ -15,6 +15,7 @@ import FlyerExtractionPanel from "../../flyer-extraction/FlyerExtractionPanel";
 import { extractEventFromFlyer } from "../../flyer-extraction/client";
 import { applyExtractionToDraft, type PrefillResult } from "../../flyer-extraction/prefill";
 import type { ExtractedEvent, FlyerExtractionStatus } from "../../flyer-extraction/types";
+import { useMetros } from "../../metros/hooks/useMetros";
 import { removeEventFlyer, uploadEventFlyer } from "../../events/api/eventFlyers";
 
 import "./AdminEventEditor.css";
@@ -44,6 +45,7 @@ export default function AdminEventEditor({
   onSubmit,
   onCancel,
 }: Props) {
+  const { metros } = useMetros();
   const [form, setForm] = useState(initial);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [selectedFlyer, setSelectedFlyer] = useState<File | null>(null);
@@ -152,7 +154,7 @@ export default function AdminEventEditor({
   };
   const applyExtraction = () => {
     if (!extractionResult) return;
-    const applied = applyExtractionToDraft(extractionResult, form);
+    const applied = applyExtractionToDraft(extractionResult, form, metros);
     setForm(applied.draft);
     setPrefillFeedback({ filled: applied.filled, skipped: applied.skipped });
   };

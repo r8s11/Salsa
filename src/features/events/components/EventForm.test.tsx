@@ -3,6 +3,17 @@ import { describe, expect, it, vi } from "vitest";
 import EventForm, { CAPABILITIES } from "./EventForm";
 import type { EventFormDraft } from "./EventForm";
 
+vi.mock("../../metros/hooks/useMetros", () => ({
+  useMetros: () => ({
+    metros: [
+      { slug: "boston", name: "Boston" },
+      { slug: "new-york-city", name: "New York City" },
+    ],
+    loading: false,
+    error: null,
+  }),
+}));
+
 const draft: EventFormDraft = {
   title: "",
   description: "",
@@ -81,12 +92,12 @@ describe("EventForm", () => {
     expect(screen.queryByRole("heading", { name: "Artwork" })).not.toBeInTheDocument();
   });
 
-  it("uses segmented controls to update event type, city, and price", () => {
+  it("updates event type, city, and price", () => {
     const onChange = vi.fn();
     render(<EventForm draft={draft} onChange={onChange} capabilities={CAPABILITIES.submit} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Class" }));
-    fireEvent.click(screen.getByRole("button", { name: "New York City" }));
+    fireEvent.change(screen.getByLabelText("City *"), { target: { value: "new-york-city" } });
     fireEvent.click(screen.getByRole("button", { name: "Paid" }));
 
     expect(onChange).toHaveBeenNthCalledWith(1, { ...draft, event_type: "class" });

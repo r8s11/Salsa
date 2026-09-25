@@ -386,7 +386,7 @@ export default function ProfilePage() {
                     {formatEventDate(event.event_date)} · {formatEventTime(event)}
                   </p>
                   <p className="profile-submission-location">
-                    {event.city === "boston" ? "Boston" : "New York City"}
+                    {event.city.replace(/(^|-)([a-z])/g, (_match, _separator, letter: string) => ` ${letter.toUpperCase()}`).trim()}
                     {event.location ? ` · ${event.location}` : ""}
                   </p>
                 </div>

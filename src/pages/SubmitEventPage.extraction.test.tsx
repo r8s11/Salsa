@@ -3,6 +3,9 @@ import { act, render, screen, fireEvent, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { CityProvider } from "../contexts/CityContext";
+// Registered metros are served by Supabase in production; page tests use a
+// stable inventory so no test depends on a production or local database.
+vi.mock("../features/metros/hooks/useMetros", () => import("../test/mockMetros"));
 import SubmitEventPage from "./SubmitEventPage";
 const mockAuth = vi.hoisted(() => ({
   user: { id: "test-user-id", email: "test@example.com" } as {

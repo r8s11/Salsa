@@ -1,12 +1,10 @@
 import { useEffect, useState } from "react";
-import { useCity } from "../../contexts/useCity";
-import type { City } from "../../types/events";
+import MetroExplorer from "../../features/metros/components/MetroExplorer";
 import "./FloatingCityPill.css";
 
 const SCROLL_THRESHOLD = 420;
 
 function FloatingCityPill() {
-  const { city, setCity } = useCity();
   const [visible, setVisible] = useState(() => window.scrollY > SCROLL_THRESHOLD);
 
   useEffect(() => {
@@ -17,25 +15,11 @@ function FloatingCityPill() {
 
   if (!visible) return null;
 
-  const cities: { value: City; label: string }[] = [
-    { value: "boston", label: "BOS" },
-    { value: "new-york-city", label: "NYC" },
-  ];
-
+  // Anchored bottom-right: the panel opens upward and hugs the trigger's
+  // right edge so it never overruns the viewport.
   return (
-    <div className="floating-city-pill" role="group" aria-label="Choose city">
-      <span className="floating-city-pill__label">City</span>
-      {cities.map(({ value, label }) => (
-        <button
-          key={value}
-          type="button"
-          className={`floating-city-pill__btn ${city === value ? "active" : ""}`}
-          aria-pressed={city === value}
-          onClick={() => setCity(value)}
-        >
-          {label}
-        </button>
-      ))}
+    <div className="floating-city-pill">
+      <MetroExplorer variant="pill" className="metro-explorer--above metro-explorer--end" />
     </div>
   );
 }

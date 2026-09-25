@@ -4,7 +4,20 @@ import { describe, expect, it, vi } from "vitest";
 import Hero from "./Hero";
 
 vi.mock("../../contexts/useCity", () => ({
-  useCity: () => ({ city: "boston" }),
+  useCity: () => ({
+    city: "boston",
+    source: "location",
+    resolving: false,
+    setCity: vi.fn(),
+    chooseNearMe: vi.fn(),
+    activeMetros: [],
+    activeMetrosError: null,
+    locationStatus: "granted",
+  }),
+}));
+
+vi.mock("../../features/metros/hooks/useMetros", () => ({
+  useMetroName: () => () => "Boston",
 }));
 
 vi.mock("../../features/events/hooks/useEvent", () => ({
@@ -38,6 +51,22 @@ describe("Hero", () => {
     expect(screen.getByText("Events This Week").closest(".hero-stats")).toHaveClass(
       "hero-stats--compact"
     );
+  });
+
+  it("states the metro in context and always offers other cities", () => {
+    render(
+      <MemoryRouter>
+        <Hero />
+      </MemoryRouter>
+    );
+
+    // Picked from the visitor's area, so the copy says "near".
+    expect(screen.getByText("Salsa & Bachata Events near Boston")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Explore other cities" })).toHaveAttribute(
+      "aria-expanded",
+      "false"
+    );
+    expect(screen.getByText("BOS")).toBeInTheDocument();
   });
 
   it("renders the decorative record as layered, non-announced background art", () => {

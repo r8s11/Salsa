@@ -30,6 +30,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("../../contexts/useAuth", () => ({
   useAuth: () => mocks.auth,
 }));
+vi.mock("../../features/metros/hooks/useMetros", () => import("../../test/mockMetros"));
 
 vi.mock("../../features/account/hooks/useOwnProfile", () => ({
   useOwnProfile: () => mocks.profile,

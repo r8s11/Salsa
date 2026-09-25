@@ -5,7 +5,9 @@
 
 .hero {
   position: relative;
-  overflow: hidden;
+  /* Clip sideways only: the city explorer's popover must be free to extend
+     below the hero. The oversized background art is clipped by .hero-bg. */
+  overflow-x: clip;
   color: var(--text);
   background: var(--bg);
   padding-top: 2rem;
@@ -15,6 +17,7 @@
 .hero-bg {
   position: absolute;
   inset: 0;
+  overflow: hidden;
   pointer-events: none;
 }
 /* Vinyl record — spindle pinned to the middle of the section's right edge.
@@ -340,6 +343,46 @@
   margin-top: 2.1rem;
 }
 
+/* Metro context: the city explorer and, after a manual pick, the way back
+   to the visitor's own area. Sits above the CTAs so its popover can open
+   downward over them. */
+.hero-metro {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin-top: 1.5rem;
+}
+
+.hero-metro__near {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0 0.25rem;
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  text-decoration: underline;
+  text-decoration-color: var(--red-bright);
+  text-underline-offset: 4px;
+}
+
+.hero-metro__near:hover {
+  color: var(--gold-light);
+}
+
+.hero-metro__near:focus-visible {
+  outline: 2px solid var(--red-bright);
+  outline-offset: 2px;
+}
+
 .hero-btn {
   padding: 0.95rem 1.9rem;
   font-size: 0.875rem;
@@ -558,6 +601,7 @@
   }
 
   .hero-eyebrow,
+  .hero-metro,
   .hero-cta,
   .hero-stats {
     justify-content: center;
@@ -632,6 +676,10 @@
 
   .hero-subtitle-short {
     display: inline;
+  }
+
+  .hero-metro {
+    margin-top: 1rem;
   }
 
   .hero-cta {

@@ -1,10 +1,9 @@
 import { useCallback, useRef, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { useCity } from "../../contexts/useCity";
 import { useAuth } from "../../contexts/useAuth";
-import type { City } from "../../contexts/CityContext";
 import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
 import { useOwnProfile } from "../../features/account/hooks/useOwnProfile";
+import MetroExplorer from "../../features/metros/components/MetroExplorer";
 import SalsaSeguraLogo from "../brand/SalsaSeguraLogo";
 import AccountAvatar from "./AccountAvatar";
 import ButtonLink from "../ui/ButtonLink";
@@ -17,15 +16,9 @@ const PRIMARY_LINKS = [
   { to: "/contact", label: "Contact" },
 ] as const;
 
-const CITY_CARDS = [
-  { value: "boston", short: "BOS", name: "Boston", region: "Greater BOS" },
-  { value: "new-york-city", short: "NYC", name: "New York", region: "NYC" },
-] as const;
-
 function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const accountDisclosure = useRef<HTMLDetailsElement>(null);
-  const { city, setCity } = useCity();
   const { user, isModerator, isAdmin, isOrganizer, signOut } = useAuth();
   const { profile } = useOwnProfile(user?.id);
   const navigate = useNavigate();
@@ -47,38 +40,6 @@ function Header() {
   }, []);
 
   useEscapeKey(closeNavigation);
-
-  const selectCity = (value: City) => {
-    setCity(value);
-    closeNavigation();
-  };
-
-  const citySwitcher = (mobile = false) => (
-    <div
-      className={`city-switch city-switch--${mobile ? "mobile" : "bar"}`}
-      role="group"
-      aria-label="Choose city"
-    >
-      {CITY_CARDS.map(({ value, short, name, region }) => (
-        <button
-          key={value}
-          type="button"
-          className={`city-switch__btn ${city === value ? "active" : ""}`}
-          onClick={() => selectCity(value)}
-          aria-pressed={city === value}
-        >
-          {mobile ? (
-            <>
-              <span className="city-switch__name">{name}</span>
-              <span className="city-switch__region">{region}</span>
-            </>
-          ) : (
-            short
-          )}
-        </button>
-      ))}
-    </div>
-  );
 
   const handleSignOut = async () => {
     await signOut("global");
@@ -113,7 +74,11 @@ function Header() {
               <span id="mobile-nav-city-label" className="mobile-nav__label">
                 Your city
               </span>
-              {citySwitcher(true)}
+              <MetroExplorer
+                variant="button"
+                className="metro-explorer--full"
+                onPicked={closeNavigation}
+              />
             </section>
             <section className="mobile-nav__account" aria-labelledby="mobile-nav-account-label">
               <span id="mobile-nav-account-label" className="mobile-nav__label">
@@ -179,7 +144,7 @@ function Header() {
           </li>
         </ul>
 
-        {citySwitcher()}
+        <MetroExplorer variant="compact" className="metro-explorer--end" />
 
         <div className="desktop-nav-actions">
           {user ? (

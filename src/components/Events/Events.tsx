@@ -7,6 +7,9 @@ import { useEvents } from "../../features/events/hooks/useEvent";
 import { useNewYorkToday } from "../../features/events/hooks/useNewYorkToday";
 import { nightOf } from "../../features/events/model/night";
 import { useCity } from "../../contexts/useCity";
+import { useMetroName } from "../../features/metros/hooks/useMetros";
+import MetroExplorer from "../../features/metros/components/MetroExplorer";
+import MetroSuggestions from "../../features/metros/components/MetroSuggestions";
 import EventCard from "./EventCard";
 import FeaturedEventCard from "./FeaturedEventCard";
 import EventModal from "../EventModal/EventModal";
@@ -21,17 +24,13 @@ const FILTER_OPTIONS: { value: TypeFilter; label: string }[] = [
   { value: "workshop", label: "Workshop" },
 ];
 
-const CITY_LABELS: Record<string, string> = {
-  boston: "Greater Boston",
-  "new-york-city": "NYC",
-};
-
 function Events() {
-  const { city } = useCity();
+  const { city, source, activeMetros } = useCity();
   const { events: allEvents, loading, fetching, error, loadFailed, refetch } = useEvents();
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [selectedEvent, setSelectedEvent] = useState<ScheduleXEvent | null>(null);
-  const cityLabel = CITY_LABELS[city] ?? city;
+  const metroName = useMetroName();
+  const cityLabel = city ? metroName(city) : "";
   const today = useNewYorkToday();
 
   // The raw driver message is for us, not for dancers: log it, never render it.
@@ -124,6 +123,43 @@ function Events() {
     );
   }
 
+  // No metro to show: the visitor's area has no active metro nearby, or no
+  // metro has upcoming events at all. Never an empty homepage — say so and
+  // hand them the closest cities that do have a floor.
+  if (!city) {
+    const noneAnywhere = activeMetros.length === 0;
+    return (
+      <section id="events" className="events">
+        <div className="container">
+          <div className="no-events no-events--all no-events--area" role="status">
+            <div>
+              <h2 id="events-area-heading" className="no-events__title">
+                {noneAnywhere
+                  ? "No upcoming SalsaSegura events yet."
+                  : source === "none-nearby"
+                    ? "No SalsaSegura events near you yet."
+                    : "Choose a city to see its events."}
+              </h2>
+              <p>
+                We&apos;re growing city by city.{" "}
+                {noneAnywhere
+                  ? "Submit an event happening near you."
+                  : "Explore events in other cities or submit an event happening near you."}
+              </p>
+            </div>
+            {!noneAnywhere && <MetroSuggestions labelledBy="events-area-heading" />}
+            <div className="no-events__actions">
+              {!noneAnywhere && <MetroExplorer label="Explore other cities" />}
+              <ButtonLink to="/submit" variant="primary">
+                Submit an event
+              </ButtonLink>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <>
       <section id="events" className="events">
@@ -163,17 +199,19 @@ function Events() {
           </div>
 
           {upcomingEvents.length === 0 ? (
-            <div className="no-events no-events--all" role="status">
+            <div className="no-events no-events--all no-events--area" role="status">
               <div>
-                <h3>Nothing on the floor in {cityLabel} yet.</h3>
-                <p>Check the full calendar or help set the next date.</p>
+                <h3 id="events-empty-heading">Nothing on the floor in {cityLabel} yet.</h3>
+                <p>
+                  We&apos;re growing city by city. Explore events in other cities or submit an
+                  event happening in {cityLabel}.
+                </p>
               </div>
+              <MetroSuggestions labelledBy="events-empty-heading" />
               <div className="no-events__actions">
-                <ButtonLink to="/calendar" variant="secondary">
-                  View Full Calendar
-                </ButtonLink>
+                <MetroExplorer label="Explore other cities" />
                 <ButtonLink to="/submit" variant="primary">
-                  Submit an Event
+                  Submit an event
                 </ButtonLink>
               </div>
             </div>

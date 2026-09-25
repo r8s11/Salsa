@@ -3,12 +3,8 @@ import { Link } from "react-router-dom";
 import type { City, DatabaseEvent } from "../../features/events/model/types";
 import { isRecentlyApproved } from "../../features/events/model/recentlyApproved";
 import { resolveEventFlyer } from "../EventModal/eventModalImage";
+import { useMetroName } from "../../features/metros/hooks/useMetros";
 import "./RelatedEventsStrip.css";
-
-const CITY_LABELS: Record<City, string> = {
-  boston: "Greater Boston",
-  "new-york-city": "New York City",
-};
 
 const MAX_EVENTS = 3;
 
@@ -24,7 +20,7 @@ export function RelatedEventsStrip({
   hasStrictWindowEvents,
 }: RelatedEventsStripProps) {
   const headingId = "related-events-heading";
-  const cityLabel = CITY_LABELS[city];
+  const cityLabel = useMetroName()(city);
 
   const cards = useMemo(() => {
     const dateFormatter = new Intl.DateTimeFormat("en-US", { weekday: "short" });

@@ -3,6 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import type { User } from "@supabase/supabase-js";
 import { CityProvider } from "../contexts/CityContext";
+vi.mock("../features/metros/hooks/useMetros", () => import("../test/mockMetros"));
 import type { AuthContextValue } from "../contexts/authContextObject";
 import SubmitEventPage from "./SubmitEventPage";
 

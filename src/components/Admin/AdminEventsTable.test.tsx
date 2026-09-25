@@ -6,6 +6,10 @@ import userEvent from "@testing-library/user-event";
 import type { DatabaseEvent } from "../../features/events/model/types";
 import AdminEventsTable from "./AdminEventsTable";
 
+vi.mock("../../features/metros/hooks/useMetros", () => ({
+  useMetroName: () => (slug: string) => (slug === "boston" ? "Boston" : slug),
+}));
+
 const baseEvent: DatabaseEvent = {
   id: "event-1",
   title: "Pending Social",

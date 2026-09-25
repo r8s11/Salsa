@@ -105,40 +105,8 @@ a.logo:hover .ss-logo__wordmark-accent {
 
 /* The bar switch leads the right-hand cluster on desktop and sits beside
    the hamburger below 1024px, so the city is one tap away at every width. */
-.city-switch--bar {
+.metro-explorer--compact {
   margin-left: auto;
-}
-
-.city-switch {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  padding: 3px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-full);
-}
-
-.city-switch__btn {
-  padding: 5px 12px;
-  color: var(--text-muted);
-  font-family: var(--font-ui);
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  cursor: pointer;
-  background: transparent;
-  border: 0;
-  border-radius: var(--radius-full);
-}
-
-.city-switch__btn:hover {
-  color: var(--text);
-}
-.city-switch__btn.active {
-  color: var(--text);
-  background: var(--red-deep);
 }
 
 /* Header-specific overrides for ui-button--compact (replaces old .auth-btn) */
@@ -348,7 +316,6 @@ a.logo:hover .ss-logo__wordmark-accent {
 
 .logo:focus-visible,
 .nav-links a:focus-visible,
-.city-switch__btn:focus-visible,
 .site-header .ui-button:focus-visible,
 .account-disclosure summary:focus-visible,
 .account-disclosure__menu a:focus-visible,
@@ -363,7 +330,6 @@ a.logo:hover .ss-logo__wordmark-accent {
 
 @media (min-width: 1024px) {
   .nav-links > li > a,
-  .city-switch__btn,
   .site-header .ui-button,
   .account-disclosure summary {
     display: inline-flex;
@@ -389,25 +355,10 @@ a.logo:hover .ss-logo__wordmark-accent {
     display: flex;
   }
 
-  /* Compact BOS/NYC toggle in the bar. The pill stays slim so the header
-     keeps its weight on the wordmark; each segment's hit area extends
-     vertically past the pill to a full 44px touch target. */
-  .city-switch--bar {
+  /* Compact city trigger in the bar sits beside the hamburger below
+     1024px; MetroExplorer's own trigger already keeps a 44px target. */
+  .metro-explorer--compact {
     margin-right: var(--space-xs);
-  }
-  .city-switch--bar .city-switch__btn {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 44px;
-    min-height: 34px;
-    padding: 0 10px;
-  }
-  .city-switch--bar .city-switch__btn::before {
-    content: "";
-    position: absolute;
-    inset: -5px 0;
   }
 
   /* ── Full-screen sheet ───────────────────────────────────────────
@@ -506,49 +457,20 @@ a.logo:hover .ss-logo__wordmark-accent {
     gap: var(--space-sm);
   }
 
-  /* City cards, not pills */
-  .city-switch--mobile {
+  /* Full-width city trigger, styled like the old cards it replaces. */
+  .mobile-nav__city .metro-explorer--full {
     display: flex;
-    gap: 10px;
-    padding: 0;
-    border: 0;
-    background: none;
+    width: 100%;
   }
 
-  .city-switch--mobile .city-switch__btn {
-    flex: 1;
+  .mobile-nav__city .metro-explorer--full .metro-explorer__trigger {
+    width: 100%;
     min-height: 52px;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
-    gap: 3px;
+    justify-content: space-between;
     padding: 0 16px;
     border: 1px solid var(--border-md);
     border-radius: var(--radius-lg);
     background: rgba(255, 255, 255, 0.03);
-    text-align: left;
-  }
-
-  .city-switch--mobile .city-switch__btn.active {
-    border-color: var(--red);
-    background: var(--red-deep);
-  }
-
-  .city-switch__name {
-    font-family: var(--font-display);
-    font-weight: 800;
-    font-size: 0.9375rem;
-    letter-spacing: 0.02em;
-  }
-
-  .city-switch__region {
-    font-family: var(--font-display);
-    font-weight: 600;
-    font-size: 0.6875rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    opacity: 0.62;
   }
 
   .mobile-nav__account {
@@ -686,7 +608,7 @@ a.logo:hover .ss-logo__wordmark-accent {
   a.logo .ss-logo__mark {
     display: none;
   }
-  .city-switch--bar .city-switch__btn {
+  .metro-explorer--compact .metro-explorer__trigger {
     padding: 0 7px;
   }
 }

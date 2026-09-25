@@ -72,10 +72,13 @@ export function validateGeneralSettings(
   return errors;
 }
 
-export function validateEventDefaults(form: EventDefaultsForm): FieldErrors<EventDefaultsForm> {
+export function validateEventDefaults(
+  form: EventDefaultsForm,
+  metroSlugs: ReadonlySet<string>
+): FieldErrors<EventDefaultsForm> {
   const errors: FieldErrors<EventDefaultsForm> = {};
-  if (!["boston", "new-york-city"].includes(form.default_city)) {
-    errors.default_city = "Choose Boston or New York City.";
+  if (!metroSlugs.has(form.default_city)) {
+    errors.default_city = "Choose a registered city.";
   }
   if (
     !Number.isInteger(form.default_event_duration_minutes) ||

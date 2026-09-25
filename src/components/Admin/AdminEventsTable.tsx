@@ -26,8 +26,8 @@ import type { DatabaseEvent } from "../../features/events/model/types";
 import { resolveEventFlyer } from "../EventModal/eventModalImage";
 import { fromEventDateInstant, formatTimeLabel } from "../../features/events/model/eventDateTime";
 import { qualityIssues, QUALITY_ISSUE_LABEL } from "../../features/admin/model/overviewMetrics";
+import { useMetroName } from "../../features/metros/hooks/useMetros";
 import {
-  CITY_LABEL,
   SOURCE_TYPE_LABEL,
   submitterDisplay,
   type SortDir,
@@ -238,6 +238,7 @@ function EventCell({
   event: DatabaseEvent;
   duplicateIds: ReadonlySet<string>;
 }) {
+  const metroName = useMetroName();
   const issues = qualityIssues(event, duplicateIds);
   return (
     <div className="admin-events-table__event">
@@ -258,7 +259,7 @@ function EventCell({
         </Link>
         <div className="admin-events-table__chips">
           <span className="admin-chip admin-chip--type">{titleCase(event.event_type)}</span>
-          <span className="admin-chip">{CITY_LABEL[event.city]}</span>
+          <span className="admin-chip">{metroName(event.city)}</span>
         </div>
         <p className="admin-events-table__secondary-line">
           {event.location || "Venue not set"} · {event.host || "No organizer"}
@@ -287,6 +288,7 @@ export default function AdminEventsTable({
   error,
   isLoading = false,
 }: AdminEventsTableProps) {
+  const metroName = useMetroName();
   const actionItemsByEventId = useMemo(() => {
     const map = new Map<string, ActionMenuItem[]>();
     for (const event of events) {
@@ -478,7 +480,7 @@ export default function AdminEventsTable({
                     <span className="admin-chip admin-chip--type">
                       {titleCase(event.event_type)}
                     </span>
-                    <span className="admin-chip">{CITY_LABEL[event.city]}</span>
+                    <span className="admin-chip">{metroName(event.city)}</span>
                   </div>
                   <AdminQualityBadge
                     issues={issues}

@@ -1,5 +1,7 @@
 import type { City, EventType } from "../events/model/types";
 import type { EventFormDraft } from "../events/components/EventForm";
+import type { Metro } from "../metros/model/metro";
+import { resolveMetroSlug } from "../metros/model/metro";
 import type { ExtractedEvent } from "./types";
 
 /**
@@ -37,34 +39,6 @@ const EVENT_TYPE_ALIASES: Record<string, EventType> = {
   masterclass: "workshop",
 };
 
-/** Locality → City. Matched against the part before any comma. */
-const CITY_LOCALITIES: Record<string, City> = {
-  boston: "boston",
-  cambridge: "boston",
-  somerville: "boston",
-  medford: "boston",
-  brookline: "boston",
-  newton: "boston",
-  quincy: "boston",
-  watertown: "boston",
-  waltham: "boston",
-  arlington: "boston",
-  belmont: "boston",
-  everett: "boston",
-  chelsea: "boston",
-  revere: "boston",
-  malden: "boston",
-  "greater boston": "boston",
-  "new york": "new-york-city",
-  "new york city": "new-york-city",
-  nyc: "new-york-city",
-  manhattan: "new-york-city",
-  brooklyn: "new-york-city",
-  queens: "new-york-city",
-  bronx: "new-york-city",
-  "staten island": "new-york-city",
-};
-
 /** The slug-chips `EventForm` offers on the submit surface. */
 const DANCE_STYLE_ALIASES: Record<string, string> = {
   salsa: "salsa",
@@ -96,14 +70,17 @@ function mapEventType(value: string): EventType | null {
   return EVENT_TYPE_ALIASES[value.trim().toLowerCase()] ?? null;
 }
 
-function mapCity(value: string): City | null {
+function mapCity(
+  value: string,
+  metros: ReadonlyArray<Pick<Metro, "slug" | "name">>
+): City | null {
   const locality = value
     .split(",")[0]
     .trim()
     .toLowerCase()
     .replace(/\s+[a-z]{2}$/, "")
     .trim();
-  return CITY_LOCALITIES[locality] ?? null;
+  return resolveMetroSlug(locality, metros);
 }
 
 function mapPrice(value: string): { price_type: "free" | "paid"; price_amount: string } | null {
@@ -116,7 +93,8 @@ function mapPrice(value: string): { price_type: "free" | "paid"; price_amount: s
 
 export function applyExtractionToDraft(
   extraction: ExtractedEvent,
-  draft: EventFormDraft
+  draft: EventFormDraft,
+  metros: ReadonlyArray<Pick<Metro, "slug" | "name">>
 ): PrefillResult {
   const next: EventFormDraft = { ...draft, dance_styles: [...draft.dance_styles] };
   const filled: string[] = [];
@@ -151,7 +129,7 @@ export function applyExtractionToDraft(
   }
 
   if (extraction.city) {
-    const mapped = mapCity(extraction.city);
+    const mapped = mapCity(extraction.city, metros);
     if (mapped) {
       if (next.city !== mapped) {
         next.city = mapped;

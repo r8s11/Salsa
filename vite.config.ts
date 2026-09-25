@@ -1,8 +1,17 @@
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
+import { realpathSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { searchForWorkspaceRoot } from "vite";
+
+const projectRoot = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [react()],
+  // Worktrees may symlink node_modules to the primary checkout. Vite's test
+  // asset loader needs access to that real path for self-hosted font URLs.
+  server: { fs: { allow: [searchForWorkspaceRoot(projectRoot), realpathSync(resolve(projectRoot, "node_modules"))] } },
   assetsInclude: ["**/*.md"],
   build: {
     rollupOptions: {

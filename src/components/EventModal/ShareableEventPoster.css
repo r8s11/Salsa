@@ -110,8 +110,16 @@
   container-type: size;
 }
 
+/* Feed cut: every region has a fixed size, so no fact length can move
+   another region. The right column (spine above, QR below) is one
+   232px column; the cover takes the rest of the row as a fixed square. */
+.sleeve--feed {
+  --right-column: 232px;
+}
+
 .sleeve--feed .sleeve-front {
-  --cover-size: 820px;
+  --cover-size: 728px;
+  flex: 0 0 var(--cover-size);
 }
 
 .sleeve-cover {
@@ -222,7 +230,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  flex: 1;
+  flex: 0 0 var(--right-column);
   min-width: 0;
   overflow: hidden;
   border: 6px solid var(--on-field);
@@ -230,9 +238,9 @@
 
 .sleeve-spine span {
   display: block;
-  max-height: 780px;
+  max-height: 100%;
   overflow: hidden;
-  font-size: 48px;
+  font-size: 44px;
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -256,18 +264,20 @@
   background: var(--sleeve-cream);
 }
 
-/* Feed back cover: the track list and the scan line on the left, one large
-   QR spanning the full height on the right, so it still scans from a feed
-   thumbnail. */
+/* Feed back cover: the track list and the scan line on the left; the QR
+   sits in the shared right column, directly under the spine. The panel
+   fills the fixed space left below the front row, and every row is a
+   single line, so its height never depends on the facts. */
 .sleeve--feed .sleeve-back {
-  grid-template-columns: minmax(0, 1fr) 232px;
+  flex: 1 1 0;
+  grid-template-columns: minmax(0, 1fr) var(--right-column);
   grid-template-rows: 1fr auto;
   grid-template-areas:
     "tracks qr"
     "scan qr";
-  gap: 12px 32px;
+  gap: 16px 24px;
   align-content: stretch;
-  padding: 26px 32px;
+  padding: 30px 0 30px 32px;
 }
 
 .sleeve--feed .sleeve-back__side:first-child {
@@ -316,8 +326,10 @@
   text-transform: uppercase;
 }
 
+/* One line per row: a long value ends in an ellipsis instead of adding a
+   line, so the panel height stays constant. */
 .sleeve--feed .sleeve-track {
-  grid-template-columns: 56px auto 1fr auto;
+  grid-template-columns: 56px auto minmax(24px, 1fr) minmax(0, max-content);
   gap: 0 12px;
   font-size: 30px;
 }
@@ -350,7 +362,9 @@
 }
 
 .sleeve--feed .sleeve-track__value {
-  max-width: 420px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .sleeve-track__note {
@@ -379,8 +393,9 @@
 .sleeve--feed .sleeve-qr {
   grid-area: qr;
   align-self: center;
-  width: 232px;
-  height: 232px;
+  justify-self: center;
+  width: 196px;
+  height: 196px;
 }
 
 .sleeve-qr__ground {

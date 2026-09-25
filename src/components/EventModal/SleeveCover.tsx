@@ -15,7 +15,8 @@ interface SleeveCoverProps {
 function titleSize(title: string, format: PosterFormat): number {
   const n = title.length;
   const size = n <= 14 ? 128 : n <= 24 ? 104 : n <= 40 ? 84 : n <= 64 ? 68 : 54;
-  return format === "feed" ? Math.round(size * 0.8) : size;
+  // The feed cover is 728px against the story's 968px.
+  return format === "feed" ? Math.round((size * 728) / 968) : size;
 }
 
 /**

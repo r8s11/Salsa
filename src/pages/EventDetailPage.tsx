@@ -22,7 +22,8 @@ import VenueMapCard from "../features/events/components/VenueMapCard";
 import { useEventViewTouch } from "../features/events/hooks/useEventViewTouch";
 import { databaseEventToScheduleX } from "../features/events/model/convert";
 import { selectRelatedEvents } from "../features/events/model/relatedEvents";
-import type { City, EventType } from "../features/events/model/types";
+import type { EventType } from "../features/events/model/types";
+import { useMetroName } from "../features/metros/hooks/useMetros";
 import {
   buildNativeSharePayload,
   buildPublicEventUrl,
@@ -38,12 +39,6 @@ const TYPE_LABELS: Record<EventType, string> = {
   social: "Social",
   class: "Class",
   workshop: "Workshop",
-};
-
-// Public-surface city labels, matching RelatedEventsStrip on this same page.
-const CITY_LABELS: Record<City, string> = {
-  boston: "Greater Boston",
-  "new-york-city": "New York City",
 };
 
 function formatDate(start: string): string {
@@ -77,6 +72,7 @@ function chipParts(start: string): { weekday: string; day: string; month: string
 }
 
 export default function EventDetailPage() {
+  const metroName = useMetroName();
   const { id } = useParams<{ id: string }>();
   const {
     data: event,
@@ -363,7 +359,7 @@ export default function EventDetailPage() {
               <VenueMapCard
                 venueName={event.location}
                 streetAddress={event.address}
-                cityLabel={CITY_LABELS[event.city]}
+                cityLabel={metroName(event.city)}
                 directionsHref={mapHref}
               />
 

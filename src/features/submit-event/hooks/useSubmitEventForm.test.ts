@@ -8,6 +8,7 @@ import { useSubmitEventForm } from "./useSubmitEventForm";
 vi.mock("../../admin/api/submissionsRepo", () => ({
   createSubmission: vi.fn(),
 }));
+vi.mock("../../metros/hooks/useMetros", () => import("../../../test/mockMetros"));
 
 vi.mock("../api/submissionNotification", () => ({
   notifySubmissionReceived: vi.fn(),

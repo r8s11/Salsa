@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
 import HomePage from "../pages/HomePage";
+import EventsParamRoute from "../pages/EventsParamRoute";
 import ScrollToTop from "../components/Scroll/ScrollToTop";
 import AppErrorBoundary from "../components/AppErrorBoundary/AppErrorBoundary";
 
@@ -13,7 +14,6 @@ const SubmitEventPage = lazy(() => import("../pages/SubmitEventPage"));
 const FoundersPage = lazy(() => import("../pages/founder/FoundersPage"));
 const FoundersAcceptPage = lazy(() => import("../pages/founder/FoundersAcceptPage"));
 const FoundersWelcomePage = lazy(() => import("../pages/founder/FoundersWelcomePage"));
-const EventDetailPage = lazy(() => import("../pages/EventDetailPage"));
 const ShortEventLinkPage = lazy(() => import("../pages/ShortEventLinkPage"));
 const Lessons = lazy(() => import("../pages/Lessons"));
 const Instructors = lazy(() => import("../pages/Instructors"));
@@ -227,7 +227,7 @@ function App() {
               <Route path="contact" element={<ContactPage />} />
               <Route path="calendar" element={<CalendarPage />} />
               <Route path="submit" element={<SubmitEventPage />} />
-              <Route path="events/:id" element={<EventDetailPage />} />
+              <Route path="events/:id" element={<EventsParamRoute />} />
               <Route path="e/:code" element={<ShortEventLinkPage />} />
               <Route
                 path="profile"

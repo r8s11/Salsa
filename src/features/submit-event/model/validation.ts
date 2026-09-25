@@ -173,11 +173,12 @@ export function validateSubmitFormFields(form: SubmitForm, isAnonymous = false):
     errors.event_type = "Choose an event type.";
   }
 
-  // `city` is typed as `City` ("boston" | "new-york-city"), never "" — the
-  // segmented control always starts seeded from useCity(). This check is
-  // defense-in-depth for a city context that failed to resolve before the
-  // draft was built, matching the "* Required" contract the group displays
-  // visually. See validation.test.ts for a forced-empty-city case.
+  // `city` is a metro slug (or ""), seeded from useCity().city — which can
+  // be null while the metro context is still resolving or the visitor has
+  // no city nearby. Callers coerce a null city to "" before building the
+  // draft, so this check catches both that case and any other draft built
+  // without a resolved city, matching the "* Required" contract the field
+  // displays visually. See validation.test.ts for a forced-empty-city case.
   if (!form.city) {
     errors.city = "Choose a city.";
   }

@@ -14,6 +14,7 @@ import {
   type PlatformSettings,
   type SubmissionAccessForm,
 } from "../../features/admin/model/platformSettings";
+import { useMetros } from "../../features/metros/hooks/useMetros";
 import type { PlatformSettingsUpdate } from "../../features/admin/api/platformSettingsRepo";
 import "./AdminSettingsPage.css";
 
@@ -52,7 +53,7 @@ function serverFieldErrors(error: unknown) {
     },
     defaults: {
       ...(message.includes("platform_settings_city_check")
-        ? { default_city: "Choose Boston or New York City." }
+        ? { default_city: "Choose a registered city." }
         : {}),
       ...(message.includes("platform_settings_duration_check")
         ? {
@@ -69,6 +70,9 @@ function cardChangedAt(settings: PlatformSettings, savedByCurrentUser: boolean) 
 }
 
 export default function AdminSettingsPage() {
+  const { metros } = useMetros();
+  const metroSlugs = new Set(metros.map((metro) => metro.slug));
+  const sortedMetros = [...metros].sort((a, b) => a.name.localeCompare(b.name));
   const { settings, isLoading, error, refetch, update } = usePlatformSettings();
   const [general, setGeneral] = useState<GeneralSettingsForm | null>(null);
   const [defaults, setDefaults] = useState<EventDefaultsForm | null>(null);
@@ -198,7 +202,7 @@ export default function AdminSettingsPage() {
   const saveDefaults = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!defaults) return;
-    const errors = validateEventDefaults(defaults);
+    const errors = validateEventDefaults(defaults, metroSlugs);
     setDefaultsErrors(errors);
     if (Object.keys(errors).length > 0) return;
 
@@ -399,8 +403,11 @@ export default function AdminSettingsPage() {
             }
             aria-describedby={defaultsErrors.default_city ? "default-city-error" : undefined}
           >
-            <option value="boston">Boston</option>
-            <option value="new-york-city">New York City</option>
+            {sortedMetros.map((metro) => (
+              <option key={metro.slug} value={metro.slug}>
+                {metro.name}
+              </option>
+            ))}
           </select>
           {defaultsErrors.default_city && (
             <p id="default-city-error" className="admin-field__error" role="alert">

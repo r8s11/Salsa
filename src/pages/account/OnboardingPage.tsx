@@ -14,13 +14,12 @@ import {
   profileMediaErrorMessage,
 } from "../../features/account/api/profileMedia";
 import { SAFE_NAME_FALLBACK } from "../../features/account/model/account";
-import { CITY_LABEL } from "../../features/admin/model/eventsQuery";
+import { useMetros } from "../../features/metros/hooks/useMetros";
 import type { City } from "../../features/events/model/types";
 import { isSafeInternalPath } from "../../lib/authDestination";
 import "./OnboardingPage.css";
 
 const BIO_MAX_LENGTH = 600;
-const CITY_OPTIONS = Object.entries(CITY_LABEL) as [City, string][];
 /** Same regex as profiles_username_format constraint. */
 const USERNAME_RE = /^[A-Za-z0-9_]{3,24}$/;
 
@@ -48,6 +47,7 @@ type UsernameStatus =
   | { state: "invalid"; message: string };
 
 export default function OnboardingPage() {
+  const { metros } = useMetros();
   const { user, loading: authLoading } = useAuth();
   const { profile, isLoading: profileLoading } = useOwnProfile(user?.id);
   const navigate = useNavigate();
@@ -442,9 +442,9 @@ export default function OnboardingPage() {
             aria-describedby={cityMissing && error ? cityErrorId : undefined}
           >
             <option value="">Choose your city</option>
-            {CITY_OPTIONS.map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
+            {metros.map((metro) => (
+              <option key={metro.slug} value={metro.slug}>
+                {metro.name}
               </option>
             ))}
           </select>

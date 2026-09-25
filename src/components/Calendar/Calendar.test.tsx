@@ -30,6 +30,7 @@ vi.mock("@schedule-x/calendar-controls", () => ({
   createCalendarControlsPlugin: () => calendarControls,
 }));
 vi.mock("../../features/events/hooks/useEvent", () => ({ useEvents: () => useEvents() }));
+vi.mock("../../features/metros/hooks/useMetros", () => import("../../test/mockMetros"));
 vi.mock("../../contexts/useCity", () => ({ useCity: () => ({ city, setCity }) }));
 vi.mock("../../features/calendar/hooks/useEventDeepLink", () => ({ useEventDeepLink: vi.fn() }));
 vi.mock("../../features/calendar/hooks/useEscapeKey", () => ({ useEscapeKey: vi.fn() }));
@@ -115,7 +116,7 @@ describe("Calendar", () => {
     fireEvent.click(screen.getByRole("button", { name: "Previous month" }));
     fireEvent.click(screen.getByRole("button", { name: "Today" }));
     fireEvent.click(screen.getByRole("button", { name: "Next month" }));
-    fireEvent.click(screen.getByRole("button", { name: "NYC" }));
+    fireEvent.click(screen.getByRole("button", { name: "New York City" }));
     fireEvent.click(screen.getByRole("button", { name: "Week" }));
     fireEvent.click(screen.getByRole("button", { name: "Class 0" }));
     expect(calendarControls.setDate).toHaveBeenCalledTimes(3);

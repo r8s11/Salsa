@@ -3,6 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import type { DatabaseEvent } from "../../features/events/model/types";
 import { RelatedEventsStrip } from "./RelatedEventsStrip";
+vi.mock("../../features/metros/hooks/useMetros", () => import("../../test/mockMetros"));
 
 function makeEvent(overrides: Partial<DatabaseEvent> = {}): DatabaseEvent {
   return {
@@ -53,7 +54,7 @@ describe("RelatedEventsStrip", () => {
     );
 
     expect(
-      screen.getByRole("heading", { name: "More this week in Greater Boston" })
+      screen.getByRole("heading", { name: "More this week in Boston" })
     ).toBeInTheDocument();
     expect(screen.getAllByRole("link")).toHaveLength(3);
     expect(screen.getByRole("link", { name: /first event/i })).toHaveAttribute(

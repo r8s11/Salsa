@@ -6,15 +6,62 @@ import type { User } from "@supabase/supabase-js";
 import type { AuthContextValue } from "../../contexts/authContextObject";
 import { useAuth } from "../../contexts/useAuth";
 import { useCity } from "../../contexts/useCity";
+import type { CityContextValue } from "../../contexts/cityContextObject";
 import type { OwnProfile } from "../../features/account/model/account";
 import { useOwnProfile } from "../../features/account/hooks/useOwnProfile";
+import { useMetroName } from "../../features/metros/hooks/useMetros";
+import type { RankedMetro } from "../../features/metros/model/metro";
 import Header from "./Header";
 
 vi.mock("../../contexts/useAuth", () => ({ useAuth: vi.fn() }));
 vi.mock("../../contexts/useCity", () => ({ useCity: vi.fn() }));
 vi.mock("../../features/account/hooks/useOwnProfile", () => ({ useOwnProfile: vi.fn() }));
+vi.mock("../../features/metros/hooks/useMetros", () => ({ useMetroName: vi.fn() }));
 
 const setCity = vi.fn();
+const chooseNearMe = vi.fn();
+
+const activeMetros: RankedMetro[] = [
+  {
+    slug: "boston",
+    name: "Boston",
+    stateRegion: "MA",
+    countryCode: "US",
+    latitude: 42.3601,
+    longitude: -71.0589,
+    upcomingEventCount: 5,
+    nextEventAt: "2099-01-01T00:00:00Z",
+    distanceKm: null,
+  },
+  {
+    slug: "new-york-city",
+    name: "New York City",
+    stateRegion: "NY",
+    countryCode: "US",
+    latitude: 40.7128,
+    longitude: -74.006,
+    upcomingEventCount: 5,
+    nextEventAt: "2099-01-01T00:00:00Z",
+    distanceKm: null,
+  },
+];
+
+function mockCityValue(city: CityContextValue["city"] = "boston") {
+  vi.mocked(useCity).mockReturnValue({
+    city,
+    source: "explicit",
+    resolving: false,
+    setCity,
+    chooseNearMe,
+    activeMetros,
+    activeMetrosError: null,
+    locationStatus: "idle",
+  });
+}
+
+const metroNameLookup = (slug: string | null | undefined) =>
+  slug === "boston" ? "Boston" : slug === "new-york-city" ? "New York City" : (slug ?? "");
+
 const defaultAuth = (overrides: Partial<AuthContextValue> = {}): AuthContextValue => ({
   user: null,
   session: null,
@@ -82,11 +129,12 @@ function renderHeader() {
 describe("Header", () => {
   beforeEach(() => {
     vi.mocked(useOwnProfile).mockReturnValue(defaultProfileQuery());
+    vi.mocked(useMetroName).mockReturnValue(metroNameLookup);
   });
 
   it("renders the logo home link, exact primary navigation, and guest sign in", () => {
     vi.mocked(useAuth).mockReturnValue(defaultAuth());
-    vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
+    mockCityValue("boston");
 
     renderHeader();
 
@@ -102,7 +150,7 @@ describe("Header", () => {
 
   it("renders member account disclosure without Dashboard", () => {
     vi.mocked(useAuth).mockReturnValue(defaultAuth({ user: { id: "member" } as User }));
-    vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
+    mockCityValue("boston");
 
     renderHeader();
 
@@ -125,7 +173,7 @@ describe("Header", () => {
     vi.mocked(useAuth).mockReturnValue(
       defaultAuth({ user: { id: "admin" } as User, isAdmin: true, isModerator: true })
     );
-    vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
+    mockCityValue("boston");
 
     renderHeader();
 
@@ -137,7 +185,7 @@ describe("Header", () => {
     vi.mocked(useAuth).mockReturnValue(
       defaultAuth({ user: { id: "mod" } as User, isModerator: true })
     );
-    vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
+    mockCityValue("boston");
 
     renderHeader();
 
@@ -147,7 +195,7 @@ describe("Header", () => {
 
   it("renders no DASHBOARDS section for a guest", () => {
     vi.mocked(useAuth).mockReturnValue(defaultAuth());
-    vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
+    mockCityValue("boston");
 
     renderHeader();
 
@@ -158,7 +206,7 @@ describe("Header", () => {
 
   it("renders no DASHBOARDS section for a regular authenticated user with no role", () => {
     vi.mocked(useAuth).mockReturnValue(defaultAuth({ user: { id: "member" } as User }));
-    vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
+    mockCityValue("boston");
 
     renderHeader();
 
@@ -171,7 +219,7 @@ describe("Header", () => {
     vi.mocked(useAuth).mockReturnValue(
       defaultAuth({ user: { id: "organizer" } as User, isOrganizer: true })
     );
-    vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
+    mockCityValue("boston");
     const user = userEvent.setup();
     renderHeader();
 
@@ -198,7 +246,7 @@ describe("Header", () => {
     vi.mocked(useAuth).mockReturnValue(
       defaultAuth({ user: { id: "moderator" } as User, isModerator: true, signOut })
     );
-    vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
+    mockCityValue("boston");
     const user = userEvent.setup();
     const { rerender } = renderHeader();
 
@@ -232,7 +280,7 @@ describe("Header", () => {
 
   it("opens and closes the drawer after a navigation link", async () => {
     vi.mocked(useAuth).mockReturnValue(defaultAuth());
-    vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
+    mockCityValue("boston");
     const user = userEvent.setup();
     renderHeader();
 
@@ -250,7 +298,7 @@ describe("Header", () => {
 
   it("closes the drawer after a guest action", async () => {
     vi.mocked(useAuth).mockReturnValue(defaultAuth());
-    vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
+    mockCityValue("boston");
     const user = userEvent.setup();
     renderHeader();
 
@@ -270,7 +318,7 @@ describe("Header", () => {
     const signOutResult = Promise.withResolvers<{ error: null }>();
     const signOut = vi.fn(() => signOutResult.promise);
     vi.mocked(useAuth).mockReturnValue(defaultAuth({ user: { id: "member" } as User, signOut }));
-    vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
+    mockCityValue("boston");
     const user = userEvent.setup();
     renderHeader();
 
@@ -296,7 +344,7 @@ describe("Header", () => {
 
   it("closes the drawer with Escape", async () => {
     vi.mocked(useAuth).mockReturnValue(defaultAuth());
-    vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
+    mockCityValue("boston");
     const user = userEvent.setup();
     renderHeader();
 
@@ -307,9 +355,10 @@ describe("Header", () => {
       "false"
     );
   });
+
   it("groups signed-out mobile navigation into destinations, city, and account actions", async () => {
     vi.mocked(useAuth).mockReturnValue(defaultAuth());
-    vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
+    mockCityValue("boston");
     const user = userEvent.setup();
     renderHeader();
 
@@ -324,17 +373,14 @@ describe("Header", () => {
       "href",
       "/signin"
     );
-    expect(within(city).getByRole("button", { name: /Boston/ })).toHaveAttribute(
-      "aria-pressed",
-      "true"
-    );
+    expect(within(city).getByRole("button", { name: /Boston/ })).toBeInTheDocument();
   });
 
   it("keeps member and moderator actions inside the mobile account group", async () => {
     vi.mocked(useAuth).mockReturnValue(
       defaultAuth({ user: { id: "moderator" } as User, isModerator: true })
     );
-    vi.mocked(useCity).mockReturnValue({ city: "new-york-city", setCity });
+    mockCityValue("new-york-city");
     const user = userEvent.setup();
     renderHeader();
 
@@ -352,14 +398,31 @@ describe("Header", () => {
       "/admin"
     );
     expect(within(account).getByRole("button", { name: "Sign Out" })).toBeInTheDocument();
-    expect(within(city).getByRole("button", { name: /New York/ })).toHaveAttribute(
-      "aria-pressed",
-      "true"
+    expect(within(city).getByRole("button", { name: /New York/ })).toBeInTheDocument();
+  });
+
+  it("picks a city from the mobile explorer and closes the drawer", async () => {
+    vi.mocked(useAuth).mockReturnValue(defaultAuth());
+    mockCityValue("boston");
+    const user = userEvent.setup();
+    renderHeader();
+
+    await user.click(screen.getByRole("button", { name: "Open menu" }));
+    const drawer = document.getElementById("site-navigation") as HTMLElement;
+    const city = within(drawer).getByRole("region", { name: "Your city" });
+    await user.click(within(city).getByRole("button", { name: /Boston/ }));
+    await user.click(screen.getByRole("button", { name: /New York City/ }));
+
+    expect(setCity).toHaveBeenCalledWith("new-york-city");
+    expect(screen.getByRole("button", { name: "Open menu" })).toHaveAttribute(
+      "aria-expanded",
+      "false"
     );
   });
+
   it("uses rose-red CTA only for Submit Event and quiet secondary style for Sign In", async () => {
     vi.mocked(useAuth).mockReturnValue(defaultAuth());
-    vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
+    mockCityValue("boston");
     const user = userEvent.setup();
     renderHeader();
 
@@ -375,7 +438,7 @@ describe("Header", () => {
     vi.mocked(useAuth).mockReturnValue(
       defaultAuth({ user: { id: "member", email: "member@example.com" } as User })
     );
-    vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
+    mockCityValue("boston");
     vi.mocked(useOwnProfile).mockReturnValue({
       ...defaultProfileQuery(),
       profile: memberProfile({
@@ -393,7 +456,7 @@ describe("Header", () => {
 
   it("falls back to display_name initials when there is no avatar_url", () => {
     vi.mocked(useAuth).mockReturnValue(defaultAuth({ user: { id: "member" } as User }));
-    vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
+    mockCityValue("boston");
     vi.mocked(useOwnProfile).mockReturnValue({
       ...defaultProfileQuery(),
       profile: memberProfile({ display_name: "Sofia Martinez" }),
@@ -410,7 +473,7 @@ describe("Header", () => {
     vi.mocked(useAuth).mockReturnValue(
       defaultAuth({ user: { id: "member", email: "dancefan@example.com" } as User })
     );
-    vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
+    mockCityValue("boston");
     vi.mocked(useOwnProfile).mockReturnValue({
       ...defaultProfileQuery(),
       profile: memberProfile({ username: "@sofia" }),
@@ -443,7 +506,7 @@ describe("Header", () => {
 
   it("exposes 'Open account menu' as the accessible name, not the initials text", () => {
     vi.mocked(useAuth).mockReturnValue(defaultAuth({ user: { id: "member" } as User }));
-    vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
+    mockCityValue("boston");
     vi.mocked(useOwnProfile).mockReturnValue({
       ...defaultProfileQuery(),
       profile: memberProfile({ display_name: "Roosevelt" }),
@@ -459,7 +522,7 @@ describe("Header", () => {
 
   it("still reveals My Account, My Profile, and Sign Out when the avatar trigger is open", () => {
     vi.mocked(useAuth).mockReturnValue(defaultAuth({ user: { id: "member" } as User }));
-    vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
+    mockCityValue("boston");
 
     renderHeader();
 
@@ -482,8 +545,9 @@ describe("Header", () => {
 
 describe("Header event creation call to action", () => {
   beforeEach(() => {
-    vi.mocked(useCity).mockReturnValue({ city: "boston", setCity });
+    mockCityValue("boston");
     vi.mocked(useOwnProfile).mockReturnValue(defaultProfileQuery());
+    vi.mocked(useMetroName).mockReturnValue(metroNameLookup);
   });
 
   it("sends an anonymous visitor to the public submission flow", () => {

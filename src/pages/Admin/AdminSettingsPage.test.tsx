@@ -6,6 +6,7 @@ import AdminSettingsPage from "./AdminSettingsPage";
 
 const { usePlatformSettings } = vi.hoisted(() => ({ usePlatformSettings: vi.fn() }));
 vi.mock("../../features/admin/hooks/usePlatformSettings", () => ({ usePlatformSettings }));
+vi.mock("../../features/metros/hooks/useMetros", () => import("../../test/mockMetros"));
 
 const settings = {
   singleton: true,

@@ -31,8 +31,35 @@ vi.mock("../../features/events/hooks/useEvent", () => ({
   useEvents: () => ({ events: mockedEvents, refetch, ...mockedFeed }),
 }));
 
+const nearbyMetros = [
+  {
+    slug: "new-york-city",
+    name: "New York City",
+    stateRegion: "NY",
+    countryCode: "US",
+    latitude: 40.7128,
+    longitude: -74.006,
+    upcomingEventCount: 14,
+    nextEventAt: "2099-01-01T00:00:00Z",
+    distanceKm: 300,
+  },
+];
+let mockedCity: { city: string | null; source: string } = { city: "boston", source: "explicit" };
+const setCity = vi.fn();
+
 vi.mock("../../contexts/useCity", () => ({
-  useCity: () => ({ city: "boston" }),
+  useCity: () => ({
+    ...mockedCity,
+    resolving: false,
+    setCity,
+    chooseNearMe: vi.fn(),
+    activeMetros: nearbyMetros,
+    activeMetrosError: null,
+    locationStatus: "idle",
+  }),
+}));
+vi.mock("../../features/metros/hooks/useMetros", () => ({
+  useMetroName: () => (slug: string) => (slug === "boston" ? "Boston" : slug),
 }));
 vi.mock("../EventModal/EventModal", () => ({
   default: function MockEventModal({
@@ -85,7 +112,7 @@ describe("Events homepage modal", () => {
 
     // The featured event is on 1 Jan 2099, not tonight.
     expect(
-      screen.getByRole("heading", { name: "Nothing on the floor tonight in Greater Boston." })
+      screen.getByRole("heading", { name: "Nothing on the floor tonight in Boston." })
     ).toBeInTheDocument();
     expect(screen.getByText(/^Next up ·/)).toHaveTextContent(/Next up · \w{3} 1 Jan/);
     expect(screen.queryByText("Featured Tonight")).not.toBeInTheDocument();
@@ -99,9 +126,34 @@ describe("Events homepage modal", () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByRole("heading", { name: "Nothing on the floor in Greater Boston yet." })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "View Full Calendar" })).toHaveAttribute("href", "/calendar");
-    expect(screen.getByRole("link", { name: "Submit an Event" })).toHaveAttribute("href", "/submit");
+    expect(screen.getByRole("heading", { name: "Nothing on the floor in Boston yet." })).toBeInTheDocument();
+    // The nearest active metro is offered as a real destination.
+    expect(screen.getByRole("link", { name: /New York City\s*14 upcoming events/ })).toHaveAttribute(
+      "href",
+      "/events/new-york-city"
+    );
+    expect(screen.getByRole("button", { name: "Explore other cities" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Submit an event" })).toHaveAttribute("href", "/submit");
+  });
+
+  it("never renders an empty homepage when no metro is near the visitor", () => {
+    mockedCity = { city: null, source: "none-nearby" };
+    render(
+      <MemoryRouter>
+        <Events />
+      </MemoryRouter>
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "No SalsaSegura events near you yet." })
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /New York City/ })).toHaveAttribute(
+      "href",
+      "/events/new-york-city"
+    );
+    expect(screen.getByRole("button", { name: "Explore other cities" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Submit an event" })).toHaveAttribute("href", "/submit");
+    mockedCity = { city: "boston", source: "explicit" };
   });
 
   it("names the city on a failed load, keeps the raw error out of the page, and retries in place", async () => {
@@ -116,7 +168,7 @@ describe("Events homepage modal", () => {
     );
 
     const alert = screen.getByRole("alert");
-    expect(alert).toHaveTextContent("We couldn't load Greater Boston's listings.");
+    expect(alert).toHaveTextContent("We couldn't load Boston's listings.");
     expect(alert).not.toHaveTextContent("relation public_events");
     expect(warn).toHaveBeenCalledWith(expect.any(String), "relation public_events does not exist");
     expect(screen.getByRole("link", { name: "View Full Calendar" })).toHaveAttribute("href", "/calendar");

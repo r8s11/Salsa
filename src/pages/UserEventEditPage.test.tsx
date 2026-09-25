@@ -23,6 +23,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("../features/account/hooks/useMySubmissions", () => ({
   useMySubmissions: mocks.useMySubmissions,
 }));
+vi.mock("../features/metros/hooks/useMetros", () => import("../test/mockMetros"));
 vi.mock("../features/events/api/eventsRepo", () => ({
   updateEventForUser: mocks.updateEventForUser,
   deleteEventForUser: mocks.deleteEventForUser,

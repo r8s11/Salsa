@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import type { EventTaxonomyTerm } from "../../model/types";
 import type { EventFormCapabilities, EventFormDraft } from "./types";
 import type { SubmitFieldErrors } from "../../../submit-event/model/validation";
+import { useMetros } from "../../../metros/hooks/useMetros";
 import FormFieldError from "../../../../shared/forms/FormFieldError";
 import { fieldErrorProps } from "../../../../shared/forms/fieldErrorProps";
 import "./EventForm.css";
@@ -58,6 +59,8 @@ export default function EventForm({
   flyerFirst = false,
   errors = {},
 }: Props) {
+  const { metros } = useMetros();
+  const cityOptions = [...metros].sort((a, b) => a.name.localeCompare(b.name));
   const update = <K extends keyof EventFormDraft>(key: K, value: EventFormDraft[K]) =>
     onChange({ ...draft, [key]: value });
   const toggleStyle = (style: string) =>
@@ -143,33 +146,24 @@ export default function EventForm({
           <FormFieldError id="event-type-error" message={errors.event_type} />
         </div>
         <div className="event-form__field">
-          <span className="event-form__label" id="event-city-label">
-            City *
-          </span>
-          <div
+          <label htmlFor="event-city">City *</label>
+          <select
             id="event-city"
-            className="event-form__segmented"
-            role="group"
-            aria-labelledby="event-city-label"
+            value={draft.city}
+            onChange={(event) => update("city", event.target.value)}
+            required
             aria-required="true"
             {...fieldErrorProps("event-city-error", errors.city)}
           >
-            {(
-              [
-                ["boston", "Boston"],
-                ["new-york-city", "New York City"],
-              ] as const
-            ).map(([value, label]) => (
-              <button
-                key={value}
-                type="button"
-                aria-pressed={draft.city === value}
-                onClick={() => update("city", value)}
-              >
-                {label}
-              </button>
+            <option value="" disabled>
+              Choose a city
+            </option>
+            {cityOptions.map((metro) => (
+              <option key={metro.slug} value={metro.slug}>
+                {metro.name}
+              </option>
             ))}
-          </div>
+          </select>
           <FormFieldError id="event-city-error" message={errors.city} />
         </div>
         <div className="event-form__field">

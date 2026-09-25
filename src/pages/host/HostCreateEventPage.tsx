@@ -38,7 +38,7 @@ export default function HostCreateEventPage() {
       organizer.organizerStatus === "active" &&
       (organizer.memberRole === "owner" || organizer.memberRole === "manager")
   );
-  const [form, setForm] = useState<EventFormDraft>(() => buildEmptyAdminForm(city));
+  const [form, setForm] = useState<EventFormDraft>(() => buildEmptyAdminForm(city ?? ""));
   const [organizerId, setOrganizerId] = useState("");
   const [flyer, setFlyer] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);

@@ -45,6 +45,15 @@ const BASE_EXTRACTION: ExtractedEvent = {
   details: [],
 };
 
+// The registered metros mapCity resolves against — mirrors what useMetros()
+// would supply in production. Includes a metro with no built-in locality
+// alias (Miami) to prove resolution isn't limited to the hardcoded list.
+const METROS = [
+  { slug: "boston", name: "Boston" },
+  { slug: "new-york-city", name: "New York City" },
+  { slug: "miami", name: "Miami" },
+];
+
 describe("applyExtractionToDraft", () => {
   it("fills empty text, date, and time fields", () => {
     const { draft, filled, skipped } = applyExtractionToDraft(
@@ -58,7 +67,8 @@ describe("applyExtractionToDraft", () => {
         website: "https://example.com",
         details: ["Three rooms of salsa.", "Beginner lesson at 8."],
       },
-      BASE_DRAFT
+      BASE_DRAFT,
+      METROS
     );
 
     expect(draft.title).toBe("Havana Friday Social");
@@ -77,7 +87,8 @@ describe("applyExtractionToDraft", () => {
   it("never clobbers fields the user already typed", () => {
     const { draft, filled } = applyExtractionToDraft(
       { ...BASE_EXTRACTION, title: "Flyer Title", venue_name: "Flyer Venue" },
-      { ...BASE_DRAFT, title: "My Title" }
+      { ...BASE_DRAFT, title: "My Title" },
+      METROS
     );
 
     expect(draft.title).toBe("My Title");
@@ -87,17 +98,26 @@ describe("applyExtractionToDraft", () => {
 
   it("maps city localities on either side of the comma", () => {
     expect(
-      applyExtractionToDraft({ ...BASE_EXTRACTION, city: "Cambridge, MA" }, BASE_DRAFT).draft.city
+      applyExtractionToDraft({ ...BASE_EXTRACTION, city: "Cambridge, MA" }, BASE_DRAFT, METROS)
+        .draft.city
     ).toBe("boston");
     expect(
-      applyExtractionToDraft({ ...BASE_EXTRACTION, city: "Brooklyn" }, BASE_DRAFT).draft.city
+      applyExtractionToDraft({ ...BASE_EXTRACTION, city: "Brooklyn" }, BASE_DRAFT, METROS).draft
+        .city
     ).toBe("new-york-city");
+  });
+
+  it("matches any registered metro by name, not just the built-in aliases", () => {
+    expect(
+      applyExtractionToDraft({ ...BASE_EXTRACTION, city: "Miami" }, BASE_DRAFT, METROS).draft.city
+    ).toBe("miami");
   });
 
   it("leaves city alone and reports it when the locality is unknown", () => {
     const { draft, skipped } = applyExtractionToDraft(
       { ...BASE_EXTRACTION, city: "Cambridgeport" },
-      BASE_DRAFT
+      BASE_DRAFT,
+      METROS
     );
 
     expect(draft.city).toBe("boston");
@@ -106,17 +126,18 @@ describe("applyExtractionToDraft", () => {
 
   it("maps event-type aliases and reports the unmappable", () => {
     expect(
-      applyExtractionToDraft({ ...BASE_EXTRACTION, event_type: "Social" }, BASE_DRAFT).draft
-        .event_type
+      applyExtractionToDraft({ ...BASE_EXTRACTION, event_type: "Social" }, BASE_DRAFT, METROS)
+        .draft.event_type
     ).toBe("social");
     expect(
-      applyExtractionToDraft({ ...BASE_EXTRACTION, event_type: "lessons" }, BASE_DRAFT).draft
-        .event_type
+      applyExtractionToDraft({ ...BASE_EXTRACTION, event_type: "lessons" }, BASE_DRAFT, METROS)
+        .draft.event_type
     ).toBe("class");
 
     const { draft, skipped } = applyExtractionToDraft(
       { ...BASE_EXTRACTION, event_type: "Festival" },
-      BASE_DRAFT
+      BASE_DRAFT,
+      METROS
     );
     expect(draft.event_type).toBe("");
     expect(skipped).toContain("Event type");
@@ -124,18 +145,19 @@ describe("applyExtractionToDraft", () => {
 
   it("splits price into type and amount, including ranges", () => {
     expect(
-      applyExtractionToDraft({ ...BASE_EXTRACTION, price: "$20" }, BASE_DRAFT).draft
+      applyExtractionToDraft({ ...BASE_EXTRACTION, price: "$20" }, BASE_DRAFT, METROS).draft
     ).toMatchObject({ price_type: "paid", price_amount: "20" });
     expect(
-      applyExtractionToDraft({ ...BASE_EXTRACTION, price: "$10-20" }, BASE_DRAFT).draft
+      applyExtractionToDraft({ ...BASE_EXTRACTION, price: "$10-20" }, BASE_DRAFT, METROS).draft
     ).toMatchObject({ price_type: "paid", price_amount: "10" });
     expect(
-      applyExtractionToDraft({ ...BASE_EXTRACTION, price: "Free" }, BASE_DRAFT).draft
+      applyExtractionToDraft({ ...BASE_EXTRACTION, price: "Free" }, BASE_DRAFT, METROS).draft
     ).toMatchObject({ price_type: "free", price_amount: "" });
 
     const { draft, skipped } = applyExtractionToDraft(
       { ...BASE_EXTRACTION, price: "Suggested donation" },
-      BASE_DRAFT
+      BASE_DRAFT,
+      METROS
     );
     expect(draft.price_type).toBe("");
     expect(skipped).toContain("Price");
@@ -144,13 +166,15 @@ describe("applyExtractionToDraft", () => {
   it("unions mapped dance styles and reports fully-unmapped sets", () => {
     const { draft } = applyExtractionToDraft(
       { ...BASE_EXTRACTION, dance_styles: ["Salsa", "Cha Cha", "Tango"] },
-      { ...BASE_DRAFT, dance_styles: ["bachata"] }
+      { ...BASE_DRAFT, dance_styles: ["bachata"] },
+      METROS
     );
     expect(draft.dance_styles).toEqual(["bachata", "salsa", "cha-cha"]);
 
     const skipped = applyExtractionToDraft(
       { ...BASE_EXTRACTION, dance_styles: ["Tango"] },
-      BASE_DRAFT
+      BASE_DRAFT,
+      METROS
     );
     expect(skipped.draft.dance_styles).toEqual([]);
     expect(skipped.skipped).toContain("Dance styles");

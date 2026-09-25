@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { createSubmission } from "../../admin/api/submissionsRepo";
 import { uploadEventFlyer, removeEventFlyer } from "../../events/api/eventFlyers";
 import { useCity } from "../../../contexts/useCity";
+import { useMetros } from "../../metros/hooks/useMetros";
 import { useAuth } from "../../../contexts/useAuth";
 import {
   buildInitialForm,
@@ -40,8 +41,9 @@ function buildSubmitDraft(city: EventFormDraft["city"]): EventFormDraft {
 
 export function useSubmitEventForm(authenticatedSubmitterName: string | null = null) {
   const { city: defaultCity } = useCity();
+  const { metros } = useMetros();
   const { user } = useAuth();
-  const [form, setForm] = useState<EventFormDraft>(() => buildSubmitDraft(defaultCity));
+  const [form, setForm] = useState<EventFormDraft>(() => buildSubmitDraft(defaultCity ?? ""));
   // Extraction resolves asynchronously; reading `form` from a closure
   // captured when the request started would ignore anything the user typed
   // in the meantime. This ref always reflects the latest render's form, so
@@ -282,7 +284,7 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
       }
       if (extractionGeneration.current !== generation) return;
       setExtractionStatus("success");
-      const { draft, filled, skipped } = applyExtractionToDraft(enriched, formRef.current);
+      const { draft, filled, skipped } = applyExtractionToDraft(enriched, formRef.current, metros);
       onChange(draft);
       setPrefillFeedback({ filled, skipped });
       isExtracting.current = false;
@@ -365,7 +367,7 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
       // in event_submission_email_attempts for diagnosis.
       void notifySubmissionReceived(submissionId);
       setIsSubmitted(true);
-      setForm(buildSubmitDraft(defaultCity));
+      setForm(buildSubmitDraft(defaultCity ?? ""));
       setFlyerFile(null);
       setUploadedFlyerUrl(null);
       setFlyerPath(null);

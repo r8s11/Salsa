@@ -1,0 +1,220 @@
+/* City explorer: a trigger plus a non-modal popover of active metros. */
+
+.metro-explorer {
+  position: relative;
+  display: inline-flex;
+}
+
+.metro-explorer__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-height: 44px;
+  max-width: 100%;
+  padding: 0 var(--space-md);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: var(--card);
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius-full);
+  transition:
+    background-color 160ms ease-out,
+    border-color 160ms ease-out;
+}
+
+.metro-explorer__trigger:hover {
+  background: var(--card-hover);
+  border-color: var(--border-lg);
+}
+
+.metro-explorer__trigger-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metro-explorer__chevron {
+  flex: none;
+  transition: transform 160ms ease-out;
+}
+
+.metro-explorer__trigger[aria-expanded="true"] .metro-explorer__chevron {
+  transform: rotate(180deg);
+}
+
+/* Compact: header bar, uppercase label to sit with the nav links. */
+.metro-explorer--compact .metro-explorer__trigger {
+  padding: 0 var(--space-sm) 0 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.metro-explorer--pill .metro-explorer__trigger {
+  background: var(--header-bg);
+  backdrop-filter: blur(var(--glass-blur));
+}
+
+.metro-explorer__panel {
+  position: absolute;
+  top: calc(100% + var(--space-sm));
+  left: 0;
+  z-index: 60;
+  width: min(22rem, calc(100vw - 2 * var(--space-md)));
+  max-height: min(28rem, 70vh);
+  overflow-y: auto;
+  padding: var(--space-md);
+  color: var(--text);
+  text-align: left;
+  background: var(--surface-high);
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+  animation: metro-explorer-in 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.metro-explorer--end .metro-explorer__panel {
+  right: 0;
+  left: auto;
+}
+
+.metro-explorer--above .metro-explorer__panel {
+  top: auto;
+  bottom: calc(100% + var(--space-sm));
+}
+
+@keyframes metro-explorer-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+.metro-explorer__heading {
+  margin: 0 0 var(--space-sm);
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.metro-explorer__near,
+.metro-explorer__option {
+  display: grid;
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 12px;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  transition: background-color 140ms ease-out;
+}
+
+.metro-explorer__near {
+  grid-template-columns: auto 1fr;
+  gap: var(--space-sm);
+  align-items: center;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  background: var(--card);
+}
+
+.metro-explorer__near.is-current {
+  border-color: var(--red-line);
+}
+
+.metro-explorer__hint {
+  margin: var(--space-xs) 0 var(--space-md);
+  padding: 0 12px;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.metro-explorer__list {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: var(--space-sm) 0 0;
+  list-style: none;
+  border-top: 1px solid var(--border);
+}
+
+.metro-explorer__option {
+  grid-template-columns: 1fr auto;
+  column-gap: var(--space-sm);
+  align-items: center;
+}
+
+.metro-explorer__near:hover,
+.metro-explorer__option:hover {
+  background: var(--card-hover);
+}
+
+.metro-explorer__option.is-current {
+  background: var(--red-dim);
+}
+
+.metro-explorer__option-name {
+  font-family: var(--font-ui);
+  font-weight: 700;
+}
+
+.metro-explorer__option-region {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.metro-explorer__option-meta {
+  grid-column: 1;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.metro-explorer__check {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  color: var(--red-bright);
+}
+
+.metro-explorer__footer {
+  margin: var(--space-md) 0 0;
+  padding: var(--space-sm) 12px 0;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  border-top: 1px solid var(--border);
+}
+
+.metro-explorer__footer a {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.metro-explorer__trigger:focus-visible,
+.metro-explorer__near:focus-visible,
+.metro-explorer__option:focus-visible,
+.metro-explorer__footer a:focus-visible {
+  outline: 2px solid var(--red-bright);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .metro-explorer__panel {
+    animation: none;
+  }
+  .metro-explorer__chevron {
+    transition: none;
+  }
+}

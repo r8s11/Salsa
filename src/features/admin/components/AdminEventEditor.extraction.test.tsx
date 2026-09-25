@@ -16,6 +16,7 @@ const { useActiveTaxonomyTerms, useVenueCombobox, uploadEventFlyer, extractEvent
   }));
 
 vi.mock("../hooks/useAdminTaxonomy", () => ({ useActiveTaxonomyTerms }));
+vi.mock("../../metros/hooks/useMetros", () => import("../../../test/mockMetros"));
 vi.mock("../hooks/useVenueCombobox", () => ({ useVenueCombobox }));
 vi.mock("../../events/api/eventFlyers", async (importOriginal) => ({
   ...(await importOriginal<typeof EventFlyersModule>()),

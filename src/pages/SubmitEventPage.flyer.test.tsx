@@ -21,6 +21,7 @@ const mockExtractionClient = vi.hoisted(() => ({ extractEventFromFlyer: vi.fn() 
 const mockReconciliation = vi.hoisted(() => ({ reconcileVenue: vi.fn() }));
 
 vi.mock("../features/entity-matching/reconcileClient", () => mockReconciliation);
+vi.mock("../features/metros/hooks/useMetros", () => import("../test/mockMetros"));
 
 vi.mock("../contexts/useAuth", () => ({ useAuth: () => ({ user: mockAuth.user }) }));
 vi.mock("../features/account/hooks/useOwnProfile", () => ({
@@ -165,10 +166,7 @@ describe("SubmitEventPage flyer (Phase 1)", () => {
     expect(mockExtractionClient.extractEventFromFlyer).toHaveBeenCalledWith(FLYER_URL);
     expect(screen.getByLabelText(/Event Title \*/i)).toHaveValue("Havana Friday Social");
     expect(screen.getByLabelText(/Date \*/i)).toHaveValue("2026-09-18");
-    expect(screen.getByRole("button", { name: "New York City" })).toHaveAttribute(
-      "aria-pressed",
-      "true"
-    );
+    expect(screen.getByRole("combobox", { name: /City/i })).toHaveValue("new-york-city");
     const notice = await screen.findByRole("status");
     expect(notice).toHaveTextContent(/Filled .* from your flyer/i);
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
@@ -196,7 +194,7 @@ describe("SubmitEventPage flyer (Phase 1)", () => {
     await uploadFlyerAndExtract(user);
 
     expect(screen.getByLabelText(/Event Title \*/i)).toHaveValue("Warehouse Party");
-    expect(screen.getByRole("button", { name: "Boston" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("combobox", { name: /City/i })).toHaveValue("boston");
     const notice = await screen.findByRole("status");
     expect(notice).toHaveTextContent(/Couldn't determine: city, price/i);
   });

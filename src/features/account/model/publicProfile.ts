@@ -1,12 +1,8 @@
 import type { City, DatabaseEvent } from "../../events/model/types";
+import { metroLabelFromSlug } from "../../metros/model/metro";
 
 // Pure derivations behind the redesigned public profile screen. Kept out of
 // the component so each rule is testable without rendering.
-
-const CITY_LABEL: Record<City, string> = {
-  boston: "Boston",
-  "new-york-city": "New York City",
-};
 
 /** How many upcoming events the "Hosting next" list shows. */
 export const HOSTING_NEXT_LIMIT = 3;
@@ -21,7 +17,7 @@ export const REGULAR_VENUE_LIMIT = 6;
  */
 export function profileTagline(city: City | null, memberSince: string | null): string {
   const parts: string[] = [];
-  if (city) parts.push(`Dancing in ${CITY_LABEL[city]}`);
+  if (city) parts.push(`Dancing in ${metroLabelFromSlug(city)}`);
   if (memberSince) parts.push(`Member since ${memberSince}`);
   return parts.length > 0 ? parts.join(" · ") : "SalsaSegura member";
 }

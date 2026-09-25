@@ -13,10 +13,11 @@ import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import "temporal-polyfill/global";
 import "./Calendar.css";
 import "@schedule-x/theme-default/dist/index.css";
-import { ScheduleXEvent, CALENDARS_CONFIG, City, EventType } from "../../types/events";
+import { ScheduleXEvent, CALENDARS_CONFIG, EventType } from "../../types/events";
 import { filterEventsByType, TypeFilter } from "../../utils/filterEvents";
 import { getUpcomingSeriesDates } from "../../utils/series";
 import { useCity } from "../../contexts/useCity";
+import { useActiveMetros, useMetros } from "../../features/metros/hooks/useMetros";
 import EventModal from "../EventModal/EventModal";
 import EventCard from "../Events/EventCard";
 import CalendarListView from "./CalendarListView";
@@ -42,11 +43,6 @@ import { sortCalendarEvents } from "../../features/calendar/model/calendarEvents
 
 type CalendarView = "month-grid" | "week" | "list" | "cards";
 
-const CITY_OPTIONS: { value: City; label: string }[] = [
-  { value: "boston", label: "Boston" },
-  { value: "new-york-city", label: "NYC" },
-];
-
 const VIEW_OPTIONS: { value: CalendarView; label: string }[] = [
   { value: "month-grid", label: "Month" },
   { value: "week", label: "Week" },
@@ -69,6 +65,8 @@ const COMPACT_QUERY = "(max-width: 768px)";
 const SIDEBAR_QUERY = "(min-width: 1024px)";
 
 export default function Calendar() {
+  const { activeMetros } = useActiveMetros();
+  const { metros, loading: metrosLoading } = useMetros();
   const [initialCompact] = useState(() => window.matchMedia(COMPACT_QUERY).matches);
   const [hasSidebar, setHasSidebar] = useState(() => window.matchMedia(SIDEBAR_QUERY).matches);
   const [selectedEvent, setSelectedEvent] = useState<ScheduleXEvent | null>(null);
@@ -186,16 +184,13 @@ export default function Calendar() {
   }, []);
 
   useEffect(() => {
-    if (cityParameterHandled.current) return;
+    if (cityParameterHandled.current || metrosLoading) return;
     cityParameterHandled.current = true;
     const requestedCity = searchParams.get("city");
-    if (
-      (requestedCity === "boston" || requestedCity === "new-york-city") &&
-      requestedCity !== city
-    ) {
+    if (requestedCity && metros.some((metro) => metro.slug === requestedCity) && requestedCity !== city) {
       setCity(requestedCity);
     }
-  }, [city, searchParams, setCity]);
+  }, [city, searchParams, setCity, metrosLoading, metros]);
 
   useEffect(() => {
     eventsService.set(
@@ -300,14 +295,14 @@ export default function Calendar() {
               </button>
             </div>
             <div className="pill-group" role="group" aria-label="City">
-              {CITY_OPTIONS.map((option) => (
+              {activeMetros.map((option) => (
                 <button
-                  key={option.value}
-                  className={`pill ${city === option.value ? "pill-active-city" : ""}`}
-                  aria-pressed={city === option.value}
-                  onClick={() => setCity(option.value)}
+                  key={option.slug}
+                  className={`pill ${city === option.slug ? "pill-active-city" : ""}`}
+                  aria-pressed={city === option.slug}
+                  onClick={() => setCity(option.slug)}
                 >
-                  {option.label}
+                  {option.name}
                 </button>
               ))}
             </div>

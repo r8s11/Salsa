@@ -2,10 +2,12 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchApprovedEvents } from "../api/eventsRepo";
 import { City, databaseEventToScheduleX } from "../../../types/events";
 
-export function useEventsQuery(city: City) {
+/** Approved upcoming events for one metro; idle while no metro is chosen. */
+export function useEventsQuery(city: City | null) {
   const { data, isLoading, isFetching, error, errorUpdatedAt, refetch } = useQuery({
     queryKey: ["events", city],
-    queryFn: () => fetchApprovedEvents(city),
+    queryFn: () => fetchApprovedEvents(city!),
+    enabled: city !== null,
   });
 
   return {

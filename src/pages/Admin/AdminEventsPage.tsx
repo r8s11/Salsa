@@ -9,6 +9,7 @@ import {
 } from "../../features/events/api/eventFlyers";
 import { updateEventFlyer } from "../../features/events/api/eventsRepo";
 import { useCity } from "../../contexts/useCity";
+import { useMetros, useMetroName } from "../../features/metros/hooks/useMetros";
 import { usePlatformSettings } from "../../features/admin/hooks/usePlatformSettings";
 import type { DatabaseEvent, City } from "../../features/events/model/types";
 import { draftToAdminPayload } from "../../features/events/components/EventForm";
@@ -19,7 +20,6 @@ import {
   applySort,
   defaultSortFor,
   viewCounts,
-  CITY_LABEL,
   DANCE_STYLES,
   SOURCE_TYPE_LABEL,
   DEFAULT_PAGE_SIZE,
@@ -78,7 +78,6 @@ const VALID_SOURCES: DatabaseEvent["source_type"][] = [
   "moderator",
   "imported",
 ];
-const VALID_CITIES: City[] = ["boston", "new-york-city"];
 
 const VIEW_LABEL: Record<EventView, string> = {
   all: "All Events",
@@ -111,7 +110,7 @@ function parseView(searchParams: URLSearchParams): EventView {
   return "upcoming";
 }
 
-function parseFilters(searchParams: URLSearchParams): EventFilters {
+function parseFilters(searchParams: URLSearchParams, metroSlugs: ReadonlySet<string>): EventFilters {
   const statusParam = searchParams.get("status");
   const status = statusParam
     ? statusParam
@@ -130,7 +129,7 @@ function parseFilters(searchParams: URLSearchParams): EventFilters {
     status,
     organizer: searchParams.get("organizer"),
     venue: searchParams.get("venue"),
-    city: city && VALID_CITIES.includes(city as City) ? (city as City) : null,
+    city: city && metroSlugs.has(city) ? (city as City) : null,
     style: searchParams.get("style"),
     source:
       source && VALID_SOURCES.includes(source as DatabaseEvent["source_type"])
@@ -180,6 +179,9 @@ interface FilterChip {
 
 export default function AdminEventsPage() {
   const { city } = useCity();
+  const { metros } = useMetros();
+  const metroName = useMetroName();
+  const metroSlugs = useMemo(() => new Set(metros.map((metro) => metro.slug)), [metros]);
   const { settings: platformSettings, isLoading: platformSettingsLoading } = usePlatformSettings();
   const {
     events: queriedEvents,
@@ -245,7 +247,7 @@ export default function AdminEventsPage() {
   const { view, filters, sort, page, size, pagedEvents, total } = useMemo(() => {
     const now = new Date();
     const parsedView = parseView(searchParams);
-    const parsedFilters = parseFilters(searchParams);
+    const parsedFilters = parseFilters(searchParams, metroSlugs);
     const parsedSort = parseSort(searchParams, parsedView);
     const parsedPage = parsePage(searchParams);
     const parsedSize = parseSize(searchParams);
@@ -264,7 +266,7 @@ export default function AdminEventsPage() {
       pagedEvents: sorted.slice(start, start + parsedSize),
       total: sorted.length,
     };
-  }, [events, searchParams]);
+  }, [events, searchParams, metroSlugs]);
 
   const counts = useMemo(() => viewCounts(events, new Date()), [events]);
   const duplicateIds = useMemo(() => findPotentialDuplicates(events), [events]);
@@ -401,7 +403,7 @@ export default function AdminEventsPage() {
   if (filters.city) {
     chips.push({
       key: "city",
-      label: CITY_LABEL[filters.city],
+      label: metroName(filters.city),
       onRemove: () => updateParams({ city: null }),
     });
   }
@@ -666,7 +668,7 @@ export default function AdminEventsPage() {
         initial={
           isEdit
             ? buildAdminFormFromEvent(formView.event)
-            : buildEmptyAdminForm(platformSettings?.default_city ?? city)
+            : buildEmptyAdminForm(platformSettings?.default_city ?? city ?? "")
         }
         initialTaxonomyTerms={isEdit ? formView.event.taxonomy_terms : []}
         heading={isEdit ? "Edit event" : "New event"}

@@ -3,14 +3,12 @@ import { X } from "lucide-react";
 import { useAccessibleDialog } from "../../shared/a11y/useAccessibleDialog";
 import type { City, DatabaseEvent } from "../../features/events/model/types";
 import {
-  CITY_LABEL,
   DANCE_STYLES,
   SOURCE_TYPE_LABEL,
   type EventFilters,
 } from "../../features/admin/model/eventsQuery";
 import "./AdminEventsFilterDrawer.css";
 
-const CITIES: City[] = ["boston", "new-york-city"];
 const SOURCES: DatabaseEvent["source_type"][] = [
   "admin",
   "user_submission",
@@ -65,6 +63,10 @@ export default function AdminEventsFilterDrawer({
           events.map((event) => event.location).filter((value): value is string => Boolean(value))
         )
       ).sort(),
+    [events]
+  );
+  const cities = useMemo(
+    () => Array.from(new Set(events.map((event) => event.city))).sort(),
     [events]
   );
 
@@ -163,9 +165,9 @@ export default function AdminEventsFilterDrawer({
               }
             >
               <option value="">Any city</option>
-              {CITIES.map((city) => (
+              {cities.map((city) => (
                 <option key={city} value={city}>
-                  {CITY_LABEL[city]}
+                  {city.replace(/(^|-)([a-z])/g, (_match, _separator, letter: string) => ` ${letter.toUpperCase()}`).trim()}
                 </option>
               ))}
             </select>

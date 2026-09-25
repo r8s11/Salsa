@@ -14,6 +14,11 @@ import { CityProvider } from "../../contexts/CityContext";
 vi.mock("../../features/events/hooks/useEvent", () => ({
   useEvents: () => ({ events, loading: false, error: null }),
 }));
+vi.mock("../../contexts/useAuth", () => ({ useAuth: () => ({ user: null, loading: false }) }));
+vi.mock("../../features/account/hooks/useOwnProfile", () => ({
+  useOwnProfile: () => ({ profile: null, isLoading: false, error: null }),
+}));
+vi.mock("../../features/metros/hooks/useMetros", () => import("../../test/mockMetros"));
 // The real EventModal records view/rsvp_click demand touches; keep them out
 // of the live Supabase while this test exercises navigation only.
 vi.mock("../../features/events/api/eventsRepo", () => ({

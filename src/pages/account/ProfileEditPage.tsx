@@ -16,14 +16,14 @@ import {
   type NotificationPrefs,
   type OwnProfile,
 } from "../../features/account/model/account";
-import { CITY_LABEL, DANCE_STYLES } from "../../features/admin/model/eventsQuery";
+import { DANCE_STYLES } from "../../features/admin/model/eventsQuery";
+import { useMetros } from "../../features/metros/hooks/useMetros";
 import type { City } from "../../features/events/model/types";
 import type { CropGeometry } from "../../features/account/api/profileMedia";
 import "./ProfileEditPage.css";
 
 const BIO_MAX_LENGTH = 600;
 
-const CITY_OPTIONS = Object.entries(CITY_LABEL) as [City, string][];
 
 type FormState = {
   display_name: string;
@@ -90,6 +90,7 @@ function linkError(value: string): string | null {
 
 
 export default function ProfileEditPage() {
+  const { metros } = useMetros();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { profile, isLoading, error, refetch } = useOwnProfile(user?.id);
@@ -687,9 +688,9 @@ export default function ProfileEditPage() {
                 onChange={(event) => patchForm({ city: event.target.value as City | "" })}
               >
                 <option value="">No city set</option>
-                {CITY_OPTIONS.map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
+                {metros.map((metro) => (
+                  <option key={metro.slug} value={metro.slug}>
+                    {metro.name}
                   </option>
                 ))}
               </select>

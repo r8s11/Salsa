@@ -124,7 +124,7 @@ export default function SubmitEventPage() {
           <p className="submit-event__intro">
             {isOrganizer
               ? "Add the details dancers need to discover and attend your event. It goes through moderation review before it appears on the calendar."
-              : "Know about a salsa, bachata, or dance event in Greater Boston or NYC? Share it with the community! All submissions are reviewed before appearing on the calendar."}
+              : "Know about a salsa, bachata, or dance event near you? Share it with the community! All submissions are reviewed before appearing on the calendar."}
           </p>
         </header>
 

@@ -1,5 +1,6 @@
 export type EventType = "social" | "class" | "workshop";
-export type City = "boston" | "new-york-city";
+/** Canonical metro slug (public.metros.slug), e.g. "new-york-city". */
+export type City = string;
 
 export interface EventTaxonomyTerm {
   id: string;

@@ -338,9 +338,10 @@ describe("share poster", () => {
     expect(screen.getAllByRole("button", { name: "Send to friends" })).toHaveLength(2);
   });
 
-  it("shares a single Story PNG File with event-title metadata and canonical URL text when native file sharing is available", async () => {
+  it("shares a single Story PNG File with a separate canonical event URL", async () => {
     const shareSpy = vi.fn().mockResolvedValue(undefined);
-    Object.defineProperty(navigator, "canShare", { value: vi.fn(() => true), configurable: true });
+    const canShareSpy = vi.fn(() => true);
+    Object.defineProperty(navigator, "canShare", { value: canShareSpy, configurable: true });
     Object.defineProperty(navigator, "share", { value: shareSpy, configurable: true });
 
     render(<EventModal event={baseEvent} onClose={() => {}} />);
@@ -349,9 +350,16 @@ describe("share poster", () => {
 
     await waitFor(() => expect(shareSpy).toHaveBeenCalledTimes(1));
     expect(mockCreatePoster).toHaveBeenCalledWith(baseEvent, "story");
-    const [{ title, text, files }] = shareSpy.mock.calls[0];
+    const [{ title, text, url, files }] = shareSpy.mock.calls[0];
     expect(title).toBe(baseEvent.title);
     expect(text).toContain(`${window.location.origin}/events/1`);
+    expect(url).toBe(`${window.location.origin}/events/1`);
+    expect(canShareSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        files: [expect.any(File)],
+        url: `${window.location.origin}/events/1`,
+      })
+    );
     expect(files).toHaveLength(1);
     expect(files[0]).toBeInstanceOf(File);
     expect(files[0].type).toBe("image/png");

@@ -320,10 +320,10 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
 
   // ── Poster sharing ──
   // The sleeve is rendered off-screen at export size, captured, and handed
-  // to the native files share with the event URL in the text, so every
-  // shared poster returns a dancer to this exact event. Failures surface as
-  // visible feedback (never console-only); a dismissed share sheet stays
-  // silent because that is a choice, not a failure.
+  // to the native share with the event URL as both a URL and text value, so
+  // share targets can make it tappable while retaining the image. The poster
+  // itself keeps its QR and printed short link for cross-device use.
+  // Failures surface as visible feedback; a dismissed share sheet stays silent.
   const handleSharePoster = async (region: ActionRegion, posterFormat: PosterFormat) => {
     if (isSharing) return;
     setIsSharing(true);
@@ -331,14 +331,16 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
     try {
       const poster = await createPoster(event, posterFormat);
       const file = new File([poster], posterFilename(event, posterFormat), { type: "image/png" });
+      const shareData = {
+        files: [file],
+        title: event.title,
+        text: `${event.title} — ${canonicalUrl}`,
+        url: canonicalUrl,
+      };
 
-      if (navigator.canShare?.({ files: [file] })) {
+      if (navigator.canShare?.(shareData)) {
         try {
-          await navigator.share({
-            files: [file],
-            title: event.title,
-            text: `${event.title} — ${canonicalUrl}`,
-          });
+          await navigator.share(shareData);
         } catch (err) {
           if (!(err instanceof DOMException && err.name === "AbortError")) {
             setFeedback({

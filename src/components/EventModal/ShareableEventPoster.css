@@ -87,6 +87,23 @@
   font-weight: 600;
   letter-spacing: 0.12em;
 }
+.sleeve-masthead__details {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.sleeve-masthead__type {
+  border-left: 1px solid currentColor;
+  padding-left: 14px;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+}
+
+.sleeve--feed .sleeve-masthead__type {
+  font-size: 18px;
+}
 
 .sleeve--feed .sleeve-masthead__label {
   font-size: 38px;
@@ -450,9 +467,10 @@
   font-size: 30px;
 }
 
-/* The feed cut has no room for the credit; the story carries it. */
 .sleeve--feed .sleeve-scan__credit {
-  display: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ── Off-screen capture target ── */

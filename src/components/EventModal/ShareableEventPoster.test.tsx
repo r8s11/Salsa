@@ -25,26 +25,93 @@ const baseProps = {
 };
 
 describe("ShareableEventPoster", () => {
-  it("renders a Story poster with the story class and aria-label", () => {
+  it("renders a Story poster with the event facts in its accessible name", () => {
     render(<ShareableEventPoster event={event} {...baseProps} />);
 
     const poster = screen.getByRole("img", {
-      name: "Instagram Story poster for Live Band Latin Night at PKL",
+      name: /^Instagram Story poster for Live Band Latin Night at PKL/,
     });
+    const accessibleName = poster.getAttribute("aria-label") ?? "";
 
     expect(poster).toHaveClass("sleeve", "sleeve--story", "sleeve--social");
     expect(within(poster).getByText("LA Style · New York Style")).toBeInTheDocument();
+    expect(accessibleName).toContain("Event type: Social");
+    expect(accessibleName).toContain("Date: Saturday, August 29");
+    expect(accessibleName).toContain("Time: 9:00 PM – 1:00 AM");
+    expect(accessibleName).toContain("Venue: South Boston");
+    expect(accessibleName).toContain("Address: 123 Dance St");
+    expect(accessibleName).toContain("Price: $25");
+    expect(accessibleName).toContain("Dance styles: LA Style, New York Style");
+    expect(accessibleName).toContain("Host: DJ Coco");
+    expect(accessibleName).toContain("Event link: https://salsasegura.com/e/1a2b3c4d");
   });
 
-  it("renders a Feed poster with the feed class and aria-label", () => {
+  it("renders a Feed poster with its format in the accessible name", () => {
     render(<ShareableEventPoster event={event} {...baseProps} format="feed" />);
 
     const poster = screen.getByRole("img", {
-      name: "Feed poster for Live Band Latin Night at PKL",
+      name: /^Feed poster for Live Band Latin Night at PKL/,
     });
 
     expect(poster).toHaveClass("sleeve", "sleeve--feed", "sleeve--social");
     expect(poster).not.toHaveClass("sleeve--story");
+  });
+  it("keeps the Feed host credit beside the scan link without dropping factual tracks", () => {
+    render(<ShareableEventPoster event={event} {...baseProps} format="feed" />);
+
+    const poster = screen.getByRole("img", {
+      name: /^Feed poster for Live Band Latin Night at PKL/,
+    });
+    const credit = within(poster).getByText("Hosted by DJ Coco");
+
+    expect(getComputedStyle(credit).display).not.toBe("none");
+    expect(within(poster).getByText("Scan", { selector: ".sleeve-scan__cta" })).toBeInTheDocument();
+    expect(
+      within(poster).getByText("Saturday, August 29", { selector: ".sleeve-track__value" })
+    ).toBeInTheDocument();
+    expect(within(poster).getByText("9:00 PM – 1:00 AM")).toBeInTheDocument();
+    expect(within(poster).getByText("South Boston")).toBeInTheDocument();
+    expect(within(poster).getByText("LA Style · New York Style")).toBeInTheDocument();
+  });
+
+
+  it.each([
+    ["social", "SOCIAL"],
+    ["class", "CLASS"],
+    ["workshop", "WORKSHOP"],
+  ] as const)("labels the %s pressing without replacing its color code", (calendarId, label) => {
+    const eventWithType = { ...event, calendarId };
+    render(<ShareableEventPoster event={eventWithType} {...baseProps} />);
+
+    const poster = screen.getByRole("img", {
+      name: /^Instagram Story poster for Live Band Latin Night at PKL/,
+    });
+
+    expect(within(poster).getByText(new RegExp(`^${label}$`, "i"))).toBeInTheDocument();
+    expect(poster).toHaveClass(`sleeve--${calendarId}`);
+  });
+  it("announces missing event facts instead of omitting them from the accessible name", () => {
+    const eventWithMissingFacts = {
+      ...event,
+      location: undefined,
+      address: undefined,
+      priceType: undefined,
+      priceAmount: undefined,
+      danceStyles: undefined,
+      host: undefined,
+    };
+    render(<ShareableEventPoster event={eventWithMissingFacts} {...baseProps} />);
+
+    const poster = screen.getByRole("img", {
+      name: /^Instagram Story poster for Live Band Latin Night at PKL/,
+    });
+    const accessibleName = poster.getAttribute("aria-label") ?? "";
+
+    expect(accessibleName).toContain("Venue: Not listed");
+    expect(accessibleName).toContain("Address: Not listed");
+    expect(accessibleName).toContain("Price: Free");
+    expect(accessibleName).toContain("Dance styles: Not listed");
+    expect(accessibleName).toContain("Host: Not listed");
   });
 
   it("displays the event title as the sleeve cover heading", () => {
@@ -57,7 +124,7 @@ describe("ShareableEventPoster", () => {
     render(<ShareableEventPoster event={event} {...baseProps} />);
 
     const poster = screen.getByRole("img", {
-      name: "Instagram Story poster for Live Band Latin Night at PKL",
+      name: /^Instagram Story poster for Live Band Latin Night at PKL/,
     });
 
     expect(within(poster).getByText("Saturday, August 29")).toBeInTheDocument();
@@ -69,7 +136,7 @@ describe("ShareableEventPoster", () => {
     render(<ShareableEventPoster event={event} {...baseProps} />);
 
     const poster = screen.getByRole("img", {
-      name: "Instagram Story poster for Live Band Latin Night at PKL",
+      name: /^Instagram Story poster for Live Band Latin Night at PKL/,
     });
 
     expect(within(poster).getByText("South Boston")).toBeInTheDocument();
@@ -80,7 +147,7 @@ describe("ShareableEventPoster", () => {
     render(<ShareableEventPoster event={event} {...baseProps} format="feed" />);
 
     const poster = screen.getByRole("img", {
-      name: "Feed poster for Live Band Latin Night at PKL",
+      name: /^Feed poster for Live Band Latin Night at PKL/,
     });
 
     expect(within(poster).getByText("South Boston")).toBeInTheDocument();
@@ -93,7 +160,7 @@ describe("ShareableEventPoster", () => {
     render(<ShareableEventPoster event={eventNoLocation} {...baseProps} />);
 
     const poster = screen.getByRole("img", {
-      name: "Instagram Story poster for Live Band Latin Night at PKL",
+      name: /^Instagram Story poster for Live Band Latin Night at PKL/,
     });
 
     expect(within(poster).queryByText("South Boston")).not.toBeInTheDocument();
@@ -106,7 +173,7 @@ describe("ShareableEventPoster", () => {
     render(<ShareableEventPoster event={eventNoStyles} {...baseProps} />);
 
     const poster = screen.getByRole("img", {
-      name: "Instagram Story poster for Live Band Latin Night at PKL",
+      name: /^Instagram Story poster for Live Band Latin Night at PKL/,
     });
 
     expect(within(poster).getByText("social")).toBeInTheDocument();
@@ -116,7 +183,7 @@ describe("ShareableEventPoster", () => {
     render(<ShareableEventPoster event={event} {...baseProps} />);
 
     const poster = screen.getByRole("img", {
-      name: "Instagram Story poster for Live Band Latin Night at PKL",
+      name: /^Instagram Story poster for Live Band Latin Night at PKL/,
     });
 
     expect(within(poster).getByText("$25")).toBeInTheDocument();
@@ -128,7 +195,7 @@ describe("ShareableEventPoster", () => {
     render(<ShareableEventPoster event={freeEvent} {...baseProps} />);
 
     const poster = screen.getByRole("img", {
-      name: "Instagram Story poster for Live Band Latin Night at PKL",
+      name: /^Instagram Story poster for Live Band Latin Night at PKL/,
     });
 
     expect(within(poster).getByText("Free")).toBeInTheDocument();
@@ -138,7 +205,7 @@ describe("ShareableEventPoster", () => {
     render(<ShareableEventPoster event={event} {...baseProps} />);
 
     const poster = screen.getByRole("img", {
-      name: "Instagram Story poster for Live Band Latin Night at PKL",
+      name: /^Instagram Story poster for Live Band Latin Night at PKL/,
     });
 
     expect(within(poster).getByText(baseProps.shortLabel)).toBeInTheDocument();
@@ -148,7 +215,7 @@ describe("ShareableEventPoster", () => {
     render(<ShareableEventPoster event={event} {...baseProps} />);
 
     const poster = screen.getByRole("img", {
-      name: "Instagram Story poster for Live Band Latin Night at PKL",
+      name: /^Instagram Story poster for Live Band Latin Night at PKL/,
     });
 
     expect(poster.querySelector("svg.sleeve-qr")).toBeInTheDocument();
@@ -158,7 +225,7 @@ describe("ShareableEventPoster", () => {
     const { rerender } = render(<ShareableEventPoster event={event} {...baseProps} />);
 
     const poster = screen.getByRole("img", {
-      name: "Instagram Story poster for Live Band Latin Night at PKL",
+      name: /^Instagram Story poster for Live Band Latin Night at PKL/,
     });
     expect(within(poster).getByText("Hosted by DJ Coco")).toBeInTheDocument();
 
@@ -170,7 +237,7 @@ describe("ShareableEventPoster", () => {
     render(<ShareableEventPoster event={event} {...baseProps} artKind="flyer" />);
 
     const poster = screen.getByRole("img", {
-      name: "Instagram Story poster for Live Band Latin Night at PKL",
+      name: /^Instagram Story poster for Live Band Latin Night at PKL/,
     });
 
     expect(poster.querySelector(".sleeve-cover__art")).toHaveClass("sleeve-cover__art--flyer");
@@ -180,7 +247,7 @@ describe("ShareableEventPoster", () => {
     render(<ShareableEventPoster event={event} {...baseProps} artKind="fallback" />);
 
     const poster = screen.getByRole("img", {
-      name: "Instagram Story poster for Live Band Latin Night at PKL",
+      name: /^Instagram Story poster for Live Band Latin Night at PKL/,
     });
 
     expect(poster.querySelector(".sleeve-cover__art")).toHaveClass("sleeve-cover__art--fallback");
@@ -190,7 +257,7 @@ describe("ShareableEventPoster", () => {
     render(<ShareableEventPoster event={{ ...event, calendarId: "workshop" }} {...baseProps} />);
 
     const poster = screen.getByRole("img", {
-      name: "Instagram Story poster for Live Band Latin Night at PKL",
+      name: /^Instagram Story poster for Live Band Latin Night at PKL/,
     });
 
     expect(poster).toHaveClass("sleeve--workshop");

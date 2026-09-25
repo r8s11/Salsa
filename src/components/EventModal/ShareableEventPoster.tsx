@@ -73,20 +73,34 @@ export default function ShareableEventPoster({
     day: "numeric",
     month: "long",
   });
+  const timeLabel = [start, end]
+    .map((date) => date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }))
+    .join(" – ");
   const catalogue = `SS-${String(start.getMonth() + 1).padStart(2, "0")}${String(
     start.getDate()
   ).padStart(2, "0")}${event.city ? ` · ${CITY_CODE[event.city] ?? ""}` : ""}`;
   const styles = event.danceStyles?.length ? event.danceStyles.join(" · ") : event.calendarId;
+  const eventTypeLabel = { social: "Social", class: "Class", workshop: "Workshop" }[
+    event.calendarId
+  ];
+  const priceLabel =
+    event.priceType === "free" || event.priceAmount == null ? "Free" : `$${event.priceAmount}`;
+  const posterDescription = [
+    `${format === "story" ? "Instagram Story" : "Feed"} poster for ${event.title}`,
+    `Event type: ${eventTypeLabel}`,
+    `Date: ${dateLabel}`,
+    `Time: ${timeLabel}`,
+    `Venue: ${event.location || "Not listed"}`,
+    `Address: ${event.address || "Not listed"}`,
+    `Price: ${priceLabel}`,
+    `Dance styles: ${event.danceStyles?.length ? event.danceStyles.join(", ") : "Not listed"}`,
+    `Host: ${event.host || "Not listed"}`,
+    `Event link: ${shortUrl}`,
+  ].join(". ");
 
   const tracks = [
     { side: "A1", label: "Date", value: dateLabel },
-    {
-      side: "A2",
-      label: "Time",
-      value: [start, end]
-        .map((date) => date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }))
-        .join(" – "),
-    },
+    { side: "A2", label: "Time", value: timeLabel },
     ...(event.location
       ? [{ side: "A3", label: "Venue", value: event.location, note: event.address }]
       : []),
@@ -97,11 +111,14 @@ export default function ShareableEventPoster({
     <div
       className={`shareable-poster sleeve sleeve--${format} sleeve--${event.calendarId}`}
       role="img"
-      aria-label={`${format === "story" ? "Instagram Story" : "Feed"} poster for ${event.title}`}
+      aria-label={posterDescription}
     >
       <header className="sleeve-masthead">
         <span className="sleeve-masthead__label">Salsa Segura</span>
-        <span className="sleeve-masthead__catalogue">{catalogue}</span>
+        <div className="sleeve-masthead__details">
+          <span className="sleeve-masthead__catalogue">{catalogue}</span>
+          <span className="sleeve-masthead__type">{eventTypeLabel}</span>
+        </div>
       </header>
 
       <div className="sleeve-front">
@@ -138,7 +155,9 @@ export default function ShareableEventPoster({
           <div className="sleeve-scan">
             <QrCode value={shortUrl} />
             <div className="sleeve-scan__text">
-              <span className="sleeve-scan__cta">Scan for the night</span>
+              <span className="sleeve-scan__cta">
+                {format === "feed" ? "Scan" : "Scan for the night"}
+              </span>
               <span className="sleeve-scan__url">{shortLabel}</span>
               {event.host && <span className="sleeve-scan__credit">Hosted by {event.host}</span>}
             </div>

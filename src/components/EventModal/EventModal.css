@@ -836,11 +836,11 @@
   }
 
   .poster-stage--story {
-    width: min(58vw, 250px);
+    width: min(300px, 100%);
   }
 
   .poster-stage--feed {
-    width: min(78vw, 320px);
+    width: min(340px, 100%);
   }
 
   .poster-preview__title {

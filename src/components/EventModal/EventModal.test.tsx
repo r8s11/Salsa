@@ -502,6 +502,30 @@ describe("poster preview", () => {
     expect(feedButton).toHaveAttribute("aria-pressed", "true");
   });
 
+  it("resizes the visible poster when switching between Story and Feed", () => {
+    const width = vi
+      .spyOn(HTMLElement.prototype, "clientWidth", "get")
+      .mockImplementation(function (this: HTMLElement) {
+        if (this.classList.contains("poster-stage--story")) return 300;
+        if (this.classList.contains("poster-stage--feed")) return 380;
+        return 0;
+      });
+    try {
+      const { container } = render(<EventModal event={baseEvent} onClose={() => {}} />);
+      fireEvent.click(screen.getByRole("button", { name: "Preview the poster your friends get" }));
+      const stage = container.querySelector(".poster-stage") as HTMLElement;
+      expect(stage).toHaveStyle({ height: "533.3333333333334px" });
+
+      fireEvent.click(screen.getByRole("button", { name: "Feed · 4:5" }));
+      expect(stage).toHaveStyle({ height: "475px" });
+
+      fireEvent.click(screen.getByRole("button", { name: "Story · 9:16" }));
+      expect(stage).toHaveStyle({ height: "533.3333333333334px" });
+    } finally {
+      width.mockRestore();
+    }
+  });
+
   it("returns to the card and focuses the sleeve on Escape, closes the modal on the second Escape", async () => {
     const onClose = vi.fn();
     render(<EventModal event={baseEvent} onClose={onClose} />);

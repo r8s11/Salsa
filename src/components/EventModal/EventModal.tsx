@@ -777,7 +777,7 @@ function PosterStage({ format, children }: { format: PosterFormat; children: Rea
     const observer = new ResizeObserver(([entry]) => setWidth(entry.contentRect.width));
     observer.observe(stage);
     return () => observer.disconnect();
-  }, []);
+  }, [format]);
 
   const scale = width / size.width;
   return (

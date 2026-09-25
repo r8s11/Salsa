@@ -173,3 +173,7 @@ graphify-out/
 
 # graft's local graph cache — regenerable, not committed (run `graft build`).
 /graft/
+
+# Local agent/editor state
+.impeccable/
+/opencode.json

@@ -120,6 +120,24 @@ describe("ShareableEventPoster", () => {
     expect(screen.getByRole("heading", { name: event.title })).toHaveClass("sleeve-cover__title");
   });
 
+  it("fits long cover titles without truncating their text", () => {
+    const longTitle =
+      "International Salsa and Bachata Night with Live Orchestra and Guest DJs at Havana Club Presenting Special Anniversary Celebration";
+    const longEvent = { ...event, title: longTitle };
+
+    const { rerender } = render(<ShareableEventPoster event={longEvent} {...baseProps} />);
+    const title = screen.getByRole("heading", { name: longTitle });
+
+    const storySize = Number.parseFloat(title.style.getPropertyValue("--title-size"));
+    expect(storySize).toBeLessThan(54);
+    expect(storySize).toBeGreaterThanOrEqual(24);
+
+    rerender(<ShareableEventPoster event={longEvent} {...baseProps} format="feed" />);
+    const feedTitle = screen.getByRole("heading", { name: longTitle });
+    const feedSize = Number.parseFloat(feedTitle.style.getPropertyValue("--title-size"));
+    expect(feedSize).toBeLessThan(storySize);
+  });
+
   it("displays the date without a year, and the time range", () => {
     render(<ShareableEventPoster event={event} {...baseProps} />);
 
@@ -187,6 +205,17 @@ describe("ShareableEventPoster", () => {
     });
 
     expect(within(poster).getByText("$25")).toBeInTheDocument();
+  });
+
+  it("shrinks long paid prices to keep them inside both sticker formats", () => {
+    const expensiveEvent = { ...event, priceAmount: 1250 };
+    const { rerender } = render(<ShareableEventPoster event={expensiveEvent} {...baseProps} />);
+    const storyPrice = screen.getByText("$1250");
+
+    expect(Number.parseFloat(storyPrice.style.fontSize)).toBeLessThan(72);
+
+    rerender(<ShareableEventPoster event={expensiveEvent} {...baseProps} format="feed" />);
+    expect(Number.parseFloat(screen.getByText("$1250").style.fontSize)).toBeLessThan(56);
   });
 
   it("shows a Free price sticker for a free event", () => {

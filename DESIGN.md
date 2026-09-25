@@ -318,10 +318,9 @@ poster is shown; the same font bytes are embedded into the PNG capture
 (`posterFontEmbedCss`) so the exported poster matches the on-screen
 preview instead of falling back to a system sans.
 
-**The Artwork-Not-Ramp Rule.** The cover title's export-pixel size
-(54–128px story, ×0.8 on feed, stepped by character count) is artwork
-sized for the printed sleeve and answers to no UI type ramp — the same
-exemption the vinyl label print already has.
+**The Artwork-Not-Ramp Rule.** The cover title uses artwork sizing rather
+than the UI type ramp: 24–128px in Story, scaled ×0.8 in Feed, and reduced
+for long titles so the complete event name remains visible.
 
 ## Layout & Spacing
 

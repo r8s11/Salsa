@@ -135,6 +135,11 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
     message: string;
     region: ActionRegion;
   } | null>(null);
+  const [shareFallback, setShareFallback] = useState<{
+    poster: Blob;
+    format: PosterFormat;
+    region: ActionRegion;
+  } | null>(null);
   const copiedTimerRef = useRef<number | null>(null);
   const { createPoster, posterFilename, downloadPoster } = useShareablePoster();
 
@@ -328,6 +333,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
     if (isSharing) return;
     setIsSharing(true);
     setFeedback(null);
+    setShareFallback(null);
     try {
       const poster = await createPoster(event, posterFormat);
       const file = new File([poster], posterFilename(event, posterFormat), { type: "image/png" });
@@ -342,13 +348,18 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
         try {
           await navigator.share(shareData);
         } catch (err) {
-          if (!(err instanceof DOMException && err.name === "AbortError")) {
-            setFeedback({
-              kind: "error",
-              message: "Sending the poster failed. Please try again.",
-              region,
-            });
+          if (err instanceof DOMException && err.name === "AbortError") return;
+          const needsFreshActivation = err instanceof DOMException && err.name === "NotAllowedError";
+          if (needsFreshActivation) {
+            setShareFallback({ poster, format: posterFormat, region });
           }
+          setFeedback({
+            kind: "error",
+            message: needsFreshActivation
+              ? "Sharing needs a fresh tap. Download the poster instead."
+              : "Sending the poster failed. Please try again.",
+            region,
+          });
         }
       } else {
         downloadPoster(event, poster, posterFormat);
@@ -390,6 +401,25 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
       setIsSharing(false);
     }
   };
+  const handleDownloadShareFallback = () => {
+    if (!shareFallback) return;
+    try {
+      downloadPoster(event, shareFallback.poster, shareFallback.format);
+      setShareFallback(null);
+      setFeedback({
+        kind: "status",
+        message: "Poster saved to your downloads.",
+        region: shareFallback.region,
+      });
+    } catch {
+      setFeedback({
+        kind: "error",
+        message: "Could not download the poster. Please try again.",
+        region: shareFallback.region,
+      });
+    }
+  };
+
 
   const renderCalendarAction = () => {
     const calUrl = googleCalendarUrl(event);
@@ -408,9 +438,15 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
   // one live copy exists in the DOM.
   const renderFeedback = (region: ActionRegion) =>
     feedback && feedback.region === region ? (
-      <p className="action-feedback" role={feedback.kind === "error" ? "alert" : "status"}>
+      <div className="action-feedback" role={feedback.kind === "error" ? "alert" : "status"}>
         {feedback.message}
-      </p>
+        {shareFallback?.region === region && (
+          <Button variant="secondary" onClick={handleDownloadShareFallback}>
+            <Download size={16} aria-hidden />
+            Download poster
+          </Button>
+        )}
+      </div>
     ) : null;
 
   // Price-aware attendance note. Never invents a walk-in policy: without an
@@ -629,7 +665,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
 
   // ── Poster preview: exactly what friends receive, at either format ──
   const renderPosterPreview = () => (
-    <section className="poster-preview" aria-labelledby="poster-preview-title">
+    <section className="poster-preview" aria-labelledby="modal-title">
       <div className="poster-preview__head">
         <button
           ref={previewBackRef}

@@ -11,10 +11,11 @@ interface SleeveCoverProps {
   format?: PosterFormat;
 }
 
-/** Title size steps for the lettered cover band, by character count. */
+/** Size long titles to retain the full name inside the cover's title band. */
 function titleSize(title: string, format: PosterFormat): number {
   const n = title.length;
-  const size = n <= 14 ? 128 : n <= 24 ? 104 : n <= 40 ? 84 : n <= 64 ? 68 : 54;
+  const size =
+    n <= 14 ? 128 : n <= 24 ? 104 : n <= 40 ? 84 : n <= 64 ? 68 : Math.max(24, Math.floor(4320 / n));
   // The feed cover is 728px against the story's 968px.
   return format === "feed" ? Math.round((size * 728) / 968) : size;
 }
@@ -34,6 +35,11 @@ export default function SleeveCover({
 }: SleeveCoverProps) {
   const isFree = event.priceType === "free" || event.priceAmount == null;
   const titleStyle = { "--title-size": `${titleSize(event.title, format)}px` } as CSSProperties;
+  const priceLabel = isFree ? "Free" : `$${event.priceAmount}`;
+  const priceSize = format === "feed" ? 56 : 72;
+  const priceStyle = {
+    fontSize: `${Math.max(28, Math.min(priceSize, Math.floor((priceSize * 4) / priceLabel.length)))}px`,
+  };
   return (
     <div className="sleeve-cover">
       <div className={`sleeve-cover__art sleeve-cover__art--${artKind}`}>
@@ -46,7 +52,9 @@ export default function SleeveCover({
       </div>
       <div className="sleeve-sticker">
         <span className="sleeve-sticker__label">Entry</span>
-        <span className="sleeve-sticker__price">{isFree ? "Free" : `$${event.priceAmount}`}</span>
+        <span className="sleeve-sticker__price" style={priceStyle}>
+          {priceLabel}
+        </span>
       </div>
     </div>
   );

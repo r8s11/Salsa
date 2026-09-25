@@ -45,6 +45,7 @@ describe("useShareablePoster", () => {
 
   afterEach(() => {
     document.body.innerHTML = "";
+    vi.restoreAllMocks();
   });
 
   it("throws when the mounted poster capture yields no blob", async () => {
@@ -68,6 +69,35 @@ describe("useShareablePoster", () => {
     await expect(result.current.capturePoster(container)).rejects.toThrow(
       "cross-origin artwork blocked"
     );
+  });
+  it("uses the first successful capture on Chromium despite its AppleWebKit user agent", async () => {
+    vi.spyOn(navigator, "userAgent", "get").mockReturnValue(
+      "Mozilla/5.0 AppleWebKit/537.36 Chrome/150.0.0.0 Safari/537.36"
+    );
+    const first = new Blob(["complete"], { type: "image/png" });
+    vi.mocked(toBlob).mockResolvedValueOnce(first).mockResolvedValueOnce(null);
+    const { result } = renderHook(() => useShareablePoster());
+    const container = result.current.ensureContainer();
+    container.appendChild(document.createElement("div"));
+
+    expect(await result.current.capturePoster(container)).toBe(first);
+    expect(toBlob).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 Version/18.0 Safari/605.1.15",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 CriOS/150.0.0.0 Mobile/15E148 Safari/604.1",
+  ])("keeps the primed capture on WebKit (%s)", async (agent) => {
+    vi.spyOn(navigator, "userAgent", "get").mockReturnValue(agent);
+    const first = new Blob(["blank cover"], { type: "image/png" });
+    const complete = new Blob(["complete cover"], { type: "image/png" });
+    vi.mocked(toBlob).mockResolvedValueOnce(first).mockResolvedValueOnce(complete);
+    const { result } = renderHook(() => useShareablePoster());
+    const container = result.current.ensureContainer();
+    container.appendChild(document.createElement("div"));
+
+    expect(await result.current.capturePoster(container)).toBe(complete);
+    expect(toBlob).toHaveBeenCalledTimes(2);
   });
 
   it("creates the shared square filename for a poster download and revokes its object URL", () => {

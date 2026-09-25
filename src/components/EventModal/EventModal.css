@@ -555,7 +555,7 @@
 }
 
 .poster-preview__format {
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 16px;
   border: 0;
   border-radius: var(--radius-full);

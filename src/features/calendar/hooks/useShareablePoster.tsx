@@ -124,11 +124,13 @@ export function useShareablePoster() {
     await Promise.all(
       Array.from(posterEl.querySelectorAll("img"), (img) => img.decode?.().catch(() => undefined))
     );
-    // WebKit (every iOS browser) paints images inside the SVG snapshot only
-    // once they are cached from a previous draw, so the first capture comes
-    // back with an empty cover. A discarded warm-up render primes it; other
-    // engines pay one extra render on a user-initiated action.
-    await toBlob(posterEl, options).catch(() => null);
+    // WebKit needs a previous SVG draw before it paints the cover image into
+    // the snapshot. Chromium also includes "AppleWebKit" in its user agent,
+    // so exclude Chromium-family engines; iOS Chrome/Edge still use WebKit.
+    const agent = navigator.userAgent;
+    if (/AppleWebKit\//.test(agent) && !/(?:Chrome|Chromium|Edg|OPR|SamsungBrowser)\//.test(agent)) {
+      await toBlob(posterEl, options).catch(() => null);
+    }
     const blob = await toBlob(posterEl, options);
 
     if (!blob) {

@@ -403,6 +403,29 @@ describe("share poster", () => {
     await waitFor(() => expect(shareButton).not.toBeDisabled());
   });
 
+  it("offers a fresh-tap download when native sharing rejects expired activation", async () => {
+    Object.defineProperty(navigator, "canShare", { value: vi.fn(() => true), configurable: true });
+    Object.defineProperty(navigator, "share", {
+      value: vi.fn().mockRejectedValue(new DOMException("activation expired", "NotAllowedError")),
+      configurable: true,
+    });
+
+    render(<EventModal event={baseEvent} onClose={() => {}} />);
+    const [shareButton] = screen.getAllByRole("button", { name: "Send to friends" });
+    fireEvent.click(shareButton);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Sharing needs a fresh tap. Download the poster instead."
+    );
+    const downloadButton = screen.getByRole("button", { name: "Download poster" });
+    expect(mockDownloadPoster).not.toHaveBeenCalled();
+
+    fireEvent.click(downloadButton);
+
+    expect(mockDownloadPoster).toHaveBeenCalledWith(baseEvent, expect.any(Blob), "story");
+    expect(await screen.findByRole("status")).toHaveTextContent("Poster saved to your downloads.");
+  });
+
   it("silently ignores an AbortError from a cancelled native share sheet", async () => {
     Object.defineProperty(navigator, "canShare", { value: vi.fn(() => true), configurable: true });
     const abortError = new DOMException("cancelled", "AbortError");
@@ -459,6 +482,9 @@ describe("poster preview", () => {
       "modal-title"
     );
     expect(screen.getByRole("button", { name: "Back to the night" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("region", { name: "The poster your friends get" })
+    ).toBeInTheDocument();
   });
 
   it("toggles aria-pressed between Story and Feed format buttons", () => {
@@ -533,6 +559,30 @@ describe("poster preview", () => {
     fireEvent.click(screen.getByRole("button", { name: "Send this poster" }));
     await waitFor(() => expect(mockCreatePoster).toHaveBeenCalledWith(baseEvent, "feed"));
     await waitFor(() => expect(shareSpy).toHaveBeenCalledTimes(1));
+  });
+
+  it("disables poster actions while sharing and restores them when capture finishes", async () => {
+    let finishCapture!: (poster: Blob) => void;
+    mockCreatePoster.mockImplementationOnce(
+      () => new Promise<Blob>((resolve) => { finishCapture = resolve; })
+    );
+    render(<EventModal event={baseEvent} onClose={() => {}} />);
+    fireEvent.click(screen.getByRole("button", { name: "Preview the poster your friends get" }));
+
+    const send = screen.getByRole("button", { name: "Send this poster" });
+    const save = screen.getByRole("button", { name: "Save image" });
+    fireEvent.click(send);
+
+    expect(send).toBeDisabled();
+    expect(save).toBeDisabled();
+    await act(async () => {
+      finishCapture(new Blob(["poster"], { type: "image/png" }));
+    });
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      "Sharing isn't available here, so the poster was downloaded instead."
+    );
+    expect(send).toBeEnabled();
+    expect(save).toBeEnabled();
   });
 });
 

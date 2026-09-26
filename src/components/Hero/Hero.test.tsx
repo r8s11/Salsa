@@ -1,20 +1,22 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
-import { describe, expect, it, vi } from "vitest";
 import Hero from "./Hero";
 
-vi.mock("../../contexts/useCity", () => ({
-  useCity: () => ({
-    city: "boston",
-    source: "location",
-    resolving: false,
-    setCity: vi.fn(),
-    chooseNearMe: vi.fn(),
-    activeMetros: [],
-    activeMetrosError: null,
-    locationStatus: "granted",
-  }),
-}));
+const { mockUseCity } = vi.hoisted(() => ({ mockUseCity: vi.fn() }));
+
+vi.mock("../../contexts/useCity", () => ({ useCity: mockUseCity }));
+
+const mockCity = (source: "location" | "explicit" = "location") => ({
+  city: "boston",
+  source,
+  resolving: false,
+  setCity: vi.fn(),
+  chooseNearMe: vi.fn(),
+  activeMetros: [],
+  activeMetrosError: null,
+  locationStatus: "granted" as const,
+});
 
 vi.mock("../../features/metros/hooks/useMetros", () => ({
   useMetroName: () => () => "Boston",
@@ -34,6 +36,23 @@ vi.mock("../../features/events/hooks/useEvent", () => ({
 }));
 
 describe("Hero", () => {
+  beforeEach(() => {
+    mockUseCity.mockReturnValue(mockCity());
+  });
+
+  it("keeps Events near me in the city picker instead of repeating it beside the picker", () => {
+    mockUseCity.mockReturnValue(mockCity("explicit"));
+    render(
+      <MemoryRouter>
+        <Hero />
+      </MemoryRouter>
+    );
+
+    expect(screen.queryByRole("button", { name: "Events near me" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Explore other cities" }));
+    expect(screen.getByRole("button", { name: "Events near me" })).toBeInTheDocument();
+  });
+
   it("marks its mobile action hierarchy and compact stat rail explicitly", () => {
     render(
       <MemoryRouter>

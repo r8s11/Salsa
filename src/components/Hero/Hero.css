@@ -343,9 +343,8 @@
   margin-top: 2.1rem;
 }
 
-/* Metro context: the city explorer and, after a manual pick, the way back
-   to the visitor's own area. Sits above the CTAs so its popover can open
-   downward over them. */
+/* City selector sits above the CTAs so its popover can open downward
+   without covering the primary event links. */
 .hero-metro {
   position: relative;
   z-index: 5;
@@ -356,32 +355,6 @@
   margin-top: 1.5rem;
 }
 
-.hero-metro__near {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-height: 44px;
-  padding: 0 0.25rem;
-  color: var(--text);
-  font-family: var(--font-ui);
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  background: none;
-  border: 0;
-  text-decoration: underline;
-  text-decoration-color: var(--red-bright);
-  text-underline-offset: 4px;
-}
-
-.hero-metro__near:hover {
-  color: var(--gold-light);
-}
-
-.hero-metro__near:focus-visible {
-  outline: 2px solid var(--red-bright);
-  outline-offset: 2px;
-}
 
 .hero-btn {
   padding: 0.95rem 1.9rem;

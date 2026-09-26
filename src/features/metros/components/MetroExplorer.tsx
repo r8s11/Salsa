@@ -6,6 +6,7 @@ import { useMetroName } from "../hooks/useMetros";
 import {
   eventCountLabel,
   formatDistance,
+  metroShortCode,
   type MetroSlug,
   type RankedMetro,
 } from "../model/metro";
@@ -115,7 +116,14 @@ export default function MetroExplorer({
         onClick={() => setOpen((value) => !value)}
       >
         <MapPin size={16} aria-hidden="true" />
-        <span className="metro-explorer__trigger-text">{triggerText}</span>
+        <span className="metro-explorer__trigger-text metro-explorer__trigger-text--full">
+          {triggerText}
+        </span>
+        {variant === "compact" && (
+          <span className="metro-explorer__trigger-text metro-explorer__trigger-text--short" aria-hidden="true">
+            {current ? metroShortCode(current) : "Cities"}
+          </span>
+        )}
         <ChevronDown size={16} aria-hidden="true" className="metro-explorer__chevron" />
       </button>
 

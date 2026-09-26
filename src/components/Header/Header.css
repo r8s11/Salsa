@@ -600,6 +600,43 @@ a.logo:hover .ss-logo__wordmark-accent {
   a.logo .ss-logo--lg .ss-logo__mark {
     height: 22px;
   }
+
+  .site-header nav {
+    gap: var(--space-sm);
+  }
+
+  .metro-explorer--compact {
+    flex: none;
+    margin-left: auto;
+    margin-right: 0;
+  }
+
+  .metro-explorer--compact .metro-explorer__trigger {
+    gap: 6px;
+    padding: 0 10px;
+    letter-spacing: 0.08em;
+    background: transparent;
+    border-color: var(--border);
+  }
+
+  .metro-explorer--compact .metro-explorer__trigger svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .site-header .metro-explorer--compact .metro-explorer__panel {
+    position: fixed;
+    top: calc(68px + var(--space-sm));
+    right: var(--space-md);
+    left: auto;
+  }
+
+  .hamburger {
+    flex: none;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+  }
 }
 
 /* Smallest phones: the wordmark alone carries the brand so the city

@@ -148,6 +148,20 @@ describe("Header", () => {
     expect(screen.getAllByRole("link", { name: "Sign In" })[0]).toHaveAttribute("href", "/signin");
   });
 
+  it("shows a short city code in the compact picker without losing its full name", () => {
+    vi.mocked(useAuth).mockReturnValue(defaultAuth());
+    mockCityValue("new-york-city");
+
+    const { container } = renderHeader();
+    const compactPicker = container.querySelector(".metro-explorer--compact") as HTMLElement;
+    expect(within(compactPicker).getByText("NYC")).toBeInTheDocument();
+    expect(
+      within(compactPicker).getByRole("button", {
+        name: "City: New York City. Explore other cities",
+      })
+    ).toBeInTheDocument();
+  });
+
   it("renders member account disclosure without Dashboard", () => {
     vi.mocked(useAuth).mockReturnValue(defaultAuth({ user: { id: "member" } as User }));
     mockCityValue("boston");

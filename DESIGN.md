@@ -445,6 +445,13 @@ the rounded, glassy language the rest of the system uses.
 - **Secondary:** Outlined in Gold (#E9C349) with a hover state that fills with a semi-transparent gold tint.
 - **Ghost:** Pure text with an underline that appears on hover, mimicking the rhythm of a musical bar.
 
+### Mobile header
+
+The full two-tone wordmark leads the bar. A compact city code and a 44px
+menu target share the trailing edge; the picker retains the full city
+name for assistive technology and shows the full name again in its city list.
+The picker panel stays inside the phone viewport, including at 320px.
+
 ### Cards & Event Page
 
 Event cards should feature large background imagery with a glassmorphic footer containing the date, time, and "Book Now" CTA. Use the Gold accent color for "Limited Spots" or "Sold Out" tags.

@@ -54,6 +54,20 @@
   text-transform: uppercase;
 }
 
+.metro-explorer__trigger-text--short {
+  display: none;
+}
+
+@media (max-width: 639.98px) {
+  .metro-explorer--compact .metro-explorer__trigger-text--full {
+    display: none;
+  }
+
+  .metro-explorer--compact .metro-explorer__trigger-text--short {
+    display: inline;
+  }
+}
+
 .metro-explorer--pill .metro-explorer__trigger {
   background: var(--header-bg);
   backdrop-filter: blur(var(--glass-blur));

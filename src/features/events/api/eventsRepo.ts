@@ -256,14 +256,16 @@ export async function deleteEventForUser(id: string): Promise<void> {
 
 export async function createEventAsAdmin(
   payload: AdminEventPayload,
-  submitter: { id: string; email: string | null }
+  submitter: { id: string; email: string | null },
+  publish = true,
+  onTaxonomyFailure?: (message: string) => void
 ): Promise<void> {
   const { taxonomy_term_ids = [], ...eventPayload } = payload;
   const { data, error } = await supabase
     .from("events")
     .insert({
       ...eventPayload,
-      status: "approved",
+      status: publish ? "approved" : "draft",
       source_type: "admin",
       submitter_id: submitter.id,
       submitter_email: submitter.email,
@@ -272,7 +274,12 @@ export async function createEventAsAdmin(
     .select("id")
     .single();
   if (error) throw new Error(error.message);
-  await replaceEventTaxonomyTerms(data.id, taxonomy_term_ids);
+  try {
+    await replaceEventTaxonomyTerms(data.id, taxonomy_term_ids);
+  } catch (taxonomyError) {
+    if (!onTaxonomyFailure) throw taxonomyError;
+    onTaxonomyFailure("Event saved, but tags could not be linked. Check them in the event editor.");
+  }
 }
 
 export async function duplicateEvent(

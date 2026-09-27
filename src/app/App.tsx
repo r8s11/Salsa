@@ -59,6 +59,7 @@ const HostEventDetailPage = lazy(() => import("../pages/host/HostEventDetailPage
 const HostAttendeeListPage = lazy(() => import("../pages/host/HostAttendeeListPage"));
 const HostCheckInPage = lazy(() => import("../pages/host/HostCheckInPage"));
 const HostEventImportPage = lazy(() => import("../pages/host/HostEventImportPage"));
+const BulkFlyerImportPage = lazy(() => import("../pages/BulkFlyerImportPage"));
 const HostOrganizationPage = lazy(() => import("../pages/host/HostOrganizationPage"));
 const UserEventEditPage = lazy(() => import("../pages/UserEventEditPage"));
 const OnboardingPage = lazy(() => import("../pages/account/OnboardingPage"));
@@ -93,6 +94,14 @@ function App() {
               <Route index element={<AdminOverviewPage />} />
               <Route path="events" element={<AdminEventsPage />} />
               <Route path="events/import" element={<AdminImportEventsPage />} />
+              <Route
+                path="events/import-flyers"
+                element={
+                  <RequireAdmin>
+                    <BulkFlyerImportPage mode="admin" />
+                  </RequireAdmin>
+                }
+              />
               <Route path="submissions" element={<AdminSubmissionsPage />} />
               <Route path="submissions/:id" element={<AdminSubmissionDetailPage />} />
               <Route path="tags" element={<AdminTagsPage />} />
@@ -206,6 +215,7 @@ function App() {
               <Route index element={<HostDashboard />} />
               <Route path="events" element={<HostMyEventsPage />} />
               <Route path="events/import" element={<HostEventImportPage />} />
+              <Route path="events/import-flyers" element={<BulkFlyerImportPage mode="host" />} />
               <Route path="events/new" element={<HostCreateEventPage />} />
               <Route path="organization" element={<HostOrganizationPage />} />
               <Route path="events/:eventId" element={<HostEventDetailPage />} />

@@ -155,9 +155,14 @@ export default function HostEventImportPage() {
             : "Bulk-add events from a spreadsheet."
         }
         actions={
-          <Link to="/host/events" className="admin-btn admin-btn--secondary">
-            Back to Events
-          </Link>
+          <>
+            <Link to="/host/events/import-flyers" className="admin-btn admin-btn--secondary">
+              Import Flyers
+            </Link>
+            <Link to="/host/events" className="admin-btn admin-btn--secondary">
+              Back to Events
+            </Link>
+          </>
         }
       />
 

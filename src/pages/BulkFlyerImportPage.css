@@ -1,0 +1,80 @@
+.bulk-flyers {
+  display: grid;
+  gap: 1.25rem;
+}
+.bulk-flyers__upload,
+.bulk-flyers__organizer {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1.25rem;
+}
+.bulk-flyers__upload input {
+  max-width: 100%;
+}
+.bulk-flyers__upload p {
+  margin: 0;
+  color: var(--text-muted, #666);
+}
+.bulk-flyers__review {
+  display: grid;
+  grid-template-columns: minmax(15rem, 18rem) minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+.bulk-flyers__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+.bulk-flyers__list li {
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr);
+  gap: 0.75rem;
+  padding: 0.75rem;
+  overflow-wrap: anywhere;
+}
+.bulk-flyers__list p {
+  margin: 0.3rem 0;
+}
+.bulk-flyers__thumb {
+  width: 3.5rem;
+  height: 4.5rem;
+  object-fit: cover;
+  border-radius: 0.25rem;
+}
+.bulk-flyers__row-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.bulk-flyers__editor {
+  min-width: 0;
+  padding: 1.25rem;
+}
+.bulk-flyers__editor h2 {
+  margin-top: 0;
+}
+.bulk-flyers__preview {
+  max-width: min(100%, 22rem);
+  max-height: 22rem;
+  object-fit: contain;
+  display: block;
+  margin-bottom: 1rem;
+}
+.bulk-flyers__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+@media (max-width: 760px) {
+  .bulk-flyers__review {
+    grid-template-columns: 1fr;
+  }
+  .bulk-flyers__actions > button {
+    flex: 1 1 12rem;
+  }
+}

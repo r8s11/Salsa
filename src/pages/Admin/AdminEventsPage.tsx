@@ -110,7 +110,10 @@ function parseView(searchParams: URLSearchParams): EventView {
   return "upcoming";
 }
 
-function parseFilters(searchParams: URLSearchParams, metroSlugs: ReadonlySet<string>): EventFilters {
+function parseFilters(
+  searchParams: URLSearchParams,
+  metroSlugs: ReadonlySet<string>
+): EventFilters {
   const statusParam = searchParams.get("status");
   const status = statusParam
     ? statusParam
@@ -696,6 +699,10 @@ export default function AdminEventsPage() {
             <Link to="/admin/events/import" className="admin-btn admin-btn--secondary">
               <Upload size={16} />
               Import Events
+            </Link>
+            <Link to="/admin/events/import-flyers" className="admin-btn admin-btn--secondary">
+              <Upload size={16} />
+              Import Flyers
             </Link>
             <button
               type="button"

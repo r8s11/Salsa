@@ -354,6 +354,9 @@ export default function HostMyEventsPage() {
               <Link to="/host/events/import" className="admin-btn admin-btn--secondary">
                 Import CSV
               </Link>
+              <Link to="/host/events/import-flyers" className="admin-btn admin-btn--secondary">
+                Import Flyers
+              </Link>
               <Link to="/host/events/new" className="admin-btn admin-btn--primary">
                 + Create Event
               </Link>
@@ -460,6 +463,9 @@ export default function HostMyEventsPage() {
             <>
               <Link to="/host/events/import" className="admin-btn admin-btn--secondary">
                 Import CSV
+              </Link>
+              <Link to="/host/events/import-flyers" className="admin-btn admin-btn--secondary">
+                Import Flyers
               </Link>
               <Link to="/host/events/new" className="admin-btn admin-btn--primary">
                 Create Event

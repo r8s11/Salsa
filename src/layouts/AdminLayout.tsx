@@ -17,6 +17,7 @@ function readStoredCollapsed(): boolean {
 const SECTION_LABEL: Record<string, string> = {
   "/admin": "Dashboard",
   "/admin/events": "Events",
+  "/admin/events/import-flyers": "Events · Import Flyers",
   "/admin/users": "Users",
   "/admin/submissions": "Submissions",
   "/admin/organizer-requests": "Organizer Requests",
@@ -29,6 +30,7 @@ const SECTION_LABEL: Record<string, string> = {
   "/host/events": "Host · My Events",
   "/host/events/new": "Host · New Event",
   "/host/events/import": "Host · Import Events",
+  "/host/events/import-flyers": "Host · Import Flyers",
   "/host/organization": "Host · Organization",
 };
 

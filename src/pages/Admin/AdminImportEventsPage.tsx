@@ -104,9 +104,14 @@ export default function AdminImportEventsPage() {
         title="Import Events"
         description="Bulk-add events from a spreadsheet. Every row is validated before anything is saved."
         actions={
-          <Link to="/admin/events" className="admin-btn admin-btn--secondary">
-            Back to Events
-          </Link>
+          <>
+            <Link to="/admin/events/import-flyers" className="admin-btn admin-btn--secondary">
+              Import Flyers
+            </Link>
+            <Link to="/admin/events" className="admin-btn admin-btn--secondary">
+              Back to Events
+            </Link>
+          </>
         }
       />
 

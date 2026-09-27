@@ -35,6 +35,17 @@ VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY=...
 | `npm run format`        | Prettier                             |
 | `npm run import-events` | Import events from an ICS feed (dry run by default) |
 
+## Bulk flyer import
+
+Organizer owners and managers can open **My Events → Import Flyers**; admins can open
+**Events → Import Flyers**. Select multiple JPEG, PNG, or WebP images (up to 5 MB
+each). The app uploads and analyzes each flyer, then shows its extracted details
+beside an editable event form. Review each row, correct any missing or inaccurate
+details, and skip flyers that should not be imported. Only reviewed, valid rows
+are eligible for **Save reviewed drafts** or **Publish reviewed events**.
+Failed rows remain visible so a successful row does not need to be imported again.
+Flyer analysis requires the configured `extract-flyer` Supabase Edge Function.
+
 ## Documentation
 
 - [docs/STATUS_SUMMARY.md](docs/STATUS_SUMMARY.md) — current project status

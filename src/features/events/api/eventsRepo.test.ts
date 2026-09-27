@@ -281,6 +281,91 @@ describe("createEventAsAdmin", () => {
     expect(inserted.status).toBe("approved");
     expect(inserted.submitter_id).toBe("admin-1");
   });
+  it("keeps an imported admin draft private until publication", async () => {
+    mocks.insert.mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        single: vi.fn().mockResolvedValue({ data: { id: "draft-id" }, error: null }),
+      }),
+    });
+
+    await createEventAsAdmin(
+      {
+        title: "Flyer social",
+        description: null,
+        event_type: "social",
+        city: "boston",
+        event_date: "2099-07-12T20:00:00Z",
+        event_time: "20:00",
+        location: null,
+        address: null,
+        price_type: "free",
+        price_amount: null,
+        rsvp_link: null,
+        recurrence: null,
+        host: null,
+        contact_email: null,
+        contact_instagram: null,
+        contact_website: null,
+        venue_id: null,
+        taxonomy_term_ids: [],
+        image_url: "https://example.com/flyer.png",
+      },
+      { id: "admin-1", email: "admin@example.com" },
+      false
+    );
+
+    expect(mocks.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "Flyer social",
+        image_url: "https://example.com/flyer.png",
+        status: "draft",
+        submitter_id: "admin-1",
+      })
+    );
+  });
+  it("reports taxonomy linkage failure without misreporting an inserted flyer event as failed", async () => {
+    mocks.insert.mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        single: vi.fn().mockResolvedValue({ data: { id: "saved-id" }, error: null }),
+      }),
+    });
+    mocks.replaceEventTaxonomyTerms.mockRejectedValueOnce(new Error("Taxonomy unavailable"));
+
+    let warning: string | null = null;
+    await createEventAsAdmin(
+      {
+        title: "Flyer social",
+        description: null,
+        event_type: "social",
+        city: "boston",
+        event_date: "2099-07-12T20:00:00Z",
+        event_time: "20:00",
+        location: null,
+        address: null,
+        price_type: "free",
+        price_amount: null,
+        rsvp_link: null,
+        recurrence: null,
+        host: null,
+        contact_email: null,
+        contact_instagram: null,
+        contact_website: null,
+        venue_id: null,
+        taxonomy_term_ids: ["salsa-id"],
+        image_url: "https://example.com/flyer.png",
+      },
+      { id: "admin-1", email: "admin@example.com" },
+      false,
+      (message) => {
+        warning = message;
+      }
+    );
+
+    expect(warning).toMatch(/tags could not be linked/);
+    expect(mocks.insert).toHaveBeenCalledWith(
+      expect.objectContaining({ image_url: "https://example.com/flyer.png", status: "draft" })
+    );
+  });
 });
 
 describe("updateEventFlyer", () => {

@@ -43,6 +43,11 @@ export default defineConfig({
     exclude: [
       "**/node_modules/**",
       "**/dist/**",
+      // Hidden assistant/tooling test suites use their own runners and are not
+      // part of the Salsa application test suite.
+      ".hermes/**",
+      ".openhands/**",
+      ".pi/**",
       // Agent-tooling directories: not app code, and their tests use Node's
       // built-in node:test runner, which vitest can't bundle.
       ".claude/**",

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import FounderRequestForm from "./FounderRequestForm";
@@ -91,9 +91,11 @@ describe("FounderRequestForm", () => {
     const user = userEvent.setup();
     renderForm();
 
-    await user.type(screen.getByLabelText(/your name \*/i), "a".repeat(256));
+    fireEvent.change(screen.getByLabelText(/your name \*/i), { target: { value: "a".repeat(256) } });
     await user.type(screen.getByLabelText(/email \*/i), "john@example.com");
-    await user.type(screen.getByLabelText(/organization \/ event brand \*/i), "a".repeat(256));
+    fireEvent.change(screen.getByLabelText(/organization \/ event brand \*/i), {
+      target: { value: "a".repeat(256) },
+    });
     await user.click(screen.getByRole("button", { name: /submit request/i }));
 
     await waitFor(() => {

@@ -100,7 +100,81 @@ function renderPage() {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  (useMyOrganizers as Mock).mockReturnValue({ data: mockOrganizers });
+  (useMyOrganizers as Mock).mockReturnValue({
+    data: mockOrganizers,
+    isLoading: false,
+    error: null,
+    refetch: vi.fn(),
+  });
+});
+
+describe("HostEventImportPage — organizer access loading", () => {
+  it("waits for organizer access and uses a sole organizer loaded after mount", async () => {
+    const user = userEvent.setup();
+    const importState = hookState();
+    (useHostEventImport as Mock).mockReturnValue(importState);
+    (useMyOrganizers as Mock).mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      error: null,
+      refetch: vi.fn(),
+    });
+
+    const page = renderPage();
+    expect(screen.getByRole("status")).toHaveTextContent("Checking organizer access…");
+    expect(
+      screen.queryByText(/You need an active Owner or Manager membership/)
+    ).not.toBeInTheDocument();
+
+    (useMyOrganizers as Mock).mockReturnValue({
+      data: [mockOrganizers[0]],
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+    page.rerender(
+      <MemoryRouter>
+        <HostEventImportPage />
+      </MemoryRouter>
+    );
+
+    const file = new File(["title,event_date"], "events.csv", { type: "text/csv" });
+    await user.upload(screen.getByLabelText("Upload CSV file"), file);
+    expect(importState.handleFile).toHaveBeenCalledWith(file, "org-1");
+  });
+
+  it("shows the no-membership state only after organizer access finishes loading", () => {
+    (useHostEventImport as Mock).mockReturnValue(hookState());
+    (useMyOrganizers as Mock).mockReturnValue({
+      data: [],
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+
+    renderPage();
+
+    expect(
+      screen.getByText(/You need an active Owner or Manager membership/)
+    ).toBeInTheDocument();
+  });
+
+  it("offers a retry when organizer access cannot be checked", async () => {
+    const user = userEvent.setup();
+    const refetch = vi.fn();
+    (useHostEventImport as Mock).mockReturnValue(hookState());
+    (useMyOrganizers as Mock).mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      error: new Error("Network unavailable"),
+      refetch,
+    });
+
+    renderPage();
+    expect(screen.getByRole("alert")).toHaveTextContent("Could not check organizer access.");
+    await user.click(screen.getByRole("button", { name: "Try Again" }));
+    expect(refetch).toHaveBeenCalledOnce();
+  });
 });
 
 describe("HostEventImportPage — instructions and template", () => {

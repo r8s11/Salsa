@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import type { DatabaseEvent } from "../../features/events/model/types";
@@ -404,6 +404,50 @@ describe("HostMyEventsPage", () => {
       "href",
       "/events/base"
     );
+  });
+
+  it("shows manage actions only for organizers where user can manage", async () => {
+    vi.mocked(useMyOrganizers).mockReturnValue({
+      data: [
+        {
+          organizerId: "org-1",
+          organizerName: "Boston Salsa Collective",
+          organizerSlug: "boston-salsa",
+          organizerStatus: "active",
+          memberRole: "owner",
+        },
+        {
+          organizerId: "org-2",
+          organizerName: "NYC Dance Crew",
+          organizerSlug: "nyc-dance",
+          organizerStatus: "active",
+          memberRole: "editor",
+        },
+      ],
+      isLoading: false,
+    });
+    const editorEvent = {
+      ...baseEvent,
+      id: "editor-event",
+      title: "Other Organizer Social",
+      organizer_id: "org-2",
+    };
+    mockEvents([baseEvent, editorEvent]);
+    renderPage();
+
+    const ownerCard = screen.getByText("Havana Fridays").closest("li");
+    const editorCard = screen.getByText("Other Organizer Social").closest("li");
+    expect(ownerCard).not.toBeNull();
+    expect(editorCard).not.toBeNull();
+    expect(within(ownerCard!).getByRole("link", { name: "Manage Event" })).toHaveAttribute(
+      "href",
+      "/host/events/base"
+    );
+    expect(within(editorCard!).getByRole("link", { name: "View Event" })).toHaveAttribute(
+      "href",
+      "/events/editor-event"
+    );
+    expect(within(editorCard!).queryByRole("link", { name: "Manage Event" })).not.toBeInTheDocument();
   });
 
   /* ── Organizer filter ── */

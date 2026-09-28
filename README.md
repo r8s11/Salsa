@@ -44,7 +44,19 @@ beside an editable event form. Review each row, correct any missing or inaccurat
 details, and skip flyers that should not be imported. Only reviewed, valid rows
 are eligible for **Save reviewed drafts** or **Publish reviewed events**.
 Failed rows remain visible so a successful row does not need to be imported again.
+If analysis fails after upload, retry analysis or continue with the retained flyer
+and enter details manually. If saving fails, the row keeps its image and draft;
+**Retry save** retries only that event with the original draft/publish choice.
+The queue also shows analyzed, reviewed, and failed counts. Selected event facts stay
+beside the flyer during editing; commit buttons show how many reviewed rows they will
+attempt to save or publish.
 Flyer analysis requires the configured `extract-flyer` Supabase Edge Function.
+
+
+## Host event access
+
+Host event cards show **Manage Event** only when the user has active owner or manager
+membership in that event's organizer. Other memberships show **View Event**.
 
 ## Documentation
 

@@ -245,7 +245,13 @@ export default function HostMyEventsPage() {
   const isEditor = organizers.some(
     (o) => o.organizerStatus === "active" && o.memberRole === "editor"
   );
-  const canManage = !!canCreate; // owner/manager can manage
+  const canManageEvent = (organizerId: string | null | undefined) =>
+    organizers.some(
+      (o) =>
+        o.organizerId === organizerId &&
+        o.organizerStatus === "active" &&
+        (o.memberRole === "owner" || o.memberRole === "manager")
+    );
 
   // Merge all owned events
   const allEvents = useMemo(() => {
@@ -504,7 +510,7 @@ export default function HostMyEventsPage() {
                       event={event}
                       attendeeCount={attendanceAvailable ? (summary?.attendeeCount ?? 0) : null}
                       checkedInCount={attendanceAvailable ? (summary?.checkedInCount ?? 0) : null}
-                      canManage={canManage}
+                      canManage={canManageEvent(event.organizer_id)}
                     />
                   );
                 })}

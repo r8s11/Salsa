@@ -75,7 +75,12 @@ export default function HostEventImportPage() {
     taxonomyLoading,
   } = useHostEventImport();
 
-  const { data: organizers = [] } = useMyOrganizers();
+  const {
+    data: organizers = [],
+    isLoading: organizersLoading,
+    error: organizersError,
+    refetch: refetchOrganizers,
+  } = useMyOrganizers();
   const activeOrganizers = useMemo(
     () =>
       organizers.filter(
@@ -84,9 +89,12 @@ export default function HostEventImportPage() {
       ),
     [organizers]
   );
-  const [selectedOrganizerId, setSelectedOrganizerId] = useState<string>(
-    activeOrganizers[0]?.organizerId ?? ""
-  );
+  const [organizerSelection, setOrganizerSelection] = useState("");
+  const selectedOrganizerId = activeOrganizers.some(
+    (organizer) => organizer.organizerId === organizerSelection
+  )
+    ? organizerSelection
+    : (activeOrganizers[0]?.organizerId ?? "");
 
   const isImporting = stage === "importing";
   const selectedOrganizer = activeOrganizers.find((o) => o.organizerId === selectedOrganizerId);
@@ -122,6 +130,36 @@ export default function HostEventImportPage() {
         Import anyway
       </label>
     ) : null;
+
+  if (organizersLoading) {
+    return (
+      <div className="admin-shell">
+        <AdminPageHeader title="Import Events" description="Checking organizer access." />
+        <section className="admin-card host-import-page__status-card">
+          <p role="status">Checking organizer access…</p>
+        </section>
+      </div>
+    );
+  }
+
+  if (organizersError) {
+    return (
+      <div className="admin-shell">
+        <AdminPageHeader title="Import Events" description="Bulk-add events from a spreadsheet." />
+        <div className="admin-banner admin-banner--error" role="alert">
+          <p>Could not check organizer access.</p>
+          <button
+            type="button"
+            className="admin-btn admin-btn--secondary"
+            onClick={() => void refetchOrganizers()}
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
 
   if (activeOrganizers.length === 0) {
     return (
@@ -183,7 +221,7 @@ export default function HostEventImportPage() {
             <select
               id="organizer-select"
               value={selectedOrganizerId}
-              onChange={(e) => setSelectedOrganizerId(e.target.value)}
+              onChange={(e) => setOrganizerSelection(e.target.value)}
             >
               {activeOrganizers.map((o) => (
                 <option key={o.organizerId} value={o.organizerId}>

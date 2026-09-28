@@ -35,9 +35,19 @@ type FlyerRow = {
   file: File;
   url: string | null;
   draft: EventFormDraft;
-  state: "processing" | "ready" | "error" | "skipped" | "created";
+  state:
+    | "processing"
+    | "ready"
+    | "validation-error"
+    | "analysis-error"
+    | "save-error"
+    | "skipped"
+    | "created";
+  analyzed: boolean;
   reviewed: boolean;
+  reviewWarnings: string[];
   error: string | null;
+  saveIntent: "draft" | "publish" | null;
 };
 
 export default function BulkFlyerImportPage({ mode }: Props) {
@@ -62,6 +72,21 @@ export default function BulkFlyerImportPage({ mode }: Props) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [summary, setSummary] = useState<string | null>(null);
+  let analyzedCount = 0;
+  let reviewedCount = 0;
+  let failedCount = 0;
+  let commitCount = 0;
+  for (const row of rows) {
+    if (row.analyzed) analyzedCount++;
+    if (row.reviewed) reviewedCount++;
+    if (
+      row.state === "validation-error" ||
+      row.state === "analysis-error" ||
+      row.state === "save-error"
+    )
+      failedCount++;
+    if (row.state === "ready" && row.reviewed) commitCount++;
+  }
   const temporaryUrls = useRef(new Set<string>());
   const mounted = useRef(true);
 
@@ -79,7 +104,7 @@ export default function BulkFlyerImportPage({ mode }: Props) {
   };
 
   const analyze = async (row: FlyerRow) => {
-    updateRow(row.id, { state: "processing", error: null });
+    updateRow(row.id, { state: "processing", error: null, saveIntent: null });
     let url = row.url;
     try {
       if (!url) {
@@ -98,11 +123,25 @@ export default function BulkFlyerImportPage({ mode }: Props) {
       }
       const extraction = await extractEventFromFlyer(url);
       if (!mounted.current) return;
-      const prefilled = applyExtractionToDraft(
+      const prefill = applyExtractionToDraft(
         extraction,
         { ...row.draft, image_url: url },
         metros
-      ).draft;
+      );
+      const prefilled = prefill.draft;
+      const reviewWarnings = [
+        ...(!extraction.title ? ["Title was not identified on the flyer; verify it."] : []),
+        ...(!extraction.date ? ["Date was not identified on the flyer; verify it."] : []),
+        ...(!extraction.venue_name ? ["Venue was not identified on the flyer; verify it."] : []),
+        ...(!extraction.city
+          ? ["City was not identified on the flyer; verify the selected city."]
+          : prefill.skipped.includes("City")
+            ? [`Could not match flyer city "${extraction.city}" to a supported city; verify the selected city.`]
+            : []),
+        ...prefill.skipped
+          .filter((field) => field !== "City")
+          .map((field) => `${field} could not be matched from the flyer; verify it.`),
+      ];
       const draft =
         mode === "admin"
           ? {
@@ -112,11 +151,18 @@ export default function BulkFlyerImportPage({ mode }: Props) {
                 .map((term) => term.id),
             }
           : prefilled;
-      updateRow(row.id, { draft, state: "ready", reviewed: row.reviewed });
+      updateRow(row.id, {
+        draft,
+        state: "ready",
+        analyzed: true,
+        reviewed: false,
+        reviewWarnings,
+      });
     } catch (cause) {
       if (mounted.current) {
         updateRow(row.id, {
-          state: "error",
+          draft: url ? { ...row.draft, image_url: url } : row.draft,
+          state: "analysis-error",
           error: cause instanceof Error ? cause.message : "Unable to analyze flyer.",
         });
       }
@@ -142,16 +188,20 @@ export default function BulkFlyerImportPage({ mode }: Props) {
       url: null,
       draft: buildEmptyAdminForm(city ?? ""),
       state: "processing" as const,
+      analyzed: false,
       reviewed: false,
+      reviewWarnings: [],
       error: null,
+      saveIntent: null,
     }));
     setRows((current) => [...current, ...next]);
     setSelectedId((current) => current ?? next[0].id);
     for (const row of next) {
       if (!mounted.current) break;
       const validationError = validateEventFlyer(row.file);
-      if (validationError) updateRow(row.id, { state: "error", error: validationError });
-      else await analyze({ ...row, reviewed: row.id === (selectedId ?? next[0].id) });
+      if (validationError)
+        updateRow(row.id, { state: "validation-error", error: validationError });
+      else await analyze(row);
     }
     setProcessing(false);
   };
@@ -173,7 +223,7 @@ export default function BulkFlyerImportPage({ mode }: Props) {
       );
   };
 
-  const save = async (publish: boolean) => {
+  const save = async (publish: boolean, retryRow?: FlyerRow) => {
     if (
       saving ||
       processing ||
@@ -185,7 +235,9 @@ export default function BulkFlyerImportPage({ mode }: Props) {
       return;
     setError(null);
     setSummary(null);
-    const candidates = rows.filter((row) => row.state === "ready" && row.reviewed);
+    const candidates = retryRow
+      ? [retryRow]
+      : rows.filter((row) => row.state === "ready" && row.reviewed);
     if (!candidates.length) {
       setError("Review at least one flyer before saving.");
       return;
@@ -221,13 +273,14 @@ export default function BulkFlyerImportPage({ mode }: Props) {
           );
         }
         if (row.url) temporaryUrls.current.delete(row.url);
-        updateRow(row.id, { state: "created", error: warning });
+        updateRow(row.id, { state: "created", error: warning, saveIntent: null });
         created++;
       } catch (cause) {
         failed++;
         updateRow(row.id, {
-          state: "error",
+          state: "save-error",
           error: cause instanceof Error ? cause.message : "Event could not be saved.",
+          saveIntent: publish ? "publish" : "draft",
         });
       }
     }
@@ -253,7 +306,9 @@ export default function BulkFlyerImportPage({ mode }: Props) {
   if (mode === "host" && !manageable.length)
     return <p>Only active organizer owners and managers can import flyers.</p>;
 
-  const selected = rows.find((row) => row.id === selectedId && row.state === "ready");
+  const selected = rows.find(
+    (row) => row.id === selectedId && (row.state === "ready" || row.state === "save-error")
+  );
   return (
     <div className="admin-shell bulk-flyers">
       <AdminPageHeader
@@ -317,7 +372,26 @@ export default function BulkFlyerImportPage({ mode }: Props) {
       </div>
       {rows.length > 0 && (
         <div className="bulk-flyers__review">
-          <ul className="bulk-flyers__list" aria-label="Flyers to review">
+          <div className="bulk-flyers__queue">
+            <div
+              className="bulk-flyers__progress"
+              role="group"
+              aria-label="Review progress"
+            >
+              <p>
+                <span>Analyzed</span>
+                <strong>{analyzedCount}</strong>
+              </p>
+              <p>
+                <span>Reviewed</span>
+                <strong>{reviewedCount}</strong>
+              </p>
+              <p>
+                <span>Failed</span>
+                <strong>{failedCount}</strong>
+              </p>
+            </div>
+            <ul className="bulk-flyers__list" aria-label="Flyers to review">
             {rows.map((row) => (
               <li key={row.id} aria-label={row.file.name} className="admin-card">
                 {row.url && <img src={row.url} alt="" className="bulk-flyers__thumb" />}
@@ -332,11 +406,17 @@ export default function BulkFlyerImportPage({ mode }: Props) {
                       ? "Saved"
                       : row.state === "skipped"
                         ? "Skipped"
-                        : row.state === "error"
-                          ? "Needs attention"
-                          : row.reviewed
-                            ? "Reviewed"
-                            : "Not reviewed"}
+                        : row.state === "processing"
+                          ? "Analyzing"
+                          : row.state === "validation-error"
+                            ? "Invalid file"
+                            : row.state === "analysis-error"
+                              ? "Analysis failed"
+                              : row.state === "save-error"
+                                ? "Save failed"
+                                : row.reviewed
+                                  ? "Reviewed"
+                                  : "Not reviewed"}
                   </small>
                   {row.error && <p role="alert">{row.error}</p>}
                 </div>
@@ -346,25 +426,56 @@ export default function BulkFlyerImportPage({ mode }: Props) {
                       type="button"
                       className="admin-btn admin-btn--secondary"
                       disabled={saving}
-                      onClick={() => {
-                        setSelectedId(row.id);
-                        updateRow(row.id, { reviewed: true });
-                      }}
+                      onClick={() => setSelectedId(row.id)}
                     >
                       Review
                     </button>
                   )}
-                  {row.state === "error" && row.url && (
+                  {row.state === "analysis-error" && row.url && (
+                    <>
+                      <button
+                        type="button"
+                        className="admin-btn admin-btn--secondary"
+                        disabled={processing || saving}
+                        onClick={() => void analyze(row)}
+                      >
+                        Retry analysis
+                      </button>
+                      <button
+                        type="button"
+                        className="admin-btn admin-btn--secondary"
+                        disabled={saving}
+                        onClick={() => {
+                          setSelectedId(row.id);
+                          updateRow(row.id, {
+                            state: "ready",
+                            error: null,
+                            reviewed: false,
+                            reviewWarnings: ["Analysis failed; enter or verify event details manually."],
+                          });
+                        }}
+                      >
+                        Continue manually
+                      </button>
+                    </>
+                  )}
+                  {row.state === "save-error" && row.saveIntent && (
                     <button
                       type="button"
                       className="admin-btn admin-btn--secondary"
-                      disabled={processing || saving}
-                      onClick={() => void analyze(row)}
+                      disabled={saving}
+                      onClick={() => {
+                        setSelectedId(row.id);
+                        void save(row.saveIntent === "publish", row);
+                      }}
                     >
-                      Retry analysis
+                      Retry save
                     </button>
                   )}
-                  {(row.state === "ready" || row.state === "error") && (
+                  {(row.state === "ready" ||
+                    row.state === "validation-error" ||
+                    row.state === "analysis-error" ||
+                    row.state === "save-error") && (
                     <button
                       type="button"
                       className="admin-btn admin-btn--secondary"
@@ -377,21 +488,66 @@ export default function BulkFlyerImportPage({ mode }: Props) {
                 </div>
               </li>
             ))}
-          </ul>
+            </ul>
+          </div>
           {selected && (
             <section
               className="admin-card bulk-flyers__editor"
               aria-label={`Review ${selected.file.name}`}
             >
               <h2>Review {selected.file.name}</h2>
-              <img
-                src={selected.url ?? ""}
-                alt={`Flyer ${selected.file.name}`}
-                className="bulk-flyers__preview"
-              />
+              <div className="bulk-flyers__editor-overview">
+                <img
+                  src={selected.url ?? ""}
+                  alt={`Flyer ${selected.file.name}`}
+                  className="bulk-flyers__preview"
+                />
+                <dl className="bulk-flyers__facts" aria-label="Selected event facts">
+                  <div>
+                    <dt>Event</dt>
+                    <dd>{selected.draft.title || "Title needed"}</dd>
+                  </div>
+                  <div>
+                    <dt>Date · time</dt>
+                    <dd>
+                      {selected.draft.event_date || "Date needed"}
+                      {selected.draft.event_time && ` · ${selected.draft.event_time}`}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Venue</dt>
+                    <dd>{selected.draft.location || "Venue needed"}</dd>
+                  </div>
+                  <div>
+                    <dt>City</dt>
+                    <dd>
+                      {metros.find((metro) => metro.slug === selected.draft.city)?.name ??
+                        selected.draft.city}
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+              {selected.reviewWarnings.length > 0 && (
+                <div className="admin-banner admin-banner--warning" role="note">
+                  <strong>Check these details against the flyer:</strong>
+                  <ul>
+                    {selected.reviewWarnings.map((warning) => (
+                      <li key={warning}>{warning}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               <EventForm
                 draft={selected.draft}
-                onChange={(draft) => updateRow(selected.id, { draft, reviewed: true })}
+                onChange={(draft) =>
+                  updateRow(selected.id, {
+                    draft,
+                    state: "ready",
+                    reviewed: false,
+                    error: null,
+                    saveIntent: null,
+                  })
+                }
                 capabilities={{
                   ...CAPABILITIES[mode === "host" ? "organizerCreate" : "admin"],
                   flyer: false,
@@ -402,6 +558,13 @@ export default function BulkFlyerImportPage({ mode }: Props) {
                     : undefined
                 }
               />
+              <button
+                type="button"
+                className="admin-btn admin-btn--secondary"
+                onClick={() => updateRow(selected.id, { reviewed: true })}
+              >
+                {selected.reviewed ? "Details confirmed" : "Confirm details against flyer"}
+              </button>
             </section>
           )}
         </div>
@@ -424,7 +587,9 @@ export default function BulkFlyerImportPage({ mode }: Props) {
             disabled={saving || processing || (mode === "host" && !selectedOrganizerId)}
             onClick={() => void save(false)}
           >
-            {saving ? "Saving…" : "Save reviewed drafts"}
+            {saving
+              ? "Saving…"
+              : `Save ${commitCount} reviewed ${commitCount === 1 ? "draft" : "drafts"}`}
           </button>
           <button
             type="button"
@@ -432,7 +597,9 @@ export default function BulkFlyerImportPage({ mode }: Props) {
             disabled={saving || processing || (mode === "host" && !selectedOrganizerId)}
             onClick={() => void save(true)}
           >
-            {saving ? "Publishing…" : "Publish reviewed events"}
+            {saving
+              ? "Publishing…"
+              : `Publish ${commitCount} reviewed ${commitCount === 1 ? "event" : "events"}`}
           </button>
         </div>
       )}

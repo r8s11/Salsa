@@ -1,7 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type Ref } from "react";
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
+import { Check, ExternalLink, ImagePlus } from "lucide-react";
 import AdminPageHeader from "../components/Admin/AdminPageHeader";
+import MarginMark from "../components/Desk/MarginMark";
+import type { DeskState } from "../components/Desk/deskModel";
+import type { EventTaxonomyTerm } from "../features/events/model/types";
 import { useAuth } from "../contexts/useAuth";
 import { useCity } from "../contexts/useCity";
 import { useMetros } from "../features/metros/hooks/useMetros";
@@ -27,9 +31,11 @@ import {
 import EventForm from "../features/events/components/EventForm/EventForm";
 import { extractEventFromFlyer } from "../features/flyer-extraction/client";
 import { applyExtractionToDraft } from "../features/flyer-extraction/prefill";
+import "../components/Desk/desk.css";
 import "./BulkFlyerImportPage.css";
 
 type Props = { mode: "host" | "admin" };
+type SaveIntent = "draft" | "publish";
 type FlyerRow = {
   id: string;
   file: File;
@@ -47,8 +53,43 @@ type FlyerRow = {
   reviewed: boolean;
   reviewWarnings: string[];
   error: string | null;
-  saveIntent: "draft" | "publish" | null;
+  saveIntent: SaveIntent | null;
+  savedAs: SaveIntent | null;
 };
+
+/**
+ * A flyer is only confirmable when it would also save. Checking here, at the
+ * moment of confirmation, keeps one incomplete flyer from being discovered at
+ * save time — where it used to abort the whole batch.
+ */
+function confirmationError(draft: EventFormDraft): string | null {
+  return validateAdminEventForm(draft) ?? (draft.city ? null : "Choose a city.");
+}
+
+function rowStatus(row: FlyerRow): { mark: DeskState | null; label: string } {
+  switch (row.state) {
+    case "processing":
+      return { mark: null, label: "Reading" };
+    case "validation-error":
+      return { mark: "killed", label: "Invalid file" };
+    case "analysis-error":
+      return { mark: "killed", label: "Analysis failed" };
+    case "save-error":
+      return { mark: "killed", label: "Save failed" };
+    case "skipped":
+      return { mark: null, label: "Skipped" };
+    case "created":
+      return row.savedAs === "publish"
+        ? { mark: "set", label: "Published" }
+        : { mark: "standing", label: "Draft saved" };
+    case "ready":
+      return row.reviewed
+        ? { mark: "set", label: "Confirmed" }
+        : { mark: "unset", label: "Needs review" };
+  }
+}
+
+const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
 
 export default function BulkFlyerImportPage({ mode }: Props) {
   const { user, isAdmin } = useAuth();
@@ -69,27 +110,30 @@ export default function BulkFlyerImportPage({ mode }: Props) {
   const [rows, setRows] = useState<FlyerRow[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
-  const [savingIntent, setSavingIntent] = useState<"draft" | "publish" | null>(null);
+  const [savingIntent, setSavingIntent] = useState<SaveIntent | null>(null);
   const saving = savingIntent !== null;
   const [error, setError] = useState<string | null>(null);
   const [summary, setSummary] = useState<string | null>(null);
-  let analyzedCount = 0;
-  let reviewedCount = 0;
-  let failedCount = 0;
-  let commitCount = 0;
-  for (const row of rows) {
-    if (row.analyzed) analyzedCount++;
-    if (row.reviewed) reviewedCount++;
-    if (
-      row.state === "validation-error" ||
-      row.state === "analysis-error" ||
-      row.state === "save-error"
-    )
-      failedCount++;
-    if (row.state === "ready" && row.reviewed) commitCount++;
-  }
+  const detailRef = useRef<HTMLElement>(null);
   const temporaryUrls = useRef(new Set<string>());
   const mounted = useRef(true);
+
+  const taxonomyLoading = mode === "admin" && (danceStyles.isLoading || attributes.isLoading);
+  const taxonomyFailed = mode === "admin" && (!!danceStyles.error || !!attributes.error);
+  const organizerMissing = mode === "host" && !selectedOrganizerId;
+
+  let readingCount = 0;
+  let toReviewCount = 0;
+  let confirmedCount = 0;
+  let attentionCount = 0;
+  let savedCount = 0;
+  for (const row of rows) {
+    if (row.state === "processing") readingCount++;
+    else if (row.state === "ready" && row.reviewed) confirmedCount++;
+    else if (row.state === "ready") toReviewCount++;
+    else if (row.state === "created") savedCount++;
+    else if (row.state !== "skipped") attentionCount++;
+  }
 
   useEffect(() => {
     mounted.current = true;
@@ -102,6 +146,16 @@ export default function BulkFlyerImportPage({ mode }: Props) {
 
   const updateRow = (id: string, change: Partial<FlyerRow>) => {
     setRows((current) => current.map((row) => (row.id === id ? { ...row, ...change } : row)));
+  };
+
+  /** Bring the detail back into view when a selection change happens below its top edge. */
+  const revealDetail = () => {
+    requestAnimationFrame(() => {
+      const detail = detailRef.current;
+      if (!detail || detail.getBoundingClientRect().top >= 0) return;
+      const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      detail.scrollIntoView({ block: "start", behavior: reduce ? "auto" : "smooth" });
+    });
   };
 
   const analyze = async (row: FlyerRow) => {
@@ -133,6 +187,9 @@ export default function BulkFlyerImportPage({ mode }: Props) {
       const reviewWarnings = [
         ...(!extraction.title ? ["Title was not identified on the flyer; verify it."] : []),
         ...(!extraction.date ? ["Date was not identified on the flyer; verify it."] : []),
+        ...(!extraction.event_type
+          ? ["Event type was not identified on the flyer; choose one."]
+          : []),
         ...(!extraction.venue_name ? ["Venue was not identified on the flyer; verify it."] : []),
         ...(!extraction.city
           ? ["City was not identified on the flyer; verify the selected city."]
@@ -159,6 +216,7 @@ export default function BulkFlyerImportPage({ mode }: Props) {
         reviewed: false,
         reviewWarnings,
       });
+      setSelectedId((current) => current ?? row.id);
     } catch (cause) {
       if (mounted.current) {
         updateRow(row.id, {
@@ -171,32 +229,25 @@ export default function BulkFlyerImportPage({ mode }: Props) {
   };
 
   const selectFiles = async (files: FileList | null) => {
-    if (
-      !files?.length ||
-      !user ||
-      processing ||
-      saving ||
-      (mode === "admin" &&
-        (danceStyles.isLoading || attributes.isLoading || danceStyles.error || attributes.error))
-    )
+    if (!files?.length || !user || processing || saving || taxonomyLoading || taxonomyFailed)
       return;
     setError(null);
     setSummary(null);
     setProcessing(true);
-    const next = Array.from(files).map((file) => ({
+    const next: FlyerRow[] = Array.from(files).map((file) => ({
       id: crypto.randomUUID(),
       file,
       url: null,
       draft: buildEmptyAdminForm(city ?? ""),
-      state: "processing" as const,
+      state: "processing",
       analyzed: false,
       reviewed: false,
       reviewWarnings: [],
       error: null,
       saveIntent: null,
+      savedAs: null,
     }));
     setRows((current) => [...current, ...next]);
-    setSelectedId((current) => current ?? next[0].id);
     for (const row of next) {
       if (!mounted.current) break;
       const validationError = validateEventFlyer(row.file);
@@ -208,7 +259,11 @@ export default function BulkFlyerImportPage({ mode }: Props) {
   };
 
   const skip = async (row: FlyerRow) => {
-    updateRow(row.id, { state: "skipped" });
+    updateRow(row.id, { state: "skipped", reviewed: false, error: null });
+    const next = rows.find(
+      (candidate) => candidate.id !== row.id && candidate.state === "ready" && !candidate.reviewed
+    );
+    if (next) setSelectedId(next.id);
     if (row.url) {
       try {
         await removeEventFlyer(row.url);
@@ -218,43 +273,57 @@ export default function BulkFlyerImportPage({ mode }: Props) {
         // Keep the URL for best-effort cleanup on departure.
       }
     }
-    if (selectedId === row.id)
-      setSelectedId(
-        rows.find((candidate) => candidate.id !== row.id && candidate.state === "ready")?.id ?? null
-      );
+  };
+
+  const confirm = (row: FlyerRow) => {
+    if (row.reviewed) {
+      updateRow(row.id, { reviewed: false });
+      return;
+    }
+    const problem = confirmationError(row.draft);
+    if (problem) {
+      updateRow(row.id, { error: problem });
+      return;
+    }
+    updateRow(row.id, { reviewed: true, error: null });
+    const index = rows.findIndex((candidate) => candidate.id === row.id);
+    const next = [...rows.slice(index + 1), ...rows.slice(0, index)].find(
+      (candidate) => candidate.state === "ready" && !candidate.reviewed
+    );
+    if (next) {
+      setSelectedId(next.id);
+      revealDetail();
+    }
   };
 
   const save = async (publish: boolean, retryRow?: FlyerRow) => {
-    if (
-      saving ||
-      processing ||
-      !user ||
-      (mode === "host" && !selectedOrganizerId) ||
-      (mode === "admin" &&
-        (danceStyles.isLoading || attributes.isLoading || danceStyles.error || attributes.error))
-    )
-      return;
+    if (saving || !user || organizerMissing || taxonomyLoading || taxonomyFailed) return;
     setError(null);
     setSummary(null);
     const candidates = retryRow
       ? [retryRow]
       : rows.filter((row) => row.state === "ready" && row.reviewed);
     if (!candidates.length) {
-      setError("Review at least one flyer before saving.");
+      setError("Confirm at least one flyer before saving.");
       return;
     }
+    const valid: FlyerRow[] = [];
+    let needsDetails = 0;
     for (const row of candidates) {
-      const validationError = validateAdminEventForm(row.draft);
-      if (validationError) {
-        setSelectedId(row.id);
-        setError(validationError);
-        return;
+      const problem = confirmationError(row.draft);
+      if (!problem) {
+        valid.push(row);
+        continue;
       }
+      needsDetails++;
+      updateRow(row.id, { state: "ready", reviewed: false, error: problem, saveIntent: null });
+      if (needsDetails === 1) setSelectedId(row.id);
     }
-    setSavingIntent(publish ? "publish" : "draft");
+    const intent: SaveIntent = publish ? "publish" : "draft";
+    setSavingIntent(intent);
     let created = 0;
     let failed = 0;
-    for (const row of candidates) {
+    for (const row of valid) {
       try {
         let warning: string | null = null;
         if (mode === "host") {
@@ -274,20 +343,31 @@ export default function BulkFlyerImportPage({ mode }: Props) {
           );
         }
         if (row.url) temporaryUrls.current.delete(row.url);
-        updateRow(row.id, { state: "created", error: warning, saveIntent: null });
+        updateRow(row.id, { state: "created", error: warning, saveIntent: null, savedAs: intent });
         created++;
       } catch (cause) {
         failed++;
         updateRow(row.id, {
           state: "save-error",
+          reviewed: false,
           error: cause instanceof Error ? cause.message : "Event could not be saved.",
-          saveIntent: publish ? "publish" : "draft",
+          saveIntent: intent,
         });
       }
     }
-    void queryClient.invalidateQueries({ queryKey: ["events"] });
+    if (created) void queryClient.invalidateQueries({ queryKey: ["events"] });
     setSummary(
-      `${created} ${publish ? "published" : created === 1 ? "draft saved" : "drafts saved"}${failed ? `; ${failed} failed` : ""}.`
+      [
+        created || (!failed && !needsDetails)
+          ? publish
+            ? `${created} published`
+            : plural(created, "draft saved", "drafts saved")
+          : null,
+        failed ? `${failed} failed` : null,
+        needsDetails ? `${plural(needsDetails, "flyer needs", "flyers need")} details` : null,
+      ]
+        .filter(Boolean)
+        .join(" · ") + "."
     );
     setSavingIntent(null);
   };
@@ -308,11 +388,37 @@ export default function BulkFlyerImportPage({ mode }: Props) {
     return <p>Only active organizer owners and managers can import flyers.</p>;
 
   const selected =
-    rows.find(
-      (row) => row.id === selectedId && (row.state === "ready" || row.state === "save-error")
-    ) ?? rows.find((row) => row.state === "ready" || row.state === "save-error");
+    rows.find((row) => row.id === selectedId) ??
+    rows.find((row) => row.state === "ready" || row.state === "save-error") ??
+    rows.find((row) => row.state !== "skipped" && row.state !== "created") ??
+    rows[0];
+  const uploadDisabled =
+    processing || saving || !user || organizerMissing || taxonomyLoading || taxonomyFailed;
+  const saveBlocked = saving || organizerMissing || taxonomyLoading || taxonomyFailed;
+  const statusLine = saving
+    ? savingIntent === "publish"
+      ? `Publishing ${plural(confirmedCount, "event", "events")}…`
+      : `Saving ${plural(confirmedCount, "draft", "drafts")}…`
+    : organizerMissing
+      ? "Choose an organizer before saving."
+      : taxonomyLoading
+        ? "Loading event tags…"
+        : confirmedCount === 0
+          ? readingCount
+            ? `Reading ${plural(readingCount, "flyer", "flyers")}. Confirm one to save it.`
+            : toReviewCount
+              ? "Confirm a flyer to save it."
+              : "Nothing left to save."
+          : [
+              `${confirmedCount} confirmed`,
+              toReviewCount ? `${toReviewCount} to review` : null,
+              readingCount ? `${readingCount} still reading` : null,
+            ]
+              .filter(Boolean)
+              .join(" · ");
+
   return (
-    <div className="bulk-flyers">
+    <div className="bulk-flyers desk">
       <AdminPageHeader
         title="Import flyers"
         description="Upload multiple event flyers, correct the extracted details, then save drafts or publish."
@@ -322,303 +428,382 @@ export default function BulkFlyerImportPage({ mode }: Props) {
           </Link>
         }
       />
-      {mode === "host" && (
-        <div className="admin-card bulk-flyers__organizer">
-          <label htmlFor="bulk-organizer">Creating events for</label>
-          {manageable.length === 1 ? (
-            <strong>{manageable[0].organizerName}</strong>
-          ) : (
-            <select
-              id="bulk-organizer"
-              value={selectedOrganizerId}
-              onChange={(event) => setOrganizerId(event.target.value)}
-              disabled={processing || saving}
-            >
-              <option value="">Choose an organizer</option>
-              {manageable.map((organizer) => (
-                <option value={organizer.organizerId} key={organizer.organizerId}>
-                  {organizer.organizerName}
-                </option>
-              ))}
-            </select>
-          )}
+      <section
+        className={`admin-card bulk-flyers__intake${rows.length ? " is-compact" : ""}`}
+        aria-label="Add flyers"
+      >
+        {mode === "host" && (
+          <div className="bulk-flyers__organizer">
+            <label htmlFor="bulk-organizer">Creating events for</label>
+            {manageable.length === 1 ? (
+              <strong>{manageable[0].organizerName}</strong>
+            ) : (
+              <select
+                id="bulk-organizer"
+                className="admin-select"
+                value={selectedOrganizerId}
+                onChange={(event) => setOrganizerId(event.target.value)}
+                disabled={processing || saving}
+              >
+                <option value="">Choose an organizer</option>
+                {manageable.map((organizer) => (
+                  <option value={organizer.organizerId} key={organizer.organizerId}>
+                    {organizer.organizerName}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+        )}
+        <div className="bulk-flyers__drop" data-disabled={uploadDisabled || undefined}>
+          <input
+            id="bulk-flyer-files"
+            type="file"
+            multiple
+            accept="image/jpeg,image/png,image/webp"
+            aria-label="Flyer images"
+            aria-describedby="bulk-flyer-hint"
+            disabled={uploadDisabled}
+            onChange={(event) => {
+              void selectFiles(event.target.files);
+              event.target.value = "";
+            }}
+          />
+          <ImagePlus aria-hidden="true" className="bulk-flyers__drop-icon" />
+          <span className="bulk-flyers__drop-title">
+            {processing
+              ? `Reading ${plural(readingCount, "flyer", "flyers")}…`
+              : rows.length
+                ? "Add more flyers"
+                : "Choose flyer images"}
+          </span>
+          <span id="bulk-flyer-hint" className="bulk-flyers__drop-hint">
+            JPEG, PNG, or WebP, up to 5 MB each.
+            <span className="bulk-flyers__drop-pointer"> You can also drop files here.</span>
+          </span>
         </div>
+        {taxonomyFailed && (
+          <p role="alert" className="bulk-flyers__intake-alert">
+            Unable to load event taxonomy. Retry after it is available.
+          </p>
+        )}
+      </section>
+
+      {rows.length > 0 && (
+        <section className="bulk-flyers__sheet" aria-labelledby="bulk-sheet-title">
+          <div className="bulk-flyers__tally">
+            <h2 id="bulk-sheet-title">{plural(rows.length, "flyer", "flyers")}</h2>
+            <dl aria-label="Review progress">
+              <div>
+                <dt>To review</dt>
+                <dd>{toReviewCount + readingCount}</dd>
+              </div>
+              <div>
+                <dt>Confirmed</dt>
+                <dd>{confirmedCount}</dd>
+              </div>
+              <div>
+                <dt>Attention</dt>
+                <dd>{attentionCount}</dd>
+              </div>
+              <div>
+                <dt>Saved</dt>
+                <dd>{savedCount}</dd>
+              </div>
+            </dl>
+          </div>
+          <ul className="bulk-flyers__frames" aria-label="Flyers to review">
+            {rows.map((row) => {
+              const status = rowStatus(row);
+              return (
+                <li key={row.id} data-state={row.state}>
+                  <button
+                    type="button"
+                    className="bulk-flyers__frame"
+                    aria-current={selected?.id === row.id ? "true" : undefined}
+                    aria-label={`${row.file.name}: ${status.label}`}
+                    onClick={() => setSelectedId(row.id)}
+                  >
+                    <span className="bulk-flyers__frame-art">
+                      {row.url ? <img src={row.url} alt="" /> : <span aria-hidden="true" />}
+                    </span>
+                    <span className="bulk-flyers__frame-status">
+                      {status.mark && <MarginMark state={status.mark} />}
+                      <span>{status.label}</span>
+                    </span>
+                    <span className="bulk-flyers__frame-title">
+                      {row.draft.title || row.file.name}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
       )}
-      <div className="admin-card bulk-flyers__upload">
-        <label htmlFor="bulk-flyer-files">Flyer images</label>
-        <input
-          id="bulk-flyer-files"
-          type="file"
-          multiple
-          accept="image/jpeg,image/png,image/webp"
-          disabled={
-            processing ||
-            saving ||
-            !user ||
-            (mode === "host" && !selectedOrganizerId) ||
-            (mode === "admin" &&
-              (danceStyles.isLoading ||
-                attributes.isLoading ||
-                !!danceStyles.error ||
-                !!attributes.error))
+
+      {selected && (
+        <FlyerDetail
+          ref={detailRef}
+          row={selected}
+          mode={mode}
+          saving={saving}
+          danceStyles={danceStyles.terms}
+          attributes={attributes.terms}
+          onDraftChange={(draft) =>
+            updateRow(selected.id, {
+              draft,
+              state: "ready",
+              reviewed: false,
+              error: null,
+              saveIntent: null,
+            })
           }
-          onChange={(event) => {
-            void selectFiles(event.target.files);
-            event.target.value = "";
+          onConfirm={() => confirm(selected)}
+          onSkip={() => void skip(selected)}
+          onRetryAnalysis={() => void analyze(selected)}
+          onEnterManually={() =>
+            updateRow(selected.id, {
+              state: "ready",
+              error: null,
+              reviewed: false,
+              reviewWarnings: ["Analysis failed; enter or verify event details manually."],
+            })
+          }
+          onRetrySave={() => {
+            if (selected.saveIntent) void save(selected.saveIntent === "publish", selected);
           }}
         />
-        <p>JPEG, PNG, or WebP; up to 5 MB per image. Review each flyer before saving.</p>
-        {mode === "admin" && (danceStyles.error || attributes.error) && (
-          <p role="alert">Unable to load event taxonomy. Retry after it is available.</p>
-        )}
-      </div>
+      )}
+
       {rows.length > 0 && (
-        <div className="bulk-flyers__review">
-          <div className="bulk-flyers__queue">
-            <div
-              className="bulk-flyers__progress"
-              role="group"
-              aria-label="Review progress"
-            >
-              <p>
-                <span>Analyzed</span>
-                <strong>{analyzedCount}</strong>
-              </p>
-              <p>
-                <span>Reviewed</span>
-                <strong>{reviewedCount}</strong>
-              </p>
-              <p>
-                <span>Failed</span>
-                <strong>{failedCount}</strong>
-              </p>
-            </div>
-            <ul className="bulk-flyers__list" aria-label="Flyers to review">
-            {rows.map((row) => (
-              <li
-                key={row.id}
-                aria-label={row.file.name}
-                aria-current={selected?.id === row.id ? "true" : undefined}
-                className={`bulk-flyers__item${row.url ? "" : " bulk-flyers__item--no-thumb"}`}
-              >
-                {row.url && <img src={row.url} alt="" className="bulk-flyers__thumb" />}
-                <div className="bulk-flyers__item-body">
-                  <strong>{row.file.name}</strong>
-                  <p>
-                    {row.draft.title ||
-                      (row.state === "processing" ? "Analyzing…" : "Event details needed")}
-                  </p>
-                  <small className={`bulk-flyers__state bulk-flyers__state--${row.state}`}>
-                    {row.state === "created"
-                      ? "Saved"
-                      : row.state === "skipped"
-                        ? "Skipped"
-                        : row.state === "processing"
-                          ? "Analyzing"
-                          : row.state === "validation-error"
-                            ? "Invalid file"
-                            : row.state === "analysis-error"
-                              ? "Analysis failed"
-                              : row.state === "save-error"
-                                ? "Save failed"
-                                : row.reviewed
-                                  ? "Reviewed"
-                                  : "Not reviewed"}
-                  </small>
-                  {row.error && <p role="alert">{row.error}</p>}
-                </div>
-                <div className="bulk-flyers__row-actions">
-                  {row.state === "ready" && (
-                    <button
-                      type="button"
-                      className="admin-btn admin-btn--secondary"
-                      disabled={saving}
-                      onClick={() => setSelectedId(row.id)}
-                    >
-                      Review
-                    </button>
-                  )}
-                  {row.state === "analysis-error" && row.url && (
-                    <>
-                      <button
-                        type="button"
-                        className="admin-btn admin-btn--secondary"
-                        disabled={processing || saving}
-                        onClick={() => void analyze(row)}
-                      >
-                        Retry analysis
-                      </button>
-                      <button
-                        type="button"
-                        className="admin-btn admin-btn--secondary"
-                        disabled={saving}
-                        onClick={() => {
-                          setSelectedId(row.id);
-                          updateRow(row.id, {
-                            state: "ready",
-                            error: null,
-                            reviewed: false,
-                            reviewWarnings: ["Analysis failed; enter or verify event details manually."],
-                          });
-                        }}
-                      >
-                        Continue manually
-                      </button>
-                    </>
-                  )}
-                  {row.state === "save-error" && row.saveIntent && (
-                    <button
-                      type="button"
-                      className="admin-btn admin-btn--secondary"
-                      disabled={saving}
-                      onClick={() => {
-                        setSelectedId(row.id);
-                        void save(row.saveIntent === "publish", row);
-                      }}
-                    >
-                      Retry save
-                    </button>
-                  )}
-                  {(row.state === "ready" ||
-                    row.state === "validation-error" ||
-                    row.state === "analysis-error" ||
-                    row.state === "save-error") && (
-                    <button
-                      type="button"
-                      className="admin-btn admin-btn--secondary"
-                      disabled={saving}
-                      onClick={() => void skip(row)}
-                    >
-                      Skip
-                    </button>
-                  )}
-                </div>
-              </li>
-            ))}
-            </ul>
+        <div className="bulk-flyers__bar" role="region" aria-label="Save confirmed flyers">
+          <div className="bulk-flyers__bar-message">
+            {error && <p role="alert">{error}</p>}
+            <p role="status">{error ? "" : (summary ?? statusLine)}</p>
           </div>
-          {selected && (
-            <section
-              className="admin-card bulk-flyers__editor"
-              aria-label={`Review ${selected.file.name}`}
+          <div className="bulk-flyers__bar-actions">
+            <button
+              type="button"
+              className="admin-btn admin-btn--secondary"
+              disabled={saveBlocked || confirmedCount === 0}
+              onClick={() => void save(false)}
             >
-              <div className="bulk-flyers__editor-head">
-                <h2>Review {selected.file.name}</h2>
-                <span className={selected.reviewed ? "is-confirmed" : undefined}>
-                  {selected.reviewed ? "Confirmed" : "Needs review"}
-                </span>
-              </div>
-              <div className="bulk-flyers__editor-overview">
-                <img
-                  src={selected.url ?? ""}
-                  alt={`Flyer ${selected.file.name}`}
-                  className="bulk-flyers__preview"
-                />
-                <dl className="bulk-flyers__facts" aria-label="Selected event facts">
-                  <div>
-                    <dt>Event</dt>
-                    <dd>{selected.draft.title || "Title needed"}</dd>
-                  </div>
-                  <div>
-                    <dt>Date · time</dt>
-                    <dd>
-                      {selected.draft.event_date || "Date needed"}
-                      {selected.draft.event_time && ` · ${selected.draft.event_time}`}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Venue</dt>
-                    <dd>{selected.draft.location || "Venue needed"}</dd>
-                  </div>
-                  <div>
-                    <dt>City</dt>
-                    <dd>
-                      {metros.find((metro) => metro.slug === selected.draft.city)?.name ??
-                        selected.draft.city}
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-              {selected.reviewWarnings.length > 0 && (
-                <div className="admin-banner admin-banner--warning" role="note">
-                  <strong>Check these details against the flyer:</strong>
-                  <ul>
-                    {selected.reviewWarnings.map((warning) => (
-                      <li key={warning}>{warning}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              <EventForm
-                draft={selected.draft}
-                onChange={(draft) =>
-                  updateRow(selected.id, {
-                    draft,
-                    state: "ready",
-                    reviewed: false,
-                    error: null,
-                    saveIntent: null,
-                  })
-                }
-                capabilities={{
-                  ...CAPABILITIES[mode === "host" ? "organizerCreate" : "admin"],
-                  flyer: false,
-                }}
-                taxonomyTerms={
-                  mode === "admin"
-                    ? { danceStyles: danceStyles.terms, attributes: attributes.terms, archived: [] }
-                    : undefined
-                }
-              />
-              <button
-                type="button"
-                className={`admin-btn ${selected.reviewed ? "admin-btn--secondary" : "admin-btn--primary"} bulk-flyers__confirm`}
-                aria-pressed={selected.reviewed}
-                onClick={() => updateRow(selected.id, { reviewed: true })}
-              >
-                {selected.reviewed ? "Details confirmed" : "Confirm details against flyer"}
-              </button>
-            </section>
-          )}
-        </div>
-      )}
-      {error && (
-        <p role="alert" className="admin-banner admin-banner--error">
-          {error}
-        </p>
-      )}
-      {summary && (
-        <p role="status" className="admin-banner">
-          {summary}
-        </p>
-      )}
-      {rows.some((row) => row.state === "ready") && (
-        <div className="bulk-flyers__actions" aria-label="Save reviewed flyers">
-          <p>
-            <strong>{commitCount}</strong> ready to save
-          </p>
-          <button
-            type="button"
-            className="admin-btn admin-btn--secondary"
-            disabled={saving || processing || (mode === "host" && !selectedOrganizerId)}
-            onClick={() => void save(false)}
-          >
-            {savingIntent === "draft"
-              ? "Saving…"
-              : `Save ${commitCount} reviewed ${commitCount === 1 ? "draft" : "drafts"}`}
-          </button>
-          <button
-            type="button"
-            className="admin-btn admin-btn--primary"
-            disabled={saving || processing || (mode === "host" && !selectedOrganizerId)}
-            onClick={() => void save(true)}
-          >
-            {savingIntent === "publish"
-              ? "Publishing…"
-              : `Publish ${commitCount} reviewed ${commitCount === 1 ? "event" : "events"}`}
-          </button>
+              {savingIntent === "draft"
+                ? "Saving…"
+                : confirmedCount
+                  ? `Save ${confirmedCount} as ${confirmedCount === 1 ? "draft" : "drafts"}`
+                  : "Save as drafts"}
+            </button>
+            <button
+              type="button"
+              className="admin-btn admin-btn--primary"
+              disabled={saveBlocked || confirmedCount === 0}
+              onClick={() => void save(true)}
+            >
+              {savingIntent === "publish"
+                ? "Publishing…"
+                : confirmedCount
+                  ? `Publish ${plural(confirmedCount, "event", "events")}`
+                  : "Publish"}
+            </button>
+          </div>
         </div>
       )}
     </div>
+  );
+}
+
+type FlyerDetailProps = {
+  ref: Ref<HTMLElement>;
+  row: FlyerRow;
+  mode: "host" | "admin";
+  saving: boolean;
+  danceStyles: EventTaxonomyTerm[];
+  attributes: EventTaxonomyTerm[];
+  onDraftChange: (draft: EventFormDraft) => void;
+  onConfirm: () => void;
+  onSkip: () => void;
+  onRetryAnalysis: () => void;
+  onEnterManually: () => void;
+  onRetrySave: () => void;
+};
+
+function FlyerDetail({
+  ref,
+  row,
+  mode,
+  saving,
+  danceStyles,
+  attributes,
+  onDraftChange,
+  onConfirm,
+  onSkip,
+  onRetryAnalysis,
+  onEnterManually,
+  onRetrySave,
+}: FlyerDetailProps) {
+  const status = rowStatus(row);
+  const editable = row.state === "ready" || row.state === "save-error";
+  const skippable = editable || row.state === "validation-error" || row.state === "analysis-error";
+
+  return (
+    <section
+      ref={ref}
+      className="admin-card bulk-flyers__detail"
+      aria-label={`Review ${row.file.name}`}
+      data-state={row.state}
+    >
+      <figure className="bulk-flyers__evidence">
+        {row.url ? (
+          <img src={row.url} alt={`Flyer ${row.file.name}`} />
+        ) : (
+          <div className="bulk-flyers__evidence-blank">
+            {row.state === "processing" ? "Uploading…" : "No preview"}
+          </div>
+        )}
+        {row.url && (
+          <figcaption>
+            <a href={row.url} target="_blank" rel="noreferrer">
+              Open full size
+              <ExternalLink aria-hidden="true" />
+            </a>
+          </figcaption>
+        )}
+      </figure>
+
+      <div className="bulk-flyers__work">
+        <header className="bulk-flyers__detail-head">
+          <div>
+            <p className="bulk-flyers__file">{row.file.name}</p>
+            <h2>{row.draft.title || "Untitled flyer"}</h2>
+          </div>
+          <p className="bulk-flyers__detail-state">
+            {status.mark && <MarginMark state={status.mark} />}
+            {status.label}
+          </p>
+        </header>
+
+        {row.state === "processing" && (
+          <p role="status" className="bulk-flyers__note">
+            Reading the flyer. Its details will appear here to check.
+          </p>
+        )}
+
+        {(row.state === "validation-error" || row.state === "analysis-error") && (
+          <div className="bulk-flyers__note">
+            <p role="alert">{row.error}</p>
+            {row.state === "analysis-error" && row.url && (
+              <div className="bulk-flyers__note-actions">
+                <button
+                  type="button"
+                  className="admin-btn admin-btn--secondary"
+                  disabled={saving || row.state !== "analysis-error"}
+                  onClick={onRetryAnalysis}
+                >
+                  Retry analysis
+                </button>
+                <button
+                  type="button"
+                  className="admin-btn admin-btn--secondary"
+                  disabled={saving}
+                  onClick={onEnterManually}
+                >
+                  Continue manually
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {row.state === "skipped" && (
+          <p className="bulk-flyers__note">Skipped. This flyer will not be imported.</p>
+        )}
+
+        {row.state === "created" && (
+          <div className="bulk-flyers__note">
+            <p>
+              {row.savedAs === "publish"
+                ? "Published. It is live on the calendar."
+                : "Saved as a draft. Publish it from your events when it is ready."}
+            </p>
+            {row.error && <p role="alert">{row.error}</p>}
+          </div>
+        )}
+
+        {editable && (
+          <>
+            {row.state === "save-error" && (
+              <div className="admin-banner admin-banner--error bulk-flyers__save-error">
+                <p role="alert">{row.error}</p>
+                {row.saveIntent && (
+                  <button
+                    type="button"
+                    className="admin-btn admin-btn--secondary"
+                    disabled={saving}
+                    onClick={onRetrySave}
+                  >
+                    Retry save
+                  </button>
+                )}
+              </div>
+            )}
+            {row.reviewWarnings.length > 0 && (
+              <div className="admin-banner admin-banner--warning" role="note">
+                <strong>Check these details against the flyer:</strong>
+                <ul>
+                  {row.reviewWarnings.map((warning) => (
+                    <li key={warning}>{warning}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <EventForm
+              draft={row.draft}
+              onChange={onDraftChange}
+              capabilities={{
+                ...CAPABILITIES[mode === "host" ? "organizerCreate" : "admin"],
+                flyer: false,
+              }}
+              taxonomyTerms={
+                mode === "admin" ? { danceStyles, attributes, archived: [] } : undefined
+              }
+            />
+          </>
+        )}
+
+        {(editable || skippable) && (
+          <footer className="bulk-flyers__detail-foot">
+            {editable && row.state === "ready" && row.error && (
+              <p role="alert" className="bulk-flyers__confirm-error">
+                {row.error}
+              </p>
+            )}
+            {editable && (
+              <button
+                type="button"
+                className={`admin-btn ${row.reviewed ? "admin-btn--secondary" : "admin-btn--primary"} bulk-flyers__confirm`}
+                aria-pressed={row.reviewed}
+                disabled={saving}
+                onClick={onConfirm}
+              >
+                {row.reviewed && <Check aria-hidden="true" />}
+                {row.reviewed ? "Details confirmed" : "Confirm details against flyer"}
+              </button>
+            )}
+            {skippable && (
+              <button
+                type="button"
+                className="admin-btn admin-btn--ghost bulk-flyers__skip"
+                disabled={saving}
+                onClick={onSkip}
+              >
+                Skip this flyer
+              </button>
+            )}
+          </footer>
+        )}
+      </div>
+    </section>
   );
 }

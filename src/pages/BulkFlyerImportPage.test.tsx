@@ -122,6 +122,11 @@ beforeEach(() => {
   mocks.createEventAsAdmin.mockResolvedValue(undefined);
 });
 
+const frame = (fileName: string) =>
+  screen.findByRole("button", { name: new RegExp(`^${fileName.replace(".", "\\.")}: `) });
+const detail = (fileName: string) => screen.getByRole("region", { name: `Review ${fileName}` });
+const saveBar = () => screen.getByRole("region", { name: "Save confirmed flyers" });
+
 describe("BulkFlyerImportPage", () => {
   it("publishes only flyers explicitly confirmed after review", async () => {
     const user = userEvent.setup();
@@ -130,21 +135,18 @@ describe("BulkFlyerImportPage", () => {
       new File(["one"], "first.png", { type: "image/png" }),
       new File(["two"], "second.png", { type: "image/png" }),
     ]);
-    await screen.findByRole("listitem", { name: "first.png" });
-    await screen.findByRole("listitem", { name: "second.png" });
-    expect(screen.getByRole("listitem", { name: "first.png" })).toHaveTextContent("Not reviewed");
-    await user.click(
-      within(screen.getByRole("listitem", { name: /second.png/i })).getByRole("button", {
-        name: "Skip",
-      })
+    await waitFor(async () =>
+      expect(await frame("second.png")).toHaveAccessibleName("second.png: Needs review")
     );
-    await user.click(screen.getByRole("button", { name: "Publish 0 reviewed events" }));
-    expect(screen.getByRole("alert")).toHaveTextContent("Review at least one flyer before saving.");
-    expect(mocks.createOrganizerEvent).not.toHaveBeenCalled();
+    expect(await frame("first.png")).toHaveAccessibleName("first.png: Needs review");
+    expect(within(saveBar()).getByRole("button", { name: "Publish" })).toBeDisabled();
 
+    await user.click(await frame("second.png"));
+    await user.click(screen.getByRole("button", { name: "Skip this flyer" }));
+    await user.click(await frame("first.png"));
     await user.click(screen.getByRole("button", { name: "Confirm details against flyer" }));
-    await user.click(screen.getByRole("button", { name: "Publish 1 reviewed event" }));
-    await waitFor(() => expect(screen.getByText(/1 published/i)).toBeInTheDocument());
+    await user.click(within(saveBar()).getByRole("button", { name: "Publish 1 event" }));
+    await waitFor(() => expect(within(saveBar()).getByRole("status")).toHaveTextContent("1 published."));
     expect(mocks.createOrganizerEvent).toHaveBeenCalledOnce();
     expect(mocks.createOrganizerEvent).toHaveBeenCalledWith(
       "org-1",
@@ -165,15 +167,16 @@ describe("BulkFlyerImportPage", () => {
       screen.getByLabelText("Flyer images"),
       new File(["one"], "first.png", { type: "image/png" })
     );
-    await screen.findByRole("listitem", { name: "first.png" });
-    await user.click(screen.getByRole("button", { name: "Confirm details against flyer" }));
-    expect(screen.getByRole("listitem", { name: "first.png" })).toHaveTextContent("Reviewed");
+    await user.click(await screen.findByRole("button", { name: "Confirm details against flyer" }));
+    expect(await frame("first.png")).toHaveAccessibleName("first.png: Confirmed");
     await user.clear(screen.getByLabelText("Event Title *"));
     await user.type(screen.getByLabelText("Event Title *"), "Corrected title");
-    expect(screen.getByRole("listitem", { name: "first.png" })).toHaveTextContent("Not reviewed");
+    expect(await frame("first.png")).toHaveAccessibleName("first.png: Needs review");
     await user.click(screen.getByRole("button", { name: "Confirm details against flyer" }));
-    await user.click(screen.getByRole("button", { name: "Save 1 reviewed draft" }));
-    await waitFor(() => expect(screen.getByText(/1 draft saved/i)).toBeInTheDocument());
+    await user.click(within(saveBar()).getByRole("button", { name: "Save 1 as draft" }));
+    await waitFor(() =>
+      expect(within(saveBar()).getByRole("status")).toHaveTextContent("1 draft saved.")
+    );
     expect(mocks.createEventAsAdmin).toHaveBeenCalledWith(
       expect.objectContaining({
         title: "Corrected title",
@@ -205,19 +208,19 @@ describe("BulkFlyerImportPage", () => {
       screen.getByLabelText("Flyer images"),
       new File(["one"], "first.png", { type: "image/png" })
     );
-    await screen.findByRole("listitem", { name: "first.png" });
-    await user.click(screen.getByRole("button", { name: "Confirm details against flyer" }));
-    await user.click(screen.getByRole("button", { name: "Save 1 reviewed draft" }));
-    await waitFor(() =>
-      expect(screen.getByRole("listitem", { name: "first.png" })).toHaveTextContent(
-        /Saved.*tags could not be linked/
-      )
+    await user.click(await screen.findByRole("button", { name: "Confirm details against flyer" }));
+    await user.click(within(saveBar()).getByRole("button", { name: "Save 1 as draft" }));
+    await waitFor(async () =>
+      expect(await frame("first.png")).toHaveAccessibleName("first.png: Draft saved")
+    );
+    expect(within(detail("first.png")).getByRole("alert")).toHaveTextContent(
+      "tags could not be linked"
     );
     page.unmount();
     expect(mocks.removeEventFlyer).not.toHaveBeenCalled();
   });
 
-  it("does not publish unreviewed or invalid extracted rows", async () => {
+  it("refuses to confirm a flyer that could not be saved", async () => {
     const user = userEvent.setup();
     mocks.extractEventFromFlyer.mockResolvedValue({ ...extracted(""), date: null });
     renderPage("admin");
@@ -225,12 +228,67 @@ describe("BulkFlyerImportPage", () => {
       screen.getByLabelText("Flyer images"),
       new File(["one"], "first.png", { type: "image/png" })
     );
-    await screen.findByRole("listitem", { name: "first.png" });
-    expect(screen.getByRole("listitem", { name: "first.png" })).toHaveTextContent("Not reviewed");
-    await user.click(screen.getByRole("button", { name: "Confirm details against flyer" }));
-    await user.click(screen.getByRole("button", { name: "Publish 1 reviewed event" }));
-    expect(screen.getByRole("alert")).toHaveTextContent(/title is required/i);
+    await user.click(await screen.findByRole("button", { name: "Confirm details against flyer" }));
+    expect(within(detail("first.png")).getByRole("alert")).toHaveTextContent(
+      "Event title is required."
+    );
+    expect(await frame("first.png")).toHaveAccessibleName("first.png: Needs review");
+    expect(within(saveBar()).getByRole("button", { name: "Publish" })).toBeDisabled();
     expect(mocks.createEventAsAdmin).not.toHaveBeenCalled();
+  });
+
+  it("keeps a flyer with no event type from blocking the rest of the batch", async () => {
+    const user = userEvent.setup();
+    mocks.extractEventFromFlyer.mockImplementation(async (url: string) =>
+      url.includes("first")
+        ? extracted("First social")
+        : { ...extracted("Second social"), event_type: null }
+    );
+    renderPage("host");
+    await user.upload(screen.getByLabelText("Flyer images"), [
+      new File(["one"], "first.png", { type: "image/png" }),
+      new File(["two"], "second.png", { type: "image/png" }),
+    ]);
+    await waitFor(async () =>
+      expect(await frame("second.png")).toHaveAccessibleName("second.png: Needs review")
+    );
+    await user.click(screen.getByRole("button", { name: "Confirm details against flyer" }));
+    // Confirming advances to the next flyer that still needs review.
+    expect(detail("second.png")).toHaveTextContent(
+      "Event type was not identified on the flyer; choose one."
+    );
+    await user.click(screen.getByRole("button", { name: "Confirm details against flyer" }));
+    expect(within(detail("second.png")).getByRole("alert")).toHaveTextContent(
+      "Choose an event type."
+    );
+
+    await user.click(within(saveBar()).getByRole("button", { name: "Publish 1 event" }));
+    await waitFor(() => expect(within(saveBar()).getByRole("status")).toHaveTextContent("1 published."));
+    expect(mocks.createOrganizerEvent).toHaveBeenCalledOnce();
+    expect(mocks.createOrganizerEvent.mock.calls[0][1]).toEqual(
+      expect.objectContaining({ title: "First social" })
+    );
+  });
+
+  it("saves confirmed flyers while other flyers are still being read", async () => {
+    const user = userEvent.setup();
+    const pending = Promise.withResolvers<object>();
+    mocks.extractEventFromFlyer.mockImplementation((url: string) =>
+      url.includes("first") ? Promise.resolve(extracted("First social")) : pending.promise
+    );
+    renderPage("host");
+    await user.upload(screen.getByLabelText("Flyer images"), [
+      new File(["one"], "first.png", { type: "image/png" }),
+      new File(["two"], "second.png", { type: "image/png" }),
+    ]);
+    await user.click(await screen.findByRole("button", { name: "Confirm details against flyer" }));
+    expect(await frame("second.png")).toHaveAccessibleName("second.png: Reading");
+    await user.click(within(saveBar()).getByRole("button", { name: "Publish 1 event" }));
+    await waitFor(() => expect(mocks.createOrganizerEvent).toHaveBeenCalledOnce());
+    pending.resolve(extracted("Second social"));
+    await waitFor(async () =>
+      expect(await frame("second.png")).toHaveAccessibleName("second.png: Needs review")
+    );
   });
 
   it("surfaces an extracted city that cannot be matched before review confirmation", async () => {
@@ -242,11 +300,10 @@ describe("BulkFlyerImportPage", () => {
       new File(["one"], "city.png", { type: "image/png" })
     );
 
-    await screen.findByRole("listitem", { name: "city.png" });
-    expect(screen.getByRole("note")).toHaveTextContent(
+    expect(await screen.findByRole("note")).toHaveTextContent(
       /Could not match flyer city "Atlantis" to a supported city/
     );
-    expect(screen.getByRole("listitem", { name: "city.png" })).toHaveTextContent("Not reviewed");
+    expect(await frame("city.png")).toHaveAccessibleName("city.png: Needs review");
   });
 
   it("flags the default city when extraction finds no flyer city", async () => {
@@ -258,11 +315,11 @@ describe("BulkFlyerImportPage", () => {
       new File(["one"], "missing-city.png", { type: "image/png" })
     );
 
-    await screen.findByRole("listitem", { name: "missing-city.png" });
-    expect(screen.getByRole("note")).toHaveTextContent(
+    expect(await screen.findByRole("note")).toHaveTextContent(
       /City was not identified on the flyer; verify the selected city/
     );
   });
+
   it("retains the uploaded flyer and draft after analysis fails and allows manual entry", async () => {
     const user = userEvent.setup();
     mocks.extractEventFromFlyer.mockRejectedValueOnce(new Error("Analysis unavailable"));
@@ -272,17 +329,20 @@ describe("BulkFlyerImportPage", () => {
       new File(["one"], "first.png", { type: "image/png" })
     );
 
-    const row = await screen.findByRole("listitem", { name: "first.png" });
-    expect(row).toHaveTextContent("Analysis unavailable");
-    expect(within(row).getByRole("button", { name: "Retry analysis" })).toBeInTheDocument();
-    await user.click(within(row).getByRole("button", { name: "Continue manually" }));
+    await waitFor(async () =>
+      expect(await frame("first.png")).toHaveAccessibleName("first.png: Analysis failed")
+    );
+    const review = detail("first.png");
+    expect(within(review).getByRole("alert")).toHaveTextContent("Analysis unavailable");
+    expect(within(review).getByRole("button", { name: "Retry analysis" })).toBeInTheDocument();
+    await user.click(within(review).getByRole("button", { name: "Continue manually" }));
 
     expect(screen.getByRole("img", { name: "Flyer first.png" })).toHaveAttribute(
       "src",
       "https://example.com/first.png"
     );
     expect(screen.getByLabelText("Event Title *")).toBeInTheDocument();
-    expect(row).toHaveTextContent("Not reviewed");
+    expect(await frame("first.png")).toHaveAccessibleName("first.png: Needs review");
   });
 
   it("retries only a failed save without repeating a successful event", async () => {
@@ -296,35 +356,33 @@ describe("BulkFlyerImportPage", () => {
       new File(["one"], "first.png", { type: "image/png" }),
       new File(["two"], "second.png", { type: "image/png" }),
     ]);
-    await screen.findByRole("listitem", { name: "second.png" });
-    await user.click(screen.getByRole("button", { name: "Confirm details against flyer" }));
-    await user.click(
-      within(screen.getByRole("listitem", { name: "second.png" })).getByRole("button", {
-        name: "Review",
-      })
+    await waitFor(async () =>
+      expect(await frame("second.png")).toHaveAccessibleName("second.png: Needs review")
     );
     await user.click(screen.getByRole("button", { name: "Confirm details against flyer" }));
-    await user.click(screen.getByRole("button", { name: "Publish 2 reviewed events" }));
+    await user.click(screen.getByRole("button", { name: "Confirm details against flyer" }));
+    await user.click(within(saveBar()).getByRole("button", { name: "Publish 2 events" }));
     await waitFor(() =>
-      expect(screen.getByRole("status")).toHaveTextContent("1 published; 1 failed")
+      expect(within(saveBar()).getByRole("status")).toHaveTextContent("1 published · 1 failed.")
     );
-    const firstRow = screen.getByRole("listitem", { name: "first.png" });
-    const secondRow = screen.getByRole("listitem", { name: "second.png" });
-    expect(firstRow).toHaveTextContent("Saved");
-    expect(secondRow).toHaveTextContent("Save failed");
-    expect(within(secondRow).getByRole("button", { name: "Retry save" })).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "Flyer second.png" })).toBeInTheDocument();
-    expect(screen.getByLabelText("Event Title *")).toHaveValue("Second social");
+    expect(await frame("first.png")).toHaveAccessibleName("first.png: Published");
+    expect(await frame("second.png")).toHaveAccessibleName("second.png: Save failed");
+    const review = detail("second.png");
+    expect(within(review).getByRole("img", { name: "Flyer second.png" })).toBeInTheDocument();
+    expect(within(review).getByLabelText("Event Title *")).toHaveValue("Second social");
 
-    await user.click(within(secondRow).getByRole("button", { name: "Retry save" }));
-    await waitFor(() => expect(secondRow).toHaveTextContent("Saved"));
+    await user.click(within(review).getByRole("button", { name: "Retry save" }));
+    await waitFor(async () =>
+      expect(await frame("second.png")).toHaveAccessibleName("second.png: Published")
+    );
     expect(mocks.createOrganizerEvent).toHaveBeenCalledTimes(3);
     expect(mocks.createOrganizerEvent.mock.calls[2][1]).toEqual(
       expect.objectContaining({ title: "Second social" })
     );
-    expect(firstRow).toHaveTextContent("Saved");
+    expect(await frame("first.png")).toHaveAccessibleName("first.png: Published");
   });
-  it("shows batch progress, selected event facts, and the publication count", async () => {
+
+  it("counts flyers to review, confirmed, and needing attention", async () => {
     const user = userEvent.setup();
     mocks.extractEventFromFlyer.mockImplementation((url: string) =>
       url.includes("broken")
@@ -337,25 +395,17 @@ describe("BulkFlyerImportPage", () => {
       new File(["two"], "broken.png", { type: "image/png" }),
       new File(["three"], "third.jpg", { type: "image/jpeg" }),
     ]);
-    await screen.findByRole("listitem", { name: "first.png" });
-    const progress = screen.getByRole("group", { name: "Review progress" });
-    await waitFor(() => expect(progress).toHaveTextContent(/Failed\s*1/));
-    expect(progress).toHaveTextContent(/Analyzed\s*2/);
-    expect(progress).toHaveTextContent(/Reviewed\s*0/);
-    const facts = screen.getByLabelText("Selected event facts");
-    expect(facts).toHaveTextContent("First social");
-    expect(facts).toHaveTextContent("2099-07-12");
-    expect(facts).toHaveTextContent("20:00");
-    expect(facts).toHaveTextContent("Studio 5");
-    expect(facts).toHaveTextContent("Boston");
+    const progress = screen.getByLabelText("Review progress");
+    await waitFor(() => expect(progress).toHaveTextContent(/Attention\s*1/));
+    expect(progress).toHaveTextContent(/To review\s*2/);
+    expect(progress).toHaveTextContent(/Confirmed\s*0/);
 
     await user.click(screen.getByRole("button", { name: "Confirm details against flyer" }));
-    expect(progress).toHaveTextContent(/Reviewed\s*1/);
-    expect(
-      screen.getByRole("button", { name: "Publish 1 reviewed event" })
-    ).toBeInTheDocument();
+    expect(progress).toHaveTextContent(/Confirmed\s*1/);
+    expect(within(saveBar()).getByRole("button", { name: "Publish 1 event" })).toBeEnabled();
   });
-  it("selects the first ready flyer after the selected upload fails analysis", async () => {
+
+  it("opens the first ready flyer when the first upload fails analysis", async () => {
     const user = userEvent.setup();
     mocks.extractEventFromFlyer.mockImplementation((url: string) =>
       url.includes("first")
@@ -370,8 +420,9 @@ describe("BulkFlyerImportPage", () => {
     ]);
 
     expect(await screen.findByLabelText("Event Title *")).toHaveValue("Ready second event");
-    expect(screen.getByLabelText("Selected event facts")).toHaveTextContent("Ready second event");
+    expect(detail("second-ready.png")).toBeInTheDocument();
   });
+
   it("keeps validation errors readable when a rejected flyer has no preview", async () => {
     const user = userEvent.setup();
     renderPage("admin");
@@ -382,12 +433,14 @@ describe("BulkFlyerImportPage", () => {
     );
 
     await user.upload(screen.getByLabelText("Flyer images"), oversizedFile);
-    const failedFlyer = await screen.findByRole("listitem", { name: "oversized.png" });
-
-    expect(failedFlyer).toHaveTextContent("Image must be 5 MB or smaller.");
+    await waitFor(async () =>
+      expect(await frame("oversized.png")).toHaveAccessibleName("oversized.png: Invalid file")
+    );
+    expect(within(detail("oversized.png")).getByRole("alert")).toHaveTextContent(
+      "Image must be 5 MB or smaller."
+    );
     expect(mocks.uploadEventFlyer).not.toHaveBeenCalled();
   });
-
 
   it("removes a flyer if its upload finishes after leaving the import page", async () => {
     const pending = Promise.withResolvers<{ url: string; path: string }>();

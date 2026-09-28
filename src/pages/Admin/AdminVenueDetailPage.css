@@ -113,7 +113,7 @@
 
 .admin-venue-detail-page__decision-panel {
   position: sticky;
-  top: 24px;
+  top: calc(var(--admin-header-h) + 24px);
   align-self: start;
 }
 
@@ -161,6 +161,6 @@
 
   .admin-venue-detail-page__decision-panel {
     position: sticky;
-    top: 0;
+    top: var(--admin-header-h);
   }
 }

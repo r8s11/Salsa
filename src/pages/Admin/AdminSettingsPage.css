@@ -188,7 +188,7 @@
     float: left;
     flex-direction: column;
     position: sticky;
-    top: 24px;
+    top: calc(var(--admin-header-h) + 24px);
     width: 180px;
   }
 

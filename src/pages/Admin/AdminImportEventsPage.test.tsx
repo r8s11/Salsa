@@ -29,6 +29,7 @@ function hookState(overrides: Partial<CsvEventImportState> = {}): CsvEventImport
     importBlockedReason: null,
     importResult: null,
     importError: null,
+    duplicateCheckError: null,
     handleFile: vi.fn(),
     runImport: vi.fn(),
     reset: vi.fn(),
@@ -289,7 +290,7 @@ describe("AdminImportEventsPage — validation review", () => {
 
     const table = within(screen.getByRole("table"));
     expect(table.getByText(/Possible duplicate/)).toBeInTheDocument();
-    const checkbox = table.getByRole("checkbox", { name: /Import anyway/ });
+    const checkbox = table.getByRole("checkbox", { name: "Import anyway: Salsa Social" });
     expect(checkbox).not.toBeChecked();
     await userEvent.click(checkbox);
     expect(toggleIncludeDuplicate).toHaveBeenCalledWith(2);
@@ -490,6 +491,30 @@ describe("AdminImportEventsPage — disabled import explains why", () => {
     );
     renderPage();
     expect(screen.queryByRole("note")).not.toBeInTheDocument();
+  });
+});
+describe("AdminImportEventsPage — duplicate lookup failure", () => {
+  it("discloses the failed check and blocks importable rows", async () => {
+    const runImport = vi.fn();
+    (useCsvEventImport as Mock).mockReturnValue(
+      hookState({
+        stage: "reviewing",
+        fileName: "f.csv",
+        fileSize: 100,
+        rows: [reviewingRow()],
+        counts: { total: 1, valid: 1, warning: 0, invalid: 0 },
+        importableCount: 1,
+        duplicateCheckError: "Could not check existing events for duplicates.",
+        runImport,
+      })
+    );
+    renderPage();
+
+    expect(screen.getByRole("alert")).toHaveTextContent(/could not check/i);
+    const importButton = screen.getByRole("button", { name: "Import Valid Events (1)" });
+    expect(importButton).toBeDisabled();
+    await userEvent.click(importButton);
+    expect(runImport).not.toHaveBeenCalled();
   });
 });
 

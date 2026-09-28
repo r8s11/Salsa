@@ -98,6 +98,34 @@ describe("eventsRepo taxonomy persistence", () => {
     expect(mocks.replaceEventTaxonomyTerms).toHaveBeenCalledWith("copy-id", ["salsa-id"]);
   });
 });
+describe("duplicateEvent taxonomy failure", () => {
+  beforeEach(() => {
+    mocks.insert.mockReset();
+    mocks.replaceEventTaxonomyTerms.mockReset();
+    mocks.insert.mockReturnValue({
+      select: () => ({ single: async () => ({ data: { id: "copy-id" }, error: null }) }),
+    });
+  });
+
+  it("keeps the duplicate saved when taxonomy linking fails and reports a warning", async () => {
+    mocks.replaceEventTaxonomyTerms.mockRejectedValue(new Error("taxonomy unavailable"));
+    const onTaxonomyFailure = vi.fn();
+
+    await expect(
+      duplicateEvent(
+        source,
+        { date: "2026-09-08", time: "20:00", publish: true },
+        { id: "admin-id", email: "admin@example.com" },
+        onTaxonomyFailure
+      )
+    ).resolves.toBeUndefined();
+    expect(mocks.insert).toHaveBeenCalledTimes(1);
+    expect(onTaxonomyFailure).toHaveBeenCalledWith(
+      "Event saved, but tags could not be linked. Check them in the event editor."
+    );
+    mocks.replaceEventTaxonomyTerms.mockResolvedValue(undefined);
+  });
+});
 
 describe("fetchApprovedEventById", () => {
   beforeEach(() => {
@@ -181,7 +209,7 @@ describe("eventsRepo user update", () => {
     expect(eqCall).toHaveBeenCalledWith("id", "event-id");
   });
 
-  it("does NOT send status, source_type, submitter_*, host, venue_id, contact_*, image_url, gallery", async () => {
+  it("sends allowed user fields and excludes admin-only fields", async () => {
     mocks.update.mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
 
     await updateEventForUser("event-id", {
@@ -190,6 +218,7 @@ describe("eventsRepo user update", () => {
       city: "boston",
       event_date: "2026-08-20T20:00:00Z",
       dance_styles: [],
+      image_url: "https://storage.example.com/user-flyer.jpg",
     });
 
     const sentPayload = mocks.update.mock.calls[0][0];
@@ -201,8 +230,8 @@ describe("eventsRepo user update", () => {
     expect(sentPayload).not.toHaveProperty("host");
     expect(sentPayload).not.toHaveProperty("venue_id");
     expect(sentPayload).not.toHaveProperty("contact_email");
-    expect(sentPayload).not.toHaveProperty("image_url");
     expect(sentPayload).not.toHaveProperty("gallery");
+    expect(sentPayload.image_url).toBe("https://storage.example.com/user-flyer.jpg");
   });
 
   it("throws the database error message when the update fails", async () => {
@@ -373,13 +402,13 @@ describe("updateEventFlyer", () => {
     mocks.update.mockReset();
     queryBuilder.select.mockClear();
     queryBuilder.eq.mockClear();
-    queryBuilder.single.mockReset();
+    queryBuilder.maybeSingle.mockReset();
   });
 
   it("updates only image_url and verifies the row changed", async () => {
     const eqMock = vi.fn().mockReturnValue({
       select: vi.fn().mockReturnValue({
-        single: vi.fn().mockResolvedValue({
+        maybeSingle: vi.fn().mockResolvedValue({
           data: { id: "evt-1", image_url: "https://storage.example.com/flyer.jpg" },
           error: null,
         }),
@@ -401,7 +430,7 @@ describe("updateEventFlyer", () => {
   it("clears image_url when called with null", async () => {
     const eqMock = vi.fn().mockReturnValue({
       select: vi.fn().mockReturnValue({
-        single: vi.fn().mockResolvedValue({
+        maybeSingle: vi.fn().mockResolvedValue({
           data: { id: "evt-1", image_url: null },
           error: null,
         }),
@@ -410,14 +439,13 @@ describe("updateEventFlyer", () => {
     mocks.update.mockReturnValue({ eq: eqMock });
 
     await expect(updateEventFlyer("evt-1", null)).resolves.toBeUndefined();
-
     expect(mocks.update).toHaveBeenCalledWith({ image_url: null });
   });
 
   it("throws when Supabase returns an error", async () => {
     const eqMock = vi.fn().mockReturnValue({
       select: vi.fn().mockReturnValue({
-        single: vi.fn().mockResolvedValue({
+        maybeSingle: vi.fn().mockResolvedValue({
           data: null,
           error: { message: "permission denied" },
         }),
@@ -428,17 +456,17 @@ describe("updateEventFlyer", () => {
     await expect(updateEventFlyer("evt-1", "url")).rejects.toThrow("permission denied");
   });
 
-  it("throws when no row is returned (zero-row update)", async () => {
+  it("reports a zero-row update from maybeSingle's normal no-row result", async () => {
+    const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
     const eqMock = vi.fn().mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        single: vi.fn().mockResolvedValue({ data: null, error: null }),
-      }),
+      select: vi.fn().mockReturnValue({ maybeSingle }),
     });
     mocks.update.mockReturnValue({ eq: eqMock });
 
     await expect(updateEventFlyer("evt-1", "url")).rejects.toThrow(
       "Event not found or update denied by policy."
     );
+    expect(maybeSingle).toHaveBeenCalledTimes(1);
   });
 });
 

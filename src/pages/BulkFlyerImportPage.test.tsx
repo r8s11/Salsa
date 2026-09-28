@@ -25,7 +25,8 @@ vi.mock("../features/host/hooks/useMyOrganizers", () => ({
   useMyOrganizers: mocks.useMyOrganizers,
 }));
 vi.mock("../features/events/api/eventFlyers", () => ({
-  validateEventFlyer: (file: File) => (file.type === "image/png" ? null : "Unsupported image"),
+  validateEventFlyer: (file: File) =>
+    ["image/png", "image/jpeg", "image/webp"].includes(file.type) ? null : "Unsupported image",
   uploadEventFlyer: mocks.uploadEventFlyer,
   removeEventFlyer: mocks.removeEventFlyer,
 }));
@@ -331,13 +332,12 @@ describe("BulkFlyerImportPage", () => {
     await user.upload(screen.getByLabelText("Flyer images"), [
       new File(["one"], "first.png", { type: "image/png" }),
       new File(["two"], "broken.png", { type: "image/png" }),
-      new File(["three"], "invalid.jpg", { type: "image/jpeg" }),
+      new File(["three"], "third.jpg", { type: "image/jpeg" }),
     ]);
-
     await screen.findByRole("listitem", { name: "first.png" });
     const progress = screen.getByRole("group", { name: "Review progress" });
-    await waitFor(() => expect(progress).toHaveTextContent(/Failed\s*2/));
-    expect(progress).toHaveTextContent(/Analyzed\s*1/);
+    await waitFor(() => expect(progress).toHaveTextContent(/Failed\s*1/));
+    expect(progress).toHaveTextContent(/Analyzed\s*2/);
     expect(progress).toHaveTextContent(/Reviewed\s*0/);
     const facts = screen.getByLabelText("Selected event facts");
     expect(facts).toHaveTextContent("First social");
@@ -351,6 +351,23 @@ describe("BulkFlyerImportPage", () => {
     expect(
       screen.getByRole("button", { name: "Publish 1 reviewed event" })
     ).toBeInTheDocument();
+  });
+  it("selects the first ready flyer after the selected upload fails analysis", async () => {
+    const user = userEvent.setup();
+    mocks.extractEventFromFlyer.mockImplementation((url: string) =>
+      url.includes("first")
+        ? Promise.reject(new Error("Analysis unavailable"))
+        : Promise.resolve(extracted("Ready second event"))
+    );
+    renderPage("admin");
+
+    await user.upload(screen.getByLabelText("Flyer images"), [
+      new File(["bad"], "first-broken.png", { type: "image/png" }),
+      new File(["good"], "second-ready.png", { type: "image/png" }),
+    ]);
+
+    expect(await screen.findByLabelText("Event Title *")).toHaveValue("Ready second event");
+    expect(screen.getByLabelText("Selected event facts")).toHaveTextContent("Ready second event");
   });
 
 

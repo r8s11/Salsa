@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Calendar, ImageOff, MapPin, Search, Users, QrCode } from "lucide-react";
 import { useAuth } from "../../contexts/useAuth";
@@ -235,7 +235,16 @@ export default function HostMyEventsPage() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FilterValue>("all");
   const [selectedOrganizerId, setSelectedOrganizerId] = useState<string | null>(null);
-  const [now] = useState(() => new Date());
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const refreshNow = () => setNow(new Date());
+    const intervalId = window.setInterval(refreshNow, 60_000);
+    document.addEventListener("visibilitychange", refreshNow);
+    return () => {
+      window.clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", refreshNow);
+    };
+  }, []);
 
   // Derive permissions
   const canCreate = organizers.some(
@@ -345,7 +354,7 @@ export default function HostMyEventsPage() {
   };
 
   return (
-    <div className="admin-shell">
+    <div>
       {/* Header */}
       <AdminPageHeader
         title="My Events"

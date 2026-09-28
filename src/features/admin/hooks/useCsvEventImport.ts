@@ -43,6 +43,7 @@ export interface CsvEventImportState {
   importBlockedReason: string | null;
   importResult: ImportBatchSummary | null;
   importError: string | null;
+  duplicateCheckError: string | null;
   handleFile: (file: File) => Promise<void>;
   runImport: () => Promise<void>;
   reset: () => void;
@@ -65,7 +66,7 @@ export function useCsvEventImport(): CsvEventImportState {
   const [includedDuplicates, setIncludedDuplicates] = useState<Set<number>>(new Set());
   const [importResult, setImportResult] = useState<ImportBatchSummary | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
-
+  const [duplicateCheckError, setDuplicateCheckError] = useState<string | null>(null);
   const reset = useCallback(() => {
     setStage("idle");
     setFileName(null);
@@ -75,6 +76,7 @@ export function useCsvEventImport(): CsvEventImportState {
     setIncludedDuplicates(new Set());
     setImportResult(null);
     setImportError(null);
+    setDuplicateCheckError(null);
   }, []);
 
   const handleFile = useCallback(
@@ -83,7 +85,6 @@ export function useCsvEventImport(): CsvEventImportState {
       setFileName(file.name);
       setFileSize(file.size);
       setStage("processing");
-
       const parsed = await parseCsvFile(file);
       if (!parsed.ok) {
         setFileErrors(parsed.fileErrors);
@@ -117,7 +118,14 @@ export function useCsvEventImport(): CsvEventImportState {
         })
       );
 
-      const existingEvents = await fetchAllEvents().catch(() => []);
+      let existingEvents;
+      try {
+        existingEvents = await fetchAllEvents();
+      } catch {
+        setDuplicateCheckError("Could not check existing events for duplicates. Upload the file again when the event list is available.");
+        setStage("reviewing");
+        return;
+      }
       const withDuplicates: CsvRowWithDuplicates[] = withVenues.map((row) => {
         const duplicates = findCsvRowDuplicates(row, existingEvents);
         if (duplicates.length === 0) return { ...row, duplicates };
@@ -193,13 +201,15 @@ export function useCsvEventImport(): CsvEventImportState {
 
   const runImport = useCallback(async () => {
     if (stage === "importing" || stage === "done") return;
+    if (duplicateCheckError) {
+      setImportError("Duplicate checking failed. Import is blocked; upload the file again to retry.");
+      return;
+    }
     if (!user) {
       setImportError("You must be signed in to import events. Refresh the page and sign in again.");
       return;
     }
     if (importableRows.length === 0) {
-      // The button is disabled in this state, but keyboard/scripted callers
-      // and stale closures can still land here — say why instead of vanishing.
       setImportError(importBlockedReason ?? "No events are currently eligible to import.");
       return;
     }
@@ -220,6 +230,7 @@ export function useCsvEventImport(): CsvEventImportState {
       setStage("reviewing");
     }
   }, [
+    duplicateCheckError,
     excludedDuplicateCount,
     fileName,
     importBlockedReason,
@@ -228,7 +239,6 @@ export function useCsvEventImport(): CsvEventImportState {
     stage,
     user,
   ]);
-
   return {
     stage,
     fileName,
@@ -243,6 +253,7 @@ export function useCsvEventImport(): CsvEventImportState {
     importBlockedReason,
     importResult,
     importError,
+    duplicateCheckError,
     handleFile,
     runImport,
     reset,

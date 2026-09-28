@@ -306,11 +306,12 @@ export default function BulkFlyerImportPage({ mode }: Props) {
   if (mode === "host" && !manageable.length)
     return <p>Only active organizer owners and managers can import flyers.</p>;
 
-  const selected = rows.find(
-    (row) => row.id === selectedId && (row.state === "ready" || row.state === "save-error")
-  );
+  const selected =
+    rows.find(
+      (row) => row.id === selectedId && (row.state === "ready" || row.state === "save-error")
+    ) ?? rows.find((row) => row.state === "ready" || row.state === "save-error");
   return (
-    <div className="admin-shell bulk-flyers">
+    <div className="bulk-flyers">
       <AdminPageHeader
         title="Import flyers"
         description="Upload multiple event flyers, correct the extracted details, then save drafts or publish."

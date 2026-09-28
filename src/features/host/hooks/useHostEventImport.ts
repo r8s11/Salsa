@@ -53,6 +53,7 @@ export interface HostCsvEventImportState {
   excludedDuplicateCount: number;
   importResult: HostImportBatchSummary | null;
   importError: string | null;
+  duplicateCheckError: string | null;
   handleFile: (file: File, organizerId: string) => Promise<void>;
   runImport: (organizerId: string) => Promise<void>;
   reset: () => void;
@@ -109,6 +110,7 @@ export function useHostEventImport(): HostCsvEventImportState {
   const [includedDuplicates, setIncludedDuplicates] = useState<Set<number>>(new Set());
   const [importResult, setImportResult] = useState<HostImportBatchSummary | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
+  const [duplicateCheckError, setDuplicateCheckError] = useState<string | null>(null);
 
   const reset = useCallback(() => {
     setStage("idle");
@@ -119,6 +121,7 @@ export function useHostEventImport(): HostCsvEventImportState {
     setIncludedDuplicates(new Set());
     setImportResult(null);
     setImportError(null);
+    setDuplicateCheckError(null);
   }, []);
 
   const handleFile = useCallback(
@@ -160,7 +163,14 @@ export function useHostEventImport(): HostCsvEventImportState {
         })
       );
 
-      const existingEvents = await fetchOrganizerEvents(organizerId).catch(() => []);
+      let existingEvents;
+      try {
+        existingEvents = await fetchOrganizerEvents(organizerId);
+      } catch {
+        setDuplicateCheckError("Could not check this organizer’s existing events for duplicates. Upload the file again when the event list is available.");
+        setStage("reviewing");
+        return;
+      }
 
       const withDuplicates: HostCsvRowWithDuplicates[] = withVenues.map((row) => {
         const duplicates = findCsvRowDuplicates(row, existingEvents);
@@ -210,7 +220,7 @@ export function useHostEventImport(): HostCsvEventImportState {
 
   const runImport = useCallback(
     async (organizerId: string) => {
-      if (!user || stage === "importing" || stage === "done" || importableRows.length === 0) return;
+      if (!user || stage === "importing" || stage === "done" || duplicateCheckError || importableRows.length === 0) return;
       setStage("importing");
       setImportError(null);
       try {
@@ -249,7 +259,7 @@ export function useHostEventImport(): HostCsvEventImportState {
         setStage("reviewing");
       }
     },
-    [importableRows, rows.length, stage, user]
+    [duplicateCheckError, importableRows, rows.length, stage, user]
   );
 
   return {
@@ -265,6 +275,7 @@ export function useHostEventImport(): HostCsvEventImportState {
     excludedDuplicateCount,
     importResult,
     importError,
+    duplicateCheckError,
     handleFile,
     runImport,
     reset,

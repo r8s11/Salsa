@@ -29,6 +29,7 @@ function hookState(overrides: Partial<HostCsvEventImportState> = {}): HostCsvEve
     excludedDuplicateCount: 0,
     importResult: null,
     importError: null,
+    duplicateCheckError: null,
     handleFile: vi.fn(),
     runImport: vi.fn(),
     reset: vi.fn(),
@@ -142,6 +143,46 @@ describe("HostEventImportPage — organizer access loading", () => {
     await user.upload(screen.getByLabelText("Upload CSV file"), file);
     expect(importState.handleFile).toHaveBeenCalledWith(file, "org-1");
   });
+  it("keeps a reviewed batch bound to the organizer selected for upload", async () => {
+    const user = userEvent.setup();
+    const handleFile = vi.fn();
+    const runImport = vi.fn();
+    (useHostEventImport as Mock).mockReturnValue(
+      hookState({ handleFile, runImport })
+    );
+
+    const page = renderPage();
+    const organizerSelect = screen.getByLabelText("Import to:");
+    await user.selectOptions(organizerSelect, "org-2");
+
+    const file = new File(["title,event_date"], "events.csv", { type: "text/csv" });
+    await user.upload(screen.getByLabelText("Upload CSV file"), file);
+    expect(handleFile).toHaveBeenCalledWith(file, "org-2");
+
+    (useHostEventImport as Mock).mockReturnValue(
+      hookState({
+        stage: "reviewing",
+        fileName: file.name,
+        fileSize: file.size,
+        rows: [reviewingRow()],
+        counts: { total: 1, valid: 1, warning: 0, invalid: 0 },
+        importableCount: 1,
+        handleFile,
+        runImport,
+      })
+    );
+    page.rerender(
+      <MemoryRouter>
+        <HostEventImportPage />
+      </MemoryRouter>
+    );
+
+    expect(organizerSelect).toHaveValue("org-2");
+    expect(organizerSelect).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: "Import Valid Events (1)" }));
+    expect(runImport).toHaveBeenCalledWith("org-2");
+  });
+
 
   it("shows the no-membership state only after organizer access finishes loading", () => {
     (useHostEventImport as Mock).mockReturnValue(hookState());
@@ -390,10 +431,32 @@ describe("HostEventImportPage — validation review", () => {
 
     const table = within(screen.getByRole("table"));
     expect(table.getByText(/Possible duplicate/)).toBeInTheDocument();
-    const checkbox = table.getByRole("checkbox", { name: /Import anyway/ });
+    const checkbox = table.getByRole("checkbox", { name: "Import anyway: Salsa Social" });
     expect(checkbox).not.toBeChecked();
     await userEvent.click(checkbox);
     expect(toggleIncludeDuplicate).toHaveBeenCalledWith(2);
+  });
+  it("blocks import and discloses duplicate-check failure", async () => {
+    const runImport = vi.fn();
+    (useHostEventImport as Mock).mockReturnValue(
+      hookState({
+        stage: "reviewing",
+        fileName: "f.csv",
+        fileSize: 100,
+        rows: [reviewingRow()],
+        counts: { total: 1, valid: 1, warning: 0, invalid: 0 },
+        importableCount: 1,
+        duplicateCheckError: "Could not check existing events for duplicates.",
+        runImport,
+      })
+    );
+    renderPage();
+
+    expect(screen.getByRole("alert")).toHaveTextContent(/could not check/i);
+    const importButton = screen.getByRole("button", { name: "Import Valid Events (1)" });
+    expect(importButton).toBeDisabled();
+    await userEvent.click(importButton);
+    expect(runImport).not.toHaveBeenCalled();
   });
 
   it("labels the import button with the count of rows it will actually import", () => {

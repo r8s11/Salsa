@@ -119,6 +119,45 @@ describe("AdminLayout", () => {
       "false"
     );
   });
+  it("contains focus in the open navigation drawer and restores it on Escape", async () => {
+    const user = userEvent.setup();
+    renderLayout();
+
+    const opener = screen.getByRole("button", { name: "Open navigation" });
+    await user.click(opener);
+
+    const dialog = screen.getByRole("dialog", { name: "Navigation" });
+    const close = within(dialog).getByRole("button", { name: "Close navigation" });
+    const last = within(dialog).getByRole("button", { name: "Sign out" });
+
+    expect(close).toHaveFocus();
+    expect(document.querySelector(".admin-main")).toHaveAttribute("inert");
+
+    last.focus();
+    await user.tab();
+    expect(close).toHaveFocus();
+
+    close.focus();
+    await user.tab({ shift: true });
+    expect(last).toHaveFocus();
+
+    await user.keyboard("{Escape}");
+    expect(opener).toHaveAttribute("aria-expanded", "false");
+    expect(opener).toHaveFocus();
+  });
+  it("closes from the drawer backdrop and restores opener focus", async () => {
+    const user = userEvent.setup();
+    renderLayout();
+
+    const opener = screen.getByRole("button", { name: "Open navigation" });
+    await user.click(opener);
+    await user.click(document.querySelector(".admin-drawer")!);
+
+    expect(opener).toHaveAttribute("aria-expanded", "false");
+    expect(opener).toHaveFocus();
+  });
+
+
 
   it("exposes Dashboard, Events, Users, Organizer Requests, and Venues as links", () => {
     renderLayout();

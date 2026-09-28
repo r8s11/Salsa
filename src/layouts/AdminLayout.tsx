@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useLayoutEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { ChevronRight, Menu, X } from "lucide-react";
 import { useAuth } from "../contexts/useAuth";
 import { useTheme } from "../contexts/useTheme";
-import { useEscapeKey } from "../features/calendar/hooks/useEscapeKey";
 import AdminSidebar from "../components/Admin/AdminSidebar";
+import { useAccessibleDialog } from "../shared/a11y/useAccessibleDialog";
 import "../styles/admin.css";
 import "./AdminLayout.css";
 
@@ -70,8 +70,16 @@ export default function AdminLayout() {
   const { theme, setTheme } = useTheme();
 
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
-
-  useEscapeKey(closeDrawer);
+  const drawerRef = useRef<HTMLDivElement>(null);
+  const {
+    onKeyDown: onDrawerKeyDown,
+    onBackdropClick: onDrawerBackdropClick,
+    onDialogClick: onDrawerDialogClick,
+  } = useAccessibleDialog({
+    dialogRef: drawerRef,
+    isOpen: drawerOpen,
+    onDismiss: closeDrawer,
+  });
 
   useEffect(() => {
     window.localStorage.setItem(COLLAPSE_STORAGE_KEY, String(sidebarCollapsed));
@@ -110,13 +118,16 @@ export default function AdminLayout() {
         collapsed={sidebarCollapsed}
         onToggleCollapse={() => setSidebarCollapsed((value) => !value)}
       />
-      <div className="admin-drawer" data-open={drawerOpen}>
-        <div className="admin-drawer__backdrop" onClick={closeDrawer} />
+      <div className="admin-drawer" data-open={drawerOpen} onClick={onDrawerBackdropClick}>
         <div
+          ref={drawerRef}
           className="admin-drawer__panel"
           role="dialog"
           aria-modal="true"
           aria-label="Navigation"
+          tabIndex={-1}
+          onKeyDown={onDrawerKeyDown}
+          onClick={onDrawerDialogClick}
         >
           <button
             type="button"

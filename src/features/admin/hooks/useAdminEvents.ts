@@ -61,10 +61,18 @@ export function useAdminEvents() {
     mutationFn: ({
       source,
       input,
+      onTaxonomyFailure,
     }: {
       source: DatabaseEvent;
       input: { date: string; time: string; publish: boolean };
-    }) => duplicateEvent(source, input, { id: user!.id, email: user!.email ?? null }),
+      onTaxonomyFailure?: (message: string) => void;
+    }) =>
+      duplicateEvent(
+        source,
+        input,
+        { id: user!.id, email: user!.email ?? null },
+        onTaxonomyFailure
+      ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["events"] });
     },

@@ -64,6 +64,7 @@ export default function AdminImportEventsPage() {
     importableCount,
     importBlockedReason,
     importResult,
+    duplicateCheckError,
     importError,
     handleFile,
     runImport,
@@ -90,6 +91,7 @@ export default function AdminImportEventsPage() {
       <label className="admin-import-page__include">
         <input
           type="checkbox"
+          aria-label={`Import anyway: ${row.raw.title || `row ${row.rowNumber}`}`}
           checked={includedDuplicates.has(row.rowNumber)}
           onChange={() => toggleIncludeDuplicate(row.rowNumber)}
           disabled={isImporting}
@@ -200,7 +202,7 @@ export default function AdminImportEventsPage() {
                 type="button"
                 className="admin-btn admin-btn--primary"
                 onClick={runImport}
-                disabled={isImporting || importableCount === 0}
+                disabled={isImporting || importableCount === 0 || duplicateCheckError !== null}
               >
                 {isImporting ? "Importing…" : `Import Valid Events (${importableCount})`}
               </button>
@@ -209,6 +211,11 @@ export default function AdminImportEventsPage() {
               <p className="admin-import-page__blocked-note" role="note">
                 {importBlockedReason}
               </p>
+            )}
+            {duplicateCheckError && (
+              <div className="admin-banner admin-banner--error" role="alert">
+                <p>{duplicateCheckError} Upload a different file to retry.</p>
+              </div>
             )}
             {importError && (
               <div className="admin-banner admin-banner--error" role="alert">

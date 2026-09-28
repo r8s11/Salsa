@@ -172,7 +172,7 @@ export async function updateEventFlyer(eventId: string, imageUrl: string | null)
     .update({ image_url: imageUrl })
     .eq("id", eventId)
     .select("id, image_url")
-    .single();
+    .maybeSingle();
   if (error) throw new Error(error.message);
   if (!data) throw new Error("Event not found or update denied by policy.");
 }
@@ -285,7 +285,8 @@ export async function createEventAsAdmin(
 export async function duplicateEvent(
   source: DatabaseEvent,
   input: { date: string; time: string; publish: boolean },
-  actor: { id: string; email: string | null }
+  actor: { id: string; email: string | null },
+  onTaxonomyFailure?: (message: string) => void
 ): Promise<void> {
   const {
     id: _id,
@@ -320,7 +321,12 @@ export async function duplicateEvent(
     .select("id")
     .single();
   if (error) throw new Error(error.message);
-  await replaceEventTaxonomyTerms(data.id, taxonomyTermIds);
+  try {
+    await replaceEventTaxonomyTerms(data.id, taxonomyTermIds);
+  } catch (taxonomyError) {
+    if (!onTaxonomyFailure) throw taxonomyError;
+    onTaxonomyFailure("Event saved, but tags could not be linked. Check them in the event editor.");
+  }
 }
 
 export type EventTouchKind = "view" | "rsvp_click";

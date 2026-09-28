@@ -69,6 +69,7 @@ export default function HostEventImportPage() {
     importableCount,
     importResult,
     importError,
+    duplicateCheckError,
     handleFile,
     runImport,
     reset,
@@ -90,22 +91,31 @@ export default function HostEventImportPage() {
     [organizers]
   );
   const [organizerSelection, setOrganizerSelection] = useState("");
+  const [batchOrganizerId, setBatchOrganizerId] = useState<string | null>(null);
   const selectedOrganizerId = activeOrganizers.some(
     (organizer) => organizer.organizerId === organizerSelection
   )
     ? organizerSelection
     : (activeOrganizers[0]?.organizerId ?? "");
+  const importOrganizerId =
+    stage === "idle" ? selectedOrganizerId : (batchOrganizerId ?? selectedOrganizerId);
 
   const isImporting = stage === "importing";
-  const selectedOrganizer = activeOrganizers.find((o) => o.organizerId === selectedOrganizerId);
+  const selectedOrganizer = activeOrganizers.find((o) => o.organizerId === importOrganizerId);
 
   const handleFileSelected = (file: File) => {
     if (!selectedOrganizerId) return;
+    setBatchOrganizerId(selectedOrganizerId);
     handleFile(file, selectedOrganizerId);
   };
 
   const handleRunImport = () => {
-    if (selectedOrganizerId) runImport(selectedOrganizerId);
+    if (importOrganizerId) runImport(importOrganizerId);
+  };
+
+  const resetBatch = () => {
+    reset();
+    setBatchOrganizerId(null);
   };
 
   const downloadErrorRows = () => {
@@ -118,11 +128,13 @@ export default function HostEventImportPage() {
     downloadCsv("salsasegura-import-errors.csv", buildCsvFromRows(headers, dataRows));
   };
 
+
   const includeToggle = (row: HostCsvRowWithDuplicates) =>
     row.duplicates.length > 0 ? (
       <label className="host-import-page__include">
         <input
           type="checkbox"
+          aria-label={`Import anyway: ${row.raw.title || `row ${row.rowNumber}`}`}
           checked={includedDuplicates.has(row.rowNumber)}
           onChange={() => toggleIncludeDuplicate(row.rowNumber)}
           disabled={isImporting}
@@ -133,7 +145,7 @@ export default function HostEventImportPage() {
 
   if (organizersLoading) {
     return (
-      <div className="admin-shell">
+      <div>
         <AdminPageHeader title="Import Events" description="Checking organizer access." />
         <section className="admin-card host-import-page__status-card">
           <p role="status">Checking organizer access…</p>
@@ -144,7 +156,7 @@ export default function HostEventImportPage() {
 
   if (organizersError) {
     return (
-      <div className="admin-shell">
+      <div>
         <AdminPageHeader title="Import Events" description="Bulk-add events from a spreadsheet." />
         <div className="admin-banner admin-banner--error" role="alert">
           <p>Could not check organizer access.</p>
@@ -163,7 +175,7 @@ export default function HostEventImportPage() {
 
   if (activeOrganizers.length === 0) {
     return (
-      <div className="admin-shell">
+      <div>
         <AdminPageHeader
           title="Import Events"
           description="Bulk-add events from a spreadsheet."
@@ -184,7 +196,7 @@ export default function HostEventImportPage() {
   }
 
   return (
-    <div className="admin-shell">
+    <div>
       <AdminPageHeader
         title="Import Events"
         description={
@@ -220,8 +232,9 @@ export default function HostEventImportPage() {
             <label htmlFor="organizer-select">Import to:</label>
             <select
               id="organizer-select"
-              value={selectedOrganizerId}
+              value={stage === "idle" ? selectedOrganizerId : importOrganizerId}
               onChange={(e) => setOrganizerSelection(e.target.value)}
+              disabled={stage !== "idle"}
             >
               {activeOrganizers.map((o) => (
                 <option key={o.organizerId} value={o.organizerId}>
@@ -317,7 +330,7 @@ export default function HostEventImportPage() {
               <button
                 type="button"
                 className="admin-btn admin-btn--secondary"
-                onClick={reset}
+                onClick={resetBatch}
                 disabled={isImporting}
               >
                 Upload a different file
@@ -335,11 +348,16 @@ export default function HostEventImportPage() {
                 type="button"
                 className="admin-btn admin-btn--primary"
                 onClick={handleRunImport}
-                disabled={isImporting || importableCount === 0}
+                disabled={isImporting || importableCount === 0 || duplicateCheckError !== null}
               >
                 {isImporting ? "Importing…" : `Import Valid Events (${importableCount})`}
               </button>
             </div>
+            {duplicateCheckError && (
+              <div className="admin-banner admin-banner--error" role="alert">
+                <p>{duplicateCheckError} Upload a different file to retry.</p>
+              </div>
+            )}
             {importError && (
               <div className="admin-banner admin-banner--error" role="alert">
                 <p>{importError}</p>
@@ -435,7 +453,7 @@ export default function HostEventImportPage() {
             <Link to="/host/events" className="admin-btn admin-btn--primary">
               View Events
             </Link>
-            <button type="button" className="admin-btn admin-btn--secondary" onClick={reset}>
+            <button type="button" className="admin-btn admin-btn--secondary" onClick={resetBatch}>
               Import another file
             </button>
           </div>

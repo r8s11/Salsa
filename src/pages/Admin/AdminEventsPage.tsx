@@ -215,6 +215,7 @@ export default function AdminEventsPage() {
   );
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [duplicatingEvent, setDuplicatingEvent] = useState<DatabaseEvent | null>(null);
+  const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
   const [lastRowAction, setLastRowAction] = useState<RowAction | null>(null);
 
   // Flyer quick-action state
@@ -728,6 +729,18 @@ export default function AdminEventsPage() {
           </button>
         </div>
       )}
+      {duplicateWarning && (
+        <div className="admin-banner admin-banner--warning" role="status">
+          <p>{duplicateWarning}</p>
+          <button
+            type="button"
+            className="admin-btn admin-btn--secondary"
+            onClick={() => setDuplicateWarning(null)}
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {!error && (
         <>
@@ -937,7 +950,11 @@ export default function AdminEventsPage() {
           error={duplicateError}
           onConfirm={(input) => {
             duplicate(
-              { source: duplicatingEvent, input },
+              {
+                source: duplicatingEvent,
+                input,
+                onTaxonomyFailure: setDuplicateWarning,
+              },
               { onSuccess: () => setDuplicatingEvent(null) }
             );
           }}

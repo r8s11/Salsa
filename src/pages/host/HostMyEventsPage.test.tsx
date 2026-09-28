@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import type { DatabaseEvent } from "../../features/events/model/types";
@@ -236,6 +236,24 @@ describe("HostMyEventsPage", () => {
     expect(document.getElementById("group-drafts")).toBeInTheDocument();
     expect(document.getElementById("group-past")).toBeInTheDocument();
     expect(document.getElementById("group-cancelled")).toBeInTheDocument();
+  });
+  it("moves an event from Upcoming to Past as time advances without remounting", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2029-12-31T23:59:30Z"));
+    mockEvents([{ ...baseEvent, event_date: "2030-01-01T00:00:00Z" }]);
+    const page = renderPage();
+
+    try {
+      expect(screen.getByText("Havana Fridays")).toBeInTheDocument();
+      expect(document.getElementById("group-upcoming")).toBeInTheDocument();
+      act(() => {
+        vi.advanceTimersByTime(60_000);
+      });
+      expect(document.getElementById("group-past")).toBeInTheDocument();
+    } finally {
+      page.unmount();
+      vi.useRealTimers();
+    }
   });
 
   /* ── Search ── */

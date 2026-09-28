@@ -127,6 +127,22 @@ describe("useCsvEventImport — known-good pipeline", () => {
     expect(result.current.importResult?.createdCount).toBe(1);
   });
 });
+describe("useCsvEventImport — duplicate lookup failure", () => {
+  it("blocks import when existing-event lookup fails", async () => {
+    vi.mocked(fetchAllEvents).mockRejectedValue(new Error("events unavailable"));
+    const { result } = renderHook(() => useCsvEventImport(), { wrapper });
+    await act(async () => {
+      await result.current.handleFile(csvFile(ONE_ROW_CSV));
+    });
+
+    expect(result.current.stage).toBe("reviewing");
+    expect(result.current.duplicateCheckError).toMatch(/could not check/i);
+    await act(async () => {
+      await result.current.runImport();
+    });
+    expect(importCsvRows).not.toHaveBeenCalled();
+  });
+});
 
 describe("useCsvEventImport — duplicate dead-end", () => {
   it("explains instead of silently returning when every row is an unchecked duplicate", async () => {

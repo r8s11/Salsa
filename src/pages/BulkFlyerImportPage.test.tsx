@@ -25,8 +25,11 @@ vi.mock("../features/host/hooks/useMyOrganizers", () => ({
   useMyOrganizers: mocks.useMyOrganizers,
 }));
 vi.mock("../features/events/api/eventFlyers", () => ({
-  validateEventFlyer: (file: File) =>
-    ["image/png", "image/jpeg", "image/webp"].includes(file.type) ? null : "Unsupported image",
+  validateEventFlyer: (file: File) => {
+    if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) return "Unsupported image";
+    if (file.size > 5 * 1024 * 1024) return "Image must be 5 MB or smaller.";
+    return null;
+  },
   uploadEventFlyer: mocks.uploadEventFlyer,
   removeEventFlyer: mocks.removeEventFlyer,
 }));
@@ -368,6 +371,21 @@ describe("BulkFlyerImportPage", () => {
 
     expect(await screen.findByLabelText("Event Title *")).toHaveValue("Ready second event");
     expect(screen.getByLabelText("Selected event facts")).toHaveTextContent("Ready second event");
+  });
+  it("keeps validation errors readable when a rejected flyer has no preview", async () => {
+    const user = userEvent.setup();
+    renderPage("admin");
+    const oversizedFile = new File(
+      [new Uint8Array(5 * 1024 * 1024 + 1)],
+      "oversized.png",
+      { type: "image/png" }
+    );
+
+    await user.upload(screen.getByLabelText("Flyer images"), oversizedFile);
+    const failedFlyer = await screen.findByRole("listitem", { name: "oversized.png" });
+
+    expect(failedFlyer).toHaveTextContent("Image must be 5 MB or smaller.");
+    expect(mocks.uploadEventFlyer).not.toHaveBeenCalled();
   });
 
 

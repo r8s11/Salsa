@@ -58,6 +58,9 @@
   padding: 0.75rem;
   overflow-wrap: anywhere;
 }
+.bulk-flyers__list-item--no-thumb > div:first-of-type {
+  grid-column: 1 / -1;
+}
 .bulk-flyers__list p {
   margin: 0.3rem 0;
 }

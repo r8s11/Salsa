@@ -394,7 +394,11 @@ export default function BulkFlyerImportPage({ mode }: Props) {
             </div>
             <ul className="bulk-flyers__list" aria-label="Flyers to review">
             {rows.map((row) => (
-              <li key={row.id} aria-label={row.file.name} className="admin-card">
+              <li
+                key={row.id}
+                aria-label={row.file.name}
+                className={`admin-card${row.url ? "" : " bulk-flyers__list-item--no-thumb"}`}
+              >
                 {row.url && <img src={row.url} alt="" className="bulk-flyers__thumb" />}
                 <div>
                   <strong>{row.file.name}</strong>

@@ -8,13 +8,13 @@ web
 
 ## Users
 
-Primary users are dancers and attendees looking for current salsa and bachata events, classes, and workshops in their city.
+Primary users are dancers and attendees looking for current salsa and bachata events, classes, workshops, and live music in their city.
 
 Event organizers are a supported audience who submit and manage dance events. Moderators and administrators maintain the public event directory.
 
 ## Product Purpose
 
-Salsa Segura is a city-scoped guide for discovering salsa and bachata events, classes, and workshops. It also provides submission and organizer workflows so the local calendar can be maintained by the community and reviewed before publication.
+Salsa Segura is a city-scoped guide for discovering salsa and bachata events, classes, workshops, and live music. It also provides submission and organizer workflows so the local calendar can be maintained by the community and reviewed before publication.
 
 Success means dancers can find relevant local events with confidence, while organizers can contribute and manage their events through the appropriate authenticated workflow.
 

@@ -228,6 +228,10 @@
   background: var(--gold);
   color: var(--on-gold);
 }
+.modal-content .chip-live_music {
+  background: var(--tertiary);
+  color: var(--surface);
+}
 
 .modal-content .style-chip {
   padding: 3px 8px;

@@ -14,7 +14,12 @@ import { draftToAdminPayload } from "../../events/components/EventForm";
 // maximum length because it has no live character feedback.
 const IMAGE_URL_MAX_LENGTH = 2000;
 
-const EVENT_TYPES: Record<string, true> = { social: true, class: true, workshop: true };
+const EVENT_TYPES: Record<string, true> = {
+  social: true,
+  class: true,
+  workshop: true,
+  live_music: true,
+};
 const CITIES: Record<string, true> = { boston: true, "new-york-city": true };
 const PRICE_TYPES: Record<string, true> = { free: true, paid: true, "": true };
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -129,7 +134,10 @@ export function validateCsvRow(
 
   if (!eventType) errors.push({ field: "event_type", message: "event_type is required." });
   else if (!EVENT_TYPES[eventType])
-    errors.push({ field: "event_type", message: "Must be one of: social, class, workshop." });
+    errors.push({
+      field: "event_type",
+      message: "Must be one of: social, class, workshop, live_music.",
+    });
 
   if (!city) errors.push({ field: "city", message: "city is required." });
   else if (!CITIES[city])

@@ -39,6 +39,7 @@ const TYPE_LABELS: Record<EventType, string> = {
   social: "Social",
   class: "Class",
   workshop: "Workshop",
+  live_music: "Live Music",
 };
 
 function formatDate(start: string): string {

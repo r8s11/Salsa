@@ -54,6 +54,14 @@ describe("submissionToDatabaseEvent", () => {
       ],
     });
   });
+  it("preserves Live Music type when projecting an owner submission", () => {
+    const event = submissionToDatabaseEvent({
+      ...pendingSubmission,
+      submitted_data: { ...pendingSubmission.submitted_data, event_type: "live_music" },
+    });
+
+    expect(event?.event_type).toBe("live_music");
+  });
 
   it("uses owner edited_data without mutating immutable submitted_data", () => {
     const event = submissionToDatabaseEvent({

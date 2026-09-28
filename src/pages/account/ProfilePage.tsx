@@ -54,6 +54,8 @@ function eventTypeLabel(type: DatabaseEvent["event_type"]): string {
       return "Class";
     case "workshop":
       return "Workshop";
+    case "live_music":
+      return "Live Music";
     default:
       return "Event";
   }

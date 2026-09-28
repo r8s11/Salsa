@@ -17,7 +17,8 @@ export function draftToSubmission(
     event_type:
       draft.event_type === "social" ||
       draft.event_type === "class" ||
-      draft.event_type === "workshop"
+      draft.event_type === "workshop" ||
+      draft.event_type === "live_music"
         ? draft.event_type
         : "social",
     event_date: event_date,
@@ -42,7 +43,8 @@ export function draftToUserPayload(draft: EventFormDraft): UserEventUpdatePayloa
     event_type:
       draft.event_type === "social" ||
       draft.event_type === "class" ||
-      draft.event_type === "workshop"
+      draft.event_type === "workshop" ||
+      draft.event_type === "live_music"
         ? draft.event_type
         : "social",
     event_date: event_date,
@@ -67,7 +69,8 @@ export function draftToAdminPayload(draft: EventFormDraft): AdminEventPayload {
     event_type:
       draft.event_type === "social" ||
       draft.event_type === "class" ||
-      draft.event_type === "workshop"
+      draft.event_type === "workshop" ||
+      draft.event_type === "live_music"
         ? draft.event_type
         : "social",
     event_date: event_date,

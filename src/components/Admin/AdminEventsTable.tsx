@@ -76,7 +76,7 @@ const SOURCE_ICON: Record<DatabaseEvent["source_type"], typeof Shield> = {
 
 function titleCase(value: string | null | undefined): string {
   if (!value) return "Unknown";
-  return value.replace(/-/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+  return value.replace(/[-_]/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 function formatDateLine(iso: string): { date: string; time: string } {

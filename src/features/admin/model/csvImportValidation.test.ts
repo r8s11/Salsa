@@ -57,8 +57,13 @@ describe("validateCsvRow — required fields", () => {
     const result = validate({ event_type: "party" });
     expect(result.errors).toContainEqual({
       field: "event_type",
-      message: "Must be one of: social, class, workshop.",
+      message: "Must be one of: social, class, workshop, live_music.",
     });
+  });
+  it("accepts Live Music event type", () => {
+    const result = validate({ event_type: "live_music" });
+    expect(result.status).toBe("valid");
+    expect(result.payload?.event_type).toBe("live_music");
   });
 
   it("rejects an unknown city", () => {

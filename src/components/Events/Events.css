@@ -93,6 +93,9 @@
 .featured-card-media--workshop {
   background-image: linear-gradient(150deg, var(--surface-high), var(--gold));
 }
+.featured-card-media--live_music {
+  background-image: linear-gradient(150deg, var(--surface-high), var(--tertiary));
+}
 
 .featured-card-date {
   position: absolute;
@@ -361,6 +364,9 @@
 .event-card-thumb--workshop {
   background-image: linear-gradient(150deg, var(--surface-high), var(--gold));
 }
+.event-card-thumb--live_music {
+  background-image: linear-gradient(150deg, var(--surface-high), var(--tertiary));
+}
 
 .event-card-chip {
   position: absolute;
@@ -392,6 +398,10 @@
 .event-card-chip--workshop {
   color: var(--gold-light);
   border-color: rgba(233, 195, 73, 0.35);
+}
+.event-card-chip--live_music {
+  color: var(--tertiary);
+  border-color: var(--tertiary);
 }
 
 .recently-approved-badge {
@@ -512,6 +522,11 @@
   background: var(--gold);
   color: var(--on-gold);
   border: 1px solid var(--gold);
+}
+.event-type.live_music {
+  background: var(--tertiary);
+  color: var(--surface);
+  border: 1px solid var(--tertiary);
 }
 
 /* ── Skeleton Loader ── */

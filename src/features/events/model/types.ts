@@ -1,4 +1,4 @@
-export type EventType = "social" | "class" | "workshop";
+export type EventType = "social" | "class" | "workshop" | "live_music";
 /** Canonical metro slug (public.metros.slug), e.g. "new-york-city". */
 export type City = string;
 

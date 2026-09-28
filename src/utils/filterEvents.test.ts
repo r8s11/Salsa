@@ -10,16 +10,25 @@ const make = (id: number, calendarId: ScheduleXEvent["calendarId"]): ScheduleXEv
   calendarId,
 });
 
-const events = [make(1, "social"), make(2, "class"), make(3, "workshop"), make(4, "social")];
+const events = [
+  make(1, "social"),
+  make(2, "class"),
+  make(3, "workshop"),
+  make(4, "social"),
+  make(5, "live_music"),
+];
 
 describe("filterEventsByType", () => {
   it("returns all events for the 'all' filter", () => {
-    expect(filterEventsByType(events, "all")).toHaveLength(4);
+    expect(filterEventsByType(events, "all")).toHaveLength(5);
   });
 
   it("returns only matching events for a specific type", () => {
     const socials = filterEventsByType(events, "social");
     expect(socials.map((e) => e.id)).toEqual([1, 4]);
+  });
+  it("filters Live Music events independently", () => {
+    expect(filterEventsByType(events, "live_music").map((event) => event.id)).toEqual([5]);
   });
 
   it("returns an empty array when nothing matches", () => {

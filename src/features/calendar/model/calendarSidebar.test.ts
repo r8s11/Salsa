@@ -65,13 +65,17 @@ describe("formatPeriodLabel", () => {
 });
 
 describe("countEventsByType", () => {
-  it("tallies events per calendar type", () => {
+  it("counts Live Music events as their own type", () => {
     const events = [
       makeEvent({ id: "1", calendarId: "social" }),
-      makeEvent({ id: "2", calendarId: "social" }),
-      makeEvent({ id: "3", calendarId: "class" }),
+      makeEvent({ id: "2", calendarId: "live_music" }),
     ];
-    expect(countEventsByType(events)).toEqual({ social: 2, class: 1, workshop: 0 });
+    expect(countEventsByType(events)).toEqual({
+      social: 1,
+      class: 0,
+      workshop: 0,
+      live_music: 1,
+    });
   });
 });
 

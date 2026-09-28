@@ -142,6 +142,14 @@ describe("applyExtractionToDraft", () => {
     expect(draft.event_type).toBe("");
     expect(skipped).toContain("Event type");
   });
+  it("maps Live Music extraction labels to the event type", () => {
+    const { draft } = applyExtractionToDraft(
+      { ...BASE_EXTRACTION, event_type: "Live Music" },
+      BASE_DRAFT,
+      METROS
+    );
+    expect(draft.event_type).toBe("live_music");
+  });
 
   it("splits price into type and amount, including ranges", () => {
     expect(

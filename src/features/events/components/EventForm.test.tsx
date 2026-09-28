@@ -104,6 +104,15 @@ describe("EventForm", () => {
     expect(onChange).toHaveBeenNthCalledWith(2, { ...draft, city: "new-york-city" });
     expect(onChange).toHaveBeenNthCalledWith(3, { ...draft, price_type: "paid" });
   });
+  it("updates event type to Live Music", () => {
+    const onChange = vi.fn();
+    render(<EventForm draft={draft} onChange={onChange} capabilities={CAPABILITIES.submit} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Live Music" }));
+
+    expect(onChange).toHaveBeenCalledWith({ ...draft, event_type: "live_music" });
+  });
+
 
   it("renders taxonomy, venue, flyer, and host extensions for admins", () => {
     render(

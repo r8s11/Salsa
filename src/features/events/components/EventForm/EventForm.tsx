@@ -131,6 +131,7 @@ export default function EventForm({
                 ["social", "Social"],
                 ["class", "Class"],
                 ["workshop", "Workshop"],
+                ["live_music", "Live Music"],
               ] as const
             ).map(([value, label]) => (
               <button

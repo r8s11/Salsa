@@ -37,6 +37,9 @@ const EVENT_TYPE_ALIASES: Record<string, EventType> = {
   workshops: "workshop",
   intensive: "workshop",
   masterclass: "workshop",
+  "live music": "live_music",
+  "live-music": "live_music",
+  live_music: "live_music",
 };
 
 /** The slug-chips `EventForm` offers on the submit surface. */

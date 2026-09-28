@@ -12,6 +12,9 @@
   --sleeve-mustard: #f2b705;
   --sleeve-midnight: #1b1b3a;
   --sleeve-cream: #f4ecd8;
+  --sleeve-live-music: #ffb690;
+  --sleeve-live-music-deep: #bf5300;
+  --sleeve-live-music-ink: #552100;
   --sleeve-pad: 56px;
 
   /* Social pressing (default) */
@@ -51,6 +54,11 @@
   --field: var(--sleeve-midnight);
   --field-deep: #10102a;
   --on-field: var(--sleeve-mustard);
+}
+.sleeve--live_music {
+  --field: var(--sleeve-live-music);
+  --field-deep: var(--sleeve-live-music-deep);
+  --on-field: var(--sleeve-live-music-ink);
 }
 
 .sleeve--story {

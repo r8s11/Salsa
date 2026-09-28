@@ -126,6 +126,12 @@ describe("AdminEventsTable", () => {
     });
     expect(screen.getAllByText("Unknown").length).toBeGreaterThan(0);
   });
+  it("formats Live Music event type with readable words", () => {
+    renderTable({
+      events: [{ ...baseEvent, id: "event-live-music", event_type: "live_music" }],
+    });
+    expect(screen.getAllByText("Live Music", { exact: true }).length).toBeGreaterThan(0);
+  });
 
   describe("sortable headers", () => {
     it("marks the active sort column and calls onSortChange with the clicked key", async () => {

@@ -13,6 +13,10 @@ export default function CalendarLegend() {
         <span className="legend-dot workshop" />
         <span>Workshop</span>
       </div>
+      <div className="legend-item">
+        <span className="legend-dot live_music" />
+        <span>Live Music</span>
+      </div>
     </div>
   );
 }

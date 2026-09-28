@@ -14,4 +14,9 @@ export const CALENDARS_CONFIG = {
     lightColors: { main: "#a8820f", container: "#fff0c2", onContainer: "#3a2c00" },
     darkColors: { main: "#e9c349", container: "#574500", onContainer: "#fff0c2" },
   },
+  live_music: {
+    colorName: "live_music",
+    lightColors: { main: "#bf5300", container: "#ffdbca", onContainer: "#341100" },
+    darkColors: { main: "#ffb690", container: "#783200", onContainer: "#ffdbca" },
+  },
 };

@@ -63,6 +63,9 @@ colors:
   sleeve-midnight: "#1b1b3a"
   sleeve-midnight-deep: "#10102a"
   sleeve-cream: "#f4ecd8"
+  sleeve-live-music: "#ffb690"
+  sleeve-live-music-deep: "#bf5300"
+  sleeve-live-music-ink: "#552100"
 typography:
   display-lg:
     fontFamily: Epilogue
@@ -231,9 +234,9 @@ colours stay reserved for state.
 
 ### The Sleeve — pressing colours
 
-Every night is pressed in one of three flat spot-colour fields, chosen
-by event type — never decoration, always the type. A red back-cover
-label prints on every pressing regardless of field colour.
+The Sleeve uses a flat spot-colour field chosen by event type — never
+decoration, always the type. A red back-cover label prints on every
+pressing regardless of field colour.
 
 - **Social pressing** (`#d7263d` field / `#a8182c` deep, on cream
   `#f4ecd8`): the default social night.
@@ -241,6 +244,8 @@ label prints on every pressing regardless of field colour.
   midnight `#1b1b3a`): recurring classes.
 - **Workshop pressing** (`#1b1b3a` midnight field / `#10102a` deep, on
   mustard `#f2b705`): workshops and intensives.
+- **Live Music pressing** (`#ffb690` field / `#bf5300` deep, on
+  dark orange `#552100`): live music events.
 - **Cream stock** (`#f4ecd8`): the back cover's paper ground on every
   pressing, printed in midnight ink with red (`#d7263d`) side labels and
   track numbers.

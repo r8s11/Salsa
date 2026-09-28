@@ -8,6 +8,7 @@ const baseProps = {
     { value: "social" as const, label: "Social", count: 2 },
     { value: "class" as const, label: "Class", count: 1 },
     { value: "workshop" as const, label: "Workshop", count: 0 },
+    { value: "live_music" as const, label: "Live Music", count: 1 },
   ],
   typeFilter: "all" as const,
   onTypeFilterChange: vi.fn(),
@@ -30,6 +31,7 @@ describe("CalendarSidebar", () => {
     expect(screen.getByRole("button", { name: "Social 2" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Class 1" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Workshop 0" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Live Music 1" })).toBeInTheDocument();
   });
 
   it("marks every type row pressed when the filter is 'all'", () => {

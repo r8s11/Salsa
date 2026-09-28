@@ -563,7 +563,9 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
               )}
               <li className="night-card__price">
                 <span className="night-card__price-amount">{priceLabel}</span>
-                <span className={`style-chip chip-${event.calendarId}`}>{event.calendarId}</span>
+                <span className={`style-chip chip-${event.calendarId}`}>
+                  {event.calendarId === "live_music" ? "Live Music" : event.calendarId}
+                </span>
               </li>
             </ul>
           </div>

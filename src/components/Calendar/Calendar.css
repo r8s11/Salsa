@@ -382,6 +382,9 @@
 .legend-dot.workshop {
   background: var(--gold);
 }
+.legend-dot.live_music {
+  background: var(--tertiary);
+}
 
 /* ── Loading / Error States ── */
 .calendar-status {

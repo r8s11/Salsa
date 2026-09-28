@@ -64,4 +64,13 @@ describe("eventFormAdapters", () => {
       expect(payload.venue_id).toBe("venue-1");
     });
   });
+  it("preserves Live Music type across submission, user, and admin payloads", () => {
+    const liveMusicDraft: EventFormDraft = { ...baseDraft, event_type: "live_music" };
+
+    expect(draftToSubmission(liveMusicDraft, { id: "user-1", email: null }).event_type).toBe(
+      "live_music"
+    );
+    expect(draftToUserPayload(liveMusicDraft).event_type).toBe("live_music");
+    expect(draftToAdminPayload(liveMusicDraft).event_type).toBe("live_music");
+  });
 });

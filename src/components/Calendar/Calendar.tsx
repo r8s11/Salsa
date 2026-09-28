@@ -55,6 +55,7 @@ const TYPE_OPTIONS: { value: TypeFilter; label: string }[] = [
   { value: "social", label: "Social" },
   { value: "class", label: "Class" },
   { value: "workshop", label: "Workshop" },
+  { value: "live_music", label: "Live Music" },
 ];
 
 // The compact list/cards switch (Schedule-X list view + toolbar) and the

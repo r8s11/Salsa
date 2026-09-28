@@ -37,7 +37,7 @@ function formatPrice(event: DatabaseEvent): string {
 }
 
 function formatEventType(eventType: string): string {
-  return eventType.charAt(0).toUpperCase() + eventType.slice(1);
+  return eventType.replace(/[-_]/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 function formatCity(city: string): string {

@@ -34,7 +34,7 @@ create table if not exists public.events (
   id              uuid primary key default gen_random_uuid(),
   title           text not null,
   description     text,
-  event_type      text check (event_type in ('social', 'workshop', 'class')),
+  event_type      text check (event_type in ('social', 'workshop', 'class', 'live_music')),
   event_date      timestamp with time zone not null,
   event_time      text,
   location        text,

@@ -22,6 +22,7 @@ const FILTER_OPTIONS: { value: TypeFilter; label: string }[] = [
   { value: "social", label: "Social" },
   { value: "class", label: "Class" },
   { value: "workshop", label: "Workshop" },
+  { value: "live_music", label: "Live Music" },
 ];
 
 function Events() {

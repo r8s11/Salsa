@@ -8,6 +8,7 @@ const TYPE_LABELS: Record<string, string> = {
   social: "Social Dance",
   class: "Class",
   workshop: "Workshop",
+  live_music: "Live Music",
 };
 
 export default function FeaturedEventCard({

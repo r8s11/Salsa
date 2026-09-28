@@ -51,7 +51,12 @@ export function formatPeriodLabel(range: PeriodRange): string {
 }
 
 export function countEventsByType(events: ScheduleXEvent[]): Record<EventType, number> {
-  const counts: Record<EventType, number> = { social: 0, class: 0, workshop: 0 };
+  const counts: Record<EventType, number> = {
+    social: 0,
+    class: 0,
+    workshop: 0,
+    live_music: 0,
+  };
   for (const event of events) {
     counts[event.calendarId] = (counts[event.calendarId] ?? 0) + 1;
   }

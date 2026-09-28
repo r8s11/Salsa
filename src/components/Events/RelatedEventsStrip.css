@@ -68,6 +68,10 @@
   color: var(--text);
   outline: 1px solid var(--border);
 }
+.related-events-strip__badge--live_music {
+  background-color: var(--tertiary);
+  color: var(--on-tertiary);
+}
 
 .related-events-strip__badge-weekday,
 .related-events-strip__badge-month {

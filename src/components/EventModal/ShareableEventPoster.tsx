@@ -80,9 +80,12 @@ export default function ShareableEventPoster({
     start.getDate()
   ).padStart(2, "0")}${event.city ? ` · ${CITY_CODE[event.city] ?? ""}` : ""}`;
   const styles = event.danceStyles?.length ? event.danceStyles.join(" · ") : event.calendarId;
-  const eventTypeLabel = { social: "Social", class: "Class", workshop: "Workshop" }[
-    event.calendarId
-  ];
+  const eventTypeLabel = {
+    social: "Social",
+    class: "Class",
+    workshop: "Workshop",
+    live_music: "Live Music",
+  }[event.calendarId];
   const priceLabel =
     event.priceType === "free" || event.priceAmount == null ? "Free" : `$${event.priceAmount}`;
   const posterDescription = [

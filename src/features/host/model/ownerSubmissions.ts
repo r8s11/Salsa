@@ -14,7 +14,12 @@ function nullableString(data: SubmissionData, key: string): string | null {
 
 function eventType(data: SubmissionData): EventType {
   const value = data.event_type;
-  return value === "class" || value === "workshop" || value === "social" ? value : "social";
+  return value === "class" ||
+    value === "workshop" ||
+    value === "social" ||
+    value === "live_music"
+    ? value
+    : "social";
 }
 
 function city(data: SubmissionData): City {

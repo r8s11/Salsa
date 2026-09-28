@@ -313,6 +313,12 @@ describe("quick-look region", () => {
     expect(screen.getByText(/7:00 PM - 11:00 PM/i)).toBeInTheDocument();
     expect(container.querySelector(".night-card__price-amount")).toHaveTextContent("Free");
   });
+  it("renders Live Music event type as a readable label", () => {
+    render(
+      <EventModal event={{ ...classEvent, calendarId: "live_music" }} onClose={vi.fn()} />
+    );
+    expect(screen.getByText("Live Music")).toBeInTheDocument();
+  });
 
   it("does not invent class metadata that is absent from the event", () => {
     render(<EventModal event={{ ...classEvent, location: "Dance Studio A" }} onClose={vi.fn()} />);

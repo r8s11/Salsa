@@ -79,6 +79,7 @@ describe("ShareableEventPoster", () => {
     ["social", "SOCIAL"],
     ["class", "CLASS"],
     ["workshop", "WORKSHOP"],
+    ["live_music", "Live Music"],
   ] as const)("labels the %s pressing without replacing its color code", (calendarId, label) => {
     const eventWithType = { ...event, calendarId };
     render(<ShareableEventPoster event={eventWithType} {...baseProps} />);

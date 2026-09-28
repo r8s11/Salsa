@@ -69,7 +69,8 @@ export default function BulkFlyerImportPage({ mode }: Props) {
   const [rows, setRows] = useState<FlyerRow[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const [savingIntent, setSavingIntent] = useState<"draft" | "publish" | null>(null);
+  const saving = savingIntent !== null;
   const [error, setError] = useState<string | null>(null);
   const [summary, setSummary] = useState<string | null>(null);
   let analyzedCount = 0;
@@ -250,7 +251,7 @@ export default function BulkFlyerImportPage({ mode }: Props) {
         return;
       }
     }
-    setSaving(true);
+    setSavingIntent(publish ? "publish" : "draft");
     let created = 0;
     let failed = 0;
     for (const row of candidates) {
@@ -288,7 +289,7 @@ export default function BulkFlyerImportPage({ mode }: Props) {
     setSummary(
       `${created} ${publish ? "published" : created === 1 ? "draft saved" : "drafts saved"}${failed ? `; ${failed} failed` : ""}.`
     );
-    setSaving(false);
+    setSavingIntent(null);
   };
 
   const back = mode === "host" ? "/host/events" : "/admin/events";
@@ -397,16 +398,17 @@ export default function BulkFlyerImportPage({ mode }: Props) {
               <li
                 key={row.id}
                 aria-label={row.file.name}
-                className={`admin-card${row.url ? "" : " bulk-flyers__list-item--no-thumb"}`}
+                aria-current={selected?.id === row.id ? "true" : undefined}
+                className={`bulk-flyers__item${row.url ? "" : " bulk-flyers__item--no-thumb"}`}
               >
                 {row.url && <img src={row.url} alt="" className="bulk-flyers__thumb" />}
-                <div>
+                <div className="bulk-flyers__item-body">
                   <strong>{row.file.name}</strong>
                   <p>
                     {row.draft.title ||
                       (row.state === "processing" ? "Analyzing…" : "Event details needed")}
                   </p>
-                  <small>
+                  <small className={`bulk-flyers__state bulk-flyers__state--${row.state}`}>
                     {row.state === "created"
                       ? "Saved"
                       : row.state === "skipped"
@@ -500,7 +502,12 @@ export default function BulkFlyerImportPage({ mode }: Props) {
               className="admin-card bulk-flyers__editor"
               aria-label={`Review ${selected.file.name}`}
             >
-              <h2>Review {selected.file.name}</h2>
+              <div className="bulk-flyers__editor-head">
+                <h2>Review {selected.file.name}</h2>
+                <span className={selected.reviewed ? "is-confirmed" : undefined}>
+                  {selected.reviewed ? "Confirmed" : "Needs review"}
+                </span>
+              </div>
               <div className="bulk-flyers__editor-overview">
                 <img
                   src={selected.url ?? ""}
@@ -565,7 +572,8 @@ export default function BulkFlyerImportPage({ mode }: Props) {
               />
               <button
                 type="button"
-                className="admin-btn admin-btn--secondary"
+                className={`admin-btn ${selected.reviewed ? "admin-btn--secondary" : "admin-btn--primary"} bulk-flyers__confirm`}
+                aria-pressed={selected.reviewed}
                 onClick={() => updateRow(selected.id, { reviewed: true })}
               >
                 {selected.reviewed ? "Details confirmed" : "Confirm details against flyer"}
@@ -585,14 +593,17 @@ export default function BulkFlyerImportPage({ mode }: Props) {
         </p>
       )}
       {rows.some((row) => row.state === "ready") && (
-        <div className="bulk-flyers__actions">
+        <div className="bulk-flyers__actions" aria-label="Save reviewed flyers">
+          <p>
+            <strong>{commitCount}</strong> ready to save
+          </p>
           <button
             type="button"
             className="admin-btn admin-btn--secondary"
             disabled={saving || processing || (mode === "host" && !selectedOrganizerId)}
             onClick={() => void save(false)}
           >
-            {saving
+            {savingIntent === "draft"
               ? "Saving…"
               : `Save ${commitCount} reviewed ${commitCount === 1 ? "draft" : "drafts"}`}
           </button>
@@ -602,7 +613,7 @@ export default function BulkFlyerImportPage({ mode }: Props) {
             disabled={saving || processing || (mode === "host" && !selectedOrganizerId)}
             onClick={() => void save(true)}
           >
-            {saving
+            {savingIntent === "publish"
               ? "Publishing…"
               : `Publish ${commitCount} reviewed ${commitCount === 1 ? "event" : "events"}`}
           </button>

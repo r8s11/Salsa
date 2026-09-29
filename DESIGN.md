@@ -459,7 +459,8 @@ The picker panel stays inside the phone viewport, including at 320px.
 
 ### Mobile tab bar
 
-The four public destinations stay as labeled links inside a dark glass dock.
+The four public destinations stay as labeled links inside a translucent dark
+glass dock; blur keeps labels legible while underlying content remains visible.
 The selected route has a rose-tinted rubber segment that travels between
 links; pointer proximity gently enlarges the dock items. Touch targets remain
 steady-sized, reduced-motion users get an immediate selection change, and the

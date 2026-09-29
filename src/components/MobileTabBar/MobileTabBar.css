@@ -17,6 +17,13 @@
     width: 100%;
   }
 
+  /* The SVG backdrop filter brightens underlying cards; keep this dock's
+     glass legible while letting the page show through the lighter tint. */
+  .mobile-tab-bar__glass.glass-surface--svg {
+    backdrop-filter: blur(20px) saturate(var(--glass-saturation));
+    -webkit-backdrop-filter: blur(20px) saturate(var(--glass-saturation));
+  }
+
   .mobile-tab-bar__tab {
     display: flex;
     flex-direction: column;
@@ -78,7 +85,7 @@
     padding: 2px 8px;
     border: 1px solid var(--border-md);
     border-radius: var(--radius-full);
-    background: color-mix(in srgb, var(--surface-high) 92%, transparent);
+    background: color-mix(in srgb, var(--surface-high) 68%, transparent);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     color: var(--gold);

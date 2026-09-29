@@ -13,7 +13,7 @@
   inset: 0;
   z-index: 0;
   border-radius: var(--radius);
-  background: color-mix(in srgb, var(--red) 28%, var(--surface-high));
+  background: color-mix(in srgb, var(--red) 28%, transparent);
   box-shadow: inset 0 1px 0 color-mix(in srgb, var(--red-bright) 35%, transparent);
   pointer-events: none;
 }

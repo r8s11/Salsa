@@ -457,6 +457,15 @@ menu target share the trailing edge; the picker retains the full city
 name for assistive technology and shows the full name again in its city list.
 The picker panel stays inside the phone viewport, including at 320px.
 
+### Mobile tab bar
+
+The four public destinations stay as labeled links inside a dark glass dock.
+The selected route has a rose-tinted rubber segment that travels between
+links; pointer proximity gently enlarges the dock items. Touch targets remain
+steady-sized, reduced-motion users get an immediate selection change, and the
+city code remains a non-interactive badge above the bar. Keep the existing
+bottom safe-area reservation and the header's city picker as the city control.
+
 ### Cards & Event Page
 
 Event cards should feature large background imagery with a glassmorphic footer containing the date, time, and "Book Now" CTA. Use the Gold accent color for "Limited Spots" or "Sold Out" tags.

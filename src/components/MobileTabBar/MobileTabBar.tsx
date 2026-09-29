@@ -1,16 +1,19 @@
 import { CalendarDays, Home, Plus, User } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { matchPath, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/useAuth";
 import { useCity } from "../../contexts/useCity";
 import { useMetroName } from "../../features/metros/hooks/useMetros";
 import { metroShortCode } from "../../features/metros/model/metro";
 import { resolveEventCreateDestination } from "../../lib/eventCreateDestination";
+import Dock from "./Dock";
+import GlassSurface from "./GlassSurface";
 import "./MobileTabBar.css";
 
 function MobileTabBar() {
   const { user, isAdmin } = useAuth();
   const { city } = useCity();
   const metroName = useMetroName();
+  const { pathname } = useLocation();
 
   // Discovery first. Submit mirrors the header's role-aware destination
   // (admins direct to create, everyone else through the moderated flow),
@@ -28,6 +31,9 @@ function MobileTabBar() {
     },
     { to: user ? "/profile" : "/signin", label: "Me", icon: User, end: false },
   ] as const;
+  const activeTab = tabs.find(({ to, end }) =>
+    matchPath({ path: to.split("?")[0], end }, pathname)
+  )?.to;
 
   // No metro chosen yet (resolving, or the visitor has no active metro
   // nearby): the badge stays a neutral "Cities" rather than guessing.
@@ -39,14 +45,9 @@ function MobileTabBar() {
       <span className="mobile-tab-bar__city" aria-hidden="true">
         {cityShort}
       </span>
-      {tabs.map(({ to, label, icon: Icon, end }) => (
-        <NavLink key={label} to={to} end={end} className="mobile-tab-bar__tab">
-          <span className="mobile-tab-bar__icon" aria-hidden="true">
-            <Icon size={21} />
-          </span>
-          <span className="mobile-tab-bar__label">{label}</span>
-        </NavLink>
-      ))}
+      <GlassSurface className="mobile-tab-bar__glass" height={70}>
+        <Dock items={tabs} activeValue={activeTab} />
+      </GlassSurface>
     </nav>
   );
 }

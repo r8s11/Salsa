@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import type { AuthContextValue } from "../../contexts/authContextObject";
 import { useAuth } from "../../contexts/useAuth";
@@ -85,6 +85,38 @@ describe("MobileTabBar", () => {
 
     expect(screen.getByRole("link", { name: "Calendar" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: "Home" })).not.toHaveAttribute("aria-current");
+  });
+
+  it("magnifies the nearby dock item without changing its link destination", async () => {
+    vi.mocked(useAuth).mockReturnValue(defaultAuth());
+    const { container } = renderTabBar();
+    const home = screen.getByRole("link", { name: "Home" });
+    const item = home.closest(".dock-item");
+    expect(item).not.toBeNull();
+
+    Object.defineProperty(item, "getBoundingClientRect", {
+      value: () => ({ x: 20, width: 62, left: 20, right: 82 }),
+    });
+    fireEvent.mouseMove(container.querySelector(".dock-panel")!, { clientX: 51 });
+
+    await waitFor(() => expect(parseFloat((item as HTMLElement).style.width)).toBeGreaterThan(62));
+    expect(home).toHaveAttribute("href", "/");
+  });
+
+  it("moves the active segment when a tab navigates", async () => {
+    vi.mocked(useAuth).mockReturnValue(defaultAuth());
+    const { container } = renderTabBar();
+    const calendar = screen.getByRole("link", { name: "Calendar" });
+    const segment = container.querySelector<HTMLElement>(".rubber-segment__thumb");
+    expect(segment).not.toBeNull();
+
+    Object.defineProperty(calendar.closest(".dock-item"), "getBoundingClientRect", {
+      value: () => ({ left: 88, right: 136, width: 48 }),
+    });
+    fireEvent.click(calendar);
+
+    await waitFor(() => expect(calendar).toHaveAttribute("aria-current", "page"));
+    await waitFor(() => expect(segment!.style.clipPath).toContain("88px"));
   });
 });
 

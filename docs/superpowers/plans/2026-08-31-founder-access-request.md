@@ -47,10 +47,10 @@ Create a public `/founders` page with a Founder access request form that allows 
 1. `supabase/migrations/20260831000001_founder_access_requests.sql` — table + RLS + indexes
 2. `supabase/functions/request-founder-access/index.ts` — Edge Function
 3. `supabase/functions/_shared/founder-request.ts` — shared normalization/validation
-4. `src/pages/FoundersPage.tsx` — public page component
-5. `src/components/Founder/FounderRequestForm.tsx` — form component
-6. `src/components/Founder/FounderRequestForm.test.tsx` — tests
-7. `src/components/Founder/FounderRequestForm.css` — styles
+4. `src/features/founder/pages/FoundersPage.tsx` — public page component
+5. `src/features/founder/components/FounderRequestForm.tsx` — form component
+6. `src/features/founder/components/FounderRequestForm.test.tsx` — tests
+7. `src/features/founder/components/FounderRequestForm.css` — styles
 8. `src/lib/founderRequest.ts` — client-side validation/normalization helpers
 9. `src/lib/founderRequest.test.ts` — tests
 

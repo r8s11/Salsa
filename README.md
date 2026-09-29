@@ -58,6 +58,12 @@ Flyer analysis requires the configured `extract-flyer` Supabase Edge Function.
 Host event cards show **Manage Event** only when the user has active owner or manager
 membership in that event's organizer. Other memberships show **View Event**.
 
+## Repository layout
+
+- `src/app/` owns routes and providers; `src/features/` owns feature-specific UI, hooks, and data access.
+- Founder routes and their form live in `src/features/founder/pages/` and `src/features/founder/components/`; shared UI remains in `src/components/`.
+- `docs/` is the single documentation tree (including historical plans and audits); `scripts/` holds executable tooling, and `supabase/` holds database and Edge Function assets.
+
 ## Documentation
 
 - [docs/STATUS_SUMMARY.md](docs/STATUS_SUMMARY.md) — current project status

@@ -1,5 +1,5 @@
 -- Baseline schema for public.events, reconstructed from the hand-applied
--- history in Docs/sql queries/ (events.sql + add_submitter_columns.sql +
+-- history in docs/sql queries/ (events.sql + add_submitter_columns.sql +
 -- fix_price_amount_typo.sql + add_city_column.sql).
 --
 -- Back-dated so it sorts before 20260714T000000_add_event_module_fields.sql,

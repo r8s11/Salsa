@@ -1,5 +1,5 @@
 -- Anon insert capped to status='pending' so anonymous writes can never bypass
--- moderation. Mirrors Docs/sql queries/fix_insert_rls.sql as applied to
+-- moderation. Mirrors docs/sql queries/fix_insert_rls.sql as applied to
 -- production. Both SubmitEventPage and scripts/import-ics.mjs insert with
 -- status='pending'.
 

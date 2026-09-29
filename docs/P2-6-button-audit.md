@@ -371,8 +371,8 @@ Phase 2 should normalize onto existing tokens:
 - `src/pages/SubmitEventPage.tsx` + `.css`
 - `src/pages/EventDetailPage.tsx` + `.css`
 - `src/pages/NotFoundPage.tsx`
-- `src/pages/founder/FoundersAcceptPage.tsx`
-- `src/pages/founder/FoundersWelcomePage.tsx`
+- `src/features/founder/pages/FoundersAcceptPage.tsx`
+- `src/features/founder/pages/FoundersWelcomePage.tsx`
 - `src/pages/UserEventEditPage.tsx`
 - `src/pages/account/AccountPage.tsx` + `.css`
 - `src/pages/account/ProfilePage.tsx` + `.css`

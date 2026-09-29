@@ -28,7 +28,7 @@
 --
 -- Migration-timestamp note: the pre-existing collision on prefix
 --   20260830000000 (two files, documented in
---   Docs/operations/phase1-auth-email-foundation.md §7) is unrelated to
+--   docs/operations/phase1-auth-email-foundation.md §7) is unrelated to
 --   this file; this migration uses 20260831000001, after
 --   20260831000000_phase5_host_attendance.sql.
 --

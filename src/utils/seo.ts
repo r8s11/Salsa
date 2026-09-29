@@ -1,45 +1,49 @@
-import { ScheduleXEvent } from "../types/events";
+import type { DatabaseEvent } from "../features/events/model/types";
+import type { ScheduleXEvent } from "../types/events";
+export const CANONICAL_ORIGIN = "https://www.salsasegura.com";
+
+export function canonicalUrl(path: string): string {
+  return new URL(path, CANONICAL_ORIGIN).toString();
+}
+
 
 /**
  * Generate Event structured data for SEO
  */
-export function generateEventStructuredData(event: ScheduleXEvent) {
+export function generateEventStructuredData(event: Pick<
+  DatabaseEvent,
+  "id" | "title" | "description" | "event_date" | "location" | "address" | "rsvp_link" | "price_type" | "price_amount"
+>) {
+  const hasKnownPrice =
+    event.price_type === "free" ||
+    (event.price_type === "paid" && typeof event.price_amount === "number");
   const eventData = {
     "@context": "https://schema.org",
     "@type": "DanceEvent",
     name: event.title,
-    description: event.description || `${event.title} - Dance event in Greater Boston & NYC`,
-    startDate: event.start,
-    endDate: event.end,
+    description: event.description || undefined,
+    startDate: event.event_date,
+    url: canonicalUrl(`/events/${event.id}`),
     eventStatus: "https://schema.org/EventScheduled",
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     location: event.location
       ? {
           "@type": "Place",
           name: event.location,
-          address: {
-            "@type": "PostalAddress",
-            addressCountry: "US",
-          },
+          address: event.address
+            ? { "@type": "PostalAddress", streetAddress: event.address }
+            : undefined,
         }
       : undefined,
-    organizer: {
-      "@type": "Organization",
-      name: "Salsa Segura",
-      url: "https://salsasegura.com",
-    },
-    performer: {
-      "@type": "Organization",
-      name: "Salsa Segura",
-    },
-    ...(event.rsvpLink && {
-      url: event.rsvpLink,
-      offers: {
-        "@type": "Offer",
-        url: event.rsvpLink,
-        availability: "https://schema.org/InStock",
-      },
-    }),
+    ...(event.rsvp_link &&
+      hasKnownPrice && {
+        offers: {
+          "@type": "Offer",
+          url: event.rsvp_link,
+          price: event.price_type === "free" ? 0 : event.price_amount,
+          priceCurrency: "USD",
+        },
+      }),
   };
 
   return JSON.stringify(eventData);
@@ -88,10 +92,13 @@ export function updatePageTitle(title: string) {
  * Update meta description dynamically
  */
 export function updateMetaDescription(description: string) {
-  const metaDescription = document.querySelector('meta[name="description"]');
-  if (metaDescription) {
-    metaDescription.setAttribute("content", description);
+  let metaDescription = document.querySelector('meta[name="description"]') as HTMLMetaElement;
+  if (!metaDescription) {
+    metaDescription = document.createElement("meta");
+    metaDescription.name = "description";
+    document.head.appendChild(metaDescription);
   }
+  metaDescription.setAttribute("content", description);
 }
 
 /**

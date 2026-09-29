@@ -1,3 +1,4 @@
+import { useLocation } from "react-router-dom";
 import ButtonLink from "../ui/ButtonLink";
 import IconButton from "../ui/IconButton";
 import { Pause, Play } from "lucide-react";
@@ -12,6 +13,7 @@ import { metroShortCode } from "../../features/metros/model/metro";
 import MetroExplorer from "../../features/metros/components/MetroExplorer";
 
 function Hero() {
+  const isMetroLanding = useLocation().pathname.startsWith("/events/");
   const { city, source } = useCity();
   const { events, loading, loadFailed } = useEvents();
   const metroName = useMetroName();
@@ -197,13 +199,27 @@ function Hero() {
           </div>
 
           <h1 className="hero-heading hero-enter" data-enter="heading">
-            <span className="hero-heading-line" data-line="1">
-              Find Your
-            </span>
-            <span className="hero-heading-line" data-line="2">
-              <span className="hero-heading-accent">Rhythm</span>
-              <span className="hero-heading-dot">.</span>
-            </span>
+            {cityLabel && isMetroLanding ? (
+              <>
+                <span className="hero-heading-line" data-line="1">
+                  Salsa &amp; Bachata
+                </span>
+                {" "}
+                <span className="hero-heading-line" data-line="2">
+                  <span className="hero-heading-accent">in {cityLabel}</span>
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="hero-heading-line" data-line="1">
+                  Find Your
+                </span>
+                <span className="hero-heading-line" data-line="2">
+                  <span className="hero-heading-accent">Rhythm</span>
+                  <span className="hero-heading-dot">.</span>
+                </span>
+              </>
+            )}
           </h1>
 
           <p className="hero-subtitle hero-enter" data-enter="subtitle">

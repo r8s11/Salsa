@@ -88,6 +88,18 @@ describe("Hero", () => {
     expect(screen.getByText("BOS")).toBeInTheDocument();
   });
 
+  it("names the selected metro in the main heading", () => {
+    render(
+      <MemoryRouter initialEntries={["/events/boston"]}>
+        <Hero />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+      "Salsa & Bachata in Boston"
+    );
+  });
+
   it("renders the decorative record as layered, non-announced background art", () => {
     const { container } = render(
       <MemoryRouter>

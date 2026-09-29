@@ -19,35 +19,35 @@ const Lessons = lazy(() => import("../pages/Lessons"));
 const Instructors = lazy(() => import("../pages/Instructors"));
 const Schools = lazy(() => import("../pages/Schools/Schools"));
 const NotFoundPage = lazy(() => import("../pages/NotFoundPage"));
-const AdminFounderRequestsPage = lazy(() => import("../pages/Admin/AdminFounderRequestsPage"));
+const AdminFounderRequestsPage = lazy(() => import("../features/admin/pages/AdminFounderRequestsPage"));
 const AdminFounderRequestDetailPage = lazy(
-  () => import("../pages/Admin/AdminFounderRequestDetailPage")
+  () => import("../features/admin/pages/AdminFounderRequestDetailPage")
 );
 const SignInPage = lazy(() => import("../pages/auth/SignInPage"));
 const AuthCallback = lazy(() => import("../components/Auth/AuthCallback"));
 const ConfirmSignupPage = lazy(() => import("../components/Auth/ConfirmSignupPage"));
 const InviteActivationPage = lazy(() => import("../components/Auth/InviteActivationPage"));
 const AdminLayout = lazy(() => import("../layouts/AdminLayout"));
-const AdminOverviewPage = lazy(() => import("../pages/Admin/AdminOverviewPage"));
-const AdminEventsPage = lazy(() => import("../pages/Admin/AdminEventsPage"));
-const AdminUsersPage = lazy(() => import("../pages/Admin/AdminUsersPage"));
-const AdminUserDetailPage = lazy(() => import("../pages/Admin/AdminUserDetailPage"));
-const AdminOrganizerRequestsPage = lazy(() => import("../pages/Admin/AdminOrganizerRequestsPage"));
+const AdminOverviewPage = lazy(() => import("../features/admin/pages/AdminOverviewPage"));
+const AdminEventsPage = lazy(() => import("../features/admin/pages/AdminEventsPage"));
+const AdminUsersPage = lazy(() => import("../features/admin/pages/AdminUsersPage"));
+const AdminUserDetailPage = lazy(() => import("../features/admin/pages/AdminUserDetailPage"));
+const AdminOrganizerRequestsPage = lazy(() => import("../features/admin/pages/AdminOrganizerRequestsPage"));
 const AdminOrganizerRequestDetailPage = lazy(
-  () => import("../pages/Admin/AdminOrganizerRequestDetailPage")
+  () => import("../features/admin/pages/AdminOrganizerRequestDetailPage")
 );
-const AdminVenuesPage = lazy(() => import("../pages/Admin/AdminVenuesPage"));
-const AdminVenueDetailPage = lazy(() => import("../pages/Admin/AdminVenueDetailPage"));
-const AdminTagsPage = lazy(() => import("../pages/Admin/AdminTagsPage"));
-const AdminTaxonomyNewPage = lazy(() => import("../pages/Admin/AdminTaxonomyNewPage"));
-const AdminTaxonomyDetailPage = lazy(() => import("../pages/Admin/AdminTaxonomyDetailPage"));
-const AdminImportEventsPage = lazy(() => import("../pages/Admin/AdminImportEventsPage"));
-const AdminSubmissionsPage = lazy(() => import("../pages/Admin/AdminSubmissionsPage"));
-const AdminSubmissionDetailPage = lazy(() => import("../pages/Admin/AdminSubmissionDetailPage"));
-const AdminSettingsPage = lazy(() => import("../pages/Admin/AdminSettingsPage"));
-const AdminActivityPage = lazy(() => import("../pages/Admin/AdminActivityPage"));
-const AdminActivityDetailPage = lazy(() => import("../pages/Admin/AdminActivityDetailPage"));
-const AdminAnalyticsPage = lazy(() => import("../pages/Admin/AdminAnalyticsPage"));
+const AdminVenuesPage = lazy(() => import("../features/admin/pages/AdminVenuesPage"));
+const AdminVenueDetailPage = lazy(() => import("../features/admin/pages/AdminVenueDetailPage"));
+const AdminTagsPage = lazy(() => import("../features/admin/pages/AdminTagsPage"));
+const AdminTaxonomyNewPage = lazy(() => import("../features/admin/pages/AdminTaxonomyNewPage"));
+const AdminTaxonomyDetailPage = lazy(() => import("../features/admin/pages/AdminTaxonomyDetailPage"));
+const AdminImportEventsPage = lazy(() => import("../features/admin/pages/AdminImportEventsPage"));
+const AdminSubmissionsPage = lazy(() => import("../features/admin/pages/AdminSubmissionsPage"));
+const AdminSubmissionDetailPage = lazy(() => import("../features/admin/pages/AdminSubmissionDetailPage"));
+const AdminSettingsPage = lazy(() => import("../features/admin/pages/AdminSettingsPage"));
+const AdminActivityPage = lazy(() => import("../features/admin/pages/AdminActivityPage"));
+const AdminActivityDetailPage = lazy(() => import("../features/admin/pages/AdminActivityDetailPage"));
+const AdminAnalyticsPage = lazy(() => import("../features/admin/pages/AdminAnalyticsPage"));
 const ProfilePage = lazy(() => import("../pages/account/ProfilePage"));
 const ProfileEditPage = lazy(() => import("../pages/account/ProfileEditPage"));
 const AccountPage = lazy(() => import("../pages/account/AccountPage"));

@@ -13,6 +13,12 @@ describe("eventSharing", () => {
     );
   });
 
+  it("uses the www production host for public event links by default", () => {
+    expect(buildPublicEventUrl("event-123")).toBe(
+      "https://www.salsasegura.com/events/event-123"
+    );
+  });
+
   it("does not hardcode a development hostname", () => {
     const url = buildPublicEventUrl("event-123", "https://preview.example.test");
 

@@ -1,4 +1,6 @@
 import { useRef, type PointerEvent } from "react";
+import { useDocumentMeta } from "../shared/seo/useDocumentMeta";
+import { canonicalUrl } from "../utils/seo";
 import ButtonLink from "../components/ui/ButtonLink";
 import { useAboutMotion } from "./AboutPage.motion";
 import "./AboutPage.css";
@@ -6,24 +8,30 @@ import "./AboutPage.css";
 const PILLARS = [
   {
     title: "One calendar",
-    body: "A single source for salsa, bachata, and Latin dance events across Greater Boston and NYC.",
+    body: "Browse salsa, bachata, and Latin dance events across Greater Boston and NYC on one calendar.",
   },
   {
-    title: "Pop-ups & workshops",
-    body: "Short-run classes and workshops surfaced alongside the regular socials — easy to catch, easy to miss otherwise.",
+    title: "Pop-ups and workshops",
+    body: "Find short-run classes and workshops alongside the regular socials, all in one calendar.",
   },
   {
     title: "Instructor directory",
-    body: "Find your next teacher without asking around the floor.",
+    body: "Browse local instructors instead of relying on word of mouth.",
   },
   {
-    title: "Community-submitted",
-    body: "Organizers and dancers add events directly, so the calendar stays current instead of stale.",
+    title: "Community listings",
+    body: "Organizers and dancers can submit events directly. Each listing is reviewed before it appears.",
   },
 ];
 
 function AboutPage() {
   const rootRef = useRef<HTMLDivElement>(null);
+  useDocumentMeta({
+    title: "About Salsa Segura",
+    description: "Learn how Salsa Segura helps dancers find salsa, bachata, and Latin dance events across Greater Boston and New York City.",
+    canonical: canonicalUrl("/about"),
+  });
+
   useAboutMotion(rootRef);
 
   // Pointer parallax on the disc — additive only. CSS gates the transform to
@@ -57,15 +65,14 @@ function AboutPage() {
 
         <div className="container about-hero__content">
           <p className="about-hero__eyebrow" data-reveal>
-            Our Story
+            Our story
           </p>
           <h1 data-split-words>
-            <span className="about-split-source">Every record needs a place to spin.</span>
+            <span className="about-split-source">Find a dance this week.</span>
           </h1>
           <p className="about-hero__intro" data-reveal>
-            Welcome to Salsa Segura — a community of dancers inviting everyone into the joy of Latin
-            dance. A place for dancers of all levels to learn, grow, and connect, whether you're in
-            Greater Boston or New York City.
+            Salsa Segura is a community for dancers at every level. Find events and instructors across
+            Greater Boston and New York City, and connect with the local Latin dance scene.
           </p>
         </div>
       </section>
@@ -79,13 +86,12 @@ function AboutPage() {
       <section className="about-chapter about-chapter--story" data-chapter="story">
         <div className="container about-chapter__inner">
           <h2 data-split-words>
-            <span className="about-split-source">The Story</span>
+            <span className="about-split-source">How it started</span>
           </h2>
           <p data-reveal>
-            Born from a love of Salsa and Bachata, Salsa Segura is a gathering place for dancers
-            finding their rhythm in the social dance community. What began as a simple idea to
-            connect dancers across Boston has grown into a hub for Latin dance enthusiasts across
-            Greater Boston and New York City.
+            Salsa Segura started with a love of salsa and bachata and a simple idea: help Boston
+            dancers find each other. The calendar now lists events across Greater Boston and New York
+            City.
           </p>
         </div>
       </section>
@@ -94,7 +100,7 @@ function AboutPage() {
       <section className="about-chapter about-chapter--offerings" data-chapter="offerings">
         <div className="container about-chapter__inner">
           <h2 data-split-words>
-            <span className="about-split-source">What You'll Find</span>
+            <span className="about-split-source">What you'll find</span>
           </h2>
           <ul className="about-pillars">
             {PILLARS.map((pillar) => (
@@ -111,16 +117,15 @@ function AboutPage() {
       <section className="about-chapter about-chapter--everyone" data-chapter="everyone">
         <div className="container about-chapter__inner about-chapter__inner--centered">
           <h2 data-split-words>
-            <span className="about-split-source">A Place for Everyone</span>
+            <span className="about-split-source">For every dancer</span>
           </h2>
           <p data-reveal>
-            Whether you are taking your first steps or have been dancing for years, Salsa Segura
-            welcomes you. The community connects dancers with events, instructors, and each other
-            across Greater Boston, New York City, and beyond.
+            New to dancing or already on the floor, you're welcome here. Find events and instructors
+            across Greater Boston, New York City, and beyond, and connect with other dancers.
           </p>
           <div data-reveal>
             <ButtonLink to="/calendar" variant="primary" className="about-cta__btn">
-              Browse the Calendar
+              Browse events
             </ButtonLink>
           </div>
         </div>

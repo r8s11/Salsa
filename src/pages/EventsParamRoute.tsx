@@ -4,7 +4,6 @@ import HomePage from "./HomePage";
 import { useCity } from "../contexts/useCity";
 import { useMetros } from "../features/metros/hooks/useMetros";
 import { resolveMetroSlug } from "../features/metros/model/metro";
-import { useDocumentMeta } from "../shared/seo/useDocumentMeta";
 
 const EventDetailPage = lazy(() => import("./EventDetailPage"));
 const NotFoundPage = lazy(() => import("./NotFoundPage"));
@@ -29,11 +28,10 @@ function MetroHome({ segment }: { segment: string }) {
   if (!slug) return <NotFoundPage />;
   // Aliases (/events/nyc, /events/New-York) collapse onto one canonical URL.
   if (slug !== segment) return <Navigate to={`/events/${slug}`} replace />;
-  const name = metros.find((metro) => metro.slug === slug)?.name ?? slug;
-  return <CanonicalMetroHome slug={slug} name={name} />;
+  return <CanonicalMetroHome slug={slug} />;
 }
 
-function CanonicalMetroHome({ slug, name }: { slug: string; name: string }) {
+function CanonicalMetroHome({ slug }: { slug: string }) {
   const { setCity } = useCity();
 
   // Visiting a metro URL is an explicit choice. Apply it before paint so the
@@ -42,11 +40,6 @@ function CanonicalMetroHome({ slug, name }: { slug: string; name: string }) {
     setCity(slug);
   }, [slug, setCity]);
 
-  useDocumentMeta({
-    title: `Salsa & Bachata Events in ${name}`,
-    description: `Salsa and bachata socials, classes, and workshops in ${name}, curated by Salsa Segura.`,
-    canonical: `${window.location.origin}/events/${slug}`,
-  });
 
   return <HomePage />;
 }

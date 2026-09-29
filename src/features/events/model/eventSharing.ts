@@ -1,3 +1,5 @@
+import { CANONICAL_ORIGIN } from "../../../utils/seo";
+
 export type NativeEventSharePayload = {
   title: string;
   text: string;
@@ -11,16 +13,11 @@ export type EventShareInput = {
   publicUrl: string;
 };
 
-function publicOrigin(origin?: string): string {
-  if (origin) return origin;
-  if (typeof window === "undefined") {
-    throw new Error("A public origin is required outside the browser.");
-  }
-  return window.location.origin;
-}
-
 export function buildPublicEventUrl(eventId: string, origin?: string): string {
-  return new URL(`/events/${encodeURIComponent(eventId)}`, publicOrigin(origin)).toString();
+  return new URL(
+    `/events/${encodeURIComponent(eventId)}`,
+    origin ?? CANONICAL_ORIGIN
+  ).toString();
 }
 
 function truthfulShareText({ title, dateLabel, location }: EventShareInput): string {

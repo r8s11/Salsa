@@ -22,8 +22,8 @@
 ### Task 1: Pin confirm-then-animate behavior with integration tests
 
 **Files:**
-- Modify: `src/pages/Admin/AdminOverviewPage.test.tsx:359-376`
-- Test: `src/pages/Admin/AdminOverviewPage.test.tsx`
+- Modify: `src/features/admin/pages/AdminOverviewPage.test.tsx:359-376`
+- Test: `src/features/admin/pages/AdminOverviewPage.test.tsx`
 
 **Interfaces:**
 - Consumes: mocked `useAdminSubmissions()` and its `approveSubmissionWithTaxonomy(payload, callbacks)` mutation API.
@@ -64,7 +64,7 @@ it("keeps an approval failure open in the galley without setting it into the wee
 
 - [ ] **Step 2: Run the targeted test to verify it fails**
 
-Run: `npm test -- src/pages/Admin/AdminOverviewPage.test.tsx -t "keeps an approval failure"`
+Run: `npm test -- src/features/admin/pages/AdminOverviewPage.test.tsx -t "keeps an approval failure"`
 
 Expected: FAIL because the current implementation starts `settle()` before the mutation outcome, makes the entry leave, and only later restores it.
 
@@ -82,7 +82,7 @@ Use `vi.useFakeTimers()`/`vi.runOnlyPendingTimers()` in a scoped `try/finally` t
 
 - [ ] **Step 4: Run the targeted success/focus test to verify it fails**
 
-Run: `npm test -- src/pages/Admin/AdminOverviewPage.test.tsx -t "focuses the next unresolved"`
+Run: `npm test -- src/features/admin/pages/AdminOverviewPage.test.tsx -t "focuses the next unresolved"`
 
 Expected: FAIL because current `settle()` runs before the supplied `onSuccess` callback and no code restores focus after the removed entry.
 
@@ -92,7 +92,7 @@ Expected: FAIL because current `settle()` runs before the supplied `onSuccess` c
 
 **Files:**
 - Modify: `src/components/Desk/OperatorDesk.tsx:63-169`
-- Test: `src/pages/Admin/AdminOverviewPage.test.tsx`
+- Test: `src/features/admin/pages/AdminOverviewPage.test.tsx`
 
 **Interfaces:**
 - Consumes: `approveSubmissionWithTaxonomy` mutation callbacks and `Galley`’s new success-completion notification contract from Task 3.
@@ -118,7 +118,7 @@ It must not delete an entry from `decided` or filter `settledListings`, because 
 
 - [ ] **Step 3: Run the two Task 1 tests**
 
-Run: `npm test -- src/pages/Admin/AdminOverviewPage.test.tsx -t "keeps an approval failure|focuses the next unresolved"`
+Run: `npm test -- src/features/admin/pages/AdminOverviewPage.test.tsx -t "keeps an approval failure|focuses the next unresolved"`
 
 Expected: failure-path test passes; focus test still fails until Task 3 wires the focus target.
 
@@ -130,7 +130,7 @@ Expected: failure-path test passes; focus test still fails until Task 3 wires th
 - Modify: `src/components/Desk/Galley.tsx:21-150`
 - Modify: `src/components/Desk/Desk.tsx:305-312`
 - Modify: `src/components/Desk/OperatorDesk.tsx:219-236`
-- Test: `src/pages/Admin/AdminOverviewPage.test.tsx`
+- Test: `src/features/admin/pages/AdminOverviewPage.test.tsx`
 
 **Interfaces:**
 - Consumes: a successful-decision signal emitted after `settle()` removes an entry.
@@ -162,7 +162,7 @@ Add an optional title-button ref prop restricted to the `onOpen` button path; do
 
 - [ ] **Step 5: Run both targeted tests**
 
-Run: `npm test -- src/pages/Admin/AdminOverviewPage.test.tsx -t "keeps an approval failure|focuses the next unresolved"`
+Run: `npm test -- src/features/admin/pages/AdminOverviewPage.test.tsx -t "keeps an approval failure|focuses the next unresolved"`
 
 Expected: PASS. The failure test proves no optimistic departure; the success test proves the established motion completes, entry enters the week, and focus moves to the next unresolved row.
 
@@ -171,7 +171,7 @@ Expected: PASS. The failure test proves no optimistic departure; the success tes
 ### Task 4: Verify retained desk behavior and rendered states
 
 **Files:**
-- Verify: `src/pages/Admin/AdminOverviewPage.test.tsx`
+- Verify: `src/features/admin/pages/AdminOverviewPage.test.tsx`
 - Verify: `src/components/Desk/OperatorDesk.tsx`, `src/components/Desk/Galley.tsx`, `src/components/Desk/Desk.tsx`, `src/components/Desk/desk.css`
 
 **Interfaces:**
@@ -180,7 +180,7 @@ Expected: PASS. The failure test proves no optimistic departure; the success tes
 
 - [ ] **Step 1: Run the entire existing admin overview file**
 
-Run: `npm test -- src/pages/Admin/AdminOverviewPage.test.tsx`
+Run: `npm test -- src/features/admin/pages/AdminOverviewPage.test.tsx`
 
 Expected: PASS, including existing role-specific desk, loading, empty-galley, and week-placement tests.
 

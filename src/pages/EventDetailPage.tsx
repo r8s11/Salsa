@@ -1,4 +1,4 @@
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   CalendarPlus,
@@ -33,6 +33,9 @@ import { resolveEventFlyer } from "../components/EventModal/eventModalImage";
 import Button from "../components/ui/Button";
 import ButtonLink from "../components/ui/ButtonLink";
 import NotFoundPage from "./NotFoundPage";
+import { useDocumentMeta } from "../shared/seo/useDocumentMeta";
+import { canonicalUrl, generateEventStructuredData, injectStructuredData } from "../utils/seo";
+
 import "./EventDetailPage.css";
 
 const TYPE_LABELS: Record<EventType, string> = {
@@ -92,6 +95,20 @@ export default function EventDetailPage() {
   });
 
   useEventViewTouch(event?.id ?? null);
+
+  useDocumentMeta({
+    title: event?.title ?? "Dance event",
+    description:
+      event?.description ??
+      "Find salsa, bachata, and Latin dance events in Greater Boston and New York City.",
+    canonical: event ? canonicalUrl(`/events/${event.id}`) : undefined,
+  });
+
+  useEffect(() => {
+    if (!event) return;
+    injectStructuredData(generateEventStructuredData(event), "event-detail-data");
+    return () => document.getElementById("event-detail-data")?.remove();
+  }, [event]);
 
   const tabListId = useId();
   const aboutTabId = `${tabListId}-tab-about`;

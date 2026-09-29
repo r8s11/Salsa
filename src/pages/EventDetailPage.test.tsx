@@ -91,6 +91,31 @@ describe("EventDetailPage", () => {
     vi.mocked(fetchApprovedEventById).mockResolvedValue(event);
     vi.mocked(fetchApprovedEvents).mockResolvedValue([event]);
   });
+  it("publishes event-specific metadata and structured data on the canonical host", async () => {
+    window.history.replaceState({}, "", "/events/event-1");
+    renderPage();
+
+    await screen.findByRole("heading", { name: "Havana Nights" });
+    expect(document.title).toBe("Havana Nights | Salsa Segura");
+    expect(document.querySelector('meta[name="description"]')).toHaveAttribute(
+      "content",
+      "A real event description."
+    );
+    expect(document.querySelector('link[rel="canonical"]')).toHaveAttribute(
+      "href",
+      "https://www.salsasegura.com/events/event-1"
+    );
+
+    const schema = document.querySelector("#event-detail-data");
+    expect(schema).toBeInTheDocument();
+    expect(JSON.parse(schema!.textContent!)).toMatchObject({
+      "@type": "DanceEvent",
+      name: "Havana Nights",
+      location: { name: "Grand Ballroom" },
+    });
+    expect(JSON.parse(schema!.textContent!)).not.toHaveProperty("performer");
+  });
+
 
   it("renders the v2 cover, action strip, and sidebar cards", async () => {
     renderPage();
@@ -213,7 +238,7 @@ describe("EventDetailPage", () => {
     expect(share).toHaveBeenCalledWith({
       title: "Havana Nights",
       text: "Join us for Havana Nights at Grand Ballroom.",
-      url: `${window.location.origin}/events/event-1`,
+      url: "https://www.salsasegura.com/events/event-1",
     });
   });
 
@@ -226,7 +251,7 @@ describe("EventDetailPage", () => {
     await screen.findByRole("heading", { name: "Havana Nights" });
     await user.click(screen.getByRole("button", { name: "Share" }));
 
-    expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/events/event-1`);
+    expect(writeText).toHaveBeenCalledWith("https://www.salsasegura.com/events/event-1");
     expect(screen.getByRole("status")).toHaveTextContent(
       "Event link copied. Paste it into Instagram."
     );

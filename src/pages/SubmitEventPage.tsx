@@ -14,8 +14,11 @@ import { useSubmitEventForm } from "../features/submit-event/hooks/useSubmitEven
 import type { SubmitFieldName } from "../features/submit-event/model/validation";
 import FormErrorSummary from "../shared/forms/FormErrorSummary";
 import Button from "../components/ui/Button";
+import { useDocumentMeta } from "../shared/seo/useDocumentMeta";
+import { canonicalUrl } from "../utils/seo";
 import "../styles/forms.css";
 import "./SubmitEventPage.css";
+
 
 const FIELD_ORDER: { field: SubmitFieldName; id: string }[] = [
   { field: "title", id: "event-title" },
@@ -32,6 +35,13 @@ const FIELD_ORDER: { field: SubmitFieldName; id: string }[] = [
   { field: "submitter_email", id: "submitter-email" },
 ];
 export default function SubmitEventPage() {
+  useDocumentMeta({
+    title: "Submit a Dance Event",
+    description: "Share a salsa, bachata, or Latin dance event for review and listing on the Salsa Segura calendar.",
+    canonical: canonicalUrl("/submit"),
+    robots: "noindex, follow",
+  });
+
   const { user, isAdmin, isOrganizer } = useAuth();
   const { profile } = useOwnProfile(user?.id);
   const authenticatedSubmitterName = user

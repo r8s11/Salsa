@@ -78,7 +78,7 @@ Measure horizontal bounds, assert no document-level horizontal overflow, and con
 
 **Files:**
 
-- Modify: `src/pages/Admin/AdminVenuesPage.tsx:292-316`
+- Modify: `src/features/admin/pages/AdminVenuesPage.tsx:292-316`
 
 **Interfaces:**
 

@@ -358,12 +358,12 @@ describe("share poster", () => {
     expect(mockCreatePoster).toHaveBeenCalledWith(baseEvent, "story");
     const [{ title, text, url, files }] = shareSpy.mock.calls[0];
     expect(title).toBe(baseEvent.title);
-    expect(text).toContain(`${window.location.origin}/events/1`);
-    expect(url).toBe(`${window.location.origin}/events/1`);
+    expect(text).toContain("https://www.salsasegura.com/events/1");
+    expect(url).toBe("https://www.salsasegura.com/events/1");
     expect(canShareSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         files: [expect.any(File)],
-        url: `${window.location.origin}/events/1`,
+        url: "https://www.salsasegura.com/events/1",
       })
     );
     expect(files).toHaveLength(1);
@@ -634,7 +634,7 @@ describe("copy event link", () => {
     });
 
     expect(writeText).toHaveBeenCalledTimes(1);
-    expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/events/1`);
+    expect(writeText).toHaveBeenCalledWith("https://www.salsasegura.com/events/1");
     expect(copyButton).toHaveTextContent("Copied");
 
     act(() => {

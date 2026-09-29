@@ -35,6 +35,18 @@ VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY=...
 | `npm run format`        | Prettier                             |
 | `npm run import-events` | Import events from an ICS feed (dry run by default) |
 
+The site publishes `https://www.salsasegura.com` as its canonical host. After Vite
+builds, the sitemap generator queries the public approved-event view with the
+Supabase URL and publishable key; if those credentials or that view are unavailable,
+it emits the stable public routes without event URLs. Azure Static Web Apps route
+rules are path-based, so redirecting the non-`www` hostname requires domain or
+edge configuration outside this repository.
+
+The frontend is still a client-rendered SPA: route metadata and event structured
+data update after JavaScript starts, while deep links initially receive the shared
+HTML shell. Route-specific server rendering or prerendering is not configured.
+
+
 ## Bulk flyer import
 
 Organizer owners and managers can open **My Events → Import Flyers**; admins can open
@@ -62,6 +74,7 @@ membership in that event's organizer. Other memberships show **View Event**.
 
 - `src/app/` owns routes and providers; `src/features/` owns feature-specific UI, hooks, and data access.
 - Founder routes and their form live in `src/features/founder/pages/` and `src/features/founder/components/`; shared UI remains in `src/components/`.
+- Admin route pages, tests, and CSS live in `src/features/admin/pages/`; the admin feature's hooks, models, and data access remain alongside them. Shared admin/host UI remains in `src/components/Admin/`.
 - `docs/` is the single documentation tree (including historical plans and audits); `scripts/` holds executable tooling, and `supabase/` holds database and Edge Function assets.
 
 ## Documentation

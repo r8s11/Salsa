@@ -10,6 +10,11 @@ React 19 · TypeScript · Vite · React Router v7 · Supabase · Schedule-X cale
 
 Deployed to Azure Static Web Apps via GitHub Actions.
 
+CI pins its runners to Ubuntu 24.04 and uses `actions/setup-node@v6` (Node 24 action
+runtime); the application's Node version still comes from `.nvmrc`. Deployment
+checkout disables persisted Git credentials before the Azure container runs,
+avoiding credential-cleanup permission errors after deployment.
+
 ## Getting started
 
 ```bash

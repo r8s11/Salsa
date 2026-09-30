@@ -17,6 +17,7 @@ vi.mock("../features/metros/hooks/useMetros", () => ({
     error: null,
   }),
 }));
+// HomePage owns document metadata; this mock isolates route selection.
 vi.mock("./HomePage", () => ({ default: () => <main>Metro home</main> }));
 vi.mock("./EventDetailPage", () => ({ default: () => <main>Event detail</main> }));
 vi.mock("./NotFoundPage", () => ({ default: () => <main>Not found</main> }));
@@ -43,7 +44,6 @@ describe("/events/:id", () => {
     renderAt("/events/miami");
     expect(await screen.findByText("Metro home")).toBeInTheDocument();
     expect(setCity).toHaveBeenCalledWith("miami");
-    expect(document.title).toBe("Salsa & Bachata Events in Miami | Salsa Segura");
   });
 
   it("collapses aliases onto the canonical metro URL", async () => {

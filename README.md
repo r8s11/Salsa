@@ -57,7 +57,12 @@ HTML shell. Route-specific server rendering or prerendering is not configured.
 The calendar keeps Salsa Segura's dark nightlife identity. Desktop offers month,
 week, list, and cards; compact screens offer list and cards. Search event titles,
 venues, descriptions, and styles, then narrow by city, event type, or dance style.
-**New Event** opens the submission form without leaving the calendar.
+**New event** is the calendar's single submission action and opens the form in place.
+List view groups approved events by date and shows descriptions, category/style labels,
+venue, and start–end times, including an explicit next-day marker for overnight events.
+The search icon uses a lazy-loaded `@paper-design/shaders` liquid-metal focus pulse:
+650ms of motion, then a static frame; blur disposes it. Reduced-motion and non-WebGL
+devices keep a static metal border. Clearing a search returns focus to the input.
 
 Guests can submit without an account when public suggestions are enabled. Contact
 details and required event fields are validated; submissions enter the moderation

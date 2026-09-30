@@ -263,7 +263,6 @@ export default function Calendar() {
     activeView !== "list";
   const showList = !loading && !error && expandedEvents.length > 0 && activeView === "list";
   const showCards = !loading && !error && expandedEvents.length > 0 && activeView === "cards";
-  const showSubmitCta = !loading && !error && eventList.length > 0;
   const today = Temporal.Now.plainDateISO();
   const periodRange = calendarPeriodRange(
     visibleDate,
@@ -381,7 +380,6 @@ export default function Calendar() {
               hasNoMatches={hasNoMatches}
               cityLabel={cityLabel}
               onRetry={refetch}
-              onSubmit={() => setSubmissionOpen(true)}
               onClearFilter={() => {
                 setTypeFilter("all");
                 setStyleFilter("all");
@@ -403,19 +401,6 @@ export default function Calendar() {
                     <EventCard key={event.id} event={event} onSelect={setSelectedEvent} />
                   ))}
                 </div>
-              </div>
-            )}
-
-            {showSubmitCta && (
-              <div className="calendar-cta">
-                <p>Know about an event that's missing?</p>
-                <button
-                  type="button"
-                  onClick={() => setSubmissionOpen(true)}
-                  className="btn-primary"
-                >
-                  Submit an Event
-                </button>
               </div>
             )}
           </EventManager>

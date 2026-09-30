@@ -1,3 +1,4 @@
+import { useRef, useState } from "react";
 import type { ReactNode } from "react";
 import {
   CalendarDays,
@@ -10,6 +11,7 @@ import {
   X,
 } from "lucide-react";
 import Button from "./Button";
+import { LiquidMetalButton } from "./liquid-metal-button";
 import { cn } from "@/lib/utils";
 
 export type CalendarView = "month-grid" | "week" | "list" | "cards";
@@ -50,6 +52,8 @@ export function EventManager({
   className,
 }: EventManagerProps) {
   const period = view === "week" ? "week" : "month";
+  const searchInput = useRef<HTMLInputElement>(null);
+  const [searchFocused, setSearchFocused] = useState(false);
   return (
     <section className={cn("event-manager", className)} aria-label="Dance event planner">
       <div className="event-manager__heading">
@@ -84,8 +88,17 @@ export function EventManager({
       </div>
       <div className="event-manager__tools">
         <div className="calendar-search">
-          <Search size={18} aria-hidden />
+          <LiquidMetalButton
+            mode="icon"
+            label="Focus event search"
+            icon={<Search size={18} aria-hidden />}
+            active={searchFocused}
+            onClick={() => searchInput.current?.focus()}
+          />
           <input
+            ref={searchInput}
+            onFocus={() => setSearchFocused(true)}
+            onBlur={() => setSearchFocused(false)}
             type="search"
             aria-label="Search events"
             placeholder="Search events or venues"
@@ -93,7 +106,15 @@ export function EventManager({
             onChange={(event) => onSearchChange(event.target.value)}
           />
           {searchQuery && (
-            <button type="button" aria-label="Clear search" onClick={() => onSearchChange("")}>
+            <button
+              type="button"
+              className="calendar-search__clear"
+              aria-label="Clear search"
+              onClick={() => {
+                onSearchChange("");
+                searchInput.current?.focus();
+              }}
+            >
               <X size={16} aria-hidden />
             </button>
           )}

@@ -1,5 +1,3 @@
-import Button from "../../../components/ui/Button";
-
 interface Props {
   loading: boolean;
   error: string | null;
@@ -8,7 +6,6 @@ interface Props {
   cityLabel: string;
   onRetry: () => void;
   onClearFilter: () => void;
-  onSubmit: () => void;
 }
 
 export default function CalendarStatus({
@@ -19,7 +16,6 @@ export default function CalendarStatus({
   cityLabel,
   onRetry,
   onClearFilter,
-  onSubmit,
 }: Props) {
   if (loading) {
     return (
@@ -42,7 +38,6 @@ export default function CalendarStatus({
     return (
       <div className="calendar-status" role="status">
         <p>No upcoming events in {cityLabel} yet.</p>
-        <Button onClick={onSubmit}>Submit an Event</Button>
       </div>
     );
   }

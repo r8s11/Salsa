@@ -127,13 +127,12 @@ describe("Calendar", () => {
     expect(eventsService.set).toHaveBeenLastCalledWith([]);
   });
 
-  it("clears Schedule-X and keeps the submit CTA for a filter with no matches", () => {
+  it("clears Schedule-X for a filter with no matches and restores all events", () => {
     renderCalendar();
     fireEvent.click(screen.getByRole("button", { name: "Class 0" }));
     expect(eventsService.set).toHaveBeenLastCalledWith([]);
     expect(screen.getByText("No events match this filter.")).toBeInTheDocument();
     expect(screen.queryByTestId("schedule-x-calendar")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Submit an Event" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Show all events" }));
     expect(screen.getByTestId("schedule-x-calendar")).toBeInTheDocument();
   });
@@ -151,7 +150,6 @@ describe("Calendar", () => {
       </MemoryRouter>
     );
     expect(screen.getByText("No upcoming events in Boston yet.")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Submit an Event" })).toBeInTheDocument();
     expect(screen.queryByTestId("schedule-x-calendar")).not.toBeInTheDocument();
   });
 

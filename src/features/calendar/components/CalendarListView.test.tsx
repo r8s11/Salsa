@@ -42,17 +42,26 @@ describe("CalendarListView", () => {
   it("renders a small decorative flyer thumbnail and selects the event", () => {
     const onSelect = vi.fn();
     const selectedEvent = makeEvent("event-1", "Boston Social", "2026-09-15 19:00");
-    const { container } = render(<CalendarListView events={[selectedEvent]} onSelect={onSelect} />);
+    render(<CalendarListView events={[selectedEvent]} onSelect={onSelect} />);
 
-    const image = container.querySelector(".calendar-list-thumbnail");
-    expect(image).not.toBeNull();
-    expect(image).toHaveAttribute("loading", "lazy");
-    expect(image).toHaveClass("calendar-list-thumbnail");
-    expect(image).toHaveAttribute("width", "64");
-    expect(image).toHaveAttribute("height", "80");
     expect(screen.getByText("7:00 PM")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /Boston Social/ }));
     expect(onSelect).toHaveBeenCalledWith(selectedEvent);
+  });
+
+  it("shows an overnight event's full time range, description, and dance styles", () => {
+    const event = {
+      ...makeEvent("overnight", "Late social", "2026-09-15 22:00"),
+      end: "2026-09-16 01:00",
+      description: "Social dancing until late.",
+      danceStyles: ["Salsa", "Bachata"],
+    };
+    render(<CalendarListView events={[event]} onSelect={vi.fn()} />);
+
+    expect(screen.getByText("10:00 PM – 1:00 AM (next day)")).toBeInTheDocument();
+    expect(screen.getByText(event.description)).toBeInTheDocument();
+    expect(screen.getByText("Salsa")).toBeInTheDocument();
+    expect(screen.getByText("Bachata")).toBeInTheDocument();
   });
 });

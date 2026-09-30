@@ -17,7 +17,6 @@ function renderStatus(props: Partial<ComponentProps<typeof CalendarStatus>> = {}
         cityLabel="Boston"
         onRetry={onRetry}
         onClearFilter={onClearFilter}
-        onSubmit={vi.fn()}
         {...props}
       />
     </MemoryRouter>
@@ -45,7 +44,6 @@ describe("CalendarStatus", () => {
     const { onClearFilter } = renderStatus({ hasNoMatches: true });
 
     expect(screen.getByRole("status")).toHaveTextContent("No events match this filter.");
-    expect(screen.queryByRole("link", { name: "Submit an Event" })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Show all events" }));
     expect(onClearFilter).toHaveBeenCalledOnce();
   });

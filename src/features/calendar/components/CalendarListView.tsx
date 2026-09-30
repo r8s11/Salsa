@@ -1,4 +1,6 @@
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Clock, MapPin } from "lucide-react";
+import type { CSSProperties } from "react";
+import { CALENDARS_CONFIG } from "../../events/model/calendarsConfig";
 import type { ScheduleXEvent } from "../../../types/events";
 import {
   formatCalendarDate,
@@ -6,6 +8,13 @@ import {
   sortCalendarEvents,
 } from "../model/calendarEvents";
 import { resolveEventFlyer } from "../../../components/EventModal/eventModalImage";
+
+const eventTypeLabels = {
+  social: "Social",
+  class: "Class",
+  workshop: "Workshop",
+  live_music: "Live music",
+} as const;
 
 type CalendarEventGroup = {
   key: string;
@@ -57,13 +66,24 @@ export default function CalendarListView({
           <div className="calendar-list-rows">
             {group.events.map((event) => {
               const time = formatCalendarTime(event.start);
+              const endTime = formatCalendarTime(event.end);
+              const crossesMidnight = event.end.slice(0, 10) > event.start.slice(0, 10);
+              const timeRange =
+                event.end === event.start
+                  ? time
+                  : `${time} – ${endTime}${crossesMidnight ? " (next day)" : ""}`;
               return (
                 <button
                   type="button"
                   className="calendar-list-row"
                   key={event.id}
+                  style={
+                    {
+                      "--event-color": CALENDARS_CONFIG[event.calendarId].darkColors.main,
+                    } as CSSProperties
+                  }
                   onClick={() => onSelect(event)}
-                  aria-label={`${event.title} on ${group.label}, ${event.start.slice(0, 4)} at ${time}`}
+                  aria-label={`${event.title} on ${group.label}, ${event.start.slice(0, 4)} at ${timeRange}`}
                 >
                   <img
                     className="calendar-list-thumbnail"
@@ -74,13 +94,34 @@ export default function CalendarListView({
                     loading="lazy"
                   />
                   <span className="calendar-list-copy">
-                    <strong className="calendar-list-title">{event.title}</strong>
+                    <span className="calendar-list-heading">
+                      <strong className="calendar-list-title">{event.title}</strong>
+                      <span className="calendar-list-type">
+                        {eventTypeLabels[event.calendarId]}
+                      </span>
+                    </span>
+                    {event.description && (
+                      <span className="calendar-list-description">{event.description}</span>
+                    )}
                     <span className="calendar-list-meta">
-                      <span>{time}</span>
+                      <span>
+                        <Clock size={14} aria-hidden />
+                        {timeRange}
+                      </span>
                       {event.location && (
-                        <span className="calendar-list-location">{event.location}</span>
+                        <span className="calendar-list-location">
+                          <MapPin size={14} aria-hidden />
+                          {event.location}
+                        </span>
                       )}
                     </span>
+                    {event.danceStyles?.length ? (
+                      <span className="calendar-list-styles">
+                        {event.danceStyles.map((style) => (
+                          <span key={style}>{style}</span>
+                        ))}
+                      </span>
+                    ) : null}
                   </span>
                   <ArrowUpRight className="calendar-list-arrow" size={18} aria-hidden />
                 </button>

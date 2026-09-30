@@ -581,11 +581,17 @@ The stage header pairs the Epilogue display title and balanced subtitle
 - **Period navigation:** Month and week title (`aria-live="polite"`), step
   controls (`< Today >`), and period context.
 - **Search bar:** Real-time search matching event titles, locations, venues,
-  descriptions, and dance styles, with an instant clear button (`X`).
+  descriptions, and dance styles, with an instant clear button (`X`) that returns
+  focus to the input. The 44px search button's metal rim is the one authored motion
+  moment: lazy-loaded Paper liquid metal runs for 650ms on focus, then stops.
+  Blur/unmount disposes the shader; hidden/offscreen rendering pauses. Reduced motion
+  and unavailable WebGL use a static rim without changing search behavior.
+  The rim alone uses material neutrals (`#77777b`, `#dedbd5`, `#85858a`, `#c5b89d`)
+  and shader back/tint (`#99999c`, `#fff0d4`); these are not content or category colors.
 - **View switcher:** Segmented pill group toggling Month Grid, Week, List,
   and Cards on desktop; compact screens filter to List and Cards only.
 - **Action CTA:** Prominent solid Rose Red button (`+ New event`) that
-  launches the submission dialog.
+  launches the submission dialog. No duplicate footer or empty-state submission CTA.
 
 #### Desktop sidebar and responsive tiers
 
@@ -601,6 +607,11 @@ The stage header pairs the Epilogue display title and balanced subtitle
   thumbnails with title and venue copy; search input expands to full width;
   view switcher is restricted to List and Cards; stage header stacks
   vertically with 44px minimum touch targets.
+- **List details:** Date-grouped 12px bordered rows show title, labeled event type
+  using the existing calendar colors, a two-line description, start–end time, venue,
+  and dance-style badges. Fine-pointer hover moves only the detail arrow by 2px over
+  180ms; reduced motion removes that movement. Rows stay visible by default, with no
+  entrance choreography or filter-triggered reveal.
 
 #### Anonymous submission and moderation flow
 

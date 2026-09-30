@@ -9,7 +9,7 @@ import {
 } from "@schedule-x/calendar";
 import { createEventsServicePlugin } from "@schedule-x/events-service";
 import { createCalendarControlsPlugin } from "@schedule-x/calendar-controls";
-import { useSearchParams, useNavigate, Link } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import "temporal-polyfill/global";
 import "./Calendar.css";
 import "@schedule-x/theme-default/dist/index.css";
@@ -21,6 +21,8 @@ import { useActiveMetros, useMetros } from "../metros/hooks/useMetros";
 import EventModal from "../../components/EventModal/EventModal";
 import EventCard from "../../components/Events/EventCard";
 import CalendarListView from "./components/CalendarListView";
+import { EventManager, type CalendarView } from "../../components/ui/event-manager";
+import CalendarSubmissionDialog from "./components/CalendarSubmissionDialog";
 import { useEvents } from "../events/hooks/useEvent";
 import {
   canonicalUrl,
@@ -30,7 +32,6 @@ import {
 import { useDocumentMeta } from "../../shared/seo/useDocumentMeta";
 import { useEscapeKey } from "./hooks/useEscapeKey";
 import { useEventDeepLink } from "./hooks/useEventDeepLink";
-import CalendarLegend from "./components/CalendarLegend";
 import CalendarStatus from "./components/CalendarStatus";
 import CalendarSidebar from "./components/CalendarSidebar";
 import {
@@ -44,15 +45,6 @@ import {
 } from "./model/calendarSidebar";
 import { clampEndToStartDay } from "./model/eventSpan";
 import { sortCalendarEvents } from "./model/calendarEvents";
-
-type CalendarView = "month-grid" | "week" | "list" | "cards";
-
-const VIEW_OPTIONS: { value: CalendarView; label: string }[] = [
-  { value: "month-grid", label: "Month" },
-  { value: "week", label: "Week" },
-  { value: "list", label: "List" },
-  { value: "cards", label: "Cards" },
-];
 
 const TYPE_OPTIONS: { value: TypeFilter; label: string }[] = [
   { value: "all", label: "All" },
@@ -77,6 +69,8 @@ export default function Calendar() {
   const [selectedEvent, setSelectedEvent] = useState<ScheduleXEvent | null>(null);
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [styleFilter, setStyleFilter] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [submissionOpen, setSubmissionOpen] = useState(false);
   const [isCompact, setIsCompact] = useState(initialCompact);
   const [activeView, setActiveView] = useState<CalendarView>(
     initialCompact ? "list" : "month-grid"
@@ -97,10 +91,16 @@ export default function Calendar() {
   const cityParameterHandled = useRef(false);
   const [eventsService] = useState(() => createEventsServicePlugin());
   const [calendarControls] = useState(() => createCalendarControlsPlugin());
-  const filteredEvents = useMemo(
-    () => filterEventsByDanceStyle(filterEventsByType(eventList, typeFilter), styleFilter),
-    [eventList, typeFilter, styleFilter]
-  );
+  const filteredEvents = useMemo(() => {
+    const query = searchQuery.trim().toLocaleLowerCase();
+    return filterEventsByDanceStyle(filterEventsByType(eventList, typeFilter), styleFilter).filter(
+      (event) =>
+        !query ||
+        [event.title, event.location, event.description, ...(event.danceStyles ?? [])].some(
+          (value) => value?.toLocaleLowerCase().includes(query)
+        )
+    );
+  }, [eventList, typeFilter, styleFilter, searchQuery]);
 
   const expandedEvents = useMemo(() => {
     const now = Temporal.Now.zonedDateTimeISO();
@@ -192,7 +192,11 @@ export default function Calendar() {
     if (cityParameterHandled.current || metrosLoading) return;
     cityParameterHandled.current = true;
     const requestedCity = searchParams.get("city");
-    if (requestedCity && metros.some((metro) => metro.slug === requestedCity) && requestedCity !== city) {
+    if (
+      requestedCity &&
+      metros.some((metro) => metro.slug === requestedCity) &&
+      requestedCity !== city
+    ) {
       setCity(requestedCity);
     }
   }, [city, searchParams, setCity, metrosLoading, metros]);
@@ -220,9 +224,13 @@ export default function Calendar() {
     if (searchParams.has("event")) navigate("/calendar", { replace: true });
   }, [navigate, searchParams]);
 
-  const goToMonth = (deltaMonths: number) => {
+  const navigatePeriod = (direction: -1 | 0 | 1) => {
     const next =
-      deltaMonths === 0 ? Temporal.Now.plainDateISO() : visibleDate.add({ months: deltaMonths });
+      direction === 0
+        ? Temporal.Now.plainDateISO()
+        : activeView === "week"
+          ? visibleDate.add({ weeks: direction })
+          : visibleDate.add({ months: direction });
     setVisibleDate(next);
     calendarControls.setDate(next);
   };
@@ -243,7 +251,7 @@ export default function Calendar() {
   useEventDeepLink(eventList, setSelectedEvent);
   useEscapeKey(handleClosedModal);
 
-  const cityLabel = city === "boston" ? "Boston" : "NYC";
+  const cityLabel = metros.find((metro) => metro.slug === city)?.name ?? "All cities";
   const monthTitle = visibleDate.toLocaleString("en-US", { month: "long", year: "numeric" });
   const isEmpty = !loading && !error && eventList.length === 0;
   const hasNoMatches = !loading && !error && eventList.length > 0 && filteredEvents.length === 0;
@@ -282,27 +290,16 @@ export default function Calendar() {
       <header className="stage-header">
         <div className="stage-inner">
           <div className="stage-left">
-            <p className="stage-eyebrow">What's on · {cityLabel}</p>
-            <h1 className="stage-title" aria-label={`Dance Calendar — ${monthTitle}`}>
-              {monthTitle}
+            <h1 className="stage-title">
+              Dance calendar<span className="calendar-title-dot">.</span>
             </h1>
             <p className="stage-accent">salsa &amp; bachata, hasta la madrugada</p>
           </div>
-          <div className="stage-controls stage-controls-primary">
-            <div className="month-nav">
-              <button className="nav-btn" aria-label="Previous month" onClick={() => goToMonth(-1)}>
-                ‹
-              </button>
-              <button className="nav-btn today-btn" onClick={() => goToMonth(0)}>
-                Today
-              </button>
-              <button className="nav-btn" aria-label="Next month" onClick={() => goToMonth(1)}>
-                ›
-              </button>
-            </div>
-            <div className="pill-group" role="group" aria-label="City">
+          <div className="stage-controls">
+            <div className="pill-group calendar-city-switch" role="group" aria-label="City">
               {activeMetros.map((option) => (
                 <button
+                  type="button"
                   key={option.slug}
                   className={`pill ${city === option.slug ? "pill-active-city" : ""}`}
                   aria-pressed={city === option.slug}
@@ -330,95 +327,103 @@ export default function Calendar() {
           />
         )}
         <div className="calendar-content">
-          <div className="calendar-toolbar">
-            <div className="toolbar-inner">
-              {/* Event-type filtering lives in exactly one place per layout:
-                  the desktop sidebar, or these compact toolbar pills. */}
-              {!hasSidebar && (
-                <div
-                  className="pill-group calendar-type-pills"
-                  role="group"
-                  aria-label="Filter by event type"
-                >
-                  {TYPE_OPTIONS.map((option) => (
-                    <button
-                      key={option.value}
-                      className={`pill ${typeFilter === option.value ? "pill-active-type" : ""}`}
-                      aria-pressed={typeFilter === option.value}
-                      onClick={() => setTypeFilter(option.value)}
+          <EventManager
+            title={activeView === "week" ? periodLabel : monthTitle}
+            view={activeView}
+            compact={isCompact}
+            onViewChange={handleViewChange}
+            onNavigate={navigatePeriod}
+            onEventCreate={() => setSubmissionOpen(true)}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            filters={
+              !hasSidebar && (
+                <>
+                  <div
+                    className="pill-group calendar-type-pills"
+                    role="group"
+                    aria-label="Filter by event type"
+                  >
+                    {TYPE_OPTIONS.map((option) => (
+                      <button
+                        type="button"
+                        key={option.value}
+                        className={`pill ${typeFilter === option.value ? "pill-active-type" : ""}`}
+                        aria-pressed={typeFilter === option.value}
+                        onClick={() => setTypeFilter(option.value)}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                  <label className="calendar-style-select">
+                    Dance style
+                    <select
+                      value={styleFilter}
+                      onChange={(event) => setStyleFilter(event.target.value)}
                     >
-                      {option.label}
-                    </button>
+                      <option value="all">Every style</option>
+                      {sidebarStyleOptions.map((style) => (
+                        <option key={style} value={style}>
+                          {style}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </>
+              )
+            }
+          >
+            <CalendarStatus
+              loading={loading}
+              error={error}
+              isEmpty={isEmpty}
+              hasNoMatches={hasNoMatches}
+              cityLabel={cityLabel}
+              onRetry={refetch}
+              onSubmit={() => setSubmissionOpen(true)}
+              onClearFilter={() => {
+                setTypeFilter("all");
+                setStyleFilter("all");
+                setSearchQuery("");
+              }}
+            />
+
+            {showCalendar && (
+              <div className="calendar-main">
+                <ScheduleXCalendar calendarApp={calendar} />
+              </div>
+            )}
+            {showList && <CalendarListView events={sortedEvents} onSelect={setSelectedEvent} />}
+
+            {showCards && (
+              <div className="calendar-card-view" aria-label="Events as cards">
+                <div className="calendar-card-grid">
+                  {sortedEvents.map((event) => (
+                    <EventCard key={event.id} event={event} onSelect={setSelectedEvent} />
                   ))}
                 </div>
-              )}
-              <div
-                className="pill-group calendar-view-pills"
-                role="group"
-                aria-label="Calendar view"
-              >
-                {(isCompact
-                  ? VIEW_OPTIONS.filter(
-                      (option) => option.value === "list" || option.value === "cards"
-                    )
-                  : VIEW_OPTIONS
-                ).map((option) => (
-                  <button
-                    key={option.value}
-                    className={`pill ${activeView === option.value ? "pill-active-view" : ""}`}
-                    aria-pressed={activeView === option.value}
-                    onClick={() => handleViewChange(option.value)}
-                  >
-                    {option.label}
-                  </button>
-                ))}
               </div>
-              {!isCompact && <CalendarLegend />}
-            </div>
-          </div>
+            )}
 
-          <CalendarStatus
-            loading={loading}
-            error={error}
-            isEmpty={isEmpty}
-            hasNoMatches={hasNoMatches}
-            cityLabel={cityLabel}
-            onRetry={refetch}
-            onClearFilter={() => {
-              setTypeFilter("all");
-              setStyleFilter("all");
-            }}
-          />
-
-          {showCalendar && (
-            <div className="calendar-main">
-              <ScheduleXCalendar calendarApp={calendar} />
-            </div>
-          )}
-          {showList && <CalendarListView events={sortedEvents} onSelect={setSelectedEvent} />}
-
-          {showCards && (
-            <div className="calendar-card-view" aria-label="Events as cards">
-              <div className="calendar-card-grid">
-                {sortedEvents.map((event) => (
-                  <EventCard key={event.id} event={event} onSelect={setSelectedEvent} />
-                ))}
+            {showSubmitCta && (
+              <div className="calendar-cta">
+                <p>Know about an event that's missing?</p>
+                <button
+                  type="button"
+                  onClick={() => setSubmissionOpen(true)}
+                  className="btn-primary"
+                >
+                  Submit an Event
+                </button>
               </div>
-            </div>
-          )}
-
-          {showSubmitCta && (
-            <div className="calendar-cta">
-              <p>Know about an event that's missing?</p>
-              <Link to="/submit" className="btn-primary">
-                Submit an Event
-              </Link>
-            </div>
-          )}
+            )}
+          </EventManager>
         </div>
       </div>
 
       <EventModal event={selectedEvent} onClose={handleClosedModal} />
+      <CalendarSubmissionDialog open={submissionOpen} onOpenChange={setSubmissionOpen} />
     </div>
   );
 }

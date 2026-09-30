@@ -34,15 +34,6 @@ describe("CalendarSidebar", () => {
     expect(screen.getByRole("button", { name: "Live Music 1" })).toBeInTheDocument();
   });
 
-  it("marks every type row pressed when the filter is 'all'", () => {
-    render(<CalendarSidebar {...baseProps} />);
-    expect(screen.getByRole("button", { name: "Social 2" })).toHaveAttribute(
-      "aria-pressed",
-      "true"
-    );
-    expect(screen.getByRole("button", { name: "Class 1" })).toHaveAttribute("aria-pressed", "true");
-  });
-
   it("marks only the selected type row pressed for a specific filter", () => {
     render(<CalendarSidebar {...baseProps} typeFilter="social" />);
     expect(screen.getByRole("button", { name: "Social 2" })).toHaveAttribute(

@@ -536,6 +536,87 @@ view in the same dialog, not a new route. This is Ritmo Vivo throughout
 — dark ground, rose glow, gold links — right up to the thumbnail's
 edge, where the Sleeve Boundary Rule takes over.
 
+
+### The Calendar Planner — EventManager and submission (Ritmo Vivo, dark nightlife)
+
+The public calendar (`/calendar`) is a nightlife discovery stage and
+community submission surface, executed in Ritmo Vivo's dark navy palette
+rather than an administrative light planner. Ground is the deep neutral
+slate (`--bg: #0b1326`, `--surface: #0b1326`, `--surface-high: #222a3d`);
+accents are Rose Red (`--red: #e11d48`) on high-action buttons and Stage
+Gold (`--gold: #e9c349`) on focus rings (`outline: 2px solid var(--gold)`
+with `outline-offset: 3px`). Typography uses Epilogue 800 display for
+the stage header ("Dance calendar." with a rose period dot, -0.035em tracking)
+and Be Vietnam Pro for body copy and listing metadata. Tabular numerals
+(`font-variant-numeric: tabular-nums`) are enforced across calendar grids,
+week numbers, dates, and listing time slots so figures align vertically.
+
+**The Read-Only Discovery Rule.** The public calendar is strictly read-only
+discovery. Public visitors and dancers cannot drag, edit, or delete listings.
+Approved events from the database remain the single source of truth; all
+additions flow through the submission dialog into the pending moderation queue.
+
+**The Responsive View-Refocus Rule.** Below 769px, multi-column calendar grids
+yield to chronological list or card views. Narrow mobile viewports do not force
+month-grid cells into unreadable micro-boxes; they refocus to 56×72px LP sleeve
+thumbnails (`object-fit: cover`), event title, time, and venue metadata.
+
+**The Poster-Fallback Guarantee.** Every approved event is guaranteed shareable
+artwork. Flyers are strictly optional; events submitted without a flyer
+automatically inherit the generated Fania-style Sleeve poster rather than an
+empty placeholder or generic fallback image.
+
+**The Protected Submission Rule.** The New Event modal is a controlled,
+accessible Radix dialog with backdrop blur (`rgba(11, 19, 38, 0.78)` with
+8px blur), focus trapping, client-side validation error summaries, unauthenticated
+submitter contact requirements, and strict focus restoration to the invoking
+trigger upon dismissal.
+
+#### Stage header and toolbar
+
+The stage header pairs the Epilogue display title and balanced subtitle
+("salsa & bachata, hasta la madrugada") with a segmented metro pill switch
+(Boston / New York City). The controlled `EventManager` toolbar
+(`src/components/ui/event-manager.tsx`) anchors the planner chrome:
+- **Period navigation:** Month and week title (`aria-live="polite"`), step
+  controls (`< Today >`), and period context.
+- **Search bar:** Real-time search matching event titles, locations, venues,
+  descriptions, and dance styles, with an instant clear button (`X`).
+- **View switcher:** Segmented pill group toggling Month Grid, Week, List,
+  and Cards on desktop; compact screens filter to List and Cards only.
+- **Action CTA:** Prominent solid Rose Red button (`+ New event`) that
+  launches the submission dialog.
+
+#### Desktop sidebar and responsive tiers
+
+- **Desktop (≥ 1024px):** A 208px left sidebar displays the active period
+  range label, live category breakdown counts under "What's on" (Social,
+  Class, Workshop, Live Music), dance style taxonomy selection (e.g. On1,
+  On2, Cuban, Bachata), and a 7-day upcoming event count tally.
+- **Tablet (769px – 1023px):** The sidebar drops away to maximize grid measure;
+  event type pills and the dance style selector move into the `EventManager`
+  toolbar filters row.
+- **Compact / Mobile (≤ 768px):** Calendar app initializes directly into
+  chronological list view (`CalendarListView`), pairing 56×72px sleeve
+  thumbnails with title and venue copy; search input expands to full width;
+  view switcher is restricted to List and Cards; stage header stacks
+  vertically with 44px minimum touch targets.
+
+#### Anonymous submission and moderation flow
+
+The submission dialog (`CalendarSubmissionDialog`) opens in-place without
+leaving the calendar. Guest attendees can submit unlisted nights without an
+account when submissions are open; `submitter_name` and `submitter_email`
+are mandatory contact fields for unauthenticated guests, while authenticated
+organizers have contact credentials prefilled. Submissions validate with
+`FormErrorSummary` focusing the error summary and linking to invalid fields. The dialog
+explicitly informs submitters that events enter a `pending` moderation queue
+reviewed by community moderators and do not appear on the calendar until
+approved. Flyer upload is tucked into a collapsible `<details>` disclosure
+with reassurance that flyerless events receive a generated Sleeve poster.
+Upon submission, a success confirmation card offers "Done" (closing with
+focus restoration to the trigger button) or "Submit Another Event".
+
 ## Do's and Don'ts
 
 ### Do

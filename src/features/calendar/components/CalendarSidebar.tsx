@@ -46,8 +46,19 @@ export default function CalendarSidebar({
       <div className="sidebar-group" role="group" aria-label="What's on">
         <p className="sidebar-section-label">What's on</p>
         <div className="sidebar-rows">
+          <button
+            type="button"
+            className={`sidebar-row ${typeFilter === "all" ? "sidebar-row-active" : ""}`}
+            aria-pressed={typeFilter === "all"}
+            onClick={() => onTypeFilterChange("all")}
+          >
+            <span className="sidebar-row-label">All events</span>
+            <span className="sidebar-row-count">
+              {typeOptions.reduce((count, option) => count + option.count, 0)}
+            </span>
+          </button>
           {typeOptions.map((option) => {
-            const pressed = typeFilter === "all" || typeFilter === option.value;
+            const pressed = typeFilter === option.value;
             return (
               <button
                 key={option.value}

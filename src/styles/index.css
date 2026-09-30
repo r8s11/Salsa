@@ -1,8 +1,35 @@
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
 /* Import Global Styles */
 @import "./global.css";
 
 /* Handoff token bridge — maps --ss-* to existing --* tokens */
 @import "./handoff-bridge.css";
+
+/* shadcn semantic utilities inherit the existing public brand. No second reset. */
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--text);
+  --color-card: var(--surface);
+  --color-card-foreground: var(--text);
+  --color-popover: var(--surface-high);
+  --color-popover-foreground: var(--text);
+  --color-primary: var(--red);
+  --color-primary-foreground: #fff;
+  --color-secondary: var(--surface-high);
+  --color-secondary-foreground: var(--text);
+  --color-muted: var(--surface);
+  --color-muted-foreground: var(--text-muted);
+  --color-accent: var(--surface-high);
+  --color-accent-foreground: var(--text);
+  --color-destructive: var(--red);
+  --color-destructive-foreground: #fff;
+  --color-border: var(--border-md);
+  --color-input: var(--border-md);
+  --color-ring: var(--gold);
+}
 
 /* Page-specific styles */
 .page-content {

@@ -47,6 +47,34 @@ data update after JavaScript starts, while deep links initially receive the shar
 HTML shell. Route-specific server rendering or prerendering is not configured.
 
 
+## Public calendar and event suggestions
+
+The calendar keeps Salsa Segura's dark nightlife identity. Desktop offers month,
+week, list, and cards; compact screens offer list and cards. Search event titles,
+venues, descriptions, and styles, then narrow by city, event type, or dance style.
+**New Event** opens the submission form without leaving the calendar.
+
+Guests can submit without an account when public suggestions are enabled. Contact
+details and required event fields are validated; submissions enter the moderation
+queue as `pending` and do not appear publicly until approved. A flyer is optional.
+Events without one reuse the generated Sleeve cover and shareable poster system,
+not an external image-generation service.
+
+### Component setup
+
+TypeScript and Tailwind CSS v4 are configured. `components.json` maps shadcn's
+`@/components/ui` alias to `src/components/ui/`, the reusable UI directory;
+`@/lib/utils` supplies `cn`. Keep shared primitives there rather than creating a
+second root-level `components/ui` tree. Global styles enter through
+`src/styles/index.css`; calendar and dialog styles remain with the feature.
+Tailwind utilities are enabled without Preflight so they do not reset existing
+site styling. Semantic shadcn colors map to the current brand tokens.
+
+`src/components/ui/event-manager.tsx` is a controlled calendar toolbar, not the
+attachment's local demo-event store. Schedule-X and approved Supabase events
+remain the source of truth. It reuses the existing `Button.tsx` and Radix Dialog;
+public visitors cannot drag, edit, or delete approved listings.
+
 ## Bulk flyer import
 
 Organizer owners and managers can open **My Events → Import Flyers**; admins can open

@@ -17,6 +17,7 @@ function renderStatus(props: Partial<ComponentProps<typeof CalendarStatus>> = {}
         cityLabel="Boston"
         onRetry={onRetry}
         onClearFilter={onClearFilter}
+        onSubmit={vi.fn()}
         {...props}
       />
     </MemoryRouter>
@@ -38,16 +39,6 @@ describe("CalendarStatus", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("Failed to load events: Unavailable");
     fireEvent.click(screen.getByRole("button", { name: "Retry" }));
     expect(onRetry).toHaveBeenCalledOnce();
-  });
-
-  it("renders the overall empty state with its submit link", () => {
-    renderStatus({ isEmpty: true, cityLabel: "NYC" });
-
-    expect(screen.getByRole("status")).toHaveTextContent("No upcoming events in NYC yet.");
-    expect(screen.getByRole("link", { name: "Submit an Event" })).toHaveAttribute(
-      "href",
-      "/submit"
-    );
   });
 
   it("renders filtered empty state and clears the filter", () => {

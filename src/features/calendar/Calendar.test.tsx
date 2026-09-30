@@ -41,6 +41,7 @@ vi.mock("../../utils/seo", () => ({
   injectStructuredData: vi.fn(),
 }));
 vi.mock("../EventModal/EventModal", () => ({ default: () => null }));
+vi.mock("./components/CalendarSubmissionDialog", () => ({ default: () => null }));
 
 const event = {
   id: "event-1",
@@ -132,7 +133,7 @@ describe("Calendar", () => {
     expect(eventsService.set).toHaveBeenLastCalledWith([]);
     expect(screen.getByText("No events match this filter.")).toBeInTheDocument();
     expect(screen.queryByTestId("schedule-x-calendar")).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Submit an Event" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Submit an Event" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Show all events" }));
     expect(screen.getByTestId("schedule-x-calendar")).toBeInTheDocument();
   });
@@ -150,7 +151,7 @@ describe("Calendar", () => {
       </MemoryRouter>
     );
     expect(screen.getByText("No upcoming events in Boston yet.")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Submit an Event" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Submit an Event" })).toBeInTheDocument();
     expect(screen.queryByTestId("schedule-x-calendar")).not.toBeInTheDocument();
   });
 
@@ -243,7 +244,7 @@ describe("Calendar", () => {
   it("drives type filtering from the desktop sidebar row", () => {
     renderCalendar();
     const socialRow = screen.getByRole("button", { name: "Social 1" });
-    expect(socialRow).toHaveAttribute("aria-pressed", "true");
+    expect(socialRow).toHaveAttribute("aria-pressed", "false");
     fireEvent.click(screen.getByRole("button", { name: "Class 0" }));
     expect(screen.getByRole("button", { name: "Class 0" })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("button", { name: "Social 1" })).toHaveAttribute(
@@ -276,11 +277,5 @@ describe("Calendar", () => {
     fireEvent.click(screen.getByRole("button", { name: "List" }));
     expect(screen.getByRole("button", { name: /Boston Social/ })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /NYC Bachata/ })).not.toBeInTheDocument();
-  });
-
-  it("gives the month heading an accessible Dance Calendar prefix", () => {
-    renderCalendar();
-    const heading = screen.getByRole("heading", { level: 1 });
-    expect(heading).toHaveAccessibleName(/^Dance Calendar —\s[A-Z][a-z]+ \d{4}$/);
   });
 });

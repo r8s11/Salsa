@@ -1,0 +1,446 @@
+/* ========================================
+   Calendar Submission Dialog — Dark Planner
+   Ritmo Vivo identity. Controlled Radix Dialog
+   Scoped CSS: no global overrides
+   ======================================== */
+
+.calendar-sub-dialog__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: rgba(11, 19, 38, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  overflow-y: auto;
+  transition: opacity 200ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@starting-style {
+  .calendar-sub-dialog__overlay {
+    opacity: 0;
+  }
+}
+
+.calendar-sub-dialog__content {
+  position: fixed;
+  z-index: 1101;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100% - 32px);
+  max-width: 820px;
+  max-height: calc(100dvh - 32px);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius-xl);
+  color: var(--text);
+  overflow: hidden;
+  outline: none;
+}
+
+@media (min-width: 768px) {
+  .calendar-sub-dialog__overlay {
+    padding: 32px 24px;
+  }
+
+  .calendar-sub-dialog__content {
+    max-height: min(90vh, 920px);
+    transition:
+      opacity 220ms cubic-bezier(0.23, 1, 0.32, 1),
+      transform 220ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  @starting-style {
+    .calendar-sub-dialog__content {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.97);
+    }
+  }
+}
+
+/* ── Header ── */
+.calendar-sub-dialog__header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px 16px;
+  background: var(--surface-high);
+  border-bottom: 1px solid var(--border);
+}
+
+.calendar-sub-dialog__titles {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.calendar-sub-dialog__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text);
+}
+
+.calendar-sub-dialog__desc {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+  max-width: 640px;
+}
+
+/* ── Close Button (44px target) ── */
+.calendar-sub-dialog__close {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    background-color 0.2s cubic-bezier(0.23, 1, 0.32, 1),
+    border-color 0.2s cubic-bezier(0.23, 1, 0.32, 1),
+    color 0.2s cubic-bezier(0.23, 1, 0.32, 1),
+    transform 0.12s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .calendar-sub-dialog__close:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--border-md);
+    color: var(--text);
+  }
+}
+
+.calendar-sub-dialog__close:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.calendar-sub-dialog__close:focus-visible {
+  outline: 2px solid var(--red-bright);
+  outline-offset: 2px;
+}
+
+.calendar-sub-dialog__close:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Form & Scroll Body ── */
+.calendar-sub-dialog__form {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.calendar-sub-dialog__scroll {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+@media (max-width: 640px) {
+  .calendar-sub-dialog__header {
+    padding: 16px 16px 12px;
+  }
+  .calendar-sub-dialog__scroll {
+    padding: 16px;
+    gap: 16px;
+  }
+}
+
+/* ── Flyer Box ── */
+.calendar-sub-dialog__flyer-box {
+  display: grid;
+  gap: 12px;
+  padding: 0 0 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.calendar-sub-dialog__flyer-header {
+  display: grid;
+  gap: 4px;
+}
+
+.calendar-sub-dialog__flyer-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.calendar-sub-dialog__badge {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-muted);
+}
+
+.calendar-sub-dialog__flyer-hint {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+/* ── Required Legend ── */
+.calendar-sub-dialog__required-legend {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+/* ── Scoped EventForm adjustments ── */
+.calendar-sub-dialog__scroll .event-form {
+  gap: 16px;
+}
+
+.calendar-sub-dialog__scroll .event-form__section {
+  padding: 16px 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  gap: 12px;
+}
+
+.calendar-sub-dialog__scroll .event-form__section h2 {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 2px;
+}
+
+/* Compact two-column desktop field layout */
+@media (min-width: 640px) {
+  .calendar-sub-dialog__scroll .event-form__section {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 16px;
+    row-gap: 12px;
+    align-items: start;
+  }
+
+  .calendar-sub-dialog__scroll .event-form__section > h2,
+  .calendar-sub-dialog__scroll .event-form__section > .event-form__field:first-of-type,
+  .calendar-sub-dialog__scroll .event-form__section > .event-form__field:has(textarea),
+  .calendar-sub-dialog__scroll
+    .event-form__section
+    > .event-form__field:has(.event-form__segmented),
+  .calendar-sub-dialog__scroll .event-form__section > .event-form__field:has(.event-form__chips),
+  .calendar-sub-dialog__scroll .event-form__section > .event-form__field:has(.event-form__check),
+  .calendar-sub-dialog__scroll .event-form__section > .event-form__taxonomy {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ── Sticky Footer (44px controls) ── */
+.calendar-sub-dialog__footer {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 14px 24px;
+  background: var(--surface-high);
+  border-top: 1px solid var(--border);
+}
+
+.calendar-sub-dialog__footer .ui-button {
+  min-height: 44px;
+}
+
+@media (max-width: 640px) {
+  .calendar-sub-dialog__footer {
+    padding: 12px 16px;
+    gap: 8px;
+  }
+
+  .calendar-sub-dialog__footer .ui-button {
+    flex: 1;
+  }
+}
+
+/* ── Status Cards (Loading / Error / Closed) ── */
+.calendar-sub-dialog__status-card {
+  padding: 40px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 16px;
+  min-height: 240px;
+}
+
+.calendar-sub-dialog__spinner {
+  color: var(--red);
+  animation: calendar-sub-spin 1s linear infinite;
+}
+
+@keyframes calendar-sub-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.calendar-sub-dialog__status-text h3 {
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.calendar-sub-dialog__status-text p {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  max-width: 420px;
+}
+
+.calendar-sub-dialog__status-card--error .calendar-sub-dialog__status-icon {
+  color: var(--red-bright);
+}
+
+.calendar-sub-dialog__status-card--closed .calendar-sub-dialog__status-icon {
+  color: var(--gold);
+}
+
+/* ── Success Card (Pending Review) ── */
+.calendar-sub-dialog__success-card {
+  padding: 36px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+  max-width: 540px;
+  margin: auto;
+}
+
+.calendar-sub-dialog__success-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-full);
+  background: rgba(233, 195, 73, 0.12);
+  color: var(--gold);
+  border: 1px solid rgba(233, 195, 73, 0.25);
+}
+
+.calendar-sub-dialog__success-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.calendar-sub-dialog__success-body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.calendar-sub-dialog__success-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.calendar-sub-dialog__success-actions .ui-button {
+  min-height: 44px;
+}
+
+@media (max-width: 640px) {
+  .calendar-sub-dialog__success-actions {
+    flex-direction: column;
+  }
+
+  .calendar-sub-dialog__success-actions .ui-button {
+    width: 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .calendar-sub-dialog__overlay,
+  .calendar-sub-dialog__content,
+  .calendar-sub-dialog__close {
+    transition: none;
+  }
+  .calendar-sub-dialog__spinner {
+    animation: none;
+  }
+}
+.calendar-sub-dialog__scroll .event-form__hint {
+  grid-column: 1 / -1;
+}
+.calendar-sub-dialog__scroll .event-form input:not([type="checkbox"]),
+.calendar-sub-dialog__scroll .event-form select,
+.calendar-sub-dialog__scroll .event-form__chips button,
+.calendar-sub-dialog__scroll .event-form__segmented button {
+  min-height: 44px;
+}
+.calendar-sub-dialog__scroll {
+  scrollbar-color: var(--border-lg) var(--surface);
+}
+.calendar-sub-dialog__scroll input,
+.calendar-sub-dialog__scroll textarea {
+  caret-color: var(--primary);
+}
+.calendar-sub-dialog__flyer-box summary {
+  cursor: pointer;
+  min-height: 44px;
+}
+.calendar-sub-dialog__flyer-box summary:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}

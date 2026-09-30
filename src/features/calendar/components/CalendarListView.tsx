@@ -1,6 +1,4 @@
-import { useEffect, useRef, useState } from "react";
-import type { ReactNode } from "react";
-import { motion, useReducedMotion } from "motion/react";
+import { ArrowUpRight } from "lucide-react";
 import type { ScheduleXEvent } from "../../../types/events";
 import {
   formatCalendarDate,
@@ -8,60 +6,6 @@ import {
   sortCalendarEvents,
 } from "../model/calendarEvents";
 import { resolveEventFlyer } from "../../../components/EventModal/eventModalImage";
-
-const canObserve = typeof IntersectionObserver === "function";
-
-/** Row that scales and fades in once as it enters the viewport. */
-function AnimatedRow({
-  index,
-  onClick,
-  ariaLabel,
-  children,
-}: {
-  index: number;
-  onClick: () => void;
-  ariaLabel: string;
-  children: ReactNode;
-}) {
-  const ref = useRef<HTMLButtonElement>(null);
-  const reduceMotion = useReducedMotion();
-  // No IntersectionObserver or reduced motion: rows are simply shown.
-  const isStatic = Boolean(reduceMotion) || !canObserve;
-  const [inView, setInView] = useState(false);
-
-  useEffect(() => {
-    const node = ref.current;
-    if (isStatic || !node) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry?.isIntersecting) {
-          setInView(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.3 }
-    );
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [isStatic]);
-
-  const shown = inView || isStatic;
-
-  return (
-    <motion.button
-      ref={ref}
-      type="button"
-      className="calendar-list-row"
-      onClick={onClick}
-      aria-label={ariaLabel}
-      initial={isStatic ? false : { scale: 0.92, opacity: 0 }}
-      animate={shown ? { scale: 1, opacity: 1 } : { scale: 0.92, opacity: 0 }}
-      transition={{ duration: 0.22, ease: "easeOut", delay: Math.min(index, 5) * 0.04 }}
-    >
-      {children}
-    </motion.button>
-  );
-}
 
 type CalendarEventGroup = {
   key: string;
@@ -111,14 +55,15 @@ export default function CalendarListView({
             {group.label}
           </h2>
           <div className="calendar-list-rows">
-            {group.events.map((event, index) => {
+            {group.events.map((event) => {
               const time = formatCalendarTime(event.start);
               return (
-                <AnimatedRow
+                <button
+                  type="button"
+                  className="calendar-list-row"
                   key={event.id}
-                  index={index}
                   onClick={() => onSelect(event)}
-                  ariaLabel={`${event.title} on ${group.label}, ${event.start.slice(0, 4)} at ${time}`}
+                  aria-label={`${event.title} on ${group.label}, ${event.start.slice(0, 4)} at ${time}`}
                 >
                   <img
                     className="calendar-list-thumbnail"
@@ -137,10 +82,8 @@ export default function CalendarListView({
                       )}
                     </span>
                   </span>
-                  <span className="calendar-list-arrow" aria-hidden="true">
-                    →
-                  </span>
-                </AnimatedRow>
+                  <ArrowUpRight className="calendar-list-arrow" size={18} aria-hidden />
+                </button>
               );
             })}
           </div>

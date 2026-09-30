@@ -10,6 +10,7 @@ import {
 import { createEventsServicePlugin } from "@schedule-x/events-service";
 import { createCalendarControlsPlugin } from "@schedule-x/calendar-controls";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { ChevronDown, SlidersHorizontal } from "lucide-react";
 import "temporal-polyfill/global";
 import "./Calendar.css";
 import "@schedule-x/theme-default/dist/index.css";
@@ -58,7 +59,8 @@ const TYPE_OPTIONS: { value: TypeFilter; label: string }[] = [
 // desktop filter sidebar are separate breakpoints: between them (tablet
 // widths) the calendar grid still needs its full width, so filtering stays
 // in the compact toolbar instead of a stacked full-width sidebar.
-const COMPACT_QUERY = "(max-width: 768px)";
+const COMPACT_QUERY =
+  "(max-width: 768px), (max-width: 1023px) and (max-height: 500px) and (pointer: coarse)";
 const SIDEBAR_QUERY = "(min-width: 1024px)";
 
 export default function Calendar() {
@@ -283,6 +285,8 @@ export default function Calendar() {
   const sidebarStyleOptions = availableDanceStyles(eventList);
   const weekEventCount = countEventsInRange(expandedEvents, today, today.add({ days: 6 }));
   const sidebarEventCountLabel = formatEventCountLabel(weekEventCount);
+  const FilterPanel = isCompact ? "details" : "div";
+  const activeFilterCount = Number(typeFilter !== "all") + Number(styleFilter !== "all");
 
   return (
     <div className="calendar-page">
@@ -337,7 +341,17 @@ export default function Calendar() {
             onSearchChange={setSearchQuery}
             filters={
               !hasSidebar && (
-                <>
+                <FilterPanel className="calendar-filter-panel">
+                  {isCompact && (
+                    <summary className="calendar-filter-toggle">
+                      <SlidersHorizontal size={18} aria-hidden />
+                      <span>Filters</span>
+                      <span className="calendar-filter-context">
+                        {activeFilterCount ? `${activeFilterCount} active` : "All events"}
+                      </span>
+                      <ChevronDown className="calendar-filter-chevron" size={16} aria-hidden />
+                    </summary>
+                  )}
                   <div
                     className="pill-group calendar-type-pills"
                     role="group"
@@ -369,7 +383,7 @@ export default function Calendar() {
                       ))}
                     </select>
                   </label>
-                </>
+                </FilterPanel>
               )
             }
           >

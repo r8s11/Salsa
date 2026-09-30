@@ -312,6 +312,12 @@
   gap: 12px;
   margin-bottom: 20px;
 }
+.calendar-filter-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
 .calendar-style-select {
   display: flex;
   align-items: center;
@@ -556,51 +562,114 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
-@media (max-width: 768px) {
+@media (max-width: 768px), (max-width: 1023px) and (max-height: 500px) and (pointer: coarse) {
   .calendar-page {
-    padding-bottom: 48px;
+    padding-bottom: calc(48px + env(safe-area-inset-bottom));
   }
   .stage-inner {
-    padding: 28px 16px 24px;
+    padding: 20px 16px;
     align-items: flex-start;
     flex-direction: column;
-    gap: 20px;
+    gap: 12px;
   }
   .stage-title {
-    font-size: 2rem;
+    font-size: 1.75rem;
+  }
+  .calendar-page .stage-controls,
+  body.calendar-page-open .floating-city-pill {
+    display: none;
   }
   .calendar-body {
-    padding: 24px 16px 0;
+    padding: 16px 16px 0;
   }
   .event-manager__heading {
-    align-items: flex-start;
+    align-items: center;
     gap: 12px;
+    margin-bottom: 12px;
   }
   .event-manager__period {
-    gap: 12px;
+    min-width: 0;
   }
   .event-manager__period h2 {
     font-size: 1.125rem;
   }
+  .event-manager__heading > .ui-button {
+    min-height: 44px;
+    padding: 10px 14px;
+    font-size: 0.75rem;
+  }
+  .event-manager__compact-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .event-manager__compact-navigation .today-btn {
+    padding: 0 8px;
+  }
   .event-manager__tools {
     flex-direction: column;
     align-items: stretch;
-    gap: 12px;
+    gap: 0;
+    margin-bottom: 12px;
   }
   .calendar-search {
     max-width: none;
   }
   .calendar-view-pills {
-    align-self: start;
+    flex-shrink: 0;
   }
   .calendar-view-pills .pill {
-    padding: 8px 20px;
+    min-width: 44px;
+    padding: 8px 10px;
+  }
+  .event-manager__filters {
+    display: block;
+    margin-bottom: 24px;
+  }
+  .calendar-filter-panel {
+    display: block;
+  }
+  .calendar-filter-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 4px;
+    color: var(--text);
+    font-size: 0.875rem;
+    cursor: pointer;
+    list-style: none;
+  }
+  .calendar-filter-toggle::-webkit-details-marker {
+    display: none;
+  }
+  .calendar-filter-toggle:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 3px;
+    border-radius: 8px;
+  }
+  .calendar-filter-context {
+    margin-left: auto;
+    color: var(--text-muted);
+    font-size: 0.8125rem;
+  }
+  .calendar-filter-panel[open] .calendar-filter-chevron {
+    transform: rotate(180deg);
+  }
+  .calendar-filter-panel[open] .calendar-type-pills {
+    margin: 8px 0 12px;
+  }
+  .calendar-filter-panel[open] .calendar-style-select {
+    padding-bottom: 12px;
   }
   .calendar-type-pills {
     flex-wrap: wrap;
     gap: 2px;
   }
   .calendar-type-pills .pill {
+    min-width: 44px;
     padding: 8px 10px;
   }
   .calendar-card-grid {
@@ -609,9 +678,37 @@
   .calendar-list-row {
     gap: 12px;
     padding: 12px;
+    align-items: flex-start;
+  }
+  .calendar-list-title {
+    font-size: 1rem;
+  }
+  .calendar-list-description {
+    -webkit-line-clamp: 1;
+  }
+  .calendar-list-thumbnail {
+    margin-top: 2px;
+  }
+  .calendar-list-arrow {
+    margin-top: 4px;
+  }
+  .calendar-list-styles > span {
+    font-size: 0.75rem;
   }
   .calendar-list-meta {
     gap: 4px 10px;
+    font-size: 0.875rem;
+  }
+}
+@media (max-width: 359px) {
+  .calendar-view-pills .calendar-view-label {
+    display: none;
+  }
+  .event-manager__heading > .ui-button {
+    padding-inline: 12px;
+  }
+  .event-manager__period h2 {
+    font-size: 1rem;
   }
 }
 @media (prefers-reduced-motion: reduce) {

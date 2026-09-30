@@ -64,6 +64,12 @@ The search icon uses a lazy-loaded `@paper-design/shaders` liquid-metal focus pu
 650ms of motion, then a static frame; blur disposes it. Reduced-motion and non-WebGL
 devices keep a static metal border. Clearing a search returns focus to the input.
 
+On phones, date navigation and List/Cards share a row; type/style filters live in
+a native **Filters** disclosure with an active-selection count. Selections persist
+when it closes or the view changes. The header city picker replaces duplicate
+calendar city controls. Narrow phones retain 44px view buttons with accessible
+icon-only labels; short touch-device landscape viewports also use the compact list.
+
 Guests can submit without an account when public suggestions are enabled. Contact
 details and required event fields are validated; submissions enter the moderation
 queue as `pending` and do not appear publicly until approved. A flyer is optional.

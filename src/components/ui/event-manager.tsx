@@ -54,38 +54,66 @@ export function EventManager({
   const period = view === "week" ? "week" : "month";
   const searchInput = useRef<HTMLInputElement>(null);
   const [searchFocused, setSearchFocused] = useState(false);
+  const navigation = (
+    <div className="month-nav">
+      <button
+        type="button"
+        className="nav-btn"
+        aria-label={`Previous ${period}`}
+        onClick={() => onNavigate(-1)}
+      >
+        <ChevronLeft size={18} aria-hidden />
+      </button>
+      <button type="button" className="nav-btn today-btn" onClick={() => onNavigate(0)}>
+        Today
+      </button>
+      <button
+        type="button"
+        className="nav-btn"
+        aria-label={`Next ${period}`}
+        onClick={() => onNavigate(1)}
+      >
+        <ChevronRight size={18} aria-hidden />
+      </button>
+    </div>
+  );
+  const viewSwitcher = (
+    <div className="calendar-view-pills" role="group" aria-label="Calendar view">
+      {views
+        .filter((option) => !compact || option.value === "list" || option.value === "cards")
+        .map(({ value, label, icon: Icon }) => (
+          <button
+            type="button"
+            key={value}
+            className={`pill ${view === value ? "pill-active-view" : ""}`}
+            aria-label={label}
+            aria-pressed={view === value}
+            onClick={() => onViewChange(value)}
+          >
+            <Icon size={16} aria-hidden />
+            <span className="calendar-view-label">{label}</span>
+          </button>
+        ))}
+    </div>
+  );
   return (
     <section className={cn("event-manager", className)} aria-label="Dance event planner">
       <div className="event-manager__heading">
         <div className="event-manager__period">
           <h2 aria-live="polite">{title}</h2>
-          <div className="month-nav">
-            <button
-              type="button"
-              className="nav-btn"
-              aria-label={`Previous ${period}`}
-              onClick={() => onNavigate(-1)}
-            >
-              <ChevronLeft size={18} aria-hidden />
-            </button>
-            <button type="button" className="nav-btn today-btn" onClick={() => onNavigate(0)}>
-              Today
-            </button>
-            <button
-              type="button"
-              className="nav-btn"
-              aria-label={`Next ${period}`}
-              onClick={() => onNavigate(1)}
-            >
-              <ChevronRight size={18} aria-hidden />
-            </button>
-          </div>
+          {!compact && navigation}
         </div>
         <Button onClick={onEventCreate}>
           <Plus size={18} aria-hidden />
           New event
         </Button>
       </div>
+      {compact && (
+        <div className="event-manager__compact-navigation">
+          {navigation}
+          {viewSwitcher}
+        </div>
+      )}
       <div className="event-manager__tools">
         <div className="calendar-search">
           <LiquidMetalButton
@@ -119,22 +147,7 @@ export function EventManager({
             </button>
           )}
         </div>
-        <div className="calendar-view-pills" role="group" aria-label="Calendar view">
-          {views
-            .filter((option) => !compact || option.value === "list" || option.value === "cards")
-            .map(({ value, label, icon: Icon }) => (
-              <button
-                type="button"
-                key={value}
-                className={`pill ${view === value ? "pill-active-view" : ""}`}
-                aria-pressed={view === value}
-                onClick={() => onViewChange(value)}
-              >
-                <Icon size={16} aria-hidden />
-                {label}
-              </button>
-            ))}
-        </div>
+        {!compact && viewSwitcher}
       </div>
       {filters && <div className="event-manager__filters">{filters}</div>}
       {children}

@@ -186,14 +186,40 @@ describe("Calendar", () => {
     expect(screen.getByText(/event(s)? this week/)).toBeInTheDocument();
   });
 
-  it("hides the sidebar on compact layouts, leaving the toolbar pills as the only filter", () => {
+  it("preserves mobile filter selections when filters are collapsed and views change", () => {
     compact = true;
     wide = false;
+    useEvents.mockReturnValue({
+      events: [
+        event,
+        {
+          ...event,
+          id: "class-1",
+          title: "Bachata class",
+          calendarId: "class",
+          danceStyles: ["Bachata"],
+        },
+      ],
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
     renderCalendar();
-    expect(
-      screen.queryByRole("complementary", { name: "Calendar filters" })
-    ).not.toBeInTheDocument();
-    expect(screen.getByRole("group", { name: "Filter by event type" })).toBeInTheDocument();
+    const disclosure = screen.getByText("Filters").closest("details")!;
+    const toggle = disclosure.querySelector("summary")!;
+    expect(disclosure).not.toHaveAttribute("open");
+    fireEvent.click(toggle);
+    fireEvent.click(screen.getByRole("button", { name: "Social" }));
+    fireEvent.change(screen.getByRole("combobox"), { target: { value: "Salsa" } });
+    fireEvent.click(toggle);
+    expect(disclosure).not.toHaveAttribute("open");
+    expect(toggle).toHaveTextContent("2 active");
+    fireEvent.click(screen.getByRole("button", { name: "Cards" }));
+    expect(screen.getByRole("heading", { name: "Boston Social" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Bachata class" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "List" }));
+    expect(screen.getByRole("button", { name: /Boston Social/ })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Bachata class/ })).not.toBeInTheDocument();
   });
 
   it("keeps tablet widths on the compact toolbar so the calendar grid keeps its width", () => {

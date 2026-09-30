@@ -556,10 +556,10 @@ discovery. Public visitors and dancers cannot drag, edit, or delete listings.
 Approved events from the database remain the single source of truth; all
 additions flow through the submission dialog into the pending moderation queue.
 
-**The Responsive View-Refocus Rule.** Below 769px, multi-column calendar grids
-yield to chronological list or card views. Narrow mobile viewports do not force
-month-grid cells into unreadable micro-boxes; they refocus to 56×72px LP sleeve
-thumbnails (`object-fit: cover`), event title, time, and venue metadata.
+**The Responsive View-Refocus Rule.** Below 769px, or on coarse-pointer viewports
+below 1024px wide and at most 500px high, multi-column grids yield to chronological
+list or card views. Narrow screens do not force month cells into micro-boxes:
+they refocus to 56×72px sleeve thumbnails, event title, time, and venue metadata.
 
 **The Poster-Fallback Guarantee.** Every approved event is guaranteed shareable
 artwork. Flyers are strictly optional; events submitted without a flyer
@@ -602,16 +602,22 @@ The stage header pairs the Epilogue display title and balanced subtitle
 - **Tablet (769px – 1023px):** The sidebar drops away to maximize grid measure;
   event type pills and the dance style selector move into the `EventManager`
   toolbar filters row.
-- **Compact / Mobile (≤ 768px):** Calendar app initializes directly into
-  chronological list view (`CalendarListView`), pairing 56×72px sleeve
-  thumbnails with title and venue copy; search input expands to full width;
-  view switcher is restricted to List and Cards; stage header stacks
-  vertically with 44px minimum touch targets.
+- **Compact / Mobile:** The stage uses a 28px Epilogue heading within the display
+  composition band and keeps the existing subtitle. The header city picker is the
+  sole city control: duplicate stage and floating city selectors disappear on this
+  surface only. Period title and New event share a row; date navigation and List/Cards
+  share the next. Search stays full-width. Type/style controls sit in a closed native
+  Filters disclosure with an active-selection count; closing it never clears filters.
+  At widths below 360px, view labels become icons with unchanged accessible names.
+  Every visible calendar control retains a 44px minimum touch target.
 - **List details:** Date-grouped 12px bordered rows show title, labeled event type
-  using the existing calendar colors, a two-line description, start–end time, venue,
+  using the existing calendar colors, a two-line description (one line on compact
+  screens), start–end time, venue,
   and dance-style badges. Fine-pointer hover moves only the detail arrow by 2px over
   180ms; reduced motion removes that movement. Rows stay visible by default, with no
   entrance choreography or filter-triggered reveal.
+  Compact titles use 16px and time/venue metadata 14px; the last row can scroll clear
+  of the fixed dock. Desktop retains its sidebar and month/week views.
 
 #### Anonymous submission and moderation flow
 

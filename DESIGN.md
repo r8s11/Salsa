@@ -579,7 +579,12 @@ The stage header pairs the Epilogue display title and balanced subtitle
 (Boston / New York City). The controlled `EventManager` toolbar
 (`src/components/ui/event-manager.tsx`) anchors the planner chrome:
 - **Period navigation:** Month and week title (`aria-live="polite"`), step
-  controls (`< Today >`), and period context.
+  controls (`< Today >`), and period context. Stepping to another period moves
+  the title 10px and the grid 28px in from the side time moved toward (later
+  from the right), 300ms `cubic-bezier(0.16, 1, 0.3, 1)` from 35% opacity. The
+  grid frame stays fixed and clips its moving contents. Switching views or resizing keeps the date and
+  never travels. Schedule-X's built-in slide is off (`skipAnimations`) so this is
+  the only grid motion. Reduced motion keeps a 160ms opacity settle with no movement.
 - **Search bar:** Real-time search matching event titles, locations, venues,
   descriptions, and dance styles, with an instant clear button (`X`) that returns
   focus to the input. The entire search bar's metal perimeter is the one authored motion
@@ -611,6 +616,9 @@ The stage header pairs the Epilogue display title and balanced subtitle
   surface only. Period title and New event share a row; date navigation and List/Cards
   share the next. Search stays full-width. Type/style controls sit in a closed native
   Filters disclosure with an active-selection count; closing it never clears filters.
+  The disclosure unfolds from its summary (280ms open, 180ms close) as its chevron
+  turns. Browsers without size-keyword interpolation and reduced-motion users get an
+  instant open.
   At widths below 360px, view labels become icons with unchanged accessible names.
   Every visible calendar control retains a 44px minimum touch target.
 **List details:** Date-grouped rows with 1px borders show title, labeled event type

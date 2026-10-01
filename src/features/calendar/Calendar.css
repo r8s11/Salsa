@@ -694,8 +694,31 @@
     color: var(--text-muted);
     font-size: 0.8125rem;
   }
+  .calendar-filter-chevron {
+    transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
   .calendar-filter-panel[open] .calendar-filter-chevron {
     transform: rotate(180deg);
+  }
+  /* The Filters disclosure unfolds from its summary instead of jumping open.
+     Progressive: without size-keyword interpolation it opens instantly. The
+     clip margin keeps the 3px-offset gold focus ring visible on edge pills. */
+  @supports (interpolate-size: allow-keywords) {
+    .calendar-filter-panel {
+      interpolate-size: allow-keywords;
+    }
+    .calendar-filter-panel::details-content {
+      block-size: 0;
+      overflow: clip;
+      overflow-clip-margin: 6px;
+      transition:
+        block-size 180ms cubic-bezier(0.16, 1, 0.3, 1),
+        content-visibility 180ms allow-discrete;
+    }
+    .calendar-filter-panel[open]::details-content {
+      block-size: auto;
+      transition-duration: 280ms;
+    }
   }
   .calendar-filter-panel[open] .calendar-type-pills {
     margin: 8px 0 12px;
@@ -744,13 +767,22 @@
     font-size: 1rem;
   }
 }
+/* Reduced motion removes movement, never feedback: colour and ground changes
+   on pills, rows and buttons still transition. */
 @media (prefers-reduced-motion: reduce) {
-  .calendar-page button {
-    transition: none;
+  .calendar-page .ui-button:active:not(:disabled) {
+    transform: none;
   }
-  .calendar-list-arrow {
+  .calendar-list-arrow,
+  .calendar-filter-chevron {
     transition: none;
     transform: none !important;
+  }
+  .calendar-filter-panel[open] .calendar-filter-chevron {
+    transform: rotate(180deg) !important;
+  }
+  .calendar-filter-panel::details-content {
+    transition: none;
   }
 }
 

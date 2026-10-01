@@ -32,6 +32,7 @@ import {
 } from "../../utils/seo";
 import { useDocumentMeta } from "../../shared/seo/useDocumentMeta";
 import { useEventDeepLink } from "./hooks/useEventDeepLink";
+import { usePeriodTravel } from "./hooks/usePeriodTravel";
 import CalendarStatus from "./components/CalendarStatus";
 import CalendarSidebar from "./components/CalendarSidebar";
 import {
@@ -69,6 +70,7 @@ export default function Calendar() {
   const { metros, loading: metrosLoading } = useMetros();
   const [initialCompact] = useState(() => window.matchMedia(COMPACT_QUERY).matches);
   const [hasSidebar, setHasSidebar] = useState(() => window.matchMedia(SIDEBAR_QUERY).matches);
+  const pageRef = useRef<HTMLDivElement>(null);
   const [selectedEvent, setSelectedEvent] = useState<ScheduleXEvent | null>(null);
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [styleFilter, setStyleFilter] = useState<string>("all");
@@ -165,6 +167,9 @@ export default function Calendar() {
     timezone: "America/New_York",
     theme: "shadcn",
     firstDayOfWeek: 1,
+    // Period travel is owned by usePeriodTravel: Schedule-X's own slide also
+    // fires on view switches (same date) and ignores reduced motion.
+    skipAnimations: true,
     callbacks: {
       onEventClick(calendarEvent) {
         const fullEvent = eventListRef.current.find(
@@ -282,6 +287,8 @@ export default function Calendar() {
     today
   );
   const periodLabel = formatPeriodLabel(periodRange);
+  const periodTitle = activeView === "week" ? periodLabel : monthTitle;
+  usePeriodTravel(pageRef, visibleDate, periodTitle);
   const typeCountsInStyleContext = countEventsByType(
     filterEventsByDanceStyle(eventList, styleFilter)
   );
@@ -299,7 +306,7 @@ export default function Calendar() {
   const activeFilterCount = Number(typeFilter !== "all") + Number(styleFilter !== "all");
 
   return (
-    <div className="calendar-page">
+    <div className="calendar-page" ref={pageRef}>
       <header className="stage-header">
         <div className="stage-inner">
           <div className="stage-left">
@@ -341,7 +348,7 @@ export default function Calendar() {
         )}
         <div className="calendar-content">
           <EventManager
-            title={activeView === "week" ? periodLabel : monthTitle}
+            title={periodTitle}
             view={activeView}
             compact={isCompact}
             onViewChange={handleViewChange}

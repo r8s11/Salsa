@@ -54,7 +54,7 @@ export function EventManager({
   const period = view === "week" ? "week" : "month";
   const searchInput = useRef<HTMLInputElement>(null);
   const [searchFocused, setSearchFocused] = useState(false);
-  const navigation = (
+  const navigation = view === "month-grid" || view === "week" ? (
     <div className="month-nav">
       <button
         type="button"
@@ -76,7 +76,7 @@ export function EventManager({
         <ChevronRight size={18} aria-hidden />
       </button>
     </div>
-  );
+  ) : null;
   const viewSwitcher = (
     <div className="calendar-view-pills" role="group" aria-label="Calendar view">
       {views

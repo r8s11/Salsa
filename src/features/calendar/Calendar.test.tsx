@@ -121,6 +121,39 @@ describe("Calendar", () => {
     expect(screen.getByRole("button", { name: "Cards" })).toBeInTheDocument();
   });
 
+  it.each(["List", "Cards"])(
+    "keeps the %s feed unbounded instead of offering ineffective date navigation",
+    (view) => {
+      useEvents.mockReturnValue({
+        events: [
+          event,
+          {
+            ...event,
+            id: "later-event",
+            title: "Later Social",
+            start: "2026-11-14 20:00",
+            end: "2026-11-14 23:00",
+          },
+        ],
+        loading: false,
+        error: null,
+        refetch: vi.fn(),
+      });
+      renderCalendar();
+      fireEvent.click(screen.getByRole("button", { name: "Next month" }));
+      fireEvent.click(screen.getByRole("button", { name: view }));
+      expect(screen.getByRole("button", { name: /Boston Social/ })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /Later Social/ })).toBeInTheDocument();
+      expect(
+        screen.queryAllByRole("button", { name: /^(Previous|Next) (month|week)$/ })
+      ).toEqual([]);
+      expect(screen.queryByRole("button", { name: "Today" })).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole("button", { name: "Month" }));
+      expect(screen.getByRole("button", { name: "Next month" })).toBeInTheDocument();
+    }
+  );
+
   it("controls date, city, view, and type filtering", () => {
     renderCalendar();
     fireEvent.click(screen.getByRole("button", { name: "Previous month" }));

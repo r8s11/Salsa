@@ -170,6 +170,11 @@
     padding: 16px;
     gap: 16px;
   }
+  .calendar-sub-dialog__scroll .event-form input:not([type="checkbox"]),
+  .calendar-sub-dialog__scroll .event-form select,
+  .calendar-sub-dialog__scroll .event-form textarea {
+    font-size: 1rem;
+  }
 }
 
 /* ── Flyer Box ── */

@@ -287,7 +287,10 @@ export default function Calendar() {
     today
   );
   const periodLabel = formatPeriodLabel(periodRange);
-  const periodTitle = activeView === "week" ? periodLabel : monthTitle;
+  const isFeedView = activeView === "list" || activeView === "cards";
+  const periodTitle = isFeedView
+    ? "Upcoming events"
+    : activeView === "week" ? periodLabel : monthTitle;
   usePeriodTravel(pageRef, visibleDate, periodTitle);
   const typeCountsInStyleContext = countEventsByType(
     filterEventsByDanceStyle(eventList, styleFilter)
@@ -336,7 +339,7 @@ export default function Calendar() {
       <div className="calendar-body">
         {hasSidebar && (
           <CalendarSidebar
-            periodLabel={periodLabel}
+            periodLabel={isFeedView ? "Upcoming events" : periodLabel}
             typeOptions={sidebarTypeOptions}
             typeFilter={typeFilter}
             onTypeFilterChange={setTypeFilter}

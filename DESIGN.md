@@ -571,6 +571,8 @@ accessible Radix dialog with backdrop blur (`rgba(11, 19, 38, 0.78)` with
 8px blur), focus trapping, client-side validation error summaries, unauthenticated
 submitter contact requirements, and strict focus restoration to the invoking
 trigger upon dismissal.
+Compact submission inputs, selects, and textareas use 16px text to avoid
+browser focus zoom on phones; field targets remain at least 44px high.
 
 #### Stage header and toolbar
 
@@ -579,7 +581,9 @@ The stage header pairs the Epilogue display title and balanced subtitle
 (Boston / New York City). The controlled `EventManager` toolbar
 (`src/components/ui/event-manager.tsx`) anchors the planner chrome:
 - **Period navigation:** Month and week title (`aria-live="polite"`), step
-  controls (`< Today >`), and period context. Stepping to another period moves
+  controls (`< Today >`), and period context appear only in Month/Week views.
+  List/Cards retain the full upcoming feed, labeled "Upcoming events" in the
+  toolbar and sidebar, without ineffective date controls. Stepping to another period moves
   the title 10px and the grid 28px in from the side time moved toward (later
   from the right), 300ms `cubic-bezier(0.16, 1, 0.3, 1)` from 35% opacity. The
   grid frame stays fixed and clips its moving contents. Switching views or resizing keeps the date and
@@ -613,13 +617,13 @@ The stage header pairs the Epilogue display title and balanced subtitle
 - **Compact / Mobile:** The stage uses a 28px Epilogue heading within the display
   composition band and keeps the existing subtitle. The header city picker is the
   sole city control: duplicate stage and floating city selectors disappear on this
-  surface only. Period title and New event share a row; date navigation and List/Cards
-  share the next. Search stays full-width. Type/style controls sit in a closed native
+  surface only. Upcoming events and New event share a row; a full-width labeled
+  List/Cards switch fills the next. Search stays full-width. Type/style controls sit in a closed native
   Filters disclosure with an active-selection count; closing it never clears filters.
   The disclosure unfolds from its summary (280ms open, 180ms close) as its chevron
   turns. Browsers without size-keyword interpolation and reduced-motion users get an
   instant open.
-  At widths below 360px, view labels become icons with unchanged accessible names.
+  List/Cards labels stay visible even at 320px.
   Every visible calendar control retains a 44px minimum touch target.
 **List details:** Date-grouped rows with 1px borders show title, labeled event type
 using the existing calendar colors, a two-line description (one line on compact

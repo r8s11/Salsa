@@ -644,9 +644,6 @@
     gap: 8px;
     margin-bottom: 12px;
   }
-  .event-manager__compact-navigation .today-btn {
-    padding: 0 8px;
-  }
   .event-manager__tools {
     flex-direction: column;
     align-items: stretch;
@@ -656,12 +653,13 @@
   .calendar-search {
     max-width: none;
   }
-  .calendar-view-pills {
-    flex-shrink: 0;
+  .event-manager__compact-navigation .calendar-view-pills {
+    flex: 1;
   }
   .calendar-view-pills .pill {
     min-width: 44px;
     padding: 8px 10px;
+    flex: 1;
   }
   .event-manager__filters {
     display: block;
@@ -757,9 +755,6 @@
   }
 }
 @media (max-width: 359px) {
-  .calendar-view-pills .calendar-view-label {
-    display: none;
-  }
   .event-manager__heading > .ui-button {
     padding-inline: 12px;
   }

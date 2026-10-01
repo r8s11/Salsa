@@ -93,8 +93,8 @@
 .calendar-sub-dialog__desc {
   margin: 0;
   font-family: var(--font-body);
-  font-size: 0.8125rem;
-  line-height: 1.45;
+  font-size: 0.875rem;
+  line-height: 1.5;
   color: var(--text-muted);
   max-width: 640px;
 }
@@ -212,8 +212,8 @@
 .calendar-sub-dialog__flyer-hint {
   margin: 0;
   font-family: var(--font-body);
-  font-size: 0.8125rem;
-  line-height: 1.45;
+  font-size: 0.875rem;
+  line-height: 1.5;
   color: var(--text-muted);
 }
 
@@ -346,6 +346,20 @@
 
 .calendar-sub-dialog__status-card--closed .calendar-sub-dialog__status-icon {
   color: var(--gold);
+}
+
+.calendar-sub-dialog__status-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+.calendar-sub-dialog__fields {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
 }
 
 /* ── Success Card (Pending Review) ── */

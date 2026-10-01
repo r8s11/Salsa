@@ -213,6 +213,90 @@ describe("useSubmitEventForm", () => {
     );
   });
 
+  it("ignores a second handleSubmit call while the first is still in flight", async () => {
+    const { promise: submitBlock, resolve: resolveSubmit } = Promise.withResolvers<string>();
+    vi.mocked(createSubmission).mockReturnValueOnce(submitBlock);
+    const { result } = renderHook(() => useSubmitEventForm());
+
+    await act(async () => {
+      result.current.update("title", "Test Event");
+      result.current.update("event_type", "social");
+      result.current.update("event_date", "2026-08-20");
+    });
+
+    let firstSubmit!: Promise<void>;
+    let secondSubmit!: Promise<void>;
+    await act(async () => {
+      // Two rapid invocations in the same tick — e.g. a double form-submit
+      // event or Enter+click racing — must yield exactly one createSubmission
+      // call, not one row per invocation.
+      firstSubmit = result.current.handleSubmit({
+        preventDefault: () => {},
+      } as unknown as FormEvent);
+      secondSubmit = result.current.handleSubmit({
+        preventDefault: () => {},
+      } as unknown as FormEvent);
+    });
+
+    expect(createSubmission).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveSubmit("submission-abc");
+      await Promise.all([firstSubmit, secondSubmit]);
+    });
+
+    expect(createSubmission).toHaveBeenCalledTimes(1);
+  });
+
+  it("ignores a second handleSubmit call while an in-flight flyer upload is awaited", async () => {
+    const { promise: uploadBlock, resolve: resolveUpload } = Promise.withResolvers<{ path: string; url: string }>();
+    mockEventFlyers.uploadEventFlyer.mockReturnValueOnce(uploadBlock);
+    const { promise: submitBlock, resolve: resolveSubmit } = Promise.withResolvers<string>();
+    vi.mocked(createSubmission).mockReturnValueOnce(submitBlock);
+    const { result } = renderHook(() => useSubmitEventForm());
+
+    await act(async () => {
+      result.current.handleFlyerChange(pngFile());
+      result.current.update("title", "Test Event");
+      result.current.update("event_type", "social");
+      result.current.update("event_date", "2026-08-20");
+    });
+
+    let firstSubmit!: Promise<void>;
+    let secondSubmit!: Promise<void>;
+    await act(async () => {
+      // Two rapid invocations while the flyer upload is still in flight must
+      // both await the SAME upload promise and still yield exactly one
+      // createSubmission call — the in-flight lock holds across the await.
+      firstSubmit = result.current.handleSubmit({
+        preventDefault: () => {},
+      } as unknown as FormEvent);
+      secondSubmit = result.current.handleSubmit({
+        preventDefault: () => {},
+      } as unknown as FormEvent);
+    });
+
+    expect(mockEventFlyers.uploadEventFlyer).toHaveBeenCalledTimes(1);
+    expect(createSubmission).toHaveBeenCalledTimes(0);
+
+    await act(async () => {
+      resolveUpload({ path: "user123/submission-abc/flyer.png", url: flyerUrl });
+    });
+
+    expect(createSubmission).toHaveBeenCalledTimes(1);
+    expect(createSubmission).toHaveBeenCalledWith(
+      expect.objectContaining({ title: "Test Event" }),
+      { image_url: flyerUrl }
+    );
+
+    await act(async () => {
+      resolveSubmit("submission-abc");
+      await Promise.all([firstSubmit, secondSubmit]);
+    });
+
+    expect(createSubmission).toHaveBeenCalledTimes(1);
+  });
+
   it("shows an upload-error state with a retry path that re-uploads the same file", async () => {
     mockEventFlyers.uploadEventFlyer.mockRejectedValueOnce(new Error("storage down"));
     const { result } = renderHook(() => useSubmitEventForm());

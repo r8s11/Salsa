@@ -64,4 +64,47 @@ describe("CalendarListView", () => {
     expect(screen.getByText("Salsa")).toBeInTheDocument();
     expect(screen.getByText("Bachata")).toBeInTheDocument();
   });
+
+  it("replaces an unreachable flyer with event-specific fallback artwork without retrying forever", () => {
+    const event = {
+      ...makeEvent("broken-flyer", "Bachata social", "2026-09-15 22:00"),
+      imageUrl: "https://invalid.example/flyer.jpg",
+      danceStyles: ["Bachata"],
+    };
+    const { container } = render(<CalendarListView events={[event]} onSelect={vi.fn()} />);
+    const image = container.querySelector("img")!;
+    fireEvent.error(image);
+    expect(image).toHaveAttribute("src", "/images/event-fallbacks/bachata.svg");
+    fireEvent.error(image);
+    expect(image).toHaveAttribute("src", "/images/event-fallbacks/bachata.svg");
+  });
+
+  it("names the actual end date for an event spanning more than one night", () => {
+    const event = {
+      ...makeEvent("weekender", "Dance weekender", "2026-09-15 22:00"),
+      end: "2026-09-18 01:00",
+    };
+    render(<CalendarListView events={[event]} onSelect={vi.fn()} />);
+    const row = screen.getByRole("button", { name: /Dance weekender/ });
+    expect(row).toHaveAccessibleName(expect.stringContaining("Friday, September 18"));
+    expect(row).not.toHaveAccessibleName(expect.stringContaining("next day"));
+  });
+
+  it("keeps a large chronological collection reachable through bounded pages", () => {
+    const events = Array.from({ length: 120 }, (_, index) =>
+      makeEvent(`event-${index}`, `Dance ${String(index).padStart(4, "0")}`, "2026-09-15 20:00")
+    );
+    const onSelect = vi.fn();
+    render(<CalendarListView events={events} onSelect={onSelect} />);
+    expect(screen.queryByRole("button", { name: /Dance 0119/ })).not.toBeInTheDocument();
+    for (let page = 0; page < 3 && screen.queryByRole("button", { name: "Show more events" }); page++) {
+      fireEvent.click(screen.getByRole("button", { name: "Show more events" }));
+      expect(document.activeElement).toHaveClass("calendar-list-row");
+    }
+    fireEvent.click(screen.getByRole("button", { name: /Dance 0119/ }));
+    expect(onSelect).toHaveBeenCalledWith(events[119]);
+    const rows = screen.getAllByRole("button", { name: /Dance \d{4}/ });
+    expect(rows[0]).toHaveAccessibleName(expect.stringContaining("Dance 0000"));
+    expect(rows[119]).toHaveAccessibleName(expect.stringContaining("Dance 0119"));
+  });
 });

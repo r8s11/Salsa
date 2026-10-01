@@ -9,7 +9,7 @@ import {
 } from "@schedule-x/calendar";
 import { createEventsServicePlugin } from "@schedule-x/events-service";
 import { createCalendarControlsPlugin } from "@schedule-x/calendar-controls";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { ChevronDown, SlidersHorizontal } from "lucide-react";
 import "temporal-polyfill/global";
 import "./Calendar.css";
@@ -31,7 +31,6 @@ import {
   injectStructuredData,
 } from "../../utils/seo";
 import { useDocumentMeta } from "../../shared/seo/useDocumentMeta";
-import { useEscapeKey } from "./hooks/useEscapeKey";
 import { useEventDeepLink } from "./hooks/useEventDeepLink";
 import CalendarStatus from "./components/CalendarStatus";
 import CalendarSidebar from "./components/CalendarSidebar";
@@ -63,6 +62,8 @@ const COMPACT_QUERY =
   "(max-width: 768px), (max-width: 1023px) and (max-height: 500px) and (pointer: coarse)";
 const SIDEBAR_QUERY = "(min-width: 1024px)";
 
+type CalendarOccurrence = ScheduleXEvent & { sourceEventId?: ScheduleXEvent["id"] };
+
 export default function Calendar() {
   const { activeMetros } = useActiveMetros();
   const { metros, loading: metrosLoading } = useMetros();
@@ -80,8 +81,7 @@ export default function Calendar() {
   const [visibleDate, setVisibleDate] = useState<Temporal.PlainDate>(() =>
     Temporal.Now.plainDateISO()
   );
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { city, setCity } = useCity();
   const { events: eventList, loading, error, refetch } = useEvents();
 
@@ -89,7 +89,7 @@ export default function Calendar() {
     document.body.classList.add("calendar-page-open");
     return () => document.body.classList.remove("calendar-page-open");
   }, []);
-  const eventListRef = useRef(eventList);
+  const eventListRef = useRef<CalendarOccurrence[]>(eventList);
   const cityParameterHandled = useRef(false);
   const [eventsService] = useState(() => createEventsServicePlugin());
   const [calendarControls] = useState(() => createCalendarControlsPlugin());
@@ -107,7 +107,7 @@ export default function Calendar() {
   const expandedEvents = useMemo(() => {
     const now = Temporal.Now.zonedDateTimeISO();
     const cutoff = now.add({ weeks: 12 });
-    const expanded: ScheduleXEvent[] = [];
+    const expanded: CalendarOccurrence[] = [];
 
     for (const event of filteredEvents) {
       expanded.push(event);
@@ -128,6 +128,7 @@ export default function Calendar() {
         expanded.push({
           ...event,
           id: `${event.id}-w${upcomingDates.indexOf(futureDate) + 1}`,
+          sourceEventId: event.id,
           start: futureDate.toString().replace("T", " "),
           end: endDate.toString().replace("T", " "),
         });
@@ -139,8 +140,12 @@ export default function Calendar() {
   const sortedEvents = useMemo(() => sortCalendarEvents(expandedEvents), [expandedEvents]);
 
   useEffect(() => {
-    eventListRef.current = eventList;
-  }, [eventList]);
+    eventListRef.current = expandedEvents;
+  }, [expandedEvents]);
+
+  const openOccurrence = useCallback((event: CalendarOccurrence) => {
+    setSelectedEvent({ ...event, id: event.sourceEventId ?? event.id });
+  }, []);
 
   const calendar = useCalendarApp({
     views: [
@@ -165,7 +170,7 @@ export default function Calendar() {
         const fullEvent = eventListRef.current.find(
           (item) => String(item.id) === String(calendarEvent.id)
         );
-        setSelectedEvent(fullEvent ?? (calendarEvent as unknown as ScheduleXEvent));
+        if (fullEvent) openOccurrence(fullEvent);
       },
     },
   });
@@ -223,8 +228,14 @@ export default function Calendar() {
 
   const handleClosedModal = useCallback(() => {
     setSelectedEvent(null);
-    if (searchParams.has("event")) navigate("/calendar", { replace: true });
-  }, [navigate, searchParams]);
+    if (searchParams.has("event")) {
+      setSearchParams((current) => {
+        const next = new URLSearchParams(current);
+        next.delete("event");
+        return next;
+      }, { replace: true });
+    }
+  }, [setSearchParams, searchParams]);
 
   const navigatePeriod = (direction: -1 | 0 | 1) => {
     const next =
@@ -251,7 +262,6 @@ export default function Calendar() {
     canonical: canonicalUrl("/calendar"),
   });
   useEventDeepLink(eventList, setSelectedEvent);
-  useEscapeKey(handleClosedModal);
 
   const cityLabel = metros.find((metro) => metro.slug === city)?.name ?? "All cities";
   const monthTitle = visibleDate.toLocaleString("en-US", { month: "long", year: "numeric" });
@@ -406,13 +416,13 @@ export default function Calendar() {
                 <ScheduleXCalendar calendarApp={calendar} />
               </div>
             )}
-            {showList && <CalendarListView events={sortedEvents} onSelect={setSelectedEvent} />}
+            {showList && <CalendarListView events={sortedEvents} onSelect={openOccurrence} />}
 
             {showCards && (
               <div className="calendar-card-view" aria-label="Events as cards">
                 <div className="calendar-card-grid">
                   {sortedEvents.map((event) => (
-                    <EventCard key={event.id} event={event} onSelect={setSelectedEvent} />
+                    <EventCard key={event.id} event={event} onSelect={openOccurrence} />
                   ))}
                 </div>
               </div>

@@ -1,5 +1,5 @@
 import { ArrowUpRight, Clock, MapPin } from "lucide-react";
-import type { CSSProperties } from "react";
+import { useMemo, useRef, useState, type CSSProperties } from "react";
 import { CALENDARS_CONFIG } from "../../events/model/calendarsConfig";
 import type { ScheduleXEvent } from "../../../types/events";
 import {
@@ -8,6 +8,22 @@ import {
   sortCalendarEvents,
 } from "../model/calendarEvents";
 import { resolveEventFlyer } from "../../../components/EventModal/eventModalImage";
+import "temporal-polyfill/global";
+
+const PAGE_SIZE = 50;
+
+function endDateLabel(event: ScheduleXEvent): string {
+  try {
+    const start = Temporal.PlainDate.from(event.start.slice(0, 10));
+    const end = Temporal.PlainDate.from(event.end.slice(0, 10));
+    if (Temporal.PlainDate.compare(end, start) <= 0) return "";
+    return end.equals(start.add({ days: 1 }))
+      ? " (next day)"
+      : ` (${formatCalendarDate(event.end)}, ${end.year})`;
+  } catch {
+    return "";
+  }
+}
 
 const eventTypeLabels = {
   social: "Social",
@@ -25,7 +41,7 @@ type CalendarEventGroup = {
 function groupByDate(events: ScheduleXEvent[]): CalendarEventGroup[] {
   const groups: CalendarEventGroup[] = [];
 
-  for (const event of sortCalendarEvents(events)) {
+  for (const event of events) {
     const key = event.start.slice(0, 10) || "unknown";
     const currentGroup = groups[groups.length - 1];
     if (currentGroup?.key === key) {
@@ -50,7 +66,16 @@ export default function CalendarListView({
   events: ScheduleXEvent[];
   onSelect: (event: ScheduleXEvent) => void;
 }) {
-  const groups = groupByDate(events);
+  const sortedEvents = useMemo(() => sortCalendarEvents(events), [events]);
+  const [page, setPage] = useState({ events, limit: PAGE_SIZE });
+  const limit = page.events === events ? page.limit : PAGE_SIZE;
+  const pendingFocusId = useRef<ScheduleXEvent["id"] | null>(null);
+  const groups = groupByDate(sortedEvents.slice(0, limit));
+
+  const showMore = () => {
+    pendingFocusId.current = sortedEvents[limit]?.id ?? null;
+    setPage({ events, limit: limit + PAGE_SIZE });
+  };
 
   return (
     <div className="calendar-list-view" aria-label="Events as a list">
@@ -67,16 +92,22 @@ export default function CalendarListView({
             {group.events.map((event) => {
               const time = formatCalendarTime(event.start);
               const endTime = formatCalendarTime(event.end);
-              const crossesMidnight = event.end.slice(0, 10) > event.start.slice(0, 10);
+              const dateLabel = endDateLabel(event);
               const timeRange =
                 event.end === event.start
                   ? time
-                  : `${time} – ${endTime}${crossesMidnight ? " (next day)" : ""}`;
+                  : `${time} – ${endTime}${dateLabel}`;
               return (
                 <button
                   type="button"
                   className="calendar-list-row"
                   key={event.id}
+                  ref={(row) => {
+                    if (row && event.id === pendingFocusId.current) {
+                      row.focus();
+                      pendingFocusId.current = null;
+                    }
+                  }}
                   style={
                     {
                       "--event-color": CALENDARS_CONFIG[event.calendarId].darkColors.main,
@@ -92,16 +123,21 @@ export default function CalendarListView({
                     width={64}
                     height={80}
                     loading="lazy"
+                    onError={(error) => {
+                      const image = error.currentTarget;
+                      const fallback = resolveEventFlyer({ ...event, imageUrl: undefined });
+                      if (image.getAttribute("src") !== fallback) image.src = fallback;
+                    }}
                   />
                   <span className="calendar-list-copy">
                     <span className="calendar-list-heading">
-                      <strong className="calendar-list-title">{event.title}</strong>
+                      <strong className="calendar-list-title" dir="auto">{event.title}</strong>
                       <span className="calendar-list-type">
                         {eventTypeLabels[event.calendarId]}
                       </span>
                     </span>
                     {event.description && (
-                      <span className="calendar-list-description">{event.description}</span>
+                      <span className="calendar-list-description" dir="auto">{event.description}</span>
                     )}
                     <span className="calendar-list-meta">
                       <span>
@@ -109,7 +145,7 @@ export default function CalendarListView({
                         {timeRange}
                       </span>
                       {event.location && (
-                        <span className="calendar-list-location">
+                        <span className="calendar-list-location" dir="auto">
                           <MapPin size={14} aria-hidden />
                           {event.location}
                         </span>
@@ -118,7 +154,7 @@ export default function CalendarListView({
                     {event.danceStyles?.length ? (
                       <span className="calendar-list-styles">
                         {event.danceStyles.map((style) => (
-                          <span key={style}>{style}</span>
+                          <span key={style} dir="auto">{style}</span>
                         ))}
                       </span>
                     ) : null}
@@ -130,6 +166,12 @@ export default function CalendarListView({
           </div>
         </section>
       ))}
+      {limit < sortedEvents.length && (
+        <div className="calendar-list-more">
+          <p role="status">{Math.min(limit, sortedEvents.length)} of {sortedEvents.length} events shown</p>
+          <button type="button" onClick={showMore}>Show more events</button>
+        </div>
+      )}
     </div>
   );
 }

@@ -582,10 +582,13 @@ The stage header pairs the Epilogue display title and balanced subtitle
   controls (`< Today >`), and period context.
 - **Search bar:** Real-time search matching event titles, locations, venues,
   descriptions, and dance styles, with an instant clear button (`X`) that returns
-  focus to the input. The 44px search button's metal rim is the one authored motion
+  focus to the input. The entire search bar's metal perimeter is the one authored motion
   moment: lazy-loaded Paper liquid metal runs for 650ms on focus, then stops.
   Blur/unmount disposes the shader; hidden/offscreen rendering pauses. Reduced motion
   and unavailable WebGL use a static rim without changing search behavior.
+  The decorative masked border follows focus anywhere inside the bar; moving between
+  the icon, input, and clear button does not restart it. There is no separate icon
+  frame or inner input outline. Focus leaving the whole bar disposes the shader.
   The rim alone uses material neutrals (`#77777b`, `#dedbd5`, `#85858a`, `#c5b89d`)
   and shader back/tint (`#99999c`, `#fff0d4`); these are not content or category colors.
 - **View switcher:** Segmented pill group toggling Month Grid, Week, List,
@@ -610,14 +613,18 @@ The stage header pairs the Epilogue display title and balanced subtitle
   Filters disclosure with an active-selection count; closing it never clears filters.
   At widths below 360px, view labels become icons with unchanged accessible names.
   Every visible calendar control retains a 44px minimum touch target.
-- **List details:** Date-grouped 12px bordered rows show title, labeled event type
-  using the existing calendar colors, a two-line description (one line on compact
-  screens), start–end time, venue,
-  and dance-style badges. Fine-pointer hover moves only the detail arrow by 2px over
-  180ms; reduced motion removes that movement. Rows stay visible by default, with no
-  entrance choreography or filter-triggered reveal.
-  Compact titles use 16px and time/venue metadata 14px; the last row can scroll clear
-  of the fixed dock. Desktop retains its sidebar and month/week views.
+**List details:** Date-grouped rows with 1px borders show title, labeled event type
+using the existing calendar colors, a two-line description (one line on compact
+screens), start–end time, venue, and dance-style badges. The list renders 50
+chronological events per batch; “Show more events” extends it and moves keyboard
+focus to the first newly revealed event. Multi-night events show the actual end date;
+overnight events use a next-day marker. Missing or unreachable flyers use event-type
+fallback art. Fine-pointer hover moves only the detail arrow by 2px over 180ms; reduced
+motion removes that movement. Rows have no entrance or filter-triggered reveal. Date
+group headings use 18px Epilogue, event titles 16px Epilogue, descriptions and
+time/venue metadata 14px Be Vietnam Pro, and type/style labels 12px. Search text is
+16px at all widths; the last row can scroll clear of the fixed dock. Desktop retains
+its sidebar and month/week views.
 
 #### Anonymous submission and moderation flow
 
@@ -631,8 +638,9 @@ explicitly informs submitters that events enter a `pending` moderation queue
 reviewed by community moderators and do not appear on the calendar until
 approved. Flyer upload is tucked into a collapsible `<details>` disclosure
 with reassurance that flyerless events receive a generated Sleeve poster.
-Upon submission, a success confirmation card offers "Done" (closing with
-focus restoration to the trigger button) or "Submit Another Event".
+Upon submission, the form fields lock until the request settles. If the submission-access
+lookup fails, the dialog offers an in-place retry. A success confirmation card offers
+“Done” (closing with focus restoration to the trigger button) or “Submit Another Event”.
 
 ## Do's and Don'ts
 

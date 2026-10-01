@@ -14,5 +14,8 @@ export function useSubmissionAccess(isAuthenticated: boolean) {
     isLoading: query.isPending,
     canSubmit: query.data === true,
     error: query.error ? query.error.message : null,
+    refetch: async () => {
+      await query.refetch();
+    },
   };
 }

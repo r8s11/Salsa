@@ -58,11 +58,15 @@ The calendar keeps Salsa Segura's dark nightlife identity. Desktop offers month,
 week, list, and cards; compact screens offer list and cards. Search event titles,
 venues, descriptions, and styles, then narrow by city, event type, or dance style.
 **New event** is the calendar's single submission action and opens the form in place.
-List view groups approved events by date and shows descriptions, category/style labels,
-venue, and start–end times, including an explicit next-day marker for overnight events.
-The search icon uses a lazy-loaded `@paper-design/shaders` liquid-metal focus pulse:
+List view groups approved events by date in chronological batches of 50, with a
+keyboard-accessible “Show more events” control. Rows show descriptions, category/style
+labels, venue, and start–end times; multi-night events show their actual end date,
+overnight events show a next-day marker, and unavailable flyers use event-type artwork.
+The entire search bar uses a lazy-loaded `@paper-design/shaders` liquid-metal focus pulse:
 650ms of motion, then a static frame; blur disposes it. Reduced-motion and non-WebGL
-devices keep a static metal border. Clearing a search returns focus to the input.
+devices keep a static metal perimeter. Focus feedback stays around the whole bar
+while moving between its icon, input, and clear button, without an inner input outline.
+Clearing a search returns focus to the input.
 
 On phones, date navigation and List/Cards share a row; type/style filters live in
 a native **Filters** disclosure with an active-selection count. Selections persist
@@ -75,6 +79,9 @@ details and required event fields are validated; submissions enter the moderatio
 queue as `pending` and do not appear publicly until approved. A flyer is optional.
 Events without one reuse the generated Sleeve cover and shareable poster system,
 not an external image-generation service.
+
+The submission form locks its fields while saving. If the submission-access check fails,
+visitors can retry it in place without reloading the calendar.
 
 ### Component setup
 

@@ -51,7 +51,9 @@ describe("useShareablePoster", () => {
   it("throws when the mounted poster capture yields no blob", async () => {
     vi.mocked(toBlob).mockResolvedValue(null);
     const { result } = renderHook(() => useShareablePoster());
-    const container = result.current.ensureContainer();
+    const container = document.createElement("div");
+    container.className = "poster-render-target";
+    document.body.appendChild(container);
     const posterEl = document.createElement("div");
     container.appendChild(posterEl);
 
@@ -63,8 +65,9 @@ describe("useShareablePoster", () => {
   it("surfaces the underlying capture error when toBlob rejects", async () => {
     vi.mocked(toBlob).mockRejectedValue(new Error("cross-origin artwork blocked"));
     const { result } = renderHook(() => useShareablePoster());
-    const container = result.current.ensureContainer();
+    const container = document.createElement("div");
     container.appendChild(document.createElement("div"));
+    document.body.appendChild(container);
 
     await expect(result.current.capturePoster(container)).rejects.toThrow(
       "cross-origin artwork blocked"
@@ -77,8 +80,9 @@ describe("useShareablePoster", () => {
     const first = new Blob(["complete"], { type: "image/png" });
     vi.mocked(toBlob).mockResolvedValueOnce(first).mockResolvedValueOnce(null);
     const { result } = renderHook(() => useShareablePoster());
-    const container = result.current.ensureContainer();
+    const container = document.createElement("div");
     container.appendChild(document.createElement("div"));
+    document.body.appendChild(container);
 
     expect(await result.current.capturePoster(container)).toBe(first);
     expect(toBlob).toHaveBeenCalledTimes(1);
@@ -93,8 +97,9 @@ describe("useShareablePoster", () => {
     const complete = new Blob(["complete cover"], { type: "image/png" });
     vi.mocked(toBlob).mockResolvedValueOnce(first).mockResolvedValueOnce(complete);
     const { result } = renderHook(() => useShareablePoster());
-    const container = result.current.ensureContainer();
+    const container = document.createElement("div");
     container.appendChild(document.createElement("div"));
+    document.body.appendChild(container);
 
     expect(await result.current.capturePoster(container)).toBe(complete);
     expect(toBlob).toHaveBeenCalledTimes(2);
@@ -138,17 +143,15 @@ describe("useShareablePoster", () => {
     vi.mocked(toBlob).mockResolvedValue(new Blob(["poster"], { type: "image/png" }));
     mockPosterFontEmbedCss.mockRejectedValue(new Error("fonts unavailable"));
     const { result } = renderHook(() => useShareablePoster());
-    const container = result.current.ensureContainer();
+    const container = document.createElement("div");
     container.appendChild(document.createElement("div"));
+    document.body.appendChild(container);
 
     await result.current.capturePoster(container);
 
     expect(toBlob).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({
-        onImageErrorHandler: expect.any(Function),
-        skipFonts: true,
-      })
+      expect.objectContaining({ onImageErrorHandler: expect.any(Function), skipFonts: true })
     );
     const options = vi.mocked(toBlob).mock.calls[0][1];
     expect(options).not.toHaveProperty("fontEmbedCSS");
@@ -159,19 +162,17 @@ describe("useShareablePoster", () => {
     vi.mocked(toBlob).mockResolvedValue(new Blob(["poster"], { type: "image/png" }));
     mockPosterFontEmbedCss.mockResolvedValue("@font-face{font-family:'Poster Lettering';}");
     const { result } = renderHook(() => useShareablePoster());
-    const container = result.current.ensureContainer();
+    const container = document.createElement("div");
     container.appendChild(document.createElement("div"));
+    document.body.appendChild(container);
 
     await result.current.capturePoster(container);
 
     expect(toBlob).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({
-        fontEmbedCSS: "@font-face{font-family:'Poster Lettering';}",
-      })
+      expect.objectContaining({ fontEmbedCSS: "@font-face{font-family:'Poster Lettering';}" })
     );
-    const options = vi.mocked(toBlob).mock.calls[0][1];
-    expect(options).not.toHaveProperty("skipFonts");
+    expect(vi.mocked(toBlob).mock.calls[0][1]).not.toHaveProperty("skipFonts");
   });
 
   describe("createPoster", () => {
@@ -243,32 +244,62 @@ describe("useShareablePoster", () => {
 
       expect(document.querySelector(".poster-render-target")).not.toBeInTheDocument();
     });
+    it("keeps different concurrent exports isolated when one capture fails", async () => {
+      vi.spyOn(navigator, "userAgent", "get").mockReturnValue("Chrome/150.0");
+      let releaseFirst!: () => void;
+      const firstPending = new Promise<void>((resolve) => { releaseFirst = resolve; });
+      vi.mocked(toBlob).mockImplementation(async (node) => {
+        if (node.textContent?.includes("Beginner Salsa Night!")) {
+          await firstPending;
+          return new Blob([node.textContent ?? ""], { type: "image/png" });
+        }
+        throw new Error("second export failed");
+      });
+      const { result } = renderHook(() => useShareablePoster());
+      const first = result.current.createPoster(testEvent, "story");
+      await vi.waitFor(() => expect(toBlob).toHaveBeenCalledTimes(1));
+      await expect(result.current.createPoster({ ...testEvent, id: "2", title: "Bachata Saturday" }, "feed"))
+        .rejects.toThrow("second export failed");
+      releaseFirst();
+      const blob = await first;
+      const text = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.readAsText(blob);
+      });
+      expect(text).toContain("Beginner Salsa Night!");
+      expect(text).not.toContain("Bachata Saturday");
+      expect(document.querySelector(".poster-render-target")).not.toBeInTheDocument();
+    });
+
+    it("removes pending render targets when its owner unmounts", async () => {
+      let releaseCapture!: (blob: Blob) => void;
+      vi.mocked(toBlob).mockImplementation(() => new Promise((resolve) => { releaseCapture = resolve; }));
+      const { result, unmount } = renderHook(() => useShareablePoster());
+      const pending = result.current.createPoster(testEvent, "story");
+      await vi.waitFor(() => expect(toBlob).toHaveBeenCalledTimes(1));
+      act(() => unmount());
+      expect(document.querySelector(".poster-render-target")).not.toBeInTheDocument();
+      releaseCapture(new Blob(["poster"], { type: "image/png" }));
+      await expect(pending).rejects.toThrow("Poster export cancelled");
+    });
   });
 
   describe("resolvePosterImage", () => {
-    afterEach(() => {
-      Reflect.deleteProperty(globalThis, "fetch");
+    it("inlines a remote flyer so capture does not depend on CORS fetches", async () => {
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+        ok: true, blob: async () => new Blob(["flyer"], { type: "image/png" }),
+      }));
+      expect(await resolvePosterImage("https://cdn.example.com/flyer.png")).toMatch(/^data:image\/png;base64,/);
+      vi.unstubAllGlobals();
     });
-
-    it("inlines a remote flyer as a data URL so the capture needs no CORS fetch", async () => {
-      const bytes = new Blob(["flyer-bytes"], { type: "image/png" });
-      vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, blob: async () => bytes }));
-
-      const inlined = await resolvePosterImage("https://cdn.example.com/flyer.png");
-
-      expect(inlined).toMatch(/^data:image\/png;base64,/);
-    });
-
-    it("returns null when the flyer host refuses the fetch, so the poster falls back", async () => {
+    it("falls back when a flyer cannot be fetched", async () => {
       vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("CORS blocked")));
-
       expect(await resolvePosterImage("https://cdn.example.com/flyer.png")).toBeNull();
+      vi.unstubAllGlobals();
     });
-
-    it("passes through an existing data URL and ignores a missing flyer", async () => {
-      expect(await resolvePosterImage("data:image/png;base64,AAAA")).toBe(
-        "data:image/png;base64,AAAA"
-      );
+    it("accepts inline artwork and absent flyers", async () => {
+      expect(await resolvePosterImage("data:image/png;base64,AAAA")).toBe("data:image/png;base64,AAAA");
       expect(await resolvePosterImage(undefined)).toBeNull();
     });
   });

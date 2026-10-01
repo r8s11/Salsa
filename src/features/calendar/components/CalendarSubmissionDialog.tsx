@@ -125,9 +125,14 @@ function CalendarSubmissionContent({
             <h3>Submissions Unavailable</h3>
             <p>Event submissions are currently unavailable. Please try again later.</p>
           </div>
-          <Button variant="secondary" onClick={onClose}>
-            Close
-          </Button>
+          <div className="calendar-sub-dialog__status-actions">
+            <Button variant="primary" onClick={() => void submissionAccess.refetch()}>
+              Try again
+            </Button>
+            <Button variant="secondary" onClick={onClose}>
+              Close
+            </Button>
+          </div>
         </div>
       ) : !submissionAccess.canSubmit ? (
         <div
@@ -201,14 +206,16 @@ function CalendarSubmissionContent({
 
             <p className="calendar-sub-dialog__required-legend">* Required fields</p>
 
-            <EventForm
-              draft={form}
-              onChange={onChange}
-              capabilities={CAPABILITIES.submit}
-              requireSubmitterContact={!user}
-              authenticatedSubmitterName={authenticatedSubmitterName}
-              errors={fieldErrors}
-            />
+            <fieldset className="calendar-sub-dialog__fields" disabled={isSubmitting}>
+              <EventForm
+                draft={form}
+                onChange={onChange}
+                capabilities={CAPABILITIES.submit}
+                requireSubmitterContact={!user}
+                authenticatedSubmitterName={authenticatedSubmitterName}
+                errors={fieldErrors}
+              />
+            </fieldset>
           </div>
 
           <footer className="calendar-sub-dialog__footer">

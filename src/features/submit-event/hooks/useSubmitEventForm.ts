@@ -49,6 +49,7 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
   // in the meantime. This ref always reflects the latest render's form, so
   // the success handler prefills against current, not stale, values.
   const formRef = useRef(form);
+  const submittingRef = useRef(false);
   useEffect(() => {
     formRef.current = form;
   }, [form]);
@@ -335,6 +336,8 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
       setFailedAttempt((attempt) => attempt + 1);
       return;
     }
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setFieldErrors({});
 
     // Reuse the URL already persisted for this flyer — submit never performs a
@@ -395,6 +398,7 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
         setFlyerStatus("empty");
       }
     } finally {
+      submittingRef.current = false;
       setIsSubmitting(false);
     }
   };

@@ -11,7 +11,7 @@ import {
   X,
 } from "lucide-react";
 import Button from "./Button";
-import { LiquidMetalButton } from "./liquid-metal-button";
+import { LiquidMetalBorder } from "./liquid-metal-border";
 import { cn } from "@/lib/utils";
 
 export type CalendarView = "month-grid" | "week" | "list" | "cards";
@@ -115,18 +115,24 @@ export function EventManager({
         </div>
       )}
       <div className="event-manager__tools">
-        <div className="calendar-search">
-          <LiquidMetalButton
-            mode="icon"
-            label="Focus event search"
-            icon={<Search size={18} aria-hidden />}
-            active={searchFocused}
+        <div
+          className="calendar-search"
+          onFocus={() => setSearchFocused(true)}
+          onBlur={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget)) setSearchFocused(false);
+          }}
+        >
+          <LiquidMetalBorder active={searchFocused} />
+          <button
+            type="button"
+            className="calendar-search__focus"
+            aria-label="Focus event search"
             onClick={() => searchInput.current?.focus()}
-          />
+          >
+            <Search size={18} aria-hidden />
+          </button>
           <input
             ref={searchInput}
-            onFocus={() => setSearchFocused(true)}
-            onBlur={() => setSearchFocused(false)}
             type="search"
             aria-label="Search events"
             placeholder="Search events or venues"

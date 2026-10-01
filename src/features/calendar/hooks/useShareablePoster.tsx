@@ -1,5 +1,6 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { createRoot } from "react-dom/client";
+import { flushSync } from "react-dom";
 import { ScheduleXEvent } from "../../../types/events";
 import type { PosterFormat } from "../../../components/EventModal/posterFormat";
 import { ensurePosterFonts, posterFontEmbedCss } from "../../../components/EventModal/posterFonts";
@@ -60,27 +61,23 @@ export async function resolvePosterImage(url: string | undefined): Promise<strin
  * download it as a fallback when native sharing isn't available.
  */
 export function useShareablePoster() {
-  const containerRef = useRef<HTMLDivElement | null>(null);
+  // One entry per in-flight export; unmounting the owner cancels and cleans all of them.
+  const exportsRef = useRef(new Set<{
+    cancelled: boolean;
+    dispose?: () => void;
+    reject?: (reason: unknown) => void;
+  }>());
 
-  const ensureContainer = useCallback(() => {
-    if (containerRef.current && document.body.contains(containerRef.current)) {
-      return containerRef.current;
-    }
-    const div = document.createElement("div");
-    div.className = "poster-render-target";
-    document.body.appendChild(div);
-    containerRef.current = div;
-    return div;
-  }, []);
-
-  /**
-   * Clean up a mounted poster element. Safe to call even if already removed.
-   */
-  const removeTarget = useCallback(() => {
-    if (containerRef.current && document.body.contains(containerRef.current)) {
-      document.body.removeChild(containerRef.current);
-      containerRef.current = null;
-    }
+  useEffect(() => {
+    const exports = exportsRef.current;
+    return () => {
+      for (const job of exports) {
+        job.cancelled = true;
+        job.reject?.(new Error("Poster export cancelled"));
+        job.dispose?.();
+      }
+      exports.clear();
+    };
   }, []);
 
   /**
@@ -124,6 +121,7 @@ export function useShareablePoster() {
     await Promise.all(
       Array.from(posterEl.querySelectorAll("img"), (img) => img.decode?.().catch(() => undefined))
     );
+
     // WebKit needs a previous SVG draw before it paints the cover image into
     // the snapshot. Chromium also includes "AppleWebKit" in its user agent,
     // so exclude Chromium-family engines; iOS Chrome/Edge still use WebKit.
@@ -131,15 +129,14 @@ export function useShareablePoster() {
     if (/AppleWebKit\//.test(agent) && !/(?:Chrome|Chromium|Edg|OPR|SamsungBrowser)\//.test(agent)) {
       await toBlob(posterEl, options).catch(() => null);
     }
-    const blob = await toBlob(posterEl, options);
 
+    const blob = await toBlob(posterEl, options);
     if (!blob) {
       throw new Error("Poster image could not be created");
     }
 
     return blob;
   }, []);
-
   /**
    * Returns the normalized filename shared by native sharing and download.
    */
@@ -164,6 +161,7 @@ export function useShareablePoster() {
     [posterFilename]
   );
 
+
   /**
    * Renders the event's sleeve poster off-screen in the requested format and
    * captures it. Cover art priority: the normalized flyer cache, then the
@@ -175,50 +173,86 @@ export function useShareablePoster() {
       format: PosterFormat,
       sources: { sourceUrl?: string | null; cachedUrl?: string | null } = {}
     ): Promise<Blob> => {
-      const resolution = await resolvePosterImageForEvent({
-        eventId: String(event.id),
-        sourceUrl: sources.sourceUrl ?? event.imageUrl ?? null,
-        cachedUrl: sources.cachedUrl ?? event.posterImageUrl ?? null,
-      });
-      const flyer = resolution.status === "ready" ? resolution.dataUrl : null;
-      // The poster (and its QR encoder) loads only when a visitor shares.
-      const [{ default: ShareableEventPoster }] = await Promise.all([
-        import("../../../components/EventModal/ShareableEventPoster"),
-        ensurePosterFonts(),
-      ]);
-
-      const container = ensureContainer();
-      const root = createRoot(container);
+      const job: {
+        cancelled: boolean;
+        dispose?: () => void;
+        reject?: (reason: unknown) => void;
+      } = { cancelled: false };
+      exportsRef.current.add(job);
+      const assertActive = () => {
+        if (job.cancelled) throw new Error("Poster export cancelled");
+      };
       try {
-        root.render(
-          <ShareableEventPoster
-            event={event}
-            format={format}
-            imageUrl={flyer ?? resolveEventFlyer({ ...event, imageUrl: undefined })}
-            artKind={flyer ? "flyer" : "fallback"}
-            shortUrl={buildShortEventUrl(String(event.id))}
-            shortLabel={shortEventLabel(String(event.id))}
-          />
-        );
+        const resolution = await resolvePosterImageForEvent({
+          eventId: String(event.id),
+          sourceUrl: sources.sourceUrl ?? event.imageUrl ?? null,
+          cachedUrl: sources.cachedUrl ?? event.posterImageUrl ?? null,
+        });
+        const flyer = resolution.status === "ready" ? resolution.dataUrl : null;
+
+        // The poster (and its QR encoder) loads only when a visitor shares.
+        const [{ default: ShareableEventPoster }] = await Promise.all([
+          import("../../../components/EventModal/ShareableEventPoster"),
+          ensurePosterFonts(),
+        ]);
+
+        assertActive();
+
+        // Create an operation-local container to avoid concurrent capture conflicts.
+        // Each createPoster call gets its own container so concurrent calls don't
+        // overwrite/remove each other's art.
+        const container = document.createElement("div");
+        container.className = "poster-render-target";
+        container.style.position = "absolute";
+        container.style.left = "-9999px";
+        container.style.top = "-9999px";
+        document.body.appendChild(container);
+        const root = createRoot(container);
+        let disposed = false;
+        job.dispose = () => {
+          if (disposed) return;
+          disposed = true;
+          root.unmount();
+          container.remove();
+        };
+        flushSync(() => {
+          root.render(
+            <ShareableEventPoster
+              event={event}
+              format={format}
+              imageUrl={flyer ?? resolveEventFlyer({ ...event, imageUrl: undefined })}
+              artKind={flyer ? "flyer" : "fallback"}
+              shortUrl={buildShortEventUrl(String(event.id))}
+              shortLabel={shortEventLabel(String(event.id))}
+            />
+          );
+        });
         // Executor form: this project's tsconfig lib (ES2020) has no
         // Promise.withResolvers.
-        await new Promise((resolve) => setTimeout(resolve, POSTER_PAINT_MS));
-        return await capturePoster(container);
+        const cancelPromise = new Promise<never>((_, reject) => {
+          job.reject = reject;
+        });
+        const paintDelay = new Promise<void>((resolve) => {
+          window.setTimeout(resolve, POSTER_PAINT_MS);
+        });
+        await Promise.race([paintDelay, cancelPromise]);
+        assertActive();
+        const blob = await Promise.race([capturePoster(container), cancelPromise]);
+        assertActive();
+        return blob;
       } finally {
-        root.unmount();
-        removeTarget();
+        job.dispose?.();
+        exportsRef.current.delete(job);
       }
     },
-    [capturePoster, ensureContainer, removeTarget]
+    [capturePoster]
   );
 
   return {
-    ensureContainer,
     capturePoster,
     createPoster,
     posterFilename,
     downloadPoster,
-    removeTarget,
     resolvePosterImage,
   };
 }

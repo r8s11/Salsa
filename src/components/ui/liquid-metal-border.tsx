@@ -1,31 +1,13 @@
-import { useEffect, useRef, useState } from "react";
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import { useEffect, useRef } from "react";
 import type { ShaderMount, LiquidMetalUniforms } from "@paper-design/shaders";
-import { cn } from "@/lib/utils";
-import "./liquid-metal-button.css";
+import "./liquid-metal-border.css";
 
-interface LiquidMetalButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  label: string;
-  icon?: ReactNode;
-  mode?: "text" | "icon";
-  active?: boolean;
-}
-
-/** A short focus response, not an idle GPU animation. The native button remains the control. */
-export function LiquidMetalButton({
-  label,
-  icon,
-  mode = "text",
-  active = false,
-  className,
-  ...props
-}: LiquidMetalButtonProps) {
+/** Decorative whole-control focus feedback; the caller owns native focus semantics. */
+export function LiquidMetalBorder({ active }: { active: boolean }) {
   const surface = useRef<HTMLSpanElement>(null);
-  const [focused, setFocused] = useState(false);
-  const engaged = active || focused;
 
   useEffect(() => {
-    if (!engaged || !surface.current) return;
+    if (!active || !surface.current) return;
     const element = surface.current;
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     let cancelled = false;
@@ -93,29 +75,11 @@ export function LiquidMetalButton({
       stop();
       reducedMotion.removeEventListener("change", onPreferenceChange);
     };
-  }, [engaged]);
+  }, [active]);
 
   return (
-    <button
-      {...props}
-      type={props.type ?? "button"}
-      aria-label={mode === "icon" ? label : props["aria-label"]}
-      className={cn("liquid-metal-button", className)}
-      data-active={engaged || undefined}
-      onFocus={(event) => {
-        setFocused(true);
-        props.onFocus?.(event);
-      }}
-      onBlur={(event) => {
-        setFocused(false);
-        props.onBlur?.(event);
-      }}
-    >
-      <span ref={surface} className="liquid-metal-button__metal" aria-hidden="true" />
-      <span className="liquid-metal-button__content">
-        {icon}
-        {mode === "text" && label}
-      </span>
-    </button>
+    <span className="liquid-metal-border" data-active={active || undefined} aria-hidden="true">
+      <span ref={surface} className="liquid-metal-border__material" />
+    </span>
   );
 }

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, useLocation } from "react-router-dom";
 import { useCalendarApp } from "@schedule-x/react";
 import Calendar from "./Calendar";
 
@@ -33,14 +33,16 @@ vi.mock("../../features/events/hooks/useEvent", () => ({ useEvents: () => useEve
 vi.mock("../../features/metros/hooks/useMetros", () => import("../../test/mockMetros"));
 vi.mock("../../contexts/useCity", () => ({ useCity: () => ({ city, setCity }) }));
 vi.mock("../../features/calendar/hooks/useEventDeepLink", () => ({ useEventDeepLink: vi.fn() }));
-vi.mock("../../features/calendar/hooks/useEscapeKey", () => ({ useEscapeKey: vi.fn() }));
 vi.mock("../../shared/seo/useDocumentMeta", () => ({ useDocumentMeta: vi.fn() }));
 vi.mock("../../utils/seo", () => ({
+  CANONICAL_ORIGIN: "https://www.salsasegura.com",
   canonicalUrl: (path: string) => `https://www.salsasegura.com${path}`,
   generateEventsListStructuredData: vi.fn(() => ({})),
   injectStructuredData: vi.fn(),
 }));
-vi.mock("../EventModal/EventModal", () => ({ default: () => null }));
+vi.mock("../events/api/eventsRepo", () => ({
+  recordEventTouch: vi.fn().mockResolvedValue(undefined),
+}));
 vi.mock("./components/CalendarSubmissionDialog", () => ({ default: () => null }));
 
 const event = {
@@ -54,10 +56,16 @@ const event = {
   danceStyles: ["Salsa"],
 };
 
+function LocationProbe() {
+  const location = useLocation();
+  return <output aria-label="Current calendar URL">{location.pathname}{location.search}</output>;
+}
+
 function renderCalendar(path = "/calendar") {
   return render(
     <MemoryRouter initialEntries={[path]}>
       <Calendar />
+      <LocationProbe />
     </MemoryRouter>
   );
 }
@@ -301,5 +309,38 @@ describe("Calendar", () => {
     fireEvent.click(screen.getByRole("button", { name: "List" }));
     expect(screen.getByRole("button", { name: /Boston Social/ })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /NYC Bachata/ })).not.toBeInTheDocument();
+  });
+
+  it("opens a recurring grid occurrence with its own date and canonical detail link", () => {
+    useEvents.mockReturnValue({
+      events: [{ ...event, recurrence: "weekly" }],
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+    renderCalendar();
+    const occurrence = eventsService.set.mock.calls[eventsService.set.mock.calls.length - 1][0].find(
+      (item: { id: string }) => item.id === "event-1-w1"
+    );
+    act(() => {
+      vi.mocked(useCalendarApp).mock.calls[vi.mocked(useCalendarApp).mock.calls.length - 1][0].callbacks!.onEventClick!(occurrence, new MouseEvent("click"));
+    });
+
+    expect(screen.getByRole("dialog")).toHaveTextContent("Friday, August 21");
+    const fullLinks = screen.getAllByRole("link", { name: "Full details" });
+    expect(fullLinks.length).toBeGreaterThanOrEqual(1);
+    expect(fullLinks[0]).toHaveAttribute("href", "/events/event-1");
+  });
+
+  it("removes only the event query when closing details", () => {
+    compact = true;
+    renderCalendar("/calendar?city=boston&event=event-1&source=shared");
+    fireEvent.click(screen.getByRole("button", { name: /Boston Social/ }));
+    fireEvent.click(screen.getByRole("button", { name: /^Close$/ }));
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Current calendar URL")).toHaveTextContent(
+      "/calendar?city=boston&source=shared"
+    );
   });
 });

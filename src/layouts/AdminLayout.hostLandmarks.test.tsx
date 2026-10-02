@@ -20,15 +20,9 @@ import HostAttendeeListPage from "../pages/host/HostAttendeeListPage";
 vi.mock("../contexts/useTheme", () => ({
   useTheme: () => ({ theme: "system", effectiveTheme: "light", setTheme: vi.fn() }),
 }));
-vi.mock("../features/admin/hooks/useOrganizerRequests", () => ({
-  useOrganizerRequests: () => ({
-    pendingCount: 0,
-    pendingCountLoading: false,
-    pendingCountError: null,
-  }),
-}));
-vi.mock("../features/admin/hooks/useFounderRequests", () => ({
-  useFounderRequests: () => ({ pendingCount: 0 }),
+vi.mock("../features/admin/hooks/usePendingRequestCounts", () => ({
+  usePendingOrganizerRequestCount: () => 0,
+  usePendingFounderRequestCount: () => 0,
 }));
 vi.mock("../contexts/useAuth", () => ({
   useAuth: () => ({

@@ -38,8 +38,9 @@
 }
 
 @media (max-width: 639.98px) {
-  .page-content {
-    padding-bottom: var(--tab-bar-h);
+  /* Clear the dock and its raised city badge after the footer, not before it. */
+  .app-layout {
+    padding-bottom: calc(var(--tab-bar-h) + var(--space-lg));
   }
 }
 

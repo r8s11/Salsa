@@ -6,8 +6,8 @@ import {
   approveOrganizerRequest,
   rejectOrganizerRequest,
   revokeOrganizerAccess,
-  fetchPendingOrganizerRequestCount,
 } from "../api/organizerRequestsRepo";
+import { organizerPendingCountOptions } from "./usePendingRequestCounts";
 import type {
   OrganizerRequestRow,
   RequestStatus,
@@ -31,11 +31,7 @@ export function useOrganizerRequests() {
     queryFn: fetchOrganizerRequests,
   });
 
-  const pendingCountQuery = useQuery({
-    queryKey: ["admin", "organizer-requests", "pending-count"],
-    queryFn: fetchPendingOrganizerRequestCount,
-    staleTime: 60_000, // 1 min — cheap, but don't hammer the RPC
-  });
+  const pendingCountQuery = useQuery(organizerPendingCountOptions);
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ["admin", "organizer-requests"] });

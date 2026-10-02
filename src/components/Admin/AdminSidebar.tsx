@@ -5,6 +5,7 @@ import {
   CalendarPlus,
   Users,
   ClipboardCheck,
+  KeyRound,
   UserPlus,
   MapPin,
   Tag,
@@ -14,13 +15,16 @@ import {
   Upload,
   Building2,
 } from "lucide-react";
-import type { ComponentType } from "react";
+import { useId, useState, type ComponentType } from "react";
 import { useAuth } from "../../contexts/useAuth";
 import type { UserRole } from "../../contexts/authContextObject";
 import { useTheme } from "../../contexts/useTheme";
-import { useOrganizerRequests } from "../../features/admin/hooks/useOrganizerRequests";
-import { useFounderRequests } from "../../features/admin/hooks/useFounderRequests";
+import {
+  usePendingFounderRequestCount,
+  usePendingOrganizerRequestCount,
+} from "../../features/admin/hooks/usePendingRequestCounts";
 import { useHostCapabilities } from "../../features/host/hooks/useHostCapabilities";
+import AdminThemeOptions from "./AdminThemeOptions";
 import type { HostCapabilities } from "../../features/host/model/hostCapabilities";
 import SalsaSeguraLogo from "../brand/SalsaSeguraLogo";
 import "./AdminSidebar.css";
@@ -48,16 +52,18 @@ type NavItem = {
    */
   notPaths?: string[];
   section?: string;
-  badge?: number | null;
 };
 
 type AdminNavItem = NavItem & { roles: UserRole[] };
 
 type HostNavItem = NavItem & { capability: keyof HostCapabilities };
 
+const ORGANIZER_REQUESTS_PATH = "/admin/organizer-requests";
+const FOUNDER_REQUESTS_PATH = "/admin/founder-requests";
+
 const ADMIN_NAV_SECTIONS: { title: string; roles: UserRole[]; items: AdminNavItem[] }[] = [
   {
-    title: "Overview",
+    title: "Desk",
     roles: ["admin", "moderator"],
     items: [
       {
@@ -65,6 +71,24 @@ const ADMIN_NAV_SECTIONS: { title: string; roles: UserRole[]; items: AdminNavIte
         icon: LayoutDashboard,
         to: "/admin",
         end: true,
+        roles: ["admin", "moderator"],
+      },
+      {
+        label: "Event Submissions",
+        icon: ClipboardCheck,
+        to: "/admin/submissions",
+        roles: ["admin", "moderator"],
+      },
+      {
+        label: "Organizer Requests",
+        icon: UserPlus,
+        to: ORGANIZER_REQUESTS_PATH,
+        roles: ["admin", "moderator"],
+      },
+      {
+        label: "Founder Requests",
+        icon: KeyRound,
+        to: FOUNDER_REQUESTS_PATH,
         roles: ["admin", "moderator"],
       },
     ],
@@ -84,41 +108,13 @@ const ADMIN_NAV_SECTIONS: { title: string; roles: UserRole[]; items: AdminNavIte
     ],
   },
   {
-    title: "Review",
-    roles: ["admin", "moderator"],
-    items: [
-      {
-        label: "Event Submissions",
-        icon: ClipboardCheck,
-        to: "/admin/submissions",
-        roles: ["admin", "moderator"],
-      },
-      {
-        label: "Organizer Requests",
-        icon: UserPlus,
-        to: "/admin/organizer-requests",
-        roles: ["admin", "moderator"],
-      },
-      {
-        label: "Founder Requests",
-        icon: ClipboardCheck,
-        to: "/admin/founder-requests",
-        roles: ["admin", "moderator"],
-      },
-    ],
-  },
-  {
     title: "Platform",
     roles: ["admin"],
     items: [
       { label: "Venues", icon: MapPin, to: "/admin/venues", roles: ["admin"] },
-      { label: "Tags", icon: Tag, to: "/admin/tags", roles: ["admin", "moderator"] },
+      { label: "Tags", icon: Tag, to: "/admin/tags", roles: ["admin"] },
+      { label: "Settings", icon: Settings, to: "/admin/settings", roles: ["admin"] },
     ],
-  },
-  {
-    title: "System",
-    roles: ["admin"],
-    items: [{ label: "Settings", icon: Settings, to: "/admin/settings", roles: ["admin"] }],
   },
 ];
 
@@ -129,7 +125,7 @@ const ADMIN_NAV_SECTIONS: { title: string; roles: UserRole[]; items: AdminNavIte
  */
 const HOST_NAV_SECTIONS: { title: string; items: HostNavItem[] }[] = [
   {
-    title: "Overview",
+    title: "Host",
     items: [
       {
         label: "Host Dashboard",
@@ -138,11 +134,6 @@ const HOST_NAV_SECTIONS: { title: string; items: HostNavItem[] }[] = [
         end: true,
         capability: "hasHostAccess",
       },
-    ],
-  },
-  {
-    title: "Management",
-    items: [
       {
         label: "My Events",
         icon: CalendarDays,
@@ -208,11 +199,13 @@ function isNavItemActive(item: NavItem, pathname: string): boolean {
 }
 
 function itemsWithGroupFlags(items: NavItem[]): { item: NavItem; showGroup: boolean }[] {
-  return items.reduce<{ item: NavItem; showGroup: boolean }[]>((acc, item) => {
-    const previous = acc[acc.length - 1];
-    const showGroup = !previous || previous.item.section !== item.section;
-    return [...acc, { item, showGroup }];
-  }, []);
+  // A lone group's label would name everything, so it names nothing: only
+  // label groups when there is more than one to tell apart.
+  const labelled = new Set(items.map((item) => item.section)).size > 1;
+  return items.map((item, index) => ({
+    item,
+    showGroup: labelled && (index === 0 || items[index - 1].section !== item.section),
+  }));
 }
 
 export default function AdminSidebar({
@@ -223,26 +216,56 @@ export default function AdminSidebar({
   onToggleCollapse,
 }: AdminSidebarProps) {
   const { user, role, signOut } = useAuth();
-  const { theme, setTheme, effectiveTheme } = useTheme();
-  const { pendingCount } = useOrganizerRequests();
-  const { pendingCount: founderPendingCount } = useFounderRequests();
+  const { effectiveTheme } = useTheme();
   const hostCapabilities = useHostCapabilities();
   const { pathname } = useLocation();
-  const navItems = itemsWithGroupFlags(navItemsFor(role, hostCapabilities));
+  const items = navItemsFor(role, hostCapabilities);
+  const activeItem = items.reduce<NavItem | undefined>(
+    (active, item) =>
+      isNavItemActive(item, pathname) && (!active || item.to.length > active.to.length)
+        ? item
+        : active,
+    undefined
+  );
+  const navItems = itemsWithGroupFlags(items);
+
+  const navId = useId();
+  const [signOutState, setSignOutState] = useState<"idle" | "pending" | "error">("idle");
+  // Counts are fetched only when the viewer's nav actually lists the queue,
+  // so Host users never trigger an admin RPC. Count only: no directory load.
+  const showsOrganizerQueue = items.some((item) => item.to === ORGANIZER_REQUESTS_PATH);
+  const showsFounderQueue = items.some((item) => item.to === FOUNDER_REQUESTS_PATH);
+  const pendingByPath: Record<string, number> = {
+    [ORGANIZER_REQUESTS_PATH]: usePendingOrganizerRequestCount(showsOrganizerQueue),
+    [FOUNDER_REQUESTS_PATH]: usePendingFounderRequestCount(showsFounderQueue),
+  };
 
   const handleSignOut = async () => {
-    await signOut("global");
+    if (signOutState === "pending") return;
+    setSignOutState("pending");
+    try {
+      const { error } = await signOut("local");
+      setSignOutState(error ? "error" : "idle");
+    } catch {
+      setSignOutState("error");
+    }
   };
 
   return (
     <nav
       aria-label={mode === "host" ? "Host navigation" : "Admin navigation"}
+      id={navId}
       className="admin-sidebar"
       data-variant={variant}
       data-mode={mode}
       data-collapsed={collapsed}
     >
-      <Link className="admin-sidebar__brand" to="/" onClick={() => onNavigate?.()}>
+      <Link
+        className="admin-sidebar__brand"
+        to="/"
+        aria-label="Salsa Segura home"
+        onClick={() => onNavigate?.()}
+      >
         <SalsaSeguraLogo
           variant="full"
           size="md"
@@ -252,15 +275,9 @@ export default function AdminSidebar({
       <div className="admin-sidebar__scroll">
         {navItems.map(({ item, showGroup }) => {
           const Icon = item.icon;
-          const isOrganizerRequests = item.to === "/admin/organizer-requests";
-          const isFounderRequests = item.to === "/admin/founder-requests";
-          const badge = isOrganizerRequests
-            ? pendingCount
-            : isFounderRequests
-              ? founderPendingCount
-              : null;
+          const badge = pendingByPath[item.to] ?? null;
 
-          const isActive = isNavItemActive(item, pathname);
+          const isActive = item === activeItem;
 
           return (
             <div key={item.to} className="admin-nav__item-wrap">
@@ -274,13 +291,13 @@ export default function AdminSidebar({
               >
                 <Icon size={18} />
                 <span className="admin-nav__label">{item.label}</span>
-                {badge !== null && badge !== undefined && badge > 0 && (
-                  <span
-                    className="admin-nav__badge"
-                    aria-label={`${badge} pending organizer requests`}
-                  >
-                    {badge}
-                  </span>
+                {badge !== null && badge > 0 && (
+                  <>
+                    <span className="admin-nav__badge" aria-hidden="true">
+                      {badge}
+                    </span>
+                    <span className="admin-visually-hidden">({badge} pending)</span>
+                  </>
                 )}
               </Link>
             </div>
@@ -292,29 +309,26 @@ export default function AdminSidebar({
           {user?.email && <p className="admin-sidebar__account-email">{user.email}</p>}
           <details className="admin-sidebar__appearance">
             <summary>Appearance</summary>
-            <fieldset className="admin-account__theme-options">
-              <legend className="admin-visually-hidden">Choose theme appearance</legend>
-              {(["system", "light", "dark"] as const).map((option) => (
-                <label key={option} className="admin-account__theme-option">
-                  <input
-                    type="radio"
-                    name="admin-sidebar-theme"
-                    value={option}
-                    checked={theme === option}
-                    onChange={() => setTheme(option)}
-                    aria-label={
-                      option === "system" ? "System" : option === "light" ? "Light" : "Dark"
-                    }
-                  />
-                  {option === "system" ? "System" : option === "light" ? "Light" : "Dark"}
-                </label>
-              ))}
-            </fieldset>
+            <AdminThemeOptions name="admin-sidebar-theme" />
           </details>
-          <a href="/">View site</a>
-          <button type="button" onClick={handleSignOut}>
-            Sign out
+          <Link
+            className="admin-sidebar__account-link"
+            to="/account"
+            onClick={() => onNavigate?.()}
+          >
+            Account
+          </Link>
+          <Link className="admin-sidebar__account-link" to="/" onClick={() => onNavigate?.()}>
+            View site
+          </Link>
+          <button type="button" onClick={handleSignOut} disabled={signOutState === "pending"}>
+            {signOutState === "pending" ? "Signing out…" : "Sign out on this device"}
           </button>
+          {signOutState === "error" && (
+            <p role="alert" className="admin-sidebar__account-error">
+              We couldn't sign you out on this device. Try again.
+            </p>
+          )}
         </div>
       )}
       {variant === "fixed" && onToggleCollapse && (
@@ -323,6 +337,9 @@ export default function AdminSidebar({
           className="admin-sidebar__collapse-toggle"
           onClick={onToggleCollapse}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-expanded={!collapsed}
+          aria-controls={navId}
+          title={collapsed ? "Expand sidebar" : undefined}
         >
           {collapsed ? <ChevronRightIcon size={16} /> : <ChevronLeft size={16} />}
           <span className="admin-nav__label">{collapsed ? "Expand" : "Collapse"}</span>

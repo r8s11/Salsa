@@ -226,6 +226,10 @@ used for state and for nothing else.
 the colour once and then reads a column of marks without reading a
 label; borrowing one for emphasis destroys exactly that.
 
+The sidebar's pending counts (Organizer Requests, Founder Requests) are
+Unset work and wear this colour. Rose in the sidebar is wayfinding only,
+the current page's icon and the focus ring, never state.
+
 **Category chips are not state.** Taxonomy categories (attendee type,
 dance style) are labelled by the `--admin-chip-*` palette in
 `src/styles/admin.css` — one tint/ink pair per hue, light and dark. A
@@ -348,6 +352,50 @@ a 14px gutter, and a 44px flyer thumb where an entry carries evidence.
 Below 1080px the two measures stack rather than narrow — an agate
 column squeezed under its measure stops being readable.
 
+**Operator location stays visible.** The admin and host topbar retains
+the current location at phone widths; only the parent role and separator
+disappear below 640px. The label can ellipsize without shrinking the
+navigation or account controls. Admin queue labels match their sidebar
+destinations, including nested submission and founder-request records.
+Bulk Upload has its own location label. Each sidebar marks only the
+most specific available destination as current; parent and child links
+never compete for the active state.
+
+**Desktop collapse recovers workspace.** At 1024px and above, the saved
+collapse preference changes the sidebar from 260px to a 72px rail.
+The sidebar width, topbar left edge, and main-content margin follow the
+same shell-scoped `--admin-sidebar-w`, recovering 188px of workspace.
+Rail links retain full accessible names; their visual labels are clipped
+rather than removed from the accessibility tree, with native title hints
+for pointer discovery. The toggle exposes its state and controlled navigation.
+Below 1024px, the saved preference never narrows the labelled drawer or
+adds a content offset. Returning to desktop restores the chosen rail state.
+
+**Keyboard paths bypass or contain the chrome.** Admin and host shells
+start with “Skip to content,” which moves focus to `#admin-main`; the
+next Tab continues into the workspace rather than through the sidebar.
+Public pages share the same focus-moving skip link, retaining the home
+page’s “Skip to events” destination. While the public mobile menu is open,
+the header is a labelled modal navigation surface: focus stays among its
+visible controls, background content is inert, and page scrolling is locked.
+Dismissal restores focus to the menu button. Choosing a destination or
+resizing to desktop closes the menu and releases the page.
+
+**Operator account actions are usable, not placeholders.** The topbar
+keeps its 32px avatar inside a 44px disclosure target; account links,
+Appearance, and theme options have at least 44px-high targets. The
+disclosure stays within the viewport and scrolls when height is limited.
+Escape closes it and restores trigger focus. Outside pointer interaction,
+focus leaving the disclosure, or route navigation closes it without
+pulling focus away from the user's next action.
+
+Both topbar and drawer link Account to `/account`. Existing sign-out
+scopes stay explicit: the topbar says “Sign out on all devices” (`global`);
+the drawer says “Sign out on this device” (`local`). Pending requests
+disable repeat activation. Failures announce an in-place alert and allow
+retry. The topbar reveals the alert and retry action together, including
+when reopened or viewed with enlarged text in a short viewport.
+
 ### The Sleeve — story and feed measures
 
 The poster exports at two fixed pixel sizes, never responsive: a
@@ -466,6 +514,16 @@ links; pointer proximity gently enlarges the dock items. Touch targets remain
 steady-sized, reduced-motion users get an immediate selection change, and the
 city code remains a non-interactive badge above the bar. Keep the existing
 bottom safe-area reservation and the header's city picker as the city control.
+
+Dock clearance belongs to the full public layout, after the footer, rather
+than to the main content before it. Below 640px, reserve `--tab-bar-h` plus
+`--space-lg` so the copyright and footer actions can scroll above both the
+dock and its raised city badge. Desktop adds no dock clearance.
+
+The floating city picker yields while the public footer intersects the
+viewport, leaving support and contact actions unobscured. It returns when
+the footer leaves view only if the visitor remains past its scroll threshold.
+The dock's city badge and the header's city picker remain available.
 
 ### Cards & Event Page
 

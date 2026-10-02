@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/useAuth";
 import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
@@ -8,6 +8,7 @@ import SalsaSeguraLogo from "../brand/SalsaSeguraLogo";
 import AccountAvatar from "./AccountAvatar";
 import ButtonLink from "../ui/ButtonLink";
 import { resolveEventCreateDestination } from "../../lib/eventCreateDestination";
+import { useAccessibleDialog } from "../../shared/a11y/useAccessibleDialog";
 import "./Header.css";
 
 const PRIMARY_LINKS = [
@@ -19,6 +20,8 @@ const PRIMARY_LINKS = [
 function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const accountDisclosure = useRef<HTMLDetailsElement>(null);
+  const navigationRef = useRef<HTMLElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
   const { user, isModerator, isAdmin, isOrganizer, signOut } = useAuth();
   const { profile } = useOwnProfile(user?.id);
   const navigate = useNavigate();
@@ -40,6 +43,20 @@ function Header() {
   }, []);
 
   useEscapeKey(closeNavigation);
+  const { onKeyDown: onNavigationKeyDown } = useAccessibleDialog({
+    dialogRef: navigationRef,
+    initialFocusRef: menuButtonRef,
+    isOpen: mobileOpen,
+    onDismiss: closeNavigation,
+  });
+
+  useEffect(() => {
+    const closeOnDesktop = () => {
+      if (window.innerWidth >= 1024) closeNavigation();
+    };
+    window.addEventListener("resize", closeOnDesktop);
+    return () => window.removeEventListener("resize", closeOnDesktop);
+  }, [closeNavigation]);
 
   const handleSignOut = async () => {
     await signOut("global");
@@ -48,7 +65,14 @@ function Header() {
   };
 
   return (
-    <header className="site-header">
+    <header
+      ref={navigationRef}
+      className="site-header"
+      role={mobileOpen ? "dialog" : undefined}
+      aria-modal={mobileOpen ? true : undefined}
+      aria-label={mobileOpen ? "Site navigation" : undefined}
+      onKeyDown={onNavigationKeyDown}
+    >
       <nav className="container" aria-label="Main navigation">
         <Link to="/" className="logo" onClick={closeNavigation}>
           <SalsaSeguraLogo variant="full" size="lg" tone="brand" />
@@ -197,6 +221,7 @@ function Header() {
           </details>
         )}
         <button
+          ref={menuButtonRef}
           type="button"
           className={`hamburger ${mobileOpen ? "active" : ""}`}
           onClick={() => setMobileOpen((open) => !open)}

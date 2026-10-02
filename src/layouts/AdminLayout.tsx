@@ -2,9 +2,10 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { ChevronRight, Menu, X } from "lucide-react";
 import { useAuth } from "../contexts/useAuth";
-import { useTheme } from "../contexts/useTheme";
+import AdminThemeOptions from "../components/Admin/AdminThemeOptions";
 import AdminSidebar from "../components/Admin/AdminSidebar";
 import { useAccessibleDialog } from "../shared/a11y/useAccessibleDialog";
+import SkipLink from "../shared/a11y/SkipLink";
 import "../styles/admin.css";
 import "./AdminLayout.css";
 
@@ -17,10 +18,12 @@ function readStoredCollapsed(): boolean {
 const SECTION_LABEL: Record<string, string> = {
   "/admin": "Dashboard",
   "/admin/events": "Events",
+  "/admin/events/import": "Bulk Upload",
   "/admin/events/import-flyers": "Events · Import Flyers",
   "/admin/users": "Users",
-  "/admin/submissions": "Submissions",
+  "/admin/submissions": "Event Submissions",
   "/admin/organizer-requests": "Organizer Requests",
+  "/admin/founder-requests": "Founder Requests",
   "/admin/venues": "Venues",
   "/admin/tags": "Tags",
   "/admin/activity": "Activity",
@@ -52,22 +55,29 @@ function sectionLabelFor(pathname: string): string {
     return HOST_EVENT_CHILD_LABEL[trailing] ?? "Host · Event Details";
   }
   if (pathname === "/host" || pathname.startsWith("/host/")) return SECTION_LABEL["/host"];
-  if (pathname.startsWith("/admin/events/")) return "Events";
-  if (pathname.startsWith("/admin/users/")) return "Users";
-  if (pathname.startsWith("/admin/organizer-requests/")) return "Organizer Requests";
-  if (pathname.startsWith("/admin/venues/")) return "Venues";
-  if (pathname.startsWith("/admin/tags/")) return "Tags";
-  if (pathname.startsWith("/admin/activity/")) return "Activity";
-  if (pathname.startsWith("/admin/analytics")) return "Analytics";
-  return SECTION_LABEL["/admin"];
+  let sectionPath = "/admin";
+  for (const path in SECTION_LABEL) {
+    if (path.length > sectionPath.length && pathname.startsWith(`${path}/`)) {
+      sectionPath = path;
+    }
+  }
+  return SECTION_LABEL[sectionPath];
 }
 
 export default function AdminLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(readStoredCollapsed);
+  const [signOutState, setSignOutState] = useState<"idle" | "pending" | "error">("idle");
+  const accountRef = useRef<HTMLDetailsElement>(null);
+  const signOutRef = useRef<HTMLDivElement>(null);
+  const closeAccount = useCallback((restoreFocus = false) => {
+    const account = accountRef.current;
+    if (!account?.open) return;
+    account.open = false;
+    if (restoreFocus) account.querySelector("summary")?.focus();
+  }, []);
   const { pathname } = useLocation();
   const { user, role, signOut } = useAuth();
-  const { theme, setTheme } = useTheme();
 
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
   const drawerRef = useRef<HTMLDivElement>(null);
@@ -80,6 +90,24 @@ export default function AdminLayout() {
     isOpen: drawerOpen,
     onDismiss: closeDrawer,
   });
+  useEffect(() => {
+    const dismissOutside = (event: Event) => {
+      const account = accountRef.current;
+      if (account?.open && !account.contains(event.target as Node)) closeAccount();
+    };
+    document.addEventListener("pointerdown", dismissOutside);
+    document.addEventListener("focusin", dismissOutside);
+    return () => {
+      document.removeEventListener("pointerdown", dismissOutside);
+      document.removeEventListener("focusin", dismissOutside);
+    };
+  }, [closeAccount]);
+  useEffect(() => closeAccount(), [pathname, closeAccount]);
+  useLayoutEffect(() => {
+    if (signOutState === "error" && accountRef.current?.open) {
+      signOutRef.current?.scrollIntoView({ block: "nearest" });
+    }
+  }, [signOutState]);
 
   useEffect(() => {
     window.localStorage.setItem(COLLAPSE_STORAGE_KEY, String(sidebarCollapsed));
@@ -93,7 +121,15 @@ export default function AdminLayout() {
   }, []);
 
   const handleSignOut = async () => {
-    await signOut("global");
+    if (signOutState === "pending") return;
+    setSignOutState("pending");
+    try {
+      const { error } = await signOut("global");
+      setSignOutState(error ? "error" : "idle");
+      if (!error) closeAccount(true);
+    } catch {
+      setSignOutState("error");
+    }
   };
   const sectionLabel = sectionLabelFor(pathname);
   const rolePrefix =
@@ -106,12 +142,13 @@ export default function AdminLayout() {
       : sectionLabel;
   const initial = user?.email ? user.email.charAt(0).toUpperCase() : "?";
   // Host and Admin share this shell; the mode drives the navigation landmark
-  // name and the tablet navigation treatment (Host keeps the labeled drawer
-  // until the full sidebar appears at 1024px).
+  // name. Below 1024px both modes navigate through the labelled drawer; the
+  // fixed sidebar (and its user-collapsible rail) appears at 1024px.
   const mode = isHostRoute ? "host" : "admin";
 
   return (
-    <div className="admin-shell" data-mode={mode}>
+    <div className="admin-shell" data-mode={mode} data-collapsed={sidebarCollapsed}>
+      <SkipLink targetId="admin-main">Skip to content</SkipLink>
       <AdminSidebar
         variant="fixed"
         mode={mode}
@@ -165,7 +202,26 @@ export default function AdminLayout() {
           </nav>
         </div>
 
-        <details className="admin-account">
+        <details
+          ref={accountRef}
+          className="admin-account"
+          onToggle={(event) => {
+            if (
+              event.target === event.currentTarget &&
+              event.currentTarget.open &&
+              signOutState === "error"
+            ) {
+              signOutRef.current?.scrollIntoView({ block: "nearest" });
+            }
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Escape" && accountRef.current?.open) {
+              event.preventDefault();
+              event.stopPropagation();
+              closeAccount(true);
+            }
+          }}
+        >
           <summary className="admin-account__trigger" role="button" aria-label="Account menu">
             <span className="admin-account__avatar">{initial}</span>
           </summary>
@@ -180,37 +236,29 @@ export default function AdminLayout() {
                 Appearance
                 <ChevronRight size={14} />
               </summary>
-              <fieldset className="admin-account__theme-options">
-                <legend className="admin-visually-hidden">Choose theme appearance</legend>
-                {(["system", "light", "dark"] as const).map((option) => (
-                  <label key={option} className="admin-account__theme-option">
-                    <input
-                      type="radio"
-                      name="admin-theme"
-                      value={option}
-                      checked={theme === option}
-                      onChange={() => setTheme(option)}
-                      aria-label={
-                        option === "system" ? "System" : option === "light" ? "Light" : "Dark"
-                      }
-                    />
-                    {option === "system" ? "System" : option === "light" ? "Light" : "Dark"}
-                  </label>
-                ))}
-              </fieldset>
+              <AdminThemeOptions name="admin-theme" />
             </details>
-            <span className="admin-account__inert-row" aria-disabled="true">
+            <Link to="/account" onClick={() => closeAccount()}>
               Account
-            </span>
-            <Link to="/">View site</Link>
-            <button type="button" onClick={handleSignOut}>
-              Sign out
-            </button>
+            </Link>
+            <Link to="/" onClick={() => closeAccount()}>
+              View site
+            </Link>
+            <div ref={signOutRef}>
+              {signOutState === "error" && (
+                <p role="alert" className="admin-account__error">
+                  We couldn't sign you out on all devices. Try again.
+                </p>
+              )}
+              <button type="button" onClick={handleSignOut} disabled={signOutState === "pending"}>
+                {signOutState === "pending" ? "Signing out…" : "Sign out on all devices"}
+              </button>
+            </div>
           </div>
         </details>
       </header>
 
-      <main className="admin-main">
+      <main id="admin-main" className="admin-main" tabIndex={-1}>
         <div className="admin-main__inner">
           <Outlet />
         </div>

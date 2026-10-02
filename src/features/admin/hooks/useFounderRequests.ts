@@ -5,10 +5,10 @@ import {
   fetchFounderRequest,
   fetchFounderHostState,
   reviewFounderRequest,
-  fetchPendingFounderRequestCount,
 } from "../api/founderRequestsRepo";
 import { sendFounderInvitation } from "../api/founderInvitationRepo";
 import type { FounderAccessRequestRow } from "../model/founderRequestsQuery";
+import { founderPendingCountOptions } from "./usePendingRequestCounts";
 
 /**
  * Admin-level founder-request data + mutations.
@@ -29,11 +29,7 @@ export function useFounderRequests() {
     staleTime: 30_000,
   });
 
-  const pendingCountQuery = useQuery({
-    queryKey: ["admin", "founder-requests", "pending-count"],
-    queryFn: () => fetchPendingFounderRequestCount(),
-    staleTime: 60_000,
-  });
+  const pendingCountQuery = useQuery(founderPendingCountOptions);
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ["admin", "founder-requests"] });

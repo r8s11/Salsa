@@ -6,15 +6,29 @@
   overflow: hidden;
 }
 
+/* Pending counts are Unset work (DESIGN.md: an entry awaiting a decision),
+   so they take the Unset colour and ink. Those tokens live under .desk,
+   which the sidebar sits outside; --admin-warning holds the same value in
+   both themes, and the ink is copied from desk.css. */
+.admin-sidebar {
+  --nav-pending: var(--admin-warning);
+  --nav-pending-ink: #fffbeb;
+}
+
+.admin-shell[data-theme="dark"] .admin-sidebar {
+  --nav-pending-ink: #251c07;
+}
+
 .admin-sidebar__brand {
   display: flex;
   align-items: center;
   height: var(--admin-header-h);
   padding: 0 20px;
-  border-bottom: 1px solid var(--admin-border);
+  border-bottom: 2px solid var(--admin-border);
   font-family: var(--font-display);
   font-weight: 600;
   font-size: 1rem;
+  text-decoration: none;
   color: var(--admin-text-strong);
   white-space: nowrap;
   overflow: hidden;
@@ -25,7 +39,8 @@
   flex-direction: column;
   flex: 1;
   overflow-y: auto;
-  padding: 12px 8px;
+  overflow-x: hidden;
+  padding: 12px 0;
 }
 
 .admin-nav__item-wrap {
@@ -34,11 +49,13 @@
 }
 
 .admin-nav__group {
-  margin: 16px 12px 4px;
-  font-size: 0.75rem;
+  margin: 16px 20px 4px;
+  font-family: var(--font-display);
+  font-size: 0.6875rem;
   font-weight: 700;
+  line-height: 1.2;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.14em;
   color: var(--admin-text-muted);
 }
 
@@ -48,17 +65,25 @@
 
 .admin-nav__link {
   display: flex;
+  position: relative;
   align-items: center;
   gap: 12px;
-  padding: 10px 12px;
-  border-radius: var(--admin-radius);
-  border-left: 4px solid transparent;
+  padding: 10px 20px;
   color: var(--admin-nav-text);
   font-size: 0.875rem;
   font-weight: 500;
   text-decoration: none;
   cursor: pointer;
-  white-space: nowrap;
+}
+
+.admin-nav__link svg {
+  flex-shrink: 0;
+}
+
+/* Labels wrap instead of clipping, so enlarged text never hides a count. */
+.admin-nav__label {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 @media (max-width: 767.98px), (pointer: coarse) {
@@ -67,115 +92,93 @@
   }
 }
 
-.admin-nav__link:hover {
-  background: var(--admin-brand-tint);
-  color: var(--admin-text-strong);
+@media (hover: hover) {
+  .admin-nav__link:hover {
+    background: var(--admin-surface-secondary);
+    color: var(--admin-text-strong);
+  }
 }
 
-.admin-nav__link--active {
-  border-left-color: var(--admin-brand);
-  background: var(--admin-brand-tint);
+/* Rows and controls here run edge to edge, so the global 2px-offset focus
+   ring would clip at the sidebar edge; it sits inside the element instead.
+   The .admin-shell prefix outranks admin.css's `.admin-shell a:focus-visible`. */
+.admin-shell .admin-sidebar a:focus-visible,
+.admin-shell .admin-sidebar button:focus-visible,
+.admin-shell .admin-sidebar summary:focus-visible {
+  outline: 2px solid var(--admin-brand);
+  outline-offset: -2px;
+}
+
+/* Current page: a change of ground, heavier weight and a rose icon. No
+   bar, pill or shadow; the desk marks state with ground, not lift. */
+.admin-nav__link.admin-nav__link--active {
+  background:
+    linear-gradient(var(--admin-brand-tint), var(--admin-brand-tint)), var(--admin-border);
   color: var(--admin-text-strong);
   font-weight: 600;
 }
 
-.admin-nav__link--disabled {
-  color: var(--admin-text-subtle);
-  cursor: default;
-}
-
-.admin-nav__link--disabled:hover {
-  background: transparent;
-  color: var(--admin-text-subtle);
-}
-
-.admin-nav__soon {
-  margin-left: auto;
-  padding: 2px 6px;
-  border-radius: var(--radius-full);
-  background: var(--admin-surface-secondary);
-  color: var(--admin-text-subtle);
-  font-size: 0.6875rem;
-  font-weight: 700;
-  text-transform: uppercase;
+.admin-nav__link--active svg {
+  color: var(--admin-brand);
 }
 
 .admin-nav__badge {
-  margin-left: 6px;
+  margin-left: auto;
+  flex-shrink: 0;
   min-width: 20px;
   height: 20px;
   padding: 0 6px;
   border-radius: var(--radius-full);
-  background: var(--admin-brand);
-  color: var(--admin-text-on-brand);
+  background: var(--nav-pending);
+  color: var(--nav-pending-ink);
+  font-family: var(--font-display);
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 
 /* ----------------------------------------
-   ≥768px icon rail — labels/groups/badges hidden
+   Icon rail — ≥1024px, user-collapsed only. Below 1024px the fixed
+   sidebar is hidden and navigation lives in the labelled drawer
+   (AdminLayout.css), so no rail exists there.
+   Group labels hide; link labels stay in the accessibility tree
+   (visually hidden) so each link keeps its full name plus any pending
+   count; the badge shrinks to a dot on the icon's corner.
+   Uncollapsed is the base styling, so nothing needs restoring.
    ---------------------------------------- */
-@media (min-width: 768px) {
-  .admin-sidebar[data-variant="fixed"] .admin-nav__label,
-  .admin-sidebar[data-variant="fixed"] .admin-nav__group,
-  .admin-sidebar[data-variant="fixed"] .admin-nav__soon,
-  .admin-sidebar[data-variant="fixed"] .admin-nav__badge {
+@media (min-width: 1024px) {
+  .admin-sidebar[data-variant="fixed"][data-collapsed="true"] .admin-nav__group {
     display: none;
   }
 
-  .admin-sidebar[data-variant="fixed"] .admin-sidebar__brand {
-    justify-content: center;
+  .admin-sidebar[data-variant="fixed"][data-collapsed="true"] .admin-nav__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
     padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 
-  .admin-sidebar[data-variant="fixed"] .admin-sidebar__brand .ss-logo__wordmark {
-    display: none;
-  }
-
-  .admin-sidebar[data-variant="fixed"] .admin-nav__link {
-    justify-content: center;
-    padding: 10px;
-  }
-}
-
-/* ----------------------------------------
-   ≥1024px full sidebar — labels/groups/badges restored
-   ---------------------------------------- */
-@media (min-width: 1024px) {
-  .admin-sidebar[data-variant="fixed"] .admin-nav__label,
-  .admin-sidebar[data-variant="fixed"] .admin-nav__group,
-  .admin-sidebar[data-variant="fixed"] .admin-nav__soon {
-    display: inline;
-  }
-
-  .admin-sidebar[data-variant="fixed"] .admin-sidebar__brand {
-    justify-content: flex-start;
-    padding: 0 20px;
-  }
-
-  .admin-sidebar[data-variant="fixed"] .admin-sidebar__brand .ss-logo__wordmark {
-    display: inline;
-  }
-
-  .admin-sidebar[data-variant="fixed"] .admin-nav__link {
-    justify-content: flex-start;
-    padding: 10px 12px;
-  }
-}
-
-/* ----------------------------------------
-   ≥1024px, user-collapsed — same rail treatment the automatic
-   768-1023px breakpoint already uses, available on user request.
-   ---------------------------------------- */
-@media (min-width: 1024px) {
-  .admin-sidebar[data-variant="fixed"][data-collapsed="true"] .admin-nav__label,
-  .admin-sidebar[data-variant="fixed"][data-collapsed="true"] .admin-nav__group,
-  .admin-sidebar[data-variant="fixed"][data-collapsed="true"] .admin-nav__soon,
   .admin-sidebar[data-variant="fixed"][data-collapsed="true"] .admin-nav__badge {
-    display: none;
+    position: absolute;
+    top: calc(50% - 13px);
+    left: calc(50% + 5px);
+    box-sizing: border-box;
+    width: 12px;
+    min-width: 0;
+    height: 12px;
+    margin: 0;
+    padding: 0;
+    border: 2px solid var(--admin-surface);
+    font-size: 0;
+    line-height: 0;
   }
 
   .admin-sidebar[data-variant="fixed"][data-collapsed="true"] .admin-sidebar__brand {
@@ -210,14 +213,16 @@
     border-top: 1px solid var(--admin-divider);
     background: transparent;
     color: var(--admin-nav-text);
-    font-family: var(--font-ui);
+    font-family: var(--font-body);
     font-size: 0.875rem;
     cursor: pointer;
     transition: background-color 0.15s ease;
   }
 
-  .admin-sidebar__collapse-toggle:hover {
-    background: var(--admin-surface-secondary);
+  @media (hover: hover) {
+    .admin-sidebar__collapse-toggle:hover {
+      background: var(--admin-surface-secondary);
+    }
   }
 
   .admin-sidebar[data-collapsed="true"] .admin-sidebar__collapse-toggle {
@@ -249,6 +254,9 @@
 }
 
 .admin-sidebar__appearance summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
   padding: 8px 20px;
   cursor: pointer;
   color: var(--admin-nav-text);
@@ -262,20 +270,40 @@
 
 .admin-sidebar__account a,
 .admin-sidebar__account button {
-  display: block;
+  display: flex;
+  align-items: center;
   width: 100%;
+  min-height: 44px;
   padding: 8px 20px;
   border: none;
   background: transparent;
   color: var(--admin-nav-text);
-  font-family: var(--font-ui);
+  font-family: var(--font-body);
   font-size: 0.875rem;
   text-align: left;
   text-decoration: none;
   cursor: pointer;
 }
 
-.admin-sidebar__account a:hover,
-.admin-sidebar__account button:hover {
-  background: var(--admin-surface-secondary);
+.admin-sidebar__account .admin-account__theme-option {
+  min-height: 44px;
+}
+
+@media (hover: hover) {
+  .admin-sidebar__account a:hover,
+  .admin-sidebar__account button:hover {
+    background: var(--admin-surface-secondary);
+  }
+}
+
+.admin-sidebar__account button:disabled {
+  color: var(--admin-text-subtle);
+  cursor: default;
+}
+
+.admin-sidebar__account-error {
+  margin: 0;
+  padding: 4px 20px 8px;
+  color: var(--admin-danger);
+  font-size: 0.8125rem;
 }

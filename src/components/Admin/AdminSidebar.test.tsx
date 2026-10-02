@@ -5,6 +5,10 @@ import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ComponentProps } from "react";
 import AdminSidebar from "./AdminSidebar";
+import {
+  usePendingFounderRequestCount,
+  usePendingOrganizerRequestCount,
+} from "../../features/admin/hooks/usePendingRequestCounts";
 import type {
   OrganizerMemberRole,
   OrganizerMembership,
@@ -33,15 +37,18 @@ const { useTheme } = vi.hoisted(() => ({ useTheme: vi.fn() }));
 vi.mock("../../contexts/useTheme", () => ({ useTheme }));
 const { useMyOrganizers } = vi.hoisted(() => ({ useMyOrganizers: vi.fn() }));
 vi.mock("../../features/host/hooks/useMyOrganizers", () => ({ useMyOrganizers }));
-vi.mock("../../features/admin/hooks/useOrganizerRequests", () => ({
-  useOrganizerRequests: vi.fn(() => ({
-    pendingCount: 0,
-    pendingCountLoading: false,
-    pendingCountError: null,
-  })),
+vi.mock("../../features/admin/hooks/usePendingRequestCounts", () => ({
+  usePendingOrganizerRequestCount: vi.fn(() => 0),
+  usePendingFounderRequestCount: vi.fn(() => 0),
 }));
 
+function mockPending(organizer: number, founder: number) {
+  vi.mocked(usePendingOrganizerRequestCount).mockReturnValue(organizer);
+  vi.mocked(usePendingFounderRequestCount).mockReturnValue(founder);
+}
+
 beforeEach(() => {
+  mockPending(0, 0);
   vi.mocked(useAuth).mockReturnValue({
     user: null,
     role: "admin",
@@ -153,7 +160,7 @@ describe("AdminSidebar public brand navigation", () => {
   it("links the Salsa Segura brand to the public homepage", () => {
     renderSidebar();
 
-    expect(screen.getByRole("link", { name: "Salsa Segura" })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: "Salsa Segura home" })).toHaveAttribute("href", "/");
   });
 });
 
@@ -173,19 +180,6 @@ describe("AdminSidebar drawer account block", () => {
     });
   });
 
-  it("drawer variant renders Appearance and Sign Out", () => {
-    const queryClient = makeTestQueryClient();
-    render(
-      <QueryClientProvider client={queryClient}>
-        <MemoryRouter>
-          <AdminSidebar variant="drawer" />
-        </MemoryRouter>
-      </QueryClientProvider>
-    );
-    expect(screen.getByText("Appearance")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Sign out" })).toBeInTheDocument();
-  });
-
   it("fixed variant does not render the account block", () => {
     const queryClient = makeTestQueryClient();
     render(
@@ -195,7 +189,7 @@ describe("AdminSidebar drawer account block", () => {
         </MemoryRouter>
       </QueryClientProvider>
     );
-    expect(screen.queryByRole("button", { name: "Sign out" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Sign out/ })).not.toBeInTheDocument();
   });
 });
 
@@ -395,5 +389,181 @@ describe("AdminSidebar navigation landmark", () => {
     renderSidebar();
 
     expect(screen.getByRole("navigation", { name: "Admin navigation" })).toBeInTheDocument();
+  });
+});
+
+describe("AdminSidebar pending counts", () => {
+  it("names each queue's own pending count in the link's accessible name", () => {
+    mockPending(12, 3);
+    renderSidebar();
+
+    expect(
+      screen.getByRole("link", { name: /Organizer Requests\s*\(12 pending\)/ })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /Founder Requests\s*\(3 pending\)/ })
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText(/pending organizer requests/i)).not.toBeInTheDocument();
+  });
+
+  it("omits the count when nothing is pending", () => {
+    mockPending(0, 0);
+    renderSidebar();
+
+    expect(screen.getByRole("link", { name: "Founder Requests" })).toBeInTheDocument();
+    expect(screen.queryByText(/pending/)).not.toBeInTheDocument();
+  });
+});
+
+describe("AdminSidebar collapse toggle semantics", () => {
+  it("exposes expanded state and the controlled sidebar", () => {
+    const { rerender } = renderSidebar({ collapsed: false, onToggleCollapse: vi.fn() });
+    const nav = screen.getByRole("navigation", { name: "Admin navigation" });
+    const toggle = screen.getByRole("button", { name: /collapse sidebar/i });
+
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(toggle).toHaveAttribute("aria-controls", nav.id);
+
+    rerender(
+      <QueryClientProvider client={makeTestQueryClient()}>
+        <MemoryRouter>
+          <AdminSidebar variant="fixed" collapsed onToggleCollapse={vi.fn()} />
+        </MemoryRouter>
+      </QueryClientProvider>
+    );
+    expect(screen.getByRole("button", { name: /expand sidebar/i })).toHaveAttribute(
+      "aria-expanded",
+      "false"
+    );
+  });
+});
+
+describe("AdminSidebar drawer sign out", () => {
+  function mockSignOut(signOut: () => Promise<{ error: Error | null }>) {
+    vi.mocked(useAuth).mockReturnValue({
+      user: { email: "[EMAIL]" },
+      role: "admin",
+      isAdmin: true,
+      isModerator: false,
+      signOut,
+    });
+  }
+
+  it("signs out of this device only", async () => {
+    const signOut = vi.fn().mockResolvedValue({ error: null });
+    mockSignOut(signOut);
+    renderSidebar({ variant: "drawer" });
+
+    await userEvent.setup().click(screen.getByRole("button", { name: /Sign out on this device/ }));
+
+    expect(signOut).toHaveBeenCalledExactlyOnceWith("local");
+  });
+
+  it("shows an in-place alert and re-enables the button when sign out fails", async () => {
+    mockSignOut(vi.fn().mockResolvedValue({ error: new Error("network") }));
+    renderSidebar({ variant: "drawer" });
+
+    await userEvent.setup().click(screen.getByRole("button", { name: /Sign out on this device/ }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/couldn't sign you out/i);
+    expect(screen.getByRole("button", { name: /Sign out on this device/ })).toBeEnabled();
+  });
+
+  it("treats a thrown sign out the same as a returned error", async () => {
+    mockSignOut(vi.fn().mockRejectedValue(new Error("boom")));
+    renderSidebar({ variant: "drawer" });
+
+    await userEvent.setup().click(screen.getByRole("button", { name: /Sign out on this device/ }));
+
+    expect(await screen.findByRole("alert")).toBeInTheDocument();
+  });
+});
+
+describe("AdminSidebar drawer View site link", () => {
+  it("navigates in-app and closes the drawer", async () => {
+    const onNavigate = vi.fn();
+    renderSidebar({ variant: "drawer", onNavigate });
+
+    const link = screen.getByRole("link", { name: "View site" });
+    expect(link).toHaveAttribute("href", "/");
+    await userEvent.setup().click(link);
+
+    expect(onNavigate).toHaveBeenCalledOnce();
+  });
+});
+
+describe("AdminSidebar navigation groups", () => {
+  function mockRole(role: "admin" | "moderator") {
+    vi.mocked(useAuth).mockReturnValue({
+      user: { email: "[EMAIL]" },
+      role,
+      isAdmin: role === "admin",
+      isModerator: true,
+      signOut: vi.fn(),
+    });
+  }
+
+  it("groups admin destinations as Desk, Management, Platform with Settings under Platform", () => {
+    mockRole("admin");
+    renderSidebar();
+
+    const labels = ["Desk", "Management", "Platform"].map((name) => screen.getByText(name));
+    labels.forEach((label, index) => {
+      if (index > 0) {
+        expect(
+          labels[index - 1].compareDocumentPosition(label) & Node.DOCUMENT_POSITION_FOLLOWING
+        ).toBeTruthy();
+      }
+    });
+    expect(screen.queryByText("System")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Settings" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Tags" })).toBeInTheDocument();
+  });
+
+  it("shows a moderator only the Desk links, with no group label and no Tags", () => {
+    mockRole("moderator");
+    renderSidebar();
+
+    const titles = screen.getAllByRole("link").map((link) => link.getAttribute("title"));
+    expect(titles).toEqual([
+      null,
+      "Dashboard",
+      "Event Submissions",
+      "Organizer Requests",
+      "Founder Requests",
+    ]);
+    expect(screen.queryByText("Desk")).not.toBeInTheDocument();
+  });
+
+  it("does not label the Host navigation's single group", () => {
+    mockMembershipOnlyHost("owner");
+    renderSidebar({ mode: "host" });
+
+    expect(screen.queryByText("Host")).not.toBeInTheDocument();
+    expect(screen.queryByText("Management")).not.toBeInTheDocument();
+  });
+});
+
+describe("AdminSidebar pending count fetching", () => {
+  it.each(["admin", "moderator"] as const)("enables both count queries for a %s", (role) => {
+    vi.mocked(useAuth).mockReturnValue({
+      user: { email: "[EMAIL]" },
+      role,
+      isAdmin: role === "admin",
+      isModerator: true,
+      signOut: vi.fn(),
+    });
+    renderSidebar();
+
+    expect(usePendingOrganizerRequestCount).toHaveBeenLastCalledWith(true);
+    expect(usePendingFounderRequestCount).toHaveBeenLastCalledWith(true);
+  });
+
+  it("disables both count queries for a Host user, who sees no review queue", () => {
+    mockMembershipOnlyHost("owner");
+    renderSidebar({ mode: "host" });
+
+    expect(usePendingOrganizerRequestCount).toHaveBeenLastCalledWith(false);
+    expect(usePendingFounderRequestCount).toHaveBeenLastCalledWith(false);
   });
 });

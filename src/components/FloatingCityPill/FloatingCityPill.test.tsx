@@ -58,9 +58,14 @@ function scrollTo(value: number) {
   });
 }
 
-function renderPill() {
+function renderPill(withFooter = false) {
   return render(
     <MemoryRouter>
+      {withFooter && (
+        <div className="app-layout">
+          <footer><a href="mailto:info@SalsaSegura.com">Email</a></footer>
+        </div>
+      )}
       <FloatingCityPill />
     </MemoryRouter>
   );
@@ -78,6 +83,7 @@ describe("FloatingCityPill", () => {
 
   afterEach(() => {
     scrollTo(0);
+    vi.unstubAllGlobals();
   });
 
   it("stays hidden before the scroll threshold", () => {
@@ -117,5 +123,43 @@ describe("FloatingCityPill", () => {
     expect(
       screen.getByRole("button", { name: /new york city.*explore other cities/i })
     ).toBeInTheDocument();
+  });
+
+  it("yields to footer actions and returns only while scrolled past the fold", () => {
+    const listeners = new Set<(entries: { isIntersecting: boolean }[]) => void>();
+    vi.stubGlobal("IntersectionObserver", class {
+      constructor(private callback: (entries: { isIntersecting: boolean }[]) => void) {
+        listeners.add(callback);
+      }
+      observe = vi.fn();
+      disconnect = () => listeners.delete(this.callback);
+    });
+    const showFooter = (isIntersecting: boolean) => {
+      act(() => {
+        listeners.forEach((callback) => callback([{ isIntersecting }]));
+      });
+    };
+    renderPill(true);
+    scrollTo(500);
+    expect(
+      screen.getByRole("button", { name: /explore other cities/i })
+    ).toBeInTheDocument();
+
+    showFooter(true);
+    expect(
+      screen.queryByRole("button", { name: /explore other cities/i })
+    ).not.toBeInTheDocument();
+
+    showFooter(false);
+    expect(
+      screen.getByRole("button", { name: /explore other cities/i })
+    ).toBeInTheDocument();
+
+    showFooter(true);
+    scrollTo(0);
+    showFooter(false);
+    expect(
+      screen.queryByRole("button", { name: /explore other cities/i })
+    ).not.toBeInTheDocument();
   });
 });

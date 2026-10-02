@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { render, screen, waitFor, within, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import type { User } from "@supabase/supabase-js";
@@ -17,6 +17,8 @@ vi.mock("../../contexts/useAuth", () => ({ useAuth: vi.fn() }));
 vi.mock("../../contexts/useCity", () => ({ useCity: vi.fn() }));
 vi.mock("../../features/account/hooks/useOwnProfile", () => ({ useOwnProfile: vi.fn() }));
 vi.mock("../../features/metros/hooks/useMetros", () => ({ useMetroName: vi.fn() }));
+
+afterEach(() => vi.unstubAllGlobals());
 
 const setCity = vi.fn();
 const chooseNearMe = vi.fn();
@@ -117,7 +119,7 @@ function renderHeader() {
           element={
             <>
               <Header />
-              <main>Destination</main>
+              <main>Destination <button type="button">Destination action</button></main>
             </>
           }
         />
@@ -354,6 +356,69 @@ describe("Header", () => {
         "false"
       )
     );
+  });
+
+  it("contains keyboard focus in the mobile navigation and restores it on dismissal", async () => {
+    vi.mocked(useAuth).mockReturnValue(defaultAuth());
+    mockCityValue("boston");
+    const user = userEvent.setup();
+    renderHeader();
+
+    const opener = screen.getByRole("button", { name: "Open menu" });
+    const main = screen.getByRole("main");
+    await user.click(opener);
+    expect(main).toHaveAttribute("inert");
+    const dialog = screen.getByRole("dialog", { name: "Site navigation" });
+    expect(dialog).toHaveAttribute("aria-modal", "true");
+    const close = within(dialog).getByRole("button", { name: "Close menu" });
+    expect(close).toHaveFocus();
+
+    await user.tab();
+    const first = within(dialog).getByRole("link", { name: /salsa segura/i });
+    expect(first).toHaveFocus();
+    await user.tab({ shift: true });
+    expect(close).toHaveFocus();
+    await user.keyboard("{Escape}");
+    expect(main).not.toHaveAttribute("inert");
+    expect(opener).toHaveFocus();
+    expect(screen.queryByRole("dialog", { name: "Site navigation" })).not.toBeInTheDocument();
+  });
+
+  it("releases the public page after choosing a mobile navigation destination", async () => {
+    vi.mocked(useAuth).mockReturnValue(defaultAuth());
+    mockCityValue("boston");
+    const user = userEvent.setup();
+    renderHeader();
+
+    const main = screen.getByRole("main");
+    await user.click(screen.getByRole("button", { name: "Open menu" }));
+    expect(main).toHaveAttribute("inert");
+    await user.click(screen.getByRole("link", { name: "Calendar" }));
+    expect(main).not.toHaveAttribute("inert");
+    expect(screen.getByRole("button", { name: "Open menu" })).toHaveAttribute(
+      "aria-expanded", "false"
+    );
+    screen.getByRole("button", { name: "Destination action" }).focus();
+    expect(screen.getByRole("button", { name: "Destination action" })).toHaveFocus();
+  });
+
+  it("releases background focus when an open mobile menu becomes desktop navigation", async () => {
+    vi.mocked(useAuth).mockReturnValue(defaultAuth());
+    mockCityValue("boston");
+    const user = userEvent.setup();
+    renderHeader();
+
+    const main = screen.getByRole("main");
+    await user.click(screen.getByRole("button", { name: "Open menu" }));
+    expect(main).toHaveAttribute("inert");
+    vi.stubGlobal("innerWidth", 1440);
+    fireEvent(window, new Event("resize"));
+
+    expect(main).not.toHaveAttribute("inert");
+    expect(screen.getByRole("button", { name: "Open menu" })).toHaveAttribute(
+      "aria-expanded", "false"
+    );
+    expect(document.body.style.overflow).not.toBe("hidden");
   });
 
   it("closes the drawer with Escape", async () => {

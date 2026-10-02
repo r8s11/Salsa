@@ -1,12 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import { useCalendarApp } from "@schedule-x/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useEventsQuery } from "../events/hooks/useEventsQuery";
+import type { DatabaseEvent } from "../events/model/types";
 import Calendar from "./Calendar";
 
 const eventsService = { set: vi.fn() };
 const calendarControls = { setDate: vi.fn(), setView: vi.fn() };
 const useEvents = vi.fn();
+const fetchApprovedEvents = vi.fn();
 const setCity = vi.fn();
 let city: string | null = "boston";
 let compact = false;
@@ -41,6 +45,7 @@ vi.mock("../../utils/seo", () => ({
   injectStructuredData: vi.fn(),
 }));
 vi.mock("../events/api/eventsRepo", () => ({
+  fetchApprovedEvents: (...args: unknown[]) => fetchApprovedEvents(...args),
   recordEventTouch: vi.fn().mockResolvedValue(undefined),
 }));
 vi.mock("./components/CalendarSubmissionDialog", () => ({ default: () => null }));
@@ -56,22 +61,62 @@ const event = {
   danceStyles: ["Salsa"],
 };
 
+function makeFeedEvents(city: DatabaseEvent["city"] = "boston"): DatabaseEvent[] {
+  return Array.from({ length: 61 }, (_, index) => ({
+    id: `${city}-${index}`,
+    title: `${city} Dance ${String(index).padStart(4, "0")}`,
+    description: null,
+    event_type: "social",
+    event_date: "2026-10-03T00:00:00Z",
+    event_time: null,
+    location: "Dance Hall",
+    address: null,
+    price_type: "free",
+    price_amount: null,
+    rsvp_link: null,
+    image_url: null,
+    submitter_name: null,
+    submitter_email: null,
+    submitter_id: null,
+    status: "approved",
+    city,
+    created_at: "2026-10-01T00:00:00Z",
+    host: null,
+    recurrence: null,
+    gallery: null,
+    contact_email: null,
+    contact_instagram: null,
+    contact_website: null,
+    source_type: "user_submission",
+    dance_styles: [index < 51 ? "Salsa" : "Bachata"],
+    taxonomy_term_ids: [],
+    taxonomy_terms: [],
+    updated_at: "2026-10-01T00:00:00Z",
+    cancellation_reason: null,
+    venue_id: null,
+  }));
+}
+
 function LocationProbe() {
   const location = useLocation();
   return <output aria-label="Current calendar URL">{location.pathname}{location.search}</output>;
 }
 
-function renderCalendar(path = "/calendar") {
+function renderCalendar(path = "/calendar", client?: QueryClient) {
   return render(
     <MemoryRouter initialEntries={[path]}>
       <Calendar />
       <LocationProbe />
-    </MemoryRouter>
+    </MemoryRouter>,
+    client
+      ? { wrapper: ({ children }) => <QueryClientProvider client={client}>{children}</QueryClientProvider> }
+      : undefined
   );
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
+  fetchApprovedEvents.mockReset();
   city = "boston";
   compact = false;
   wide = true;
@@ -91,6 +136,91 @@ beforeEach(() => {
 });
 
 describe("Calendar", () => {
+  it("keeps an expanded event reachable and restores its focus after closing details", async () => {
+    const client = new QueryClient({
+      defaultOptions: { queries: { staleTime: Infinity, retry: false } },
+    });
+    const rows = makeFeedEvents();
+    client.setQueryData(["events", "boston"], rows);
+    useEvents.mockImplementation(function useQueryBackedEvents() {
+      return useEventsQuery(city);
+    });
+    renderCalendar("/calendar", client);
+    fireEvent.click(screen.getByRole("button", { name: "List" }));
+    fireEvent.click(screen.getByRole("button", { name: "Show more events" }));
+    const opener = screen.getByRole("button", { name: /boston Dance 0050/ });
+    opener.focus();
+    fireEvent.click(opener);
+
+    expect(screen.getByRole("dialog")).toHaveTextContent("boston Dance 0050");
+    expect(opener).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /^Close$/ }));
+    await waitFor(() => expect(opener).toHaveFocus());
+
+  });
+
+  it("keeps the expanded row focused during and after an unchanged background refresh", async () => {
+    const client = new QueryClient({
+      defaultOptions: { queries: { staleTime: Infinity, retry: false } },
+    });
+    const rows = makeFeedEvents();
+    client.setQueryData(["events", "boston"], rows);
+    let feed: ReturnType<typeof useEventsQuery> | undefined;
+    useEvents.mockImplementation(function useQueryBackedEvents() {
+      feed = useEventsQuery(city);
+      return feed;
+    });
+    renderCalendar("/calendar", client);
+    fireEvent.click(screen.getByRole("button", { name: "List" }));
+    fireEvent.click(screen.getByRole("button", { name: "Show more events" }));
+    const expandedRow = screen.getByRole("button", { name: /boston Dance 0050/ });
+    expect(expandedRow).toHaveFocus();
+
+    const pending = Promise.withResolvers<DatabaseEvent[]>();
+    fetchApprovedEvents.mockReturnValueOnce(pending.promise);
+    let refreshing: Promise<void> | undefined;
+    act(() => {
+      refreshing = client.refetchQueries({ queryKey: ["events", "boston"], exact: true });
+    });
+    await waitFor(() => expect(feed?.fetching).toBe(true));
+    expect(expandedRow).toHaveFocus();
+    await act(async () => {
+      pending.resolve(rows.map((row) => ({ ...row })));
+      await refreshing;
+    });
+    expect(expandedRow).toHaveFocus();
+  });
+
+  it("resets expanded pages when the dance-style filter or city changes", () => {
+    const client = new QueryClient({
+      defaultOptions: { queries: { staleTime: Infinity, retry: false } },
+    });
+    client.setQueryData(["events", "boston"], makeFeedEvents());
+    client.setQueryData(["events", "new-york-city"], makeFeedEvents("new-york-city"));
+    useEvents.mockImplementation(function useQueryBackedEvents() {
+      return useEventsQuery(city);
+    });
+    const view = renderCalendar("/calendar", client);
+    fireEvent.click(screen.getByRole("button", { name: "List" }));
+    fireEvent.click(screen.getByRole("button", { name: "Show more events" }));
+    expect(screen.getByRole("button", { name: /boston Dance 0050/ })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Salsa" }));
+    expect(screen.queryByRole("button", { name: /boston Dance 0050/ })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Show more events" }));
+    expect(screen.getByRole("button", { name: /boston Dance 0050/ })).toBeInTheDocument();
+
+    city = "new-york-city";
+    view.rerender(
+      <MemoryRouter>
+        <Calendar />
+        <LocationProbe />
+      </MemoryRouter>
+    );
+    expect(screen.getByRole("button", { name: /new-york-city Dance 0000/ })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /new-york-city Dance 0050/ })).not.toBeInTheDocument();
+  });
+
   it("starts desktop Schedule-X in month grid and offers desktop view controls", () => {
     renderCalendar();
     expect(useCalendarApp).toHaveBeenCalledWith(

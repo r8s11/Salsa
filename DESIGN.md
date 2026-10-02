@@ -698,7 +698,10 @@ calendar asks for one rather than reporting an empty city.
 using the existing calendar colors, a two-line description (one line on compact
 screens), start–end time, venue, and dance-style badges. The list renders 50
 chronological events per batch; “Show more events” extends it and moves keyboard
-focus to the first newly revealed event. Multi-night events show the actual end date;
+focus to the first newly revealed event. Opening details and unchanged background
+refreshes retain expanded rows and the opener's focus on close. The converted event
+collection stays stable while cached data is unchanged; city, filter, or event-data
+changes reset pagination. Multi-night events show the actual end date;
 overnight events use a next-day marker. Missing or unreachable flyers use event-type
 fallback art. Fine-pointer hover moves only the detail arrow by 2px over 180ms; reduced
 motion removes that movement. Rows have no entrance or filter-triggered reveal. Date

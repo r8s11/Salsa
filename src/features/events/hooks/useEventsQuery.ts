@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchApprovedEvents } from "../api/eventsRepo";
 import { City, databaseEventToScheduleX } from "../../../types/events";
@@ -9,9 +10,11 @@ export function useEventsQuery(city: City | null) {
     queryFn: () => fetchApprovedEvents(city!),
     enabled: city !== null,
   });
+  // Incidental renders must not look like a different list collection.
+  const events = useMemo(() => data ? data.map(databaseEventToScheduleX) : [], [data]);
 
   return {
-    events: data ? data.map(databaseEventToScheduleX) : [],
+    events,
     loading: isLoading,
     fetching: isFetching,
     error: error ? error.message : null,

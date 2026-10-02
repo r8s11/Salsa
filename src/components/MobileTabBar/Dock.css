@@ -10,6 +10,15 @@
   padding: 3px 6px;
 }
 
+.dock-panel .rubber-segment {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  gap: 2px;
+  width: 100%;
+  height: 100%;
+}
+
 .dock-item {
   position: relative;
   flex: none;

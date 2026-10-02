@@ -18,11 +18,12 @@ import { ScheduleXEvent, CALENDARS_CONFIG, EventType } from "../../types/events"
 import { filterEventsByType, TypeFilter } from "../../utils/filterEvents";
 import { getUpcomingSeriesDates } from "../../utils/series";
 import { useCity } from "../../contexts/useCity";
-import { useActiveMetros, useMetros } from "../metros/hooks/useMetros";
+import { useActiveMetros, useMetroName, useMetros } from "../metros/hooks/useMetros";
 import EventModal from "../../components/EventModal/EventModal";
 import EventCard from "../../components/Events/EventCard";
 import CalendarListView from "./components/CalendarListView";
 import { EventManager, type CalendarView } from "../../components/ui/event-manager";
+import RubberSegment from "../../components/ui/RubberSegment";
 import CalendarSubmissionDialog from "./components/CalendarSubmissionDialog";
 import { useEvents } from "../events/hooks/useEvent";
 import {
@@ -65,6 +66,11 @@ const SIDEBAR_QUERY = "(min-width: 1024px)";
 
 type CalendarOccurrence = ScheduleXEvent & { sourceEventId?: ScheduleXEvent["id"] };
 
+// Case- and accent-insensitive: "salon" finds "Salón", "música" finds "Musica".
+function foldForSearch(value: string): string {
+  return value.normalize("NFD").replace(/\p{M}/gu, "").toLocaleLowerCase();
+}
+
 export default function Calendar() {
   const { activeMetros } = useActiveMetros();
   const { metros, loading: metrosLoading } = useMetros();
@@ -85,7 +91,20 @@ export default function Calendar() {
   );
   const [searchParams, setSearchParams] = useSearchParams();
   const { city, setCity } = useCity();
-  const { events: eventList, loading, error, refetch } = useEvents();
+  const {
+    events: eventList,
+    loading,
+    fetching,
+    error,
+    loadFailed,
+    refetch,
+  } = useEvents();
+  const metroName = useMetroName();
+
+  // The raw driver message is for us, not for dancers: log it, never render it.
+  useEffect(() => {
+    if (error) console.warn(`Calendar feed failed to load (${city}):`, error);
+  }, [error, city]);
 
   useEffect(() => {
     document.body.classList.add("calendar-page-open");
@@ -96,12 +115,12 @@ export default function Calendar() {
   const [eventsService] = useState(() => createEventsServicePlugin());
   const [calendarControls] = useState(() => createCalendarControlsPlugin());
   const filteredEvents = useMemo(() => {
-    const query = searchQuery.trim().toLocaleLowerCase();
+    const query = foldForSearch(searchQuery.trim());
     return filterEventsByDanceStyle(filterEventsByType(eventList, typeFilter), styleFilter).filter(
       (event) =>
         !query ||
         [event.title, event.location, event.description, ...(event.danceStyles ?? [])].some(
-          (value) => value?.toLocaleLowerCase().includes(query)
+          (value) => value && foldForSearch(value).includes(query)
         )
     );
   }, [eventList, typeFilter, styleFilter, searchQuery]);
@@ -268,18 +287,20 @@ export default function Calendar() {
   });
   useEventDeepLink(eventList, setSelectedEvent);
 
-  const cityLabel = metros.find((metro) => metro.slug === city)?.name ?? "All cities";
+  const cityLabel = city ? metroName(city) : null;
   const monthTitle = visibleDate.toLocaleString("en-US", { month: "long", year: "numeric" });
-  const isEmpty = !loading && !error && eventList.length === 0;
-  const hasNoMatches = !loading && !error && eventList.length > 0 && filteredEvents.length === 0;
+  // A failed background refresh keeps the last good feed on screen; only a
+  // load with nothing to show blocks the calendar.
+  const ready = !loading && !loadFailed;
+  const isEmpty = ready && eventList.length === 0;
+  const hasNoMatches = ready && eventList.length > 0 && filteredEvents.length === 0;
   const showCalendar =
-    !loading &&
-    !error &&
+    ready &&
     expandedEvents.length > 0 &&
     activeView !== "cards" &&
     activeView !== "list";
-  const showList = !loading && !error && expandedEvents.length > 0 && activeView === "list";
-  const showCards = !loading && !error && expandedEvents.length > 0 && activeView === "cards";
+  const showList = ready && expandedEvents.length > 0 && activeView === "list";
+  const showCards = ready && expandedEvents.length > 0 && activeView === "cards";
   const today = Temporal.Now.plainDateISO();
   const periodRange = calendarPeriodRange(
     visibleDate,
@@ -319,7 +340,15 @@ export default function Calendar() {
             <p className="stage-accent">salsa &amp; bachata, hasta la madrugada</p>
           </div>
           <div className="stage-controls">
-            <div className="pill-group calendar-city-switch" role="group" aria-label="City">
+            <RubberSegment
+              className="pill-group calendar-city-switch"
+              role="group"
+              aria-label="City"
+              items={activeMetros.map((metro) => metro.slug)}
+              value={city ?? undefined}
+              itemSelector=".pill"
+              fitHeight
+            >
               {activeMetros.map((option) => (
                 <button
                   type="button"
@@ -331,7 +360,7 @@ export default function Calendar() {
                   {option.name}
                 </button>
               ))}
-            </div>
+            </RubberSegment>
           </div>
         </div>
       </header>
@@ -409,11 +438,12 @@ export default function Calendar() {
           >
             <CalendarStatus
               loading={loading}
-              error={error}
+              loadFailed={loadFailed}
+              retrying={fetching}
               isEmpty={isEmpty}
               hasNoMatches={hasNoMatches}
               cityLabel={cityLabel}
-              onRetry={refetch}
+              onRetry={() => void refetch()}
               onClearFilter={() => {
                 setTypeFilter("all");
                 setStyleFilter("all");

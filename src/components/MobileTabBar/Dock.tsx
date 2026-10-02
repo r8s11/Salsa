@@ -3,7 +3,7 @@ import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } fro
 import type { MotionValue, SpringOptions } from "motion/react";
 import { NavLink } from "react-router-dom";
 import type { LucideIcon } from "lucide-react";
-import RubberSegment from "./RubberSegment";
+import RubberSegment from "../ui/RubberSegment";
 import "./Dock.css";
 
 type DockItemData = {
@@ -95,7 +95,7 @@ export default function Dock({
         onMouseLeave={() => mouseX.set(Infinity)}
         onTouchStart={() => mouseX.set(Infinity)}
       >
-        <RubberSegment items={items} value={activeValue}>
+        <RubberSegment items={items.map((item) => item.to)} value={activeValue} itemSelector=".dock-item">
           {items.map((item) => (
             <DockItem
               key={item.to}

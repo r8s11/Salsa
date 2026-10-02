@@ -185,9 +185,25 @@
   border: 1px solid var(--border);
   border-radius: 12px;
 }
-.pill-active-city {
-  color: var(--text);
+/* Selected city and view ride a RubberSegment thumb (the dock's travelling
+   selection), kept on the calendar's neutral ground instead of the dock's rose.
+   The thumb is clipped to the selected pill and supplies its background. */
+.calendar-city-switch > .rubber-segment__thumb,
+.calendar-view-pills > .rubber-segment__thumb {
   background: var(--surface-high);
+  box-shadow: none;
+}
+.calendar-city-switch .pill,
+.calendar-view-pills .pill {
+  position: relative;
+  z-index: 1;
+}
+.calendar-city-switch .pill-active-city,
+.calendar-city-switch .pill-active-city:hover,
+.calendar-view-pills .pill-active-view,
+.calendar-view-pills .pill-active-view:hover {
+  color: var(--text);
+  background: transparent;
 }
 .pill-active-type {
   color: var(--primary);
@@ -310,10 +326,6 @@
   border-radius: 12px;
   background: var(--surface);
 }
-.pill-active-view {
-  background: var(--surface-high);
-  color: var(--text);
-}
 .event-manager__filters {
   display: flex;
   flex-wrap: wrap;
@@ -354,7 +366,7 @@
 .calendar-status p {
   margin: 0 0 20px;
 }
-.calendar-status button:not(.btn-primary) {
+.calendar-status button:not(.ui-button) {
   min-height: 44px;
   padding: 10px 18px;
   border: 1px solid var(--border-md);

@@ -590,7 +590,8 @@ The stage header pairs the Epilogue display title and balanced subtitle
   never travels. Schedule-X's built-in slide is off (`skipAnimations`) so this is
   the only grid motion. Reduced motion keeps a 160ms opacity settle with no movement.
 - **Search bar:** Real-time search matching event titles, locations, venues,
-  descriptions, and dance styles, with an instant clear button (`X`) that returns
+  descriptions, and dance styles, ignoring case and accents ("salon" finds "Salón"),
+  with an instant clear button (`X`) that returns
   focus to the input. The entire search bar's metal perimeter is the one authored motion
   moment: lazy-loaded Paper liquid metal runs for 650ms on focus, then stops.
   Blur/unmount disposes the shader; hidden/offscreen rendering pauses. Reduced motion
@@ -601,7 +602,12 @@ The stage header pairs the Epilogue display title and balanced subtitle
   The rim alone uses material neutrals (`#77777b`, `#dedbd5`, `#85858a`, `#c5b89d`)
   and shader back/tint (`#99999c`, `#fff0d4`); these are not content or category colors.
 - **View switcher:** Segmented pill group toggling Month Grid, Week, List,
-  and Cards on desktop; compact screens filter to List and Cards only.
+  and Cards on desktop; compact screens filter to List and Cards only. The
+  selected view, like the selected city in the stage switch, sits on the dock's
+  rubber segment (`src/components/ui/RubberSegment.tsx`): the thumb stretches
+  over the old and new pill (190ms) and contracts onto the new one (300ms
+  spring), in the calendar's neutral `--surface-high` rather than the dock's
+  rose. Reduced motion moves it at once.
 - **Action CTA:** Prominent solid Rose Red button (`+ New event`) that
   launches the submission dialog. No duplicate footer or empty-state submission CTA.
 
@@ -625,6 +631,11 @@ The stage header pairs the Epilogue display title and balanced subtitle
   instant open.
   List/Cards labels stay visible even at 320px.
   Every visible calendar control retains a 44px minimum touch target.
+**Feed states:** A failed first load names the city ("We couldn't load Boston's
+listings.") and never shows the raw driver error; its Try again button stays in
+place while retrying and gets focus back if the retry fails. A failed background
+refresh keeps the last loaded events on screen. With no city chosen, the
+calendar asks for one rather than reporting an empty city.
 **List details:** Date-grouped rows with 1px borders show title, labeled event type
 using the existing calendar colors, a two-line description (one line on compact
 screens), start–end time, venue, and dance-style badges. The list renders 50

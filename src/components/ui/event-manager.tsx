@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import {
   CalendarDays,
@@ -11,6 +11,7 @@ import {
   X,
 } from "lucide-react";
 import Button from "./Button";
+import RubberSegment from "./RubberSegment";
 import { LiquidMetalBorder } from "./liquid-metal-border";
 import { cn } from "@/lib/utils";
 
@@ -54,6 +55,10 @@ export function EventManager({
   const period = view === "week" ? "week" : "month";
   const searchInput = useRef<HTMLInputElement>(null);
   const [searchFocused, setSearchFocused] = useState(false);
+  const visibleViews = useMemo(
+    () => views.filter((option) => !compact || option.value === "list" || option.value === "cards"),
+    [compact]
+  );
   const navigation = view === "month-grid" || view === "week" ? (
     <div className="month-nav">
       <button
@@ -78,23 +83,29 @@ export function EventManager({
     </div>
   ) : null;
   const viewSwitcher = (
-    <div className="calendar-view-pills" role="group" aria-label="Calendar view">
-      {views
-        .filter((option) => !compact || option.value === "list" || option.value === "cards")
-        .map(({ value, label, icon: Icon }) => (
-          <button
-            type="button"
-            key={value}
-            className={`pill ${view === value ? "pill-active-view" : ""}`}
-            aria-label={label}
-            aria-pressed={view === value}
-            onClick={() => onViewChange(value)}
-          >
-            <Icon size={16} aria-hidden />
-            <span className="calendar-view-label">{label}</span>
-          </button>
-        ))}
-    </div>
+    <RubberSegment
+      className="calendar-view-pills"
+      role="group"
+      aria-label="Calendar view"
+      items={visibleViews.map((option) => option.value)}
+      value={view}
+      itemSelector=".pill"
+      fitHeight
+    >
+      {visibleViews.map(({ value, label, icon: Icon }) => (
+        <button
+          type="button"
+          key={value}
+          className={`pill ${view === value ? "pill-active-view" : ""}`}
+          aria-label={label}
+          aria-pressed={view === value}
+          onClick={() => onViewChange(value)}
+        >
+          <Icon size={16} aria-hidden />
+          <span className="calendar-view-label">{label}</span>
+        </button>
+      ))}
+    </RubberSegment>
   );
   return (
     <section className={cn("event-manager", className)} aria-label="Dance event planner">

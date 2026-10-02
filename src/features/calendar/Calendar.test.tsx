@@ -8,7 +8,7 @@ const eventsService = { set: vi.fn() };
 const calendarControls = { setDate: vi.fn(), setView: vi.fn() };
 const useEvents = vi.fn();
 const setCity = vi.fn();
-let city = "boston";
+let city: string | null = "boston";
 let compact = false;
 let wide = true;
 let mediaListener: ((event: MediaQueryListEvent) => void) | undefined;
@@ -178,20 +178,90 @@ describe("Calendar", () => {
     expect(screen.getByTestId("schedule-x-calendar")).toBeInTheDocument();
   });
 
-  it("retries failed requests and renders the overall empty state", () => {
+  it("explains a failed load without the driver error and keeps it visible while retrying", () => {
     const refetch = vi.fn();
-    useEvents.mockReturnValue({ events: [], loading: false, error: "Unavailable", refetch });
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    useEvents.mockReturnValue({
+      events: [],
+      loading: false,
+      fetching: false,
+      error: "relation public_events does not exist",
+      loadFailed: true,
+      refetch,
+    });
     const { rerender } = renderCalendar();
-    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+    const alert = screen.getByRole("alert");
+    expect(alert).toHaveTextContent("We couldn't load Boston's listings.");
+    expect(alert).not.toHaveTextContent("relation public_events");
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
     expect(refetch).toHaveBeenCalledOnce();
-    useEvents.mockReturnValue({ events: [], loading: false, error: null, refetch });
+
+    useEvents.mockReturnValue({
+      events: [],
+      loading: true,
+      fetching: true,
+      error: null,
+      loadFailed: true,
+      refetch,
+    });
     rerender(
       <MemoryRouter>
         <Calendar />
       </MemoryRouter>
     );
+    expect(screen.getByRole("alert")).toBeInTheDocument();
+    expect(screen.queryByText("Loading events…")).not.toBeInTheDocument();
+    warn.mockRestore();
+  });
+
+  it("keeps loaded events on screen when a background refresh fails", () => {
+    useEvents.mockReturnValue({
+      events: [event],
+      loading: false,
+      fetching: false,
+      error: "network down",
+      loadFailed: false,
+      refetch: vi.fn(),
+    });
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    renderCalendar();
+    expect(screen.getByTestId("schedule-x-calendar")).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("renders the overall empty state for the selected city", () => {
+    useEvents.mockReturnValue({ events: [], loading: false, error: null, refetch: vi.fn() });
+    renderCalendar();
     expect(screen.getByText("No upcoming events in Boston yet.")).toBeInTheDocument();
     expect(screen.queryByTestId("schedule-x-calendar")).not.toBeInTheDocument();
+  });
+
+  it("asks for a city instead of claiming one is empty when none is selected", () => {
+    city = null;
+    useEvents.mockReturnValue({ events: [], loading: false, error: null, refetch: vi.fn() });
+    renderCalendar();
+    expect(screen.getByText("Choose a city to see its dance calendar.")).toBeInTheDocument();
+    expect(screen.queryByText(/All cities/)).not.toBeInTheDocument();
+  });
+
+  it("matches search terms regardless of accents", () => {
+    compact = true;
+    useEvents.mockReturnValue({
+      events: [
+        { ...event, id: "salon", title: "Noche de Salón" },
+        { ...event, id: "musica", title: "Musica en vivo" },
+      ],
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+    renderCalendar();
+    const search = screen.getByRole("searchbox");
+    fireEvent.change(search, { target: { value: "salon" } });
+    expect(screen.getByRole("button", { name: /Noche de Salón/ })).toBeInTheDocument();
+    fireEvent.change(search, { target: { value: "música" } });
+    expect(screen.getByRole("button", { name: /Musica en vivo/ })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Noche de Salón/ })).not.toBeInTheDocument();
   });
 
   it("switches views in response to media-query changes and unsubscribes", () => {

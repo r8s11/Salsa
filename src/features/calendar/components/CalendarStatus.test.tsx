@@ -11,7 +11,8 @@ function renderStatus(props: Partial<ComponentProps<typeof CalendarStatus>> = {}
     <MemoryRouter>
       <CalendarStatus
         loading={false}
-        error={null}
+        loadFailed={false}
+        retrying={false}
         isEmpty={false}
         hasNoMatches={false}
         cityLabel="Boston"
@@ -25,18 +26,26 @@ function renderStatus(props: Partial<ComponentProps<typeof CalendarStatus>> = {}
 }
 
 describe("CalendarStatus", () => {
-  it("uses loading state before every other status", () => {
-    renderStatus({ loading: true, error: "Unavailable", isEmpty: true, hasNoMatches: true });
+  it("uses loading state before the empty and filtered states", () => {
+    renderStatus({ loading: true, isEmpty: true, hasNoMatches: true });
 
     expect(screen.getByRole("status")).toHaveTextContent("Loading events…");
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
-  it("renders an error and retries", () => {
-    const { onRetry } = renderStatus({ error: "Unavailable" });
+  it("keeps a failed load on screen through a retry without requesting twice", () => {
+    const { onRetry } = renderStatus({ loadFailed: true, loading: true, retrying: true });
 
-    expect(screen.getByRole("alert")).toHaveTextContent("Failed to load events: Unavailable");
-    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+    expect(screen.getByRole("alert")).toHaveTextContent("We couldn't load Boston's listings.");
+    expect(screen.queryByText("Loading events…")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /Try again|Trying again/ }));
+    expect(onRetry).not.toHaveBeenCalled();
+  });
+
+  it("retries a failed load", () => {
+    const { onRetry } = renderStatus({ loadFailed: true });
+
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
     expect(onRetry).toHaveBeenCalledOnce();
   });
 

@@ -94,10 +94,18 @@ function mapPrice(value: string): { price_type: "free" | "paid"; price_amount: s
   return null;
 }
 
+/**
+ * `preserveCity`: set once the user has chosen the event city themselves (the
+ * draft cannot tell a typed city from the viewer default). The flyer's city is
+ * then ignored instead of replacing their choice.
+ */
+export type PrefillOptions = { preserveCity?: boolean };
+
 export function applyExtractionToDraft(
   extraction: ExtractedEvent,
   draft: EventFormDraft,
-  metros: ReadonlyArray<Pick<Metro, "slug" | "name">>
+  metros: ReadonlyArray<Pick<Metro, "slug" | "name">>,
+  options: PrefillOptions = {}
 ): PrefillResult {
   const next: EventFormDraft = { ...draft, dance_styles: [...draft.dance_styles] };
   const filled: string[] = [];
@@ -133,13 +141,13 @@ export function applyExtractionToDraft(
 
   if (extraction.city) {
     const mapped = mapCity(extraction.city, metros);
-    if (mapped) {
-      if (next.city !== mapped) {
-        next.city = mapped;
-        filled.push("City");
-      }
-    } else {
+    if (!mapped) {
+      // Reported even when the person's own city is kept: the flyer's locality
+      // is still unreadable and the notice tells them so.
       skipped.push("City");
+    } else if (!options.preserveCity && next.city !== mapped) {
+      next.city = mapped;
+      filled.push("City");
     }
   }
 
@@ -152,8 +160,10 @@ export function applyExtractionToDraft(
     filled.push("Start time");
   }
 
-  fillText("location", extraction.venue_name, "Venue");
-  fillText("address", extraction.address, "Address");
+  // Flat event fields win; the structured venue only fills a gap. Its city is
+  // the venue's locality and is never promoted to the event city.
+  fillText("location", extraction.venue_name ?? extraction.venue?.name ?? null, "Venue");
+  fillText("address", extraction.address ?? extraction.venue?.address ?? null, "Address");
 
   if (extraction.price && !next.price_type) {
     const mapped = mapPrice(extraction.price);

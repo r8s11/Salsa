@@ -38,6 +38,7 @@ export function useAdminSubmissions() {
     isLoading: query.isLoading,
     error: query.error,
     updateSubmission: updateMutation.mutate,
+    updateSubmissionAsync: updateMutation.mutateAsync,
     isUpdating: updateMutation.isPending,
     updateError: updateMutation.error,
     approveSubmissionWithTaxonomy: approveMutation.mutate,

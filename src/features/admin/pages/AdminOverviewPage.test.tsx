@@ -211,6 +211,7 @@ const defaultSubmissionsState = {
   isLoading: false,
   error: null,
   updateSubmission: vi.fn(),
+  updateSubmissionAsync: vi.fn(),
   isUpdating: false,
   updateError: null,
   approveSubmissionWithTaxonomy: vi.fn(),
@@ -375,6 +376,70 @@ describe("AdminOverviewPage", () => {
     );
   });
 
+  it("saves reviewed linked records before approving inline, and approves nothing if saving fails", async () => {
+    const user = userEvent.setup();
+    const base = submission("s-1", "Unset One", 3) as { submitted_data: Record<string, unknown> };
+    const VENUE_ID = "11111111-1111-4111-8111-111111111111";
+    const withReview = {
+      ...base,
+      edited_data: null,
+      submitted_data: {
+        ...base.submitted_data,
+        entity_review: {
+          venue: {
+            candidate: { name: "Studio 5" },
+            state: "POSSIBLE MATCH",
+            matches: [{ id: VENUE_ID, name: "Studio Five" }],
+            decision: "new",
+            selected_id: null,
+          },
+          organizer: null,
+          instructors: [],
+          school: null,
+        },
+      },
+    };
+    const order: string[] = [];
+    let saved!: { onSuccess?: () => void; onError?: (error: Error) => void };
+    const updateSubmission = vi.fn((_vars: unknown, callbacks: typeof saved) => {
+      order.push("update");
+      saved = callbacks;
+    });
+    const approveSubmissionWithTaxonomy = vi.fn(() => {
+      order.push("approve");
+    });
+    vi.mocked(useAdminSubmissions).mockReturnValue({
+      ...defaultSubmissionsState,
+      submissions: [withReview],
+      updateSubmission,
+      approveSubmissionWithTaxonomy,
+    });
+    renderPage();
+
+    await user.click(within(galley()).getByRole("button", { name: "Unset One" }));
+    await user.click(within(galley()).getByRole("button", { name: "Use Studio Five as the venue" }));
+    await user.click(within(galley()).getByRole("button", { name: "Approve" }));
+
+    expect(approveSubmissionWithTaxonomy).not.toHaveBeenCalled();
+    expect(updateSubmission).toHaveBeenCalledWith(
+      {
+        id: "s-1",
+        update: {
+          edited_data: {
+            entity_review: expect.objectContaining({
+              venue: expect.objectContaining({ decision: "existing", selected_id: VENUE_ID }),
+            }),
+          },
+        },
+      },
+      expect.anything()
+    );
+
+    saved.onError?.(new Error("nope"));
+    expect(approveSubmissionWithTaxonomy).not.toHaveBeenCalled();
+    saved.onSuccess?.();
+    expect(order).toEqual(["update", "approve"]);
+  });
 it("keeps an approval failure open without starting the leave animation", async () => {
   const user = userEvent.setup();
   let callbacks!: { onSuccess?: () => void; onError?: (error: Error) => void };

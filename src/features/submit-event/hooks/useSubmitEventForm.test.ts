@@ -4,6 +4,28 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createSubmission } from "../../admin/api/submissionsRepo";
 import { notifySubmissionReceived } from "../api/submissionNotification";
 import { useSubmitEventForm } from "./useSubmitEventForm";
+import type { EntityReview, EntityReviewItem } from "../../entity-matching/entityReview";
+
+const CANONICAL = {
+  id: "11111111-1111-4111-8111-111111111111",
+  name: "Canonical Club",
+  address: "1 Main",
+  city: "Boston",
+};
+const venueItem = (overrides: Partial<EntityReviewItem> = {}): EntityReviewItem => ({
+  candidate: { name: "Havana Club", address: "288 Green Street", city: "Cambridge" },
+  state: "POSSIBLE MATCH",
+  matches: [CANONICAL],
+  decision: "pending",
+  selected_id: null,
+  ...overrides,
+});
+const reviewWithVenue = (venue: EntityReviewItem): EntityReview => ({
+  venue,
+  organizer: null,
+  instructors: [],
+  school: null,
+});
 
 vi.mock("../../admin/api/submissionsRepo", () => ({
   createSubmission: vi.fn(),
@@ -27,8 +49,11 @@ const mockFlyerExtraction = vi.hoisted(() => ({
 
 vi.mock("../../flyer-extraction/client", () => mockFlyerExtraction);
 
-const mockReconciliation = vi.hoisted(() => ({ reconcileVenue: vi.fn() }));
-vi.mock("../../entity-matching/reconcileClient", () => mockReconciliation);
+const mockReconciliation = vi.hoisted(() => ({
+  reconcileEntities: vi.fn(),
+  searchEntityMatches: vi.fn(),
+}));
+vi.mock("../../entity-matching/entityReviewClient", () => mockReconciliation);
 
 vi.mock("../../../contexts/useCity", () => ({
   useCity: () => ({ city: "boston" }),
@@ -71,7 +96,12 @@ describe("useSubmitEventForm", () => {
     });
     mockEventFlyers.removeEventFlyer.mockResolvedValue(undefined);
     vi.mocked(createSubmission).mockResolvedValue("submission-abc");
-    mockReconciliation.reconcileVenue.mockResolvedValue({ venue: { status: "none", match: null } });
+    mockReconciliation.reconcileEntities.mockResolvedValue({
+      venue: null,
+      organizer: null,
+      instructors: [],
+      school: null,
+    });
   });
 
   it("submits dance_styles as an empty array when nothing is selected", async () => {
@@ -603,47 +633,322 @@ describe("useSubmitEventForm", () => {
       expect(result.current.extractionError).toBeNull();
     });
 
-    it("enriches exact venue matches without setting venue_id", async () => {
+    it("enriches the form from an explicitly selected existing venue without setting venue_id", async () => {
       mockFlyerExtraction.extractEventFromFlyer.mockResolvedValue(extractionFixture);
-      mockReconciliation.reconcileVenue.mockResolvedValue({
-        venue: {
-          status: "exact",
-          match: { id: "v1", name: "Canonical Club", address: "1 Main", city: "Boston" },
-        },
-      });
+      mockReconciliation.reconcileEntities.mockResolvedValue(
+        reviewWithVenue(
+          venueItem({ state: "MATCHED", decision: "existing", selected_id: CANONICAL.id })
+        )
+      );
       const { result } = renderHook(() => useSubmitEventForm());
       await act(async () => {
         result.current.handleFlyerChange(pngFile());
       });
       await act(async () => {
-        await Promise.resolve();
         result.current.handleExtractFlyer();
-        await Promise.resolve();
-        await Promise.resolve();
       });
       expect(result.current.form.location).toBe("Canonical Club");
       expect(result.current.form.address).toBe("1 Main");
       expect(result.current.form.venue_id).toBe("");
       expect(result.current.extractionResult?.venue_name).toBe("Havana Club");
+      expect(result.current.entityReview?.venue).toMatchObject({
+        decision: "existing",
+        selected_id: CANONICAL.id,
+      });
+      expect(result.current.form.entity_review).toBe(result.current.entityReview);
+      expect(result.current.reconciliation).toEqual({ status: "success", error: null });
     });
 
-    it("keeps raw values for ambiguous reconciliation", async () => {
-      mockFlyerExtraction.extractEventFromFlyer.mockResolvedValue(extractionFixture);
-      mockReconciliation.reconcileVenue.mockResolvedValue({
-        venue: { status: "ambiguous", match: null },
+    it("sends the flyer's structured candidates to reconcile, never the event contact", async () => {
+      mockFlyerExtraction.extractEventFromFlyer.mockResolvedValue({
+        ...extractionFixture,
+        venue: { name: "Havana Club", address: "288 Green Street", city: "Cambridge" },
+        organizer: { name: "SalsaSegura Events" },
+        instructors: [{ name: "Ana Rivera" }],
+        school: null,
       });
       const { result } = renderHook(() => useSubmitEventForm());
       await act(async () => {
         result.current.handleFlyerChange(pngFile());
       });
       await act(async () => {
-        await Promise.resolve();
         result.current.handleExtractFlyer();
-        await Promise.resolve();
-        await Promise.resolve();
+      });
+      const sent = mockReconciliation.reconcileEntities.mock.calls[0][0];
+      expect(sent.venue.name).toBe("Havana Club");
+      expect(sent.organizer.name).toBe("SalsaSegura Events");
+      expect(sent.instructors.map((entry: { name: string }) => entry.name)).toEqual(["Ana Rivera"]);
+      expect(sent.school).toBeNull();
+      expect(JSON.stringify(sent)).not.toContain("@salsasegura");
+    });
+
+    it("keeps raw flyer values for a possible match the user has not chosen", async () => {
+      mockFlyerExtraction.extractEventFromFlyer.mockResolvedValue(extractionFixture);
+      mockReconciliation.reconcileEntities.mockResolvedValue(reviewWithVenue(venueItem()));
+      const { result } = renderHook(() => useSubmitEventForm());
+      await act(async () => {
+        result.current.handleFlyerChange(pngFile());
+      });
+      await act(async () => {
+        result.current.handleExtractFlyer();
       });
       expect(result.current.form.location).toBe("Havana Club");
       expect(result.current.form.address).toBe("288 Green Street");
+      expect(result.current.entityReview?.venue).toMatchObject({
+        state: "POSSIBLE MATCH",
+        decision: "pending",
+      });
+    });
+
+    it("does not auto-link a flyer venue over a venue the person already typed", async () => {
+      mockFlyerExtraction.extractEventFromFlyer.mockResolvedValue(extractionFixture);
+      mockReconciliation.reconcileEntities.mockResolvedValue(
+        reviewWithVenue(
+          venueItem({ state: "MATCHED", decision: "existing", selected_id: CANONICAL.id })
+        )
+      );
+      const { result } = renderHook(() => useSubmitEventForm());
+      await act(async () => {
+        result.current.handleFlyerChange(pngFile());
+        result.current.update("location", "My Own Hall");
+      });
+      await act(async () => {
+        result.current.handleExtractFlyer();
+      });
+      expect(result.current.form.location).toBe("My Own Hall");
+      expect(result.current.entityReview?.venue).toMatchObject({
+        decision: "pending",
+        selected_id: null,
+      });
+    });
+
+    it("detaches an automatic venue link when the venue text is edited, but keeps one the person chose", async () => {
+      mockFlyerExtraction.extractEventFromFlyer.mockResolvedValue(extractionFixture);
+      mockReconciliation.reconcileEntities.mockResolvedValue(
+        reviewWithVenue(
+          venueItem({ state: "MATCHED", decision: "existing", selected_id: CANONICAL.id })
+        )
+      );
+      const { result } = renderHook(() => useSubmitEventForm());
+      await act(async () => {
+        result.current.handleFlyerChange(pngFile());
+      });
+      await act(async () => {
+        result.current.handleExtractFlyer();
+      });
+      expect(result.current.entityReview?.venue?.decision).toBe("existing");
+
+      await act(async () => {
+        result.current.update("location", "Somewhere Else");
+      });
+      expect(result.current.entityReview?.venue).toMatchObject({
+        decision: "pending",
+        selected_id: null,
+      });
+
+      await act(async () => {
+        result.current.setEntityReview({
+          ...result.current.entityReview!,
+          venue: {
+            ...venueItem({ decision: "existing", selected_id: CANONICAL.id }),
+            explicit: true,
+          } as EntityReviewItem,
+        });
+      });
+      await act(async () => {
+        result.current.update("location", "A Third Label");
+      });
+      expect(result.current.entityReview?.venue).toMatchObject({
+        decision: "existing",
+        selected_id: CANONICAL.id,
+      });
+    });
+
+    it("falls back to an unresolved review when matching is unavailable", async () => {
+      mockFlyerExtraction.extractEventFromFlyer.mockResolvedValue(extractionFixture);
+      mockReconciliation.reconcileEntities.mockRejectedValue(new Error("We couldn't check."));
+      const { result } = renderHook(() => useSubmitEventForm());
+      await act(async () => {
+        result.current.handleFlyerChange(pngFile());
+      });
+      await act(async () => {
+        result.current.handleExtractFlyer();
+      });
+      expect(result.current.extractionStatus).toBe("success");
+      expect(result.current.reconciliation.status).toBe("error");
+      expect(result.current.form.location).toBe("Havana Club");
+      expect(result.current.entityReview?.venue).toMatchObject({
+        candidate: { name: "Havana Club" },
+        state: "NEEDS REVIEW",
+        decision: "pending",
+        matches: [],
+      });
+    });
+
+    it("does not call reconcile or create a review when the flyer shows no entities", async () => {
+      mockFlyerExtraction.extractEventFromFlyer.mockResolvedValue({
+        ...extractionFixture,
+        venue_name: null,
+        organizer_name: null,
+        venue: null,
+        organizer: null,
+        instructors: [],
+        school: null,
+      });
+      const { result } = renderHook(() => useSubmitEventForm());
+      await act(async () => {
+        result.current.handleFlyerChange(pngFile());
+      });
+      await act(async () => {
+        result.current.handleExtractFlyer();
+      });
+      expect(mockReconciliation.reconcileEntities).not.toHaveBeenCalled();
+      expect(result.current.entityReview).toBeNull();
+      expect(result.current.form.entity_review).toBeUndefined();
+    });
+
+    it("keeps the person's decision and edits when the flyer is analysed again", async () => {
+      mockFlyerExtraction.extractEventFromFlyer.mockResolvedValue(extractionFixture);
+      mockReconciliation.reconcileEntities.mockResolvedValue(reviewWithVenue(venueItem()));
+      const { result } = renderHook(() => useSubmitEventForm());
+      await act(async () => {
+        result.current.handleFlyerChange(pngFile());
+      });
+      await act(async () => {
+        result.current.handleExtractFlyer();
+      });
+      await act(async () => {
+        result.current.setEntityReview({
+          ...result.current.entityReview!,
+          venue: venueItem({ decision: "existing", selected_id: CANONICAL.id }),
+        });
+        result.current.update("title", "My own title");
+      });
+      await act(async () => {
+        result.current.handleExtractFlyer();
+      });
+      expect(result.current.entityReview?.venue).toMatchObject({
+        decision: "existing",
+        selected_id: CANONICAL.id,
+      });
+      expect(result.current.form.title).toBe("My own title");
+    });
+
+    it("discards a late reconcile result after the flyer is replaced", async () => {
+      mockFlyerExtraction.extractEventFromFlyer.mockResolvedValue(extractionFixture);
+      const pending = Promise.withResolvers<EntityReview>();
+      mockReconciliation.reconcileEntities.mockReturnValue(pending.promise);
+      const { result } = renderHook(() => useSubmitEventForm());
+      await act(async () => {
+        result.current.handleFlyerChange(pngFile());
+      });
+      await act(async () => {
+        result.current.handleExtractFlyer();
+      });
+      expect(result.current.reconciliation.status).toBe("loading");
+      const titleBefore = result.current.form.title;
+
+      await act(async () => {
+        result.current.handleFlyerChange(pngFile());
+      });
+      await act(async () => {
+        pending.resolve(reviewWithVenue(venueItem()));
+      });
+
+      expect(result.current.extractionStatus).toBe("idle");
+      expect(result.current.entityReview).toBeNull();
+      expect(result.current.form.title).toBe(titleBefore);
+      expect(result.current.form.location).toBe("");
+    });
+
+    it("drops an untouched review with its flyer but keeps one the person decided", async () => {
+      mockFlyerExtraction.extractEventFromFlyer.mockResolvedValue(extractionFixture);
+      mockReconciliation.reconcileEntities.mockResolvedValue(reviewWithVenue(venueItem()));
+      const { result } = renderHook(() => useSubmitEventForm());
+      await act(async () => {
+        result.current.handleFlyerChange(pngFile());
+      });
+      await act(async () => {
+        result.current.handleExtractFlyer();
+      });
+      await act(async () => {
+        await result.current.handleFlyerRemove();
+      });
+      expect(result.current.entityReview).toBeNull();
+
+      await act(async () => {
+        result.current.handleFlyerChange(pngFile());
+      });
+      await act(async () => {
+        result.current.handleExtractFlyer();
+      });
+      await act(async () => {
+        result.current.setEntityReview({
+          ...result.current.entityReview!,
+          venue: venueItem({ decision: "new" }),
+        });
+      });
+      await act(async () => {
+        await result.current.handleFlyerRemove();
+      });
+      expect(result.current.entityReview?.venue?.decision).toBe("new");
+    });
+
+    it("passes the reviewed entities through to the submission", async () => {
+      mockFlyerExtraction.extractEventFromFlyer.mockResolvedValue(extractionFixture);
+      mockReconciliation.reconcileEntities.mockResolvedValue(reviewWithVenue(venueItem()));
+      const { result } = renderHook(() => useSubmitEventForm());
+      await act(async () => {
+        result.current.handleFlyerChange(pngFile());
+      });
+      await act(async () => {
+        result.current.handleExtractFlyer();
+      });
+      await act(async () => {
+        result.current.update("event_type", "social");
+        result.current.update("event_date", "2026-08-20");
+        result.current.setEntityReview({
+          ...result.current.entityReview!,
+          venue: venueItem({ decision: "new" }),
+        });
+      });
+      await act(async () => {
+        await result.current.handleSubmit({ preventDefault: () => {} } as unknown as FormEvent);
+      });
+      expect(createSubmission).toHaveBeenCalledWith(
+        expect.objectContaining({
+          entity_review: expect.objectContaining({
+            venue: expect.objectContaining({ decision: "new", selected_id: null }),
+          }),
+        }),
+        expect.anything()
+      );
+      expect(result.current.entityReview).toBeNull();
+    });
+
+    it("leaves a city the person chose alone, but follows the flyer for the default city", async () => {
+      mockFlyerExtraction.extractEventFromFlyer.mockResolvedValue({
+        ...extractionFixture,
+        city: "Miami",
+      });
+      const first = renderHook(() => useSubmitEventForm());
+      await act(async () => {
+        first.result.current.handleFlyerChange(pngFile());
+      });
+      await act(async () => {
+        first.result.current.handleExtractFlyer();
+      });
+      expect(first.result.current.form.city).toBe("miami");
+
+      const second = renderHook(() => useSubmitEventForm());
+      await act(async () => {
+        second.result.current.update("city", "new-york-city");
+        second.result.current.handleFlyerChange(pngFile());
+      });
+      await act(async () => {
+        second.result.current.handleExtractFlyer();
+      });
+      expect(second.result.current.form.city).toBe("new-york-city");
     });
 
     it("does nothing before a flyer is persisted", async () => {

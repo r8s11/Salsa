@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import CalendarSubmissionDialog from "./CalendarSubmissionDialog";
 import { createSubmission } from "../../admin/api/submissionsRepo";
+import { reconcileEntities } from "../../entity-matching/entityReviewClient";
 import { useSubmissionAccess } from "../../submit-event/hooks/useSubmissionAccess";
 
 // jsdom has no layout engine and no ResizeObserver/scrollIntoView; Radix
@@ -35,8 +36,9 @@ vi.mock("../../events/api/eventFlyers", () => ({
 vi.mock("../../flyer-extraction/client", () => ({
   extractEventFromFlyer: vi.fn(),
 }));
-vi.mock("../../entity-matching/reconcileClient", () => ({
-  reconcileVenue: vi.fn(),
+vi.mock("../../entity-matching/entityReviewClient", () => ({
+  reconcileEntities: vi.fn(),
+  searchEntityMatches: vi.fn(),
 }));
 vi.mock("../../../contexts/useCity", () => ({
   useCity: () => ({ city: "boston" }),
@@ -117,5 +119,25 @@ describe("CalendarSubmissionDialog", () => {
     });
 
     expect(refetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows no entity review until a flyer has been analysed", () => {
+    vi.mocked(useSubmissionAccess).mockReturnValue({
+      isLoading: false,
+      canSubmit: true,
+      error: null,
+      refetch: vi.fn(),
+    });
+
+    render(<CalendarSubmissionDialog open onOpenChange={vi.fn()} />);
+
+    expect(screen.getByLabelText("Event Title *")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Venue, organizer, instructors and school" })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("group", { name: /^(Venue|Organizer|Instructor|School):/ })
+    ).not.toBeInTheDocument();
+    expect(reconcileEntities).not.toHaveBeenCalled();
   });
 });

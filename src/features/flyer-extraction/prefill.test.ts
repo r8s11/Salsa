@@ -188,3 +188,93 @@ describe("applyExtractionToDraft", () => {
     expect(skipped.skipped).toContain("Dance styles");
   });
 });
+
+describe("applyExtractionToDraft with structured entities", () => {
+  const venueEntity = {
+    name: "Havana Club",
+    address: "288 Green St",
+    city: "Cambridge",
+    state_region: "MA",
+    country: null,
+    website: null,
+    instagram: null,
+    email: null,
+    phone: null,
+    organization: null,
+  };
+
+  it("falls back to the structured venue name and address when the flat fields are empty", () => {
+    const { draft, filled } = applyExtractionToDraft(
+      { ...BASE_EXTRACTION, venue: venueEntity },
+      BASE_DRAFT,
+      METROS
+    );
+    expect(draft.location).toBe("Havana Club");
+    expect(draft.address).toBe("288 Green St");
+    expect(filled).toEqual(expect.arrayContaining(["Venue", "Address"]));
+  });
+
+  it("prefers the flat event fields over the structured venue", () => {
+    const { draft } = applyExtractionToDraft(
+      { ...BASE_EXTRACTION, venue_name: "Flat Venue", venue: venueEntity },
+      BASE_DRAFT,
+      METROS
+    );
+    expect(draft.location).toBe("Flat Venue");
+  });
+
+  it("never turns the venue's city into the event city", () => {
+    const { draft } = applyExtractionToDraft(
+      { ...BASE_EXTRACTION, venue: { ...venueEntity, city: "Brooklyn" } },
+      BASE_DRAFT,
+      METROS
+    );
+    expect(draft.city).toBe("boston");
+  });
+
+  it("never writes organizer, instructor or school data into the event draft", () => {
+    const { draft } = applyExtractionToDraft(
+      {
+        ...BASE_EXTRACTION,
+        organizer: { ...venueEntity, name: "Salsa Segura", instagram: "@salsasegura" },
+        instructors: [{ ...venueEntity, name: "Ana" }],
+        school: { ...venueEntity, name: "Mambo Co" },
+      },
+      BASE_DRAFT,
+      METROS
+    );
+    expect(draft).toEqual(BASE_DRAFT);
+  });
+});
+
+describe("applyExtractionToDraft manual city precedence", () => {
+  it("keeps the city the user chose when preserveCity is set", () => {
+    const { draft, filled, skipped } = applyExtractionToDraft(
+      { ...BASE_EXTRACTION, city: "Brooklyn" },
+      BASE_DRAFT,
+      METROS,
+      { preserveCity: true }
+    );
+    expect(draft.city).toBe("boston");
+    expect(filled).not.toContain("City");
+    expect(skipped).not.toContain("City");
+  });
+
+  it("still reports an unmappable flyer locality as skipped while keeping the chosen city", () => {
+    const { draft, skipped } = applyExtractionToDraft(
+      { ...BASE_EXTRACTION, city: "Providence, RI" },
+      BASE_DRAFT,
+      METROS,
+      { preserveCity: true }
+    );
+    expect(draft.city).toBe("boston");
+    expect(skipped).toContain("City");
+  });
+
+  it("still maps the city by default so first-time extraction keeps working", () => {
+    expect(
+      applyExtractionToDraft({ ...BASE_EXTRACTION, city: "Brooklyn" }, BASE_DRAFT, METROS).draft
+        .city
+    ).toBe("new-york-city");
+  });
+});

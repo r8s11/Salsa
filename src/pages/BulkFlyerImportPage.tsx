@@ -31,6 +31,21 @@ import {
 import EventForm from "../features/events/components/EventForm/EventForm";
 import { extractEventFromFlyer } from "../features/flyer-extraction/client";
 import { applyExtractionToDraft } from "../features/flyer-extraction/prefill";
+import EntityReviewSection from "../features/entity-matching/EntityReviewSection";
+import { reconcileEntities } from "../features/entity-matching/entityReviewClient";
+import {
+  extractionEntityCandidates,
+  hasEntityCandidates,
+  mergeEntityReview,
+} from "../features/entity-matching/entityReview";
+import type { EntityCandidates, EntityReview } from "../features/entity-matching/entityReview";
+import {
+  enrichExtractionWithReview,
+  listReviewEntries,
+  reviewFromCandidates,
+  suppressAutoVenueLink,
+  detachAutoVenueLink,
+} from "../features/entity-matching/entityReviewState";
 import "../components/Desk/desk.css";
 import "./BulkFlyerImportPage.css";
 
@@ -117,6 +132,7 @@ export default function BulkFlyerImportPage({ mode }: Props) {
   const detailRef = useRef<HTMLElement>(null);
   const temporaryUrls = useRef(new Set<string>());
   const mounted = useRef(true);
+  const previousCandidates = useRef(new Map<string, EntityCandidates>());
 
   const taxonomyLoading = mode === "admin" && (danceStyles.isLoading || attributes.isLoading);
   const taxonomyFailed = mode === "admin" && (!!danceStyles.error || !!attributes.error);
@@ -178,13 +194,34 @@ export default function BulkFlyerImportPage({ mode }: Props) {
       }
       const extraction = await extractEventFromFlyer(url);
       if (!mounted.current) return;
+      const candidates = extractionEntityCandidates(extraction);
+      let incoming: EntityReview | null = null;
+      let reconciliationWarning: string | null = null;
+      if (hasEntityCandidates(candidates)) {
+        try {
+          incoming = await reconcileEntities(candidates);
+        } catch {
+          incoming = reviewFromCandidates(candidates);
+          reconciliationWarning = "Entity lookup is unavailable. Candidates remain unresolved; review or search again before linking.";
+        }
+      }
+      if (!mounted.current) return;
+      const review = suppressAutoVenueLink(mergeEntityReview(
+        row.draft.entity_review ?? null,
+        previousCandidates.current.get(row.id) ?? null,
+        incoming ?? reviewFromCandidates(candidates)
+      ), row.draft);
+      previousCandidates.current.set(row.id, candidates);
       const prefill = applyExtractionToDraft(
-        extraction,
+        enrichExtractionWithReview(extraction, review),
         { ...row.draft, image_url: url },
-        metros
+        metros,
+        { preserveCity: row.analyzed }
       );
+      prefill.draft.entity_review = listReviewEntries(review).length ? review : undefined;
       const prefilled = prefill.draft;
       const reviewWarnings = [
+        ...(reconciliationWarning ? [reconciliationWarning] : []),
         ...(!extraction.title ? ["Title was not identified on the flyer; verify it."] : []),
         ...(!extraction.date ? ["Date was not identified on the flyer; verify it."] : []),
         ...(!extraction.event_type
@@ -325,7 +362,6 @@ export default function BulkFlyerImportPage({ mode }: Props) {
     let failed = 0;
     for (const row of valid) {
       try {
-        let warning: string | null = null;
         if (mode === "host") {
           await createOrganizerEvent(
             selectedOrganizerId,
@@ -336,14 +372,11 @@ export default function BulkFlyerImportPage({ mode }: Props) {
           await createEventAsAdmin(
             draftToAdminPayload(row.draft),
             { id: user.id, email: user.email ?? null },
-            publish,
-            (message) => {
-              warning = message;
-            }
+            publish
           );
         }
         if (row.url) temporaryUrls.current.delete(row.url);
-        updateRow(row.id, { state: "created", error: warning, saveIntent: null, savedAs: intent });
+        updateRow(row.id, { state: "created", error: null, saveIntent: null, savedAs: intent });
         created++;
       } catch (cause) {
         failed++;
@@ -552,7 +585,7 @@ export default function BulkFlyerImportPage({ mode }: Props) {
           attributes={attributes.terms}
           onDraftChange={(draft) =>
             updateRow(selected.id, {
-              draft,
+              draft: detachAutoVenueLink(selected.draft, draft),
               state: "ready",
               reviewed: false,
               error: null,
@@ -769,6 +802,14 @@ function FlyerDetail({
                 mode === "admin" ? { danceStyles, attributes, archived: [] } : undefined
               }
             />
+            {row.draft.entity_review && (
+              <EntityReviewSection
+                review={row.draft.entity_review}
+                onChange={(entity_review) => onDraftChange({ ...row.draft, entity_review })}
+                disabled={saving}
+                mode={mode === "admin" ? "authorized" : "public"}
+              />
+            )}
           </>
         )}
 

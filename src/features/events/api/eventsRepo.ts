@@ -3,6 +3,7 @@ import { DatabaseEvent, City, EventType } from "../../../types/events";
 import { toEventDateInstant, formatTimeLabel } from "../model/eventDateTime";
 import { shortCodeIdRange } from "../model/shortLink";
 import { replaceEventTaxonomyTerms } from "../../admin/api/taxonomyRepo";
+import type { EntityReview } from "../../entity-matching/entityReview";
 
 export interface AdminEventPayload {
   title: string;
@@ -26,6 +27,8 @@ export interface AdminEventPayload {
   venue_id: string | null;
   /** Optional — the manual admin form doesn't manage this field; CSV import does. */
   gallery?: string[] | null;
+  entity_review?: EntityReview;
+  organizer_id?: string | null;
 }
 
 type EventWithTaxonomy = Omit<DatabaseEvent, "taxonomy_term_ids" | "taxonomy_terms"> & {
@@ -154,10 +157,12 @@ export async function setEventStatus(
 }
 
 export async function updateEvent(id: string, payload: AdminEventPayload): Promise<void> {
-  const { taxonomy_term_ids = [], ...eventPayload } = payload;
-  const { error } = await supabase.from("events").update(eventPayload).eq("id", id);
+  const { error } = await supabase.rpc("save_event_with_entities", {
+    p_event_id: id,
+    p_payload: payload,
+    p_publish: null,
+  });
   if (error) throw new Error(error.message);
-  await replaceEventTaxonomyTerms(id, taxonomy_term_ids);
 }
 
 /**
@@ -257,29 +262,18 @@ export async function deleteEventForUser(id: string): Promise<void> {
 export async function createEventAsAdmin(
   payload: AdminEventPayload,
   submitter: { id: string; email: string | null },
-  publish = true,
-  onTaxonomyFailure?: (message: string) => void
+  publish = true
 ): Promise<void> {
-  const { taxonomy_term_ids = [], ...eventPayload } = payload;
-  const { data, error } = await supabase
-    .from("events")
-    .insert({
-      ...eventPayload,
-      status: publish ? "approved" : "draft",
-      source_type: "admin",
+  const { error } = await supabase.rpc("save_event_with_entities", {
+    p_event_id: null,
+    p_payload: {
+      ...payload,
       submitter_id: submitter.id,
       submitter_email: submitter.email,
-      submitter_name: "Salsa Segura",
-    })
-    .select("id")
-    .single();
+    },
+    p_publish: publish,
+  });
   if (error) throw new Error(error.message);
-  try {
-    await replaceEventTaxonomyTerms(data.id, taxonomy_term_ids);
-  } catch (taxonomyError) {
-    if (!onTaxonomyFailure) throw taxonomyError;
-    onTaxonomyFailure("Event saved, but tags could not be linked. Check them in the event editor.");
-  }
 }
 
 export async function duplicateEvent(

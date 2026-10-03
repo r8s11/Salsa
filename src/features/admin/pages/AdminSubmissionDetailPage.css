@@ -281,3 +281,13 @@
     flex: 1;
   }
 }
+
+.admin-submission-detail-page__entities {
+  display: grid;
+  gap: 16px;
+}
+
+.admin-submission-detail-page__entities > .admin-submission-detail-page__muted {
+  margin: 0;
+  max-width: 65ch;
+}

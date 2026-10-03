@@ -18,13 +18,29 @@ import type { EventFlyerStatus } from "../../events/components/EventFlyerField";
 import { extractEventFromFlyer } from "../../flyer-extraction/client";
 import { applyExtractionToDraft, type PrefillResult } from "../../flyer-extraction/prefill";
 import type { ExtractedEvent, FlyerExtractionStatus } from "../../flyer-extraction/types";
-import { reconcileVenue } from "../../entity-matching/reconcileClient";
-import type { ReconciliationResponse } from "../../entity-matching/types";
+import { reconcileEntities } from "../../entity-matching/entityReviewClient";
+import {
+  emptyEntityReview,
+  extractionEntityCandidates,
+  hasEntityCandidates,
+  mergeEntityReview,
+  type EntityCandidates,
+  type EntityReview,
+} from "../../entity-matching/entityReview";
+import {
+  detachAutoVenueLink,
+  enrichExtractionWithReview,
+  suppressAutoVenueLink,
+  listReviewEntries,
+  reviewFromCandidates,
+} from "../../entity-matching/entityReviewState";
+
 type ReconciliationState = {
   status: "idle" | "loading" | "success" | "error";
-  response: ReconciliationResponse | null;
   error: string | null;
 };
+
+const hasReviewEntries = (review: EntityReview) => listReviewEntries(review).length > 0;
 
 function buildSubmitDraft(city: EventFormDraft["city"]): EventFormDraft {
   return {
@@ -97,10 +113,15 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
   > | null>(null);
   const [reconciliation, setReconciliation] = useState<ReconciliationState>({
     status: "idle",
-    response: null,
     error: null,
   });
   const extractionGeneration = useRef(0);
+  // What the last successful extraction proposed. A repeat extraction compares
+  // against it to tell untouched candidates (replaced) from edited ones (kept).
+  const lastCandidatesRef = useRef<EntityCandidates | null>(null);
+  // Set once the person picks the city themselves; later extractions then
+  // leave it alone. The draft cannot tell a typed city from the viewer default.
+  const cityChosenRef = useRef(false);
   // Synchronous duplicate-click guard: React state updates don't apply
   // mid-event-handler, so two calls to handleExtractFlyer in the same tick
   // would both read `extractionStatus` as "idle" from the same render
@@ -124,10 +145,19 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
   };
 
   const update = <K extends keyof EventFormDraft>(field: K, value: EventFormDraft[K]) => {
-    setForm((previous) => ({ ...previous, [field]: value }));
+    if (field === "city") cityChosenRef.current = true;
+    setForm((previous) =>
+      detachAutoVenueLink(previous, { ...previous, [field]: value } as EventFormDraft)
+    );
     clearFieldError(field);
   };
+  // Applies a draft produced by extraction. Unlike `onChange` it is not the
+  // person choosing a city, so it must not lock the city against later extractions.
+  const applyDraft = (draft: EventFormDraft, review: EntityReview) => {
+    setForm(() => ({ ...draft, entity_review: hasReviewEntries(review) ? review : undefined }));
+  };
   const onChange = (draft: EventFormDraft) => {
+    if (draft.city !== formRef.current.city) cityChosenRef.current = true;
     setForm((previous) => {
       setFieldErrors((previousErrors) => {
         if (Object.keys(previousErrors).length === 0) return previousErrors;
@@ -141,8 +171,11 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
         }
         return changed ? next : previousErrors;
       });
-      return draft;
+      return detachAutoVenueLink(previous, draft);
     });
+  };
+  const setEntityReview = (review: EntityReview) => {
+    setForm((previous) => ({ ...previous, entity_review: review }));
   };
 
   const uploadFlyerFile = (file: File): Promise<string | null> => {
@@ -180,8 +213,16 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
     setExtractionResult(null);
     setExtractionError(null);
     setPrefillFeedback(null);
-    setReconciliation({ status: "idle", response: null, error: null });
+    setReconciliation({ status: "idle", error: null });
     setExtractionAttempts(0);
+    // The flyer these candidates came from is gone. Untouched candidates go
+    // with it; anything the person edited or decided stays.
+    const previous = lastCandidatesRef.current;
+    setForm((draft) => {
+      if (!draft.entity_review) return draft;
+      const pruned = mergeEntityReview(draft.entity_review, previous, emptyEntityReview());
+      return { ...draft, entity_review: hasReviewEntries(pruned) ? pruned : undefined };
+    });
   };
 
   const handleFlyerChange = (file: File | null) => {
@@ -248,55 +289,63 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
     setExtractionAttempts((attempt) => attempt + 1);
     isExtracting.current = true;
     const generation = ++extractionGeneration.current;
+    const stale = () => extractionGeneration.current !== generation;
     setExtractionStatus("loading");
     setExtractionError(null);
-    extractEventFromFlyer(uploadedFlyerUrl).then(async (result) => {
-      if (extractionGeneration.current !== generation) return;
-      setExtractionResult(result);
-      let enriched = result;
-      if (result.venue_name?.trim()) {
-        setReconciliation({ status: "loading", response: null, error: null });
-        try {
-          const response = await reconcileVenue({
-            venue: { name: result.venue_name, address: result.address, city: result.city },
-          });
-          if (extractionGeneration.current !== generation) return;
-          setReconciliation({ status: "success", response, error: null });
-          if (
-            (response.venue.status === "exact" || response.venue.status === "strong") &&
-            response.venue.match
-          ) {
-            enriched = {
-              ...result,
-              venue_name: response.venue.match.name,
-              address: response.venue.match.address ?? result.address,
-              city: response.venue.match.city ?? result.city,
-            };
+    void (async () => {
+      try {
+        const result = await extractEventFromFlyer(uploadedFlyerUrl);
+        if (stale()) return;
+        setExtractionResult(result);
+        const candidates = extractionEntityCandidates(result);
+        let incoming: EntityReview = emptyEntityReview();
+        if (hasEntityCandidates(candidates)) {
+          setReconciliation({ status: "loading", error: null });
+          try {
+            incoming = await reconcileEntities(candidates);
+            if (stale()) return;
+            setReconciliation({ status: "success", error: null });
+          } catch (err) {
+            if (stale()) return;
+            // Matching is unavailable, but the people and places on the flyer
+            // are still worth reviewing by hand.
+            incoming = reviewFromCandidates(candidates);
+            setReconciliation({
+              status: "error",
+              error: err instanceof Error ? err.message : "We couldn't check these against existing records.",
+            });
           }
-          // Ambiguous/none deliberately retain raw extraction values.
-        } catch (err) {
-          if (extractionGeneration.current !== generation) return;
-          setReconciliation({
-            status: "error",
-            response: null,
-            error: err instanceof Error ? err.message : "We couldn't verify this venue.",
-          });
         }
-      }
-      if (extractionGeneration.current !== generation) return;
-      setExtractionStatus("success");
-      const { draft, filled, skipped } = applyExtractionToDraft(enriched, formRef.current, metros);
-      onChange(draft);
-      setPrefillFeedback({ filled, skipped });
-      isExtracting.current = false;
-      })
-      .catch((err) => {
-        if (extractionGeneration.current !== generation) return;
-        isExtracting.current = false;
+        // Read the form only now, after every await, so anything typed or
+        // decided while the flyer was being read is merged, not overwritten.
+        const current = formRef.current;
+        // A link the matcher made on its own never overrides a venue already
+        // typed by hand; only an explicit choice does.
+        const review = suppressAutoVenueLink(
+          current.entity_review
+            ? mergeEntityReview(current.entity_review, lastCandidatesRef.current, incoming)
+            : incoming,
+          current
+        );
+        lastCandidatesRef.current = candidates;
+        const { draft, filled, skipped } = applyExtractionToDraft(
+          enrichExtractionWithReview(result, review),
+          current,
+          metros,
+          { preserveCity: cityChosenRef.current }
+        );
+        setExtractionStatus("success");
+        applyDraft(draft, review);
+        setPrefillFeedback({ filled, skipped });
+      } catch (err) {
+        if (stale()) return;
         setExtractionResult(null);
         setExtractionStatus("error");
         setExtractionError(err instanceof Error ? err.message : "We couldn't read this flyer.");
-      });
+      } finally {
+        if (!stale()) isExtracting.current = false;
+      }
+    })();
   };
 
   // "Continue manually" — leaves the flyer and its upload alone, only
@@ -376,6 +425,8 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
       setFlyerPath(null);
       flyerUploadPromise.current = null;
       setFlyerStatus("empty");
+      lastCandidatesRef.current = null;
+      cityChosenRef.current = false;
       resetExtraction();
     } catch (err) {
       setServerError(
@@ -433,6 +484,8 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
     extractionAttempts,
     prefillFeedback,
     reconciliation,
+    entityReview: form.entity_review ?? null,
+    setEntityReview,
     handleExtractFlyer,
     dismissExtractionError,
   };

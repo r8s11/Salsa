@@ -15,6 +15,7 @@ const FoundersPage = lazy(() => import("../features/founder/pages/FoundersPage")
 const FoundersAcceptPage = lazy(() => import("../features/founder/pages/FoundersAcceptPage"));
 const FoundersWelcomePage = lazy(() => import("../features/founder/pages/FoundersWelcomePage"));
 const ShortEventLinkPage = lazy(() => import("../pages/ShortEventLinkPage"));
+const PublicEntityPage = lazy(() => import("../pages/PublicEntityPage"));
 const Lessons = lazy(() => import("../pages/Lessons"));
 const Instructors = lazy(() => import("../pages/Instructors"));
 const Schools = lazy(() => import("../pages/Schools/Schools"));
@@ -239,6 +240,10 @@ function App() {
               <Route path="submit" element={<SubmitEventPage />} />
               <Route path="events/:id" element={<EventsParamRoute />} />
               <Route path="e/:code" element={<ShortEventLinkPage />} />
+              <Route path="v/:slug" element={<PublicEntityPage kind="venue" />} />
+              <Route path="o/:slug" element={<PublicEntityPage kind="organizer" />} />
+              <Route path="i/:slug" element={<PublicEntityPage kind="instructor" />} />
+              <Route path="s/:slug" element={<PublicEntityPage kind="school" />} />
               <Route
                 path="profile"
                 element={

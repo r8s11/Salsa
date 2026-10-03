@@ -42,6 +42,10 @@ vi.mock("../features/host/api/organizerAccessRepo", () => ({
 vi.mock("../features/events/api/eventsRepo", () => ({
   createEventAsAdmin: mocks.createEventAsAdmin,
 }));
+vi.mock("../features/entity-matching/entityReviewClient", () => ({
+  reconcileEntities: vi.fn().mockRejectedValue(new Error("Entity lookup unavailable")),
+  searchEntityMatches: vi.fn().mockResolvedValue([]),
+}));
 
 const extracted = (title: string) => ({
   title,
@@ -135,10 +139,7 @@ describe("BulkFlyerImportPage", () => {
       new File(["one"], "first.png", { type: "image/png" }),
       new File(["two"], "second.png", { type: "image/png" }),
     ]);
-    await waitFor(async () =>
-      expect(await frame("second.png")).toHaveAccessibleName("second.png: Needs review")
-    );
-    expect(await frame("first.png")).toHaveAccessibleName("first.png: Needs review");
+    await waitFor(() => expect(screen.getByLabelText("Flyer images")).toBeEnabled());
     expect(within(saveBar()).getByRole("button", { name: "Publish" })).toBeDisabled();
 
     await user.click(await frame("second.png"));
@@ -184,41 +185,10 @@ describe("BulkFlyerImportPage", () => {
         taxonomy_term_ids: ["salsa-id"],
       }),
       { id: "user-1", email: "owner@example.com" },
-      false,
-      expect.any(Function)
+      false
     );
   });
 
-  it("retains a created admin flyer and shows a warning if taxonomy linking fails", async () => {
-    const user = userEvent.setup();
-    const page = renderPage("admin");
-    mocks.createEventAsAdmin.mockImplementationOnce(
-      async (
-        _payload: unknown,
-        _actor: unknown,
-        _publish: boolean,
-        onTaxonomyFailure: (message: string) => void
-      ) => {
-        onTaxonomyFailure(
-          "Event saved, but tags could not be linked. Check them in the event editor."
-        );
-      }
-    );
-    await user.upload(
-      screen.getByLabelText("Flyer images"),
-      new File(["one"], "first.png", { type: "image/png" })
-    );
-    await user.click(await screen.findByRole("button", { name: "Confirm details against flyer" }));
-    await user.click(within(saveBar()).getByRole("button", { name: "Save 1 as draft" }));
-    await waitFor(async () =>
-      expect(await frame("first.png")).toHaveAccessibleName("first.png: Draft saved")
-    );
-    expect(within(detail("first.png")).getByRole("alert")).toHaveTextContent(
-      "tags could not be linked"
-    );
-    page.unmount();
-    expect(mocks.removeEventFlyer).not.toHaveBeenCalled();
-  });
 
   it("refuses to confirm a flyer that could not be saved", async () => {
     const user = userEvent.setup();
@@ -249,9 +219,7 @@ describe("BulkFlyerImportPage", () => {
       new File(["one"], "first.png", { type: "image/png" }),
       new File(["two"], "second.png", { type: "image/png" }),
     ]);
-    await waitFor(async () =>
-      expect(await frame("second.png")).toHaveAccessibleName("second.png: Needs review")
-    );
+    await waitFor(() => expect(screen.getByLabelText("Flyer images")).toBeEnabled());
     await user.click(screen.getByRole("button", { name: "Confirm details against flyer" }));
     // Confirming advances to the next flyer that still needs review.
     expect(detail("second.png")).toHaveTextContent(
@@ -356,9 +324,7 @@ describe("BulkFlyerImportPage", () => {
       new File(["one"], "first.png", { type: "image/png" }),
       new File(["two"], "second.png", { type: "image/png" }),
     ]);
-    await waitFor(async () =>
-      expect(await frame("second.png")).toHaveAccessibleName("second.png: Needs review")
-    );
+    await waitFor(() => expect(screen.getByLabelText("Flyer images")).toBeEnabled());
     await user.click(screen.getByRole("button", { name: "Confirm details against flyer" }));
     await user.click(screen.getByRole("button", { name: "Confirm details against flyer" }));
     await user.click(within(saveBar()).getByRole("button", { name: "Publish 2 events" }));

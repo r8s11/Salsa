@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Plus } from "lucide-react";
 import { useAdminSubmissions } from "../../features/admin/hooks/useAdminSubmissionList";
 import type { EventSubmission } from "../../features/admin/model/submissions";
+import type { EntityReview } from "../../features/entity-matching/entityReview";
 import type { DatabaseEvent } from "../../features/events/model/types";
 import { missingFields } from "../../features/admin/model/overviewMetrics";
 import {
@@ -108,24 +109,45 @@ export default function OperatorDesk({
   );
 
   const handleSet = useCallback(
-    (submission: EventSubmission) => {
+    (submission: EventSubmission, entityReview?: EntityReview) => {
       const view = readSubmission(submission);
-      approveSubmissionWithTaxonomy(
-        { submissionId: submission.id, taxonomyTermIds: view.taxonomyTermIds },
+      const approve = () =>
+        approveSubmissionWithTaxonomy(
+          { submissionId: submission.id, taxonomyTermIds: view.taxonomyTermIds },
+          {
+            // Wait for the server before the entry leaves the galley. A failed
+            // approval stays in context, rather than briefly claiming it was set.
+            onSuccess: () => {
+              setSettledListings((previous) => previous.filter((row) => row.id !== submission.id));
+              settle(submission, "set");
+            },
+            onError: (mutationError: Error) => {
+              setDecideError(mutationError.message || "We couldn't approve this entry.");
+            },
+          }
+        );
+      if (!entityReview) {
+        approve();
+        return;
+      }
+      // The moderator's edits to the linked records are saved first, so the
+      // approval reads exactly what was reviewed. If saving fails, nothing is approved.
+      updateSubmission(
         {
-          // Wait for the server before the entry leaves the galley. A failed
-          // approval stays in context, rather than briefly claiming it was set.
-          onSuccess: () => {
-            setSettledListings((previous) => previous.filter((row) => row.id !== submission.id));
-            settle(submission, "set");
+          id: submission.id,
+          update: {
+            edited_data: { ...(submission.edited_data ?? {}), entity_review: entityReview },
           },
+        },
+        {
+          onSuccess: approve,
           onError: (mutationError: Error) => {
-            setDecideError(mutationError.message || "We couldn't approve this entry.");
+            setDecideError(mutationError.message || "We couldn't save the linked records.");
           },
         }
       );
     },
-    [approveSubmissionWithTaxonomy, settle]
+    [approveSubmissionWithTaxonomy, updateSubmission, settle]
   );
 
   const handleSettledFocus = useCallback(() => setSettledId(null), []);

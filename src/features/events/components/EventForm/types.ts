@@ -1,3 +1,4 @@
+import type { EntityReview } from "../../../entity-matching/entityReview";
 import type { City, EventType } from "../../model/types";
 import { toEventDateInstant } from "../../model/eventDateTime";
 import type { SubmissionCreate } from "../../../admin/api/submissionsRepo";
@@ -26,6 +27,7 @@ export type EventFormDraft = {
   submitter_email: string;
   dance_styles: string[];
   taxonomy_term_ids: string[];
+  entity_review?: EntityReview;
 };
 
 export type EventFormCapabilities = {
@@ -112,6 +114,7 @@ export function draftToSubmission(draft: EventFormDraft, actor: Actor): Submissi
     rsvp_link: draft.rsvp_link || null,
     recurrence: draft.recurrence || null,
     dance_styles: draft.dance_styles,
+    ...(draft.entity_review ? { entity_review: draft.entity_review } : {}),
   };
 }
 
@@ -155,6 +158,7 @@ export function draftToAdminPayload(draft: EventFormDraft): AdminEventPayload {
     contact_website: draft.contact_website || null,
     taxonomy_term_ids: draft.taxonomy_term_ids,
     venue_id: draft.venue_id || null,
+    ...(draft.entity_review ? { entity_review: draft.entity_review } : {}),
   };
 }
 export type OrganizerCreateDraftPayload = Omit<AdminEventPayload, "taxonomy_term_ids"> & {

@@ -8,6 +8,7 @@ import { resolveIdentity } from "../features/account/model/account";
 import EventForm, { CAPABILITIES } from "../features/events/components/EventForm";
 import EventFlyerField from "../features/events/components/EventFlyerField";
 import FlyerExtractionPanel from "../features/flyer-extraction/FlyerExtractionPanel";
+import EntityReviewSection from "../features/entity-matching/EntityReviewSection";
 import SuccessCard from "../features/submit-event/components/SuccessCard";
 import { useSubmissionAccess } from "../features/submit-event/hooks/useSubmissionAccess";
 import { useSubmitEventForm } from "../features/submit-event/hooks/useSubmitEventForm";
@@ -76,6 +77,8 @@ export default function SubmitEventPage() {
     extractionAttempts,
     prefillFeedback,
     reconciliation,
+    entityReview,
+    setEntityReview,
     handleExtractFlyer,
     dismissExtractionError,
   } = useSubmitEventForm(authenticatedSubmitterName);
@@ -230,17 +233,24 @@ export default function SubmitEventPage() {
                   )}
                   {reconciliation.status === "loading" && (
                     <p className="submit-flyer__notice" role="status">
-                      Checking the venue details…
+                      Checking the venue, organizer, instructors and school against existing records…
                     </p>
                   )}
-                  {reconciliation.status === "success" &&
-                    (reconciliation.response?.venue.status === "exact" ||
-                      reconciliation.response?.venue.status === "strong") && (
-                      <p className="submit-flyer__notice" role="status">
-                        Matched to an existing SalsaSegura venue.
-                      </p>
-                    )}
+                  {reconciliation.status === "error" && (
+                    <p className="submit-flyer__notice" role="status">
+                      We couldn&apos;t check these against existing records. Review them below.
+                    </p>
+                  )}
                 </>
+              )}
+
+              {entityReview && (
+                <EntityReviewSection
+                  review={entityReview}
+                  onChange={setEntityReview}
+                  disabled={isSubmitting}
+                  mode="public"
+                />
               )}
             </section>
 

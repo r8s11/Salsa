@@ -290,3 +290,106 @@ Deno.test("rejects an Admin draft flyer owned by another user", async () => {
 
   assertEquals(response.status, 400);
 });
+
+function entity(name: string, extra: Record<string, unknown> = {}) {
+  return {
+    name,
+    address: null,
+    city: null,
+    state_region: null,
+    country: null,
+    website: null,
+    instagram: null,
+    email: null,
+    phone: null,
+    organization: null,
+    ...extra,
+  };
+}
+
+
+Deno.test("returns sanitized structured entities", async () => {
+  const response = await extractionFrom({
+    title: "Salsa Night",
+    venue: entity("  Havana Club ", { address: "288 Green St", city: "Cambridge", state_region: "MA" }),
+    organizer: entity("Salsa Segura", {
+      instagram: "https://instagram.com/salsasegura/",
+      website: "salsasegura.com",
+      email: "not an email",
+      phone: "call us",
+    }),
+    instructors: [entity("Ana Rivera", { organization: "Mambo Co" }), entity("ana rivera", { organization: "Mambo Co" }), entity("   ")],
+    school: entity("Mambo Co", { email: "info@mambo.example", phone: "617-555-0100" }),
+  });
+  assertEquals(response.status, 200);
+  const { extraction } = await response.json();
+  assertEquals(extraction.venue.name, "Havana Club");
+  assertEquals(extraction.venue.city, "Cambridge");
+  assertEquals(extraction.organizer.instagram, "@salsasegura");
+  assertEquals(extraction.organizer.website, "https://salsasegura.com");
+  assertEquals(extraction.organizer.email, null);
+  assertEquals(extraction.organizer.phone, null);
+  assertEquals(extraction.instructors.length, 1);
+  assertEquals(extraction.instructors[0].organization, "Mambo Co");
+  assertEquals(extraction.school.email, "info@mambo.example");
+  assertEquals(extraction.school.phone, "617-555-0100");
+});
+Deno.test("keeps distinct same-name instructors for review", async () => {
+  const response = await extractionFrom({
+    instructors: [
+      entity("Jane Dancer", { instagram: "@jane_miami" }),
+      entity("Jane Dancer", { instagram: "@jane_chicago" }),
+    ],
+  });
+  const { extraction } = await response.json();
+  assertEquals(extraction.instructors.map((candidate: Record<string, unknown>) => candidate.instagram), [
+    "@jane_miami", "@jane_chicago",
+  ]);
+});
+
+Deno.test("always returns all four structured fields, defaulting to null and empty", async () => {
+  const response = await extractionFrom({ title: "Salsa Night" });
+  const { extraction } = await response.json();
+  assertEquals(extraction.venue, null);
+  assertEquals(extraction.organizer, null);
+  assertEquals(extraction.school, null);
+  assertEquals(extraction.instructors, []);
+});
+
+Deno.test("drops nameless entities, bounds instructors and unsafe contact values", async () => {
+  const response = await extractionFrom({
+    venue: entity(""),
+    instructors: Array.from({ length: 40 }, (_, index) => entity(`Teacher ${index}`)),
+    organizer: entity("Org", { website: "javascript:alert(1)", instagram: "https://evil.example/x" }),
+  });
+  const { extraction } = await response.json();
+  assertEquals(extraction.venue, null);
+  assertEquals(extraction.instructors.length, 10);
+  assertEquals(extraction.organizer.website, null);
+  assertEquals(extraction.organizer.instagram, null);
+});
+
+Deno.test("rejects structurally wrong entity payloads", async () => {
+  for (const bad of [
+    { venue: "Havana Club" },
+    { instructors: "Ana" },
+    { instructors: ["Ana"] },
+    { school: ["x"] },
+    { organizer: 42 },
+  ]) {
+    const response = await extractionFrom(bad);
+    assertEquals(response.status, 502);
+  }
+});
+
+Deno.test("does not copy the flat event contact onto entities", async () => {
+  const response = await extractionFrom({
+    instagram: "@eventcontact",
+    website: "https://eventcontact.example",
+    organizer: entity("Salsa Segura"),
+  });
+  const { extraction } = await response.json();
+  assertEquals(extraction.instagram, "@eventcontact");
+  assertEquals(extraction.organizer.instagram, null);
+  assertEquals(extraction.organizer.website, null);
+});

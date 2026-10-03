@@ -45,6 +45,7 @@ export function buildAdminFormFromEvent(event: DatabaseEvent): AdminEventForm {
     submitter_email: "",
     dance_styles: [],
     taxonomy_term_ids: event.taxonomy_term_ids ?? [],
+    ...(event.entity_review ? { entity_review: event.entity_review } : {}),
   };
 }
 

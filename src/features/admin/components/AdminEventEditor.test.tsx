@@ -12,6 +12,16 @@ const { useActiveTaxonomyTerms, useVenueCombobox } = vi.hoisted(() => ({
 vi.mock("../hooks/useAdminTaxonomy", () => ({ useActiveTaxonomyTerms }));
 vi.mock("../../metros/hooks/useMetros", () => import("../../../test/mockMetros"));
 vi.mock("../hooks/useVenueCombobox", () => ({ useVenueCombobox }));
+// The editor imports the entity review client, which would otherwise load Supabase.
+vi.mock("../../entity-matching/entityReviewClient", () => ({
+  reconcileEntities: vi.fn().mockResolvedValue({
+    venue: null,
+    organizer: null,
+    instructors: [],
+    school: null,
+  }),
+  searchEntityMatches: vi.fn().mockResolvedValue([]),
+}));
 
 describe("AdminEventEditor", () => {
   beforeEach(() => {

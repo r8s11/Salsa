@@ -1,3 +1,10 @@
+import {
+  isRecord,
+  normalizeEntityCandidate,
+  normalizeEntityCandidateList,
+  type EntityCandidate,
+} from "../entity-matching/entityReview";
+
 export const EXTRACTION_FIELDS = [
   "title",
   "date",
@@ -13,7 +20,14 @@ export const EXTRACTION_FIELDS = [
   "instagram",
   "website",
   "details",
+  "venue",
+  "organizer",
+  "instructors",
+  "school",
 ] as const;
+
+/** Structured entity keys. Optional on `ExtractedEvent` so pre-entity fixtures still type-check. */
+export const ENTITY_EXTRACTION_FIELDS = ["venue", "organizer", "instructors", "school"] as const;
 
 export type ExtractedEvent = {
   title: string | null;
@@ -30,6 +44,11 @@ export type ExtractedEvent = {
   instagram: string | null;
   website: string | null;
   details: string[];
+  /** Structured entities read off the flyer. Parsed payloads always carry all four. */
+  venue?: EntityCandidate | null;
+  organizer?: EntityCandidate | null;
+  instructors?: EntityCandidate[];
+  school?: EntityCandidate | null;
 };
 
 export type ExtractFlyerResponse = { extraction: ExtractedEvent };
@@ -37,7 +56,10 @@ export type ExtractFlyerResponse = { extraction: ExtractedEvent };
 /** Lifecycle of one extraction attempt for the currently persisted flyer. */
 export type FlyerExtractionStatus = "idle" | "loading" | "success" | "error";
 
-type StringField = Exclude<(typeof EXTRACTION_FIELDS)[number], "dance_styles" | "details">;
+type StringField = Exclude<
+  (typeof EXTRACTION_FIELDS)[number],
+  "dance_styles" | "details" | (typeof ENTITY_EXTRACTION_FIELDS)[number]
+>;
 const STRING_FIELDS: readonly StringField[] = [
   "title",
   "date",
@@ -144,5 +166,28 @@ export function parseFlyerExtraction(raw: unknown): ExtractedEvent {
   if (result.start_time && !TIME_PATTERN.test(result.start_time)) result.start_time = null;
   if (result.end_time && !TIME_PATTERN.test(result.end_time)) result.end_time = null;
   result.website = cleanWebsite(result.website);
+
+  // New payloads carry all four structured entities. A legacy payload (none of
+  // the keys) is left without them so consumers fall back to the flat fields.
+  if (ENTITY_EXTRACTION_FIELDS.some((key) => key in source)) {
+    result.venue = parseEntity(source.venue, "venue");
+    result.organizer = parseEntity(source.organizer, "organizer");
+    result.instructors = parseInstructors(source.instructors);
+    result.school = parseEntity(source.school, "school");
+  }
   return result;
+}
+
+function parseEntity(value: unknown, field: string): EntityCandidate | null {
+  if (value === undefined || value === null) return null;
+  if (!isRecord(value)) throw new Error(`Invalid flyer extraction field: ${field}`);
+  return normalizeEntityCandidate(value);
+}
+
+function parseInstructors(value: unknown): EntityCandidate[] {
+  if (value === undefined || value === null) return [];
+  if (!Array.isArray(value) || !value.every(isRecord)) {
+    throw new Error("Invalid flyer extraction field: instructors");
+  }
+  return normalizeEntityCandidateList(value);
 }

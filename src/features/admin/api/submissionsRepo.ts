@@ -1,5 +1,6 @@
 import { supabase } from "../../../lib/supabase";
 import type { EventSubmission } from "../model/submissions";
+import type { EntityReview } from "../../entity-matching/entityReview";
 
 export interface SubmissionUpdate {
   status?: EventSubmission["status"];
@@ -28,6 +29,7 @@ export type SubmissionCreate = {
   rsvp_link: string | null;
   recurrence: string | null;
   dance_styles: string[];
+  entity_review?: EntityReview;
 };
 
 /**

@@ -32,6 +32,7 @@ export function draftToSubmission(
     dance_styles: draft.dance_styles,
     recurrence: draft.recurrence || null,
     city: draft.city,
+    ...(draft.entity_review ? { entity_review: draft.entity_review } : {}),
   };
 }
 
@@ -90,5 +91,6 @@ export function draftToAdminPayload(draft: EventFormDraft): AdminEventPayload {
     contact_website: draft.contact_website || null,
     venue_id: draft.venue_id || null,
     taxonomy_term_ids: draft.taxonomy_term_ids,
+    ...(draft.entity_review ? { entity_review: draft.entity_review } : {}),
   };
 }

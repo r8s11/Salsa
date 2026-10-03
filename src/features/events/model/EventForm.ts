@@ -1,3 +1,4 @@
+import type { EntityReview } from "../../entity-matching/entityReview";
 import type { EventType, City } from "./types";
 
 export type EventFormDraft = {
@@ -23,6 +24,7 @@ export type EventFormDraft = {
   submitter_email: string;
   dance_styles: string[]; // slugs
   taxonomy_term_ids: string[]; // term ids
+  entity_review?: EntityReview;
 };
 
 export type EventFormCapabilities = {

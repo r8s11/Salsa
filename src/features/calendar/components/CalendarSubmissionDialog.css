@@ -463,3 +463,7 @@
   outline: 2px solid var(--gold);
   outline-offset: 3px;
 }
+
+.calendar-sub-dialog__scroll .entity-review {
+  margin-bottom: var(--space-md);
+}

@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
@@ -51,6 +51,7 @@ describe("AdminSubmissionDetailPage", () => {
       isLoading: false,
       error: null,
       updateSubmission: vi.fn(),
+      updateSubmissionAsync: vi.fn(),
       isUpdating: false,
       updateError: null,
       approveSubmissionWithTaxonomy: vi.fn(),
@@ -82,6 +83,7 @@ describe("AdminSubmissionDetailPage", () => {
       isLoading: false,
       error: null,
       updateSubmission: vi.fn(),
+      updateSubmissionAsync: vi.fn(),
       isUpdating: false,
       updateError: null,
       approveSubmissionWithTaxonomy,
@@ -131,6 +133,7 @@ describe("AdminSubmissionDetailPage", () => {
       isLoading: false,
       error: null,
       updateSubmission,
+      updateSubmissionAsync: vi.fn(),
       isUpdating: false,
       updateError: null,
       approveSubmissionWithTaxonomy: vi.fn(),
@@ -165,5 +168,119 @@ describe("AdminSubmissionDetailPage", () => {
       },
       expect.anything()
     );
+  });
+
+  describe("linked records", () => {
+    const VENUE_ID = "11111111-1111-4111-8111-111111111111";
+    const storedReview = (decision: "new" | "existing") => ({
+      venue: {
+        candidate: { name: "Studio 5", city: "Boston" },
+        state: "POSSIBLE MATCH",
+        matches: [{ id: VENUE_ID, name: "Studio Five", city: "Boston" }],
+        decision,
+        selected_id: decision === "existing" ? VENUE_ID : null,
+      },
+      organizer: null,
+      instructors: [],
+      school: null,
+    });
+
+    const renderPage = (submission: EventSubmission) => {
+      const calls: string[] = [];
+      const updateSubmissionAsync = vi.fn(async () => {
+        calls.push("update");
+      });
+      const approveSubmissionWithTaxonomy = vi.fn(() => {
+        calls.push("approve");
+      });
+      vi.mocked(useActiveTaxonomyTerms).mockReturnValue({
+        terms: [],
+        isLoading: false,
+        error: null,
+        retry: vi.fn(),
+      });
+      vi.mocked(useAdminSubmissions.useAdminSubmissions).mockReturnValue({
+        submissions: [submission],
+        isLoading: false,
+        error: null,
+        updateSubmission: vi.fn(),
+        updateSubmissionAsync,
+        isUpdating: false,
+        updateError: null,
+        approveSubmissionWithTaxonomy,
+        isApproving: false,
+        approveError: null,
+      });
+      render(
+        <MemoryRouter initialEntries={["/admin/submissions/sub-1"]}>
+          <Routes>
+            <Route path="/admin/submissions/:id" element={<AdminSubmissionDetailPage />} />
+          </Routes>
+        </MemoryRouter>
+      );
+      return { calls, updateSubmissionAsync, approveSubmissionWithTaxonomy };
+    };
+
+    it("shows a public 'new' suggestion as undecided, and approves without writing when untouched", async () => {
+      const { updateSubmissionAsync, approveSubmissionWithTaxonomy } = renderPage({
+        ...mockSubmission,
+        submitted_data: { ...mockSubmission.submitted_data, entity_review: storedReview("new") },
+      });
+      expect(screen.getByText(/can only suggest records/)).toBeInTheDocument();
+      expect(screen.getByText(/Undecided\. This venue is skipped/)).toBeInTheDocument();
+      expect(screen.queryByText(/Will be added as a new venue/)).not.toBeInTheDocument();
+
+      await userEvent.click(screen.getByRole("button", { name: "Approve submission" }));
+      expect(updateSubmissionAsync).not.toHaveBeenCalled();
+      expect(approveSubmissionWithTaxonomy).toHaveBeenCalledTimes(1);
+    });
+
+    it("saves the moderator's review to edited_data.entity_review before approving", async () => {
+      const { calls, updateSubmissionAsync, approveSubmissionWithTaxonomy } = renderPage({
+        ...mockSubmission,
+        edited_data: { title: "Corrected" },
+        submitted_data: { ...mockSubmission.submitted_data, entity_review: storedReview("new") },
+      });
+      await userEvent.click(
+        screen.getByRole("button", { name: "Use Studio Five as the venue" })
+      );
+      await userEvent.click(screen.getByRole("button", { name: "Approve submission" }));
+
+      await waitFor(() => expect(approveSubmissionWithTaxonomy).toHaveBeenCalled());
+      expect(calls).toEqual(["update", "approve"]);
+      expect(updateSubmissionAsync).toHaveBeenCalledWith({
+        id: "sub-1",
+        update: {
+          edited_data: {
+            title: "Corrected",
+            entity_review: expect.objectContaining({
+              venue: expect.objectContaining({ decision: "existing", selected_id: VENUE_ID }),
+            }),
+          },
+        },
+      });
+    });
+
+    it("does not approve when saving the review fails", async () => {
+      const { approveSubmissionWithTaxonomy, updateSubmissionAsync } = renderPage({
+        ...mockSubmission,
+        submitted_data: { ...mockSubmission.submitted_data, entity_review: storedReview("new") },
+      });
+      updateSubmissionAsync.mockRejectedValueOnce(new Error("save failed"));
+      await userEvent.click(
+        screen.getByRole("button", { name: "Use Studio Five as the venue" })
+      );
+      await userEvent.click(screen.getByRole("button", { name: "Approve submission" }));
+      await waitFor(() => expect(updateSubmissionAsync).toHaveBeenCalled());
+      expect(approveSubmissionWithTaxonomy).not.toHaveBeenCalled();
+    });
+
+    it("renders nothing for a submission with no or unreadable review", () => {
+      renderPage({
+        ...mockSubmission,
+        submitted_data: { ...mockSubmission.submitted_data, entity_review: { venue: "broken" } },
+      });
+      expect(screen.queryByText("Venue, organizer, instructors and school")).not.toBeInTheDocument();
+    });
   });
 });

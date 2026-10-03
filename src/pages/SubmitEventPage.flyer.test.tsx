@@ -18,9 +18,12 @@ const mockEventFlyers = vi.hoisted(() => ({
   removeEventFlyer: vi.fn(),
 }));
 const mockExtractionClient = vi.hoisted(() => ({ extractEventFromFlyer: vi.fn() }));
-const mockReconciliation = vi.hoisted(() => ({ reconcileVenue: vi.fn() }));
+const mockEntityReview = vi.hoisted(() => ({
+  reconcileEntities: vi.fn(),
+  searchEntityMatches: vi.fn(),
+}));
 
-vi.mock("../features/entity-matching/reconcileClient", () => mockReconciliation);
+vi.mock("../features/entity-matching/entityReviewClient", () => mockEntityReview);
 vi.mock("../features/metros/hooks/useMetros", () => import("../test/mockMetros"));
 
 vi.mock("../contexts/useAuth", () => ({ useAuth: () => ({ user: mockAuth.user }) }));
@@ -78,8 +81,11 @@ describe("SubmitEventPage flyer (Phase 1)", () => {
       url: FLYER_URL,
     });
     mockEventFlyers.removeEventFlyer.mockResolvedValue(undefined);
-    mockReconciliation.reconcileVenue.mockResolvedValue({
-      venue: { status: "none", match: null },
+    mockEntityReview.reconcileEntities.mockResolvedValue({
+      venue: null,
+      organizer: null,
+      instructors: [],
+      school: null,
     });
   });
 

@@ -115,6 +115,29 @@ beside the flyer during editing; commit buttons show how many reviewed rows they
 attempt to save or publish.
 Flyer analysis requires the configured `extract-flyer` Supabase Edge Function.
 
+Flyer extraction also returns separate venue, organizer, instructor, and school
+candidates, with contacts and geography only when printed. Review can reuse an
+existing record, search for alternatives, edit, mark a candidate new, or remove it.
+Automatic links require deterministic identity signals; ambiguous names remain
+unresolved. Manual event values and deliberate entity choices survive retries.
+Creation is optional: an event can be saved without resolving every candidate.
+
+Anonymous uploads and pending submissions never create canonical entities.
+Authenticated extraction runs server-side. Admin saves and moderator approval
+atomically resolve authorized choices, create unverified flyer-sourced records,
+and write explicit venue/organizer IDs plus instructor/school join rows. Host
+bulk imports retain suggestions only. Existing metro data drives event geography.
+Canonical public pages use `/v/:slug`, `/o/:slug`, `/i/:slug`, and `/s/:slug`;
+their public projection excludes email and phone.
+
+Deploy migration `20260929000000_flyer_entity_foundation.sql` after the existing
+dynamic-metros migration, then deploy the updated `extract-flyer` function and
+frontend together. The old venue-only `reconcile-flyer` function is retired;
+matching uses authenticated database RPCs. Local verification:
+`node scripts/verify-flyer-entities.mjs`, the rollback-only
+`supabase/manual/flyer-entity-foundation-smoke.sql`, and
+`bash supabase/manual/flyer-entity-foundation-concurrency.sh`.
+
 
 ## Host event access
 

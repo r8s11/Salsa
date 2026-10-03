@@ -301,3 +301,7 @@
     }
   }
 }
+
+.submit-flyer .entity-review {
+  margin-top: var(--space-lg);
+}

@@ -6,6 +6,9 @@ import { useAdminSubmissions } from "../hooks/useAdminSubmissionList";
 import AdminRejectSubmissionDialog from "../../../components/Admin/AdminRejectSubmissionDialog";
 import AdminSubmissionStatusBadge from "../../../components/Admin/AdminSubmissionStatusBadge";
 import { resolveEventFlyer } from "../../../components/EventModal/eventModalImage";
+import EntityReviewSection from "../../entity-matching/EntityReviewSection";
+import type { EntityReview } from "../../entity-matching/entityReview";
+import { moderatorStartingReview } from "../../entity-matching/entityReviewState";
 import type { EventSubmission } from "../model/submissions";
 import {
   notifySubmissionApproved,
@@ -44,11 +47,22 @@ export default function AdminSubmissionDetailPage() {
     isApproving,
     approveError,
     updateSubmission,
+    updateSubmissionAsync,
     isUpdating,
     updateError,
   } = useAdminSubmissions();
   const danceStyles = useActiveTaxonomyTerms("dance_style");
   const submission = useMemo(() => submissions.find((item) => item.id === id), [submissions, id]);
+  const { review: initialReview, demoted: submittedReviewDemoted } = useMemo(
+    () =>
+      moderatorStartingReview(
+        submission?.submitted_data.entity_review,
+        submission?.edited_data?.entity_review
+      ),
+    [submission]
+  );
+  const [reviewEdit, setReviewEdit] = useState<EntityReview | null>(null);
+  const review = reviewEdit ?? initialReview;
 
   if (isLoading) return <div className="admin-submission-detail-page">Loading...</div>;
   if (error)
@@ -75,7 +89,19 @@ export default function AdminSubmissionDetailPage() {
     setTaxonomyTermIds((current) =>
       current.includes(termId) ? current.filter((id) => id !== termId) : [...current, termId]
     );
-  const approve = () => {
+  const approve = async () => {
+    // A moderator's edits to the linked records are saved to edited_data
+    // before approval so the approval reads exactly what was reviewed.
+    if (reviewEdit) {
+      try {
+        await updateSubmissionAsync({
+          id: submission.id,
+          update: { edited_data: { ...(submission.edited_data ?? {}), entity_review: reviewEdit } },
+        });
+      } catch {
+        return; // updateError is shown below; nothing was approved.
+      }
+    }
     approveSubmissionWithTaxonomy(
       { submissionId: submission.id, taxonomyTermIds },
       {
@@ -239,6 +265,26 @@ export default function AdminSubmissionDetailPage() {
           </section>
         )}
 
+        {review && (
+          <section
+            className="admin-card admin-submission-detail-page__entities"
+            aria-label="Venue, organizer, instructors and school"
+          >
+            {submittedReviewDemoted && (
+              <p className="admin-submission-detail-page__muted">
+                The submitter can only suggest records. Whatever they chose, an existing record or a
+                new one, is shown here as undecided until you confirm it.
+              </p>
+            )}
+            <EntityReviewSection
+              review={review}
+              onChange={setReviewEdit}
+              disabled={isApproving || isUpdating}
+              mode="authorized"
+            />
+          </section>
+        )}
+
         <fieldset className="admin-card admin-submission-detail-page__taxonomy">
           <legend>Canonical dance styles</legend>
           <p className="admin-submission-detail-page__muted">
@@ -285,7 +331,7 @@ export default function AdminSubmissionDetailPage() {
               type="button"
               className="admin-btn admin-btn--primary"
               disabled={isApproving || isUpdating || danceStyles.isLoading}
-              onClick={approve}
+              onClick={() => void approve()}
             >
               {isApproving ? "Approving…" : "Approve submission"}
             </button>

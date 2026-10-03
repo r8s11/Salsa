@@ -1,5 +1,5 @@
 import type { FormEvent } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { MapPin, Sparkles, X } from "lucide-react";
 import type { EventTaxonomyTerm } from "../../events/model/types";
@@ -14,6 +14,23 @@ import EventFlyerField, { type EventFlyerStatus } from "../../events/components/
 import FlyerExtractionPanel from "../../flyer-extraction/FlyerExtractionPanel";
 import { extractEventFromFlyer } from "../../flyer-extraction/client";
 import { applyExtractionToDraft, type PrefillResult } from "../../flyer-extraction/prefill";
+import EntityReviewSection from "../../entity-matching/EntityReviewSection";
+import { reconcileEntities } from "../../entity-matching/entityReviewClient";
+import {
+  emptyEntityReview,
+  extractionEntityCandidates,
+  hasEntityCandidates,
+  mergeEntityReview,
+  type EntityCandidates,
+  type EntityReview,
+} from "../../entity-matching/entityReview";
+import {
+  detachAutoVenueLink,
+  enrichExtractionWithReview,
+  listReviewEntries,
+  reviewFromCandidates,
+  suppressAutoVenueLink,
+} from "../../entity-matching/entityReviewState";
 import type { ExtractedEvent, FlyerExtractionStatus } from "../../flyer-extraction/types";
 import { useMetros } from "../../metros/hooks/useMetros";
 import { removeEventFlyer, uploadEventFlyer } from "../../events/api/eventFlyers";
@@ -61,6 +78,48 @@ export default function AdminEventEditor({
     PrefillResult,
     "filled" | "skipped"
   > | null>(null);
+  const formRef = useRef(form);
+  useEffect(() => {
+    formRef.current = form;
+  }, [form]);
+  const extractionGeneration = useRef(0);
+  const isExtracting = useRef(false);
+  // What the last extraction proposed, so a repeat extraction can tell
+  // untouched candidates (replaced) from edited ones (kept).
+  const lastCandidatesRef = useRef<EntityCandidates | null>(null);
+  // An existing event already has a chosen city; for a new one, the first
+  // manual city change locks it against later extractions.
+  const cityChosenRef = useRef(Boolean(_eventId));
+  const [reconciliation, setReconciliation] = useState<{ status: "idle" | "loading" | "error" }>({
+    status: "idle",
+  });
+  const handleFormChange = (draft: AdminEventForm) => {
+    if (draft.city !== formRef.current.city) cityChosenRef.current = true;
+    updateForm(() => draft);
+  };
+  // Every edit to the event's own venue goes through here so an automatic
+  // flyer-venue link is detached when the admin changes the venue.
+  const updateForm = (change: (current: AdminEventForm) => AdminEventForm) => {
+    setForm((current) => detachAutoVenueLink(current, change(current)));
+  };
+  const resetExtraction = () => {
+    extractionGeneration.current += 1;
+    isExtracting.current = false;
+    setExtractionStatus("idle");
+    setExtractionResult(null);
+    setExtractionError(null);
+    setExtractionAttempts(0);
+    setPrefillFeedback(null);
+    setReconciliation({ status: "idle" });
+    // The flyer that produced these candidates is changing; untouched ones go
+    // with it, edited or decided ones stay.
+    const previous = lastCandidatesRef.current;
+    setForm((current) => {
+      if (!current.entity_review) return current;
+      const pruned = mergeEntityReview(current.entity_review, previous, emptyEntityReview());
+      return { ...current, entity_review: listReviewEntries(pruned).length > 0 ? pruned : undefined };
+    });
+  };
   const venueCombobox = useVenueCombobox(form.venue_id);
   const danceStyles = useActiveTaxonomyTerms("dance_style");
   const attributes = useActiveTaxonomyTerms("event_attribute");
@@ -78,7 +137,7 @@ export default function AdminEventEditor({
 
   const selectVenue = (venue: VenueRow) => {
     venueCombobox.selectVenue(venue);
-    setForm((current) => ({
+    updateForm((current) => ({
       ...current,
       venue_id: venue.id,
       location: venue.name,
@@ -87,14 +146,10 @@ export default function AdminEventEditor({
   };
   const clearVenue = () => {
     venueCombobox.clearVenue();
-    setForm((current) => ({ ...current, venue_id: "", location: "", address: "" }));
+    updateForm((current) => ({ ...current, venue_id: "", location: "", address: "" }));
   };
   const handleFlyerChange = async (file: File | null) => {
-    setExtractionStatus("idle");
-    setExtractionResult(null);
-    setExtractionError(null);
-    setExtractionAttempts(0);
-    setPrefillFeedback(null);
+    resetExtraction();
     setFlyerError(null);
     if (!file) {
       if (form.image_url) await removeEventFlyer(form.image_url).catch(() => undefined);
@@ -136,25 +191,69 @@ export default function AdminEventEditor({
     }
   };
   const handleExtractFlyer = async () => {
-    if (!form.image_url || extractionStatus === "loading") return;
+    if (!form.image_url || isExtracting.current) return;
     if (extractionAttempts >= 3) return;
+    const imageUrl = form.image_url;
+    isExtracting.current = true;
+    const generation = ++extractionGeneration.current;
+    const stale = () => extractionGeneration.current !== generation;
     setExtractionAttempts((attempt) => attempt + 1);
     setExtractionStatus("loading");
+    setExtractionError(null);
     try {
-      const result = await extractEventFromFlyer(form.image_url);
+      const result = await extractEventFromFlyer(imageUrl);
+      if (stale()) return;
       setExtractionResult(result);
       setPrefillFeedback(null);
+      const candidates = extractionEntityCandidates(result);
+      let incoming: EntityReview = emptyEntityReview();
+      if (hasEntityCandidates(candidates)) {
+        setReconciliation({ status: "loading" });
+        try {
+          incoming = await reconcileEntities(candidates);
+          if (stale()) return;
+          setReconciliation({ status: "idle" });
+        } catch {
+          if (stale()) return;
+          incoming = reviewFromCandidates(candidates);
+          setReconciliation({ status: "error" });
+        }
+      }
+      // Merge against the form as it is now, after every await, so edits and
+      // decisions made while the flyer was read are kept.
+      const existing = formRef.current.entity_review;
+      // A link the matcher made on its own never overrides a venue the admin
+      // already picked or typed; only an explicit choice does.
+      const review = suppressAutoVenueLink(
+        existing
+          ? mergeEntityReview(existing, lastCandidatesRef.current, incoming)
+          : incoming,
+        formRef.current
+      );
+      lastCandidatesRef.current = candidates;
+      setForm((current) => ({
+        ...current,
+        entity_review: listReviewEntries(review).length > 0 ? review : undefined,
+      }));
       setExtractionStatus("success");
     } catch (extractError) {
+      if (stale()) return;
       setExtractionStatus("error");
       setExtractionError(
         extractError instanceof Error ? extractError.message : "Unable to read this flyer."
       );
+    } finally {
+      if (!stale()) isExtracting.current = false;
     }
   };
   const applyExtraction = () => {
     if (!extractionResult) return;
-    const applied = applyExtractionToDraft(extractionResult, form, metros);
+    const applied = applyExtractionToDraft(
+      enrichExtractionWithReview(extractionResult, form.entity_review),
+      form,
+      metros,
+      { preserveCity: cityChosenRef.current }
+    );
     setForm(applied.draft);
     setPrefillFeedback({ filled: applied.filled, skipped: applied.skipped });
   };
@@ -192,7 +291,7 @@ export default function AdminEventEditor({
       )}
       <EventForm
         draft={form}
-        onChange={setForm}
+        onChange={handleFormChange}
         capabilities={CAPABILITIES.admin}
         taxonomyTerms={{ danceStyles: danceStyles.terms, attributes: attributes.terms, archived }}
         flyerFirst
@@ -243,7 +342,7 @@ export default function AdminEventEditor({
                 name="location"
                 value={form.location}
                 onChange={(event) =>
-                  setForm((current) => ({ ...current, location: event.target.value }))
+                  updateForm((current) => ({ ...current, location: event.target.value }))
                 }
               />
             </label>
@@ -254,7 +353,7 @@ export default function AdminEventEditor({
                 name="address"
                 value={form.address}
                 onChange={(event) =>
-                  setForm((current) => ({ ...current, address: event.target.value }))
+                  updateForm((current) => ({ ...current, address: event.target.value }))
                 }
               />
             </label>
@@ -290,6 +389,16 @@ export default function AdminEventEditor({
                   onDismiss={dismissExtractionError}
                   remainingRetries={Math.max(0, 3 - extractionAttempts)}
                 />
+                {reconciliation.status === "loading" && (
+                  <div className="admin-banner" role="status">
+                    Checking the venue, organizer, instructors and school against existing records…
+                  </div>
+                )}
+                {reconciliation.status === "error" && (
+                  <div className="admin-banner" role="status">
+                    We couldn&apos;t check these against existing records. Review them below.
+                  </div>
+                )}
                 {extractionStatus === "success" && (
                   <button
                     type="button"
@@ -317,6 +426,14 @@ export default function AdminEventEditor({
           </>
         )}
       />
+      {form.entity_review && (
+        <EntityReviewSection
+          review={form.entity_review}
+          onChange={(review) => setForm((current) => ({ ...current, entity_review: review }))}
+          disabled={isSaving}
+          mode="authorized"
+        />
+      )}
       <p>
         <Link to="/admin/tags/new?category=dance_style">Create dance style</Link> ·{" "}
         <Link to="/admin/tags/new?category=event_attribute">Create attribute</Link>

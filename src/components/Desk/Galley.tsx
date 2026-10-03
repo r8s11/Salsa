@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import type { EventSubmission } from "../../features/admin/model/submissions";
+import EntityReviewSection from "../../features/entity-matching/EntityReviewSection";
+import type { EntityReview } from "../../features/entity-matching/entityReview";
+import { moderatorStartingReview } from "../../features/entity-matching/entityReviewState";
 import AdminRejectSubmissionDialog from "../Admin/AdminRejectSubmissionDialog";
 import { DeskEntry, DeskEmpty, DeskError, DeskSkeleton } from "./Desk";
 import { readSubmission } from "./deskModel";
@@ -28,7 +31,7 @@ interface GalleyProps {
   /** An approved entry that just left the galley after its server confirmation. */
   settledId: string | null;
   onSettledFocus: () => void;
-  onSet: (submission: EventSubmission) => void;
+  onSet: (submission: EventSubmission, entityReview?: EntityReview) => void;
   onKill: (
     submission: EventSubmission,
     reason: EventSubmission["rejection_reason"],
@@ -56,6 +59,8 @@ export default function Galley({
 }: GalleyProps) {
   const [openId, setOpenId] = useState<string | null>(null);
   const [killTarget, setKillTarget] = useState<EventSubmission | null>(null);
+  // Moderator edits to a submission's linked records, held until it is approved.
+  const [reviewEdits, setReviewEdits] = useState<Record<string, EntityReview>>({});
   const titleButtons = useRef(new Map<string, HTMLButtonElement>());
   const emptyStatus = useRef<HTMLParagraphElement>(null);
 
@@ -102,6 +107,14 @@ export default function Galley({
           const listing = toListing(submission);
           const isOpen = openId === submission.id;
           const data = readSubmission(submission);
+          const reviewEdit = reviewEdits[submission.id];
+          const review = !isOpen
+            ? null
+            : (reviewEdit ??
+              moderatorStartingReview(
+                submission.submitted_data.entity_review,
+                submission.edited_data?.entity_review
+              ).review);
 
           return (
             <DeskEntry
@@ -142,11 +155,23 @@ export default function Galley({
                       )}
                     </dl>
 
+                    {review && (
+                      <EntityReviewSection
+                        review={review}
+                        onChange={(next) =>
+                          setReviewEdits((previous) => ({ ...previous, [submission.id]: next }))
+                        }
+                        disabled={isDeciding}
+                        mode="authorized"
+                      />
+                    )}
                     <div className="desk__actions">
                       <button
                         type="button"
                         className="desk__action desk__action--set"
-                        onClick={() => onSet(submission)}
+                        onClick={() =>
+                          reviewEdit ? onSet(submission, reviewEdit) : onSet(submission)
+                        }
                         disabled={isDeciding}
                       >
                         Approve

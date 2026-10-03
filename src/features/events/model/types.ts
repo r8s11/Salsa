@@ -1,3 +1,4 @@
+import type { EntityReview } from "../../entity-matching/entityReview";
 export type EventType = "social" | "class" | "workshop" | "live_music";
 /** Canonical metro slug (public.metros.slug), e.g. "new-york-city". */
 export type City = string;
@@ -44,6 +45,7 @@ export interface DatabaseEvent {
   contact_instagram: string | null;
   contact_website: string | null;
   venue_id: string | null;
+  entity_review?: EntityReview | null;
 
   /**
    * Present only for organizer-owned events created via

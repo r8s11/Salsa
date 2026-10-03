@@ -7,6 +7,7 @@ import { useOwnProfile } from "../../account/hooks/useOwnProfile";
 import { resolveIdentity } from "../../account/model/account";
 import EventForm, { CAPABILITIES } from "../../events/components/EventForm";
 import EventFlyerField from "../../events/components/EventFlyerField";
+import EntityReviewSection from "../../entity-matching/EntityReviewSection";
 import { useSubmissionAccess } from "../../submit-event/hooks/useSubmissionAccess";
 import { useSubmitEventForm } from "../../submit-event/hooks/useSubmitEventForm";
 import type { SubmitFieldName } from "../../submit-event/model/validation";
@@ -71,6 +72,8 @@ function CalendarSubmissionContent({
     handleFlyerChange,
     handleFlyerRetry,
     handleFlyerRemove,
+    entityReview,
+    setEntityReview,
   } = useSubmitEventForm(authenticatedSubmitterName);
 
   const submissionAccess = useSubmissionAccess(Boolean(user));
@@ -204,6 +207,14 @@ function CalendarSubmissionContent({
               </details>
             </div>
 
+            {entityReview && (
+              <EntityReviewSection
+                review={entityReview}
+                onChange={setEntityReview}
+                disabled={isSubmitting}
+                mode="public"
+              />
+            )}
             <p className="calendar-sub-dialog__required-legend">* Required fields</p>
 
             <fieldset className="calendar-sub-dialog__fields" disabled={isSubmitting}>

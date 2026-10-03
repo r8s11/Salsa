@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { act, render, screen, fireEvent, within } from "@testing-library/react";
+import { act, render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { CityProvider } from "../contexts/CityContext";
@@ -7,6 +7,14 @@ import { CityProvider } from "../contexts/CityContext";
 // stable inventory so no test depends on a production or local database.
 vi.mock("../features/metros/hooks/useMetros", () => import("../test/mockMetros"));
 import SubmitEventPage from "./SubmitEventPage";
+import * as submissionsRepo from "../features/admin/api/submissionsRepo";
+import {
+  emptyEntityReview,
+  type EntityMatch,
+  type EntityReview,
+  type EntityReviewItem,
+} from "../features/entity-matching/entityReview";
+import type { ExtractedEvent } from "../features/flyer-extraction/types";
 const mockAuth = vi.hoisted(() => ({
   user: { id: "test-user-id", email: "test@example.com" } as {
     id: string;
@@ -21,7 +29,10 @@ const mockEventFlyers = vi.hoisted(() => ({
 const mockFlyerExtraction = vi.hoisted(() => ({
   extractEventFromFlyer: vi.fn(),
 }));
-const mockReconciliation = vi.hoisted(() => ({ reconcileVenue: vi.fn() }));
+const mockEntityReview = vi.hoisted(() => ({
+  reconcileEntities: vi.fn(),
+  searchEntityMatches: vi.fn(),
+}));
 
 vi.mock("../contexts/useAuth", () => ({ useAuth: () => ({ user: mockAuth.user }) }));
 vi.mock("../features/account/hooks/useOwnProfile", () => ({
@@ -45,12 +56,12 @@ vi.mock("../features/events/api/eventFlyers", () => ({
       : "Choose a JPEG, PNG, or WebP image.",
 }));
 vi.mock("../features/flyer-extraction/client", () => mockFlyerExtraction);
-vi.mock("../features/entity-matching/reconcileClient", () => mockReconciliation);
+vi.mock("../features/entity-matching/entityReviewClient", () => mockEntityReview);
 
 const FLYER_URL =
   "https://project.supabase.co/storage/v1/object/public/event-flyers/test-user-id/submission-abc/havana.png";
 
-const FULL_EXTRACTION = {
+const FULL_EXTRACTION: ExtractedEvent = {
   title: "Boston Salsa Night",
   date: "2026-09-18",
   start_time: "21:00",
@@ -67,7 +78,7 @@ const FULL_EXTRACTION = {
   details: ["21+"],
 };
 
-const PARTIAL_EXTRACTION = {
+const PARTIAL_EXTRACTION: ExtractedEvent = {
   title: "Latin Night",
   date: "2026-10-05",
   start_time: "20:00",
@@ -83,6 +94,45 @@ const PARTIAL_EXTRACTION = {
   website: null,
   details: [],
 };
+
+// Same flyer, but the extractor returned structured entities. A venue only —
+// no organizer, instructors or school — keeps the review to one group.
+const STRUCTURED_EXTRACTION: ExtractedEvent = {
+  ...FULL_EXTRACTION,
+  venue: { name: "Havana Club", address: "288 Green Street", city: "Cambridge" },
+  organizer: null,
+  instructors: [],
+  school: null,
+};
+
+const EXISTING_VENUE: EntityMatch = {
+  id: "11111111-1111-4111-8111-111111111111",
+  name: "Havana Club & Lounge",
+  address: "290 Green Street",
+  city: "Brooklyn",
+};
+
+const venueItem = (overrides: Partial<EntityReviewItem> = {}): EntityReviewItem => ({
+  candidate: { name: "Havana Club", address: "288 Green Street", city: "Cambridge" },
+  state: "POSSIBLE MATCH",
+  matches: [EXISTING_VENUE],
+  decision: "pending",
+  selected_id: null,
+  ...overrides,
+});
+
+const venueReview = (venue: EntityReviewItem): EntityReview => ({
+  venue,
+  organizer: null,
+  instructors: [],
+  school: null,
+});
+
+const REVIEW_HEADING = "Venue, organizer, instructors and school";
+const venueGroup = () => screen.findByRole("group", { name: "Venue: Havana Club" });
+// The review section also has "Name"/"Address" inputs; the event form's own
+// fields are addressed by id so the two never collide.
+const eventAddress = () => document.getElementById("event-address") as HTMLInputElement;
 
 const renderPage = () =>
   render(
@@ -116,7 +166,7 @@ describe("SubmitEventPage flyer extraction (Phase 3)", () => {
       url: FLYER_URL,
     });
     mockEventFlyers.removeEventFlyer.mockResolvedValue(undefined);
-    mockReconciliation.reconcileVenue.mockResolvedValue({ venue: { status: "none", match: null } });
+    mockEntityReview.reconcileEntities.mockResolvedValue(emptyEntityReview());
   });
 
   it("shows no extraction button before a flyer is persisted", () => {
@@ -127,12 +177,8 @@ describe("SubmitEventPage flyer extraction (Phase 3)", () => {
   });
 
   it("shows a real Analyzing… loading state while the request is in flight", async () => {
-    let resolveExtraction!: (value: typeof FULL_EXTRACTION) => void;
-    mockFlyerExtraction.extractEventFromFlyer.mockReturnValueOnce(
-      new Promise((resolve) => {
-        resolveExtraction = resolve;
-      })
-    );
+    const extraction = Promise.withResolvers<ExtractedEvent>();
+    mockFlyerExtraction.extractEventFromFlyer.mockReturnValueOnce(extraction.promise);
     const user = userEvent.setup();
     renderPage();
     await uploadFlyer(user);
@@ -145,7 +191,7 @@ describe("SubmitEventPage flyer extraction (Phase 3)", () => {
     ).not.toBeInTheDocument();
 
     await act(async () => {
-      resolveExtraction(FULL_EXTRACTION);
+      extraction.resolve(FULL_EXTRACTION);
     });
     expect(screen.getByText(/Flyer analyzed/i)).toBeInTheDocument();
   });
@@ -167,26 +213,35 @@ describe("SubmitEventPage flyer extraction (Phase 3)", () => {
     // A full extraction has nothing missing — no partial-results note.
     expect(screen.queryByText(/wasn't visible on the flyer/i)).not.toBeInTheDocument();
   });
-  it.each([
-    ["exact", /Matched to an existing SalsaSegura venue\./i],
-    ["strong", /Matched to an existing SalsaSegura venue\./i],
-  ] as const)(
-    "shows a restrained known venue notice for %s reconciliation",
-    async (status, notice) => {
-      const user = userEvent.setup();
-      mockFlyerExtraction.extractEventFromFlyer.mockResolvedValueOnce(FULL_EXTRACTION);
-      mockReconciliation.reconcileVenue.mockResolvedValueOnce({
-        venue: {
-          status,
-          match: { id: "v1", name: "Havana Club", address: null, city: "Boston" },
-        },
-      });
-      renderPage();
-      await uploadFlyer(user);
-      await user.click(screen.getByRole("button", { name: /Extract Event Details/i }));
-      expect(await screen.findByText(notice)).toBeInTheDocument();
-    }
-  );
+
+  it("prefills the form from an explicitly selected existing venue and says so", async () => {
+    const user = userEvent.setup();
+    mockFlyerExtraction.extractEventFromFlyer.mockResolvedValueOnce(STRUCTURED_EXTRACTION);
+    mockEntityReview.reconcileEntities.mockResolvedValueOnce(
+      venueReview(
+        venueItem({ state: "MATCHED", decision: "existing", selected_id: EXISTING_VENUE.id })
+      )
+    );
+    renderPage();
+    await uploadFlyer(user);
+    await user.click(screen.getByRole("button", { name: /Extract Event Details/i }));
+
+    const group = within(await venueGroup());
+    expect(group.getByText("Matched")).toBeInTheDocument();
+    expect(group.getByText("Using existing venue: Havana Club & Lounge")).toBeInTheDocument();
+    // The matched record replaces the flyer's raw venue text and city.
+    expect(screen.getByLabelText("Venue Name")).toHaveValue("Havana Club & Lounge");
+    expect(eventAddress()).toHaveValue("290 Green Street");
+    expect(screen.getByRole("combobox", { name: /City/i })).toHaveValue("new-york-city");
+    // The old standalone notice is gone; the review section carries the status.
+    expect(screen.queryByText(/Matched to an existing SalsaSegura venue\./i)).not.toBeInTheDocument();
+    expect(mockEntityReview.reconcileEntities).toHaveBeenCalledTimes(1);
+    expect(mockEntityReview.reconcileEntities.mock.calls[0][0].venue).toMatchObject({
+      name: "Havana Club",
+      address: "288 Green Street",
+      city: "Cambridge",
+    });
+  });
   it("shows only populated fields and hides the partial-results note", async () => {
     const user = userEvent.setup();
     mockFlyerExtraction.extractEventFromFlyer.mockResolvedValueOnce(PARTIAL_EXTRACTION);
@@ -208,49 +263,68 @@ describe("SubmitEventPage flyer extraction (Phase 3)", () => {
     expect(screen.queryByText(/wasn't visible on the flyer/i)).not.toBeInTheDocument();
   });
 
-  it("silently falls back for an ambiguous venue match", async () => {
+  it("keeps the flyer's venue text for an ambiguous match until the person chooses", async () => {
     const user = userEvent.setup();
-    mockFlyerExtraction.extractEventFromFlyer.mockResolvedValueOnce(FULL_EXTRACTION);
-    mockReconciliation.reconcileVenue.mockResolvedValueOnce({
-      venue: { status: "ambiguous", match: null },
-    });
+    mockFlyerExtraction.extractEventFromFlyer.mockResolvedValueOnce(STRUCTURED_EXTRACTION);
+    mockEntityReview.reconcileEntities.mockResolvedValueOnce(venueReview(venueItem()));
     renderPage();
     await uploadFlyer(user);
     await user.click(screen.getByRole("button", { name: /Extract Event Details/i }));
 
-    expect(await screen.findByText("Havana Club")).toBeInTheDocument();
+    const group = within(await venueGroup());
+    expect(group.getByText("Possible match")).toBeInTheDocument();
+    expect(group.getByText(/^Undecided\./)).toBeInTheDocument();
+    expect(
+      group.getByRole("button", { name: "Use Havana Club & Lounge as the venue" })
+    ).toHaveAttribute("aria-pressed", "false");
     expect(screen.getByLabelText(/Event Title \*/i)).toHaveValue("Boston Salsa Night");
-    expect(screen.queryByText(/No confident venue match found/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/Venue enrichment is unavailable/i)).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Venue Name")).toHaveValue("Havana Club");
+    expect(eventAddress()).toHaveValue("288 Green Street");
+    expect(screen.queryByText(/We couldn't check these against existing records/i)).not.toBeInTheDocument();
   });
 
-  it("silently falls back for an unknown venue", async () => {
+  it("shows an unknown venue as not in our records and keeps the flyer's values", async () => {
     const user = userEvent.setup();
-    mockFlyerExtraction.extractEventFromFlyer.mockResolvedValueOnce(FULL_EXTRACTION);
-    mockReconciliation.reconcileVenue.mockResolvedValueOnce({
-      venue: { status: "none", match: null },
-    });
+    mockFlyerExtraction.extractEventFromFlyer.mockResolvedValueOnce(STRUCTURED_EXTRACTION);
+    mockEntityReview.reconcileEntities.mockResolvedValueOnce(
+      venueReview(venueItem({ state: "NEW", matches: [] }))
+    );
     renderPage();
     await uploadFlyer(user);
     await user.click(screen.getByRole("button", { name: /Extract Event Details/i }));
 
-    expect(await screen.findByText("Havana Club")).toBeInTheDocument();
+    const group = within(await venueGroup());
+    expect(group.getByText("Not in our records")).toBeInTheDocument();
+    expect(group.queryByRole("list", { name: "Existing venue matches" })).not.toBeInTheDocument();
     expect(screen.getByLabelText(/Event Title \*/i)).toHaveValue("Boston Salsa Night");
-    expect(screen.queryByText(/No confident venue match found/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/Venue enrichment is unavailable/i)).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Venue Name")).toHaveValue("Havana Club");
+    expect(eventAddress()).toHaveValue("288 Green Street");
   });
 
-  it("silently falls back when venue reconciliation fails", async () => {
+  it("still reviews the flyer's candidates by hand when the records check fails", async () => {
     const user = userEvent.setup();
     mockFlyerExtraction.extractEventFromFlyer.mockResolvedValueOnce(FULL_EXTRACTION);
-    mockReconciliation.reconcileVenue.mockRejectedValueOnce(new Error("network failure"));
+    mockEntityReview.reconcileEntities.mockRejectedValueOnce(new Error("network failure"));
     renderPage();
     await uploadFlyer(user);
     await user.click(screen.getByRole("button", { name: /Extract Event Details/i }));
 
-    expect(await screen.findByText("Havana Club")).toBeInTheDocument();
+    // FULL_EXTRACTION is a legacy payload: the flat venue and organizer
+    // fields become the candidates.
+    const venue = within(await venueGroup());
+    expect(venue.getByText("Needs review")).toBeInTheDocument();
+    expect(venue.getByRole("button", { name: "Check for matches" })).toBeInTheDocument();
+    const organizer = within(screen.getByRole("group", { name: "Organizer: SalsaSegura" }));
+    expect(organizer.getByText("Needs review")).toBeInTheDocument();
+
+    expect(
+      screen.getByText("We couldn't check these against existing records. Review them below.")
+    ).toBeInTheDocument();
+    // Nothing leaks from the failure, and the form is prefilled with raw values.
+    expect(screen.queryByText(/network failure/i)).not.toBeInTheDocument();
     expect(screen.getByLabelText(/Event Title \*/i)).toHaveValue("Boston Salsa Night");
-    expect(screen.queryByText(/Venue enrichment is unavailable/i)).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Venue Name")).toHaveValue("Havana Club");
+    expect(eventAddress()).toHaveValue("288 Green Street");
   });
 
   it("shows a safe failure message with Try Again and Continue manually, and never blocks the form", async () => {
@@ -329,12 +403,8 @@ describe("SubmitEventPage flyer extraction (Phase 3)", () => {
   });
 
   it("a stale response cannot prefill the form once its flyer has been removed", async () => {
-    let resolveExtraction!: (value: typeof FULL_EXTRACTION) => void;
-    mockFlyerExtraction.extractEventFromFlyer.mockReturnValueOnce(
-      new Promise((resolve) => {
-        resolveExtraction = resolve;
-      })
-    );
+    const extraction = Promise.withResolvers<ExtractedEvent>();
+    mockFlyerExtraction.extractEventFromFlyer.mockReturnValueOnce(extraction.promise);
     const user = userEvent.setup();
     renderPage();
     await uploadFlyer(user);
@@ -349,7 +419,7 @@ describe("SubmitEventPage flyer extraction (Phase 3)", () => {
     // The stale request now resolves — it must reach neither the panel nor
     // the form, even though it would have been a perfectly valid result.
     await act(async () => {
-      resolveExtraction(FULL_EXTRACTION);
+      extraction.resolve(FULL_EXTRACTION);
     });
 
     expect(screen.queryByText(/Flyer analyzed/i)).not.toBeInTheDocument();
@@ -357,5 +427,265 @@ describe("SubmitEventPage flyer extraction (Phase 3)", () => {
     expect(
       screen.queryByRole("button", { name: /Extract Event Details/i })
     ).not.toBeInTheDocument();
+  });
+
+  describe("entity review", () => {
+    it("lets an anonymous visitor upload a flyer but offers neither extraction nor review", async () => {
+      const user = userEvent.setup();
+      mockAuth.user = null;
+      renderPage();
+
+      await user.upload(
+        screen.getByLabelText("Event flyer"),
+        new File(["png"], "guest-flyer.png", { type: "image/png" })
+      );
+
+      expect(await screen.findByText("Extract details with AI")).toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: /Extract Event Details/i })
+      ).not.toBeInTheDocument();
+      expect(screen.queryByRole("heading", { name: REVIEW_HEADING })).not.toBeInTheDocument();
+      expect(mockFlyerExtraction.extractEventFromFlyer).not.toHaveBeenCalled();
+      expect(mockEntityReview.reconcileEntities).not.toHaveBeenCalled();
+    });
+
+    it("shows the review in public mode: candidates can only be suggested as new", async () => {
+      const user = userEvent.setup();
+      mockFlyerExtraction.extractEventFromFlyer.mockResolvedValueOnce(STRUCTURED_EXTRACTION);
+      mockEntityReview.reconcileEntities.mockResolvedValueOnce(venueReview(venueItem()));
+      renderPage();
+      await uploadFlyer(user);
+      await user.click(screen.getByRole("button", { name: /Extract Event Details/i }));
+
+      expect(await screen.findByRole("heading", { name: REVIEW_HEADING })).toBeInTheDocument();
+      const group = within(await venueGroup());
+      expect(group.getByRole("button", { name: "Suggest as new venue" })).toBeInTheDocument();
+      expect(group.queryByRole("button", { name: "Add as new venue" })).not.toBeInTheDocument();
+      expect(screen.getByText(/A moderator confirms anything new/i)).toBeInTheDocument();
+    });
+
+    it("keeps the person's decision and edits when the flyer is analysed again", async () => {
+      const user = userEvent.setup();
+      mockFlyerExtraction.extractEventFromFlyer.mockResolvedValue(STRUCTURED_EXTRACTION);
+      mockEntityReview.reconcileEntities.mockResolvedValue(venueReview(venueItem()));
+      renderPage();
+      await uploadFlyer(user);
+      await user.click(screen.getByRole("button", { name: /Extract Event Details/i }));
+
+      const choose = within(await venueGroup()).getByRole("button", {
+        name: "Use Havana Club & Lounge as the venue",
+      });
+      await user.click(choose);
+      expect(
+        within(await venueGroup()).getByRole("button", {
+          name: "Using Havana Club & Lounge as the venue",
+        })
+      ).toHaveAttribute("aria-pressed", "true");
+      fireEvent.change(screen.getByLabelText(/Event Title \*/i), {
+        target: { value: "My Own Title" },
+      });
+      fireEvent.change(screen.getByLabelText("Venue Name"), {
+        target: { value: "My Own Venue" },
+      });
+
+      await user.click(screen.getByRole("button", { name: "Try Again" }));
+      await waitFor(() => {
+        expect(mockEntityReview.reconcileEntities).toHaveBeenCalledTimes(2);
+      });
+      expect(await screen.findByText(/Flyer analyzed/i)).toBeInTheDocument();
+
+      const group = within(await venueGroup());
+      expect(
+        group.getByRole("button", { name: "Using Havana Club & Lounge as the venue" })
+      ).toHaveAttribute("aria-pressed", "true");
+      expect(group.getByText("Using existing venue: Havana Club & Lounge")).toBeInTheDocument();
+      expect(screen.getByLabelText(/Event Title \*/i)).toHaveValue("My Own Title");
+      expect(screen.getByLabelText("Venue Name")).toHaveValue("My Own Venue");
+      expect(mockFlyerExtraction.extractEventFromFlyer).toHaveBeenCalledTimes(2);
+    });
+
+    it("does not apply an automatic venue match over a venue the person typed first", async () => {
+      const user = userEvent.setup();
+      mockFlyerExtraction.extractEventFromFlyer.mockResolvedValueOnce(STRUCTURED_EXTRACTION);
+      mockEntityReview.reconcileEntities.mockResolvedValueOnce(
+        venueReview(
+          venueItem({ state: "MATCHED", decision: "existing", selected_id: EXISTING_VENUE.id })
+        )
+      );
+      renderPage();
+      await uploadFlyer(user);
+      fireEvent.change(screen.getByLabelText("Venue Name"), { target: { value: "My Own Hall" } });
+      await user.click(screen.getByRole("button", { name: /Extract Event Details/i }));
+
+      const group = within(await venueGroup());
+      expect(
+        group.getByText("Undecided. This venue is skipped unless you choose.")
+      ).toBeInTheDocument();
+      expect(group.queryByText(/^Using existing venue:/)).not.toBeInTheDocument();
+      expect(
+        group.getByRole("button", { name: "Use Havana Club & Lounge as the venue" })
+      ).toHaveAttribute("aria-pressed", "false");
+      // The person's text stays; the matched record's address is not pulled in.
+      expect(screen.getByLabelText("Venue Name")).toHaveValue("My Own Hall");
+      expect(eventAddress()).not.toHaveValue("290 Green Street");
+    });
+
+    it("detaches an automatic venue link when the person edits the venue name afterwards", async () => {
+      const user = userEvent.setup();
+      mockFlyerExtraction.extractEventFromFlyer.mockResolvedValueOnce(STRUCTURED_EXTRACTION);
+      mockEntityReview.reconcileEntities.mockResolvedValueOnce(
+        venueReview(
+          venueItem({ state: "MATCHED", decision: "existing", selected_id: EXISTING_VENUE.id })
+        )
+      );
+      renderPage();
+      await uploadFlyer(user);
+      await user.click(screen.getByRole("button", { name: /Extract Event Details/i }));
+
+      expect(
+        within(await venueGroup()).getByText("Using existing venue: Havana Club & Lounge")
+      ).toBeInTheDocument();
+      expect(screen.getByLabelText("Venue Name")).toHaveValue("Havana Club & Lounge");
+
+      fireEvent.change(screen.getByLabelText("Venue Name"), {
+        target: { value: "Somewhere Else" },
+      });
+
+      const group = within(await venueGroup());
+      expect(
+        group.getByText("Undecided. This venue is skipped unless you choose.")
+      ).toBeInTheDocument();
+      expect(group.queryByText(/^Using existing venue:/)).not.toBeInTheDocument();
+      expect(screen.getByLabelText("Venue Name")).toHaveValue("Somewhere Else");
+    });
+
+    it("keeps a venue the person chose by clicking, even after they edit the venue name", async () => {
+      const user = userEvent.setup();
+      mockFlyerExtraction.extractEventFromFlyer.mockResolvedValueOnce(STRUCTURED_EXTRACTION);
+      mockEntityReview.reconcileEntities.mockResolvedValueOnce(venueReview(venueItem()));
+      renderPage();
+      await uploadFlyer(user);
+      await user.click(screen.getByRole("button", { name: /Extract Event Details/i }));
+
+      await user.click(
+        within(await venueGroup()).getByRole("button", {
+          name: "Use Havana Club & Lounge as the venue",
+        })
+      );
+      fireEvent.change(screen.getByLabelText("Venue Name"), {
+        target: { value: "Somewhere Else" },
+      });
+
+      const group = within(await venueGroup());
+      expect(group.getByText("Using existing venue: Havana Club & Lounge")).toBeInTheDocument();
+      expect(
+        group.getByRole("button", { name: "Using Havana Club & Lounge as the venue" })
+      ).toHaveAttribute("aria-pressed", "true");
+      expect(screen.getByLabelText("Venue Name")).toHaveValue("Somewhere Else");
+    });
+
+    it("discards a late reconcile result when the flyer is removed", async () => {
+      const user = userEvent.setup();
+      const reconcile = Promise.withResolvers<EntityReview>();
+      mockFlyerExtraction.extractEventFromFlyer.mockResolvedValueOnce(STRUCTURED_EXTRACTION);
+      mockEntityReview.reconcileEntities.mockReturnValueOnce(reconcile.promise);
+      renderPage();
+      await uploadFlyer(user);
+      await user.click(screen.getByRole("button", { name: /Extract Event Details/i }));
+
+      expect(
+        await screen.findByText(
+          "Checking the venue, organizer, instructors and school against existing records…"
+        )
+      ).toBeInTheDocument();
+
+      // Exact name: the review's own "Remove venue" buttons are different.
+      await user.click(screen.getByRole("button", { name: "Remove" }));
+      await act(async () => {
+        reconcile.resolve(venueReview(venueItem()));
+      });
+
+      expect(screen.queryByRole("heading", { name: REVIEW_HEADING })).not.toBeInTheDocument();
+      expect(screen.queryByRole("group", { name: /^Venue:/ })).not.toBeInTheDocument();
+      expect(screen.queryByText(/Flyer analyzed/i)).not.toBeInTheDocument();
+      expect(screen.getByLabelText(/Event Title \*/i)).toHaveValue("");
+      expect(screen.getByLabelText("Venue Name")).toHaveValue("");
+      expect(
+        screen.queryByRole("button", { name: /Extract Event Details/i })
+      ).not.toBeInTheDocument();
+    });
+
+    it("discards a late reconcile result when the flyer is replaced", async () => {
+      const user = userEvent.setup();
+      const reconcile = Promise.withResolvers<EntityReview>();
+      mockFlyerExtraction.extractEventFromFlyer.mockResolvedValueOnce(STRUCTURED_EXTRACTION);
+      mockEntityReview.reconcileEntities.mockReturnValueOnce(reconcile.promise);
+      renderPage();
+      await uploadFlyer(user);
+      await user.click(screen.getByRole("button", { name: /Extract Event Details/i }));
+      await screen.findByText(/Checking the venue, organizer, instructors and school/i);
+
+      // Remove-then-upload is the UI path that swaps the flyer (see the
+      // flyer-identity test above for why "Replace" is not used).
+      await user.click(screen.getByRole("button", { name: "Remove" }));
+      await uploadFlyer(user);
+      await act(async () => {
+        reconcile.resolve(venueReview(venueItem()));
+      });
+
+      expect(screen.queryByRole("heading", { name: REVIEW_HEADING })).not.toBeInTheDocument();
+      expect(screen.queryByRole("group", { name: /^Venue:/ })).not.toBeInTheDocument();
+      expect(screen.queryByText(/Flyer analyzed/i)).not.toBeInTheDocument();
+      expect(screen.getByLabelText(/Event Title \*/i)).toHaveValue("");
+      expect(screen.getByLabelText("Venue Name")).toHaveValue("");
+      expect(screen.getByRole("button", { name: /Extract Event Details/i })).toBeInTheDocument();
+      expect(mockEntityReview.reconcileEntities).toHaveBeenCalledTimes(1);
+    });
+
+    it("submits the reviewed entities with the event", async () => {
+      const user = userEvent.setup();
+      vi.mocked(submissionsRepo.createSubmission).mockResolvedValueOnce("submission-id");
+      mockFlyerExtraction.extractEventFromFlyer.mockResolvedValueOnce(STRUCTURED_EXTRACTION);
+      mockEntityReview.reconcileEntities.mockResolvedValueOnce(venueReview(venueItem()));
+      renderPage();
+      await uploadFlyer(user);
+      await user.click(screen.getByRole("button", { name: /Extract Event Details/i }));
+
+      await user.click(
+        within(await venueGroup()).getByRole("button", { name: "Suggest as new venue" })
+      );
+      await user.click(screen.getByRole("button", { name: "Submit Event" }));
+
+      await waitFor(() => {
+        expect(submissionsRepo.createSubmission).toHaveBeenCalledTimes(1);
+      });
+      const [submission, extra] = vi.mocked(submissionsRepo.createSubmission).mock.calls[0];
+      expect(submission.entity_review).toEqual(
+        venueReview(venueItem({ decision: "new", selected_id: null }))
+      );
+      expect(submission.location).toBe("Havana Club");
+      expect(extra).toEqual({ image_url: FLYER_URL });
+      expect(await screen.findByText(/Event Submitted!/i)).toBeInTheDocument();
+    });
+
+    it("omits entity_review from the submission when the flyer produced no entities", async () => {
+      const user = userEvent.setup();
+      vi.mocked(submissionsRepo.createSubmission).mockResolvedValueOnce("submission-id");
+      mockFlyerExtraction.extractEventFromFlyer.mockResolvedValueOnce(FULL_EXTRACTION);
+      renderPage();
+      await uploadFlyer(user);
+      await user.click(screen.getByRole("button", { name: /Extract Event Details/i }));
+      await screen.findByText(/Flyer analyzed/i);
+      expect(screen.queryByRole("heading", { name: REVIEW_HEADING })).not.toBeInTheDocument();
+
+      await user.click(screen.getByRole("button", { name: "Submit Event" }));
+
+      await waitFor(() => {
+        expect(submissionsRepo.createSubmission).toHaveBeenCalledTimes(1);
+      });
+      expect(vi.mocked(submissionsRepo.createSubmission).mock.calls[0][0]).not.toHaveProperty(
+        "entity_review"
+      );
+    });
   });
 });

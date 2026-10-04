@@ -15,12 +15,13 @@ const PRIMARY_LINKS = [
   { to: "/calendar", label: "Calendar" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
+  { to: "/shop", label: "Shop" },
 ] as const;
 
 function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const accountDisclosure = useRef<HTMLDetailsElement>(null);
-  const navigationRef = useRef<HTMLElement>(null);
+  const navigationRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const { user, isModerator, isAdmin, isOrganizer, signOut } = useAuth();
   const { profile } = useOwnProfile(user?.id);
@@ -65,10 +66,10 @@ function Header() {
   };
 
   return (
-    <header
+    <div
       ref={navigationRef}
       className="site-header"
-      role={mobileOpen ? "dialog" : undefined}
+      role={mobileOpen ? "dialog" : "banner"}
       aria-modal={mobileOpen ? true : undefined}
       aria-label={mobileOpen ? "Site navigation" : undefined}
       onKeyDown={onNavigationKeyDown}
@@ -234,7 +235,7 @@ function Header() {
           <span />
         </button>
       </nav>
-    </header>
+    </div>
   );
 }
 

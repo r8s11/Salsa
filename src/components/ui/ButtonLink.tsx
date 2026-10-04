@@ -1,4 +1,4 @@
-import { type AnchorHTMLAttributes, type MouseEvent, type ReactNode } from "react";
+import { type AnchorHTMLAttributes, type MouseEvent, type ReactNode, type Ref } from "react";
 import { Link, type LinkProps } from "react-router-dom";
 import "./Button.css";
 
@@ -12,6 +12,7 @@ interface ButtonLinkBaseProps {
   className?: string;
   children: ReactNode;
   onClick?: (e: MouseEvent<HTMLAnchorElement>) => void;
+  ref?: Ref<HTMLAnchorElement>;
 }
 
 interface ButtonLinkInternalProps

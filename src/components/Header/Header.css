@@ -365,10 +365,10 @@ a.logo:hover .ss-logo__wordmark-accent {
      Sits under the sticky bar so the gold/rose logo and the X stay
      visible while the sheet is open. */
   .nav-links {
-    position: fixed;
-    top: 68px;
+    position: absolute;
+    top: 100%;
     right: 0;
-    height: calc(100dvh - 68px);
+    height: calc(100dvh - 100%);
     left: 0;
     display: none;
     flex-direction: column;
@@ -603,6 +603,9 @@ a.logo:hover .ss-logo__wordmark-accent {
 
   .site-header nav {
     gap: var(--space-sm);
+    flex-wrap: wrap;
+    height: auto;
+    min-height: 68px;
   }
 
   .metro-explorer--compact {
@@ -626,7 +629,7 @@ a.logo:hover .ss-logo__wordmark-accent {
 
   .site-header .metro-explorer--compact .metro-explorer__panel {
     position: fixed;
-    top: calc(68px + var(--space-sm));
+    top: calc(100% + var(--space-sm));
     right: var(--space-md);
     left: auto;
   }

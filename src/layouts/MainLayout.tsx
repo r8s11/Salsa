@@ -4,6 +4,8 @@ import Footer from "../components/Footer/Footer";
 import MobileTabBar from "../components/MobileTabBar/MobileTabBar";
 import FloatingCityPill from "../components/FloatingCityPill/FloatingCityPill";
 import SkipLink from "../shared/a11y/SkipLink";
+import CartProvider from "../features/shopify/cart/CartProvider";
+import CartDrawer from "../features/shopify/cart/CartDrawer";
 
 /**
  * First focusable element on every public page. The home page's job is the
@@ -24,7 +26,7 @@ function PublicSkipLink() {
 
 function MainLayout() {
   return (
-    <>
+    <CartProvider>
       <PublicSkipLink />
       <div className="app-layout">
         <Header />
@@ -35,7 +37,8 @@ function MainLayout() {
       </div>
       <FloatingCityPill />
       <MobileTabBar />
-    </>
+      <CartDrawer />
+    </CartProvider>
   );
 }
 

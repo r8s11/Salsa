@@ -47,15 +47,24 @@ under `.grok/skills/`, `.kiro/skills/`, `.vibe/skills/`, `.windsurf/skills/`, an
 are excluded from Vitest discovery. Application `src/**` discovery is unchanged.
 
 The site publishes `https://www.salsasegura.com` as its canonical host. After Vite
-builds, the sitemap generator queries the public approved-event view with the
-Supabase URL and publishable key; if those credentials or that view are unavailable,
-it emits the stable public routes without event URLs. Azure Static Web Apps route
+builds, the sitemap generator queries approved events and the public entity
+directory RPC with the Supabase URL and publishable key. If public reads are
+unavailable, it retains the stable directory routes without inventing detail URLs.
+Azure Static Web Apps route
 rules are path-based, so redirecting the non-`www` hostname requires domain or
 edge configuration outside this repository.
 
 The frontend is still a client-rendered SPA: route metadata and event structured
 data update after JavaScript starts, while deep links initially receive the shared
 HTML shell. Route-specific server rendering or prerendering is not configured.
+
+Entity routes, migration prerequisites, privacy boundaries, local verification,
+and production acceptance steps are recorded in
+[`docs/entity-accessibility-completion.md`](docs/entity-accessibility-completion.md).
+Run `node scripts/entity-accessibility/verify.mjs` against the local Supabase
+stack for real anonymous/admin JWT and RLS checks. The verifier refuses hosted
+URLs; `--keep-fixtures` retains isolated browser fixtures, and
+`--cleanup <artifact-path>` removes only those recorded fixtures.
 
 ## Native Shopify shop
 

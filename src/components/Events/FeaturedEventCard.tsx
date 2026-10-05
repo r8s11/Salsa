@@ -1,4 +1,7 @@
 import { Clock, MapPin } from "lucide-react";
+import { Link } from "react-router-dom";
+import { entityHref } from "../../features/entities/model";
+import EventEntityLinks from "../../features/events/components/EventEntityLinks";
 import type { ScheduleXEvent } from "../../types/events";
 import { isRecentlyApproved } from "../../features/events/model/recentlyApproved";
 import { resolveEventFlyer } from "../EventModal/eventModalImage";
@@ -66,10 +69,14 @@ export default function FeaturedEventCard({
           </span>
           {event.location && (
             <span>
-              <MapPin size={14} aria-hidden="true" /> {event.location}
+              <MapPin size={14} aria-hidden="true" />{" "}
+              {event.publicEntities?.venue
+                ? <Link className="event-card-entity" to={entityHref(event.publicEntities.venue)}>{event.publicEntities.venue.name}</Link>
+                : event.location}
             </span>
           )}
         </div>
+        <EventEntityLinks entities={event.publicEntities} omit={["venue"]} />
         {event.description && <p className="featured-card-description">{event.description}</p>}
         <span className="featured-card-link" aria-hidden="true">
           View details →

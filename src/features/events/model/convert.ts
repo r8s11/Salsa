@@ -1,6 +1,6 @@
 // Column event_date is timestamp with time zone (timestamptz)
 import "temporal-polyfill/global";
-import { DatabaseEvent, ScheduleXEvent } from "./types";
+import type { DatabaseEvent, ScheduleXEvent } from "./types";
 
 const DEFAULT_DURATION_HOURS = 4;
 
@@ -17,6 +17,8 @@ export function databaseEventToScheduleX(event: DatabaseEvent): ScheduleXEvent {
 
   return {
     id: event.id,
+    slug: event.slug ?? undefined,
+    publicEntities: event.public_entities ?? undefined,
     title: event.title,
     start,
     end,

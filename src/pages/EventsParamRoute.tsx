@@ -6,14 +6,12 @@ import { useMetros } from "../features/metros/hooks/useMetros";
 import { resolveMetroSlug } from "../features/metros/model/metro";
 
 const EventDetailPage = lazy(() => import("./EventDetailPage"));
-const NotFoundPage = lazy(() => import("./NotFoundPage"));
 
 const EVENT_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
- * `/events/:id` carries two kinds of page: an event (UUID) and a metro home
- * (`/events/new-york-city`). Event ids are UUIDs and metro slugs never are,
- * so the segment's shape decides.
+ * `/events/:id` preserves legacy UUIDs and metro homes, and accepts event
+ * slugs. Registered metro names and aliases retain routing priority.
  */
 export default function EventsParamRoute() {
   const { id = "" } = useParams();
@@ -25,7 +23,7 @@ function MetroHome({ segment }: { segment: string }) {
   const slug = loading || error ? null : resolveMetroSlug(segment, metros);
 
   if (loading) return <HomePage />;
-  if (!slug) return <NotFoundPage />;
+  if (!slug) return <EventDetailPage />;
   // Aliases (/events/nyc, /events/New-York) collapse onto one canonical URL.
   if (slug !== segment) return <Navigate to={`/events/${slug}`} replace />;
   return <CanonicalMetroHome slug={slug} />;

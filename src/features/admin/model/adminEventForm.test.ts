@@ -53,4 +53,30 @@ describe("adminEventForm model", () => {
     expect(payload.taxonomy_term_ids).toEqual(["salsa-id", "bachata-id"]);
     expect(payload).not.toHaveProperty("dance_styles");
   });
+  it("round-trips an existing Series link through the admin form and save payload", () => {
+    const event = { ...baseEvent, series_id: "series-123" };
+    const form = buildAdminFormFromEvent(event);
+
+    expect(form.series_id).toBe("series-123");
+    expect(draftToAdminPayload(form).series_id).toBe("series-123");
+  });
+
+  it("preserves existing linked entity review through an unrelated event edit", () => {
+    const entityReview = {
+      venue: null,
+      organizer: {
+        candidate: { name: "Casa Latina" },
+        state: "MATCHED" as const,
+        matches: [{ id: "organizer-1", name: "Casa Latina" }],
+        decision: "existing" as const,
+        selected_id: "organizer-1",
+      },
+      instructors: [],
+      school: null,
+    };
+    const form = buildAdminFormFromEvent({ ...baseEvent, entity_review: entityReview });
+    form.title = "Edited title";
+
+    expect(draftToAdminPayload(form).entity_review).toEqual(entityReview);
+  });
 });

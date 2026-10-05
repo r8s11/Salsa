@@ -12,7 +12,7 @@ export function canonicalUrl(path: string): string {
  */
 export function generateEventStructuredData(event: Pick<
   DatabaseEvent,
-  "id" | "title" | "description" | "event_date" | "location" | "address" | "rsvp_link" | "price_type" | "price_amount"
+  "id" | "slug" | "title" | "description" | "event_date" | "location" | "address" | "rsvp_link" | "price_type" | "price_amount"
 >) {
   const hasKnownPrice =
     event.price_type === "free" ||
@@ -23,7 +23,7 @@ export function generateEventStructuredData(event: Pick<
     name: event.title,
     description: event.description || undefined,
     startDate: event.event_date,
-    url: canonicalUrl(`/events/${event.id}`),
+    url: canonicalUrl(`/events/${event.slug || event.id}`),
     eventStatus: "https://schema.org/EventScheduled",
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     location: event.location

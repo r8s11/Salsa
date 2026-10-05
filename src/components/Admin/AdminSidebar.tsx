@@ -112,6 +112,10 @@ const ADMIN_NAV_SECTIONS: { title: string; roles: UserRole[]; items: AdminNavIte
     roles: ["admin"],
     items: [
       { label: "Venues", icon: MapPin, to: "/admin/venues", roles: ["admin"] },
+      { label: "Series", icon: CalendarDays, to: "/admin/series", roles: ["admin"] },
+      { label: "Organizers", icon: Building2, to: "/admin/organizers", roles: ["admin"] },
+      { label: "Schools", icon: Building2, to: "/admin/schools", roles: ["admin"] },
+      { label: "Instructors", icon: Users, to: "/admin/instructors", roles: ["admin"] },
       { label: "Tags", icon: Tag, to: "/admin/tags", roles: ["admin"] },
       { label: "Settings", icon: Settings, to: "/admin/settings", roles: ["admin"] },
     ],

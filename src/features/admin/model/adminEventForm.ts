@@ -11,6 +11,7 @@ export function buildEmptyAdminForm(city: City): AdminEventForm {
   return {
     ...buildInitialForm(city),
     venue_id: "",
+    series_id: "",
     image_url: "",
     host: "",
     contact_email: "",
@@ -33,6 +34,7 @@ export function buildAdminFormFromEvent(event: DatabaseEvent): AdminEventForm {
     location: event.location ?? "",
     address: event.address ?? "",
     venue_id: event.venue_id ?? "",
+    series_id: event.series_id ?? "",
     price_type: event.price_type ?? "",
     price_amount: event.price_amount == null ? "" : String(event.price_amount),
     rsvp_link: event.rsvp_link ?? "",

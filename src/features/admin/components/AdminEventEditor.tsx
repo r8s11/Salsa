@@ -2,6 +2,8 @@ import type { FormEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { MapPin, Sparkles, X } from "lucide-react";
+import { fetchAdminEntityDirectory } from "../entities/api/entitiesRepo";
+import type { AdminEntityRow } from "../entities/model";
 import type { EventTaxonomyTerm } from "../../events/model/types";
 import EventForm, { CAPABILITIES } from "../../events/components/EventForm";
 import type { AdminEventForm } from "../model/adminEventForm";
@@ -63,6 +65,24 @@ export default function AdminEventEditor({
   onCancel,
 }: Props) {
   const { metros } = useMetros();
+  const [series, setSeries] = useState<AdminEntityRow[]>([]);
+  const [seriesError, setSeriesError] = useState<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    void fetchAdminEntityDirectory({ kind: "series" })
+      .then((rows) => {
+        if (!cancelled) setSeries(rows);
+      })
+      .catch((loadError: unknown) => {
+        if (!cancelled)
+          setSeriesError(
+            loadError instanceof Error ? loadError.message : "Unable to load event series."
+          );
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const [form, setForm] = useState(initial);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [selectedFlyer, setSelectedFlyer] = useState<File | null>(null);
@@ -426,14 +446,31 @@ export default function AdminEventEditor({
           </>
         )}
       />
-      {form.entity_review && (
-        <EntityReviewSection
-          review={form.entity_review}
-          onChange={(review) => setForm((current) => ({ ...current, entity_review: review }))}
+      <div className="admin-event-form__series">
+        <label htmlFor="event-series">Series</label>
+        <select
+          id="event-series"
+          value={form.series_id ?? ""}
+          onChange={(event) =>
+            updateForm((current) => ({ ...current, series_id: event.target.value }))
+          }
           disabled={isSaving}
-          mode="authorized"
-        />
-      )}
+        >
+          <option value="">None</option>
+          {series.map((item) => (
+            <option key={item.id} value={item.id}>
+              {item.name}
+            </option>
+          ))}
+        </select>
+        {seriesError && <p role="alert">{seriesError}</p>}
+      </div>
+      <EntityReviewSection
+        review={form.entity_review ?? emptyEntityReview()}
+        onChange={(review) => setForm((current) => ({ ...current, entity_review: review }))}
+        disabled={isSaving}
+        mode="authorized"
+      />
       <p>
         <Link to="/admin/tags/new?category=dance_style">Create dance style</Link> ·{" "}
         <Link to="/admin/tags/new?category=event_attribute">Create attribute</Link>

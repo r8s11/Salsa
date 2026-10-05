@@ -27,6 +27,7 @@ export type EventFormDraft = {
   submitter_email: string;
   dance_styles: string[];
   taxonomy_term_ids: string[];
+  series_id?: string;
   entity_review?: EntityReview;
 };
 
@@ -158,6 +159,7 @@ export function draftToAdminPayload(draft: EventFormDraft): AdminEventPayload {
     contact_website: draft.contact_website || null,
     taxonomy_term_ids: draft.taxonomy_term_ids,
     venue_id: draft.venue_id || null,
+    ...(draft.series_id !== undefined ? { series_id: draft.series_id || null } : {}),
     ...(draft.entity_review ? { entity_review: draft.entity_review } : {}),
   };
 }

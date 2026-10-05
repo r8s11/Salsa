@@ -279,10 +279,8 @@
 }
 
 /* ── Card open control ──
-   The title's button is the card's only control. Its ::after covers the
-   whole card, so the card stays clickable end to end while the heading
-   keeps its semantics and the button keeps its name. The focus ring moves
-   to the card, where the stretched hit area actually is. */
+   The title's ::after stretches across the card. Entity links have z-index 2
+   and stay independent click/keyboard targets above that hit area. */
 .event-card-open {
   all: unset;
   cursor: pointer;
@@ -313,6 +311,22 @@
     outline-offset: 2px;
     border-color: var(--red-dim);
   }
+}
+
+.event-card-entity {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.event-card-entity:focus-visible {
+  outline: 2px solid var(--red-bright);
+  outline-offset: 3px;
 }
 
 /* ── Staggered entrance ── */

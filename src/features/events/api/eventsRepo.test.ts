@@ -145,14 +145,26 @@ describe("fetchApprovedEventById", () => {
       error: null,
     });
 
-    await expect(fetchApprovedEventById("source-id")).resolves.toMatchObject({
+    const eventId = "11111111-1111-4111-8111-111111111111";
+    await expect(fetchApprovedEventById(eventId)).resolves.toMatchObject({
       id: "source-id",
       taxonomy_term_ids: ["salsa-id"],
       taxonomy_terms: source.taxonomy_terms,
     });
 
     expect(mocks.from).toHaveBeenCalledWith("public_events");
-    expect(queryBuilder.eq).toHaveBeenNthCalledWith(1, "id", "source-id");
+    expect(queryBuilder.eq).toHaveBeenNthCalledWith(1, "id", eventId);
+    expect(queryBuilder.eq).toHaveBeenNthCalledWith(2, "status", "approved");
+  });
+  it("looks up a non-UUID route segment by persisted event slug", async () => {
+    mocks.maybeSingle.mockResolvedValue({ data: { ...source, slug: "salsa-night" }, error: null });
+
+    await expect(fetchApprovedEventById("salsa-night")).resolves.toMatchObject({
+      id: "source-id",
+      slug: "salsa-night",
+    });
+
+    expect(queryBuilder.eq).toHaveBeenNthCalledWith(1, "slug", "salsa-night");
     expect(queryBuilder.eq).toHaveBeenNthCalledWith(2, "status", "approved");
   });
 

@@ -266,7 +266,7 @@ function column(): HTMLElement {
   return screen.getByRole("region", { name: "Set for the week" });
 }
 
-// Host (organizer) coverage lives in src/components/Host/HostDashboard.test.tsx:
+// Host (organizer) coverage lives in src/features/host/components/HostDashboard.test.tsx:
 // RequireReviewer keeps that role out of /admin entirely.
 
 describe("AdminOverviewPage", () => {

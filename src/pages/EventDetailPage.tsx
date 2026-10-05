@@ -11,7 +11,7 @@ import {
   Users,
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
-import { RelatedEventsStrip } from "../components/Events/RelatedEventsStrip";
+import { RelatedEventsStrip } from "../features/events/components/RelatedEventsStrip";
 import {
   fetchApprovedEventById,
   fetchApprovedEvents,
@@ -31,7 +31,7 @@ import {
   buildPublicEventUrl,
 } from "../features/events/model/eventSharing";
 import { downloadIcs, mapsUrl } from "../utils/ics";
-import { resolveEventFlyer } from "../components/EventModal/eventModalImage";
+import { resolveEventFlyer } from "../features/events/components/event-modal/eventModalImage";
 import Button from "../components/ui/Button";
 import ButtonLink from "../components/ui/ButtonLink";
 import NotFoundPage from "./NotFoundPage";

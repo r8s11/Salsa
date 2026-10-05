@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { supabase } from "../../../lib/supabase";
 import FounderRequestForm from "../components/FounderRequestForm";
-import SalsaSeguraLogo from "../../../components/brand/SalsaSeguraLogo";
+import SalsaSeguraLogo from "../../../components/ui/SalsaSeguraLogo";
 import type { FounderRequestPayload } from "../../../lib/founderRequest";
 import "./FoundersPage.css";
 

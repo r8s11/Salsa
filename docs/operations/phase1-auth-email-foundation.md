@@ -92,7 +92,7 @@ and similar) prefetch — silently burning the token before the real click.
 
 ```text
 Email CTA → https://www.salsasegura.com/auth/confirm?token_hash=...&type=signup
-  → user clicks "Confirm email" (src/components/Auth/ConfirmSignupPage.tsx)
+  → user clicks "Confirm email" (src/features/auth/pages/ConfirmSignupPage.tsx)
   → supabase.auth.verifyOtp({ token_hash, type: "signup" })
   → session established → role-appropriate destination (or preserved next/return destination)
 ```

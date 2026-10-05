@@ -2,8 +2,8 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { ChevronRight, Menu, X } from "lucide-react";
 import { useAuth } from "../contexts/useAuth";
-import AdminThemeOptions from "../components/Admin/AdminThemeOptions";
-import AdminSidebar from "../components/Admin/AdminSidebar";
+import AdminThemeOptions from "../features/admin/components/shell/AdminThemeOptions";
+import AdminSidebar from "../features/admin/components/shell/AdminSidebar";
 import { useAccessibleDialog } from "../shared/a11y/useAccessibleDialog";
 import SkipLink from "../shared/a11y/SkipLink";
 import "../styles/admin.css";

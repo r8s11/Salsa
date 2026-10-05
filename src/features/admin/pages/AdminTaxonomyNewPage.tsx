@@ -1,5 +1,5 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
-import AdminTaxonomyForm from "../../../components/Admin/AdminTaxonomyForm";
+import AdminTaxonomyForm from "../components/taxonomy/AdminTaxonomyForm";
 import { useAdminTaxonomy } from "../hooks/useAdminTaxonomy";
 import {
   DEFAULT_TAXONOMY_FILTERS,

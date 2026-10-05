@@ -2,9 +2,9 @@ import { useCallback, useEffect, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
 import { ScheduleXEvent } from "../../../types/events";
-import type { PosterFormat } from "../../../components/EventModal/posterFormat";
-import { ensurePosterFonts, posterFontEmbedCss } from "../../../components/EventModal/posterFonts";
-import { resolveEventFlyer } from "../../../components/EventModal/eventModalImage";
+import type { PosterFormat } from "../../events/components/event-modal/posterFormat";
+import { ensurePosterFonts, posterFontEmbedCss } from "../../events/components/event-modal/posterFonts";
+import { resolveEventFlyer } from "../../events/components/event-modal/eventModalImage";
 import { buildShortEventUrl, shortEventLabel } from "../../events/model/shortLink";
 import { resolvePosterImageForEvent } from "../api/posterFlyers";
 
@@ -192,7 +192,7 @@ export function useShareablePoster() {
 
         // The poster (and its QR encoder) loads only when a visitor shares.
         const [{ default: ShareableEventPoster }] = await Promise.all([
-          import("../../../components/EventModal/ShareableEventPoster"),
+          import("../../events/components/event-modal/ShareableEventPoster"),
           ensurePosterFonts(),
         ]);
 

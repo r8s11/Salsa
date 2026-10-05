@@ -377,8 +377,8 @@ Phase 2 should normalize onto existing tokens:
 - `src/pages/account/AccountPage.tsx` + `.css`
 - `src/pages/account/ProfilePage.tsx` + `.css`
 - `src/features/events/components/Events/Events.tsx` + `.css`
-- `src/components/Hero/Hero.tsx` + `.css`
-- `src/components/Contact/Contact.tsx`
+- `src/components/marketing/Hero.tsx` + `.css`
+- `src/components/marketing/Contact.tsx`
 - `src/features/auth/components/SignInForm.tsx` + `.css`
 - `src/features/auth/components/AuthCallback.tsx`
 - `src/features/auth/components/InviteActivationPage.tsx`
@@ -387,7 +387,7 @@ Phase 2 should normalize onto existing tokens:
 - `src/features/calendar/components/CalendarStatus.tsx`
 - `src/features/submit-event/components/SuccessCard.tsx`
 - `src/features/events/components/VenueMapCard.tsx` + `.css`
-- `src/components/Header/Header.tsx` + `.css`
+- `src/components/layout/Header.tsx` + `.css`
 - `src/features/calendar/components/Calendar.tsx` + `.css`
 
 **CSS files to consolidate/remove:**

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import SalsaSeguraLogo from "../../../components/brand/SalsaSeguraLogo";
+import SalsaSeguraLogo from "../../../components/ui/SalsaSeguraLogo";
 import { useAuth } from "../../../contexts/useAuth";
 import { setAuthReturnDestination } from "../../../lib/authReturnDestination";
 import { useFounderOnboarding } from "../hooks/useFounderOnboarding";

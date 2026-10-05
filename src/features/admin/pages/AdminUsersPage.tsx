@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAdminUsers } from "../hooks/useAdminUsers";
-import AdminUserForm from "../../../components/Admin/AdminUserForm";
+import AdminUserForm from "../components/users/AdminUserForm";
 import { useAuth } from "../../../contexts/useAuth";
 import {
   applyUserView,
@@ -23,15 +23,15 @@ import {
 } from "../model/usersQuery";
 import type { CreatedAccount } from "../api/profilesRepo";
 import { PAGE_SIZE_OPTIONS, DEFAULT_PAGE_SIZE } from "../model/eventsQuery";
-import AdminPageHeader from "../../../components/Admin/AdminPageHeader";
-import AdminViewTabs from "../../../components/Admin/AdminViewTabs";
-import AdminUsersToolbar from "../../../components/Admin/AdminUsersToolbar";
-import AdminUsersFilterDrawer from "../../../components/Admin/AdminUsersFilterDrawer";
-import AdminUsersTable, { type UserRowAction } from "../../../components/Admin/AdminUsersTable";
-import AdminPagination from "../../../components/Admin/AdminPagination";
-import AdminConfirmDialog from "../../../components/Admin/AdminConfirmDialog";
-import AdminRoleChangeDialog from "../../../components/Admin/AdminRoleChangeDialog";
-import AdminFlagUserDialog from "../../../components/Admin/AdminFlagUserDialog";
+import AdminPageHeader from "../components/shell/AdminPageHeader";
+import AdminViewTabs from "../components/shell/AdminViewTabs";
+import AdminUsersToolbar from "../components/users/AdminUsersToolbar";
+import AdminUsersFilterDrawer from "../components/users/AdminUsersFilterDrawer";
+import AdminUsersTable, { type UserRowAction } from "../components/users/AdminUsersTable";
+import AdminPagination from "../components/common/AdminPagination";
+import AdminConfirmDialog from "../components/common/AdminConfirmDialog";
+import AdminRoleChangeDialog from "../components/users/AdminRoleChangeDialog";
+import AdminFlagUserDialog from "../components/users/AdminFlagUserDialog";
 import "./AdminUsersPage.css";
 
 type PendingUserAction =

@@ -2,11 +2,11 @@ import { useState, useEffect } from "react";
 import type { ComponentType } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { CalendarDays, Users, Eye, ExternalLink, FileText } from "lucide-react";
-import AdminPageHeader from "../../../components/Admin/AdminPageHeader";
-import AdminMetricCard from "../../../components/Admin/AdminMetricCard";
-import AdminAnalyticsFilters from "../../../components/Admin/AdminAnalyticsFilters";
-import AdminTrendChart from "../../../components/Admin/AdminTrendChart";
-import AdminActivityTable from "../../../components/Admin/AdminActivityTable";
+import AdminPageHeader from "../components/shell/AdminPageHeader";
+import AdminMetricCard from "../components/analytics/AdminMetricCard";
+import AdminAnalyticsFilters from "../components/analytics/AdminAnalyticsFilters";
+import AdminTrendChart from "../components/analytics/AdminTrendChart";
+import AdminActivityTable from "../components/activity/AdminActivityTable";
 import { useAdminAnalytics } from "../hooks/useAdminAnalytics";
 import { useAdminSubmissions } from "../hooks/useAdminSubmissionList";
 import {

@@ -35,15 +35,15 @@ import {
   buildEmptyAdminForm,
 } from "../model/adminEventForm";
 import type { AdminEventForm as AdminEventFormValues } from "../model/adminEventForm";
-import AdminPageHeader from "../../../components/Admin/AdminPageHeader";
-import AdminViewTabs from "../../../components/Admin/AdminViewTabs";
-import AdminEventsToolbar from "../../../components/Admin/AdminEventsToolbar";
-import AdminEventsFilterDrawer from "../../../components/Admin/AdminEventsFilterDrawer";
-import AdminEventsTable, { type RowAction } from "../../../components/Admin/AdminEventsTable";
-import AdminPagination from "../../../components/Admin/AdminPagination";
-import AdminEventEditor from "../components/AdminEventEditor";
-import AdminConfirmDialog from "../../../components/Admin/AdminConfirmDialog";
-import AdminDuplicateEventDialog from "../../../components/Admin/AdminDuplicateEventDialog";
+import AdminPageHeader from "../components/shell/AdminPageHeader";
+import AdminViewTabs from "../components/shell/AdminViewTabs";
+import AdminEventsToolbar from "../components/events/AdminEventsToolbar";
+import AdminEventsFilterDrawer from "../components/events/AdminEventsFilterDrawer";
+import AdminEventsTable, { type RowAction } from "../components/events/AdminEventsTable";
+import AdminPagination from "../components/common/AdminPagination";
+import AdminEventEditor from "../components/events/AdminEventEditor";
+import AdminConfirmDialog from "../components/common/AdminConfirmDialog";
+import AdminDuplicateEventDialog from "../components/events/AdminDuplicateEventDialog";
 import "./AdminEventsPage.css";
 
 type AdminEventsView =

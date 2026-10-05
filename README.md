@@ -277,8 +277,10 @@ membership in that event's organizer. Other memberships show **View Event**.
 ## Repository layout
 
 - `src/app/` owns routes and providers; `src/features/` owns feature-specific UI, hooks, and data access.
-- Founder routes and their form live in `src/features/founder/pages/` and `src/features/founder/components/`; shared UI remains in `src/components/`.
-- Admin route pages, tests, and CSS live in `src/features/admin/pages/`; the admin feature's hooks, models, and data access remain alongside them. Shared admin/host UI remains in `src/components/Admin/`.
+- Founder routes and their form live in `src/features/founder/pages/` and `src/features/founder/components/`.
+- Admin route pages live in `src/features/admin/pages/`; admin UI lives in `src/features/admin/components/<area>/` (`shell/`, `common/`, `events/`, `users/`, …). Host pages reuse `shell/` and `common/` from there.
+- Auth guards, sign-in form, and auth landing pages live in `src/features/auth/`; event cards, the homepage events section, and the event modal live in `src/features/events/components/`; the host dashboard lives in `src/features/host/components/`.
+- `src/components/` holds only cross-feature UI: `ui/` (primitives and brand), `layout/` (header, footer, mobile tab bar, city pill, scroll restoration, error boundary), `marketing/` (hero, home CTA, contact, work-in-progress), and `desk/` (operator desk layout).
 - `docs/` is the single documentation tree (including historical plans and audits); `scripts/` holds executable tooling, and `supabase/` holds database and Edge Function assets.
 
 ## Documentation

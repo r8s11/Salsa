@@ -28,7 +28,7 @@
 
 **Failure evidence:**
 
-1. **Placeholder pages presented as real nav destinations.** `src/pages/Lessons.tsx`, `Instructors.tsx`, and `Schools.tsx` are 4-line wrappers around `<WorkInProgress />` (`src/components/WIP/WorkInProgress`). Live-rendered at all three URLs: *"Work in Progress — We are currently working on our new website to bring you the best dance experience. Stay tuned for updates!"* — a generic, interchangeable page with no salsa/city/product specificity, linked from the main header nav on every page (CALENDAR · LESSONS · INSTRUCTORS · ABOUT · CONTACT). H1 on all three is "Salsa Segura" (the site name), not a page title. Verified live at mobile/desktop.
+1. **Placeholder pages presented as real nav destinations.** `src/pages/Lessons.tsx`, `Instructors.tsx`, and `Schools.tsx` are 4-line wrappers around `<WorkInProgress />` (`src/components/marketing/WorkInProgress`). Live-rendered at all three URLs: *"Work in Progress — We are currently working on our new website to bring you the best dance experience. Stay tuned for updates!"* — a generic, interchangeable page with no salsa/city/product specificity, linked from the main header nav on every page (CALENDAR · LESSONS · INSTRUCTORS · ABOUT · CONTACT). H1 on all three is "Salsa Segura" (the site name), not a page title. Verified live at mobile/desktop.
 2. **Dead/unrouted school content.** `src/pages/Schools/{Querencia,RumbaYTimbal,SalsaYControl,LiliDance,Masacote}.tsx` are 0-byte placeholder files, and no `/schools/:slug` route exists in `App.tsx`; `/schools` itself is not linked from the header or footer (orphan route reachable only by typing the URL).
 3. **Local environment cannot run the product.** `supabase start` + seed produces a DB where `/`, `/calendar`, and `/events/:id` all fail with PostgREST 400 ("Could not find a relationship … event_taxonomy_terms") and `/submit` 404s on the `public_event_suggestions_enabled` RPC, because `taxonomy_terms`, `event_taxonomy_terms`, `platform_settings`, and `venues` are absent from `supabase/migrations/` (they exist in production only via manual operational SQL). The approved-but-unexecuted consolidation plan (`docs/superpowers/plans/2026-08-30-sql-current-state-consolidation.md`) exists to fix exactly this.
 
@@ -68,7 +68,7 @@ The platform's core surfaces are in good shape: every audited route renders with
 ### P1 — Major / WCAG-AA violations
 
 **[P1-1] Related-events date-chip badges fail contrast catastrophically**
-- **Location:** `src/components/Events/RelatedEventsStrip.css:51-68` (`.related-events-strip__badge`, `--class`, `--workshop` variants); visible on `/events/:id` ("More this week" strip), all viewports.
+- **Location:** `src/features/events/components/RelatedEventsStrip.css:51-68` (`.related-events-strip__badge`, `--class`, `--workshop` variants); visible on `/events/:id` ("More this week" strip), all viewports.
 - **Category:** Accessibility / Theming
 - **Impact:** "Class" chips render `color: var(--text)` (#dae2fd, light) on `background: var(--gold)` (#e9c349) → **1.32:1**; "Social" chips render `var(--surface-high)` (dark navy) on `var(--red)` (#e11d48) → **3.49:1**. Both fail AA (4.5:1) at 9.9–16px text. The class chip is effectively unreadable.
 - **Standard:** WCAG 2.1 SC 1.4.3 (Contrast Minimum).
@@ -76,7 +76,7 @@ The platform's core surfaces are in good shape: every audited route renders with
 - **Suggested command:** `/impeccable colorize`
 
 **[P1-2] Header CTA buttons and city chip fail AA on every page**
-- **Location:** Public header (`src/components/Header/Header.css` — `.auth-btn`, `.city-switch__btn.active`), all public routes, desktop+mobile.
+- **Location:** Public header (`src/components/layout/Header.css` — `.auth-btn`, `.city-switch__btn.active`), all public routes, desktop+mobile.
 - **Category:** Accessibility
 - **Impact:** "Submit Event", "Sign In", "BOS" render `rgb(218,226,253)` on `rgb(225,29,72)` = **3.64:1** at 12px/600 — fails 4.5:1; appears on every page so it defines the site's perceived contrast quality.
 - **Standard:** WCAG 2.1 SC 1.4.3.
@@ -106,7 +106,7 @@ The platform's core surfaces are in good shape: every audited route renders with
 - **Suggested command:** `/impeccable clarify`
 
 **[P1-6] Main-nav destinations render generic "Work in Progress" placeholder as real pages**
-- **Location:** `src/pages/Lessons.tsx`, `Instructors.tsx`, `Schools.tsx` (all wrap `src/components/WIP/WorkInProgress`); live-verified at `/lessons`, `/instructors`, `/schools`, mobile + desktop; linked from header nav (`src/components/Header/Header.tsx` PRIMARY_LINKS).
+- **Location:** `src/pages/Lessons.tsx`, `Instructors.tsx`, `Schools.tsx` (all wrap `src/components/marketing/WorkInProgress`); live-verified at `/lessons`, `/instructors`, `/schools`, mobile + desktop; linked from header nav (`src/components/layout/Header.tsx` PRIMARY_LINKS).
 - **Category:** Implementation Integrity
 - **Impact:** Three of six primary nav items lead to a generic, non-product page ("we are currently working on our new website…") — the strongest possible "template/unfinished site" signal to users and crawlers, contradicting the rest of the product's authored quality. Also: `/schools` is additionally orphaned (no nav/footer link), and 5 unrouted 0-byte files sit in `src/pages/Schools/`.
 - **Recommendation:** Either ship minimal real directory content or remove the three nav entries until the person/profile model (sub-project 3) lands; delete the 0-byte Schools files.
@@ -172,7 +172,7 @@ The platform's core surfaces are in good shape: every audited route renders with
 - **Suggested command:** `/impeccable colorize`
 
 **[P2-8] Host sidebar lacks entry points to most host features**
-- **Location:** `src/components/Admin/AdminSidebar.tsx:47-121` — organizer role sees only "Host Dashboard" and "My Events"; New Event / Import / Attendees / Check-in are reachable only via in-page links.
+- **Location:** `src/features/admin/components/shell/AdminSidebar.tsx:47-121` — organizer role sees only "Host Dashboard" and "My Events"; New Event / Import / Attendees / Check-in are reachable only via in-page links.
 - **Category:** UX (Nielsen: visibility of system status / navigation)
 - **Impact:** Feature discoverability suffers; the host surface's deepest tools (check-in, attendee lists) are 3+ clicks deep with no nav memory.
 - **Recommendation:** Add "New Event" and "Import" items to the organizer nav (or a Host section group).

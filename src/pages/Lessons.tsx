@@ -1,4 +1,4 @@
-import WorkInProgress from "../components/WIP/WorkInProgress";
+import WorkInProgress from "../components/marketing/WorkInProgress";
 import { useDocumentMeta } from "../shared/seo/useDocumentMeta";
 import { canonicalUrl } from "../utils/seo";
 

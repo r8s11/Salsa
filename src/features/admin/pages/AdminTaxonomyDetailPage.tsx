@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import AdminConfirmDialog from "../../../components/Admin/AdminConfirmDialog";
-import AdminMergeTaxonomyDialog from "../../../components/Admin/AdminMergeTaxonomyDialog";
-import AdminTaxonomyForm from "../../../components/Admin/AdminTaxonomyForm";
+import AdminConfirmDialog from "../components/common/AdminConfirmDialog";
+import AdminMergeTaxonomyDialog from "../components/taxonomy/AdminMergeTaxonomyDialog";
+import AdminTaxonomyForm from "../components/taxonomy/AdminTaxonomyForm";
 import {
   useAdminTaxonomy,
   useAdminTaxonomyTerm,

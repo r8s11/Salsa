@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAccessibleDialog } from "../../../../shared/a11y/useAccessibleDialog";
-import AdminConfirmDialog from "../../../../components/Admin/AdminConfirmDialog";
+import AdminConfirmDialog from "../../components/common/AdminConfirmDialog";
 import { useAdminEntity, useAdminEntityActions, useAdminEntityDirectory, useAdminVenueOptions } from "../hooks/useAdminEntities";
 import {
   buildEntityForm,

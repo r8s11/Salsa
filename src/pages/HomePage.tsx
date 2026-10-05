@@ -1,7 +1,7 @@
 import { useLocation } from "react-router-dom";
-import Hero from "../components/Hero/Hero";
-import Events from "../components/Events/Events";
-import HomeCta from "../components/HomeCta/HomeCta";
+import Hero from "../components/marketing/Hero";
+import Events from "../features/events/components/Events";
+import HomeCta from "../components/marketing/HomeCta";
 import { useCity } from "../contexts/useCity";
 import { useMetroName } from "../features/metros/hooks/useMetros";
 import { useDocumentMeta } from "../shared/seo/useDocumentMeta";

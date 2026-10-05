@@ -63,7 +63,7 @@ export function RelatedEventsStrip({
         {cards.map(({ event, weekday, day, month, time, thumbSrc, showRecentlyApproved }) => (
           <li key={event.id} className="related-events-strip__item">
             <Link
-              to={`/events/${event.id}`}
+              to={`/events/${event.slug || event.id}`}
               className={`related-events-strip__card related-events-strip__card--${event.event_type}`}
             >
               <img

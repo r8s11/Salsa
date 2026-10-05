@@ -21,7 +21,10 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { ScheduleXEvent } from "../../types/events";
+import type { ScheduleXEvent } from "../../types/events";
+import { Link } from "react-router-dom";
+import { entityHref } from "../../features/entities/model";
+import EventEntityLinks from "../../features/events/components/EventEntityLinks";
 import { downloadIcs, mapsUrl, googleCalendarUrl } from "../../utils/ics";
 import { getUpcomingSeriesDates } from "../../utils/series";
 import { useShareablePoster } from "../../features/calendar/hooks/useShareablePoster";
@@ -154,7 +157,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
     if (view === "poster") previewBackRef.current?.focus();
   }, [view]);
 
-  const canonicalUrl = buildPublicEventUrl(String(event.id));
+  const canonicalUrl = buildPublicEventUrl(event.slug || String(event.id));
 
   // Clear the "Copied" and drag-close timers on close/unmount.
   useEffect(() => {
@@ -494,7 +497,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
         </ButtonLink>
       ) : (
         <ButtonLink
-          to={`/events/${event.id}`}
+          to={`/events/${event.slug || event.id}`}
           variant="secondary"
           className="night-actions__rsvp"
           onClick={onClose}
@@ -544,7 +547,11 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
                 <li>
                   <MapPin size={16} aria-hidden />
                   <span className="night-card__venue">
-                    {locationUrl ? (
+                    {event.publicEntities?.venue ? (
+                      <Link to={entityHref(event.publicEntities.venue)} className="address-link" onClick={onClose}>
+                        {event.publicEntities.venue.name}
+                      </Link>
+                    ) : locationUrl ? (
                       <a
                         href={locationUrl}
                         target="_blank"
@@ -577,13 +584,15 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
 
         {event.danceStyles && event.danceStyles.length > 0 && (
           <div className="modal-style-row">
-            {event.danceStyles.map((style) => (
-              <span key={style} className="style-chip">
-                {style}
-              </span>
-            ))}
+            {event.danceStyles.map((style) => {
+              const term = event.publicEntities?.styles.find((candidate) => candidate.name.toLowerCase() === style.toLowerCase());
+              return term
+                ? <Link key={style} to={entityHref(term)} className="style-chip" onClick={onClose}>{style}</Link>
+                : <span key={style} className="style-chip">{style}</span>;
+            })}
           </div>
         )}
+        <EventEntityLinks entities={event.publicEntities} omit={["venue", "style"]} onNavigate={onClose} />
 
         {renderDecisions("card")}
         {renderReassurance()}
@@ -600,7 +609,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
           </Button>
           {event.rsvpLink && (
             <ButtonLink
-              to={`/events/${event.id}`}
+              to={`/events/${event.slug || event.id}`}
               variant="ghost"
               className="night-utility"
               onClick={onClose}
@@ -628,7 +637,9 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
                 {event.host && (
                   <div className="meta-row">
                     <Users size={18} aria-hidden />
-                    <span>with {event.host}</span>
+                    <span>with {event.publicEntities?.organizer
+                      ? <Link to={entityHref(event.publicEntities.organizer)} onClick={onClose}>{event.publicEntities.organizer.name}</Link>
+                      : event.host}</span>
                   </div>
                 )}
                 {event.description && <p className="modal-description">{event.description}</p>}

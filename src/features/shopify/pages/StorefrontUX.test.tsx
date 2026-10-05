@@ -11,6 +11,9 @@ import CartDrawer from "../cart/CartDrawer";
 import ProductPage from "./ProductPage";
 import ShopPage from "./ShopPage";
 
+// Motion needs real browser layout; customer behavior stays covered in jsdom.
+vi.mock("./useCatalogMotion", () => ({ useCatalogMotion: vi.fn() }));
+
 vi.mock("../api/storefront", async (original) => ({
   ...await original<typeof StorefrontModule>(),
   isShopifyConfigured: () => true,
@@ -70,13 +73,12 @@ describe("Storefront customer experience", () => {
     renderStore("/shop");
     const link = await screen.findByRole("link", { name: /dance tee.*28/i });
     expect(link).toHaveAttribute("href", "/shop/products/dance-tee");
-    expect(within(link).queryByRole("img")).toBeNull();
     expect(link).toHaveTextContent(/image unavailable/i);
   });
   it("offers named Shopify options and disables unavailable combinations", async () => {
     renderStore(); await screen.findByRole("heading", { name: "Dance Tee" });
-    expect(screen.getByRole("option", { name: /Size: S.*Color: Rose/i })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: /Size: L.*Color: Navy.*sold out/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /Size: S.*Color: Rose/i })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: /Size: L.*Color: Navy.*sold out/i })).toBeDisabled();
     expect(screen.queryByText("Opaque A")).toBeNull();
   });
   it.each(["sold-out", "no-variants"] as const)("prevents purchasing a %s product while preserving browsing", async (availability) => {
@@ -87,13 +89,13 @@ describe("Storefront customer experience", () => {
     const user = userEvent.setup();
     renderStore();
     await screen.findByRole("heading", { name: "Dance Tee" });
-    const purchase = screen.getByRole("button", { name: /sold out/i });
+    const purchase = screen.getByRole("button", { name: /^sold out$/i });
     expect(purchase).toBeDisabled();
     await user.click(purchase);
     expect(screen.getByRole("button", { name: /open cart, 0 items/i })).toBeInTheDocument();
     expect(screen.queryByRole("status", { name: /cart feedback/i })).toBeNull();
     if (availability === "sold-out") {
-      for (const option of screen.getAllByRole("option")) expect(option).toBeDisabled();
+      for (const option of screen.getAllByRole("button", { name: /Size:.*Color:/i })) expect(option).toBeDisabled();
     } else {
       expect(screen.queryByRole("combobox")).toBeNull();
       expect(screen.getByText(/no purchase options/i)).toBeInTheDocument();
@@ -133,7 +135,7 @@ describe("Storefront customer experience", () => {
 
   it("updates price, comparison and primary image when the variant changes", async () => {
     renderStore(); await screen.findByRole("heading", { name: "Dance Tee" });
-    fireEvent.change(screen.getByRole("combobox"), { target: { value: "medium" } });
+    fireEvent.click(screen.getByRole("button", { name: /Size: M.*Color: Navy/i }));
     expect(screen.getByText("$30.00")).toBeInTheDocument();
     expect(screen.queryByText(/Was.*32/)).toBeNull();
     expect(document.querySelector(".shop-product__image")).toHaveAttribute("src", back.url);
@@ -180,7 +182,7 @@ describe("Storefront customer experience", () => {
   it("clears stale success feedback when variant changes", async () => {
     renderStore(); fireEvent.click(await screen.findByRole("button", { name: /add to cart/i }));
     await screen.findByRole("status", { name: /cart feedback/i });
-    fireEvent.change(screen.getByRole("combobox"), { target: { value: "medium" } });
+    fireEvent.click(screen.getByRole("button", { name: /Size: M.*Color: Navy/i }));
     expect(screen.queryByText(/added to cart/i)).toBeNull();
   });
   it("uses product metadata, query-free canonical and truthful Product data", async () => {

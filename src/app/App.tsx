@@ -19,6 +19,13 @@ const FoundersAcceptPage = lazy(() => import("../features/founder/pages/Founders
 const FoundersWelcomePage = lazy(() => import("../features/founder/pages/FoundersWelcomePage"));
 const ShortEventLinkPage = lazy(() => import("../pages/ShortEventLinkPage"));
 const PublicEntityPage = lazy(() => import("../pages/PublicEntityPage"));
+const EntityDirectoryPage = lazy(() => import("../features/entities/components/EntityDirectoryPage"));
+const AdminEntityDirectoryPage = lazy(
+  () => import("../features/admin/entities/pages/AdminEntityDirectoryPage")
+);
+const AdminEntityDetailPage = lazy(
+  () => import("../features/admin/entities/pages/AdminEntityDetailPage")
+);
 const Lessons = lazy(() => import("../pages/Lessons"));
 const Instructors = lazy(() => import("../pages/Instructors"));
 const Schools = lazy(() => import("../pages/Schools/Schools"));
@@ -175,6 +182,16 @@ function App() {
                   </RequireAdmin>
                 }
               />
+              {(["series", "organizer", "school", "instructor"] as const).map((kind) => {
+                const path = kind === "series" ? "series" : `${kind}s`;
+                return (
+                  <Route key={kind}>
+                    <Route path={path} element={<RequireAdmin><AdminEntityDirectoryPage kind={kind} /></RequireAdmin>} />
+                    <Route path={`${path}/new`} element={<RequireAdmin><AdminEntityDetailPage kind={kind} mode="create" /></RequireAdmin>} />
+                    <Route path={`${path}/:id`} element={<RequireAdmin><AdminEntityDetailPage kind={kind} /></RequireAdmin>} />
+                  </Route>
+                );
+              })}
               <Route
                 path="settings"
                 element={
@@ -249,6 +266,15 @@ function App() {
               <Route path="o/:slug" element={<PublicEntityPage kind="organizer" />} />
               <Route path="i/:slug" element={<PublicEntityPage kind="instructor" />} />
               <Route path="s/:slug" element={<PublicEntityPage kind="school" />} />
+              <Route path="discover" element={<EntityDirectoryPage />} />
+              <Route path="series" element={<EntityDirectoryPage kind="series" />} />
+              <Route path="organizers" element={<EntityDirectoryPage kind="organizer" />} />
+              <Route path="venues" element={<EntityDirectoryPage kind="venue" />} />
+              <Route path="cities" element={<EntityDirectoryPage kind="city" />} />
+              <Route path="styles" element={<EntityDirectoryPage kind="style" />} />
+              <Route path="series/:slug" element={<PublicEntityPage kind="series" />} />
+              <Route path="cities/:slug" element={<PublicEntityPage kind="city" />} />
+              <Route path="styles/:slug" element={<PublicEntityPage kind="style" />} />
               <Route
                 path="profile"
                 element={

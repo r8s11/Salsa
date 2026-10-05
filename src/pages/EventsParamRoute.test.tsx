@@ -20,7 +20,6 @@ vi.mock("../features/metros/hooks/useMetros", () => ({
 // HomePage owns document metadata; this mock isolates route selection.
 vi.mock("./HomePage", () => ({ default: () => <main>Metro home</main> }));
 vi.mock("./EventDetailPage", () => ({ default: () => <main>Event detail</main> }));
-vi.mock("./NotFoundPage", () => ({ default: () => <main>Not found</main> }));
 
 function Path() {
   return <output data-testid="path">{useLocation().pathname}</output>;
@@ -59,8 +58,4 @@ describe("/events/:id", () => {
     expect(setCity).not.toHaveBeenCalled();
   });
 
-  it("404s a city that is not a registered metro", async () => {
-    renderAt("/events/atlantis");
-    expect(await screen.findByText("Not found")).toBeInTheDocument();
-  });
 });

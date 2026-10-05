@@ -25,6 +25,7 @@ export interface AdminEventPayload {
   contact_website: string | null;
   taxonomy_term_ids: string[];
   venue_id: string | null;
+  series_id?: string | null;
   /** Optional — the manual admin form doesn't manage this field; CSV import does. */
   gallery?: string[] | null;
   entity_review?: EntityReview;
@@ -65,10 +66,15 @@ export async function fetchApprovedEvents(city: City): Promise<DatabaseEvent[]> 
 }
 
 export async function fetchApprovedEventById(id: string): Promise<DatabaseEvent | null> {
+  const column = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    id
+  )
+    ? "id"
+    : "slug";
   const { data, error } = await supabase
     .from("public_events")
     .select("*")
-    .eq("id", id)
+    .eq(column, id)
     .eq("status", "approved")
     .maybeSingle();
 

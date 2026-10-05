@@ -1,3 +1,5 @@
+import type { PublicEventEntities } from "../../entities/model";
+
 import type { EntityReview } from "../../entity-matching/entityReview";
 export type EventType = "social" | "class" | "workshop" | "live_music";
 /** Canonical metro slug (public.metros.slug), e.g. "new-york-city". */
@@ -13,6 +15,9 @@ export interface EventTaxonomyTerm {
 // Database event interface (matches Supabase schema)
 export interface DatabaseEvent {
   id: string;
+  slug?: string;
+  series_id?: string | null;
+  public_entities?: PublicEventEntities | null;
   title: string;
   description: string | null;
   event_type: EventType;
@@ -25,9 +30,9 @@ export interface DatabaseEvent {
   rsvp_link: string | null;
   image_url: string | null;
   poster_image_url?: string | null;
-  submitter_name: string | null;
-  submitter_email: string | null;
-  submitter_id: string | null;
+  submitter_name?: string | null;
+  submitter_email?: string | null;
+  submitter_id?: string | null;
   status: "draft" | "pending" | "approved" | "rejected" | "cancelled" | "archived";
   source_type: "admin" | "user_submission" | "organizer" | "moderator" | "imported";
   /** Legacy slug storage retained while taxonomy terms are progressively backfilled. */
@@ -35,15 +40,15 @@ export interface DatabaseEvent {
   taxonomy_term_ids: string[];
   taxonomy_terms: EventTaxonomyTerm[];
   updated_at: string;
-  cancellation_reason: string | null;
+  cancellation_reason?: string | null;
   city: City;
   created_at: string;
   host: string | null;
   recurrence: string | null;
   gallery: string[] | null;
-  contact_email: string | null;
-  contact_instagram: string | null;
-  contact_website: string | null;
+  contact_email?: string | null;
+  contact_instagram?: string | null;
+  contact_website?: string | null;
   venue_id: string | null;
   entity_review?: EntityReview | null;
 
@@ -61,8 +66,9 @@ export interface DatabaseEvent {
   submission_id?: string;
 }
 
-// Schedule-X event interface
 export interface ScheduleXEvent {
+  publicEntities?: PublicEventEntities | null;
+  slug?: string;
   id: string | number;
   title: string;
   start: string;

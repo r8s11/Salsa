@@ -1,7 +1,13 @@
 import { Home } from "lucide-react";
 import ButtonLink from "../components/ui/ButtonLink";
+import { useDocumentMeta } from "../shared/seo/useDocumentMeta";
 
 export default function NotFoundPage() {
+  useDocumentMeta({
+    title: "Page not found",
+    description: "This page is not available. Explore approved dance events and communities on Salsa Segura.",
+    robots: "noindex, follow",
+  });
   return (
     <section className="not-found-page">
       <div className="container">

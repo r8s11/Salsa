@@ -23,6 +23,8 @@ import { useEventViewTouch } from "../features/events/hooks/useEventViewTouch";
 import { databaseEventToScheduleX } from "../features/events/model/convert";
 import { selectRelatedEvents } from "../features/events/model/relatedEvents";
 import type { EventType } from "../features/events/model/types";
+import EventEntityLinks from "../features/events/components/EventEntityLinks";
+import { entityHref } from "../features/entities/model";
 import { useMetroName } from "../features/metros/hooks/useMetros";
 import {
   buildNativeSharePayload,
@@ -97,11 +99,13 @@ export default function EventDetailPage() {
   useEventViewTouch(event?.id ?? null);
 
   useDocumentMeta({
-    title: event?.title ?? "Dance event",
+    title: event?.title ?? (!isLoading && !error ? "Event not found" : "Dance event"),
     description:
       event?.description ??
       "Find salsa, bachata, and Latin dance events in Greater Boston and New York City.",
-    canonical: event ? canonicalUrl(`/events/${event.id}`) : undefined,
+    canonical: event ? canonicalUrl(`/events/${event.slug || event.id}`) : undefined,
+    image: event?.image_url ?? event?.poster_image_url,
+    robots: event ? "index, follow" : "noindex, follow",
   });
 
   useEffect(() => {
@@ -162,7 +166,7 @@ export default function EventDetailPage() {
         ? `$${event.price_amount}`
         : "Pricing unavailable";
   const { weekday, day, month } = chipParts(scheduleEvent.start);
-  const shareUrl = buildPublicEventUrl(event.id);
+  const shareUrl = buildPublicEventUrl(event.slug || event.id);
   const whatsappHref = `https://wa.me/?text=${encodeURIComponent(`${event.title} — ${shareUrl}`)}`;
 
   const handleCopyLink = async (
@@ -224,12 +228,18 @@ export default function EventDetailPage() {
             </span>
             {event.location && (
               <span>
-                <MapPin size={16} aria-hidden="true" /> {event.location}
+                <MapPin size={16} aria-hidden="true" />{" "}
+                {event.public_entities?.venue
+                  ? <Link to={entityHref(event.public_entities.venue)}>{event.public_entities.venue.name}</Link>
+                  : event.location}
               </span>
             )}
             {event.host && (
               <span>
-                <Users size={16} aria-hidden="true" /> {event.host}
+                <Users size={16} aria-hidden="true" />{" "}
+                {event.public_entities?.organizer
+                  ? <Link to={entityHref(event.public_entities.organizer)}>{event.public_entities.organizer.name}</Link>
+                  : event.host}
               </span>
             )}
           </div>
@@ -262,6 +272,7 @@ export default function EventDetailPage() {
             </Button>
           </div>
         </div>
+        <EventEntityLinks entities={event.public_entities} />
 
         <nav className="event-page__tabs" aria-label="Sections" role="tablist">
           <button
@@ -343,18 +354,18 @@ export default function EventDetailPage() {
                 {styles.length > 0 && (
                   <div className="event-page__chips event-page__styles">
                     {styles.map((term) => (
-                      <span className="event-page__badge event-page__badge--chip" key={term.id}>
+                      <Link to={`/styles/${encodeURIComponent(term.slug)}`} className="event-page__badge event-page__badge--chip" key={term.id}>
                         {term.name}
-                      </span>
+                      </Link>
                     ))}
                   </div>
                 )}
                 {attributes.length > 0 && (
                   <div className="event-page__chips event-page__tags">
                     {attributes.map((term) => (
-                      <span className="event-page__badge event-page__badge--warn" key={term.id}>
+                      <Link to={`/styles/${encodeURIComponent(term.slug)}`} className="event-page__badge event-page__badge--warn" key={term.id}>
                         {term.name}
-                      </span>
+                      </Link>
                     ))}
                   </div>
                 )}
@@ -369,7 +380,9 @@ export default function EventDetailPage() {
                     <span className="event-page__avatar event-page__host-avatar">
                       {event.host.charAt(0)}
                     </span>
-                    <span className="event-page__host-name">{event.host}</span>
+                    {event.public_entities?.organizer
+                      ? <Link className="event-page__host-name" to={entityHref(event.public_entities.organizer)}>{event.public_entities.organizer.name}</Link>
+                      : <span className="event-page__host-name">{event.host}</span>}
                   </div>
                 </div>
               )}
@@ -379,6 +392,8 @@ export default function EventDetailPage() {
                 streetAddress={event.address}
                 cityLabel={metroName(event.city)}
                 directionsHref={mapHref}
+                venuePageHref={event.public_entities?.venue ? entityHref(event.public_entities.venue) : undefined}
+                cityPageHref={event.public_entities?.city ? entityHref(event.public_entities.city) : undefined}
               />
 
               <div className="event-page__card">

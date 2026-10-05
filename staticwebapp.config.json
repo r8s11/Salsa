@@ -1,11 +1,8 @@
 {
   "routes": [
     { "route": "/submit", "headers": { "X-Robots-Tag": "noindex, follow" } },
-    { "route": "/lessons", "headers": { "X-Robots-Tag": "noindex, follow" } },
-    { "route": "/instructors", "headers": { "X-Robots-Tag": "noindex, follow" } },
-    { "route": "/schools", "headers": { "X-Robots-Tag": "noindex, follow" } }
+    { "route": "/lessons", "headers": { "X-Robots-Tag": "noindex, follow" } }
   ],
-
   "navigationFallback": {
     "rewrite": "/index.html",
     "exclude": ["*.{jpg,jpeg,gif,png,svg,webp,ico,woff,woff2,ttf,eot,css,js,map}", "assets/*"]

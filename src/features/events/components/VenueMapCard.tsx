@@ -11,12 +11,9 @@ interface VenueMapCardProps {
   cityLabel: string | null;
   /** Maps deep link from `mapsUrl()`; hidden when the event has no location at all. */
   directionsHref: string | null;
-  /**
-   * Route to a public venue page. Omitted while no such route exists — a venue
-   * record only surfaces through admin routes today (`/admin/venues/:id`), so
-   * rendering the CTA would be a dead end.
-   */
+  /** Canonical public venue route when a reviewed entity is linked. */
   venuePageHref?: string | null;
+  cityPageHref?: string | null;
 }
 
 /**
@@ -44,6 +41,7 @@ export default function VenueMapCard({
   cityLabel,
   directionsHref,
   venuePageHref = null,
+  cityPageHref = null,
 }: VenueMapCardProps) {
   if (!venueName && !streetAddress) return null;
 
@@ -63,9 +61,13 @@ export default function VenueMapCard({
         <h2 className="venue-card__label" id="venue-card-label">
           Where
         </h2>
-        {venueName && <p className="venue-card__venue">{venueName}</p>}
+        {venueName && <p className="venue-card__venue">
+          {venuePageHref ? <Link to={venuePageHref}>{venueName}</Link> : venueName}
+        </p>}
         {streetAddress && <p className="venue-card__address">{streetAddress}</p>}
-        {city && <p className="venue-card__address">{city}</p>}
+        {city && <p className="venue-card__address">
+          {cityPageHref ? <Link to={cityPageHref}>{city}</Link> : city}
+        </p>}
 
         {(venuePageHref || directionsHref) && (
           <div className="venue-card__actions">

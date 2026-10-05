@@ -190,3 +190,124 @@ Live checks (real Shopify, dev and compiled builds): keyboard variant/add/quanti
 1. Shopify Admin: plan, live payments, shipping rates/origin and tax review unverified (Admin requires sign-in).
 2. Shipping policy and terms of service unpublished (draft workflow above requires merchant approval).
 3. LINER key revocation unverified; unrelated to Shopify but gates Phase 3.
+
+## Retail Edit production cutover
+
+The owner selected **Retail Edit** as the production storefront. `/shop` and
+product deep links now ship the selected catalog, option buttons, purchase
+panel and cart styling without development-only query flags. Drop Grid,
+preview switching, preview URL helpers and the incumbent catalog markup/styles
+were removed. Shopify API operations, credentials and merchant settings were
+not changed.
+
+Local verification initially reproduced shop-unavailable: the browser received
+an inherited URL-form domain while `.env` and `.env.local` already contained
+the canonical bare domain. Verification launches/builds cleared inherited
+Shopify overrides with `env -u`; strict domain validation remains unchanged.
+README documents that local-only command and warns against clearing intended
+CI secrets.
+
+- Focused tests: **7 files / 101 passed**. Named option selection,
+  sold-out combinations, product races, cart warnings/errors, quantities,
+  persistence and public routes are covered. No full-suite run is claimed.
+- Final TypeScript/Vite build and scoped ESLint: **PASS**. Existing 679.16 kB
+  entry-chunk warning remains; it was not suppressed.
+- Real Storefront desktop/mobile smoke: three merchandise products, size M /
+  quantity 2 / $28 cart, keyboard quantity 3 / $42, focus continuity,
+  mobile persistence after reload, and active-line removal.
+- Actual Shopify mobile checkout loaded with the matching $42 order summary
+  and contact/delivery/payment controls. No address, customer/payment data or
+  order was submitted.
+- Compiled production preview: desktop 1440×1000 and mobile 390×844 catalog
+  and populated/empty cart inspected; no horizontal overflow. Mobile
+  reduced-motion navigation focused the product heading, added a real $18
+  beanie and retained HTTPS checkout. Both compiled smoke lines were removed.
+  No page JavaScript errors were observed.
+- The single correction batch moved the confirmed-add flight below the
+  drawer: live clone layer 1199 versus drawer 1201, leaving checkout controls
+  unobstructed even when opened immediately. Detector's sole advisory
+  base-cart font size was snapped to the documented 1.5rem step.
+- README, DESIGN.md and the shop surface brief now describe production
+  ownership. Merchant Shopify CDN photography remains the asset source.
+  Temporary verification tabs and servers were closed.
+
+**Code cutover verified; not deployed.** This does not clear the merchant
+plan, live-payment, shipping/origin/rate, tax or policy-publication gates above.
+The unrelated LINER revocation gate is also unchanged.
+
+## Storefront editorial refinement — 2026-10-05
+
+This visual update does not change the launch gate, merchant settings, Storefront
+operations, cart calculations, product routes, or checkout ownership.
+
+- `RetailCatalog.tsx` and `retail-catalog.css`: product-photo hero, self-hosted
+  Barlow Condensed type, gold collection CTA, whole-product media, responsive
+  collection, checkout guidance and calendar CTA. Product prices and links
+  remain Shopify-authoritative. Existing loading, error, empty and unavailable
+  states remain in `ShopPage.tsx`.
+- `useCatalogMotion.ts`: scoped GSAP intro and heading reveals with one Lenis
+  instance while the catalog is mounted. Locomotive Scroll was rejected because
+  Lenis is already used by the site. No Three.js/WebGL was added.
+- Headings expose unsplit accessible names; decorative words are hidden from
+  assistive technology. Touch scrolling remains native, dialogs are excluded
+  from smooth scrolling, and reduced-motion changes revert animation state.
+- Motion teardown removes ticker callbacks, frame work, listeners and
+  ScrollTriggers. Runtime instrumentation exposed Lenis 1.3.26's delayed
+  native-scroll reset re-adding root classes after `destroy()`. Calling public
+  `stop()` before `destroy()` fixes that behavior without private API access.
+  Navigation then left no Lenis classes and zero catalog ScrollTriggers.
+- `index.html`: a static `noscript` shop message links to the documented public
+  Shopify merchant storefront. This is a browsing fallback, not server-rendered
+  catalog data or a claim that headless checkout works without JavaScript.
+- Assets: all product photos remain merchant-supplied Shopify CDN imagery.
+  Solar icons by [480 Design](https://icon-sets.iconify.design/solar/) are locally
+  bundled through Iconify and visibly credited under
+  [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). No generated people,
+  testimonials, partnerships, stock photos or shipping promises were added.
+
+Verification:
+
+- Production build and sitemap generation passed using
+  `env -u VITE_SHOPIFY_STORE_DOMAIN npm run build`. The build still warns about
+  a 683.46 kB minified app chunk; no bundle-size warning was hidden.
+- Targeted ESLint passed for the catalog, motion hook and two updated page-test
+  files. No full-repository lint or full test-suite result is claimed.
+- Focused unchanged customer-behavior assertions passed: four suites,
+  **51 tests** (`ShopPages`, `StorefrontUX`, `CartDrawer`, `CartProvider`).
+  The page suites mock only the browser motion hook because jsdom lacks
+  `matchMedia` and real layout; motion was exercised in Chromium instead.
+- Real merchant collection rendered at 1440×1000 and 390×844; 320px and 768px
+  checks found no horizontal overflow. Coarse-pointer touch taps opened and
+  closed the cart. Keyboard collection navigation focused its heading;
+  controls had visible 3px focus outlines and Escape restored the cart opener.
+- Live Storefront smoke selected size M, added one $14 t-shirt, showed the
+  matching drawer and HTTPS checkout link, then removed the test line. No
+  checkout submission, customer information, payment or order was created.
+- Compiled production `/shop` and direct-refresh `/shop/products/unisex-t-shirt`
+  rendered with correct canonical metadata. Product navigation focused
+  `product-heading` and removed catalog root classes after the transition.
+- Reduced-motion preference changes removed Lenis and restored all heading
+  transforms/opacity. Blocking Shopify images retained four named missing-media
+  fallbacks and all three product links. Disabling JavaScript rendered the
+  static merchant-store link without overflow.
+
+Not deployed. Existing merchant-readiness and credential-revocation gates above
+remain unchanged.
+
+### Isolated pre-push verification
+
+The storefront commit was assembled in a temporary Git index, excluding
+unrelated staged skill, calendar and entity-accessibility work. Its exact
+source snapshot was materialized with existing dependencies and ignored local
+environment configuration, without changing the shared worktree or user index.
+
+- Full Vitest suite: **224 files / 2,303 tests passed**. The app-level anonymous
+  shop route test now uses the same browser-motion mock as the page suites.
+- Production build, storefront-scoped ESLint, route-test ESLint and TypeScript
+  build passed. This isolated snapshot's app-chunk warning is **679.15 kB**;
+  the earlier 683.46 kB measurement included unrelated working-tree changes.
+- The compiled isolated snapshot rendered three real merchant products at
+  390×844 without overflow. Product navigation removed Lenis classes and direct
+  refresh rendered `/shop/products/unisex-t-shirt`; no browser errors were observed.
+- jsdom still reports its unsupported `window.scrollTo` and document-navigation
+  operations. Those notices were not suppressed; all tests passed.

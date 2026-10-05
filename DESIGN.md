@@ -533,6 +533,40 @@ Event cards should feature large background imagery with a glassmorphic footer c
 
 The gallery should support "Live" video previews on hover. Use a masonry layout where every third image spans two columns to maintain a rhythmic, non-linear flow. Each image should have a soft inner-glow border to make it pop against the dark background.
 
+### Shopify storefront — Retail Edit (Ritmo Vivo)
+
+Retail Edit is the shipping catalog, product and cart design on `/shop` and
+`/shop/products/:handle`; it is no longer a development-only variant.
+The catalog opens with an editorial merchandise hero: self-hosted Barlow
+Condensed display type, merchant photography, navy grounds, gold actions and
+restrained rose accents. The collection uses three columns above 700px,
+two columns from 381px to 700px, and one column at 380px and below.
+Whole-product merchant photography uses `object-fit: contain`; captions carry
+real names, Shopify starting prices and an explicit View product action.
+No customer photos, shipping promises or scarcity claims are manufactured.
+GSAP choreographs readable hero words and section headings; every split heading
+retains one unsplit accessible name. Catalog-only Lenis smooths wheel input,
+with native touch scrolling, dialog exclusion, media/font measurement refresh,
+and cleanup on unmount. Reduced motion skips both engines and renders final states.
+No WebGL canvas is needed. Solar icons by 480 Design are bundled locally through
+Iconify and attributed under CC BY 4.0 at the bottom of the catalog.
+
+The product gallery sits beside a sticky purchase panel on desktop. Named
+option buttons expose selection and unavailable combinations; every option
+has a 44px minimum target. Product details live in a native disclosure.
+On phones, the quantity/add bar stays above the public dock and safe area;
+short landscape viewports use an in-flow bar. The cart is a protected-focus
+drawer with real Shopify totals and a hosted-checkout handoff.
+
+Shared-image navigation and the confirmed-add flight preserve direct
+navigation and purchase behavior under reduced motion or unsupported APIs.
+The flight sits below the cart modal, never covering checkout controls.
+Styles and components live with the production pages/cart; no query-selector
+switcher, discarded Drop Grid, or preview-only production branch remains.
+All photography is merchant-supplied Shopify CDN imagery, not generated assets.
+Missing product media retains a deterministic named fallback. When JavaScript
+is disabled, the static app shell provides a merchant-store link instead of a blank page.
+
 ### Social Chips
 
 Use small, pill-shaped chips for "Dance Style" tags (e.g., On1, On2, Cuban). These should use a low-opacity Tertiary Orange background with high-contrast white text to remain legible but secondary to primary actions.
@@ -672,9 +706,22 @@ The stage header pairs the Epilogue display title and balanced subtitle
 #### Desktop sidebar and responsive tiers
 
 - **Desktop (≥ 1024px):** A 208px left sidebar displays the active period
-  range label, live category breakdown counts under "What's on" (Social,
-  Class, Workshop, Live Music), dance style taxonomy selection (e.g. On1,
-  On2, Cuban, Bachata), and a 7-day upcoming event count tally.
+  range label (17px Epilogue 700), live category breakdown counts under
+  "What's on" (Social, Class, Workshop, Live Music), dance style taxonomy
+  selection (e.g. On1, On2, Cuban, Bachata), and a 7-day upcoming event count
+  tally. It is sticky 24px below the header and scrolls internally when the
+  style list is long.
+  **The sidebar is the grid's legend.** Each type row carries an 8px swatch
+  in that type's calendar colour (`CALENDARS_CONFIG` dark `main`) and a 2px
+  share rail showing its portion of the events in the current style context;
+  "All events" carries the stacked composition of all four. Choosing a dance
+  style re-proportions the rails (300ms `cubic-bezier(0.16, 1, 0.3, 1)`;
+  instant under reduced motion) — the sidebar's only motion besides
+  selection. Selection rides the calendar's neutral `--surface-high`
+  RubberSegment thumb, as the city and view switches do; rows never paint
+  their own selected fill and never change weight. The rose dot marks the
+  selected non-type row only. Zero-count types stay selectable with a dimmed
+  swatch; counts use tabular numerals.
 - **Tablet (769px – 1023px):** The sidebar drops away to maximize grid measure;
   event type pills and the dance style selector move into the `EventManager`
   toolbar filters row.

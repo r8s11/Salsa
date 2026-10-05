@@ -13,6 +13,7 @@ import "./Header.css";
 
 const PRIMARY_LINKS = [
   { to: "/calendar", label: "Calendar" },
+  { to: "/discover", label: "Discover" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
   { to: "/shop", label: "Shop" },

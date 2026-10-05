@@ -21,6 +21,7 @@ const {
   extractEventFromFlyer,
   reconcileEntities,
   searchEntityMatches,
+  fetchAdminEntityDirectory,
 } = vi.hoisted(() => ({
   useActiveTaxonomyTerms: vi.fn(),
   useVenueCombobox: vi.fn(),
@@ -28,7 +29,9 @@ const {
   extractEventFromFlyer: vi.fn(),
   reconcileEntities: vi.fn(),
   searchEntityMatches: vi.fn(),
+  fetchAdminEntityDirectory: vi.fn(),
 }));
+vi.mock("../entities/api/entitiesRepo", () => ({ fetchAdminEntityDirectory }));
 
 vi.mock("../hooks/useAdminTaxonomy", () => ({ useActiveTaxonomyTerms }));
 vi.mock("../../metros/hooks/useMetros", () => import("../../../test/mockMetros"));
@@ -190,6 +193,9 @@ const FALLBACK_BANNER = "We couldn't check these against existing records. Revie
 
 beforeEach(() => {
   vi.clearAllMocks();
+  fetchAdminEntityDirectory.mockReset().mockResolvedValue([
+    { id: "series-1", kind: "series", name: "Boston Salsa Sundays", slug: "boston-salsa-sundays", status: "active" },
+  ]);
   useActiveTaxonomyTerms.mockReturnValue({ terms: [] });
   useVenueCombobox.mockReturnValue({
     selectedId: null,
@@ -323,7 +329,7 @@ describe("Admin flyer entity review", () => {
     expect(screen.queryByText(FALLBACK_BANNER)).not.toBeInTheDocument();
   });
 
-  it("shows no review section when the flyer yields nothing to reconcile", async () => {
+  it("keeps the review section available when a flyer yields nothing to reconcile", async () => {
     const user = userEvent.setup();
     extractEventFromFlyer.mockResolvedValue(
       extraction({
@@ -340,7 +346,8 @@ describe("Admin flyer entity review", () => {
     await analyzeFlyer(user);
 
     expect(reconcileEntities).not.toHaveBeenCalled();
-    expect(screen.queryByRole("heading", { name: "Venue" })).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Venue, organizer, instructors and school" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Add venue by name")).toBeInTheDocument();
     expect(queryGroup(/^Venue:/)).not.toBeInTheDocument();
   });
 
@@ -594,7 +601,7 @@ describe("Admin flyer entity review", () => {
       expect(reconcileEntities).not.toHaveBeenCalled();
       expect(screen.queryByText(/Flyer analyzed/i)).not.toBeInTheDocument();
       expect(screen.queryByText("Analyzing your flyer…")).not.toBeInTheDocument();
-      expect(screen.queryByRole("heading", { name: "Venue" })).not.toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "Venue, organizer, instructors and school" })).toBeInTheDocument();
       expect(queryGroup(/^Venue:/)).not.toBeInTheDocument();
       // Idle again: the new flyer can be analyzed.
       expect(analyzeButton()).toBeEnabled();
@@ -641,7 +648,7 @@ describe("Admin flyer entity review", () => {
       expect(reconcileEntities).toHaveBeenCalledTimes(1);
       expect(screen.queryByText(/Flyer analyzed/i)).not.toBeInTheDocument();
       expect(screen.queryByText(CHECKING_BANNER)).not.toBeInTheDocument();
-      expect(screen.queryByRole("heading", { name: "Venue" })).not.toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "Venue, organizer, instructors and school" })).toBeInTheDocument();
       expect(queryGroup(/^Venue:/)).not.toBeInTheDocument();
       expect(analyzeButton()).toBeEnabled();
     });
@@ -679,11 +686,12 @@ describe("Admin flyer entity review", () => {
 
       await user.click(screen.getByRole("button", { name: "Remove" }));
 
-      await waitFor(() => expect(screen.queryByRole("heading", { name: "Venue" })).toBeNull());
+      expect(screen.getByRole("heading", { name: "Venue, organizer, instructors and school" })).toBeInTheDocument();
       expect(queryGroup(/^Venue:/)).not.toBeInTheDocument();
       expect(queryGroup(/^Organizer:/)).not.toBeInTheDocument();
       expect(queryGroup(/^Instructor:/)).not.toBeInTheDocument();
       expect(queryGroup(/^School:/)).not.toBeInTheDocument();
+      expect(screen.getByText("No venue was found on the flyer.")).toBeInTheDocument();
       expect(screen.queryByText(/Flyer analyzed/i)).not.toBeInTheDocument();
     });
 
@@ -886,8 +894,8 @@ describe("Admin flyer entity review", () => {
         })
       );
 
-      await user.type(field("event-address"), "9 Elm St");
-      await user.type(field("event-location"), "Studio Annex");
+      fireEvent.change(field("event-address"), { target: { value: "9 Elm St" } });
+      fireEvent.change(field("event-location"), { target: { value: "Studio Annex" } });
 
       expect(venueSummary("Using existing venue: Studio 5")).toBeInTheDocument();
       expect(
@@ -896,7 +904,7 @@ describe("Admin flyer entity review", () => {
         })
       ).toHaveAttribute("aria-pressed", "true");
 
-      await user.type(screen.getByLabelText(/Event Title/i), "Manual Title");
+      fireEvent.change(screen.getByLabelText(/Event Title/i), { target: { value: "Manual Title" } });
       fireEvent.change(screen.getByLabelText("Date *"), { target: { value: "2026-10-02" } });
       await user.click(
         within(screen.getByRole("group", { name: /^Event type/ })).getByRole("button", {
@@ -1005,3 +1013,95 @@ describe("Admin flyer entity review", () => {
     });
   });
 });
+  it("keeps linked entity review visible and intact while editing without a flyer", async () => {
+    const user = userEvent.setup();
+    const linkedReview: EntityReview = {
+      venue: null,
+      organizer: reviewItem(
+        { name: "Casa Latina" },
+        {
+          state: "MATCHED",
+          matches: [ORGANIZER_MATCH],
+          decision: "existing",
+          selected_id: ORGANIZER_ID,
+        }
+      ),
+      instructors: [],
+      school: null,
+    };
+    const onSubmit = vi
+      .fn<(form: AdminEventForm, flyer: File | null) => Promise<void>>()
+      .mockResolvedValue(undefined);
+    const initial: AdminEventForm = {
+      ...buildEmptyAdminForm("boston"),
+      title: "Existing event",
+      event_type: "social",
+      event_date: "2026-10-04",
+      entity_review: linkedReview,
+    };
+    render(
+      <MemoryRouter>
+        <AdminEventEditor
+          initial={initial}
+          initialTaxonomyTerms={[]}
+          heading="Edit event"
+          submitLabel="Save event"
+          isSaving={false}
+          error={null}
+          eventId="event-1"
+          onSubmit={onSubmit}
+          onCancel={vi.fn()}
+        />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText("Venue, organizer, instructors and school")).toBeInTheDocument();
+    expect(screen.getByText("Using existing organizer: Casa Latina Productions")).toBeInTheDocument();
+    expect(screen.getByLabelText(/Event Title/i)).toHaveValue("Existing event");
+    await user.clear(screen.getByLabelText(/Event Title/i));
+    await user.type(screen.getByLabelText(/Event Title/i), "Edited event");
+    await user.click(screen.getByRole("button", { name: "Save event" }));
+
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
+    expect(onSubmit.mock.calls[0][0].entity_review?.organizer).toMatchObject({
+      decision: "existing",
+      selected_id: ORGANIZER_ID,
+    });
+  });
+  it("selects a Series by its name and includes its ID when saving", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi
+      .fn<(form: AdminEventForm, flyer: File | null) => Promise<void>>()
+      .mockResolvedValue(undefined);
+    render(
+      <MemoryRouter>
+        <AdminEventEditor
+          initial={{
+            ...buildEmptyAdminForm("boston"),
+            title: "Salsa Sunday",
+            event_type: "social",
+            event_date: "2026-10-04",
+          }}
+          initialTaxonomyTerms={[]}
+          heading="New event"
+          submitLabel="Create event"
+          isSaving={false}
+          error={null}
+          onSubmit={onSubmit}
+          onCancel={vi.fn()}
+        />
+      </MemoryRouter>
+    );
+
+    expect(
+      await screen.findByRole("option", { name: "Boston Salsa Sundays" })
+    ).toBeInTheDocument();
+    await user.selectOptions(screen.getByLabelText("Series"), "series-1");
+    expect(screen.getByLabelText("Add venue by name")).toBeInTheDocument();
+    expect(screen.getByLabelText("Add organizer by name")).toBeInTheDocument();
+    expect(screen.getByLabelText("Add instructor by name")).toBeInTheDocument();
+    expect(screen.getByLabelText("Add school by name")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Create event" }));
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
+    expect(onSubmit.mock.calls[0][0].series_id).toBe("series-1");
+  });

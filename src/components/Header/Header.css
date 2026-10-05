@@ -104,9 +104,17 @@ a.logo:hover .ss-logo__wordmark-accent {
 }
 
 /* The bar switch leads the right-hand cluster on desktop and sits beside
-   the hamburger below 1024px, so the city is one tap away at every width. */
+   the hamburger below 1024px, so the city is one tap away at every width.
+   Metro names are data-driven and can be long: cap the compact switch so
+   the action buttons never get pushed past the viewport (the trigger text
+   already ellipsizes via .metro-explorer__trigger-text). */
 .metro-explorer--compact {
   margin-left: auto;
+  max-width: min(16rem, 32vw);
+}
+
+.metro-explorer--compact .metro-explorer__trigger {
+  max-width: 100%;
 }
 
 /* Header-specific overrides for ui-button--compact (replaces old .auth-btn) */

@@ -1,4 +1,7 @@
 import { Clock, MapPin } from "lucide-react";
+import { Link } from "react-router-dom";
+import { entityHref } from "../../features/entities/model";
+import EventEntityLinks from "../../features/events/components/EventEntityLinks";
 import type { ScheduleXEvent } from "../../types/events";
 import { isRecentlyApproved } from "../../features/events/model/recentlyApproved";
 import { resolveEventFlyer } from "../EventModal/eventModalImage";
@@ -38,9 +41,8 @@ export default function EventCard({
     sourceType: event.sourceType,
   });
 
-  // The card is an article with a real heading; the title's button is the one
-  // control, and its ::after stretches over the whole card so any click on
-  // it still opens the event.
+  // The title control stretches over the card; attribution links sit above
+  // that hit area and remain independent keyboard targets.
   return (
     <article className="event-card">
       <div className={`event-card-thumb event-card-thumb--${event.calendarId}`}>
@@ -84,10 +86,14 @@ export default function EventCard({
           </span>
           {event.location && (
             <span className="event-card-location">
-              <MapPin size={13} aria-hidden="true" /> {event.location}
+              <MapPin size={13} aria-hidden="true" />{" "}
+              {event.publicEntities?.venue
+                ? <Link className="event-card-entity" to={entityHref(event.publicEntities.venue)}>{event.publicEntities.venue.name}</Link>
+                : event.location}
             </span>
           )}
         </div>
+        <EventEntityLinks entities={event.publicEntities} omit={["venue"]} />
       </div>
     </article>
   );

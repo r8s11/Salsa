@@ -64,6 +64,20 @@ layout. Shopify Storefront API `2026-10` owns products, variants, prices,
 availability, cart calculations, and checkout. Integration code lives in
 `src/features/shopify/`; the app never processes payments or stores card data.
 
+**Retail Edit is the production storefront**, not a development preview.
+The catalog pairs an editorial product-photo hero and condensed display type
+with whole-product photography, direct product links, checkout guidance and a
+calendar CTA. Page-scoped GSAP/Lenis motion respects reduced motion and native
+touch scrolling. Solar icons are bundled locally with attribution.
+Product pages use named option buttons, a gallery, a details disclosure and
+a mobile purchase bar above the public dock. Catalog navigation preloads
+product data and uses a shared-image transition where supported; confirmed
+adds animate into the cart. Reduced motion retains the same purchase flow
+without either effect. The discarded Drop Grid and preview switcher are removed;
+`?variant=retail` or `?variant=drop` no longer selects another design.
+With JavaScript disabled, the app shell offers a static Salsa Segura shop
+message and a direct link to the public merchant storefront.
+
 Set these optional build-time values in `.env.local`:
 
 ```ini
@@ -80,6 +94,17 @@ the rest of the app usable and displays a shop-unavailable state.
 Shell exports take precedence over `.env` and `.env.local`. After correcting the
 domain, update or unset a stale `VITE_SHOPIFY_STORE_DOMAIN` export before starting
 Vite or building; changing the file alone does not override an exported value.
+
+For local launches/builds that must use the values already in `.env.local`,
+clear inherited Shopify overrides for that process:
+
+```bash
+env -u VITE_SHOPIFY_STORE_DOMAIN -u VITE_SHOPIFY_STOREFRONT_TOKEN npm run dev
+env -u VITE_SHOPIFY_STORE_DOMAIN -u VITE_SHOPIFY_STOREFRONT_TOKEN npm run build
+```
+
+Do not use these commands in CI where the intended values come from secrets.
+No token or local environment-file change is required for the Retail Edit cutover.
 
 In Shopify, install/configure the Headless channel, enable product and cart/
 checkout Storefront access, and publish the intended products to that channel.

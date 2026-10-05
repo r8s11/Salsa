@@ -7,6 +7,7 @@ import ButtonLink from "../../../components/ui/ButtonLink";
 import { formatMoney } from "../money";
 import { useCart } from "./useCart";
 import "./cart.css";
+import "./retail-cart.css";
 
 const isValidCheckoutUrl = (value: string): boolean => {
   try {

@@ -8,6 +8,9 @@ import ShopPage from "./ShopPage";
 import { storefront, isShopifyConfigured } from "../api/storefront";
 import { useCart } from "../cart/useCart";
 
+// Motion needs real browser layout; customer behavior stays covered in jsdom.
+vi.mock("./useCatalogMotion", () => ({ useCatalogMotion: vi.fn() }));
+
 vi.mock("../api/storefront", () => ({
   storefront: {
     listProducts: vi.fn(),
@@ -197,12 +200,13 @@ describe("ProductPage", () => {
     renderProduct();
 
     expect(await screen.findByRole("heading", { name: "Dance Shirt" })).toBeInTheDocument();
-    expect(screen.getByText("A comfortable shirt for dancing.")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Product details", { selector: "summary" }));
+    expect(screen.getByText("A comfortable shirt for dancing.")).toBeVisible();
     expect(screen.getByRole("img", { name: "Dance shirt" })).toHaveAttribute("src", image.url);
     expect(screen.getByText(/\$28\.00/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /back to shop/i })).toHaveAttribute("href", "/shop");
 
-    expect(screen.getByRole("option", { name: /large.*sold out/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /large.*sold out/i })).toBeDisabled();
   });
 
   it("shows missing configuration without requesting a product", () => {
@@ -254,9 +258,8 @@ describe("ProductPage", () => {
 
     fireEvent.click(screen.getByRole("link", { name: "Open new product" }));
     expect(await screen.findByRole("heading", { name: "New product" })).toBeInTheDocument();
-    const variant = screen.getByRole("combobox") as HTMLSelectElement;
-    fireEvent.change(variant, { target: { value: "new-medium" } });
-    expect(variant.value).toBe("new-medium");
+    fireEvent.click(screen.getByRole("button", { name: "Size: Medium" }));
+    expect(screen.getByRole("button", { name: "Size: Medium" })).toHaveAttribute("aria-pressed", "true");
 
     await act(async () => {
       resolveOld(product("old", "Old product"));
@@ -264,7 +267,7 @@ describe("ProductPage", () => {
     });
     expect(screen.queryByRole("heading", { name: "Old product" })).toBeNull();
     expect(screen.getByRole("heading", { name: "New product" })).toBeInTheDocument();
-    expect((screen.getByRole("combobox") as HTMLSelectElement).value).toBe("new-medium");
+    expect(screen.getByRole("button", { name: "Size: Medium" })).toHaveAttribute("aria-pressed", "true");
   });
 
   it("resets variant selection when the route handle changes", async () => {
@@ -291,11 +294,11 @@ describe("ProductPage", () => {
     );
 
     expect(await screen.findByRole("heading", { name: "Old product" })).toBeInTheDocument();
-    fireEvent.change(screen.getByRole("combobox"), { target: { value: "old-medium" } });
-    expect((screen.getByRole("combobox") as HTMLSelectElement).value).toBe("old-medium");
+    fireEvent.click(screen.getByRole("button", { name: "Size: Medium" }));
+    expect(screen.getByRole("button", { name: "Size: Medium" })).toHaveAttribute("aria-pressed", "true");
 
     fireEvent.click(screen.getByRole("link", { name: "Open new product" }));
     expect(await screen.findByRole("heading", { name: "New product" })).toBeInTheDocument();
-    expect((screen.getByRole("combobox") as HTMLSelectElement).value).toBe("new-small");
+    expect(screen.getByRole("button", { name: "Size: Small" })).toHaveAttribute("aria-pressed", "true");
   });
 });

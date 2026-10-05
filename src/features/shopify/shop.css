@@ -1,8 +1,19 @@
 .shop-page {
   width: min(100% - 2 * var(--gutter), var(--container-max));
   margin-inline: auto;
-  padding: clamp(1.25rem, 3vw, 2rem) 0 calc(var(--space-xxl) + var(--tab-bar-h));
+  padding: clamp(1.25rem, 3vw, 2rem) 0 var(--space-xxl);
   color: var(--text);
+  scrollbar-color: var(--gold) var(--surface);
+}
+
+.shop-page ::selection {
+  color: var(--on-gold);
+  background: var(--gold);
+}
+
+.shop-page :focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 4px;
 }
 
 .shop-page__topbar {
@@ -28,66 +39,8 @@
   color: var(--on-gold);
   font-size: 0.75rem;
   font-weight: 800;
+  font-variant-numeric: tabular-nums;
   line-height: 1;
-}
-
-.shop-hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-md);
-  margin: 0 0 clamp(1.5rem, 3vw, 2rem);
-}
-
-.shop-hero h1 {
-  color: var(--text);
-  font-family: var(--font-display);
-  font-size: clamp(2rem, 5vw, 3.5rem);
-  font-weight: 700;
-  letter-spacing: -0.04em;
-  line-height: 1.08;
-}
-
-.shop-hero__intro {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-sm) var(--space-lg);
-}
-
-.shop-hero__intro p {
-  max-width: 40rem;
-  color: var(--text-muted);
-  font-size: clamp(0.95rem, 1.6vw, 1.1rem);
-  line-height: 1.6;
-}
-
-.shop-hero__products-link {
-  display: inline-flex;
-  min-height: 44px;
-  align-items: center;
-  justify-content: center;
-  padding: 0 var(--space-md);
-  border: 1px solid var(--gold);
-  border-radius: var(--radius);
-  color: var(--gold-light);
-  font-weight: 700;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.shop-hero__products-link:hover {
-  background: var(--gold-dim);
-}
-
-.shop-hero__products-link:focus-visible,
-.shop-card__link:focus-visible {
-  outline: 3px solid var(--gold);
-  outline-offset: 4px;
-}
-
-#shop-products {
-  scroll-margin-top: var(--space-lg);
 }
 
 .shop-page__notice {
@@ -114,15 +67,21 @@
   line-height: 1.65;
 }
 
-.shop-state h2 {
+.shop-state :where(h1, h2) {
   color: var(--text);
   font-family: var(--font-display);
   font-size: clamp(1.5rem, 3vw, 2rem);
   letter-spacing: -0.03em;
+  line-height: 1.15;
 }
 
 .shop-state--error {
   border-color: var(--red-line);
+}
+
+.shop-loading,
+.retail-catalog > .shop-state {
+  margin-top: var(--space-lg);
 }
 
 .shop-loading > p {
@@ -132,92 +91,15 @@
 
 .shop-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: clamp(1rem, 2.5vw, 2rem);
   list-style: none;
-}
-
-.shop-card {
-  min-width: 0;
-}
-
-.shop-card__link {
-  display: block;
-  height: 100%;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--surface);
-  color: inherit;
-  text-decoration: none;
-  transition: border-color 160ms ease, background-color 160ms ease, transform 160ms ease;
-}
-
-.shop-card__link:hover {
-  transform: translateY(-3px);
-  border-color: var(--border-md);
-  background: var(--surface-high);
-}
-
-.shop-card__image-wrap {
-  display: grid;
-  min-height: 12rem;
-  overflow: hidden;
-  place-items: center;
-  background: var(--surface-high);
-}
-
-.shop-card__image {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  transition: transform 220ms ease;
-}
-
-.shop-card__link:hover .shop-card__image {
-  transform: scale(1.025);
-}
-
-.shop-card__image-placeholder {
-  display: grid;
-  width: 100%;
-  min-height: 12rem;
-  place-items: center;
-  padding: var(--space-md);
-  color: var(--text-muted);
-  font-size: 0.875rem;
-  text-align: center;
-}
-
-.shop-card__details {
-  display: grid;
-  min-height: 5rem;
-  align-content: start;
-  gap: var(--space-sm);
-  padding: var(--space-md);
-}
-
-.shop-card__title {
-  font-family: var(--font-display);
-  font-size: 1rem;
-  font-weight: 700;
-  line-height: 1.4;
-}
-
-.shop-card__price {
-  color: var(--text-muted);
-  font-size: 0.875rem;
 }
 
 .shop-skeleton {
   display: grid;
   align-content: start;
   gap: var(--space-md);
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--surface);
   padding-bottom: var(--space-md);
 }
 
@@ -231,57 +113,65 @@
   display: block;
   width: 76%;
   height: 0.875rem;
-  margin-inline: var(--space-md);
-  border-radius: var(--radius-sm);
   background: var(--surface-high);
 }
 
 .shop-skeleton__line--short {
   width: 42%;
-  height: 0.75rem;
 }
 
-.shop-page__load-more {
-  display: flex;
-  justify-content: center;
-  margin-top: clamp(2rem, 5vw, 3.5rem);
+.shop-image-missing {
+  display: grid;
+  min-height: 12rem;
+  place-items: center;
+  color: var(--text-muted);
 }
 
+.shop-page__load-more,
 .shop-page__load-error {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
   gap: var(--space-md);
-  margin-top: var(--space-md);
+  margin-top: var(--space-lg);
+}
+
+.shop-page__load-error {
   color: var(--red-error-strong);
   text-align: center;
 }
 
-@media (min-width: 600px) {
+@media (max-width: 700px) {
   .shop-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (min-width: 900px) {
-  .shop-hero {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
+@media (max-width: 420px) {
   .shop-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .shop-card__link,
-  .shop-card__image {
-    transition: none;
-  }
+::view-transition-group(shop-product) {
+  animation-duration: 420ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
 
-  .shop-card__link:hover,
-  .shop-card__link:hover .shop-card__image {
-    transform: none;
+::view-transition-old(shop-product),
+::view-transition-new(shop-product) {
+  height: 100%;
+  object-fit: contain;
+}
+
+:root.shop-transition-active::view-transition-old(root),
+:root.shop-transition-active::view-transition-new(root) {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(shop-product) {
+    animation-duration: 0s;
   }
 }

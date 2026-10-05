@@ -27,7 +27,7 @@
   gap: var(--space-md);
 }
 .shop-cart__heading { display: flex; align-items: center; justify-content: space-between; gap: var(--space-md); }
-.shop-cart__heading h2 { font-family: var(--font-display); font-size: 1.75rem; }
+.shop-cart__heading h2 { font-family: var(--font-display); font-size: 1.5rem; }
 .shop-cart__heading button { min-height: 44px; }
 .shop-cart__lines { list-style: none; display: grid; align-content: start; gap: var(--space-lg); min-height: 0; flex: 1 0 auto; }
 .shop-cart__line { display: flex; align-items: flex-start; gap: var(--space-md); border-bottom: 1px solid var(--border); padding-bottom: var(--space-lg); }

@@ -12,6 +12,7 @@ import { useCart } from "../cart/useCart";
 import { formatMoney } from "../money";
 import "../shop.css";
 import "./product.css";
+import "./retail-purchase.css";
 
 interface ProductFeedback {
   handle: string;
@@ -36,6 +37,10 @@ function ProductDetails({ handle }: { handle: string }) {
     variantId: null,
   });
   const [quantity, setQuantity] = useState(1);
+  const [failedImages, setFailedImages] = useState<ReadonlyArray<string>>([]);
+  const markImageFailed = (url: string) => {
+    setFailedImages((current) => (current.includes(url) ? current : [...current, url]));
+  };
   const [activeImage, setActiveImage] = useState<{ handle: string; variantId: string; url: string } | null>(null);
   const [feedback, setFeedback] = useState<ProductFeedback | null>(null);
   const requestToken = useRef(0);
@@ -138,8 +143,12 @@ function ProductDetails({ handle }: { handle: string }) {
     const currentHandle = handle;
     const currentVariant = selectedVariant.id;
     const currentQuantity = quantity;
+    const imageSource = document.querySelector(".shop-product__image");
     try {
       const added = await addVariant(currentVariant, currentQuantity);
+      if (added && requestToken.current === token) {
+        void import("../cart/flyToCart").then(({ flyToCart }) => flyToCart(imageSource)).catch(() => undefined);
+      }
       if (requestToken.current !== token) return;
       setFeedback({
         handle: currentHandle,
@@ -152,6 +161,31 @@ function ProductDetails({ handle }: { handle: string }) {
       }
     }
   };
+
+  const productIntro = product && <>
+    <h1 id="product-heading" tabIndex={-1}>{product.title}</h1>
+    <div className="shop-product__price" aria-live="polite">
+      {price && <span>{formatMoney(price)}</span>}
+      {showCompareAt && compareAt && <span className="shop-product__compare-at">Was {formatMoney(compareAt)}</span>}
+    </div>
+  </>;
+  const purchaseControls = <>
+    <div className="shop-product__quantity" aria-label="Quantity">
+      <Button variant="secondary" aria-label="Decrease quantity" disabled={quantity <= 1 || isBusy}
+        onClick={() => { setQuantity((current) => Math.max(1, current - 1)); clearFeedback(); }}>
+        <Minus size={18} aria-hidden="true" />
+      </Button>
+      <output aria-label="Quantity" aria-live="polite">{quantity}</output>
+      <Button variant="secondary" aria-label="Increase quantity" disabled={isBusy}
+        onClick={() => { setQuantity((current) => current + 1); clearFeedback(); }}>
+        <Plus size={18} aria-hidden="true" />
+      </Button>
+    </div>
+    <Button variant="primary" block disabled={!selectedVariant?.availableForSale || isBusy || isCartLoading}
+      loading={isBusy} loadingLabel="Adding to cart…" onClick={() => void addSelectedVariant()}>
+      {selectedVariant?.availableForSale ? "Add to cart" : "Sold out"}
+    </Button>
+  </>;
 
   return (
     <section className="shop-page shop-page--product" aria-labelledby="product-heading">
@@ -196,14 +230,16 @@ function ProductDetails({ handle }: { handle: string }) {
         <article className="shop-product">
           <div className="shop-product__gallery">
             <div className="shop-product__media">
-              {image ? (
+              {image && !failedImages.includes(image.url) ? (
                 <img
                   className="shop-product__image"
+                  style={{ viewTransitionName: "shop-product" }}
                   src={image.url}
                   alt={image.altText ?? product.title}
                   width={image.width ?? 720}
                   height={image.height ?? 900}
                   fetchPriority="high"
+                  onError={() => markImageFailed(image.url)}
                 />
               ) : (
                 <div className="shop-product__image-placeholder" role="img" aria-label={`${product.title} image unavailable`}>
@@ -231,7 +267,11 @@ function ProductDetails({ handle }: { handle: string }) {
                         });
                       }}
                     >
-                      <img src={galleryImage.url} alt="" loading="lazy" />
+                      {failedImages.includes(galleryImage.url) ? (
+                        <span className="shop-product__thumbnail-placeholder" aria-hidden="true" />
+                      ) : (
+                        <img src={galleryImage.url} alt="" loading="lazy" onError={() => markImageFailed(galleryImage.url)} />
+                      )}
                     </button>
                   );
                 })}
@@ -239,78 +279,36 @@ function ProductDetails({ handle }: { handle: string }) {
             )}
           </div>
           <div className="shop-product__content">
-            <h1 id="product-heading">{product.title}</h1>
-            <div className="shop-product__price" aria-live="polite">
-              {price && <span>{formatMoney(price)}</span>}
-              {showCompareAt && compareAt && (
-                <span className="shop-product__compare-at">Was {formatMoney(compareAt)}</span>
-              )}
-            </div>
-            {product.description && <p className="shop-product__description">{product.description}</p>}
+            <div className="shop-product__intro">{productIntro}</div>
             {variants.length > 0 && (
-              <div className="shop-product__variant-field">
-                <label htmlFor="shop-product-variant">Choose an option</label>
-                <select
-                  id="shop-product-variant"
-                  value={selectedVariant?.id ?? ""}
-                  onChange={(event) => {
-                    setSelection({ handle, variantId: event.currentTarget.value });
-                    setActiveImage(null);
-                    clearFeedback();
-                  }}
-                  aria-describedby="shop-variant-help"
-                >
+              <fieldset className="shop-product__variant-field shop-product__options">
+                <legend>Choose an option</legend>
+                <div className="shop-product__option-list">
                   {variants.map((variant) => (
-                    <option key={variant.id} value={variant.id} disabled={!variant.availableForSale}>
-                      {optionsLabel(variant)}{variant.availableForSale ? "" : " — Sold out"}
-                    </option>
+                    <button type="button" key={variant.id} className="shop-product__option-button"
+                      disabled={!variant.availableForSale || isBusy}
+                      aria-pressed={selectedVariant?.id === variant.id}
+                      aria-label={`${optionsLabel(variant)}${variant.availableForSale ? "" : " — Sold out"}`}
+                      onClick={() => {
+                        setSelection({ handle, variantId: variant.id });
+                        setActiveImage(null);
+                        clearFeedback();
+                      }}>
+                      {variant.selectedOptions.length
+                        ? variant.selectedOptions.map(({ value }) => value).join(" / ")
+                        : variant.title}
+                    </button>
                   ))}
-                </select>
-                <p id="shop-variant-help" className="shop-product__field-help">
-                  Options marked sold out are currently unavailable.
-                </p>
-              </div>
+                </div>
+                <p className="shop-product__field-help">Unavailable options are disabled.</p>
+              </fieldset>
             )}
             {selectedVariant && (
               <p className={`shop-product__availability${selectedVariant.availableForSale ? " shop-product__availability--available" : ""}`}>
                 {selectedVariant.availableForSale ? "Available" : "Sold out"}
               </p>
             )}
-            <div className="shop-product__quantity" aria-label="Quantity">
-              <Button
-                variant="secondary"
-                aria-label="Decrease quantity"
-                disabled={quantity <= 1 || isBusy}
-                onClick={() => {
-                  setQuantity((current) => Math.max(1, current - 1));
-                  clearFeedback();
-                }}
-              >
-                <Minus size={18} aria-hidden="true" />
-              </Button>
-              <output aria-label="Quantity" aria-live="polite">{quantity}</output>
-              <Button
-                variant="secondary"
-                aria-label="Increase quantity"
-                disabled={isBusy}
-                onClick={() => {
-                  setQuantity((current) => current + 1);
-                  clearFeedback();
-                }}
-              >
-                <Plus size={18} aria-hidden="true" />
-              </Button>
-            </div>
-            <Button
-              variant="primary"
-              block
-              disabled={!selectedVariant?.availableForSale || isBusy || isCartLoading}
-              loading={isBusy}
-              loadingLabel="Adding to cart…"
-              onClick={() => void addSelectedVariant()}
-            >
-              {selectedVariant?.availableForSale ? "Add to cart" : "Sold out"}
-            </Button>
+            <div className="shop-product__buy">{purchaseControls}</div>
             {feedback?.handle === handle && (
               <p
                 className={`shop-product__feedback${feedback.kind === "error" ? " shop-product__feedback--error" : ""}`}
@@ -322,6 +320,10 @@ function ProductDetails({ handle }: { handle: string }) {
             )}
             {!variants.length && <p className="shop-product__field-help">No purchase options are available.</p>}
             <p className="shop-product__fine-print">Secure checkout is provided by Shopify.</p>
+            {product.description && <details className="shop-product__details-disclosure">
+              <summary>Product details</summary>
+              <p className="shop-product__description">{product.description}</p>
+            </details>}
           </div>
         </article>
       )}

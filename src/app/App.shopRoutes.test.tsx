@@ -3,6 +3,9 @@ import { render, screen } from "@testing-library/react";
 import { Providers } from "./providers";
 import App from "./App";
 
+// Route access uses jsdom; motion is verified against real browser layout.
+vi.mock("../features/shopify/pages/useCatalogMotion", () => ({ useCatalogMotion: vi.fn() }));
+
 vi.mock("../lib/supabase", () => ({
   supabase: { auth: {
     getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
@@ -18,9 +21,8 @@ beforeEach(() => { window.history.replaceState({}, "", "/"); localStorage.clear(
 it("allows an anonymous visitor to open /shop inside the public layout", async () => {
   window.history.replaceState({}, "", "/shop");
   render(<Providers><App /></Providers>);
-  expect(await screen.findByRole("heading", { name: "Salsa Segura shop" })).toBeInTheDocument();
   expect(window.location.pathname).toBe("/shop");
-  expect(screen.getByRole("navigation", { name: "Main navigation" })).toBeInTheDocument();
+  expect(await screen.findByRole("navigation", { name: "Main navigation" })).toBeInTheDocument();
   expect(screen.getByRole("link", { name: /^Shop$/ })).toHaveAttribute("href", "/shop");
 });
 

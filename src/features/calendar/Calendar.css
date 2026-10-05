@@ -1,5 +1,8 @@
 /* Calendar planner — Ritmo Vivo. Public discovery stays dark and read-only. */
 .calendar-page {
+  /* Rose accent for the title dot, sidebar selection dot, list arrow and
+     error text. */
+  --primary: var(--red);
   --sx-color-primary: var(--red);
   --sx-color-on-primary: #fff;
   --sx-color-primary-container: var(--red-dim);
@@ -75,9 +78,19 @@
 .calendar-content {
   min-width: 0;
 }
+/* Desktop filter sidebar. It stays in reach while the month grid scrolls,
+   and its "What's on" rows are the grid's colour legend. */
 .calendar-sidebar {
+  position: sticky;
+  top: calc(68px + 24px);
   align-self: start;
-  padding: 8px 0;
+  max-height: calc(100dvh - 68px - 48px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  /* Inline padding keeps the 3px-offset focus ring inside the scroll box. */
+  padding: 8px 6px;
+  margin-inline: -6px;
   display: flex;
   flex-direction: column;
   gap: 28px;
@@ -91,15 +104,27 @@
 .sidebar-period-label {
   margin: 0;
   color: var(--text);
-  font-size: 0.8125rem;
-  line-height: 1.6;
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+  text-wrap: balance;
 }
 .sidebar-rows {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
+}
+/* Selection rides the same neutral RubberSegment thumb as the city and view
+   switches; rows sit above it and never paint their own selected fill. */
+.sidebar-rows > .rubber-segment__thumb {
+  background: var(--surface-high);
+  box-shadow: none;
 }
 .sidebar-row {
+  position: relative;
+  z-index: 1;
   width: 100%;
   min-height: 44px;
   display: flex;
@@ -123,15 +148,20 @@
   min-width: 0;
   overflow-wrap: anywhere;
 }
-.sidebar-row:hover {
-  background: var(--surface);
+@media (hover: hover) {
+  .sidebar-row:hover {
+    background: color-mix(in srgb, var(--surface-high) 45%, transparent);
+    color: var(--text);
+  }
+}
+.sidebar-row-active,
+.sidebar-row-active:hover {
+  background: transparent;
   color: var(--text);
 }
-.sidebar-row-active {
-  background: var(--surface-high);
-  color: var(--text);
-}
-.sidebar-row-active .sidebar-row-label::before {
+/* Rose stays wayfinding: the dot marks the chosen non-type row. Type rows
+   are already identified by their colour swatch. */
+.sidebar-row-active:not(.sidebar-type-row) .sidebar-row-label::before {
   content: "";
   display: inline-block;
   width: 6px;
@@ -140,10 +170,62 @@
   background: var(--primary);
   margin: 0 10px 1px 0;
 }
+.sidebar-type-swatch {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin: 0 10px 1px 0;
+  border-radius: 2px;
+  background: var(--type-color);
+}
+.sidebar-row-empty .sidebar-type-swatch {
+  opacity: 0.35;
+}
 .sidebar-row-count {
   flex-shrink: 0;
+  min-width: 2ch;
   font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
   color: var(--text-muted);
+}
+.sidebar-row-active .sidebar-row-count {
+  color: var(--text);
+}
+/* Share rails: each type's portion of the current style's events. They
+   re-proportion when a dance style is chosen, which is the sidebar's one
+   moment of motion. */
+.sidebar-share {
+  position: absolute;
+  right: 12px;
+  bottom: 5px;
+  left: 12px;
+  display: flex;
+  height: 2px;
+  overflow: hidden;
+  border-radius: 1px;
+  background: var(--border);
+}
+.sidebar-share-fill {
+  flex: 1;
+  background: var(--type-color);
+  transform: scaleX(var(--type-share));
+  transform-origin: left center;
+  transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.sidebar-share-segment {
+  flex-basis: 0;
+  min-width: 0;
+  transition: flex-grow 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.sidebar-share-segment + .sidebar-share-segment {
+  box-shadow: inset 2px 0 0 var(--bg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-share-fill,
+  .sidebar-share-segment {
+    transition: none;
+  }
 }
 .sidebar-footer {
   padding-top: 20px;
@@ -451,6 +533,7 @@
   border-bottom: 1px solid var(--border);
   color: var(--text);
   font: 700 1.125rem/1.35 var(--font-display);
+  letter-spacing: -0.01em;
 }
 .calendar-list-rows {
   display: flex;
@@ -458,6 +541,7 @@
   gap: 12px;
 }
 .calendar-list-row {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 16px;
@@ -465,17 +549,65 @@
   min-height: 100px;
   padding: 16px;
   border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--surface);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
   color: var(--text);
   cursor: pointer;
   text-align: left;
   transition:
-    background-color 180ms ease-out,
-    border-color 180ms ease-out;
+    transform 220ms ease,
+    background-color 220ms ease,
+    border-color 220ms ease,
+    box-shadow 220ms ease;
+}
+/* The event's own colour marks the row's leading edge — the same
+   --event-color the type dot already reads. */
+.calendar-list-row::before {
+  content: "";
+  position: absolute;
+  inset: 12px auto 12px 0;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--event-color);
+  opacity: 0.85;
 }
 .calendar-list-row:active {
   background: var(--surface-high);
+}
+.calendar-list-rail {
+  display: flex;
+  flex: 0 0 52px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  align-self: stretch;
+  padding: 8px 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.calendar-list-rail-weekday {
+  color: var(--text-muted);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.calendar-list-rail-day {
+  color: var(--text);
+  font: 800 1.5rem/1 var(--font-display);
+  letter-spacing: -0.02em;
+}
+.calendar-list-rail-month {
+  color: var(--event-color);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
 }
 .calendar-list-heading {
   display: flex;
@@ -548,6 +680,13 @@
   color: var(--text);
   font: inherit;
   cursor: pointer;
+  transition:
+    background-color 180ms ease-out,
+    border-color 180ms ease-out;
+}
+.calendar-list-more button:hover {
+  background: var(--surface-high);
+  border-color: var(--border-lg);
 }
 .calendar-list-more button:focus-visible {
   outline: 2px solid var(--primary);
@@ -556,22 +695,43 @@
 .calendar-list-meta svg {
   flex-shrink: 0;
 }
+@supports selector(:has(*)) {
+  .calendar-list-row:has(:focus-visible) {
+    outline: 2px solid var(--red-bright);
+    outline-offset: 2px;
+    border-color: var(--red-dim);
+  }
+}
 @media (hover: hover) and (pointer: fine) {
   .calendar-list-row:hover {
+    transform: translateY(-3px);
     background: var(--surface-high);
-    border-color: var(--border-md);
+    border-color: var(--red-dim);
+    box-shadow: var(--glow-primary);
   }
   .calendar-list-row:hover .calendar-list-arrow {
     transform: translate(2px, -2px);
   }
 }
-.calendar-list-thumbnail {
+.calendar-list-thumb-wrap {
+  position: relative;
+  flex: 0 0 56px;
   width: 56px;
   height: 72px;
-  flex: 0 0 56px;
   border-radius: 8px;
+  overflow: hidden;
   background: var(--surface-high);
+}
+.calendar-list-thumbnail {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
+  transition: transform 320ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+@media (hover: hover) and (pointer: fine) {
+  .calendar-list-row:hover .calendar-list-thumbnail {
+    transform: scale(1.05);
+  }
 }
 .calendar-list-copy {
   display: flex;
@@ -752,11 +912,21 @@
     padding: 12px;
     align-items: flex-start;
   }
+  .calendar-list-rail {
+    flex-basis: 44px;
+    padding: 6px 0;
+  }
+  .calendar-list-rail-day {
+    font-size: 1.25rem;
+  }
   .calendar-list-description {
     -webkit-line-clamp: 1;
   }
-  .calendar-list-thumbnail {
+  .calendar-list-thumb-wrap {
     margin-top: 2px;
+    flex-basis: 48px;
+    width: 48px;
+    height: 62px;
   }
   .calendar-list-arrow {
     margin-top: 4px;
@@ -780,6 +950,10 @@
   .calendar-page .ui-button:active:not(:disabled) {
     transform: none;
   }
+  .calendar-list-row,
+  .calendar-list-row:hover,
+  .calendar-list-thumbnail,
+  .calendar-list-row:hover .calendar-list-thumbnail,
   .calendar-list-arrow,
   .calendar-filter-chevron {
     transition: none;

@@ -8,6 +8,7 @@ import {
   sortCalendarEvents,
 } from "../model/calendarEvents";
 import { resolveEventFlyer } from "../../../components/EventModal/eventModalImage";
+import { isRecentlyApproved } from "../../events/model/recentlyApproved";
 import "temporal-polyfill/global";
 
 const PAGE_SIZE = 50;
@@ -22,6 +23,22 @@ function endDateLabel(event: ScheduleXEvent): string {
       : ` (${formatCalendarDate(event.end)}, ${end.year})`;
   } catch {
     return "";
+  }
+}
+
+// The date rail reads as a calendar tear-off: a short weekday, the day number,
+// and the month. Derived from the same parsed start the group heading uses, so
+// an unparseable date degrades to empty strings rather than "Invalid Date".
+function dateRail(start: string): { weekday: string; day: string; month: string } {
+  try {
+    const date = Temporal.PlainDateTime.from(start.replace(" ", "T")).toPlainDate();
+    return {
+      weekday: date.toLocaleString("en-US", { weekday: "short" }),
+      day: String(date.day),
+      month: date.toLocaleString("en-US", { month: "short" }).toUpperCase(),
+    };
+  } catch {
+    return { weekday: "", day: "", month: "" };
   }
 }
 
@@ -97,6 +114,7 @@ export default function CalendarListView({
                 event.end === event.start
                   ? time
                   : `${time} – ${endTime}${dateLabel}`;
+              const rail = dateRail(event.start);
               return (
                 <button
                   type="button"
@@ -116,25 +134,36 @@ export default function CalendarListView({
                   onClick={() => onSelect(event)}
                   aria-label={`${event.title} on ${group.label}, ${event.start.slice(0, 4)} at ${timeRange}`}
                 >
-                  <img
-                    className="calendar-list-thumbnail"
-                    src={resolveEventFlyer(event)}
-                    alt=""
-                    width={64}
-                    height={80}
-                    loading="lazy"
-                    onError={(error) => {
-                      const image = error.currentTarget;
-                      const fallback = resolveEventFlyer({ ...event, imageUrl: undefined });
-                      if (image.getAttribute("src") !== fallback) image.src = fallback;
-                    }}
-                  />
+                  <span className="calendar-list-rail" aria-hidden>
+                    <span className="calendar-list-rail-weekday">{rail.weekday}</span>
+                    <span className="calendar-list-rail-day">{rail.day}</span>
+                    <span className="calendar-list-rail-month">{rail.month}</span>
+                  </span>
+                  <span className="calendar-list-thumb-wrap">
+                    <img
+                      className="calendar-list-thumbnail"
+                      src={resolveEventFlyer(event)}
+                      alt=""
+                      width={64}
+                      height={80}
+                      loading="lazy"
+                      onError={(error) => {
+                        const image = error.currentTarget;
+                        const fallback = resolveEventFlyer({ ...event, imageUrl: undefined });
+                        if (image.getAttribute("src") !== fallback) image.src = fallback;
+                      }}
+                    />
+                  </span>
                   <span className="calendar-list-copy">
                     <span className="calendar-list-heading">
                       <strong className="calendar-list-title" dir="auto">{event.title}</strong>
                       <span className="calendar-list-type">
                         {eventTypeLabels[event.calendarId]}
                       </span>
+                      {isRecentlyApproved({
+                        createdAt: event.createdAt,
+                        sourceType: event.sourceType,
+                      }) && <span className="recently-approved-badge">Just approved</span>}
                     </span>
                     {event.description && (
                       <span className="calendar-list-description" dir="auto">{event.description}</span>

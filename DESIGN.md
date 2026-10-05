@@ -706,9 +706,22 @@ The stage header pairs the Epilogue display title and balanced subtitle
 #### Desktop sidebar and responsive tiers
 
 - **Desktop (≥ 1024px):** A 208px left sidebar displays the active period
-  range label, live category breakdown counts under "What's on" (Social,
-  Class, Workshop, Live Music), dance style taxonomy selection (e.g. On1,
-  On2, Cuban, Bachata), and a 7-day upcoming event count tally.
+  range label (17px Epilogue 700), live category breakdown counts under
+  "What's on" (Social, Class, Workshop, Live Music), dance style taxonomy
+  selection (e.g. On1, On2, Cuban, Bachata), and a 7-day upcoming event count
+  tally. It is sticky 24px below the header and scrolls internally when the
+  style list is long.
+  **The sidebar is the grid's legend.** Each type row carries an 8px swatch
+  in that type's calendar colour (`CALENDARS_CONFIG` dark `main`) and a 2px
+  share rail showing its portion of the events in the current style context;
+  "All events" carries the stacked composition of all four. Choosing a dance
+  style re-proportions the rails (300ms `cubic-bezier(0.16, 1, 0.3, 1)`;
+  instant under reduced motion) — the sidebar's only motion besides
+  selection. Selection rides the calendar's neutral `--surface-high`
+  RubberSegment thumb, as the city and view switches do; rows never paint
+  their own selected fill and never change weight. The rose dot marks the
+  selected non-type row only. Zero-count types stay selectable with a dimmed
+  swatch; counts use tabular numerals.
 - **Tablet (769px – 1023px):** The sidebar drops away to maximize grid measure;
   event type pills and the dance style selector move into the `EventManager`
   toolbar filters row.

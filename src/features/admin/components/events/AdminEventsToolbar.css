@@ -60,44 +60,14 @@
   background: var(--admin-surface-elevated);
   border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius);
-  box-shadow: var(--admin-shadow-md);
+  /* Border is the one device; the panel does not also cast a shadow. */
 }
 
-.admin-events-toolbar__status,
 .admin-events-toolbar__more {
   position: relative;
 }
 
-.admin-events-toolbar__status-panel {
-  position: absolute;
-  top: calc(100% + 4px);
-  right: 0;
-  z-index: 15;
-  min-width: 200px;
-  margin: 0;
-  padding: 6px;
-  list-style: none;
-  background: var(--admin-surface-elevated);
-  border: 1px solid var(--admin-border);
-  border-radius: var(--admin-radius);
-  box-shadow: var(--admin-shadow-md);
-}
-
-.admin-events-toolbar__status-option {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 36px;
-  padding: 4px 6px;
-  border-radius: calc(var(--admin-radius) - 2px);
-  font-size: 0.875rem;
-  cursor: pointer;
-}
-
-.admin-events-toolbar__status-option:hover {
-  background: var(--admin-surface-secondary);
-}
-
+/* A count is not state: ink on the surface, not the brand rose. */
 .admin-events-toolbar__more-count {
   display: inline-flex;
   align-items: center;
@@ -106,10 +76,11 @@
   height: 18px;
   padding: 0 5px;
   border-radius: var(--radius-full);
-  background: var(--admin-brand);
-  color: var(--admin-text-on-brand);
+  background: var(--admin-text-strong);
+  color: var(--admin-surface);
   font-size: 0.6875rem;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 .admin-events-toolbar__sort-row {
@@ -134,11 +105,5 @@
 
   .admin-events-toolbar__row {
     flex-wrap: nowrap;
-  }
-}
-
-@media (pointer: coarse) {
-  .admin-events-toolbar__status-option {
-    min-height: 44px;
   }
 }

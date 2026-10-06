@@ -1,20 +1,8 @@
 import { useState } from "react";
 import { Search, SlidersHorizontal, ChevronDown, ArrowUp, ArrowDown } from "lucide-react";
-import type { DatabaseEvent } from "../../../events/model/types";
 import type { EventFilters, SortDir, SortKey } from "../../model/eventsQuery";
-import { toggleArrayItem } from "../../../../shared/utils/toggleArrayItem";
 import { useDebouncedSearch } from "../../../../shared/hooks/useDebouncedSearch";
-import { useDropdown } from "../../../../shared/hooks/useDropdown";
 import "./AdminEventsToolbar.css";
-
-const STATUS_OPTIONS: { value: DatabaseEvent["status"]; label: string }[] = [
-  { value: "draft", label: "Draft" },
-  { value: "pending", label: "Pending Approval" },
-  { value: "approved", label: "Published" },
-  { value: "rejected", label: "Rejected" },
-  { value: "cancelled", label: "Cancelled" },
-  { value: "archived", label: "Archived" },
-];
 
 const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: "event_date", label: "Event Date" },
@@ -24,33 +12,52 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
 ];
 
 type DatePreset = "any" | "today" | "next7" | "next30" | "past" | "custom";
+type DateRange = { from: string | null; to: string | null };
 
-function toDateInputValue(date: Date): string {
-  return date.toISOString().slice(0, 10);
+// Events are dated in the calendar's zone (see eventDateTime), so "today" must
+// be too: UTC would roll the date over mid-evening in Boston and New York.
+const CALENDAR_ZONE = "America/New_York";
+const zoneDate = new Intl.DateTimeFormat("en-CA", {
+  timeZone: CALENDAR_ZONE,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+function addDays(yyyyMmDd: string, days: number): string {
+  const [year, month, day] = yyyyMmDd.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10);
 }
 
-function resolvePreset(preset: DatePreset, now: Date): { from: string | null; to: string | null } {
-  const today = toDateInputValue(now);
+function resolvePreset(preset: DatePreset, now: Date): DateRange {
+  const today = zoneDate.format(now);
   switch (preset) {
     case "today":
       return { from: today, to: today };
     case "next7":
-      return {
-        from: today,
-        to: toDateInputValue(new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)),
-      };
+      return { from: today, to: addDays(today, 7) };
     case "next30":
-      return {
-        from: today,
-        to: toDateInputValue(new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)),
-      };
+      return { from: today, to: addDays(today, 30) };
     case "past":
-      return { from: null, to: toDateInputValue(new Date(now.getTime() - 24 * 60 * 60 * 1000)) };
+      return { from: null, to: addDays(today, -1) };
     case "any":
     case "custom":
     default:
       return { from: null, to: null };
   }
+}
+
+const NAMED_PRESETS: DatePreset[] = ["today", "next7", "next30", "past"];
+
+/** What the Date select shows is read off the filters, never remembered. */
+function presetFor(filters: Pick<EventFilters, "from" | "to">, now: Date): DatePreset {
+  if (filters.from === null && filters.to === null) return "any";
+  return (
+    NAMED_PRESETS.find((preset) => {
+      const range = resolvePreset(preset, now);
+      return range.from === filters.from && range.to === filters.to;
+    }) ?? "custom"
+  );
 }
 
 interface AdminEventsToolbarProps {
@@ -75,29 +82,25 @@ export default function AdminEventsToolbar({
     (q) => onFiltersChange({ ...filters, q })
   );
 
-  const [datePreset, setDatePreset] = useState<DatePreset>(() =>
-    filters.from === null && filters.to === null ? "any" : "custom"
-  );
+  // "Custom…" is chosen before any date exists, so that one intent is local.
+  // It lapses when the dates are cleared from elsewhere (chip, Clear all).
+  const hasDates = filters.from !== null || filters.to !== null;
+  const [customRequested, setCustomRequested] = useState(false);
+  const [hadDates, setHadDates] = useState(hasDates);
+  if (hasDates !== hadDates) {
+    setHadDates(hasDates);
+    if (!hasDates) setCustomRequested(false);
+  }
+  const derived = presetFor(filters, new Date());
+  const datePreset: DatePreset = derived === "any" && customRequested ? "custom" : derived;
 
   const handleDatePresetChange = (preset: DatePreset) => {
-    setDatePreset(preset);
+    setCustomRequested(preset === "custom");
     if (preset === "custom") return;
-    const { from, to } = resolvePreset(preset, new Date());
-    onFiltersChange({ ...filters, from, to });
+    onFiltersChange({ ...filters, ...resolvePreset(preset, new Date()) });
   };
 
-  const { open: statusOpen, toggle: toggleStatusDropdown, wrapRef: statusWrapRef } = useDropdown();
-
-  const toggleStatus = (value: DatabaseEvent["status"]) => {
-    onFiltersChange({ ...filters, status: toggleArrayItem(filters.status, value) });
-  };
-
-  const statusSummary =
-    filters.status.length === 0
-      ? "Status"
-      : filters.status.length === 1
-        ? STATUS_OPTIONS.find((option) => option.value === filters.status[0])?.label
-        : `Status (${filters.status.length})`;
+  const nextDir: SortDir = sort.dir === "asc" ? "desc" : "asc";
 
   return (
     <div className="admin-events-toolbar">
@@ -155,39 +158,6 @@ export default function AdminEventsToolbar({
           )}
         </div>
 
-        <div className="admin-events-toolbar__status" ref={statusWrapRef}>
-          <button
-            type="button"
-            className="admin-btn admin-btn--secondary admin-btn--sm"
-            aria-haspopup="menu"
-            aria-expanded={statusOpen}
-            onClick={toggleStatusDropdown}
-          >
-            {statusSummary}
-            <ChevronDown size={14} />
-          </button>
-          {statusOpen && (
-            <ul
-              className="admin-events-toolbar__status-panel"
-              role="menu"
-              aria-label="Filter by status"
-            >
-              {STATUS_OPTIONS.map((option) => (
-                <li key={option.value} role="none">
-                  <label className="admin-events-toolbar__status-option">
-                    <input
-                      type="checkbox"
-                      checked={filters.status.includes(option.value)}
-                      onChange={() => toggleStatus(option.value)}
-                    />
-                    {option.label}
-                  </label>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
         <button
           type="button"
           className="admin-btn admin-btn--secondary admin-btn--sm admin-events-toolbar__more"
@@ -225,8 +195,8 @@ export default function AdminEventsToolbar({
         <button
           type="button"
           className="admin-icon-btn"
-          aria-label={sort.dir === "asc" ? "Sort ascending" : "Sort descending"}
-          onClick={() => onSortChange({ key: sort.key, dir: sort.dir === "asc" ? "desc" : "asc" })}
+          aria-label={`Sorted ${sort.dir === "asc" ? "ascending" : "descending"}. Switch to ${nextDir === "asc" ? "ascending" : "descending"}`}
+          onClick={() => onSortChange({ key: sort.key, dir: nextDir })}
         >
           {sort.dir === "asc" ? (
             <ArrowUp size={16} aria-hidden="true" />

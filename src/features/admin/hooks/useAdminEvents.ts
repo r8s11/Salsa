@@ -35,9 +35,9 @@ export function useAdminEvents() {
       setEventStatus(id, status, {
         cancellation_reason: status === "cancelled" ? (reason ?? null) : null,
       }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["events"] });
-    },
+    // Returned so the mutation stays pending until the list reflects the new
+    // status; callers that move focus after a decision rely on that.
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["events"] }),
   });
 
   const saveMutation = useMutation({
@@ -86,6 +86,7 @@ export function useAdminEvents() {
     refetch: query.refetch,
 
     changeStatus: changeStatusMutation.mutate,
+    changeStatusAsync: changeStatusMutation.mutateAsync,
     // Gated on isPending: true only while THIS mutation call is in flight.
     changingStatusId: changeStatusMutation.isPending
       ? (changeStatusMutation.variables?.id ?? null)

@@ -1,4 +1,4 @@
-import { Fragment, useMemo } from "react";
+import { Fragment, useEffect, useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
 import {
   Clock,
@@ -19,6 +19,8 @@ import {
   ArchiveRestore,
   Trash2,
   Ban,
+  Check,
+  X,
   ImagePlus,
   ImageOff,
 } from "lucide-react";
@@ -54,6 +56,25 @@ export type RowAction =
   | "restore"
   | "delete";
 
+/** Row selection, offered only where bulk decisions make sense (Pending Review). */
+export interface TableSelection {
+  selectedIds: ReadonlySet<string>;
+  onToggle: (id: string) => void;
+  onToggleAll: (checked: boolean) => void;
+}
+
+/**
+ * Asks the table to move focus after a decision. `rowIds` is an ordered
+ * preference list: the first id still in the list wins, so a row that stayed
+ * keeps focus and a row that left hands it to its neighbour. `onNone` runs
+ * when none of them remain. `nonce` makes each request fire once.
+ */
+export interface FocusRequest {
+  rowIds: string[];
+  nonce: number;
+  onNone?: () => void;
+}
+
 interface AdminEventsTableProps {
   events: DatabaseEvent[];
   duplicateIds: ReadonlySet<string>;
@@ -61,9 +82,14 @@ interface AdminEventsTableProps {
   onSortChange: (key: SortKey) => void;
   onAction: (action: RowAction, event: DatabaseEvent) => void;
   busy: { id: string; action: RowAction } | null;
+  busyIds?: ReadonlySet<string>;
   errorId: string | null;
   error: string | null;
   isLoading?: boolean;
+  selection?: TableSelection;
+  focusRequest?: FocusRequest | null;
+  /** True when the list is already scoped to one city, so the city is redundant per row. */
+  hideCity?: boolean;
 }
 
 const SOURCE_ICON: Record<DatabaseEvent["source_type"], typeof Shield> = {
@@ -92,11 +118,18 @@ function formatDateLine(iso: string): { date: string; time: string } {
   };
 }
 
-// Row action menu contents by status — this matrix is the contract.
+// Row action menu contents by status — this matrix is the contract. Order:
+// the status decision first, then everyday edits, then the removals, with the
+// destructive tail last. Pending rows carry Approve / Reject inline instead.
 function rowActionItems(
   event: DatabaseEvent,
   onAction: (action: RowAction, event: DatabaseEvent) => void
 ): ActionMenuItem[] {
+  const decision = (
+    id: RowAction,
+    label: string,
+    icon: ActionMenuItem["icon"]
+  ): ActionMenuItem => ({ id, label, icon, onSelect: () => onAction(id, event) });
   const edit: ActionMenuItem = {
     id: "edit",
     label: "Edit",
@@ -109,44 +142,19 @@ function rowActionItems(
     icon: Copy,
     onSelect: () => onAction("duplicate", event),
   };
-  const publish: ActionMenuItem = {
-    id: "publish",
-    label: "Publish",
-    icon: Send,
-    separatorBefore: true,
-    onSelect: () => onAction("publish", event),
-  };
-  const unpublish: ActionMenuItem = {
-    id: "unpublish",
-    label: "Unpublish",
-    icon: EyeOff,
-    separatorBefore: true,
-    onSelect: () => onAction("unpublish", event),
-  };
-  const reject: ActionMenuItem = {
-    id: "reject",
-    label: "Reject",
-    icon: Ban,
-    onSelect: () => onAction("reject", event),
-  };
   const cancel: ActionMenuItem = {
     id: "cancel",
     label: "Cancel Event",
     icon: Ban,
+    tone: "danger",
     onSelect: () => onAction("cancel", event),
   };
   const archive: ActionMenuItem = {
     id: "archive",
     label: "Archive",
     icon: Archive,
-    onSelect: () => onAction("archive", event),
-  };
-  const restore: ActionMenuItem = {
-    id: "restore",
-    label: "Restore",
-    icon: ArchiveRestore,
     separatorBefore: true,
-    onSelect: () => onAction("restore", event),
+    onSelect: () => onAction("archive", event),
   };
   const del: ActionMenuItem = {
     id: "delete",
@@ -186,19 +194,24 @@ function rowActionItems(
         },
       ];
 
+  const withDecision = (item: ActionMenuItem): ActionMenuItem[] => [
+    item,
+    { ...edit, separatorBefore: true },
+    duplicate,
+    ...flyerItems,
+  ];
+
   switch (event.status) {
     case "draft":
-      return [edit, duplicate, ...flyerItems, publish, archive, del];
-    case "pending":
-      return [edit, duplicate, ...flyerItems, publish, reject, archive, del];
-    case "approved":
-      return [edit, duplicate, ...flyerItems, unpublish, cancel, archive, del];
     case "rejected":
-      return [edit, duplicate, ...flyerItems, publish, archive, del];
     case "cancelled":
-      return [edit, duplicate, ...flyerItems, publish, archive, del];
+      return [...withDecision(decision("publish", "Publish", Send)), archive, del];
+    case "pending":
+      return [edit, duplicate, ...flyerItems, archive, del];
+    case "approved":
+      return [...withDecision(decision("unpublish", "Unpublish", EyeOff)), archive, cancel, del];
     case "archived":
-      return [edit, duplicate, ...flyerItems, restore, del];
+      return [...withDecision(decision("restore", "Restore as draft", ArchiveRestore)), { ...del }];
   }
 }
 
@@ -231,12 +244,55 @@ function SortableHeader({
   );
 }
 
+/** Approve / Reject, the moderator's two decisions, in place on Pending rows. */
+function DecisionButtons({
+  event,
+  onAction,
+  disabled,
+  focusTarget,
+}: {
+  event: DatabaseEvent;
+  onAction: (action: RowAction, event: DatabaseEvent) => void;
+  disabled: boolean;
+  focusTarget: boolean;
+}) {
+  return (
+    <>
+      <button
+        type="button"
+        className="admin-events-decision admin-events-decision--approve"
+        aria-label={`Approve ${event.title}`}
+        disabled={disabled}
+        data-row-focus={focusTarget ? "" : undefined}
+        onClick={() => onAction("publish", event)}
+      >
+        <Check size={14} aria-hidden="true" />
+        Approve
+      </button>
+      <button
+        type="button"
+        className="admin-events-decision admin-events-decision--reject"
+        aria-label={`Reject ${event.title}`}
+        disabled={disabled}
+        onClick={() => onAction("reject", event)}
+      >
+        <X size={14} aria-hidden="true" />
+        Reject
+      </button>
+    </>
+  );
+}
+
 function EventCell({
   event,
   duplicateIds,
+  hideCity,
+  hasDecision,
 }: {
   event: DatabaseEvent;
   duplicateIds: ReadonlySet<string>;
+  hideCity: boolean;
+  hasDecision: boolean;
 }) {
   const metroName = useMetroName();
   const issues = qualityIssues(event, duplicateIds);
@@ -254,13 +310,17 @@ function EventCell({
         height={48}
       />
       <div className="admin-events-table__event-body">
-        <Link to={`/admin/events?edit=${event.id}`} className="admin-events-table__title">
+        <Link
+          to={`/admin/events?edit=${event.id}`}
+          className="admin-events-table__title"
+          data-row-focus={hasDecision ? undefined : ""}
+        >
           {event.title}
         </Link>
-        <div className="admin-events-table__chips">
-          <span className="admin-chip admin-chip--type">{titleCase(event.event_type)}</span>
-          <span className="admin-chip">{metroName(event.city)}</span>
-        </div>
+        <p className="admin-events-table__meta">
+          {titleCase(event.event_type)}
+          {!hideCity && ` · ${metroName(event.city)}`}
+        </p>
         <p className="admin-events-table__secondary-line">
           {event.location || "Venue not set"} · {event.host || "No organizer"}
         </p>
@@ -277,6 +337,7 @@ function EventCell({
     </div>
   );
 }
+
 export default function AdminEventsTable({
   events,
   duplicateIds,
@@ -284,11 +345,18 @@ export default function AdminEventsTable({
   onSortChange,
   onAction,
   busy,
+  busyIds,
   errorId,
   error,
   isLoading = false,
+  selection,
+  focusRequest,
+  hideCity = false,
 }: AdminEventsTableProps) {
   const metroName = useMetroName();
+  const frameRef = useRef<HTMLDivElement>(null);
+  const selectAllRef = useRef<HTMLInputElement>(null);
+  const handledFocusNonce = useRef(0);
   const actionItemsByEventId = useMemo(() => {
     const map = new Map<string, ActionMenuItem[]>();
     for (const event of events) {
@@ -297,6 +365,49 @@ export default function AdminEventsTable({
     return map;
   }, [events, onAction]);
 
+  const selectedCount = selection
+    ? events.filter((event) => selection.selectedIds.has(event.id)).length
+    : 0;
+  const allSelected = events.length > 0 && selectedCount === events.length;
+
+  useEffect(() => {
+    if (selectAllRef.current) {
+      selectAllRef.current.indeterminate = selectedCount > 0 && !allSelected;
+    }
+  }, [selectedCount, allSelected]);
+
+  useEffect(() => {
+    if (!focusRequest || handledFocusNonce.current === focusRequest.nonce) return;
+    handledFocusNonce.current = focusRequest.nonce;
+    const present = focusRequest.rowIds.find((id) => events.some((event) => event.id === id));
+    if (!present) {
+      focusRequest.onNone?.();
+      return;
+    }
+    // The row stayed and focus is still inside the list (the Manage trigger got
+    // it back): leave it. Only a vanished control, such as Approve, needs help.
+    const active = document.activeElement;
+    if (
+      present === focusRequest.rowIds[0] &&
+      active &&
+      active !== document.body &&
+      frameRef.current?.contains(active)
+    ) {
+      return;
+    }
+    const rows = Array.from(
+      frameRef.current?.querySelectorAll<HTMLElement>("[data-event-row]") ?? []
+    ).filter((row) => row.dataset.eventRow === present);
+    const targets = rows.flatMap((row) =>
+      Array.from(row.querySelectorAll<HTMLElement>("[data-row-focus]"))
+    );
+    // Table and card list both render; the hidden one has no layout boxes.
+    const target = targets.find((node) => node.getClientRects().length > 0) ?? targets[0];
+    target?.focus();
+  }, [focusRequest, events]);
+
+  const colCount = selection ? 8 : 7;
+
   if (isLoading) {
     return (
       <div className="admin-events-table__scroll">
@@ -304,6 +415,7 @@ export default function AdminEventsTable({
           <caption className="admin-visually-hidden">Events</caption>
           <thead>
             <tr>
+              {selection && <th scope="col" className="admin-events-table__col--select" />}
               <th scope="col">Event</th>
               <th scope="col">Date & Time</th>
               <th scope="col">Venue</th>
@@ -316,7 +428,7 @@ export default function AdminEventsTable({
           <tbody>
             {[...Array(5)].map((_, i) => (
               <tr key={i} className="admin-events-table__loading-row">
-                <td colSpan={7}>
+                <td colSpan={colCount}>
                   <div className="admin-table-loading">
                     <div className="admin-skeleton admin-skeleton--title"></div>
                     <div className="admin-skeleton admin-skeleton--meta"></div>
@@ -339,12 +451,24 @@ export default function AdminEventsTable({
   }
 
   return (
-    <>
+    <div className="admin-events-table__frame" ref={frameRef}>
       <div className="admin-events-table__scroll">
         <table className="admin-events-table">
           <caption className="admin-visually-hidden">Events</caption>
           <thead>
             <tr>
+              {selection && (
+                <th scope="col" className="admin-events-table__col--select">
+                  <input
+                    ref={selectAllRef}
+                    type="checkbox"
+                    className="admin-events-select"
+                    aria-label="Select all events on this page"
+                    checked={allSelected}
+                    onChange={(changeEvent) => selection.onToggleAll(changeEvent.target.checked)}
+                  />
+                </th>
+              )}
               <SortableHeader
                 label="Event"
                 sortKey="title"
@@ -367,27 +491,51 @@ export default function AdminEventsTable({
                 Source
               </th>
               <th scope="col">Status</th>
-              <th scope="col">Actions</th>
+              <th scope="col" className="admin-events-table__col--actions">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody>
             {events.map((event) => {
-              const isBusy = busy?.id === event.id;
+              const isBusy = busy?.id === event.id || Boolean(busyIds?.has(event.id));
               const { date, time } = formatDateLine(event.event_date);
               const SourceIcon = SOURCE_ICON[event.source_type];
+              const hasDecision = event.status === "pending";
+              const isSelected = Boolean(selection?.selectedIds.has(event.id));
 
               return (
                 <Fragment key={event.id}>
                   <tr
+                    data-event-row={event.id}
                     className={
                       event.status === "archived" ? "admin-events-table__row--archived" : undefined
                     }
-                    style={isBusy ? { opacity: 0.6 } : undefined}
+                    aria-busy={isBusy || undefined}
+                    data-busy={isBusy ? "" : undefined}
+                    data-selected={isSelected ? "" : undefined}
                   >
+                    {selection && (
+                      <td className="admin-events-table__col--select">
+                        <input
+                          type="checkbox"
+                          className="admin-events-select"
+                          aria-label={`Select ${event.title}`}
+                          checked={isSelected}
+                          disabled={isBusy}
+                          onChange={() => selection.onToggle(event.id)}
+                        />
+                      </td>
+                    )}
                     <td>
-                      <EventCell event={event} duplicateIds={duplicateIds} />
+                      <EventCell
+                        event={event}
+                        duplicateIds={duplicateIds}
+                        hideCity={hideCity}
+                        hasDecision={hasDecision}
+                      />
                     </td>
-                    <td>
+                    <td className="admin-events-table__col--date">
                       <p>{date}</p>
                       <p className="admin-events-table__muted">
                         <Clock size={12} /> {event.event_time ? time : "Time not set"}
@@ -412,8 +560,16 @@ export default function AdminEventsTable({
                     <td>
                       <AdminStatusBadge status={event.status} />
                     </td>
-                    <td>
+                    <td className="admin-events-table__col--actions">
                       <div className="admin-events-table__actions">
+                        {hasDecision && (
+                          <DecisionButtons
+                            event={event}
+                            onAction={onAction}
+                            disabled={isBusy}
+                            focusTarget
+                          />
+                        )}
                         <AdminActionMenu
                           label={`Actions for ${event.title}`}
                           items={actionItemsByEventId.get(event.id)!}
@@ -425,7 +581,7 @@ export default function AdminEventsTable({
                   </tr>
                   {errorId === event.id && error && (
                     <tr className="admin-events-table__error">
-                      <td colSpan={7} role="alert">
+                      <td colSpan={colCount} role="alert">
                         Action failed: {error}
                       </td>
                     </tr>
@@ -439,19 +595,24 @@ export default function AdminEventsTable({
 
       <ul className="admin-events-cards">
         {events.map((event) => {
-          const isBusy = busy?.id === event.id;
+          const isBusy = busy?.id === event.id || Boolean(busyIds?.has(event.id));
           const { date, time } = formatDateLine(event.event_date);
           const issues = qualityIssues(event, duplicateIds);
+          const hasDecision = event.status === "pending";
+          const isSelected = Boolean(selection?.selectedIds.has(event.id));
 
           return (
             <li
               key={event.id}
+              data-event-row={event.id}
+              aria-busy={isBusy || undefined}
+              data-busy={isBusy ? "" : undefined}
+              data-selected={isSelected ? "" : undefined}
               className={
                 event.status === "archived"
-                  ? "admin-card admin-events-cards__item admin-events-table__row--archived"
-                  : "admin-card admin-events-cards__item"
+                  ? "admin-events-cards__item admin-events-table__row--archived"
+                  : "admin-events-cards__item"
               }
-              style={isBusy ? { opacity: 0.6 } : undefined}
             >
               <div className="admin-events-cards__summary">
                 <img
@@ -468,20 +629,29 @@ export default function AdminEventsTable({
                 />
                 <div className="admin-events-cards__summary-body">
                   <div className="admin-events-cards__head">
+                    {selection && (
+                      <input
+                        type="checkbox"
+                        className="admin-events-select"
+                        aria-label={`Select ${event.title}`}
+                        checked={isSelected}
+                        disabled={isBusy}
+                        onChange={() => selection.onToggle(event.id)}
+                      />
+                    )}
                     <Link
                       to={`/admin/events?edit=${event.id}`}
                       className="admin-events-table__title"
+                      data-row-focus={hasDecision ? undefined : ""}
                     >
                       {event.title}
                     </Link>
                     <AdminStatusBadge status={event.status} />
                   </div>
-                  <div className="admin-events-table__chips">
-                    <span className="admin-chip admin-chip--type">
-                      {titleCase(event.event_type)}
-                    </span>
-                    <span className="admin-chip">{metroName(event.city)}</span>
-                  </div>
+                  <p className="admin-events-table__meta">
+                    {titleCase(event.event_type)}
+                    {!hideCity && ` · ${metroName(event.city)}`}
+                  </p>
                   <AdminQualityBadge
                     issues={issues}
                     labelFor={(issue) => QUALITY_ISSUE_LABEL[issue]}
@@ -493,7 +663,7 @@ export default function AdminEventsTable({
               </div>
               <div className="admin-events-cards__row">
                 <span className="admin-events-cards__label">Date</span>
-                <span>
+                <span className="admin-events-table__num">
                   {date} · {event.event_time ? time : "Time not set"}
                 </span>
               </div>
@@ -511,6 +681,14 @@ export default function AdminEventsTable({
                 </p>
               )}
               <div className="admin-events-cards__actions">
+                {hasDecision && (
+                  <DecisionButtons
+                    event={event}
+                    onAction={onAction}
+                    disabled={isBusy}
+                    focusTarget
+                  />
+                )}
                 <AdminActionMenu
                   label={`Actions for ${event.title}`}
                   items={actionItemsByEventId.get(event.id)!}
@@ -521,6 +699,6 @@ export default function AdminEventsTable({
           );
         })}
       </ul>
-    </>
+    </div>
   );
 }

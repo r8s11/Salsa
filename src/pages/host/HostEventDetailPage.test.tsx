@@ -168,7 +168,7 @@ describe("HostEventDetailPage — Operations Dashboard", () => {
     expect(
       await screen.findByRole("heading", { name: "Havana Nights Social" })
     ).toBeInTheDocument();
-    expect(screen.getByText("Pending Approval")).toBeInTheDocument();
+    expect(screen.getByText("Pending Review")).toBeInTheDocument();
   });
 
   it("shows the date and location in the meta line", async () => {
@@ -201,7 +201,7 @@ describe("HostEventDetailPage — Operations Dashboard", () => {
   it("shows pending status message", async () => {
     renderDetail("base");
 
-    expect(await screen.findByText("Pending Approval")).toBeInTheDocument();
+    expect(await screen.findByText("Pending Review")).toBeInTheDocument();
     expect(screen.getByText(/awaiting review/i)).toBeInTheDocument();
   });
 

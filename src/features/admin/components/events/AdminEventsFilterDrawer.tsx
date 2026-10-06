@@ -1,12 +1,9 @@
 import { useMemo, useRef } from "react";
 import { X } from "lucide-react";
 import { useAccessibleDialog } from "../../../../shared/a11y/useAccessibleDialog";
+import { useMetroName } from "../../../metros/hooks/useMetros";
 import type { City, DatabaseEvent } from "../../../events/model/types";
-import {
-  DANCE_STYLES,
-  SOURCE_TYPE_LABEL,
-  type EventFilters,
-} from "../../model/eventsQuery";
+import { DANCE_STYLES, SOURCE_TYPE_LABEL, type EventFilters } from "../../model/eventsQuery";
 import "./AdminEventsFilterDrawer.css";
 
 const SOURCES: DatabaseEvent["source_type"][] = [
@@ -17,19 +14,13 @@ const SOURCES: DatabaseEvent["source_type"][] = [
   "imported",
 ];
 
-const EMPTY_FILTERS: Pick<EventFilters, "organizer" | "venue" | "style" | "city" | "source"> = {
-  organizer: null,
-  venue: null,
-  style: null,
-  city: null,
-  source: null,
-};
-
 interface AdminEventsFilterDrawerProps {
   open: boolean;
   events: DatabaseEvent[];
   filters: EventFilters;
   onFiltersChange: (filters: EventFilters) => void;
+  /** Clears every filter, including search, date and status, not just this drawer's. */
+  onClearAll: () => void;
   onClose: () => void;
 }
 
@@ -38,9 +29,11 @@ export default function AdminEventsFilterDrawer({
   events,
   filters,
   onFiltersChange,
+  onClearAll,
   onClose,
 }: AdminEventsFilterDrawerProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
+  const metroName = useMetroName();
   const { onKeyDown, onBackdropClick, onDialogClick } = useAccessibleDialog({
     dialogRef,
     isOpen: open,
@@ -167,7 +160,7 @@ export default function AdminEventsFilterDrawer({
               <option value="">Any city</option>
               {cities.map((city) => (
                 <option key={city} value={city}>
-                  {city.replace(/(^|-)([a-z])/g, (_match, _separator, letter: string) => ` ${letter.toUpperCase()}`).trim()}
+                  {metroName(city)}
                 </option>
               ))}
             </select>
@@ -197,15 +190,11 @@ export default function AdminEventsFilterDrawer({
         </div>
 
         <div className="admin-events-filter-drawer__footer">
-          <button
-            type="button"
-            className="admin-btn admin-btn--ghost"
-            onClick={() => onFiltersChange({ ...filters, ...EMPTY_FILTERS })}
-          >
-            Clear all
+          <button type="button" className="admin-btn admin-btn--ghost" onClick={onClearAll}>
+            Clear all filters
           </button>
           <button type="button" className="admin-btn admin-btn--primary" onClick={onClose}>
-            Apply
+            Done
           </button>
         </div>
       </div>

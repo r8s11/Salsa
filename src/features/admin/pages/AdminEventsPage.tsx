@@ -1,6 +1,6 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Plus, Upload, X } from "lucide-react";
+import { Check, Plus, Upload, X } from "lucide-react";
 import { useAdminEvents } from "../hooks/useAdminEvents";
 import {
   removeEventFlyer,
@@ -11,6 +11,7 @@ import { updateEventFlyer } from "../../events/api/eventsRepo";
 import { useCity } from "../../../contexts/useCity";
 import { useMetros, useMetroName } from "../../metros/hooks/useMetros";
 import { usePlatformSettings } from "../hooks/usePlatformSettings";
+import { fromEventDateInstant } from "../../events/model/eventDateTime";
 import type { DatabaseEvent, City } from "../../events/model/types";
 import { draftToAdminPayload } from "../../events/components/EventForm";
 import { findPotentialDuplicates } from "../model/overviewMetrics";
@@ -30,17 +31,19 @@ import {
   type SortDir,
   type SortKey,
 } from "../model/eventsQuery";
-import {
-  buildAdminFormFromEvent,
-  buildEmptyAdminForm,
-} from "../model/adminEventForm";
+import { buildAdminFormFromEvent, buildEmptyAdminForm } from "../model/adminEventForm";
 import type { AdminEventForm as AdminEventFormValues } from "../model/adminEventForm";
 import AdminPageHeader from "../components/shell/AdminPageHeader";
 import AdminViewTabs from "../components/shell/AdminViewTabs";
 import AdminEventsToolbar from "../components/events/AdminEventsToolbar";
 import AdminEventsFilterDrawer from "../components/events/AdminEventsFilterDrawer";
-import AdminEventsTable, { type RowAction } from "../components/events/AdminEventsTable";
+import AdminEventsTable, {
+  type FocusRequest,
+  type RowAction,
+  type TableSelection,
+} from "../components/events/AdminEventsTable";
 import AdminPagination from "../components/common/AdminPagination";
+import AdminUndoNotice from "../components/events/AdminUndoNotice";
 import AdminEventEditor from "../components/events/AdminEventEditor";
 import AdminConfirmDialog from "../components/common/AdminConfirmDialog";
 import AdminDuplicateEventDialog from "../components/events/AdminDuplicateEventDialog";
@@ -91,7 +94,7 @@ const VIEW_LABEL: Record<EventView, string> = {
 
 const STATUS_LABEL: Record<DatabaseEvent["status"], string> = {
   draft: "Draft",
-  pending: "Pending Approval",
+  pending: "Pending Review",
   approved: "Published",
   rejected: "Rejected",
   cancelled: "Cancelled",
@@ -174,6 +177,43 @@ function formatShortDate(yyyyMmDd: string): string {
   });
 }
 
+type StatusKind = "approve" | "publish" | "unpublish" | "reject" | "archive" | "cancel" | "restore";
+
+// One row per decision: the status it writes and the sentence announced after.
+const STATUS_OUTCOME: Record<
+  StatusKind,
+  { status: DatabaseEvent["status"]; outcome: (title: string, day: string) => string }
+> = {
+  approve: {
+    status: "approved",
+    outcome: (title, day) => `Approved “${title}”. It is live for ${day}.`,
+  },
+  publish: {
+    status: "approved",
+    outcome: (title, day) => `Published “${title}”. It is live for ${day}.`,
+  },
+  unpublish: {
+    status: "draft",
+    outcome: (title) => `Unpublished “${title}”. It is now a draft.`,
+  },
+  reject: { status: "rejected", outcome: (title) => `Rejected “${title}”.` },
+  archive: { status: "archived", outcome: (title) => `Archived “${title}”.` },
+  cancel: { status: "cancelled", outcome: (title) => `Cancelled “${title}”.` },
+  restore: {
+    status: "draft",
+    outcome: (title) => `Restored “${title}” as a draft.`,
+  },
+};
+
+function formatLongDay(iso: string): string {
+  const [year, month, day] = fromEventDateInstant(iso).date.split("-").map(Number);
+  return new Date(year, month - 1, day).toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+}
+
 interface FilterChip {
   key: string;
   label: string;
@@ -192,6 +232,7 @@ export default function AdminEventsPage() {
     error,
     refetch,
     changeStatus,
+    changeStatusAsync,
     changingStatusId,
     changeStatusErrorId,
     changeStatusError,
@@ -230,6 +271,18 @@ export default function AdminEventsPage() {
   } | null>(null);
   const [flyerError, setFlyerError] = useState<{ id: string; message: string } | null>(null);
   const [pendingRemoveFlyer, setPendingRemoveFlyer] = useState<DatabaseEvent | null>(null);
+  const [selectedIds, setSelectedIds] = useState<ReadonlySet<string>>(new Set());
+  const [bulkBusyIds, setBulkBusyIds] = useState<ReadonlySet<string>>(new Set());
+  const [bulkRejectOpen, setBulkRejectOpen] = useState(false);
+  const [notice, setNotice] = useState<{
+    id: number;
+    message: string;
+    undo: (() => void) | null;
+  } | null>(null);
+  const [focusRequest, setFocusRequest] = useState<FocusRequest | null>(null);
+  const noticeSeq = useRef(0);
+  const focusSeq = useRef(0);
+  const resultCountRef = useRef<HTMLParagraphElement>(null);
 
   const events = useMemo(() => queriedEvents ?? [], [queriedEvents]);
 
@@ -247,6 +300,7 @@ export default function AdminEventsPage() {
     const event = queriedEvents.find((candidate) => candidate.id === editId);
     if (event) setFormView({ mode: "edit", event });
   }
+  if (!editId && resolvedEditId !== null) setResolvedEditId(null);
 
   const { view, filters, sort, page, size, pagedEvents, total } = useMemo(() => {
     const now = new Date();
@@ -274,6 +328,46 @@ export default function AdminEventsPage() {
 
   const counts = useMemo(() => viewCounts(events, new Date()), [events]);
   const duplicateIds = useMemo(() => findPotentialDuplicates(events), [events]);
+
+  // Selection is derived against the visible page, so rows that leave (decided,
+  // filtered out, paged away) drop out of it without any cleanup.
+  const selectable = view === "pending";
+  const selectedOnPage = useMemo(
+    () => pagedEvents.filter((candidate) => selectedIds.has(candidate.id)),
+    [pagedEvents, selectedIds]
+  );
+  const selection = useMemo<TableSelection | undefined>(
+    () =>
+      selectable
+        ? {
+            selectedIds,
+            onToggle: (id) =>
+              setSelectedIds((current) => {
+                const next = new Set(current);
+                if (next.has(id)) next.delete(id);
+                else next.add(id);
+                return next;
+              }),
+            onToggleAll: (checked) =>
+              setSelectedIds(
+                checked ? new Set(pagedEvents.map((candidate) => candidate.id)) : new Set()
+              ),
+          }
+        : undefined,
+    [selectable, selectedIds, pagedEvents]
+  );
+
+  // With no explicit view in the URL, land where the work is: Pending Review
+  // when anything waits there. Resolved once per visit, so deciding the last
+  // entry does not bounce the page to another view.
+  const landingResolved = useRef(false);
+  useEffect(() => {
+    if (landingResolved.current || !queriedEvents) return;
+    landingResolved.current = true;
+    if (searchParams.toString() === "" && counts.pending > 0) {
+      setSearchParams({ view: "pending" }, { replace: true });
+    }
+  }, [queriedEvents, counts, searchParams, setSearchParams]);
 
   const updateParams = (patch: Record<string, string | null>, resetPage = true) => {
     setSearchParams((prev) => {
@@ -453,6 +547,90 @@ export default function AdminEventsPage() {
     flyerError?.message ??
     (changeStatusErrorId ? changeStatusError : removeErrorId ? removeError : null);
 
+  const closeEditor = () => {
+    setFormView({ mode: "list" });
+    // Leaving ?edit= / ?new= behind would make the next title click a no-op.
+    updateParams({ edit: null, new: null }, false);
+  };
+
+  const announce = (message: string, undo: (() => void) | null) => {
+    noticeSeq.current += 1;
+    setNotice({ id: noticeSeq.current, message, undo });
+  };
+
+  const requestFocus = (rowIds: string[]) => {
+    focusSeq.current += 1;
+    setFocusRequest({
+      rowIds,
+      nonce: focusSeq.current,
+      onNone: () => resultCountRef.current?.focus(),
+    });
+  };
+
+  const undoStatuses = (targets: DatabaseEvent[], label: string) => {
+    setNotice(null);
+    void Promise.allSettled(
+      targets.map((target) => changeStatusAsync({ id: target.id, status: target.status }))
+    ).then((results) => {
+      const failed = results.filter((result) => result.status === "rejected").length;
+      announce(
+        failed > 0
+          ? `Couldn't undo ${failed} of ${targets.length}. Use the row menu to change them back.`
+          : `Undone. ${label}`,
+        null
+      );
+    });
+    requestFocus(targets.map((target) => target.id));
+  };
+
+  const applyStatus = (kind: StatusKind, event: DatabaseEvent, reason?: string) => {
+    const { status, outcome } = STATUS_OUTCOME[kind];
+    const index = pagedEvents.findIndex((candidate) => candidate.id === event.id);
+    const neighbours = [pagedEvents[index + 1]?.id, pagedEvents[index - 1]?.id].filter(
+      (id): id is string => Boolean(id)
+    );
+    changeStatus(
+      { id: event.id, status, reason },
+      {
+        onSuccess: () => {
+          announce(outcome(event.title, formatLongDay(event.event_date)), () =>
+            undoStatuses([event], `“${event.title}” is back to ${STATUS_LABEL[event.status]}.`)
+          );
+          requestFocus([event.id, ...neighbours]);
+        },
+      }
+    );
+  };
+
+  const runBulk = async (kind: "approve" | "reject") => {
+    const targets = pagedEvents.filter(
+      (candidate) => selectedIds.has(candidate.id) && candidate.status === "pending"
+    );
+    if (targets.length === 0) return;
+    const { status } = STATUS_OUTCOME[kind];
+    setBulkBusyIds(new Set(targets.map((target) => target.id)));
+    const results = await Promise.allSettled(
+      targets.map((target) => changeStatusAsync({ id: target.id, status }))
+    );
+    const done = targets.filter((_, index) => results[index].status === "fulfilled");
+    const failed = targets.length - done.length;
+    setBulkBusyIds(new Set());
+    setSelectedIds((current) => {
+      const next = new Set(current);
+      done.forEach((target) => next.delete(target.id));
+      return next;
+    });
+    const verb = kind === "approve" ? "Approved" : "Rejected";
+    const count = `${done.length} event${done.length === 1 ? "" : "s"}`;
+    announce(
+      failed > 0
+        ? `${verb} ${done.length} of ${targets.length}. ${failed} failed and stay selected.`
+        : `${verb} ${count}.`,
+      done.length > 0 ? () => undoStatuses(done, `${count} back in Pending Review.`) : null
+    );
+    requestFocus(pagedEvents.filter((candidate) => !done.includes(candidate)).map((c) => c.id));
+  };
+
   const handleRowAction = (action: RowAction, event: DatabaseEvent) => {
     setLastRowAction(action);
     switch (action) {
@@ -464,11 +642,13 @@ export default function AdminEventsPage() {
         setDuplicatingEvent(event);
         break;
       case "publish":
-        changeStatus({ id: event.id, status: "approved" });
+        applyStatus(event.status === "pending" ? "approve" : "publish", event);
         break;
       case "unpublish":
+        applyStatus("unpublish", event);
+        break;
       case "restore":
-        changeStatus({ id: event.id, status: "draft" });
+        applyStatus("restore", event);
         break;
       case "reject":
         setPendingAction({ kind: "reject", event });
@@ -494,13 +674,13 @@ export default function AdminEventsPage() {
     if (!pendingAction) return;
     switch (pendingAction.kind) {
       case "reject":
-        changeStatus({ id: pendingAction.event.id, status: "rejected" });
+        applyStatus("reject", pendingAction.event);
         break;
       case "cancel":
-        changeStatus({ id: pendingAction.event.id, status: "cancelled", reason });
+        applyStatus("cancel", pendingAction.event, reason);
         break;
       case "archive":
-        changeStatus({ id: pendingAction.event.id, status: "archived" });
+        applyStatus("archive", pendingAction.event);
         break;
       case "delete":
         remove(pendingAction.event.id);
@@ -655,7 +835,7 @@ export default function AdminEventsPage() {
         // The new flyer is persisted; stale-object cleanup is best effort.
       }
     }
-    setFormView({ mode: "list" });
+    closeEditor();
   };
 
   if (formView.mode !== "list") {
@@ -682,7 +862,7 @@ export default function AdminEventsPage() {
         eventId={isEdit ? formView.event.id : undefined}
         onSubmit={submitForm}
         flyerOwnerId={actorId}
-        onCancel={() => setFormView({ mode: "list" })}
+        onCancel={closeEditor}
       />
     );
   }
@@ -793,7 +973,12 @@ export default function AdminEventsPage() {
             )}
           </div>
 
-          <p role="status" className="admin-events-page__result-count">
+          <p
+            role="status"
+            className="admin-events-page__result-count"
+            ref={resultCountRef}
+            tabIndex={-1}
+          >
             {total} event{total === 1 ? "" : "s"}
           </p>
 
@@ -875,8 +1060,12 @@ export default function AdminEventsPage() {
                   onSortChange={handleTableSortChange}
                   onAction={handleRowAction}
                   busy={busy}
+                  busyIds={bulkBusyIds}
                   errorId={errorId}
                   error={rowError}
+                  selection={selection}
+                  focusRequest={focusRequest}
+                  hideCity={Boolean(filters.city)}
                 />
                 <AdminPagination
                   page={currentPage}
@@ -891,6 +1080,54 @@ export default function AdminEventsPage() {
               </>
             )}
           </div>
+
+          <div className="admin-events-dock">
+            {/* Always mounted so assistive tech announces each outcome as it changes. */}
+            <div role="status" aria-live="polite" className="admin-visually-hidden">
+              {notice?.message ?? ""}
+            </div>
+            {selection && selectedOnPage.length > 0 && (
+              <div className="admin-events-bulkbar" role="region" aria-label="Bulk decisions">
+                <p className="admin-events-bulkbar__count">{selectedOnPage.length} selected</p>
+                <div className="admin-events-bulkbar__actions">
+                  <button
+                    type="button"
+                    className="admin-events-decision admin-events-decision--approve"
+                    disabled={bulkBusyIds.size > 0}
+                    onClick={() => void runBulk("approve")}
+                  >
+                    <Check size={14} aria-hidden="true" />
+                    Approve {selectedOnPage.length}
+                  </button>
+                  <button
+                    type="button"
+                    className="admin-events-decision admin-events-decision--reject"
+                    disabled={bulkBusyIds.size > 0}
+                    onClick={() => setBulkRejectOpen(true)}
+                  >
+                    <X size={14} aria-hidden="true" />
+                    Reject {selectedOnPage.length}
+                  </button>
+                  <button
+                    type="button"
+                    className="admin-btn admin-btn--ghost"
+                    disabled={bulkBusyIds.size > 0}
+                    onClick={() => setSelectedIds(new Set())}
+                  >
+                    Clear selection
+                  </button>
+                </div>
+              </div>
+            )}
+            {notice && (
+              <AdminUndoNotice
+                key={notice.id}
+                message={notice.message}
+                onUndo={notice.undo ?? undefined}
+                onDismiss={() => setNotice(null)}
+              />
+            )}
+          </div>
         </>
       )}
 
@@ -899,6 +1136,7 @@ export default function AdminEventsPage() {
         events={events}
         filters={filters}
         onFiltersChange={handleFiltersChange}
+        onClearAll={clearAllFilters}
         onClose={() => setDrawerOpen(false)}
       />
 
@@ -932,6 +1170,7 @@ export default function AdminEventsPage() {
                   : "Delete event"
           }
           tone={pendingAction.kind === "archive" ? "neutral" : "danger"}
+          cancelLabel={pendingAction.kind === "cancel" ? "Keep event" : undefined}
           reasonField={
             pendingAction.kind === "cancel"
               ? { label: "Reason (optional)", required: false }
@@ -940,6 +1179,22 @@ export default function AdminEventsPage() {
           isBusy={isPendingActionBusy}
           onConfirm={confirmPendingAction}
           onCancel={() => setPendingAction(null)}
+        />
+      )}
+
+      {bulkRejectOpen && (
+        <AdminConfirmDialog
+          title={`Reject ${selectedOnPage.length} event${selectedOnPage.length === 1 ? "" : "s"}?`}
+          body="They will be hidden from the public calendar. You can approve them again later."
+          confirmLabel={`Reject ${selectedOnPage.length}`}
+          cancelLabel="Keep reviewing"
+          tone="danger"
+          isBusy={bulkBusyIds.size > 0}
+          onConfirm={() => {
+            setBulkRejectOpen(false);
+            void runBulk("reject");
+          }}
+          onCancel={() => setBulkRejectOpen(false)}
         />
       )}
 

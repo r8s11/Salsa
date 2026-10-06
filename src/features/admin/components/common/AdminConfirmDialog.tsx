@@ -6,6 +6,8 @@ interface AdminConfirmDialogProps {
   title: string;
   body: string;
   confirmLabel: string;
+  /** Label for the dismiss button. Name the outcome when "Cancel" would be ambiguous. */
+  cancelLabel?: string;
   /** Confirm label while the mutation runs, e.g. "Deleting…". */
   busyLabel?: string;
   isBusy: boolean;
@@ -27,6 +29,7 @@ export default function AdminConfirmDialog({
   body,
   confirmLabel,
   busyLabel = "Working…",
+  cancelLabel = "Cancel",
   isBusy,
   tone = "danger",
   initialFocus,
@@ -118,7 +121,7 @@ export default function AdminConfirmDialog({
             onClick={onCancel}
             disabled={isBusy}
           >
-            Cancel
+            {cancelLabel}
           </button>
           <button
             type="button"

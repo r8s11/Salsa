@@ -6,7 +6,7 @@ type AdminStatus = DatabaseEvent["status"] | SubmissionStatus;
 
 const STATUS_LABEL: Record<AdminStatus, string> = {
   draft: "Draft",
-  pending: "Pending Approval",
+  pending: "Pending Review",
   in_review: "In Review",
   needs_information: "Needs Information",
   approved: "Published",

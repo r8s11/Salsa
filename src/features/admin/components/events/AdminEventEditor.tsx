@@ -1,7 +1,8 @@
-import type { FormEvent } from "react";
+import type { FormEvent, KeyboardEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { MapPin, Sparkles, X } from "lucide-react";
+import { ArrowLeft, MapPin, Sparkles } from "lucide-react";
+import AdminConfirmDialog from "../common/AdminConfirmDialog";
 import { fetchAdminEntityDirectory } from "../../entities/api/entitiesRepo";
 import type { AdminEntityRow } from "../../entities/model";
 import type { EventTaxonomyTerm } from "../../../events/model/types";
@@ -65,6 +66,8 @@ export default function AdminEventEditor({
   onCancel,
 }: Props) {
   const { metros } = useMetros();
+  const [discardOpen, setDiscardOpen] = useState(false);
+  const [venueActive, setVenueActive] = useState(-1);
   const [series, setSeries] = useState<AdminEntityRow[]>([]);
   const [seriesError, setSeriesError] = useState<string | null>(null);
   useEffect(() => {
@@ -137,7 +140,10 @@ export default function AdminEventEditor({
     setForm((current) => {
       if (!current.entity_review) return current;
       const pruned = mergeEntityReview(current.entity_review, previous, emptyEntityReview());
-      return { ...current, entity_review: listReviewEntries(pruned).length > 0 ? pruned : undefined };
+      return {
+        ...current,
+        entity_review: listReviewEntries(pruned).length > 0 ? pruned : undefined,
+      };
     });
   };
   const venueCombobox = useVenueCombobox(form.venue_id);
@@ -245,9 +251,7 @@ export default function AdminEventEditor({
       // A link the matcher made on its own never overrides a venue the admin
       // already picked or typed; only an explicit choice does.
       const review = suppressAutoVenueLink(
-        existing
-          ? mergeEntityReview(existing, lastCandidatesRef.current, incoming)
-          : incoming,
+        existing ? mergeEntityReview(existing, lastCandidatesRef.current, incoming) : incoming,
         formRef.current
       );
       lastCandidatesRef.current = candidates;
@@ -299,195 +303,281 @@ export default function AdminEventEditor({
     }
   };
 
+  // The banner sits above a long form and Save sits below it: bring the
+  // message to the person instead of leaving it off-screen.
+  const bannerRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (validationError || error) bannerRef.current?.focus();
+  }, [validationError, error]);
+
+  const requestCancel = () => {
+    const dirty = selectedFlyer !== null || JSON.stringify(form) !== JSON.stringify(initial);
+    if (dirty) setDiscardOpen(true);
+    else onCancel();
+  };
+
+  const venueListOpen = venueCombobox.isOpen && venueCombobox.results.length > 0;
+  const handleVenueKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    const count = venueCombobox.results.length;
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      if (count === 0) return;
+      event.preventDefault();
+      venueCombobox.setIsOpen(true);
+      const step = event.key === "ArrowDown" ? 1 : -1;
+      setVenueActive((current) => (current + step + count) % count);
+    } else if (event.key === "Enter" && venueListOpen && venueActive >= 0) {
+      event.preventDefault();
+      selectVenue(venueCombobox.results[venueActive]);
+    } else if (event.key === "Escape" && venueListOpen) {
+      event.preventDefault();
+      event.stopPropagation();
+      venueCombobox.setIsOpen(false);
+    }
+  };
+
   return (
-    <form className="admin-form admin-event-editor" onSubmit={submit}>
-      <div className="admin-form__header">
-        <h2>{heading}</h2>
-      </div>
-      {(validationError || error) && (
-        <div className="admin-banner admin-banner--error" role="alert">
-          <p>{validationError || error}</p>
+    <>
+      <form className="admin-form admin-event-editor" onSubmit={submit}>
+        <div className="admin-form__header">
+          <button
+            type="button"
+            className="admin-btn admin-btn--ghost admin-event-editor__back"
+            onClick={requestCancel}
+            disabled={isSaving}
+          >
+            <ArrowLeft size={16} aria-hidden="true" />
+            Events
+          </button>
+          <h1>{heading}</h1>
         </div>
-      )}
-      <EventForm
-        draft={form}
-        onChange={handleFormChange}
-        capabilities={CAPABILITIES.admin}
-        taxonomyTerms={{ danceStyles: danceStyles.terms, attributes: attributes.terms, archived }}
-        flyerFirst
-        renderVenueField={() => (
-          <>
-            {venueCombobox.selectedId ? (
-              <div className="admin-event-form__venue-selected">
-                <div>
-                  <MapPin size={16} />
-                  <strong>{venueCombobox.selectedName}</strong>
-                  <p>{venueCombobox.selectedAddress}</p>
-                </div>
-                <button type="button" aria-label="Change venue" onClick={clearVenue}>
-                  <X size={14} />
-                </button>
-              </div>
-            ) : (
-              <div className="admin-event-form__venue-combobox">
-                <label htmlFor="venue-search">Venue</label>
-                <input
-                  id="venue-search"
-                  type="search"
-                  value={venueCombobox.query}
-                  onChange={(event) => venueCombobox.setQuery(event.target.value)}
-                  onFocus={() => venueCombobox.setIsOpen(true)}
-                  aria-autocomplete="list"
-                  aria-expanded={venueCombobox.isOpen}
-                  aria-controls="venue-results"
-                />
-                {venueCombobox.isOpen && venueCombobox.results.length > 0 && (
-                  <ul id="venue-results" role="listbox">
-                    {venueCombobox.results.map((venue) => (
-                      <li key={venue.id} role="option">
-                        <button type="button" onClick={() => selectVenue(venue)}>
-                          <strong>{venue.name}</strong>
-                          <p>{venueDisplayAddress(venue) || "No address"}</p>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            )}
-            <label>
-              Venue name
-              <input
-                id="event-location"
-                name="location"
-                value={form.location}
-                onChange={(event) =>
-                  updateForm((current) => ({ ...current, location: event.target.value }))
-                }
-              />
-            </label>
-            <label>
-              Address
-              <input
-                id="event-address"
-                name="address"
-                value={form.address}
-                onChange={(event) =>
-                  updateForm((current) => ({ ...current, address: event.target.value }))
-                }
-              />
-            </label>
-          </>
+        {(validationError || error) && (
+          <div
+            ref={bannerRef}
+            tabIndex={-1}
+            className="admin-banner admin-banner--error"
+            role="alert"
+          >
+            <p>{validationError || error}</p>
+          </div>
         )}
-        renderFlyerField={() => (
-          <>
-            <EventFlyerField
-              currentUrl={form.image_url || null}
-              onFileChange={(file) => void handleFlyerChange(file)}
-              onRemove={() => void handleFlyerChange(null)}
-              status={flyerStatus}
-              errorMessage={flyerError}
-              disabled={isSaving}
-            />
-            {form.image_url && extractionStatus === "idle" && (
-              <button
-                type="button"
-                className="admin-btn admin-btn--secondary"
-                onClick={() => void handleExtractFlyer()}
-                disabled={isSaving || flyerStatus !== "uploaded"}
-              >
-                <Sparkles size={16} aria-hidden /> Analyze flyer
-              </button>
-            )}
-            {extractionStatus !== "idle" && (
-              <>
-                <FlyerExtractionPanel
-                  status={extractionStatus}
-                  result={extractionResult}
-                  error={extractionError}
-                  onRetry={() => void handleExtractFlyer()}
-                  onDismiss={dismissExtractionError}
-                  remainingRetries={Math.max(0, 3 - extractionAttempts)}
-                />
-                {reconciliation.status === "loading" && (
-                  <div className="admin-banner" role="status">
-                    Checking the venue, organizer, instructors and school against existing records…
+        <EventForm
+          draft={form}
+          onChange={handleFormChange}
+          capabilities={CAPABILITIES.admin}
+          taxonomyTerms={{ danceStyles: danceStyles.terms, attributes: attributes.terms, archived }}
+          flyerFirst
+          renderVenueField={() => (
+            <>
+              {venueCombobox.selectedId ? (
+                <div className="admin-event-form__venue-selected">
+                  <div>
+                    <MapPin size={16} aria-hidden="true" />
+                    <strong>{venueCombobox.selectedName}</strong>
+                    <p>{venueCombobox.selectedAddress}</p>
                   </div>
-                )}
-                {reconciliation.status === "error" && (
-                  <div className="admin-banner" role="status">
-                    We couldn&apos;t check these against existing records. Review them below.
-                  </div>
-                )}
-                {extractionStatus === "success" && (
                   <button
                     type="button"
-                    className="admin-btn admin-btn--primary"
-                    onClick={applyExtraction}
+                    className="admin-btn admin-btn--ghost"
+                    aria-label="Change venue"
+                    onClick={clearVenue}
                   >
-                    Use These Details
+                    Change
                   </button>
-                )}
-                {extractionStatus === "success" && prefillFeedback && (
-                  <div className="admin-banner" role="status">
-                    {prefillFeedback.filled.length > 0
-                      ? "Filled " +
-                        prefillFeedback.filled.join(", ").toLowerCase() +
-                        " from your flyer — review below."
-                      : "No details were found; continue manually."}
-                    {prefillFeedback.skipped.length > 0 &&
-                      " Could not determine: " +
-                        prefillFeedback.skipped.join(", ").toLowerCase() +
-                        "."}
-                  </div>
-                )}
-              </>
-            )}
-          </>
-        )}
-      />
-      <div className="admin-event-form__series">
-        <label htmlFor="event-series">Series</label>
-        <select
-          id="event-series"
-          value={form.series_id ?? ""}
-          onChange={(event) =>
-            updateForm((current) => ({ ...current, series_id: event.target.value }))
-          }
+                </div>
+              ) : (
+                <div className="admin-event-form__venue-combobox">
+                  <label htmlFor="venue-search">Venue</label>
+                  <input
+                    id="venue-search"
+                    type="search"
+                    role="combobox"
+                    value={venueCombobox.query}
+                    onChange={(event) => {
+                      setVenueActive(-1);
+                      venueCombobox.setQuery(event.target.value);
+                      venueCombobox.setIsOpen(true);
+                    }}
+                    onFocus={() => venueCombobox.setIsOpen(true)}
+                    onBlur={() => venueCombobox.setIsOpen(false)}
+                    onKeyDown={handleVenueKeyDown}
+                    aria-autocomplete="list"
+                    aria-expanded={venueListOpen}
+                    aria-controls="venue-results"
+                    aria-activedescendant={
+                      venueListOpen && venueActive >= 0
+                        ? `venue-option-${venueCombobox.results[venueActive]?.id}`
+                        : undefined
+                    }
+                  />
+                  {venueListOpen && (
+                    <ul id="venue-results" role="listbox" aria-label="Matching venues">
+                      {venueCombobox.results.map((venue, index) => (
+                        <li
+                          key={venue.id}
+                          id={`venue-option-${venue.id}`}
+                          role="option"
+                          aria-selected={index === venueActive}
+                          // Keeps focus in the input so blur does not close the list first.
+                          onMouseDown={(event) => {
+                            event.preventDefault();
+                            selectVenue(venue);
+                          }}
+                        >
+                          <strong>{venue.name}</strong>
+                          <span>{venueDisplayAddress(venue) || "No address"}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+              <label>
+                Venue name
+                <input
+                  id="event-location"
+                  name="location"
+                  value={form.location}
+                  onChange={(event) =>
+                    updateForm((current) => ({ ...current, location: event.target.value }))
+                  }
+                />
+              </label>
+              <label>
+                Address
+                <input
+                  id="event-address"
+                  name="address"
+                  value={form.address}
+                  onChange={(event) =>
+                    updateForm((current) => ({ ...current, address: event.target.value }))
+                  }
+                />
+              </label>
+            </>
+          )}
+          renderFlyerField={() => (
+            <>
+              <EventFlyerField
+                currentUrl={form.image_url || null}
+                onFileChange={(file) => void handleFlyerChange(file)}
+                onRemove={() => void handleFlyerChange(null)}
+                status={flyerStatus}
+                errorMessage={flyerError}
+                disabled={isSaving}
+              />
+              {form.image_url && extractionStatus === "idle" && (
+                <button
+                  type="button"
+                  className="admin-btn admin-btn--secondary"
+                  onClick={() => void handleExtractFlyer()}
+                  disabled={isSaving || flyerStatus !== "uploaded"}
+                >
+                  <Sparkles size={16} aria-hidden /> Analyze flyer
+                </button>
+              )}
+              {extractionStatus !== "idle" && (
+                <>
+                  <FlyerExtractionPanel
+                    status={extractionStatus}
+                    result={extractionResult}
+                    error={extractionError}
+                    onRetry={() => void handleExtractFlyer()}
+                    onDismiss={dismissExtractionError}
+                    remainingRetries={Math.max(0, 3 - extractionAttempts)}
+                  />
+                  {reconciliation.status === "loading" && (
+                    <div className="admin-banner" role="status">
+                      Checking the venue, organizer, instructors and school against existing
+                      records…
+                    </div>
+                  )}
+                  {reconciliation.status === "error" && (
+                    <div className="admin-banner" role="status">
+                      We couldn&apos;t check these against existing records. Review them below.
+                    </div>
+                  )}
+                  {extractionStatus === "success" && (
+                    <button
+                      type="button"
+                      className="admin-btn admin-btn--primary"
+                      onClick={applyExtraction}
+                    >
+                      Use These Details
+                    </button>
+                  )}
+                  {extractionStatus === "success" && prefillFeedback && (
+                    <div className="admin-banner" role="status">
+                      {prefillFeedback.filled.length > 0
+                        ? "Filled " +
+                          prefillFeedback.filled.join(", ").toLowerCase() +
+                          " from your flyer — review below."
+                        : "No details were found; continue manually."}
+                      {prefillFeedback.skipped.length > 0 &&
+                        " Could not determine: " +
+                          prefillFeedback.skipped.join(", ").toLowerCase() +
+                          "."}
+                    </div>
+                  )}
+                </>
+              )}
+            </>
+          )}
+        />
+        <div className="admin-event-form__series">
+          <label htmlFor="event-series">Series</label>
+          <select
+            id="event-series"
+            value={form.series_id ?? ""}
+            onChange={(event) =>
+              updateForm((current) => ({ ...current, series_id: event.target.value }))
+            }
+            disabled={isSaving}
+          >
+            <option value="">None</option>
+            {series.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name}
+              </option>
+            ))}
+          </select>
+          {seriesError && <p role="alert">{seriesError}</p>}
+        </div>
+        <EntityReviewSection
+          review={form.entity_review ?? emptyEntityReview()}
+          onChange={(review) => setForm((current) => ({ ...current, entity_review: review }))}
           disabled={isSaving}
-        >
-          <option value="">None</option>
-          {series.map((item) => (
-            <option key={item.id} value={item.id}>
-              {item.name}
-            </option>
-          ))}
-        </select>
-        {seriesError && <p role="alert">{seriesError}</p>}
-      </div>
-      <EntityReviewSection
-        review={form.entity_review ?? emptyEntityReview()}
-        onChange={(review) => setForm((current) => ({ ...current, entity_review: review }))}
-        disabled={isSaving}
-        mode="authorized"
-      />
-      <p>
-        <Link to="/admin/tags/new?category=dance_style">Create dance style</Link> ·{" "}
-        <Link to="/admin/tags/new?category=event_attribute">Create attribute</Link>
-      </p>
-      <div className="admin-form__actions">
-        <button type="submit" className="admin-btn admin-btn--primary" disabled={isSaving}>
-          {isSaving ? "Saving…" : submitLabel}
-        </button>
-        <button
-          type="button"
-          className="admin-btn admin-btn--secondary"
-          onClick={onCancel}
-          disabled={isSaving}
-        >
-          Cancel
-        </button>
-      </div>
-    </form>
+          mode="authorized"
+        />
+        <p>
+          <Link to="/admin/tags/new?category=dance_style">Create dance style</Link> ·{" "}
+          <Link to="/admin/tags/new?category=event_attribute">Create attribute</Link>
+        </p>
+        <div className="admin-form__actions">
+          <button type="submit" className="admin-btn admin-btn--primary" disabled={isSaving}>
+            {isSaving ? "Saving…" : submitLabel}
+          </button>
+          <button
+            type="button"
+            className="admin-btn admin-btn--secondary"
+            onClick={requestCancel}
+            disabled={isSaving}
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+      {discardOpen && (
+        <AdminConfirmDialog
+          title="Discard changes?"
+          body="Your edits to this event haven't been saved."
+          confirmLabel="Discard changes"
+          cancelLabel="Keep editing"
+          tone="danger"
+          isBusy={false}
+          onConfirm={onCancel}
+          onCancel={() => setDiscardOpen(false)}
+        />
+      )}
+    </>
   );
 }

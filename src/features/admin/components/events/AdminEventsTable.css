@@ -1,3 +1,10 @@
+/* The frame is the size container: columns appear by the width the table
+   actually has, not by the viewport, so the admin sidebar cannot push the
+   Actions column out of reach. */
+.admin-events-table__frame {
+  container: events-table / inline-size;
+}
+
 .admin-events-table__scroll {
   display: none;
   overflow-x: auto;
@@ -14,13 +21,15 @@
   border-bottom: 1px solid var(--admin-border);
 }
 
+/* Desk label setting: Epilogue 700, 0.6875rem, 0.14em. */
 .admin-events-table th {
   padding: 12px 16px;
   text-align: left;
-  font-size: 0.75rem;
+  font-family: var(--font-ui);
+  font-size: 0.6875rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.14em;
   color: var(--admin-text-muted);
 }
 
@@ -43,6 +52,12 @@
   color: var(--admin-text-primary);
 }
 
+/* Dates and times are measurements: figures align down the column. */
+.admin-events-table__col--date,
+.admin-events-table__num {
+  font-variant-numeric: tabular-nums;
+}
+
 .admin-events-table__event {
   display: flex;
   align-items: center;
@@ -59,8 +74,9 @@
 
 .admin-events-table__title {
   display: block;
-  margin: 0 0 4px;
-  font-weight: 600;
+  margin: 0 0 2px;
+  font-size: 0.9375rem;
+  font-weight: 700;
   color: var(--admin-text-strong);
   text-decoration: none;
 }
@@ -69,18 +85,11 @@
   text-decoration: underline;
 }
 
-.admin-events-table__chips {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.admin-events-table__chips .admin-chip {
-  padding: 3px 9px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: normal;
-  text-transform: none;
+/* Event type and city are labels, not state: plain muted text. */
+.admin-events-table__meta {
+  margin: 0;
+  color: var(--admin-text-muted);
+  font-size: 0.8125rem;
 }
 
 .admin-events-table__event-body .admin-quality-badge {
@@ -95,10 +104,12 @@
   color: var(--admin-text-muted);
   font-size: 0.8125rem;
 }
+
 .admin-events-table__actions {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
-  gap: 4px;
+  gap: 8px;
 }
 
 .admin-events-table__error td {
@@ -108,20 +119,108 @@
   background: var(--admin-danger-tint);
 }
 
+/* A mutation in flight dims the row; opacity is not used for state elsewhere. */
+.admin-events-table tr[data-busy],
+.admin-events-cards__item[data-busy] {
+  opacity: 0.6;
+}
+
+.admin-events-table tr[data-selected] {
+  background: var(--admin-surface-subtle);
+}
+
 /* ----------------------------------------
-   Mobile card stack (<768px)
+   Selection
+   ---------------------------------------- */
+.admin-events-table .admin-events-table__col--select {
+  width: 44px;
+  padding-right: 0;
+}
+
+.admin-events-select {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--admin-text-strong);
+  cursor: pointer;
+}
+
+.admin-events-select:focus-visible {
+  outline: 2px solid var(--admin-brand);
+  outline-offset: 2px;
+}
+
+/* ----------------------------------------
+   Decisions — Approve / Reject in place
+   ---------------------------------------- */
+.admin-events-decision {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid currentColor;
+  border-radius: var(--admin-radius);
+  background: transparent;
+  font-family: var(--font-ui);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.admin-events-decision--approve {
+  color: var(--admin-success);
+}
+
+.admin-events-decision--approve:hover:not(:disabled) {
+  background: var(--admin-success-tint);
+}
+
+.admin-events-decision--reject {
+  color: var(--admin-danger-strong);
+}
+
+.admin-events-decision--reject:hover:not(:disabled) {
+  background: var(--admin-danger-tint);
+}
+
+.admin-events-decision:focus-visible {
+  outline: 2px solid var(--admin-brand);
+  outline-offset: 2px;
+}
+
+.admin-events-decision:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (pointer: coarse) {
+  .admin-events-decision {
+    min-height: 44px;
+  }
+}
+
+/* ----------------------------------------
+   Mobile list (<768px): rules between entries, no card per row
    ---------------------------------------- */
 .admin-events-cards {
   display: flex;
   flex-direction: column;
-  gap: 12px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .admin-events-cards__item {
-  padding: 16px;
+  padding: 16px 0;
+  border-top: 1px solid var(--admin-border);
+}
+
+.admin-events-cards__item:first-child {
+  padding-top: 0;
+  border-top: 0;
 }
 
 .admin-events-cards__summary {
@@ -153,10 +252,16 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
+}
+
+.admin-events-cards__head .admin-events-select {
+  flex-shrink: 0;
+  margin-top: 2px;
 }
 
 .admin-events-cards__head .admin-events-table__title {
+  flex: 1;
   min-width: 0;
   margin-bottom: 0;
 }
@@ -186,6 +291,7 @@
 .admin-events-cards__actions {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   justify-content: flex-end;
   gap: 8px;
   margin-top: 12px;
@@ -224,6 +330,11 @@
   cursor: pointer;
 }
 
+.admin-events-table__sort-btn:focus-visible {
+  outline: 2px solid var(--admin-brand);
+  outline-offset: 2px;
+}
+
 .admin-events-table__row--archived {
   opacity: 0.72;
 }
@@ -244,6 +355,7 @@
     display: none;
   }
 
+  /* Compact table: Event (with venue · organizer beneath), Date, Status, Actions. */
   .admin-events-table__col--venue,
   .admin-events-table__col--organizer,
   .admin-events-table__col--source {
@@ -253,13 +365,26 @@
   .admin-events-table__secondary-line {
     display: block;
   }
-}
 
-@media (min-width: 1024px) {
-  .admin-events-table {
-    min-width: 960px;
+  /* Actions stay reachable if the table is ever wider than its frame. */
+  .admin-events-table__col--actions {
+    position: sticky;
+    right: 0;
+    background: var(--admin-surface);
   }
 
+  .admin-events-table thead .admin-events-table__col--actions {
+    background: var(--admin-surface-subtle);
+  }
+
+  .admin-events-table tbody tr:hover .admin-events-table__col--actions,
+  .admin-events-table tbody tr[data-selected] .admin-events-table__col--actions {
+    background: var(--admin-surface-subtle);
+  }
+}
+
+/* Full table needs room for seven data columns plus the two decisions. */
+@container events-table (min-width: 1120px) {
   .admin-events-table__col--venue,
   .admin-events-table__col--organizer,
   .admin-events-table__col--source {

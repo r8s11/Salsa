@@ -44,9 +44,9 @@ export default function AdminQualityBadge<T extends string>({
   return (
     <div className="admin-quality-badge" ref={wrapperRef}>
       <button
-        aria-haspopup="true"
+        type="button"
+        className="admin-quality-badge__trigger"
         aria-expanded={open}
-        aria-describedby={open ? popoverId : undefined}
         aria-controls={open ? popoverId : undefined}
         aria-label={`${issues.length} quality issue${issues.length === 1 ? "" : "s"}: ${issues
           .map(labelFor)
@@ -62,10 +62,9 @@ export default function AdminQualityBadge<T extends string>({
         <div
           id={popoverId}
           className="admin-quality-badge__popover"
-          role="tooltip"
-          aria-live="polite"
+          role="group"
+          aria-label={`Quality issues for ${eventTitle}`}
         >
-          <span className="sr-only">Quality issues for {eventTitle}: </span>
           <ul>
             {issues.map((issue) => (
               <li key={issue}>{labelFor(issue)}</li>

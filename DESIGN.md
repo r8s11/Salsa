@@ -590,6 +590,14 @@ row leaves the galley, the entry arrives in the column at its true date
 position, and the count in the standing rule drops — one propagation,
 one meaning. Reject strikes the title through before the row goes.
 
+**The undo dock.** Deciding on the Events list is undoable for six seconds,
+and the outcome is announced to assistive technology. The notice is docked
+under the list, sticky and in the page's flow, never floating over it, and
+is the one sanctioned exception to "never toasts" because an undo needs a
+place to live. It names what happened in past tense, offers Undo (also
+Ctrl/Cmd+Z), and after a decision focus moves to the next row's Approve.
+Bulk Approve and Reject on Pending Review use the same dock.
+
 **Focus swells, the rest compresses.** Opening an entry expands it in
 place to full working detail (flyer, description, submitter, address)
 while its siblings drop their thumbs and tighten. There is no separate

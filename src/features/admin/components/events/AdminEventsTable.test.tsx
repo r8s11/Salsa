@@ -55,8 +55,10 @@ const events: DatabaseEvent[] = [
   { ...baseEvent, id: "event-3", title: "Archived Class", event_type: "class", status: "archived" },
 ];
 
-function renderTable(overrides: Partial<ComponentProps<typeof AdminEventsTable>> = {}) {
-  const props: ComponentProps<typeof AdminEventsTable> = {
+function tableProps(
+  overrides: Partial<ComponentProps<typeof AdminEventsTable>> = {}
+): ComponentProps<typeof AdminEventsTable> {
+  return {
     events,
     duplicateIds: new Set(),
     sort: { key: "event_date", dir: "desc" },
@@ -67,6 +69,10 @@ function renderTable(overrides: Partial<ComponentProps<typeof AdminEventsTable>>
     error: null,
     ...overrides,
   };
+}
+
+function renderTable(overrides: Partial<ComponentProps<typeof AdminEventsTable>> = {}) {
+  const props = tableProps(overrides);
   render(
     <MemoryRouter>
       <AdminEventsTable {...props} />
@@ -124,13 +130,22 @@ describe("AdminEventsTable", () => {
     renderTable({
       events: [{ ...baseEvent, event_type: null as unknown as DatabaseEvent["event_type"] }],
     });
-    expect(screen.getAllByText("Unknown").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Unknown · Boston").length).toBeGreaterThan(0);
   });
   it("formats Live Music event type with readable words", () => {
     renderTable({
       events: [{ ...baseEvent, id: "event-live-music", event_type: "live_music" }],
     });
-    expect(screen.getAllByText("Live Music", { exact: true }).length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Live Music · Boston").length).toBeGreaterThan(0);
+  });
+
+  it("drops the city from each row when the list is already one city", () => {
+    renderTable({
+      events: [{ ...baseEvent, event_type: "social" }],
+      hideCity: true,
+    });
+    expect(screen.getAllByText("Social").length).toBeGreaterThan(0);
+    expect(screen.queryByText(/Social · Boston/)).not.toBeInTheDocument();
   });
 
   describe("sortable headers", () => {
@@ -149,15 +164,15 @@ describe("AdminEventsTable", () => {
   });
 
   describe("row action menu by status", () => {
-    it("pending offers Publish, Reject, Archive but not Unpublish", async () => {
+    it("pending rows keep Archive in the menu; Approve and Reject live on the row", async () => {
       const user = userEvent.setup();
       renderTable();
       const row = desktopRowFor("Pending Social");
       await user.click(within(row).getByRole("button", { name: "Actions for Pending Social" }));
       const menu = screen.getByRole("menu");
-      expect(within(menu).getByRole("menuitem", { name: "Publish" })).toBeInTheDocument();
-      expect(within(menu).getByRole("menuitem", { name: "Reject" })).toBeInTheDocument();
       expect(within(menu).getByRole("menuitem", { name: "Archive" })).toBeInTheDocument();
+      expect(within(menu).queryByRole("menuitem", { name: "Publish" })).not.toBeInTheDocument();
+      expect(within(menu).queryByRole("menuitem", { name: "Reject" })).not.toBeInTheDocument();
       expect(within(menu).queryByRole("menuitem", { name: "Unpublish" })).not.toBeInTheDocument();
     });
 
@@ -172,29 +187,147 @@ describe("AdminEventsTable", () => {
       expect(within(menu).queryByRole("menuitem", { name: "Publish" })).not.toBeInTheDocument();
     });
 
-    it("archived offers Restore but not Archive, and every status offers Edit/Duplicate/Delete", async () => {
+    it("archived offers Restore as draft but not Archive, and every status offers Edit/Duplicate/Delete", async () => {
       const user = userEvent.setup();
       renderTable();
       const row = desktopRowFor("Archived Class");
       await user.click(within(row).getByRole("button", { name: "Actions for Archived Class" }));
       const menu = screen.getByRole("menu");
-      expect(within(menu).getByRole("menuitem", { name: "Restore" })).toBeInTheDocument();
+      expect(within(menu).getByRole("menuitem", { name: "Restore as draft" })).toBeInTheDocument();
       expect(within(menu).queryByRole("menuitem", { name: "Archive" })).not.toBeInTheDocument();
       expect(within(menu).getByRole("menuitem", { name: "Edit" })).toBeInTheDocument();
       expect(within(menu).getByRole("menuitem", { name: "Duplicate" })).toBeInTheDocument();
       expect(within(menu).getByRole("menuitem", { name: "Delete" })).toBeInTheDocument();
     });
 
+    it("puts the status decision first and the destructive tail last", async () => {
+      const user = userEvent.setup();
+      renderTable();
+      const row = desktopRowFor("Approved Workshop");
+      await user.click(within(row).getByRole("button", { name: "Actions for Approved Workshop" }));
+      const labels = within(screen.getByRole("menu"))
+        .getAllByRole("menuitem")
+        .map((item) => item.textContent);
+      expect(labels[0]).toBe("Unpublish");
+      expect(labels.slice(-3)).toEqual(["Archive", "Cancel Event", "Delete"]);
+    });
+
     it("selecting a menu item calls onAction with the action and the event", async () => {
       const user = userEvent.setup();
       const props = renderTable();
-      const row = desktopRowFor("Pending Social");
-      await user.click(within(row).getByRole("button", { name: "Actions for Pending Social" }));
-      await user.click(screen.getByRole("menuitem", { name: "Publish" }));
+      const row = desktopRowFor("Approved Workshop");
+      await user.click(within(row).getByRole("button", { name: "Actions for Approved Workshop" }));
+      await user.click(screen.getByRole("menuitem", { name: "Unpublish" }));
       expect(props.onAction).toHaveBeenCalledWith(
+        "unpublish",
+        expect.objectContaining({ id: "event-2" })
+      );
+    });
+  });
+
+  describe("inline decisions", () => {
+    it("Pending rows carry Approve and Reject; other statuses do not", () => {
+      renderTable();
+      const pending = desktopRowFor("Pending Social");
+      expect(
+        within(pending).getByRole("button", { name: "Approve Pending Social" })
+      ).toBeInTheDocument();
+      expect(
+        within(pending).getByRole("button", { name: "Reject Pending Social" })
+      ).toBeInTheDocument();
+      const approved = desktopRowFor("Approved Workshop");
+      expect(within(approved).queryByRole("button", { name: /^Approve / })).not.toBeInTheDocument();
+      expect(within(approved).queryByRole("button", { name: /^Reject / })).not.toBeInTheDocument();
+    });
+
+    it("Approve asks for the publish action and Reject for the reject action", async () => {
+      const user = userEvent.setup();
+      const props = renderTable();
+      const row = desktopRowFor("Pending Social");
+      await user.click(within(row).getByRole("button", { name: "Approve Pending Social" }));
+      expect(props.onAction).toHaveBeenLastCalledWith(
         "publish",
         expect.objectContaining({ id: "event-1" })
       );
+      await user.click(within(row).getByRole("button", { name: "Reject Pending Social" }));
+      expect(props.onAction).toHaveBeenLastCalledWith(
+        "reject",
+        expect.objectContaining({ id: "event-1" })
+      );
+    });
+
+    it("a busy row cannot be decided twice", () => {
+      renderTable({ busy: { id: "event-1", action: "publish" } });
+      const row = desktopRowFor("Pending Social");
+      expect(within(row).getByRole("button", { name: "Approve Pending Social" })).toBeDisabled();
+      expect(within(row).getByRole("button", { name: "Reject Pending Social" })).toBeDisabled();
+    });
+  });
+
+  describe("selection", () => {
+    const pendingEvents = [
+      baseEvent,
+      { ...baseEvent, id: "event-4", title: "Second Pending" },
+      { ...baseEvent, id: "event-5", title: "Third Pending" },
+    ];
+
+    it("offers no checkboxes unless selection is enabled", () => {
+      renderTable();
+      expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+    });
+
+    it("toggles a row and the whole page", async () => {
+      const user = userEvent.setup();
+      const onToggle = vi.fn();
+      const onToggleAll = vi.fn();
+      renderTable({
+        events: pendingEvents,
+        selection: { selectedIds: new Set(["event-1"]), onToggle, onToggleAll },
+      });
+      const row = desktopRowFor("Second Pending");
+      await user.click(within(row).getByRole("checkbox", { name: "Select Second Pending" }));
+      expect(onToggle).toHaveBeenCalledWith("event-4");
+
+      const all = screen.getByRole("checkbox", { name: "Select all events on this page" });
+      expect(all).toHaveProperty("indeterminate", true);
+      await user.click(all);
+      expect(onToggleAll).toHaveBeenCalledWith(true);
+    });
+  });
+
+  describe("focus after a decision", () => {
+    const pendingEvents = [baseEvent, { ...baseEvent, id: "event-4", title: "Second Pending" }];
+
+    it("hands focus to the neighbour's Approve when the decided row is gone", () => {
+      const { rerender } = render(
+        <MemoryRouter>
+          <AdminEventsTable {...tableProps({ events: pendingEvents })} />
+        </MemoryRouter>
+      );
+      rerender(
+        <MemoryRouter>
+          <AdminEventsTable
+            {...tableProps({
+              events: [pendingEvents[1]],
+              focusRequest: { rowIds: ["event-1", "event-4"], nonce: 1 },
+            })}
+          />
+        </MemoryRouter>
+      );
+      const [next] = screen.getAllByRole("button", { name: "Approve Second Pending" });
+      expect(next).toHaveFocus();
+    });
+
+    it("calls onNone when no requested row remains", () => {
+      const onNone = vi.fn();
+      render(
+        <MemoryRouter>
+          <AdminEventsTable
+            {...tableProps({ focusRequest: { rowIds: ["gone"], nonce: 1, onNone } })}
+          />
+        </MemoryRouter>
+      );
+      expect(onNone).toHaveBeenCalledOnce();
     });
   });
 

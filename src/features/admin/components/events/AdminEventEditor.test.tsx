@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import AdminEventEditor from "./AdminEventEditor";
@@ -104,5 +105,90 @@ describe("AdminEventEditor submitter identity", () => {
     expect(screen.queryByLabelText(/Your name/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/^Email/i)).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: /Your info/i })).not.toBeInTheDocument();
+  });
+});
+
+describe("AdminEventEditor leaving and venue search", () => {
+  const venues = [
+    { id: "venue-1", name: "Havana Club", address: "1 Main St", city: "boston" },
+    { id: "venue-2", name: "Salsa Loft", address: "2 Side St", city: "boston" },
+  ];
+  const selectVenue = vi.fn();
+
+  function renderEditor(onCancel = vi.fn(), venueResults: typeof venues = []) {
+    useActiveTaxonomyTerms.mockReturnValue({ terms: [] });
+    useVenueCombobox.mockReturnValue({
+      query: "ha",
+      setQuery: vi.fn(),
+      results: venueResults,
+      isOpen: venueResults.length > 0,
+      setIsOpen: vi.fn(),
+      selectedId: "",
+      selectedName: "",
+      selectedAddress: "",
+      selectVenue,
+      clearVenue: vi.fn(),
+    });
+    render(
+      <MemoryRouter>
+        <AdminEventEditor
+          initial={buildEmptyAdminForm("boston")}
+          initialTaxonomyTerms={[]}
+          heading="New event"
+          submitLabel="Create event"
+          isSaving={false}
+          error={null}
+          onSubmit={vi.fn()}
+          onCancel={onCancel}
+        />
+      </MemoryRouter>
+    );
+    return onCancel;
+  }
+
+  it("leaves at once when nothing was changed", async () => {
+    const user = userEvent.setup();
+    const onCancel = renderEditor();
+    await user.click(screen.getByRole("button", { name: "Events" }));
+    expect(onCancel).toHaveBeenCalledOnce();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("asks before discarding edits, and keeps them on Keep editing", async () => {
+    const user = userEvent.setup();
+    const onCancel = renderEditor();
+    await user.type(screen.getByLabelText("Event Title *"), "Draft title");
+
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+    const dialog = screen.getByRole("dialog", { name: "Discard changes?" });
+    expect(onCancel).not.toHaveBeenCalled();
+
+    await user.click(within(dialog).getByRole("button", { name: "Keep editing" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Event Title *")).toHaveValue("Draft title");
+
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+    await user.click(screen.getByRole("button", { name: "Discard changes" }));
+    expect(onCancel).toHaveBeenCalledOnce();
+  });
+
+  it("venue search is a combobox the keyboard can drive", async () => {
+    const user = userEvent.setup();
+    renderEditor(vi.fn(), venues);
+    const input = screen.getByRole("combobox", { name: "Venue" });
+    expect(input).toHaveAttribute("aria-expanded", "true");
+    const listbox = screen.getByRole("listbox", { name: "Matching venues" });
+    expect(within(listbox).getAllByRole("option")).toHaveLength(2);
+
+    input.focus();
+    await user.keyboard("{ArrowDown}{ArrowDown}");
+    expect(input).toHaveAttribute("aria-activedescendant", "venue-option-venue-2");
+    expect(within(listbox).getByRole("option", { name: /Salsa Loft/ })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+
+    await user.keyboard("{Enter}");
+    expect(selectVenue).toHaveBeenCalledWith(expect.objectContaining({ id: "venue-2" }));
   });
 });

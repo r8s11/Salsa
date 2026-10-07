@@ -15,7 +15,11 @@ export const CSV_COLUMNS: CsvColumnSpec[] = [
   { key: "title", required: true, help: "Event name." },
   { key: "event_type", required: true, help: "One of: social, class, workshop, live_music." },
   { key: "event_date", required: true, help: "Date, format YYYY-MM-DD (e.g. 2026-09-15)." },
-  { key: "city", required: true, help: "One of: boston, new-york-city." },
+  {
+    key: "city",
+    required: true,
+    help: "City slug as listed on the site, e.g. boston, new-york-city, miami, washington-dc.",
+  },
   {
     key: "event_time",
     required: false,

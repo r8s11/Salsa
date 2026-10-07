@@ -38,6 +38,17 @@ vi.mock("./useAdminTaxonomy", () => ({
   }),
 }));
 
+vi.mock("../../metros/hooks/useMetros", () => ({
+  useMetros: () => ({
+    metros: [
+      { slug: "boston", name: "Boston" },
+      { slug: "new-york-city", name: "New York City" },
+    ],
+    loading: false,
+    error: null,
+  }),
+}));
+
 function wrapper({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>

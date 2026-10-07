@@ -17,7 +17,17 @@ interface ShareableEventPosterProps {
   format?: PosterFormat;
 }
 
-const CITY_CODE: Record<string, string> = { boston: "BOS", "new-york-city": "NYC" };
+const CITY_CODE: Record<string, string> = {
+  boston: "BOS",
+  "new-york-city": "NYC",
+  miami: "MIA",
+  orlando: "ORL",
+  "los-angeles": "LA",
+  atlanta: "ATL",
+  "washington-dc": "DC",
+  "san-francisco": "SF",
+  texas: "TX",
+};
 
 const toDate = (val: unknown): Date => {
   if (typeof val === "string") return new Date(val.replace(" ", "T"));

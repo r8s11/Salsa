@@ -1,6 +1,7 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useAuth } from "../../../contexts/useAuth";
 import { useActiveTaxonomyTerms } from "../../admin/hooks/useAdminTaxonomy";
+import { useMetros } from "../../metros/hooks/useMetros";
 import { parseCsvFile } from "../../admin/model/csvImportParse";
 import { validateCsvRow, type CsvRowResult } from "../../admin/model/csvImportValidation";
 import {
@@ -101,6 +102,8 @@ export function useHostEventImport(): HostCsvEventImportState {
   const { user } = useAuth();
   const danceStyles = useActiveTaxonomyTerms("dance_style");
   const eventAttributes = useActiveTaxonomyTerms("event_attribute");
+  const { metros } = useMetros();
+  const metroSlugs = useMemo(() => new Set(metros.map((metro) => metro.slug)), [metros]);
 
   const [stage, setStage] = useState<HostImportStage>("idle");
   const [fileName, setFileName] = useState<string | null>(null);
@@ -139,7 +142,7 @@ export function useHostEventImport(): HostCsvEventImportState {
       }
 
       const validated = parsed.rows.map((raw, index) =>
-        validateCsvRow(raw, index, danceStyles.terms, eventAttributes.terms)
+        validateCsvRow(raw, index, danceStyles.terms, eventAttributes.terms, metroSlugs)
       );
 
       const withVenues = await Promise.all(
@@ -192,7 +195,7 @@ export function useHostEventImport(): HostCsvEventImportState {
       setRows(withDuplicates);
       setStage("reviewing");
     },
-    [danceStyles.terms, eventAttributes.terms, reset]
+    [danceStyles.terms, eventAttributes.terms, metroSlugs, reset]
   );
 
   const toggleIncludeDuplicate = useCallback((rowNumber: number) => {

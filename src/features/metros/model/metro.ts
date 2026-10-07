@@ -82,6 +82,47 @@ const METRO_ALIASES: Record<string, MetroSlug> = {
   revere: "boston",
   malden: "boston",
   "jamaica-plain": "boston",
+  mia: "miami",
+  "miami-beach": "miami",
+  "miami-fl": "miami",
+  "south-florida": "miami",
+  "coral-gables": "miami",
+  hialeah: "miami",
+  "fort-lauderdale": "miami",
+  "orlando-fl": "orlando",
+  "central-florida": "orlando",
+  kissimmee: "orlando",
+  "winter-park": "orlando",
+  la: "los-angeles",
+  "los-angeles-ca": "los-angeles",
+  "long-beach": "los-angeles",
+  "santa-monica": "los-angeles",
+  hollywood: "los-angeles",
+  pasadena: "los-angeles",
+  atl: "atlanta",
+  "atlanta-ga": "atlanta",
+  decatur: "atlanta",
+  marietta: "atlanta",
+  dc: "washington-dc",
+  dmv: "washington-dc",
+  washington: "washington-dc",
+  "washington-d-c": "washington-dc",
+  "dc-area": "washington-dc",
+  "silver-spring": "washington-dc",
+  bethesda: "washington-dc",
+  alexandria: "washington-dc",
+  sf: "san-francisco",
+  "bay-area": "san-francisco",
+  "sf-bay-area": "san-francisco",
+  "san-francisco-ca": "san-francisco",
+  oakland: "san-francisco",
+  berkeley: "san-francisco",
+  tx: "texas",
+  houston: "texas",
+  dallas: "texas",
+  austin: "texas",
+  "san-antonio": "texas",
+  "fort-worth": "texas",
 };
 
 /**
@@ -116,9 +157,15 @@ export function metroLabelFromSlug(slug: MetroSlug | null | undefined): string {
     .join(" ");
 }
 
-/** Compact code for pills and posters: "New York City" → "NYC", "Boston" → "BOS". */
+/**
+ * Compact code for pills and posters: "New York City" → "NYC", "Boston" →
+ * "BOS", "Washington, DC" → "DC" (a name that already carries an uppercase
+ * acronym uses it).
+ */
 export function metroShortCode(name: string): string {
-  const words = name.split(/[\s-]+/).filter(Boolean);
+  const words = name.split(/[\s,-]+/).filter(Boolean);
+  const acronym = words.find((word) => /^[A-Z]{2,3}$/.test(word));
+  if (acronym) return acronym;
   if (words.length > 1) return words.map((word) => word[0].toUpperCase()).join("");
   return (words[0] ?? "").slice(0, 3).toUpperCase();
 }

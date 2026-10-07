@@ -20,7 +20,6 @@ const EVENT_TYPES: Record<string, true> = {
   workshop: true,
   live_music: true,
 };
-const CITIES: Record<string, true> = { boston: true, "new-york-city": true };
 const PRICE_TYPES: Record<string, true> = { free: true, paid: true, "": true };
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
@@ -104,7 +103,8 @@ export function validateCsvRow(
   raw: Record<string, string>,
   rowIndex: number,
   danceStyleTerms: EventTaxonomyTerm[],
-  eventAttributeTerms: EventTaxonomyTerm[]
+  eventAttributeTerms: EventTaxonomyTerm[],
+  metroSlugs: ReadonlySet<string>
 ): CsvRowResult {
   const errors: CsvFieldIssue[] = [];
   const warnings: CsvFieldIssue[] = [];
@@ -140,8 +140,13 @@ export function validateCsvRow(
     });
 
   if (!city) errors.push({ field: "city", message: "city is required." });
-  else if (!CITIES[city])
-    errors.push({ field: "city", message: "Must be one of: boston, new-york-city." });
+  else if (metroSlugs.size === 0)
+    errors.push({ field: "city", message: "The city list hasn't loaded yet. Upload the file again." });
+  else if (!metroSlugs.has(city))
+    errors.push({
+      field: "city",
+      message: `Must be one of: ${[...metroSlugs].sort().join(", ")}.`,
+    });
 
   if (!eventDate) errors.push({ field: "event_date", message: "event_date is required." });
   else if (!DATE_RE.test(eventDate))

@@ -1,6 +1,7 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useAuth } from "../../../contexts/useAuth";
 import { useActiveTaxonomyTerms } from "./useAdminTaxonomy";
+import { useMetros } from "../../metros/hooks/useMetros";
 import { parseCsvFile } from "../model/csvImportParse";
 import { validateCsvRow, type CsvRowResult } from "../model/csvImportValidation";
 import { findCsvRowDuplicates, type CsvDuplicateMatch } from "../model/csvImportDuplicates";
@@ -57,6 +58,8 @@ export function useCsvEventImport(): CsvEventImportState {
   const { user } = useAuth();
   const danceStyles = useActiveTaxonomyTerms("dance_style");
   const eventAttributes = useActiveTaxonomyTerms("event_attribute");
+  const { metros } = useMetros();
+  const metroSlugs = useMemo(() => new Set(metros.map((metro) => metro.slug)), [metros]);
 
   const [stage, setStage] = useState<ImportStage>("idle");
   const [fileName, setFileName] = useState<string | null>(null);
@@ -93,7 +96,7 @@ export function useCsvEventImport(): CsvEventImportState {
       }
 
       const validated = parsed.rows.map((raw, index) =>
-        validateCsvRow(raw, index, danceStyles.terms, eventAttributes.terms)
+        validateCsvRow(raw, index, danceStyles.terms, eventAttributes.terms, metroSlugs)
       );
 
       // Resolve venue_id for rows that named a venue and are otherwise clean.
@@ -146,7 +149,7 @@ export function useCsvEventImport(): CsvEventImportState {
       setRows(withDuplicates);
       setStage("reviewing");
     },
-    [danceStyles.terms, eventAttributes.terms, reset]
+    [danceStyles.terms, eventAttributes.terms, metroSlugs, reset]
   );
 
   const toggleIncludeDuplicate = useCallback((rowNumber: number) => {

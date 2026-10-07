@@ -53,7 +53,8 @@ function csvRow(overrides: Record<string, string> = {}) {
     },
     0,
     [],
-    []
+    [],
+    new Set(["boston"])
   );
 }
 

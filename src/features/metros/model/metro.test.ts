@@ -175,6 +175,20 @@ describe("resolveMetroSlug", () => {
     expect(resolveMetroSlug("Atlantis", REGISTERED)).toBeNull();
     expect(resolveMetroSlug("NYC", [BOSTON])).toBeNull();
   });
+
+  it("routes regional spellings to the metro that covers them", () => {
+    const metros = [
+      { slug: "washington-dc", name: "Washington, DC" },
+      { slug: "san-francisco", name: "San Francisco" },
+      { slug: "texas", name: "Texas" },
+    ];
+    expect(resolveMetroSlug("DMV", metros)).toBe("washington-dc");
+    expect(resolveMetroSlug("Washington, D.C.", metros)).toBe("washington-dc");
+    expect(resolveMetroSlug("Bay Area", metros)).toBe("san-francisco");
+    expect(resolveMetroSlug("Houston", metros)).toBe("texas");
+    // Arlington stays the Boston suburb it already meant.
+    expect(resolveMetroSlug("Arlington", [...metros, BOSTON])).toBe("boston");
+  });
 });
 
 describe("metroShortCode", () => {
@@ -183,6 +197,9 @@ describe("metroShortCode", () => {
     ["Boston", "BOS"],
     ["Los Angeles", "LA"],
     ["Philadelphia", "PHI"],
+    ["Washington, DC", "DC"],
+    ["San Francisco", "SF"],
+    ["Miami", "MIA"],
   ])("%s → %s", (name, code) => {
     expect(metroShortCode(name)).toBe(code);
   });

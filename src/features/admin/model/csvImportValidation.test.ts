@@ -28,8 +28,10 @@ function row(overrides: Record<string, string> = {}): Record<string, string> {
   };
 }
 
+const METROS: ReadonlySet<string> = new Set(["boston", "new-york-city", "miami"]);
+
 function validate(overrides: Record<string, string> = {}) {
-  return validateCsvRow(row(overrides), 0, [SALSA], [OUTDOOR]);
+  return validateCsvRow(row(overrides), 0, [SALSA], [OUTDOOR], METROS);
 }
 
 describe("validateCsvRow — required fields", () => {
@@ -42,8 +44,8 @@ describe("validateCsvRow — required fields", () => {
   });
 
   it("reports the spreadsheet row number (header is row 1)", () => {
-    expect(validateCsvRow(row(), 0, [], []).rowNumber).toBe(2);
-    expect(validateCsvRow(row(), 5, [], []).rowNumber).toBe(7);
+    expect(validateCsvRow(row(), 0, [], [], METROS).rowNumber).toBe(2);
+    expect(validateCsvRow(row(), 5, [], [], METROS).rowNumber).toBe(7);
   });
 
   it("rejects a missing title", () => {
@@ -66,11 +68,19 @@ describe("validateCsvRow — required fields", () => {
     expect(result.payload?.event_type).toBe("live_music");
   });
 
-  it("rejects an unknown city", () => {
-    const result = validate({ city: "miami" });
+  it("accepts any registered metro and rejects the rest", () => {
+    expect(validate({ city: "miami" }).status).toBe("valid");
+    expect(validate({ city: "atlantis" }).errors).toContainEqual({
+      field: "city",
+      message: "Must be one of: boston, miami, new-york-city.",
+    });
+  });
+
+  it("does not reject every city while the metro list is still loading", () => {
+    const result = validateCsvRow(row(), 0, [SALSA], [OUTDOOR], new Set());
     expect(result.errors).toContainEqual({
       field: "city",
-      message: "Must be one of: boston, new-york-city.",
+      message: "The city list hasn't loaded yet. Upload the file again.",
     });
   });
 });
@@ -237,7 +247,8 @@ describe("validateCsvRow — multiple problems", () => {
       { title: "", event_type: "bogus", event_date: "nope", city: "mars", event_time: "99:99" },
       0,
       [],
-      []
+      [],
+      METROS
     );
     expect(result.errors.length).toBeGreaterThanOrEqual(5);
     expect(result.errors.map((e) => e.field)).toEqual(

@@ -4,6 +4,8 @@ import NotFoundPage from "./NotFoundPage";
 import { useDocumentMeta } from "../shared/seo/useDocumentMeta";
 import { canonicalUrl } from "../utils/seo";
 import { useEntityDetail } from "../features/entities/hooks/useEntityDetail";
+import { SchoolProfile } from "../features/entities/components/SchoolProfile";
+import { entityExternalLinks } from "../features/entities/externalLinks";
 import { ENTITY_LABELS, entityHref, type EventSummary, type PublicEntityKind, type PublicEntityRef } from "../features/entities/model";
 import "./PublicEntityPage.css";
 
@@ -81,9 +83,9 @@ export default function PublicEntityPage({ kind }: { kind: PublicEntityKind }) {
   }
   if (!data || !entity) return <NotFoundPage />;
 
-  const website = entity.website && /^https?:\/\//i.test(entity.website) ? entity.website : null;
-  const handle = entity.instagram?.replace(/^https?:\/\/(?:www\.)?instagram\.com\//i, "").replace(/^@/, "").replace(/\/$/, "");
-  const instagram = handle && /^[a-z0-9._]+$/i.test(handle) ? `https://www.instagram.com/${handle}/` : null;
+  if (kind === "school") return <SchoolProfile detail={data} />;
+
+  const { website, instagram } = entityExternalLinks(entity);
   const location = [entity.address, entity.city?.replace(/-/g, " "), entity.state_region, entity.country].filter(Boolean).join(", ");
 
   return (

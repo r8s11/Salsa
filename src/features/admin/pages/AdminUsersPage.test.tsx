@@ -187,6 +187,11 @@ describe("AdminUsersPage", () => {
     expect(row.getByText("3 contributions")).toBeInTheDocument();
   });
 
+  it("an out-of-range ?page= shows the last page's rows, matching the pager", () => {
+    renderAt("/admin/users?page=9");
+    expect(within(usersTable()).getByText("Maria Santos")).toBeInTheDocument();
+  });
+
   it("a guest row shows Guest Submitter-equivalent identity, no public profile, no role badge, and a single-item menu", async () => {
     const user = userEvent.setup();
     renderPage();

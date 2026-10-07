@@ -71,9 +71,6 @@ export const GRANULARITY_OPTIONS: { value: Granularity; label: string }[] = [
   { value: "monthly", label: "Monthly" },
 ];
 
-export const PAGE_SIZE_OPTIONS = [25, 50, 100] as const;
-export const DEFAULT_PAGE_SIZE = 25;
-
 // ---------------------------------------------------------------------------
 // Date range helpers
 // ---------------------------------------------------------------------------

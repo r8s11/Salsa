@@ -67,8 +67,6 @@ export interface FounderRequestSort {
   dir: "asc" | "desc";
 }
 
-export type SortDir = "asc" | "desc";
-
 /**
  * Row action types for the action menu.
  */
@@ -125,9 +123,6 @@ export const FOUNDER_REQUEST_SORT_OPTIONS: {
   { key: "name", label: "Applicant name" },
   { key: "brand", label: "Organization name" },
 ];
-
-export const PAGE_SIZE_OPTIONS = [25, 50, 100] as const;
-export const DEFAULT_PAGE_SIZE = 25;
 
 /**
  * Returns the action menu items for a single founder request.

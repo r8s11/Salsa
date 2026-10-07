@@ -1,6 +1,7 @@
 import { Clock, CircleCheck, CircleX } from "lucide-react";
 import type { ComponentType } from "react";
 import type { ActionMenuItem } from "../components/common/AdminActionMenu";
+import { enumParam, sortOptionParam, type ListDefinition, type SortDir } from "./listState";
 
 /**
  * Venue lifecycle status — only three values (brief §4).
@@ -60,10 +61,8 @@ export interface VenueFilters {
 
 export interface VenueSort {
   key: "name" | "city" | "upcoming" | "updated";
-  dir: "asc" | "desc";
+  dir: SortDir;
 }
-
-export type SortDir = "asc" | "desc";
 
 // ---- Labels (mirrors REQUEST_STATUS_LABEL / ACCOUNT_STATUS_LABEL vocabulary) ----
 
@@ -108,8 +107,36 @@ export const VENUE_SORT_OPTIONS: {
   { value: "updated-desc", key: "updated", dir: "desc", label: "Recently Updated" },
 ];
 
-export const PAGE_SIZE_OPTIONS = [25, 50, 100] as const;
-export const DEFAULT_PAGE_SIZE = 25;
+export const VENUES_LIST: ListDefinition<VenueView, VenueFilters, VenueSort> = {
+  view: enumParam(
+    "view",
+    VENUE_VIEWS.map((entry) => entry.view),
+    "all"
+  ),
+  filters: {
+    parse: (params) => {
+      const city = params.get("city");
+      const state = params.get("state");
+      const status = params.get("status");
+      const hasUpcoming = params.get("has_upcoming");
+      return {
+        q: params.get("q") ?? "",
+        city: city ? [city] : [],
+        state: state ? [state] : [],
+        status: status ? [status as VenueStatus] : [],
+        has_upcoming: hasUpcoming ? hasUpcoming === "true" : null,
+      };
+    },
+    toParams: (filters) => ({
+      q: filters.q,
+      city: filters.city[0] ?? null,
+      state: filters.state[0] ?? null,
+      status: filters.status[0] ?? null,
+      has_upcoming: filters.has_upcoming === null ? null : String(filters.has_upcoming),
+    }),
+  },
+  sort: sortOptionParam(VENUE_SORT_OPTIONS, { key: "name", dir: "asc" }),
+};
 
 export const COUNTRY_OPTIONS = [
   { value: "US", label: "United States" },
@@ -352,16 +379,4 @@ export function venueViewCounts(venues: VenueRow[]): Record<VenueView, number> {
     counts[view] = applyVenueView(venues, view).length;
   });
   return counts;
-}
-
-export function parseSortUrlParam(value: string | null): VenueSort | null {
-  if (!value) return null;
-  const [key, dir] = value.split("-") as [VenueSort["key"]?, SortDir?];
-  if (!key || !dir || (dir !== "asc" && dir !== "desc")) return null;
-  if (!["name", "city", "upcoming", "updated"].includes(key)) return null;
-  return { key, dir };
-}
-
-export function toSortUrlParam(sort: VenueSort): string {
-  return `${sort.key}-${sort.dir}`;
 }

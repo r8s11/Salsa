@@ -5,9 +5,9 @@ import {
   type UserFilters,
   type UserRole,
   type AccountStatus,
-  type SortDir,
   type UserSortKey,
 } from "../../model/usersQuery";
+import type { SortDir } from "../../model/listState";
 import { toggleArrayItem } from "../../../../shared/utils/toggleArrayItem";
 import { useDebouncedSearch } from "../../../../shared/hooks/useDebouncedSearch";
 import { useDropdown } from "../../../../shared/hooks/useDropdown";

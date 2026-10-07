@@ -29,12 +29,8 @@ import { resolveEventFlyer } from "../../../events/components/event-modal/eventM
 import { fromEventDateInstant, formatTimeLabel } from "../../../events/model/eventDateTime";
 import { qualityIssues, QUALITY_ISSUE_LABEL } from "../../model/overviewMetrics";
 import { useMetroName } from "../../../metros/hooks/useMetros";
-import {
-  SOURCE_TYPE_LABEL,
-  submitterDisplay,
-  type SortDir,
-  type SortKey,
-} from "../../model/eventsQuery";
+import { SOURCE_TYPE_LABEL, submitterDisplay, type SortKey } from "../../model/eventsQuery";
+import type { SortDir } from "../../model/listState";
 import AdminStatusBadge from "../common/AdminStatusBadge";
 import AdminQualityBadge from "../common/AdminQualityBadge";
 import AdminActionMenu, { type ActionMenuItem } from "../common/AdminActionMenu";

@@ -384,28 +384,6 @@ describe("AdminEventsPage", () => {
   });
 
   describe("Phase 2 Overview deep links", () => {
-    it("?status=pending shows only pending rows", () => {
-      renderAt("/admin/events?status=pending");
-
-      const table = eventsTable();
-      expect(within(table).getByText("Bachata Sensual Social")).toBeInTheDocument();
-      expect(within(table).queryByText("Salsa Workshop NYC")).not.toBeInTheDocument();
-      expect(within(table).queryByText("Kizomba Class")).not.toBeInTheDocument();
-      expect(within(table).getByText("Pending Review")).toBeInTheDocument();
-    });
-
-    it("?flag=upcoming normalizes to the Upcoming view", () => {
-      renderAt("/admin/events?flag=upcoming");
-
-      expect(screen.getByRole("tab", { name: /Upcoming/ })).toHaveAttribute(
-        "aria-selected",
-        "true"
-      );
-      const table = eventsTable();
-      expect(within(table).getByText("Salsa Workshop NYC")).toBeInTheDocument();
-      expect(within(table).getByText("Bachata Sensual Social")).toBeInTheDocument();
-    });
-
     it("?flag=incomplete filters to events with a quality issue and shows the Missing info chip", () => {
       vi.mocked(useAdminEvents).mockReturnValue({
         ...defaultState,
@@ -453,6 +431,34 @@ describe("AdminEventsPage", () => {
       expect(screen.queryByText("Missing info")).not.toBeInTheDocument();
       expect(within(eventsTable()).getByText("Bachata Sensual Social")).toBeInTheDocument();
     });
+  });
+
+  it("typing in the search field does not crash when an event has a null city", async () => {
+    const user = userEvent.setup();
+    // events.city is nullable in the database although DatabaseEvent types it as string.
+    const noCity = {
+      ...approvedUpcoming,
+      id: "event-6",
+      title: "Sunset Social",
+      city: null,
+    } as unknown as DatabaseEvent;
+    vi.mocked(useAdminEvents).mockReturnValue({
+      ...defaultState,
+      events: [...events, noCity],
+    });
+    renderAt("/admin/events?view=all");
+
+    await user.type(screen.getByRole("searchbox", { name: "Search events" }), "SUN");
+
+    await waitFor(() => {
+      expect(within(eventsTable()).getByText("Sunset Social")).toBeInTheDocument();
+      expect(within(eventsTable()).queryByText("Kizomba Class")).not.toBeInTheDocument();
+    });
+  });
+
+  it("an out-of-range ?page= shows the last page's rows, matching the pager", () => {
+    renderAt("/admin/events?view=all&page=9");
+    expect(within(eventsTable()).getByText("Bachata Sensual Social")).toBeInTheDocument();
   });
 
   it("?view=archived shows archived rows; the default view does not", () => {

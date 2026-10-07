@@ -1,12 +1,8 @@
 import { Fragment } from "react";
 import { Link } from "react-router-dom";
 import { ArrowUpDown, ArrowUp, ArrowDown, MapPin } from "lucide-react";
-import type {
-  VenueRow,
-  VenueSort,
-  SortDir,
-  VenueAction,
-} from "../../model/venuesQuery";
+import type { VenueRow, VenueSort, VenueAction } from "../../model/venuesQuery";
+import type { SortDir } from "../../model/listState";
 import { venueActionItems, venueDisplayAddress } from "../../model/venuesQuery";
 import AdminVenueStatusBadge from "./AdminVenueStatusBadge";
 import AdminActionMenu from "../common/AdminActionMenu";

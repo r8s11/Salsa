@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Search, SlidersHorizontal, ChevronDown, ArrowUp, ArrowDown } from "lucide-react";
-import type { EventFilters, SortDir, SortKey } from "../../model/eventsQuery";
+import type { EventFilters, SortKey } from "../../model/eventsQuery";
+import type { SortDir } from "../../model/listState";
 import { useDebouncedSearch } from "../../../../shared/hooks/useDebouncedSearch";
 import "./AdminEventsToolbar.css";
 

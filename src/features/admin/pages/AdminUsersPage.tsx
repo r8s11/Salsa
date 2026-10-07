@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAdminUsers } from "../hooks/useAdminUsers";
 import AdminUserForm from "../components/users/AdminUserForm";
 import { useAuth } from "../../../contexts/useAuth";
@@ -13,16 +13,14 @@ import {
   ACCOUNT_STATUS_LABEL,
   ACCOUNT_KIND_LABEL,
   type AdminUserRow,
-  type AccountKind,
   type AccountStatus,
   type UserFilters,
   type UserRole,
   type UserSortKey,
-  type UserView,
-  type SortDir,
+  USERS_LIST,
 } from "../model/usersQuery";
 import type { CreatedAccount } from "../api/profilesRepo";
-import { PAGE_SIZE_OPTIONS, DEFAULT_PAGE_SIZE } from "../model/eventsQuery";
+import { useListState, usePageWindow } from "../hooks/useListState";
 import AdminPageHeader from "../components/shell/AdminPageHeader";
 import AdminViewTabs from "../components/shell/AdminViewTabs";
 import AdminUsersToolbar from "../components/users/AdminUsersToolbar";
@@ -47,55 +45,6 @@ interface FilterChip {
   key: string;
   label: string;
   onRemove: () => void;
-}
-
-const VALID_VIEWS: UserView[] = USER_VIEWS.map((entry) => entry.view);
-const VALID_ROLES: UserRole[] = ["user", "moderator", "organizer", "admin"];
-const VALID_STATUSES: AccountStatus[] = ["active", "flagged", "suspended", "banned"];
-const VALID_KINDS: AccountKind[] = ["profile", "guest"];
-const VALID_SORT_KEYS: UserSortKey[] = ["joined", "name", "contributions", "active"];
-
-function parseView(searchParams: URLSearchParams): UserView {
-  const raw = searchParams.get("view");
-  return VALID_VIEWS.includes(raw as UserView) ? (raw as UserView) : "all";
-}
-
-function parseFilters(searchParams: URLSearchParams): UserFilters {
-  const role = (searchParams.get("role")?.split(",").filter(Boolean) ?? []).filter(
-    (value): value is UserRole => VALID_ROLES.includes(value as UserRole)
-  );
-  const status = (searchParams.get("status")?.split(",").filter(Boolean) ?? []).filter(
-    (value): value is AccountStatus => VALID_STATUSES.includes(value as AccountStatus)
-  );
-  const rawKind = searchParams.get("type");
-  const kind = VALID_KINDS.includes(rawKind as AccountKind) ? (rawKind as AccountKind) : null;
-
-  return {
-    q: searchParams.get("q") ?? "",
-    role,
-    status,
-    kind,
-    from: searchParams.get("from"),
-    to: searchParams.get("to"),
-  };
-}
-
-function parseSort(searchParams: URLSearchParams): { key: UserSortKey; dir: SortDir } {
-  const rawKey = searchParams.get("sort");
-  const key = VALID_SORT_KEYS.includes(rawKey as UserSortKey) ? (rawKey as UserSortKey) : "joined";
-  const rawDir = searchParams.get("dir");
-  const dir: SortDir = rawDir === "asc" ? "asc" : "desc";
-  return { key, dir };
-}
-
-function parsePage(searchParams: URLSearchParams): number {
-  const raw = Number(searchParams.get("page"));
-  return Number.isInteger(raw) && raw > 0 ? raw : 1;
-}
-
-function parseSize(searchParams: URLSearchParams): number {
-  const raw = Number(searchParams.get("size"));
-  return (PAGE_SIZE_OPTIONS as readonly number[]).includes(raw) ? raw : DEFAULT_PAGE_SIZE;
 }
 
 function formatShortDate(yyyyMmDd: string): string {
@@ -128,7 +77,6 @@ export default function AdminUsersPage() {
     createError,
   } = useAdminUsers();
 
-  const [searchParams, setSearchParams] = useSearchParams();
   const [pendingAction, setPendingAction] = useState<PendingUserAction>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [lastRowAction, setLastRowAction] = useState<UserRowAction | null>(null);
@@ -138,102 +86,41 @@ export default function AdminUsersPage() {
 
   const users = useMemo(() => queriedUsers ?? [], [queriedUsers]);
 
-  const { view, filters, sort, page, size, pagedUsers, total } = useMemo(() => {
-    const parsedView = parseView(searchParams);
-    const parsedFilters = parseFilters(searchParams);
-    const parsedSort = parseSort(searchParams);
-    const parsedPage = parsePage(searchParams);
-    const parsedSize = parseSize(searchParams);
-
-    const viewed = applyUserView(users, parsedView);
-    const filtered = applyUserFilters(viewed, parsedFilters);
-    const sorted = applyUserSort(filtered, parsedSort.key, parsedSort.dir);
-    const start = (parsedPage - 1) * parsedSize;
-
-    return {
-      view: parsedView,
-      filters: parsedFilters,
-      sort: parsedSort,
-      page: parsedPage,
-      size: parsedSize,
-      pagedUsers: sorted.slice(start, start + parsedSize),
-      total: sorted.length,
-    };
-  }, [users, searchParams]);
+  const list = useListState(USERS_LIST);
+  const { view, filters, sort, size } = list.state;
+  const sorted = useMemo(
+    () => applyUserSort(applyUserFilters(applyUserView(users, view), filters), sort.key, sort.dir),
+    [users, view, filters, sort]
+  );
+  const total = sorted.length;
+  const pageBounds = usePageWindow(list, queriedUsers ? total : null);
+  const pagedUsers = sorted.slice(pageBounds.offset, pageBounds.offset + size);
 
   const counts = useMemo(() => userViewCounts(users), [users]);
   const adminCount = useMemo(() => users.filter((u) => u.role === "admin").length, [users]);
 
-  const updateParams = (patch: Record<string, string | null>, resetPage = true) => {
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      Object.entries(patch).forEach(([key, value]) => {
-        if (value === null || value === "") next.delete(key);
-        else next.set(key, value);
-      });
-      if (resetPage) next.delete("page");
-      return next;
-    });
-  };
-
-  const handleViewChange = (nextView: UserView) => {
-    updateParams({ view: nextView });
-  };
-
-  const handleFiltersChange = (nextFilters: UserFilters) => {
-    updateParams({
-      q: nextFilters.q || null,
-      role: nextFilters.role.length > 0 ? nextFilters.role.join(",") : null,
-      status: nextFilters.status.length > 0 ? nextFilters.status.join(",") : null,
-      type: nextFilters.kind,
-      from: nextFilters.from,
-      to: nextFilters.to,
-    });
-  };
-
-  const clearAllFilters = () => {
-    updateParams({ q: null, role: null, status: null, type: null, from: null, to: null });
-  };
-
-  const handleToolbarSortChange = (nextSort: { key: UserSortKey; dir: SortDir }) => {
-    updateParams({ sort: nextSort.key, dir: nextSort.dir }, false);
-  };
-
+  const handleFiltersChange = (nextFilters: UserFilters) => list.change({ filters: nextFilters });
+  const clearAllFilters = () =>
+    handleFiltersChange({ q: "", role: [], status: [], kind: null, from: null, to: null });
   const handleTableSortChange = (key: UserSortKey) => {
     const dir = sort.key === key ? (sort.dir === "asc" ? "desc" : "asc") : "desc";
-    updateParams({ sort: key, dir }, false);
+    list.change({ sort: { key, dir } });
   };
-
-  const handlePageChange = (nextPage: number) => {
-    updateParams({ page: String(nextPage) }, false);
-  };
-
-  const handleSizeChange = (nextSize: number) => {
-    const firstVisibleIndex = (page - 1) * size;
-    const nextPage = Math.floor(firstVisibleIndex / nextSize) + 1;
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      next.set("size", String(nextSize));
-      next.set("page", String(nextPage));
-      return next;
-    });
-  };
-
-  const pageCount = Math.max(1, Math.ceil(total / size));
-  const currentPage = Math.min(page, pageCount);
-  const pageStart = (currentPage - 1) * size;
-  const from = total === 0 ? 0 : pageStart + 1;
-  const to = Math.min(pageStart + size, total);
+  const { page: currentPage, pageCount, from, to } = pageBounds;
 
   const chips: FilterChip[] = [];
   if (filters.q)
-    chips.push({ key: "q", label: `"${filters.q}"`, onRemove: () => updateParams({ q: null }) });
+    chips.push({
+      key: "q",
+      label: `"${filters.q}"`,
+      onRemove: () => handleFiltersChange({ ...filters, q: "" }),
+    });
   filters.role.forEach((role) => {
     chips.push({
       key: `role-${role}`,
       label: ROLE_LABEL[role],
       onRemove: () =>
-        updateParams({ role: filters.role.filter((r) => r !== role).join(",") || null }),
+        handleFiltersChange({ ...filters, role: filters.role.filter((r) => r !== role) }),
     });
   });
   filters.status.forEach((status) => {
@@ -241,14 +128,14 @@ export default function AdminUsersPage() {
       key: `status-${status}`,
       label: ACCOUNT_STATUS_LABEL[status],
       onRemove: () =>
-        updateParams({ status: filters.status.filter((s) => s !== status).join(",") || null }),
+        handleFiltersChange({ ...filters, status: filters.status.filter((s) => s !== status) }),
     });
   });
   if (filters.kind) {
     chips.push({
       key: "kind",
       label: ACCOUNT_KIND_LABEL[filters.kind],
-      onRemove: () => updateParams({ type: null }),
+      onRemove: () => handleFiltersChange({ ...filters, kind: null }),
     });
   }
   if (filters.from || filters.to) {
@@ -258,7 +145,11 @@ export default function AdminUsersPage() {
         : filters.from
           ? `From ${formatShortDate(filters.from)}`
           : `Until ${formatShortDate(filters.to!)}`;
-    chips.push({ key: "date", label, onRemove: () => updateParams({ from: null, to: null }) });
+    chips.push({
+      key: "date",
+      label,
+      onRemove: () => handleFiltersChange({ ...filters, from: null, to: null }),
+    });
   }
 
   const drawerFilterCount = [filters.kind, filters.from, filters.to].filter(Boolean).length;
@@ -398,7 +289,7 @@ export default function AdminUsersPage() {
             ariaLabel="User views"
             selectId="admin-users-view-select"
             selectLabel="User view"
-            onChange={handleViewChange}
+            onChange={(nextView) => list.change({ view: nextView })}
           />
 
           <div className="admin-card admin-users-page__toolbar-card">
@@ -406,7 +297,7 @@ export default function AdminUsersPage() {
               filters={filters}
               onFiltersChange={handleFiltersChange}
               sort={sort}
-              onSortChange={handleToolbarSortChange}
+              onSortChange={(nextSort) => list.change({ sort: nextSort })}
               drawerFilterCount={drawerFilterCount}
               onOpenDrawer={() => setDrawerOpen(true)}
             />
@@ -522,8 +413,8 @@ export default function AdminUsersPage() {
                   from={from}
                   to={to}
                   size={size}
-                  onPageChange={handlePageChange}
-                  onSizeChange={handleSizeChange}
+                  onPageChange={(nextPage) => list.change({ page: nextPage })}
+                  onSizeChange={(nextSize) => list.change({ size: nextSize })}
                 />
               </>
             )}

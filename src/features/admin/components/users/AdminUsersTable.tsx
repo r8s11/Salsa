@@ -4,12 +4,12 @@ import { Mail, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import {
   type AdminUserRow,
   type UserSortKey,
-  type SortDir,
   displayNameFor,
   identityLineFor,
   rowActionItems,
   type UserRowAction,
 } from "../../model/usersQuery";
+import type { SortDir } from "../../model/listState";
 
 export type { UserRowAction } from "../../model/usersQuery";
 import AdminRoleBadge from "./AdminRoleBadge";

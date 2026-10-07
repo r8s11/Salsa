@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { Check, Plus, Upload, X } from "lucide-react";
 import { useAdminEvents } from "../hooks/useAdminEvents";
 import {
@@ -12,7 +12,7 @@ import { useCity } from "../../../contexts/useCity";
 import { useMetros, useMetroName } from "../../metros/hooks/useMetros";
 import { usePlatformSettings } from "../hooks/usePlatformSettings";
 import { fromEventDateInstant } from "../../events/model/eventDateTime";
-import type { DatabaseEvent, City } from "../../events/model/types";
+import type { DatabaseEvent } from "../../events/model/types";
 import { draftToAdminPayload } from "../../events/components/EventForm";
 import { findPotentialDuplicates } from "../model/overviewMetrics";
 import {
@@ -20,17 +20,16 @@ import {
   applyFilters,
   applySort,
   defaultSortFor,
+  eventsListDefinition,
   viewCounts,
   DANCE_STYLES,
   SOURCE_TYPE_LABEL,
-  DEFAULT_PAGE_SIZE,
-  PAGE_SIZE_OPTIONS,
   EVENT_VIEWS,
   type EventFilters,
   type EventView,
-  type SortDir,
   type SortKey,
 } from "../model/eventsQuery";
+import { useListState, usePageWindow } from "../hooks/useListState";
 import { buildAdminFormFromEvent, buildEmptyAdminForm } from "../model/adminEventForm";
 import type { AdminEventForm as AdminEventFormValues } from "../model/adminEventForm";
 import AdminPageHeader from "../components/shell/AdminPageHeader";
@@ -56,32 +55,6 @@ type PendingAction = {
   event: DatabaseEvent;
 } | null;
 
-const VALID_VIEWS: EventView[] = [
-  "all",
-  "upcoming",
-  "drafts",
-  "pending",
-  "published",
-  "cancelled",
-  "archived",
-];
-const VALID_STATUSES: DatabaseEvent["status"][] = [
-  "draft",
-  "pending",
-  "approved",
-  "rejected",
-  "cancelled",
-  "archived",
-];
-const VALID_SORT_KEYS: SortKey[] = ["event_date", "created_at", "updated_at", "title"];
-const VALID_SOURCES: DatabaseEvent["source_type"][] = [
-  "admin",
-  "user_submission",
-  "organizer",
-  "moderator",
-  "imported",
-];
-
 const VIEW_LABEL: Record<EventView, string> = {
   all: "All Events",
   upcoming: "Upcoming",
@@ -100,74 +73,6 @@ const STATUS_LABEL: Record<DatabaseEvent["status"], string> = {
   cancelled: "Cancelled",
   archived: "Archived",
 };
-
-// flag=upcoming normalizes to view=upcoming (Phase 2 back-compat); an
-// explicit ?view= always wins. /admin/submissions is a dedicated route that
-// defaults to the pending view.
-function parseView(searchParams: URLSearchParams): EventView {
-  const raw = searchParams.get("view");
-  if (raw && VALID_VIEWS.includes(raw as EventView)) return raw as EventView;
-  if (searchParams.get("flag") === "upcoming") return "upcoming";
-  // /admin/submissions route — default to pending review view
-  if (window.location.pathname === "/admin/submissions") return "pending";
-  return "upcoming";
-}
-
-function parseFilters(
-  searchParams: URLSearchParams,
-  metroSlugs: ReadonlySet<string>
-): EventFilters {
-  const statusParam = searchParams.get("status");
-  const status = statusParam
-    ? statusParam
-        .split(",")
-        .filter((value): value is DatabaseEvent["status"] =>
-          VALID_STATUSES.includes(value as DatabaseEvent["status"])
-        )
-    : [];
-  const source = searchParams.get("source");
-  const city = searchParams.get("city");
-
-  return {
-    q: searchParams.get("q") ?? "",
-    from: searchParams.get("from"),
-    to: searchParams.get("to"),
-    status,
-    organizer: searchParams.get("organizer"),
-    venue: searchParams.get("venue"),
-    city: city && metroSlugs.has(city) ? (city as City) : null,
-    style: searchParams.get("style"),
-    source:
-      source && VALID_SOURCES.includes(source as DatabaseEvent["source_type"])
-        ? (source as DatabaseEvent["source_type"])
-        : null,
-    // Kept as the canonical param name for the quality filter so Phase 2's
-    // ?flag=incomplete Overview link keeps working — flag=upcoming (view)
-    // and flag=incomplete (this filter) are the only two values ever set.
-    incompleteOnly: searchParams.get("flag") === "incomplete",
-    submitter: searchParams.get("submitter"),
-  };
-}
-
-function parseSort(searchParams: URLSearchParams, view: EventView): { key: SortKey; dir: SortDir } {
-  const fallback = defaultSortFor(view);
-  const key = searchParams.get("sort");
-  const dir = searchParams.get("dir");
-  return {
-    key: key && VALID_SORT_KEYS.includes(key as SortKey) ? (key as SortKey) : fallback.key,
-    dir: dir === "asc" || dir === "desc" ? dir : fallback.dir,
-  };
-}
-
-function parsePage(searchParams: URLSearchParams): number {
-  const raw = Number(searchParams.get("page"));
-  return Number.isInteger(raw) && raw >= 1 ? raw : 1;
-}
-
-function parseSize(searchParams: URLSearchParams): number {
-  const raw = Number(searchParams.get("size"));
-  return (PAGE_SIZE_OPTIONS as readonly number[]).includes(raw) ? raw : DEFAULT_PAGE_SIZE;
-}
 
 function formatShortDate(yyyyMmDd: string): string {
   const [year, month, day] = yyyyMmDd.split("-").map(Number);
@@ -302,29 +207,25 @@ export default function AdminEventsPage() {
   }
   if (!editId && resolvedEditId !== null) setResolvedEditId(null);
 
-  const { view, filters, sort, page, size, pagedEvents, total } = useMemo(() => {
+  // /admin/submissions is a dedicated route that defaults to the pending view.
+  const { pathname } = useLocation();
+  const listDefinition = useMemo(
+    () => eventsListDefinition(metroSlugs, pathname === "/admin/submissions" ? "pending" : "upcoming"),
+    [metroSlugs, pathname]
+  );
+  const list = useListState(listDefinition);
+  const { view, filters, sort, size } = list.state;
+  const sorted = useMemo(() => {
     const now = new Date();
-    const parsedView = parseView(searchParams);
-    const parsedFilters = parseFilters(searchParams, metroSlugs);
-    const parsedSort = parseSort(searchParams, parsedView);
-    const parsedPage = parsePage(searchParams);
-    const parsedSize = parseSize(searchParams);
-
-    const viewed = applyView(events, parsedView, now);
-    const filtered = applyFilters(viewed, parsedFilters, now);
-    const sorted = applySort(filtered, parsedSort.key, parsedSort.dir);
-    const start = (parsedPage - 1) * parsedSize;
-
-    return {
-      view: parsedView,
-      filters: parsedFilters,
-      sort: parsedSort,
-      page: parsedPage,
-      size: parsedSize,
-      pagedEvents: sorted.slice(start, start + parsedSize),
-      total: sorted.length,
-    };
-  }, [events, searchParams, metroSlugs]);
+    return applySort(applyFilters(applyView(events, view, now), filters, now), sort.key, sort.dir);
+  }, [events, view, filters, sort]);
+  const total = sorted.length;
+  const pageBounds = usePageWindow(list, queriedEvents ? total : null);
+  const pagedEvents = useMemo(
+    () => sorted.slice(pageBounds.offset, pageBounds.offset + size),
+    [sorted, pageBounds.offset, size]
+  );
+  const { page: currentPage, pageCount, from, to } = pageBounds;
 
   const counts = useMemo(() => viewCounts(events, new Date()), [events]);
   const duplicateIds = useMemo(() => findPotentialDuplicates(events), [events]);
@@ -365,91 +266,39 @@ export default function AdminEventsPage() {
     if (landingResolved.current || !queriedEvents) return;
     landingResolved.current = true;
     if (searchParams.toString() === "" && counts.pending > 0) {
-      setSearchParams({ view: "pending" }, { replace: true });
+      list.change({ view: "pending" }, { replace: true });
     }
-  }, [queriedEvents, counts, searchParams, setSearchParams]);
+  }, [queriedEvents, counts, searchParams, list]);
 
-  const updateParams = (patch: Record<string, string | null>, resetPage = true) => {
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      Object.entries(patch).forEach(([key, value]) => {
-        if (value === null || value === "") next.delete(key);
-        else next.set(key, value);
-      });
-      if (resetPage) next.delete("page");
-      return next;
-    });
-  };
+  const handleFiltersChange = (nextFilters: EventFilters) => list.change({ filters: nextFilters });
 
-  const handleViewChange = (nextView: EventView) => {
-    updateParams({ view: nextView, flag: filters.incompleteOnly ? "incomplete" : null });
-  };
-
-  const handleFiltersChange = (nextFilters: EventFilters) => {
-    updateParams({
-      q: nextFilters.q || null,
-      from: nextFilters.from,
-      to: nextFilters.to,
-      status: nextFilters.status.length > 0 ? nextFilters.status.join(",") : null,
-      organizer: nextFilters.organizer,
-      venue: nextFilters.venue,
-      city: nextFilters.city,
-      style: nextFilters.style,
-      source: nextFilters.source,
-      flag: nextFilters.incompleteOnly ? "incomplete" : null,
-      submitter: nextFilters.submitter,
-    });
-  };
-
-  const clearAllFilters = () => {
-    updateParams({
-      q: null,
+  const clearAllFilters = () =>
+    handleFiltersChange({
+      q: "",
       from: null,
       to: null,
-      status: null,
+      status: [],
       organizer: null,
       venue: null,
       city: null,
       style: null,
       source: null,
-      flag: null,
+      incompleteOnly: false,
       submitter: null,
     });
-  };
 
   const handleTableSortChange = (key: SortKey) => {
     const dir = sort.key === key ? (sort.dir === "asc" ? "desc" : "asc") : defaultSortFor(view).dir;
-    updateParams({ sort: key, dir }, false);
+    list.change({ sort: { key, dir } });
   };
-
-  const handleToolbarSortChange = (nextSort: { key: SortKey; dir: SortDir }) => {
-    updateParams({ sort: nextSort.key, dir: nextSort.dir }, false);
-  };
-
-  const handlePageChange = (nextPage: number) => {
-    updateParams({ page: String(nextPage) }, false);
-  };
-
-  const handleSizeChange = (nextSize: number) => {
-    const firstVisibleIndex = (page - 1) * size;
-    const nextPage = Math.floor(firstVisibleIndex / nextSize) + 1;
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      next.set("size", String(nextSize));
-      next.set("page", String(nextPage));
-      return next;
-    });
-  };
-
-  const pageCount = Math.max(1, Math.ceil(total / size));
-  const currentPage = Math.min(page, pageCount);
-  const pageStart = (currentPage - 1) * size;
-  const from = total === 0 ? 0 : pageStart + 1;
-  const to = Math.min(pageStart + size, total);
 
   const chips: FilterChip[] = [];
   if (filters.q)
-    chips.push({ key: "q", label: `"${filters.q}"`, onRemove: () => updateParams({ q: null }) });
+    chips.push({
+      key: "q",
+      label: `"${filters.q}"`,
+      onRemove: () => handleFiltersChange({ ...filters, q: "" }),
+    });
   if (filters.from || filters.to) {
     const label =
       filters.from && filters.to
@@ -457,28 +306,32 @@ export default function AdminEventsPage() {
         : filters.from
           ? `From ${formatShortDate(filters.from)}`
           : `Until ${formatShortDate(filters.to!)}`;
-    chips.push({ key: "date", label, onRemove: () => updateParams({ from: null, to: null }) });
+    chips.push({
+      key: "date",
+      label,
+      onRemove: () => handleFiltersChange({ ...filters, from: null, to: null }),
+    });
   }
   filters.status.forEach((status) => {
     chips.push({
       key: `status-${status}`,
       label: STATUS_LABEL[status],
       onRemove: () =>
-        updateParams({ status: filters.status.filter((s) => s !== status).join(",") || null }),
+        handleFiltersChange({ ...filters, status: filters.status.filter((s) => s !== status) }),
     });
   });
   if (filters.organizer) {
     chips.push({
       key: "organizer",
       label: filters.organizer,
-      onRemove: () => updateParams({ organizer: null }),
+      onRemove: () => handleFiltersChange({ ...filters, organizer: null }),
     });
   }
   if (filters.venue) {
     chips.push({
       key: "venue",
       label: filters.venue,
-      onRemove: () => updateParams({ venue: null }),
+      onRemove: () => handleFiltersChange({ ...filters, venue: null }),
     });
   }
   if (filters.submitter) {
@@ -495,33 +348,37 @@ export default function AdminEventsPage() {
     chips.push({
       key: "submitter",
       label: matchedName ? `Submitted by ${matchedName}` : "Submitted by this account",
-      onRemove: () => updateParams({ submitter: null }),
+      onRemove: () => handleFiltersChange({ ...filters, submitter: null }),
     });
   }
   if (filters.city) {
     chips.push({
       key: "city",
       label: metroName(filters.city),
-      onRemove: () => updateParams({ city: null }),
+      onRemove: () => handleFiltersChange({ ...filters, city: null }),
     });
   }
   if (filters.style) {
     const styleLabel =
       DANCE_STYLES.find((option) => option.value === filters.style)?.label ?? filters.style;
-    chips.push({ key: "style", label: styleLabel, onRemove: () => updateParams({ style: null }) });
+    chips.push({
+      key: "style",
+      label: styleLabel,
+      onRemove: () => handleFiltersChange({ ...filters, style: null }),
+    });
   }
   if (filters.source) {
     chips.push({
       key: "source",
       label: SOURCE_TYPE_LABEL[filters.source],
-      onRemove: () => updateParams({ source: null }),
+      onRemove: () => handleFiltersChange({ ...filters, source: null }),
     });
   }
   if (filters.incompleteOnly) {
     chips.push({
       key: "incomplete",
       label: "Missing info",
-      onRemove: () => updateParams({ flag: null }),
+      onRemove: () => handleFiltersChange({ ...filters, incompleteOnly: false }),
     });
   }
 
@@ -550,7 +407,12 @@ export default function AdminEventsPage() {
   const closeEditor = () => {
     setFormView({ mode: "list" });
     // Leaving ?edit= / ?new= behind would make the next title click a no-op.
-    updateParams({ edit: null, new: null }, false);
+    setSearchParams((previous) => {
+      const next = new URLSearchParams(previous);
+      next.delete("edit");
+      next.delete("new");
+      return next;
+    });
   };
 
   const announce = (message: string, undo: (() => void) | null) => {
@@ -636,7 +498,11 @@ export default function AdminEventsPage() {
     switch (action) {
       case "edit":
         setFormView({ mode: "edit", event });
-        updateParams({ edit: event.id }, false);
+        setSearchParams((previous) => {
+          const next = new URLSearchParams(previous);
+          next.set("edit", event.id);
+          return next;
+        });
         break;
       case "duplicate":
         setDuplicatingEvent(event);
@@ -932,7 +798,7 @@ export default function AdminEventsPage() {
             ariaLabel="Event views"
             selectId="admin-view-tabs-select"
             selectLabel="Event view"
-            onChange={handleViewChange}
+            onChange={(nextView) => list.change({ view: nextView })}
           />
 
           <div className="admin-card admin-events-page__toolbar-card">
@@ -940,7 +806,7 @@ export default function AdminEventsPage() {
               filters={filters}
               onFiltersChange={handleFiltersChange}
               sort={sort}
-              onSortChange={handleToolbarSortChange}
+              onSortChange={(nextSort) => list.change({ sort: nextSort })}
               drawerFilterCount={drawerFilterCount}
               onOpenDrawer={() => setDrawerOpen(true)}
             />
@@ -1074,8 +940,8 @@ export default function AdminEventsPage() {
                   from={from}
                   to={to}
                   size={size}
-                  onPageChange={handlePageChange}
-                  onSizeChange={handleSizeChange}
+                  onPageChange={(nextPage) => list.change({ page: nextPage })}
+                  onSizeChange={(nextSize) => list.change({ size: nextSize })}
                 />
               </>
             )}

@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { PAGE_SIZE_OPTIONS } from "../../model/eventsQuery";
+import { PAGE_SIZE_OPTIONS } from "../../model/listState";
 import "./AdminPagination.css";
 
 interface AdminPaginationProps {

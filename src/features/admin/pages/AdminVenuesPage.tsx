@@ -1,15 +1,13 @@
 import { useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
 import { useAdminVenues } from "../hooks/useAdminVenues";
+import { useListState, usePageWindow } from "../hooks/useListState";
 import {
   VENUE_VIEWS,
-  VENUE_SORT_OPTIONS,
+  VENUES_LIST,
   applyVenueView,
   applyVenueFilters,
   applyVenueSort,
   venueViewCounts,
-  PAGE_SIZE_OPTIONS,
-  DEFAULT_PAGE_SIZE,
   type VenueView,
   type VenueFilters,
   type VenueSort,
@@ -25,47 +23,6 @@ import AdminPagination from "../components/common/AdminPagination";
 import AdminConfirmDialog from "../components/common/AdminConfirmDialog";
 import type { ActionMenuItem } from "../components/common/AdminActionMenu";
 import "./AdminVenuesPage.css";
-
-const VALID_VIEWS = VENUE_VIEWS.map((entry) => entry.view);
-const VALID_SORT_OPTIONS = VENUE_SORT_OPTIONS;
-
-function parseView(searchParams: URLSearchParams): VenueView {
-  const raw = searchParams.get("view");
-  return VALID_VIEWS.includes(raw as VenueView) ? (raw as VenueView) : "all";
-}
-
-function parseFilters(searchParams: URLSearchParams): VenueFilters {
-  const q = searchParams.get("q") ?? "";
-  const city = searchParams.get("city") ? [searchParams.get("city")!] : [];
-  const state = searchParams.get("state") ? [searchParams.get("state")!] : [];
-  const statusRaw = searchParams.get("status");
-  const status = statusRaw ? ([statusRaw] as VenueStatus[]) : [];
-  const hasUpcoming = searchParams.get("has_upcoming");
-  return {
-    q,
-    city,
-    state,
-    status,
-    has_upcoming: hasUpcoming ? hasUpcoming === "true" : null,
-  };
-}
-
-function parseSort(searchParams: URLSearchParams): VenueSort {
-  const raw = searchParams.get("sort");
-  const option = VALID_SORT_OPTIONS.find((o) => o.value === raw);
-  if (option) return { key: option.key, dir: option.dir };
-  return { key: "name", dir: "asc" };
-}
-
-function parsePage(searchParams: URLSearchParams): number {
-  const raw = Number(searchParams.get("page"));
-  return Number.isInteger(raw) && raw > 0 ? raw : 1;
-}
-
-function parseSize(searchParams: URLSearchParams): number {
-  const raw = Number(searchParams.get("size"));
-  return (PAGE_SIZE_OPTIONS as readonly number[]).includes(raw) ? raw : DEFAULT_PAGE_SIZE;
-}
 
 interface FilterChip {
   key: string;
@@ -86,108 +43,37 @@ export default function AdminVenuesPage() {
     archiveError,
   } = useAdminVenues();
 
-  const [searchParams, setSearchParams] = useSearchParams();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [announcement, setAnnouncement] = useState("");
 
   const venues = useMemo(() => queriedVenues ?? [], [queriedVenues]);
 
-  const { view, filters, sort, page, size, pagedVenues, total } = useMemo(() => {
-    const parsedView = parseView(searchParams);
-    const parsedFilters = parseFilters(searchParams);
-    const parsedSort = parseSort(searchParams);
-    const parsedPage = parsePage(searchParams);
-    const parsedSize = parseSize(searchParams);
-
-    // Same pipeline as AdminOrganizerRequestsPage: applyView → applyFilters → sort
-    const viewed = applyVenueView(venues, parsedView);
-    const filtered = applyVenueFilters(viewed, parsedFilters);
-    const sorted = applyVenueSort(filtered, parsedSort.key, parsedSort.dir);
-
-    const start = (parsedPage - 1) * parsedSize;
-
-    return {
-      view: parsedView,
-      filters: parsedFilters,
-      sort: parsedSort,
-      page: parsedPage,
-      size: parsedSize,
-      pagedVenues: sorted.slice(start, start + parsedSize),
-      total: sorted.length,
-    };
-  }, [venues, searchParams]);
+  const list = useListState(VENUES_LIST);
+  const { view, filters, sort, size } = list.state;
+  const sorted = useMemo(
+    () => applyVenueSort(applyVenueFilters(applyVenueView(venues, view), filters), sort.key, sort.dir),
+    [venues, view, filters, sort]
+  );
+  const total = sorted.length;
+  const pageBounds = usePageWindow(list, queriedVenues ? total : null);
+  const pagedVenues = sorted.slice(pageBounds.offset, pageBounds.offset + size);
+  const { page: currentPage, pageCount, from, to } = pageBounds;
 
   const counts = useMemo(() => venueViewCounts(venues), [venues]);
 
-  const updateParams = (patch: Record<string, string | null>, resetPage = true) => {
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      Object.entries(patch).forEach(([key, value]) => {
-        if (value === null || value === "") next.delete(key);
-        else next.set(key, value);
-      });
-      if (resetPage) next.delete("page");
-      return next;
-    });
-  };
+  const handleFiltersChange = (nextFilters: VenueFilters) => list.change({ filters: nextFilters });
 
-  const handleViewChange = (nextView: VenueView) => {
-    updateParams({ view: nextView });
-  };
-
-  const handleFiltersChange = (nextFilters: VenueFilters) => {
-    updateParams({
-      q: nextFilters.q || null,
-      city: nextFilters.city[0] ?? null,
-      state: nextFilters.state[0] ?? null,
-      status: nextFilters.status[0] ?? null,
-      has_upcoming: nextFilters.has_upcoming === null ? null : String(nextFilters.has_upcoming),
-    });
-  };
-
-  const clearAllFilters = () => {
-    updateParams({
-      q: null,
-      city: null,
-      state: null,
-      status: null,
-      has_upcoming: null,
+  const clearAllFilters = () =>
+    list.change({
       view: "all",
+      filters: { q: "", city: [], state: [], status: [], has_upcoming: null },
     });
-  };
-
-  const handleToolbarSortChange = (nextSort: VenueSort) => {
-    const option = VENUE_SORT_OPTIONS.find((o) => o.key === nextSort.key && o.dir === nextSort.dir);
-    updateParams({ sort: option?.value ?? null }, false);
-  };
 
   const handleTableSortChange = (key: string) => {
     const dir: "asc" | "desc" = sort.key === key ? (sort.dir === "asc" ? "desc" : "asc") : "desc";
-    const option = VENUE_SORT_OPTIONS.find((o) => o.key === key && o.dir === dir);
-    updateParams({ sort: option?.value ?? null }, false);
+    list.change({ sort: { key: key as VenueSort["key"], dir } });
   };
-
-  const handlePageChange = (nextPage: number) => {
-    updateParams({ page: String(nextPage) }, false);
-  };
-
-  const handleSizeChange = (nextSize: number) => {
-    const firstVisibleIndex = (page - 1) * size;
-    const nextPage = Math.floor(firstVisibleIndex / nextSize) + 1;
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      next.set("size", String(nextSize));
-      next.set("page", String(nextPage));
-      return next;
-    });
-  };
-
-  const pageCount = Math.max(1, Math.ceil(total / size));
-  const currentPage = Math.min(page, pageCount);
-  const pageStart = (currentPage - 1) * size;
-  const from = total === 0 ? 0 : pageStart + 1;
-  const to = Math.min(pageStart + size, total);
 
   const drawerFilterCount =
     (filters.q ? 1 : 0) +
@@ -198,7 +84,11 @@ export default function AdminVenuesPage() {
 
   const chips: FilterChip[] = [];
   if (filters.q)
-    chips.push({ key: "q", label: `"${filters.q}"`, onRemove: () => updateParams({ q: null }) });
+    chips.push({
+      key: "q",
+      label: `"${filters.q}"`,
+      onRemove: () => handleFiltersChange({ ...filters, q: "" }),
+    });
   if (filters.status.length > 0) {
     chips.push({
       key: "status",
@@ -208,28 +98,28 @@ export default function AdminVenuesPage() {
           return entry ? entry.label : s;
         })
         .join(", "),
-      onRemove: () => updateParams({ status: null }),
+      onRemove: () => handleFiltersChange({ ...filters, status: [] }),
     });
   }
   if (filters.city.length > 0) {
     chips.push({
       key: "city",
       label: filters.city.join(", "),
-      onRemove: () => updateParams({ city: null }),
+      onRemove: () => handleFiltersChange({ ...filters, city: [] }),
     });
   }
   if (filters.state.length > 0) {
     chips.push({
       key: "state",
       label: filters.state.join(", "),
-      onRemove: () => updateParams({ state: null }),
+      onRemove: () => handleFiltersChange({ ...filters, state: [] }),
     });
   }
   if (filters.has_upcoming !== null) {
     chips.push({
       key: "has_upcoming",
       label: filters.has_upcoming ? "Has upcoming events" : "No upcoming events",
-      onRemove: () => updateParams({ has_upcoming: null }),
+      onRemove: () => handleFiltersChange({ ...filters, has_upcoming: null }),
     });
   }
 
@@ -279,12 +169,12 @@ export default function AdminVenuesPage() {
         <>
           <AdminVenuesToolbar
             view={view}
-            onViewChange={handleViewChange}
+            onViewChange={(nextView) => list.change({ view: nextView })}
             counts={counts}
             filters={filters}
             onFiltersChange={handleFiltersChange}
             sort={sort}
-            onSortChange={handleToolbarSortChange}
+            onSortChange={(nextSort) => list.change({ sort: nextSort })}
             drawerFilterCount={drawerFilterCount}
             onOpenDrawer={() => setDrawerOpen(true)}
           />
@@ -376,8 +266,8 @@ export default function AdminVenuesPage() {
                   from={from}
                   to={to}
                   size={size}
-                  onPageChange={handlePageChange}
-                  onSizeChange={handleSizeChange}
+                  onPageChange={(nextPage) => list.change({ page: nextPage })}
+                  onSizeChange={(nextSize) => list.change({ size: nextSize })}
                 />
               </>
             )}

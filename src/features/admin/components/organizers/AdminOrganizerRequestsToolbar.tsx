@@ -4,8 +4,8 @@ import {
   type OrganizerType,
   type RequestFilters,
   REQUEST_SORT_OPTIONS,
-  type SortDir,
 } from "../../model/organizerRequestsQuery";
+import type { SortDir } from "../../model/listState";
 import { toggleArrayItem } from "../../../../shared/utils/toggleArrayItem";
 import { useDebouncedSearch } from "../../../../shared/hooks/useDebouncedSearch";
 import { useDropdown } from "../../../../shared/hooks/useDropdown";

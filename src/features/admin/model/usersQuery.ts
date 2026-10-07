@@ -1,5 +1,6 @@
 import { ListChecks, UserCog, Flag, FlagOff, PauseCircle, Ban, RotateCcw } from "lucide-react";
 import type { ActionMenuItem } from "../components/common/AdminActionMenu";
+import { enumParam, parseCsvParam, type ListDefinition, type SortDir } from "./listState";
 
 export type AccountKind = "profile" | "guest";
 export type UserRole = "user" | "moderator" | "organizer" | "admin";
@@ -34,7 +35,10 @@ export type UserView =
   | "banned"
   | "guests";
 export type UserSortKey = "joined" | "name" | "contributions" | "active";
-export type SortDir = "asc" | "desc";
+export interface UserSort {
+  key: UserSortKey;
+  dir: SortDir;
+}
 
 export interface UserFilters {
   q: string;
@@ -75,9 +79,53 @@ export const USER_VIEWS: { view: UserView; label: string }[] = [
   { view: "guests", label: "Magic-Link Submitters" },
 ];
 
-export const DEFAULT_USER_SORT: { key: UserSortKey; dir: SortDir } = {
+export const DEFAULT_USER_SORT: UserSort = {
   key: "joined",
   dir: "desc",
+};
+
+const USER_ROLES: UserRole[] = ["user", "moderator", "organizer", "admin"];
+const ACCOUNT_STATUSES: AccountStatus[] = ["active", "flagged", "suspended", "banned"];
+const ACCOUNT_KINDS: AccountKind[] = ["profile", "guest"];
+const USER_SORT_KEYS: UserSortKey[] = ["joined", "name", "contributions", "active"];
+
+export const USERS_LIST: ListDefinition<UserView, UserFilters, UserSort> = {
+  view: enumParam(
+    "view",
+    USER_VIEWS.map((entry) => entry.view),
+    "all"
+  ),
+  filters: {
+    parse: (params) => {
+      const kind = params.get("type");
+      return {
+        q: params.get("q") ?? "",
+        role: parseCsvParam(params, "role", USER_ROLES),
+        status: parseCsvParam(params, "status", ACCOUNT_STATUSES),
+        kind: ACCOUNT_KINDS.includes(kind as AccountKind) ? (kind as AccountKind) : null,
+        from: params.get("from"),
+        to: params.get("to"),
+      };
+    },
+    toParams: (filters) => ({
+      q: filters.q,
+      role: filters.role.join(","),
+      status: filters.status.join(","),
+      type: filters.kind,
+      from: filters.from,
+      to: filters.to,
+    }),
+  },
+  sort: {
+    parse: (params) => {
+      const key = params.get("sort");
+      return {
+        key: USER_SORT_KEYS.includes(key as UserSortKey) ? (key as UserSortKey) : DEFAULT_USER_SORT.key,
+        dir: params.get("dir") === "asc" ? "asc" : "desc",
+      };
+    },
+    toParams: (sort) => ({ sort: sort.key, dir: sort.dir }),
+  },
 };
 
 const VIEW_PREDICATES: Record<UserView, (row: AdminUserRow) => boolean> = {

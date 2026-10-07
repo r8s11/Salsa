@@ -1,4 +1,5 @@
 import { ROLE_LABEL, type UserRole } from "./usersQuery";
+import { enumParam, type ListDefinition } from "./listState";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -38,7 +39,6 @@ export type ActivityView =
   | "security-actions";
 
 export type ActivitySortKey = "newest" | "oldest";
-export type SortDir = "asc" | "desc";
 
 export interface ActivityFilters {
   q: string;
@@ -76,8 +76,39 @@ export const ACTIVITY_VIEWS: { view: ActivityView; label: string }[] = [
   { view: "security-actions", label: "Security Actions" },
 ];
 
-export const PAGE_SIZE_OPTIONS = [25, 50, 100] as const;
-export const DEFAULT_PAGE_SIZE = 25;
+export const ACTIVITY_LIST: ListDefinition<ActivityView, ActivityFilters, ActivitySortKey> = {
+  view: enumParam(
+    "view",
+    ACTIVITY_VIEWS.map((entry) => entry.view),
+    "all"
+  ),
+  filters: {
+    parse: (params) => {
+      const category = params.get("category");
+      const action = params.get("action");
+      const targetType = params.get("target_type");
+      return {
+        q: params.get("q") ?? "",
+        from: params.get("from"),
+        to: params.get("to"),
+        category: category ? [category as ActivityCategory] : [],
+        action: action ? [action] : [],
+        actor: params.get("actor"),
+        targetType: targetType ? [targetType] : [],
+      };
+    },
+    toParams: (filters) => ({
+      q: filters.q,
+      from: filters.from,
+      to: filters.to,
+      category: filters.category[0] ?? null,
+      action: filters.action[0] ?? null,
+      actor: filters.actor,
+      target_type: filters.targetType[0] ?? null,
+    }),
+  },
+  sort: enumParam<ActivitySortKey>("sort", ["newest", "oldest"], "newest"),
+};
 
 // ---------------------------------------------------------------------------
 // Category derivation
@@ -464,18 +495,4 @@ export function activityViewCounts(
     }).length;
   });
   return counts;
-}
-
-// ---------------------------------------------------------------------------
-// URL helpers
-// ---------------------------------------------------------------------------
-
-export function parseSortUrlParam(value: string | null): ActivitySortKey | null {
-  if (!value) return null;
-  if (value === "newest" || value === "oldest") return value;
-  return null;
-}
-
-export function toSortUrlParam(sort: ActivitySortKey): string {
-  return sort;
 }

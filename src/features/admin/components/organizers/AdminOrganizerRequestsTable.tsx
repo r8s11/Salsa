@@ -12,8 +12,8 @@ import {
   type RequestRowAction,
   requestActionItems,
   type RequestStatus,
-  type SortDir,
 } from "../../model/organizerRequestsQuery";
+import type { SortDir } from "../../model/listState";
 import AdminUserAvatar from "../users/AdminUserAvatar";
 import AdminAccountStatusBadge from "../users/AdminAccountStatusBadge";
 import AdminRequestStatusBadge from "./AdminRequestStatusBadge";

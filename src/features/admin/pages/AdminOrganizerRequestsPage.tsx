@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
 import { useOrganizerRequests } from "../hooks/useOrganizerRequests";
+import { useListState, usePageWindow } from "../hooks/useListState";
 import {
   REQUEST_VIEWS,
-  REQUEST_SORT_OPTIONS,
+  ORGANIZER_REQUESTS_LIST,
   applyRequestFilters,
   applyRequestView,
   applyRequestSort,
@@ -16,16 +16,15 @@ import {
   type OrganizerRequestRow,
 } from "../model/organizerRequestsQuery";
 import type { RejectionReasonCode } from "../model/organizerRequestsQuery";
-import { PAGE_SIZE_OPTIONS, DEFAULT_PAGE_SIZE } from "../model/eventsQuery";
-import AdminPageHeader from "../../../components/Admin/AdminPageHeader";
-import AdminViewTabs from "../../../components/Admin/AdminViewTabs";
-import AdminOrganizerRequestsToolbar from "../../../components/Admin/AdminOrganizerRequestsToolbar";
-import AdminOrganizerRequestsFilterDrawer from "../../../components/Admin/AdminOrganizerRequestsFilterDrawer";
-import AdminOrganizerRequestsTable from "../../../components/Admin/AdminOrganizerRequestsTable";
-import AdminPagination from "../../../components/Admin/AdminPagination";
-import AdminConfirmDialog from "../../../components/Admin/AdminConfirmDialog";
-import AdminRejectOrganizerDialog from "../../../components/Admin/AdminRejectOrganizerDialog";
-import type { ActionMenuItem } from "../../../components/Admin/AdminActionMenu";
+import AdminPageHeader from "../components/shell/AdminPageHeader";
+import AdminViewTabs from "../components/shell/AdminViewTabs";
+import AdminOrganizerRequestsToolbar from "../components/organizers/AdminOrganizerRequestsToolbar";
+import AdminOrganizerRequestsFilterDrawer from "../components/organizers/AdminOrganizerRequestsFilterDrawer";
+import AdminOrganizerRequestsTable from "../components/organizers/AdminOrganizerRequestsTable";
+import AdminPagination from "../components/common/AdminPagination";
+import AdminConfirmDialog from "../components/common/AdminConfirmDialog";
+import AdminRejectOrganizerDialog from "../components/organizers/AdminRejectOrganizerDialog";
+import type { ActionMenuItem } from "../components/common/AdminActionMenu";
 import "./AdminOrganizerRequestsPage.css";
 
 /** Pending action + the request it applies to, so the dialog knows the target. */
@@ -38,41 +37,6 @@ interface FilterChip {
   key: string;
   label: string;
   onRemove: () => void;
-}
-
-const VALID_VIEWS = REQUEST_VIEWS.map((entry) => entry.view);
-const VALID_SORT_OPTIONS = REQUEST_SORT_OPTIONS;
-
-function parseView(searchParams: URLSearchParams): RequestView {
-  const raw = searchParams.get("view");
-  return VALID_VIEWS.includes(raw as RequestView) ? (raw as RequestView) : "pending";
-}
-
-function parseFilters(searchParams: URLSearchParams): RequestFilters {
-  return {
-    q: searchParams.get("q") ?? "",
-    type: [],
-    accountStatus: [],
-    from: searchParams.get("from"),
-    to: searchParams.get("to"),
-  };
-}
-
-function parseSort(searchParams: URLSearchParams): RequestSort {
-  const raw = searchParams.get("sort");
-  const option = VALID_SORT_OPTIONS.find((o) => o.value === raw);
-  if (option) return { key: option.key, dir: option.dir };
-  return { key: "requested", dir: "desc" };
-}
-
-function parsePage(searchParams: URLSearchParams): number {
-  const raw = Number(searchParams.get("page"));
-  return Number.isInteger(raw) && raw > 0 ? raw : 1;
-}
-
-function parseSize(searchParams: URLSearchParams): number {
-  const raw = Number(searchParams.get("size"));
-  return (PAGE_SIZE_OPTIONS as readonly number[]).includes(raw) ? raw : DEFAULT_PAGE_SIZE;
 }
 
 export default function AdminOrganizerRequestsPage() {
@@ -91,104 +55,45 @@ export default function AdminOrganizerRequestsPage() {
     rejectErrorId,
   } = useOrganizerRequests();
 
-  const [searchParams, setSearchParams] = useSearchParams();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [announcement, setAnnouncement] = useState("");
 
   const requests = useMemo(() => queriedRequests ?? [], [queriedRequests]);
 
-  const { view, filters, sort, page, size, pagedRequests, total } = useMemo(() => {
-    const parsedView = parseView(searchParams);
-    const parsedFilters = parseFilters(searchParams);
-    const parsedSort = parseSort(searchParams);
-    const parsedPage = parsePage(searchParams);
-    const parsedSize = parseSize(searchParams);
-
-    // Apply the view tab first, then filters, then sort — same pipeline
-    // shape as AdminUsersPage's `applyUserView → applyUserFilters → sort`.
-    const viewed = applyRequestView(requests, parsedView);
-    const filtered = applyRequestFilters(viewed, parsedFilters);
-    const sorted = applyRequestSort(filtered, parsedSort.key, parsedSort.dir);
-
-    const start = (parsedPage - 1) * parsedSize;
-
-    return {
-      view: parsedView,
-      filters: parsedFilters,
-      sort: parsedSort,
-      page: parsedPage,
-      size: parsedSize,
-      pagedRequests: sorted.slice(start, start + parsedSize),
-      total: sorted.length,
-    };
-  }, [requests, searchParams]);
+  const list = useListState(ORGANIZER_REQUESTS_LIST);
+  const { view, filters, sort, size } = list.state;
+  // Apply the view tab first, then filters, then sort — same pipeline
+  // shape as AdminUsersPage's `applyUserView → applyUserFilters → sort`.
+  const sorted = useMemo(
+    () =>
+      applyRequestSort(applyRequestFilters(applyRequestView(requests, view), filters), sort.key, sort.dir),
+    [requests, view, filters, sort]
+  );
+  const total = sorted.length;
+  const pageBounds = usePageWindow(list, queriedRequests ? total : null);
+  const pagedRequests = sorted.slice(pageBounds.offset, pageBounds.offset + size);
+  const { page: currentPage, pageCount, from, to } = pageBounds;
 
   const counts = useMemo(() => requestViewCounts(requests), [requests]);
 
-  const updateParams = (patch: Record<string, string | null>, resetPage = true) => {
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      Object.entries(patch).forEach(([key, value]) => {
-        if (value === null || value === "") next.delete(key);
-        else next.set(key, value);
-      });
-      if (resetPage) next.delete("page");
-      return next;
-    });
-  };
+  const handleFiltersChange = (nextFilters: RequestFilters) => list.change({ filters: nextFilters });
 
-  const handleViewChange = (nextView: RequestView) => {
-    updateParams({ view: nextView });
-  };
-
-  const handleFiltersChange = (nextFilters: RequestFilters) => {
-    updateParams({
-      q: nextFilters.q || null,
-    });
-  };
-
-  const clearAllFilters = () => {
-    updateParams({ q: null, from: null, to: null });
-  };
-
-  const handleToolbarSortChange = (nextSort: RequestSort) => {
-    const option = REQUEST_SORT_OPTIONS.find(
-      (o) => o.key === nextSort.key && o.dir === nextSort.dir
-    );
-    updateParams({ sort: option?.value ?? null }, false);
-  };
+  const clearAllFilters = () =>
+    handleFiltersChange({ ...filters, q: "", from: null, to: null });
 
   const handleTableSortChange = (key: string) => {
     const dir = sort.key === key ? (sort.dir === "asc" ? "desc" : "asc") : "desc";
-    const option = REQUEST_SORT_OPTIONS.find((o) => o.key === key && o.dir === dir);
-    updateParams({ sort: option?.value ?? null }, false);
+    list.change({ sort: { key: key as RequestSort["key"], dir } });
   };
-
-  const handlePageChange = (nextPage: number) => {
-    updateParams({ page: String(nextPage) }, false);
-  };
-
-  const handleSizeChange = (nextSize: number) => {
-    const firstVisibleIndex = (page - 1) * size;
-    const nextPage = Math.floor(firstVisibleIndex / nextSize) + 1;
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      next.set("size", String(nextSize));
-      next.set("page", String(nextPage));
-      return next;
-    });
-  };
-
-  const pageCount = Math.max(1, Math.ceil(total / size));
-  const currentPage = Math.min(page, pageCount);
-  const pageStart = (currentPage - 1) * size;
-  const from = total === 0 ? 0 : pageStart + 1;
-  const to = Math.min(pageStart + size, total);
 
   const chips: FilterChip[] = [];
   if (filters.q)
-    chips.push({ key: "q", label: `"${filters.q}"`, onRemove: () => updateParams({ q: null }) });
+    chips.push({
+      key: "q",
+      label: `"${filters.q}"`,
+      onRemove: () => handleFiltersChange({ ...filters, q: "" }),
+    });
   if (filters.from || filters.to) {
     const label =
       filters.from && filters.to
@@ -196,7 +101,11 @@ export default function AdminOrganizerRequestsPage() {
         : filters.from
           ? `From ${filters.from}`
           : `Until ${filters.to!}`;
-    chips.push({ key: "date", label, onRemove: () => updateParams({ from: null, to: null }) });
+    chips.push({
+      key: "date",
+      label,
+      onRemove: () => handleFiltersChange({ ...filters, from: null, to: null }),
+    });
   }
 
   const noFiltersActive = chips.length === 0;
@@ -282,7 +191,7 @@ export default function AdminOrganizerRequestsPage() {
             ariaLabel="Request views"
             selectId="admin-organizer-requests-view-select"
             selectLabel="Request view"
-            onChange={handleViewChange}
+            onChange={(nextView) => list.change({ view: nextView })}
           />
 
           <div className="admin-card admin-organizer-requests-page__toolbar-card">
@@ -290,7 +199,7 @@ export default function AdminOrganizerRequestsPage() {
               filters={filters}
               onFiltersChange={handleFiltersChange}
               sort={sort}
-              onSortChange={handleToolbarSortChange}
+              onSortChange={(nextSort) => list.change({ sort: nextSort })}
               drawerFilterCount={0 /* type + accountStatus + date range — wired later */}
               onOpenDrawer={() => setDrawerOpen(true)}
             />
@@ -387,8 +296,8 @@ export default function AdminOrganizerRequestsPage() {
                   from={from}
                   to={to}
                   size={size}
-                  onPageChange={handlePageChange}
-                  onSizeChange={handleSizeChange}
+                  onPageChange={(nextPage) => list.change({ page: nextPage })}
+                  onSizeChange={(nextSize) => list.change({ size: nextSize })}
                 />
               </>
             )}

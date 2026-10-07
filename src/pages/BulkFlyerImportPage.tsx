@@ -2,9 +2,9 @@ import { useEffect, useRef, useState, type Ref } from "react";
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, ExternalLink, ImagePlus } from "lucide-react";
-import AdminPageHeader from "../components/Admin/AdminPageHeader";
-import MarginMark from "../components/Desk/MarginMark";
-import type { DeskState } from "../components/Desk/deskModel";
+import AdminPageHeader from "../features/admin/components/shell/AdminPageHeader";
+import MarginMark from "../components/desk/MarginMark";
+import type { DeskState } from "../components/desk/deskModel";
 import type { EventTaxonomyTerm } from "../features/events/model/types";
 import { useAuth } from "../contexts/useAuth";
 import { useCity } from "../contexts/useCity";
@@ -46,7 +46,7 @@ import {
   suppressAutoVenueLink,
   detachAutoVenueLink,
 } from "../features/entity-matching/entityReviewState";
-import "../components/Desk/desk.css";
+import "../components/desk/desk.css";
 import "./BulkFlyerImportPage.css";
 
 type Props = { mode: "host" | "admin" };

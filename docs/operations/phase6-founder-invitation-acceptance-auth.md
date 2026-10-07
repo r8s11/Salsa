@@ -252,9 +252,9 @@ Security properties:
 | `src/lib/authReturnDestination.test.ts` | 8 unit tests for set / consume / path validation / single-consumption |
 | `src/pages/FoundersAcceptPage.tsx` | Replaced the Phase 5 placeholder with the real acceptance page — all states, all flows, URL cleanup, focus management, mobile-responsive |
 | `src/pages/FoundersAcceptPage.css` | Acceptance page styling using real `--bg`/`--surface`/`--border`/`--red`/`--card`/`--text`/`--text-muted`/`--text-dim`/`--radius-lg`/`--space-*` tokens from `global.css` |
-| `src/components/Auth/AuthCallback.tsx` | *(modified)* — consumes `authReturnDestination` after successful PKCE exchange and after recovery password update, before falling back to `?next=` or the role default |
-| `src/components/Auth/SignInForm.tsx` | *(modified)* — reads new `location.state.email` and `location.state.lockedEmail` (pre-fills and locks the email on Founder invitation signup); `redirectAfterAuth` prefers `consumeAuthReturnDestination` over `location.state.from` |
-| `src/components/Auth/SignInForm.css` | *(modified)* — `.field-hint` style for the locked-email hint |
+| `src/features/auth/pages/AuthCallback.tsx` | *(modified)* — consumes `authReturnDestination` after successful PKCE exchange and after recovery password update, before falling back to `?next=` or the role default |
+| `src/features/auth/components/SignInForm.tsx` | *(modified)* — reads new `location.state.email` and `location.state.lockedEmail` (pre-fills and locks the email on Founder invitation signup); `redirectAfterAuth` prefers `consumeAuthReturnDestination` over `location.state.from` |
+| `src/features/auth/components/SignInForm.css` | *(modified)* — `.field-hint` style for the locked-email hint |
 | `index.html` | *(modified)* — added `<meta name="referrer" content="strict-origin-when-cross-origin">` to prevent the token-learing URL from being sent to third-party resources via the `Referer` header |
 
 ## 8. Database Changes

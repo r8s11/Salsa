@@ -13,11 +13,11 @@ import {
   type VenueAction,
   VENUE_QUALITY_ISSUE_LABEL,
 } from "../model/venuesQuery";
-import AdminVenueStatusBadge from "../../../components/Admin/AdminVenueStatusBadge";
-import AdminQualityBadge from "../../../components/Admin/AdminQualityBadge";
-import AdminActionMenu from "../../../components/Admin/AdminActionMenu";
-import AdminConfirmDialog from "../../../components/Admin/AdminConfirmDialog";
-import AdminVenueForm from "../../../components/Admin/AdminVenueForm";
+import AdminVenueStatusBadge from "../components/venues/AdminVenueStatusBadge";
+import AdminQualityBadge from "../components/common/AdminQualityBadge";
+import AdminActionMenu from "../components/common/AdminActionMenu";
+import AdminConfirmDialog from "../components/common/AdminConfirmDialog";
+import AdminVenueForm from "../components/venues/AdminVenueForm";
 import { auditLogLabelFor } from "../model/auditLog";
 import "./AdminVenueDetailPage.css";
 

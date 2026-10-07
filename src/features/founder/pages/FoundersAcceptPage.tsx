@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import type { User } from "@supabase/supabase-js";
-import SalsaSeguraLogo from "../../../components/brand/SalsaSeguraLogo";
+import SalsaSeguraLogo from "../../../components/ui/SalsaSeguraLogo";
 import { useAuth } from "../../../contexts/useAuth";
 import {
   validateFounderInvitation,

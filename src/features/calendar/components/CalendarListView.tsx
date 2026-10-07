@@ -7,7 +7,7 @@ import {
   formatCalendarTime,
   sortCalendarEvents,
 } from "../model/calendarEvents";
-import { resolveEventFlyer } from "../../../components/EventModal/eventModalImage";
+import { resolveEventFlyer } from "../../events/components/event-modal/eventModalImage";
 import { isRecentlyApproved } from "../../events/model/recentlyApproved";
 import "temporal-polyfill/global";
 

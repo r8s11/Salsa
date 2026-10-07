@@ -1,61 +1,20 @@
 import { useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import AdminPageHeader from "../../../components/Admin/AdminPageHeader";
-import AdminActivityToolbar from "../../../components/Admin/AdminActivityToolbar";
-import AdminActivityFilterDrawer from "../../../components/Admin/AdminActivityFilterDrawer";
-import AdminActivityTable from "../../../components/Admin/AdminActivityTable";
-import AdminPagination from "../../../components/Admin/AdminPagination";
+import { useNavigate } from "react-router-dom";
+import AdminPageHeader from "../components/shell/AdminPageHeader";
+import AdminActivityToolbar from "../components/activity/AdminActivityToolbar";
+import AdminActivityFilterDrawer from "../components/activity/AdminActivityFilterDrawer";
+import AdminActivityTable from "../components/activity/AdminActivityTable";
+import AdminPagination from "../components/common/AdminPagination";
 import { useAdminActivity } from "../hooks/useAdminActivity";
+import { useListState, usePageWindow } from "../hooks/useListState";
 import {
-  ACTIVITY_VIEWS,
+  ACTIVITY_LIST,
   CATEGORY_LABEL,
-  PAGE_SIZE_OPTIONS,
-  DEFAULT_PAGE_SIZE,
   activityViewCounts,
   type ActivityAuditLog,
-  type ActivityView,
-  type ActivitySortKey,
   type ActivityFilters,
-  type ActivityCategory,
 } from "../model/auditActivityQuery";
 import "./AdminActivityPage.css";
-
-// ---- URL param parsing (matches AdminVenuesPage / AdminEventsPage shape) ----
-
-function parseView(searchParams: URLSearchParams): ActivityView {
-  const raw = searchParams.get("view");
-  return ACTIVITY_VIEWS.some((v) => v.view === raw) ? (raw as ActivityView) : "all";
-}
-
-function parseFilters(searchParams: URLSearchParams): ActivityFilters {
-  const q = searchParams.get("q") ?? "";
-  const from = searchParams.get("from");
-  const to = searchParams.get("to");
-  const categoryRaw = searchParams.get("category");
-  const category = categoryRaw ? ([categoryRaw] as ActivityCategory[]) : [];
-  const actionRaw = searchParams.get("action");
-  const action = actionRaw ? [actionRaw] : [];
-  const actor = searchParams.get("actor");
-  const targetTypeRaw = searchParams.get("target_type");
-  const targetType = targetTypeRaw ? [targetTypeRaw] : [];
-
-  return { q, from, to, category, action, actor, targetType };
-}
-
-function parseSort(searchParams: URLSearchParams): ActivitySortKey {
-  const raw = searchParams.get("sort");
-  return raw === "oldest" ? "oldest" : "newest";
-}
-
-function parsePage(searchParams: URLSearchParams): number {
-  const raw = Number(searchParams.get("page"));
-  return Number.isInteger(raw) && raw > 0 ? raw : 1;
-}
-
-function parseSize(searchParams: URLSearchParams): number {
-  const raw = Number(searchParams.get("size"));
-  return (PAGE_SIZE_OPTIONS as readonly number[]).includes(raw) ? raw : DEFAULT_PAGE_SIZE;
-}
 
 interface FilterChip {
   key: string;
@@ -64,16 +23,12 @@ interface FilterChip {
 }
 
 export default function AdminActivityPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const activeView = parseView(searchParams);
-  const sort = parseSort(searchParams);
-  const page = parsePage(searchParams);
-  const size = parseSize(searchParams);
-  const filters = parseFilters(searchParams);
+  const list = useListState(ACTIVITY_LIST);
+  const { view: activeView, filters, sort, page, size } = list.state;
 
   // Build RPC params based on URL filters
   const rpcParams = useMemo(
@@ -94,26 +49,12 @@ export default function AdminActivityPage() {
   const { entries, total, isLoading, error, refetch } = useAdminActivity(rpcParams);
   const currentEntries = useMemo(() => entries ?? [], [entries]);
 
-  const updateParams = (patch: Record<string, string | null>, resetPage = true) => {
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      Object.entries(patch).forEach(([key, value]) => {
-        if (value === null || value === "") next.delete(key);
-        else next.set(key, value);
-      });
-      if (resetPage) next.delete("page");
-      return next;
-    });
-  };
+  // Server-paged: the requested page drives the RPC offset; once the total
+  // is known, an out-of-range page is clamped and refetched.
+  const pageBounds = usePageWindow(list, isLoading || error ? null : total);
+  const { page: currentPage, pageCount, from: fromIdx, to: toIdx } = pageBounds;
 
-  const handleViewChange = (nextView: ActivityView) => updateParams({ view: nextView });
-  const handleSortChange = (nextSort: ActivitySortKey) => updateParams({ sort: nextSort });
-  const handlePageChange = (nextPage: number) => updateParams({ page: String(nextPage) }, false);
-  const handleSizeChange = (nextSize: number) => {
-    const firstVisibleIndex = (page - 1) * size;
-    const nextPage = Math.floor(firstVisibleIndex / nextSize) + 1;
-    updateParams({ size: String(nextSize), page: String(nextPage) }, false);
-  };
+  const handleFiltersChange = (nextFilters: ActivityFilters) => list.change({ filters: nextFilters });
 
   const drawerFilterCount =
     (filters.q ? 1 : 0) +
@@ -124,59 +65,56 @@ export default function AdminActivityPage() {
 
   const chips: FilterChip[] = [];
   if (filters.q)
-    chips.push({ key: "q", label: `"${filters.q}"`, onRemove: () => updateParams({ q: null }) });
+    chips.push({
+      key: "q",
+      label: `"${filters.q}"`,
+      onRemove: () => handleFiltersChange({ ...filters, q: "" }),
+    });
   if (filters.category.length > 0) {
     chips.push({
       key: "category",
       label: filters.category.map((c) => CATEGORY_LABEL[c]).join(", "),
-      onRemove: () => updateParams({ category: null }),
+      onRemove: () => handleFiltersChange({ ...filters, category: [] }),
     });
   }
   if (filters.action.length > 0) {
     chips.push({
       key: "action",
       label: `${filters.action.length} action${filters.action.length > 1 ? "s" : ""}`,
-      onRemove: () => updateParams({ action: null }),
+      onRemove: () => handleFiltersChange({ ...filters, action: [] }),
     });
   }
   if (filters.targetType.length > 0) {
     chips.push({
       key: "targetType",
       label: `${filters.targetType.length} type${filters.targetType.length > 1 ? "s" : ""}`,
-      onRemove: () => updateParams({ target_type: null }),
+      onRemove: () => handleFiltersChange({ ...filters, targetType: [] }),
     });
   }
   if (filters.actor)
     chips.push({
       key: "actor",
       label: `Actor ${filters.actor.slice(0, 8)}`,
-      onRemove: () => updateParams({ actor: null }),
+      onRemove: () => handleFiltersChange({ ...filters, actor: null }),
     });
   if (filters.from)
     chips.push({
       key: "from",
       label: `From ${filters.from}`,
-      onRemove: () => updateParams({ from: null }),
+      onRemove: () => handleFiltersChange({ ...filters, from: null }),
     });
   if (filters.to)
     chips.push({
       key: "to",
       label: `To ${filters.to}`,
-      onRemove: () => updateParams({ to: null }),
+      onRemove: () => handleFiltersChange({ ...filters, to: null }),
     });
 
-  const clearAllFilters = () => {
-    updateParams({
-      q: null,
-      from: null,
-      to: null,
-      category: null,
-      action: null,
-      actor: null,
-      target_type: null,
-      view: null,
+  const clearAllFilters = () =>
+    list.change({
+      view: "all",
+      filters: { q: "", from: null, to: null, category: [], action: [], actor: null, targetType: [] },
     });
-  };
 
   const handleRowAction = (entry: ActivityAuditLog) => {
     navigate(`/admin/activity/${entry.id}`);
@@ -186,12 +124,6 @@ export default function AdminActivityPage() {
 
   const isError = !!error;
   const emptyDb = !isLoading && !isError && currentEntries.length === 0;
-
-  const pageCount = Math.max(1, Math.ceil(total / size));
-  const currentPage = Math.min(page, pageCount);
-  const pageStart = (currentPage - 1) * size;
-  const fromIdx = total === 0 ? 0 : pageStart + 1;
-  const toIdx = Math.min(pageStart + size, total);
 
   // Preset counts — server-paginated, so these approximate from the entries
   // on the current page/filter response rather than the full table.
@@ -228,21 +160,11 @@ export default function AdminActivityPage() {
         <>
           <AdminActivityToolbar
             view={activeView}
-            onViewChange={handleViewChange}
+            onViewChange={(nextView) => list.change({ view: nextView })}
             sort={sort}
-            onSortChange={handleSortChange}
+            onSortChange={(nextSort) => list.change({ sort: nextSort })}
             filters={filters}
-            onFiltersChange={(next) => {
-              updateParams({
-                q: next.q || null,
-                from: next.from,
-                to: next.to,
-                category: next.category[0] ?? null,
-                action: next.action[0] ?? null,
-                actor: next.actor ?? null,
-                target_type: next.targetType[0] ?? null,
-              });
-            }}
+            onFiltersChange={handleFiltersChange}
             drawerFilterCount={drawerFilterCount}
             onOpenDrawer={() => setDrawerOpen(true)}
             counts={presetCounts}
@@ -318,8 +240,8 @@ export default function AdminActivityPage() {
                   from={fromIdx}
                   to={toIdx}
                   size={size}
-                  onPageChange={handlePageChange}
-                  onSizeChange={handleSizeChange}
+                  onPageChange={(nextPage) => list.change({ page: nextPage })}
+                  onSizeChange={(nextSize) => list.change({ size: nextSize })}
                 />
               </>
             )}
@@ -330,17 +252,7 @@ export default function AdminActivityPage() {
       <AdminActivityFilterDrawer
         open={drawerOpen}
         filters={filters}
-        onFiltersChange={(next) => {
-          updateParams({
-            q: next.q || null,
-            from: next.from,
-            to: next.to,
-            category: next.category[0] ?? null,
-            action: next.action[0] ?? null,
-            actor: next.actor ?? null,
-            target_type: next.targetType[0] ?? null,
-          });
-        }}
+        onFiltersChange={handleFiltersChange}
         onApply={() => setDrawerOpen(false)}
         onClose={() => setDrawerOpen(false)}
       />

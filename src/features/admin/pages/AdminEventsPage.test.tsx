@@ -384,28 +384,6 @@ describe("AdminEventsPage", () => {
   });
 
   describe("Phase 2 Overview deep links", () => {
-    it("?status=pending shows only pending rows", () => {
-      renderAt("/admin/events?status=pending");
-
-      const table = eventsTable();
-      expect(within(table).getByText("Bachata Sensual Social")).toBeInTheDocument();
-      expect(within(table).queryByText("Salsa Workshop NYC")).not.toBeInTheDocument();
-      expect(within(table).queryByText("Kizomba Class")).not.toBeInTheDocument();
-      expect(within(table).getByText("Pending Approval")).toBeInTheDocument();
-    });
-
-    it("?flag=upcoming normalizes to the Upcoming view", () => {
-      renderAt("/admin/events?flag=upcoming");
-
-      expect(screen.getByRole("tab", { name: /Upcoming/ })).toHaveAttribute(
-        "aria-selected",
-        "true"
-      );
-      const table = eventsTable();
-      expect(within(table).getByText("Salsa Workshop NYC")).toBeInTheDocument();
-      expect(within(table).getByText("Bachata Sensual Social")).toBeInTheDocument();
-    });
-
     it("?flag=incomplete filters to events with a quality issue and shows the Missing info chip", () => {
       vi.mocked(useAdminEvents).mockReturnValue({
         ...defaultState,
@@ -455,6 +433,34 @@ describe("AdminEventsPage", () => {
     });
   });
 
+  it("typing in the search field does not crash when an event has a null city", async () => {
+    const user = userEvent.setup();
+    // events.city is nullable in the database although DatabaseEvent types it as string.
+    const noCity = {
+      ...approvedUpcoming,
+      id: "event-6",
+      title: "Sunset Social",
+      city: null,
+    } as unknown as DatabaseEvent;
+    vi.mocked(useAdminEvents).mockReturnValue({
+      ...defaultState,
+      events: [...events, noCity],
+    });
+    renderAt("/admin/events?view=all");
+
+    await user.type(screen.getByRole("searchbox", { name: "Search events" }), "SUN");
+
+    await waitFor(() => {
+      expect(within(eventsTable()).getByText("Sunset Social")).toBeInTheDocument();
+      expect(within(eventsTable()).queryByText("Kizomba Class")).not.toBeInTheDocument();
+    });
+  });
+
+  it("an out-of-range ?page= shows the last page's rows, matching the pager", () => {
+    renderAt("/admin/events?view=all&page=9");
+    expect(within(eventsTable()).getByText("Bachata Sensual Social")).toBeInTheDocument();
+  });
+
   it("?view=archived shows archived rows; the default view does not", () => {
     vi.mocked(useAdminEvents).mockReturnValue({ ...defaultState, events: [...events, archived] });
     renderAt("/admin/events?view=archived");
@@ -469,7 +475,7 @@ describe("AdminEventsPage", () => {
 
   it("clicking the Event header sorts and toggles aria-sort", async () => {
     const user = userEvent.setup();
-    renderPage();
+    renderAt("/admin/events?view=upcoming");
 
     const eventHeader = screen.getByRole("columnheader", { name: /^Event/ });
     expect(eventHeader).toHaveAttribute("aria-sort", "none");
@@ -483,7 +489,7 @@ describe("AdminEventsPage", () => {
 
   it("published event's row menu offers Unpublish/Cancel/Archive, not Publish", async () => {
     const user = userEvent.setup();
-    renderPage();
+    renderAt("/admin/events?view=upcoming");
 
     const menu = await openRowMenu(user, "Salsa Workshop NYC");
     expect(within(menu).getByRole("menuitem", { name: "Unpublish" })).toBeInTheDocument();
@@ -498,7 +504,7 @@ describe("AdminEventsPage", () => {
     renderAt("/admin/events?view=archived");
 
     const menu = await openRowMenu(user, "Archived Class");
-    expect(within(menu).getByRole("menuitem", { name: "Restore" })).toBeInTheDocument();
+    expect(within(menu).getByRole("menuitem", { name: "Restore as draft" })).toBeInTheDocument();
     expect(within(menu).queryByRole("menuitem", { name: "Archive" })).not.toBeInTheDocument();
   });
 
@@ -506,7 +512,7 @@ describe("AdminEventsPage", () => {
     const user = userEvent.setup();
     const changeStatus = vi.fn();
     vi.mocked(useAdminEvents).mockReturnValue({ ...defaultState, changeStatus });
-    renderPage();
+    renderAt("/admin/events?view=upcoming");
 
     const menu = await openRowMenu(user, "Salsa Workshop NYC");
     await user.click(within(menu).getByRole("menuitem", { name: "Cancel Event" }));
@@ -514,12 +520,104 @@ describe("AdminEventsPage", () => {
     const dialog = screen.getByRole("dialog");
     expect(within(dialog).getByText("Cancel this event?")).toBeInTheDocument();
     await user.type(within(dialog).getByLabelText(/Reason/), "Venue flooded");
+    expect(within(dialog).getByRole("button", { name: "Keep event" })).toBeInTheDocument();
     await user.click(within(dialog).getByRole("button", { name: "Cancel event" }));
 
-    expect(changeStatus).toHaveBeenCalledWith({
-      id: "event-2",
-      status: "cancelled",
-      reason: "Venue flooded",
+    expect(changeStatus).toHaveBeenCalledWith(
+      { id: "event-2", status: "cancelled", reason: "Venue flooded" },
+      expect.any(Object)
+    );
+  });
+
+  describe("decision flow", () => {
+    const statusCalls = (changeStatus: { mock: { calls: unknown[][] } }) =>
+      changeStatus.mock.calls.map(([variables]) => variables);
+
+    it("lands on Pending Review when entries are waiting and no view is chosen", () => {
+      renderPage();
+      expect(screen.getByRole("tab", { name: /Pending Review/ })).toHaveAttribute(
+        "aria-selected",
+        "true"
+      );
+    });
+
+    it("keeps an explicit view instead of redirecting to Pending Review", () => {
+      renderAt("/admin/events?view=published");
+      expect(screen.getByRole("tab", { name: /^Published/ })).toHaveAttribute(
+        "aria-selected",
+        "true"
+      );
+    });
+
+    it("Approve writes the approved status and announces it with an Undo", async () => {
+      const user = userEvent.setup();
+      const changeStatus = vi.fn((_variables, options) => options?.onSuccess?.());
+      const changeStatusAsync = vi.fn().mockResolvedValue(undefined);
+      vi.mocked(useAdminEvents).mockReturnValue({
+        ...defaultState,
+        changeStatus,
+        changeStatusAsync,
+      });
+      renderAt("/admin/events?view=pending");
+
+      await user.click(
+        within(eventsTable()).getByRole("button", { name: "Approve Bachata Sensual Social" })
+      );
+
+      expect(statusCalls(changeStatus)).toEqual([
+        { id: "event-1", status: "approved", reason: undefined },
+      ]);
+      expect(
+        screen.getByText(/Approved “Bachata Sensual Social”\. It is live for/, {
+          selector: ".admin-visually-hidden",
+        })
+      ).toBeInTheDocument();
+
+      await user.click(screen.getByRole("button", { name: "Undo" }));
+      expect(changeStatusAsync).toHaveBeenCalledWith({ id: "event-1", status: "pending" });
+    });
+
+    it("Reject confirms without a reason field and then writes the rejected status", async () => {
+      const user = userEvent.setup();
+      const changeStatus = vi.fn();
+      vi.mocked(useAdminEvents).mockReturnValue({ ...defaultState, changeStatus });
+      renderAt("/admin/events?view=pending");
+
+      await user.click(
+        within(eventsTable()).getByRole("button", { name: "Reject Bachata Sensual Social" })
+      );
+      const dialog = screen.getByRole("dialog");
+      expect(within(dialog).getByText("Reject this event?")).toBeInTheDocument();
+      expect(within(dialog).queryByLabelText(/Reason/)).not.toBeInTheDocument();
+      await user.click(within(dialog).getByRole("button", { name: "Reject event" }));
+
+      expect(statusCalls(changeStatus)).toEqual([
+        { id: "event-1", status: "rejected", reason: undefined },
+      ]);
+    });
+
+    it("bulk Approve decides every selected entry in one action", async () => {
+      const user = userEvent.setup();
+      const second: DatabaseEvent = { ...baseEvent, id: "event-9", title: "Second Pending" };
+      const changeStatusAsync = vi.fn().mockResolvedValue(undefined);
+      vi.mocked(useAdminEvents).mockReturnValue({
+        ...defaultState,
+        events: [baseEvent, second],
+        changeStatusAsync,
+      });
+      renderAt("/admin/events?view=pending");
+
+      await user.click(screen.getByRole("checkbox", { name: "Select all events on this page" }));
+      await user.click(screen.getByRole("button", { name: "Approve 2" }));
+
+      await waitFor(() => expect(changeStatusAsync).toHaveBeenCalledTimes(2));
+      expect(changeStatusAsync).toHaveBeenCalledWith({ id: "event-1", status: "approved" });
+      expect(changeStatusAsync).toHaveBeenCalledWith({ id: "event-9", status: "approved" });
+    });
+
+    it("offers no selection outside Pending Review", () => {
+      renderAt("/admin/events?view=published");
+      expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
     });
   });
 

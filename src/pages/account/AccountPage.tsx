@@ -20,7 +20,7 @@ import {
   type DeletionBlocker,
   type DeletionEligibility,
 } from "../../features/account/api/accountDeletion";
-import { friendlyAuthError } from "../../components/Auth/authUtils";
+import { friendlyAuthError } from "../../features/auth/model/authUtils";
 import FormFieldError from "../../shared/forms/FormFieldError";
 import { fieldErrorProps } from "../../shared/forms/fieldErrorProps";
 import Button from "../../components/ui/Button";

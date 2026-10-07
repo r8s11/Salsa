@@ -19,7 +19,7 @@ Audited before writing anything new:
   (opaque to application code); the function's only DB writes are
   `profiles` upsert and an `audit_logs` insert. **No custom invitation
   table exists anywhere in the repository.**
-- `src/components/Auth/InviteActivationPage.tsx` — consumes the organizer
+- `src/features/auth/pages/InviteActivationPage.tsx` — consumes the organizer
   invite's PKCE/token-hash callback and immediately establishes an Auth
   session + profile. Not reusable: Phase 4 must NOT create an Auth user or
   session at all.
@@ -235,7 +235,7 @@ fresh invitation superseded an expired one."
 | `src/features/admin/model/founderInvitationQuery.test.ts` | 16 unit tests for the above |
 | `src/features/admin/api/founderInvitationRepo.ts` | `supabase.rpc()` wrappers for the three RPCs |
 | `src/hooks/useFounderInvitation.ts` | TanStack Query hook: read + create + revoke mutations |
-| `src/components/Admin/AdminFounderInvitationSection.tsx` | Admin detail-page section: status, create/revoke actions, one-time token reveal |
+| `src/features/admin/components/founders/AdminFounderInvitationSection.tsx` | Admin detail-page section: status, create/revoke actions, one-time token reveal |
 | `src/pages/Admin/AdminFounderRequestDetailPage.tsx` | Renders the new section when `request.status === "approved"` |
 | `src/pages/Admin/AdminFounderRequestDetailPage.css` | Rewritten to use real `--admin-*` design tokens (see note below) + new `.invitation-*` styles |
 

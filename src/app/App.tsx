@@ -3,8 +3,8 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
 import HomePage from "../pages/HomePage";
 import EventsParamRoute from "../pages/EventsParamRoute";
-import ScrollToTop from "../components/Scroll/ScrollToTop";
-import AppErrorBoundary from "../components/AppErrorBoundary/AppErrorBoundary";
+import ScrollToTop from "../components/layout/ScrollToTop";
+import AppErrorBoundary from "../components/layout/AppErrorBoundary";
 
 // Lazy-loaded pages for better initial bundle size
 const AboutPage = lazy(() => import("../pages/AboutPage"));
@@ -35,9 +35,9 @@ const AdminFounderRequestDetailPage = lazy(
   () => import("../features/admin/pages/AdminFounderRequestDetailPage")
 );
 const SignInPage = lazy(() => import("../pages/auth/SignInPage"));
-const AuthCallback = lazy(() => import("../components/Auth/AuthCallback"));
-const ConfirmSignupPage = lazy(() => import("../components/Auth/ConfirmSignupPage"));
-const InviteActivationPage = lazy(() => import("../components/Auth/InviteActivationPage"));
+const AuthCallback = lazy(() => import("../features/auth/pages/AuthCallback"));
+const ConfirmSignupPage = lazy(() => import("../features/auth/pages/ConfirmSignupPage"));
+const InviteActivationPage = lazy(() => import("../features/auth/pages/InviteActivationPage"));
 const AdminLayout = lazy(() => import("../layouts/AdminLayout"));
 const AdminOverviewPage = lazy(() => import("../features/admin/pages/AdminOverviewPage"));
 const AdminEventsPage = lazy(() => import("../features/admin/pages/AdminEventsPage"));
@@ -65,7 +65,7 @@ const AccountPage = lazy(() => import("../pages/account/AccountPage"));
 const HostMyEventsPage = lazy(() => import("../pages/host/HostMyEventsPage"));
 const HostCreateEventPage = lazy(() => import("../pages/host/HostCreateEventPage"));
 const HostEditEventPage = lazy(() => import("../pages/host/HostEditEventPage"));
-const HostDashboard = lazy(() => import("../components/Host/HostDashboard"));
+const HostDashboard = lazy(() => import("../features/host/components/HostDashboard"));
 const HostEventDetailPage = lazy(() => import("../pages/host/HostEventDetailPage"));
 const HostAttendeeListPage = lazy(() => import("../pages/host/HostAttendeeListPage"));
 const HostCheckInPage = lazy(() => import("../pages/host/HostCheckInPage"));
@@ -74,11 +74,11 @@ const BulkFlyerImportPage = lazy(() => import("../pages/BulkFlyerImportPage"));
 const HostOrganizationPage = lazy(() => import("../pages/host/HostOrganizationPage"));
 const UserEventEditPage = lazy(() => import("../pages/UserEventEditPage"));
 const OnboardingPage = lazy(() => import("../pages/account/OnboardingPage"));
-import RequireAuth from "../components/Auth/RequireAuth";
-import RequireAdmin from "../components/Auth/RequireAdmin";
-import RequireReviewer from "../components/Auth/RequireReviewer";
-import RequireOrganizer from "../components/Auth/RequireOrganizer";
-import RequireOnboarding from "../components/Auth/RequireOnboarding";
+import RequireAuth from "../features/auth/components/RequireAuth";
+import RequireAdmin from "../features/auth/components/RequireAdmin";
+import RequireReviewer from "../features/auth/components/RequireReviewer";
+import RequireOrganizer from "../features/auth/components/RequireOrganizer";
+import RequireOnboarding from "../features/auth/components/RequireOnboarding";
 
 function App() {
   return (

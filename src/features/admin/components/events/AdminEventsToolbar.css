@@ -1,0 +1,109 @@
+.admin-events-toolbar {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-events-toolbar__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.admin-events-toolbar__search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 300px;
+  min-width: 220px;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  background: var(--admin-surface-elevated);
+  color: var(--admin-text-muted);
+}
+
+.admin-events-toolbar__search .admin-input {
+  flex: 1;
+  min-width: 0;
+  min-height: 34px;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.admin-events-toolbar__search .admin-input:focus-visible {
+  outline: 2px solid var(--admin-brand);
+  outline-offset: 2px;
+}
+
+.admin-events-toolbar__select {
+  min-height: 34px;
+  background: var(--admin-surface-elevated);
+}
+
+.admin-events-toolbar__date {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.admin-events-toolbar__date-range {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 15;
+  display: flex;
+  gap: 6px;
+  padding: 8px;
+  background: var(--admin-surface-elevated);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  /* Border is the one device; the panel does not also cast a shadow. */
+}
+
+.admin-events-toolbar__more {
+  position: relative;
+}
+
+/* A count is not state: ink on the surface, not the brand rose. */
+.admin-events-toolbar__more-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: var(--radius-full);
+  background: var(--admin-text-strong);
+  color: var(--admin-surface);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-events-toolbar__sort-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  min-width: max-content;
+}
+
+.admin-events-toolbar__sort-label {
+  color: var(--admin-text-muted);
+  font-size: 0.8125rem;
+}
+
+@media (min-width: 1024px) {
+  .admin-events-toolbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .admin-events-toolbar__row {
+    flex-wrap: nowrap;
+  }
+}

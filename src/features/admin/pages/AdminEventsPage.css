@@ -49,18 +49,6 @@
   position: relative;
 }
 
-@media (max-width: 767.98px) {
-  .admin-events-page__table-card {
-    overflow: visible;
-    border: 0;
-    background: transparent;
-  }
-
-  .admin-events-page__table-card .admin-events-cards {
-    padding: 0;
-  }
-}
-
 @media (min-width: 768px) {
   .admin-events-page__table-card {
     overflow: hidden;

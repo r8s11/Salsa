@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import MarginMark from "../../../components/Desk/MarginMark";
-import AdminApproveDialog from "../../../components/Admin/AdminApproveDialog";
-import AdminRejectFounderDialog from "../../../components/Admin/AdminRejectFounderDialog";
-import AdminFounderInvitationSection from "../../../components/Admin/AdminFounderInvitationSection";
+import MarginMark from "../../../components/desk/MarginMark";
+import AdminApproveDialog from "../components/founders/AdminApproveDialog";
+import AdminRejectFounderDialog from "../components/founders/AdminRejectFounderDialog";
+import AdminFounderInvitationSection from "../components/founders/AdminFounderInvitationSection";
 import {
   useFounderHostState,
   useFounderRequest,

@@ -176,7 +176,7 @@ Code changes in this pass: `CartProvider.tsx` and `ProductPage.tsx` accept warni
 
 | Command | Result |
 | --- | --- |
-| `npm test -- --run src/features/shopify src/app/App.shopRoutes.test.tsx src/components/Header/Header.test.tsx` | PASS — 8 files, 129 tests |
+| `npm test -- --run src/features/shopify src/app/App.shopRoutes.test.tsx src/components/layout/Header.test.tsx` | PASS — 8 files, 129 tests |
 | `npm run build` | PASS; chunk-size and `PGRST205` sitemap warnings remain |
 | `npm run lint` | PASS — zero warnings |
 | `npm test -- --run` (JSON reporter) | PASS — 224 files, 2,303 tests, 508.05s; run before a final one-test fixture edit, after which `CartProvider.test.tsx` (9 tests) and lint were re-run and passed |

@@ -5,9 +5,11 @@ import {
   applyFilters,
   applySort,
   defaultSortFor,
+  eventsListDefinition,
   viewCounts,
   type EventFilters,
 } from "./eventsQuery";
+import { applyListChange, parseListState } from "./listState";
 
 // Frozen clock: 2026-08-11T16:00:00 UTC == 2026-08-11T12:00:00 America/New_York (EDT, UTC-4).
 const NOW = new Date("2026-08-11T16:00:00.000Z");
@@ -145,6 +147,60 @@ describe("applyFilters", () => {
     expect(applyFilters([nyc], { ...baseFilters, q: "new-york-city" }, NOW)).toEqual([]);
   });
 
+  describe("q search with missing optional fields", () => {
+    // events.city has no NOT NULL constraint, but DatabaseEvent.city is typed `string`.
+    const noCity = (overrides: Partial<DatabaseEvent> = {}) =>
+      makeEvent({ ...overrides, city: null as unknown as string });
+    const search = (events: DatabaseEvent[], q: string) =>
+      applyFilters(events, { ...baseFilters, q }, NOW);
+
+    it("does not throw when city is null, and still matches on other fields", () => {
+      const event = noCity({ title: "Sunset Social" });
+      expect(() => search([event], "sun")).not.toThrow();
+      expect(search([event], "sun")).toEqual([event]);
+      expect(search([event], "zzz")).toEqual([]);
+    });
+
+    it("does not exclude a null-city event that matches while keeping city matches for others", () => {
+      const nullCity = noCity({ title: "Mambo Night" });
+      const nyc = makeEvent({ city: "new-york-city", title: "Untitled" });
+      expect(search([nullCity, nyc], "mambo")).toEqual([nullCity]);
+      expect(search([nullCity, nyc], "new york")).toEqual([nyc]);
+    });
+
+    it("tolerates every nullable searchable field being null at once", () => {
+      const sparse = noCity({
+        title: "Bare Bones",
+        location: null,
+        host: null,
+        submitter_name: null,
+        submitter_email: null,
+      });
+      expect(search([sparse], "bare")).toEqual([sparse]);
+      expect(search([sparse], "havana")).toEqual([]);
+    });
+
+    it("matches a partial query against host, location and submitter email", () => {
+      const event = makeEvent({ host: "DJ Cocolo", location: "Havana Club" });
+      expect(search([event], "coc")).toEqual([event]);
+      expect(search([event], "avana cl")).toEqual([event]);
+      expect(search([event], "ada@sal")).toEqual([event]);
+    });
+
+    it("returns everything for empty or whitespace-only queries, including null-city events", () => {
+      const events = [noCity(), makeEvent()];
+      expect(search(events, "")).toEqual(events);
+      expect(search(events, "   ")).toEqual(events);
+    });
+
+    it("is case-insensitive in both directions", () => {
+      const event = makeEvent({ title: "Bachata Sensual", city: "new-york-city" });
+      expect(search([event], "BACHATA")).toEqual([event]);
+      expect(search([event], "sEnSuAl")).toEqual([event]);
+      expect(search([event], "NEW YORK")).toEqual([event]);
+    });
+  });
+
   it("incompleteOnly matches events with at least one quality issue", () => {
     const complete = makeEvent();
     const incomplete = makeEvent({ location: null });
@@ -228,5 +284,52 @@ describe("viewCounts", () => {
     expect(counts.pending).toBe(1);
     expect(counts.archived).toBe(1);
     expect(counts.all).toBe(1); // excludes archived
+  });
+});
+
+describe("eventsListDefinition", () => {
+  const definition = eventsListDefinition(new Set(["boston", "new-york-city"]), "upcoming");
+  const parse = (query: string) => parseListState(definition, new URLSearchParams(query));
+
+  it("reads legacy ?flag=upcoming as the Upcoming view, but an explicit ?view= wins", () => {
+    const pendingDefault = eventsListDefinition(new Set(), "pending");
+    expect(pendingDefault.view.parse(new URLSearchParams("flag=upcoming"))).toBe("upcoming");
+    expect(parse("flag=upcoming&view=archived").view).toBe("archived");
+  });
+
+  it("falls back to the route's default view", () => {
+    const pendingDefault = eventsListDefinition(new Set(), "pending");
+    expect(pendingDefault.view.parse(new URLSearchParams(""))).toBe("pending");
+  });
+
+  it("reads ?flag=incomplete as the Missing-info filter, not a view", () => {
+    const state = parse("flag=incomplete");
+    expect(state.filters.incompleteOnly).toBe(true);
+    expect(state.view).toBe("upcoming");
+  });
+
+  it("changing view keeps flag=incomplete and drops the legacy flag=upcoming", () => {
+    const kept = applyListChange(definition, new URLSearchParams("flag=incomplete&page=3"), {
+      view: "all",
+    });
+    expect(kept.toString()).toBe("flag=incomplete&view=all");
+    const dropped = applyListChange(definition, new URLSearchParams("flag=upcoming"), {
+      view: "all",
+    });
+    expect(dropped.toString()).toBe("view=all");
+  });
+
+  it("drops unknown metros, statuses and sources", () => {
+    const { filters } = parse("city=atlantis&status=pending,bogus&source=fax");
+    expect(filters.city).toBeNull();
+    expect(filters.status).toEqual(["pending"]);
+    expect(filters.source).toBeNull();
+    expect(parse("city=boston").filters.city).toBe("boston");
+  });
+
+  it("sorts Upcoming soonest-first unless ?dir= is given", () => {
+    expect(parse("view=upcoming").sort).toEqual({ key: "event_date", dir: "asc" });
+    expect(parse("view=all").sort).toEqual({ key: "event_date", dir: "desc" });
+    expect(parse("view=upcoming&sort=title&dir=desc").sort).toEqual({ key: "title", dir: "desc" });
   });
 });

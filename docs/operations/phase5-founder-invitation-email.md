@@ -196,7 +196,7 @@ create-then-immediately-alter noise.
 | `src/features/admin/model/founderInvitationQuery.test.ts` | *(extended)* +5 tests for the new email-status helper |
 | `src/features/admin/api/founderInvitationRepo.ts` | *(extended)* `sendFounderInvitation()` |
 | `src/hooks/useFounderInvitation.ts` | *(extended)* `sendInvitation` mutation |
-| `src/components/Admin/AdminFounderInvitationSection.tsx` | *(rewritten)* two-status display, "Send Founder Invitation" primary CTA, dev-only no-email diagnostic |
+| `src/features/admin/components/founders/AdminFounderInvitationSection.tsx` | *(rewritten)* two-status display, "Send Founder Invitation" primary CTA, dev-only no-email diagnostic |
 | `src/pages/Admin/AdminFounderRequestDetailPage.css` | *(extended)* email-status badge, dev-link, success-message styles |
 | `src/pages/FoundersAcceptPage.tsx` | `/founders/accept` placeholder (spec §25) — reads nothing from the URL, no acceptance logic |
 | `src/pages/FoundersPage.css` | *(extended)* `.founders-card` for the placeholder page |

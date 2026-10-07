@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useAuth } from "../../../contexts/useAuth";
-import ModeratorOverview from "../../../components/Moderator/ModeratorOverview";
-import PlatformAdminOverview from "../../../components/Admin/PlatformAdminOverview";
+import ModeratorOverview from "../components/overview/ModeratorOverview";
+import PlatformAdminOverview from "../components/overview/PlatformAdminOverview";
 import { useAdminEvents } from "../hooks/useAdminEvents";
 import { useAdminUsers } from "../hooks/useAdminUsers";
 import { useAdminVenues } from "../hooks/useAdminVenues";

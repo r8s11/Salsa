@@ -57,7 +57,7 @@ supabase functions deploy request-founder-access
 ## 5. Routing
 
 - The page is registered at `GET /founders` in `src/App.tsx` (public, no guard).
-- The Footer (`src/components/Footer/Footer.tsx`) includes a discreet "Host an event" link pointing to `/founders` — the spec's recommended least-disruptive nav surface (existing footer link group).
+- The Footer (`src/components/layout/Footer.tsx`) includes a discreet "Host an event" link pointing to `/founders` — the spec's recommended least-disruptive nav surface (existing footer link group).
 
 ## 6. Manual QA — verification SQL (run after applying the migration)
 

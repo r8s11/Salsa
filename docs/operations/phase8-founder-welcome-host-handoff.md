@@ -20,7 +20,7 @@ All under `RequireOrganizer` → `AdminLayout`:
 
 ### Authorization model
 
-`RequireOrganizer` (`src/components/Auth/RequireOrganizer.tsx:14-36`) grants nested
+`RequireOrganizer` (`src/features/auth/components/RequireOrganizer.tsx:14-36`) grants nested
 Host routes when EITHER condition is true:
 
 ```
@@ -232,7 +232,7 @@ have a local `selectedOrganizerId` switcher — reused, not rebuilt.
 |---|---|
 | `src/pages/FoundersAcceptPage.tsx` | Accept success now calls `provisionFounderOrganization()` inline (best-effort), CTA routes to `/founders/welcome` instead of `/profile` |
 | `src/App.tsx` | Added `/founders/welcome` route + `FoundersWelcomePage` lazy import |
-| `src/components/Auth/RequireOrganizer.test.tsx` | Added 4 nested-route membership admission/denial tests (closing a real coverage gap) |
+| `src/features/auth/components/RequireOrganizer.test.tsx` | Added 4 nested-route membership admission/denial tests (closing a real coverage gap) |
 | `supabase/functions/_shared/submissionEmail.ts` | Extracted shared layout/escaping to `emailLayout.ts`; now imports from it |
 | `supabase/functions/send-submission-email/index.ts` | Imports `classifyResendFailure` from shared `emailLayout.ts` instead of local copy |
 | `supabase/functions/_shared/invitation.ts` | Added `hostDashboardUrl()` helper |

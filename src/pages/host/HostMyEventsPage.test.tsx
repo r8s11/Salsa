@@ -340,7 +340,7 @@ describe("HostMyEventsPage", () => {
 
     expect(screen.getByText("Published")).toBeInTheDocument();
     expect(screen.getByText("Draft")).toBeInTheDocument();
-    expect(screen.getByText("Pending Approval")).toBeInTheDocument();
+    expect(screen.getByText("Pending Review")).toBeInTheDocument();
   });
 
   /* ── Event card content ── */

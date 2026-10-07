@@ -14,13 +14,13 @@ import {
   type AdminUserRow,
   type UserRowAction,
 } from "../model/usersQuery";
-import AdminUserAvatar from "../../../components/Admin/AdminUserAvatar";
-import AdminRoleBadge from "../../../components/Admin/AdminRoleBadge";
-import AdminAccountStatusBadge from "../../../components/Admin/AdminAccountStatusBadge";
-import AdminStatusBadge from "../../../components/Admin/AdminStatusBadge";
-import AdminRoleChangeDialog from "../../../components/Admin/AdminRoleChangeDialog";
-import AdminFlagUserDialog from "../../../components/Admin/AdminFlagUserDialog";
-import AdminConfirmDialog from "../../../components/Admin/AdminConfirmDialog";
+import AdminUserAvatar from "../components/users/AdminUserAvatar";
+import AdminRoleBadge from "../components/users/AdminRoleBadge";
+import AdminAccountStatusBadge from "../components/users/AdminAccountStatusBadge";
+import AdminStatusBadge from "../components/common/AdminStatusBadge";
+import AdminRoleChangeDialog from "../components/users/AdminRoleChangeDialog";
+import AdminFlagUserDialog from "../components/users/AdminFlagUserDialog";
+import AdminConfirmDialog from "../components/common/AdminConfirmDialog";
 import { useResendOrganizerInvitation } from "../hooks/useResendOrganizerInvitation";
 import "./AdminUserDetailPage.css";
 

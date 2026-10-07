@@ -1,0 +1,700 @@
+import { Fragment, useEffect, useMemo, useRef } from "react";
+import { Link } from "react-router-dom";
+import {
+  Clock,
+  MapPin,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Shield,
+  UserRound,
+  Building2,
+  ShieldCheck,
+  Download,
+  Pencil,
+  Copy,
+  Send,
+  EyeOff,
+  Archive,
+  ArchiveRestore,
+  Trash2,
+  Ban,
+  Check,
+  X,
+  ImagePlus,
+  ImageOff,
+} from "lucide-react";
+import type { DatabaseEvent } from "../../../events/model/types";
+import { resolveEventFlyer } from "../../../events/components/event-modal/eventModalImage";
+import { fromEventDateInstant, formatTimeLabel } from "../../../events/model/eventDateTime";
+import { qualityIssues, QUALITY_ISSUE_LABEL } from "../../model/overviewMetrics";
+import { useMetroName } from "../../../metros/hooks/useMetros";
+import { SOURCE_TYPE_LABEL, submitterDisplay, type SortKey } from "../../model/eventsQuery";
+import type { SortDir } from "../../model/listState";
+import AdminStatusBadge from "../common/AdminStatusBadge";
+import AdminQualityBadge from "../common/AdminQualityBadge";
+import AdminActionMenu, { type ActionMenuItem } from "../common/AdminActionMenu";
+import "./AdminEventsTable.css";
+
+import "../common/AdminTables.css";
+
+export type RowAction =
+  | "edit"
+  | "duplicate"
+  | "upload-flyer"
+  | "replace-flyer"
+  | "remove-flyer"
+  | "publish"
+  | "unpublish"
+  | "reject"
+  | "cancel"
+  | "archive"
+  | "restore"
+  | "delete";
+
+/** Row selection, offered only where bulk decisions make sense (Pending Review). */
+export interface TableSelection {
+  selectedIds: ReadonlySet<string>;
+  onToggle: (id: string) => void;
+  onToggleAll: (checked: boolean) => void;
+}
+
+/**
+ * Asks the table to move focus after a decision. `rowIds` is an ordered
+ * preference list: the first id still in the list wins, so a row that stayed
+ * keeps focus and a row that left hands it to its neighbour. `onNone` runs
+ * when none of them remain. `nonce` makes each request fire once.
+ */
+export interface FocusRequest {
+  rowIds: string[];
+  nonce: number;
+  onNone?: () => void;
+}
+
+interface AdminEventsTableProps {
+  events: DatabaseEvent[];
+  duplicateIds: ReadonlySet<string>;
+  sort: { key: SortKey; dir: SortDir };
+  onSortChange: (key: SortKey) => void;
+  onAction: (action: RowAction, event: DatabaseEvent) => void;
+  busy: { id: string; action: RowAction } | null;
+  busyIds?: ReadonlySet<string>;
+  errorId: string | null;
+  error: string | null;
+  isLoading?: boolean;
+  selection?: TableSelection;
+  focusRequest?: FocusRequest | null;
+  /** True when the list is already scoped to one city, so the city is redundant per row. */
+  hideCity?: boolean;
+}
+
+const SOURCE_ICON: Record<DatabaseEvent["source_type"], typeof Shield> = {
+  admin: Shield,
+  user_submission: UserRound,
+  organizer: Building2,
+  moderator: ShieldCheck,
+  imported: Download,
+};
+
+function titleCase(value: string | null | undefined): string {
+  if (!value) return "Unknown";
+  return value.replace(/[-_]/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function formatDateLine(iso: string): { date: string; time: string } {
+  const { date, time } = fromEventDateInstant(iso);
+  const [year, month, day] = date.split("-").map(Number);
+  return {
+    date: new Date(year, month - 1, day).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }),
+    time: formatTimeLabel(time),
+  };
+}
+
+// Row action menu contents by status — this matrix is the contract. Order:
+// the status decision first, then everyday edits, then the removals, with the
+// destructive tail last. Pending rows carry Approve / Reject inline instead.
+function rowActionItems(
+  event: DatabaseEvent,
+  onAction: (action: RowAction, event: DatabaseEvent) => void
+): ActionMenuItem[] {
+  const decision = (
+    id: RowAction,
+    label: string,
+    icon: ActionMenuItem["icon"]
+  ): ActionMenuItem => ({ id, label, icon, onSelect: () => onAction(id, event) });
+  const edit: ActionMenuItem = {
+    id: "edit",
+    label: "Edit",
+    icon: Pencil,
+    onSelect: () => onAction("edit", event),
+  };
+  const duplicate: ActionMenuItem = {
+    id: "duplicate",
+    label: "Duplicate",
+    icon: Copy,
+    onSelect: () => onAction("duplicate", event),
+  };
+  const cancel: ActionMenuItem = {
+    id: "cancel",
+    label: "Cancel Event",
+    icon: Ban,
+    tone: "danger",
+    onSelect: () => onAction("cancel", event),
+  };
+  const archive: ActionMenuItem = {
+    id: "archive",
+    label: "Archive",
+    icon: Archive,
+    separatorBefore: true,
+    onSelect: () => onAction("archive", event),
+  };
+  const del: ActionMenuItem = {
+    id: "delete",
+    label: "Delete",
+    icon: Trash2,
+    tone: "danger",
+    separatorBefore: true,
+    onSelect: () => onAction("delete", event),
+  };
+
+  // Flyer quick actions — grouped with a separator
+  const hasFlyer = Boolean(event.image_url);
+  const flyerItems: ActionMenuItem[] = hasFlyer
+    ? [
+        {
+          id: "replace-flyer",
+          label: "Replace flyer",
+          icon: ImagePlus,
+          separatorBefore: true,
+          onSelect: () => onAction("replace-flyer", event),
+        },
+        {
+          id: "remove-flyer",
+          label: "Remove flyer",
+          icon: ImageOff,
+          tone: "danger" as const,
+          onSelect: () => onAction("remove-flyer", event),
+        },
+      ]
+    : [
+        {
+          id: "upload-flyer",
+          label: "Upload flyer",
+          icon: ImagePlus,
+          separatorBefore: true,
+          onSelect: () => onAction("upload-flyer", event),
+        },
+      ];
+
+  const withDecision = (item: ActionMenuItem): ActionMenuItem[] => [
+    item,
+    { ...edit, separatorBefore: true },
+    duplicate,
+    ...flyerItems,
+  ];
+
+  switch (event.status) {
+    case "draft":
+    case "rejected":
+    case "cancelled":
+      return [...withDecision(decision("publish", "Publish", Send)), archive, del];
+    case "pending":
+      return [edit, duplicate, ...flyerItems, archive, del];
+    case "approved":
+      return [...withDecision(decision("unpublish", "Unpublish", EyeOff)), archive, cancel, del];
+    case "archived":
+      return [...withDecision(decision("restore", "Restore as draft", ArchiveRestore)), { ...del }];
+  }
+}
+
+function SortableHeader({
+  label,
+  sortKey,
+  sort,
+  onSortChange,
+}: {
+  label: string;
+  sortKey: SortKey;
+  sort: { key: SortKey; dir: SortDir };
+  onSortChange: (key: SortKey) => void;
+}) {
+  const isActive = sort.key === sortKey;
+  const ariaSort = isActive ? (sort.dir === "asc" ? "ascending" : "descending") : "none";
+  const Icon = isActive ? (sort.dir === "asc" ? ArrowUp : ArrowDown) : ArrowUpDown;
+
+  return (
+    <th scope="col" aria-sort={ariaSort}>
+      <button
+        type="button"
+        className="admin-events-table__sort-btn"
+        onClick={() => onSortChange(sortKey)}
+      >
+        {label}
+        <Icon size={12} />
+      </button>
+    </th>
+  );
+}
+
+/** Approve / Reject, the moderator's two decisions, in place on Pending rows. */
+function DecisionButtons({
+  event,
+  onAction,
+  disabled,
+  focusTarget,
+}: {
+  event: DatabaseEvent;
+  onAction: (action: RowAction, event: DatabaseEvent) => void;
+  disabled: boolean;
+  focusTarget: boolean;
+}) {
+  return (
+    <>
+      <button
+        type="button"
+        className="admin-events-decision admin-events-decision--approve"
+        aria-label={`Approve ${event.title}`}
+        disabled={disabled}
+        data-row-focus={focusTarget ? "" : undefined}
+        onClick={() => onAction("publish", event)}
+      >
+        <Check size={14} aria-hidden="true" />
+        Approve
+      </button>
+      <button
+        type="button"
+        className="admin-events-decision admin-events-decision--reject"
+        aria-label={`Reject ${event.title}`}
+        disabled={disabled}
+        onClick={() => onAction("reject", event)}
+      >
+        <X size={14} aria-hidden="true" />
+        Reject
+      </button>
+    </>
+  );
+}
+
+function EventCell({
+  event,
+  duplicateIds,
+  hideCity,
+  hasDecision,
+}: {
+  event: DatabaseEvent;
+  duplicateIds: ReadonlySet<string>;
+  hideCity: boolean;
+  hasDecision: boolean;
+}) {
+  const metroName = useMetroName();
+  const issues = qualityIssues(event, duplicateIds);
+  return (
+    <div className="admin-events-table__event">
+      <img
+        src={resolveEventFlyer({
+          danceStyles: event.dance_styles,
+          imageUrl: event.image_url ?? undefined,
+          calendarId: event.event_type,
+        })}
+        alt=""
+        loading="lazy"
+        width={48}
+        height={48}
+      />
+      <div className="admin-events-table__event-body">
+        <Link
+          to={`/admin/events?edit=${event.id}`}
+          className="admin-events-table__title"
+          data-row-focus={hasDecision ? undefined : ""}
+        >
+          {event.title}
+        </Link>
+        <p className="admin-events-table__meta">
+          {titleCase(event.event_type)}
+          {!hideCity && ` · ${metroName(event.city)}`}
+        </p>
+        <p className="admin-events-table__secondary-line">
+          {event.location || "Venue not set"} · {event.host || "No organizer"}
+        </p>
+        {issues.length > 0 && (
+          <AdminQualityBadge
+            issues={issues}
+            labelFor={(issue) => QUALITY_ISSUE_LABEL[issue]}
+            eventTitle={event.title}
+            cancellationReason={event.cancellation_reason}
+            triggerLabel={issues.includes("organizer") ? "Needs organizer" : undefined}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default function AdminEventsTable({
+  events,
+  duplicateIds,
+  sort,
+  onSortChange,
+  onAction,
+  busy,
+  busyIds,
+  errorId,
+  error,
+  isLoading = false,
+  selection,
+  focusRequest,
+  hideCity = false,
+}: AdminEventsTableProps) {
+  const metroName = useMetroName();
+  const frameRef = useRef<HTMLDivElement>(null);
+  const selectAllRef = useRef<HTMLInputElement>(null);
+  const handledFocusNonce = useRef(0);
+  const actionItemsByEventId = useMemo(() => {
+    const map = new Map<string, ActionMenuItem[]>();
+    for (const event of events) {
+      map.set(event.id, rowActionItems(event, onAction));
+    }
+    return map;
+  }, [events, onAction]);
+
+  const selectedCount = selection
+    ? events.filter((event) => selection.selectedIds.has(event.id)).length
+    : 0;
+  const allSelected = events.length > 0 && selectedCount === events.length;
+
+  useEffect(() => {
+    if (selectAllRef.current) {
+      selectAllRef.current.indeterminate = selectedCount > 0 && !allSelected;
+    }
+  }, [selectedCount, allSelected]);
+
+  useEffect(() => {
+    if (!focusRequest || handledFocusNonce.current === focusRequest.nonce) return;
+    handledFocusNonce.current = focusRequest.nonce;
+    const present = focusRequest.rowIds.find((id) => events.some((event) => event.id === id));
+    if (!present) {
+      focusRequest.onNone?.();
+      return;
+    }
+    // The row stayed and focus is still inside the list (the Manage trigger got
+    // it back): leave it. Only a vanished control, such as Approve, needs help.
+    const active = document.activeElement;
+    if (
+      present === focusRequest.rowIds[0] &&
+      active &&
+      active !== document.body &&
+      frameRef.current?.contains(active)
+    ) {
+      return;
+    }
+    const rows = Array.from(
+      frameRef.current?.querySelectorAll<HTMLElement>("[data-event-row]") ?? []
+    ).filter((row) => row.dataset.eventRow === present);
+    const targets = rows.flatMap((row) =>
+      Array.from(row.querySelectorAll<HTMLElement>("[data-row-focus]"))
+    );
+    // Table and card list both render; the hidden one has no layout boxes.
+    const target = targets.find((node) => node.getClientRects().length > 0) ?? targets[0];
+    target?.focus();
+  }, [focusRequest, events]);
+
+  const colCount = selection ? 8 : 7;
+
+  if (isLoading) {
+    return (
+      <div className="admin-events-table__scroll">
+        <table className="admin-events-table">
+          <caption className="admin-visually-hidden">Events</caption>
+          <thead>
+            <tr>
+              {selection && <th scope="col" className="admin-events-table__col--select" />}
+              <th scope="col">Event</th>
+              <th scope="col">Date & Time</th>
+              <th scope="col">Venue</th>
+              <th scope="col">Organizer</th>
+              <th scope="col">Source</th>
+              <th scope="col">Status</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[...Array(5)].map((_, i) => (
+              <tr key={i} className="admin-events-table__loading-row">
+                <td colSpan={colCount}>
+                  <div className="admin-table-loading">
+                    <div className="admin-skeleton admin-skeleton--title"></div>
+                    <div className="admin-skeleton admin-skeleton--meta"></div>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
+  if (events.length === 0) {
+    return (
+      <div className="admin-table-empty" role="status">
+        <p>No events found.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="admin-events-table__frame" ref={frameRef}>
+      <div className="admin-events-table__scroll">
+        <table className="admin-events-table">
+          <caption className="admin-visually-hidden">Events</caption>
+          <thead>
+            <tr>
+              {selection && (
+                <th scope="col" className="admin-events-table__col--select">
+                  <input
+                    ref={selectAllRef}
+                    type="checkbox"
+                    className="admin-events-select"
+                    aria-label="Select all events on this page"
+                    checked={allSelected}
+                    onChange={(changeEvent) => selection.onToggleAll(changeEvent.target.checked)}
+                  />
+                </th>
+              )}
+              <SortableHeader
+                label="Event"
+                sortKey="title"
+                sort={sort}
+                onSortChange={onSortChange}
+              />
+              <SortableHeader
+                label="Date & Time"
+                sortKey="event_date"
+                sort={sort}
+                onSortChange={onSortChange}
+              />
+              <th scope="col" className="admin-events-table__col--venue">
+                Venue
+              </th>
+              <th scope="col" className="admin-events-table__col--organizer">
+                Organizer
+              </th>
+              <th scope="col" className="admin-events-table__col--source">
+                Source
+              </th>
+              <th scope="col">Status</th>
+              <th scope="col" className="admin-events-table__col--actions">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {events.map((event) => {
+              const isBusy = busy?.id === event.id || Boolean(busyIds?.has(event.id));
+              const { date, time } = formatDateLine(event.event_date);
+              const SourceIcon = SOURCE_ICON[event.source_type];
+              const hasDecision = event.status === "pending";
+              const isSelected = Boolean(selection?.selectedIds.has(event.id));
+
+              return (
+                <Fragment key={event.id}>
+                  <tr
+                    data-event-row={event.id}
+                    className={
+                      event.status === "archived" ? "admin-events-table__row--archived" : undefined
+                    }
+                    aria-busy={isBusy || undefined}
+                    data-busy={isBusy ? "" : undefined}
+                    data-selected={isSelected ? "" : undefined}
+                  >
+                    {selection && (
+                      <td className="admin-events-table__col--select">
+                        <input
+                          type="checkbox"
+                          className="admin-events-select"
+                          aria-label={`Select ${event.title}`}
+                          checked={isSelected}
+                          disabled={isBusy}
+                          onChange={() => selection.onToggle(event.id)}
+                        />
+                      </td>
+                    )}
+                    <td>
+                      <EventCell
+                        event={event}
+                        duplicateIds={duplicateIds}
+                        hideCity={hideCity}
+                        hasDecision={hasDecision}
+                      />
+                    </td>
+                    <td className="admin-events-table__col--date">
+                      <p>{date}</p>
+                      <p className="admin-events-table__muted">
+                        <Clock size={12} /> {event.event_time ? time : "Time not set"}
+                      </p>
+                    </td>
+                    <td className="admin-events-table__col--venue">
+                      <p className="admin-events-table__muted">
+                        <MapPin size={12} /> {event.location || "Venue not set"}
+                      </p>
+                    </td>
+                    <td className="admin-events-table__col--organizer">
+                      <p>{event.host || "No organizer"}</p>
+                    </td>
+                    <td
+                      className="admin-events-table__col--source"
+                      title={`Submitted by ${submitterDisplay(event)}`}
+                    >
+                      <p className="admin-events-table__muted">
+                        <SourceIcon size={12} /> {SOURCE_TYPE_LABEL[event.source_type]}
+                      </p>
+                    </td>
+                    <td>
+                      <AdminStatusBadge status={event.status} />
+                    </td>
+                    <td className="admin-events-table__col--actions">
+                      <div className="admin-events-table__actions">
+                        {hasDecision && (
+                          <DecisionButtons
+                            event={event}
+                            onAction={onAction}
+                            disabled={isBusy}
+                            focusTarget
+                          />
+                        )}
+                        <AdminActionMenu
+                          label={`Actions for ${event.title}`}
+                          items={actionItemsByEventId.get(event.id)!}
+                          disabled={isBusy}
+                          triggerText="Manage"
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                  {errorId === event.id && error && (
+                    <tr className="admin-events-table__error">
+                      <td colSpan={colCount} role="alert">
+                        Action failed: {error}
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      <ul className="admin-events-cards">
+        {events.map((event) => {
+          const isBusy = busy?.id === event.id || Boolean(busyIds?.has(event.id));
+          const { date, time } = formatDateLine(event.event_date);
+          const issues = qualityIssues(event, duplicateIds);
+          const hasDecision = event.status === "pending";
+          const isSelected = Boolean(selection?.selectedIds.has(event.id));
+
+          return (
+            <li
+              key={event.id}
+              data-event-row={event.id}
+              aria-busy={isBusy || undefined}
+              data-busy={isBusy ? "" : undefined}
+              data-selected={isSelected ? "" : undefined}
+              className={
+                event.status === "archived"
+                  ? "admin-events-cards__item admin-events-table__row--archived"
+                  : "admin-events-cards__item"
+              }
+            >
+              <div className="admin-events-cards__summary">
+                <img
+                  className="admin-events-cards__flyer"
+                  src={resolveEventFlyer({
+                    danceStyles: event.dance_styles,
+                    imageUrl: event.image_url ?? undefined,
+                    calendarId: event.event_type,
+                  })}
+                  alt=""
+                  loading="lazy"
+                  width={72}
+                  height={90}
+                />
+                <div className="admin-events-cards__summary-body">
+                  <div className="admin-events-cards__head">
+                    {selection && (
+                      <input
+                        type="checkbox"
+                        className="admin-events-select"
+                        aria-label={`Select ${event.title}`}
+                        checked={isSelected}
+                        disabled={isBusy}
+                        onChange={() => selection.onToggle(event.id)}
+                      />
+                    )}
+                    <Link
+                      to={`/admin/events?edit=${event.id}`}
+                      className="admin-events-table__title"
+                      data-row-focus={hasDecision ? undefined : ""}
+                    >
+                      {event.title}
+                    </Link>
+                    <AdminStatusBadge status={event.status} />
+                  </div>
+                  <p className="admin-events-table__meta">
+                    {titleCase(event.event_type)}
+                    {!hideCity && ` · ${metroName(event.city)}`}
+                  </p>
+                  <AdminQualityBadge
+                    issues={issues}
+                    labelFor={(issue) => QUALITY_ISSUE_LABEL[issue]}
+                    eventTitle={event.title}
+                    cancellationReason={event.cancellation_reason}
+                    triggerLabel={issues.includes("organizer") ? "Needs organizer" : undefined}
+                  />
+                </div>
+              </div>
+              <div className="admin-events-cards__row">
+                <span className="admin-events-cards__label">Date</span>
+                <span className="admin-events-table__num">
+                  {date} · {event.event_time ? time : "Time not set"}
+                </span>
+              </div>
+              <div className="admin-events-cards__row">
+                <span className="admin-events-cards__label">Venue</span>
+                <span>{event.location || "Venue not set"}</span>
+              </div>
+              <div className="admin-events-cards__row">
+                <span className="admin-events-cards__label">Organizer</span>
+                <span>{event.host || "No organizer"}</span>
+              </div>
+              {errorId === event.id && error && (
+                <p className="admin-events-cards__error" role="alert">
+                  Action failed: {error}
+                </p>
+              )}
+              <div className="admin-events-cards__actions">
+                {hasDecision && (
+                  <DecisionButtons
+                    event={event}
+                    onAction={onAction}
+                    disabled={isBusy}
+                    focusTarget
+                  />
+                )}
+                <AdminActionMenu
+                  label={`Actions for ${event.title}`}
+                  items={actionItemsByEventId.get(event.id)!}
+                  disabled={isBusy}
+                />
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}

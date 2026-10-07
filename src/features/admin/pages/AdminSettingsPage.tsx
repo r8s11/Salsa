@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import type { FormEvent } from "react";
-import AdminConfirmDialog from "../../../components/Admin/AdminConfirmDialog";
-import AdminPageHeader from "../../../components/Admin/AdminPageHeader";
+import AdminConfirmDialog from "../components/common/AdminConfirmDialog";
+import AdminPageHeader from "../components/shell/AdminPageHeader";
 import { usePlatformSettings } from "../hooks/usePlatformSettings";
 import {
   eventDefaultsFrom,

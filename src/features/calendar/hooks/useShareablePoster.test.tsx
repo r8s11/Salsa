@@ -11,7 +11,7 @@ vi.mock("html-to-image", () => ({
 const mockEnsurePosterFonts = vi.fn();
 const mockPosterFontEmbedCss = vi.fn();
 
-vi.mock("../../../components/EventModal/posterFonts", () => ({
+vi.mock("../../events/components/event-modal/posterFonts", () => ({
   ensurePosterFonts: (...args: unknown[]) => mockEnsurePosterFonts(...args),
   posterFontEmbedCss: (...args: unknown[]) => mockPosterFontEmbedCss(...args),
 }));

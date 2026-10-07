@@ -1,7 +1,8 @@
 import { Clock, CircleCheck, CircleX } from "lucide-react";
 import type { ComponentType } from "react";
 import type { AccountStatus, UserRole } from "./usersQuery";
-import type { ActionMenuItem } from "../../../components/Admin/AdminActionMenu";
+import type { ActionMenuItem } from "../components/common/AdminActionMenu";
+import { enumParam, sortOptionParam, type ListDefinition, type SortDir } from "./listState";
 
 /**
  * The request-level status vocabulary — distinct from both the event-status
@@ -89,10 +90,8 @@ export interface RequestFilters {
 
 export interface RequestSort {
   key: "requested" | "name" | "brand";
-  dir: "asc" | "desc";
+  dir: SortDir;
 }
-
-export type SortDir = "asc" | "desc";
 
 // ---- Labels (mirrors ROLE_LABEL / ACCOUNT_STATUS_LABEL vocabulary) ----
 
@@ -149,8 +148,25 @@ export const REQUEST_SORT_OPTIONS: {
   { value: "brand-asc", key: "brand", dir: "asc", label: "Brand Name" },
 ];
 
-export const PAGE_SIZE_OPTIONS = [25, 50, 100] as const;
-export const DEFAULT_PAGE_SIZE = 25;
+export const ORGANIZER_REQUESTS_LIST: ListDefinition<RequestView, RequestFilters, RequestSort> = {
+  view: enumParam(
+    "view",
+    REQUEST_VIEWS.map((entry) => entry.view),
+    "pending"
+  ),
+  filters: {
+    // type and accountStatus are not URL-backed: they always parse empty.
+    parse: (params) => ({
+      q: params.get("q") ?? "",
+      type: [],
+      accountStatus: [],
+      from: params.get("from"),
+      to: params.get("to"),
+    }),
+    toParams: (filters) => ({ q: filters.q, from: filters.from, to: filters.to }),
+  },
+  sort: sortOptionParam(REQUEST_SORT_OPTIONS, { key: "requested", dir: "desc" }),
+};
 
 // ---- Request action matrix ----
 

@@ -3,11 +3,15 @@ import type { City, DatabaseEvent } from "../../events/model/types";
 import { metroLabelFromSlug } from "../../metros/model/metro";
 import { fromEventDateInstant } from "../../events/model/eventDateTime";
 import { qualityIssues } from "./overviewMetrics";
+import { parseCsvParam, type ListDefinition, type SortDir } from "./listState";
 
 export type EventView =
   "all" | "upcoming" | "drafts" | "pending" | "published" | "cancelled" | "archived";
 export type SortKey = "event_date" | "created_at" | "updated_at" | "title";
-export type SortDir = "asc" | "desc";
+export interface EventSort {
+  key: SortKey;
+  dir: SortDir;
+}
 
 export interface EventFilters {
   q: string;
@@ -33,9 +37,6 @@ export const EVENT_VIEWS: { view: EventView; label: string }[] = [
   { view: "cancelled", label: "Cancelled" },
   { view: "archived", label: "Archived" },
 ];
-
-export const PAGE_SIZE_OPTIONS = [25, 50, 100] as const;
-export const DEFAULT_PAGE_SIZE = 25;
 
 // The seven fixed dance-style filter values, in the order the migration's
 // backfill regex table lists them.
@@ -183,7 +184,7 @@ export function applySort(events: DatabaseEvent[], key: SortKey, dir: SortDir): 
   return indexed.map(({ event }) => event);
 }
 
-export function defaultSortFor(view: EventView): { key: SortKey; dir: SortDir } {
+export function defaultSortFor(view: EventView): EventSort {
   return view === "upcoming"
     ? { key: "event_date", dir: "asc" }
     : { key: "event_date", dir: "desc" };
@@ -197,4 +198,93 @@ export function viewCounts(events: DatabaseEvent[], now: Date): Record<EventView
     counts[view] = events.filter((event) => predicate(event, startOfToday)).length;
   });
   return counts;
+}
+
+const EVENT_STATUSES: DatabaseEvent["status"][] = [
+  "draft",
+  "pending",
+  "approved",
+  "rejected",
+  "cancelled",
+  "archived",
+];
+const EVENT_SOURCES: DatabaseEvent["source_type"][] = [
+  "admin",
+  "user_submission",
+  "organizer",
+  "moderator",
+  "imported",
+];
+const SORT_KEYS: SortKey[] = ["event_date", "created_at", "updated_at", "title"];
+
+/**
+ * Events list state. Two legacy links share `?flag=`: `flag=upcoming` (Phase 2
+ * Overview) selects the Upcoming view unless `?view=` is explicit, and
+ * `flag=incomplete` is the canonical param for the Missing-info filter.
+ * `metroSlugs` gates `?city=`; `defaultView` is route-dependent
+ * (/admin/submissions lands on Pending Review).
+ */
+export function eventsListDefinition(
+  metroSlugs: ReadonlySet<string>,
+  defaultView: EventView
+): ListDefinition<EventView, EventFilters, EventSort> {
+  return {
+    view: {
+      parse: (params) => {
+        const view = params.get("view");
+        if (EVENT_VIEWS.some((entry) => entry.view === view)) return view as EventView;
+        return params.get("flag") === "upcoming" ? "upcoming" : defaultView;
+      },
+      toParams: (view, previous) => ({
+        view,
+        flag: previous.get("flag") === "incomplete" ? "incomplete" : null,
+      }),
+    },
+    filters: {
+      parse: (params) => {
+        const city = params.get("city");
+        const source = params.get("source");
+        return {
+          q: params.get("q") ?? "",
+          from: params.get("from"),
+          to: params.get("to"),
+          status: parseCsvParam(params, "status", EVENT_STATUSES),
+          organizer: params.get("organizer"),
+          venue: params.get("venue"),
+          city: city && metroSlugs.has(city) ? (city as City) : null,
+          style: params.get("style"),
+          source: EVENT_SOURCES.includes(source as DatabaseEvent["source_type"])
+            ? (source as DatabaseEvent["source_type"])
+            : null,
+          incompleteOnly: params.get("flag") === "incomplete",
+          submitter: params.get("submitter"),
+        };
+      },
+      toParams: (filters) => ({
+        q: filters.q,
+        from: filters.from,
+        to: filters.to,
+        status: filters.status.join(","),
+        organizer: filters.organizer,
+        venue: filters.venue,
+        city: filters.city,
+        style: filters.style,
+        source: filters.source,
+        flag: filters.incompleteOnly ? "incomplete" : null,
+        submitter: filters.submitter,
+      }),
+    },
+    sort: {
+      parse: (params, view) => {
+        const fallback = defaultSortFor(view);
+        const key = params.get("sort");
+        const dir = params.get("dir");
+        return {
+          key: SORT_KEYS.includes(key as SortKey) ? (key as SortKey) : fallback.key,
+          dir: dir === "asc" || dir === "desc" ? dir : fallback.dir,
+        };
+      },
+      toParams: (sort) => ({ sort: sort.key, dir: sort.dir }),
+    },
+  };
 }

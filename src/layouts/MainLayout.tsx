@@ -1,8 +1,8 @@
 import { Outlet, useLocation } from "react-router-dom";
-import Header from "../components/Header/Header";
-import Footer from "../components/Footer/Footer";
-import MobileTabBar from "../components/MobileTabBar/MobileTabBar";
-import FloatingCityPill from "../components/FloatingCityPill/FloatingCityPill";
+import Header from "../components/layout/Header";
+import Footer from "../components/layout/Footer";
+import MobileTabBar from "../components/layout/MobileTabBar";
+import FloatingCityPill from "../components/layout/FloatingCityPill";
 import SkipLink from "../shared/a11y/SkipLink";
 import CartProvider from "../features/shopify/cart/CartProvider";
 import CartDrawer from "../features/shopify/cart/CartDrawer";

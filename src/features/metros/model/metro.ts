@@ -103,8 +103,12 @@ export function resolveMetroSlug(
   return alias && known.has(alias) ? alias : null;
 }
 
-/** Display fallback when the metro row is not loaded: "new-york-city" → "New York City". */
-export function metroLabelFromSlug(slug: MetroSlug): string {
+/**
+ * Display fallback when the metro row is not loaded: "new-york-city" → "New York City".
+ * Returns "" for a missing slug — events.city is nullable in the database.
+ */
+export function metroLabelFromSlug(slug: MetroSlug | null | undefined): string {
+  if (!slug) return "";
   return slug
     .split("-")
     .filter(Boolean)

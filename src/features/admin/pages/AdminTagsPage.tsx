@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import AdminPageHeader from "../../../components/Admin/AdminPageHeader";
-import AdminViewTabs from "../../../components/Admin/AdminViewTabs";
-import AdminTaxonomyToolbar from "../../../components/Admin/AdminTaxonomyToolbar";
-import AdminTaxonomyTable from "../../../components/Admin/AdminTaxonomyTable";
-import AdminConfirmDialog from "../../../components/Admin/AdminConfirmDialog";
+import AdminPageHeader from "../components/shell/AdminPageHeader";
+import AdminViewTabs from "../components/shell/AdminViewTabs";
+import AdminTaxonomyToolbar from "../components/taxonomy/AdminTaxonomyToolbar";
+import AdminTaxonomyTable from "../components/taxonomy/AdminTaxonomyTable";
+import AdminConfirmDialog from "../components/common/AdminConfirmDialog";
 import { useAdminTaxonomy } from "../hooks/useAdminTaxonomy";
 import {
   DEFAULT_TAXONOMY_FILTERS,

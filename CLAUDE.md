@@ -40,6 +40,7 @@ The Supabase client (`src/lib/supabase.ts`) throws at startup if these are missi
 ### Directory conventions
 
 - `src/features/<feature>/` — feature-scoped modules, each with its own `model/`, `api/`, `hooks/`, and `components/` as needed (e.g. `src/features/events/`, `src/features/calendar/`, `src/features/submit-event/`).
+- `src/components/` — cross-feature UI only: `ui/`, `layout/`, `marketing/`, `desk/`. Feature-owned UI goes in `src/features/<feature>/components/`.
 - `src/shared/` — cross-feature utilities not tied to one feature (e.g. `src/shared/seo/useDocumentMeta.ts`).
 - `src/app/` — app-level composition (`providers.tsx` wires `StrictMode` → `QueryClientProvider` → `CityProvider`).
 - `src/pages/` — thin route shells; most render a feature's top-level component.

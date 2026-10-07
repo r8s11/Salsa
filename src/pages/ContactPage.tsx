@@ -1,4 +1,4 @@
-import Contact from "../components/Contact/Contact";
+import Contact from "../components/marketing/Contact";
 import { useDocumentMeta } from "../shared/seo/useDocumentMeta";
 import { canonicalUrl } from "../utils/seo";
 

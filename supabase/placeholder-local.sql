@@ -60,6 +60,41 @@ values
    '9 Orchard Mill St', 'Brooklyn', 'NY', '11211', 'US', 'America/New_York',
    null, null, 'active', 'admin');
 
+-- Two venues for each metro added in 20261007120000 (used by the generated
+-- three-month calendar below).
+insert into public.venues
+  (id, name, slug, address_line1, city, state_region, postal_code, country, timezone,
+   instagram, status, source_type)
+values
+  ('dddddddd-0001-4000-8000-000000000011', 'Palmera Dance Hall', 'palmera-dance-hall',
+   '210 Harbor Light Blvd', 'Miami', 'FL', '33130', 'US', 'America/New_York', 'palmerahall', 'active', 'admin'),
+  ('dddddddd-0001-4000-8000-000000000012', 'Bahía Studio', 'bahia-studio',
+   '88 Coral Reef Way', 'Miami', 'FL', '33133', 'US', 'America/New_York', null, 'active', 'admin'),
+  ('dddddddd-0001-4000-8000-000000000013', 'Lakeview Social Club', 'lakeview-social-club',
+   '500 Shoreline Dr', 'Orlando', 'FL', '32801', 'US', 'America/New_York', 'lakeviewsocial', 'active', 'admin'),
+  ('dddddddd-0001-4000-8000-000000000014', 'Orange Grove Studio', 'orange-grove-studio',
+   '14 Citrus Row', 'Orlando', 'FL', '32803', 'US', 'America/New_York', null, 'active', 'admin'),
+  ('dddddddd-0001-4000-8000-000000000015', 'Sunset Ritmo Hall', 'sunset-ritmo-hall',
+   '7200 Palm Canyon Ave', 'Los Angeles', 'CA', '90028', 'US', 'America/Los_Angeles', 'sunsetritmo', 'active', 'admin'),
+  ('dddddddd-0001-4000-8000-000000000016', 'Echo Terrace Studio', 'echo-terrace-studio',
+   '31 Reservoir Hill Rd', 'Los Angeles', 'CA', '90026', 'US', 'America/Los_Angeles', null, 'active', 'admin'),
+  ('dddddddd-0001-4000-8000-000000000017', 'Magnolia Ballroom', 'magnolia-ballroom',
+   '940 Magnolia Pkwy', 'Atlanta', 'GA', '30308', 'US', 'America/New_York', 'magnoliaballroom', 'active', 'admin'),
+  ('dddddddd-0001-4000-8000-000000000018', 'Peachtree Dance Loft', 'peachtree-dance-loft',
+   '62 Foundry Lane', 'Atlanta', 'GA', '30312', 'US', 'America/New_York', null, 'active', 'admin'),
+  ('dddddddd-0001-4000-8000-000000000019', 'Capitol Clave Hall', 'capitol-clave-hall',
+   '1100 Lantern Sq NW', 'Washington', 'DC', '20001', 'US', 'America/New_York', 'capitolclave', 'active', 'admin'),
+  ('dddddddd-0001-4000-8000-000000000020', 'Rock Creek Studio', 'rock-creek-studio',
+   '45 Ridge Mill Rd', 'Silver Spring', 'MD', '20910', 'US', 'America/New_York', null, 'active', 'admin'),
+  ('dddddddd-0001-4000-8000-000000000021', 'Fog City Ballroom', 'fog-city-ballroom',
+   '780 Pier Lantern St', 'San Francisco', 'CA', '94107', 'US', 'America/Los_Angeles', 'fogcityballroom', 'active', 'admin'),
+  ('dddddddd-0001-4000-8000-000000000022', 'Mission Brass Room', 'mission-brass-room',
+   '19 Cypress Alley', 'San Francisco', 'CA', '94110', 'US', 'America/Los_Angeles', null, 'active', 'admin'),
+  ('dddddddd-0001-4000-8000-000000000023', 'Lone Star Salón', 'lone-star-salon',
+   '300 Pecan Grove Blvd', 'Austin', 'TX', '78701', 'US', 'America/Chicago', 'lonestarsalon', 'active', 'admin'),
+  ('dddddddd-0001-4000-8000-000000000024', 'Riverwalk Dance Hall', 'riverwalk-dance-hall',
+   '12 Mesquite Bend', 'Houston', 'TX', '77002', 'US', 'America/Chicago', null, 'active', 'admin');
+
 -- ---------------------------------------------------------------------------
 -- Organizers
 -- ---------------------------------------------------------------------------
@@ -108,7 +143,34 @@ values
    '9 Orchard Mill St', '11211', 'Brooklyn', 'NY', 'US',
    null, 'bachatalab.bk', null,
    'Sensual and Dominican bachata in small groups. Wednesday labs drill one figure for the whole hour.',
-   'https://picsum.photos/seed/school-bachata-lab/1600/900', 'active', 'admin');
+   'https://picsum.photos/seed/school-bachata-lab/1600/900', 'active', 'admin'),
+  -- One school per new metro; their weekly classes come from the generator.
+  ('dddddddd-0003-4000-8000-000000000011', 'Palmera Salsa Academy', 'palmera-salsa-academy',
+   '88 Coral Reef Way', '33133', 'Miami', 'FL', 'US', null, 'palmera.academy', null,
+   'Casino, rueda and Miami-style salsa in eight-week levels.',
+   'https://picsum.photos/seed/school-palmera/1600/900', 'active', 'admin'),
+  ('dddddddd-0003-4000-8000-000000000012', 'Orlando Ritmo School', 'orlando-ritmo-school',
+   '14 Citrus Row', '32803', 'Orlando', 'FL', 'US', null, null, null,
+   'Salsa and bachata for adults, beginner track every month.', null, 'active', 'admin'),
+  ('dddddddd-0003-4000-8000-000000000013', 'LA Mambo Lab', 'la-mambo-lab',
+   '31 Reservoir Hill Rd', '90026', 'Los Angeles', 'CA', 'US', 'https://la-mambo-lab.example', 'lamambolab', null,
+   'LA-style On1 salsa: spins, shines and team training.',
+   'https://picsum.photos/seed/school-la-mambo/1600/900', 'active', 'admin'),
+  ('dddddddd-0003-4000-8000-000000000014', 'Atlanta Bachata Collective', 'atlanta-bachata-collective',
+   '62 Foundry Lane', '30312', 'Atlanta', 'GA', 'US', null, 'atlbachata', null,
+   'Dominican and sensual bachata, small groups.',
+   'https://picsum.photos/seed/school-atl-bachata/1600/900', 'active', 'admin'),
+  ('dddddddd-0003-4000-8000-000000000015', 'DMV Dance Conservatory', 'dmv-dance-conservatory',
+   '45 Ridge Mill Rd', '20910', 'Silver Spring', 'MD', 'US', 'https://dmv-dance.example', null, null,
+   'On2 salsa and cha-cha with a performance company.', null, 'active', 'admin'),
+  ('dddddddd-0003-4000-8000-000000000016', 'Bay Area Salsa Studio', 'bay-area-salsa-studio',
+   '19 Cypress Alley', '94110', 'San Francisco', 'CA', 'US', null, 'bayareasalsa', null,
+   'Salsa On1 and On2, rueda on Sundays.',
+   'https://picsum.photos/seed/school-bay-area/1600/900', 'active', 'admin'),
+  ('dddddddd-0003-4000-8000-000000000017', 'Lone Star Latin Dance', 'lone-star-latin-dance',
+   '300 Pecan Grove Blvd', '78701', 'Austin', 'TX', 'US', null, 'lonestarlatin', null,
+   'Salsa, bachata and Tex-Mex cumbia socials.',
+   'https://picsum.photos/seed/school-lone-star/1600/900', 'active', 'admin');
 
 -- ---------------------------------------------------------------------------
 -- Instructors
@@ -289,6 +351,102 @@ values
    'workshop', 'washington-dc', 11, time '14:00', '2:00 PM',
    null, null, 'paid', 35, 'dc-on2', '{salsa}', '{}', '{}');
 
+-- ---------------------------------------------------------------------------
+-- Generated three-month calendar: recurring nights from today through day 90
+-- in every metro. cadence 1 = weekly, 2 = every other week, 4 = every fourth
+-- week; isodow 1 = Monday ... 7 = Sunday.
+-- ---------------------------------------------------------------------------
+create temp table placeholder_metro_kit (
+  metro      text primary key,
+  venue_a    uuid not null,
+  venue_b    uuid not null,
+  school     uuid not null
+) on commit drop;
+
+insert into placeholder_metro_kit values
+  ('miami',         'dddddddd-0001-4000-8000-000000000011', 'dddddddd-0001-4000-8000-000000000012', 'dddddddd-0003-4000-8000-000000000011'),
+  ('orlando',       'dddddddd-0001-4000-8000-000000000013', 'dddddddd-0001-4000-8000-000000000014', 'dddddddd-0003-4000-8000-000000000012'),
+  ('los-angeles',   'dddddddd-0001-4000-8000-000000000015', 'dddddddd-0001-4000-8000-000000000016', 'dddddddd-0003-4000-8000-000000000013'),
+  ('atlanta',       'dddddddd-0001-4000-8000-000000000017', 'dddddddd-0001-4000-8000-000000000018', 'dddddddd-0003-4000-8000-000000000014'),
+  ('washington-dc', 'dddddddd-0001-4000-8000-000000000019', 'dddddddd-0001-4000-8000-000000000020', 'dddddddd-0003-4000-8000-000000000015'),
+  ('san-francisco', 'dddddddd-0001-4000-8000-000000000021', 'dddddddd-0001-4000-8000-000000000022', 'dddddddd-0003-4000-8000-000000000016'),
+  ('texas',         'dddddddd-0001-4000-8000-000000000023', 'dddddddd-0001-4000-8000-000000000024', 'dddddddd-0003-4000-8000-000000000017');
+
+-- Same weekly shape in each new metro; {venue} and {school} are filled in.
+insert into placeholder_events
+  (title, description, event_type, city, day_offset, time_of_day, time_label, venue_id,
+   price_type, price_amount, image_seed, styles, school_ids)
+select
+  replace(replace(t.title, '{venue}', va.name), '{school}', s.name),
+  t.description, t.event_type, k.metro, d.n, t.time_of_day,
+  to_char(t.time_of_day, 'FMHH12:MI AM'),
+  case t.venue when 'a' then k.venue_a else k.venue_b end,
+  t.price_type, t.price_amount,
+  'gen-' || k.metro || '-' || t.key || '-' || d.n,
+  t.styles,
+  case when t.with_school then array[k.school] else '{}'::uuid[] end
+from placeholder_metro_kit k
+join public.venues va on va.id = k.venue_a
+join public.schools s on s.id = k.school
+cross join (values
+  ('fundamentals', 'Salsa Fundamentals · {school}', 'Eight-week On1 basics; partner rotation, no partner needed.',
+   'class', 2, 1, time '19:30', 'b', 'paid', 18::numeric, '{salsa}'::text[], true),
+  ('bachata-l2', 'Bachata Level 2 · {school}', 'Turn patterns, body movement and musicality.',
+   'class', 4, 1, time '20:00', 'b', 'paid', 18::numeric, '{bachata}'::text[], true),
+  ('friday-social', '{venue} Friday Social', 'Salsa and bachata, DJ all night, beginner lesson at 9.',
+   'social', 5, 1, time '21:00', 'a', 'paid', 15::numeric, '{salsa,bachata}'::text[], false),
+  ('sunday-practica', 'Sunday Practica', 'Free practice floor; bring questions from the week.',
+   'social', 7, 1, time '17:00', 'b', 'free', null::numeric, '{salsa,cha-cha}'::text[], true),
+  ('live-orquesta', 'Live Orquesta at {venue}', 'Ten-piece salsa band, two sets, DJ between.',
+   'live_music', 6, 2, time '21:30', 'a', 'paid', 25::numeric, '{salsa}'::text[], false),
+  ('styling-workshop', 'Styling & Shines Workshop', 'Two hours of footwork and arm styling, all levels.',
+   'workshop', 7, 4, time '14:00', 'b', 'paid', 35::numeric, '{salsa,cha-cha}'::text[], true)
+) as t(key, title, description, event_type, isodow, cadence, time_of_day, venue, price_type, price_amount, styles, with_school)
+cross join (select (now() at time zone 'America/New_York')::date as ny_today) b
+cross join lateral generate_series(0, 90) as d(n)
+where extract(isodow from b.ny_today + d.n) = t.isodow
+  and (d.n / 7) % t.cadence = 0;
+
+-- Boston and NYC: extra recurring nights on days the hand-written rows leave open.
+insert into placeholder_events
+  (title, description, event_type, city, day_offset, time_of_day, time_label, venue_id,
+   price_type, price_amount, image_seed, styles, school_ids, instructor_ids)
+select
+  t.title, t.description, t.event_type, t.metro, d.n, t.time_of_day,
+  to_char(t.time_of_day, 'FMHH12:MI AM'), t.venue_id,
+  t.price_type, t.price_amount, 'gen-' || t.key || '-' || d.n, t.styles, t.school_ids, t.instructor_ids
+from (values
+  ('bos-bachata-wed', 'Miércoles Bachata Night', 'Bachata social with a sensual lesson at 8:30.',
+   'social', 'boston', 3, 1, time '21:00', 'dddddddd-0001-4000-8000-000000000002'::uuid,
+   'paid', 12::numeric, '{bachata}'::text[], '{}'::uuid[], '{}'::uuid[]),
+  ('bos-rueda-sun', 'Rueda de Casino Practice', 'Called rueda in a big circle; learn the calls as you go.',
+   'class', 'boston', 7, 1, time '18:00', 'dddddddd-0001-4000-8000-000000000002'::uuid,
+   'paid', 10::numeric, '{salsa,afro-cuban}'::text[],
+   '{dddddddd-0003-4000-8000-000000000002}'::uuid[], '{dddddddd-0004-4000-8000-000000000002}'::uuid[]),
+  ('bos-timba-live', 'Timba Live at the Copper Room', 'Cuban timba band, doors at 9.',
+   'live_music', 'boston', 5, 2, time '21:30', 'dddddddd-0001-4000-8000-000000000002'::uuid,
+   'paid', 25::numeric, '{salsa,afro-cuban}'::text[], '{}'::uuid[], '{}'::uuid[]),
+  ('nyc-mambo-tue', 'Mambo Tuesdays', 'On2 social in the big room, shines warm-up at 9.',
+   'social', 'new-york-city', 2, 1, time '21:00', 'dddddddd-0001-4000-8000-000000000003'::uuid,
+   'paid', 15::numeric, '{salsa}'::text[], '{}'::uuid[], '{}'::uuid[]),
+  ('nyc-footwork-thu', 'Bachata Footwork Lab', 'Dominican footwork drills, then partnerwork.',
+   'class', 'new-york-city', 4, 1, time '19:30', 'dddddddd-0001-4000-8000-000000000004'::uuid,
+   'paid', 20::numeric, '{bachata}'::text[],
+   '{dddddddd-0003-4000-8000-000000000005}'::uuid[], '{dddddddd-0004-4000-8000-000000000005}'::uuid[]),
+  ('nyc-descarga-sat', 'Descarga Saturdays', 'Open jam with a house band and guest soneros.',
+   'live_music', 'new-york-city', 6, 2, time '22:00', 'dddddddd-0001-4000-8000-000000000004'::uuid,
+   'paid', 20::numeric, '{salsa}'::text[], '{}'::uuid[], '{}'::uuid[]),
+  ('nyc-palladium-sun', 'Palladium Shines Masterclass', 'Monthly two-hour shines intensive.',
+   'workshop', 'new-york-city', 7, 4, time '13:00', 'dddddddd-0001-4000-8000-000000000003'::uuid,
+   'paid', 45::numeric, '{salsa}'::text[],
+   '{dddddddd-0003-4000-8000-000000000004}'::uuid[], '{dddddddd-0004-4000-8000-000000000004}'::uuid[])
+) as t(key, title, description, event_type, metro, isodow, cadence, time_of_day, venue_id,
+       price_type, price_amount, styles, school_ids, instructor_ids)
+cross join (select (now() at time zone 'America/New_York')::date as ny_today) b
+cross join lateral generate_series(0, 90) as d(n)
+where extract(isodow from b.ny_today + d.n) = t.isodow
+  and (d.n / 7) % t.cadence = 0;
+
 insert into public.events
   (id, title, description, event_type, city, event_date, event_time, location, address,
    price_type, price_amount, image_url, status, source_type, submitter_name, submitter_email,
@@ -325,9 +483,11 @@ select p.id, t.id
 from placeholder_events p
 join public.taxonomy_terms t on t.category = 'event_attribute'
   and t.slug = case
-    when p.title like '%Level 1%' or p.title like 'Beginner%' then 'beginner-friendly'
+    when p.title like '%Level 1%' or p.title like 'Beginner%' or p.title like 'Salsa Fundamentals%'
+      then 'beginner-friendly'
     when p.event_type = 'workshop' then 'workshop'
     when p.event_type = 'social' then 'social'
+    when p.event_type = 'live_music' then 'live-music'
   end;
 
 commit;

@@ -46,6 +46,76 @@
   color: var(--admin-text-subtle);
 }
 
+/* Listings the person manages: one rule-separated row each, the whole row a link. */
+.host-desk__listings {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-md);
+  border-top: 2px solid var(--desk-rule-strong);
+}
+
+.host-desk__listings .desk__measure-title {
+  margin-bottom: var(--space-sm);
+}
+
+.host-desk__listing {
+  border-bottom: 1px solid var(--desk-rule);
+}
+
+.host-desk__listing:last-child {
+  border-bottom: none;
+}
+
+.host-desk__listing a {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  padding: 10px 0;
+  font-size: var(--desk-agate);
+  color: var(--admin-text-secondary);
+  text-decoration: none;
+}
+
+.host-desk__listing a:hover .host-desk__listing-name {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.host-desk__listing-kind {
+  min-width: 4.5rem;
+  font-size: var(--desk-label);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--admin-text-subtle);
+}
+
+.host-desk__listing-name {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--admin-text-strong);
+  overflow-wrap: anywhere;
+}
+
+.host-desk__listing-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--desk-label);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.host-desk__listing-role {
+  margin-left: auto;
+  font-size: var(--desk-label);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--admin-text-subtle);
+}
+
 .host-desk__note {
   margin: 0;
   padding: 8px 0;
@@ -74,13 +144,19 @@
     gap: 12px;
   }
 
+  .host-desk__listing a {
+    min-height: 44px;
+    align-items: center;
+  }
+
   .host-desk__note {
     max-width: 100%;
   }
 }
 
 @media (pointer: coarse) {
-  .host-desk__organizer {
+  .host-desk__organizer,
+  .host-desk__listing a {
     min-height: 44px;
   }
 }

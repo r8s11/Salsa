@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { ArrowUpRight, MapPin } from "lucide-react";
 import { entityExternalLinks } from "../externalLinks";
 import { entityHref, type EntityDetail, type EventSummary, type PublicEntityRef } from "../model";
+import { EntityClaimControl } from "../../workspaces/components/public/EntityClaimControl";
+import { SchoolOfferingsSection } from "../../workspaces/components/public/SchoolOfferingsSection";
 import "./SchoolProfile.css";
 
 // Every event time on the site is shown in New York time (see
@@ -198,6 +200,7 @@ export function SchoolProfile({ detail }: { detail: EntityDetail }) {
 
       <div className="school-profile__body">
         <div className="school-profile__schedule">
+          <SchoolOfferingsSection slug={school.slug} />
           <section aria-labelledby="school-upcoming">
             <h2 id="school-upcoming">On the calendar</h2>
             {upcoming.length === 0 ? (
@@ -262,6 +265,9 @@ export function SchoolProfile({ detail }: { detail: EntityDetail }) {
         <Link to="/schools">All schools</Link>
         {metro && <Link to={entityHref(metro)}>More dancing in {metro.name}</Link>}
       </nav>
+      <footer className="school-profile__claim">
+        <EntityClaimControl kind="school" entity={school} />
+      </footer>
     </article>
   );
 }

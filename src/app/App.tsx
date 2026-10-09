@@ -74,8 +74,16 @@ const BulkFlyerImportPage = lazy(() => import("../pages/BulkFlyerImportPage"));
 const HostOrganizationPage = lazy(() => import("../pages/host/HostOrganizationPage"));
 const UserEventEditPage = lazy(() => import("../pages/UserEventEditPage"));
 const OnboardingPage = lazy(() => import("../pages/account/OnboardingPage"));
+const AdminEntityClaimsPage = lazy(() => import("../features/admin/pages/AdminEntityClaimsPage"));
+const EntityWorkspaceOverviewPage = lazy(() => import("../features/workspaces/pages/EntityWorkspaceOverviewPage"));
+const EntityWorkspaceProfilePage = lazy(() => import("../features/workspaces/pages/EntityWorkspaceProfilePage"));
+const EntityWorkspaceTeamPage = lazy(() => import("../features/workspaces/pages/EntityWorkspaceTeamPage"));
+const SchoolTimetablePage = lazy(() => import("../features/workspaces/pages/SchoolTimetablePage"));
+const SchoolPrivatesPage = lazy(() => import("../features/workspaces/pages/SchoolPrivatesPage"));
+const SchoolPricesPage = lazy(() => import("../features/workspaces/pages/SchoolPricesPage"));
 import RequireAuth from "../features/auth/components/RequireAuth";
 import RequireAdmin from "../features/auth/components/RequireAdmin";
+import { MANAGED_KINDS, WORKSPACE_SEGMENTS } from "../features/workspaces/model";
 import RequireReviewer from "../features/auth/components/RequireReviewer";
 import RequireOrganizer from "../features/auth/components/RequireOrganizer";
 import RequireOnboarding from "../features/auth/components/RequireOnboarding";
@@ -224,6 +232,14 @@ function App() {
                   </RequireAdmin>
                 }
               />
+              <Route
+                path="claims"
+                element={
+                  <RequireAdmin>
+                    <AdminEntityClaimsPage />
+                  </RequireAdmin>
+                }
+              />
             </Route>
             <Route
               path="/host"
@@ -243,6 +259,16 @@ function App() {
               <Route path="events/:eventId/edit" element={<HostEditEventPage />} />
               <Route path="events/:eventId/attendees" element={<HostAttendeeListPage />} />
               <Route path="events/:eventId/check-in" element={<HostCheckInPage />} />
+              {MANAGED_KINDS.map((kind) => (
+                <Route key={kind} path={`${WORKSPACE_SEGMENTS[kind]}/:id`}>
+                  <Route index element={<EntityWorkspaceOverviewPage kind={kind} />} />
+                  <Route path="profile" element={<EntityWorkspaceProfilePage kind={kind} />} />
+                  <Route path="team" element={<EntityWorkspaceTeamPage kind={kind} />} />
+                </Route>
+              ))}
+              <Route path="schools/:id/timetable" element={<SchoolTimetablePage />} />
+              <Route path="schools/:id/privates" element={<SchoolPrivatesPage />} />
+              <Route path="schools/:id/prices" element={<SchoolPricesPage />} />
             </Route>
             <Route
               path="/onboarding"

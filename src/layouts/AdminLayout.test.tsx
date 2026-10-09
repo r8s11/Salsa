@@ -23,6 +23,12 @@ vi.mock("../features/admin/hooks/usePendingRequestCounts", () => ({
   usePendingOrganizerRequestCount: () => 0,
   usePendingFounderRequestCount: () => 0,
 }));
+vi.mock("../features/admin/hooks/useAdminEntityClaims", () => ({
+  usePendingEntityClaimCount: () => 0,
+}));
+vi.mock("../features/workspaces/hooks/useMyEntityMemberships", () => ({
+  useMyEntityMemberships: () => ({ data: [], isLoading: false }),
+}));
 
 vi.mock("../contexts/useAuth", () => ({
   useAuth: () => ({
@@ -88,6 +94,8 @@ function renderHostLayoutAt(path: string) {
             <Route path="events/:eventId/attendees" element={<p>Host attendees</p>} />
             <Route path="events/:eventId/check-in" element={<p>Host check-in</p>} />
             <Route path="organization" element={<p>Host organization</p>} />
+            <Route path=":segment/:id" element={<p>Host listing</p>} />
+            <Route path=":segment/:id/:section" element={<p>Host listing section</p>} />
           </Route>
         </Routes>
       </MemoryRouter>
@@ -277,6 +285,10 @@ describe("AdminLayout", () => {
     "/admin/submissions/submission-1",
     "/admin/founder-requests",
     "/admin/founder-requests/request-1",
+    "/admin/schools",
+    "/admin/schools/school-1",
+    "/admin/instructors/instructor-1",
+    "/admin/series",
   ])("keeps the breadcrumb aligned with the selected queue on %s", (path) => {
     renderLayoutAt(path);
 
@@ -297,12 +309,26 @@ describe("AdminLayout", () => {
     ["/host/events/abc-123/attendees", "Host · Attendees"],
     ["/host/events/abc-123/check-in", "Host · Check-in"],
     ["/host/organization", "Host · Organization"],
+    ["/host/schools/s-1", "School · Overview"],
+    ["/host/schools/s-1/timetable", "School · Timetable"],
+    ["/host/schools/s-1/privates", "School · Privates"],
+    ["/host/schools/s-1/prices", "School · Prices"],
+    ["/host/venues/v-1/team", "Venue · Team"],
+    ["/host/instructors/i-1/profile", "Artist · Profile"],
   ])("labels the Host location %s as %s", (path, expected) => {
     renderHostLayoutAt(path);
 
     expect(
       screen.getByText(expected, { selector: ".admin-breadcrumbs__crumb" })
     ).toBeInTheDocument();
+  });
+
+  it("labels the listing claims queue", () => {
+    renderLayoutAt("/admin/claims");
+
+    expect(screen.getByRole("navigation", { name: "Breadcrumb" })).toHaveTextContent(
+      "Listing Claims"
+    );
   });
 
   it("names the navigation landmark for the Host workspace", () => {

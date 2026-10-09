@@ -39,6 +39,8 @@ const TARGET_TYPE_OPTIONS = [
   { value: "event_submission", label: "Submission" },
   { value: "profile", label: "User" },
   { value: "venue", label: "Venue" },
+  { value: "school", label: "School" },
+  { value: "instructor", label: "Instructor" },
   { value: "taxonomy_term", label: "Taxonomy term" },
   { value: "organizer", label: "Organizer" },
   { value: "platform_settings", label: "Platform settings" },
@@ -65,6 +67,11 @@ const ACTION_OPTIONS = [
   { value: "venue.merged", label: "Venue merged" },
   { value: "platform_settings.updated", label: "Settings updated" },
   { value: "platform_settings.access_policy_changed", label: "Access policy changed" },
+  { value: "entity_claim.approved", label: "Entity claim approved" },
+  { value: "entity_claim.rejected", label: "Entity claim rejected" },
+  { value: "entity_member.added", label: "Team member added" },
+  { value: "entity_member.updated", label: "Team member updated" },
+  { value: "entity_member.removed", label: "Team member removed" },
 ];
 
 export default function AdminActivityFilterDrawer({

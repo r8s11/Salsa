@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useAuth } from "../../../contexts/useAuth";
 import { useMyOrganizers } from "./useMyOrganizers";
+import { useMyEntityMemberships } from "../../workspaces/hooks/useMyEntityMemberships";
 import { deriveHostCapabilities, type HostCapabilities } from "../model/hostCapabilities";
 
 export type UseHostCapabilitiesResult = HostCapabilities & {
@@ -19,17 +20,19 @@ export type UseHostCapabilitiesResult = HostCapabilities & {
  */
 export function useHostCapabilities(): UseHostCapabilitiesResult {
   const { user, isOrganizer } = useAuth();
-  const { data: memberships, isLoading } = useMyOrganizers();
-  const membershipsLoading = user != null && isLoading;
+  const { data: memberships, isLoading: organizersLoading } = useMyOrganizers();
+  const { data: entityMemberships, isLoading: entityMembershipsLoading } = useMyEntityMemberships();
+  const isLoading = user != null && (organizersLoading || entityMembershipsLoading);
 
   return useMemo(
     () => ({
       ...deriveHostCapabilities({
         isOrganizerRole: isOrganizer === true,
         memberships: memberships ?? [],
+        entityMemberships: entityMemberships ?? [],
       }),
-      isLoading: membershipsLoading,
+      isLoading,
     }),
-    [isOrganizer, memberships, membershipsLoading]
+    [isOrganizer, memberships, entityMemberships, isLoading]
   );
 }

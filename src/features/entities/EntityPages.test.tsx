@@ -12,6 +12,9 @@ vi.mock("../../lib/supabase", () => ({ supabase: { rpc } }));
 vi.mock("../metros/hooks/useMetros", () => ({
   useMetros: () => ({ metros: [{ slug: "boston", name: "Boston" }], loading: false, error: null }),
 }));
+const scene = vi.hoisted(() => ({ city: null as string | null }));
+vi.mock("../../contexts/useCity", () => ({ useCity: () => ({ city: scene.city, resolving: false, setCity: vi.fn() }) }));
+vi.mock("../../contexts/useAuth", () => ({ useAuth: () => ({ user: null, loading: false }) }));
 
 const detail = {
   entity: {
@@ -35,7 +38,11 @@ function renderRoute(element: ReactElement, initialPath = "/s/ritmo-vivo", route
   );
 }
 
-beforeEach(() => { rpc.mockReset(); });
+beforeEach(() => {
+  rpc.mockReset();
+  rpc.mockImplementation(() => Promise.resolve({ data: null, error: null }));
+  scene.city = null;
+});
 
 describe("PublicEntityPage", () => {
   it("renders the entity description and approved upcoming event links", async () => {
@@ -152,20 +159,106 @@ describe("School profile", () => {
   });
 });
 
+describe("instructor surfaces", () => {
+  const teacher = {
+    ...detail.entity, kind: "instructor" as const, id: "instructor-1", name: "Ana Rivera", slug: "ana-rivera",
+    description: "On2 teacher", instagram: "@anarivera", website: "https://ana.example",
+  };
+
+  it("renders a portrait-led profile with initial fallback, links, and nights", async () => {
+    rpc.mockResolvedValueOnce({ data: { ...detail, entity: teacher }, error: null });
+
+    renderRoute(<PublicEntityPage kind="instructor" />, "/i/ana-rivera", "/i/:slug");
+
+    expect(await screen.findByRole("heading", { level: 1, name: "Ana Rivera" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Instagram" })).toHaveAttribute("href", "https://www.instagram.com/anarivera/");
+    expect(screen.getByRole("link", { name: "Website" })).toHaveAttribute("href", "https://ana.example");
+    expect(screen.getByRole("heading", { name: "Teaching next" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Salsa Night/ })).toHaveAttribute("href", "/events/salsa-night");
+    expect(screen.getByRole("link", { name: /Salsa Circle/ })).toHaveAttribute("href", "/o/salsa-circle");
+  });
+
+  it("says plainly when no classes are listed", async () => {
+    rpc.mockResolvedValueOnce({ data: { ...detail, entity: teacher, upcoming: [], related: [] }, error: null });
+
+    renderRoute(<PublicEntityPage kind="instructor" />, "/i/ana-rivera", "/i/:slug");
+
+    expect(await screen.findByText(/no upcoming classes or events listed yet/i)).toBeInTheDocument();
+  });
+
+  it("lists instructors as a roster linking to profiles", async () => {
+    rpc.mockResolvedValueOnce({ data: [teacher], error: null });
+
+    renderRoute(<EntityDirectoryPage kind="instructor" />, "/instructors", "*");
+
+    expect(await screen.findByRole("link", { name: /Ana Rivera/ })).toHaveAttribute("href", "/i/ana-rivera");
+  });
+});
+
 describe("EntityDirectoryPage", () => {
+  it("opens the main directory on a lineup of rows linking to each directory", async () => {
+    rpc.mockImplementation((_name: string, args: { p_kind: string | null }) => {
+      if (args.p_kind === "venue") return Promise.resolve({ data: [{ ...detail.entity, kind: "venue", id: "venue-1", name: "Club Café", slug: "club-cafe" }], error: null });
+      if (args.p_kind === "school") return Promise.resolve({ data: null, error: { message: "offline" } });
+      return Promise.resolve({ data: [], error: null });
+    });
+
+    renderRoute(<EntityDirectoryPage />, "/discover", "*");
+
+    expect(await screen.findByRole("link", { name: /Club Café/ })).toHaveAttribute("href", "/v/club-cafe");
+    expect(screen.getByRole("link", { name: /all venues/i })).toHaveAttribute("href", "/venues");
+    expect(await screen.findByText(/couldn’t load schools/i)).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Artists" })).not.toBeInTheDocument();
+    expect(rpc).not.toHaveBeenCalledWith("public_entity_directory", expect.objectContaining({ p_kind: null }));
+  });
+
+  it("scopes the hub to the visitor's metro, folding suburbs in and offering every city when a kind is empty", async () => {
+    scene.city = "boston";
+    const school = (id: string, name: string, city: string) => ({ ...detail.entity, id, name, slug: id, city });
+    rpc.mockImplementation((_name: string, args: { p_kind: string | null; p_city: string | null }) => {
+      if (args.p_kind === "school" && args.p_city === "boston") {
+        return Promise.resolve({ data: [school("teaches-here", "Visiting Academy", "Providence")], error: null });
+      }
+      if (args.p_kind === "school") {
+        return Promise.resolve({ data: [school("cambridge", "Ritmo Norte", "Cambridge"), school("brooklyn", "Bachata Lab", "Brooklyn")], error: null });
+      }
+      if (args.p_kind === "instructor" && !args.p_city) {
+        return Promise.resolve({ data: [{ ...detail.entity, kind: "instructor", id: "i-1", name: "Tomás Rivera", slug: "tomas-rivera", city: "New York" }], error: null });
+      }
+      return Promise.resolve({ data: [], error: null });
+    });
+
+    renderRoute(<EntityDirectoryPage />, "/discover", "*");
+
+    expect(await screen.findByRole("heading", { level: 2, name: "Boston" })).toBeInTheDocument();
+    expect(await screen.findByRole("link", { name: /Ritmo Norte/ })).toHaveAttribute("href", "/s/cambridge");
+    expect(await screen.findByRole("link", { name: /Visiting Academy/ })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Bachata Lab/ })).not.toBeInTheDocument();
+    expect(screen.getByText(/no instructors listed in boston yet/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /see instructors in every city/i }));
+
+    expect(await screen.findByRole("link", { name: /Tomás Rivera/ })).toHaveAttribute("href", "/i/tomas-rivera");
+    expect(screen.getByRole("link", { name: /Bachata Lab/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Every city" })).toHaveAttribute("aria-pressed", "true");
+  });
+
   it("filters the cross-kind directory by query and canonical metro city", async () => {
-    rpc.mockImplementation((_name: string, args: { p_query: string; p_city: string | null }) => {
+    rpc.mockImplementation((_name: string, args: { p_kind: string | null; p_query: string; p_city: string | null }) => {
+      if (args.p_kind) return Promise.resolve({ data: [], error: null });
       return Promise.resolve({ data: args.p_query === "Ritmo" && args.p_city === "boston" ? [detail.entity] : [], error: null });
     });
 
     renderRoute(<EntityDirectoryPage />, "/discover", "*");
 
-    expect(await screen.findByText(/no results found/i)).toBeInTheDocument();
+    expect(await screen.findByText(/nothing is listed in the directory yet/i)).toBeInTheDocument();
     fireEvent.change(screen.getByRole("searchbox", { name: /search/i }), { target: { value: "Ritmo" } });
     fireEvent.change(screen.getByRole("combobox", { name: /city/i }), { target: { value: "boston" } });
     fireEvent.click(screen.getByRole("button", { name: /^search$/i }));
 
     expect(await screen.findByRole("link", { name: /Ritmo Vivo/i })).toHaveAttribute("href", "/s/ritmo-vivo");
+    fireEvent.click(screen.getByRole("button", { name: /back to every directory/i }));
+    expect(await screen.findByText(/nothing is listed in the directory yet/i)).toBeInTheDocument();
   });
 
   it("advances through directory results with the next-page control", async () => {

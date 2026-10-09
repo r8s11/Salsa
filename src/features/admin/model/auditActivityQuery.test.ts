@@ -36,6 +36,8 @@ describe("categoryOf", () => {
     expect(categoryOf(makeEntry({ entity_type: "venue" }))).toBe("venues");
     expect(categoryOf(makeEntry({ entity_type: "taxonomy_term" }))).toBe("taxonomy");
     expect(categoryOf(makeEntry({ entity_type: "organizer" }))).toBe("users");
+    expect(categoryOf(makeEntry({ entity_type: "school" }))).toBe("venues");
+    expect(categoryOf(makeEntry({ entity_type: "instructor" }))).toBe("venues");
   });
 
   it("maps platform_settings entity_type to settings", () => {
@@ -123,6 +125,32 @@ describe("activityActionLabel", () => {
     expect(activityActionLabel(entry)).toBe("Venue merged into Havana Club");
   });
 
+  it("maps entity claim and member actions to human-readable copy", () => {
+    expect(activityActionLabel(makeEntry({ action: "entity_claim.approved" }))).toBe(
+      "Entity claim approved"
+    );
+    expect(
+      activityActionLabel(
+        makeEntry({
+          action: "entity_claim.rejected",
+          metadata: { rejection_reason: "not verified" },
+        })
+      )
+    ).toBe("Entity claim rejected — not verified");
+    expect(activityActionLabel(makeEntry({ action: "entity_claim.rejected" }))).toBe(
+      "Entity claim rejected"
+    );
+    expect(activityActionLabel(makeEntry({ action: "entity_member.added" }))).toBe(
+      "Team member added"
+    );
+    expect(activityActionLabel(makeEntry({ action: "entity_member.updated" }))).toBe(
+      "Team member updated"
+    );
+    expect(activityActionLabel(makeEntry({ action: "entity_member.removed" }))).toBe(
+      "Team member removed"
+    );
+  });
+
   it("falls back to raw action for unrecognized keys", () => {
     const entry = makeEntry({ action: "some.unknown_action" });
     expect(activityActionLabel(entry)).toBe("some.unknown_action");
@@ -176,6 +204,11 @@ describe("activityTargetLabel", () => {
   it("falls back to entity_id when no metadata", () => {
     const entry = makeEntry({ metadata: null });
     expect(activityTargetLabel(entry)).toBe("#event-1");
+  });
+
+  it("falls back to entity_type when no metadata or id", () => {
+    expect(activityTargetLabel(makeEntry({ entity_id: null, entity_type: "school", metadata: null }))).toBe("School");
+    expect(activityTargetLabel(makeEntry({ entity_id: null, entity_type: "instructor", metadata: null }))).toBe("Instructor");
   });
 });
 

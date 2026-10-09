@@ -18,6 +18,7 @@ import AdminQualityBadge from "../components/common/AdminQualityBadge";
 import AdminActionMenu from "../components/common/AdminActionMenu";
 import AdminConfirmDialog from "../components/common/AdminConfirmDialog";
 import AdminVenueForm from "../components/venues/AdminVenueForm";
+import AdminEntityTeamSection from "../components/entities/AdminEntityTeamSection";
 import { auditLogLabelFor } from "../model/auditLog";
 import "./AdminVenueDetailPage.css";
 
@@ -310,6 +311,8 @@ export default function AdminVenueDetailPage() {
           </div>
         </section>
 
+        <AdminEntityTeamSection kind="venue" id={v.id} className="admin-venue-detail-page__team" />
+
         {/* 4. Upcoming Events */}
         <section className="admin-card admin-venue-detail-page__upcoming">
           <h2>
@@ -514,8 +517,9 @@ export default function AdminVenueDetailPage() {
             placeholder: "Why this venue was archived…",
           }}
           onConfirm={() => {
-            archive(v.id);
-            setPendingAction(null);
+            // Close only on success: the database refuses to archive a venue with
+            // an active team (23514) and that message must reach the dialog.
+            archive(v.id, { onSuccess: closeDialog });
           }}
           onCancel={closeDialog}
         />

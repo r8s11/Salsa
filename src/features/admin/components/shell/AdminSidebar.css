@@ -57,6 +57,8 @@
   text-transform: uppercase;
   letter-spacing: 0.14em;
   color: var(--admin-text-muted);
+  /* Listing names are user data: let a long one wrap rather than clip. */
+  overflow-wrap: anywhere;
 }
 
 .admin-nav__item-wrap:first-child .admin-nav__group {

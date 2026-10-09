@@ -4,6 +4,8 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import type { DatabaseEvent } from "../../events/model/types";
 import HostDashboard from "./HostDashboard";
 import RequireOrganizer from "../../auth/components/RequireOrganizer";
+import { useMyEntityMemberships } from "../../workspaces/hooks/useMyEntityMemberships";
+import type { EntityMembership } from "../../workspaces/model";
 
 const { useAuth } = vi.hoisted(() => ({ useAuth: vi.fn() }));
 const { useMySubmissions } = vi.hoisted(() => ({ useMySubmissions: vi.fn() }));
@@ -15,6 +17,9 @@ const { useMyOrganizerEvents } = vi.hoisted(() => ({ useMyOrganizerEvents: vi.fn
 vi.mock("../../account/hooks/useMySubmissions", () => ({ useMySubmissions }));
 vi.mock("../hooks/useMyOrganizers", () => ({ useMyOrganizers }));
 vi.mock("../hooks/useMyOrganizerEvents", () => ({ useMyOrganizerEvents }));
+vi.mock("../../workspaces/hooks/useMyEntityMemberships", () => ({
+  useMyEntityMemberships: vi.fn(),
+}));
 
 function daysFromNow(days: number): string {
   return new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
@@ -92,6 +97,15 @@ function mockMyOrganizers(overrides: Record<string, unknown> = {}) {
   });
 }
 
+function mockEntityMemberships(data: EntityMembership[]) {
+  vi.mocked(useMyEntityMemberships).mockReturnValue({
+    data,
+    isLoading: false,
+    isError: false,
+    refetch: vi.fn(),
+  } as unknown as ReturnType<typeof useMyEntityMemberships>);
+}
+
 function renderDashboard() {
   return render(
     <MemoryRouter initialEntries={["/host"]}>
@@ -113,6 +127,7 @@ describe("HostDashboard", () => {
     vi.mocked(useAuth).mockReturnValue({ user: { id: "user-1" }, role: "organizer" });
     mockOwnerEvents();
     mockMyOrganizers();
+    mockEntityMemberships([]);
   });
 
   function entries() {
@@ -252,6 +267,7 @@ describe("HostDashboard organizer access foundation", () => {
     vi.clearAllMocks();
     vi.mocked(useAuth).mockReturnValue({ user: { id: "user-1" }, role: "organizer" });
     mockOwnerEvents();
+    mockEntityMemberships([]);
     vi.mocked(useMyOrganizerEvents).mockReturnValue({
       events: [],
       isLoading: false,
@@ -303,6 +319,7 @@ describe("RequireOrganizer", () => {
     vi.clearAllMocks();
     mockOwnerEvents();
     mockMyOrganizers();
+    mockEntityMemberships([]);
     vi.mocked(useMyOrganizerEvents).mockReturnValue({
       events: [],
       isLoading: false,
@@ -357,5 +374,85 @@ describe("RequireOrganizer", () => {
     renderGuardedHost();
 
     expect(await screen.findByText("Sign in")).toBeInTheDocument();
+  });
+});
+
+describe("HostDashboard listings", () => {
+  const school = {
+    kind: "school" as const,
+    id: "school-1",
+    name: "Salsa Academy",
+    slug: "salsa-academy",
+    status: "active" as const,
+    city: "Boston",
+    image_url: null,
+    member_role: "manager" as const,
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(useAuth).mockReturnValue({ user: { id: "user-1" }, role: null });
+    mockOwnerEvents({ submissions: [], approvedEvents: [] });
+    mockMyOrganizers();
+    vi.mocked(useMyOrganizerEvents).mockReturnValue({
+      events: [],
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+  });
+
+  it("links each managed listing to its workspace with the member's role", async () => {
+    mockEntityMemberships([
+      school,
+      { ...school, kind: "venue", id: "venue-1", name: "Havana Club", member_role: "owner" },
+    ]);
+    renderDashboard();
+
+    const listings = await screen.findByRole("region", { name: "Your listings" });
+    const schoolLink = within(listings).getByRole("link", { name: /Salsa Academy/ });
+    expect(schoolLink).toHaveAttribute("href", "/host/schools/school-1");
+    expect(schoolLink).toHaveTextContent("School");
+    expect(schoolLink).toHaveTextContent("Manager");
+    expect(within(listings).getByRole("link", { name: /Havana Club/ })).toHaveAttribute(
+      "href",
+      "/host/venues/venue-1"
+    );
+  });
+
+  it("lands a listing member without organizer access on their listings, not the access request", async () => {
+    mockEntityMemberships([school]);
+    renderDashboard();
+
+    expect(await screen.findByRole("region", { name: "Your listings" })).toBeInTheDocument();
+    expect(screen.queryByText(/No organizer access yet/)).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Your organizers" })).not.toBeInTheDocument();
+  });
+
+  it("keeps the organizer roster beside listings for someone who has both", async () => {
+    mockEntityMemberships([school]);
+    mockMyOrganizers({
+      data: [
+        {
+          organizerId: "org-1",
+          organizerName: "Havana Club",
+          organizerSlug: "havana-club",
+          organizerStatus: "active",
+          memberRole: "owner",
+        },
+      ],
+    });
+    renderDashboard();
+
+    expect(await screen.findByRole("region", { name: "Your listings" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Your organizers" })).toBeInTheDocument();
+  });
+
+  it("shows no listings division for someone who manages none", async () => {
+    mockEntityMemberships([]);
+    renderDashboard();
+
+    expect(await screen.findByText(/No organizer access yet/)).toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Your listings" })).not.toBeInTheDocument();
   });
 });

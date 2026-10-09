@@ -14,6 +14,15 @@ import {
   ChevronRight as ChevronRightIcon,
   Upload,
   Building2,
+  Activity,
+  BadgeCheck,
+  GraduationCap,
+  TrendingUp,
+  CalendarClock,
+  UserRound,
+  Tags,
+  Pencil,
+  UsersRound,
 } from "lucide-react";
 import { useId, useState, type ComponentType } from "react";
 import { useAuth } from "../../../../contexts/useAuth";
@@ -23,9 +32,18 @@ import {
   usePendingFounderRequestCount,
   usePendingOrganizerRequestCount,
 } from "../../hooks/usePendingRequestCounts";
+import { usePendingEntityClaimCount } from "../../hooks/useAdminEntityClaims";
 import { useHostCapabilities } from "../../../host/hooks/useHostCapabilities";
 import AdminThemeOptions from "./AdminThemeOptions";
 import type { HostCapabilities } from "../../../host/model/hostCapabilities";
+import {
+  MANAGED_KIND_LABELS,
+  type EntityMembership,
+} from "../../../workspaces/model";
+import {
+  workspaceSections,
+  type WorkspaceSectionLink,
+} from "../../../workspaces/workspaceSections";
 import SalsaSeguraLogo from "../../../../components/ui/SalsaSeguraLogo";
 import "./AdminSidebar.css";
 
@@ -52,14 +70,17 @@ type NavItem = {
    */
   notPaths?: string[];
   section?: string;
+  /** Two listings can share a title; the key tells their groups apart. */
+  sectionKey?: string;
 };
 
 type AdminNavItem = NavItem & { roles: UserRole[] };
 
-type HostNavItem = NavItem & { capability: keyof HostCapabilities };
+type HostNavItem = NavItem & { capability: keyof Omit<HostCapabilities, "entityMemberships"> };
 
 const ORGANIZER_REQUESTS_PATH = "/admin/organizer-requests";
 const FOUNDER_REQUESTS_PATH = "/admin/founder-requests";
+const LISTING_CLAIMS_PATH = "/admin/claims";
 
 const ADMIN_NAV_SECTIONS: { title: string; roles: UserRole[]; items: AdminNavItem[] }[] = [
   {
@@ -91,10 +112,16 @@ const ADMIN_NAV_SECTIONS: { title: string; roles: UserRole[]; items: AdminNavIte
         to: FOUNDER_REQUESTS_PATH,
         roles: ["admin", "moderator"],
       },
+      {
+        label: "Listing Claims",
+        icon: BadgeCheck,
+        to: LISTING_CLAIMS_PATH,
+        roles: ["admin"],
+      },
     ],
   },
   {
-    title: "Management",
+    title: "Events",
     roles: ["admin"],
     items: [
       { label: "Events", icon: CalendarDays, to: "/admin/events", roles: ["admin"] },
@@ -104,70 +131,104 @@ const ADMIN_NAV_SECTIONS: { title: string; roles: UserRole[]; items: AdminNavIte
         to: "/admin/events/import",
         roles: ["admin"],
       },
-      { label: "Users", icon: Users, to: "/admin/users", roles: ["admin"] },
+      { label: "Series", icon: CalendarClock, to: "/admin/series", roles: ["admin"] },
+    ],
+  },
+  {
+    title: "Directory",
+    roles: ["admin"],
+    items: [
+      { label: "Schools", icon: GraduationCap, to: "/admin/schools", roles: ["admin"] },
+      { label: "Venues", icon: MapPin, to: "/admin/venues", roles: ["admin"] },
+      { label: "Artists", icon: Users, to: "/admin/instructors", roles: ["admin"] },
+      { label: "Organizers", icon: Building2, to: "/admin/organizers", roles: ["admin"] },
+    ],
+  },
+  {
+    title: "People",
+    roles: ["admin"],
+    items: [
+      { label: "Users", icon: UsersRound, to: "/admin/users", roles: ["admin"] },
+      { label: "Activity", icon: Activity, to: "/admin/activity", roles: ["admin"] },
     ],
   },
   {
     title: "Platform",
     roles: ["admin"],
     items: [
-      { label: "Venues", icon: MapPin, to: "/admin/venues", roles: ["admin"] },
-      { label: "Series", icon: CalendarDays, to: "/admin/series", roles: ["admin"] },
-      { label: "Organizers", icon: Building2, to: "/admin/organizers", roles: ["admin"] },
-      { label: "Schools", icon: Building2, to: "/admin/schools", roles: ["admin"] },
-      { label: "Instructors", icon: Users, to: "/admin/instructors", roles: ["admin"] },
       { label: "Tags", icon: Tag, to: "/admin/tags", roles: ["admin"] },
+      { label: "Analytics", icon: TrendingUp, to: "/admin/analytics", roles: ["admin"] },
       { label: "Settings", icon: Settings, to: "/admin/settings", roles: ["admin"] },
     ],
   },
 ];
 
 /**
- * Host navigation is gated by effective capabilities, never by the coarse
- * app_metadata role: a membership-only owner is a legitimate Host and must
- * receive the same links a role-carrying organizer does.
+ * Organizer navigation is gated by effective capabilities, never by the
+ * coarse app_metadata role: a membership-only owner is a legitimate Host and
+ * must receive the same links a role-carrying organizer does. Only callers
+ * with organizer access (`canManageOrganization`) get this section.
  */
-const HOST_NAV_SECTIONS: { title: string; items: HostNavItem[] }[] = [
+const ORGANIZATION_NAV: HostNavItem[] = [
   {
-    title: "Host",
-    items: [
-      {
-        label: "Host Dashboard",
-        icon: LayoutDashboard,
-        to: "/host",
-        end: true,
-        capability: "hasHostAccess",
-      },
-      {
-        label: "My Events",
-        icon: CalendarDays,
-        to: "/host/events",
-        notPaths: ["/host/events/new", "/host/events/import"],
-        capability: "hasHostAccess",
-      },
-      {
-        label: "New Event",
-        icon: CalendarPlus,
-        to: "/host/events/new",
-        end: true,
-        capability: "canCreateEvents",
-      },
-      {
-        label: "Import",
-        icon: Upload,
-        to: "/host/events/import",
-        end: true,
-        capability: "canImportEvents",
-      },
-      {
-        label: "Organization",
-        icon: Building2,
-        to: "/host/organization",
-        capability: "canManageOrganization",
-      },
-    ],
+    label: "Host Dashboard",
+    icon: LayoutDashboard,
+    to: "/host",
+    end: true,
+    capability: "hasHostAccess",
+  },
+  {
+    label: "My Events",
+    icon: CalendarDays,
+    to: "/host/events",
+    notPaths: ["/host/events/new", "/host/events/import"],
+    capability: "hasHostAccess",
+  },
+  {
+    label: "New Event",
+    icon: CalendarPlus,
+    to: "/host/events/new",
+    end: true,
+    capability: "canCreateEvents",
+  },
+  {
+    label: "Import",
+    icon: Upload,
+    to: "/host/events/import",
+    end: true,
+    capability: "canImportEvents",
+  },
+  {
+    label: "Organization",
+    icon: Building2,
+    to: "/host/organization",
+    capability: "canManageOrganization",
   },
 ];
+
+const WORKSPACE_SECTION_ICON: Record<WorkspaceSectionLink["key"], NavItem["icon"]> = {
+  overview: LayoutDashboard,
+  timetable: CalendarClock,
+  privates: UserRound,
+  prices: Tags,
+  profile: Pencil,
+  team: UsersRound,
+};
+
+/** One section per listing the caller manages; items follow the member's role. */
+function entityNavItems({ kind, id, name, member_role: role }: EntityMembership): NavItem[] {
+  const section = `${MANAGED_KIND_LABELS[kind]} · ${name}`;
+  const sectionKey = `${kind}:${id}`;
+  return workspaceSections(kind, id, role).map(({ key, label, to }) => ({
+    label,
+    to,
+    icon: WORKSPACE_SECTION_ICON[key],
+    // Overview is the listing's root: it must not light up on its child pages.
+    end: key === "overview",
+    section,
+    sectionKey,
+  }));
+}
 
 /**
  * Platform roles keep the Admin surfaces; everyone else navigates by Host
@@ -181,17 +242,29 @@ function navItemsFor(role: UserRole | null, capabilities: HostCapabilities): Nav
     return ADMIN_NAV_SECTIONS.filter((section) => section.roles.includes(role)).flatMap((section) =>
       section.items
         .filter((item) => item.roles.some((granted) => grantedRoles.includes(granted)))
-        .map((item) => ({ ...item, section: section.title }))
+        .map((item) => ({ ...item, section: section.title, sectionKey: section.title }))
     );
   }
 
   if (!capabilities.hasHostAccess) return [];
 
-  return HOST_NAV_SECTIONS.flatMap((section) =>
-    section.items
-      .filter((item) => capabilities[item.capability])
-      .map((item) => ({ ...item, section: section.title }))
-  );
+  const organizerItems: NavItem[] = capabilities.canManageOrganization
+    ? ORGANIZATION_NAV.filter((item) => capabilities[item.capability]).map((item) => ({
+        ...item,
+        section: "Organization",
+        sectionKey: "organization",
+      }))
+    : // A listing member without organizer access still needs a way back to
+      // the /host landing, which lists their listings.
+      [
+        {
+          ...ORGANIZATION_NAV[0],
+          section: "Host",
+          sectionKey: "host",
+        },
+      ];
+
+  return [...organizerItems, ...capabilities.entityMemberships.flatMap(entityNavItems)];
 }
 
 function isNavItemActive(item: NavItem, pathname: string): boolean {
@@ -205,10 +278,10 @@ function isNavItemActive(item: NavItem, pathname: string): boolean {
 function itemsWithGroupFlags(items: NavItem[]): { item: NavItem; showGroup: boolean }[] {
   // A lone group's label would name everything, so it names nothing: only
   // label groups when there is more than one to tell apart.
-  const labelled = new Set(items.map((item) => item.section)).size > 1;
+  const labelled = new Set(items.map((item) => item.sectionKey)).size > 1;
   return items.map((item, index) => ({
     item,
-    showGroup: labelled && (index === 0 || items[index - 1].section !== item.section),
+    showGroup: labelled && (index === 0 || items[index - 1].sectionKey !== item.sectionKey),
   }));
 }
 
@@ -239,9 +312,11 @@ export default function AdminSidebar({
   // so Host users never trigger an admin RPC. Count only: no directory load.
   const showsOrganizerQueue = items.some((item) => item.to === ORGANIZER_REQUESTS_PATH);
   const showsFounderQueue = items.some((item) => item.to === FOUNDER_REQUESTS_PATH);
+  const showsClaimsQueue = items.some((item) => item.to === LISTING_CLAIMS_PATH);
   const pendingByPath: Record<string, number> = {
     [ORGANIZER_REQUESTS_PATH]: usePendingOrganizerRequestCount(showsOrganizerQueue),
     [FOUNDER_REQUESTS_PATH]: usePendingFounderRequestCount(showsFounderQueue),
+    [LISTING_CLAIMS_PATH]: usePendingEntityClaimCount(showsClaimsQueue),
   };
 
   const handleSignOut = async () => {

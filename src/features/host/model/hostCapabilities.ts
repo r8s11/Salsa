@@ -1,16 +1,18 @@
 import type { OrganizerMembership } from "../api/organizerAccessRepo";
+import type { EntityMembership } from "../../workspaces/model";
 
 /**
- * Effective Host access for the signed-in caller. Derived from two
- * independent sources that both exist in production today:
+ * Effective Host access for the signed-in caller. Derived from three
+ * independent sources:
  *
- *  - the coarse `app_metadata.role === "organizer"` claim, and
- *  - active `organizer_members` rows (the membership path).
+ *  - the coarse `app_metadata.role === "organizer"` claim,
+ *  - active `organizer_members` rows (the membership path), and
+ *  - managed entity listings (schools, venues, artists).
  *
  * Route guards, navigation, and page-level gates all read the same shape so
  * navigation can never disagree with authorization. The database (RLS plus
- * the organizer RPCs) stays the source of truth for what each state may
- * actually change; this model only decides what we offer.
+ * the RPCs) stays the source of truth for what each state may actually
+ * change; this model only decides what we offer.
  */
 export type HostCapabilities = {
   /** May enter the Host workspace at all. */
@@ -21,6 +23,8 @@ export type HostCapabilities = {
   canImportEvents: boolean;
   /** May reach the organization surface (read-only for editors). */
   canManageOrganization: boolean;
+  /** Listings the caller manages (schools, venues, artists). */
+  entityMemberships: EntityMembership[];
 };
 
 export function deriveHostCapabilities(input: {
@@ -28,11 +32,12 @@ export function deriveHostCapabilities(input: {
   isOrganizerRole: boolean;
   /** Active memberships from fetchMyOrganizers(). */
   memberships: OrganizerMembership[];
+  /** Entity memberships from fetchMyEntityMemberships(). */
+  entityMemberships?: EntityMembership[];
 }): HostCapabilities {
-  const { isOrganizerRole, memberships } = input;
-  // Matches RequireOrganizer: either signal admits the workspace. Membership
-  // rows are already filtered to status = "active" by fetchMyOrganizers.
-  const hasHostAccess = isOrganizerRole || memberships.length > 0;
+  const { isOrganizerRole, memberships, entityMemberships = [] } = input;
+  const hasOrganizerAccess = isOrganizerRole || memberships.length > 0;
+  const hasHostAccess = hasOrganizerAccess || entityMemberships.length > 0;
   // Creating and importing need a concrete active owner/manager membership —
   // the coarse role alone cannot satisfy the organizer_id these paths write,
   // which is exactly the filter HostCreateEventPage / HostEventImportPage
@@ -47,6 +52,7 @@ export function deriveHostCapabilities(input: {
     hasHostAccess,
     canCreateEvents: canManage,
     canImportEvents: canManage,
-    canManageOrganization: hasHostAccess,
+    canManageOrganization: hasOrganizerAccess,
+    entityMemberships,
   };
 }

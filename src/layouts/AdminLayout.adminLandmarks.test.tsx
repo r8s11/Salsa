@@ -19,6 +19,12 @@ vi.mock("../features/admin/hooks/usePendingRequestCounts", () => ({
   usePendingOrganizerRequestCount: () => 0,
   usePendingFounderRequestCount: () => 0,
 }));
+vi.mock("../features/admin/hooks/useAdminEntityClaims", () => ({
+  usePendingEntityClaimCount: () => 0,
+}));
+vi.mock("../features/workspaces/hooks/useMyEntityMemberships", () => ({
+  useMyEntityMemberships: () => ({ data: [], isLoading: false }),
+}));
 vi.mock("../contexts/useAuth", () => ({
   useAuth: () => ({
     user: { id: "admin-1", email: "admin@example.com" },

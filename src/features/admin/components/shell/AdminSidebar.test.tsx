@@ -9,6 +9,12 @@ import {
   usePendingFounderRequestCount,
   usePendingOrganizerRequestCount,
 } from "../../hooks/usePendingRequestCounts";
+import { usePendingEntityClaimCount } from "../../hooks/useAdminEntityClaims";
+import { useMyEntityMemberships } from "../../../workspaces/hooks/useMyEntityMemberships";
+import type { EntityMembership } from "../../../workspaces/model";
+
+/** The slice of the hook's result the sidebar reads; tests supply only that. */
+type MembershipsResult = ReturnType<typeof useMyEntityMemberships>;
 import type {
   OrganizerMemberRole,
   OrganizerMembership,
@@ -41,6 +47,12 @@ vi.mock("../../hooks/usePendingRequestCounts", () => ({
   usePendingOrganizerRequestCount: vi.fn(() => 0),
   usePendingFounderRequestCount: vi.fn(() => 0),
 }));
+vi.mock("../../hooks/useAdminEntityClaims", () => ({
+  usePendingEntityClaimCount: vi.fn(() => 0),
+}));
+vi.mock("../../../workspaces/hooks/useMyEntityMemberships", () => ({
+  useMyEntityMemberships: vi.fn(),
+}));
 
 function mockPending(organizer: number, founder: number) {
   vi.mocked(usePendingOrganizerRequestCount).mockReturnValue(organizer);
@@ -49,6 +61,7 @@ function mockPending(organizer: number, founder: number) {
 
 beforeEach(() => {
   mockPending(0, 0);
+  vi.mocked(usePendingEntityClaimCount).mockReturnValue(0);
   vi.mocked(useAuth).mockReturnValue({
     user: null,
     role: "admin",
@@ -62,6 +75,10 @@ beforeEach(() => {
     setTheme: vi.fn(),
   });
   vi.mocked(useMyOrganizers).mockReturnValue({ data: [], isLoading: false });
+  vi.mocked(useMyEntityMemberships).mockReturnValue({
+    data: [],
+    isLoading: false,
+  } as unknown as MembershipsResult);
 });
 
 function membership(
@@ -503,24 +520,40 @@ describe("AdminSidebar navigation groups", () => {
     });
   }
 
-  it("groups admin destinations as Desk, Management, Platform with Settings under Platform", () => {
+  it("groups admin destinations by entity: Desk, Events, Directory, People, Platform", () => {
     mockRole("admin");
     renderSidebar();
 
-    const labels = ["Desk", "Management", "Platform"].map((name) => screen.getByText(name));
-    labels.forEach((label, index) => {
-      if (index > 0) {
-        expect(
-          labels[index - 1].compareDocumentPosition(label) & Node.DOCUMENT_POSITION_FOLLOWING
-        ).toBeTruthy();
-      }
-    });
-    expect(screen.queryByText("System")).not.toBeInTheDocument();
+    expect(groupLabels()).toEqual(["Desk", "Events", "Directory", "People", "Platform"]);
+    expect(screen.queryByText("Management")).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Settings" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Tags" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Artists" })).toHaveAttribute(
+      "href",
+      "/admin/instructors"
+    );
+    expect(screen.getByRole("link", { name: "Activity" })).toHaveAttribute(
+      "href",
+      "/admin/activity"
+    );
+    expect(screen.getByRole("link", { name: "Analytics" })).toHaveAttribute(
+      "href",
+      "/admin/analytics"
+    );
   });
 
-  it("shows a moderator only the Desk links, with no group label and no Tags", () => {
+  it("puts Listing Claims on the admin Desk with its pending count", () => {
+    mockRole("admin");
+    vi.mocked(usePendingEntityClaimCount).mockReturnValue(4);
+    renderSidebar();
+
+    expect(screen.getByRole("link", { name: /Listing Claims\s*\(4 pending\)/ })).toHaveAttribute(
+      "href",
+      "/admin/claims"
+    );
+  });
+
+  it("shows a moderator only the Desk links, with no group label, no claims and no Tags", () => {
     mockRole("moderator");
     renderSidebar();
 
@@ -532,20 +565,20 @@ describe("AdminSidebar navigation groups", () => {
       "Organizer Requests",
       "Founder Requests",
     ]);
-    expect(screen.queryByText("Desk")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Listing Claims/ })).not.toBeInTheDocument();
+    expect(groupLabels()).toEqual([]);
   });
 
   it("does not label the Host navigation's single group", () => {
     mockMembershipOnlyHost("owner");
     renderSidebar({ mode: "host" });
 
-    expect(screen.queryByText("Host")).not.toBeInTheDocument();
-    expect(screen.queryByText("Management")).not.toBeInTheDocument();
+    expect(groupLabels()).toEqual([]);
   });
 });
 
 describe("AdminSidebar pending count fetching", () => {
-  it.each(["admin", "moderator"] as const)("enables both count queries for a %s", (role) => {
+  it.each(["admin", "moderator"] as const)("enables the request count queries for a %s", (role) => {
     vi.mocked(useAuth).mockReturnValue({
       user: { email: "[EMAIL]" },
       role,
@@ -557,13 +590,136 @@ describe("AdminSidebar pending count fetching", () => {
 
     expect(usePendingOrganizerRequestCount).toHaveBeenLastCalledWith(true);
     expect(usePendingFounderRequestCount).toHaveBeenLastCalledWith(true);
+    expect(usePendingEntityClaimCount).toHaveBeenLastCalledWith(role === "admin");
   });
 
-  it("disables both count queries for a Host user, who sees no review queue", () => {
+  it("disables every count query for a Host user, who sees no review queue", () => {
     mockMembershipOnlyHost("owner");
     renderSidebar({ mode: "host" });
 
     expect(usePendingOrganizerRequestCount).toHaveBeenLastCalledWith(false);
     expect(usePendingFounderRequestCount).toHaveBeenLastCalledWith(false);
+    expect(usePendingEntityClaimCount).toHaveBeenLastCalledWith(false);
+  });
+});
+
+function entityMembership(overrides: Partial<EntityMembership> = {}): EntityMembership {
+  return {
+    kind: "school",
+    id: "school-1",
+    name: "Salsa Academy",
+    slug: "salsa-academy",
+    status: "active",
+    city: "Boston",
+    image_url: null,
+    member_role: "owner",
+    ...overrides,
+  };
+}
+
+/** Signed-in person whose only Host claim is a listing membership. */
+function mockListingMember(...memberships: EntityMembership[]) {
+  vi.mocked(useAuth).mockReturnValue({
+    user: { id: "user-1", email: "member@example.com" },
+    role: null,
+    isAdmin: false,
+    isModerator: false,
+    isOrganizer: false,
+    signOut: vi.fn(),
+  });
+  vi.mocked(useMyEntityMemberships).mockReturnValue({
+    data: memberships,
+    isLoading: false,
+  } as unknown as MembershipsResult);
+}
+
+function groupLabels(): string[] {
+  return Array.from(document.querySelectorAll(".admin-nav__group")).map(
+    (group) => group.textContent ?? ""
+  );
+}
+
+describe("AdminSidebar listing workspaces", () => {
+  it("gives a school owner an entity section with every school tool and the Team link", () => {
+    mockListingMember(entityMembership());
+    renderSidebar({ mode: "host" });
+
+    expect(hostNavLabels()).toEqual([
+      "Host Dashboard",
+      "Overview",
+      "Timetable",
+      "Privates",
+      "Prices",
+      "Profile",
+      "Team",
+    ]);
+    expect(groupLabels()).toEqual(["Host", "School · Salsa Academy"]);
+    expect(screen.getByRole("link", { name: "Timetable" })).toHaveAttribute(
+      "href",
+      "/host/schools/school-1/timetable"
+    );
+  });
+
+  it("hides Team for a manager and Profile for an editor", () => {
+    mockListingMember(
+      entityMembership({ id: "s-manager", name: "Manager School", member_role: "manager" }),
+      entityMembership({ id: "s-editor", name: "Editor School", member_role: "editor" })
+    );
+    renderSidebar({ mode: "host" });
+
+    expect(screen.queryByRole("link", { name: "Team" })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: "Profile" })).toHaveLength(1);
+    expect(screen.getByRole("link", { name: "Profile" })).toHaveAttribute(
+      "href",
+      "/host/schools/s-manager/profile"
+    );
+    expect(screen.getAllByRole("link", { name: "Timetable" })).toHaveLength(2);
+  });
+
+  it("gives venues and artists only Overview, Profile and Team", () => {
+    mockListingMember(
+      entityMembership({ kind: "venue", id: "v-1", name: "Havana Club" }),
+      entityMembership({ kind: "instructor", id: "i-1", name: "Ana Rivera" })
+    );
+    renderSidebar({ mode: "host" });
+
+    expect(groupLabels()).toEqual(["Host", "Venue · Havana Club", "Artist · Ana Rivera"]);
+    expect(screen.queryByRole("link", { name: "Timetable" })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: "Team" }).map((link) => link.getAttribute("href"))).toEqual([
+      "/host/venues/v-1/team",
+      "/host/instructors/i-1/team",
+    ]);
+  });
+
+  it("puts organizer links under Organization ahead of the listing sections", () => {
+    mockOrganizerRoleHost([membership("owner")]);
+    vi.mocked(useMyEntityMemberships).mockReturnValue({
+      data: [entityMembership()],
+      isLoading: false,
+    } as unknown as MembershipsResult);
+    renderSidebar({ mode: "host" });
+
+    expect(groupLabels()).toEqual(["Organization", "School · Salsa Academy"]);
+    expect(screen.getByRole("link", { name: "New Event" })).toBeInTheDocument();
+  });
+
+  it("lights Overview only on the listing's own page, and the child link on child routes", () => {
+    mockListingMember(entityMembership());
+    renderSidebarAt("/host/schools/school-1/timetable");
+
+    const current = screen
+      .getAllByRole("link")
+      .filter((link) => link.getAttribute("aria-current") === "page");
+    expect(current.map((link) => link.getAttribute("title"))).toEqual(["Timetable"]);
+  });
+
+  it("marks Overview current on the listing's overview route", () => {
+    mockListingMember(entityMembership());
+    renderSidebarAt("/host/schools/school-1");
+
+    const current = screen
+      .getAllByRole("link")
+      .filter((link) => link.getAttribute("aria-current") === "page");
+    expect(current.map((link) => link.getAttribute("title"))).toEqual(["Overview"]);
   });
 });

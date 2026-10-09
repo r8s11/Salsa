@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { deriveHostCapabilities } from "./hostCapabilities";
 import type { OrganizerMemberRole, OrganizerMembership } from "../api/organizerAccessRepo";
+import type { EntityMembership } from "../../workspaces/model";
 
 function membership(
   memberRole: OrganizerMemberRole,
@@ -21,6 +22,20 @@ function membership(
   };
 }
 
+function entityMembership(overrides: Partial<EntityMembership> = {}): EntityMembership {
+  return {
+    kind: "school",
+    id: "school-1",
+    name: "Salsa Academy",
+    slug: "salsa-academy",
+    status: "active",
+    city: "Boston",
+    image_url: null,
+    member_role: "owner",
+    ...overrides,
+  };
+}
+
 describe("deriveHostCapabilities", () => {
   it("admits a membership-only host with no coarse organizer role", () => {
     expect(
@@ -30,6 +45,7 @@ describe("deriveHostCapabilities", () => {
       canCreateEvents: true,
       canImportEvents: true,
       canManageOrganization: true,
+      entityMemberships: [],
     });
   });
 
@@ -41,6 +57,7 @@ describe("deriveHostCapabilities", () => {
       canCreateEvents: false,
       canImportEvents: false,
       canManageOrganization: true,
+      entityMemberships: [],
     });
   });
 
@@ -62,6 +79,7 @@ describe("deriveHostCapabilities", () => {
       canCreateEvents: false,
       canImportEvents: false,
       canManageOrganization: true,
+      entityMemberships: [],
     });
   });
 
@@ -90,6 +108,41 @@ describe("deriveHostCapabilities", () => {
       canCreateEvents: false,
       canImportEvents: false,
       canManageOrganization: false,
+      entityMemberships: [],
+    });
+  });
+
+  it("admits an entity member to Host access while withholder event authoring and org management", () => {
+    const schoolMember = entityMembership({ kind: "school", id: "sch-1", member_role: "owner" });
+    expect(
+      deriveHostCapabilities({
+        isOrganizerRole: false,
+        memberships: [],
+        entityMemberships: [schoolMember],
+      })
+    ).toEqual({
+      hasHostAccess: true,
+      canCreateEvents: false,
+      canImportEvents: false,
+      canManageOrganization: false,
+      entityMemberships: [schoolMember],
+    });
+  });
+
+  it("combines organizer and entity memberships", () => {
+    const venueMember = entityMembership({ kind: "venue", id: "ven-1", member_role: "manager" });
+    expect(
+      deriveHostCapabilities({
+        isOrganizerRole: false,
+        memberships: [membership("owner")],
+        entityMemberships: [venueMember],
+      })
+    ).toEqual({
+      hasHostAccess: true,
+      canCreateEvents: true,
+      canImportEvents: true,
+      canManageOrganization: true,
+      entityMemberships: [venueMember],
     });
   });
 });

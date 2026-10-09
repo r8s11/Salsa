@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { createEventTitleImage } from "../features/events/ui/eventTitleImage";
+import { fromEventDateInstant } from "../features/events/model/eventDateTime";
 import type { DatabaseEvent } from "../features/events/model/types";
 import HostEventDetailPage from "./HostEventDetailPage";
 import RequireOrganizer from "../components/Auth/RequireOrganizer";
@@ -193,6 +194,8 @@ describe("HostEventDetailPage", () => {
       name: "SalsaSegura event title image for Havana Nights Social",
     });
 
+    const { date, time } = fromEventDateInstant(baseEvent.event_date);
+    const start = `${date} ${time}`;
     expect(image).toHaveAttribute(
       "src",
       createEventTitleImage({
@@ -200,11 +203,12 @@ describe("HostEventDetailPage", () => {
         title: baseEvent.title,
         eventType: baseEvent.event_type,
         city: baseEvent.city,
-        start: baseEvent.event_date,
+        start,
       })
     );
     expect(screen.queryByRole("link", { name: /rsvp/i })).not.toBeInTheDocument();
     expect(screen.queryByText("Description")).not.toBeInTheDocument();
+
   });
 
   it("shows a loading state before the owner-scoped query resolves", () => {

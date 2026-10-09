@@ -76,8 +76,10 @@ export default function EventFlyerField({
   }, [previewUrl]);
 
   useEffect(() => {
-    setPreviewError(false);
-    setUsingFallbackPreview(false);
+    queueMicrotask(() => {
+      setPreviewError(false);
+      setUsingFallbackPreview(false);
+    });
   }, [currentUrl]);
 
   const isBusy = status === "uploading" || status === "replacing" || status === "removing";

@@ -7,6 +7,7 @@ import { deriveHostEventRows } from "../features/host/model/hostEvents";
 import type { DatabaseEvent } from "../features/events/model/types";
 import { fromEventDateInstant } from "../features/events/model/eventDateTime";
 import EventImage from "../features/events/ui/EventImage";
+import AdminStatusBadge from "../components/Admin/AdminStatusBadge";
 import EventShareControls from "../features/events/components/EventShareControls";
 import "./HostEventDetailPage.css";
 
@@ -197,6 +198,7 @@ export default function HostEventDetailPage() {
             id={event.id}
             title={event.title}
             eventType={event.event_type}
+            city={event.city}
             start={imageStart}
             imageUrl={event.image_url}
             alt={`${event.title} flyer`}

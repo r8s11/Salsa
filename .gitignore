@@ -177,3 +177,13 @@ graphify-out/
 # Local agent/editor state
 .impeccable/
 /opencode.json
+
+.agent/
+.agents/
+.grok/
+.hermes/
+.kiro/
+.openhands/
+.pi
+/agent/
+/data/skills/

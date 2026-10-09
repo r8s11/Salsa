@@ -1,10 +1,11 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import AdminEntityDirectoryPage from "./AdminEntityDirectoryPage";
 import AdminEntityDetailPage from "./AdminEntityDetailPage";
 import type { AdminEntityRow, EntityKind } from "../model";
+import type { WorkspaceMember } from "../../../workspaces/model";
 
 const mocks = vi.hoisted(() => ({
   fetchDirectory: vi.fn(),
@@ -14,6 +15,8 @@ const mocks = vi.hoisted(() => ({
   useDirectory: vi.fn(),
   directory: [] as AdminEntityRow[],
   detail: null as AdminEntityRow | null,
+  members: [] as WorkspaceMember[],
+  membersFor: vi.fn(),
 }));
 
 vi.mock("../api/entitiesRepo", () => ({
@@ -31,6 +34,13 @@ vi.mock("../hooks/useAdminEntities", () => ({
   useAdminEntity: () => ({ entity: mocks.detail, isLoading: false, error: null, refetch: vi.fn() }),
   useAdminEntityActions: () => ({ save: mocks.saveEntity, archive: mocks.saveEntity, merge: mocks.mergeEntities, isSaving: false, isMerging: false, error: null }),
   useAdminVenueOptions: () => [],
+}));
+
+vi.mock("../../hooks/useAdminEntityClaims", () => ({
+  useAdminEntityMembers: (kind: string | null, id: string | null) => {
+    mocks.membersFor(kind, id);
+    return { members: mocks.members, isLoading: false, error: null, refetch: vi.fn() };
+  },
 }));
 
 const entity = (kind: EntityKind, overrides: Partial<AdminEntityRow> = {}): AdminEntityRow => ({
@@ -68,6 +78,8 @@ function renderCreate(kind: EntityKind) {
 afterEach(() => {
   mocks.directory = [];
   mocks.detail = null;
+  mocks.members = [];
+  mocks.membersFor.mockReset();
   mocks.fetchDirectory.mockReset();
   mocks.fetchDetail.mockReset();
   mocks.saveEntity.mockReset();
@@ -144,5 +156,36 @@ describe("AdminEntityDetailPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Merge duplicate" }));
     expect(screen.getByRole("dialog", { name: "Merge duplicate instructors?" })).toBeVisible();
     expect(mocks.mergeEntities).not.toHaveBeenCalled();
+  });
+
+  it("shows the team of a school with a link into its workspace and the claims queue", () => {
+    mocks.detail = entity("school", { status: "active" });
+    mocks.members = [
+      { user_id: "u1", email: "ana@example.com", display_name: "Ana Reyes", member_role: "owner", created_at: "2026-10-01T00:00:00Z" },
+      { user_id: "u2", email: "luis@example.com", display_name: null, member_role: "editor", created_at: "2026-10-02T00:00:00Z" },
+    ];
+    renderDetail("school", "school-1");
+    const team = screen.getByRole("region", { name: /Team/ });
+    expect(within(team).getByText("Ana Reyes")).toBeVisible();
+    expect(within(team).getByText("ana@example.com")).toBeVisible();
+    expect(within(team).getByText("Owner")).toBeVisible();
+    expect(within(team).getByText("luis@example.com")).toBeVisible();
+    expect(within(team).getByText("Editor")).toBeVisible();
+    expect(within(team).getByRole("link", { name: "Open workspace" })).toHaveAttribute("href", "/host/schools/school-1");
+    expect(within(team).getByRole("link", { name: "Pending claims" })).toHaveAttribute("href", "/admin/claims");
+    expect(mocks.membersFor).toHaveBeenCalledWith("school", "school-1");
+  });
+
+  it("says so when nobody manages an instructor listing", () => {
+    mocks.detail = entity("instructor", { status: "active" });
+    renderDetail("instructor", "instructor-1");
+    expect(screen.getByText("Nobody manages this listing yet.")).toBeVisible();
+    expect(screen.getByRole("link", { name: "Open workspace" })).toHaveAttribute("href", "/host/instructors/instructor-1");
+  });
+
+  it("has no team section for organizers or series", () => {
+    mocks.detail = entity("organizer", { status: "active" });
+    renderDetail("organizer", "organizer-1");
+    expect(screen.queryByRole("region", { name: /Team/ })).not.toBeInTheDocument();
   });
 });

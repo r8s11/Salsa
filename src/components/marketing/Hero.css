@@ -217,6 +217,53 @@
   );
 }
 
+/* Cursor light — a soft hotspot that slides over the vinyl with the pointer.
+   Only a compositor transform moves; the masked clip keeps it off the label
+   and the spindle hole. At rest (touch, keyboard, reduced motion) it sits
+   upper-left, where the static sheen already reads. */
+.hero-vinyl__glint {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  height: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  overflow: hidden;
+  mix-blend-mode: screen;
+  mask-image: radial-gradient(
+    circle closest-side,
+    transparent 0 33%,
+    #000 36% 99.2%,
+    transparent 99.8%
+  );
+  -webkit-mask-image: radial-gradient(
+    circle closest-side,
+    transparent 0 33%,
+    #000 36% 99.2%,
+    transparent 99.8%
+  );
+}
+
+.hero-vinyl__glint::before {
+  content: "";
+  position: absolute;
+  top: 27%;
+  left: 27%;
+  width: 46%;
+  height: 46%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle closest-side,
+    rgba(255, 236, 200, 0.2),
+    rgba(255, 236, 200, 0.06) 55%,
+    transparent 100%
+  );
+  transform: translate(
+    calc(var(--hero-light-x, -0.35) * 90%),
+    calc(var(--hero-light-y, -0.45) * 90%)
+  );
+}
+
 @keyframes heroVinylSpin {
   to {
     transform: rotate(-360deg);
@@ -307,6 +354,30 @@
   color: var(--text);
 }
 
+.hero-split-live {
+  display: none;
+}
+
+/* Visually hidden, never display:none — the unsplit heading stays in the
+   accessibility tree as the h1's name while the split words (aria-hidden)
+   are what sighted users see. */
+.hero--motion .hero-split-source {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.hero--motion .hero-split-live {
+  display: block;
+}
+
+.hero-split-word {
+  display: inline-block;
+}
+
 .hero-heading-accent {
   color: var(--red-bright);
 }
@@ -354,7 +425,6 @@
   gap: 0.5rem 1rem;
   margin-top: 1.5rem;
 }
-
 
 .hero-btn {
   padding: 0.95rem 1.9rem;
@@ -713,6 +783,10 @@
     transform: translate(var(--hero-parallax-x, 0px), var(--hero-parallax-y, 0px));
     transition: transform 0.3s ease-out;
   }
+
+  .hero-vinyl__glint::before {
+    transition: transform 0.35s ease-out;
+  }
 }
 
 /* ── Staggered entrance ──
@@ -780,6 +854,18 @@
 .hero-enter[data-enter="stats"] {
   --hero-enter-y: 12px;
   --hero-enter-delay: 0.58s;
+}
+
+/* Copy, CTAs, and stats stay painted. GSAP owns their entrance when motion
+   is allowed (hero--motion). A no-JS or reduced-motion first frame must not
+   start at opacity 0. Vinyl and backdrop keep the opacity-only fade — they
+   already own a transform, and animating one would unpin the record. */
+.hero-enter[data-enter="eyebrow"],
+.hero-enter[data-enter="heading"],
+.hero-enter[data-enter="subtitle"],
+.hero-enter[data-enter="cta"],
+.hero-enter[data-enter="stats"] {
+  animation: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

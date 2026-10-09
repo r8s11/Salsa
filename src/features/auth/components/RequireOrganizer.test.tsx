@@ -6,6 +6,7 @@ import type { AuthContextValue } from "../../../contexts/authContextObject";
 import { useAuth } from "../../../contexts/useAuth";
 import type { User } from "@supabase/supabase-js";
 import { useMyOrganizers } from "../../host/hooks/useMyOrganizers";
+import { useMyEntityMemberships } from "../../workspaces/hooks/useMyEntityMemberships";
 
 vi.mock("../../../contexts/useAuth", () => ({
   useAuth: vi.fn(),
@@ -13,6 +14,10 @@ vi.mock("../../../contexts/useAuth", () => ({
 
 vi.mock("../../host/hooks/useMyOrganizers", () => ({
   useMyOrganizers: vi.fn(),
+}));
+
+vi.mock("../../workspaces/hooks/useMyEntityMemberships", () => ({
+  useMyEntityMemberships: vi.fn(),
 }));
 
 function authValue(overrides: Partial<AuthContextValue>): AuthContextValue {
@@ -81,6 +86,10 @@ beforeEach(() => {
     data: [],
     isLoading: false,
   } as unknown as ReturnType<typeof useMyOrganizers>);
+  vi.mocked(useMyEntityMemberships).mockReturnValue({
+    data: [],
+    isLoading: false,
+  } as unknown as ReturnType<typeof useMyEntityMemberships>);
 });
 
 describe("RequireOrganizer", () => {
@@ -177,7 +186,32 @@ describe("RequireOrganizer", () => {
     expect(screen.getByText("Home Page")).toBeInTheDocument();
   });
 
-  it("denies a nested Host route for an admin with no organizer membership — admin status alone is not ownership", () => {
+  it("admits a nested Host route for a listing member with no organizer access", () => {
+    vi.mocked(useAuth).mockReturnValue(
+      authValue({ user: { id: "u1" } as unknown as User, isOrganizer: false })
+    );
+    vi.mocked(useMyEntityMemberships).mockReturnValue({
+      data: [
+        {
+          kind: "school",
+          id: "school-1",
+          name: "Salsa Academy",
+          slug: "salsa-academy",
+          status: "active",
+          city: "Boston",
+          image_url: null,
+          member_role: "owner",
+        },
+      ],
+      isLoading: false,
+    } as unknown as ReturnType<typeof useMyEntityMemberships>);
+
+    renderAtNestedRoute([]);
+
+    expect(screen.getByText("Host Events Page")).toBeInTheDocument();
+  });
+
+  it("admits a nested Host route for a platform admin with no organizer membership", () => {
     vi.mocked(useAuth).mockReturnValue(
       authValue({
         user: { id: "u1", app_metadata: { role: "admin" } } as unknown as User,
@@ -189,6 +223,7 @@ describe("RequireOrganizer", () => {
 
     renderAtNestedRoute([]);
 
-    expect(screen.getByText("Home Page")).toBeInTheDocument();
+    expect(screen.getByText("Host Events Page")).toBeInTheDocument();
+    expect(screen.queryByText("Home Page")).not.toBeInTheDocument();
   });
 });

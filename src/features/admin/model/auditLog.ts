@@ -62,6 +62,16 @@ export function auditLogLabelFor(entry: AuditLogRow): string {
       return "Venue deleted";
     case "venue.merged":
       return `Venue merged into ${metadata.kept_name ?? "another venue"}`;
+    case "entity_claim.approved":
+      return "Entity claim approved";
+    case "entity_claim.rejected":
+      return `Entity claim rejected${reasonSuffix(metadata)}`;
+    case "entity_member.added":
+      return "Team member added";
+    case "entity_member.updated":
+      return "Team member updated";
+    case "entity_member.removed":
+      return "Team member removed";
     default:
       return entry.action;
   }

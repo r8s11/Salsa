@@ -37,6 +37,9 @@ vi.mock("../contexts/useAuth", () => ({
 vi.mock("../features/host/hooks/useMyOrganizers", () => ({
   useMyOrganizers: () => ({ data: [], isLoading: true }),
 }));
+vi.mock("../features/workspaces/hooks/useMyEntityMemberships", () => ({
+  useMyEntityMemberships: () => ({ data: [], isLoading: false }),
+}));
 vi.mock("../features/host/hooks/useMyOrganizerEvents", () => ({
   useMyOrganizerEvents: () => ({ events: [], isLoading: true, error: null, refetch: vi.fn() }),
 }));

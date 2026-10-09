@@ -82,3 +82,25 @@ const ENTITY_PATHS: Record<PublicEntityKind, string> = {
 export function entityHref(entity: Pick<PublicEntityRef, "kind" | "slug">): string {
   return `${ENTITY_PATHS[entity.kind]}/${encodeURIComponent(entity.slug)}`;
 }
+
+export const ENTITY_DIRECTORY_PATHS: Record<PublicEntityKind, string> = {
+  event: "/calendar",
+  series: "/series",
+  organizer: "/organizers",
+  venue: "/venues",
+  school: "/schools",
+  instructor: "/instructors",
+  city: "/cities",
+  style: "/styles",
+};
+
+export const ENTITY_COLLECTIONS: Record<PublicEntityKind, string> = {
+  event: "events",
+  series: "series",
+  organizer: "organizers",
+  venue: "venues",
+  school: "schools",
+  instructor: "instructors",
+  city: "cities",
+  style: "dance styles",
+};

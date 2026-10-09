@@ -135,7 +135,7 @@ export function categoryOf(entry: ActivityAuditLog): ActivityCategory {
   if (entity_type === "event") return "events";
   if (entity_type === "event_submission") return "submissions";
   if (entity_type === "profile" || entity_type === "organizer") return "users";
-  if (entity_type === "venue") return "venues";
+  if (entity_type === "venue" || entity_type === "school" || entity_type === "instructor") return "venues";
   if (entity_type === "taxonomy_term") return "taxonomy";
   return "events";
 }
@@ -267,6 +267,20 @@ export function activityActionLabel(entry: ActivityAuditLog): string {
     case "organizer.revoked":
       return "Organizer access revoked";
 
+    // ---- Entity Claims & Members ----
+    case "entity_claim.approved":
+      return "Entity claim approved";
+    case "entity_claim.rejected": {
+      const reason = (metadata.rejection_reason ?? metadata.reason) as string | undefined;
+      return reason ? `Entity claim rejected — ${reason}` : "Entity claim rejected";
+    }
+    case "entity_member.added":
+      return "Team member added";
+    case "entity_member.updated":
+      return "Team member updated";
+    case "entity_member.removed":
+      return "Team member removed";
+
     default:
       return action;
   }
@@ -312,6 +326,8 @@ export function activityTargetLabel(
     event_submission: "Submission",
     profile: "User account",
     venue: "Venue",
+    school: "School",
+    instructor: "Instructor",
     taxonomy_term: "Taxonomy term",
     organizer: "Organizer",
     platform_settings: "Platform settings",

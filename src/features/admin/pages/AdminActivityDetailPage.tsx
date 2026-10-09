@@ -81,6 +81,15 @@ export default function AdminActivityDetailPage() {
       case "profile":
         relatedRecordLink = { label: "View User", href: `/admin/users/${entry.entity_id}` };
         break;
+      case "venue":
+        relatedRecordLink = { label: "View Venue", href: `/admin/venues/${entry.entity_id}` };
+        break;
+      case "school":
+        relatedRecordLink = { label: "View School", href: `/admin/schools/${entry.entity_id}` };
+        break;
+      case "instructor":
+        relatedRecordLink = { label: "View Instructor", href: `/admin/instructors/${entry.entity_id}` };
+        break;
       case "platform_settings":
         relatedRecordLink = { label: "View Settings", href: "/admin/settings" };
         break;

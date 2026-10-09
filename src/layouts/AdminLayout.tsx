@@ -6,6 +6,11 @@ import AdminThemeOptions from "../features/admin/components/shell/AdminThemeOpti
 import AdminSidebar from "../features/admin/components/shell/AdminSidebar";
 import { useAccessibleDialog } from "../shared/a11y/useAccessibleDialog";
 import SkipLink from "../shared/a11y/SkipLink";
+import {
+  MANAGED_KINDS,
+  MANAGED_KIND_LABELS,
+  WORKSPACE_SEGMENTS,
+} from "../features/workspaces/model";
 import "../styles/admin.css";
 import "./AdminLayout.css";
 
@@ -24,7 +29,12 @@ const SECTION_LABEL: Record<string, string> = {
   "/admin/submissions": "Event Submissions",
   "/admin/organizer-requests": "Organizer Requests",
   "/admin/founder-requests": "Founder Requests",
+  "/admin/claims": "Listing Claims",
   "/admin/venues": "Venues",
+  "/admin/schools": "Schools",
+  "/admin/instructors": "Artists",
+  "/admin/organizers": "Organizers",
+  "/admin/series": "Series",
   "/admin/tags": "Tags",
   "/admin/activity": "Activity",
   "/admin/analytics": "Analytics",
@@ -48,11 +58,26 @@ const HOST_EVENT_CHILD_LABEL: Record<string, string> = {
   "check-in": "Host · Check-in",
 };
 
+/** Trailing segment of /host/{schools|venues|instructors}/:id/<section>. */
+const WORKSPACE_SECTION_LABEL: Record<string, string> = {
+  timetable: "Timetable",
+  privates: "Privates",
+  prices: "Prices",
+  profile: "Profile",
+  team: "Team",
+};
+
 function sectionLabelFor(pathname: string): string {
   if (SECTION_LABEL[pathname]) return SECTION_LABEL[pathname];
   if (pathname.startsWith("/host/events/")) {
     const trailing = pathname.split("/").filter(Boolean).slice(3).join("/");
     return HOST_EVENT_CHILD_LABEL[trailing] ?? "Host · Event Details";
+  }
+  const [, host, segment, , section] = pathname.split("/");
+  const workspaceKind = MANAGED_KINDS.find((kind) => WORKSPACE_SEGMENTS[kind] === segment);
+  if (host === "host" && workspaceKind) {
+    const sectionName = section ? WORKSPACE_SECTION_LABEL[section] : "Overview";
+    return `${MANAGED_KIND_LABELS[workspaceKind]} · ${sectionName ?? "Overview"}`;
   }
   if (pathname === "/host" || pathname.startsWith("/host/")) return SECTION_LABEL["/host"];
   let sectionPath = "/admin";

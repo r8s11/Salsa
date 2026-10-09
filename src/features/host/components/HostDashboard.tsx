@@ -5,9 +5,12 @@ import { useAuth } from "../../../contexts/useAuth";
 import { useMySubmissions } from "../../account/hooks/useMySubmissions";
 import { useMyOrganizers } from "../hooks/useMyOrganizers";
 import { useMyOrganizerEvents } from "../hooks/useMyOrganizerEvents";
+import { useMyEntityMemberships } from "../../workspaces/hooks/useMyEntityMemberships";
+import { MANAGED_KIND_LABELS, MEMBER_ROLE_LABELS, workspacePath } from "../../workspaces/model";
 import type { OrganizerMemberRole } from "../api/organizerAccessRepo";
 import type { DatabaseEvent } from "../../events/model/types";
 import { deriveHostEventRows, isUpcomingHostEvent } from "../model/hostEvents";
+import MarginMark from "../../../components/desk/MarginMark";
 import {
   Desk,
   DeskColumn,
@@ -43,6 +46,13 @@ export default function HostDashboard() {
     refetch: refetchOrganizers,
   } = useMyOrganizers();
   const organizerEvents = useMyOrganizerEvents();
+  const {
+    data: entityMemberships = [],
+    isLoading: membershipsLoading,
+    isError: membershipsError,
+    refetch: refetchMemberships,
+  } = useMyEntityMemberships();
+  const hasListings = entityMemberships.length > 0;
 
   const canCreate = organizers.some(
     (organizer) =>
@@ -132,6 +142,44 @@ export default function HostDashboard() {
 
       {dashboardError && <DeskError message="We couldn't load your events." onRetry={refetchAll} />}
 
+      {(membershipsLoading || membershipsError || hasListings) && (
+        <section className="host-desk__listings" aria-labelledby="host-listings">
+          <h2 id="host-listings" className="desk__measure-title">
+            Your listings
+          </h2>
+
+          {membershipsLoading ? (
+            <DeskSkeleton rows={2} />
+          ) : membershipsError ? (
+            <DeskError
+              message="We couldn't load your listings."
+              onRetry={() => void refetchMemberships()}
+            />
+          ) : (
+            <ul className="desk__list">
+              {entityMemberships.map((membership) => (
+                <li key={`${membership.kind}:${membership.id}`} className="host-desk__listing">
+                  <Link to={workspacePath(membership.kind, membership.id)}>
+                    <span className="host-desk__listing-kind">
+                      {MANAGED_KIND_LABELS[membership.kind]}
+                    </span>
+                    <span className="host-desk__listing-name">{membership.name}</span>
+                    {membership.status === "needs_review" && (
+                      <span className="host-desk__listing-flag">
+                        <MarginMark state="unset" /> Awaiting review
+                      </span>
+                    )}
+                    <span className="host-desk__listing-role">
+                      {MEMBER_ROLE_LABELS[membership.member_role]}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
+
       <DeskMeasures>
         <DeskMeasure title="Your entries" link={{ to: "/host/events", label: "All my events" }}>
           {dashboardLoading ? (
@@ -163,38 +211,42 @@ export default function HostDashboard() {
         </DeskMeasure>
       </DeskMeasures>
 
-      <section className="host-desk__organizers" aria-labelledby="host-organizers">
-        <h2 id="host-organizers" className="desk__measure-title">
-          Your organizers
-        </h2>
+      {/* A listing member without organizer access has no use for the
+          organizer roster or its access-request note. */}
+      {(organizersLoading || organizers.length > 0 || !hasListings) && (
+        <section className="host-desk__organizers" aria-labelledby="host-organizers">
+          <h2 id="host-organizers" className="desk__measure-title">
+            Your organizers
+          </h2>
 
-        {organizersLoading ? (
-          <DeskSkeleton rows={2} />
-        ) : organizers.length > 0 ? (
-          <ul className="desk__list">
-            {organizers.map((organizer) => (
-              <li key={organizer.organizerId} className="host-desk__organizer">
-                <Building2 size={16} aria-hidden />
-                <span className="host-desk__organizer-name">{organizer.organizerName}</span>
-                <span className="host-desk__organizer-role">
-                  {ROLE_LABELS[organizer.memberRole]}
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : isAdmin || isModerator ? (
-          <p className="host-desk__note">
-            No organizer memberships on this account. Platform tools live in{" "}
-            <Link to="/admin">Admin</Link>.
-          </p>
-        ) : (
-          <p className="host-desk__note">
-            No organizer access yet. Organizer access is granted by the Salsa Segura team once an
-            organizer request is approved. <Link to="/contact">Contact Salsa Segura</Link> to get
-            started.
-          </p>
-        )}
-      </section>
+          {organizersLoading ? (
+            <DeskSkeleton rows={2} />
+          ) : organizers.length > 0 ? (
+            <ul className="desk__list">
+              {organizers.map((organizer) => (
+                <li key={organizer.organizerId} className="host-desk__organizer">
+                  <Building2 size={16} aria-hidden />
+                  <span className="host-desk__organizer-name">{organizer.organizerName}</span>
+                  <span className="host-desk__organizer-role">
+                    {ROLE_LABELS[organizer.memberRole]}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : isAdmin || isModerator ? (
+            <p className="host-desk__note">
+              No organizer memberships on this account. Platform tools live in{" "}
+              <Link to="/admin">Admin</Link>.
+            </p>
+          ) : (
+            <p className="host-desk__note">
+              No organizer access yet. Organizer access is granted by the Salsa Segura team once an
+              organizer request is approved. <Link to="/contact">Contact Salsa Segura</Link> to get
+              started.
+            </p>
+          )}
+        </section>
+      )}
     </Desk>
   );
 }

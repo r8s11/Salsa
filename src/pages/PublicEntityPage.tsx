@@ -1,23 +1,15 @@
-import "temporal-polyfill/global";
 import { Link, useParams } from "react-router-dom";
 import NotFoundPage from "./NotFoundPage";
 import { useDocumentMeta } from "../shared/seo/useDocumentMeta";
 import { canonicalUrl } from "../utils/seo";
 import { useEntityDetail } from "../features/entities/hooks/useEntityDetail";
+import { InstructorProfile } from "../features/entities/components/InstructorProfile";
 import { SchoolProfile } from "../features/entities/components/SchoolProfile";
 import { entityExternalLinks } from "../features/entities/externalLinks";
+import { entityLocation, formatEventDate } from "../features/entities/format";
 import { ENTITY_LABELS, entityHref, type EventSummary, type PublicEntityKind, type PublicEntityRef } from "../features/entities/model";
+import { EntityClaimControl } from "../features/workspaces/components/public/EntityClaimControl";
 import "./PublicEntityPage.css";
-
-function eventDate(value: string): string {
-  try {
-    return Temporal.Instant.from(value)
-      .toZonedDateTimeISO("America/New_York")
-      .toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
-  } catch {
-    return value;
-  }
-}
 
 function EventList({ title, events }: { title: string; events: EventSummary[] }) {
   return (
@@ -33,7 +25,7 @@ function EventList({ title, events }: { title: string; events: EventSummary[] })
                 {event.image_url && <img src={event.image_url} alt="" loading="lazy" />}
                 <span className="public-entity-page__event-copy">
                   <strong>{event.title}</strong>
-                  <span>{eventDate(event.event_date)}</span>
+                  <span>{formatEventDate(event.event_date)}</span>
                 </span>
               </Link>
             </li>
@@ -84,9 +76,10 @@ export default function PublicEntityPage({ kind }: { kind: PublicEntityKind }) {
   if (!data || !entity) return <NotFoundPage />;
 
   if (kind === "school") return <SchoolProfile detail={data} />;
+  if (kind === "instructor") return <InstructorProfile detail={data} />;
 
   const { website, instagram } = entityExternalLinks(entity);
-  const location = [entity.address, entity.city?.replace(/-/g, " "), entity.state_region, entity.country].filter(Boolean).join(", ");
+  const location = entityLocation(entity);
 
   return (
     <article className="public-entity-page" aria-labelledby="public-entity-title">
@@ -116,7 +109,10 @@ export default function PublicEntityPage({ kind }: { kind: PublicEntityKind }) {
           </aside>
         )}
       </div>
-      <Link className="public-entity-page__browse" to="/discover">Discover dance communities</Link>
+      <footer className="public-entity-page__footer">
+        {kind === "venue" && <EntityClaimControl kind={kind} entity={entity} />}
+        <Link className="public-entity-page__browse" to="/discover">Discover dance communities</Link>
+      </footer>
     </article>
   );
 }

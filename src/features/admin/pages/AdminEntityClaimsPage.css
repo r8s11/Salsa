@@ -1,0 +1,42 @@
+/* The claims galley rides the desk's agate rows (src/components/desk/desk.css);
+   this file only sets what a claim carries that an event entry does not. */
+
+.admin-entity-claims__galley {
+  margin-top: 1rem;
+  border-top: 2px solid var(--desk-rule-strong, var(--admin-border-md));
+}
+
+/* A decision moves focus to the galley; the container itself carries no ring
+   (desk.css supplies :focus-visible for the controls inside). */
+.admin-entity-claims__galley:focus {
+  outline: none;
+}
+
+.admin-entity-claims__admin-link {
+  color: var(--admin-brand-text);
+}
+
+.admin-entity-claims__message {
+  margin: 6px 0 0;
+  padding-left: 10px;
+  border-left: 2px solid var(--desk-rule-strong, var(--admin-border-md));
+  color: var(--admin-text-primary);
+  font-size: var(--desk-agate, 0.8125rem);
+  line-height: var(--desk-agate-lh, 1.35);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.admin-entity-claims__error {
+  margin: 6px 0 0;
+  color: var(--desk-killed);
+  font-size: var(--desk-agate, 0.8125rem);
+  font-weight: 600;
+}
+
+@media (max-width: 639.98px) {
+  .admin-entity-claims__admin-link {
+    display: inline-block;
+    padding-block: 10px;
+  }
+}

@@ -1,3 +1,4 @@
+import "temporal-polyfill/global";
 import { useLocation } from "react-router-dom";
 import ButtonLink from "../ui/ButtonLink";
 import IconButton from "../ui/IconButton";
@@ -11,6 +12,13 @@ import { nightOf } from "../../features/events/model/night";
 import { useMetroName } from "../../features/metros/hooks/useMetros";
 import { metroShortCode } from "../../features/metros/model/metro";
 import MetroExplorer from "../../features/metros/components/MetroExplorer";
+import { useHeroMotion } from "./Hero.motion";
+
+const NEW_YORK = "America/New_York";
+
+// "YYYY-MM-DD HH:mm" — the shape of an event's `start`, so keys compare as text.
+const wallKey = (dt: Temporal.PlainDateTime) =>
+  dt.toString({ smallestUnit: "minute" }).replace("T", " ");
 
 function Hero() {
   const isMetroLanding = useLocation().pathname.startsWith("/events/");
@@ -24,26 +32,24 @@ function Hero() {
   const nearby = source === "location";
   const today = useNewYorkToday();
 
-  // The staggered entrance is CSS (see `.hero-enter` in Hero.css): six
-  // opacity+translateY fades were the only thing Motion was doing here, and
-  // the library cost 439 KB raw in the entry chunk to express them. The
-  // record's centring transform and spin stay in CSS as before, so no inline
-  // transform can overwrite them.
+  // Text entrance is GSAP when motion is allowed (Hero.motion.ts). CSS does
+  // not hide the copy, so the first frame stays complete with JavaScript off.
+  // Vinyl centring and spin stay in CSS — an inline transform would unpin the record.
+
+  // `start` is a New York wall-clock "YYYY-MM-DD HH:mm" string, so "now" and
+  // "a week out" are taken in that same frame and compared as strings — the
+  // device clock's zone never decides what is upcoming. The keys are values,
+  // so the memo only recomputes when the minute (or the feed) changes.
+  const now = Temporal.Now.plainDateTimeISO(NEW_YORK);
+  const nowKey = wallKey(now);
+  const weekKey = wallKey(now.add({ days: 7 }));
 
   const { featuredStart, eventsThisWeek, venueCount, tickerItems, labelArt } = useMemo(() => {
-    const now = new Date();
-    const weekFromNow = new Date(now);
-    weekFromNow.setDate(now.getDate() + 7);
-
     const upcoming = events
-      .filter((e) => new Date(e.start.replace(" ", "T")) >= now)
-      .sort(
-        (a, b) =>
-          new Date(a.start.replace(" ", "T")).getTime() -
-          new Date(b.start.replace(" ", "T")).getTime()
-      );
+      .filter((e) => e.start >= nowKey)
+      .sort((a, b) => (a.start < b.start ? -1 : a.start > b.start ? 1 : 0));
 
-    const thisWeek = upcoming.filter((e) => new Date(e.start.replace(" ", "T")) <= weekFromNow);
+    const thisWeek = upcoming.filter((e) => e.start <= weekKey);
     const venues = new Set(upcoming.map((e) => e.location).filter(Boolean));
 
     // The record's paper label carries the next event, printed on two arcs so
@@ -68,7 +74,7 @@ function Hero() {
           }
         : null,
     };
-  }, [events]);
+  }, [events, nowKey, weekKey]);
 
   // Same rule as the featured card's heading: "Tonight" only when the next
   // event is on New York's today. Until the feed has answered (loading or
@@ -97,35 +103,83 @@ function Hero() {
   const [tickerPaused, setTickerPaused] = useState(false);
 
   const heroRef = useRef<HTMLDivElement>(null);
+  useHeroMotion(heroRef, `${isMetroLanding ? "metro" : "home"}:${cityLabel ?? ""}`);
 
+  // Pointer response: the backdrop drifts a few px and the light on the record
+  // follows the cursor. Mouse only, motion allowed — touch, pen, keyboard and
+  // reduced-motion all keep the static, fully composed frame. Writes are
+  // coalesced to one per frame so a fast mouse never queues style work.
   useEffect(() => {
     const hero = heroRef.current;
-    if (!hero) return;
+    if (!hero || typeof window.matchMedia !== "function") return;
 
-    if (typeof window.matchMedia !== "function") return;
     const mq = window.matchMedia(
       "(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)"
     );
-    if (!mq.matches) return;
 
-    const handleMove = (e: MouseEvent) => {
-      const rect = hero.getBoundingClientRect();
-      const x = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
-      const y = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
-      hero.style.setProperty("--hero-parallax-x", `${x * 6}px`);
-      hero.style.setProperty("--hero-parallax-y", `${y * 6}px`);
-    };
+    let frame = 0;
+    let pointerX = 0;
+    let pointerY = 0;
 
-    const handleLeave = () => {
+    const reset = () => {
+      if (frame) cancelAnimationFrame(frame);
+      frame = 0;
       hero.style.setProperty("--hero-parallax-x", "0px");
       hero.style.setProperty("--hero-parallax-y", "0px");
+      hero.style.removeProperty("--hero-light-x");
+      hero.style.removeProperty("--hero-light-y");
     };
 
-    hero.addEventListener("mousemove", handleMove);
-    hero.addEventListener("mouseleave", handleLeave);
+    const paint = () => {
+      frame = 0;
+      const rect = hero.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      const x = ((pointerX - rect.left) / rect.width - 0.5) * 2;
+      const y = ((pointerY - rect.top) / rect.height - 0.5) * 2;
+      hero.style.setProperty("--hero-parallax-x", `${x * 6}px`);
+      hero.style.setProperty("--hero-parallax-y", `${y * 6}px`);
+      hero.style.setProperty("--hero-light-x", x.toFixed(3));
+      hero.style.setProperty("--hero-light-y", y.toFixed(3));
+    };
+
+    const handleMove = (e: PointerEvent) => {
+      if (e.pointerType !== "mouse") return;
+      pointerX = e.clientX;
+      pointerY = e.clientY;
+      if (!frame) frame = requestAnimationFrame(paint);
+    };
+
+    const onVisibility = () => {
+      if (document.hidden) reset();
+    };
+
+    const disarm = () => {
+      hero.removeEventListener("pointermove", handleMove);
+      hero.removeEventListener("pointerleave", reset);
+      hero.removeEventListener("pointercancel", reset);
+      window.removeEventListener("blur", reset);
+      document.removeEventListener("visibilitychange", onVisibility);
+      reset();
+    };
+
+    const arm = () => {
+      hero.addEventListener("pointermove", handleMove, { passive: true });
+      hero.addEventListener("pointerleave", reset);
+      hero.addEventListener("pointercancel", reset);
+      window.addEventListener("blur", reset);
+      document.addEventListener("visibilitychange", onVisibility);
+    };
+
+    const sync = () => {
+      disarm();
+      if (mq.matches) arm();
+    };
+
+    sync();
+    mq.addEventListener("change", sync);
     return () => {
-      hero.removeEventListener("mousemove", handleMove);
-      hero.removeEventListener("mouseleave", handleLeave);
+      mq.removeEventListener("change", sync);
+      disarm();
     };
   }, []);
 
@@ -184,6 +238,7 @@ function Hero() {
             )}
           </div>
           <div className="hero-vinyl__sheen" />
+          <div className="hero-vinyl__glint" />
         </div>
       </div>
 
@@ -198,28 +253,60 @@ function Hero() {
             </span>
           </div>
 
-          <h1 className="hero-heading hero-enter" data-enter="heading">
-            {cityLabel && isMetroLanding ? (
-              <>
-                <span className="hero-heading-line" data-line="1">
-                  Salsa &amp; Bachata
-                </span>
-                {" "}
-                <span className="hero-heading-line" data-line="2">
-                  <span className="hero-heading-accent">in {cityLabel}</span>
-                </span>
-              </>
-            ) : (
-              <>
-                <span className="hero-heading-line" data-line="1">
-                  Find Your
-                </span>
-                <span className="hero-heading-line" data-line="2">
-                  <span className="hero-heading-accent">Rhythm</span>
-                  <span className="hero-heading-dot">.</span>
-                </span>
-              </>
-            )}
+          <h1 className="hero-heading hero-enter" data-enter="heading" data-split-words>
+            <span className="hero-split-source">
+              {cityLabel && isMetroLanding ? (
+                <>
+                  <span className="hero-heading-line" data-line="1">
+                    Salsa &amp; Bachata
+                  </span>{" "}
+                  <span className="hero-heading-line" data-line="2">
+                    <span className="hero-heading-accent">in {cityLabel}</span>
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="hero-heading-line" data-line="1">
+                    Find Your
+                  </span>
+                  <span className="hero-heading-line" data-line="2">
+                    <span className="hero-heading-accent">Rhythm</span>
+                    <span className="hero-heading-dot">.</span>
+                  </span>
+                </>
+              )}
+            </span>
+            <span className="hero-split-live" aria-hidden="true">
+              {cityLabel && isMetroLanding ? (
+                <>
+                  <span className="hero-heading-line" data-line="1">
+                    {["Salsa", "&", "Bachata"].map((word) => (
+                      <span className="hero-split-word" key={word}>
+                        {word}{" "}
+                      </span>
+                    ))}
+                  </span>
+                  <span className="hero-heading-line" data-line="2">
+                    {["in", ...cityLabel.split(/\s+/).filter(Boolean)].map((word) => (
+                      <span className="hero-split-word hero-heading-accent" key={word}>
+                        {word}{" "}
+                      </span>
+                    ))}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="hero-heading-line" data-line="1">
+                    <span className="hero-split-word">Find</span>{" "}
+                    <span className="hero-split-word">Your</span>
+                  </span>
+                  <span className="hero-heading-line" data-line="2">
+                    <span className="hero-split-word hero-heading-accent">Rhythm</span>
+                    <span className="hero-split-word hero-heading-dot">.</span>
+                  </span>
+                </>
+              )}
+            </span>
           </h1>
 
           <p className="hero-subtitle hero-enter" data-enter="subtitle">

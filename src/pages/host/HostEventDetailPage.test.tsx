@@ -18,6 +18,9 @@ vi.mock("../../features/host/hooks/useMyOrganizers", () => ({ useMyOrganizers })
 vi.mock("../../features/host/hooks/useMyOrganizerEvents", () => ({ useMyOrganizerEvents }));
 vi.mock("../../features/host/hooks/useEventAttendees", () => ({ useEventAttendees }));
 vi.mock("../../features/host/hooks/useEventCheckIns", () => ({ useEventCheckIns }));
+vi.mock("../../features/workspaces/hooks/useMyEntityMemberships", () => ({
+  useMyEntityMemberships: () => ({ data: [], isLoading: false }),
+}));
 
 /* ── Test data ── */
 

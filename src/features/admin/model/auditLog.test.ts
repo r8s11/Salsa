@@ -73,6 +73,29 @@ describe("auditLogLabelFor", () => {
     ).toBe("Account banned — Harassment");
   });
 
+  it("handles entity claim and member actions", () => {
+    expect(auditLogLabelFor(makeEntry({ action: "entity_claim.approved" }))).toBe(
+      "Entity claim approved"
+    );
+    expect(
+      auditLogLabelFor(
+        makeEntry({ action: "entity_claim.rejected", metadata: { reason: "Duplicate" } })
+      )
+    ).toBe("Entity claim rejected — Duplicate");
+    expect(auditLogLabelFor(makeEntry({ action: "entity_claim.rejected", metadata: {} }))).toBe(
+      "Entity claim rejected"
+    );
+    expect(auditLogLabelFor(makeEntry({ action: "entity_member.added" }))).toBe(
+      "Team member added"
+    );
+    expect(auditLogLabelFor(makeEntry({ action: "entity_member.updated" }))).toBe(
+      "Team member updated"
+    );
+    expect(auditLogLabelFor(makeEntry({ action: "entity_member.removed" }))).toBe(
+      "Team member removed"
+    );
+  });
+
   it("falls back to the raw action string for anything unrecognized", () => {
     expect(auditLogLabelFor(makeEntry({ action: "event.created", metadata: {} }))).toBe(
       "event.created"

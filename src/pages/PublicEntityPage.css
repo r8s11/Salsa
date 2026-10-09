@@ -117,6 +117,9 @@
 .public-entity-page__related-list a { display: flex; justify-content: space-between; gap: 1rem; padding-block: 0.55rem; }
 .public-entity-page__related-list span { flex: none; color: var(--text-muted); font-size: 0.875rem; white-space: nowrap; }
 .public-entity-page__browse { display: inline-flex; align-items: center; min-height: 44px; margin-top: 2rem; }
+.public-entity-page__footer { display: grid; justify-items: start; margin-top: clamp(2rem, 5vw, 3.5rem); }
+.public-entity-page__footer .entity-claim-control { margin-top: 0; }
+.public-entity-page__footer .public-entity-page__browse { margin-top: 0.75rem; }
 
 @media (max-width: 760px) {
   .public-entity-page__body { grid-template-columns: minmax(0, 1fr); }

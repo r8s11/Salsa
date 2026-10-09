@@ -3,6 +3,7 @@ import type { FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAccessibleDialog } from "../../../../shared/a11y/useAccessibleDialog";
 import AdminConfirmDialog from "../../components/common/AdminConfirmDialog";
+import AdminEntityTeamSection from "../../components/entities/AdminEntityTeamSection";
 import { useAdminEntity, useAdminEntityActions, useAdminEntityDirectory, useAdminVenueOptions } from "../hooks/useAdminEntities";
 import {
   buildEntityForm,
@@ -139,6 +140,7 @@ export default function AdminEntityDetailPage({ kind, mode }: { kind: EntityKind
         </section>
         <section className="admin-card admin-entity-page__quality"><h2>Quality review</h2>{current.quality_issues.length ? <ul>{current.quality_issues.map((issue) => <li key={issue}>{qualityIssueLabel(issue)}</li>)}</ul> : <p>No quality issues detected.</p>}</section>
         <section className="admin-card admin-entity-page__linked"><h2>Linked events <span>({current.linked_events.length})</span></h2>{current.linked_events.length ? <ul>{current.linked_events.map((event) => <li key={event.id}><Link to={`/admin/events?edit=${event.id}`}>{event.title}</Link><span>{new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date(event.event_date))} · {event.status}</span></li>)}</ul> : <p>No linked events.</p>}</section>
+        {(kind === "school" || kind === "instructor") && current.id && <AdminEntityTeamSection kind={kind} id={current.id} />}
       </>}
       {pendingAction === "create" && <AdminConfirmDialog title={`Create ${labels.singular.toLowerCase()}?`} body={`Create “${form.name.trim()}” as an explicit ${labels.singular.toLowerCase()} record? No account or membership will be created.`} confirmLabel={`Create ${labels.singular.toLowerCase()}`} busyLabel="Creating…" isBusy={actions.isSaving} tone="neutral" error={actions.error} onConfirm={confirmAction} onCancel={() => setPendingAction(null)} />}
       {pendingAction === "archive" && current && <AdminConfirmDialog title={`Archive ${labels.singular.toLowerCase()}?`} body={`Archive “${current.name}”? This keeps the record and linked events but removes it from public active listings.`} confirmLabel={`Archive ${labels.singular.toLowerCase()}`} isBusy={actions.isSaving} error={actions.error} onConfirm={confirmAction} onCancel={() => setPendingAction(null)} />}

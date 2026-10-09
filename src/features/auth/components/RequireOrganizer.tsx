@@ -14,7 +14,7 @@ import { useHostCapabilities } from "../../host/hooks/useHostCapabilities";
  * RequireAdmin / RequireReviewer.
  */
 export default function RequireOrganizer({ children }: { children: ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, role, loading } = useAuth();
   const location = useLocation();
   const { hasHostAccess, isLoading: capabilitiesLoading } = useHostCapabilities();
 
@@ -31,7 +31,8 @@ export default function RequireOrganizer({ children }: { children: ReactNode }) 
   }
 
   const isHostLanding = location.pathname === "/host" || location.pathname === "/host/";
-  if (!isHostLanding && !hasHostAccess) {
+  const isAdmin = role === "admin";
+  if (!isHostLanding && !hasHostAccess && !isAdmin) {
     return <Navigate to="/" replace />;
   }
 

@@ -27,6 +27,7 @@
   border-radius: 14px;
   background: var(--surface);
 }
+.entity-directory__search--typed { grid-template-columns: minmax(14rem, 1.4fr) repeat(2, minmax(10rem, 0.6fr)) auto; }
 .entity-directory__search label { display: grid; gap: 0.4rem; min-width: 0; }
 .entity-directory__search label span { font-size: 0.875rem; font-weight: 700; color: var(--text); }
 .entity-directory__search input,
@@ -71,7 +72,12 @@
   text-decoration: none;
   transition: background-color 160ms ease, transform 160ms ease;
 }
-.entity-directory__result-link:hover { background: var(--surface-high); transform: translateY(-2px); }
+.entity-directory__result-link:hover { background: var(--surface-high); }
+@media (prefers-reduced-motion: no-preference) {
+  .entity-directory__result-link:hover { transform: translateY(-2px); }
+  .entity-directory__skeleton { animation: entity-directory-pulse 1.4s ease-in-out infinite; }
+}
+@keyframes entity-directory-pulse { 50% { opacity: 0.55; } }
 .entity-directory__result-link img { width: 6rem; height: 100%; min-height: 8rem; object-fit: cover; background: var(--surface-high); }
 .entity-directory__result-copy { display: grid; align-content: center; gap: 0.35rem; min-width: 0; padding: 0.9rem; }
 .entity-directory__result-copy:only-child { grid-column: 1 / -1; }
@@ -80,6 +86,22 @@
 .entity-directory__result-city,
 .entity-directory__result-description { color: var(--text-muted); font-size: 0.875rem; }
 .entity-directory__result-description { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.entity-directory__roster {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.75rem 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.entity-directory__teacher { display: grid; gap: 0.2rem; color: var(--text); text-decoration: none; }
+.entity-directory__teacher .instructor-portrait { margin-bottom: 0.65rem; transition: border-color 160ms ease; }
+.entity-directory__teacher:hover .instructor-portrait { border-color: var(--tertiary); }
+.entity-directory__teacher:focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; border-radius: var(--radius-lg); }
+.entity-directory__teacher-name { margin: 0; font-family: var(--font-display); font-size: 1.1rem; font-weight: 800; line-height: 1.25; }
+.entity-directory__teacher-city { color: var(--text-muted); font-size: 0.875rem; text-transform: capitalize; }
+.entity-directory__loading { margin: 0 0 1rem; color: var(--text-muted); }
+.entity-directory__skeleton { min-height: 8rem; border-radius: 14px; background: var(--surface); }
 .entity-directory__state { display: grid; justify-items: start; gap: 0.75rem; min-height: 8rem; align-content: center; color: var(--text-muted); }
 .entity-directory__state p { margin: 0; }
 .entity-directory__state button { min-height: 44px; }
@@ -92,17 +114,29 @@
 
 @media (max-width: 900px) {
   .entity-directory__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .entity-directory__roster { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (max-width: 680px) {
-  .entity-directory__search { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .entity-directory__search,
+  .entity-directory__search--typed { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .entity-directory__search label:first-child,
   .entity-directory__search button { grid-column: 1 / -1; }
   .entity-directory__grid { grid-template-columns: minmax(0, 1fr); }
+  .entity-directory__roster { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem 0.9rem; }
 }
 @media (max-width: 420px) {
-  .entity-directory__search { grid-template-columns: minmax(0, 1fr); }
-  .entity-directory__search button { grid-column: auto; }
+  .entity-directory__search,
+  .entity-directory__search--typed { grid-template-columns: minmax(0, 1fr); }
   .entity-directory__result-link { grid-template-columns: 5rem minmax(0, 1fr); }
   .entity-directory__result-link img { width: 5rem; }
   .entity-directory__pagination { gap: 0.5rem; }
   .entity-directory__pagination span { font-size: 0.8rem; }
 }
+
+.entity-directory__dot { color: var(--red); }
+.entity-directory__intro a { color: var(--gold); text-underline-offset: 0.2em; }
+.entity-directory__intro a:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+.entity-directory--main .entity-directory__search { margin-bottom: 0; }
+.entity-directory__back { margin: 1.5rem 0 1rem; }
+.entity-directory__back button { min-height: 44px; padding-inline: 0; }
+.entity-directory__back button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }

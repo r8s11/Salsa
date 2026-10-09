@@ -1,0 +1,82 @@
+.admin-entity-team {
+  margin-block: 1rem;
+}
+
+.admin-entity-team__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.admin-entity-team__heading h2 {
+  margin: 0;
+}
+
+.admin-entity-team__count {
+  color: var(--admin-text-muted);
+  font-weight: 500;
+}
+
+.admin-entity-team__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.admin-entity-team__state {
+  margin: 0.75rem 0 0;
+  color: var(--admin-text-muted);
+}
+
+.admin-entity-team__list {
+  display: grid;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-entity-team__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  border-top: 1px solid var(--admin-border);
+  padding-block: 0.65rem;
+}
+
+.admin-entity-team__who {
+  display: grid;
+  min-width: 0;
+}
+
+.admin-entity-team__name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.admin-entity-team__email {
+  color: var(--admin-text-muted);
+  font-size: 0.88rem;
+  overflow-wrap: anywhere;
+}
+
+.admin-entity-team__role {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .admin-entity-team__links {
+    width: 100%;
+  }
+
+  .admin-entity-team__links > * {
+    flex: 1 1 auto;
+    text-align: center;
+  }
+}

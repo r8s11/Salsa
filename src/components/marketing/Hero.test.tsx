@@ -22,21 +22,21 @@ vi.mock("../../features/metros/hooks/useMetros", () => ({
   useMetroName: () => () => "Boston",
 }));
 
+const { mockEvents } = vi.hoisted(() => ({
+  mockEvents: {
+    value: [] as { start: string; title: string; location: string }[],
+  },
+}));
+
 vi.mock("../../features/events/hooks/useEvent", () => ({
-  useEvents: () => ({
-    events: [
-      {
-        start: "2099-01-01 19:00",
-        title: "Friday social",
-        location: "Dance Complex",
-      },
-    ],
-    loading: false,
-  }),
+  useEvents: () => ({ events: mockEvents.value, loading: false }),
 }));
 
 describe("Hero", () => {
   beforeEach(() => {
+    mockEvents.value = [
+      { start: "2099-01-01 19:00", title: "Friday social", location: "Dance Complex" },
+    ];
     mockUseCity.mockReturnValue(mockCity());
   });
 
@@ -114,5 +114,29 @@ describe("Hero", () => {
     expect(vinyl?.querySelector(".hero-vinyl__disc .hero-vinyl__label")).toBeInTheDocument();
     expect(vinyl?.querySelector(".hero-vinyl__glow")).toBeInTheDocument();
     expect(vinyl?.querySelector(".hero-vinyl__sheen")).toBeInTheDocument();
+  });
+
+  it("judges upcoming events on New York's clock, not the device's", () => {
+    // 23:30 on 31 May in New York is already 1 June in UTC and east of it.
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2030-06-01T03:30:00Z"));
+    try {
+      mockEvents.value = [
+        { start: "2030-05-31 23:00", title: "Already over", location: "A" },
+        { start: "2030-05-31 23:45", title: "Late social", location: "B" },
+      ];
+      render(
+        <MemoryRouter>
+          <Hero />
+        </MemoryRouter>
+      );
+
+      expect(screen.getByRole("link", { name: "Tonight on the floor" })).toBeInTheDocument();
+      // Only the 23:45 night is still ahead: one event, one venue.
+      expect(screen.getByText("Events This Week").previousSibling).toHaveTextContent("1");
+      expect(screen.getByText("Venue").previousSibling).toHaveTextContent("1");
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

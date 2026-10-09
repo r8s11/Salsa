@@ -55,6 +55,14 @@
   font-size: 2.5rem;
 }
 
+/* Saved photo occupies the same slot as the initials tile, so swapping
+   between them on a load failure causes no layout shift. */
+.profile-avatar-large--photo {
+  display: block;
+  object-fit: cover;
+  background: var(--ink-800, #14161c);
+}
+
 .profile-identity {
   margin-top: var(--space-md);
   margin-bottom: var(--space-lg);

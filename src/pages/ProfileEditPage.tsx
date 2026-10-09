@@ -7,6 +7,7 @@ import { useUpdateOwnProfile } from "../hooks/useUpdateOwnProfile";
 import {
   resolveIdentity,
   initialsFor,
+  isDisplayablePhotoUrl,
   SAFE_NAME_FALLBACK,
   type OwnProfile,
 } from "../features/account/model/account";
@@ -26,15 +27,7 @@ function formStateFromProfile(profile: OwnProfile): FormState {
   };
 }
 
-function isValidUrl(value: string): boolean {
-  if (!value) return true;
-  try {
-    const url = new URL(value);
-    return url.protocol === "http:" || url.protocol === "https:";
-  } catch {
-    return false;
-  }
-}
+
 
 export default function ProfileEditPage() {
   const { user } = useAuth();
@@ -43,13 +36,19 @@ export default function ProfileEditPage() {
   const { update, isSaving, error: saveError } = useUpdateOwnProfile(user?.id);
 
   const displayNameId = useId();
+  const displayNameErrorId = useId();
   const usernameId = useId();
+  const usernameHelpId = useId();
   const avatarUrlId = useId();
+  const avatarUrlHintId = useId();
   const avatarUrlErrorId = useId();
 
   const [form, setForm] = useState<FormState | null>(null);
   const [avatarUrlError, setAvatarUrlError] = useState<string | null>(null);
   const [saved, setSaved] = useState<SavedNotice | null>(null);
+  // The exact URL whose <img> raised onError. Comparing against the current
+  // value means replacing the URL automatically re-attempts the load.
+  const [failedPreviewUrl, setFailedPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (profile) {
@@ -61,6 +60,13 @@ export default function ProfileEditPage() {
   const identity = profile ? resolveIdentity(profile) : null;
   const initials = identity ? initialsFor(identity) : "·";
   const currentUsername = profile?.username ?? null;
+
+  const trimmedAvatarUrl = form?.avatar_url.trim() ?? "";
+  const displayNameBlank = form !== null && form.display_name.trim().length === 0;
+  // Preview only what the save path would also accept, and only if this exact
+  // URL has not already failed to load.
+  const showPreview =
+    isDisplayablePhotoUrl(trimmedAvatarUrl) && failedPreviewUrl !== trimmedAvatarUrl;
 
   const dirty =
     form !== null &&
@@ -102,7 +108,8 @@ export default function ProfileEditPage() {
   const handleAvatarUrlChange = (value: string) => {
     setForm((current) => (current ? { ...current, avatar_url: value } : current));
     setSaved(null);
-    if (value.trim().length === 0 || isValidUrl(value.trim())) {
+    const trimmed = value.trim();
+    if (trimmed.length === 0 || isDisplayablePhotoUrl(trimmed)) {
       setAvatarUrlError(null);
     } else {
       setAvatarUrlError("Use a full link starting with https://");
@@ -110,7 +117,9 @@ export default function ProfileEditPage() {
   };
 
   return (
-    <main className="profile-edit-page">
+    // MainLayout owns the page's single <main> landmark; this section must
+    // not introduce a second one.
+    <div className="profile-edit-page">
       <div className="profile-edit-page__intro">
         <Link to="/profile" className="profile-edit-page__back">
           <ArrowLeft size={16} aria-hidden="true" />
@@ -170,14 +179,16 @@ export default function ProfileEditPage() {
 
             <div className="profile-edit-page__identity-row">
               <div className="profile-edit-page__avatar-column">
-                {form.avatar_url.trim().length > 0 ? (
+                {showPreview ? (
                   <img
                     className="profile-edit-page__avatar"
-                    src={form.avatar_url}
+                    src={trimmedAvatarUrl}
                     alt=""
                     width={148}
                     height={148}
                     loading="lazy"
+                    referrerPolicy="no-referrer"
+                    onError={() => setFailedPreviewUrl(trimmedAvatarUrl)}
                   />
                 ) : (
                   <span
@@ -188,7 +199,7 @@ export default function ProfileEditPage() {
                     <span className="profile-edit-page__avatar-initials">{initials}</span>
                   </span>
                 )}
-                <p className="profile-edit-page__avatar-hint">
+                <p id={avatarUrlHintId} className="profile-edit-page__avatar-hint">
                   Photo URL — link to a hosted image. Uploads arrive in a later update.
                 </p>
               </div>
@@ -212,7 +223,14 @@ export default function ProfileEditPage() {
                     }}
                     placeholder={SAFE_NAME_FALLBACK}
                     maxLength={80}
+                    aria-invalid={displayNameBlank ? true : undefined}
+                    aria-describedby={displayNameBlank ? displayNameErrorId : undefined}
                   />
+                  {displayNameBlank && (
+                    <p id={displayNameErrorId} className="profile-edit-page__error" role="alert">
+                      A display name is required.
+                    </p>
+                  )}
                 </div>
 
                 <div className="profile-edit-page__field">
@@ -226,10 +244,11 @@ export default function ProfileEditPage() {
                     readOnly
                     disabled
                     aria-readonly="true"
+                    aria-describedby={usernameHelpId}
                     value={currentUsername ?? ""}
                     placeholder="Not set"
                   />
-                  <p className="profile-edit-page__hint">
+                  <p id={usernameHelpId} className="profile-edit-page__hint">
                     {currentUsername
                       ? `salsasegura.com/u/${currentUsername}`
                       : "No username set yet."}{" "}
@@ -251,7 +270,9 @@ export default function ProfileEditPage() {
                 onChange={(event) => handleAvatarUrlChange(event.target.value)}
                 placeholder="https://"
                 aria-invalid={avatarUrlError ? true : undefined}
-                aria-describedby={avatarUrlError ? avatarUrlErrorId : undefined}
+                aria-describedby={
+                  avatarUrlError ? `${avatarUrlHintId} ${avatarUrlErrorId}` : avatarUrlHintId
+                }
               />
               {avatarUrlError && (
                 <p id={avatarUrlErrorId} className="profile-edit-page__error" role="alert">
@@ -286,6 +307,6 @@ export default function ProfileEditPage() {
           </div>
         </form>
       )}
-    </main>
+    </div>
   );
 }

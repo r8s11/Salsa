@@ -393,7 +393,9 @@
   text-transform: uppercase;
   padding: 5px 11px;
   border-radius: var(--radius-full);
-  background: rgba(11, 19, 38, 0.7);
+  /* 90% navy: over the lightest flyer (pure white) Social's --red-bright
+     still holds 4.66:1; at 70% it fell to 2.27:1. */
+  background: rgba(11, 19, 38, 0.9);
   backdrop-filter: blur(6px);
   color: var(--text);
   border: 1px solid var(--border-md);

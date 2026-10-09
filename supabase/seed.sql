@@ -135,3 +135,69 @@ update public.events
     case when (title || ' ' || coalesce(description, '')) ~* 'zouk' then 'zouk' end,
     case when (title || ' ' || coalesce(description, '')) ~* 'afro[ -]?cuban|rumba' then 'afro-cuban' end
   ], null);
+
+-- Canonical taxonomy needed by the event form and by its normalized
+-- event_taxonomy_terms projection. On conflict deliberately preserves
+-- administrator-edited terms in an existing local database.
+insert into public.taxonomy_terms (category, name, slug, display_order)
+values
+  ('dance_style', 'Salsa', 'salsa', 10),
+  ('dance_style', 'Bachata', 'bachata', 20),
+  ('dance_style', 'Merengue', 'merengue', 30),
+  ('dance_style', 'Cha-Cha', 'cha-cha', 40),
+  ('dance_style', 'Kizomba', 'kizomba', 50),
+  ('dance_style', 'Zouk', 'zouk', 60),
+  ('dance_style', 'Afro-Cuban', 'afro-cuban', 70),
+  ('event_attribute', 'Beginner Friendly', 'beginner-friendly', 10),
+  ('event_attribute', 'Outdoor', 'outdoor', 20),
+  ('event_attribute', 'Live Music', 'live-music', 30),
+  ('event_attribute', 'DJ', 'dj', 40),
+  ('event_attribute', 'Free', 'free', 50),
+  ('event_attribute', 'Lesson Included', 'lesson-included', 60),
+  ('event_attribute', 'Social Dancing', 'social-dancing', 70)
+on conflict (slug) do nothing;
+
+-- `db reset` runs migrations before this seed, so project the seeded legacy
+-- arrays after the taxonomy dictionary exists. Keep dance_styles as the
+-- documented legacy field; the join is the canonical relationship used by
+-- current application queries.
+insert into public.event_taxonomy_terms (event_id, taxonomy_term_id)
+select distinct event.id, term.id
+from public.events event
+cross join lateral unnest(coalesce(event.dance_styles, '{}')) as legacy_style
+join public.taxonomy_terms term
+  on term.category = 'dance_style'
+ and term.slug = legacy_style
+on conflict (event_id, taxonomy_term_id) do nothing;
+
+-- Phase 11's canonical singleton defaults. Existing local administrative
+-- changes survive a non-reset seed run.
+insert into public.platform_settings (
+  singleton,
+  platform_name,
+  public_site_url,
+  support_email,
+  default_city,
+  default_country_code,
+  default_timezone,
+  default_locale,
+  default_currency_code,
+  default_event_duration_minutes,
+  allow_public_event_suggestions,
+  allow_registered_user_submissions
+)
+values (
+  true,
+  'Salsa Segura',
+  'https://salsasegura.com',
+  'info@salsasegura.com',
+  'boston',
+  'US',
+  'America/New_York',
+  'en-US',
+  'USD',
+  180,
+  true,
+  true
+)
+on conflict (singleton) do nothing;

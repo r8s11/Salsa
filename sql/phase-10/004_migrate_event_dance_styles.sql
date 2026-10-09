@@ -27,21 +27,30 @@ join public.taxonomy_terms term
   on term.category = 'dance_style' and term.slug = legacy_style
 on conflict do nothing;
 
--- Duplicate legacy array values do not create extra join rows. The two counts
--- must agree before committing.
+-- The migration guarantees that every legacy-derived pair exists. It must
+-- permit independently assigned dance-style terms that were already present
+-- before this backfill; comparing the two total counts incorrectly rejects
+-- those legitimate relationships.
 do $$
-declare legacy_pairs bigint; migrated_pairs bigint;
+declare missing_pairs bigint;
 begin
-  select count(*) into legacy_pairs from (
-    select distinct event.id, legacy_style
-    from public.events event cross join lateral unnest(event.dance_styles) legacy_style
+  select count(*) into missing_pairs
+  from (
+    (
+      select distinct event.id as event_id, term.id as taxonomy_term_id
+      from public.events event
+      cross join lateral unnest(coalesce(event.dance_styles, '{}')) as legacy_style
+      join public.taxonomy_terms term
+        on term.category = 'dance_style'
+       and term.slug = legacy_style
+    )
+    except
+    select ett.event_id, ett.taxonomy_term_id
+    from public.event_taxonomy_terms ett
   ) pairs;
-  select count(*) into migrated_pairs
-  from public.event_taxonomy_terms ett
-  join public.taxonomy_terms term on term.id = ett.taxonomy_term_id
-  where term.category = 'dance_style';
-  if legacy_pairs <> migrated_pairs then
-    raise exception 'Taxonomy migration mismatch: legacy %, migrated %', legacy_pairs, migrated_pairs;
+
+  if missing_pairs <> 0 then
+    raise exception 'Taxonomy migration incomplete: % legacy-derived pairs are missing', missing_pairs;
   end if;
 end;
 $$;

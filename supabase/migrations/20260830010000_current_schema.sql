@@ -472,7 +472,9 @@ alter table public.event_submissions
   alter column submitted_at set not null;
 
 -- Migrate only legacy dance-style values with a reviewed taxonomy target.
--- Unknown values abort before any relationship rows are written.
+-- Unknown values abort before any relationship rows are written. A fresh
+-- install may have no taxonomy seed rows yet; in that state there is no
+-- mapping to validate and a repeat application must remain state-neutral.
 do $$
 begin
   if exists (
@@ -481,6 +483,9 @@ begin
     left join public.taxonomy_terms term
       on term.category = 'dance_style' and term.slug = legacy.legacy_style
     where term.id is null
+  )
+  and exists (
+    select 1 from public.taxonomy_terms where category = 'dance_style'
   ) then
     raise exception 'Legacy dance_styles contains unmapped values; review before migration';
   end if;
@@ -1053,8 +1058,8 @@ begin
     where a.attrelid = 'public.taxonomy_terms'::regclass
       and a.attname = 'normalized_name'
       and a.attgenerated = 's'
-      and regexp_replace(pg_get_expr(d.adbin, d.adrelid), '\s+', '', 'g') =
-          'lower(btrim(normalize(name,''NFKC''::text)))'
+      and lower(regexp_replace(pg_get_expr(d.adbin, d.adrelid), '\s+', '', 'g')) =
+          'lower(btrim(normalize(name,nfkc)))'
   ) then
     raise exception 'Current schema mismatch: taxonomy_terms.normalized_name expression differs from canonical normalization';
   end if;
@@ -1204,7 +1209,6 @@ create index if not exists organizer_requests_status_created_idx on public.organ
 create index if not exists organizer_members_user_id_idx on public.organizer_members (user_id);
 create index if not exists organizer_members_organizer_status_idx on public.organizer_members (organizer_id, status);
 
-create unique index if not exists venues_slug_unique_idx on public.venues (slug);
 create index if not exists venues_normalized_name_idx on public.venues (normalized_name);
 create index if not exists venues_city_idx on public.venues (city);
 create index if not exists venues_status_idx on public.venues (status);
@@ -2378,12 +2382,13 @@ begin
              count(*) as cnt
       from events
       where status = 'approved'
-        and event_date >= from_date and event_date < to_date
+        and event_date >= $1 and event_date < $2
       group by date_trunc('%I', event_date)
       order by sort_key
     ) s
-  $q$, v_bucket_fn, v_label_fmt)
-  into v_events_series;
+  $q$, v_bucket_fn, v_label_fmt, v_bucket_fn, v_bucket_fn)
+  into v_events_series
+  using from_date, to_date;
 
   -- Submissions by bucket (same granularity)
   execute format($q$
@@ -2393,12 +2398,13 @@ begin
              date_trunc('%I', submitted_at) as sort_key,
              count(*) as cnt
       from event_submissions
-      where submitted_at >= from_date and submitted_at < to_date
+      where submitted_at >= $1 and submitted_at < $2
       group by date_trunc('%I', submitted_at)
       order by sort_key
     ) s
-  $q$, v_bucket_fn, v_label_fmt)
-  into v_submissions_series;
+  $q$, v_bucket_fn, v_label_fmt, v_bucket_fn, v_bucket_fn)
+  into v_submissions_series
+  using from_date, to_date;
 
   return jsonb_build_object(
     'events_by_week', v_events_series,
@@ -3436,19 +3442,10 @@ on public.organizer_members for select
 to authenticated
 using (user_id = (select auth.uid()));
 
--- Venues and taxonomy directories.
+-- Remove superseded permissive policies before creating canonical access policies.
 drop policy if exists "Anyone can read venues" on public.venues;
-create policy "Anyone can read venues"
-on public.venues for select
-to anon, authenticated
-using (true);
 
 drop policy if exists "Staff manage venues" on public.venues;
-create policy "Staff manage venues"
-on public.venues for all
-to authenticated
-using ((select auth.jwt() -> 'app_metadata' ->> 'role') in ('admin', 'moderator'))
-with check ((select auth.jwt() -> 'app_metadata' ->> 'role') in ('admin', 'moderator'));
 
 drop policy if exists "Admins manage venues" on public.venues;
 create policy "Admins manage venues"
@@ -3458,17 +3455,8 @@ using ((select public.is_admin()))
 with check ((select public.is_admin()));
 
 drop policy if exists "Anyone can read taxonomy terms" on public.taxonomy_terms;
-create policy "Anyone can read taxonomy terms"
-on public.taxonomy_terms for select
-to anon, authenticated
-using (true);
 
 drop policy if exists "Staff manage taxonomy terms" on public.taxonomy_terms;
-create policy "Staff manage taxonomy terms"
-on public.taxonomy_terms for all
-to authenticated
-using ((select auth.jwt() -> 'app_metadata' ->> 'role') in ('admin', 'moderator'))
-with check ((select auth.jwt() -> 'app_metadata' ->> 'role') in ('admin', 'moderator'));
 
 drop policy if exists "Public active taxonomy terms are readable" on public.taxonomy_terms;
 create policy "Public active taxonomy terms are readable"
@@ -3490,17 +3478,8 @@ using ((select public.is_moderator()))
 with check ((select public.is_moderator()));
 
 drop policy if exists "Anyone can read event taxonomy links" on public.event_taxonomy_terms;
-create policy "Anyone can read event taxonomy links"
-on public.event_taxonomy_terms for select
-to anon, authenticated
-using (true);
 
 drop policy if exists "Staff manage event taxonomy links" on public.event_taxonomy_terms;
-create policy "Staff manage event taxonomy links"
-on public.event_taxonomy_terms for all
-to authenticated
-using ((select auth.jwt() -> 'app_metadata' ->> 'role') in ('admin', 'moderator'))
-with check ((select auth.jwt() -> 'app_metadata' ->> 'role') in ('admin', 'moderator'));
 
 drop policy if exists "Owners read own event taxonomy terms" on public.event_taxonomy_terms;
 create policy "Owners read own event taxonomy terms"
@@ -3618,73 +3597,97 @@ with check (
   and (reversed_at is null or reversed_by = (select auth.uid()))
 );
 
--- Storage bucket and its owner/admin policies.
-insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-values (
-  'event-flyers',
-  'event-flyers',
-  true,
-  5242880,
-  array['image/jpeg', 'image/png', 'image/webp']
-)
-on conflict (id) do update
-set public = excluded.public,
-    file_size_limit = excluded.file_size_limit,
-    allowed_mime_types = excluded.allowed_mime_types;
+-- Storage is optional in the local config. Never fabricate Supabase-managed
+-- storage tables: configure the bucket and policies only when the local
+-- storage service has created both managed relations.
+do $storage$
+begin
+  if to_regclass('storage.buckets') is null
+     or to_regclass('storage.objects') is null then
+    raise notice 'Skipping event-flyers storage setup because Supabase Storage is disabled';
+    return;
+  end if;
 
-drop policy if exists "Public can read event flyers" on storage.objects;
-create policy "Public can read event flyers"
-on storage.objects for select
-to public
-using (bucket_id = 'event-flyers');
+  execute $sql$
+    insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+    values (
+      'event-flyers',
+      'event-flyers',
+      true,
+      5242880,
+      array['image/jpeg', 'image/png', 'image/webp']
+    )
+    on conflict (id) do update
+    set public = excluded.public,
+        file_size_limit = excluded.file_size_limit,
+        allowed_mime_types = excluded.allowed_mime_types
+  $sql$;
 
-drop policy if exists "Owners insert event flyers" on storage.objects;
-create policy "Owners insert event flyers"
-on storage.objects for insert
-to authenticated
-with check (
-  bucket_id = 'event-flyers'
-  and owner_id = (select auth.uid())::text
-  and (storage.foldername(name))[1] = (select auth.uid())::text
-);
+  execute 'drop policy if exists "Public can read event flyers" on storage.objects';
+  execute $sql$
+    create policy "Public can read event flyers"
+    on storage.objects for select
+    to public
+    using (bucket_id = 'event-flyers')
+  $sql$;
 
-drop policy if exists "Owners update event flyers" on storage.objects;
-create policy "Owners update event flyers"
-on storage.objects for update
-to authenticated
-using (
-  bucket_id = 'event-flyers'
-  and owner_id = (select auth.uid())::text
-  and (storage.foldername(name))[1] = (select auth.uid())::text
-)
-with check (
-  bucket_id = 'event-flyers'
-  and owner_id = (select auth.uid())::text
-  and (storage.foldername(name))[1] = (select auth.uid())::text
-);
+  execute 'drop policy if exists "Owners insert event flyers" on storage.objects';
+  execute $sql$
+    create policy "Owners insert event flyers"
+    on storage.objects for insert
+    to authenticated
+    with check (
+      bucket_id = 'event-flyers'
+      and owner_id = (select auth.uid())::text
+      and (storage.foldername(name))[1] = (select auth.uid())::text
+    )
+  $sql$;
 
-drop policy if exists "Owners delete event flyers" on storage.objects;
-create policy "Owners delete event flyers"
-on storage.objects for delete
-to authenticated
-using (
-  bucket_id = 'event-flyers'
-  and owner_id = (select auth.uid())::text
-  and (storage.foldername(name))[1] = (select auth.uid())::text
-);
+  execute 'drop policy if exists "Owners update event flyers" on storage.objects';
+  execute $sql$
+    create policy "Owners update event flyers"
+    on storage.objects for update
+    to authenticated
+    using (
+      bucket_id = 'event-flyers'
+      and owner_id = (select auth.uid())::text
+      and (storage.foldername(name))[1] = (select auth.uid())::text
+    )
+    with check (
+      bucket_id = 'event-flyers'
+      and owner_id = (select auth.uid())::text
+      and (storage.foldername(name))[1] = (select auth.uid())::text
+    )
+  $sql$;
 
-drop policy if exists "Admins manage event flyers" on storage.objects;
-create policy "Admins manage event flyers"
-on storage.objects for all
-to authenticated
-using (
-  bucket_id = 'event-flyers'
-  and (select auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
-)
-with check (
-  bucket_id = 'event-flyers'
-  and (select auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
-);
+  execute 'drop policy if exists "Owners delete event flyers" on storage.objects';
+  execute $sql$
+    create policy "Owners delete event flyers"
+    on storage.objects for delete
+    to authenticated
+    using (
+      bucket_id = 'event-flyers'
+      and owner_id = (select auth.uid())::text
+      and (storage.foldername(name))[1] = (select auth.uid())::text
+    )
+  $sql$;
+
+  execute 'drop policy if exists "Admins manage event flyers" on storage.objects';
+  execute $sql$
+    create policy "Admins manage event flyers"
+    on storage.objects for all
+    to authenticated
+    using (
+      bucket_id = 'event-flyers'
+      and (select auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
+    )
+    with check (
+      bucket_id = 'event-flyers'
+      and (select auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
+    )
+  $sql$;
+end;
+$storage$;
 
 -- Reset repository-owned table and function privileges before minimum grants.
 revoke all on public.events, public.profiles, public.audit_logs,
@@ -3770,7 +3773,7 @@ grant select on public.audit_logs to authenticated;
 grant select, insert, update on public.event_submissions to authenticated;
 grant insert on public.event_submissions to anon;
 grant select, insert on public.event_import_batches to authenticated;
-grant select on public.venues to anon, authenticated;
+grant select on public.venues to authenticated;
 grant insert, update, delete on public.venues to authenticated;
 grant select on public.taxonomy_terms to anon, authenticated;
 grant insert, update, delete on public.taxonomy_terms to authenticated;
@@ -3782,7 +3785,13 @@ grant select, insert, update, delete on public.organizers to authenticated;
 grant select, insert, update, delete on public.organizer_members to authenticated;
 grant select, insert, update, delete on public.event_attendees to authenticated;
 grant select, insert, update on public.event_check_ins to authenticated;
-grant select on storage.objects to anon, authenticated;
+do $storage_grant$
+begin
+  if to_regclass('storage.objects') is not null then
+    execute 'grant select on storage.objects to anon, authenticated';
+  end if;
+end;
+$storage_grant$;
 
 -- Policy helper functions must remain executable by the roles whose policies call them.
 grant execute on function public.account_is_active(uuid) to authenticated;

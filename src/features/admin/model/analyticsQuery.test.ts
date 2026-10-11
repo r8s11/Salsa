@@ -1,219 +1,60 @@
 import { describe, expect, it } from "vitest";
-import {
-  dateRangeFor,
-  granularityForRange,
-  formatDelta,
-  deltaTrend,
-  deltaLabel,
-  parseMetrics,
-  parseSeries,
-} from "./analyticsQuery";
+import { dateRangeFor, parseCities, parseMetrics } from "./analyticsQuery";
 
-describe("dateRangeFor", () => {
-  const now = new Date("2026-08-14T12:00:00Z");
-
-  it("returns 7-day range for '7d'", () => {
-    const { from, to } = dateRangeFor("7d", now);
-    // 7 days inclusive: from is 6 days before to
-    const expectedFrom = new Date(now);
-    expectedFrom.setDate(expectedFrom.getDate() - 6);
-    expectedFrom.setHours(0, 0, 0, 0);
-    expect(from.getTime()).toBeCloseTo(expectedFrom.getTime(), -3);
-    expect(to.getDate()).toBe(now.getDate());
+describe("analytics activity boundaries", () => {
+  it("includes seven Eastern calendar days even when UTC is already tomorrow", () => {
+    expect(dateRangeFor("7d", new Date("2026-10-12T02:00:00Z"))).toEqual({
+      from: "2026-10-05T04:00:00Z", to: "2026-10-12T04:00:00Z",
+    });
   });
-
-  it("returns 30-day range for '30d'", () => {
-    const { from } = dateRangeFor("30d", now);
-    // from should be 29 days before the end of the 30-day window
-    const expectedFrom = new Date(now);
-    expectedFrom.setDate(expectedFrom.getDate() - 29);
-    expectedFrom.setHours(0, 0, 0, 0);
-    expect(from.getTime()).toBeCloseTo(expectedFrom.getTime(), -3);
+  it("uses calendar arithmetic over spring DST rather than 24-hour durations", () => {
+    expect(dateRangeFor("7d", new Date("2026-03-08T15:00:00Z"))).toEqual({
+      from: "2026-03-02T05:00:00Z", to: "2026-03-09T04:00:00Z",
+    });
   });
-
-  it("returns 90-day range for '90d'", () => {
-    const { from } = dateRangeFor("90d", now);
-    const expectedFrom = new Date(now);
-    expectedFrom.setDate(expectedFrom.getDate() - 89);
-    expectedFrom.setHours(0, 0, 0, 0);
-    expect(from.getTime()).toBeCloseTo(expectedFrom.getTime(), -3);
+  it("uses calendar arithmetic over fall DST", () => {
+    expect(dateRangeFor("30d", new Date("2026-11-01T18:00:00Z"))).toEqual({
+      from: "2026-10-03T04:00:00Z", to: "2026-11-02T05:00:00Z",
+    });
   });
-
-  it("returns YTD range for 'ytd'", () => {
-    const { from, to } = dateRangeFor("ytd", now);
-    expect(from.getMonth()).toBe(0); // January
-    expect(from.getDate()).toBe(1);
-    expect(to.getMonth()).toBe(7); // August
-    expect(to.getDate()).toBe(14);
+  it("includes ninety calendar days and no artificial all-time cutoff", () => {
+    expect(dateRangeFor("90d", new Date("2026-10-11T12:00:00Z"))).toEqual({
+      from: "2026-07-14T04:00:00Z", to: "2026-10-12T04:00:00Z",
+    });
+    expect(dateRangeFor("all", new Date("2026-10-11T12:00:00Z"))).toEqual({ from: null, to: null });
   });
 });
 
-describe("granularityForRange", () => {
-  it("returns daily for 7d", () => {
-    expect(granularityForRange("7d")).toBe("daily");
+describe("analytics unavailable values", () => {
+  it("never converts missing or failed counts to zero", () => {
+    expect(parseMetrics(null)).toEqual({ total_events: null, upcoming_events: null,
+      registered_users: null, pending_submissions: null, active_organizers: null });
   });
-
-  it("returns weekly for 30d", () => {
-    expect(granularityForRange("30d")).toBe("weekly");
-  });
-
-  it("returns weekly for 90d", () => {
-    expect(granularityForRange("90d")).toBe("weekly");
-  });
-
-  it("returns monthly for ytd", () => {
-    expect(granularityForRange("ytd")).toBe("monthly");
+  it("retains genuine empty counts but rejects invalid or unsafe counts independently", () => {
+    expect(parseMetrics({ total_events: 0, upcoming_events: -1, registered_users: "12",
+      pending_submissions: "not a number", active_organizers: Number.MAX_SAFE_INTEGER + 1 })).toEqual({
+      total_events: 0, upcoming_events: null, registered_users: 12,
+      pending_submissions: null, active_organizers: null,
+    });
   });
 });
 
-describe("formatDelta", () => {
-  it("formats positive delta with + sign", () => {
-    expect(formatDelta(5)).toBe("+5");
+describe("city distribution availability", () => {
+  it("distinguishes an empty inventory from missing aggregation", () => {
+    expect(parseCities([])).toEqual([]);
+    expect(parseCities(null)).toBeNull();
+    expect(parseCities(undefined)).toBeNull();
   });
-
-  it("formats negative delta with - sign", () => {
-    expect(formatDelta(-3)).toBe("-3");
+  it("never silently omits malformed city counts from the distribution", () => {
+    expect(parseCities([{ slug: "boston", city: "Boston", count: 5 }, { slug: "miami", city: "Miami", count: null }])).toBeNull();
+    expect(parseCities([{ slug: "boston", city: "", count: 3 }])).toBeNull();
+    expect(parseCities([{ slug: null, city: "Unknown city", count: 2 }])).toEqual([{ slug: null, city: "Unknown city", count: 2 }]);
   });
-
-  it("formats zero as 'no change'", () => {
-    expect(formatDelta(0)).toBe("no change");
-  });
-});
-
-describe("deltaTrend", () => {
-  it("returns 'up' for positive", () => {
-    expect(deltaTrend(5)).toBe("up");
-  });
-
-  it("returns 'down' for negative", () => {
-    expect(deltaTrend(-3)).toBe("down");
-  });
-
-  it("returns 'flat' for zero", () => {
-    expect(deltaTrend(0)).toBe("flat");
-  });
-});
-
-describe("deltaLabel", () => {
-  it("returns 'Increased' for positive", () => {
-    expect(deltaLabel(5)).toBe("Increased");
-  });
-
-  it("returns 'Decreased' for negative", () => {
-    expect(deltaLabel(-3)).toBe("Decreased");
-  });
-
-  it("returns 'No change' for zero", () => {
-    expect(deltaLabel(0)).toBe("No change");
-  });
-});
-
-describe("parseMetrics", () => {
-  it("parses RPC response into typed metrics", () => {
-    const raw = {
-      published_events: 86,
-      published_events_prev: 80,
-      published_events_delta: 6,
-      new_users: 42,
-      new_users_prev: 38,
-      new_users_delta: 4,
-      event_views: 512,
-      event_views_prev: 470,
-      event_views_delta: 42,
-      rsvp_clicks: 97,
-      rsvp_clicks_prev: 88,
-      rsvp_clicks_delta: 9,
-      submissions: 29,
-      submissions_prev: 25,
-      submissions_delta: 4,
-    };
-
-    const result = parseMetrics(raw);
-    expect(result.published_events.current).toBe(86);
-    expect(result.published_events.previous).toBe(80);
-    expect(result.published_events.delta).toBe(6);
-    expect(result.new_users.current).toBe(42);
-    expect(result.event_views.current).toBe(512);
-    expect(result.rsvp_clicks.delta).toBe(9);
-    expect(result.submissions.delta).toBe(4);
-  });
-
-  it("returns empty metrics for null input", () => {
-    const result = parseMetrics(null);
-    expect(result.published_events.current).toBe(0);
-    expect(result.new_users.current).toBe(0);
-  });
-
-  it("handles string values from RPC", () => {
-    const raw = {
-      published_events: "86",
-      published_events_prev: "80",
-      published_events_delta: "6",
-      new_users: "42",
-      new_users_prev: "38",
-      new_users_delta: "4",
-      event_views: "512",
-      event_views_prev: "470",
-      event_views_delta: "42",
-      rsvp_clicks: "97",
-      rsvp_clicks_prev: "88",
-      rsvp_clicks_delta: "9",
-      submissions: "29",
-      submissions_prev: "25",
-      submissions_delta: "4",
-    };
-
-    const result = parseMetrics(raw);
-    expect(result.published_events.current).toBe(86);
-  });
-});
-
-describe("parseSeries", () => {
-  it("parses event and submission series arrays", () => {
-    const raw = {
-      events_by_week: [
-        { label: "Aug 4", value: 12 },
-        { label: "Aug 11", value: 15 },
-      ],
-      views_by_week: [
-        { label: "Aug 4", value: 40 },
-        { label: "Aug 11", value: 55 },
-      ],
-      rsvp_clicks_by_week: [
-        { label: "Aug 4", value: 7 },
-        { label: "Aug 11", value: 11 },
-      ],
-      submissions_by_week: [
-        { label: "Aug 4", value: 3 },
-        { label: "Aug 11", value: 5 },
-      ],
-    };
-
-    const result = parseSeries(raw);
-    expect(result.events).toHaveLength(2);
-    expect(result.events[0].label).toBe("Aug 4");
-    expect(result.events[0].value).toBe(12);
-    expect(result.submissions[1].value).toBe(5);
-    expect(result.views[0].value).toBe(40);
-    expect(result.rsvpClicks[1].value).toBe(11);
-  });
-
-  it("returns empty arrays for null input", () => {
-    const result = parseSeries(null);
-    expect(result.events).toEqual([]);
-    expect(result.submissions).toEqual([]);
-    expect(result.views).toEqual([]);
-    expect(result.rsvpClicks).toEqual([]);
-  });
-
-  it("filters out malformed data points", () => {
-    const raw = {
-      events_by_week: [{ label: "Aug 4", value: 12 }, { foo: "bar" }, null],
-      submissions_by_week: [],
-    };
-
-    const result = parseSeries(raw);
-    expect(result.events).toHaveLength(1);
-    expect(result.events[0].value).toBe(12);
+  it("preserves canonical identities when two metros share a display name", () => {
+    const rows = [
+      { slug: "boston", city: "Boston", count: 2 },
+      { slug: "other-boston", city: "Boston", count: 1 },
+    ];
+    expect(parseCities(rows)).toEqual(rows);
   });
 });

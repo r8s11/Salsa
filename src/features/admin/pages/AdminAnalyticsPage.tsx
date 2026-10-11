@@ -1,271 +1,214 @@
-import { useState, useEffect } from "react";
-import type { ComponentType } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
-import { CalendarDays, Users, Eye, ExternalLink, FileText } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+import { CalendarDays, CalendarClock, Users, UserCheck, FileText } from "lucide-react";
 import AdminPageHeader from "../components/shell/AdminPageHeader";
 import AdminMetricCard from "../components/analytics/AdminMetricCard";
 import AdminAnalyticsFilters from "../components/analytics/AdminAnalyticsFilters";
-import AdminTrendChart from "../components/analytics/AdminTrendChart";
-import AdminActivityTable from "../components/activity/AdminActivityTable";
 import { useAdminAnalytics } from "../hooks/useAdminAnalytics";
-import { useAdminSubmissions } from "../hooks/useAdminSubmissionList";
-import {
-  TIME_RANGE_OPTIONS,
-  GRANULARITY_OPTIONS,
-  dateRangeFor,
-  granularityForRange,
-  formatDelta,
-  deltaTrend,
-  type TimeRange,
-  type Granularity,
-  type AnalyticsMetrics,
-} from "../model/analyticsQuery";
+import { TIME_RANGE_OPTIONS, type TimeRange } from "../model/analyticsQuery";
 import "./AdminAnalyticsPage.css";
 
-function formatDateForInput(date: Date): string {
-  return date.toISOString().slice(0, 10);
-}
-
 export default function AdminAnalyticsPage() {
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const {
-    submissions,
-    isLoading: isSubmissionsLoading,
-    error: submissionsError,
-  } = useAdminSubmissions();
+  const rangeParam = searchParams.get("range");
+  const range: TimeRange = TIME_RANGE_OPTIONS.some((option) => option.value === rangeParam)
+    ? (rangeParam as TimeRange)
+    : "30d";
+  const { metrics, cities, asOf, isLoading, isFetching, error, refetch } =
+    useAdminAnalytics(range);
+  let maxCityCount = 0;
+  const cityNameCounts = new Map<string, number>();
+  for (const city of cities ?? []) {
+    maxCityCount = Math.max(maxCityCount, city.count);
+    cityNameCounts.set(city.city, (cityNameCounts.get(city.city) ?? 0) + 1);
+  }
 
-  // Parse URL params
-  const rangeParam = searchParams.get("range") as TimeRange | null;
-  const granularityParam = searchParams.get("granularity") as Granularity | null;
-  const fromParam = searchParams.get("from");
-  const toParam = searchParams.get("to");
-
-  // Resolve time range
-  const [range, setRange] = useState<TimeRange>(
-    TIME_RANGE_OPTIONS.some((o) => o.value === rangeParam) ? rangeParam! : "30d"
-  );
-
-  const defaultRange = dateRangeFor(range);
-  const hasCustomRange = Boolean(fromParam || toParam);
-  const [dateRange, setDateRange] = useState({
-    from: fromParam ? new Date(fromParam) : defaultRange.from,
-    to: toParam ? new Date(toParam) : defaultRange.to,
-  });
-
-  // Granularity
-  const defaultGranularity = granularityForRange(range);
-  const [granularity, setGranularity] = useState<Granularity>(
-    GRANULARITY_OPTIONS.some((o) => o.value === granularityParam)
-      ? granularityParam!
-      : defaultGranularity
-  );
-
-  // Update URL when range/granularity changes
-  useEffect(() => {
-    const next = new URLSearchParams();
-    next.set("range", range);
-    next.set("granularity", granularity);
-    next.set("from", formatDateForInput(dateRange.from));
-    next.set("to", formatDateForInput(dateRange.to));
-    setSearchParams(next, { replace: true });
-  }, [range, granularity, dateRange, setSearchParams]);
-
-  const handleRangeChange = (next: TimeRange) => {
-    setRange(next);
-    if (!hasCustomRange) setDateRange(dateRangeFor(next));
-    setGranularity(granularityForRange(next));
-  };
-  const handleGranularityChange = (next: Granularity) => setGranularity(next);
-
-  const handleCustomRange = (from: string, to: string) => {
-    const f = new Date(from);
-    const t = new Date(to);
-    setDateRange({
-      from: isNaN(f.getTime()) ? dateRange.from : f,
-      to: isNaN(t.getTime()) ? dateRange.to : t,
-    });
-  };
-
-  // Fetch analytics
-  const { metrics, series, isLoading, refetch } = useAdminAnalytics(dateRange, granularity);
-
-  const handleMetricCardClick = (key: keyof AnalyticsMetrics) => {
-    switch (key) {
-      case "published_events":
-        navigate("/admin/events?flag=published");
-        break;
-      case "new_users":
-        navigate("/admin/users");
-        break;
-      case "submissions":
-        navigate("/admin/submissions");
-        break;
-    }
+  const handleRangeChange = (nextRange: TimeRange) => {
+    const next = new URLSearchParams(searchParams);
+    next.set("range", nextRange);
+    next.delete("from");
+    next.delete("to");
+    next.delete("granularity");
+    setSearchParams(next);
   };
 
   return (
     <>
       <AdminPageHeader
         title="Analytics"
-        description="Platform metrics and growth trends."
+        description="Creation activity and current platform inventory."
         actions={
+          <button
+            type="button"
+            className="admin-btn admin-btn--secondary admin-analytics-page__refresh"
+            onClick={() => refetch()}
+            disabled={isFetching}
+          >
+            {isFetching ? "Refreshing…" : "Refresh"}
+          </button>
+        }
+      />
+
+      <AdminAnalyticsFilters range={range} onRangeChange={handleRangeChange} />
+
+      {error && (
+        <div className="admin-banner admin-banner--error" role="alert">
+          <p>{error}</p>
           <button
             type="button"
             className="admin-btn admin-btn--secondary"
             onClick={() => refetch()}
           >
-            Refresh
+            Retry analytics
           </button>
-        }
-      />
+        </div>
+      )}
 
-      <AdminAnalyticsFilters
-        range={range}
-        onRangeChange={handleRangeChange}
-        granularity={granularity}
-        onGranularityChange={handleGranularityChange}
-        dateRange={dateRange}
-        fromDate={formatDateForInput(dateRange.from)}
-        toDate={formatDateForInput(dateRange.to)}
-        onCustomRangeChange={handleCustomRange}
-      />
-
-      <div className="admin-analytics-page__metrics-grid">
-        {METRIC_CONFIG.map((config) => {
-          const metric = metrics?.[config.key];
-          const delta = metric?.delta ?? 0;
-          const trend = deltaTrend(delta);
-          return (
-            <div
+      <section aria-labelledby="admin-analytics-activity-title">
+        <div className="admin-analytics-page__section-heading">
+          <h2 id="admin-analytics-activity-title">Activity during selected period</h2>
+          <p>Events, accounts, and submissions created during the selected activity period.</p>
+        </div>
+        <div className="admin-analytics-page__metrics-grid">
+          {ACTIVITY_METRICS.map((config) => (
+            <AdminMetricCard
               key={config.key}
-              className="admin-analytics-page__metric-card"
-              onClick={() => handleMetricCardClick(config.key)}
-            >
-              <AdminMetricCard
-                label={config.label}
-                value={metric?.current ?? null}
-                subLabel={
-                  metric
-                    ? `${formatDelta(delta)} from ${metric.previous} last period`
-                    : config.subLabel
-                }
-                icon={config.icon}
-                tone={trend === "up" ? "informational" : "attention"}
-                isLoading={isLoading}
-              />
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="admin-analytics-page__charts">
-        <section className="admin-card">
-          <AdminTrendChart
-            label="Published Events"
-            data={series?.events ?? []}
-            isLoading={isLoading}
-          />
-        </section>
-        <section className="admin-card">
-          <AdminTrendChart
-            label="Submissions"
-            data={series?.submissions ?? []}
-            isLoading={isLoading}
-          />
-        </section>
-        <section className="admin-card">
-          <AdminTrendChart
-            label="Event Views"
-            data={series?.views ?? []}
-            isLoading={isLoading}
-          />
-        </section>
-        <section className="admin-card">
-          <AdminTrendChart
-            label="RSVP Clicks"
-            data={series?.rsvpClicks ?? []}
-            isLoading={isLoading}
-          />
-        </section>
-      </div>
-
-      <section className="admin-card admin-analytics-page__recent">
-        <h2>Recent Submissions</h2>
-        {submissionsError ? (
-          <div className="admin-banner admin-banner--error" role="alert">
-            <p>We couldn&apos;t load recent submissions.</p>
-          </div>
-        ) : (
-          <>
-            <AdminActivityTable
-              entries={submissions
-                .slice()
-                .sort((a, b) => Date.parse(b.submitted_at) - Date.parse(a.submitted_at))
-                .slice(0, 6)
-                .map((s) => ({
-                  id: s.id,
-                  action: `submission.${
-                    s.status === "approved"
-                      ? "approved"
-                      : s.status === "rejected"
-                        ? "rejected"
-                        : "pending"
-                  }`,
-                  actor_id: s.submitter_id ?? null,
-                  actor_display_name: s.submitter_name ?? null,
-                  actor_username: null,
-                  actor_avatar_url: null,
-                  entity_type: "event_submission",
-                  entity_id: s.id,
-                  metadata: {
-                    title: (s.submitted_data as { title?: string })?.title ?? s.id,
-                  },
-                  created_at: s.submitted_at,
-                }))}
-              onViewDetail={(entry) => {
-                navigate(`/admin/submissions/${entry.id}`);
-              }}
+              label={config.label}
+              value={isLoading ? null : (metrics?.[config.key] ?? null)}
+              subLabel={metrics?.[config.key] === null ? "Unable to load this metric. Please try again." : config.subLabel}
+              icon={config.icon}
+              tone="informational"
+              isLoading={isLoading}
+              onRetry={() => refetch()}
             />
-            {submissions.length === 0 && !isSubmissionsLoading && (
-              <p className="admin-analytics-page__empty">No recent submissions.</p>
-            )}
-          </>
+          ))}
+        </div>
+        {!isLoading && !error && metrics?.total_events === 0 && (
+          <p className="admin-analytics-page__state">No events were created during this period.</p>
         )}
+      </section>
+
+      <section aria-labelledby="admin-analytics-current-title">
+        <div className="admin-analytics-page__section-heading">
+          <h2 id="admin-analytics-current-title">Current platform state</h2>
+          <p>
+            Upcoming events and active organizers are approved inventory today or later in
+            America/New_York. These counts and the city distribution are independent of the
+            selected activity period.
+          </p>
+        </div>
+        <div className="admin-analytics-page__metrics-grid admin-analytics-page__metrics-grid--current">
+          {CURRENT_METRICS.map((config) => (
+            <AdminMetricCard
+              key={config.key}
+              label={config.label}
+              value={isLoading ? null : (metrics?.[config.key] ?? null)}
+              subLabel={metrics?.[config.key] === null ? "Unable to load this metric. Please try again." : config.subLabel}
+              icon={config.icon}
+              tone="informational"
+              isLoading={isLoading}
+              onRetry={() => refetch()}
+            />
+          ))}
+        </div>
+        <section
+          className="admin-card admin-analytics-page__city-card"
+          aria-label="Events by City"
+          aria-busy={isLoading}
+        >
+          <h3>Events by City</h3>
+          {isLoading ? (
+            <p className="admin-analytics-page__state" role="status">
+              Loading city distribution…
+            </p>
+          ) : cities === null ? (
+            <div className="admin-analytics-page__state">
+              <p>City data is unavailable.</p>
+              <button
+                type="button"
+                className="admin-btn admin-btn--secondary"
+                onClick={() => refetch()}
+              >
+                Retry city data
+              </button>
+            </div>
+          ) : cities.length === 0 ? (
+            <p className="admin-analytics-page__state">No approved events are scheduled for today or later.</p>
+          ) : (
+            <ul className="admin-analytics-page__city-list">
+              {cities.map(({ slug, city, count }) => {
+                const label = (cityNameCounts.get(city) ?? 0) > 1 && slug ? `${city} (${slug})` : city;
+                return (
+                  <li
+                    className="admin-analytics-page__city-row"
+                    key={slug ?? ""}
+                    aria-label={`${label}: ${count} events`}
+                  >
+                    <span className="admin-analytics-page__city-name">{label}</span>
+                    <span className="admin-analytics-page__city-track" aria-hidden="true">
+                      <span
+                        className="admin-analytics-page__city-bar"
+                        style={{ width: `${(count / Math.max(maxCityCount, 1)) * 100}%` }}
+                      />
+                    </span>
+                    <span className="admin-analytics-page__city-count">{count}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+        <p className="admin-analytics-page__as-of">
+          {asOf
+            ? `Data as of ${new Date(asOf).toLocaleString("en-US", { timeZone: "America/New_York", timeZoneName: "short" })}`
+            : "Data update time unavailable."}
+        </p>
       </section>
     </>
   );
 }
 
-const METRIC_CONFIG: {
-  key: keyof AnalyticsMetrics;
+const ACTIVITY_METRICS: {
+  key: "total_events" | "registered_users" | "pending_submissions";
   label: string;
   subLabel: string;
-  icon: ComponentType<{ size?: number }>;
+  icon: typeof CalendarDays;
 }[] = [
   {
-    key: "published_events",
-    label: "Published Events",
-    subLabel: "Approved events in range",
+    key: "total_events",
+    label: "Total Events",
+    subLabel: "Events created during the selected activity period.",
     icon: CalendarDays,
   },
-  { key: "new_users", label: "New Users", subLabel: "Registered profiles in range", icon: Users },
   {
-    key: "event_views",
-    label: "Event Views",
-    subLabel: "Detail views in range",
-    icon: Eye,
+    key: "registered_users",
+    label: "Registered Users",
+    subLabel: "Accounts created during the selected activity period.",
+    icon: Users,
   },
   {
-    key: "rsvp_clicks",
-    label: "RSVP Clicks",
-    subLabel: "Outbound RSVP link clicks",
-    icon: ExternalLink,
-  },
-  {
-    key: "submissions",
-    label: "Submissions",
-    subLabel: "Event submissions in range",
+    key: "pending_submissions",
+    label: "Pending Submissions",
+    subLabel: "Pending and in review, submitted during the selected activity period.",
     icon: FileText,
+  },
+];
+
+const CURRENT_METRICS: {
+  key: "upcoming_events" | "active_organizers";
+  label: string;
+  subLabel: string;
+  icon: typeof CalendarDays;
+}[] = [
+  {
+    key: "upcoming_events",
+    label: "Upcoming Events",
+    subLabel: "Approved events today or later in America/New_York.",
+    icon: CalendarClock,
+  },
+  {
+    key: "active_organizers",
+    label: "Active Organizers",
+    subLabel: "Organizers with approved upcoming events.",
+    icon: UserCheck,
   },
 ];

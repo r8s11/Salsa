@@ -1,32 +1,27 @@
 import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "../../../contexts/useAuth";
 import { fetchAnalytics } from "../api/analyticsRepo";
-import type { DateRange, Granularity } from "../model/analyticsQuery";
+import { dateRangeFor, type TimeRange } from "../model/analyticsQuery";
 
-/**
- * Admin analytics query.
- *
- * Fetches all metrics + chart data in a single batch via two RPCs.
- * Keyed by the date range ISO strings + granularity so each distinct
- * combination gets its own cache entry. 5-minute staleTime matches
- * the pattern used by useEventsQuery in the main app.
- */
-export function useAdminAnalytics(range: DateRange, granularity: Granularity) {
+export function useAdminAnalytics(period: TimeRange) {
+  const { user, isAdmin, loading } = useAuth();
+  const authorized = !loading && Boolean(user) && isAdmin;
+  const range = dateRangeFor(period);
   const query = useQuery({
-    queryKey: ["admin", "analytics", range.from.toISOString(), range.to.toISOString(), granularity],
-    queryFn: () =>
-      fetchAnalytics({
-        range,
-        granularity,
-      }),
+    queryKey: ["admin", "analytics", user?.id, range.from, range.to],
+    queryFn: () => fetchAnalytics(range),
+    enabled: authorized,
     staleTime: 5 * 60 * 1000,
-    placeholderData: (previousData) => previousData,
   });
-
+  // Never present cached values as a successful refresh or under a different account.
+  const data = authorized && !query.isError ? query.data : undefined;
   return {
-    metrics: query.data?.metrics ?? null,
-    series: query.data?.series ?? null,
-    isLoading: query.isPending,
-    error: query.error ? query.error.message : null,
+    metrics: data?.metrics ?? null,
+    cities: data?.cities ?? null,
+    asOf: data?.asOf ?? null,
+    isLoading: authorized && query.isPending,
+    isFetching: authorized && query.isFetching,
+    error: query.isError ? "Unable to load analytics. Please try again." : null,
     refetch: query.refetch,
   };
 }

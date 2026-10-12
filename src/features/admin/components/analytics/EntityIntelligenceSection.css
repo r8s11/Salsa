@@ -1,0 +1,221 @@
+.entity-intelligence {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+  margin-top: 28px;
+}
+
+.entity-intelligence__sort {
+  display: grid;
+  gap: 6px;
+  max-width: 320px;
+  margin-bottom: 16px;
+  color: var(--admin-text-secondary);
+  font-size: 0.875rem;
+}
+
+.admin-shell .entity-intelligence .admin-input,
+.admin-shell .entity-intelligence .admin-btn,
+.entity-intelligence summary {
+  min-height: 44px;
+}
+
+.entity-intelligence__totals {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+
+.entity-intelligence__totals dt {
+  color: var(--admin-text-secondary);
+  font-size: 0.8125rem;
+}
+
+.entity-intelligence__totals dd {
+  margin: 6px 0 0;
+  color: var(--admin-text-strong);
+  font-size: 1.125rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.entity-intelligence__table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  color: var(--admin-text-primary);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.entity-intelligence__table th,
+.entity-intelligence__table td {
+  padding: 12px 8px;
+  vertical-align: top;
+  border-bottom: 1px solid var(--admin-border);
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
+.entity-intelligence__table thead th {
+  color: var(--admin-text-secondary);
+  font-weight: 600;
+}
+
+.entity-intelligence__table th:first-child {
+  width: 32%;
+}
+
+.entity-intelligence__identity {
+  font-weight: 400;
+}
+
+.entity-intelligence__identity > a {
+  font-weight: 600;
+}
+
+.entity-intelligence a {
+  color: var(--admin-text-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  overflow-wrap: anywhere;
+}
+
+.entity-intelligence p,
+.entity-intelligence li {
+  overflow-wrap: anywhere;
+}
+
+.entity-intelligence__identity p,
+.entity-intelligence__relationships,
+.entity-intelligence__quality p {
+  margin: 8px 0 0;
+  color: var(--admin-text-secondary);
+  font-size: 0.8125rem;
+}
+
+.entity-intelligence summary {
+  padding: 12px 0;
+  cursor: pointer;
+  color: var(--admin-text-primary);
+  line-height: 1.5;
+}
+
+.entity-intelligence summary:focus-visible,
+.entity-intelligence a:focus-visible {
+  outline: 2px solid var(--admin-brand);
+  outline-offset: 3px;
+}
+
+.entity-intelligence ul {
+  padding-left: 18px;
+}
+
+.entity-intelligence__table .entity-intelligence__number {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.entity-intelligence__mobile-label {
+  display: none;
+}
+
+.entity-intelligence__pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+  color: var(--admin-text-secondary);
+  font-size: 0.8125rem;
+}
+
+.entity-intelligence__quality {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  list-style: none;
+}
+
+.entity-intelligence .entity-intelligence__quality {
+  padding: 0;
+}
+
+.entity-intelligence__quality > li {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.entity-intelligence__quality > li > div {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  color: var(--admin-text-primary);
+  font-size: 0.875rem;
+}
+
+.entity-intelligence__quality > li > div > span {
+  color: var(--admin-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.entity-intelligence__loading {
+  min-height: 280px;
+  color: var(--admin-text-secondary);
+}
+
+.entity-intelligence__loading .admin-skeleton {
+  height: 48px;
+  margin-top: 16px;
+}
+
+@media (max-width: 767px) {
+  .entity-intelligence__table,
+  .entity-intelligence__table tbody {
+    display: block;
+  }
+
+  .entity-intelligence__table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .entity-intelligence__table tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    padding: 12px 0;
+    border-bottom: 1px solid var(--admin-border);
+  }
+
+  .entity-intelligence__table tbody th:first-child,
+  .entity-intelligence__table tbody td {
+    width: auto;
+    padding: 6px 0;
+    border: 0;
+  }
+
+  .entity-intelligence__table tbody td {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: 16px;
+    text-align: right;
+  }
+
+  .entity-intelligence__mobile-label {
+    display: inline;
+    color: var(--admin-text-secondary);
+    text-align: left;
+  }
+
+  .entity-intelligence__totals {
+    gap: 12px;
+  }
+}

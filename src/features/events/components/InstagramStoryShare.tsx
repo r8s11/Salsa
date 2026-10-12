@@ -12,8 +12,9 @@ interface InstagramStoryShareProps {
   flyerUrl: string | null;
   /** Platform-normalized flyer cache (`events.poster_image_url`). */
   cachedFlyerUrl: string | null;
-  /** Canonical public event URL used for the copied/ shared link. */
   shareUrl: string;
+  /** Called only for an explicit share or event-link-copy activation. */
+  onShareAction?: () => void;
 }
 
 type Feedback = { kind: "status" | "error"; message: string };
@@ -32,6 +33,7 @@ export default function InstagramStoryShare({
   flyerUrl,
   cachedFlyerUrl,
   shareUrl,
+  onShareAction,
 }: InstagramStoryShareProps) {
   const { createPoster, posterFilename, downloadPoster } = useShareablePoster();
   const [isGenerating, setIsGenerating] = useState(false);
@@ -106,6 +108,7 @@ export default function InstagramStoryShare({
   const handleShare = async () => {
     if (!story) return;
     setFeedback(null);
+    onShareAction?.();
     const file = new File([story.blob], posterFilename(event), { type: "image/png" });
 
     if (!navigator.canShare?.({ files: [file] })) {
@@ -140,6 +143,7 @@ export default function InstagramStoryShare({
   };
 
   const handleCopyLink = async () => {
+    onShareAction?.();
     const copied = await copyEventLink();
     setFeedback(
       copied

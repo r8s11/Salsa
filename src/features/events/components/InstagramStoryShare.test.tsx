@@ -28,13 +28,14 @@ const SHARE_URL = "https://www.salsasegura.com/events/event-1";
 const FLYER_URL = "https://cdn.example.com/flyer.jpg";
 const CACHED_URL = "https://cdn.example.com/cached.jpg";
 
-function renderShare() {
+function renderShare(onShareAction = vi.fn()) {
   return render(
     <InstagramStoryShare
       event={event}
       flyerUrl={FLYER_URL}
       cachedFlyerUrl={CACHED_URL}
       shareUrl={SHARE_URL}
+      onShareAction={onShareAction}
     />
   );
 }
@@ -177,5 +178,16 @@ describe("InstagramStoryShare", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "Copy link" }));
     expect(clipboardWriteText).toHaveBeenCalledWith(SHARE_URL);
+  });
+  it("reports only explicit share and event-link-copy actions", async () => {
+    const onShareAction = vi.fn();
+    stubSharing(true, async () => undefined);
+    renderShare(onShareAction);
+    await generateStory();
+    expect(onShareAction).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole("button", { name: "Share" }));
+    expect(onShareAction).toHaveBeenCalledTimes(1);
+    await userEvent.click(screen.getByRole("button", { name: "Copy link" }));
+    expect(onShareAction).toHaveBeenCalledTimes(2);
   });
 });

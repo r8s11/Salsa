@@ -1,80 +1,74 @@
-import { describe, expect, it, vi } from "vitest";
-import { fetchAnalytics } from "./analyticsRepo";
-
-// Mock supabase
-vi.mock("../../../lib/supabase", () => ({
-  supabase: {
-    rpc: vi.fn(),
-  },
-}));
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { fetchAnalytics, fetchAnalyticsTrends, fetchEntityPerformance, fetchEventEngagement } from "./analyticsRepo";
 import { supabase } from "../../../lib/supabase";
 
-describe("fetchAnalytics", () => {
-  it("fetches metrics and time series in a single batch", async () => {
-    (supabase.rpc as ReturnType<typeof vi.fn>).mockImplementation((fn: string) => {
-      if (fn === "admin_analytics_metrics") {
-        return {
-          data: {
-            published_events: 86,
-            published_events_prev: 80,
-            published_events_delta: 6,
-            new_users: 42,
-            new_users_prev: 38,
-            new_users_delta: 4,
-            event_views: 512,
-            event_views_prev: 470,
-            event_views_delta: 42,
-            rsvp_clicks: 97,
-            rsvp_clicks_prev: 88,
-            rsvp_clicks_delta: 9,
-            submissions: 29,
-            submissions_prev: 25,
-            submissions_delta: 4,
-          },
-          error: null,
-        };
-      }
-      if (fn === "admin_analytics_timeseries") {
-        return {
-          data: {
-            events_by_week: [{ label: "Aug 4", value: 12 }],
-            views_by_week: [{ label: "Aug 4", value: 40 }],
-            rsvp_clicks_by_week: [{ label: "Aug 4", value: 7 }],
-            submissions_by_week: [{ label: "Aug 4", value: 3 }],
-          },
-          error: null,
-        };
-      }
-      return { data: null, error: null };
-    });
+vi.mock("../../../lib/supabase", () => ({ supabase: { rpc: vi.fn() } }));
+const rpc = vi.mocked(supabase.rpc);
+beforeEach(() => vi.clearAllMocks());
 
-    const result = await fetchAnalytics({
-      range: { from: new Date("2026-07-15"), to: new Date("2026-08-14") },
-      granularity: "weekly",
-    });
-
-    expect(result.metrics.published_events.current).toBe(86);
-    expect(result.metrics.new_users.current).toBe(42);
-    expect(result.metrics.event_views.current).toBe(512);
-    expect(result.metrics.rsvp_clicks.current).toBe(97);
-    expect(result.series.events[0].label).toBe("Aug 4");
-    expect(result.series.events[0].value).toBe(12);
-    expect(result.series.views[0].value).toBe(40);
-    expect(result.series.rsvpClicks[0].value).toBe(7);
+describe("analytics failure boundaries", () => {
+  it("does not leak database details or substitute zero on denied access", async () => {
+    rpc.mockResolvedValue({ data: null, error: { message: "permission denied: private submitter@example.com" } } as never);
+    await expect(fetchAnalytics({ from: null, to: null })).rejects.toThrow(
+      "Unable to load analytics. Please try again."
+    );
   });
+  it("treats missing RPC output as failure, not an empty platform", async () => {
+    rpc.mockResolvedValue({ data: null, error: null } as never);
+    await expect(fetchAnalytics({ from: null, to: null })).rejects.toThrow("Unable to load analytics");
+  });
+  it("keeps a failed metric unavailable without discarding healthy metrics", async () => {
+    rpc.mockResolvedValue({ data: { total_events: 3, upcoming_events: 0, registered_users: null,
+      pending_submissions: 1, active_organizers: 0, events_by_city: [], as_of: "2026-10-11T12:00:00Z" }, error: null } as never);
+    const result = await fetchAnalytics({ from: null, to: null });
+    expect(result.metrics.registered_users).toBeNull();
+    expect(result.metrics.total_events).toBe(3);
+    expect(result.metrics.upcoming_events).toBe(0);
+    expect(result.cities).toEqual([]);
+  });
+});
 
-  it("throws on RPC error for metrics", async () => {
-    (supabase.rpc as ReturnType<typeof vi.fn>).mockReturnValue({
-      data: null,
-      error: { message: "permission denied" },
-    });
+describe("insight failure boundaries", () => {
+  it("keeps healthy sources available when one aggregate fails", async () => {
+    rpc.mockResolvedValue({ data: { granularity: "daily", events: null,
+      users: { current: 0, previous: null, total_accounts: 3, series: [] } }, error: null } as never);
+    const result = await fetchAnalyticsTrends({ from: null, to: null }, "daily");
+    expect(result.events).toBeNull();
+    expect(result.users?.total_accounts).toBe(3);
+    expect(result.users?.current).toBe(0);
+  });
+  it("sanitizes denied aggregation errors and rejects malformed top-level responses", async () => {
+    rpc.mockResolvedValue({ data: null, error: { message: "private auth detail" } } as never);
+    await expect(fetchAnalyticsTrends({ from: null, to: null }, "monthly"))
+      .rejects.toThrow("Unable to load insights. Please try again.");
+    rpc.mockResolvedValue({ data: [], error: null } as never);
+    await expect(fetchAnalyticsTrends({ from: null, to: null }, "monthly"))
+      .rejects.toThrow("Unable to load insights. Please try again.");
+  });
+});
 
-    await expect(
-      fetchAnalytics({
-        range: { from: new Date("2026-07-15"), to: new Date("2026-08-14") },
-        granularity: "weekly",
-      })
-    ).rejects.toThrow("Failed to load analytics metrics");
+describe("event engagement query contract", () => {
+  it("does not substitute an empty report when the authorized aggregation fails", async () => {
+    rpc.mockResolvedValue({ data: null, error: { message: "private event title" } } as never);
+    await expect(fetchEventEngagement({ from: null, to: null }, "detail_views"))
+      .rejects.toThrow("Unable to load event engagement. Please try again.");
+  });
+});
+
+describe("entity intelligence failure boundaries", () => {
+  const options = { organizerSort: "upcoming_events", venueSort: "upcoming_events", organizerOffset: 0, venueOffset: 0 } as const;
+  it("sanitizes denied reports instead of exposing private details", async () => {
+    rpc.mockResolvedValue({ data: null, error: { message: "private invitation token" } } as never);
+    await expect(fetchEntityPerformance({ from: null, to: null }, options))
+      .rejects.toThrow("Unable to load entity intelligence. Please try again.");
+  });
+  it("keeps empty venue inventory available when organizers cannot aggregate", async () => {
+    rpc.mockResolvedValue({ data: { organizers: null,
+      venues: { total: 0, active: 0, created: 0, offset: 0, page_size: 25, rows: [] },
+      quality: null, coverage: null, engagement_available: false }, error: null } as never);
+    const result = await fetchEntityPerformance({ from: null, to: null }, options);
+    expect(result.organizers).toBeNull();
+    expect(result.venues?.total).toBe(0);
+    expect(result.venues?.rows).toEqual([]);
   });
 });

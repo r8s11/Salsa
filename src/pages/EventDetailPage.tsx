@@ -171,8 +171,10 @@ export default function EventDetailPage() {
 
   const handleCopyLink = async (
     successMessage = "Event link copied.",
-    failureMessage = "Could not copy event link."
+    failureMessage = "Could not copy event link.",
+    track = true
   ) => {
+    if (track) void recordEventTouch(event.id, "share");
     try {
       if (!navigator.clipboard?.writeText) throw new Error("Clipboard unavailable");
       await navigator.clipboard.writeText(shareUrl);
@@ -185,9 +187,10 @@ export default function EventDetailPage() {
   };
 
   const handleShare = async () => {
+    void recordEventTouch(event.id, "share");
     setShareFeedback(null);
     if (!navigator.share) {
-      await handleCopyLink("Event link copied. Paste it into Instagram.");
+      await handleCopyLink("Event link copied. Paste it into Instagram.", "Could not copy event link.", false);
       return;
     }
 
@@ -203,7 +206,8 @@ export default function EventDetailPage() {
       if (error instanceof DOMException && error.name === "AbortError") return;
       await handleCopyLink(
         "Couldn't open sharing. Event link copied. Paste it into Instagram.",
-        "Couldn't share or copy the event link."
+        "Couldn't share or copy the event link.",
+        false
       );
     }
   };
@@ -262,7 +266,7 @@ export default function EventDetailPage() {
               <ButtonLink
                 href={event.rsvp_link}
                 external
-                onClick={() => void recordEventTouch(event.id, "rsvp_click")}
+                onClick={() => void recordEventTouch(event.id, event.price_type === "paid" ? "ticket_click" : "rsvp_click")}
               >
                 RSVP <ExternalLink size={15} aria-hidden="true" />
               </ButtonLink>
@@ -405,7 +409,7 @@ export default function EventDetailPage() {
                   <Button variant="ghost" size="compact" onClick={handleShare}>
                     <Share2 size={14} aria-hidden="true" /> Share
                   </Button>
-                  <ButtonLink href={whatsappHref} external variant="ghost" size="compact">
+                  <ButtonLink href={whatsappHref} external variant="ghost" size="compact" onClick={() => void recordEventTouch(event.id, "share")}>
                     <MessageCircle size={14} aria-hidden="true" /> WhatsApp
                   </ButtonLink>
                 </div>
@@ -414,6 +418,7 @@ export default function EventDetailPage() {
                   flyerUrl={event.image_url}
                   cachedFlyerUrl={event.poster_image_url ?? null}
                   shareUrl={shareUrl}
+                  onShareAction={() => void recordEventTouch(event.id, "share")}
                 />
                 {shareFeedback && (
                   <p role={shareFeedback.kind === "error" ? "alert" : "status"}>

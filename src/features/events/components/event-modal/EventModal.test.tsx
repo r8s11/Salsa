@@ -665,12 +665,12 @@ describe("demand telemetry", () => {
     vi.mocked(recordEventTouch).mockClear();
   });
 
-  it("records an rsvp_click touch when an RSVP link is clicked", () => {
+  it("records a ticket_click touch when a paid event link is clicked", () => {
     render(<EventModal event={baseEvent} onClose={() => {}} />);
 
     const rsvpLinks = screen.getAllByRole("link", { name: /get tickets|RSVP · Free/i });
     fireEvent.click(rsvpLinks[0]);
 
-    expect(recordEventTouch).toHaveBeenCalledWith(String(baseEvent.id), "rsvp_click");
+    expect(recordEventTouch).toHaveBeenCalledWith(String(baseEvent.id), "ticket_click");
   });
 });

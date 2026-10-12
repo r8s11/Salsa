@@ -167,6 +167,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
     };
   }, []);
   const handleCopyLink = async (region: ActionRegion) => {
+    void recordEventTouch(String(event.id), "share");
     try {
       if (!navigator.clipboard?.writeText) throw new Error("Clipboard unavailable");
       await navigator.clipboard.writeText(canonicalUrl);
@@ -316,7 +317,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
                 href={event.rsvpLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={() => void recordEventTouch(String(event.id), "rsvp_click")}
+                onClick={() => void recordEventTouch(String(event.id), event.priceType === "paid" ? "ticket_click" : "rsvp_click")}
               >
                 Reserve
               </a>
@@ -334,6 +335,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
   // Failures surface as visible feedback; a dismissed share sheet stays silent.
   const handleSharePoster = async (region: ActionRegion, posterFormat: PosterFormat) => {
     if (isSharing) return;
+    void recordEventTouch(String(event.id), "share");
     setIsSharing(true);
     setFeedback(null);
     setShareFallback(null);
@@ -491,7 +493,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
           external
           variant="secondary"
           className="night-actions__rsvp"
-          onClick={() => void recordEventTouch(String(event.id), "rsvp_click")}
+          onClick={() => void recordEventTouch(String(event.id), event.priceType === "paid" ? "ticket_click" : "rsvp_click")}
         >
           {rsvpLabel}
         </ButtonLink>

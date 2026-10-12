@@ -84,3 +84,9 @@ Focused validation: 29 tests passed across the model, repository, hook, page, an
 Their preimplementation baseline was not measured, so these failures are not claimed to be proven pre-existing or caused by this change. No unrelated workflow was edited to suppress them. The separately exercised analytics and RequireAdmin focused suite passed all 29 tests. Full-suite acceptance remains unverified.
 
 Graft's wiring graph was refreshed with `graft build --no-gitignore --no-ignore`; no dependency or tool upgrade was installed.
+
+## Phase 1.5 reconciliation
+
+The later [release-readiness audit](admin-analytics-release-readiness.md) and [per-test classification](admin-analytics-phase15-test-failures.md) supersede the unclassified failure and production-access assumptions above. Individual current/baseline runs provide preimplementation failure evidence for 25 of the original 30 named tests; three current-only outcomes and two historical non-reproductions remain unresolved. No unrelated test or application fix was made.
+
+An existing CLI login enabled direct Management API read-only production inspection. Production already contains the exact reviewed Phase 1 RPC definition but has no matching migration-ledger row, while its served analytics frontend chunk still contains the old metric contract. No production migration or deployment was performed in Phase 1.5. The coordinated-release audit documents this mismatch, required reconciliation, release order, and rollback.

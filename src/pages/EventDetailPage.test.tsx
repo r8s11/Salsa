@@ -88,6 +88,7 @@ function renderPage() {
 
 describe("EventDetailPage", () => {
   beforeEach(() => {
+    vi.mocked(recordEventTouch).mockClear();
     vi.mocked(fetchApprovedEventById).mockResolvedValue(event);
     vi.mocked(fetchApprovedEvents).mockResolvedValue([event]);
   });
@@ -374,7 +375,7 @@ describe("EventDetailPage", () => {
     expect(screen.getByRole("tab", { name: /photo album/i })).toHaveFocus();
   });
 
-  it("records a view touch on load and an rsvp_click touch on RSVP click", async () => {
+  it("tracks each RSVP action without preventing external navigation", async () => {
     vi.mocked(recordEventTouch).mockClear();
     const user = userEvent.setup();
     renderPage();
@@ -384,6 +385,51 @@ describe("EventDetailPage", () => {
 
     const rsvpLink = screen.getByRole("link", { name: /RSVP/i });
     await user.click(rsvpLink);
+    await user.click(rsvpLink);
+
+    expect(recordEventTouch).toHaveBeenCalledTimes(3);
+    expect(recordEventTouch).toHaveBeenNthCalledWith(2, "event-1", "ticket_click");
+    expect(recordEventTouch).toHaveBeenNthCalledWith(3, "event-1", "ticket_click");
+    expect(rsvpLink).toHaveAttribute("href", "https://example.com/rsvp");
+  });
+
+  it("records a share action when native sharing is dismissed", async () => {
+    const user = userEvent.setup();
+    const share = vi.fn().mockRejectedValue(new DOMException("Dismissed", "AbortError"));
+    vi.stubGlobal("navigator", { ...navigator, share });
+
+    renderPage();
+    await screen.findByRole("heading", { name: "Havana Nights" });
+    await user.click(screen.getByRole("button", { name: "Share" }));
+
+    expect(share).toHaveBeenCalledOnce();
+    expect(recordEventTouch).toHaveBeenCalledWith("event-1", "share");
+  });
+
+  it("tracks copy and destination-share actions without treating poster generation as a share", async () => {
+    const user = userEvent.setup();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal("navigator", { ...navigator, clipboard: { writeText } });
+
+    renderPage();
+    await screen.findByRole("heading", { name: "Havana Nights" });
+    await user.click(screen.getByRole("button", { name: "Copy link" }));
+    await user.click(screen.getByRole("link", { name: "WhatsApp" }));
+    await user.click(screen.getByRole("button", { name: /Instagram story/i }));
+
+    expect(recordEventTouch).toHaveBeenCalledWith("event-1", "share");
+    expect(vi.mocked(recordEventTouch).mock.calls.filter(([, kind]) => kind === "share")).toHaveLength(2);
+  });
+
+  it("uses rsvp_click for free-event registration actions", async () => {
+    vi.mocked(fetchApprovedEventById).mockResolvedValue({
+      ...event,
+      price_type: "free",
+    });
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByRole("heading", { name: "Havana Nights" });
+    await user.click(screen.getByRole("link", { name: /RSVP/i }));
 
     expect(recordEventTouch).toHaveBeenCalledWith("event-1", "rsvp_click");
   });

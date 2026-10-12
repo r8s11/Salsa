@@ -368,19 +368,35 @@ describe("recordEventTouch", () => {
     });
   });
 
-  it("dedupes to one RPC call per event, kind and UTC day", async () => {
-    await recordEventTouch("evt-touch-2", "rsvp_click");
-    await recordEventTouch("evt-touch-2", "rsvp_click");
+  it("dedupes view touches per event and UTC day but records each action", async () => {
+    await recordEventTouch("evt-touch-2", "view");
+    await recordEventTouch("evt-touch-2", "view");
 
     expect(mocks.rpc).toHaveBeenCalledTimes(1);
-    // A different kind on the same event still sends.
-    await recordEventTouch("evt-touch-2", "view");
-    expect(mocks.rpc).toHaveBeenCalledTimes(2);
+    expect(mocks.rpc).toHaveBeenLastCalledWith("record_event_touch", {
+      p_event_id: "evt-touch-2",
+      p_kind: "view",
+    });
+
+    // Explicit outbound actions are separate interactions, not session-deduped.
+    await recordEventTouch("evt-touch-2", "rsvp_click");
+    await recordEventTouch("evt-touch-2", "rsvp_click");
+    await recordEventTouch("evt-touch-2", "ticket_click");
+    await recordEventTouch("evt-touch-2", "ticket_click");
+    await recordEventTouch("evt-touch-2", "share");
+    await recordEventTouch("evt-touch-2", "share");
+    expect(mocks.rpc).toHaveBeenCalledTimes(7);
   });
 
-  it("resolves without throwing when the RPC rejects", async () => {
-    mocks.rpc.mockRejectedValue(new Error("network down"));
-
-    await expect(recordEventTouch("evt-touch-3", "view")).resolves.toBeUndefined();
+  it.each([{ doNotTrack: "1" }, { globalPrivacyControl: true }])("honors browser privacy signals without storing view markers", async (privacy) => {
+    vi.stubGlobal("navigator", { ...navigator, ...privacy });
+    try {
+      await recordEventTouch("evt-private", "view");
+      await recordEventTouch("evt-private", "rsvp_click");
+      expect(mocks.rpc).not.toHaveBeenCalled();
+      expect(sessionStorage.length).toBe(0);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });

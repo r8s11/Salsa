@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fetchAnalytics } from "./analyticsRepo";
+import { fetchAnalytics, fetchAnalyticsTrends, fetchEntityPerformance, fetchEventEngagement } from "./analyticsRepo";
 import { supabase } from "../../../lib/supabase";
 
 vi.mock("../../../lib/supabase", () => ({ supabase: { rpc: vi.fn() } }));
@@ -25,5 +25,50 @@ describe("analytics failure boundaries", () => {
     expect(result.metrics.total_events).toBe(3);
     expect(result.metrics.upcoming_events).toBe(0);
     expect(result.cities).toEqual([]);
+  });
+});
+
+describe("insight failure boundaries", () => {
+  it("keeps healthy sources available when one aggregate fails", async () => {
+    rpc.mockResolvedValue({ data: { granularity: "daily", events: null,
+      users: { current: 0, previous: null, total_accounts: 3, series: [] } }, error: null } as never);
+    const result = await fetchAnalyticsTrends({ from: null, to: null }, "daily");
+    expect(result.events).toBeNull();
+    expect(result.users?.total_accounts).toBe(3);
+    expect(result.users?.current).toBe(0);
+  });
+  it("sanitizes denied aggregation errors and rejects malformed top-level responses", async () => {
+    rpc.mockResolvedValue({ data: null, error: { message: "private auth detail" } } as never);
+    await expect(fetchAnalyticsTrends({ from: null, to: null }, "monthly"))
+      .rejects.toThrow("Unable to load insights. Please try again.");
+    rpc.mockResolvedValue({ data: [], error: null } as never);
+    await expect(fetchAnalyticsTrends({ from: null, to: null }, "monthly"))
+      .rejects.toThrow("Unable to load insights. Please try again.");
+  });
+});
+
+describe("event engagement query contract", () => {
+  it("does not substitute an empty report when the authorized aggregation fails", async () => {
+    rpc.mockResolvedValue({ data: null, error: { message: "private event title" } } as never);
+    await expect(fetchEventEngagement({ from: null, to: null }, "detail_views"))
+      .rejects.toThrow("Unable to load event engagement. Please try again.");
+  });
+});
+
+describe("entity intelligence failure boundaries", () => {
+  const options = { organizerSort: "upcoming_events", venueSort: "upcoming_events", organizerOffset: 0, venueOffset: 0 } as const;
+  it("sanitizes denied reports instead of exposing private details", async () => {
+    rpc.mockResolvedValue({ data: null, error: { message: "private invitation token" } } as never);
+    await expect(fetchEntityPerformance({ from: null, to: null }, options))
+      .rejects.toThrow("Unable to load entity intelligence. Please try again.");
+  });
+  it("keeps empty venue inventory available when organizers cannot aggregate", async () => {
+    rpc.mockResolvedValue({ data: { organizers: null,
+      venues: { total: 0, active: 0, created: 0, offset: 0, page_size: 25, rows: [] },
+      quality: null, coverage: null, engagement_available: false }, error: null } as never);
+    const result = await fetchEntityPerformance({ from: null, to: null }, options);
+    expect(result.organizers).toBeNull();
+    expect(result.venues?.total).toBe(0);
+    expect(result.venues?.rows).toEqual([]);
   });
 });

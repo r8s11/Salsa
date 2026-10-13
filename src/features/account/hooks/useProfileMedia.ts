@@ -83,7 +83,7 @@ export function useProfileMedia(userId: string | undefined) {
       } catch (profileErr) {
         // Storage holds the new object but the profile does not point at
         // it — surface the save failure so the UI stays truthful.
-        throw new Error(profileUpdateErrorMessage(profileErr));
+        throw new Error(profileUpdateErrorMessage(profileErr), { cause: profileErr });
       }
       mergeUrl(kind, url);
       setSlot(kind, { isBusy: false, error: null });
@@ -94,7 +94,7 @@ export function useProfileMedia(userId: string | undefined) {
           ? err.message
           : profileMediaErrorMessage(err);
       setSlot(kind, { isBusy: false, error: message });
-      throw new Error(message);
+      throw new Error(message, { cause: err });
     }
   };
 
@@ -114,7 +114,7 @@ export function useProfileMedia(userId: string | undefined) {
           [kind === "avatar" ? "avatar_url" : "cover_url"]: null,
         });
       } catch (profileErr) {
-        throw new Error(profileUpdateErrorMessage(profileErr));
+        throw new Error(profileUpdateErrorMessage(profileErr), { cause: profileErr });
       }
       mergeUrl(kind, null);
       setSlot(kind, { isBusy: false, error: null });
@@ -124,7 +124,7 @@ export function useProfileMedia(userId: string | undefined) {
           ? err.message
           : profileMediaErrorMessage(err);
       setSlot(kind, { isBusy: false, error: message });
-      throw new Error(message);
+      throw new Error(message, { cause: err });
     }
   };
 

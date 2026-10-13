@@ -520,13 +520,13 @@ describe("poster preview", () => {
       const { container } = render(<EventModal event={baseEvent} onClose={() => {}} />);
       fireEvent.click(screen.getByRole("button", { name: "Preview the poster your friends get" }));
       const stage = container.querySelector(".poster-stage") as HTMLElement;
-      expect(stage).toHaveStyle({ height: "533.3333333333334px" });
+      expect(parseFloat(stage.style.height)).toBeCloseTo(533.333, 2);
 
       fireEvent.click(screen.getByRole("button", { name: "Feed · 4:5" }));
       expect(stage).toHaveStyle({ height: "475px" });
 
       fireEvent.click(screen.getByRole("button", { name: "Story · 9:16" }));
-      expect(stage).toHaveStyle({ height: "533.3333333333334px" });
+      expect(parseFloat(stage.style.height)).toBeCloseTo(533.333, 2);
     } finally {
       width.mockRestore();
     }

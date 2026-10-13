@@ -122,7 +122,7 @@ export default function AdminVenuesTable({
                 Address
               </th>
               <th scope="col" className="admin-venues-table__col--upcoming">
-                Upcoming Events
+                Upcoming
               </th>
               <th scope="col" className="admin-venues-table__col--status">
                 Status
@@ -154,19 +154,22 @@ export default function AdminVenuesTable({
                         />
                       )}
                     </td>
-                    <td className="admin-venues-table__col--city">{venue.city ?? "—"}</td>
-                    <td className="admin-venues-table__col--address">
-                      {venueDisplayAddress(venue) || "—"}
+                    <td className="admin-venues-table__col--city">
+                      {[venue.city, venue.state_region].filter(Boolean).join(", ") || "—"}
                     </td>
-                    <td className="admin-venues-table__col--upcoming">
-                      {venue.upcoming_count > 0 ? (
-                        <span>
-                          {venue.upcoming_count} upcoming{" "}
-                          {venue.upcoming_count === 1 ? "event" : "events"}
-                        </span>
-                      ) : (
-                        <span className="admin-venues-table__muted">No upcoming events</span>
-                      )}
+                    <td className="admin-venues-table__col--address">
+                      {[venue.address_line1, venue.address_line2, venue.postal_code]
+                        .filter(Boolean)
+                        .join(", ") || "—"}
+                    </td>
+                    <td
+                      className={
+                        venue.upcoming_count > 0
+                          ? "admin-venues-table__col--upcoming"
+                          : "admin-venues-table__col--upcoming admin-venues-table__muted"
+                      }
+                    >
+                      {venue.upcoming_count}
                     </td>
                     <td className="admin-venues-table__col--status">
                       <AdminVenueStatusBadge status={venue.status} />

@@ -23,6 +23,7 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--admin-text-muted);
+  white-space: nowrap;
 }
 
 .admin-venues-table__sort-btn {
@@ -59,14 +60,15 @@
 
 .admin-venues-table__muted {
   color: var(--admin-text-subtle);
-  font-style: italic;
 }
 
 .admin-venues-table__error {
   background: var(--admin-danger-tint);
 }
 
-.admin-venues-table__col--city {
+.admin-venues-table__col--city,
+.admin-venues-table__col--status,
+.admin-venues-table__col--updated {
   white-space: nowrap;
 }
 
@@ -77,10 +79,8 @@
 
 .admin-venues-table__col--upcoming {
   text-align: right;
-}
-
-.admin-venues-table__col--upcoming span {
-  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
 }
 
 .admin-venues-table__col--actions {

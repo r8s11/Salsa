@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAdminVenues } from "../hooks/useAdminVenues";
 import { useListState, usePageWindow } from "../hooks/useListState";
 import {
@@ -41,7 +42,9 @@ export default function AdminVenuesPage() {
     archive: archiveVenue,
     isArchiving,
     archiveError,
+    resetArchive,
   } = useAdminVenues();
+  const navigate = useNavigate();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
@@ -75,8 +78,8 @@ export default function AdminVenuesPage() {
     list.change({ sort: { key: key as VenueSort["key"], dir } });
   };
 
+  // Search has its own field in the toolbar; this badge counts only drawer filters.
   const drawerFilterCount =
-    (filters.q ? 1 : 0) +
     filters.city.length +
     filters.state.length +
     filters.status.length +
@@ -86,7 +89,7 @@ export default function AdminVenuesPage() {
   if (filters.q)
     chips.push({
       key: "q",
-      label: `"${filters.q}"`,
+      label: `Search: “${filters.q}”`,
       onRemove: () => handleFiltersChange({ ...filters, q: "" }),
     });
   if (filters.status.length > 0) {
@@ -129,8 +132,9 @@ export default function AdminVenuesPage() {
 
   const handleRowAction = (action: VenueAction, target: VenueRow) => {
     if (action === "view") {
-      window.location.href = `/admin/venues/${target.id}`;
+      navigate(`/admin/venues/${target.id}`);
     } else if (action === "archive") {
+      resetArchive();
       setPendingAction({ kind: "archive", venue: target });
     }
   };
@@ -139,7 +143,6 @@ export default function AdminVenuesPage() {
 
   const isError = !!error;
   const emptyDb = !isLoading && !isError && venues.length === 0;
-  const noFiltersActive = chips.length === 0;
 
   return (
     <>
@@ -180,33 +183,31 @@ export default function AdminVenuesPage() {
           />
 
           {chips.length > 0 && (
-            <div className="admin-card admin-venues-page__toolbar-card">
-              <div className="admin-venues-page__chips">
-                {chips.map((chip) => (
-                  <div key={chip.key} className="admin-chip admin-filter-chip">
-                    <span>{chip.label}</span>
-                    <button
-                      type="button"
-                      className="admin-filter-chip-dismiss"
-                      aria-label={`Remove ${chip.label} filter`}
-                      onClick={chip.onRemove}
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  className="admin-btn admin-btn--ghost admin-venues-page__clear-all"
-                  onClick={clearAllFilters}
-                >
-                  Clear all
-                </button>
-              </div>
+            <div className="admin-venues-page__chips" aria-label="Active filters" role="group">
+              {chips.map((chip) => (
+                <div key={chip.key} className="admin-filter-chip admin-venues-page__chip">
+                  <span>{chip.label}</span>
+                  <button
+                    type="button"
+                    className="admin-filter-chip-dismiss"
+                    aria-label={`Remove ${chip.label} filter`}
+                    onClick={chip.onRemove}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                className="admin-btn admin-btn--ghost admin-btn--sm"
+                onClick={clearAllFilters}
+              >
+                Clear filters
+              </button>
             </div>
           )}
 
-          <p role="status" className="admin-venues-page__result-count">
+          <p role="status" className="admin-visually-hidden">
             {total} venue{total === 1 ? "" : "s"}
           </p>
 
@@ -237,15 +238,16 @@ export default function AdminVenuesPage() {
                 <h2>No venues</h2>
                 <p>No venue records have been created yet.</p>
               </div>
-            ) : total === 0 && !noFiltersActive ? (
+            ) : total === 0 ? (
               <div className="admin-venues-page__empty">
-                <h2>No venues match these filters.</h2>
+                <h2>No venues match this view.</h2>
+                <p>Change the view or clear filters to see every venue.</p>
                 <button
                   type="button"
-                  className="admin-btn admin-btn--ghost"
+                  className="admin-btn admin-btn--secondary"
                   onClick={clearAllFilters}
                 >
-                  Clear Filters
+                  Clear filters
                 </button>
               </div>
             ) : (
@@ -298,23 +300,23 @@ export default function AdminVenuesPage() {
         onClose={() => setDrawerOpen(false)}
       />
 
-      {/* Quick-archive confirmation */}
       {pendingAction?.kind === "archive" && (
         <AdminConfirmDialog
           title={`Archive ${pendingAction.venue.name}?`}
           body="Archived venues will no longer appear in event submission forms. Past events will keep their location text."
           confirmLabel="Archive Venue"
+          busyLabel="Archiving…"
           isBusy={isArchiving}
           tone="neutral"
           error={archiveError}
-          reasonField={{
-            label: "Internal note (optional)",
-            placeholder: "Why this venue was archived…",
-          }}
           onConfirm={() => {
-            archiveVenue(pendingAction.venue.id);
-            setPendingAction(null);
-            setAnnouncement("Venue archived.");
+            const { id, name } = pendingAction.venue;
+            archiveVenue(id, {
+              onSuccess: () => {
+                setPendingAction(null);
+                setAnnouncement(`${name} archived.`);
+              },
+            });
           }}
           onCancel={closeDialog}
         />

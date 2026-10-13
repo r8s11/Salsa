@@ -96,6 +96,7 @@ export function useAdminVenues() {
     archive: archiveMutation.mutate,
     isArchiving: archiveMutation.isPending,
     archiveError: archiveMutation.error ? archiveMutation.error.message : null,
+    resetArchive: archiveMutation.reset,
 
     restore: restoreMutation.mutate,
     isRestoring: restoreMutation.isPending,

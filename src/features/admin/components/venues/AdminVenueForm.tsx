@@ -12,6 +12,7 @@ import {
   venueDisplayAddress,
 } from "../../model/venuesQuery";
 import { searchVenues } from "../../api/venuesRepo";
+import "./AdminVenueForm.css";
 
 interface AdminVenueFormProps {
   initial?: VenueDetailRow;

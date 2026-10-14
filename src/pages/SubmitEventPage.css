@@ -185,7 +185,7 @@
   display: block;
 }
 
-/* ── EventForm overrides within submit context ── */
+/* ── EventForm inside the glass card: flat sections divided by a rule, so the card is the only box ── */
 .submit-form .event-form__section {
   background: transparent;
   border: none;
@@ -195,30 +195,6 @@
 .submit-form .event-form__section + .event-form__section {
   padding-top: var(--space-lg);
   border-top: 1px solid var(--border);
-}
-
-.submit-form .event-form__section h2 {
-  font: 700 0.8rem var(--font-display);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--red-bright);
-  margin: 0 0 var(--space-md);
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-}
-
-.submit-form .event-form__section h2::before {
-  content: "";
-  width: 4px;
-  height: 16px;
-  border-radius: var(--radius-sm);
-  background: var(--red);
-}
-
-.submit-form .event-form label,
-.submit-form .event-form__label {
-  color: var(--text-muted);
 }
 
 /* ── Success card override ── */

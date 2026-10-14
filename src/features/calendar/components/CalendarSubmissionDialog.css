@@ -170,11 +170,6 @@
     padding: 16px;
     gap: 16px;
   }
-  .calendar-sub-dialog__scroll .event-form input:not([type="checkbox"]),
-  .calendar-sub-dialog__scroll .event-form select,
-  .calendar-sub-dialog__scroll .event-form textarea {
-    font-size: 1rem;
-  }
 }
 
 /* ── Flyer Box ── */
@@ -241,39 +236,6 @@
   border: 0;
   border-radius: 0;
   gap: 12px;
-}
-
-.calendar-sub-dialog__scroll .event-form__section h2 {
-  font-family: var(--font-display);
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--gold);
-  margin-bottom: 2px;
-}
-
-/* Compact two-column desktop field layout */
-@media (min-width: 640px) {
-  .calendar-sub-dialog__scroll .event-form__section {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 16px;
-    row-gap: 12px;
-    align-items: start;
-  }
-
-  .calendar-sub-dialog__scroll .event-form__section > h2,
-  .calendar-sub-dialog__scroll .event-form__section > .event-form__field:first-of-type,
-  .calendar-sub-dialog__scroll .event-form__section > .event-form__field:has(textarea),
-  .calendar-sub-dialog__scroll
-    .event-form__section
-    > .event-form__field:has(.event-form__segmented),
-  .calendar-sub-dialog__scroll .event-form__section > .event-form__field:has(.event-form__chips),
-  .calendar-sub-dialog__scroll .event-form__section > .event-form__field:has(.event-form__check),
-  .calendar-sub-dialog__scroll .event-form__section > .event-form__taxonomy {
-    grid-column: 1 / -1;
-  }
 }
 
 /* ── Sticky Footer (44px controls) ── */
@@ -438,15 +400,6 @@
   .calendar-sub-dialog__spinner {
     animation: none;
   }
-}
-.calendar-sub-dialog__scroll .event-form__hint {
-  grid-column: 1 / -1;
-}
-.calendar-sub-dialog__scroll .event-form input:not([type="checkbox"]),
-.calendar-sub-dialog__scroll .event-form select,
-.calendar-sub-dialog__scroll .event-form__chips button,
-.calendar-sub-dialog__scroll .event-form__segmented button {
-  min-height: 44px;
 }
 .calendar-sub-dialog__scroll {
   scrollbar-color: var(--border-lg) var(--surface);

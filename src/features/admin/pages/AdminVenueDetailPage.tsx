@@ -62,6 +62,9 @@ export default function AdminVenueDetailPage() {
     removeError,
     isMerging,
     mergeError,
+    update,
+    isUpdating,
+    updateError,
   } = useAdminVenues();
   const { events: queriedEvents } = useAdminEvents();
   const events = useMemo(() => queriedEvents ?? [], [queriedEvents]);
@@ -492,12 +495,11 @@ export default function AdminVenueDetailPage() {
           <div className="admin-venue-detail-page__form-container">
             <AdminVenueForm
               initial={v}
-              isSaving={false}
-              error={null}
-              onSubmit={() => {
-                /* Form submission handled by parent — to be wired in a follow-up */
-              }}
-              onCancel={() => setPendingAction(null)}
+              isSaving={isUpdating}
+              error={updateError}
+              // Close only on success so a server error (duplicate, invalid address) stays beside the fields.
+              onSubmit={(form) => update({ id: v.id, form }, { onSuccess: closeDialog })}
+              onCancel={closeDialog}
             />
           </div>
         </div>

@@ -39,8 +39,10 @@ export function useAdminVenues() {
       }),
   });
 
+  // The detail page reads ["admin", "venue", id]; refresh it too so an edit or archive shows without a reload.
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ["admin", "venues"] });
+    queryClient.invalidateQueries({ queryKey: ["admin", "venue"] });
   };
 
   const createMutation = useMutation({

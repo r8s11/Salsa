@@ -1,4 +1,4 @@
-import "@testing-library/jest-dom";
+import "@testing-library/jest-dom/vitest";
 
 // jsdom 28 + Node >=25 leaves window.localStorage/sessionStorage undefined
 // (Node's experimental webstorage requires --localstorage-file). Component

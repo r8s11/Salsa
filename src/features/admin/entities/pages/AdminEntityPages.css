@@ -1,3 +1,5 @@
+/* Hallmark · genre: operator · macrostructure: record sheet + review rail (detail) · design-system: DESIGN.md · designed-as-app */
+/* Hallmark · pre-emit critique: P4 H5 E4 S4 R5 V4 */
 .admin-entity-page {
   width: min(100%, 76rem);
   margin-inline: auto;
@@ -5,48 +7,136 @@
   color: var(--admin-text-primary);
 }
 
-.admin-entity-page__header,
-.admin-entity-page__card-heading,
-.admin-entity-page__actions {
+.admin-entity-page__header {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 1rem;
+  margin-block: 1rem 1.5rem;
+}
+.admin-entity-page__identity { min-width: 0; }
+.admin-entity-page__header h1 { margin: 0; font-size: clamp(1.65rem, 4vw, 2.2rem); line-height: 1.1; overflow-wrap: anywhere; }
+/* Record identity, the same pairing as a directory row: state pill, then the public slug in the Identifier face. */
+.admin-entity-page__meta { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem .75rem; margin: .6rem 0 0; color: var(--admin-text-muted); }
+.admin-entity-page__tally { margin: .4rem 0 0; color: var(--admin-text-muted); font-size: .9rem; font-variant-numeric: tabular-nums; }
+.admin-entity-page__back { display: inline-block; margin-block: .25rem 1rem; color: var(--admin-brand-text); }
+.admin-entity-page > .admin-banner { margin-bottom: 1rem; }
+
+/* Directory: one card bounds the filters and the table (DESIGN.md › Tables). */
+.admin-entity-page__directory { overflow: hidden; }
+.admin-entity-page__filters { display: grid; grid-template-columns: minmax(12rem, 1fr) minmax(10rem, 14rem) auto; gap: .75rem 1rem; align-items: end; padding: 1rem; border-bottom: 1px solid var(--admin-border); }
+.admin-entity-page__filters label, .admin-entity-page__form .admin-field { display: grid; gap: .4rem; }
+.admin-entity-page__filters label > span { color: var(--admin-text-muted); font-size: .8125rem; font-weight: 600; }
+.admin-entity-page__filters .admin-btn { min-height: 44px; }
+
+.admin-entity-page__state { margin: 0; padding: 3rem 1rem; text-align: center; color: var(--admin-text-muted); }
+.admin-entity-page__state h2 { margin: 0 0 .4rem; font-size: 1.05rem; color: var(--admin-text-strong); }
+.admin-entity-page__state p { margin: 0 0 1rem; }
+.admin-entity-page__state p:last-child { margin-bottom: 0; }
+
+.admin-entity-page__table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+.admin-entity-page__table thead th { padding: .7rem 1rem; background: var(--admin-surface-subtle); border-bottom: 1px solid var(--admin-border); text-align: left; font-size: .75rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--admin-text-muted); }
+.admin-entity-page__table thead th:nth-child(3) { text-align: right; }
+.admin-entity-page__table tbody th, .admin-entity-page__table td { padding: .85rem 1rem; text-align: left; vertical-align: top; font-weight: 400; }
+.admin-entity-page__row { border-bottom: 1px solid var(--admin-border); }
+.admin-entity-page__row:last-child { border-bottom: 0; }
+.admin-entity-page__row:hover { background: var(--admin-surface-subtle); }
+/* State rule on the leading edge: a row that needs a decision is findable by shape, not only by its badge. */
+.admin-entity-page__row--needs_review > th { box-shadow: inset 3px 0 var(--admin-warning-dot); }
+.admin-entity-page__row--suspended > th { box-shadow: inset 3px 0 var(--admin-danger); }
+.admin-entity-page__row--archived { color: var(--admin-text-muted); }
+
+.admin-entity-page__cell-name { min-width: 14rem; }
+.admin-entity-page__name { display: inline-block; color: var(--admin-text-strong); font-weight: 600; line-height: 1.35; text-decoration: none; overflow-wrap: anywhere; }
+.admin-entity-page__cell-city { white-space: nowrap; }
+.admin-entity-page__name:hover { text-decoration: underline; }
+.admin-entity-page__slug { display: block; margin-top: .2rem; color: var(--admin-text-muted); font-family: var(--font-mono); font-size: .75rem; overflow-wrap: anywhere; }
+.admin-entity-page__table td.admin-entity-page__cell-events { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.admin-entity-page__unit { display: none; }
+.admin-entity-page__cell-status { width: 1%; white-space: nowrap; }
+.admin-entity-page__none { color: var(--admin-text-subtle); }
+
+.admin-entity-page__flags { display: flex; flex-wrap: wrap; gap: .35rem; margin: 0; padding: 0; list-style: none; }
+.admin-entity-page__flags li { border: 1px solid var(--admin-warning-border); border-radius: var(--radius-full); padding: .1rem .5rem; background: var(--admin-warning-tint); color: var(--admin-warning); font-size: .75rem; font-weight: 600; white-space: nowrap; }
+
+.admin-entity-page__status { display: inline-flex; align-items: center; border: 1px solid var(--admin-border); border-radius: var(--radius-full); padding: .1rem .6rem; background: var(--admin-surface-secondary); color: var(--admin-text-muted); font-size: .8125rem; font-weight: 600; text-transform: capitalize; white-space: nowrap; }
+.admin-entity-page__status--active { border-color: var(--admin-success-border); background: var(--admin-success-tint); color: var(--admin-success); }
+.admin-entity-page__status--needs_review { border-color: var(--admin-warning-border); background: var(--admin-warning-tint); color: var(--admin-warning); }
+.admin-entity-page__status--suspended { border-color: var(--admin-danger-border); background: var(--admin-danger-tint); color: var(--admin-danger-strong); }
+
+/* Record pages: .admin-card ships unpadded, so every record card here sets its own inset. The directory card stays full-bleed for its table. */
+.admin-entity-page > .admin-card:not(.admin-entity-page__directory) { margin-block: 0 1rem; padding: clamp(1rem, 2.5vw, 1.5rem); }
+.admin-entity-page__record .admin-card { margin: 0; padding: clamp(1rem, 2.5vw, 1.5rem); }
+.admin-entity-page .admin-card > h2, .admin-entity-page .admin-entity-team__heading h2 { margin: 0 0 .75rem; font-size: 1.125rem; color: var(--admin-text-strong); }
+.admin-entity-page .admin-entity-team__heading h2 { margin: 0; }
+.admin-entity-page .admin-card > h2 > span { color: var(--admin-text-muted); font-weight: 500; }
+.admin-entity-page__quiet { margin: 0; color: var(--admin-text-muted); }
+
+.admin-entity-page__form { max-width: 52rem; }
+.admin-entity-page__form fieldset { display: grid; gap: 1rem; min-width: 0; margin: 0; padding: 0; border: 0; }
+.admin-entity-page__form legend { margin-bottom: 1rem; padding: 0; font-size: 1.125rem; font-weight: 700; color: var(--admin-text-strong); }
+.admin-entity-page__form .admin-form__helper { margin: 0; color: var(--admin-text-muted); font-size: .8125rem; }
+.admin-entity-page__form .admin-field__error { margin: 1rem 0 0; color: var(--admin-danger-strong); font-size: .875rem; }
+.admin-entity-page__form .admin-form__actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--admin-border); }
+.admin-entity-page__form-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+
+/* Record view: the review rail comes first in reading order (what needs a decision), then the record itself.
+   Wide screens put the rail beside the sheet; narrow screens stack it on top. */
+.admin-entity-page__record { display: grid; grid-template-areas: "review" "main"; gap: 1rem; align-items: start; }
+.admin-entity-page__main { grid-area: main; display: grid; gap: 1rem; min-width: 0; }
+.admin-entity-page__review { grid-area: review; }
+@media (min-width: 75rem) {
+  .admin-entity-page__record { grid-template-columns: minmax(0, 1fr) 18.5rem; grid-template-areas: "main review"; gap: 1.5rem; }
+  .admin-entity-page__review { position: sticky; top: calc(var(--admin-header-h) + 1rem); }
 }
 
-.admin-entity-page__header { margin-block: 1rem 1.5rem; flex-wrap: wrap; }
-.admin-entity-page__header h1 { margin: 0; font-size: clamp(1.65rem, 4vw, 2.2rem); }
-.admin-entity-page__back { display: inline-block; margin-block: .25rem 1rem; color: var(--admin-brand-text); }
-.admin-entity-page__filters { display: grid; grid-template-columns: minmax(12rem, 1fr) minmax(10rem, 16rem); gap: 1rem; align-items: end; margin-bottom: 1rem; }
-.admin-entity-page__filters label, .admin-entity-page__form .admin-field { display: grid; gap: .4rem; }
-.admin-entity-page__filters label > span { color: var(--admin-text-muted); font-size: .85rem; font-weight: 600; }
-.admin-entity-page__list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: 1rem; margin: 0; padding: 0; list-style: none; }
-.admin-entity-page__card { min-width: 0; }
-.admin-entity-page__name { font-size: 1.1rem; font-weight: 700; overflow-wrap: anywhere; }
-.admin-entity-page__meta, .admin-entity-page__events, .admin-entity-page__quality-clear { margin: .4rem 0 0; color: var(--admin-text-muted); font-size: .9rem; }
-.admin-entity-page__status { display: inline-flex; align-items: center; border-radius: var(--admin-radius-full); padding: .25rem .65rem; background: var(--admin-surface-secondary); color: var(--admin-text-primary); font-size: .75rem; font-weight: 700; text-transform: capitalize; white-space: nowrap; }
-.admin-entity-page__status--active { background: var(--admin-success-bg); color: var(--admin-success-text); }
-.admin-entity-page__status--needs_review { background: var(--admin-warning-bg); color: var(--admin-warning-text); }
-.admin-entity-page__status--archived, .admin-entity-page__status--suspended { background: var(--admin-danger-bg); color: var(--admin-danger-text); }
-.admin-entity-page__quality { display: flex; flex-wrap: wrap; gap: .4rem; margin: .75rem 0 0; padding: 0; list-style: none; }
-.admin-entity-page__quality li { border-radius: var(--admin-radius-full); padding: .25rem .55rem; background: var(--admin-warning-bg); color: var(--admin-warning-text); font-size: .78rem; }
-.admin-entity-page__empty, .admin-entity-page__state { margin-block: 1rem; }
-.admin-entity-page__form { max-width: 52rem; }
-.admin-entity-page__form-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
-.admin-entity-page__summary, .admin-entity-page__quality, .admin-entity-page__linked { margin-block: 1rem; }
-.admin-entity-page__summary > :first-child { margin-top: 0; }
-.admin-entity-page__linked ul { display: grid; gap: .65rem; margin: 0; padding: 0; list-style: none; }
-.admin-entity-page__linked li { display: flex; justify-content: space-between; gap: 1rem; border-top: 1px solid var(--admin-border); padding-top: .65rem; }
-.admin-entity-page__linked li span { color: var(--admin-text-muted); font-size: .88rem; text-align: right; }
-.admin-entity-page__linked h2 span { color: var(--admin-text-muted); font-weight: 500; }
+/* Record sheet: one ruled label/value row per field, in the edit form's order. */
+.admin-entity-page__fields { margin: 0; }
+.admin-entity-page__field { display: grid; grid-template-columns: minmax(7rem, 11rem) minmax(0, 1fr); gap: .25rem 1.25rem; align-items: baseline; padding-block: .7rem; border-top: 1px solid var(--admin-border); }
+.admin-entity-page__field:last-child { padding-bottom: 0; }
+.admin-entity-page__field dt { color: var(--admin-text-muted); font-size: .8125rem; font-weight: 600; }
+.admin-entity-page__field dd { min-width: 0; margin: 0; overflow-wrap: anywhere; }
+.admin-entity-page__prose { display: block; max-width: 68ch; line-height: 1.55; white-space: pre-line; }
+.admin-entity-page__ident { font-family: var(--font-mono); font-size: .8125rem; overflow-wrap: anywhere; }
+.admin-entity-page__link { color: var(--admin-brand-text); text-decoration: none; }
+.admin-entity-page__link:hover { text-decoration: underline; }
+
+.admin-entity-page__linked ul { display: grid; margin: 0; padding: 0; list-style: none; }
+.admin-entity-page__linked li { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .2rem 1rem; padding-block: .65rem; border-top: 1px solid var(--admin-border); }
+.admin-entity-page__linked li:last-child { padding-bottom: 0; }
+.admin-entity-page__event { min-width: 0; color: var(--admin-text-strong); font-weight: 600; text-decoration: none; overflow-wrap: anywhere; }
+.admin-entity-page__event:hover { text-decoration: underline; }
+.admin-entity-page__event-meta { display: inline-flex; gap: .75rem; color: var(--admin-text-muted); font-size: .8125rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.admin-entity-page__event-status { text-transform: capitalize; }
+
+/* Review rail: quality flags, then the record-level actions under a rule. Destructive actions never sit beside Edit. */
+.admin-entity-page__record-actions { display: grid; gap: .5rem; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--admin-border); }
+
+/* Phone: each row reflows into a stacked record; the table stays one DOM. */
+@media (max-width: 720px) {
+  .admin-entity-page__filters { grid-template-columns: 1fr; }
+  .admin-entity-page__table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .admin-entity-page__table tbody { display: block; }
+  .admin-entity-page__row { display: grid; grid-template-columns: auto auto 1fr auto; grid-template-areas: "name name name status" "city events . ." "quality quality quality quality"; gap: .35rem .75rem; padding: .9rem 1rem; }
+  .admin-entity-page__table tbody th, .admin-entity-page__table td { padding: 0; }
+  .admin-entity-page__row--needs_review { box-shadow: inset 3px 0 var(--admin-warning-dot); }
+  .admin-entity-page__row--suspended { box-shadow: inset 3px 0 var(--admin-danger); }
+  .admin-entity-page__row > th { grid-area: name; min-width: 0; box-shadow: none; }
+  .admin-entity-page__cell-status { grid-area: status; width: auto; }
+  .admin-entity-page__table .admin-entity-page__cell-city { grid-area: city; color: var(--admin-text-muted); font-size: .8125rem; }
+  .admin-entity-page__table td.admin-entity-page__cell-events { grid-area: events; color: var(--admin-text-muted); font-size: .8125rem; text-align: left; }
+  .admin-entity-page__unit { display: inline; }
+  .admin-entity-page__cell-quality { grid-area: quality; margin-top: .2rem; }
+  /* A clean row drops the Quality line visually but keeps the cell in the accessibility tree, so cells stay aligned with their column headers. */
+  .admin-entity-page__row:has(> .admin-entity-page__cell-quality > .admin-entity-page__none) { position: relative; grid-template-areas: "name name name status" "city events . ."; }
+  .admin-entity-page__cell-quality:has(> .admin-entity-page__none) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
 
 @media (max-width: 640px) {
   .admin-entity-page { padding: 1rem; }
-  .admin-entity-page__filters, .admin-entity-page__form-row { grid-template-columns: 1fr; }
+  .admin-entity-page__form-row { grid-template-columns: 1fr; }
   .admin-entity-page__header { align-items: flex-start; }
-  .admin-entity-page__actions { width: 100%; flex-wrap: wrap; }
-  .admin-entity-page__actions > * { flex: 1 1 auto; }
-  .admin-entity-page__card-heading { align-items: flex-start; }
-  .admin-entity-page__linked li { flex-direction: column; gap: .25rem; }
-  .admin-entity-page__linked li span { text-align: left; }
+  .admin-entity-page__header > .admin-btn { flex: 1 1 100%; }
+  .admin-entity-page__field { grid-template-columns: minmax(0, 1fr); }
 }

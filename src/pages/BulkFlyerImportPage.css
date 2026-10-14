@@ -492,7 +492,8 @@
   justify-self: center;
 }
 
-/* The shared event form, flattened into ruled sections for review. */
+/* The shared event form, flattened into ruled sections for review. Colour,
+   type and control states come from EventForm's own admin token mapping. */
 .bulk-flyers .event-form {
   gap: 0;
   margin-top: 0;
@@ -504,72 +505,6 @@
   border-bottom: 1px solid var(--admin-border);
   border-radius: 0;
   background: transparent;
-}
-
-.bulk-flyers .event-form__section h2,
-.bulk-flyers .event-form label,
-.bulk-flyers .event-form__label,
-.bulk-flyers .event-form__hint {
-  color: var(--admin-text-secondary);
-}
-
-.bulk-flyers .event-form input,
-.bulk-flyers .event-form select,
-.bulk-flyers .event-form textarea {
-  min-height: 44px;
-  border-color: var(--admin-border-md);
-  background: var(--admin-surface);
-  color: var(--admin-text-primary);
-  font-size: 1rem;
-}
-
-.bulk-flyers .event-form textarea {
-  min-height: 7rem;
-}
-
-.bulk-flyers .event-form input[type="checkbox"] {
-  min-height: 0;
-}
-
-.bulk-flyers .event-form__chips button,
-.bulk-flyers .event-form__segmented button {
-  min-height: 44px;
-  border-color: var(--admin-border-md);
-  color: var(--admin-text-primary);
-}
-
-.bulk-flyers .event-form__chips button[aria-pressed="true"],
-.bulk-flyers .event-form__segmented button[aria-pressed="true"] {
-  border-color: var(--admin-brand);
-  background: var(--admin-brand);
-  color: var(--admin-text-on-brand);
-}
-
-.bulk-flyers .event-form__check {
-  color: var(--admin-text-primary);
-}
-
-.bulk-flyers .event-form__taxonomy {
-  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
-  gap: 0 1rem;
-}
-
-.bulk-flyers .event-form__taxonomy h3 {
-  grid-column: 1 / -1;
-  margin: 0.75rem 0 0.25rem;
-  color: var(--admin-text-strong);
-  font-size: 0.9375rem;
-}
-
-.bulk-flyers .event-form__taxonomy label {
-  display: flex;
-  align-items: center;
-  gap: 0.625rem;
-  min-height: 44px;
-  color: var(--admin-text-primary);
-  font: 600 0.9375rem var(--font-body);
-  letter-spacing: normal;
-  text-transform: none;
 }
 
 /* ── Save bar ────────────────────────────────────────── */

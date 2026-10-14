@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAccessibleDialog } from "../../../../shared/a11y/useAccessibleDialog";
+import { useMetros } from "../../../metros/hooks/useMetros";
 import AdminConfirmDialog from "../../components/common/AdminConfirmDialog";
 import AdminEntityTeamSection from "../../components/entities/AdminEntityTeamSection";
 import { useAdminEntity, useAdminEntityActions, useAdminEntityDirectory, useAdminVenueOptions } from "../hooks/useAdminEntities";
@@ -54,6 +55,8 @@ export default function AdminEntityDetailPage({ kind, mode }: { kind: EntityKind
     kind === "series"
   );
   const venues = useAdminVenueOptions(kind === "series");
+  const { metros } = useMetros();
+  const cityOptions = [...metros].sort((a, b) => a.name.localeCompare(b.name));
   const [editing, setEditing] = useState(creating);
   const [form, setForm] = useState<EntityForm>(() => buildEntityForm(entity));
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
@@ -70,6 +73,8 @@ export default function AdminEntityDetailPage({ kind, mode }: { kind: EntityKind
   });
   const labels = ENTITY_LABELS[kind];
   const basePath = pluralPath(kind);
+  // A legacy free-text city that matches no metro. Unknown until metros load, so the server stays the backstop meanwhile.
+  const unregisteredCity = form.city.trim() && metros.length > 0 && !metros.some((metro) => metro.slug === form.city.trim()) ? form.city.trim() : null;
 
   const beginEdit = () => {
     setForm(buildEntityForm(entity));
@@ -83,6 +88,11 @@ export default function AdminEntityDetailPage({ kind, mode }: { kind: EntityKind
     const invalid = validateEntityForm(form);
     if (invalid) {
       setValidationError(invalid);
+      return;
+    }
+    // The save RPC rejects any city that is not a metros.slug ("Unknown city"); catch legacy free-text values here, by name.
+    if (unregisteredCity) {
+      setValidationError(`“${unregisteredCity}” is not a registered city. Choose one from the list or No city.`);
       return;
     }
     setValidationError(null);
@@ -143,7 +153,7 @@ export default function AdminEntityDetailPage({ kind, mode }: { kind: EntityKind
           <div className="admin-field"><label htmlFor="entity-name">Name</label><input id="entity-name" className="admin-input" value={form.name} onChange={(event) => update("name", event.target.value)} required /></div>
           <div className="admin-field"><label htmlFor="entity-slug">Public URL slug</label><input id="entity-slug" className="admin-input" value={form.slug ?? ""} onChange={(event) => update("slug", event.target.value)} readOnly={!creating && Boolean(current?.slug)} /><p className="admin-form__helper">{!creating && current?.slug ? "This existing public URL is stable and cannot be changed." : "Leave blank to generate a URL slug from the name."}</p></div>
           <div className="admin-field"><label htmlFor="entity-status">Status</label><select id="entity-status" className="admin-select" value={form.status} onChange={(event) => update("status", event.target.value as EntityStatus)}><option value="active">Active</option><option value="needs_review">Needs review</option>{kind === "organizer" && <option value="suspended">Suspended</option>}<option value="archived">Archived</option></select></div>
-          {(kind === "series" || kind === "organizer" || kind === "school" || kind === "instructor") && <div className="admin-field"><label htmlFor="entity-city">City (canonical metro slug)</label><input id="entity-city" className="admin-input" value={form.city ?? ""} onChange={(event) => update("city", event.target.value)} /></div>}
+          <div className="admin-field"><label htmlFor="entity-city">City</label><select id="entity-city" className="admin-select" value={form.city} onChange={(event) => update("city", event.target.value)}><option value="">No city</option>{unregisteredCity && <option value={form.city}>{form.city} (not registered)</option>}{cityOptions.map((metro) => <option key={metro.slug} value={metro.slug}>{metro.name}</option>)}</select></div>
           <div className="admin-field"><label htmlFor="entity-description">Description</label><textarea id="entity-description" className="admin-textarea" rows={4} value={form.description ?? ""} onChange={(event) => update("description", event.target.value)} /></div>
           {(kind === "organizer" || kind === "school" || kind === "instructor") && <div className="admin-entity-page__form-row">
             <div className="admin-field"><label htmlFor="entity-state">State / region</label><input id="entity-state" className="admin-input" value={form.state_region} onChange={(event) => update("state_region", event.target.value)} /></div>

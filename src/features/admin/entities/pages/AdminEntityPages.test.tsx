@@ -43,6 +43,8 @@ vi.mock("../../hooks/useAdminEntityClaims", () => ({
   },
 }));
 
+vi.mock("../../../metros/hooks/useMetros", () => import("../../../../test/mockMetros"));
+
 const entity = (kind: EntityKind, overrides: Partial<AdminEntityRow> = {}): AdminEntityRow => ({
   id: `${kind}-1`, kind, name: "Boston Dance Collective", slug: "boston-dance-collective", status: "needs_review",
   description: "Community dance classes", image_url: null, city: "boston", website: null, instagram: null,
@@ -126,6 +128,27 @@ describe("AdminEntity creation", () => {
     fireEvent.change(screen.getByRole("textbox", { name: "Name" }), { target: { value: "Salsa Lab" } });
     fireEvent.click(screen.getByRole("button", { name: "Continue to create" }));
     expect(screen.getByRole("dialog", { name: "Create school?" })).toBeVisible();
+    expect(mocks.saveEntity).not.toHaveBeenCalled();
+  });
+
+  it("picks the city from registered metros and sends its slug", () => {
+    mocks.saveEntity.mockResolvedValue({ id: "series-9" });
+    renderCreate("series");
+    fireEvent.change(screen.getByRole("textbox", { name: "Name" }), { target: { value: "Candela" } });
+    fireEvent.change(screen.getByRole("combobox", { name: "City" }), { target: { value: "boston" } });
+    expect(screen.getByRole("option", { name: "Boston" })).toHaveProperty("selected", true);
+    fireEvent.click(screen.getByRole("button", { name: "Continue to create" }));
+    fireEvent.click(within(screen.getByRole("dialog", { name: "Create series?" })).getByRole("button", { name: "Create series" }));
+    expect(mocks.saveEntity).toHaveBeenCalledWith({ id: null, payload: expect.objectContaining({ city: "boston" }) });
+  });
+
+  it("stops a save whose city is not a registered metro and says so before the server does", () => {
+    mocks.detail = entity("series", { status: "active", city: "Boston, MA" });
+    renderDetail("series", "series-1");
+    fireEvent.click(screen.getByRole("button", { name: "Edit series" }));
+    expect(screen.getByRole("combobox", { name: "City" })).toHaveValue("Boston, MA");
+    fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    expect(screen.getByRole("alert")).toHaveTextContent("“Boston, MA” is not a registered city. Choose one from the list or No city.");
     expect(mocks.saveEntity).not.toHaveBeenCalled();
   });
 });

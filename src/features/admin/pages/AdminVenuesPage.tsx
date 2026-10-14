@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAdminVenues } from "../hooks/useAdminVenues";
 import { useListState, usePageWindow } from "../hooks/useListState";
 import {
@@ -149,6 +149,7 @@ export default function AdminVenuesPage() {
       <AdminPageHeader
         title="Venues"
         description="Manage venue records. Archived venues don't appear in event submission forms."
+        actions={<Link to="/admin/venues/new" className="admin-btn admin-btn--primary">Create venue</Link>}
       />
 
       <p role="status" className="admin-visually-hidden">
@@ -236,7 +237,7 @@ export default function AdminVenuesPage() {
             ) : emptyDb ? (
               <div className="admin-venues-page__empty">
                 <h2>No venues</h2>
-                <p>No venue records have been created yet.</p>
+                <p>No venue records have been created yet. Use Create venue to add the first one.</p>
               </div>
             ) : total === 0 ? (
               <div className="admin-venues-page__empty">

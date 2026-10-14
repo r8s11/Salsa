@@ -49,6 +49,7 @@ const AdminOrganizerRequestDetailPage = lazy(
 );
 const AdminVenuesPage = lazy(() => import("../features/admin/pages/AdminVenuesPage"));
 const AdminVenueDetailPage = lazy(() => import("../features/admin/pages/AdminVenueDetailPage"));
+const AdminVenueCreatePage = lazy(() => import("../features/admin/pages/AdminVenueCreatePage"));
 const AdminTagsPage = lazy(() => import("../features/admin/pages/AdminTagsPage"));
 const AdminTaxonomyNewPage = lazy(() => import("../features/admin/pages/AdminTaxonomyNewPage"));
 const AdminTaxonomyDetailPage = lazy(() => import("../features/admin/pages/AdminTaxonomyDetailPage"));
@@ -179,6 +180,14 @@ function App() {
                 element={
                   <RequireAdmin>
                     <AdminVenuesPage />
+                  </RequireAdmin>
+                }
+              />
+              <Route
+                path="venues/new"
+                element={
+                  <RequireAdmin>
+                    <AdminVenueCreatePage />
                   </RequireAdmin>
                 }
               />

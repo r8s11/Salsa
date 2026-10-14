@@ -1,3 +1,56 @@
+/* Layout for the venue form; the shared admin-form__* hooks carry no global styles. */
+.admin-venue-form {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.admin-venue-form .admin-form__header h2 {
+  margin: 0;
+  font-size: 1.125rem;
+  color: var(--admin-text-strong);
+}
+
+.admin-venue-form .admin-banner > p {
+  margin: 0;
+}
+
+.admin-venue-form .admin-form__fieldset {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.admin-venue-form .admin-form__fieldset legend {
+  margin-bottom: 1rem;
+  padding: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--admin-text-strong);
+}
+
+.admin-venue-form .admin-form__row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: 1rem;
+}
+
+/* The shared select wrap is flex; let the select fill it so the chevron sits inside the field. */
+.admin-venue-form .admin-select-wrap > .admin-select {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-venue-form .admin-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--admin-border);
+}
+
 .admin-venue-form__duplicate-list {
   list-style: none;
   margin: 8px 0 4px 0;

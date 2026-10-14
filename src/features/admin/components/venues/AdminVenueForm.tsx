@@ -91,7 +91,7 @@ export default function AdminVenueForm({
   };
 
   return (
-    <form className="admin-form" onSubmit={handleSubmit} noValidate aria-busy={isSaving || undefined}>
+    <form className="admin-form admin-venue-form" onSubmit={handleSubmit} noValidate aria-busy={isSaving || undefined}>
       <div className="admin-form__header">
         <h2>{initial ? "Edit Venue" : "New Venue"}</h2>
       </div>

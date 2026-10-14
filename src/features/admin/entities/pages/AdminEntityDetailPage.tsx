@@ -25,6 +25,20 @@ function pluralPath(kind: EntityKind): string {
   return `/admin/${kind}s`;
 }
 
+const eventDate = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" });
+
+/** One row of the record sheet. `ident` values are read character by character (DESIGN.md › Record Pages). */
+type RecordField = { label: string; value: string; as?: "ident" | "link" | "prose" };
+
+function FieldValue({ field }: { field: RecordField }) {
+  if (!field.value) return <span className="admin-entity-page__none">Not set</span>;
+  if (field.as === "link") {
+    return <a className="admin-entity-page__link admin-entity-page__ident" href={field.value} target="_blank" rel="noreferrer">{field.value} ↗</a>;
+  }
+  const className = field.as === "ident" ? "admin-entity-page__ident" : field.as === "prose" ? "admin-entity-page__prose" : undefined;
+  return <span className={className}>{field.value}</span>;
+}
+
 export default function AdminEntityDetailPage({ kind, mode }: { kind: EntityKind; mode?: "create" }) {
   const { id: routeId } = useParams<{ id: string }>();
   const creating = mode === "create" || !routeId;
@@ -92,19 +106,39 @@ export default function AdminEntityDetailPage({ kind, mode }: { kind: EntityKind
   if (!creating && error) return <div className="admin-entity-page"><div className="admin-banner admin-banner--error" role="alert"><p>Could not load {labels.singular.toLowerCase()}: {error}</p><button type="button" className="admin-btn admin-btn--secondary" onClick={() => refetch()}>Try again</button></div></div>;
   if (!creating && !entity) return <div className="admin-entity-page"><h1>{labels.singular} not found</h1><Link to={basePath} className="admin-btn admin-btn--secondary">Back to {labels.plural.toLowerCase()}</Link></div>;
   const current = entity;
+  const values = buildEntityForm(current);
+  const located = kind === "organizer" || kind === "school" || kind === "instructor";
+  // Rows follow the edit form's field order so view and edit read the same way.
+  const fields = ([
+    { label: "City", value: values.city, as: "ident" },
+    { label: "Description", value: values.description, as: "prose" },
+    located && { label: "State / region", value: values.state_region },
+    located && { label: "Country", value: values.country },
+    kind === "series" && { label: "Default venue", value: venues.find((venue) => venue.id === values.venue_id)?.name ?? values.venue_id },
+    kind === "series" && { label: "Default organizer", value: organizers.find((organizer) => organizer.id === values.organizer_id)?.name ?? values.organizer_id },
+    kind === "school" && { label: "Address", value: values.address },
+    kind === "instructor" && { label: "Organization", value: values.organization },
+    kind === "organizer" && { label: "Category", value: values.category },
+    kind === "school" && { label: "Phone", value: values.phone },
+    kind !== "series" && { label: "Website", value: values.website, as: "link" },
+    kind !== "series" && { label: "Instagram", value: values.instagram, as: "ident" },
+    { label: kind === "organizer" ? "Logo" : "Image", value: values.image_url, as: "link" },
+  ] satisfies Array<RecordField | false>).filter((field): field is RecordField => field !== false);
 
   return (
     <div className="admin-entity-page">
       <Link to={basePath} className="admin-entity-page__back">← {labels.plural}</Link>
       <header className="admin-entity-page__header">
-        <div><h1>{creating ? `New ${labels.singular}` : current?.name}</h1></div>
-        {!creating && !editing && current ? <div className="admin-entity-page__actions">
-          <button type="button" className="admin-btn admin-btn--secondary" onClick={beginEdit} aria-label={`Edit ${kind}`}>Edit {labels.singular.toLowerCase()}</button>
-          {current.status !== "archived" && <button type="button" className="admin-btn admin-btn--danger" aria-label={`Archive ${kind}`} onClick={() => setPendingAction("archive")}>Archive</button>}
-          <button type="button" className="admin-btn admin-btn--secondary" onClick={() => setPendingAction("merge")}>Merge duplicate</button>
-        </div> : null}
+        <div className="admin-entity-page__identity">
+          <h1>{creating ? `New ${labels.singular}` : current?.name}</h1>
+          {!creating && current && <p className="admin-entity-page__meta">
+            <span className={`admin-entity-page__status admin-entity-page__status--${current.status}`}>{current.status.replace(/_/g, " ")}</span>
+            {current.slug ? <span className="admin-entity-page__ident">/{current.slug}</span> : <span className="admin-entity-page__none">No public URL</span>}
+          </p>}
+        </div>
+        {!creating && !editing && current ? <button type="button" className="admin-btn admin-btn--primary" onClick={beginEdit}>Edit {labels.singular.toLowerCase()}</button> : null}
       </header>
-      {editing ? <form className="admin-form admin-entity-page__form" onSubmit={submit} noValidate aria-busy={actions.isSaving || undefined}>
+      {editing ? <form className="admin-card admin-form admin-entity-page__form" onSubmit={submit} noValidate aria-busy={actions.isSaving || undefined}>
         <fieldset className="admin-form__fieldset"><legend>{labels.singular} details</legend>
           <div className="admin-field"><label htmlFor="entity-name">Name</label><input id="entity-name" className="admin-input" value={form.name} onChange={(event) => update("name", event.target.value)} required /></div>
           <div className="admin-field"><label htmlFor="entity-slug">Public URL slug</label><input id="entity-slug" className="admin-input" value={form.slug ?? ""} onChange={(event) => update("slug", event.target.value)} readOnly={!creating && Boolean(current?.slug)} /><p className="admin-form__helper">{!creating && current?.slug ? "This existing public URL is stable and cannot be changed." : "Leave blank to generate a URL slug from the name."}</p></div>
@@ -130,18 +164,32 @@ export default function AdminEntityDetailPage({ kind, mode }: { kind: EntityKind
         {validationError && <p className="admin-field__error" role="alert">{validationError}</p>}
         {actions.error && <p className="admin-field__error" role="alert">{actions.error}</p>}
         <div className="admin-form__actions"><button type="submit" className="admin-btn admin-btn--primary" disabled={actions.isSaving}>{creating ? "Continue to create" : "Save changes"}</button>{!creating && <button type="button" className="admin-btn admin-btn--secondary" onClick={() => setEditing(false)}>Cancel</button>}</div>
-      </form> : current && <>
-        <section className="admin-card admin-entity-page__summary" aria-label={`${labels.singular} information`}>
-          <span className={`admin-entity-page__status admin-entity-page__status--${current.status}`}>{current.status.replace(/_/g, " ")}</span>
-          <p>{[current.city, current.slug ? `/${current.slug}` : null].filter(Boolean).join(" · ") || "No city or public URL"}</p>
-          {current.description && <p>{current.description}</p>}
-          {current.website && <p><a href={current.website} target="_blank" rel="noreferrer">Website ↗</a></p>}
-          {current.instagram && <p>{current.instagram}</p>}
-        </section>
-        <section className="admin-card admin-entity-page__quality"><h2>Quality review</h2>{current.quality_issues.length ? <ul>{current.quality_issues.map((issue) => <li key={issue}>{qualityIssueLabel(issue)}</li>)}</ul> : <p>No quality issues detected.</p>}</section>
-        <section className="admin-card admin-entity-page__linked"><h2>Linked events <span>({current.linked_events.length})</span></h2>{current.linked_events.length ? <ul>{current.linked_events.map((event) => <li key={event.id}><Link to={`/admin/events?edit=${event.id}`}>{event.title}</Link><span>{new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date(event.event_date))} · {event.status}</span></li>)}</ul> : <p>No linked events.</p>}</section>
-        {(kind === "school" || kind === "instructor") && current.id && <AdminEntityTeamSection kind={kind} id={current.id} />}
-      </>}
+      </form> : current && <div className="admin-entity-page__record">
+        <aside className="admin-card admin-entity-page__review" aria-labelledby="entity-review-title">
+          <h2 id="entity-review-title">Quality review</h2>
+          {current.quality_issues.length ? <ul className="admin-entity-page__flags">{current.quality_issues.map((issue) => <li key={issue}>{qualityIssueLabel(issue)}</li>)}</ul> : <p className="admin-entity-page__quiet">No quality issues detected.</p>}
+          <div className="admin-entity-page__record-actions">
+            <button type="button" className="admin-btn admin-btn--secondary" onClick={() => setPendingAction("merge")}>Merge duplicate</button>
+            {current.status !== "archived" && <button type="button" className="admin-btn admin-btn--danger-quiet" onClick={() => setPendingAction("archive")}>Archive {labels.singular.toLowerCase()}</button>}
+          </div>
+        </aside>
+        <div className="admin-entity-page__main">
+          <section className="admin-card admin-entity-page__sheet" aria-labelledby="entity-details-title">
+            <h2 id="entity-details-title">Details</h2>
+            <dl className="admin-entity-page__fields">
+              {fields.map((field) => <div key={field.label} className="admin-entity-page__field"><dt>{field.label}</dt><dd><FieldValue field={field} /></dd></div>)}
+            </dl>
+          </section>
+          <section className="admin-card admin-entity-page__linked" aria-labelledby="entity-events-title">
+            <h2 id="entity-events-title">Linked events <span>({current.linked_events.length})</span></h2>
+            {current.linked_events.length ? <ul>{current.linked_events.map((event) => <li key={event.id}>
+              <Link className="admin-entity-page__event" to={`/admin/events?edit=${event.id}`}>{event.title}</Link>
+              <span className="admin-entity-page__event-meta"><time dateTime={event.event_date}>{eventDate.format(new Date(event.event_date))}</time><span className="admin-entity-page__event-status">{event.status.replace(/_/g, " ")}</span></span>
+            </li>)}</ul> : <p className="admin-entity-page__quiet">No linked events.</p>}
+          </section>
+          {(kind === "school" || kind === "instructor") && current.id && <AdminEntityTeamSection kind={kind} id={current.id} />}
+        </div>
+      </div>}
       {pendingAction === "create" && <AdminConfirmDialog title={`Create ${labels.singular.toLowerCase()}?`} body={`Create “${form.name.trim()}” as an explicit ${labels.singular.toLowerCase()} record? No account or membership will be created.`} confirmLabel={`Create ${labels.singular.toLowerCase()}`} busyLabel="Creating…" isBusy={actions.isSaving} tone="neutral" error={actions.error} onConfirm={confirmAction} onCancel={() => setPendingAction(null)} />}
       {pendingAction === "archive" && current && <AdminConfirmDialog title={`Archive ${labels.singular.toLowerCase()}?`} body={`Archive “${current.name}”? This keeps the record and linked events but removes it from public active listings.`} confirmLabel={`Archive ${labels.singular.toLowerCase()}`} isBusy={actions.isSaving} error={actions.error} onConfirm={confirmAction} onCancel={() => setPendingAction(null)} />}
       {pendingAction === "merge" && current && <div className="admin-confirm-dialog__overlay" onClick={mergeDialog.onBackdropClick}>

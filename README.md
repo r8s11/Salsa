@@ -46,6 +46,10 @@ under `.grok/skills/`, `.kiro/skills/`, `.vibe/skills/`, `.windsurf/skills/`, an
 `data/skills/` are agent-skill `node:test` suites, not application tests, and
 are excluded from Vitest discovery. Application `src/**` discovery is unchanged.
 
+Shared browser API shims live in `src/test/setup.ts` and run before component
+imports. The `matchMedia` shim defaults to nonmatching queries and supports
+modern and legacy change listeners; media-sensitive tests supply their own matches.
+
 The site publishes `https://www.salsasegura.com` as its canonical host. After Vite
 builds, the sitemap generator queries approved events and the public entity
 directory RPC with the Supabase URL and publishable key. If public reads are

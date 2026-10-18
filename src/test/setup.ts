@@ -24,3 +24,24 @@ function polyfillWebStorage(prop: "localStorage" | "sessionStorage") {
 }
 polyfillWebStorage("localStorage");
 polyfillWebStorage("sessionStorage");
+
+// jsdom has no media-query evaluator. Install before component imports so
+// GSAP/ScrollTrigger can register; media-sensitive tests can override it.
+if (typeof window.matchMedia !== "function") {
+  Object.defineProperty(window, "matchMedia", {
+    configurable: true,
+    writable: true,
+    value: (query: string): MediaQueryList => {
+      const target = new EventTarget();
+      return Object.assign(target, {
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: (listener: MediaQueryList["onchange"]) =>
+          target.addEventListener("change", listener as globalThis.EventListener | null),
+        removeListener: (listener: MediaQueryList["onchange"]) =>
+          target.removeEventListener("change", listener as globalThis.EventListener | null),
+      });
+    },
+  });
+}

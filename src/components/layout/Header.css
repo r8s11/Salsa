@@ -185,7 +185,7 @@ a.logo:hover .ss-logo__wordmark-accent {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--red), var(--gold));
+  background: var(--red);
   color: #fff;
   font-family: var(--font-display);
   font-weight: 800;
@@ -194,19 +194,19 @@ a.logo:hover .ss-logo__wordmark-accent {
 
 .account-disclosure__menu {
   position: absolute;
-  top: calc(100% + var(--space-sm));
+  top: calc(100% + 12px);
   right: 0;
+  z-index: 1;
   display: grid;
-  width: 220px;
-  padding: var(--space-sm);
-  /* Opaque surface: the avatar trigger is available at mobile widths, where
-     this menu overlays page artwork instead of the header bar. */
+  width: min(340px, calc(100vw - 32px));
+  max-height: calc(100dvh - 88px - env(safe-area-inset-bottom));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-lg) transparent;
   background: var(--surface);
   border: 1px solid var(--border-md);
-  border-radius: var(--radius);
-  box-shadow: var(--glow-primary);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border-radius: var(--radius-lg);
 }
 
 .account-disclosure__dashboards {
@@ -227,7 +227,6 @@ a.logo:hover .ss-logo__wordmark-accent {
   color: var(--text-muted);
 }
 
-.account-disclosure__dashboards a,
 .mobile-nav__dashboards a {
   display: flex;
   align-items: center;
@@ -240,13 +239,11 @@ a.logo:hover .ss-logo__wordmark-accent {
   border-left: 3px solid transparent;
 }
 
-.account-disclosure__dashboards a:hover,
 .mobile-nav__dashboards a:hover {
   color: var(--text);
   background: var(--card);
 }
 
-.account-disclosure__dashboards a.active,
 .mobile-nav__dashboards a.active {
   border-left-color: var(--gold);
   background: var(--gold-dim);
@@ -344,6 +341,19 @@ a.logo:hover .ss-logo__wordmark-accent {
     align-items: center;
     min-height: 44px;
   }
+}
+
+/* Keep every desktop destination visible before the full row has room.
+   Reuse the compact city code without changing its accessible full name. */
+@media (min-width: 1024px) and (max-width: 1279.98px) {
+  .site-header .nav-links {
+    margin-left: var(--space-md);
+  }
+
+  .site-header .nav-links > li > a {
+    padding-inline: 8px;
+  }
+
 }
 
 @media (max-width: 1023.98px) {
@@ -548,6 +558,8 @@ a.logo:hover .ss-logo__wordmark-accent {
     font-weight: 700;
     font-size: 0.9375rem;
     color: var(--text);
+    letter-spacing: 0;
+    text-transform: none;
   }
 
   .mobile-nav__identity-email {
@@ -558,6 +570,7 @@ a.logo:hover .ss-logo__wordmark-accent {
     text-overflow: ellipsis;
     white-space: nowrap;
     text-transform: none;
+    letter-spacing: 0;
   }
 
   .mobile-nav__identity-cta {
@@ -658,5 +671,182 @@ a.logo:hover .ss-logo__wordmark-accent {
   }
   .metro-explorer--compact .metro-explorer__trigger {
     padding: 0 7px;
+  }
+}
+
+.account-disclosure summary:hover,
+.account-disclosure[open] summary {
+  border-color: var(--red-bright);
+  background: var(--surface-action);
+}
+
+.account-menu__identity {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  padding: 20px;
+  border-bottom: 1px solid var(--border);
+}
+.account-menu__identity .account-avatar {
+  flex: 0 0 auto;
+}
+.account-menu__identity-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.account-menu__name {
+  overflow: hidden;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.account-menu__email {
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.account-menu__role {
+  justify-self: start;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  color: var(--gold-light);
+  background: var(--gold-dim);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.account-disclosure__menu .account-disclosure__dashboards {
+  gap: 4px;
+  margin: 0;
+  padding: 12px 8px 8px;
+  border-bottom: 1px solid var(--border);
+}
+.account-disclosure__menu .account-disclosure__dashboards-label {
+  padding: 0 12px;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.account-menu__links,
+.account-menu__footer {
+  display: grid;
+  gap: 2px;
+  padding: 8px;
+}
+.account-menu__footer {
+  border-top: 1px solid var(--border);
+}
+.site-header .account-disclosure__menu .account-menu__row,
+.site-header .mobile-nav__account a.account-menu__row,
+.site-header .mobile-nav__account button.account-menu__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  min-height: 64px;
+  padding: 12px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  text-align: left;
+  text-decoration: none;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.account-menu__row > svg {
+  flex: 0 0 auto;
+  color: var(--text-muted);
+}
+.account-menu__row-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.account-menu__row-copy strong {
+  font-weight: 600;
+  line-height: 1.4;
+}
+.account-menu__row-copy small {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.account-menu__arrow {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+.account-menu__dashboard > svg:first-child {
+  color: var(--gold);
+}
+.site-header .account-menu__row:hover:not(:disabled),
+.site-header .account-menu__row.active {
+  color: var(--text);
+  background: var(--card);
+}
+.site-header .account-menu__row:focus-visible {
+  outline: 2px solid var(--red-bright);
+  outline-offset: -2px;
+}
+.site-header .account-menu__signout > svg:first-child {
+  color: var(--red-bright);
+}
+.site-header .account-menu__signout:hover:not(:disabled) {
+  background: var(--surface-action);
+}
+.site-header .account-menu__row:disabled {
+  cursor: progress;
+  color: var(--text-muted);
+}
+.account-menu__error {
+  margin: 0 8px 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--red-line);
+  border-radius: var(--radius-sm);
+  color: var(--red-error-strong);
+  background: var(--surface-action);
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.mobile-nav__dashboards a {
+  gap: 12px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .account-disclosure[open] .account-disclosure__menu {
+    animation: account-menu-reveal 160ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+@keyframes account-menu-reveal {
+  from {
+    opacity: 0.85;
+    clip-path: inset(0 0 10px round var(--radius-lg));
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0 round var(--radius-lg));
   }
 }

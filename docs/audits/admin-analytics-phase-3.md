@@ -31,7 +31,7 @@ All periods reuse `dateRangeFor`: inclusive Eastern calendar start and exclusive
 
 ## Release dependencies
 
-The Phase 1/2 production release remains unverified. Production read-only catalog access found no telemetry table, so the Phase 1 telemetry migration must be reconciled/applied in the authorized sequence before this Phase 3 migration, followed by the reviewed Phase 1 and Phase 2 RPC replacements and matching frontend. Never deploy only one component, apply production changes, alter a ledger, or claim live engagement without explicit authorization. No production migration/deployment is authorized in this task.
+The Phase 1/2 production release remains unverified. Production read-only catalog access found no telemetry table. The Phase 3 migration now provisions the canonical telemetry table/indexes/RLS when absent, without replaying the older telemetry migration's superseded analytics RPC replacements. Apply the reviewed Phase 1/2 RPCs, then Phase 3 and its matching frontend in an authorized release. Never deploy only one component, apply production changes, alter a ledger, or claim live engagement without explicit authorization.
 
 ## Validation evidence
 
@@ -56,7 +56,7 @@ Actual production collection-start date is **unknown** because no deployment was
 ### Release order and rollback
 
 1. Resolve or explicitly review Phase 1/2 release-readiness gates and deployed migration-ledger/frontend mismatch. Capture the deployed frontend, analytics/collection function definitions and ACLs securely.
-2. Reconcile the actual telemetry-table prerequisite. In an authorized maintenance window, apply only reviewed telemetry and Phase 1/2 prerequisites followed by `20261013000000_admin_analytics_phase3.sql`; do not blanket-push unrelated migrations. The older telemetry migration replaces earlier analytics contracts, so the reviewed Phase 1/2 replacements must follow it before the database release is considered ready.
+2. Reconcile the actual telemetry-table prerequisite. In an authorized maintenance window, apply the reviewed Phase 1/2 prerequisites followed by the current `20261013000000_admin_analytics_phase3.sql`; Phase 3 creates missing telemetry storage with RLS/client restrictions and preserves existing interaction history. Do not blanket-push unrelated migrations or replay the older telemetry migration after newer analytics phases: it replaces earlier analytics contracts. If an earlier copy of Phase 3 failed with `42P01: relation "public.event_touches" does not exist`, retry the complete updated Phase 3 migration, then continue Phases 4–6 in order.
 3. Verify administrator aggregation and anonymous/regular/host/organizer/moderator denial at the database boundary. Publish the matching frontend immediately after the compatible database is available; do not enable frontend collection before the reviewed collector is installed.
 4. Verify a logged-out approved-event visit, exactly one intended view, RSVP/ticket navigation, ranking/filter/city/style totals, and core browsing during collection outage against real production data. Record the actual enablement date. Local tests do not satisfy production acceptance.
 5. Rollback restores the captured frontend and compatible analytics definitions together. Disable public collection if the new collector must be withdrawn; do not revert to the old unrestricted collector or drop interaction history. Retain expanded kind constraints while ticket/share rows exist, rather than applying a destructive constraint rollback. Reload PostgREST and recheck public discovery and denied roles. Never rewrite migration history silently.
@@ -80,3 +80,9 @@ The full suite was **not rerun for Phase 3**. Earlier release-readiness evidence
 Final browser checks confirmed paid-event ticket collection and an uncapped **300%** click-to-view ratio. Keyboard ranking changes initially removed the focused selector during loading; keeping the selector mounted fixed this. The final native control remained focused, had a 44px height and visible 2px outline. A fresh-document Global Privacy Control check suppressed collection without preventing public event display. Signing out and opening `/admin/analytics` redirected to sign-in and issued no private analytics RPCs.
 
 Local fixture events and accounts were removed, the disposable schema clone was dropped, browser tabs were closed and the smoke server was stopped. No production migrations, deployments, retention cleanup or production tracking verification were performed.
+
+### Missing telemetry prerequisite repair
+
+A reported `42P01` exposed the migration's assumption that the older telemetry table had already been deployed. Phase 3 now reuses the original table schema and base indexes with idempotent creation, enables RLS, revokes raw access, then installs its existing expanded constraint and collector/report functions. No historical touches are fabricated, and no Phase 1/2 analytics replacement is replayed.
+
+Local verification used an isolated schema clone with telemetry storage removed. The complete updated migration installed successfully; the existing Phase 3 SQL engagement/security/collector regression passed. A real collector-generated share survived repeated migration execution, raw anonymous/authenticated access remained denied, and captured metrics/timeseries function definitions were unchanged. Phase 6 SQL/concurrency regressions also passed after restoring the singleton seed and function ACLs omitted by the schema-only clone. The disposable database was removed. No production migration was applied.

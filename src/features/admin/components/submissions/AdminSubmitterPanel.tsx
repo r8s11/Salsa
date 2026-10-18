@@ -18,11 +18,11 @@ export default function AdminSubmitterPanel({ submitter }: { submitter: Submitte
     <div className="admin-card">
       <h3
         className="admin-text-lg"
-        style={{ fontWeight: 600, marginBottom: "var(--admin-space-4)" }}
+        style={{ fontWeight: 600, marginBottom: "var(--space-md)" }}
       >
         Submitted By
       </h3>
-      <div style={{ display: "flex", alignItems: "start", gap: "var(--admin-space-4)" }}>
+      <div style={{ display: "flex", alignItems: "start", gap: "var(--space-md)" }}>
         <AdminUserAvatar row={submitter.user} />
         <div>
           <div style={{ fontWeight: 600 }}>{displayNameFor(submitter.user)}</div>
@@ -40,7 +40,7 @@ export default function AdminSubmitterPanel({ submitter }: { submitter: Submitte
           </div>
           <div
             className="admin-text-xs"
-            style={{ color: "var(--admin-text-subtle)", marginTop: "var(--admin-space-1)" }}
+            style={{ color: "var(--admin-text-subtle)", marginTop: "var(--space-xs)" }}
           >
             {submitter.user.email}
           </div>
@@ -50,7 +50,7 @@ export default function AdminSubmitterPanel({ submitter }: { submitter: Submitte
             style={{
               color: "var(--admin-brand)",
               textDecoration: "underline",
-              marginTop: "var(--admin-space-2)",
+              marginTop: "var(--space-sm)",
               display: "block",
             }}
           >

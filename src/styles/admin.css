@@ -38,6 +38,10 @@
   --admin-danger-strong: #b91c1c;
   --admin-danger-tint: #fef2f2;
   --admin-danger-border: #fecaca;
+  /* Solid-fill button backgrounds (dark theme overrides these below). */
+  --admin-brand-solid-hover: #be123c;
+  --admin-danger-solid: #dc2626;
+  --admin-danger-solid-hover: #b91c1c;
   --admin-success: #047857;
   --admin-success-strong: #10b981;
   --admin-success-tint: #ecfdf5;

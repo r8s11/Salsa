@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import ButtonLink from "../ui/ButtonLink";
 import IconButton from "../ui/IconButton";
 import { Pause, Play } from "lucide-react";
-import { useMemo, useEffect, useRef, useState } from "react";
+import { useMemo, useEffect, useRef, useState, type CSSProperties } from "react";
 import "./Hero.css";
 import { useEvents } from "../../features/events/hooks/useEvent";
 import { useCity } from "../../contexts/useCity";
@@ -92,13 +92,16 @@ function Hero() {
   // A failed load has no counts to report; a dash says "unknown" where a 0
   // would claim the floor is empty. It holds through a retry so the stats
   // don't blink out and back.
-  const heroStats = cityShort
-    ? [
-        { num: loadFailed ? null : eventsThisWeek, label: "Events This Week" },
-        { num: loadFailed ? null : venueCount, label: venueCount === 1 ? "Venue" : "Venues" },
-        { num: cityShort, label: "On The Floor" },
-      ]
-    : [];
+  const heroStats = useMemo(() =>
+    cityShort
+      ? [
+          { num: loadFailed ? null : eventsThisWeek, label: "Events This Week" },
+          { num: loadFailed ? null : venueCount, label: venueCount === 1 ? "Venue" : "Venues" },
+          { num: cityShort, label: "On The Floor" },
+        ]
+      : [],
+    [cityShort, loadFailed, eventsThisWeek, venueCount]
+  );
 
   const [tickerPaused, setTickerPaused] = useState(false);
 
@@ -301,7 +304,13 @@ function Hero() {
                     <span className="hero-split-word">Your</span>
                   </span>
                   <span className="hero-heading-line" data-line="2">
-                    <span className="hero-split-word hero-heading-accent">Rhythm</span>
+                    <span className="hero-split-word hero-heading-accent hero-rhythm-bars">
+                      {"Rhythm".split("").map((letter, i) => (
+                        <span className="hero-rhythm-char" style={{ "--i": i } as CSSProperties} key={i}>
+                          {letter}
+                        </span>
+                      ))}
+                    </span>
                     <span className="hero-split-word hero-heading-dot">.</span>
                   </span>
                 </>
@@ -310,26 +319,8 @@ function Hero() {
           </h1>
 
           <p className="hero-subtitle hero-enter" data-enter="subtitle">
-            {cityLabel ? (
-              <>
-                <span className="hero-subtitle-full">
-                  Discover socials, parties, classes, and dance events happening{" "}
-                  {nearby ? (
-                    "near you"
-                  ) : (
-                    <>
-                      in <span className="hero-subtitle-city">{cityLabel}</span>
-                    </>
-                  )}
-                  .
-                </span>
-                <span className="hero-subtitle-short">
-                  Salsa &amp; bachata socials, classes, workshops.
-                </span>
-              </>
-            ) : (
-              "We're growing city by city. Explore events in other cities or submit one near you."
-            )}
+            Find your next place to dance{cityLabel ? (nearby ? " near you" : ` in ${cityLabel}`) : ""}.
+            {" "}Explore salsa and bachata socials, classes, and workshops.
           </p>
 
           <div className="hero-metro hero-enter" data-enter="subtitle">

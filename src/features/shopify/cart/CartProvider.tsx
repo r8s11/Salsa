@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import posthog from "posthog-js";
 import { isShopifyConfigured, storefront, StorefrontError } from "../api/storefront";
 import type { Cart } from "../api/types";
 import { CartContext } from "./CartContext";
@@ -131,10 +132,12 @@ export default function CartProvider({ children }: { children: ReactNode }) {
     // Capture before a pending mutation disables the initiating button and browsers blur it.
     rememberFocus();
     const lines = [{ merchandiseId: variantId, quantity }];
-    return mutate(
+    const added = await mutate(
       (current) => current ? storefront.addCartLines(current.id, lines) : storefront.createCart(lines),
       () => storefront.createCart(lines),
     );
+    if (added) posthog.capture("product_added_to_cart", { quantity });
+    return added;
   }, [mutate, rememberFocus]);
 
   const updateLine = useCallback(async (lineId: string, quantity: number) => {

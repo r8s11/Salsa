@@ -242,9 +242,13 @@
   color: var(--admin-text-muted);
 }
 
-.host-org__field-error {
+/* The shared src/shared/forms/FormFieldError.css primitive renders the
+   markup (.field-error); this override keeps it in the Listings Desk
+   palette — --admin-danger (auto-adapts under .admin-shell[data-theme="dark"])
+   instead of Ritmo Vivo's --red-error, which fails contrast on the light
+   admin surface. margin: 0 preserves the form-field's own 6px gap. */
+.host-org__form-field .field-error {
   margin: 0;
-  font-size: 0.8125rem;
   color: var(--admin-danger);
 }
 

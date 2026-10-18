@@ -1,3 +1,12 @@
+/* Hallmark · pre-emit critique: P4 H4 E5 S4 R5 V4 */
+/* Hallmark · component: form-error-summary · genre: editorial (Ritmo Vivo, per DESIGN.md)
+ * theme: Salsa Segura Design System (DESIGN.md · src/styles/global.css tokens) · design-system: DESIGN.md
+ * states: default · hover · focus · active · disabled (n/a — alert region is never disabled)
+ *          · loading (n/a — renders only after a failure) · error (its only mode)
+ *          · success (n/a — valid submit renders nothing, see FormErrors.preview.html)
+ * contrast: pass (gates 40–41) — pairs verified in handoff
+ * mobile: pass (34, 49, 50–57) · slop: pass (universal subset, 4 fixes applied)
+ */
 /* ========================================
    Public form error summary — shared primitive
    ======================================== */
@@ -13,12 +22,18 @@
   font-family: var(--font-body);
   font-size: 0.875rem;
   text-align: left;
+  overflow-wrap: anywhere;
+  min-width: 0;
 }
 
+/* The region is focused programmatically (tabIndex={-1}); the ring must show
+   on plain :focus too, not only :focus-visible. Offset matches the system's
+   2px focus-ring pattern (gold-light is the default ring per DESIGN.md). */
+.form-error-summary:focus,
 .form-error-summary:focus-visible,
-.form-error-summary:focus {
+.form-error-summary.is-focus {
   outline: 2px solid var(--gold-light);
-  outline-offset: 3px;
+  outline-offset: 2px;
 }
 
 .form-error-summary__heading {
@@ -29,26 +44,52 @@
 }
 
 .form-error-summary__server {
-  margin: 8px 0 0;
+  margin: var(--space-sm) 0 0;
 }
 
 .form-error-summary__list {
-  margin: 8px 0 0;
-  padding-left: 1.1rem;
+  margin: var(--space-sm) 0 0;
+  padding-left: 1.25rem;
   display: grid;
-  gap: 4px;
+  gap: var(--space-xs);
 }
 
+/* Block rows with 12px block padding: line box (~20px) + 24px = the 44px
+   touch-target floor, with no overlap between adjacent rows. */
 .form-error-summary__list a {
+  display: block;
+  padding: calc(var(--space-sm) + var(--space-xs)) 0;
   color: var(--red-error);
   text-decoration: underline;
 }
 
-.form-error-summary__list a:hover {
+/* Forced demo hook (FormErrors.preview.html) must render on any pointer
+   device, so it sits outside the hover gate below. */
+.form-error-summary__list a.is-hover {
   color: var(--red-error-strong);
 }
 
-.form-error-summary__list a:focus-visible {
+@media (hover: hover) {
+  .form-error-summary__list a:hover {
+    color: var(--red-error-strong);
+  }
+}
+
+.form-error-summary__list a:active,
+.form-error-summary__list a.is-active {
+  color: var(--red-error-strong);
+  transform: translateY(1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .form-error-summary__list a:active,
+  .form-error-summary__list a.is-active {
+    transform: none;
+  }
+}
+
+.form-error-summary__list a:focus-visible,
+.form-error-summary__list a.is-focus {
   outline: 2px solid var(--gold-light);
   outline-offset: 2px;
 }

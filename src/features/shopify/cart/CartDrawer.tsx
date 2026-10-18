@@ -1,5 +1,6 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { useLayoutEffect, useRef } from "react";
+import posthog from "posthog-js";
 import { Link } from "react-router-dom";
 import { Minus, Plus } from "lucide-react";
 import Button from "../../../components/ui/Button";
@@ -167,7 +168,7 @@ export default function CartDrawer() {
             <div><dt>Estimated total</dt><dd>{formatMoney(cart.cost.totalAmount)}</dd></div>
           </dl>
           <p>Shipping, taxes, and discounts are finalized at checkout.</p>
-          {!isBusy && !isLoading && !error && isValidCheckoutUrl(cart.checkoutUrl) && <a className="ui-button ui-button--primary ui-button--block" href={cart.checkoutUrl}>Checkout with Shopify</a>}
+          {!isBusy && !isLoading && !error && isValidCheckoutUrl(cart.checkoutUrl) && <a className="ui-button ui-button--primary ui-button--block" href={cart.checkoutUrl} onClick={() => posthog.capture("checkout_started", { item_count: cart.totalQuantity })}>Checkout with Shopify</a>}
         </div>}
       </Dialog.Content>
     </Dialog.Portal>

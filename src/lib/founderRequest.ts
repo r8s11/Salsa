@@ -101,13 +101,24 @@ export function validateInstagram(value: string | undefined): string | null {
   return null;
 }
 
-/** Validate website URL. */
+/** Validate website URL, adding https:// when the user omits a protocol. */
 export function validateWebsite(value: string | undefined): string | null {
   if (!value || !value.trim()) return null;
   const trimmed = value.trim();
   if (trimmed.length > 500) return "Website URL too long (max 500 characters)";
-  if (!/^https?:\/\//i.test(trimmed)) {
-    return "Website must start with http:// or https://";
+  if (
+    /\s/.test(trimmed) ||
+    (/^[a-z][a-z\d+.-]*:/i.test(trimmed) && !/^https?:\/\//i.test(trimmed))
+  ) {
+    return "Enter a valid website URL";
+  }
+  try {
+    const url = new URL(normalizeWebsite(trimmed)!);
+    if (!url.hostname || !/^https?:$/.test(url.protocol)) {
+      return "Enter a valid website URL";
+    }
+  } catch {
+    return "Enter a valid website URL";
   }
   return null;
 }

@@ -138,8 +138,8 @@ describe("validateWebsite", () => {
       "Website URL too long (max 500 characters)"
     );
   });
-  it("rejects missing protocol", () => {
-    expect(validateWebsite("example.com")).toBe("Website must start with http:// or https://");
+  it("accepts a website without a protocol", () => {
+    expect(validateWebsite("example.com")).toBeNull();
   });
   it("accepts http", () => {
     expect(validateWebsite("http://example.com")).toBeNull();
@@ -240,9 +240,9 @@ describe("validateFounderRequest", () => {
   it("catches invalid website", () => {
     const errors = validateFounderRequest({
       ...validPayload,
-      website: "not-a-url",
+      website: "https://",
     });
-    expect(errors.website).toBe("Website must start with http:// or https://");
+    expect(errors.website).toBe("Enter a valid website URL");
   });
 });
 

@@ -85,6 +85,11 @@ colors:
   border: "rgba(255, 255, 255, 0.1)"
   border-md: "rgba(255, 255, 255, 0.16)"
   border-lg: "rgba(255, 255, 255, 0.24)"
+  blue-dim: "rgba(124, 147, 233, 0.15)"
+  # Retail Edit's scoped reading palette, declared in retail-catalog.css.
+  shop-paper: "#edf0fb"
+  shop-muted: "#b8c2dd"
+  shop-rose: "#ff879b"
   # Event types (CALENDARS_CONFIG darkColors in
   # src/features/events/model/calendarsConfig.ts; the calendar always runs
   # dark). `main` marks type; the container pair paints Schedule-X blocks.
@@ -226,6 +231,18 @@ typography:
     fontSize: 12px
     fontWeight: "600"
     lineHeight: "1.2"
+  hero-display:
+    fontFamily: Epilogue
+    fontSize: "clamp(3.25rem, 9vw, 8rem)"
+    fontWeight: "900"
+    lineHeight: "0.92"
+    letterSpacing: -0.02em
+  retail-display:
+    fontFamily: Barlow Condensed
+    fontSize: "clamp(5rem, 9.4vw, 9.5rem)"
+    fontWeight: "700"
+    lineHeight: "0.88"
+    letterSpacing: -0.035em
   desk-agate:
     fontFamily: Be Vietnam Pro
     fontSize: 0.8125rem
@@ -288,6 +305,7 @@ spacing:
   xl: 40px
   xxl: 80px
   container-max: 1280px
+  container-utility-max: 1300px
   gutter: 24px
 components:
   # Ritmo Vivo buttons (src/styles/global.css .btn-*, components/ui/Button.css).
@@ -380,6 +398,18 @@ components:
 ---
 
 ## Overview
+
+**Creative North Star: "Three worlds, one dance publication"**
+
+Rhythmic, vivid, dependable. Expressive outside, precise inside: public
+surfaces invite discovery; operator surfaces support deliberate work;
+the exported Sleeve belongs to printed matter.
+
+**Key Characteristics:**
+- Public navy grounds, warm stage-light accents, bold type and glass.
+- Operator state marks, agate rows and border-only record surfaces.
+- Flat, spot-colour poster artwork kept separate from interface chrome.
+- Shared accessible controls; expression follows the surface's job.
 
 Salsa Segura is one product with three visual languages, applied across
 five areas. They do not mix. Each area's rules live under Components.
@@ -533,21 +563,21 @@ providing structural contrast to the fluid imagery of dance.
 
 UI type sits on the role ramp above, in rem (0.6875 / 0.75 / 0.8125 /
 0.875 / 0.9375 / 1 / 1.125 / 1.375 / 1.5rem). Display composition above
-24px is a band, not a step list: poster titles, hero figures and splash
-headings set 1.5–4.5rem per surface, anchored by display-md (3rem) and
-display-lg (4.5rem). SVG artwork lettering (the vinyl label print) is
-artwork and answers to no ramp.
+24px is surface-specific, not a universal cap. The standard display-md
+(3rem) and display-lg (4.5rem) roles remain useful anchors; the homepage
+hero uses `clamp(3.25rem, 9vw, 8rem)` in Epilogue 900, while the retail
+hero uses `clamp(5rem, 9.4vw, 9.5rem)` in Barlow Condensed 700.
+SVG artwork lettering (the vinyl label print) answers to no UI ramp.
 
 ### Two faces beyond the pair
 
 Epilogue and Be Vietnam Pro carry the system, but production ships two
 more. Both are legitimate roles, not drift.
 
-- **Wordmark** (Great Vibes): the script "Salsa Segura" lockup, and the
-  only place this face appears. Declared as `--font-logo` and used by the
-  header, the sign-in page, and the work-in-progress screen. It is a
-  logotype, never a heading, never body copy, never a decorative flourish
-  on a section title.
+- **Wordmark and shop signature** (Great Vibes): the script “Salsa Segura”
+  lockup, declared as `--font-logo`. The catalog's “Shop” masthead is an
+  explicitly approved extension of this lettering. Keep other headings
+  and body copy in their existing display and reading faces.
 - **Identifier** (`ui-monospace, SFMono-Regular, Menlo, monospace`,
   0.8125rem): tabular identifiers an operator reads character by
   character — record IDs, hashes, raw payloads, submission diffs.
@@ -565,10 +595,11 @@ Condensed for display type (Components › Retail / Shop).
 
 Spacing follows a strict 4px base unit, with large "breathing rooms"
 (XXL, 80px) between major public sections so the dark UI never feels
-cramped. Content is capped at `--container-max` (1280px) with a 24px
-gutter. Collection layouts are fluid auto-fill grids rather than a fixed
-column count (the events grid is `repeat(auto-fill, minmax(288px, 1fr))`
-with a 1.25rem gap).
+cramped. The reusable container utility caps content at 1300px with a 24px
+gutter; the shared `--container-max` token is 1280px and is used by surfaces
+such as the footer. These are distinct implemented measures, not aliases.
+The events grid uses `repeat(auto-fill, minmax(288px, 1fr))` with a 1.25rem
+gap; the shop uses explicit responsive column counts.
 
 Area-specific layout lives with each area: the calendar's responsive
 tiers, the mobile dock's clearance, the desk's two measures and fixed
@@ -626,6 +657,30 @@ city switch, view switcher and sidebar use the neutral `--surface-high`.
 ### Public Experience (Ritmo Vivo)
 
 Everything a dancer sees outside the shop and the poster.
+
+#### Hero rhythm
+
+The homepage's visual “Rhythm” word is six independently scaled letters,
+not an equalizer icon alongside the title. The implemented 2-3 son clave
+uses a 2.72s loop, 0.17s subdivisions and hit positions 2, 4, 8, 11, 14;
+the final letter doubles the fifth hit. Each character rises from 72%
+to full height, with a 2% attack and a decay ending at 26% of the loop.
+The attack is offset so the peak lands on the hit.
+
+Shine follows the same envelope: a registered numeric custom property
+mixes Rose Bright and Gold Light in OKLCH and controls a rose shadow.
+A small four-point glint blooms and fades with each strike. These
+are hero-specific motion details, not a general treatment for headings.
+Individual character scale composes with the parent word's GSAP entrance;
+it does not overwrite that entrance's transform or opacity. The unsplit
+source supplies the accessible heading; the animated layer is hidden from
+assistive technology. Reduced motion shows the static, unsplit heading.
+
+The heading closes with a 72×2px Gold rule, separated by 18px above it
+and 12px of heading bottom padding. On hover-capable devices with motion
+enabled, hovering the heading lengthens the rule to 1.4× over 500ms with
+`cubic-bezier(0.22, 1, 0.36, 1)`. Reduced motion keeps the rule still.
+
 
 #### Calendar
 
@@ -839,6 +894,15 @@ past nights as plain, static images — no masonry, no video previews.
 
 #### Navigation
 
+##### Desktop header
+
+Desktop navigation begins at 1024px. Between 1024px and 1279.98px, tighter
+link spacing keeps every destination, Submit Event and Sign In inside the
+viewport. City-selection triggers without a caller-supplied label show a
+short code at every width (for example DC, NYC or BOS), retaining the full
+city in their accessible name, native title hint and selection list.
+Explicit labels such as “Explore other cities” remain unchanged.
+
 ##### Mobile header
 
 The full two-tone wordmark leads the bar. A compact city code and a 44px
@@ -881,6 +945,43 @@ viewport, leaving support and contact actions unobscured. It returns when
 the footer leaves view only if the visitor remains past its scroll
 threshold. The dock's city badge and the header's city picker remain
 available.
+
+#### Footer
+
+The footer closes the public experience with hosting as its primary action.
+“Host an event” is a heading link with rose emphasis on “event” and a Solar
+directional arrow. Its desktop title is 2.25rem with -0.03em tracking;
+the mobile override below 768px remains `clamp(3rem, 10vw, 4.5rem)`.
+The compact desktop shell uses `clamp(1.75rem, 3.5vw, 2.5rem)` top padding.
+“Passion For Dance” supports the invitation in 0.875rem type.
+A separate utility tier holds the two-tone logo and service area, contact
+navigation, and native “Buy me a coffee” link. Icons are bundled through
+Iconify; no remote button image or decorative media is required. Destinations
+and copyright wording are unchanged.
+
+Below 1024px support moves beneath identity and navigation. Below 768px the
+utility groups stack and the invitation wraps naturally. All links retain at
+least 44px targets and visible keyboard focus. GSAP introduces the complete
+hosting link, supporting tagline, and utility tier once with small translations,
+never hidden content or individually animated link words. Reduced motion
+bypasses entrance and CSS transform feedback; scoped matchMedia cleanup reverts
+motion on preference changes or unmount.
+Existing route-owned Lenis remains the only
+smooth-scroll engine; the footer creates no scroll instance or WebGL surface.
+Styles stay scoped to `.site-footer`; the public layout owns mobile dock clearance.
+
+#### Entity pages
+
+Public listing pages close with their own band above the site Footer, never a
+second footer. A hairline `--border` rule opens it. The closing action is a
+display-scale link ("Discover dance communities") in Epilogue 800
+(1.5–2.25rem, -0.03em) with "communities" in Gold and a bundled Solar
+arrow-right-up glyph; the listing-management prompt (`.entity-claim-control`,
+venues only) sits opposite it on the same baseline in its usual muted voice,
+its own rule removed here so the band carries one. Hover lights the label Gold
+Light, grows the underline in, and slides the arrow up-right. Below 760px the
+pair stacks left. Contrast floors, 44px targets, the Gold focus ring and
+reduced motion (transition durations 0s) hold as elsewhere.
 
 ### The Sleeve
 
@@ -1175,6 +1276,20 @@ Escape closes it and restores trigger focus. Outside pointer interaction,
 focus leaving the disclosure, or route navigation closes it without
 pulling focus away from the user's next action.
 
+The topbar panel is identity-first: a 48px profile photo or initials,
+display name, clipped email and the existing role badge. Profile presentation
+comes from the shared own-profile query; the role comes from AuthContext,
+never a profile display field. Account and View site use icon-led rows with
+short supporting text. Appearance retains its native disclosure and offers
+System, Light and Dark as three equal radio targets. These controls are scoped
+to the topbar panel; the drawer keeps its existing theme layout.
+
+The panel is at most 340px wide, bounded by the viewport and scrollable in
+short windows. It uses only the admin light/dark tokens and border-only
+elevation—no public palette or glow. The avatar trigger stays 44px; menu and
+theme actions are 64px targets, with inset focus rings that remain visible
+inside the scrolling panel.
+
 Both topbar and drawer link Account to `/account`. Existing sign-out
 scopes stay explicit: the topbar says "Sign out on all devices"
 (`global`); the drawer says "Sign out on this device" (`local`). Pending
@@ -1211,6 +1326,55 @@ events) belong there; the desk reports work, not scale.
 A table is the container for its rows and sits in at most one
 `.admin-card`. Never give each row its own card where a table belongs.
 
+##### Entity directories
+
+The Directory pages (Schools, Artists, Organizers, Series —
+`AdminEntityDirectoryPage`) are the reference record table.
+
+**One card, filters on top.** A single `.admin-card` bounds the search
+form and the table. The filters sit on a ruled band at the top of the
+card; the table runs full-bleed beneath them. The card carries no
+padding of its own so the table rules meet its border. Load errors
+surface as an `.admin-banner--error` with Try again above the card, never
+inside it.
+
+**The name is the row header.** Each row opens with a `<th scope="row">`
+holding the record link (strong ink, no underline until hover) and,
+beneath it, the public URL slug in the Identifier face (`--font-mono`),
+or "No public URL" when absent. Columns follow: City, Events
+(right-aligned, tabular figures), Quality (warning-tint flag chips, or
+muted "Complete"), Status (pill, shrink-to-fit).
+
+**State on the leading edge.** A row that needs a decision is findable by
+shape, not only by its pill: `needs_review` rows carry a 3px amber
+(`--admin-warning-dot`) inset rule on the leading edge, `suspended` rows
+a red (`--admin-danger`) one. Archived is a resting state, not a fault:
+its pill is neutral (surface-secondary ground, muted ink) and its
+secondary cells drop to muted. Danger tint is reserved for `suspended`.
+
+**Tally line.** Under the page title, one muted line reports
+"{n} {kind} · {n} need review · {n} with quality flags", with "matching"
+appended while a filter is active. It counts only the rows the server
+returned for the current query and status; it never claims a platform
+total, and it hides while loading, on error, or when the list is empty.
+
+**Empty states name the next action.** With a search or status filter
+active: "No {kind} match these filters", the query echoed back, and a
+Clear filters button that resets both. With no filter: "No {kind} yet"
+and a pointer to the page's Create {kind} action.
+
+**Phone reflow (≤720px).** The table stays one DOM; the header row is
+visually hidden and each row reflows into a stacked record on a grid:
+name and slug with the status pill top-right, then city and "N events"
+side by side in muted ink (the "events" unit appears only here), then
+the flag chips.
+A row with no quality flags drops the Quality line visually, but the cell
+stays in the accessibility tree (clipped, never `display: none`) so every
+row keeps one cell per column header. Native table roles survive this
+reflow in WebKit 18.4 without ARIA overrides. The leading-edge state rule
+moves from the name cell to the whole row. The filter band collapses to
+one column.
+
 #### Forms
 
 A form sits in one `.admin-card` that bounds the fields being committed.
@@ -1225,6 +1389,12 @@ character by character. A decision the desk's galley can carry in place
 (approve, reject) never requires routing to a record page.
 
 ### Retail / Shop
+
+The catalog masthead reads “Shop” only, in Great Vibes 400—the same font
+as the Salsa Segura wordmark. Gold Light ink, `clamp(2.75rem, 4vw, 3.5rem)`
+size, 1.4 line-height and 8px vertical padding leave the flourishes room
+to breathe. Tracking is normal and case is unchanged. The existing cart
+button remains opposite it.
 
 Retail Edit is the shipping catalog, product and cart design on `/shop`
 and `/shop/products/:handle`, in Ritmo Vivo; it is no longer a
@@ -1268,7 +1438,7 @@ not generated assets. Missing product media retains a deterministic named
 fallback. When JavaScript is disabled, the static app shell provides a
 merchant-store link instead of a blank page.
 
-## Accessibility
+### Accessibility
 
 **Touch targets.**
 

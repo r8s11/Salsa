@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
+import { ChevronRight, LayoutDashboard, LogOut, Settings2, UserRound } from "lucide-react";
+import { resolveIdentity } from "../../features/account/model/account";
 import { useAuth } from "../../contexts/useAuth";
 import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
 import { useOwnProfile } from "../../features/account/hooks/useOwnProfile";
@@ -21,12 +23,25 @@ const PRIMARY_LINKS = [
 
 function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [signOutPending, setSignOutPending] = useState(false);
+  const [signOutError, setSignOutError] = useState<string | null>(null);
   const accountDisclosure = useRef<HTMLDetailsElement>(null);
   const navigationRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const { user, isModerator, isAdmin, isOrganizer, signOut } = useAuth();
   const { profile } = useOwnProfile(user?.id);
   const navigate = useNavigate();
+  const identity = resolveIdentity({
+    display_name: profile?.display_name ?? null,
+    username: profile?.username ?? null,
+  });
+  const roleLabel = isAdmin
+    ? "Admin"
+    : isModerator
+      ? "Moderator"
+      : isOrganizer
+        ? "Organizer"
+        : "Member";
   // Admins author platform events directly; everyone else uses the moderated
   // public submission flow.
   const eventCreateTo = resolveEventCreateDestination(isAdmin ? "admin" : null);
@@ -44,7 +59,11 @@ function Header() {
     accountDisclosure.current?.removeAttribute("open");
   }, []);
 
-  useEscapeKey(closeNavigation);
+  useEscapeKey(() => {
+    const wasAccountOpen = accountDisclosure.current?.open;
+    closeNavigation();
+    if (wasAccountOpen) accountDisclosure.current?.querySelector("summary")?.focus();
+  });
   const { onKeyDown: onNavigationKeyDown } = useAccessibleDialog({
     dialogRef: navigationRef,
     initialFocusRef: menuButtonRef,
@@ -60,10 +79,38 @@ function Header() {
     return () => window.removeEventListener("resize", closeOnDesktop);
   }, [closeNavigation]);
 
+  useEffect(() => {
+    const dismissOutside = (event: PointerEvent | FocusEvent) => {
+      const disclosure = accountDisclosure.current;
+      if (disclosure?.open && event.target instanceof Node && !disclosure.contains(event.target)) {
+        disclosure.removeAttribute("open");
+      }
+    };
+    document.addEventListener("pointerdown", dismissOutside);
+    document.addEventListener("focusin", dismissOutside);
+    return () => {
+      document.removeEventListener("pointerdown", dismissOutside);
+      document.removeEventListener("focusin", dismissOutside);
+    };
+  }, []);
+
   const handleSignOut = async () => {
-    await signOut("global");
-    closeNavigation();
-    navigate("/");
+    if (signOutPending) return;
+    setSignOutPending(true);
+    setSignOutError(null);
+    try {
+      const result = await signOut("global");
+      if (result?.error) {
+        setSignOutError("We couldn't sign you out. Please try again.");
+        return;
+      }
+      closeNavigation();
+      navigate("/");
+    } catch {
+      setSignOutError("We couldn't sign you out. Please try again.");
+    } finally {
+      setSignOutPending(false);
+    }
   };
 
   return (
@@ -120,7 +167,13 @@ function Header() {
                       <span className="mobile-nav__dashboards-label">Dashboard</span>
                       {dashboardLinks.map(({ to, label }) => (
                         <NavLink key={to} to={to} onClick={closeNavigation}>
+                          <LayoutDashboard size={18} aria-hidden="true" />
                           {label}
+                          <ChevronRight
+                            size={16}
+                            className="account-menu__arrow"
+                            aria-hidden="true"
+                          />
                         </NavLink>
                       ))}
                     </div>
@@ -133,9 +186,7 @@ function Header() {
                       email={user.email}
                     />
                     <span className="mobile-nav__identity-text">
-                      <span className="mobile-nav__identity-name">
-                        {profile?.display_name ?? profile?.username ?? "My Account"}
-                      </span>
+                      <span className="mobile-nav__identity-name">{identity.name}</span>
                       {user.email && (
                         <span className="mobile-nav__identity-email">{user.email}</span>
                       )}
@@ -144,12 +195,37 @@ function Header() {
                       Account
                     </span>
                   </NavLink>
-                  <NavLink to="/profile" onClick={closeNavigation}>
-                    My Profile
+                  <NavLink
+                    to="/profile"
+                    className="account-menu__row"
+                    aria-label="My Profile"
+                    onClick={closeNavigation}
+                  >
+                    <UserRound size={20} aria-hidden="true" />
+                    <span className="account-menu__row-copy">
+                      <strong>My Profile</strong>
+                      <small>Your profile and activity</small>
+                    </span>
+                    <ChevronRight size={16} className="account-menu__arrow" aria-hidden="true" />
                   </NavLink>
-                  <button type="button" className="drawer-sign-out" onClick={handleSignOut}>
-                    Sign Out
+                  <button
+                    type="button"
+                    className="drawer-sign-out account-menu__row account-menu__signout"
+                    aria-label="Sign Out"
+                    onClick={handleSignOut}
+                    disabled={signOutPending}
+                  >
+                    <LogOut size={20} aria-hidden="true" />
+                    <span className="account-menu__row-copy">
+                      <strong>{signOutPending ? "Signing out…" : "Sign Out"}</strong>
+                      <small>On all devices</small>
+                    </span>
                   </button>
+                  {mobileOpen && signOutError && (
+                    <p className="account-menu__error" role="alert">
+                      {signOutError}
+                    </p>
+                  )}
                 </>
               ) : (
                 <>
@@ -200,25 +276,95 @@ function Header() {
               />
             </summary>
             <div className="account-disclosure__menu">
+              <div className="account-menu__identity">
+                <AccountAvatar
+                  avatarUrl={profile?.avatar_url}
+                  displayName={profile?.display_name}
+                  username={profile?.username}
+                  email={user.email}
+                  size={48}
+                />
+                <div className="account-menu__identity-copy">
+                  <strong className="account-menu__name" title={identity.name}>
+                    {identity.name}
+                  </strong>
+                  {user.email && (
+                    <span className="account-menu__email" title={user.email}>
+                      {user.email}
+                    </span>
+                  )}
+                  <span className="account-menu__role">{roleLabel}</span>
+                </div>
+              </div>
               {dashboardLinks.length > 0 && (
                 <div className="account-disclosure__dashboards">
                   <span className="account-disclosure__dashboards-label">Dashboard</span>
                   {dashboardLinks.map(({ to, label }) => (
-                    <NavLink key={to} to={to} onClick={closeNavigation}>
-                      {label}
+                    <NavLink
+                      key={to}
+                      to={to}
+                      className="account-menu__row account-menu__dashboard"
+                      aria-label={label}
+                      onClick={closeNavigation}
+                    >
+                      <LayoutDashboard size={20} aria-hidden="true" />
+                      <span className="account-menu__row-copy">
+                        <strong>{label}</strong>
+                        <small>Open your dashboard</small>
+                      </span>
+                      <ChevronRight size={16} className="account-menu__arrow" aria-hidden="true" />
                     </NavLink>
                   ))}
                 </div>
               )}
-              <NavLink to="/account" onClick={closeNavigation}>
-                My Account
-              </NavLink>
-              <NavLink to="/profile" onClick={closeNavigation}>
-                My Profile
-              </NavLink>
-              <button type="button" onClick={handleSignOut}>
-                Sign Out
-              </button>
+              <div className="account-menu__links">
+                <NavLink
+                  to="/account"
+                  className="account-menu__row"
+                  aria-label="My Account"
+                  onClick={closeNavigation}
+                >
+                  <Settings2 size={20} aria-hidden="true" />
+                  <span className="account-menu__row-copy">
+                    <strong>My Account</strong>
+                    <small>Settings and preferences</small>
+                  </span>
+                  <ChevronRight size={16} className="account-menu__arrow" aria-hidden="true" />
+                </NavLink>
+                <NavLink
+                  to="/profile"
+                  className="account-menu__row"
+                  aria-label="My Profile"
+                  onClick={closeNavigation}
+                >
+                  <UserRound size={20} aria-hidden="true" />
+                  <span className="account-menu__row-copy">
+                    <strong>My Profile</strong>
+                    <small>Your profile and activity</small>
+                  </span>
+                  <ChevronRight size={16} className="account-menu__arrow" aria-hidden="true" />
+                </NavLink>
+              </div>
+              <div className="account-menu__footer">
+                <button
+                  type="button"
+                  className="account-menu__row account-menu__signout"
+                  aria-label="Sign Out"
+                  onClick={handleSignOut}
+                  disabled={signOutPending}
+                >
+                  <LogOut size={20} aria-hidden="true" />
+                  <span className="account-menu__row-copy">
+                    <strong>{signOutPending ? "Signing out…" : "Sign Out"}</strong>
+                    <small>On all devices</small>
+                  </span>
+                </button>
+                {signOutError && (
+                  <p className="account-menu__error" role="alert">
+                    {signOutError}
+                  </p>
+                )}
+              </div>
             </div>
           </details>
         )}

@@ -91,7 +91,9 @@ describe("FounderRequestForm", () => {
     const user = userEvent.setup();
     renderForm();
 
-    fireEvent.change(screen.getByLabelText(/your name \*/i), { target: { value: "a".repeat(256) } });
+    fireEvent.change(screen.getByLabelText(/your name \*/i), {
+      target: { value: "a".repeat(256) },
+    });
     await user.type(screen.getByLabelText(/email \*/i), "john@example.com");
     fireEvent.change(screen.getByLabelText(/organization \/ event brand \*/i), {
       target: { value: "a".repeat(256) },
@@ -104,15 +106,15 @@ describe("FounderRequestForm", () => {
     });
   });
 
-  it("validates website URL format", async () => {
+  it("rejects malformed website URLs", async () => {
     const user = userEvent.setup();
     renderForm();
 
-    await user.type(screen.getByLabelText(/^website$/i), "not-a-url");
+    await user.type(screen.getByLabelText(/^website$/i), "https://");
     await user.click(screen.getByRole("button", { name: /submit request/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/website must start with http/i)).toBeInTheDocument();
+      expect(screen.getByText(/enter a valid website url/i)).toBeInTheDocument();
     });
   });
 
@@ -123,7 +125,7 @@ describe("FounderRequestForm", () => {
 
     await fillRequiredFields(user);
     await user.type(screen.getByLabelText(/instagram/i), validPayload.instagram!);
-    await user.type(screen.getByLabelText(/^website$/i), validPayload.website!);
+    await user.type(screen.getByLabelText(/^website$/i), "salsanights.com");
     await user.type(screen.getByLabelText(/city/i), validPayload.city!);
     await user.type(screen.getByLabelText(/region \/ state/i), validPayload.region!);
     await user.type(screen.getByLabelText(/tell us about your events/i), validPayload.description!);

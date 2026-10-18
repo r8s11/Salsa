@@ -109,17 +109,18 @@ export default function MetroExplorer({
       <button
         ref={triggerRef}
         type="button"
-        className="metro-explorer__trigger"
+        className={`metro-explorer__trigger${label ? "" : " metro-explorer__trigger--code"}`}
         aria-expanded={open}
         aria-controls={panelId}
         aria-label={label ? undefined : `City: ${current ?? "none chosen"}. Explore other cities`}
+        title={label ? undefined : (current ?? undefined)}
         onClick={() => setOpen((value) => !value)}
       >
         <MapPin size={16} aria-hidden="true" />
         <span className="metro-explorer__trigger-text metro-explorer__trigger-text--full">
           {triggerText}
         </span>
-        {variant === "compact" && (
+        {!label && (
           <span className="metro-explorer__trigger-text metro-explorer__trigger-text--short" aria-hidden="true">
             {current ? metroShortCode(current) : "Cities"}
           </span>

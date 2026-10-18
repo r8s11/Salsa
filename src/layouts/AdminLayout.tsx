@@ -1,9 +1,13 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { ChevronRight, Menu, X } from "lucide-react";
+import { ChevronRight, Globe2, LogOut, Menu, Palette, Settings2, X } from "lucide-react";
 import { useAuth } from "../contexts/useAuth";
 import AdminThemeOptions from "../features/admin/components/shell/AdminThemeOptions";
 import AdminSidebar from "../features/admin/components/shell/AdminSidebar";
+import AdminRoleBadge from "../features/admin/components/users/AdminRoleBadge";
+import AccountAvatar from "../components/layout/AccountAvatar";
+import { useOwnProfile } from "../features/account/hooks/useOwnProfile";
+import { resolveIdentity } from "../features/account/model/account";
 import { useAccessibleDialog } from "../shared/a11y/useAccessibleDialog";
 import SkipLink from "../shared/a11y/SkipLink";
 import {
@@ -103,6 +107,11 @@ export default function AdminLayout() {
   }, []);
   const { pathname } = useLocation();
   const { user, role, signOut } = useAuth();
+  const { profile } = useOwnProfile(user?.id);
+  const identity = resolveIdentity({
+    display_name: profile?.display_name ?? null,
+    username: profile?.username ?? null,
+  });
 
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
   const drawerRef = useRef<HTMLDivElement>(null);
@@ -165,7 +174,6 @@ export default function AdminLayout() {
     : pathname === "/admin"
       ? `${rolePrefix} · ${sectionLabel}`
       : sectionLabel;
-  const initial = user?.email ? user.email.charAt(0).toUpperCase() : "?";
   // Host and Admin share this shell; the mode drives the navigation landmark
   // name. Below 1024px both modes navigate through the labelled drawer; the
   // fixed sidebar (and its user-collapsible rail) appears at 1024px.
@@ -248,35 +256,96 @@ export default function AdminLayout() {
           }}
         >
           <summary className="admin-account__trigger" role="button" aria-label="Account menu">
-            <span className="admin-account__avatar">{initial}</span>
+            <span className="admin-account__avatar">
+              <AccountAvatar
+                avatarUrl={profile?.avatar_url}
+                displayName={profile?.display_name}
+                username={profile?.username}
+                email={user?.email}
+                size={32}
+              />
+            </span>
           </summary>
           <div className="admin-account__menu">
-            {user?.email && (
-              <div className="admin-account__identity">
-                <p className="admin-account__email">{user.email}</p>
+            <div className="admin-account__identity">
+              <span className="admin-account__avatar admin-account__avatar--large">
+                <AccountAvatar
+                  avatarUrl={profile?.avatar_url}
+                  displayName={profile?.display_name}
+                  username={profile?.username}
+                  email={user?.email}
+                  size={48}
+                />
+              </span>
+              <div className="admin-account__identity-copy">
+                <strong className="admin-account__name" title={identity.name}>
+                  {identity.name}
+                </strong>
+                {user?.email && (
+                  <p className="admin-account__email" title={user.email}>
+                    {user.email}
+                  </p>
+                )}
+                <AdminRoleBadge role={role ?? "user"} />
               </div>
-            )}
-            <details className="admin-account__appearance">
-              <summary>
-                Appearance
-                <ChevronRight size={14} />
-              </summary>
-              <AdminThemeOptions name="admin-theme" />
-            </details>
-            <Link to="/account" onClick={() => closeAccount()}>
-              Account
-            </Link>
-            <Link to="/" onClick={() => closeAccount()}>
-              View site
-            </Link>
-            <div ref={signOutRef}>
+            </div>
+            <div className="admin-account__links">
+              <Link
+                to="/account"
+                className="admin-account__row"
+                aria-label="Account"
+                onClick={() => closeAccount()}
+              >
+                <Settings2 size={20} aria-hidden="true" />
+                <span className="admin-account__row-copy">
+                  <strong>Account</strong>
+                  <small>Settings and preferences</small>
+                </span>
+                <ChevronRight size={16} className="admin-account__arrow" aria-hidden="true" />
+              </Link>
+              <Link
+                to="/"
+                className="admin-account__row"
+                aria-label="View site"
+                onClick={() => closeAccount()}
+              >
+                <Globe2 size={20} aria-hidden="true" />
+                <span className="admin-account__row-copy">
+                  <strong>View site</strong>
+                  <small>Back to Salsa Segura</small>
+                </span>
+                <ChevronRight size={16} className="admin-account__arrow" aria-hidden="true" />
+              </Link>
+            </div>
+            <div className="admin-account__preferences">
+              <details className="admin-account__appearance">
+                <summary className="admin-account__row" aria-label="Appearance">
+                  <Palette size={20} aria-hidden="true" />
+                  <span className="admin-account__row-copy">
+                    <strong>Appearance</strong>
+                    <small>System, light or dark</small>
+                  </span>
+                  <ChevronRight size={16} className="admin-account__arrow" aria-hidden="true" />
+                </summary>
+                <AdminThemeOptions name="admin-theme" />
+              </details>
+            </div>
+            <div ref={signOutRef} className="admin-account__footer">
               {signOutState === "error" && (
                 <p role="alert" className="admin-account__error">
                   We couldn't sign you out on all devices. Try again.
                 </p>
               )}
-              <button type="button" onClick={handleSignOut} disabled={signOutState === "pending"}>
-                {signOutState === "pending" ? "Signing out…" : "Sign out on all devices"}
+              <button
+                type="button"
+                className="admin-account__row admin-account__signout"
+                onClick={handleSignOut}
+                disabled={signOutState === "pending"}
+              >
+                <LogOut size={20} aria-hidden="true" />
+                <strong>
+                  {signOutState === "pending" ? "Signing out…" : "Sign out on all devices"}
+                </strong>
               </button>
             </div>
           </div>

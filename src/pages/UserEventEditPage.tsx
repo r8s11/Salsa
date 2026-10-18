@@ -1,5 +1,6 @@
 import type { FormEvent } from "react";
 import { useEffect, useRef, useState } from "react";
+import posthog from "posthog-js";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { XCircle } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -234,6 +235,11 @@ export default function UserEventEditPage() {
       setSavedFlyerUrl(uploadedFlyerUrl);
       setSelectedFlyer(null);
     }
+    posthog.capture("event_submission_updated", {
+      event_status: editingEvent.status,
+      is_organizer: isOrganizer,
+      flyer_updated: Boolean(uploadedFlyerUrl),
+    });
     setSaveSuccess("Changes saved.");
     // A successful save is the new "unsaved changes" baseline — clears the
     // beforeunload warning until the Host edits again.
@@ -252,6 +258,7 @@ export default function UserEventEditPage() {
     setWithdrawError(null);
     try {
       await withdrawMutation.mutateAsync(editingEvent);
+      posthog.capture("event_submission_withdrawn", { is_organizer: isOrganizer });
     } catch (error) {
       setWithdrawError(error instanceof Error ? error.message : "Unknown error");
     }

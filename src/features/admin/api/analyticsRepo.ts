@@ -2,6 +2,8 @@ import { supabase } from "../../../lib/supabase";
 import { parseCities, parseEventEngagement, parseInsights, parseMetrics, type AnalyticsData, type AnalyticsEngagement, type AnalyticsInsights, type DateRange, type EngagementSort, type Granularity } from "../model/analyticsQuery";
 import { parseEntityPerformance, type EntityIntelligence, type EntityPerformanceOptions } from "../model/analyticsQuery";
 import { parseOperations, parseReport, type AnalyticsReport, type OperationOffsets, type Operations, type ReportKind } from "../model/operationalAnalytics";
+import { parseMonitoring, parsePreferences } from "../model/analyticsMonitoring";
+import type { AnalyticsPreferences, Monitoring } from "../model/analyticsMonitoring";
 
 /** One administrator-gated aggregation snapshot; no private rows reach the browser. */
 export async function fetchAnalytics(range: DateRange): Promise<AnalyticsData> {
@@ -79,4 +81,21 @@ export async function fetchAnalyticsReport(kind: ReportKind, range: DateRange, s
     throw new Error("Unable to export report. Its data source may be unavailable. Please try again.");
   }
   return parseReport(data);
+}
+
+/** Persisted automation results; optional-source failures never block earlier analytics. */
+export async function fetchAnalyticsMonitoring(): Promise<Monitoring> {
+  const { data, error } = await supabase.rpc("admin_analytics_monitoring");
+  if (error) throw new Error("Analytics monitoring is unavailable. Try again.");
+  return parseMonitoring(data);
+}
+
+export async function saveAnalyticsPreferences(preferences: AnalyticsPreferences): Promise<AnalyticsPreferences> {
+  const { data, error } = await supabase.rpc("admin_analytics_save_preferences", {
+    p_frequency: preferences.frequency, p_email: preferences.email_enabled,
+    p_backlog: preferences.submission_backlog, p_metros: preferences.metro_inventory,
+    p_quality: preferences.event_data_quality, p_health: preferences.analytics_data_health,
+  });
+  if (error) throw new Error("Your notification preferences were not saved. Refresh and try again.");
+  return parsePreferences(data);
 }

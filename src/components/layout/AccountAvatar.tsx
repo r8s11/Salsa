@@ -29,6 +29,7 @@ export default function AccountAvatar({
         alt=""
         width={size}
         height={size}
+        style={{ width: size, height: size }}
         loading="lazy"
         onError={() => setFailedUrl(avatarUrl)}
       />

@@ -102,13 +102,10 @@
   border-color: var(--red);
 }
 
-/* Field-error typography/colour now comes from the shared
-   src/shared/forms/FormFieldError.css primitive; this rule only kept the
-   layout that predates it. The former `var(--error)` / `var(--text-xs)`
-   values were undefined tokens, so the text fell back to inherited colour. */
-.field-error {
-  font-size: 0.8125rem;
-}
+/* Field-error typography/colour/margin come from the shared
+   src/shared/forms/FormFieldError.css primitive. The former local rule
+   (plus its undefined `var(--error)` / `var(--text-xs)` values) was removed
+   as redundant — do not re-add per-form field-error styling here. */
 
 .field-hint {
   font-size: 0.8125rem;

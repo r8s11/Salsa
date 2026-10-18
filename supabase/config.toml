@@ -481,3 +481,8 @@ verify_jwt = false
 # reading the owner-prefixed flyer and contacting OpenAI.
 verify_jwt = true
 
+
+[functions.admin-analytics-monitor]
+# Scheduler-only: dedicated Vault/server secret is verified inside the handler.
+# No client JWT, recipient or report-window parameter is accepted.
+verify_jwt = false

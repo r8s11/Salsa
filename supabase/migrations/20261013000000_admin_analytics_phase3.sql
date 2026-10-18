@@ -3,6 +3,21 @@
 -- or source metadata is collected. The public RPC is bounded against burst abuse;
 -- it is not a unique-visitor or distributed-bot control.
 
+-- Reconcile the telemetry prerequisite when the older migration was not deployed.
+-- Reuse its schema; do not replay its superseded analytics RPC replacements.
+create table if not exists public.event_touches (
+  id         uuid primary key default gen_random_uuid(),
+  event_id   uuid not null references public.events(id) on delete cascade,
+  kind       text not null check (kind in ('view', 'rsvp_click')),
+  touched_at timestamptz not null default now()
+);
+alter table public.event_touches enable row level security;
+revoke all on table public.event_touches from public, anon, authenticated;
+create index if not exists event_touches_kind_time_idx
+  on public.event_touches (kind, touched_at);
+create index if not exists event_touches_event_id_idx
+  on public.event_touches (event_id);
+
 alter table public.event_touches drop constraint if exists event_touches_kind_check;
 alter table public.event_touches add constraint event_touches_kind_check
   check (kind in ('view', 'rsvp_click', 'ticket_click', 'share'));

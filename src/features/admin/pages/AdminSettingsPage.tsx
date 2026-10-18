@@ -514,14 +514,20 @@ export default function AdminSettingsPage() {
         </p>
       </section>
 
+      <section className="admin-card admin-settings__card" aria-labelledby="analytics-notifications-settings-title">
+        <h2 id="analytics-notifications-settings-title">Analytics Notifications</h2>
+        <p>Manage your scheduled reports, optional administrator emails, and operational alert categories.</p>
+        <a className="admin-btn admin-btn--secondary" href="/admin/analytics#analytics-notifications">Manage Analytics Notifications</a>
+      </section>
+
       <section
         className="admin-card admin-settings__boundary"
         aria-labelledby="later-settings-heading"
       >
         <h2 id="later-settings-heading">Later settings</h2>
         <p>
-          Organizer settings, branding, SEO &amp; sharing, localization, notifications, and advanced
-          infrastructure remain deployment or product-workflow concerns until each has an
+          Organizer settings, branding, SEO &amp; sharing, localization, and advanced infrastructure
+          remain deployment or product-workflow concerns until each has an
           enforceable contract.
         </p>
       </section>

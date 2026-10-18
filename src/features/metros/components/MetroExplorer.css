@@ -45,27 +45,30 @@
   transform: rotate(180deg);
 }
 
-/* Compact: header bar, uppercase label to sit with the nav links. */
-.metro-explorer--compact .metro-explorer__trigger {
-  padding: 0 var(--space-sm) 0 12px;
-  font-size: 0.75rem;
-  font-weight: 600;
+/* With no caller label the trigger shows the city's short code ("DC", "NYC") at
+   every width; the full name stays in the accessible label and the tooltip. A
+   trigger with a caller label shows that label as given. */
+.metro-explorer__trigger--code {
+  gap: 6px;
+  padding: 0 10px 0 12px;
+}
+
+.metro-explorer__trigger--code .metro-explorer__trigger-text--full {
+  display: none;
+}
+
+.metro-explorer__trigger-text--short {
+  display: inline;
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
-.metro-explorer__trigger-text--short {
-  display: none;
-}
-
-@media (max-width: 639.98px) {
-  .metro-explorer--compact .metro-explorer__trigger-text--full {
-    display: none;
-  }
-
-  .metro-explorer--compact .metro-explorer__trigger-text--short {
-    display: inline;
-  }
+/* Compact: header bar, uppercase label to sit with the nav links. */
+.metro-explorer--compact .metro-explorer__trigger {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .metro-explorer--pill .metro-explorer__trigger {

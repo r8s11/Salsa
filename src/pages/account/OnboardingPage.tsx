@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import posthog from "posthog-js";
 import { Camera } from "lucide-react";
 import { useAuth } from "../../contexts/useAuth";
 import { useOwnProfile } from "../../features/account/hooks/useOwnProfile";
@@ -227,6 +228,7 @@ export default function OnboardingPage() {
         bio: form.bio.trim() || undefined,
         avatar_url: avatarToSave,
       });
+      posthog.capture("onboarding_completed", { completion_method: "profile_completed" });
       navigate(returnTo, { replace: true });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -252,6 +254,7 @@ export default function OnboardingPage() {
     setError(null);
     try {
       await markOnboardingComplete();
+      posthog.capture("onboarding_completed", { completion_method: "skipped" });
       navigate(returnTo, { replace: true });
     } catch {
       setError("Could not skip onboarding. Please try again.");

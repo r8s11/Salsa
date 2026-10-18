@@ -19,7 +19,7 @@ export default function AdminEditedFieldDisclosure({
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="admin-chip"
-          style={{ display: "flex", alignItems: "center", gap: "var(--admin-space-1)" }}
+          style={{ display: "flex", alignItems: "center", gap: "var(--space-xs)" }}
           aria-expanded={isOpen}
         >
           Edited {isOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
@@ -29,7 +29,7 @@ export default function AdminEditedFieldDisclosure({
       {isOpen && (
         <div
           className="admin-card"
-          style={{ marginTop: "var(--admin-space-2)", padding: "var(--admin-space-2)" }}
+          style={{ marginTop: "var(--space-sm)", padding: "var(--space-sm)" }}
         >
           <div className="admin-text-xs" style={{ color: "var(--admin-text-secondary)" }}>
             Original value:
@@ -37,7 +37,7 @@ export default function AdminEditedFieldDisclosure({
           <div style={{ color: "var(--admin-text-secondary)" }}>{originalValue}</div>
           <div
             className="admin-text-xs"
-            style={{ color: "var(--admin-text-secondary)", marginTop: "var(--admin-space-2)" }}
+            style={{ color: "var(--admin-text-secondary)", marginTop: "var(--space-sm)" }}
           >
             Updated value:
           </div>

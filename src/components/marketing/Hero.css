@@ -287,7 +287,6 @@
     radial-gradient(90% 70% at 78% 8%, rgba(225, 29, 72, 0.22), transparent 60%),
     radial-gradient(70% 60% at 8% 90%, rgba(233, 195, 73, 0.12), transparent 55%);
   animation: heroGlowPulse 12s ease-in-out infinite;
-  will-change: opacity, transform;
 }
 
 /* Subtle line grid */
@@ -295,13 +294,24 @@
   position: absolute;
   inset: 0;
   z-index: 2;
+  overflow: hidden;
+  mask-image: radial-gradient(80% 70% at 50% 30%, #000, transparent);
+  -webkit-mask-image: radial-gradient(80% 70% at 50% 30%, #000, transparent);
+}
+
+/* The lines live on an oversized child so the drift is a compositor-only
+   transform (a 26px pan on a 52px tile) instead of a per-frame repaint of
+   the masked backdrop via background-position. */
+.hero-grid::before {
+  content: "";
+  position: absolute;
+  inset: -52px 0 0 -52px;
   background-image:
     linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
   background-size: 52px 52px;
-  mask-image: radial-gradient(80% 70% at 50% 30%, #000, transparent);
-  -webkit-mask-image: radial-gradient(80% 70% at 50% 30%, #000, transparent);
   animation: heroGridDrift 20s ease-in-out infinite;
+  will-change: transform;
 }
 
 /* ── Content ── */
@@ -347,7 +357,27 @@
   letter-spacing: -0.02em;
   font-size: clamp(3.25rem, 9vw, 8rem);
   margin: 0;
+  position: relative;
+  padding-bottom: 12px;
 }
+
+.hero-heading::after {
+  content: "";
+  display: block;
+  width: 72px;
+  height: 2px;
+  margin-top: 18px;
+  background: var(--gold);
+  transform-origin: left;
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .hero-heading::after {
+    transition: scale 500ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .hero-heading:hover::after { scale: 1.4 1; }
+}
+
 
 .hero-heading-line {
   display: block;
@@ -384,6 +414,143 @@
 
 .hero-heading-dot {
   color: var(--gold);
+}
+
+/* "Rhythm" plays the 2-3 son clave. Every letter is a bar that strikes to full
+   height on one hit of the pattern and decays to rest between hits, and shines
+   as it is struck: the letter flashes to gold-light, throws a rose glow and pops
+   one glint, all inside the same decay so the light can never drift from the
+   beat. The loop is two bars of 4/4 at 88 BPM: 16 sixteenth steps of 0.17s,
+   2.72s in all, with the hits on steps 2, 4, 8, 11 and 14: the two-hit bar first,
+   then the three-hit bar. R, h, y, t, h take those five hits in order; the
+   closing "m" doubles the last hit so the word ends on the pickup into the repeat.
+   The live layer is aria-hidden, so the
+   unsplit source keeps the heading's accessible name. Height uses the individual
+   `scale` property, which composes with, and survives, the `transform`/`opacity`
+   the hero's GSAP entrance writes and clears on the word. At rest, and under
+   reduced motion, the word is the flat accent colour. */
+.hero-rhythm-bars {
+  display: inline-block;
+}
+
+/* 0 is the flat accent, 100 is full gold-light. Registered so the browser can
+   interpolate it, which lets one animated number drive colour and glow together. */
+@property --shine {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+.hero-rhythm-char {
+  --clave-loop: 2.72s;
+  --clave-step: 0.17s;
+  position: relative;
+  display: inline-block;
+  transform-origin: 50% 100%;
+  /* Mixed in oklch, so rose to gold stays clean instead of dipping through mud.
+     At --shine 0 this is exactly --red-bright. */
+  color: color-mix(in oklch, var(--gold-light) calc(var(--shine) * 1%), var(--red-bright));
+  text-shadow: 0 0.04em 0.18em color-mix(in srgb, var(--red-glow) calc(var(--shine) * 1%), transparent);
+}
+
+.hero-rhythm-char::after {
+  content: "";
+  position: absolute;
+  top: 0.06em;
+  right: -0.02em;
+  width: 0.2em;
+  height: 0.2em;
+  background: var(--gold-light);
+  /* A four-point glint: two crossed slivers, drawn as geometry. */
+  clip-path: polygon(
+    50% 0, 58% 42%, 100% 50%, 58% 58%,
+    50% 100%, 42% 58%, 0 50%, 42% 42%
+  );
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-rhythm-char {
+    scale: 1 0.72;
+    animation: rhythmClave var(--clave-loop) infinite;
+    /* The peak is the 2% keyframe, so the delay is pulled back by that attack
+       (2% of the loop) to put the peak on its step. Before the first strike the
+       letter already rests at 0.72. */
+    animation-delay: calc(var(--hit) * var(--clave-step) - var(--clave-loop) * 0.02);
+  }
+
+  .hero-rhythm-char::after {
+    animation: rhythmGlint var(--clave-loop) infinite;
+    animation-delay: calc(var(--hit) * var(--clave-step) - var(--clave-loop) * 0.02);
+  }
+
+  .hero-rhythm-char:nth-child(1) { --hit: 2; }
+  .hero-rhythm-char:nth-child(2) { --hit: 4; }
+  .hero-rhythm-char:nth-child(3) { --hit: 8; }
+  .hero-rhythm-char:nth-child(4) { --hit: 11; }
+  .hero-rhythm-char:nth-child(5) { --hit: 14; }
+  .hero-rhythm-char:nth-child(6) { --hit: 14; }
+}
+
+/* A struck note: a short eased rise to full height and full shine, then a soft
+   decay back to rest. Each interval carries its own easing: the rise accelerates
+   out of rest, the fall eases out of the peak. Only `scale` and `--shine` animate;
+   the letter's colour and glow are derived from `--shine`.
+   Percentages are of the 2.72s loop (one 0.17s step is 6.25%). */
+@keyframes rhythmClave {
+  0% {
+    scale: 1 0.72;
+    --shine: 0;
+    animation-timing-function: cubic-bezier(0.33, 0, 0.2, 1);
+  }
+  2% {
+    scale: 1 1;
+    --shine: 100;
+    animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+  26% {
+    scale: 1 0.72;
+    --shine: 0;
+  }
+  100% {
+    scale: 1 0.72;
+    --shine: 0;
+  }
+}
+
+/* The glint fades in through the attack, blooms on the peak, then fades and spins
+   out as the note decays. It animates `scale`, `rotate` and `opacity` on the
+   pseudo-element only. */
+@keyframes rhythmGlint {
+  0% {
+    opacity: 0;
+    scale: 0.3;
+    rotate: 0deg;
+    animation-timing-function: cubic-bezier(0.33, 0, 0.2, 1);
+  }
+  2% {
+    opacity: 1;
+    scale: 0.9;
+    rotate: 20deg;
+    animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+  12% {
+    opacity: 1;
+    scale: 1;
+    rotate: 45deg;
+    animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+  26% {
+    opacity: 0;
+    scale: 0.4;
+    rotate: 90deg;
+  }
+  100% {
+    opacity: 0;
+    scale: 0.4;
+    rotate: 90deg;
+  }
 }
 
 /* Subtitle */
@@ -542,10 +709,10 @@
 @keyframes heroGridDrift {
   0%,
   100% {
-    background-position: 0 0;
+    transform: translate3d(26px, 26px, 0);
   }
   50% {
-    background-position: 26px 26px;
+    transform: translate3d(52px, 52px, 0);
   }
 }
 
@@ -577,7 +744,7 @@
 
 /* ── Idle park: off-screen, the ambient layers pause ── */
 .hero--idle .hero-glow,
-.hero--idle .hero-grid,
+.hero--idle .hero-grid::before,
 .hero--idle .hero-ticker-track,
 .hero--idle .hero-vinyl__disc {
   animation-play-state: paused;
@@ -589,7 +756,7 @@
    The spotlight keeps an opacity-only breath — no scale, no travel — so the
    floor still reads as lit rather than frozen. */
 @media (prefers-reduced-motion: reduce) {
-  .hero-grid,
+  .hero-grid::before,
   .hero-ticker-track,
   .hero-vinyl__disc {
     animation: none;

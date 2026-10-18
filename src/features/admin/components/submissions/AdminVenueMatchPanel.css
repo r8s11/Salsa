@@ -5,7 +5,7 @@
 }
 
 .admin-venue-match-panel__heading {
-  font-size: var(--admin-text-lg);
+  font-size: 1.125rem;
   font-weight: 600;
   margin: 0;
 }

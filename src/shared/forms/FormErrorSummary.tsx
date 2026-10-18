@@ -24,6 +24,15 @@ interface FormErrorSummaryProps {
   heading?: string;
 }
 
+/** Smooth scroll, collapsed to instant under prefers-reduced-motion. */
+function scrollToCenter(el: HTMLElement) {
+  // Optional call: jsdom and some embedded webviews do not implement it.
+  const reduced =
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  el.scrollIntoView?.({ block: "center", behavior: reduced ? "auto" : "smooth" });
+}
+
 /**
  * Error summary for the one long public form that needs it (/submit).
  * Short forms focus their first invalid control instead.
@@ -41,8 +50,7 @@ export default function FormErrorSummary({
   useEffect(() => {
     if (focusKey === 0 || !ref.current) return;
     ref.current.focus();
-    // Optional call: jsdom and some embedded webviews do not implement it.
-    ref.current.scrollIntoView?.({ block: "center", behavior: "smooth" });
+    scrollToCenter(ref.current);
   }, [focusKey]);
 
   if (!hasContent) return null;
@@ -65,7 +73,7 @@ export default function FormErrorSummary({
                   const target = document.getElementById(item.fieldId);
                   if (!target) return;
                   event.preventDefault();
-                  target.scrollIntoView?.({ block: "center", behavior: "smooth" });
+                  scrollToCenter(target);
                   target.focus();
                 }}
               >

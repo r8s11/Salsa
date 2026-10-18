@@ -1,6 +1,7 @@
 /* eslint-disable */
 // @ts-nocheck - Deno Edge Function; Vite build excludes supabase directory
 
+import { PostHog } from "npm:posthog-node";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 
@@ -114,6 +115,7 @@ export type ExtractFlyerDependencies = {
   getUser: (authorization: string) => Promise<AuthResult>;
   fetchImage: (url: string) => Promise<Response>;
   fetchOpenAI: (body: Record<string, unknown>, apiKey: string) => Promise<Response>;
+  captureGeneration?: (distinctId: string, properties: Record<string, unknown>) => Promise<void>;
   log?: (message: string) => void;
 };
 
@@ -463,6 +465,29 @@ function providerText(payload: unknown): string | null {
   return null;
 }
 
+function providerUsage(payload: unknown): { inputTokens?: number; outputTokens?: number } {
+  if (!payload || typeof payload !== "object") return {};
+  const usage = (payload as { usage?: unknown }).usage;
+  if (!usage || typeof usage !== "object") return {};
+  const { input_tokens, output_tokens } = usage as Record<string, unknown>;
+  return {
+    ...(typeof input_tokens === "number" ? { inputTokens: input_tokens } : {}),
+    ...(typeof output_tokens === "number" ? { outputTokens: output_tokens } : {}),
+  };
+}
+
+async function captureAiGeneration(
+  dependencies: ExtractFlyerDependencies,
+  distinctId: string,
+  properties: Record<string, unknown>
+) {
+  try {
+    await dependencies.captureGeneration?.(distinctId, properties);
+  } catch {
+    dependencies.log?.("extract-flyer PostHog capture failed");
+  }
+}
+
 export function createExtractFlyerHandler(dependencies: ExtractFlyerDependencies) {
   return async (request: Request): Promise<Response> => {
     if (request.method === "OPTIONS")
@@ -557,14 +582,40 @@ export function createExtractFlyerHandler(dependencies: ExtractFlyerDependencies
       },
     } satisfies Record<string, unknown>;
 
+    const traceId = crypto.randomUUID();
+    const generationStartedAt = Date.now();
+    const captureGeneration = async (
+      properties: Record<string, unknown>
+    ) =>
+      captureAiGeneration(dependencies, caller.userId, {
+        $ai_trace_id: traceId,
+        $ai_session_id: null,
+        $ai_span_id: crypto.randomUUID(),
+        $ai_span_name: "extract_flyer",
+        $ai_model: model,
+        $ai_provider: "openai",
+        $ai_input: providerBody.input,
+        $ai_latency: (Date.now() - generationStartedAt) / 1000,
+        ...properties,
+      });
+
     let providerResponse: Response;
     try {
       providerResponse = await dependencies.fetchOpenAI(providerBody, dependencies.openaiKey);
     } catch {
+      await captureGeneration({
+        $ai_is_error: true,
+        $ai_error: "provider_request_failed",
+      });
       dependencies.log?.("extract-flyer provider request failed");
       return error("Flyer analysis is unavailable", 502);
     }
     if (!providerResponse.ok) {
+      await captureGeneration({
+        $ai_http_status: providerResponse.status,
+        $ai_is_error: true,
+        $ai_error: "provider_response_not_ok",
+      });
       dependencies.log?.(`extract-flyer provider status ${providerResponse.status}`);
       return error("Flyer analysis is unavailable", 502);
     }
@@ -573,10 +624,33 @@ export function createExtractFlyerHandler(dependencies: ExtractFlyerDependencies
     try {
       payload = await providerResponse.json();
     } catch {
+      await captureGeneration({
+        $ai_http_status: providerResponse.status,
+        $ai_is_error: true,
+        $ai_error: "provider_response_unreadable",
+      });
       return error("Flyer analysis returned an unreadable result", 502);
     }
+    const usage = providerUsage(payload);
+    const usageProperties = {
+      ...(usage.inputTokens === undefined ? {} : { $ai_input_tokens: usage.inputTokens }),
+      ...(usage.outputTokens === undefined ? {} : { $ai_output_tokens: usage.outputTokens }),
+    };
     const text = providerText(payload);
-    if (!text) return error("Flyer analysis returned an unreadable result", 502);
+    if (!text) {
+      await captureGeneration({
+        $ai_http_status: providerResponse.status,
+        $ai_is_error: true,
+        $ai_error: "provider_response_unreadable",
+        ...usageProperties,
+      });
+      return error("Flyer analysis returned an unreadable result", 502);
+    }
+    await captureGeneration({
+      $ai_http_status: providerResponse.status,
+      $ai_output_choices: [{ role: "assistant", content: text }],
+      ...usageProperties,
+    });
     let rawExtraction: unknown;
     try {
       rawExtraction = JSON.parse(text);
@@ -593,7 +667,20 @@ function runtimeDependencies(): ExtractFlyerDependencies {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const publishableKey =
     Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || Deno.env.get("SUPABASE_ANON_KEY");
+  const posthogProjectToken = Deno.env.get("POSTHOG_PROJECT_TOKEN");
+  const posthogHost = Deno.env.get("POSTHOG_HOST");
+  const isProduction = Boolean(Deno.env.get("DENO_DEPLOYMENT_ID")) || Deno.env.get("ENV") === "production";
   if (!supabaseUrl || !publishableKey) throw new Error("Supabase public configuration is missing");
+  if (!posthogProjectToken && !isProduction) {
+    throw new Error(
+      "POSTHOG_PROJECT_TOKEN variable required by PostHog is missing or un-configured, this causes events to be silently missed. This error stops appearing once POSTHOG_PROJECT_TOKEN is configured"
+    );
+  }
+  if (!posthogHost && !isProduction) {
+    throw new Error(
+      "POSTHOG_HOST variable required by PostHog is missing or un-configured, this causes events to be silently missed. This error stops appearing once POSTHOG_HOST is configured"
+    );
+  }
   return {
     supabaseUrl,
     openaiKey: Deno.env.get("OPENAI_API_KEY"),
@@ -619,6 +706,15 @@ function runtimeDependencies(): ExtractFlyerDependencies {
         headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify(body),
       }),
+    captureGeneration: async (distinctId, properties) => {
+      if (!posthogProjectToken || !posthogHost) return;
+      const posthog = new PostHog(posthogProjectToken, { host: posthogHost, privacyMode: false });
+      try {
+        posthog.capture({ distinctId, event: "$ai_generation", properties });
+      } finally {
+        await posthog.shutdownAsync();
+      }
+    },
     log: (message) => console.error(message),
   };
 }

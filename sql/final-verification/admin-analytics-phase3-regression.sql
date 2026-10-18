@@ -1,6 +1,6 @@
 -- Phase 3 Admin Analytics regression — transactional, rolls back all fixtures.
 -- Run against a disposable clone. Must pass after Phase 3 migration applied.
--- Prerequisites: event_touches table + record_event_touch exist (from 20260922000000).
+-- Prerequisites: the current Phase 3 migration provisions event_touches + record_event_touch.
 
 begin;
 

@@ -1,5 +1,7 @@
 import type { FormEvent } from "react";
 import { useEffect, useRef, useState } from "react";
+import posthog from "posthog-js";
+import { posthogSubmissionLogger } from "../../../shared/analytics/posthogLogs";
 import { createSubmission } from "../../admin/api/submissionsRepo";
 import { uploadEventFlyer, removeEventFlyer } from "../../events/api/eventFlyers";
 import { useCity } from "../../../contexts/useCity";
@@ -418,6 +420,14 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
       // submission into a visible error. The Edge Function records failures
       // in event_submission_email_attempts for diagnosis.
       void notifySubmissionReceived(submissionId);
+      const logAttributes = {
+        city: form.city,
+        event_type: form.event_type,
+        has_flyer: Boolean(persistedFlyerUrl),
+        is_authenticated: Boolean(user),
+      };
+      posthog.capture("event_submitted", logAttributes);
+      posthogSubmissionLogger.submitted(logAttributes);
       setIsSubmitted(true);
       setForm(buildSubmitDraft(defaultCity ?? ""));
       setFlyerFile(null);
@@ -429,6 +439,10 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
       cityChosenRef.current = false;
       resetExtraction();
     } catch (err) {
+      posthogSubmissionLogger.failed({
+        has_flyer: Boolean(persistedFlyerUrl),
+        is_authenticated: Boolean(user),
+      });
       setServerError(
         publicErrorMessage(err, {
           fallback: "We couldn't submit your event. Please try again.",

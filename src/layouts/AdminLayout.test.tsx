@@ -16,9 +16,13 @@ afterAll(() => {
   if (scrollIntoViewDescriptor) Object.defineProperty(Element.prototype, "scrollIntoView", scrollIntoViewDescriptor);
   else Reflect.deleteProperty(Element.prototype, "scrollIntoView");
 });
-const { useTheme } = vi.hoisted(() => ({ useTheme: vi.fn() }));
+const { useTheme, useOwnProfile } = vi.hoisted(() => ({
+  useTheme: vi.fn(),
+  useOwnProfile: vi.fn(),
+}));
 const signOut = vi.hoisted(() => vi.fn());
 vi.mock("../contexts/useTheme", () => ({ useTheme }));
+vi.mock("../features/account/hooks/useOwnProfile", () => ({ useOwnProfile }));
 vi.mock("../features/admin/hooks/usePendingRequestCounts", () => ({
   usePendingOrganizerRequestCount: () => 0,
   usePendingFounderRequestCount: () => 0,
@@ -105,6 +109,7 @@ function renderHostLayoutAt(path: string) {
 
 describe("AdminLayout", () => {
   beforeEach(() => {
+    useOwnProfile.mockReturnValue({ profile: null, isLoading: false, error: null, refetch: vi.fn() });
     signOut.mockReset().mockResolvedValue({ error: null });
     vi.mocked(useTheme).mockReturnValue({
       theme: "system",
@@ -440,5 +445,22 @@ describe("AdminLayout", () => {
     finish({ error: new Error("network") });
     expect(await screen.findByRole("alert")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Sign out on all devices" })).toBeEnabled();
+  });
+
+  it("identifies the signed-in operator with their profile photo, name, and authorized role", async () => {
+    useOwnProfile.mockReturnValue({
+      profile: { display_name: "Sofia Martinez", username: "sofia",
+        avatar_url: "https://example.com/sofia.jpg" },
+      isLoading: false, error: null, refetch: vi.fn(),
+    });
+    const user = userEvent.setup();
+    renderLayout();
+    await user.click(screen.getByRole("button", { name: "Account menu" }));
+    const panel = document.querySelector(".admin-account__menu") as HTMLElement;
+    expect(within(panel).getByText("Sofia Martinez")).toBeInTheDocument();
+    expect(within(panel).getByText("Admin")).toBeInTheDocument();
+    expect(panel.querySelector("img")).toHaveAttribute("src", "https://example.com/sofia.jpg");
+    expect(within(panel).getByRole("link", { name: "Account" })).toHaveAttribute("href", "/account");
+    expect(within(panel).getByRole("link", { name: "View site" })).toHaveAttribute("href", "/");
   });
 });

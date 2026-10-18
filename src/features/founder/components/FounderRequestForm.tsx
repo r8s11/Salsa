@@ -265,12 +265,15 @@ export default function FounderRequestForm({ onSubmit }: Props) {
               type="url"
               value={payload.website ?? ""}
               onChange={(e) => handleChange("website", e.target.value)}
-              placeholder="https://example.com"
+              placeholder="example.com"
               autoComplete="url"
               disabled={submitting}
               aria-invalid={errors.website ? "true" : "false"}
-              aria-describedby={errors.website ? "website-error" : undefined}
+              aria-describedby={errors.website ? "website-hint website-error" : "website-hint"}
             />
+            <span id="website-hint" className="field-hint">
+              We&rsquo;ll add https:// if you leave it off.
+            </span>
             <FormFieldError id="website-error" message={errors.website} />
           </div>
         </div>

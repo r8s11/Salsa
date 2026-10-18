@@ -25,7 +25,7 @@ export default function RetailCatalog({ products, cartQuantity, onOpenCart, isFe
   return (
     <div className="retail-catalog" ref={root}>
       <header className="retail-catalog__header">
-        <p className="retail-catalog__identity">Salsa Segura shop</p>
+        <p className="retail-catalog__identity">Shop</p>
         <button
           className="retail-catalog__cart"
           type="button"

@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import posthog from "posthog-js";
 import type { User, Session } from "@supabase/supabase-js";
 import { supabase, supabaseAuthStorageKey } from "../lib/supabase";
 import { setAuthIntent } from "../lib/authIntent";
@@ -28,6 +29,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const queryClient = useQueryClient();
+  const role = roleFromUser(user);
+  const identifiedUserId = useRef<string | null>(null);
+
+  useEffect(() => {
+    const previousUserId = identifiedUserId.current;
+
+    if (!user) {
+      if (previousUserId) posthog.reset();
+      identifiedUserId.current = null;
+      return;
+    }
+
+    if (previousUserId && previousUserId !== user.id) posthog.reset();
+    if (previousUserId !== user.id) {
+      posthog.identify(user.id, {
+        ...(user.email ? { email: user.email } : {}),
+        ...(role ? { role } : {}),
+      });
+      identifiedUserId.current = user.id;
+    }
+  }, [role, user]);
 
   useEffect(() => {
     const getSession = async () => {
@@ -172,7 +194,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     window.localStorage.removeItem(`${supabaseAuthStorageKey}-user`);
   }, [queryClient]);
 
-  const role = roleFromUser(user);
   const value: AuthContextValue = {
     user,
     session,

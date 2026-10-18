@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
+import posthog from "posthog-js";
 import { useQuery } from "@tanstack/react-query";
 import {
   CalendarPlus,
@@ -168,6 +169,9 @@ export default function EventDetailPage() {
   const { weekday, day, month } = chipParts(scheduleEvent.start);
   const shareUrl = buildPublicEventUrl(event.slug || event.id);
   const whatsappHref = `https://wa.me/?text=${encodeURIComponent(`${event.title} — ${shareUrl}`)}`;
+  const eventProperties = { city: event.city, event_type: event.event_type };
+  const captureShare = (method: "copy_link" | "native_share" | "whatsapp" | "story") =>
+    posthog.capture("event_shared", { ...eventProperties, method });
 
   const handleCopyLink = async (
     successMessage = "Event link copied.",
@@ -179,6 +183,7 @@ export default function EventDetailPage() {
       if (!navigator.clipboard?.writeText) throw new Error("Clipboard unavailable");
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
+      captureShare("copy_link");
       setShareFeedback({ kind: "status", message: successMessage });
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -202,6 +207,7 @@ export default function EventDetailPage() {
           publicUrl: shareUrl,
         })
       );
+      captureShare("native_share");
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") return;
       await handleCopyLink(
@@ -266,12 +272,21 @@ export default function EventDetailPage() {
               <ButtonLink
                 href={event.rsvp_link}
                 external
-                onClick={() => void recordEventTouch(event.id, event.price_type === "paid" ? "ticket_click" : "rsvp_click")}
+                onClick={() => {
+                  void recordEventTouch(event.id, event.price_type === "paid" ? "ticket_click" : "rsvp_click");
+                  posthog.capture("event_rsvp_clicked", {
+                    ...eventProperties,
+                    attendance_type: event.price_type === "paid" ? "ticket" : "rsvp",
+                  });
+                }}
               >
                 RSVP <ExternalLink size={15} aria-hidden="true" />
               </ButtonLink>
             )}
-            <Button variant="ghost" onClick={() => downloadIcs(scheduleEvent)}>
+            <Button variant="ghost" onClick={() => {
+              downloadIcs(scheduleEvent);
+              posthog.capture("event_calendar_downloaded", eventProperties);
+            }}>
               <CalendarPlus size={16} aria-hidden="true" /> Add to calendar
             </Button>
           </div>
@@ -409,7 +424,10 @@ export default function EventDetailPage() {
                   <Button variant="ghost" size="compact" onClick={handleShare}>
                     <Share2 size={14} aria-hidden="true" /> Share
                   </Button>
-                  <ButtonLink href={whatsappHref} external variant="ghost" size="compact" onClick={() => void recordEventTouch(event.id, "share")}>
+                  <ButtonLink href={whatsappHref} external variant="ghost" size="compact" onClick={() => {
+                    void recordEventTouch(event.id, "share");
+                    captureShare("whatsapp");
+                  }}>
                     <MessageCircle size={14} aria-hidden="true" /> WhatsApp
                   </ButtonLink>
                 </div>
@@ -418,7 +436,10 @@ export default function EventDetailPage() {
                   flyerUrl={event.image_url}
                   cachedFlyerUrl={event.poster_image_url ?? null}
                   shareUrl={shareUrl}
-                  onShareAction={() => void recordEventTouch(event.id, "share")}
+                  onShareAction={() => {
+                    void recordEventTouch(event.id, "share");
+                    captureShare("story");
+                  }}
                 />
                 {shareFeedback && (
                   <p role={shareFeedback.kind === "error" ? "alert" : "status"}>

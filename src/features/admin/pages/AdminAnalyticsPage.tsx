@@ -8,6 +8,7 @@ import AnalyticsInsightChart from "../components/analytics/AnalyticsInsightChart
 import EntityIntelligenceSection from "../components/analytics/EntityIntelligenceSection";
 import OperationalInsights from "../components/analytics/OperationalInsights";
 import AnalyticsReporting from "../components/analytics/AnalyticsReporting";
+import AnalyticsMonitoring from "../components/analytics/AnalyticsMonitoring";
 import { INITIAL_OFFSETS, type OperationOffsets } from "../model/operationalAnalytics";
 import { useAdminAnalytics } from "../hooks/useAdminAnalytics";
 import {
@@ -85,6 +86,7 @@ export default function AdminAnalyticsPage() {
           </button>
         }
       />
+      <AnalyticsMonitoring />
 
       <AdminAnalyticsFilters range={range} onRangeChange={handleRangeChange} />
       <AnalyticsReporting

@@ -41,7 +41,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--admin-space-md) var(--admin-space-lg);
+  padding: var(--space-md) var(--space-lg);
   border-color: var(--admin-border);
 }
 
@@ -53,7 +53,7 @@
 }
 .admin-founder-filter-drawer-header h2 {
   margin: 0;
-  font-size: var(--admin-text-title);
+  font-size: 1.125rem;
   font-weight: 600;
   color: var(--admin-text-primary);
 }
@@ -78,24 +78,24 @@
 .admin-founder-filter-drawer-content {
   flex: 1;
   overflow-y: auto;
-  padding: var(--admin-space-lg);
+  padding: var(--space-lg);
 }
 .admin-founder-filter-section {
-  margin-bottom: var(--admin-space-lg);
+  margin-bottom: var(--space-lg);
 }
 .admin-founder-filter-label {
   display: flex;
   align-items: center;
-  gap: var(--admin-space-sm);
-  margin-bottom: var(--admin-space-xs);
-  font-size: var(--admin-text-body);
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xs);
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--admin-text-secondary);
 }
 .admin-founder-filter-input,
 .admin-founder-filter-select {
   width: 100%;
-  padding: var(--admin-space-sm) var(--admin-space-md);
+  padding: var(--space-sm) var(--space-md);
   font: inherit;
   color: var(--admin-text-primary);
   background: var(--admin-background);
@@ -112,8 +112,8 @@
 }
 .clear-btn {
   width: 100%;
-  margin-top: var(--admin-space-lg);
-  padding: var(--admin-space-sm);
+  margin-top: var(--space-lg);
+  padding: var(--space-sm);
   color: var(--admin-text-secondary);
   background: transparent;
   border: 1px solid var(--admin-border);
@@ -126,11 +126,11 @@
   border-color: var(--admin-text-muted);
 }
 .results-count {
-  font-size: var(--admin-text-body);
+  font-size: 0.875rem;
   color: var(--admin-text-secondary);
 }
 .apply-btn {
-  padding: var(--admin-space-sm) var(--admin-space-lg);
+  padding: var(--space-sm) var(--space-lg);
   color: var(--admin-text-on-brand);
   background: var(--admin-brand);
   border: 0;

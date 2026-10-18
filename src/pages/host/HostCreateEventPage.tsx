@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
+import posthog from "posthog-js";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/useAuth";
 import { useMyOrganizers } from "../../features/host/hooks/useMyOrganizers";
@@ -76,6 +77,10 @@ export default function HostCreateEventPage() {
         draftToOrganizerCreatePayload(form),
         shouldPublish
       );
+      posthog.capture("host_event_created", {
+        published: shouldPublish,
+        has_flyer: Boolean(flyer),
+      });
       let flyerWarning: string | null = null;
       if (flyer) {
         try {

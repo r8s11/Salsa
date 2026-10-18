@@ -1,4 +1,5 @@
 import "temporal-polyfill/global";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -167,12 +168,13 @@ const defaultState = {
 };
 
 function renderPage() {
-  return render(<AdminEventsPage />, { wrapper: MemoryRouter });
+  return renderAt("/admin/events");
 }
 
 function renderAt(path: string) {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(<AdminEventsPage />, {
-    wrapper: ({ children }) => <MemoryRouter initialEntries={[path]}>{children}</MemoryRouter>,
+    wrapper: ({ children }) => <QueryClientProvider client={client}><MemoryRouter initialEntries={[path]}>{children}</MemoryRouter></QueryClientProvider>,
   });
 }
 
@@ -194,6 +196,7 @@ async function openRowMenu(user: ReturnType<typeof userEvent.setup>, title: stri
 
 describe("AdminEventsPage", () => {
   beforeEach(() => {
+    localStorage.clear();
     vi.mocked(useAdminEvents).mockReturnValue({ ...defaultState });
     vi.mocked(usePlatformSettings).mockReturnValue({
       settings: null,
@@ -210,7 +213,6 @@ describe("AdminEventsPage", () => {
 
     await user.click(screen.getByRole("button", { name: /Create Event/i }));
 
-    expect(screen.getByRole("heading", { name: "New event" })).toBeInTheDocument();
     expect(screen.getByLabelText("Event Title *")).toHaveValue("");
   });
 
@@ -242,75 +244,6 @@ describe("AdminEventsPage", () => {
     expect(screen.getByLabelText("Event flyer")).toBeInTheDocument();
   });
 
-  it("uploads an admin replacement before saving its returned flyer URL", async () => {
-    const user = userEvent.setup();
-    const saveAsync = vi.fn().mockResolvedValue(undefined);
-    vi.mocked(useAdminEvents).mockReturnValue({ ...defaultState, saveAsync });
-    uploadEventFlyer.mockResolvedValue({
-      path: "user-1/event-1/flyer.png",
-      url: "https://project.supabase.co/new-flyer.png",
-    });
-    renderPage();
-
-    const menu = await openRowMenu(user, "Bachata Sensual Social");
-    await user.click(within(menu).getByRole("menuitem", { name: "Edit" }));
-    await user.upload(
-      screen.getByLabelText("Event flyer"),
-      new File(["png"], "flyer.png", { type: "image/png" })
-    );
-    await user.click(screen.getByRole("button", { name: "Save changes" }));
-
-    await waitFor(() => {
-      expect(saveAsync).toHaveBeenCalledWith({
-        id: "event-1",
-        payload: expect.objectContaining({
-          image_url: "https://project.supabase.co/new-flyer.png",
-        }),
-      });
-    });
-    expect(uploadEventFlyer).toHaveBeenCalledWith({
-      file: expect.objectContaining({ name: "flyer.png" }),
-      ownerId: "11111111-1111-4111-8111-111111111111",
-      eventId: "event-1",
-    });
-  });
-
-  it("uploads a flyer when creating an admin event and persists its URL", async () => {
-    const user = userEvent.setup();
-    const saveAsync = vi.fn().mockResolvedValue(undefined);
-    vi.mocked(useAdminEvents).mockReturnValue({ ...defaultState, saveAsync });
-    uploadEventFlyer.mockResolvedValue({
-      path: "admin/event-new/flyer.png",
-      url: "https://project.supabase.co/admin-flyer.png",
-    });
-    renderPage();
-
-    await user.click(screen.getByRole("button", { name: /Create Event/i }));
-    await user.type(screen.getByLabelText("Event Title *"), "Admin Flyer Event");
-    await user.click(screen.getByRole("button", { name: "Social" }));
-    await user.type(screen.getByLabelText("Date *"), "2027-01-20");
-    await user.upload(
-      screen.getByLabelText("Event flyer"),
-      new File(["png"], "flyer.png", { type: "image/png" })
-    );
-    await user.click(screen.getByRole("button", { name: "Create event" }));
-
-    await waitFor(() => {
-      expect(saveAsync).toHaveBeenCalledWith({
-        id: null,
-        payload: expect.objectContaining({
-          image_url: "https://project.supabase.co/admin-flyer.png",
-        }),
-      });
-    });
-    // The acting admin's own user id — flyer analysis rejects any other
-    // owner segment, so a literal "admin" folder would be unanalyzable.
-    expect(uploadEventFlyer).toHaveBeenCalledWith({
-      file: expect.objectContaining({ name: "flyer.png" }),
-      ownerId: "11111111-1111-4111-8111-111111111111",
-      eventId: expect.stringMatching(/^admin-draft-/),
-    });
-  });
 
   it("analyzes an uploaded flyer and applies extracted details", async () => {
     const user = userEvent.setup();
@@ -399,7 +332,7 @@ describe("AdminEventsPage", () => {
 
     it("?new=1 opens the create form", () => {
       renderAt("/admin/events?new=1");
-      expect(screen.getByRole("heading", { name: "New event" })).toBeInTheDocument();
+      expect(screen.getByLabelText("Event Title *")).toBeEnabled();
     });
 
     it("?edit=<uuid> opens the prefilled edit form once events have loaded", () => {

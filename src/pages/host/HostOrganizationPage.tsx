@@ -17,6 +17,8 @@ import {
   type OrganizerType,
 } from "../../features/admin/model/organizerRequestsQuery";
 import AdminPageHeader from "../../features/admin/components/shell/AdminPageHeader";
+import FormFieldError from "../../shared/forms/FormFieldError";
+import { fieldErrorProps } from "../../shared/forms/fieldErrorProps";
 import "./HostOrganizationPage.css";
 
 /* ── Types ── */
@@ -443,8 +445,9 @@ export default function HostOrganizationPage() {
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               maxLength={200}
+              {...fieldErrorProps("org-name-error", fieldErrors.name)}
             />
-            {fieldErrors.name && <p className="host-org__field-error">{fieldErrors.name}</p>}
+            <FormFieldError id="org-name-error" message={fieldErrors.name} />
           </div>
 
           <div className="host-org__form-field">
@@ -456,10 +459,9 @@ export default function HostOrganizationPage() {
               maxLength={2000}
               rows={4}
               placeholder="Tell dancers about your organization…"
+              {...fieldErrorProps("org-description-error", fieldErrors.description)}
             />
-            {fieldErrors.description && (
-              <p className="host-org__field-error">{fieldErrors.description}</p>
-            )}
+            <FormFieldError id="org-description-error" message={fieldErrors.description} />
           </div>
 
           <div className="host-org__form-field">
@@ -468,6 +470,7 @@ export default function HostOrganizationPage() {
               id="org-type"
               value={form.organizer_type}
               onChange={(e) => setForm({ ...form, organizer_type: e.target.value })}
+              {...fieldErrorProps("org-type-error", fieldErrors.organizer_type)}
             >
               <option value="">Select type…</option>
               {Object.entries(ORGANIZER_TYPE_LABEL).map(([value, label]) => (
@@ -476,9 +479,7 @@ export default function HostOrganizationPage() {
                 </option>
               ))}
             </select>
-            {fieldErrors.organizer_type && (
-              <p className="host-org__field-error">{fieldErrors.organizer_type}</p>
-            )}
+            <FormFieldError id="org-type-error" message={fieldErrors.organizer_type} />
           </div>
 
           <div className="host-org__form-field">
@@ -501,8 +502,9 @@ export default function HostOrganizationPage() {
               value={form.website}
               onChange={(e) => setForm({ ...form, website: e.target.value })}
               placeholder="https://"
+              {...fieldErrorProps("org-website-error", fieldErrors.website)}
             />
-            {fieldErrors.website && <p className="host-org__field-error">{fieldErrors.website}</p>}
+            <FormFieldError id="org-website-error" message={fieldErrors.website} />
           </div>
 
           <div className="host-org__form-field">
@@ -514,10 +516,9 @@ export default function HostOrganizationPage() {
               onChange={(e) => setForm({ ...form, instagram: e.target.value })}
               maxLength={100}
               placeholder="@handle"
+              {...fieldErrorProps("org-instagram-error", fieldErrors.instagram)}
             />
-            {fieldErrors.instagram && (
-              <p className="host-org__field-error">{fieldErrors.instagram}</p>
-            )}
+            <FormFieldError id="org-instagram-error" message={fieldErrors.instagram} />
           </div>
 
           <div className="host-org__form-field">
@@ -528,10 +529,9 @@ export default function HostOrganizationPage() {
               value={form.logo_url}
               onChange={(e) => setForm({ ...form, logo_url: e.target.value })}
               placeholder="https://"
+              {...fieldErrorProps("org-logo-error", fieldErrors.logo_url)}
             />
-            {fieldErrors.logo_url && (
-              <p className="host-org__field-error">{fieldErrors.logo_url}</p>
-            )}
+            <FormFieldError id="org-logo-error" message={fieldErrors.logo_url} />
           </div>
 
           <div className="host-org__form-actions">

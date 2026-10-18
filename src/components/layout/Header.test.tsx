@@ -119,7 +119,9 @@ function renderHeader() {
           element={
             <>
               <Header />
-              <main>Destination <button type="button">Destination action</button></main>
+              <main>
+                Destination <button type="button">Destination action</button>
+              </main>
             </>
           }
         />
@@ -396,7 +398,8 @@ describe("Header", () => {
     await user.click(screen.getByRole("link", { name: "Calendar" }));
     expect(main).not.toHaveAttribute("inert");
     expect(screen.getByRole("button", { name: "Open menu" })).toHaveAttribute(
-      "aria-expanded", "false"
+      "aria-expanded",
+      "false"
     );
     screen.getByRole("button", { name: "Destination action" }).focus();
     expect(screen.getByRole("button", { name: "Destination action" })).toHaveFocus();
@@ -416,7 +419,8 @@ describe("Header", () => {
 
     expect(main).not.toHaveAttribute("inert");
     expect(screen.getByRole("button", { name: "Open menu" })).toHaveAttribute(
-      "aria-expanded", "false"
+      "aria-expanded",
+      "false"
     );
     expect(document.body.style.overflow).not.toBe("hidden");
   });
@@ -619,6 +623,76 @@ describe("Header", () => {
       "/profile"
     );
     expect(within(details).getByRole("button", { name: "Sign Out" })).toBeInTheDocument();
+  });
+
+  it("shows the signed-in identity in the account disclosure without replacing its destinations", async () => {
+    vi.mocked(useAuth).mockReturnValue(
+      defaultAuth({
+        user: { id: "member", email: "sofia@example.com" } as User,
+        isAdmin: true,
+      })
+    );
+    vi.mocked(useOwnProfile).mockReturnValue({
+      ...defaultProfileQuery(),
+      profile: memberProfile({ display_name: "Sofia Martinez" }),
+    });
+    mockCityValue();
+    const user = userEvent.setup();
+    renderHeader();
+    await user.click(screen.getByLabelText("Open account menu"));
+    const disclosure = screen.getByLabelText("Open account menu").closest("details")!;
+    expect(within(disclosure).getByText("Sofia Martinez")).toBeInTheDocument();
+    expect(within(disclosure).getByText("sofia@example.com")).toBeInTheDocument();
+    expect(within(disclosure).getByRole("link", { name: "My Account" })).toHaveAttribute(
+      "href",
+      "/account"
+    );
+    expect(within(disclosure).getByRole("link", { name: "Admin" })).toHaveAttribute(
+      "href",
+      "/admin"
+    );
+  });
+
+  it("returns focus to the avatar when Escape dismisses the account disclosure", async () => {
+    vi.mocked(useAuth).mockReturnValue(defaultAuth({ user: { id: "member" } as User }));
+    mockCityValue();
+    const user = userEvent.setup();
+    renderHeader();
+    const trigger = screen.getByLabelText("Open account menu");
+    await user.click(trigger);
+    const details = trigger.closest("details")!;
+    within(details).getByRole("link", { name: "My Profile" }).focus();
+    await user.keyboard("{Escape}");
+    expect(details).not.toHaveAttribute("open");
+    expect(trigger).toHaveFocus();
+  });
+
+  it("dismisses on outside pointer interaction without stealing the next action's focus", async () => {
+    vi.mocked(useAuth).mockReturnValue(defaultAuth({ user: { id: "member" } as User }));
+    mockCityValue();
+    const user = userEvent.setup();
+    renderHeader();
+    const trigger = screen.getByLabelText("Open account menu");
+    await user.click(trigger);
+    const nextAction = screen.getByRole("button", { name: "Destination action" });
+    await user.click(nextAction);
+    expect(trigger.closest("details")).not.toHaveAttribute("open");
+    expect(nextAction).toHaveFocus();
+  });
+
+  it("keeps a failed sign-out visible and allows retry without leaving the account menu", async () => {
+    const signOut = vi.fn().mockResolvedValue({ error: new Error("offline") });
+    vi.mocked(useAuth).mockReturnValue(defaultAuth({ user: { id: "member" } as User, signOut }));
+    mockCityValue();
+    const user = userEvent.setup();
+    renderHeader();
+    const trigger = screen.getByLabelText("Open account menu");
+    await user.click(trigger);
+    const details = trigger.closest("details")!;
+    await user.click(within(details).getByRole("button", { name: "Sign Out" }));
+    expect(await within(details).findByRole("alert")).toBeInTheDocument();
+    expect(details).toHaveAttribute("open");
+    expect(within(details).getByRole("button", { name: "Sign Out" })).toBeEnabled();
   });
 });
 

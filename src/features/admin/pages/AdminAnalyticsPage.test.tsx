@@ -6,6 +6,8 @@ import { useAdminAnalytics } from "../hooks/useAdminAnalytics";
 import AdminAnalyticsPage from "./AdminAnalyticsPage";
 
 vi.mock("../hooks/useAdminAnalytics");
+// Monitoring has its own authenticated query/component integration suite.
+vi.mock("../components/analytics/AnalyticsMonitoring", () => ({ default: () => null }));
 
 const metrics: AnalyticsMetrics = {
   total_events: 124,

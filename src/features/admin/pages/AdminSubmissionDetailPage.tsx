@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import posthog from "posthog-js";
 import { useParams, useNavigate } from "react-router-dom";
 import { CalendarDays, Clock3, FileText, MapPin, UserRound } from "lucide-react";
 import { useActiveTaxonomyTerms } from "../hooks/useAdminTaxonomy";
@@ -107,6 +108,10 @@ export default function AdminSubmissionDetailPage() {
       {
         onSuccess: () => {
           void notifySubmissionApproved(submission.id);
+          posthog.capture("event_submission_approved", {
+            taxonomy_term_count: taxonomyTermIds.length,
+            entity_review_updated: Boolean(reviewEdit),
+          });
           navigate("/admin/submissions");
         },
       }
@@ -126,6 +131,7 @@ export default function AdminSubmissionDetailPage() {
       {
         onSuccess: () => {
           void notifySubmissionRejected(submission.id);
+          posthog.capture("event_submission_rejected");
           navigate("/admin/submissions");
         },
       }

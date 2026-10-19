@@ -17,6 +17,7 @@ import "@schedule-x/theme-default/dist/index.css";
 import { ScheduleXEvent, CALENDARS_CONFIG, EventType } from "../../types/events";
 import { filterEventsByType, TypeFilter } from "../../utils/filterEvents";
 import { getUpcomingSeriesDates } from "../../utils/series";
+import { timeZoneForDisplay } from "../../shared/utils/timezone";
 import { useCity } from "../../contexts/useCity";
 import { useActiveMetros, useMetroName, useMetros } from "../metros/hooks/useMetros";
 import EventModal from "../events/components/event-modal/EventModal";
@@ -126,8 +127,8 @@ export default function Calendar() {
   }, [eventList, typeFilter, styleFilter, searchQuery]);
 
   const expandedEvents = useMemo(() => {
-    const now = Temporal.Now.zonedDateTimeISO();
-    const cutoff = now.add({ weeks: 12 });
+    const now = Temporal.Now.instant();
+    const cutoff = now.add({ hours: 12 * 7 * 24 });
     const expanded: CalendarOccurrence[] = [];
 
     for (const event of filteredEvents) {
@@ -139,10 +140,11 @@ export default function Calendar() {
       const originalEnd = Temporal.PlainDateTime.from(event.end.replace(" ", "T"));
       const durationMinutes = originalEnd.since(originalStart).total({ unit: "minutes" });
       const upcomingDates = getUpcomingSeriesDates(event.start, 12);
+      const zone = timeZoneForDisplay({ event: event.timeZone, metro: event.city });
 
       for (const futureDate of upcomingDates) {
-        const futureZdt = futureDate.toZonedDateTime("America/New_York");
-        if (Temporal.PlainDateTime.compare(futureZdt, cutoff.toPlainDateTime()) > 0) break;
+        const futureInstant = futureDate.toZonedDateTime(zone).toInstant();
+        if (Temporal.Instant.compare(futureInstant, cutoff) > 0) break;
 
         const endDate = futureDate.add({ minutes: Math.round(durationMinutes) });
 
@@ -150,6 +152,7 @@ export default function Calendar() {
           ...event,
           id: `${event.id}-w${upcomingDates.indexOf(futureDate) + 1}`,
           sourceEventId: event.id,
+          timeZone: zone,
           start: futureDate.toString().replace("T", " "),
           end: endDate.toString().replace("T", " "),
         });
@@ -235,12 +238,13 @@ export default function Calendar() {
   useEffect(() => {
     eventsService.set(
       expandedEvents.map((event) => {
+        const zone = timeZoneForDisplay({ event: event.timeZone });
         const start = Temporal.PlainDateTime.from(event.start.replace(" ", "T"));
         const end = Temporal.PlainDateTime.from(event.end.replace(" ", "T"));
         return {
           ...event,
-          start: start.toZonedDateTime("America/New_York"),
-          end: clampEndToStartDay(start, end).toZonedDateTime("America/New_York"),
+          start: start.toZonedDateTime(zone),
+          end: clampEndToStartDay(start, end).toZonedDateTime(zone),
         };
       })
     );

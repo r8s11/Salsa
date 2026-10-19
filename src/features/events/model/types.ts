@@ -45,6 +45,14 @@ export interface DatabaseEvent {
   created_at: string;
   host: string | null;
   recurrence: string | null;
+  /**
+   * Explicit IANA zone for this occurrence. Not a database column today; only set
+   * by in-memory flows (series generation, copy) so a valid zone survives them.
+   */
+  time_zone?: string | null;
+  /** Zone inherited from the parent series or linked venue when known. */
+  series_time_zone?: string | null;
+  venue_time_zone?: string | null;
   gallery: string[] | null;
   contact_email?: string | null;
   contact_instagram?: string | null;
@@ -81,6 +89,8 @@ export interface ScheduleXEvent {
   city?: City;
   host?: string;
   recurrence?: string;
+  /** Resolved IANA zone `start`/`end` are wall-clock in. */
+  timeZone?: string;
   gallery?: string[];
   imageUrl?: string;
   posterImageUrl?: string;

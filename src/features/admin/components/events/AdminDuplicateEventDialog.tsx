@@ -3,6 +3,7 @@ import { useId, useRef, useState } from "react";
 import { useAccessibleDialog } from "../../../../shared/a11y/useAccessibleDialog";
 import type { DatabaseEvent } from "../../../events/model/types";
 import { fromEventDateInstant } from "../../../events/model/eventDateTime";
+import { timeZoneForDisplay } from "../../../../shared/utils/timezone";
 import "./AdminDuplicateEventDialog.css";
 
 interface AdminDuplicateEventDialogProps {
@@ -38,7 +39,15 @@ export default function AdminDuplicateEventDialog({
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
   const dateRef = useRef<HTMLInputElement>(null);
-  const original = fromEventDateInstant(event.event_date);
+  const original = fromEventDateInstant(
+    event.event_date,
+    timeZoneForDisplay({
+      event: event.time_zone,
+      series: event.series_time_zone,
+      venue: event.venue_time_zone,
+      metro: event.city,
+    })
+  );
   // Weekly recurrence is the dominant case for this product.
   const [date, setDate] = useState(() => resolveQuickSet(original.date, "1week"));
   const [time, setTime] = useState(original.time);

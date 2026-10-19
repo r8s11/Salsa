@@ -1,19 +1,29 @@
 // Column event_date is timestamp with time zone (timestamptz)
 import "temporal-polyfill/global";
+import { PLATFORM_DEFAULT_TIME_ZONE } from "../../../shared/utils/timezone";
 
-// Form fields (New York wall-clock) -> DB timestamptz ISO instant
-export function toEventDateInstant(date: string, time: string): string {
+// Form fields (wall-clock in the event's zone) -> DB timestamptz ISO instant.
+// `timeZone` defaults to the platform zone only so legacy callers keep working;
+// new and edited events must pass the zone from resolveEventTimeZone().
+export function toEventDateInstant(
+  date: string,
+  time: string,
+  timeZone: string = PLATFORM_DEFAULT_TIME_ZONE
+): string {
   const wallClockTime = time || "00:00";
 
   return Temporal.PlainDateTime.from(`${date}T${wallClockTime}:00`)
-    .toZonedDateTime("America/New_York")
+    .toZonedDateTime(timeZone)
     .toInstant()
     .toString();
 }
 
-// DB timestamptz ISO instant -> form fields (New York wall-clock)
-export function fromEventDateInstant(iso: string): { date: string; time: string } {
-  const zdt = Temporal.Instant.from(iso).toZonedDateTimeISO("America/New_York");
+// DB timestamptz ISO instant -> form fields (wall-clock in the event's zone)
+export function fromEventDateInstant(
+  iso: string,
+  timeZone: string = PLATFORM_DEFAULT_TIME_ZONE
+): { date: string; time: string } {
+  const zdt = Temporal.Instant.from(iso).toZonedDateTimeISO(timeZone);
 
   const year = zdt.year.toString().padStart(4, "0");
   const month = zdt.month.toString().padStart(2, "0");

@@ -35,6 +35,8 @@ export type ComposerEntity = {
   description?: string | null;
   venue_id?: string | null;
   organizer_id?: string | null;
+  /** IANA zone of a venue entity; undefined when the source does not carry it. */
+  timezone?: string | null;
 };
 
 interface ComposerEntitySelectProps {
@@ -67,7 +69,13 @@ function fromMatch(row: EntityMatch): ComposerEntity {
   return { id: row.id, name: row.name, address: row.address ?? null, city: row.city ?? null };
 }
 function fromVenue(row: VenueRow): ComposerEntity {
-  return { id: row.id, name: row.name, address: venueDisplayAddress(row), city: row.city };
+  return {
+    id: row.id,
+    name: row.name,
+    address: venueDisplayAddress(row),
+    city: row.city,
+    timezone: row.timezone,
+  };
 }
 function fromEntity(row: AdminEntityRow): ComposerEntity {
   return {

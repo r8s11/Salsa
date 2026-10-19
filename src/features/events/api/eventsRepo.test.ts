@@ -97,6 +97,61 @@ describe("eventsRepo taxonomy persistence", () => {
     expect(mocks.replaceEventTaxonomyTerms).toHaveBeenCalledWith("copy-id", ["salsa-id"]);
   });
 });
+
+describe("duplicateEvent preserves the event's time zone", () => {
+  beforeEach(() => {
+    mocks.insert.mockReset();
+    mocks.replaceEventTaxonomyTerms.mockReset();
+    mocks.insert.mockReturnValue({
+      select: () => ({ single: async () => ({ data: { id: "copy-id" }, error: null }) }),
+    });
+  });
+  const actor = { id: "admin-id", email: "admin@example.com" };
+
+  it.each([
+    ["Los Angeles", "los-angeles", "2026-09-09T03:00:00Z"],
+    ["Chicago", "chicago", "2026-09-09T01:00:00Z"],
+    ["Boston", "boston", "2026-09-09T00:00:00Z"],
+  ])("%s copy at 8pm is stored as 8pm local, not 8pm Eastern", async (_label, city, instant) => {
+    await duplicateEvent({ ...source, city }, { date: "2026-09-08", time: "20:00", publish: false }, actor);
+    expect(mocks.insert.mock.calls[0][0].event_date).toBe(instant);
+  });
+
+  it("copies in the venue zone when it differs from the metro", async () => {
+    await duplicateEvent(
+      { ...source, city: "new-york-city", venue_time_zone: "America/Chicago" },
+      { date: "2026-09-08", time: "20:00", publish: false },
+      actor
+    );
+    expect(mocks.insert.mock.calls[0][0].event_date).toBe("2026-09-09T01:00:00Z");
+  });
+
+  it("keeps the local hour when the copy lands across fall-back", async () => {
+    await duplicateEvent(
+      { ...source, city: "los-angeles" },
+      { date: "2026-11-07", time: "20:00", publish: false },
+      actor
+    );
+    expect(mocks.insert.mock.calls[0][0].event_date).toBe("2026-11-08T04:00:00Z"); // PST, UTC-8
+  });
+
+  it("does not send in-memory zone hints to the events table, which has no such columns", async () => {
+    await duplicateEvent(
+      {
+        ...source,
+        time_zone: "America/Chicago",
+        venue_time_zone: "America/Chicago",
+        series_time_zone: "America/Chicago",
+      },
+      { date: "2026-09-08", time: "20:00", publish: false },
+      actor
+    );
+    const inserted = mocks.insert.mock.calls[0][0];
+    expect(inserted).not.toHaveProperty("time_zone");
+    expect(inserted).not.toHaveProperty("venue_time_zone");
+    expect(inserted).not.toHaveProperty("series_time_zone");
+  });
+});
 describe("duplicateEvent taxonomy failure", () => {
   beforeEach(() => {
     mocks.insert.mockReset();

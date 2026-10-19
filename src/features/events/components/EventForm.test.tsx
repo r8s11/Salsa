@@ -181,3 +181,59 @@ describe("EventForm", () => {
     ]);
   });
 });
+
+describe("EventForm time zone control", () => {
+  it("is not shown on public or organizer surfaces", () => {
+    render(<EventForm draft={draft} onChange={vi.fn()} capabilities={CAPABILITIES.submit} />);
+    expect(screen.queryByLabelText("Time zone")).not.toBeInTheDocument();
+  });
+
+  it("shows the resolved zone and where it came from on the admin surface", () => {
+    render(<EventForm draft={draft} onChange={vi.fn()} capabilities={CAPABILITIES.admin} />);
+    expect(screen.getByLabelText("Time zone")).toBeInTheDocument();
+    expect(
+      screen.getByRole("option", { name: "Automatic (America/New_York, from metro)" })
+    ).toBeInTheDocument();
+  });
+
+  it("reflects a venue zone that overrides the city", () => {
+    render(
+      <EventForm
+        draft={{ ...draft, venue_time_zone: "America/Chicago" }}
+        onChange={vi.fn()}
+        capabilities={CAPABILITIES.admin}
+      />
+    );
+    expect(
+      screen.getByRole("option", { name: "Automatic (America/Chicago, from venue)" })
+    ).toBeInTheDocument();
+  });
+
+  it("asks for a manual choice and explains why when nothing resolves", () => {
+    render(
+      <EventForm draft={{ ...draft, city: "atlantis" }} onChange={vi.fn()} capabilities={CAPABILITIES.admin} />
+    );
+    expect(screen.getByRole("option", { name: "Choose a time zone" })).toBeInTheDocument();
+    expect(screen.getByText(/no time zone/i)).toBeInTheDocument();
+  });
+
+  it("reports an invalid zone by name instead of falling back", () => {
+    render(
+      <EventForm
+        draft={{ ...draft, time_zone: "Mars/Olympus" }}
+        onChange={vi.fn()}
+        capabilities={CAPABILITIES.admin}
+      />
+    );
+    expect(screen.getByText(/Mars\/Olympus/)).toBeInTheDocument();
+  });
+
+  it("writes an explicit choice onto the draft, and clears it back to automatic", () => {
+    const onChange = vi.fn();
+    render(<EventForm draft={draft} onChange={onChange} capabilities={CAPABILITIES.admin} />);
+    fireEvent.change(screen.getByLabelText("Time zone"), { target: { value: "America/Los_Angeles" } });
+    expect(onChange).toHaveBeenLastCalledWith({ ...draft, time_zone: "America/Los_Angeles" });
+    fireEvent.change(screen.getByLabelText("Time zone"), { target: { value: "" } });
+    expect(onChange).toHaveBeenLastCalledWith({ ...draft, time_zone: undefined });
+  });
+});

@@ -156,3 +156,46 @@ describe("databaseEventToScheduleX", () => {
     expect(result.danceStyles).toEqual(["Salsa", "Bachata"]);
   });
 });
+
+describe("databaseEventToScheduleX time zone", () => {
+  // 2026-07-19T03:00:00Z is 8pm in Los Angeles (PDT) but 11pm in New York (EDT).
+  it.each([
+    ["los-angeles", "America/Los_Angeles", "2026-07-18 20:00"],
+    ["chicago", "America/Chicago", "2026-07-18 22:00"],
+    ["boston", "America/New_York", "2026-07-18 23:00"],
+    ["new-york-city", "America/New_York", "2026-07-18 23:00"],
+  ])("%s renders in %s wall-clock", (city, zone, start) => {
+    const result = databaseEventToScheduleX(mockEvent({ city, event_date: "2026-07-19T03:00:00Z" }));
+    expect(result.start).toBe(start);
+    expect(result.timeZone).toBe(zone);
+  });
+
+  it("keeps the same instant for the whole duration in the event's zone", () => {
+    const result = databaseEventToScheduleX(
+      mockEvent({ city: "los-angeles", event_date: "2026-07-19T03:00:00Z" })
+    );
+    expect(result.end).toBe("2026-07-19 00:00");
+  });
+
+  it("prefers the venue zone over the metro", () => {
+    const result = databaseEventToScheduleX(
+      mockEvent({
+        city: "new-york-city",
+        event_date: "2026-07-19T03:00:00Z",
+        venue_time_zone: "America/Chicago",
+      })
+    );
+    expect(result.timeZone).toBe("America/Chicago");
+    expect(result.start).toBe("2026-07-18 22:00");
+  });
+
+  it("does not blank the page for an unmapped metro: it falls back to the platform zone for display", () => {
+    const result = databaseEventToScheduleX(mockEvent({ city: "atlantis" }));
+    expect(result.timeZone).toBe("America/New_York");
+  });
+
+  it("does not silently use UTC", () => {
+    const result = databaseEventToScheduleX(mockEvent({ city: "los-angeles" }));
+    expect(result.timeZone).not.toBe("UTC");
+  });
+});

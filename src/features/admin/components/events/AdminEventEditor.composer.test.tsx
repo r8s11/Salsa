@@ -5,6 +5,7 @@ import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import AdminEventEditor from "./AdminEventEditor";
 import { buildEmptyAdminForm } from "../../model/adminEventForm";
+import { draftToAdminPayload } from "../../../events/components/EventForm";
 import { fetchAdminEntityDirectory, fetchAdminEntityDetail } from "../../entities/api/entitiesRepo";
 import { fetchVenueDetail } from "../../api/venuesRepo";
 import type { VenueDetailRow } from "../../model/venuesQuery";
@@ -193,6 +194,54 @@ it("keeps an existing venue and a deliberately cleared address when series defau
   expect(screen.getByLabelText("Address", { exact: true })).toHaveValue("");
   await user.click(screen.getByRole("button", { name: "Save draft" }));
   expect(onSubmit.mock.calls[0][0].venue_id).toBe("venue-a");
+});
+
+it("carries the series venue's time zone onto the draft so an LA venue saves as LA local time", async () => {
+  localStorage.clear();
+  const user = userEvent.setup();
+  const series = {
+    id: "series-la",
+    kind: "series" as const,
+    name: "Westside series",
+    slug: "westside-series",
+    status: "active" as const,
+    description: null,
+    image_url: null,
+    city: "boston",
+    website: null,
+    instagram: null,
+    venue_id: "venue-la",
+    quality_issues: [],
+    linked_events: [],
+  };
+  vi.mocked(fetchAdminEntityDirectory).mockResolvedValue([series]);
+  vi.mocked(fetchAdminEntityDetail).mockResolvedValue(series);
+  vi.mocked(fetchVenueDetail).mockResolvedValue({
+    id: "venue-la",
+    name: "Sunset Ritmo Hall",
+    address_line1: "1 Sunset Blvd",
+    city: "los-angeles",
+    timezone: "America/Los_Angeles",
+  } as VenueDetailRow);
+  const onSubmit = vi.fn().mockResolvedValue(undefined);
+  editor({
+    initial: {
+      ...buildEmptyAdminForm("boston"),
+      title: "West coast night",
+      event_type: "social",
+      event_date: "2026-07-18",
+      event_time: "20:00",
+    },
+    onSubmit,
+  });
+  await user.type(screen.getByRole("combobox", { name: "Event series" }), "Westside");
+  await user.click(await screen.findByRole("option", { name: /Westside series/ }));
+  await waitFor(() => expect(screen.getByLabelText("Venue name")).toHaveValue("Sunset Ritmo Hall"));
+  await user.click(screen.getByRole("button", { name: "Save draft" }));
+  const saved = onSubmit.mock.calls[0][0];
+  expect(saved.venue_time_zone).toBe("America/Los_Angeles");
+  // 8pm Pacific, not 8pm Eastern (which would be 00:00Z).
+  expect(draftToAdminPayload(saved).event_date).toBe("2026-07-19T03:00:00Z");
 });
 
 it("does not restore a discarded draft after the editor unmounts", async () => {

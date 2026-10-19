@@ -554,6 +554,7 @@ export default function AdminEventEditor({
               venue_id: entity?.id ?? "",
               location: entity?.name ?? "",
               address: entity?.address ?? "",
+              venue_time_zone: entity?.timezone ?? "",
             }
           : {}),
       };
@@ -589,6 +590,7 @@ export default function AdminEventEditor({
           (!current.location || current.location === venue.name)
         ) {
           next.venue_id = venue.id;
+          next.venue_time_zone = venue.timezone ?? "";
           next.location = next.location || venue.name;
           if (!edited.current.has("address"))
             next.address = next.address || venueDisplayAddress(venue) || "";

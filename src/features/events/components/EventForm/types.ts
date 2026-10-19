@@ -1,6 +1,7 @@
 import type { EntityReview } from "../../../entity-matching/entityReview";
 import type { City, EventType } from "../../model/types";
 import { toEventDateInstant } from "../../model/eventDateTime";
+import { resolveEventTimeZone, type TimeZoneResolution } from "../../../../shared/utils/timezone";
 import type { SubmissionCreate } from "../../../admin/api/submissionsRepo";
 import type { AdminEventPayload, UserEventUpdatePayload } from "../../api/eventsRepo";
 
@@ -28,6 +29,12 @@ export type EventFormDraft = {
   dance_styles: string[];
   taxonomy_term_ids: string[];
   series_id?: string;
+  /** Explicit IANA zone chosen for this event; wins over venue and metro. */
+  time_zone?: string;
+  /** Zone of the linked venue, carried so save and load resolve identically. */
+  venue_time_zone?: string;
+  /** Zone of the parent series, inherited by every occurrence. */
+  series_time_zone?: string;
   entity_review?: EntityReview;
 };
 
@@ -37,6 +44,8 @@ export type EventFormCapabilities = {
   venue: "free-text" | "combobox";
   flyer: boolean;
   hostAndContact: boolean;
+  /** Shows the time-zone control; only surfaces that can persist an explicit zone. */
+  timeZone: boolean;
   submitterInfo: boolean;
 };
 
@@ -50,6 +59,7 @@ export const CAPABILITIES: Record<
     venue: "free-text",
     flyer: false,
     hostAndContact: false,
+    timeZone: false,
     submitterInfo: true,
   },
   organizerEdit: {
@@ -58,6 +68,7 @@ export const CAPABILITIES: Record<
     venue: "free-text",
     flyer: true,
     hostAndContact: true,
+    timeZone: false,
     submitterInfo: false,
   },
   organizerCreate: {
@@ -66,6 +77,7 @@ export const CAPABILITIES: Record<
     venue: "free-text",
     flyer: true,
     hostAndContact: true,
+    timeZone: false,
     submitterInfo: false,
   },
   // A moderation submission has no canonical event id yet. Storage policy
@@ -77,6 +89,7 @@ export const CAPABILITIES: Record<
     venue: "free-text",
     flyer: false,
     hostAndContact: false,
+    timeZone: false,
     submitterInfo: false,
   },
   admin: {
@@ -85,11 +98,34 @@ export const CAPABILITIES: Record<
     venue: "combobox",
     flyer: true,
     hostAndContact: true,
+    timeZone: true,
     submitterInfo: false,
   },
 };
 
 type Actor = { id: string; email: string | null; name?: string | null } | null;
+
+/**
+ * The zone a draft's wall-clock date/time is in: explicit choice, then series,
+ * then venue, then the city's canonical metro. Load (fromEventDateInstant) and
+ * save (toEventDateInstant) must both use this so an edit never shifts the hour.
+ */
+export function resolveDraftTimeZone(
+  draft: Pick<EventFormDraft, "time_zone" | "series_time_zone" | "venue_time_zone" | "city">
+): TimeZoneResolution {
+  return resolveEventTimeZone({
+    event: draft.time_zone,
+    series: draft.series_time_zone,
+    venue: draft.venue_time_zone,
+    metro: draft.city,
+  });
+}
+
+function draftInstant(draft: EventFormDraft): string {
+  const zone = resolveDraftTimeZone(draft);
+  if (!zone.ok) throw new Error(zone.message);
+  return toEventDateInstant(draft.event_date, draft.event_time, zone.timeZone);
+}
 
 function priceAmount(draft: EventFormDraft): number | null {
   if (draft.price_type !== "paid") return null;
@@ -106,7 +142,7 @@ export function draftToSubmission(draft: EventFormDraft, actor: Actor): Submissi
     description: draft.description || null,
     event_type: draft.event_type as EventType,
     city: draft.city,
-    event_date: toEventDateInstant(draft.event_date, draft.event_time),
+    event_date: draftInstant(draft),
     event_time: draft.event_time || null,
     location: draft.location || null,
     address: draft.address || null,
@@ -125,7 +161,7 @@ export function draftToUserPayload(draft: EventFormDraft): UserEventUpdatePayloa
     description: draft.description || null,
     event_type: draft.event_type as EventType,
     city: draft.city,
-    event_date: toEventDateInstant(draft.event_date, draft.event_time),
+    event_date: draftInstant(draft),
     event_time: draft.event_time || null,
     location: draft.location || null,
     address: draft.address || null,
@@ -144,7 +180,7 @@ export function draftToAdminPayload(draft: EventFormDraft): AdminEventPayload {
     description: draft.description || null,
     event_type: draft.event_type as EventType,
     city: draft.city,
-    event_date: toEventDateInstant(draft.event_date, draft.event_time),
+    event_date: draftInstant(draft),
     event_time: draft.event_time || null,
     location: draft.location || null,
     address: draft.address || null,
@@ -184,7 +220,7 @@ export function draftToOrganizerUpdatePayload(draft: EventFormDraft): OrganizerU
     description: draft.description || null,
     event_type: draft.event_type as EventType,
     city: draft.city,
-    event_date: toEventDateInstant(draft.event_date, draft.event_time),
+    event_date: draftInstant(draft),
     event_time: draft.event_time || null,
     location: draft.location || null,
     address: draft.address || null,

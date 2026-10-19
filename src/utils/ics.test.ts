@@ -105,3 +105,22 @@ describe("googleCalendarUrl", () => {
     expect(googleCalendarUrl({ ...event, start: "", end: "" })).toBeNull();
   });
 });
+
+describe("calendar exports use the event's own time zone", () => {
+  const zoned = (city: string, timeZone?: string): ScheduleXEvent => ({ ...event, city, timeZone });
+
+  it.each([
+    ["los-angeles", "America/Los_Angeles", "20260719T030000Z"],
+    ["chicago", "America/Chicago", "20260719T010000Z"],
+    ["boston", "America/New_York", "20260719T000000Z"],
+  ])("%s: ICS TZID and Google UTC both follow %s", (city, zone, utcStart) => {
+    expect(generateIcs(zoned(city))).toContain(`DTSTART;TZID=${zone}:20260718T200000`);
+    expect(generateIcs(zoned(city))).toContain(`DTEND;TZID=${zone}:20260719T000000`);
+    expect(googleCalendarUrl(zoned(city))).toContain(`dates=${utcStart}/`);
+  });
+
+  it("an explicit event zone wins over the city", () => {
+    const ics = generateIcs(zoned("boston", "America/Chicago"));
+    expect(ics).toContain("DTSTART;TZID=America/Chicago:20260718T200000");
+  });
+});

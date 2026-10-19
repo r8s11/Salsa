@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import type { EventTaxonomyTerm } from "../../model/types";
 import type { EventFormCapabilities, EventFormDraft } from "./types";
+import { resolveDraftTimeZone } from "./types";
+import { TIME_ZONE_OPTIONS } from "../../../../shared/utils/timezone";
 import type { SubmitFieldErrors } from "../../../submit-event/model/validation";
 import { useMetros } from "../../../metros/hooks/useMetros";
 import FormFieldError from "../../../../shared/forms/FormFieldError";
@@ -60,6 +62,8 @@ export default function EventForm({
   errors = {},
 }: Props) {
   const { metros } = useMetros();
+  const resolvedTimeZone = resolveDraftTimeZone(draft);
+  const timeZoneError = resolvedTimeZone.ok ? undefined : resolvedTimeZone.message;
   const cityOptions = [...metros].sort((a, b) => a.name.localeCompare(b.name));
   const update = <K extends keyof EventFormDraft>(key: K, value: EventFormDraft[K]) =>
     onChange({ ...draft, [key]: value });
@@ -283,6 +287,29 @@ export default function EventForm({
           />
           Repeats weekly
         </label>
+        {capabilities.timeZone && (
+          <div className="event-form__field">
+            <label htmlFor="event-time-zone">Time zone</label>
+            <select
+              id="event-time-zone"
+              value={draft.time_zone ?? ""}
+              onChange={(event) => update("time_zone", event.target.value || undefined)}
+              {...fieldErrorProps("event-time-zone-error", timeZoneError)}
+            >
+              <option value="">
+                {resolvedTimeZone.ok
+                  ? `Automatic (${resolvedTimeZone.timeZone}, from ${resolvedTimeZone.source})`
+                  : "Choose a time zone"}
+              </option>
+              {TIME_ZONE_OPTIONS.map((zone) => (
+                <option key={zone} value={zone}>
+                  {zone}
+                </option>
+              ))}
+            </select>
+            <FormFieldError id="event-time-zone-error" message={timeZoneError} />
+          </div>
+        )}
       </section>
       <section className="event-form__section event-form__section--where">
         <h2>Where</h2>

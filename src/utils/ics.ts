@@ -4,7 +4,7 @@
 import "temporal-polyfill/global";
 import { ScheduleXEvent } from "../types/events";
 
-const TZID = "America/New_York";
+import { timeZoneForDisplay } from "../shared/utils/timezone";
 
 // "YYYY-MM-DD HH:mm" -> "YYYYMMDDTHHmm00"
 function formatIcsDateTime(scheduleXDateTime: string): string {
@@ -32,6 +32,7 @@ export function generateIcs(event: ScheduleXEvent): string {
     .replace(/[-:]/g, "")
     .replace(/\.\d{3}/, "");
   const location = [event.location, event.address].filter(Boolean).join(", ");
+  const tzid = timeZoneForDisplay({ event: event.timeZone, metro: event.city });
 
   const lines = [
     "BEGIN:VCALENDAR",
@@ -40,8 +41,8 @@ export function generateIcs(event: ScheduleXEvent): string {
     "BEGIN:VEVENT",
     `UID:${event.id}@salsasegura.com`,
     `DTSTAMP:${dtstamp}`,
-    `DTSTART;TZID=${TZID}:${formatIcsDateTime(event.start)}`,
-    `DTEND;TZID=${TZID}:${formatIcsDateTime(event.end)}`,
+    `DTSTART;TZID=${tzid}:${formatIcsDateTime(event.start)}`,
+    `DTEND;TZID=${tzid}:${formatIcsDateTime(event.end)}`,
     `SUMMARY:${escapeIcsText(event.title)}`,
     ...(event.description ? [`DESCRIPTION:${escapeIcsText(event.description)}`] : []),
     ...(location ? [`LOCATION:${escapeIcsText(location)}`] : []),
@@ -79,11 +80,11 @@ export function mapsUrl(event: ScheduleXEvent): string | null {
 
 // ── Google Calendar deep link ──────────────────────────────────────────
 
-// "YYYY-MM-DD HH:mm" (New York wall-clock) -> UTC "YYYYMMDDTHHMMSSZ"
+// "YYYY-MM-DD HH:mm" (wall-clock in `timeZone`) -> UTC "YYYYMMDDTHHMMSSZ"
 // for the Google Calendar URL `dates` parameter.
-function toUtcIso(scheduleXDateTime: string): string {
+function toUtcIso(scheduleXDateTime: string, timeZone: string): string {
   const zdt = Temporal.PlainDateTime.from(scheduleXDateTime.replace(" ", "T")).toZonedDateTime(
-    TZID
+    timeZone
   );
   const utc = zdt.withTimeZone("UTC");
   const pad = (n: number) => n.toString().padStart(2, "0");
@@ -97,7 +98,8 @@ export function googleCalendarUrl(event: ScheduleXEvent): string | null {
   if (!event.start || !event.end) return null;
 
   const text = encodeURIComponent(event.title);
-  const dates = `${toUtcIso(event.start)}/${toUtcIso(event.end)}`;
+  const zone = timeZoneForDisplay({ event: event.timeZone, metro: event.city });
+  const dates = `${toUtcIso(event.start, zone)}/${toUtcIso(event.end, zone)}`;
   const details: string[] = [];
   if (event.description) details.push(event.description);
   if (event.rsvpLink) details.push(`RSVP: ${event.rsvpLink}`);

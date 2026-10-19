@@ -1,6 +1,7 @@
 import { supabase } from "../../../lib/supabase";
 import { DatabaseEvent, City, EventType } from "../../../types/events";
 import { toEventDateInstant, formatTimeLabel } from "../model/eventDateTime";
+import { timeZoneForDisplay } from "../../../shared/utils/timezone";
 import { shortCodeIdRange } from "../model/shortLink";
 import { replaceEventTaxonomyTerms } from "../../admin/api/taxonomyRepo";
 import type { EntityReview } from "../../entity-matching/entityReview";
@@ -302,14 +303,25 @@ export async function duplicateEvent(
     event_time: _eventTime,
     taxonomy_term_ids: taxonomyTermIds = [],
     taxonomy_terms: _taxonomyTerms,
+    // In-memory zone hints are not columns; the copy re-derives its zone the same way.
+    time_zone: _timeZone,
+    series_time_zone: _seriesTimeZone,
+    venue_time_zone: _venueTimeZone,
     ...carried
   } = source;
+  // Same chain the dialog used to read the original, so the copy keeps its local hour.
+  const copyZone = timeZoneForDisplay({
+    event: source.time_zone,
+    series: source.series_time_zone,
+    venue: source.venue_time_zone,
+    metro: source.city,
+  });
 
   const { data, error } = await supabase
     .from("events")
     .insert({
       ...carried,
-      event_date: toEventDateInstant(input.date, input.time),
+      event_date: toEventDateInstant(input.date, input.time, copyZone),
       event_time: formatTimeLabel(input.time),
       status: input.publish ? "approved" : "draft",
       source_type: "admin",

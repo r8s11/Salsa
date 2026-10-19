@@ -1,7 +1,9 @@
 import type { City, DatabaseEvent } from "../../events/model/types";
 import type { EventFormDraft } from "../../events/components/EventForm";
 import { buildInitialForm, validateSubmitForm } from "../../submit-event/model/validation";
+import { resolveDraftTimeZone } from "../../events/components/EventForm/types";
 import { fromEventDateInstant } from "../../events/model/eventDateTime";
+import { timeZoneForDisplay } from "../../../shared/utils/timezone";
 
 export type AdminEventForm = EventFormDraft;
 export const HOST_MAX_LENGTH = 300;
@@ -22,7 +24,13 @@ export function buildEmptyAdminForm(city: City): AdminEventForm {
 }
 
 export function buildAdminFormFromEvent(event: DatabaseEvent): AdminEventForm {
-  const { date, time } = fromEventDateInstant(event.event_date);
+  const timeZone = timeZoneForDisplay({
+    event: event.time_zone,
+    series: event.series_time_zone,
+    venue: event.venue_time_zone,
+    metro: event.city,
+  });
+  const { date, time } = fromEventDateInstant(event.event_date, timeZone);
   return {
     title: event.title,
     description: event.description ?? "",
@@ -35,6 +43,10 @@ export function buildAdminFormFromEvent(event: DatabaseEvent): AdminEventForm {
     address: event.address ?? "",
     venue_id: event.venue_id ?? "",
     series_id: event.series_id ?? "",
+    // Carried on the draft so saving resolves the same zone the form was loaded in.
+    ...(event.time_zone ? { time_zone: event.time_zone } : {}),
+    ...(event.venue_time_zone ? { venue_time_zone: event.venue_time_zone } : {}),
+    ...(event.series_time_zone ? { series_time_zone: event.series_time_zone } : {}),
     price_type: event.price_type ?? "",
     price_amount: event.price_amount == null ? "" : String(event.price_amount),
     rsvp_link: event.rsvp_link ?? "",
@@ -73,6 +85,8 @@ export function validateAdminEventForm(form: AdminEventForm): string | null {
     dance_styles: form.dance_styles,
   });
   if (submitFormError) return submitFormError;
+  const zone = resolveDraftTimeZone(form);
+  if (!zone.ok) return zone.message;
   if (form.host.length > HOST_MAX_LENGTH)
     return `Host must be ${HOST_MAX_LENGTH} characters or fewer.`;
   if (form.contact_email && !/^\S+@\S+\.\S+$/.test(form.contact_email))

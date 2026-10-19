@@ -69,7 +69,7 @@
 
 .shop-page.shop-page--product .shop-product__thumbnail:focus-visible,
 .shop-page.shop-page--product .shop-product__quantity button:focus-visible,
-.shop-page.shop-page--product .shop-product__option-button:focus-visible,
+.shop-page.shop-page--product .shop-product__option-field select:focus-visible,
 .shop-page.shop-page--product .shop-product__details-disclosure summary:focus-visible,
 .shop-page.shop-page--product :where(a, button):focus-visible {
   outline: 3px solid var(--gold-light, #ffe088);
@@ -114,71 +114,81 @@
   font-family: var(--font-body, sans-serif);
 }
 
-.shop-page.shop-page--product .shop-product__option-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 7.5rem), 1fr));
-  gap: 0.625rem;
-  min-width: 0;
-}
-
 .shop-page.shop-page--product .shop-product__options {
   display: grid;
-  gap: 0.625rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
+  gap: 1rem;
   min-width: 0;
-  margin: 0;
-  padding: 0;
-  border: 0;
 }
 
-.shop-page.shop-page--product .shop-product__options legend {
-  padding: 0;
-  color: var(--retail-copy);
+.shop-page.shop-page--product .shop-product__option-field {
+  display: grid;
+  align-content: start;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.shop-page.shop-page--product .shop-product__option-label {
+  color: var(--retail-muted);
   font-family: var(--font-ui, sans-serif);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1.2;
+  text-transform: uppercase;
 }
 
-
-.shop-page.shop-page--product .shop-product__option-button {
+.shop-page.shop-page--product .shop-product__option-field select {
+  box-sizing: border-box;
+  width: 100%;
   min-width: 0;
-  min-height: 44px;
+  min-height: 48px;
   padding: 0.625rem 0.75rem;
   border: 1px solid var(--border-md);
   border-radius: var(--radius-sm);
   background: var(--retail-surface);
-  color: var(--retail-copy);
-  font: 600 0.9rem/1.35 var(--font-ui, sans-serif);
-  overflow-wrap: anywhere;
-  text-align: center;
-  cursor: pointer;
-  transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease;
-}
-
-.shop-page.shop-page--product .shop-product__variant-field > .shop-product__field-help {
-  margin: 0;
-}
-.shop-page.shop-page--product .shop-product__option-button:hover:not(:disabled) {
-  border-color: var(--retail-gold);
-  background: var(--surface-high);
-}
-
-.shop-page.shop-page--product .shop-product__option-button[aria-pressed="true"] {
-  border-color: var(--retail-gold);
-  background: var(--gold-dim, rgba(233, 195, 73, 0.15));
   color: var(--gold-light, #ffe088);
+  color-scheme: dark;
+  font: 600 1rem/1.5 var(--font-body, sans-serif);
+  letter-spacing: 0.005em;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: border-color 150ms ease;
 }
 
-.shop-page.shop-page--product .shop-product__option-button:disabled {
-  border-color: var(--border);
+.shop-page.shop-page--product .shop-product__option-field select:hover:not(:disabled) {
+  border-color: var(--retail-gold);
+}
+
+.shop-page.shop-page--product .shop-product__option-field select:disabled {
   color: var(--retail-muted);
   cursor: not-allowed;
   opacity: 0.68;
 }
 
+.shop-page.shop-page--product .shop-product__option-field option {
+  background: var(--retail-surface);
+  color: var(--retail-copy);
+}
+
+.shop-page.shop-page--product .shop-product__option-value {
+  padding-block: 0.75rem;
+  color: var(--retail-copy);
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.005em;
+  line-height: 1.5;
+}
+
 .shop-page.shop-page--product .shop-product__availability {
   margin: -0.25rem 0 0;
   color: var(--retail-muted);
-  font-size: 0.875rem;
+  font-family: var(--font-ui, sans-serif);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1.2;
+  text-transform: uppercase;
 }
 
 .shop-page.shop-page--product .shop-product__availability--available {
@@ -332,7 +342,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .shop-page.shop-page--product .shop-product__thumbnail,
-  .shop-page.shop-page--product .shop-product__option-button {
+  .shop-page.shop-page--product .shop-product__option-field select {
     transition: none;
   }
 }

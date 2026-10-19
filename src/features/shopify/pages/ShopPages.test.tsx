@@ -206,7 +206,7 @@ describe("ProductPage", () => {
     expect(screen.getByText(/\$28\.00/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /back to shop/i })).toHaveAttribute("href", "/shop");
 
-    expect(screen.getByRole("button", { name: /large.*sold out/i })).toBeDisabled();
+    expect(screen.getByRole("option", { name: /large.*sold out/i })).toBeDisabled();
   });
 
   it("shows missing configuration without requesting a product", () => {
@@ -258,8 +258,8 @@ describe("ProductPage", () => {
 
     fireEvent.click(screen.getByRole("link", { name: "Open new product" }));
     expect(await screen.findByRole("heading", { name: "New product" })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Size: Medium" }));
-    expect(screen.getByRole("button", { name: "Size: Medium" })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.change(screen.getByRole("combobox", { name: "Size" }), { target: { value: "Medium" } });
+    expect(screen.getByRole("combobox", { name: "Size" })).toHaveValue("Medium");
 
     await act(async () => {
       resolveOld(product("old", "Old product"));
@@ -267,7 +267,7 @@ describe("ProductPage", () => {
     });
     expect(screen.queryByRole("heading", { name: "Old product" })).toBeNull();
     expect(screen.getByRole("heading", { name: "New product" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Size: Medium" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("combobox", { name: "Size" })).toHaveValue("Medium");
   });
 
   it("resets variant selection when the route handle changes", async () => {
@@ -294,11 +294,11 @@ describe("ProductPage", () => {
     );
 
     expect(await screen.findByRole("heading", { name: "Old product" })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Size: Medium" }));
-    expect(screen.getByRole("button", { name: "Size: Medium" })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.change(screen.getByRole("combobox", { name: "Size" }), { target: { value: "Medium" } });
+    expect(screen.getByRole("combobox", { name: "Size" })).toHaveValue("Medium");
 
     fireEvent.click(screen.getByRole("link", { name: "Open new product" }));
     expect(await screen.findByRole("heading", { name: "New product" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Size: Small" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("combobox", { name: "Size" })).toHaveValue("Small");
   });
 });

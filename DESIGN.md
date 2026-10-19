@@ -1421,9 +1421,14 @@ BY 4.0 at the bottom of the catalog — the one place icons do not come from
 Lucide.
 
 The product gallery sits beside a sticky purchase panel on desktop. Named
-option buttons expose selection and unavailable combinations; every
-option has a 44px minimum target. Product details live in a native
-disclosure. On phones, the quantity/add bar stays above the public dock
+native selectors separate Color, Size and other options instead of listing
+every variant combination. Selected values use gold ink; controls are at least
+48px high. Changes preserve the other selections when available, otherwise
+resolve to an available variant. Sold-out values stay labelled and disabled.
+Option names are uppercase UI-face micro-labels (12px/700, 0.12em tracking);
+selected values read in 16px/600 body type, with read-only values given the
+same size and rhythm. Availability shares the micro-label voice.
+Product details live in a native disclosure. On phones, the quantity/add bar stays above the public dock
 and safe area; short landscape viewports use an in-flow bar. The cart is
 a protected-focus drawer with real Shopify totals and a hosted-checkout
 handoff.
@@ -1443,7 +1448,7 @@ merchant-store link instead of a blank page.
 **Touch targets.**
 
 - Public controls keep a 44px minimum: the header menu button, dock tabs,
-  every visible calendar control, submission fields, shop option buttons,
+  every visible calendar control, submission fields, shop option selectors,
   and buttons (`min-height: 44px`).
 - Operator account controls keep 44px: the topbar's 32px avatar sits
   inside a 44px disclosure target, and account links, Appearance and theme

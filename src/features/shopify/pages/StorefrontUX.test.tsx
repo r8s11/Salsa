@@ -75,11 +75,56 @@ describe("Storefront customer experience", () => {
     expect(link).toHaveAttribute("href", "/shop/products/dance-tee");
     expect(link).toHaveTextContent(/image unavailable/i);
   });
-  it("offers named Shopify options and disables unavailable combinations", async () => {
+  it("selects named options without exposing every variant combination", async () => {
+    const user = userEvent.setup();
     renderStore(); await screen.findByRole("heading", { name: "Dance Tee" });
-    expect(screen.getByRole("button", { name: /Size: S.*Color: Rose/i })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByRole("button", { name: /Size: L.*Color: Navy.*sold out/i })).toBeDisabled();
-    expect(screen.queryByText("Opaque A")).toBeNull();
+    const size = screen.getByRole("combobox", { name: "Size" });
+    const color = screen.getByRole("combobox", { name: "Color" });
+    expect(size).toHaveValue("S");
+    expect(color).toHaveValue("Rose");
+    expect(within(size).getByRole("option", { name: /L.*sold out/i })).toBeDisabled();
+
+    await user.selectOptions(size, "M");
+    expect(color).toHaveValue("Navy");
+    expect(screen.getByRole("img", { name: "Tee back" })).toHaveAttribute("src", back.url);
+    expect(screen.getByText("$30.00")).toBeInTheDocument();
+    expect(screen.queryByText(/was \$32\.00/i)).toBeNull();
+
+    await user.selectOptions(color, "Rose");
+    expect(size).toHaveValue("S");
+    expect(screen.getByRole("img", { name: "Tee front" })).toHaveAttribute("src", front.url);
+    expect(screen.getByText("$28.00")).toBeInTheDocument();
+  });
+  it("preserves the other option when the requested combination is available", async () => {
+    vi.mocked(storefront.getProduct).mockResolvedValue({
+      ...item,
+      variants: { nodes: [...item.variants.nodes, {
+        ...item.variants.nodes[0], id: "medium-rose",
+        selectedOptions: [{ name: "Size", value: "M" }, { name: "Color", value: "Rose" }],
+      }] },
+    });
+    const user = userEvent.setup();
+    renderStore(); await screen.findByRole("heading", { name: "Dance Tee" });
+    await user.selectOptions(screen.getByRole("combobox", { name: "Size" }), "M");
+    expect(screen.getByRole("combobox", { name: "Color" })).toHaveValue("Rose");
+    expect(screen.getByRole("img", { name: "Tee front" })).toHaveAttribute("src", front.url);
+    await user.selectOptions(screen.getByRole("combobox", { name: "Color" }), "Navy");
+    expect(screen.getByRole("combobox", { name: "Size" })).toHaveValue("M");
+    expect(screen.getByRole("img", { name: "Tee back" })).toHaveAttribute("src", back.url);
+  });
+  it("does not ask shoppers to choose Shopify's single default variant", async () => {
+    vi.mocked(storefront.getProduct).mockResolvedValue({
+      ...item,
+      variants: { nodes: [{
+        ...item.variants.nodes[0],
+        title: "Default Title",
+        selectedOptions: [{ name: "Title", value: "Default Title" }],
+      }] },
+    });
+    renderStore(); await screen.findByRole("heading", { name: "Dance Tee" });
+    expect(screen.queryByRole("combobox")).toBeNull();
+    expect(screen.queryByText("Default Title")).toBeNull();
+    expect(screen.getByRole("button", { name: /^add to cart$/i })).toBeEnabled();
   });
   it.each(["sold-out", "no-variants"] as const)("prevents purchasing a %s product while preserving browsing", async (availability) => {
     const variants = availability === "sold-out"
@@ -95,7 +140,7 @@ describe("Storefront customer experience", () => {
     expect(screen.getByRole("button", { name: /open cart, 0 items/i })).toBeInTheDocument();
     expect(screen.queryByRole("status", { name: /cart feedback/i })).toBeNull();
     if (availability === "sold-out") {
-      for (const option of screen.getAllByRole("button", { name: /Size:.*Color:/i })) expect(option).toBeDisabled();
+      for (const option of screen.getAllByRole("combobox")) expect(option).toBeDisabled();
     } else {
       expect(screen.queryByRole("combobox")).toBeNull();
       expect(screen.getByText(/no purchase options/i)).toBeInTheDocument();
@@ -133,13 +178,6 @@ describe("Storefront customer experience", () => {
     expect(screen.queryByText("RAW_PROVIDER_WARNING")).toBeNull();
   });
 
-  it("updates price, comparison and primary image when the variant changes", async () => {
-    renderStore(); await screen.findByRole("heading", { name: "Dance Tee" });
-    fireEvent.click(screen.getByRole("button", { name: /Size: M.*Color: Navy/i }));
-    expect(screen.getByText("$30.00")).toBeInTheDocument();
-    expect(screen.queryByText(/Was.*32/)).toBeNull();
-    expect(document.querySelector(".shop-product__image")).toHaveAttribute("src", back.url);
-  });
   it("provides keyboard-selectable gallery images and reserves image dimensions", async () => {
     const user = userEvent.setup(); renderStore(); await screen.findByRole("heading", { name: "Dance Tee" });
     const thumb = screen.getByRole("button", { name: /view image 2/i });
@@ -182,7 +220,7 @@ describe("Storefront customer experience", () => {
   it("clears stale success feedback when variant changes", async () => {
     renderStore(); fireEvent.click(await screen.findByRole("button", { name: /add to cart/i }));
     await screen.findByRole("status", { name: /cart feedback/i });
-    fireEvent.click(screen.getByRole("button", { name: /Size: M.*Color: Navy/i }));
+    fireEvent.change(screen.getByRole("combobox", { name: "Size" }), { target: { value: "M" } });
     expect(screen.queryByText(/added to cart/i)).toBeNull();
   });
   it("uses product metadata, query-free canonical and truthful Product data", async () => {

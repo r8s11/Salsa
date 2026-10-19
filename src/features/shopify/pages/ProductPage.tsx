@@ -7,7 +7,7 @@ import ButtonLink from "../../../components/ui/ButtonLink";
 import { useDocumentMeta } from "../../../shared/seo/useDocumentMeta";
 import { canonicalUrl, injectStructuredData } from "../../../utils/seo";
 import { isShopifyConfigured, storefront } from "../api/storefront";
-import type { ShopifyImage } from "../api/types";
+import type { ProductVariant, ShopifyImage } from "../api/types";
 import { useCart } from "../cart/useCart";
 import { formatMoney } from "../money";
 import "../shop.css";
@@ -22,6 +22,10 @@ interface ProductFeedback {
 
 function plainDescription(description: string): string {
   return description.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function optionValue(variant: ProductVariant, name: string): string {
+  return variant.selectedOptions.find((option) => option.name === name)?.value ?? variant.title;
 }
 
 export default function ProductPage() {
@@ -57,6 +61,22 @@ function ProductDetails({ handle }: { handle: string }) {
   });
   const product = productQuery.data?.handle === handle ? productQuery.data : null;
   const variants = useMemo(() => product?.variants.nodes ?? [], [product]);
+  const optionGroups = useMemo(() => {
+    const groups = new Map<string, Set<string>>();
+    for (const variant of variants) {
+      const options = variant.selectedOptions.length
+        ? variant.selectedOptions
+        : [{ name: "Option", value: variant.title }];
+      for (const { name, value } of options) {
+        if (!groups.has(name)) groups.set(name, new Set());
+        groups.get(name)!.add(value);
+      }
+    }
+    return Array.from(groups, ([name, values]) => ({ name, values: Array.from(values) }))
+      .filter(({ name, values }) =>
+        !(values.length === 1 && (name === "Title" || name === "Option") && values[0] === "Default Title"));
+  }, [variants]);
+  const availableVariants = useMemo(() => variants.filter((variant) => variant.availableForSale), [variants]);
   const selectedVariant =
     (selection.handle === handle ? variants.find((variant) => variant.id === selection.variantId) : undefined) ??
     variants.find((variant) => variant.availableForSale) ??
@@ -100,10 +120,6 @@ function ProductDetails({ handle }: { handle: string }) {
       ? galleryImages.find((image) => image.url === activeImage.url)
       : null;
   const image = selectedGalleryImage ?? defaultImage;
-  const optionsLabel = (variant: (typeof variants)[number]) =>
-    variant.selectedOptions.length
-      ? variant.selectedOptions.map(({ name, value }) => `${name}: ${value}`).join(" / ")
-      : variant.title;
 
   useEffect(() => {
     if (!product) return;
@@ -135,6 +151,16 @@ function ProductDetails({ handle }: { handle: string }) {
   const clearFeedback = () => {
     requestToken.current += 1;
     setFeedback(null);
+  };
+  const selectOption = (name: string, value: string) => {
+    const candidates = availableVariants.filter((variant) => optionValue(variant, name) === value);
+    const nextVariant = candidates.find((variant) => selectedVariant && optionGroups.every((group) =>
+      group.name === name || optionValue(variant, group.name) === optionValue(selectedVariant, group.name)
+    )) ?? candidates[0];
+    if (!nextVariant) return;
+    setSelection({ handle, variantId: nextVariant.id });
+    setActiveImage(null);
+    clearFeedback();
   };
   const addSelectedVariant = async () => {
     if (!selectedVariant?.availableForSale || isBusy || isCartLoading) return;
@@ -280,28 +306,31 @@ function ProductDetails({ handle }: { handle: string }) {
           </div>
           <div className="shop-product__content">
             <div className="shop-product__intro">{productIntro}</div>
-            {variants.length > 0 && (
-              <fieldset className="shop-product__variant-field shop-product__options">
-                <legend>Choose an option</legend>
-                <div className="shop-product__option-list">
-                  {variants.map((variant) => (
-                    <button type="button" key={variant.id} className="shop-product__option-button"
-                      disabled={!variant.availableForSale || isBusy}
-                      aria-pressed={selectedVariant?.id === variant.id}
-                      aria-label={`${optionsLabel(variant)}${variant.availableForSale ? "" : " — Sold out"}`}
-                      onClick={() => {
-                        setSelection({ handle, variantId: variant.id });
-                        setActiveImage(null);
-                        clearFeedback();
-                      }}>
-                      {variant.selectedOptions.length
-                        ? variant.selectedOptions.map(({ value }) => value).join(" / ")
-                        : variant.title}
-                    </button>
-                  ))}
-                </div>
-                <p className="shop-product__field-help">Unavailable options are disabled.</p>
-              </fieldset>
+            {optionGroups.length > 0 && selectedVariant && (
+              <div className="shop-product__options" role="group" aria-label="Product options">
+                {optionGroups.map(({ name, values }) => values.length === 1 ? (
+                  <div className="shop-product__option-field" key={name}>
+                    <span className="shop-product__option-label">{name}</span>
+                    <span className="shop-product__option-value">{values[0]}</span>
+                  </div>
+                ) : (
+                  <label className="shop-product__option-field" key={name}>
+                    <span className="shop-product__option-label">{name}</span>
+                    <select
+                      value={optionValue(selectedVariant, name)}
+                      disabled={isBusy || !availableVariants.length}
+                      onChange={(event) => selectOption(name, event.target.value)}
+                    >
+                      {values.map((value) => {
+                        const available = availableVariants.some((variant) => optionValue(variant, name) === value);
+                        return <option key={value} value={value} disabled={!available}>
+                          {value}{available ? "" : " — Sold out"}
+                        </option>;
+                      })}
+                    </select>
+                  </label>
+                ))}
+              </div>
             )}
             {selectedVariant && (
               <p className={`shop-product__availability${selectedVariant.availableForSale ? " shop-product__availability--available" : ""}`}>

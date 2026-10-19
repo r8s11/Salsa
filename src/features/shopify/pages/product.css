@@ -161,12 +161,6 @@
   white-space: pre-line;
 }
 
-.shop-product__variant-field {
-  display: grid;
-  width: 100%;
-  gap: var(--space-sm);
-}
-
 .shop-product__field-help,
 .shop-product__fine-print {
   color: var(--text-muted);

@@ -1,44 +1,98 @@
 import { useRef, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { Icon } from "@iconify/react";
-import bagIcon from "@iconify-icons/solar/bag-4-linear";
 import arrowIcon from "@iconify-icons/solar/arrow-right-up-linear";
+import nextIcon from "@iconify-icons/solar/arrow-right-linear";
 import "@fontsource/barlow-condensed/600.css";
 import "@fontsource/barlow-condensed/700.css";
 import { formatMoney } from "../money";
+import type { CatalogProduct, CollectionTile } from "../api/types";
+import { ALL_PRODUCTS_HANDLE, SHOP_COLLECTIONS, collectionPath } from "../collections";
+import ProductCard from "./ProductCard";
 import ProductImage from "./ProductImage";
 import ProductLink from "./ProductLink";
-import type { ProductSummary } from "../api/types";
+import ShopMasthead from "./ShopMasthead";
 import { useCatalogMotion } from "./useCatalogMotion";
 
-export default function RetailCatalog({ products, cartQuantity, onOpenCart, isFetching, children }: {
-  products: ProductSummary[];
-  cartQuantity: number;
-  onOpenCart: () => void;
-  isFetching: boolean;
-  children: ReactNode;
+/** Word spans for the heading motion; the heading keeps one unsplit accessible name. */
+function SplitHeading({ id, text, tabIndex }: { id: string; text: string; tabIndex?: number }) {
+  const words = text.split(" ");
+  return (
+    <h2 id={id} aria-label={text} tabIndex={tabIndex}>
+      {words.map((word, index) => (
+        <span key={`${word}-${index}`}>
+          <span className="retail-word" aria-hidden="true">{word}</span>{index < words.length - 1 ? " " : ""}
+        </span>
+      ))}
+    </h2>
+  );
+}
+
+function CategoryTiles({ tiles }: { tiles: CollectionTile[] | undefined }) {
+  return (
+    <ul className="retail-tiles" aria-label="Collections">
+      {SHOP_COLLECTIONS.map((entry) => {
+        const tile = tiles?.find((candidate) => candidate.handle === entry.handle);
+        const stocked = Boolean(tile && tile.productCount > 0);
+        const image = tile?.image ?? tile?.coverImage ?? null;
+        const count = tile ? `${tile.productCount}${tile.hasMoreProducts ? "+" : ""} ${tile.productCount === 1 && !tile.hasMoreProducts ? "piece" : "pieces"}` : "";
+        return (
+          <li key={entry.handle}>
+            <Link to={collectionPath(entry.handle)} className={`retail-tile${stocked && image ? "" : " retail-tile--soon"}`}>
+              {stocked && image && <img src={image.url} alt="" loading="lazy" width={image.width || 720} height={image.height || 720} />}
+              <span className="retail-tile__label">
+                <strong>{entry.label}</strong>
+                <small>{tiles === undefined ? "\u00a0" : stocked ? count : "Coming soon"}</small>
+              </span>
+              <span className="retail-tile__arrow" aria-hidden="true"><Icon icon={nextIcon} width={18} /></span>
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+function ProductRow({ id, title, products, action, four = false }: {
+  id: string;
+  title: string;
+  products: CatalogProduct[];
+  action?: ReactNode;
+  four?: boolean;
+}) {
+  return (
+    <section className="retail-catalog__collection" aria-labelledby={id}>
+      <div className="retail-catalog__collection-heading">
+        <SplitHeading id={id} text={title} tabIndex={-1} />
+        {action}
+      </div>
+      <ul className={`retail-catalog__grid${four ? " retail-catalog__grid--four" : ""}`} aria-label={title}>
+        {products.map((product) => <ProductCard key={product.id} product={product} />)}
+      </ul>
+    </section>
+  );
+}
+
+export default function RetailCatalog({ featured, arrivals, tiles, children }: {
+  featured: CatalogProduct[];
+  arrivals: CatalogProduct[];
+  tiles: CollectionTile[] | undefined;
+  /** Loading, error and empty states render in place of the product rows. */
+  children?: ReactNode;
 }) {
   const root = useRef<HTMLDivElement>(null);
-  useCatalogMotion(root, products.length);
-  const featured = products.find((product) => product.featuredImage);
+  const listed = featured.length + arrivals.length;
+  useCatalogMotion(root, listed);
+  const hero = [...featured, ...arrivals].find((product) => product.featuredImage);
+  const women = tiles?.find((tile) => tile.handle === "women" && tile.productCount > 0);
+  const editorialImage = women?.image ?? women?.coverImage ?? null;
+  const shopAll = collectionPath(ALL_PRODUCTS_HANDLE);
 
   return (
     <div className="retail-catalog" ref={root}>
-      <header className="retail-catalog__header">
-        <p className="retail-catalog__identity">Shop</p>
-        <button
-          className="retail-catalog__cart"
-          type="button"
-          onClick={onOpenCart}
-          aria-label={`Open cart, ${cartQuantity} ${cartQuantity === 1 ? "item" : "items"}`}
-        >
-          <Icon icon={bagIcon} aria-hidden="true" width={21} />
-          <span>Cart</span>
-          <span className="retail-catalog__cart-count" aria-live="polite">{cartQuantity}</span>
-        </button>
-      </header>
+      <ShopMasthead />
 
-      <section className={`retail-hero${featured ? "" : " retail-hero--text"}`} aria-labelledby="shop-heading">
+      <section className={`retail-hero${hero ? "" : " retail-hero--text"}`} aria-labelledby="shop-heading">
         <div className="retail-hero__copy">
           <h1 id="shop-heading" aria-label="Wear the rhythm.">
             <span className="retail-word" aria-hidden="true">Wear</span>{" "}
@@ -46,69 +100,66 @@ export default function RetailCatalog({ products, cartQuantity, onOpenCart, isFe
             <span className="retail-word" aria-hidden="true">rhythm.</span>
           </h1>
           <p>For the nights that turn into mornings.<br />And the rhythm you take home.</p>
-          {products.length > 0 && <a className="retail-catalog__action" href="#retail-collection-heading">
+          <Link className="retail-catalog__action" to={shopAll}>
             Shop the collection <Icon icon={arrowIcon} aria-hidden="true" width={21} />
-          </a>}
+          </Link>
           <p className="retail-hero__note">Official gear. Same dance-floor spirit.</p>
         </div>
-        {featured && <figure className="retail-hero__feature">
+        {hero && <figure className="retail-hero__feature">
           {/* Photography comes from this merchant's published Shopify catalog,
               not a testimonial, generated customer, or third-party stock asset. */}
           <div className="retail-hero__media">
-            <ProductImage product={featured} className="retail-hero__image" eager />
+            <ProductImage product={hero} className="retail-hero__image" eager />
           </div>
-          <figcaption><span>{featured.title}</span><span>Salsa Segura</span></figcaption>
+          <ProductLink product={hero} className="retail-hero__tag">
+            <span className="retail-hero__tag-name">{hero.title}</span>
+            <span className="retail-hero__tag-meta">From {formatMoney(hero.priceRange.minVariantPrice)} · View product</span>
+          </ProductLink>
         </figure>}
       </section>
 
-      {products.length > 0 && <section className="retail-catalog__collection" aria-labelledby="retail-collection-heading">
+      <section className="retail-catalog__section" aria-labelledby="retail-collections-heading">
         <div className="retail-catalog__collection-heading">
-          <h2 id="retail-collection-heading" tabIndex={-1} aria-label="The collection">
-            <span className="retail-word" aria-hidden="true">The</span>{" "}
-            <span className="retail-word" aria-hidden="true">collection</span>
-          </h2>
-          <p>{products.length} {products.length === 1 ? "piece" : "pieces"}</p>
+          <h2 id="retail-collections-heading">Shop by collection</h2>
         </div>
-        <ul id="shop-products" className="retail-catalog__grid" aria-label="Shop products" aria-busy={isFetching}>
-          {products.map((product) => (
-            <li className="retail-card" key={product.id}>
-              <ProductLink product={product} className="retail-card__link">
-                <span className="retail-card__media">
-                  <ProductImage product={product} className="retail-card__image" />
-                </span>
-                <span className="retail-card__caption">
-                  <span className="retail-card__name">{product.title}</span>
-                  <span className="retail-card__price">From {formatMoney(product.priceRange.minVariantPrice)}</span>
-                  <span className="retail-card__view">View product <Icon icon={arrowIcon} aria-hidden="true" width={18} /></span>
-                </span>
-              </ProductLink>
-            </li>
-          ))}
-        </ul>
-      </section>}
+        <CategoryTiles tiles={tiles} />
+      </section>
+
       {children}
 
-      {products.length > 0 && <>
-        <section className="retail-catalog__guidance" aria-label="Shopping with Salsa Segura">
-          <div><h3>Make it yours</h3><p>Open a product to explore its images, sizes, and available options.</p></div>
-          <div><h3>Your bag, your pace</h3><p>Choose a quantity and review your items before heading to checkout.</p></div>
-          <div><h3>Checkout with Shopify</h3><p>Shipping and applicable taxes are calculated at checkout.</p></div>
-        </section>
-        <aside className="retail-catalog__closing" aria-labelledby="retail-closing-heading">
-          <div>
-            <h2 id="retail-closing-heading" aria-label="See you on the dance floor.">
-              <span className="retail-word" aria-hidden="true">See</span>{" "}
-              <span className="retail-word" aria-hidden="true">you</span>{" "}
-              <span className="retail-word" aria-hidden="true">on</span>{" "}
-              <span className="retail-word" aria-hidden="true">the</span>{" "}
-              <span className="retail-word" aria-hidden="true">dance</span>{" "}
-              <span className="retail-word" aria-hidden="true">floor.</span>
-            </h2>
-            <p>The gear is only the beginning. Find your next night out on the Salsa Segura calendar.</p>
-          </div>
-          <Link to="/calendar">Explore upcoming events <Icon icon={arrowIcon} aria-hidden="true" width={22} /></Link>
-        </aside>
-      </>}
+      {featured.length > 0 && <ProductRow id="retail-featured-heading" title="Featured" products={featured}
+        action={<Link className="retail-catalog__more" to={shopAll}>Shop all <Icon icon={nextIcon} aria-hidden="true" width={18} /></Link>} />}
+
+      {listed > 0 && <section className={`retail-editorial${editorialImage ? "" : " retail-editorial--text"}`} aria-labelledby="retail-editorial-heading">
+        {editorialImage && <figure className="retail-editorial__media">
+          <img src={editorialImage.url} alt={editorialImage.altText ?? ""} loading="lazy" width={editorialImage.width || 720} height={editorialImage.height || 900} />
+        </figure>}
+        <div className="retail-editorial__copy">
+          <h2 id="retail-editorial-heading">Built for the last song of the night.</h2>
+          <p>Salsa Segura began as the calendar dancers plan their week around. The gear follows the same rule: nothing that gets in the way of the dance. Soft cotton that breathes through a three-hour social, a hoodie for the walk home, and a embroidered mark you'll recognise across the room.</p>
+          <dl className="retail-editorial__facts">
+            <div><dt>Fit</dt><dd>Unisex and women's cuts, from XS to 5XL depending on the piece.</dd></div>
+            <div><dt>Mark</dt><dd>The Salsa Segura dancer, embroidered or printed.</dd></div>
+            <div><dt>Checkout</dt><dd>Secure Shopify checkout. Your cart stays with you between visits.</dd></div>
+          </dl>
+          <Link className="retail-editorial__link" to={collectionPath("women")}>Explore Women <Icon icon={nextIcon} aria-hidden="true" width={18} /></Link>
+        </div>
+      </section>}
+
+      {arrivals.length > 0 && <ProductRow id="retail-arrivals-heading" title="New arrivals" products={arrivals} four
+        action={<p>The latest additions to the shop.</p>} />}
+
+      <aside className="retail-catalog__closing" aria-labelledby="retail-closing-heading">
+        <div>
+          <SplitHeading id="retail-closing-heading" text="See you on the dance floor." />
+          <p>The gear is only the beginning. Find your next night out on the Salsa Segura calendar.</p>
+        </div>
+        <ul className="retail-catalog__community">
+          <li><Link to="/calendar">Explore upcoming events <Icon icon={arrowIcon} aria-hidden="true" width={20} /></Link></li>
+          <li><Link to="/discover">Find a class <Icon icon={arrowIcon} aria-hidden="true" width={20} /></Link></li>
+          <li><Link to="/founders">Host an event <Icon icon={arrowIcon} aria-hidden="true" width={20} /></Link></li>
+        </ul>
+      </aside>
       <p className="retail-catalog__credits">
         <a href="https://icon-sets.iconify.design/solar/">Solar icons by 480 Design</a>,{" "}
         <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.

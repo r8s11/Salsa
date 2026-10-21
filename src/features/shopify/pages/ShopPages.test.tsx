@@ -1,6 +1,6 @@
-import type { Product, ProductSummary } from "../api/types";
+import type { CatalogProduct, Product } from "../api/types";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { Link, MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import ProductPage from "./ProductPage";
@@ -14,6 +14,8 @@ vi.mock("./useCatalogMotion", () => ({ useCatalogMotion: vi.fn() }));
 vi.mock("../api/storefront", () => ({
   storefront: {
     listProducts: vi.fn(),
+    getCollectionProducts: vi.fn(),
+    listCollections: vi.fn(),
     getProduct: vi.fn(),
   },
   isShopifyConfigured: vi.fn(),
@@ -65,13 +67,22 @@ const product = (handle: string, title = handle): Product => ({
     ],
   },
 });
-const summary = (handle: string, title = handle): ProductSummary => ({
+const catalogItem = (handle: string, title = handle): CatalogProduct => ({
   id: `gid://shopify/Product/${handle}`,
   handle,
   title,
   featuredImage: image,
   priceRange: { minVariantPrice: money("22.00") },
+  productType: "T-shirt",
+  createdAt: "2026-10-01T00:00:00Z",
+  availableForSale: true,
+  images: [image],
+  options: [],
+  variants: [],
+  variantsComplete: true,
 });
+const page = (nodes: CatalogProduct[]) => ({ nodes, pageInfo: { hasNextPage: false, endCursor: null } });
+const frontpage = (products: CatalogProduct[]) => ({ handle: "frontpage", title: "Home page", description: "", image: null, products });
 
 function cartHook(addVariant = vi.fn().mockResolvedValue(true)) {
   vi.mocked(useCart).mockReturnValue({
@@ -120,77 +131,62 @@ function renderProduct(handle = "shirt") {
 }
 
 beforeEach(() => {
-  vi.mocked(storefront.listProducts).mockReset();
+  vi.mocked(storefront.listProducts).mockReset().mockResolvedValue(page([]));
+  vi.mocked(storefront.getCollectionProducts).mockReset().mockResolvedValue(null);
+  vi.mocked(storefront.listCollections).mockReset().mockResolvedValue([]);
   vi.mocked(storefront.getProduct).mockReset();
   vi.mocked(isShopifyConfigured).mockReset().mockReturnValue(true);
   cartHook();
 });
 
 describe("ShopPage", () => {
-  it("shows branded products with Shopify starting prices and public product URLs", async () => {
-    vi.mocked(storefront.listProducts).mockResolvedValue({
-      nodes: [summary("dance-shirt", "Dance Shirt")],
-      pageInfo: { hasNextPage: false, endCursor: null },
-    });
+  it("features the merchant's Home page collection and lists new arrivals without repeating them", async () => {
+    vi.mocked(storefront.getCollectionProducts).mockResolvedValue(frontpage([catalogItem("dance-shirt", "Dance Shirt")]));
+    vi.mocked(storefront.listProducts).mockResolvedValue(page([catalogItem("dance-shirt", "Dance Shirt"), catalogItem("new-tank", "New Tank")]));
 
     renderShop();
 
-    expect(await screen.findByRole("link", { name: /dance shirt/i })).toHaveAttribute(
-      "href",
-      "/shop/products/dance-shirt"
-    );
-    expect(screen.getByText(/\$22\.00/)).toBeInTheDocument();
+    const featured = await screen.findByRole("list", { name: "Featured" });
+    expect(within(featured).getByRole("link", { name: /dance shirt/i })).toHaveAttribute("href", "/shop/products/dance-shirt");
+    const arrivals = screen.getByRole("list", { name: "New arrivals" });
+    expect(within(arrivals).queryByRole("link", { name: /dance shirt/i })).toBeNull();
+    expect(within(arrivals).getByRole("link", { name: /new tank/i })).toHaveAttribute("href", "/shop/products/new-tank");
+    expect(storefront.getCollectionProducts).toHaveBeenCalledWith("frontpage");
+    expect(storefront.listProducts).toHaveBeenCalledWith(undefined, "newest", 8);
   });
 
-  it("shows a loading state and then a retryable error", async () => {
+  it("shows stocked collections with their count and unstocked ones as coming soon", async () => {
+    vi.mocked(storefront.listCollections).mockResolvedValue([
+      { handle: "women", title: "Women", description: "", image: null, productCount: 5, hasMoreProducts: false, coverImage: image },
+    ]);
+    renderShop();
+
+    const tiles = await screen.findByRole("list", { name: "Collections" });
+    const women = await within(tiles).findByRole("link", { name: /women.*5 pieces/i });
+    expect(women).toHaveAttribute("href", "/shop/women");
+    expect(within(tiles).getByRole("link", { name: /^men.*coming soon/i })).toHaveAttribute("href", "/shop/men");
+    expect(within(tiles).getByRole("link", { name: /shoes.*coming soon/i })).toHaveAttribute("href", "/shop/shoes");
+  });
+
+  it("shows a loading state and then a retryable error when no products load", async () => {
+    vi.mocked(storefront.getCollectionProducts).mockRejectedValue(new Error("Storefront unavailable"));
     vi.mocked(storefront.listProducts).mockRejectedValue(new Error("Storefront unavailable"));
     renderShop();
 
-    expect(screen.getByText(/loading shop/i)).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: /loading products/i })).toBeInTheDocument();
     expect(await screen.findByRole("alert")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /try again/i })).toBeInTheDocument();
+    vi.mocked(storefront.listProducts).mockResolvedValue(page([catalogItem("recovered", "Recovered Tee")]));
+    fireEvent.click(screen.getByRole("button", { name: /try again/i }));
+    expect(await screen.findByRole("list", { name: "New arrivals" })).toHaveTextContent(/recovered tee/i);
   });
-
 
   it("does not make storefront requests when configuration is missing", () => {
     vi.mocked(isShopifyConfigured).mockReturnValue(false);
     renderShop();
 
     expect(storefront.listProducts).not.toHaveBeenCalled();
-  });
-
-  it("loads the next product page when Load more is activated", async () => {
-    vi.mocked(storefront.listProducts)
-      .mockResolvedValueOnce({
-        nodes: [summary("first", "First product")],
-        pageInfo: { hasNextPage: true, endCursor: "cursor-1" },
-      })
-      .mockResolvedValueOnce({
-        nodes: [summary("second", "Second product")],
-        pageInfo: { hasNextPage: false, endCursor: null },
-      });
-    renderShop();
-
-    fireEvent.click(await screen.findByRole("button", { name: /load more/i }));
-
-    expect(await screen.findByRole("link", { name: /second product/i })).toHaveAttribute(
-      "href",
-      "/shop/products/second"
-    );
-    expect(storefront.listProducts).toHaveBeenLastCalledWith("cursor-1");
-  });
-  it("retains loaded products when a later catalog page fails", async () => {
-    vi.mocked(storefront.listProducts)
-      .mockResolvedValueOnce({
-        nodes: [summary("first", "First product")],
-        pageInfo: { hasNextPage: true, endCursor: "cursor-1" },
-      })
-      .mockRejectedValueOnce(new Error("Connection interrupted"));
-    renderShop();
-    await screen.findByRole("link", { name: /first product/i });
-    fireEvent.click(screen.getByRole("button", { name: /load more/i }));
-    await screen.findByRole("alert");
-    expect(screen.getByRole("link", { name: /first product/i })).toHaveAttribute("href", "/shop/products/first");
+    expect(storefront.getCollectionProducts).not.toHaveBeenCalled();
+    expect(screen.getByRole("heading", { name: /shop isn't available/i })).toBeInTheDocument();
   });
 });
 
@@ -204,7 +200,9 @@ describe("ProductPage", () => {
     expect(screen.getByText("A comfortable shirt for dancing.")).toBeVisible();
     expect(screen.getByRole("img", { name: "Dance shirt" })).toHaveAttribute("src", image.url);
     expect(screen.getByText(/\$28\.00/)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /back to shop/i })).toHaveAttribute("href", "/shop");
+    const breadcrumb = screen.getByRole("navigation", { name: "Breadcrumb" });
+    expect(within(breadcrumb).getByRole("link", { name: "Shop" })).toHaveAttribute("href", "/shop");
+    expect(within(breadcrumb).getByText("Dance Shirt")).toHaveAttribute("aria-current", "page");
 
     expect(screen.getByRole("option", { name: /large.*sold out/i })).toBeDisabled();
   });

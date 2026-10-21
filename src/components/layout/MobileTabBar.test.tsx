@@ -6,11 +6,24 @@ import { useAuth } from "../../contexts/useAuth";
 import { useCity } from "../../contexts/useCity";
 import type { CityContextValue } from "../../contexts/cityContextObject";
 import { useMetroName } from "../../features/metros/hooks/useMetros";
+import { useCart } from "../../features/shopify/cart/useCart";
+import type { CartState } from "../../features/shopify/cart/CartContext";
 import MobileTabBar from "./MobileTabBar";
 
 vi.mock("../../contexts/useAuth", () => ({ useAuth: vi.fn() }));
 vi.mock("../../contexts/useCity", () => ({ useCity: vi.fn() }));
 vi.mock("../../features/metros/hooks/useMetros", () => ({ useMetroName: vi.fn() }));
+vi.mock("../../features/shopify/cart/useCart", () => ({ useCart: vi.fn() }));
+
+function mockCart(totalQuantity = 0) {
+  const setOpen = vi.fn();
+  vi.mocked(useCart).mockReturnValue({
+    cart: totalQuantity ? ({ totalQuantity } as CartState["cart"]) : null,
+    isLoading: false, isBusy: false, error: null, notice: null, isOpen: false,
+    setOpen, restoreFocus: vi.fn(), addVariant: vi.fn(), updateLine: vi.fn(), removeLine: vi.fn(), refresh: vi.fn(),
+  });
+  return setOpen;
+}
 
 const defaultAuth = (overrides: Partial<AuthContextValue> = {}): AuthContextValue => ({
   user: null,
@@ -34,7 +47,8 @@ vi.mocked(useMetroName).mockReturnValue((slug: string | null | undefined) =>
   slug === "boston" ? "Boston" : slug === "new-york-city" ? "New York City" : (slug ?? "")
 );
 
-function renderTabBar(initialEntry = "/", city: CityContextValue["city"] = "boston") {
+function renderTabBar(initialEntry = "/", city: CityContextValue["city"] = "boston", cartQuantity = 0) {
+  const setCartOpen = mockCart(cartQuantity);
   vi.mocked(useCity).mockReturnValue({
     city,
     source: "explicit",
@@ -45,22 +59,27 @@ function renderTabBar(initialEntry = "/", city: CityContextValue["city"] = "bost
     activeMetrosError: null,
     locationStatus: "idle",
   });
-  return render(
-    <MemoryRouter initialEntries={[initialEntry]}>
-      <MobileTabBar />
-    </MemoryRouter>
-  );
+  return {
+    ...render(
+      <MemoryRouter initialEntries={[initialEntry]}>
+        <MobileTabBar />
+      </MemoryRouter>
+    ),
+    setCartOpen,
+  };
 }
 
 describe("MobileTabBar", () => {
-  it("renders Home, Calendar, Submit and Me as the four primary destinations", () => {
+  it("renders Home, Calendar, Shop and Me outside the shop", () => {
     vi.mocked(useAuth).mockReturnValue(defaultAuth());
     renderTabBar();
 
     expect(screen.getAllByRole("link")).toHaveLength(4);
     expect(screen.getByRole("link", { name: "Home" })).toHaveAttribute("href", "/");
     expect(screen.getByRole("link", { name: "Calendar" })).toHaveAttribute("href", "/calendar");
-    expect(screen.getByRole("link", { name: "Submit" })).toHaveAttribute("href", "/submit");
+    expect(screen.getByRole("link", { name: "Shop" })).toHaveAttribute("href", "/shop");
+    expect(screen.queryByRole("button", { name: /cart/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /submit/i })).not.toBeInTheDocument();
   });
 
   it("routes the Me tab to sign in when signed out", () => {
@@ -120,46 +139,23 @@ describe("MobileTabBar", () => {
   });
 });
 
-describe("MobileTabBar event creation", () => {
-  it("keeps the public moderated flow for visitors and members", () => {
-    for (const auth of [
-      defaultAuth(),
-      defaultAuth({ user: { id: "member-1" } as AuthContextValue["user"] }),
-      defaultAuth({
-        user: { id: "mod-1" } as AuthContextValue["user"],
-        role: "moderator",
-        isModerator: true,
-      }),
-      defaultAuth({
-        user: { id: "org-1" } as AuthContextValue["user"],
-        role: "organizer",
-        isOrganizer: true,
-      }),
-    ]) {
-      vi.mocked(useAuth).mockReturnValue(auth);
-      const { unmount } = renderTabBar();
+describe("MobileTabBar cart", () => {
+  it("turns the Shop tab into the cart inside the shop and opens it in place", () => {
+    vi.mocked(useAuth).mockReturnValue(defaultAuth());
+    const { setCartOpen } = renderTabBar("/shop/women", "boston", 3);
 
-      expect(screen.getByRole("link", { name: "Submit" })).toHaveAttribute("href", "/submit");
-
-      unmount();
-    }
+    expect(screen.queryByRole("link", { name: "Shop" })).not.toBeInTheDocument();
+    const cart = screen.getByRole("button", { name: "Cart, 3 items" });
+    expect(cart).toHaveTextContent("3");
+    fireEvent.click(cart);
+    expect(setCartOpen).toHaveBeenCalledWith(true);
   });
 
-  it("routes admins straight to direct create", () => {
-    vi.mocked(useAuth).mockReturnValue(
-      defaultAuth({
-        user: { id: "admin-1" } as AuthContextValue["user"],
-        role: "admin",
-        isAdmin: true,
-      })
-    );
-    renderTabBar();
+  it("does not treat look-alike paths as the shop", () => {
+    vi.mocked(useAuth).mockReturnValue(defaultAuth());
+    renderTabBar("/shopping-guide");
 
-    expect(screen.getByRole("link", { name: "Add" })).toHaveAttribute(
-      "href",
-      "/admin/events?new=1"
-    );
-    expect(screen.queryByRole("link", { name: "Submit" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Shop" })).toHaveAttribute("href", "/shop");
   });
 });
 

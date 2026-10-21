@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { Minus, Plus } from "lucide-react";
 import Button from "../../../components/ui/Button";
 import ButtonLink from "../../../components/ui/ButtonLink";
@@ -13,6 +13,7 @@ import { formatMoney } from "../money";
 import "../shop.css";
 import "./product.css";
 import "./retail-purchase.css";
+import ShopMasthead from "./ShopMasthead";
 
 interface ProductFeedback {
   handle: string;
@@ -35,7 +36,7 @@ export default function ProductPage() {
 
 function ProductDetails({ handle }: { handle: string }) {
   const configured = isShopifyConfigured();
-  const { cart, isLoading: isCartLoading, isBusy, error: cartError, notice, setOpen, addVariant } = useCart();
+  const { isLoading: isCartLoading, isBusy, error: cartError, notice, addVariant } = useCart();
   const [selection, setSelection] = useState<{ handle: string; variantId: string | null }>({
     handle,
     variantId: null,
@@ -215,19 +216,11 @@ function ProductDetails({ handle }: { handle: string }) {
 
   return (
     <section className="shop-page shop-page--product" aria-labelledby="product-heading">
-      <div className="shop-page__topbar">
-        <Button
-          variant="secondary"
-          className="shop-page__cart-button"
-          onClick={() => setOpen(true)}
-          aria-label={`Open cart, ${cart?.totalQuantity ?? 0} items`}
-        >
-          Cart <span className="shop-page__cart-count" aria-hidden="true">{cart?.totalQuantity ?? 0}</span>
-        </Button>
-      </div>
+      <ShopMasthead />
 
       <nav className="shop-breadcrumb" aria-label="Breadcrumb">
-        <ButtonLink variant="ghost" size="compact" to="/shop">Back to shop</ButtonLink>
+        <Link to="/shop">Shop</Link>
+        {product && <span aria-current="page">{product.title}</span>}
       </nav>
 
       {cartError && !(feedback?.handle === handle && feedback.kind === "error") && <p className="shop-page__notice" role="alert">{cartError}</p>}

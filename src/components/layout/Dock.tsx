@@ -6,12 +6,27 @@ import type { LucideIcon } from "lucide-react";
 import RubberSegment from "../ui/RubberSegment";
 import "./Dock.css";
 
-type DockItemData = {
+type DockLink = {
   to: string;
   label: string;
   icon: LucideIcon;
   end: boolean;
 };
+
+/** A tab that acts in place (opens the cart) rather than navigating. */
+type DockAction = {
+  id: string;
+  label: string;
+  icon: LucideIcon;
+  onSelect: () => void;
+  /** Count shown on the icon; hidden at zero. */
+  badge?: number;
+  ariaLabel?: string;
+};
+
+export type DockItemData = DockLink | DockAction;
+
+const itemKey = (item: DockItemData) => ("to" in item ? item.to : item.id);
 
 type DockProps = {
   items: readonly DockItemData[];
@@ -62,12 +77,22 @@ function DockItem({
       className="dock-item"
       style={{ width: reducedMotion ? baseItemSize : size, height: reducedMotion ? baseItemSize : size }}
     >
-      <NavLink to={item.to} end={item.end} className="mobile-tab-bar__tab">
-        <span className="mobile-tab-bar__icon" aria-hidden="true">
-          <Icon size={21} />
-        </span>
-        <span className="mobile-tab-bar__label">{item.label}</span>
-      </NavLink>
+      {"to" in item ? (
+        <NavLink to={item.to} end={item.end} className="mobile-tab-bar__tab">
+          <span className="mobile-tab-bar__icon" aria-hidden="true">
+            <Icon size={21} />
+          </span>
+          <span className="mobile-tab-bar__label">{item.label}</span>
+        </NavLink>
+      ) : (
+        <button type="button" className="mobile-tab-bar__tab" aria-label={item.ariaLabel} onClick={item.onSelect}>
+          <span className="mobile-tab-bar__icon" aria-hidden="true">
+            <Icon size={21} />
+            {item.badge ? <span className="mobile-tab-bar__badge">{item.badge > 99 ? "99+" : item.badge}</span> : null}
+          </span>
+          <span className="mobile-tab-bar__label">{item.label}</span>
+        </button>
+      )}
     </motion.div>
   );
 }
@@ -95,10 +120,10 @@ export default function Dock({
         onMouseLeave={() => mouseX.set(Infinity)}
         onTouchStart={() => mouseX.set(Infinity)}
       >
-        <RubberSegment items={items.map((item) => item.to)} value={activeValue} itemSelector=".dock-item">
+        <RubberSegment items={items.map(itemKey)} value={activeValue} itemSelector=".dock-item">
           {items.map((item) => (
             <DockItem
-              key={item.to}
+              key={itemKey(item)}
               item={item}
               mouseX={mouseX}
               distance={distance}

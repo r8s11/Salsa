@@ -5,7 +5,7 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { StorefrontError, storefront } from "../api/storefront";
 import type * as StorefrontModule from "../api/storefront";
-import type { Cart, Product } from "../api/types";
+import type { Cart, CatalogProduct, Product } from "../api/types";
 import CartProvider from "../cart/CartProvider";
 import CartDrawer from "../cart/CartDrawer";
 import ProductPage from "./ProductPage";
@@ -17,7 +17,7 @@ vi.mock("./useCatalogMotion", () => ({ useCatalogMotion: vi.fn() }));
 vi.mock("../api/storefront", async (original) => ({
   ...await original<typeof StorefrontModule>(),
   isShopifyConfigured: () => true,
-  storefront: { listProducts: vi.fn(), getProduct: vi.fn(), getCart: vi.fn(), createCart: vi.fn(), addCartLines: vi.fn(), updateCartLines: vi.fn(), removeCartLines: vi.fn() },
+  storefront: { listProducts: vi.fn(), getCollectionProducts: vi.fn(), listCollections: vi.fn(), getProduct: vi.fn(), getCart: vi.fn(), createCart: vi.fn(), addCartLines: vi.fn(), updateCartLines: vi.fn(), removeCartLines: vi.fn() },
 }));
 const money = (amount: string) => ({ amount, currencyCode: "USD" });
 const front = { url: "https://images.example.test/front.jpg", altText: "Tee front", width: 720, height: 900 };
@@ -30,6 +30,15 @@ const item: Product = {
     { id: "medium", title: "Opaque B", availableForSale: true, price: money("30.00"), compareAtPrice: null, image: back, selectedOptions: [{ name: "Size", value: "M" }, { name: "Color", value: "Navy" }] },
     { id: "large", title: "Opaque C", availableForSale: false, price: money("30.00"), compareAtPrice: null, image: null, selectedOptions: [{ name: "Size", value: "L" }, { name: "Color", value: "Navy" }] },
   ] },
+};
+/** The same product as a grid listing. */
+const listed: CatalogProduct = {
+  id: item.id, handle: item.handle, title: item.title, featuredImage: front, priceRange: item.priceRange,
+  productType: "T-shirt", createdAt: "2026-10-01T00:00:00Z", availableForSale: true, images: [front, back],
+  options: [{ name: "Size", values: [{ name: "S", swatch: null }, { name: "M", swatch: null }, { name: "L", swatch: null }] },
+    { name: "Color", values: [{ name: "Rose", swatch: null }, { name: "Navy", swatch: null }] }],
+  variants: item.variants.nodes.map(({ id, availableForSale, selectedOptions }) => ({ id, availableForSale, selectedOptions })),
+  variantsComplete: true,
 };
 function makeCart(quantity = 1): Cart {
   const amount = (28 * quantity).toFixed(2);
@@ -52,7 +61,9 @@ function renderStore(path = "/shop/products/dance-tee") {
 beforeEach(() => {
   vi.resetAllMocks(); localStorage.clear();
   vi.mocked(storefront.getProduct).mockResolvedValue(item);
-  vi.mocked(storefront.listProducts).mockResolvedValue({ nodes: [item], pageInfo: { hasNextPage: false, endCursor: null } });
+  vi.mocked(storefront.listProducts).mockResolvedValue({ nodes: [listed], pageInfo: { hasNextPage: false, endCursor: null } });
+  vi.mocked(storefront.getCollectionProducts).mockResolvedValue(null);
+  vi.mocked(storefront.listCollections).mockResolvedValue([]);
   vi.mocked(storefront.createCart).mockResolvedValue(makeCart());
   vi.mocked(storefront.getCart).mockResolvedValue(makeCart());
 });
@@ -63,13 +74,13 @@ describe("Storefront customer experience", () => {
     renderStore("/shop?campaign=private");
     await screen.findByRole("heading", { name: /new gear is on its way/i });
     expect(screen.queryByRole("status", { name: /loading products/i })).toBeNull();
-    expect(screen.queryByRole("list", { name: "Shop products" })).toBeNull();
+    expect(screen.queryByRole("list", { name: "New arrivals" })).toBeNull();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(document.title).toBe("Shop | Salsa Segura");
     expect(document.querySelector('link[rel="canonical"]')).toHaveAttribute("href", "https://www.salsasegura.com/shop");
   });
   it("renders a missing-image catalog card without breaking discovery", async () => {
-    vi.mocked(storefront.listProducts).mockResolvedValue({ nodes: [{ ...item, featuredImage: null }], pageInfo: { hasNextPage: false, endCursor: null } });
+    vi.mocked(storefront.listProducts).mockResolvedValue({ nodes: [{ ...listed, featuredImage: null, images: [] }], pageInfo: { hasNextPage: false, endCursor: null } });
     renderStore("/shop");
     const link = await screen.findByRole("link", { name: /dance tee.*28/i });
     expect(link).toHaveAttribute("href", "/shop/products/dance-tee");
@@ -145,8 +156,8 @@ describe("Storefront customer experience", () => {
       expect(screen.queryByRole("combobox")).toBeNull();
       expect(screen.getByText(/no purchase options/i)).toBeInTheDocument();
     }
-    await user.click(screen.getByRole("link", { name: /back to shop/i }));
-    expect(await screen.findByRole("list", { name: /shop products/i })).toBeInTheDocument();
+    await user.click(within(screen.getByRole("navigation", { name: "Breadcrumb" })).getByRole("link", { name: "Shop" }));
+    expect(await screen.findByRole("list", { name: "New arrivals" })).toBeInTheDocument();
   });
 
   it.each(["add", "update"] as const)("keeps adjusted quantities and checkout available after a warning-only %s", async (operation) => {
@@ -167,7 +178,7 @@ describe("Storefront customer experience", () => {
       await user.click(screen.getByRole("button", { name: /add to cart/i }));
       expect(await screen.findByRole("status", { name: /cart feedback/i })).toHaveTextContent(/adjust|review/i);
     }
-    await user.click(await screen.findByRole("button", { name: /open cart, 1 items/i }));
+    await user.click(await screen.findByRole("button", { name: /open cart, 1 item$/i }));
     const dialog = await screen.findByRole("dialog");
     if (operation === "update") await user.click(within(dialog).getByRole("button", { name: /increase quantity of/i }));
     expect(await within(dialog).findByText(/adjust.*review/i)).toBeInTheDocument();

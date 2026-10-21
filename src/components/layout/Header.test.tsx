@@ -10,6 +10,9 @@ import type { CityContextValue } from "../../contexts/cityContextObject";
 import type { OwnProfile } from "../../features/account/model/account";
 import { useOwnProfile } from "../../features/account/hooks/useOwnProfile";
 import { useMetroName } from "../../features/metros/hooks/useMetros";
+import { useCart } from "../../features/shopify/cart/useCart";
+import type { CartState } from "../../features/shopify/cart/CartContext";
+import { SHOP_NAV } from "../../features/shopify/collections";
 import type { RankedMetro } from "../../features/metros/model/metro";
 import Header from "./Header";
 
@@ -17,11 +20,25 @@ vi.mock("../../contexts/useAuth", () => ({ useAuth: vi.fn() }));
 vi.mock("../../contexts/useCity", () => ({ useCity: vi.fn() }));
 vi.mock("../../features/account/hooks/useOwnProfile", () => ({ useOwnProfile: vi.fn() }));
 vi.mock("../../features/metros/hooks/useMetros", () => ({ useMetroName: vi.fn() }));
+vi.mock("../../features/shopify/cart/useCart", () => ({ useCart: vi.fn() }));
 
 afterEach(() => vi.unstubAllGlobals());
 
 const setCity = vi.fn();
 const chooseNearMe = vi.fn();
+const setCartOpen = vi.fn();
+
+function mockCart(totalQuantity?: number) {
+  vi.mocked(useCart).mockReturnValue({
+    cart: totalQuantity === undefined ? null : { totalQuantity },
+    setOpen: setCartOpen,
+  } as unknown as CartState);
+}
+
+beforeEach(() => {
+  setCartOpen.mockClear();
+  mockCart();
+});
 
 const activeMetros: RankedMetro[] = [
   {
@@ -110,9 +127,9 @@ const memberProfile = (overrides: Partial<OwnProfile> = {}): OwnProfile => ({
   ...overrides,
 });
 
-function renderHeader() {
+function renderHeader(initialEntry = "/") {
   return render(
-    <MemoryRouter initialEntries={["/"]}>
+    <MemoryRouter initialEntries={[initialEntry]}>
       <Routes>
         <Route
           path="*"
@@ -736,5 +753,124 @@ describe("Header event creation call to action", () => {
       expect(link).toHaveAttribute("href", "/admin/events?new=1");
     }
     expect(screen.queryByRole("link", { name: "Submit Event" })).not.toBeInTheDocument();
+  });
+});
+
+describe("Header shop disclosure", () => {
+  beforeEach(() => {
+    vi.mocked(useAuth).mockReturnValue(defaultAuth());
+    mockCityValue("boston");
+    vi.mocked(useOwnProfile).mockReturnValue(defaultProfileQuery());
+    vi.mocked(useMetroName).mockReturnValue(metroNameLookup);
+  });
+
+  const shopTrigger = () => screen.getByRole("link", { name: "Shop" });
+
+  it("lists every shop collection with its route once opened from the keyboard", async () => {
+    const user = userEvent.setup();
+    renderHeader();
+
+    expect(shopTrigger()).toHaveAttribute("href", "/shop");
+    expect(shopTrigger()).toHaveAttribute("aria-expanded", "false");
+
+    shopTrigger().focus();
+    await user.keyboard("{ArrowDown}");
+
+    expect(shopTrigger()).toHaveAttribute("aria-expanded", "true");
+    const list = screen.getByRole("list", { name: "Shop collections" });
+    const links = within(list).getAllByRole("link");
+    expect(links.map((link) => link.getAttribute("href"))).toEqual(SHOP_NAV.map((e) => e.to));
+    expect(SHOP_NAV).toHaveLength(5);
+    expect(links.map((link) => link.getAttribute("aria-label"))).toEqual(
+      SHOP_NAV.map((e) => e.label)
+    );
+    expect(links[0]).toHaveFocus();
+  });
+
+  it("opens on pointer hover", async () => {
+    const user = userEvent.setup();
+    renderHeader();
+
+    await user.hover(shopTrigger());
+    expect(shopTrigger()).toHaveAttribute("aria-expanded", "true");
+    await user.unhover(shopTrigger());
+    expect(shopTrigger()).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("closes on Escape and returns focus to the trigger", async () => {
+    const user = userEvent.setup();
+    renderHeader();
+
+    shopTrigger().focus();
+    await user.keyboard("{ArrowDown}");
+    expect(screen.getByRole("link", { name: "Men" })).toBeInTheDocument();
+    expect(shopTrigger()).toHaveAttribute("aria-expanded", "true");
+
+    await user.keyboard("{Escape}");
+
+    expect(shopTrigger()).toHaveAttribute("aria-expanded", "false");
+    expect(shopTrigger()).toHaveFocus();
+  });
+
+  it("closes when focus leaves the panel", async () => {
+    const user = userEvent.setup();
+    renderHeader();
+
+    shopTrigger().focus();
+    await user.keyboard("{ArrowDown}");
+    await user.click(screen.getByRole("button", { name: "Destination action" }));
+
+    expect(shopTrigger()).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("opens the cart from the Cart row with the live item count", async () => {
+    mockCart(3);
+    const user = userEvent.setup();
+    renderHeader();
+
+    shopTrigger().focus();
+    await user.keyboard("{ArrowDown}");
+    const cartRow = screen.getByRole("button", { name: "Cart, 3 items" });
+    expect(cartRow).toHaveTextContent("3 items");
+    await user.click(cartRow);
+
+    expect(setCartOpen).toHaveBeenCalledWith(true);
+    expect(shopTrigger()).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("lists the collections in the mobile drawer and closes it on activation", async () => {
+    const user = userEvent.setup();
+    renderHeader();
+
+    await user.click(screen.getByRole("button", { name: "Open menu" }));
+    await user.click(screen.getByRole("button", { name: "Shop collections" }));
+    const list = screen.getByRole("list", { name: "Shop collections" });
+    await user.click(within(list).getByRole("link", { name: "Women" }));
+
+    expect(screen.getByRole("button", { name: "Open menu" })).toHaveAttribute(
+      "aria-expanded",
+      "false"
+    );
+  });
+
+  it("collapses the drawer's Shop group outside the shop and toggles it in place", async () => {
+    const user = userEvent.setup();
+    renderHeader();
+
+    await user.click(screen.getByRole("button", { name: "Open menu" }));
+    const toggle = screen.getByRole("button", { name: "Shop collections" });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    // The Shop link itself still navigates rather than toggling.
+    expect(within(document.getElementById("site-navigation") as HTMLElement).getByRole("link", { name: /^Shop$/ })).toHaveAttribute("href", "/shop");
+  });
+
+  it("opens the drawer's Shop group when already inside the shop", async () => {
+    const user = userEvent.setup();
+    renderHeader("/shop/women");
+
+    await user.click(screen.getByRole("button", { name: "Open menu" }));
+    expect(screen.getByRole("button", { name: "Shop collections" })).toHaveAttribute("aria-expanded", "true");
   });
 });

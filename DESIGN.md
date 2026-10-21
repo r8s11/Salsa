@@ -1390,35 +1390,98 @@ character by character. A decision the desk's galley can carry in place
 
 ### Retail / Shop
 
-The catalog masthead reads “Shop” only, in Great Vibes 400—the same font
-as the Salsa Segura wordmark. Gold Light ink, `clamp(2.75rem, 4vw, 3.5rem)`
-size, 1.4 line-height and 8px vertical padding leave the flourishes room
-to breathe. Tracking is normal and case is unchanged. The existing cart
-button remains opposite it.
+The masthead reads “Shop” in Great Vibes 400, the same font as the Salsa
+Segura wordmark, and links back to the `/shop` landing. It uses Gold Light
+ink at `clamp(2.75rem, 4vw, 3.5rem)` with a 1.4 line-height and 8px
+vertical padding, which leaves the flourishes room to breathe. Tracking is
+normal and case is unchanged. Between the wordmark and the cart pill sits
+the collection row (Shopfront, Men, Women, Accessories, Shoes). Shopfront
+is the `/shop` landing, matched exactly. The full grid at `/shop/all` is
+reached from the landing's calls to action and Keep browsing, never only
+from a hover menu. Row labels are uppercase UI-face 0.75rem/700 at 0.14em,
+and the current entry gets gold ink with a 2px gold underline. Below 900px
+the row moves under the wordmark and scrolls sideways behind a fade edge.
 
-Retail Edit is the shipping catalog, product and cart design on `/shop`
-and `/shop/products/:handle`, in Ritmo Vivo; it is no longer a
-development-only variant. The catalog opens with an editorial merchandise
-hero: self-hosted Barlow Condensed display type (`@fontsource`, weights
-600/700, loaded by the catalog), merchant photography, navy grounds and
-restrained rose accents. Catalog actions are gold: the catalog's primary
-action, the cart count, and the View product and closing links. On the
-product page, Add to cart is Rose Red (selected options are gold); in the
-cart drawer, Checkout is Rose Red.
+The site header's Shop disclosure lists the same entries plus a Cart row,
+all from `SHOP_NAV` in `src/features/shopify/collections.ts`. In the mobile
+drawer, Shop is a collapsible group. The Shop label still navigates to
+`/shop`, and a 44px chevron toggle beside it shows or hides the
+collections. The group starts collapsed, except on `/shop*` routes, where
+it opens to show the current collection.
 
-The collection uses three columns above 700px, two columns from 381px to
-700px, and one column at 380px and below. Whole-product merchant
-photography uses `object-fit: contain`; captions carry real names,
-Shopify starting prices and an explicit View product action. No customer
-photos, shipping promises or scarcity claims are manufactured. GSAP
-choreographs readable hero words and section headings; every split
-heading retains one unsplit accessible name. Catalog-only Lenis smooths
+The mobile dock is Home, Calendar, Shop and Me. Inside the shop (`/shop`
+and `/shop/*`) the Shop tab becomes Cart, an in-place action rather than a
+route. It opens the cart drawer, carries a gold item count matching the
+shop's cart pill, and returns focus to itself on close. Submitting an event
+lives in the header drawer.
+
+Retail Edit is the shipping design for `/shop`, `/shop/:collection` and
+`/shop/products/:handle`, in Ritmo Vivo. Display type is self-hosted
+Barlow Condensed (`@fontsource`, weights 600/700), set in **sentence
+case** ("Wear the rhythm.", "Shop by collection"), never all caps. Gold
+marks wayfinding and catalog actions only: the primary action, cart
+count, View product, selected filters and the closing links. Headline
+words never take gold. On the product page, Add to cart is Rose Red
+(selected options are gold); in the cart drawer, Checkout is Rose Red.
+
+**Shopify is the catalog.** Collections are Shopify collections, resolved
+by handle; the frontend never lists product handles.
+- `/shop/all` is the one virtual handle: the whole catalog, Shopify's
+  best-selling order by default.
+- `collections.ts` carries only route copy (label, headline, fallback
+  description, empty-state copy) for the five named routes.
+- A named collection Shopify hasn't published shows its own honest empty
+  state. An unknown handle shows "Collection not found".
+- The landing's Featured row is Shopify's automatic `frontpage` (Home
+  page) collection. New arrivals is `CREATED_AT` descending, without
+  products already featured.
+- Category tiles show a real product count, or "Coming soon" when the
+  collection is missing or empty.
+- There are no Bestseller or New badges; sales data and arrival badges
+  don't exist. Sold out is the only card badge.
+
+**Collection pages** pair a 240px sticky filter rail with the grid.
+Below 1100px the rail becomes a Radix bottom sheet whose foot reports
+the live result count. Facets come only from Shopify data, never from
+product titles:
+- Product type, grouped by a loose key because the merchant's types are
+  free text.
+- The Size option, normalised (`xxl` becomes `2XL`) and ordered XS→5XL.
+- The Color option, with merchant swatch colours when set and text chips
+  otherwise. The group starts collapsed above ten colours.
+- A maximum price, and In stock only.
+
+Size, colour and stock must hold on the same variant. Filter and sort
+state live in the URL. Active filters repeat as removable chips, and a
+filter set with no results offers Clear filters.
+
+Product grids use three columns above 700px and two from 381px to 700px.
+The landing's New arrivals row uses four. At 380px and below the grid is
+one column. Card media is square, whole-product merchant photography with
+`object-fit: contain`. On fine pointers a second merchant image fades in
+on hover. Captions carry the real name, the Shopify starting price, a
+colour and size summary and an explicit View product action.
+
+Quick add appears on hover or keyboard focus with a fine pointer. It is
+offered only when size is the product's sole choice, so one click names
+exactly one variant. Touch devices never get it; size choice lives on the
+product page. No customer photos, shipping promises or scarcity claims
+are manufactured.
+
+GSAP choreographs readable hero words and section headings; every split
+heading keeps one unsplit accessible name. Catalog-only Lenis smooths
 wheel input, with native touch scrolling, dialog exclusion, media/font
 measurement refresh, and cleanup on unmount. Reduced motion skips both
-engines and renders final states. No WebGL canvas is needed. Solar icons
-by 480 Design are bundled locally through Iconify and attributed under CC
-BY 4.0 at the bottom of the catalog — the one place icons do not come from
-Lucide.
+engines and renders final states. Solar icons by 480 Design are bundled
+locally through Iconify and attributed under CC BY 4.0 at the bottom of
+each shop page. They are the one place icons do not come from Lucide.
+
+The product page opens with the same masthead (wordmark, collection row and
+cart pill, which is also the add-to-cart flight target), then a breadcrumb:
+Shop › product title. Breadcrumb links keep 44px targets. Grid and editorial
+media are square to match the merchant photography. Beside the filter rail,
+card captions stack View product under the price, and active-filter chips are
+44px high.
 
 The product gallery sits beside a sticky purchase panel on desktop. Named
 native selectors separate Color, Size and other options instead of listing

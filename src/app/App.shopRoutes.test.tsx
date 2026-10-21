@@ -1,5 +1,5 @@
 import { beforeEach, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { Providers } from "./providers";
 import App from "./App";
 
@@ -22,14 +22,15 @@ it("allows an anonymous visitor to open /shop inside the public layout", async (
   window.history.replaceState({}, "", "/shop");
   render(<Providers><App /></Providers>);
   expect(window.location.pathname).toBe("/shop");
-  expect(await screen.findByRole("navigation", { name: "Main navigation" })).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: /^Shop$/ })).toHaveAttribute("href", "/shop");
+  const nav = await screen.findByRole("navigation", { name: "Main navigation" });
+  expect(within(nav).getByRole("link", { name: /^Shop$/ })).toHaveAttribute("href", "/shop");
 });
 
 it("keeps product deep links public without Shopify configuration", async () => {
   window.history.replaceState({}, "", "/shop/products/dance-tee");
   render(<Providers><App /></Providers>);
-  expect(await screen.findByRole("link", { name: "Back to shop" })).toHaveAttribute("href", "/shop");
+  const breadcrumb = await screen.findByRole("navigation", { name: "Breadcrumb" });
+  expect(within(breadcrumb).getByRole("link", { name: "Shop" })).toHaveAttribute("href", "/shop");
   expect(window.location.pathname).toBe("/shop/products/dance-tee");
   expect(screen.queryByRole("heading", { name: /sign in/i })).not.toBeInTheDocument();
 });

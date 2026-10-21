@@ -18,6 +18,52 @@ export interface ProductSummary {
   priceRange: { minVariantPrice: Money };
 }
 
+export interface CatalogOption {
+  name: string;
+  /** `swatch` is the merchant's swatch colour when set in Shopify, never inferred from the name. */
+  values: Array<{ name: string; swatch: string | null }>;
+}
+
+export interface CatalogVariant {
+  id: string;
+  availableForSale: boolean;
+  selectedOptions: Array<{ name: string; value: string }>;
+}
+
+/** A product as listed in a grid: enough for facets, hover media and quick add. */
+export interface CatalogProduct extends ProductSummary {
+  productType: string;
+  createdAt: string;
+  availableForSale: boolean;
+  /** First two images: the card face and its hover alternate. */
+  images: ShopifyImage[];
+  options: CatalogOption[];
+  variants: CatalogVariant[];
+  /** False when Shopify has more variants than one listing page carries. */
+  variantsComplete: boolean;
+}
+
+export interface CollectionSummary {
+  handle: string;
+  title: string;
+  description: string;
+  image: ShopifyImage | null;
+}
+
+export interface CollectionProducts extends CollectionSummary {
+  products: CatalogProduct[];
+}
+
+export interface CollectionTile extends CollectionSummary {
+  /** Products in the collection, capped at the tile query's page size. */
+  productCount: number;
+  hasMoreProducts: boolean;
+  /** First product image; used when the collection has no image of its own. */
+  coverImage: ShopifyImage | null;
+}
+
+export type CatalogSort = "newest" | "featured";
+
 export interface ProductVariant {
   id: string;
   title: string;

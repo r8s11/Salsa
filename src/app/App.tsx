@@ -14,6 +14,7 @@ const SubmitEventPage = lazy(() => import("../pages/SubmitEventPage"));
 // Explicit route-level lazy loading keeps non-critical shop pages out of the entry bundle.
 const ShopPage = lazy(() => import("../features/shopify/pages/ShopPage"));
 const ProductPage = lazy(() => import("../features/shopify/pages/ProductPage"));
+const CollectionPage = lazy(() => import("../features/shopify/pages/CollectionPage"));
 const FoundersPage = lazy(() => import("../features/founder/pages/FoundersPage"));
 const FoundersAcceptPage = lazy(() => import("../features/founder/pages/FoundersAcceptPage"));
 const FoundersWelcomePage = lazy(() => import("../features/founder/pages/FoundersWelcomePage"));
@@ -295,6 +296,7 @@ function App() {
               <Route path="submit" element={<SubmitEventPage />} />
               <Route path="shop" element={<ShopPage />} />
               <Route path="shop/products/:handle" element={<ProductPage />} />
+              <Route path="shop/:collection" element={<CollectionPage />} />
               <Route path="events/:id" element={<EventsParamRoute />} />
               <Route path="e/:code" element={<ShortEventLinkPage />} />
               <Route path="v/:slug" element={<PublicEntityPage kind="venue" />} />

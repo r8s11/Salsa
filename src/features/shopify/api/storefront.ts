@@ -5,6 +5,8 @@ import {
   CART_LINES_REMOVE_MUTATION,
   CART_LINES_UPDATE_MUTATION,
   CART_QUERY,
+  COLLECTIONS_QUERY,
+  COLLECTION_PRODUCTS_QUERY,
   PRODUCTS_QUERY,
   PRODUCT_BY_HANDLE_QUERY,
   PRODUCT_IMAGES_QUERY,
@@ -13,6 +15,11 @@ import {
 import type {
   Cart,
   CartLine,
+  CatalogProduct,
+  CatalogSort,
+  CollectionProducts,
+  CollectionSummary,
+  CollectionTile,
   Money,
   Product,
   ProductSummary,
@@ -27,6 +34,10 @@ import type {
 
 const API_VERSION = "2026-10";
 const PAGE_SIZE = 250;
+/** Listing pages carry facets and a variant page per product, so keep them modest. */
+const CATALOG_PAGE_SIZE = 50;
+/** Safety stop for whole-catalog loads; 40 pages is 2,000 products. */
+const MAX_CATALOG_PAGES = 40;
 const STORE_DOMAIN = import.meta.env.VITE_SHOPIFY_STORE_DOMAIN?.trim() ?? "";
 const STOREFRONT_TOKEN = import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN?.trim() ?? "";
 const SHOPIFY_DOMAIN_PATTERN = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.myshopify\.com$/i;
@@ -150,6 +161,61 @@ function parseProductSummary(value: unknown): ProductSummary {
     title: requiredString(product.title, "product.title"),
     featuredImage: parseImage(product.featuredImage, "product.featuredImage"),
     priceRange: { minVariantPrice: parseMoney(priceRange.minVariantPrice, "product.priceRange.minVariantPrice") },
+  };
+}
+
+function parseCatalogProduct(value: unknown): CatalogProduct {
+  const product = record(value, "product");
+  const imagesConnection = record(product.images, "product.images");
+  const variantsConnection = record(product.variants, "product.variants");
+  const variantsPage = record(variantsConnection.pageInfo, "product.variants.pageInfo");
+  return {
+    ...parseProductSummary(product),
+    productType: requiredString(product.productType, "product.productType"),
+    createdAt: requiredString(product.createdAt, "product.createdAt"),
+    availableForSale: requiredBoolean(product.availableForSale, "product.availableForSale"),
+    images: list(imagesConnection.nodes, "product.images.nodes").flatMap((node) => {
+      const image = parseImage(node, "product.images.node");
+      return image ? [image] : [];
+    }),
+    options: list(product.options, "product.options").map((entry) => {
+      const option = record(entry, "product.options[]");
+      return {
+        name: requiredString(option.name, "product.options[].name"),
+        values: list(option.optionValues, "product.options[].optionValues").map((raw) => {
+          const optionValue = record(raw, "product.options[].optionValues[]");
+          const swatch = optionValue.swatch == null ? null : record(optionValue.swatch, "optionValue.swatch");
+          return {
+            name: requiredString(optionValue.name, "optionValue.name"),
+            swatch: swatch ? nullableString(swatch.color, "optionValue.swatch.color") : null,
+          };
+        }),
+      };
+    }),
+    variants: list(variantsConnection.nodes, "product.variants.nodes").map((entry) => {
+      const variant = record(entry, "product.variants[]");
+      return {
+        id: requiredString(variant.id, "variant.id"),
+        availableForSale: requiredBoolean(variant.availableForSale, "variant.availableForSale"),
+        selectedOptions: list(variant.selectedOptions, "variant.selectedOptions").map((option) => {
+          const selected = record(option, "variant.selectedOptions[]");
+          return {
+            name: requiredString(selected.name, "variant.selectedOptions[].name"),
+            value: requiredString(selected.value, "variant.selectedOptions[].value"),
+          };
+        }),
+      };
+    }),
+    variantsComplete: !requiredBoolean(variantsPage.hasNextPage, "product.variants.pageInfo.hasNextPage"),
+  };
+}
+
+function parseCollectionSummary(value: Record<string, unknown>): CollectionSummary {
+  return {
+    handle: requiredString(value.handle, "collection.handle"),
+    title: requiredString(value.title, "collection.title"),
+    description: requiredString(value.description, "collection.description"),
+    image: parseImage(value.image, "collection.image"),
   };
 }
 
@@ -422,13 +488,81 @@ async function mutationCart(
   return cart;
 }
 
-async function listProducts(after?: string): Promise<{ nodes: ProductSummary[]; pageInfo: StorefrontPageInfo }> {
-  const data = await request<{ products?: unknown }>(PRODUCTS_QUERY, { first: 24, after: after ?? null });
+const SORT_VARIABLES: Record<CatalogSort, { sortKey: string; reverse: boolean }> = {
+  newest: { sortKey: "CREATED_AT", reverse: true },
+  featured: { sortKey: "BEST_SELLING", reverse: false },
+};
+
+async function listProducts(
+  after?: string,
+  sort: CatalogSort = "featured",
+  first = CATALOG_PAGE_SIZE,
+): Promise<{ nodes: CatalogProduct[]; pageInfo: StorefrontPageInfo }> {
+  const data = await request<{ products?: unknown }>(PRODUCTS_QUERY, { first, after: after ?? null, ...SORT_VARIABLES[sort] });
   const products = record(data.products, "products");
-  const nodes = list(products.nodes, "products.nodes").map(parseProductSummary);
+  const nodes = list(products.nodes, "products.nodes").map(parseCatalogProduct);
   const pageInfo = parsePageInfo(products.pageInfo);
   nextCursor(pageInfo, after, "product");
   return { nodes, pageInfo };
+}
+
+/** Follows cursors until the listing ends, so grid filters see every product. */
+async function collectPages(
+  fetchPage: (after: string | undefined) => Promise<{ nodes: CatalogProduct[]; pageInfo: StorefrontPageInfo }>,
+  resource: string,
+): Promise<CatalogProduct[]> {
+  const products: CatalogProduct[] = [];
+  let after: string | undefined;
+  for (let page = 0; page < MAX_CATALOG_PAGES; page += 1) {
+    const { nodes, pageInfo } = await fetchPage(after);
+    products.push(...nodes);
+    const cursor = nextCursor(pageInfo, after, resource);
+    if (!cursor) return products;
+    after = cursor;
+  }
+  throw new StorefrontError("pagination", `Shopify returned more ${resource} pages than the shop can list.`);
+}
+
+async function listAllProducts(sort: CatalogSort = "featured"): Promise<CatalogProduct[]> {
+  return collectPages((after) => listProducts(after, sort), "product");
+}
+
+async function getCollectionProducts(handle: string): Promise<CollectionProducts | null> {
+  let summary: CollectionSummary | null = null;
+  let missing = false;
+  const products = await collectPages(async (after) => {
+    const data = await request<{ collection?: unknown }>(COLLECTION_PRODUCTS_QUERY, { handle, first: CATALOG_PAGE_SIZE, after: after ?? null });
+    if (data.collection === null) {
+      missing = true;
+      return { nodes: [], pageInfo: { hasNextPage: false, endCursor: null } };
+    }
+    const collection = record(data.collection, "collection");
+    summary ??= parseCollectionSummary(collection);
+    const connection = record(collection.products, "collection.products");
+    return {
+      nodes: list(connection.nodes, "collection.products.nodes").map(parseCatalogProduct),
+      pageInfo: parsePageInfo(connection.pageInfo),
+    };
+  }, "collection product");
+  if (missing || !summary) return null;
+  return { ...(summary as CollectionSummary), products };
+}
+
+async function listCollections(): Promise<CollectionTile[]> {
+  const data = await request<{ collections?: unknown }>(COLLECTIONS_QUERY, { first: 50 });
+  const collections = record(data.collections, "collections");
+  return list(collections.nodes, "collections.nodes").map((entry) => {
+    const collection = record(entry, "collection");
+    const products = record(collection.products, "collection.products");
+    const nodes = list(products.nodes, "collection.products.nodes").map((node) => record(node, "collection.products.node"));
+    const page = record(products.pageInfo, "collection.products.pageInfo");
+    return {
+      ...parseCollectionSummary(collection),
+      productCount: nodes.length,
+      hasMoreProducts: requiredBoolean(page.hasNextPage, "collection.products.pageInfo.hasNextPage"),
+      coverImage: nodes.length ? parseImage(nodes[0].featuredImage, "collection.products.node.featuredImage") : null,
+    };
+  });
 }
 
 async function getProduct(handle: string): Promise<Product | null> {
@@ -519,6 +653,9 @@ async function removeCartLines(id: string, lineIds: string[]): Promise<Cart> {
 
 export const storefront = {
   listProducts,
+  listAllProducts,
+  getCollectionProducts,
+  listCollections,
   getProduct,
   getCart,
   createCart,

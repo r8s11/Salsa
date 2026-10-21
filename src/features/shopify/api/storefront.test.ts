@@ -350,6 +350,41 @@ describe("Shopify Storefront client", () => {
     expect(JSON.stringify(vi.mocked(fetch).mock.calls[0]?.[1])).toContain("previous-page");
   });
 
+  it("reads every page of a collection and parses grid facets from Shopify", async () => {
+    configureStorefront();
+    const node = (handle: string) => ({
+      id: `gid://shopify/Product/${handle}`, handle, title: handle, productType: "T-SHIRT",
+      createdAt: "2026-10-19T12:00:00Z", availableForSale: true, featuredImage: image,
+      images: { nodes: [image] }, priceRange: { minVariantPrice: money("14.00") },
+      options: [{ name: "Size", optionValues: [{ name: "M", swatch: null }, { name: "L", swatch: { color: "#111111" } }] }],
+      variants: { nodes: [{ id: `${handle}-m`, availableForSale: true, selectedOptions: [{ name: "Size", value: "M" }] }], pageInfo: { hasNextPage: true } },
+    });
+    const collection = (nodes: unknown[], pageInfo: unknown) => ({
+      data: { collection: { handle: "women", title: "Women", description: "", image: null, products: { nodes, pageInfo } } },
+    });
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(response(collection([node("crop")], { hasNextPage: true, endCursor: "page-2" })))
+      .mockResolvedValueOnce(response(collection([node("tank")], { hasNextPage: false, endCursor: null })));
+    const { storefront } = await loadClient();
+
+    const result = await storefront.getCollectionProducts("women");
+    expect(result?.products.map((product) => product.handle)).toEqual(["crop", "tank"]);
+    expect(result?.products[0]).toMatchObject({
+      productType: "T-SHIRT",
+      options: [{ name: "Size", values: [{ name: "M", swatch: null }, { name: "L", swatch: "#111111" }] }],
+      variantsComplete: false,
+    });
+    expect(JSON.stringify(vi.mocked(fetch).mock.calls[1]?.[1])).toContain("page-2");
+  });
+
+  it("returns null for a collection handle Shopify doesn't have", async () => {
+    configureStorefront();
+    vi.mocked(fetch).mockResolvedValueOnce(response({ data: { collection: null } }));
+    const { storefront } = await loadClient();
+
+    await expect(storefront.getCollectionProducts("shoes")).resolves.toBeNull();
+  });
+
   it("fetches all variant pages for a product and concatenates their nodes", async () => {
     configureStorefront();
     vi.mocked(fetch)

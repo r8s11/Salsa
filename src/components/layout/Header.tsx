@@ -1,6 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
-import { ChevronRight, LayoutDashboard, LogOut, Settings2, UserRound } from "lucide-react";
+import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import {
+  ChevronDown,
+  ChevronRight,
+  LayoutDashboard,
+  LogOut,
+  Settings2,
+  ShoppingBag,
+  UserRound,
+} from "lucide-react";
 import { resolveIdentity } from "../../features/account/model/account";
 import { useAuth } from "../../contexts/useAuth";
 import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
@@ -10,6 +19,8 @@ import SalsaSeguraLogo from "../ui/SalsaSeguraLogo";
 import AccountAvatar from "./AccountAvatar";
 import ButtonLink from "../ui/ButtonLink";
 import { resolveEventCreateDestination } from "../../lib/eventCreateDestination";
+import { useCart } from "../../features/shopify/cart/useCart";
+import { SHOP_NAV } from "../../features/shopify/collections";
 import { useAccessibleDialog } from "../../shared/a11y/useAccessibleDialog";
 import "./Header.css";
 
@@ -31,6 +42,26 @@ function Header() {
   const { user, isModerator, isAdmin, isOrganizer, signOut } = useAuth();
   const { profile } = useOwnProfile(user?.id);
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const { cart, setOpen: setCartOpen } = useCart();
+  const cartCount = cart?.totalQuantity ?? 0;
+  const shopRef = useRef<HTMLLIElement>(null);
+  const shopTriggerRef = useRef<HTMLAnchorElement>(null);
+  // Who opened the panel decides who may close it: hover-opened panels close
+  // when the pointer leaves, keyboard-opened ones stay until Escape or focus leaves.
+  const shopOpenedBy = useRef<"pointer" | "keyboard">("pointer");
+  const focusFirstShopItem = useRef(false);
+  const [shopOpen, setShopOpen] = useState(false);
+  // The drawer's Shop group starts collapsed, except inside the shop where it
+  // shows the current collection.
+  const [mobileShopOpen, setMobileShopOpen] = useState(pathname.startsWith("/shop"));
+  const [shopPath, setShopPath] = useState(pathname);
+  if (shopPath !== pathname) {
+    // Route change dismisses the panel (adjusting state during render, not an effect).
+    setShopPath(pathname);
+    setShopOpen(false);
+    setMobileShopOpen(pathname.startsWith("/shop"));
+  }
   const identity = resolveIdentity({
     display_name: profile?.display_name ?? null,
     username: profile?.username ?? null,
@@ -63,6 +94,13 @@ function Header() {
     const wasAccountOpen = accountDisclosure.current?.open;
     closeNavigation();
     if (wasAccountOpen) accountDisclosure.current?.querySelector("summary")?.focus();
+    if (shopOpen) {
+      // Only pull focus back when it was inside the panel; a hover-opened panel
+      // must not steal focus from wherever the user actually is.
+      const hadFocus = shopRef.current?.contains(document.activeElement);
+      setShopOpen(false);
+      if (hadFocus) shopTriggerRef.current?.focus();
+    }
   });
   const { onKeyDown: onNavigationKeyDown } = useAccessibleDialog({
     dialogRef: navigationRef,
@@ -81,10 +119,12 @@ function Header() {
 
   useEffect(() => {
     const dismissOutside = (event: PointerEvent | FocusEvent) => {
+      if (!(event.target instanceof Node)) return;
       const disclosure = accountDisclosure.current;
-      if (disclosure?.open && event.target instanceof Node && !disclosure.contains(event.target)) {
+      if (disclosure?.open && !disclosure.contains(event.target)) {
         disclosure.removeAttribute("open");
       }
+      if (shopRef.current && !shopRef.current.contains(event.target)) setShopOpen(false);
     };
     document.addEventListener("pointerdown", dismissOutside);
     document.addEventListener("focusin", dismissOutside);
@@ -93,6 +133,72 @@ function Header() {
       document.removeEventListener("focusin", dismissOutside);
     };
   }, []);
+
+  useEffect(() => {
+    if (!shopOpen || !focusFirstShopItem.current) return;
+    focusFirstShopItem.current = false;
+    shopRef.current?.querySelector<HTMLElement>(".shop-menu__link")?.focus();
+  }, [shopOpen]);
+
+  const openShop = (by: "pointer" | "keyboard") => {
+    shopOpenedBy.current = by;
+    setShopOpen(true);
+  };
+
+  // The same <li> is a hover/keyboard dropdown on desktop and a collapsible group
+  // in the mobile sheet, so none of the open behaviour applies while that sheet is up.
+  const handleShopPointer = (event: ReactPointerEvent<HTMLLIElement>, entering: boolean) => {
+    if (mobileOpen || event.pointerType === "touch") return;
+    if (entering) {
+      if (!shopOpen) openShop("pointer");
+    } else if (shopOpenedBy.current === "pointer") {
+      setShopOpen(false);
+    }
+  };
+
+  const handleShopKeyDown = (event: ReactKeyboardEvent<HTMLLIElement>) => {
+    if (mobileOpen) return;
+    const items = Array.from(
+      shopRef.current?.querySelectorAll<HTMLElement>(".shop-menu__link") ?? [],
+    );
+    if (event.target === shopTriggerRef.current) {
+      // Enter keeps its native job (navigate to /shop); the panel opens with
+      // ArrowDown or Space.
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        if (shopOpen) items[0]?.focus();
+        else {
+          focusFirstShopItem.current = true;
+          openShop("keyboard");
+        }
+      } else if (event.key === " ") {
+        event.preventDefault();
+        if (shopOpen) setShopOpen(false);
+        else openShop("keyboard");
+      }
+      return;
+    }
+    const index = items.indexOf(event.target as HTMLElement);
+    if (index < 0) return;
+    const next =
+      event.key === "ArrowDown"
+        ? (index + 1) % items.length
+        : event.key === "ArrowUp"
+          ? (index - 1 + items.length) % items.length
+          : event.key === "Home"
+            ? 0
+            : event.key === "End"
+              ? items.length - 1
+              : -1;
+    if (next < 0) return;
+    event.preventDefault();
+    items[next].focus();
+  };
+
+  const chooseShopDestination = () => {
+    setShopOpen(false);
+    closeNavigation();
+  };
 
   const handleSignOut = async () => {
     if (signOutPending) return;
@@ -128,19 +234,98 @@ function Header() {
         </Link>
 
         <ul id="site-navigation" className={`nav-links ${mobileOpen ? "active" : ""}`}>
-          {PRIMARY_LINKS.map(({ to, label }, index) => (
-            <li key={to}>
-              <NavLink to={to} onClick={closeNavigation}>
-                <span className="nav-links__num" aria-hidden="true">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-                <span className="nav-links__label">{label}</span>
-                <span className="nav-links__marker" aria-hidden="true">
-                  ◆
-                </span>
-              </NavLink>
-            </li>
-          ))}
+          {PRIMARY_LINKS.map(({ to, label }, index) => {
+            const ordinal = String(index + 1).padStart(2, "0");
+            if (to !== "/shop") {
+              return (
+                <li key={to}>
+                  <NavLink to={to} onClick={closeNavigation}>
+                    <span className="nav-links__num" aria-hidden="true">
+                      {ordinal}
+                    </span>
+                    <span className="nav-links__label">{label}</span>
+                    <span className="nav-links__marker" aria-hidden="true">
+                      ◆
+                    </span>
+                  </NavLink>
+                </li>
+              );
+            }
+            return (
+              <li
+                key={to}
+                ref={shopRef}
+                className="nav-links__shop"
+                data-mobile-open={mobileShopOpen}
+                onPointerEnter={(event) => handleShopPointer(event, true)}
+                onPointerLeave={(event) => handleShopPointer(event, false)}
+                onKeyDown={handleShopKeyDown}
+              >
+                <NavLink
+                  ref={shopTriggerRef}
+                  to={to}
+                  aria-controls={mobileOpen ? undefined : "shop-menu"}
+                  aria-expanded={mobileOpen ? undefined : shopOpen}
+                  onClick={chooseShopDestination}
+                >
+                  <span className="nav-links__num" aria-hidden="true">
+                    {ordinal}
+                  </span>
+                  <span className="nav-links__label">{label}</span>
+                  <ChevronDown size={14} className="nav-links__chevron" aria-hidden="true" />
+                  <span className="nav-links__marker" aria-hidden="true">
+                    ◆
+                  </span>
+                </NavLink>
+                {mobileOpen && (
+                  <button
+                    type="button"
+                    className="nav-links__shop-toggle"
+                    aria-expanded={mobileShopOpen}
+                    aria-controls="shop-menu"
+                    aria-label="Shop collections"
+                    onClick={() => setMobileShopOpen((open) => !open)}
+                  >
+                    <ChevronDown size={20} aria-hidden="true" />
+                  </button>
+                )}
+                <div id="shop-menu" className="shop-menu" data-open={shopOpen}>
+                  <ul className="shop-menu__list" aria-label="Shop collections">
+                    {SHOP_NAV.map((entry) => (
+                      <li key={entry.to}>
+                        <NavLink
+                          to={entry.to}
+                          end
+                          className="shop-menu__link"
+                          aria-label={entry.label}
+                          onClick={chooseShopDestination}
+                        >
+                          <span className="shop-menu__label">{entry.label}</span>
+                          <small className="shop-menu__hint">{entry.hint}</small>
+                        </NavLink>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="shop-menu__divider" aria-hidden="true" />
+                  <button
+                    type="button"
+                    className="shop-menu__link shop-menu__cart"
+                    aria-label={`Cart, ${cartCount} ${cartCount === 1 ? "item" : "items"}`}
+                    onClick={() => {
+                      chooseShopDestination();
+                      setCartOpen(true);
+                    }}
+                  >
+                    <ShoppingBag size={18} aria-hidden="true" />
+                    <span className="shop-menu__label">Cart</span>
+                    <small className="shop-menu__hint">
+                      {cartCount} {cartCount === 1 ? "item" : "items"}
+                    </small>
+                  </button>
+                </div>
+              </li>
+            );
+          })}
           <li className="mobile-nav-actions">
             <span className="mobile-nav__context">Explore Salsa Segura</span>
             <section className="mobile-nav__city" aria-labelledby="mobile-nav-city-label">

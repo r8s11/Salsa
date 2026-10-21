@@ -47,17 +47,63 @@ const CART_FIELDS = `
   lines(first: 250) { ${CART_LINES_FIELDS} }
 `;
 
+// Grid listings carry facets (type, options, availability), the card's hover
+// image and a bounded variant page for quick add. The product page still
+// loads every variant on its own.
+const CATALOG_PRODUCT_FIELDS = `
+  id
+  handle
+  title
+  productType
+  createdAt
+  availableForSale
+  featuredImage { ${IMAGE_FIELDS} }
+  images(first: 2) { nodes { ${IMAGE_FIELDS} } }
+  priceRange { minVariantPrice { ${MONEY_FIELDS} } }
+  options { name optionValues { name swatch { color } } }
+  variants(first: 100) {
+    nodes { id availableForSale selectedOptions { name value } }
+    pageInfo { hasNextPage }
+  }
+`;
+
 export const PRODUCTS_QUERY = `
-  query Products($first: Int!, $after: String) {
-    products(first: $first, after: $after) {
+  query Products($first: Int!, $after: String, $sortKey: ProductSortKeys, $reverse: Boolean) {
+    products(first: $first, after: $after, sortKey: $sortKey, reverse: $reverse) {
+      nodes { ${CATALOG_PRODUCT_FIELDS} }
+      pageInfo { hasNextPage endCursor }
+    }
+  }
+`;
+
+export const COLLECTION_PRODUCTS_QUERY = `
+  query CollectionProducts($handle: String!, $first: Int!, $after: String) {
+    collection(handle: $handle) {
+      handle
+      title
+      description
+      image { ${IMAGE_FIELDS} }
+      products(first: $first, after: $after) {
+        nodes { ${CATALOG_PRODUCT_FIELDS} }
+        pageInfo { hasNextPage endCursor }
+      }
+    }
+  }
+`;
+
+export const COLLECTIONS_QUERY = `
+  query Collections($first: Int!) {
+    collections(first: $first) {
       nodes {
-        id
         handle
         title
-        featuredImage { ${IMAGE_FIELDS} }
-        priceRange { minVariantPrice { ${MONEY_FIELDS} } }
+        description
+        image { ${IMAGE_FIELDS} }
+        products(first: 100) {
+          nodes { id featuredImage { ${IMAGE_FIELDS} } }
+          pageInfo { hasNextPage }
+        }
       }
-      pageInfo { hasNextPage endCursor }
     }
   }
 `;

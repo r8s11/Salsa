@@ -4,28 +4,20 @@
   grid-template-columns: minmax(0, 1fr) auto;
 }
 
-.shop-page--product > .shop-page__topbar {
-  grid-column: 2;
-  grid-row: 1;
-  margin-bottom: var(--space-lg);
+.shop-page--product > .retail-catalog__header {
+  grid-column: 1 / -1;
+  margin-bottom: var(--space-md);
 }
 
-.shop-breadcrumb {
-  grid-column: 1;
-  grid-row: 1;
-  margin: 0 0 var(--space-lg) -0.75rem;
-  align-self: center;
+.shop-page--product > .shop-breadcrumb {
+  grid-column: 1 / -1;
+  margin-bottom: var(--space-lg);
 }
 
 .shop-page--product > .shop-state,
 .shop-page--product > .shop-page__notice,
 .shop-product {
   grid-column: 1 / -1;
-}
-
-.shop-breadcrumb a:focus-visible {
-  outline: 3px solid var(--gold);
-  outline-offset: 4px;
 }
 
 .shop-product {

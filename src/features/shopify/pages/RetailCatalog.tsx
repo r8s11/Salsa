@@ -39,7 +39,9 @@ function CategoryTiles({ tiles }: { tiles: CollectionTile[] | undefined }) {
         return (
           <li key={entry.handle}>
             <Link to={collectionPath(entry.handle)} className={`retail-tile${stocked && image ? "" : " retail-tile--soon"}`}>
-              {stocked && image && <img src={image.url} alt="" loading="lazy" width={image.width || 720} height={image.height || 720} />}
+              <span className="retail-tile__media">
+                {stocked && image && <img src={image.url} alt="" loading="lazy" width={image.width || 720} height={image.height || 720} />}
+              </span>
               <span className="retail-tile__label">
                 <strong>{entry.label}</strong>
                 <small>{tiles === undefined ? "\u00a0" : stocked ? count : "Coming soon"}</small>

@@ -123,7 +123,11 @@ export default function CartDrawer() {
           <Dialog.Title>Your cart</Dialog.Title>
           <Dialog.Close asChild><Button ref={close} variant="ghost" size="compact" aria-label="Close cart">Close</Button></Dialog.Close>
         </div>
-        <Dialog.Description>Review your items. Payment and delivery are handled by Shopify.</Dialog.Description>
+        <Dialog.Description>
+          {!isLoading && !error && !cart?.lines.nodes.length
+            ? "Your cart is ready for the first dance."
+            : "Review your items. Payment and delivery are handled by Shopify."}
+        </Dialog.Description>
         {isLoading && <p role="status">Loading your cart…</p>}
         {isBusy && <p role="status">Updating your cart…</p>}
         {notice && <p role="status">{notice}</p>}
@@ -132,7 +136,7 @@ export default function CartDrawer() {
           <Button variant="secondary" disabled={isLoading || isBusy} onClick={() => void refresh()}>Reload cart</Button>
         </div>}
         {!isLoading && !error && !cart?.lines.nodes.length && <div className="shop-cart__empty">
-          <p>Your cart is ready for the first dance.</p>
+          {/* The description above already carries the empty-cart line. */}
           <ButtonLink ref={browse} variant="secondary" to="/shop" onClick={() => setOpen(false)}>Browse the shop</ButtonLink>
         </div>}
         <ul className="shop-cart__lines" aria-label="Cart items" aria-busy={isBusy}>

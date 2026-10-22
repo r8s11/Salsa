@@ -8,7 +8,7 @@ import type { CatalogProduct } from "../api/types";
 const SIZE_ORDER = ["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"];
 const SIZE_ALIASES: Record<string, string> = { XXL: "2XL", XXXL: "3XL", XXXXL: "4XL" };
 
-const isSizeOption = (name: string) => /^size$/i.test(name.trim());
+export const isSizeOption = (name: string) => /^size$/i.test(name.trim());
 const isColorOption = (name: string) => /^colou?r$/i.test(name.trim());
 
 /** Blanks spell the same size differently ("xxl", "2XL"); compare one spelling. */

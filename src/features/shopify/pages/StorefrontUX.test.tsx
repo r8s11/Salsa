@@ -58,6 +58,11 @@ function renderStore(path = "/shop/products/dance-tee") {
     <CartDrawer />
   </CartProvider></MemoryRouter></QueryClientProvider>);
 }
+/** Product-page purchases need a size the shopper chose. */
+async function openTeeWithSize(size = "S") {
+  await screen.findByRole("heading", { name: "Dance Tee" });
+  fireEvent.change(screen.getByRole("combobox", { name: "Size" }), { target: { value: size } });
+}
 beforeEach(() => {
   vi.resetAllMocks(); localStorage.clear();
   vi.mocked(storefront.getProduct).mockResolvedValue(item);
@@ -86,25 +91,54 @@ describe("Storefront customer experience", () => {
     expect(link).toHaveAttribute("href", "/shop/products/dance-tee");
     expect(link).toHaveTextContent(/image unavailable/i);
   });
-  it("selects named options without exposing every variant combination", async () => {
+  it("never chooses a size for the shopper and hands back a size the new colour lacks", async () => {
     const user = userEvent.setup();
     renderStore(); await screen.findByRole("heading", { name: "Dance Tee" });
     const size = screen.getByRole("combobox", { name: "Size" });
     const color = screen.getByRole("combobox", { name: "Color" });
-    expect(size).toHaveValue("S");
+    expect(size).toHaveValue("");
     expect(color).toHaveValue("Rose");
     expect(within(size).getByRole("option", { name: /L.*sold out/i })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: /^add to cart$/i })).toBeNull();
+    expect(screen.queryByText("Available")).toBeNull();
 
     await user.selectOptions(size, "M");
     expect(color).toHaveValue("Navy");
     expect(screen.getByRole("img", { name: "Tee back" })).toHaveAttribute("src", back.url);
-    expect(screen.getByText("$30.00")).toBeInTheDocument();
-    expect(screen.queryByText(/was \$32\.00/i)).toBeNull();
+    expect(screen.getByText("$30.00", { selector: ".shop-product__price span" })).toBeInTheDocument();
+    expect(screen.getByText("$30.00", { selector: ".shop-product__buy-price" })).toBeInTheDocument();
+    expect(document.querySelector(".shop-product__buy-choice")).toHaveTextContent(/Navy.*M|M.*Navy/);
+    expect(screen.getByRole("button", { name: /^add to cart$/i })).toBeEnabled();
 
     await user.selectOptions(color, "Rose");
-    expect(size).toHaveValue("S");
+    expect(size).toHaveValue("");
+    expect(screen.getByText("M isn't available in Rose. Choose another size.")).toBeInTheDocument();
+    expect(size).toHaveAccessibleDescription("M isn't available in Rose. Choose another size.");
     expect(screen.getByRole("img", { name: "Tee front" })).toHaveAttribute("src", front.url);
-    expect(screen.getByText("$28.00")).toBeInTheDocument();
+    expect(screen.getByText("$28.00", { selector: ".shop-product__buy-price" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^add to cart$/i })).toBeNull();
+  });
+  it("routes the purchase button to the size choice until one is made", async () => {
+    Element.prototype.scrollIntoView = vi.fn(); // jsdom has no layout
+    const user = userEvent.setup();
+    renderStore(); await screen.findByRole("heading", { name: "Dance Tee" });
+    await user.click(screen.getByRole("button", { name: /^choose size$/i }));
+    expect(screen.getByRole("combobox", { name: "Size" })).toHaveFocus();
+    expect(storefront.createCart).not.toHaveBeenCalled();
+    await user.selectOptions(screen.getByRole("combobox", { name: "Size" }), "S");
+    expect(screen.getByRole("button", { name: /^add to cart$/i })).toBeEnabled();
+  });
+  it("quotes a from-price while sizes of the chosen colour cost different amounts", async () => {
+    vi.mocked(storefront.getProduct).mockResolvedValue({
+      ...item,
+      variants: { nodes: [
+        item.variants.nodes[0],
+        { ...item.variants.nodes[1], id: "medium-rose", selectedOptions: [{ name: "Size", value: "M" }, { name: "Color", value: "Rose" }] },
+      ] },
+    });
+    renderStore(); await screen.findByRole("heading", { name: "Dance Tee" });
+    expect(screen.getByText("From $28.00", { selector: ".shop-product__price span" })).toBeInTheDocument();
+    expect(screen.queryByText(/was \$32\.00/i)).toBeNull();
   });
   it("preserves the other option when the requested combination is available", async () => {
     vi.mocked(storefront.getProduct).mockResolvedValue({
@@ -172,13 +206,13 @@ describe("Storefront customer experience", () => {
     }
     const user = userEvent.setup();
     renderStore();
-    await screen.findByRole("heading", { name: "Dance Tee" });
+    await openTeeWithSize();
     if (operation === "add") {
       await user.click(screen.getByRole("button", { name: /^increase quantity$/i }));
       await user.click(screen.getByRole("button", { name: /add to cart/i }));
-      expect(await screen.findByRole("status", { name: /cart feedback/i })).toHaveTextContent(/adjust|review/i);
+    } else {
+      await user.click(await screen.findByRole("button", { name: /open cart, 1 item$/i }));
     }
-    await user.click(await screen.findByRole("button", { name: /open cart, 1 item$/i }));
     const dialog = await screen.findByRole("dialog");
     if (operation === "update") await user.click(within(dialog).getByRole("button", { name: /increase quantity of/i }));
     expect(await within(dialog).findByText(/adjust.*review/i)).toBeInTheDocument();
@@ -197,18 +231,21 @@ describe("Storefront customer experience", () => {
     expect(document.querySelector(".shop-product__image")).toHaveAttribute("width", "720");
     expect(thumb).toHaveAttribute("aria-pressed", "true");
   });
-  it("sends the selected quantity and shows success without leaving the product", async () => {
+  it("opens the confirmed cart with the selected quantity and returns focus to Add on Escape", async () => {
     vi.mocked(storefront.createCart).mockImplementation(async (lines) => makeCart(lines[0].quantity));
-    const user = userEvent.setup(); renderStore(); await screen.findByRole("heading", { name: "Dance Tee" });
+    const user = userEvent.setup(); renderStore(); await openTeeWithSize();
     expect(screen.getByRole("button", { name: /decrease quantity$/i })).toBeDisabled();
     await user.click(screen.getByRole("button", { name: /increase quantity$/i }));
-    await user.click(screen.getByRole("button", { name: /add to cart/i }));
-    expect(await screen.findByRole("status", { name: /cart feedback/i })).toHaveTextContent(/added to cart/i);
-    expect(screen.getByRole("heading", { name: "Dance Tee" })).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: /open cart, 2 items/i }));
-    const dialog = await screen.findByRole("dialog");
+    const add = screen.getByRole("button", { name: /^add to cart$/i });
+    await user.click(add);
+    const dialog = await screen.findByRole("dialog", { name: /your cart/i });
+    expect(within(dialog).getByRole("link", { name: "Dance Tee" })).toBeInTheDocument();
+    expect(within(dialog).getByText("Size: S / Color: Rose")).toBeInTheDocument();
     expect(within(dialog).getByRole("status", { name: /^quantity of/i })).toHaveTextContent("2");
     expect(within(dialog).getByText("$56.00", { selector: ".shop-cart__line p" })).toBeInTheDocument();
+    expect(within(dialog).getByRole("link", { name: /checkout with shopify/i })).toHaveAttribute("href", "https://checkout.example.test/cart");
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(add).toHaveFocus());
   });
   it("announces a pending add and prevents duplicate adds", async () => {
     let resolve!: () => void;
@@ -219,18 +256,18 @@ describe("Storefront customer experience", () => {
       await pending;
       return makeCart(creations);
     });
-    renderStore(); const add = await screen.findByRole("button", { name: /add to cart/i });
+    renderStore(); await openTeeWithSize(); const add = screen.getByRole("button", { name: /add to cart/i });
     fireEvent.click(add);
     expect(screen.getByRole("button", { name: /adding to cart/i })).toBeDisabled();
+    expect(screen.queryByRole("dialog")).toBeNull();
     fireEvent.click(add);
     await act(async () => resolve());
-    expect(await screen.findByRole("status", { name: /cart feedback/i })).toHaveTextContent(/added to cart/i);
-    fireEvent.click(screen.getByRole("button", { name: /open cart, 1 item/i }));
     expect(within(await screen.findByRole("dialog")).getByRole("status", { name: /^quantity of/i })).toHaveTextContent("1");
   });
   it("clears stale success feedback when variant changes", async () => {
-    renderStore(); fireEvent.click(await screen.findByRole("button", { name: /add to cart/i }));
-    await screen.findByRole("status", { name: /cart feedback/i });
+    renderStore(); await openTeeWithSize(); fireEvent.click(screen.getByRole("button", { name: /add to cart/i }));
+    const dialog = await screen.findByRole("dialog");
+    fireEvent.click(within(dialog).getByRole("button", { name: /close cart/i }));
     fireEvent.change(screen.getByRole("combobox", { name: "Size" }), { target: { value: "M" } });
     expect(screen.queryByText(/added to cart/i)).toBeNull();
   });
@@ -244,12 +281,29 @@ describe("Storefront customer experience", () => {
     expect(data["@type"]).toBe("Product"); expect(data.name).toBe(item.title);
     expect(JSON.stringify(data)).not.toMatch(/aggregateRating|review|private/);
   });
+  it("returns focus to Add when an add fails", async () => {
+    const pending = Promise.withResolvers<Cart>();
+    vi.mocked(storefront.createCart).mockReturnValue(pending.promise);
+    renderStore(); await openTeeWithSize();
+    const add = screen.getByRole("button", { name: /^add to cart$/i });
+    // Browsers drop focus from a button once it is disabled for loading;
+    // jsdom keeps it, so reproduce the browser state before clicking.
+    add.focus(); add.blur();
+    fireEvent.click(add);
+    expect(add).not.toHaveFocus();
+    await act(async () => pending.reject(new Error("offline")));
+    expect(await screen.findByRole("alert")).toHaveTextContent(/couldn't.*cart.*try again/i);
+    await waitFor(() => expect(screen.getByRole("button", { name: /^add to cart$/i })).toHaveFocus());
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
   it("does not leak arbitrary Shopify errors into customer feedback", async () => {
     vi.mocked(storefront.createCart).mockRejectedValue(new Error("token secret gid://shopify/Cart/test?key=private"));
-    renderStore(); fireEvent.click(await screen.findByRole("button", { name: /add to cart/i }));
+    renderStore(); await openTeeWithSize(); fireEvent.click(screen.getByRole("button", { name: /add to cart/i }));
     const alert = await screen.findByRole("alert");
     expect(alert).toHaveTextContent(/couldn't.*cart.*try again/i);
     expect(alert).not.toHaveTextContent(/token|secret|private|gid:\/\//i);
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.getByRole("button", { name: /^add to cart$/i })).toBeEnabled();
   });
   it("shows an empty cart with shop recovery and restores opener focus", async () => {
     const user = userEvent.setup(); renderStore("/shop");
@@ -263,9 +317,7 @@ describe("Storefront customer experience", () => {
   it("updates authoritative cart quantities, prevents below-one decreases, then removes", async () => {
     vi.mocked(storefront.updateCartLines).mockResolvedValueOnce(makeCart(2)).mockResolvedValueOnce(makeCart(1));
     vi.mocked(storefront.removeCartLines).mockResolvedValue(makeCart(0));
-    const user = userEvent.setup(); renderStore(); await user.click(await screen.findByRole("button", { name: /add to cart/i }));
-    await screen.findByRole("status", { name: /cart feedback/i });
-    await user.click(screen.getByRole("button", { name: /open cart, 1 item/i }));
+    const user = userEvent.setup(); renderStore(); await openTeeWithSize(); await user.click(screen.getByRole("button", { name: /add to cart/i }));
     const dialog = await screen.findByRole("dialog");
     expect(within(dialog).getByRole("button", { name: /decrease quantity/i })).toBeDisabled();
     await user.click(within(dialog).getByRole("button", { name: /increase quantity/i }));
@@ -277,9 +329,7 @@ describe("Storefront customer experience", () => {
   });
   it("retains cart contents after a failed quantity mutation and identifies Shopify checkout", async () => {
     vi.mocked(storefront.updateCartLines).mockRejectedValue(new Error("raw cart private"));
-    const user = userEvent.setup(); renderStore(); await user.click(await screen.findByRole("button", { name: /add to cart/i }));
-    await screen.findByRole("status", { name: /cart feedback/i });
-    await user.click(screen.getByRole("button", { name: /open cart, 1 item/i }));
+    const user = userEvent.setup(); renderStore(); await openTeeWithSize(); await user.click(screen.getByRole("button", { name: /add to cart/i }));
     const dialog = await screen.findByRole("dialog");
     expect(within(dialog).getByRole("link", { name: /checkout with Shopify/i })).toHaveAttribute("href", "https://checkout.example.test/cart");
     await user.click(within(dialog).getByRole("button", { name: /increase quantity/i }));

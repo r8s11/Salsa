@@ -1392,15 +1392,20 @@ character by character. A decision the desk's galley can carry in place
 
 The masthead reads “Shop” in Great Vibes 400, the same font as the Salsa
 Segura wordmark, and links back to the `/shop` landing. It uses Gold Light
-ink at `clamp(2.75rem, 4vw, 3.5rem)` with a 1.4 line-height and 8px
-vertical padding, which leaves the flourishes room to breathe. Tracking is
+ink at `clamp(2.75rem, 4vw, 3.5rem)` with a 1.4 line-height and padding in
+`em` (0.15em, with 0.4em on the right), so the clearance for the flourishes
+grows with the type, enlarged text included. Tracking is
 normal and case is unchanged. Between the wordmark and the cart pill sits
 the collection row (Shopfront, Men, Women, Accessories, Shoes). Shopfront
 is the `/shop` landing, matched exactly. The full grid at `/shop/all` is
 reached from the landing's calls to action and Keep browsing, never only
 from a hover menu. Row labels are uppercase UI-face 0.75rem/700 at 0.14em,
 and the current entry gets gold ink with a 2px gold underline. Below 900px
-the row moves under the wordmark and scrolls sideways behind a fade edge.
+the row moves under the wordmark and scrolls sideways behind a fade edge,
+and the header wraps by content: when the wordmark and the cart pill no
+longer fit side by side (narrow screens, enlarged text), the pill drops to
+its own line. The pill's count circle is sized in `em` so its digit stays
+inside at any text size.
 
 The site header's Shop disclosure lists the same entries plus a Cart row,
 all from `SHOP_NAV` in `src/features/shopify/collections.ts`. In the mobile
@@ -1423,6 +1428,15 @@ marks wayfinding and catalog actions only: the primary action, cart
 count, View product, selected filters and the closing links. Headline
 words never take gold. On the product page, Add to cart is Rose Red
 (selected options are gold); in the cart drawer, Checkout is Rose Red.
+Rose is spent on actions only; supporting lines such as the hero note use
+Shop Muted ink. The hero and collection media carry one signature shape:
+a single swept top-right corner (64px on the landing hero, 48px on
+collection heroes and phone heroes) over 4px elsewhere. It is the one
+radius outside the scale, deliberate, and never applied to cards,
+buttons or panels, which use `--radius-sm` (4px), `--radius` (8px) and
+`--radius-xl` (24px, the filter sheet's top corners). Lead paragraphs set
+1.125rem; the mobile hero heading is capped at 21vw so its longest word
+stays on screen under enlarged text.
 
 **Shopify is the catalog.** Collections are Shopify collections, resolved
 by handle; the frontend never lists product handles.
@@ -1431,12 +1445,20 @@ by handle; the frontend never lists product handles.
 - `collections.ts` carries only route copy (label, headline, fallback
   description, empty-state copy) for the five named routes.
 - A named collection Shopify hasn't published shows its own honest empty
-  state. An unknown handle shows "Collection not found".
+  state. An unknown handle names itself "Collection not found" in its
+  heading, breadcrumb and tab title, with a single Shop all recovery and
+  no Keep browsing row. An empty cart drawer's description is the
+  first-dance line itself, not the review-your-items copy.
 - The landing's Featured row is Shopify's automatic `frontpage` (Home
   page) collection. New arrivals is `CREATED_AT` descending, without
   products already featured.
 - Category tiles show a real product count, or "Coming soon" when the
-  collection is missing or empty.
+  collection is missing or empty. The label sits on a solid navy strip
+  below a white image area, never on the photograph, so its contrast does
+  not depend on merchant imagery (15:1 name, 10:1 count). On two-column
+  phone tiles the label takes the strip's full width, the gold arrow moves
+  to the image corner, and the name scales `clamp(1.375rem, 7vw, 1.75rem)`
+  to stay on one line.
 - There are no Bestseller or New badges; sales data and arrival badges
   don't exist. Sold out is the only card badge.
 
@@ -1488,13 +1510,42 @@ native selectors separate Color, Size and other options instead of listing
 every variant combination. Selected values use gold ink; controls are at least
 48px high. Changes preserve the other selections when available, otherwise
 resolve to an available variant. Sold-out values stay labelled and disabled.
+**Size is never chosen for the shopper.** When Size has more than one value
+it opens on a "Select size" placeholder (gold border, muted ink), the
+availability line is withheld, the price reads the lowest for the current
+colour ("From …" when sizes differ, compare-at hidden), and the purchase
+button reads "Choose size" and focuses the Size selector instead of adding.
+If a colour change can't keep the chosen size, the size returns to the
+placeholder and a status line under it says so ("M isn't available in
+Rose. Choose another size.") — it is never swapped silently. "Fit & fabric"
+beside the Size label opens the merchant's Product details; no size chart
+is shown because the store supplies none.
 Option names are uppercase UI-face micro-labels (12px/700, 0.12em tracking);
 selected values read in 16px/600 body type, with read-only values given the
 same size and rhythm. Availability shares the micro-label voice.
-Product details live in a native disclosure. On phones, the quantity/add bar stays above the public dock
-and safe area; short landscape viewports use an in-flow bar. The cart is
+Product details live in a native disclosure. On phones the purchase bar is
+pinned above the public dock and safe area from first paint at normal text
+size: the product article, not the content column, bounds it. The dock
+height already includes the bottom safe area; the bar uses the larger of
+that height and the safe-area inset, never their sum. When the bar grows
+taller than a third of the viewport (enlarged text, short screens) it stops
+pinning and scrolls in flow, so it never covers the fields it points to;
+"Choose size" and Change also scroll the focused field clear of a pinned
+bar. Enlarged text lets the summary and purchase controls wrap into
+additional rows; the full button stays reachable by scrolling.
+Its first row restates what Add will buy (selected values in gold,
+the price, and a Change action that focuses the first option selector);
+cart feedback appears inside the bar, and the floating city pill is hidden
+on product pages below 768px. Wider and short landscape viewports use an
+in-flow bar without the summary row. The cart is
 a protected-focus drawer with real Shopify totals and a hosted-checkout
-handoff.
+handoff. A confirmed product-page add opens this drawer automatically, just
+like quick add: shoppers can review the named item, size, quantity and total
+and continue with Checkout with Shopify. Escape or Close returns focus to
+Add. Pending and failed adds never open the drawer; failures retain their
+inline retry message and return keyboard focus to Add. Stock-adjusted
+successful adds open it with Shopify's
+warning and authoritative cart. The handoff also works with reduced motion.
 
 Shared-image navigation and the confirmed-add flight preserve direct
 navigation and purchase behavior under reduced motion or unsupported

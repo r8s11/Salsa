@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Minus, Plus } from "lucide-react";
 import Button from "../../../components/ui/Button";
@@ -7,13 +7,14 @@ import ButtonLink from "../../../components/ui/ButtonLink";
 import { useDocumentMeta } from "../../../shared/seo/useDocumentMeta";
 import { canonicalUrl, injectStructuredData } from "../../../utils/seo";
 import { isShopifyConfigured, storefront } from "../api/storefront";
-import type { ProductVariant, ShopifyImage } from "../api/types";
+import type { Money, ProductVariant, ShopifyImage } from "../api/types";
 import { useCart } from "../cart/useCart";
 import { formatMoney } from "../money";
 import "../shop.css";
 import "./product.css";
 import "./retail-purchase.css";
 import ShopMasthead from "./ShopMasthead";
+import { isSizeOption } from "./catalogFilters";
 
 interface ProductFeedback {
   handle: string;
@@ -36,7 +37,7 @@ export default function ProductPage() {
 
 function ProductDetails({ handle }: { handle: string }) {
   const configured = isShopifyConfigured();
-  const { isLoading: isCartLoading, isBusy, error: cartError, notice, addVariant } = useCart();
+  const { isLoading: isCartLoading, isBusy, error: cartError, notice, addVariant, setOpen } = useCart();
   const [selection, setSelection] = useState<{ handle: string; variantId: string | null }>({
     handle,
     variantId: null,
@@ -49,6 +50,17 @@ function ProductDetails({ handle }: { handle: string }) {
   const [activeImage, setActiveImage] = useState<{ handle: string; variantId: string; url: string } | null>(null);
   const [feedback, setFeedback] = useState<ProductFeedback | null>(null);
   const requestToken = useRef(0);
+  const optionsRef = useRef<HTMLDivElement>(null);
+  const detailsRef = useRef<HTMLDetailsElement>(null);
+  const fieldId = useId();
+  // A size is a fit decision only the shopper can make; it is never inferred.
+  const [sizePicked, setSizePicked] = useState(false);
+  const [sizeNotice, setSizeNotice] = useState<string | null>(null);
+  const buyRef = useRef<HTMLDivElement>(null);
+  const addRef = useRef<HTMLButtonElement>(null);
+  // A pinned bar taller than a third of the screen (enlarged text, short
+  // viewports) would cover the fields it sends shoppers to; let it scroll.
+  const [barUnpinned, setBarUnpinned] = useState(false);
 
   useEffect(() => () => {
     requestToken.current += 1;
@@ -83,8 +95,23 @@ function ProductDetails({ handle }: { handle: string }) {
     variants.find((variant) => variant.availableForSale) ??
     variants[0] ??
     null;
-  const price = selectedVariant?.price ?? product?.priceRange.minVariantPrice;
-  const compareAt = selectedVariant?.compareAtPrice;
+  const sizeGroup = optionGroups.find(({ name, values }) => values.length > 1 && isSizeOption(name));
+  const sizePending = Boolean(sizeGroup) && !sizePicked && availableVariants.length > 0;
+  // Until a size is chosen, quote what the other selections can cost.
+  const pendingPrices = sizePending && selectedVariant
+    ? availableVariants
+      .filter((variant) => optionGroups.every(({ name }) =>
+        name === sizeGroup?.name || optionValue(variant, name) === optionValue(selectedVariant, name)))
+      .map((variant) => variant.price)
+    : [];
+  const lowestPendingPrice = pendingPrices.reduce<Money | null>(
+    (lowest, candidate) => (!lowest || Number(candidate.amount) < Number(lowest.amount) ? candidate : lowest),
+    null
+  );
+  const priceVariesBySize = pendingPrices.some((candidate) => candidate.amount !== lowestPendingPrice?.amount);
+  const price = lowestPendingPrice ?? selectedVariant?.price ?? product?.priceRange.minVariantPrice;
+  const priceLabel = price ? `${priceVariesBySize ? "From " : ""}${formatMoney(price)}` : "";
+  const compareAt = sizePending ? null : selectedVariant?.compareAtPrice;
   const showCompareAt = Boolean(
     price &&
       compareAt &&
@@ -159,12 +186,77 @@ function ProductDetails({ handle }: { handle: string }) {
       group.name === name || optionValue(variant, group.name) === optionValue(selectedVariant, group.name)
     )) ?? candidates[0];
     if (!nextVariant) return;
+    if (sizeGroup && name === sizeGroup.name) {
+      setSizePicked(true);
+      setSizeNotice(null);
+    } else if (sizeGroup && sizePicked && selectedVariant &&
+      optionValue(nextVariant, sizeGroup.name) !== optionValue(selectedVariant, sizeGroup.name)) {
+      // Never swap a chosen size silently; hand the decision back.
+      setSizePicked(false);
+      setSizeNotice(`${optionValue(selectedVariant, sizeGroup.name)} isn't available in ${value}. Choose another size.`);
+    } else {
+      setSizeNotice(null);
+    }
     setSelection({ handle, variantId: nextVariant.id });
     setActiveImage(null);
     clearFeedback();
   };
+  const sizeFieldId = `${fieldId}-size`;
+  const choiceGroups = optionGroups.filter(({ values }) => values.length > 1);
+  const choiceSummary = selectedVariant
+    ? choiceGroups
+      .filter(({ name }) => !(sizePending && name === sizeGroup?.name))
+      .map(({ name }) => optionValue(selectedVariant, name))
+      .join(" · ")
+    : "";
+  const focusField = (field: HTMLSelectElement | null | undefined, openPicker = false) => {
+    if (!field) return;
+    field.scrollIntoView({ block: "center" });
+    field.focus({ preventScroll: true });
+    // Centering ignores the pinned bar; never leave the focused field under it.
+    const bar = buyRef.current;
+    if (bar && getComputedStyle(bar).position === "sticky") {
+      const overlap = field.getBoundingClientRect().bottom + 16 - bar.getBoundingClientRect().top;
+      if (overlap > 0) window.scrollBy(0, overlap);
+    }
+    if (!openPicker) return;
+    try {
+      (field as HTMLSelectElement & { showPicker?: () => void }).showPicker?.();
+    } catch {
+      // Unsupported or blocked: focus alone still lands the shopper on the choice.
+    }
+  };
+  const sizeField = () => document.getElementById(sizeFieldId) as HTMLSelectElement | null;
+  const reviewOptions = () => focusField(sizePending ? sizeField() : optionsRef.current?.querySelector("select"));
+  const openFitDetails = () => {
+    const details = detailsRef.current;
+    if (!details) return;
+    details.open = true;
+    const summary = details.querySelector("summary");
+    summary?.scrollIntoView({ block: "start" });
+    summary?.focus({ preventScroll: true });
+  };
+  useEffect(() => {
+    const bar = buyRef.current;
+    if (!bar || typeof ResizeObserver === "undefined") return;
+    const measure = () => setBarUnpinned(bar.getBoundingClientRect().height > window.innerHeight / 3);
+    const observer = new ResizeObserver(measure);
+    observer.observe(bar);
+    window.addEventListener("resize", measure);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [product]);
+  // A failed add re-enables Add after the disabled loading state dropped
+  // focus; put keyboard and screen-reader users back where they were.
+  useEffect(() => {
+    if (feedback?.kind !== "error" || isBusy) return;
+    const active = document.activeElement;
+    if (!active || active === document.body) addRef.current?.focus();
+  }, [feedback, isBusy]);
   const addSelectedVariant = async () => {
-    if (!selectedVariant?.availableForSale || isBusy || isCartLoading) return;
+    if (sizePending || !selectedVariant?.availableForSale || isBusy || isCartLoading) return;
     clearFeedback();
     const token = ++requestToken.current;
     const currentHandle = handle;
@@ -175,6 +267,7 @@ function ProductDetails({ handle }: { handle: string }) {
       const added = await addVariant(currentVariant, currentQuantity);
       if (added && requestToken.current === token) {
         void import("../cart/flyToCart").then(({ flyToCart }) => flyToCart(imageSource)).catch(() => undefined);
+        setOpen(true);
       }
       if (requestToken.current !== token) return;
       setFeedback({
@@ -192,11 +285,23 @@ function ProductDetails({ handle }: { handle: string }) {
   const productIntro = product && <>
     <h1 id="product-heading" tabIndex={-1}>{product.title}</h1>
     <div className="shop-product__price" aria-live="polite">
-      {price && <span>{formatMoney(price)}</span>}
+      {price && <span>{priceLabel}</span>}
       {showCompareAt && compareAt && <span className="shop-product__compare-at">Was {formatMoney(compareAt)}</span>}
     </div>
   </>;
   const purchaseControls = <>
+    {selectedVariant && price && (
+      <div className="shop-product__buy-summary">
+        {choiceSummary && <span className="shop-product__buy-choice">{choiceSummary}</span>}
+        <span className="shop-product__buy-price">{priceLabel}</span>
+        {choiceSummary && (
+          <button type="button" className="shop-product__buy-change" onClick={reviewOptions}
+            aria-label={`Change ${choiceGroups.map(({ name }) => name.toLowerCase()).join(" and ")}`}>
+            Change
+          </button>
+        )}
+      </div>
+    )}
     <div className="shop-product__quantity" aria-label="Quantity">
       <Button variant="secondary" aria-label="Decrease quantity" disabled={quantity <= 1 || isBusy}
         onClick={() => { setQuantity((current) => Math.max(1, current - 1)); clearFeedback(); }}>
@@ -208,10 +313,25 @@ function ProductDetails({ handle }: { handle: string }) {
         <Plus size={18} aria-hidden="true" />
       </Button>
     </div>
-    <Button variant="primary" block disabled={!selectedVariant?.availableForSale || isBusy || isCartLoading}
-      loading={isBusy} loadingLabel="Adding to cart…" onClick={() => void addSelectedVariant()}>
-      {selectedVariant?.availableForSale ? "Add to cart" : "Sold out"}
-    </Button>
+    {sizePending ? (
+      <Button variant="primary" block disabled={isBusy || isCartLoading} onClick={() => focusField(sizeField(), true)}>
+        Choose size
+      </Button>
+    ) : (
+      <Button ref={addRef} variant="primary" block disabled={!selectedVariant?.availableForSale || isBusy || isCartLoading}
+        loading={isBusy} loadingLabel="Adding to cart…" onClick={() => void addSelectedVariant()}>
+        {selectedVariant?.availableForSale ? "Add to cart" : "Sold out"}
+      </Button>
+    )}
+    {feedback?.handle === handle && (
+      <p
+        className={`shop-product__feedback${feedback.kind === "error" ? " shop-product__feedback--error" : ""}`}
+        role={feedback.kind === "success" ? "status" : "alert"}
+        aria-label="Cart feedback"
+      >
+        {feedback.kind === "success" && notice ? notice : feedback.message}
+      </p>
+    )}
   </>;
 
   return (
@@ -300,49 +420,58 @@ function ProductDetails({ handle }: { handle: string }) {
           <div className="shop-product__content">
             <div className="shop-product__intro">{productIntro}</div>
             {optionGroups.length > 0 && selectedVariant && (
-              <div className="shop-product__options" role="group" aria-label="Product options">
-                {optionGroups.map(({ name, values }) => values.length === 1 ? (
-                  <div className="shop-product__option-field" key={name}>
-                    <span className="shop-product__option-label">{name}</span>
-                    <span className="shop-product__option-value">{values[0]}</span>
-                  </div>
-                ) : (
-                  <label className="shop-product__option-field" key={name}>
-                    <span className="shop-product__option-label">{name}</span>
-                    <select
-                      value={optionValue(selectedVariant, name)}
-                      disabled={isBusy || !availableVariants.length}
-                      onChange={(event) => selectOption(name, event.target.value)}
-                    >
-                      {values.map((value) => {
-                        const available = availableVariants.some((variant) => optionValue(variant, name) === value);
-                        return <option key={value} value={value} disabled={!available}>
-                          {value}{available ? "" : " — Sold out"}
-                        </option>;
-                      })}
-                    </select>
-                  </label>
-                ))}
+              <div className="shop-product__options" role="group" aria-label="Product options" ref={optionsRef}>
+                {optionGroups.map(({ name, values }, index) => {
+                  if (values.length === 1) return (
+                    <div className="shop-product__option-field" key={name}>
+                      <span className="shop-product__option-label">{name}</span>
+                      <span className="shop-product__option-value">{values[0]}</span>
+                    </div>
+                  );
+                  const isSize = name === sizeGroup?.name;
+                  const id = isSize ? sizeFieldId : `${fieldId}-${index}`;
+                  const noticeId = `${id}-notice`;
+                  return (
+                    <div className="shop-product__option-field" key={name}>
+                      <div className="shop-product__option-head">
+                        <label className="shop-product__option-label" htmlFor={id}>{name}</label>
+                        {isSize && product.description && (
+                          <button type="button" className="shop-product__fit-link" onClick={openFitDetails}>
+                            Fit &amp; fabric
+                          </button>
+                        )}
+                      </div>
+                      <select
+                        id={id}
+                        value={isSize && sizePending ? "" : optionValue(selectedVariant, name)}
+                        data-pending={isSize && sizePending ? "" : undefined}
+                        aria-describedby={isSize && sizeNotice ? noticeId : undefined}
+                        disabled={isBusy || !availableVariants.length}
+                        onChange={(event) => selectOption(name, event.target.value)}
+                      >
+                        {isSize && <option value="" disabled>Select size</option>}
+                        {values.map((value) => {
+                          const available = availableVariants.some((variant) => optionValue(variant, name) === value);
+                          return <option key={value} value={value} disabled={!available}>
+                            {value}{available ? "" : " — Sold out"}
+                          </option>;
+                        })}
+                      </select>
+                      {isSize && <p id={noticeId} className="shop-product__option-notice" role="status">{sizeNotice}</p>}
+                    </div>
+                  );
+                })}
               </div>
             )}
-            {selectedVariant && (
+            {selectedVariant && !sizePending && (
               <p className={`shop-product__availability${selectedVariant.availableForSale ? " shop-product__availability--available" : ""}`}>
                 {selectedVariant.availableForSale ? "Available" : "Sold out"}
               </p>
             )}
-            <div className="shop-product__buy">{purchaseControls}</div>
-            {feedback?.handle === handle && (
-              <p
-                className={`shop-product__feedback${feedback.kind === "error" ? " shop-product__feedback--error" : ""}`}
-                role={feedback.kind === "success" ? "status" : "alert"}
-                aria-label="Cart feedback"
-              >
-                {feedback.kind === "success" && notice ? notice : feedback.message}
-              </p>
-            )}
+            <div className="shop-product__buy" ref={buyRef} data-unpinned={barUnpinned ? "" : undefined}>{purchaseControls}</div>
             {!variants.length && <p className="shop-product__field-help">No purchase options are available.</p>}
             <p className="shop-product__fine-print">Secure checkout is provided by Shopify.</p>
-            {product.description && <details className="shop-product__details-disclosure">
+            {product.description && <details className="shop-product__details-disclosure" ref={detailsRef}>
               <summary>Product details</summary>
               <p className="shop-product__description">{product.description}</p>
             </details>}

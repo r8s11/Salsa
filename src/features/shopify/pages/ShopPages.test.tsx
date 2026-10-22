@@ -199,7 +199,10 @@ describe("ProductPage", () => {
     fireEvent.click(screen.getByText("Product details", { selector: "summary" }));
     expect(screen.getByText("A comfortable shirt for dancing.")).toBeVisible();
     expect(screen.getByRole("img", { name: "Dance shirt" })).toHaveAttribute("src", image.url);
-    expect(screen.getByText(/\$28\.00/)).toBeInTheDocument();
+    expect(screen.getByText("From $22.00", { selector: ".shop-product__price span" })).toBeInTheDocument();
+    expect(screen.queryByText(/\$28\.00/)).toBeNull();
+    fireEvent.change(screen.getByRole("combobox", { name: "Size" }), { target: { value: "Small" } });
+    expect(screen.getByText(/was \$28\.00/i)).toBeInTheDocument();
     const breadcrumb = screen.getByRole("navigation", { name: "Breadcrumb" });
     expect(within(breadcrumb).getByRole("link", { name: "Shop" })).toHaveAttribute("href", "/shop");
     expect(within(breadcrumb).getByText("Dance Shirt")).toHaveAttribute("aria-current", "page");
@@ -297,6 +300,6 @@ describe("ProductPage", () => {
 
     fireEvent.click(screen.getByRole("link", { name: "Open new product" }));
     expect(await screen.findByRole("heading", { name: "New product" })).toBeInTheDocument();
-    expect(screen.getByRole("combobox", { name: "Size" })).toHaveValue("Small");
+    expect(screen.getByRole("combobox", { name: "Size" })).toHaveValue("");
   });
 });

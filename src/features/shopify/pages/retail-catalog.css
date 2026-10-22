@@ -13,9 +13,11 @@
   border-bottom: 1px solid var(--border-md);
 }
 
+/* Padding in em: Great Vibes flourishes overhang the glyph box, so the
+   clearance has to grow with the type (enlarged text included). */
 .shop-page .retail-catalog__identity {
   margin: 0;
-  padding: 8px 20px 8px 8px;
+  padding: 0.15em 0.4em 0.15em 0.15em;
   color: var(--gold-light);
   font-family: var(--font-logo);
   font-size: clamp(2.75rem, 4vw, 3.5rem);
@@ -91,9 +93,9 @@
 
 .shop-page .retail-catalog__cart-count {
   display: grid;
-  min-width: 24px;
-  height: 24px;
-  padding-inline: 4px;
+  min-width: 2em;
+  height: 2em;
+  padding-inline: 0.35em;
   place-items: center;
   border-radius: 50%;
   background: var(--gold);
@@ -140,7 +142,7 @@
   min-height: 54px;
   gap: 28px;
   padding: 12px 22px;
-  border-radius: 5px;
+  border-radius: var(--radius-sm);
   background: var(--gold);
   color: var(--on-gold);
   text-decoration: none;
@@ -154,7 +156,7 @@
 .shop-page .retail-hero__copy > .retail-hero__note {
   margin: 20px 0 0;
   font-size: 0.8rem;
-  color: var(--shop-rose);
+  color: var(--shop-muted);
 }
 
 .shop-page .retail-hero__feature { min-width: 0; margin: 0; }
@@ -194,9 +196,10 @@
 
 .shop-page .retail-catalog__collection-heading {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
-  gap: 16px;
+  gap: 8px 16px;
   margin-bottom: 28px;
 }
 
@@ -258,7 +261,7 @@
 .shop-page .retail-card__media .shop-image-missing {
   display: grid;
   place-items: center;
-  color: #37435c;
+  color: var(--surface-high);
   font-size: 0.875rem;
 }
 
@@ -326,8 +329,8 @@
   gap: 40px;
   padding: clamp(32px, 5vw, 64px);
   margin-top: clamp(32px, 5vw, 64px);
-  border-radius: 6px;
-  background: #19253d;
+  border-radius: var(--radius);
+  background: var(--surface-high);
 }
 
 .shop-page .retail-catalog__closing h2 {
@@ -378,7 +381,8 @@
 
 @media (max-width: 700px) {
   .shop-page .retail-hero { grid-template-columns: 1fr; gap: 28px; padding-block: 32px; }
-  .shop-page .retail-hero h1 { max-width: 10ch; font-size: clamp(4.75rem, 19vw, 7rem); }
+  /* The vw cap keeps the longest word inside the screen when enlarged text inflates the rem floor. */
+  .shop-page .retail-hero h1 { max-width: 10ch; font-size: min(clamp(4.75rem, 19vw, 7rem), 21vw); }
   .shop-page .retail-hero__copy > p { margin-block: 20px; font-size: 1rem; }
   .shop-page .retail-hero__media { aspect-ratio: 6 / 5; border-top-right-radius: 48px; }
   .shop-page .retail-catalog__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 16px; }
@@ -454,16 +458,27 @@
   list-style: none;
 }
 
+/* Image above, label on a solid navy strip below: the label never sits on
+   merchant photography, so its contrast doesn't depend on the photo. */
 .shop-page .retail-tile {
-  position: relative;
-  display: block;
+  display: grid;
+  grid-template: "media media" minmax(0, 1fr) "label arrow" auto / minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 12px;
   aspect-ratio: 3 / 4;
   overflow: hidden;
-  isolation: isolate;
   border-radius: 4px;
-  background: #fff;
+  background: var(--surface);
   color: var(--shop-paper);
   text-decoration: none;
+}
+
+.shop-page .retail-tile__media {
+  grid-area: media;
+  align-self: stretch;
+  min-height: 0;
+  overflow: hidden;
+  background: #fff;
 }
 
 .shop-page .retail-tile img {
@@ -474,27 +489,18 @@
   transition: transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Scrim under the label only; the product stays unshaded above it. */
-.shop-page .retail-tile::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background: linear-gradient(180deg, transparent 52%, rgb(11 19 38 / 0.92) 100%);
-}
-
 .shop-page .retail-tile--soon {
   background: var(--surface-high);
   box-shadow: inset 0 0 0 1px var(--border-md);
 }
-.shop-page .retail-tile--soon::after { display: none; }
+.shop-page .retail-tile--soon .retail-tile__media { background: transparent; }
 
 .shop-page .retail-tile__label {
-  position: absolute;
-  inset: auto 72px 18px 20px;
-  z-index: 1;
+  grid-area: label;
   display: grid;
-  gap: 8px;
+  gap: 6px;
+  min-width: 0;
+  padding: 14px 0 16px 18px;
 }
 
 .shop-page .retail-tile__label strong {
@@ -503,6 +509,8 @@
   font-weight: 700;
   line-height: 0.95;
   letter-spacing: -0.02em;
+  hyphens: auto;
+  overflow-wrap: break-word;
 }
 
 .shop-page .retail-tile__label small {
@@ -513,13 +521,11 @@
 }
 
 .shop-page .retail-tile__arrow {
-  position: absolute;
-  right: 18px;
-  bottom: 18px;
-  z-index: 1;
+  grid-area: arrow;
   display: grid;
   width: 40px;
   height: 40px;
+  margin-right: 16px;
   place-items: center;
   border-radius: 50%;
   background: var(--gold);
@@ -539,7 +545,7 @@
   padding: 10px 16px;
   border-radius: 999px;
   background: var(--bg);
-  box-shadow: 0 12px 28px -14px rgb(0 0 0 / 0.7);
+  box-shadow: 0 12px 28px -14px rgb(6 14 38 / 0.7);
   color: var(--shop-paper);
   text-decoration: none;
 }
@@ -589,7 +595,7 @@
   max-width: 52ch;
   margin: 0;
   color: var(--shop-muted);
-  font-size: 1.0625rem;
+  font-size: 1.125rem;
   line-height: 1.7;
 }
 
@@ -727,10 +733,18 @@
 }
 
 @media (max-width: 900px) {
-  .shop-page .retail-catalog__header { grid-template-columns: minmax(0, 1fr) auto; }
+  /* Content-driven wrap: when wordmark and Cart no longer fit side by side
+     (narrow screens, enlarged text) Cart drops to its own line. */
+  .shop-page .retail-catalog__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    column-gap: 16px;
+  }
   .shop-page .retail-catalog__nav {
-    grid-column: 1 / -1;
-    grid-row: 2;
+    order: 3;
+    flex: 1 0 100%;
     justify-content: flex-start;
     margin-inline: calc(-1 * var(--gutter));
     padding-inline: calc(var(--gutter) - 14px);
@@ -746,8 +760,12 @@
 }
 
 @media (max-width: 700px) {
-  .shop-page .retail-tile__label { inset: auto 60px 14px 14px; }
-  .shop-page .retail-tile__arrow { right: 12px; bottom: 12px; width: 36px; height: 36px; }
+  /* Two narrow tiles per row: the label takes the strip's full width and
+     the arrow moves to the image corner. */
+  .shop-page .retail-tile { grid-template: "media" minmax(0, 1fr) "label" auto / minmax(0, 1fr); }
+  .shop-page .retail-tile__label { padding: 12px 14px 14px; }
+  .shop-page .retail-tile__label strong { min-width: 0; font-size: clamp(1.375rem, 7vw, 1.75rem); }
+  .shop-page .retail-tile__arrow { grid-area: media; align-self: end; justify-self: end; z-index: 1; width: 36px; height: 36px; margin: 0 10px 10px 0; }
   .shop-page .retail-catalog__community { min-width: 0; width: 100%; }
 }
 

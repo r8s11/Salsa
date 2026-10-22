@@ -94,7 +94,9 @@ export default function CollectionPage() {
   const facets = useMemo(() => catalogFacets(products), [products]);
   const visible = useMemo(() => sortProducts(filterProducts(products, filters), filters.sort), [products, filters]);
 
-  const title = config?.label ?? collection?.title ?? "Collection";
+  // An unknown handle names itself as not found everywhere: tab, breadcrumb, heading.
+  const notFound = query.isSuccess && collection === null && !config;
+  const title = notFound ? "Collection not found" : config?.label ?? collection?.title ?? "Collection";
   useDocumentMeta({
     title: handle === ALL_PRODUCTS_HANDLE ? "Shop all" : `${title} · Shop`,
     description: collection?.description || config?.description || "Official Salsa Segura gear.",
@@ -107,8 +109,7 @@ export default function CollectionPage() {
   const update = (next: FilterState) => setParams(writeFilters(next), { replace: true, preventScrollReset: true });
   const active = activeFilterCount(filters);
   const description = collection?.description || config?.description || "";
-  const headline = config?.headline ?? collection?.title ?? "Collection";
-  const missing = query.isSuccess && collection === null;
+  const headline = notFound ? title : config?.headline ?? collection?.title ?? "Collection";
 
   const chips: Array<{ label: string; clear: () => void }> = [
     ...filters.types.map((key) => ({ label: facets.types.find((type) => type.key === key)?.label ?? key, clear: () => update({ ...filters, types: filters.types.filter((value) => value !== key) }) })),
@@ -131,10 +132,9 @@ export default function CollectionPage() {
         <Button variant="secondary" disabled={query.isFetching} onClick={() => void query.refetch()}>Try again</Button>
       </div>
     );
-  } else if (missing && !config) {
+  } else if (notFound) {
     body = (
       <div className="shop-state" role="status">
-        <h2>Collection not found</h2>
         <p>This collection isn't in the shop. Everything we stock is in Shop all.</p>
         <Link className="retail-catalog__action" to={collectionPath(ALL_PRODUCTS_HANDLE)}>Shop all <Icon icon={arrowIcon} aria-hidden="true" width={20} /></Link>
       </div>
@@ -230,7 +230,7 @@ export default function CollectionPage() {
           <HeroMedia image={collection?.image ?? null} products={products} />
         </div>
         {body}
-        {!(missing && !config) && <KeepBrowsing current={handle} />}
+        {!notFound && <KeepBrowsing current={handle} />}
         <p className="retail-catalog__credits">
           <a href="https://icon-sets.iconify.design/solar/">Solar icons by 480 Design</a>,{" "}
           <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.

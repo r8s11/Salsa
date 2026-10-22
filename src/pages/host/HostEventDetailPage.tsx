@@ -18,7 +18,8 @@ import { useMySubmissions } from "../../features/account/hooks/useMySubmissions"
 import { useMyOrganizerEvents } from "../../features/host/hooks/useMyOrganizerEvents";
 import { useMyOrganizers } from "../../features/host/hooks/useMyOrganizers";
 import { deriveHostEventRows } from "../../features/host/model/hostEvents";
-import type { DatabaseEvent } from "../../features/events/model/types";
+import { getEventTypes, type DatabaseEvent } from "../../features/events/model/types";
+import { eventTypeLabels } from "../../features/events/model/eventTypeDisplay";
 import { fromEventDateInstant, formatTimeLabel } from "../../features/events/model/eventDateTime";
 import AdminStatusBadge from "../../features/admin/components/common/AdminStatusBadge";
 import EventShareControls from "../../features/events/components/EventShareControls";
@@ -34,10 +35,6 @@ function formatPrice(event: DatabaseEvent): string {
   if (event.price_type === "free") return "Free";
   if (event.price_type === "paid" && event.price_amount != null) return `$${event.price_amount}`;
   return "Pricing unavailable";
-}
-
-function formatEventType(eventType: string): string {
-  return eventType.replace(/[-_]/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 function formatCity(city: string): string {
@@ -150,6 +147,7 @@ export default function HostEventDetailPage() {
   const taxonomyDanceStyles = event.taxonomy_terms.filter(
     (term) => term.category === "dance_style"
   );
+  const eventTypes = getEventTypes(event);
   const danceStyles =
     taxonomyDanceStyles.length > 0
       ? taxonomyDanceStyles
@@ -323,8 +321,8 @@ export default function HostEventDetailPage() {
               </div>
             )}
             <div>
-              <dt>Event Type</dt>
-              <dd>{formatEventType(event.event_type)}</dd>
+              <dt>{eventTypes.length > 1 ? "Event Types" : "Event Type"}</dt>
+              <dd>{eventTypeLabels(eventTypes).join(", ")}</dd>
             </div>
             {event.city && (
               <div>

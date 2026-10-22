@@ -20,6 +20,7 @@ import EventFlyerField from "../../features/events/components/EventFlyerField";
 import { removeEventFlyer, uploadEventFlyer } from "../../features/events/api/eventFlyers";
 import { validateAdminEventForm } from "../../features/admin/model/adminEventForm";
 import { fromEventDateInstant } from "../../features/events/model/eventDateTime";
+import { eventTypeFieldsFrom } from "../../features/events/model/eventTypeSelection";
 import type { DatabaseEvent } from "../../features/events/model/types";
 import "./HostEditEventPage.css";
 
@@ -28,7 +29,7 @@ function eventToDraft(event: DatabaseEvent): EventFormDraft {
   return {
     title: event.title,
     description: event.description ?? "",
-    event_type: event.event_type,
+    ...eventTypeFieldsFrom(event),
     city: event.city,
     event_date: date,
     event_time: time,

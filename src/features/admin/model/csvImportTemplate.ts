@@ -13,7 +13,7 @@ export interface CsvColumnSpec {
 
 export const CSV_COLUMNS: CsvColumnSpec[] = [
   { key: "title", required: true, help: "Event name." },
-  { key: "event_type", required: true, help: "One of: social, class, workshop, live_music." },
+  { key: "event_type", required: true, help: "Categories separated by semicolons: social; class; workshop; live_music; concert. First category sets the calendar color." },
   { key: "event_date", required: true, help: "Date, format YYYY-MM-DD (e.g. 2026-09-15)." },
   {
     key: "city",

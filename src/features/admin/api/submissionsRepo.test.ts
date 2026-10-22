@@ -77,6 +77,7 @@ describe("submissionsRepo", () => {
       title: "Public Salsa Night",
       description: null,
       event_type: "social",
+      event_types: ["social"],
       city: "boston",
       event_date: "2026-08-20T20:00:00Z",
       event_time: null,

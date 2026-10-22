@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   draftToAdminPayload,
   draftToOrganizerCreatePayload,
+  draftToOrganizerUpdatePayload,
   draftToSubmission,
   draftToUserPayload,
 } from "./types";
@@ -47,6 +48,7 @@ describe("EventForm adapters", () => {
         "event_date",
         "event_time",
         "event_type",
+        "event_types",
         "location",
         "price_amount",
         "price_type",
@@ -74,6 +76,7 @@ describe("EventForm adapters", () => {
         "event_date",
         "event_time",
         "event_type",
+        "event_types",
         "image_url",
         "location",
         "price_amount",
@@ -101,6 +104,7 @@ describe("EventForm adapters", () => {
         "event_date",
         "event_time",
         "event_type",
+        "event_types",
         "host",
         "image_url",
         "location",
@@ -119,5 +123,51 @@ describe("EventForm adapters", () => {
     expect(payload.dance_styles).toEqual(["salsa"]);
     expect(payload).not.toHaveProperty("taxonomy_term_ids");
     expect(payload).toHaveProperty("venue_id", "venue-1");
+  });
+
+  describe("multiple event types", () => {
+    const multi: EventFormDraft = {
+      ...draft,
+      event_type: "live_music",
+      event_types: ["live_music", "concert", "social"],
+    };
+
+    it("sends the full ordered list with the first selection as primary in every payload", () => {
+      const expected = { event_type: "live_music", event_types: ["live_music", "concert", "social"] };
+      expect(draftToSubmission(multi, null)).toMatchObject(expected);
+      expect(draftToUserPayload(multi)).toMatchObject(expected);
+      expect(draftToAdminPayload(multi)).toMatchObject(expected);
+      expect(draftToOrganizerCreatePayload(multi)).toMatchObject(expected);
+      expect(draftToOrganizerUpdatePayload(multi)).toMatchObject(expected);
+    });
+
+    it("accepts Concert as a primary or sole type", () => {
+      const concert: EventFormDraft = { ...draft, event_type: "concert", event_types: ["concert"] };
+      expect(draftToAdminPayload(concert)).toMatchObject({
+        event_type: "concert",
+        event_types: ["concert"],
+      });
+    });
+
+    it("derives a one-item list from a draft that only has the primary", () => {
+      expect(draftToAdminPayload({ ...draft, event_type: "class" })).toMatchObject({
+        event_type: "class",
+        event_types: ["class"],
+      });
+    });
+
+    it("keeps the primary equal to the first listed type even if the draft's primary is stale", () => {
+      const stale: EventFormDraft = { ...draft, event_type: "social", event_types: ["class", "social"] };
+      expect(draftToUserPayload(stale)).toMatchObject({
+        event_type: "class",
+        event_types: ["class", "social"],
+      });
+    });
+
+    it("refuses to build a payload with no event type", () => {
+      const none: EventFormDraft = { ...draft, event_type: "", event_types: [] };
+      expect(() => draftToSubmission(none, null)).toThrow("Choose at least one event type.");
+      expect(() => draftToAdminPayload(none)).toThrow("Choose at least one event type.");
+    });
   });
 });

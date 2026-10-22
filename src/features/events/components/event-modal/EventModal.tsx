@@ -34,6 +34,8 @@ import { useAccessibleDialog } from "../../../../shared/a11y/useAccessibleDialog
 import { recordEventTouch } from "../../api/eventsRepo";
 import { useEventViewTouch } from "../../hooks/useEventViewTouch";
 import SleeveCover from "./SleeveCover";
+import { scheduleXEventTypes } from "../../model/eventTypeDisplay";
+import { EVENT_TYPE_LABELS } from "../../model/types";
 import { POSTER_SIZE, type PosterFormat } from "./posterFormat";
 import { ensurePosterFonts } from "./posterFonts";
 import { resolveEventFlyer } from "./eventModalImage";
@@ -572,8 +574,12 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
               )}
               <li className="night-card__price">
                 <span className="night-card__price-amount">{priceLabel}</span>
-                <span className={`style-chip chip-${event.calendarId}`}>
-                  {event.calendarId === "live_music" ? "Live Music" : event.calendarId}
+                <span className="night-card__types">
+                  {scheduleXEventTypes(event).map((type) => (
+                    <span key={type} className={`style-chip chip-${type}`}>
+                      {EVENT_TYPE_LABELS[type]}
+                    </span>
+                  ))}
                 </span>
               </li>
             </ul>

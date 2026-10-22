@@ -1,8 +1,9 @@
 import { useMemo } from "react";
 import { create as createQr } from "qrcode";
 import type { ScheduleXEvent } from "../../../../types/events";
-import type { PosterFormat } from "./posterFormat";
+import { posterPriceLabel, type PosterFormat } from "./posterFormat";
 import SleeveCover from "./SleeveCover";
+import { eventTypeLabels, scheduleXEventTypes } from "../../model/eventTypeDisplay";
 import "./ShareableEventPoster.css";
 
 interface ShareableEventPosterProps {
@@ -89,15 +90,9 @@ export default function ShareableEventPoster({
   const catalogue = `SS-${String(start.getMonth() + 1).padStart(2, "0")}${String(
     start.getDate()
   ).padStart(2, "0")}${event.city ? ` · ${CITY_CODE[event.city] ?? ""}` : ""}`;
-  const styles = event.danceStyles?.length ? event.danceStyles.join(" · ") : event.calendarId;
-  const eventTypeLabel = {
-    social: "Social",
-    class: "Class",
-    workshop: "Workshop",
-    live_music: "Live Music",
-  }[event.calendarId];
-  const priceLabel =
-    event.priceType === "free" || event.priceAmount == null ? "Free" : `$${event.priceAmount}`;
+  const eventTypeLabel = eventTypeLabels(scheduleXEventTypes(event)).join(" · ");
+  const styles = event.danceStyles?.length ? event.danceStyles.join(" · ") : eventTypeLabel;
+  const priceLabel = posterPriceLabel(event);
   const posterDescription = [
     `${format === "story" ? "Instagram Story" : "Feed"} poster for ${event.title}`,
     `Event type: ${eventTypeLabel}`,
@@ -105,7 +100,7 @@ export default function ShareableEventPoster({
     `Time: ${timeLabel}`,
     `Venue: ${event.location || "Not listed"}`,
     `Address: ${event.address || "Not listed"}`,
-    `Price: ${priceLabel}`,
+    `Price: ${priceLabel ?? "Not listed"}`,
     `Dance styles: ${event.danceStyles?.length ? event.danceStyles.join(", ") : "Not listed"}`,
     `Host: ${event.host || "Not listed"}`,
     `Event link: ${shortUrl}`,

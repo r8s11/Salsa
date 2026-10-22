@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 import EventForm, { CAPABILITIES } from "./EventForm";
 import type { EventFormDraft } from "./EventForm";
@@ -100,20 +101,77 @@ describe("EventForm", () => {
     fireEvent.change(screen.getByLabelText("City *"), { target: { value: "new-york-city" } });
     fireEvent.click(screen.getByRole("button", { name: "Paid" }));
 
-    expect(onChange).toHaveBeenNthCalledWith(1, { ...draft, event_type: "class" });
+    expect(onChange).toHaveBeenNthCalledWith(1, {
+      ...draft,
+      event_type: "class",
+      event_types: ["class"],
+    });
     expect(onChange).toHaveBeenNthCalledWith(2, { ...draft, city: "new-york-city" });
     expect(onChange).toHaveBeenNthCalledWith(3, { ...draft, price_type: "paid" });
   });
-  it("updates event type to Live Music", () => {
-    const onChange = vi.fn();
-    render(<EventForm draft={draft} onChange={onChange} capabilities={CAPABILITIES.submit} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Live Music" }));
+  describe("event type multi-select", () => {
+    const typeButton = (name: string) => screen.getByRole("button", { name });
 
-    expect(onChange).toHaveBeenCalledWith({ ...draft, event_type: "live_music" });
+    function Harness({ initial = draft }: { initial?: EventFormDraft }) {
+      const [value, setValue] = useState(initial);
+      return (
+        <>
+          <EventForm draft={value} onChange={setValue} capabilities={CAPABILITIES.submit} />
+          <output data-testid="types">{JSON.stringify([value.event_type, value.event_types])}</output>
+        </>
+      );
+    }
+    const stored = () => JSON.parse(screen.getByTestId("types").textContent ?? "null");
+
+    it("offers Concert beside the other types", () => {
+      render(<Harness />);
+      expect(typeButton("Concert")).toBeVisible();
+    });
+
+    it("keeps two selected categories pressed and records the first as primary", () => {
+      render(<Harness />);
+
+      fireEvent.click(typeButton("Live Music"));
+      fireEvent.click(typeButton("Concert"));
+
+      expect(typeButton("Live Music")).toHaveAttribute("aria-pressed", "true");
+      expect(typeButton("Concert")).toHaveAttribute("aria-pressed", "true");
+      expect(typeButton("Social")).toHaveAttribute("aria-pressed", "false");
+      expect(stored()).toEqual(["live_music", ["live_music", "concert"]]);
+      expect(screen.getByText(/first one you pick sets the calendar color/)).toHaveTextContent(
+        "calendar color: Live Music."
+      );
+    });
+
+    it("promotes the next selection when the primary is removed", () => {
+      render(<Harness />);
+      fireEvent.click(typeButton("Social"));
+      fireEvent.click(typeButton("Class"));
+      fireEvent.click(typeButton("Workshop"));
+
+      fireEvent.click(typeButton("Social"));
+
+      expect(typeButton("Social")).toHaveAttribute("aria-pressed", "false");
+      expect(stored()).toEqual(["class", ["class", "workshop"]]);
+    });
+
+    it("clears both fields together when the last type is removed", () => {
+      render(<Harness initial={{ ...draft, event_type: "class", event_types: ["class"] }} />);
+
+      fireEvent.click(typeButton("Class"));
+
+      expect(stored()).toEqual(["", []]);
+    });
+
+    it("shows a draft that only carries the primary as selected", () => {
+      render(<Harness initial={{ ...draft, event_type: "workshop" }} />);
+
+      expect(typeButton("Workshop")).toHaveAttribute("aria-pressed", "true");
+      fireEvent.click(typeButton("Concert"));
+      expect(stored()).toEqual(["workshop", ["workshop", "concert"]]);
+    });
   });
-
-
   it("renders taxonomy, venue, flyer, and host extensions for admins", () => {
     render(
       <EventForm

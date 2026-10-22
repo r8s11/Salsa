@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import type { EventTaxonomyTerm } from "../../model/types";
+import { EVENT_TYPES, EVENT_TYPE_LABELS, type EventTaxonomyTerm } from "../../model/types";
+import { selectedEventTypes, toggleEventType } from "../../model/eventTypeSelection";
 import type { EventFormCapabilities, EventFormDraft } from "./types";
 import { resolveDraftTimeZone } from "./types";
 import { TIME_ZONE_OPTIONS } from "../../../../shared/utils/timezone";
@@ -65,6 +66,7 @@ export default function EventForm({
   const resolvedTimeZone = resolveDraftTimeZone(draft);
   const timeZoneError = resolvedTimeZone.ok ? undefined : resolvedTimeZone.message;
   const cityOptions = [...metros].sort((a, b) => a.name.localeCompare(b.name));
+  const selectedTypes = selectedEventTypes(draft);
   const update = <K extends keyof EventFormDraft>(key: K, value: EventFormDraft[K]) =>
     onChange({ ...draft, [key]: value });
   const toggleStyle = (style: string) =>
@@ -124,30 +126,32 @@ export default function EventForm({
           </span>
           <div
             id="event-type"
-            className="event-form__segmented"
+            className="event-form__chips"
             role="group"
             aria-labelledby="event-type-label"
             aria-required="true"
-            {...fieldErrorProps("event-type-error", errors.event_type)}
+            {...fieldErrorProps("event-type-error", errors.event_type, "event-type-hint")}
           >
-            {(
-              [
-                ["social", "Social"],
-                ["class", "Class"],
-                ["workshop", "Workshop"],
-                ["live_music", "Live Music"],
-              ] as const
-            ).map(([value, label]) => (
+            {EVENT_TYPES.map((value) => (
               <button
                 key={value}
                 type="button"
-                aria-pressed={draft.event_type === value}
-                onClick={() => update("event_type", value)}
+                aria-pressed={selectedTypes.includes(value)}
+                onClick={() => onChange({ ...draft, ...toggleEventType(draft, value) })}
               >
-                {label}
+                {EVENT_TYPE_LABELS[value]}
               </button>
             ))}
           </div>
+          <p id="event-type-hint" className="event-form__hint">
+            Pick every type that fits. The first one you pick sets the calendar color
+            {selectedTypes.length > 1 && (
+              <>
+                : <strong>{EVENT_TYPE_LABELS[selectedTypes[0]]}</strong>
+              </>
+            )}
+            .
+          </p>
           <FormFieldError id="event-type-error" message={errors.event_type} />
         </div>
         <div className="event-form__field">

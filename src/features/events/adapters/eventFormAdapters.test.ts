@@ -73,4 +73,24 @@ describe("eventFormAdapters", () => {
     expect(draftToUserPayload(liveMusicDraft).event_type).toBe("live_music");
     expect(draftToAdminPayload(liveMusicDraft).event_type).toBe("live_music");
   });
+
+  it("sends Concert and the ordered type list through every legacy payload", () => {
+    const multi: EventFormDraft = {
+      ...baseDraft,
+      event_type: "concert",
+      event_types: ["concert", "live_music"],
+    };
+    const expected = { event_type: "concert", event_types: ["concert", "live_music"] };
+
+    expect(draftToSubmission(multi, { id: "user-1", email: null })).toMatchObject(expected);
+    expect(draftToUserPayload(multi)).toMatchObject(expected);
+    expect(draftToAdminPayload(multi)).toMatchObject(expected);
+  });
+
+  it("derives a one-item list when only the primary is set", () => {
+    expect(draftToAdminPayload(baseDraft)).toMatchObject({
+      event_type: "social",
+      event_types: ["social"],
+    });
+  });
 });

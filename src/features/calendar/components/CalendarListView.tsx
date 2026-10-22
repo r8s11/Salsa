@@ -9,6 +9,7 @@ import {
 } from "../model/calendarEvents";
 import { resolveEventFlyer } from "../../events/components/event-modal/eventModalImage";
 import { isRecentlyApproved } from "../../events/model/recentlyApproved";
+import { eventTypeLabels, scheduleXEventTypes } from "../../events/model/eventTypeDisplay";
 import "temporal-polyfill/global";
 
 const PAGE_SIZE = 50;
@@ -41,13 +42,6 @@ function dateRail(start: string): { weekday: string; day: string; month: string 
     return { weekday: "", day: "", month: "" };
   }
 }
-
-const eventTypeLabels = {
-  social: "Social",
-  class: "Class",
-  workshop: "Workshop",
-  live_music: "Live music",
-} as const;
 
 type CalendarEventGroup = {
   key: string;
@@ -158,7 +152,7 @@ export default function CalendarListView({
                     <span className="calendar-list-heading">
                       <strong className="calendar-list-title" dir="auto">{event.title}</strong>
                       <span className="calendar-list-type">
-                        {eventTypeLabels[event.calendarId]}
+                        {eventTypeLabels(scheduleXEventTypes(event)).join(" · ")}
                       </span>
                       {isRecentlyApproved({
                         createdAt: event.createdAt,

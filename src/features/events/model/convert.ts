@@ -1,8 +1,12 @@
 // Column event_date is timestamp with time zone (timestamptz)
 import "temporal-polyfill/global";
-import type { DatabaseEvent, ScheduleXEvent } from "./types";
+import { getEventTypes, type DatabaseEvent, type EventType, type ScheduleXEvent } from "./types";
 import { timeZoneForDisplay } from "../../../shared/utils/timezone";
 import { CALENDARS_CONFIG } from "./calendarsConfig";
+
+// The database has not always been constrained to known types (production
+// held "club/bar" rows); views colour by type, so unknown ones never leave here.
+const isKnownType = (type: string): type is EventType => type in CALENDARS_CONFIG;
 
 const DEFAULT_DURATION_HOURS = 4;
 
@@ -31,9 +35,8 @@ export function databaseEventToScheduleX(event: DatabaseEvent): ScheduleXEvent {
     title: event.title,
     start,
     end,
-    // The database is not constrained to known types; an unknown one (seen:
-    // "club/bar") must not crash views that colour by calendar.
-    calendarId: event.event_type in CALENDARS_CONFIG ? event.event_type : "social",
+    calendarId: isKnownType(event.event_type) ? event.event_type : "social",
+    eventTypes: getEventTypes(event).filter(isKnownType),
     location: event.location ?? undefined,
     description: event.description ?? undefined,
     address: event.address ?? undefined,

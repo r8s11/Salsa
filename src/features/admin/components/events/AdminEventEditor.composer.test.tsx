@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import AdminEventEditor from "./AdminEventEditor";
 import { buildEmptyAdminForm } from "../../model/adminEventForm";
 import { draftToAdminPayload } from "../../../events/components/EventForm";
-import { fetchAdminEntityDirectory, fetchAdminEntityDetail } from "../../entities/api/entitiesRepo";
+import { fetchAdminEntityDirectory, fetchAdminEntityDetail, saveAdminEntity } from "../../entities/api/entitiesRepo";
 import { fetchVenueDetail } from "../../api/venuesRepo";
 import type { VenueDetailRow } from "../../model/venuesQuery";
 
@@ -47,6 +47,56 @@ function editor(props: Partial<ComponentProps<typeof AdminEventEditor>> = {}) {
 
 describe("Event Composer", () => {
   beforeEach(() => localStorage.clear());
+
+  it.each(["event", "series"] as const)("saves the flyer with %s scope without changing earlier events", async (scope) => {
+    const user = userEvent.setup();
+    vi.mocked(saveAdminEntity).mockClear();
+    const onSubmit = vi.fn().mockResolvedValue({ id: "saved-event", status: "draft" });
+    editor({
+      initial: {
+        ...buildEmptyAdminForm("boston"),
+        title: "Weekly social",
+        event_type: "social",
+        event_date: "2026-11-12",
+        series_id: "series-1",
+        image_url: "https://example.com/flyer.jpg",
+      },
+      onSubmit,
+    });
+    expect(screen.getByRole("radio", { name: "This event only" })).toBeChecked();
+    if (scope === "series") await user.click(screen.getByRole("radio", { name: "Series default" }));
+    await user.click(screen.getByRole("button", { name: "Save draft" }));
+    await waitFor(() => expect(onSubmit).toHaveBeenCalled());
+    if (scope === "series") {
+      await waitFor(() => expect(saveAdminEntity).toHaveBeenCalledWith("series", "series-1", {
+        image_url: "https://example.com/flyer.jpg",
+      }));
+    } else {
+      expect(saveAdminEntity).not.toHaveBeenCalled();
+    }
+  });
+
+  it("keeps the saved event ID when updating the series flyer fails", async () => {
+    const user = userEvent.setup();
+    vi.mocked(saveAdminEntity).mockRejectedValueOnce(new Error("Network unavailable"));
+    const onSubmit = vi.fn().mockResolvedValue({ id: "saved-event", status: "draft" });
+    editor({
+      initial: {
+        ...buildEmptyAdminForm("boston"),
+        title: "Weekly social",
+        event_type: "social",
+        event_date: "2026-11-12",
+        series_id: "series-1",
+        image_url: "https://example.com/flyer.jpg",
+      },
+      onSubmit,
+    });
+    await user.click(screen.getByRole("radio", { name: "Series default" }));
+    await user.click(screen.getByRole("button", { name: "Save draft" }));
+    expect(await screen.findByText(/event was saved, but the series flyer was not updated/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Save draft" }));
+    await waitFor(() => expect(onSubmit.mock.calls[onSubmit.mock.calls.length - 1]?.[3]).toBe("saved-event"));
+  });
 
   it("offers all entry methods without resetting work when changing method", async () => {
     const user = userEvent.setup();

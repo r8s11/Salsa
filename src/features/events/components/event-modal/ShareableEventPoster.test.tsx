@@ -91,6 +91,26 @@ describe("ShareableEventPoster", () => {
     expect(within(poster).getByText(new RegExp(`^${label}$`, "i"))).toBeInTheDocument();
     expect(poster).toHaveClass(`sleeve--${calendarId}`);
   });
+
+  it("labels every selected category and themes Concert like Live Music", () => {
+    render(
+      <ShareableEventPoster
+        event={{ ...event, calendarId: "social", eventTypes: ["social", "concert"] }}
+        {...baseProps}
+      />
+    );
+
+    const poster = screen.getByRole("img", {
+      name: /^Instagram Story poster for Live Band Latin Night at PKL/,
+    });
+    expect(within(poster).getByText("Social · Concert")).toBeInTheDocument();
+    expect(poster.getAttribute("aria-label")).toContain("Event type: Social · Concert");
+
+    render(<ShareableEventPoster event={{ ...event, calendarId: "concert" }} {...baseProps} />);
+    expect(screen.getAllByRole("img", { name: /^Instagram Story poster/ })[1]).toHaveClass(
+      "sleeve--concert"
+    );
+  });
   it("announces missing event facts instead of omitting them from the accessible name", () => {
     const eventWithMissingFacts = {
       ...event,
@@ -110,7 +130,7 @@ describe("ShareableEventPoster", () => {
 
     expect(accessibleName).toContain("Venue: Not listed");
     expect(accessibleName).toContain("Address: Not listed");
-    expect(accessibleName).toContain("Price: Free");
+    expect(accessibleName).toContain("Price: Not listed");
     expect(accessibleName).toContain("Dance styles: Not listed");
     expect(accessibleName).toContain("Host: Not listed");
   });
@@ -186,8 +206,13 @@ describe("ShareableEventPoster", () => {
     expect(within(poster).queryByText("Venue")).not.toBeInTheDocument();
   });
 
-  it("falls back to the calendarId when the event has no dance styles", () => {
-    const eventNoStyles = { ...event, danceStyles: undefined };
+  it("falls back to every category label when the event has no dance styles", () => {
+    const eventNoStyles = {
+      ...event,
+      danceStyles: undefined,
+      calendarId: "social" as const,
+      eventTypes: ["social" as const, "concert" as const],
+    };
 
     render(<ShareableEventPoster event={eventNoStyles} {...baseProps} />);
 
@@ -195,7 +220,9 @@ describe("ShareableEventPoster", () => {
       name: /^Instagram Story poster for Live Band Latin Night at PKL/,
     });
 
-    expect(within(poster).getByText("social")).toBeInTheDocument();
+    expect(
+      within(poster).getByText("Social · Concert", { selector: ".sleeve-track__value" })
+    ).toBeInTheDocument();
   });
 
   it("shows a dollar price sticker for a paid event", () => {
@@ -229,6 +256,21 @@ describe("ShareableEventPoster", () => {
     });
 
     expect(within(poster).getByText("Free")).toBeInTheDocument();
+  });
+
+  it.each([
+    ["no price type", { priceType: undefined, priceAmount: undefined }],
+    ["paid without an amount", { priceType: "paid" as const, priceAmount: undefined }],
+  ])("shows no price sticker and never claims Free for %s", (_label, price) => {
+    render(<ShareableEventPoster event={{ ...event, ...price }} {...baseProps} />);
+
+    const poster = screen.getByRole("img", {
+      name: /^Instagram Story poster for Live Band Latin Night at PKL/,
+    });
+
+    expect(within(poster).queryByText("Free")).not.toBeInTheDocument();
+    expect(within(poster).queryByText("Entry")).not.toBeInTheDocument();
+    expect(poster.getAttribute("aria-label")).toContain("Price: Not listed");
   });
 
   it("prints the short label next to the QR code", () => {

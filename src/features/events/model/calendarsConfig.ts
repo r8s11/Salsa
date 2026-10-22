@@ -17,4 +17,10 @@ export const CALENDARS_CONFIG = {
     colorName: "live_music",
     darkColors: { main: "#ffb690", container: "#783200", onContainer: "#ffdbca" },
   },
+  // Concert shares the Live Music palette: both are performance-led, and the
+  // calendar defines no further hue.
+  concert: {
+    colorName: "concert",
+    darkColors: { main: "#ffb690", container: "#783200", onContainer: "#ffdbca" },
+  },
 };

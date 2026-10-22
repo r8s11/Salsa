@@ -75,6 +75,21 @@ describe("countEventsByType", () => {
       class: 0,
       workshop: 0,
       live_music: 1,
+      concert: 0,
+    });
+  });
+
+  it("counts a multi-category event once in every one of its categories", () => {
+    const events = [
+      makeEvent({ id: "1", calendarId: "social", eventTypes: ["social", "concert"] }),
+      makeEvent({ id: "2", calendarId: "concert" }),
+    ];
+    expect(countEventsByType(events)).toEqual({
+      social: 1,
+      class: 0,
+      workshop: 0,
+      live_music: 0,
+      concert: 2,
     });
   });
 });

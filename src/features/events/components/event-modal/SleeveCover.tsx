@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import type { ScheduleXEvent } from "../../../../types/events";
-import type { PosterFormat } from "./posterFormat";
+import { posterPriceLabel, type PosterFormat } from "./posterFormat";
 import "./ShareableEventPoster.css";
 
 interface SleeveCoverProps {
@@ -33,13 +33,14 @@ export default function SleeveCover({
   artKind,
   format = "story",
 }: SleeveCoverProps) {
-  const isFree = event.priceType === "free" || event.priceAmount == null;
   const titleStyle = { "--title-size": `${titleSize(event.title, format)}px` } as CSSProperties;
-  const priceLabel = isFree ? "Free" : `$${event.priceAmount}`;
+  const priceLabel = posterPriceLabel(event);
   const priceSize = format === "feed" ? 56 : 72;
-  const priceStyle = {
-    fontSize: `${Math.max(28, Math.min(priceSize, Math.floor((priceSize * 4) / priceLabel.length)))}px`,
-  };
+  const priceStyle = priceLabel
+    ? {
+        fontSize: `${Math.max(28, Math.min(priceSize, Math.floor((priceSize * 4) / priceLabel.length)))}px`,
+      }
+    : undefined;
   return (
     <div className="sleeve-cover">
       <div className={`sleeve-cover__art sleeve-cover__art--${artKind}`}>
@@ -50,12 +51,14 @@ export default function SleeveCover({
           {event.title}
         </h1>
       </div>
-      <div className="sleeve-sticker">
-        <span className="sleeve-sticker__label">Entry</span>
-        <span className="sleeve-sticker__price" style={priceStyle}>
-          {priceLabel}
-        </span>
-      </div>
+      {priceLabel && (
+        <div className="sleeve-sticker">
+          <span className="sleeve-sticker__label">Entry</span>
+          <span className="sleeve-sticker__price" style={priceStyle}>
+            {priceLabel}
+          </span>
+        </div>
+      )}
     </div>
   );
 }

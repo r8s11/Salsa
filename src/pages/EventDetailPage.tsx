@@ -23,7 +23,7 @@ import VenueMapCard from "../features/events/components/VenueMapCard";
 import { useEventViewTouch } from "../features/events/hooks/useEventViewTouch";
 import { databaseEventToScheduleX } from "../features/events/model/convert";
 import { selectRelatedEvents } from "../features/events/model/relatedEvents";
-import type { EventType } from "../features/events/model/types";
+import { EVENT_TYPE_LABELS, getEventTypes } from "../features/events/model/types";
 import EventEntityLinks from "../features/events/components/EventEntityLinks";
 import { entityHref } from "../features/entities/model";
 import { useMetroName } from "../features/metros/hooks/useMetros";
@@ -40,13 +40,6 @@ import { useDocumentMeta } from "../shared/seo/useDocumentMeta";
 import { canonicalUrl, generateEventStructuredData, injectStructuredData } from "../utils/seo";
 
 import "./EventDetailPage.css";
-
-const TYPE_LABELS: Record<EventType, string> = {
-  social: "Social",
-  class: "Class",
-  workshop: "Workshop",
-  live_music: "Live Music",
-};
 
 function formatDate(start: string): string {
   const [date] = start.split(" ");
@@ -165,7 +158,7 @@ export default function EventDetailPage() {
       ? "Free"
       : event.price_type === "paid" && event.price_amount != null
         ? `$${event.price_amount}`
-        : "Pricing unavailable";
+        : null;
   const { weekday, day, month } = chipParts(scheduleEvent.start);
   const shareUrl = buildPublicEventUrl(event.slug || event.id);
   const whatsappHref = `https://wa.me/?text=${encodeURIComponent(`${event.title} — ${shareUrl}`)}`;
@@ -229,7 +222,13 @@ export default function EventDetailPage() {
           </Link>
         </div>
         <div className="event-page__cover-body">
-          <span className="event-page__badge">{TYPE_LABELS[event.event_type]}</span>
+          <div className="event-page__chips">
+            {getEventTypes(event).map((type) => (
+              <span key={type} className="event-page__badge">
+                {EVENT_TYPE_LABELS[type]}
+              </span>
+            ))}
+          </div>
           <h1 className="event-page__title">{event.title}</h1>
           <div className="event-page__facts">
             <span>
@@ -264,7 +263,7 @@ export default function EventDetailPage() {
             <span className="event-page__datechip-month">{month}</span>
           </div>
           <div className="event-page__strip-body">
-            <div className="event-page__strip-price">{price}</div>
+            {price !== null && <div className="event-page__strip-price">{price}</div>}
             {event.address && <div className="event-page__muted">{event.address}</div>}
           </div>
           <div className="event-page__strip-actions">

@@ -9,7 +9,10 @@ import type { EntityReview } from "../../entity-matching/entityReview";
 export interface AdminEventPayload {
   title: string;
   description: string | null;
+  /** Primary category (first selection); drives calendar color. */
   event_type: EventType;
+  /** Full ordered selection; `event_type` is its first member. */
+  event_types?: EventType[];
   city: City;
   event_date: string;
   event_time: string | null;
@@ -199,6 +202,8 @@ export type UserEventUpdatePayload = {
   title: string;
   description?: string | null;
   event_type: EventType;
+  /** Full ordered selection; `event_type` is its first member. */
+  event_types: EventType[];
   city: City;
   event_date: string;
   event_time?: string | null;
@@ -227,6 +232,7 @@ export async function updateEventForUser(
     title: payload.title,
     description: payload.description ?? null,
     event_type: payload.event_type,
+    event_types: payload.event_types,
     city: payload.city,
     event_date: payload.event_date,
     event_time: payload.event_time ?? null,

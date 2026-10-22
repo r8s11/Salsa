@@ -39,6 +39,20 @@ const mockEvent = (overrides: Partial<DatabaseEvent> = {}): DatabaseEvent => ({
 });
 
 describe("databaseEventToScheduleX", () => {
+  it("propagates the ordered categories while the primary stays the calendar id", () => {
+    const result = databaseEventToScheduleX(
+      mockEvent({ event_type: "social", event_types: ["social", "concert"] })
+    );
+    expect(result.calendarId).toBe("social");
+    expect(result.eventTypes).toEqual(["social", "concert"]);
+  });
+
+  it("falls back to the singular type when no array is present", () => {
+    expect(databaseEventToScheduleX(mockEvent({ event_type: "concert" })).eventTypes).toEqual([
+      "concert",
+    ]);
+  });
+
   it("renders summer timestamp in EDT (UTC-4)", () => {
     const event = mockEvent({ event_date: "2026-07-01T12:00:00Z" });
     const result = databaseEventToScheduleX(event);
@@ -156,6 +170,16 @@ describe("databaseEventToScheduleX", () => {
 
     expect(result.danceStyles).toEqual(["Salsa", "Bachata"]);
   });
+
+  it("keeps an unknown type out of both the calendar id and the category list", () => {
+    // Production held approved rows typed "club/bar"; colouring by an unknown
+    // calendar id crashed the whole calendar list view.
+    const unknown = databaseEventToScheduleX(mockEvent({ event_type: "club/bar" as EventType }));
+    expect(unknown.calendarId).toBe("social");
+    expect(CALENDARS_CONFIG[unknown.calendarId].darkColors.main).toBeTruthy();
+    expect(unknown.eventTypes).not.toContain("club/bar");
+    expect(databaseEventToScheduleX(mockEvent({ event_type: "concert" })).calendarId).toBe("concert");
+  });
 });
 
 describe("databaseEventToScheduleX time zone", () => {
@@ -198,13 +222,5 @@ describe("databaseEventToScheduleX time zone", () => {
   it("does not silently use UTC", () => {
     const result = databaseEventToScheduleX(mockEvent({ city: "los-angeles" }));
     expect(result.timeZone).not.toBe("UTC");
-  });
-  it("keeps every event on a calendar the views can colour, even an unknown type", () => {
-    // Production held approved rows typed "club/bar"; indexing CALENDARS_CONFIG
-    // with it crashed the whole calendar list view.
-    const unknown = databaseEventToScheduleX(mockEvent({ event_type: "club/bar" as EventType }));
-    expect(unknown.calendarId).toBe("social");
-    expect(CALENDARS_CONFIG[unknown.calendarId].darkColors.main).toBeTruthy();
-    expect(databaseEventToScheduleX(mockEvent({ event_type: "live_music" })).calendarId).toBe("live_music");
   });
 });

@@ -92,7 +92,7 @@
 .event-page__title {
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: clamp(30px, 5vw, 52px);
+  font-size: clamp(32px, 5vw, 48px);
   line-height: 1;
   letter-spacing: -0.02em;
   color: #fff;
@@ -114,6 +114,8 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 /* ---------- badges/chips ---------- */
@@ -208,7 +210,9 @@
 
 .event-page__strip-body {
   flex: 1;
-  min-width: 180px;
+  min-width: 0;
+  flex-basis: 150px;
+  overflow-wrap: anywhere;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -282,7 +286,7 @@
 
 .event-page__columns {
   display: grid;
-  grid-template-columns: 1.6fr 1fr;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
   gap: 44px;
   margin-top: 32px;
   align-items: start;
@@ -311,6 +315,7 @@
   margin: 0;
   max-width: 62ch;
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 /* ---------- sidebar ---------- */
@@ -319,6 +324,7 @@
   display: grid;
   gap: 16px;
   align-self: start;
+  min-width: 0;
 }
 
 .event-page__card {
@@ -390,6 +396,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  align-items: center;
 }
 
 /* Compact share actions must still meet the 44px touch target */
@@ -415,7 +422,7 @@
 .event-page__album-title {
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: clamp(24px, 3vw, 34px);
+  font-size: clamp(24px, 3vw, 32px);
   letter-spacing: -0.01em;
   color: var(--text);
   margin: 0;
@@ -464,5 +471,9 @@
   }
   .event-page__strip-actions {
     width: 100%;
+    justify-content: flex-start;
+  }
+  .event-page__strip-actions .ui-button {
+    flex: 1 1 160px;
   }
 }

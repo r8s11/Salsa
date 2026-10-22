@@ -7,6 +7,7 @@ import { ENTITY_LABELS, entityHref, type EntityDetail, type EventSummary } from 
 import { InstructorPortrait } from "./InstructorPortrait";
 import "./InstructorProfile.css";
 import { EntityClaimControl } from "../../workspaces/components/public/EntityClaimControl";
+import { EntityEditButton } from "./EntityEditButton";
 
 function NightRow({ event }: { event: EventSummary }) {
   const parts = eventDateParts(event.event_date);
@@ -49,6 +50,7 @@ export function InstructorProfile({ detail }: { detail: EntityDetail }) {
         <InstructorPortrait name={entity.name} imageUrl={entity.image_url} alt={`Portrait of ${entity.name}`} className="instructor-profile__portrait" />
         <div className="instructor-profile__intro">
           <h1 id="instructor-profile-title">{entity.name}</h1>
+          <EntityEditButton kind="instructor" id={entity.id} />
           {location && <p className="instructor-profile__location">{location}</p>}
           {entity.description && <p className="instructor-profile__bio">{entity.description}</p>}
           {(website || instagram) && (

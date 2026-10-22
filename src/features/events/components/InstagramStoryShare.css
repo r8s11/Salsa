@@ -37,7 +37,29 @@
   outline-offset: 2px;
 }
 
-.story-share__hint,
+.story-share__help {
+  position: relative;
+  margin-top: 10px;
+}
+
+.story-share__help .story-share__trigger {
+  margin-top: 0;
+}
+
+.story-share__hint {
+  position: absolute;
+  bottom: 100%;
+  inset-inline: 0;
+  z-index: 2;
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border-lg);
+  border-radius: var(--radius-md);
+  background: var(--surface-high);
+  color: var(--text);
+  font: 400 0.8125rem/1.5 var(--font-body);
+}
+
 .story-share__feedback {
   margin: 8px 0 0;
   font-family: var(--font-body);

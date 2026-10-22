@@ -5,6 +5,7 @@ import { entityExternalLinks } from "../externalLinks";
 import { entityHref, type EntityDetail, type EventSummary, type PublicEntityRef } from "../model";
 import { EntityClaimControl } from "../../workspaces/components/public/EntityClaimControl";
 import { SchoolOfferingsSection } from "../../workspaces/components/public/SchoolOfferingsSection";
+import { EntityEditButton } from "./EntityEditButton";
 import "./SchoolProfile.css";
 
 // Every event time on the site is shown in New York time (see
@@ -126,6 +127,7 @@ export function SchoolProfile({ detail }: { detail: EntityDetail }) {
       <header className="school-profile__hero">
         <div className="school-profile__intro">
           <h1 id="school-profile-title">{school.name}</h1>
+          <EntityEditButton kind="school" id={school.id} />
           <p className="school-profile__where">{town ? `Dance school in ${town}` : "Dance school"}</p>
           {school.description && <p className="school-profile__about">{school.description}</p>}
           {styles.length > 0 && (

@@ -57,15 +57,20 @@ describe("validateCsvRow — required fields", () => {
 
   it("rejects an unknown event_type", () => {
     const result = validate({ event_type: "party" });
-    expect(result.errors).toContainEqual({
-      field: "event_type",
-      message: "Must be one of: social, class, workshop, live_music.",
-    });
+    expect(result.status).toBe("invalid");
+    expect(result.payload).toBeNull();
+    expect(result.errors.some((issue) => issue.field === "event_type")).toBe(true);
   });
   it("accepts Live Music event type", () => {
     const result = validate({ event_type: "live_music" });
     expect(result.status).toBe("valid");
     expect(result.payload?.event_type).toBe("live_music");
+  });
+  it("imports multiple categories including Concert with the first as primary", () => {
+    const result = validate({ event_type: "social; concert; social" });
+    expect(result.status).toBe("valid");
+    expect(result.payload?.event_type).toBe("social");
+    expect(result.payload?.event_types).toEqual(["social", "concert"]);
   });
 
   it("accepts any registered metro and rejects the rest", () => {

@@ -84,3 +84,56 @@ describe("submissionToDatabaseEvent", () => {
     expect(submissionToDatabaseEvent({ ...pendingSubmission, status: "approved" })).toBeNull();
   });
 });
+
+describe("submission event types", () => {
+  it("projects the submitted ordered list with its first entry as primary", () => {
+    const event = submissionToDatabaseEvent({
+      ...pendingSubmission,
+      submitted_data: {
+        ...pendingSubmission.submitted_data,
+        event_type: "concert",
+        event_types: ["concert", "live_music"],
+      },
+    });
+
+    expect(event).toMatchObject({ event_type: "concert", event_types: ["concert", "live_music"] });
+  });
+
+  it("reads a submission that only has the primary as a one-item list", () => {
+    expect(submissionToDatabaseEvent(pendingSubmission)).toMatchObject({
+      event_type: "social",
+      event_types: ["social"],
+    });
+  });
+
+  it("lets owner edits replace the submitted list and keeps edited selections on reload", () => {
+    const event = submissionToDatabaseEvent({
+      ...pendingSubmission,
+      submitted_data: {
+        ...pendingSubmission.submitted_data,
+        event_type: "social",
+        event_types: ["social", "class"],
+      },
+      edited_data: { event_type: "workshop", event_types: ["workshop", "concert", "class"] },
+    });
+
+    expect(event).toMatchObject({
+      event_type: "workshop",
+      event_types: ["workshop", "concert", "class"],
+    });
+  });
+
+  it("does not let a stale submitted list override an edit that only set the primary", () => {
+    const event = submissionToDatabaseEvent({
+      ...pendingSubmission,
+      submitted_data: {
+        ...pendingSubmission.submitted_data,
+        event_type: "social",
+        event_types: ["social", "class"],
+      },
+      edited_data: { event_type: "workshop" },
+    });
+
+    expect(event).toMatchObject({ event_type: "workshop", event_types: ["workshop"] });
+  });
+});

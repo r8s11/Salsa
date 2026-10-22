@@ -2,6 +2,7 @@ import type { EventFormDraft } from "../model/EventForm";
 import type { SubmissionCreate } from "../../admin/api/submissionsRepo";
 import type { UserEventUpdatePayload, AdminEventPayload } from "../api/eventsRepo";
 import { toEventDateInstant } from "../model/eventDateTime";
+import { eventTypePayload } from "../model/eventTypeSelection";
 
 export function draftToSubmission(
   draft: EventFormDraft,
@@ -14,13 +15,7 @@ export function draftToSubmission(
     submitter_name: draft.submitter_name,
     title: draft.title,
     description: draft.description || null,
-    event_type:
-      draft.event_type === "social" ||
-      draft.event_type === "class" ||
-      draft.event_type === "workshop" ||
-      draft.event_type === "live_music"
-        ? draft.event_type
-        : "social",
+    ...eventTypePayload(draft),
     event_date: event_date,
     event_time: draft.event_time || null,
     location: draft.location || null,
@@ -41,13 +36,7 @@ export function draftToUserPayload(draft: EventFormDraft): UserEventUpdatePayloa
   return {
     title: draft.title,
     description: draft.description || null,
-    event_type:
-      draft.event_type === "social" ||
-      draft.event_type === "class" ||
-      draft.event_type === "workshop" ||
-      draft.event_type === "live_music"
-        ? draft.event_type
-        : "social",
+    ...eventTypePayload(draft),
     event_date: event_date,
     event_time: draft.event_time || null,
     location: draft.location || null,
@@ -67,13 +56,7 @@ export function draftToAdminPayload(draft: EventFormDraft): AdminEventPayload {
   return {
     title: draft.title,
     description: draft.description || null,
-    event_type:
-      draft.event_type === "social" ||
-      draft.event_type === "class" ||
-      draft.event_type === "workshop" ||
-      draft.event_type === "live_music"
-        ? draft.event_type
-        : "social",
+    ...eventTypePayload(draft),
     event_date: event_date,
     event_time: draft.event_time || null,
     location: draft.location || null,

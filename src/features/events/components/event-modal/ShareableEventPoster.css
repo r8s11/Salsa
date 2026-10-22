@@ -55,7 +55,8 @@
   --field-deep: #10102a;
   --on-field: var(--sleeve-mustard);
 }
-.sleeve--live_music {
+.sleeve--live_music,
+.sleeve--concert {
   --field: var(--sleeve-live-music);
   --field-deep: var(--sleeve-live-music-deep);
   --on-field: var(--sleeve-live-music-ink);

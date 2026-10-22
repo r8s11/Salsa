@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { buildEmptyAdminForm, buildAdminFormFromEvent } from "./adminEventForm";
+import {
+  buildEmptyAdminForm,
+  buildAdminFormFromEvent,
+  validateAdminEventForm,
+} from "./adminEventForm";
+import { toggleEventType } from "../../events/model/eventTypeSelection";
 import type { DatabaseEvent } from "../../events/model/types";
 import { draftToAdminPayload } from "../../events/components/EventForm";
 
@@ -78,5 +83,58 @@ describe("adminEventForm model", () => {
     form.title = "Edited title";
 
     expect(draftToAdminPayload(form).entity_review).toEqual(entityReview);
+  });
+});
+
+describe("adminEventForm event types", () => {
+  const multiEvent: DatabaseEvent = {
+    ...baseEvent,
+    event_type: "concert",
+    event_types: ["concert", "live_music", "social"],
+  };
+
+  it("loads the full ordered list, and reload after save keeps every choice", () => {
+    const form = buildAdminFormFromEvent(multiEvent);
+    expect(form).toMatchObject({
+      event_type: "concert",
+      event_types: ["concert", "live_music", "social"],
+    });
+
+    const saved = draftToAdminPayload(form);
+    const reloaded = buildAdminFormFromEvent({ ...multiEvent, ...saved } as DatabaseEvent);
+    expect(reloaded.event_types).toEqual(["concert", "live_music", "social"]);
+    expect(reloaded.event_type).toBe("concert");
+  });
+
+  it("loads a single-type event as a one-item list", () => {
+    expect(buildAdminFormFromEvent(baseEvent)).toMatchObject({
+      event_type: "social",
+      event_types: ["social"],
+    });
+  });
+
+  it("saves a removal as a smaller list with the next type promoted", () => {
+    const form = buildAdminFormFromEvent(multiEvent);
+    const trimmed = { ...form, ...toggleEventType(form, "concert") };
+
+    expect(draftToAdminPayload(trimmed)).toMatchObject({
+      event_type: "live_music",
+      event_types: ["live_music", "social"],
+    });
+  });
+
+  it("starts empty and requires at least one type", () => {
+    const empty = buildEmptyAdminForm("boston");
+    expect(empty).toMatchObject({ event_type: "", event_types: [] });
+    expect(validateAdminEventForm({ ...empty, title: "Night" })).toBe("Choose an event type.");
+  });
+
+  it("accepts a form whose selection is only in the list", () => {
+    const form = {
+      ...buildAdminFormFromEvent(baseEvent),
+      event_type: "" as const,
+      event_types: ["concert" as const],
+    };
+    expect(validateAdminEventForm(form)).toBeNull();
   });
 });

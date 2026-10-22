@@ -130,6 +130,56 @@ describe("useSubmitEventForm", () => {
     expect(notifySubmissionReceived).toHaveBeenCalledWith("submission-abc");
   });
 
+  it("submits every selected type with the first selection as primary", async () => {
+    const { result } = renderHook(() => useSubmitEventForm());
+
+    await act(async () => {
+      result.current.update("title", "Test Event");
+      result.current.update("event_date", "2026-08-20");
+      result.current.update("event_types", ["live_music", "concert", "social"]);
+    });
+    expect(result.current.form).toMatchObject({
+      event_type: "live_music",
+      event_types: ["live_music", "concert", "social"],
+    });
+
+    await act(async () => {
+      await result.current.handleSubmit({
+        preventDefault: () => {},
+      } as unknown as FormEvent);
+    });
+
+    expect(createSubmission).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event_type: "live_music",
+        event_types: ["live_music", "concert", "social"],
+      }),
+      undefined
+    );
+  });
+
+  it("blocks submit and reports the event type when the selection is emptied", async () => {
+    const { result } = renderHook(() => useSubmitEventForm());
+
+    await act(async () => {
+      result.current.update("title", "Test Event");
+      result.current.update("event_date", "2026-08-20");
+      result.current.update("event_types", ["class"]);
+    });
+    await act(async () => {
+      result.current.update("event_types", []);
+    });
+    await act(async () => {
+      await result.current.handleSubmit({
+        preventDefault: () => {},
+      } as unknown as FormEvent);
+    });
+
+    expect(result.current.form).toMatchObject({ event_type: "", event_types: [] });
+    expect(result.current.fieldErrors.event_type).toBe("Choose an event type.");
+    expect(createSubmission).not.toHaveBeenCalled();
+  });
+
   it("allows public submissions without an authenticated user object", async () => {
     mockAuth.user = null;
     const { result } = renderHook(() => useSubmitEventForm());

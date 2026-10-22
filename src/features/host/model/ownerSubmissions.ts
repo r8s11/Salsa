@@ -1,5 +1,6 @@
 import type { EventSubmission } from "../../admin/model/submissions";
 import type { City, DatabaseEvent, EventTaxonomyTerm, EventType } from "../../events/model/types";
+import { eventTypeFieldsFrom } from "../../events/model/eventTypeSelection";
 
 type SubmissionData = Record<string, unknown>;
 
@@ -12,14 +13,12 @@ function nullableString(data: SubmissionData, key: string): string | null {
   return typeof value === "string" && value ? value : null;
 }
 
-function eventType(data: SubmissionData): EventType {
-  const value = data.event_type;
-  return value === "class" ||
-    value === "workshop" ||
-    value === "social" ||
-    value === "live_music"
-    ? value
-    : "social";
+/** Both fields come from one ordered list; a submission with no valid type reads as social. */
+function eventTypes(data: SubmissionData): { event_type: EventType; event_types: EventType[] } {
+  const { event_types } = eventTypeFieldsFrom(data);
+  return event_types.length
+    ? { event_type: event_types[0], event_types }
+    : { event_type: "social", event_types: ["social"] };
 }
 
 function city(data: SubmissionData): City {
@@ -61,10 +60,10 @@ function danceStyles(data: SubmissionData): EventTaxonomyTerm[] {
 export function submissionToDatabaseEvent(submission: EventSubmission): DatabaseEvent | null {
   if (submission.status !== "pending" && submission.status !== "rejected") return null;
 
-  const data: SubmissionData = {
-    ...submission.submitted_data,
-    ...(submission.edited_data ?? {}),
-  };
+  const edits = submission.edited_data ?? {};
+  const data: SubmissionData = { ...submission.submitted_data, ...edits };
+  // An edit that sets only the primary supersedes the originally submitted list.
+  if ("event_type" in edits && !("event_types" in edits)) delete data.event_types;
   const taxonomyTerms = danceStyles(data);
 
   return {
@@ -72,7 +71,7 @@ export function submissionToDatabaseEvent(submission: EventSubmission): Database
     submission_id: submission.id,
     title: stringValue(data, "title", "Untitled event"),
     description: nullableString(data, "description"),
-    event_type: eventType(data),
+    ...eventTypes(data),
     event_date: stringValue(data, "event_date", submission.submitted_at),
     event_time: nullableString(data, "event_time"),
     location: nullableString(data, "location"),

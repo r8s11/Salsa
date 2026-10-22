@@ -4,15 +4,9 @@ import { entityHref } from "../../entities/model";
 import EventEntityLinks from "./EventEntityLinks";
 import type { ScheduleXEvent } from "../../../types/events";
 import { isRecentlyApproved } from "../model/recentlyApproved";
+import { eventTypeCardLabel, scheduleXEventTypes } from "../model/eventTypeDisplay";
 import { resolveEventFlyer } from "./event-modal/eventModalImage";
 import "./Events.css";
-
-const TYPE_LABELS: Record<string, string> = {
-  social: "Social Dance",
-  class: "Class",
-  workshop: "Workshop",
-  live_music: "Live Music",
-};
 
 export default function FeaturedEventCard({
   event,
@@ -55,8 +49,12 @@ export default function FeaturedEventCard({
       </div>
 
       <div className="featured-card-body">
-        <span className={`event-type ${event.calendarId}`}>
-          {TYPE_LABELS[event.calendarId] ?? event.calendarId}
+        <span className="event-type-list">
+          {scheduleXEventTypes(event).map((type) => (
+            <span key={type} className={`event-type ${type}`}>
+              {eventTypeCardLabel(type)}
+            </span>
+          ))}
         </span>
         <h3>
           <button type="button" className="event-card-open" onClick={openDetail}>

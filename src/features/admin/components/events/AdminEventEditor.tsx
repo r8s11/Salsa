@@ -5,11 +5,13 @@ import { ArrowLeft, CalendarDays, FilePlus2, ImageUp, Sparkles } from "lucide-re
 import AdminConfirmDialog from "../common/AdminConfirmDialog";
 import ComposerEntitySelect from "./ComposerEntitySelect";
 import type { ComposerEntity, ComposerEntityKind } from "./ComposerEntitySelect";
-import { fetchAdminEntityDetail } from "../../entities/api/entitiesRepo";
+import { fetchAdminEntityDetail, saveAdminEntity } from "../../entities/api/entitiesRepo";
 import { fetchVenueDetail } from "../../api/venuesRepo";
 import { applySeriesToComposer, readComposerRecovery } from "../../model/eventComposerDraft";
 import type { ComposerIntent, ComposerSaved } from "../../model/eventComposerDraft";
 import type { DatabaseEvent } from "../../../events/model/types";
+import { eventTypeLabels } from "../../../events/model/eventTypeDisplay";
+import { selectedEventTypes } from "../../../events/model/eventTypeSelection";
 import { validateSubmitFormFields } from "../../../submit-event/model/validation";
 import type { SubmitFieldErrors } from "../../../submit-event/model/validation";
 import { useAccessibleDialog } from "../../../../shared/a11y/useAccessibleDialog";
@@ -89,6 +91,7 @@ export default function AdminEventEditor({
   const [discardOpen, setDiscardOpen] = useState(false);
   const [entry, setEntry] = useState<"flyer" | "series" | "blank">("blank");
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [flyerScope, setFlyerScope] = useState<"event" | "series">("event");
   const recoveryKey = flyerOwnerId
     ? `salsa:event-composer:${flyerOwnerId}:${_eventId ?? "new"}`
     : null;
@@ -242,6 +245,7 @@ export default function AdminEventEditor({
   const handleFlyerChange = async (file: File | null) => {
     resetExtraction();
     const generation = ++uploadGeneration.current;
+    setFlyerScope("event");
     edited.current.add("image_url");
     setFlyerError(null);
     if (!file) {
@@ -396,6 +400,19 @@ export default function AdminEventEditor({
               "The event was saved to your account, but device recovery is unavailable."
             );
           }
+        }
+      }
+      if (!automatic && flyerScope === "series" && snapshot.series_id && snapshot.image_url) {
+        try {
+          await saveAdminEntity("series", snapshot.series_id, { image_url: snapshot.image_url });
+        } catch (seriesError) {
+          setValidationError(
+            `The event was saved, but the series flyer was not updated: ${
+              seriesError instanceof Error ? seriesError.message : "Please try again."
+            }`
+          );
+          setSaveMessage("Your event is saved. Save again to retry updating the series flyer.");
+          return;
         }
       }
       lastRemoteForm.current = JSON.stringify(snapshot);
@@ -563,6 +580,7 @@ export default function AdminEventEditor({
   const selectSeries = async (entity: ComposerEntity | null) => {
     const generation = ++seriesGeneration.current;
     setSelectedSeries(entity);
+    setFlyerScope("event");
     if (!entity) {
       setForm((current) => ({ ...current, series_id: "" }));
       return;
@@ -767,6 +785,38 @@ export default function AdminEventEditor({
                   errorMessage={flyerError}
                   disabled={locked}
                 />
+                {form.image_url && (
+                  <fieldset className="composer-flyer-scope">
+                    <legend>Is this flyer for one event or the series?</legend>
+                    <label>
+                      <input
+                        type="radio"
+                        name="flyer-scope"
+                        value="event"
+                        checked={flyerScope === "event"}
+                        onChange={() => setFlyerScope("event")}
+                      />
+                      This event only
+                    </label>
+                    <label>
+                      <input
+                        type="radio"
+                        name="flyer-scope"
+                        value="series"
+                        checked={flyerScope === "series"}
+                        disabled={!form.series_id}
+                        onChange={() => setFlyerScope("series")}
+                        aria-describedby="composer-flyer-scope-help"
+                      />
+                      Series default
+                    </label>
+                    <p id="composer-flyer-scope-help">
+                      {form.series_id
+                        ? "Series default is applied when you Save or Publish. Future events created from this series reuse the flyer; existing events keep their artwork."
+                        : "Choose an Event series above to use this flyer as its default."}
+                    </p>
+                  </fieldset>
+                )}
                 {form.image_url && extractionStatus === "idle" && (
                   <button
                     type="button"
@@ -1035,7 +1085,7 @@ function ComposerPreview({ form, onClose }: { form: AdminEventForm; onClose: () 
           <div>
             <dt>Type & city</dt>
             <dd>
-              {form.event_type.replace("_", " ") || "Not specified"} ·{" "}
+              {eventTypeLabels(selectedEventTypes(form)).join(", ") || "Not specified"} ·{" "}
               {form.city || "Choose a city"}
             </dd>
           </div>

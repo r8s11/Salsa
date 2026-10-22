@@ -1,9 +1,12 @@
 import type { EventType, City } from "../../../types/events";
+import { selectedEventTypes } from "../../events/model/eventTypeSelection";
 
 export type SubmitForm = {
   title: string;
   description: string;
   event_type: EventType | "";
+  /** Full ordered selection; `event_type` is its first member. At least one is required. */
+  event_types?: EventType[];
   city: City;
   event_date: string;
   event_time: string;
@@ -22,6 +25,7 @@ export const buildInitialForm = (city: City): SubmitForm => ({
   title: "",
   description: "",
   event_type: "",
+  event_types: [],
   city,
   event_date: "",
   event_time: "",
@@ -71,6 +75,8 @@ export function validateSubmitForm(form: SubmitForm, isAnonymous = false): strin
       return "Please enter a valid email address (e.g. you@example.com).";
     }
   }
+
+  if (selectedEventTypes(form).length === 0) return "Choose an event type.";
 
   // Length caps (spam friction)
   if (form.title.length > TITLE_MAX_LENGTH) {
@@ -169,7 +175,7 @@ export function validateSubmitFormFields(form: SubmitForm, isAnonymous = false):
     errors.title = `Event title must be ${TITLE_MAX_LENGTH} characters or fewer.`;
   }
 
-  if (!form.event_type) {
+  if (selectedEventTypes(form).length === 0) {
     errors.event_type = "Choose an event type.";
   }
 

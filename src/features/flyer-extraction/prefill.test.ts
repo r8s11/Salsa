@@ -150,6 +150,14 @@ describe("applyExtractionToDraft", () => {
     );
     expect(draft.event_type).toBe("live_music");
   });
+  it("extracts combined Concert categories without replacing the user's selections", () => {
+    const extraction = { ...BASE_EXTRACTION, event_type: "Concert + Live Music" };
+    const { draft } = applyExtractionToDraft(extraction, BASE_DRAFT, METROS);
+    expect(draft.event_type).toBe("concert");
+    expect(draft.event_types).toEqual(["concert", "live_music"]);
+    const chosen = { ...BASE_DRAFT, event_type: "class" as const, event_types: ["class" as const] };
+    expect(applyExtractionToDraft(extraction, chosen, METROS).draft.event_types).toEqual(["class"]);
+  });
 
   it("splits price into type and amount, including ranges", () => {
     expect(

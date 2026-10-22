@@ -219,6 +219,42 @@ describe("HostEditEventPage", () => {
     });
   });
 
+  it("reloads every saved event type and saves edits to the selection", async () => {
+    vi.mocked(useMyOrganizerEvents).mockReturnValue({
+      events: [{ ...baseEvent, event_type: "social", event_types: ["social", "live_music"] }],
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+    const user = userEvent.setup();
+    renderEdit();
+
+    await screen.findByRole("heading", { name: "Edit event" });
+    expect(screen.getByRole("button", { name: "Social" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Live Music" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
+    expect(screen.getByRole("button", { name: "Concert" })).toHaveAttribute(
+      "aria-pressed",
+      "false"
+    );
+
+    await user.click(screen.getByRole("button", { name: "Social" }));
+    await user.click(screen.getByRole("button", { name: "Concert" }));
+    await user.click(screen.getByRole("button", { name: /Save Changes/i }));
+
+    await waitFor(() => {
+      expect(updateOrganizerEvent).toHaveBeenCalledWith(
+        "event-1",
+        expect.objectContaining({
+          event_type: "live_music",
+          event_types: ["live_music", "concert"],
+        })
+      );
+    });
+  });
+
   it("does not send forbidden fields like status or organizer_id", async () => {
     const user = userEvent.setup();
     renderEdit();

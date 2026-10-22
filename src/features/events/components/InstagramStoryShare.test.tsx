@@ -81,6 +81,23 @@ function stubSharing(canShare: boolean, share: () => Promise<void>) {
 }
 
 describe("InstagramStoryShare", () => {
+  it("reveals Story help on hover or keyboard focus and dismisses it with Escape", async () => {
+    const user = userEvent.setup();
+    renderShare();
+    const trigger = screen.getByRole("button", { name: "Instagram Story" });
+    expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
+    await user.hover(trigger);
+    expect(screen.getByRole("tooltip")).toHaveTextContent("Creates a 9:16 Story image");
+    await user.unhover(trigger);
+    expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
+    await user.tab();
+    expect(trigger).toHaveFocus();
+    expect(screen.getByRole("tooltip")).toBeVisible();
+    await user.keyboard("{Escape}");
+    expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+  });
+
   it("generates a Story image for the selected event and previews it via createPoster", async () => {
     renderShare();
     await generateStory();

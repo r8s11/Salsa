@@ -19,6 +19,8 @@ interface TypeOption {
 interface Props {
   periodLabel: string;
   typeOptions: TypeOption[];
+  /** Distinct events; an event with several categories counts once here. */
+  totalCount: number;
   typeFilter: TypeFilter;
   onTypeFilterChange: (next: TypeFilter) => void;
   styleOptions: string[];
@@ -30,6 +32,7 @@ interface Props {
 export default function CalendarSidebar({
   periodLabel,
   typeOptions,
+  totalCount,
   typeFilter,
   onTypeFilterChange,
   styleOptions,
@@ -37,7 +40,7 @@ export default function CalendarSidebar({
   onStyleFilterChange,
   eventCountLabel,
 }: Props) {
-  const total = typeOptions.reduce((count, option) => count + option.count, 0);
+  const total = totalCount;
   const handleTypeClick = (value: EventType) => {
     const isExclusivelySelected = typeFilter === value;
     onTypeFilterChange(isExclusivelySelected ? "all" : value);

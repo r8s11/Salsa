@@ -3,6 +3,7 @@ import type { EventFormDraft } from "../../events/components/EventForm";
 import { buildInitialForm, validateSubmitForm } from "../../submit-event/model/validation";
 import { resolveDraftTimeZone } from "../../events/components/EventForm/types";
 import { fromEventDateInstant } from "../../events/model/eventDateTime";
+import { eventTypeFieldsFrom, selectedEventTypes } from "../../events/model/eventTypeSelection";
 import { timeZoneForDisplay } from "../../../shared/utils/timezone";
 
 export type AdminEventForm = EventFormDraft;
@@ -34,7 +35,7 @@ export function buildAdminFormFromEvent(event: DatabaseEvent): AdminEventForm {
   return {
     title: event.title,
     description: event.description ?? "",
-    event_type: event.event_type,
+    ...eventTypeFieldsFrom(event),
     city: event.city,
     event_date: date,
     event_time: time,
@@ -65,12 +66,13 @@ export function buildAdminFormFromEvent(event: DatabaseEvent): AdminEventForm {
 
 export function validateAdminEventForm(form: AdminEventForm): string | null {
   if (!form.title.trim()) return "Event title is required.";
-  if (!form.event_type) return "Choose an event type.";
+  if (selectedEventTypes(form).length === 0) return "Choose an event type.";
   if (!form.event_date) return "Choose an event date.";
   const submitFormError = validateSubmitForm({
     title: form.title,
     description: form.description,
     event_type: form.event_type,
+    event_types: form.event_types,
     city: form.city,
     event_date: form.event_date,
     event_time: form.event_time,

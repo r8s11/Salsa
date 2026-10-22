@@ -41,6 +41,33 @@ describe("validateSubmitForm — dance_styles", () => {
   });
 });
 
+describe("event type selection", () => {
+  const valid = (): SubmitForm => ({
+    ...buildInitialForm("boston"),
+    title: "Test Event",
+    event_date: "2026-08-20",
+  });
+
+  it("requires at least one type, whether or not the list is present", () => {
+    expect(validateSubmitForm(valid())).toBe("Choose an event type.");
+    expect(validateSubmitFormFields(valid()).event_type).toBe("Choose an event type.");
+    expect(validateSubmitFormFields({ ...valid(), event_types: [] }).event_type).toBe(
+      "Choose an event type."
+    );
+  });
+
+  it("accepts a selection carried only by the list", () => {
+    const form: SubmitForm = { ...valid(), event_types: ["concert", "live_music"] };
+    expect(validateSubmitForm(form)).toBeNull();
+    expect(validateSubmitFormFields(form).event_type).toBeUndefined();
+  });
+
+  it("accepts a legacy form that only has the primary type", () => {
+    const form: SubmitForm = { ...valid(), event_type: "class" };
+    expect(validateSubmitForm(form)).toBeNull();
+  });
+});
+
 describe("validateSubmitFormFields", () => {
   const validForm = (): SubmitForm => ({
     ...buildInitialForm("boston"),

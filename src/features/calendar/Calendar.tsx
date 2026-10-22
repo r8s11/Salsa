@@ -14,7 +14,7 @@ import { ChevronDown, SlidersHorizontal } from "lucide-react";
 import "temporal-polyfill/global";
 import "./Calendar.css";
 import "@schedule-x/theme-default/dist/index.css";
-import { ScheduleXEvent, CALENDARS_CONFIG, EventType } from "../../types/events";
+import { ScheduleXEvent, CALENDARS_CONFIG, EventType, EVENT_TYPES, EVENT_TYPE_LABELS } from "../../types/events";
 import { filterEventsByType, TypeFilter } from "../../utils/filterEvents";
 import { getUpcomingSeriesDates } from "../../utils/series";
 import { timeZoneForDisplay } from "../../shared/utils/timezone";
@@ -51,10 +51,7 @@ import { sortCalendarEvents } from "./model/calendarEvents";
 
 const TYPE_OPTIONS: { value: TypeFilter; label: string }[] = [
   { value: "all", label: "All" },
-  { value: "social", label: "Social" },
-  { value: "class", label: "Class" },
-  { value: "workshop", label: "Workshop" },
-  { value: "live_music", label: "Live Music" },
+  ...EVENT_TYPES.map((type) => ({ value: type, label: EVENT_TYPE_LABELS[type] })),
 ];
 
 // The compact list/cards switch (Schedule-X list view + toolbar) and the
@@ -317,9 +314,8 @@ export default function Calendar() {
     ? "Upcoming events"
     : activeView === "week" ? periodLabel : monthTitle;
   usePeriodTravel(pageRef, visibleDate, periodTitle);
-  const typeCountsInStyleContext = countEventsByType(
-    filterEventsByDanceStyle(eventList, styleFilter)
-  );
+  const eventsInStyleContext = filterEventsByDanceStyle(eventList, styleFilter);
+  const typeCountsInStyleContext = countEventsByType(eventsInStyleContext);
   const sidebarTypeOptions = TYPE_OPTIONS.filter((option) => option.value !== "all").map(
     (option) => ({
       value: option.value as EventType,
@@ -374,6 +370,7 @@ export default function Calendar() {
           <CalendarSidebar
             periodLabel={isFeedView ? "Upcoming events" : periodLabel}
             typeOptions={sidebarTypeOptions}
+            totalCount={eventsInStyleContext.length}
             typeFilter={typeFilter}
             onTypeFilterChange={setTypeFilter}
             styleOptions={sidebarStyleOptions}

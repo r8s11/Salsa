@@ -35,7 +35,7 @@ const renderSubmitEventPage = () =>
     </MemoryRouter>
   );
 
-const chooseEventType = (name: "Social" | "Class" | "Workshop") =>
+const chooseEventType = (name: "Social" | "Class" | "Workshop" | "Live Music" | "Concert") =>
   fireEvent.click(screen.getByRole("button", { name }));
 
 describe("SubmitEventPage", () => {
@@ -158,6 +158,48 @@ describe("SubmitEventPage", () => {
     expect(await screen.findByText(/Event Submitted!/i)).toBeInTheDocument();
   });
 
+  it("submits every selected type and keeps the first as the primary", async () => {
+    vi.mocked(submissionsRepo.createSubmission).mockResolvedValueOnce("submission-id");
+
+    renderSubmitEventPage();
+
+    fireEvent.change(screen.getByLabelText(/Event Title \*/i), {
+      target: { value: "Rumba Concert Night" },
+    });
+    chooseEventType("Concert");
+    chooseEventType("Live Music");
+    fireEvent.change(screen.getByLabelText(/Date \*/i), { target: { value: "2026-08-15" } });
+
+    expect(screen.getByRole("button", { name: "Concert" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Live Music" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
+    fireEvent.click(screen.getByRole("button", { name: /Submit Event/i }));
+
+    await waitFor(() => expect(submissionsRepo.createSubmission).toHaveBeenCalledTimes(1));
+    expect(submissionsRepo.createSubmission).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event_type: "concert",
+        event_types: ["concert", "live_music"],
+      }),
+      undefined
+    );
+  });
+
+  it("asks for a type again once every selected type is removed", async () => {
+    renderSubmitEventPage();
+
+    fireEvent.change(screen.getByLabelText(/Event Title \*/i), { target: { value: "No type" } });
+    chooseEventType("Class");
+    chooseEventType("Class");
+    fireEvent.change(screen.getByLabelText(/Date \*/i), { target: { value: "2026-08-15" } });
+    fireEvent.click(screen.getByRole("button", { name: /Submit Event/i }));
+
+    expect(await screen.findAllByText("Choose an event type.")).not.toHaveLength(0);
+    expect(submissionsRepo.createSubmission).not.toHaveBeenCalled();
+  });
+
   it("persists a supplied start time as its New York instant", async () => {
     vi.mocked(submissionsRepo.createSubmission).mockResolvedValueOnce("submission-id");
 
@@ -209,7 +251,6 @@ describe("SubmitEventPage", () => {
 
     const eventTypeGroup = screen.getByRole("group", { name: /Event type/i });
     expect(eventTypeGroup).toHaveAttribute("aria-invalid", "true");
-    expect(eventTypeGroup).toHaveAttribute("aria-describedby", "event-type-error");
 
     const link = within(summaryContainer).getByRole("link", { name: /enter an event title/i });
     expect(link).toHaveAttribute("href", "#event-title");

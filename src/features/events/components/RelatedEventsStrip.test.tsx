@@ -42,6 +42,20 @@ function makeEvent(overrides: Partial<DatabaseEvent> = {}): DatabaseEvent {
 }
 
 describe("RelatedEventsStrip", () => {
+  it("lists every category of a multi-category event", () => {
+    render(
+      <MemoryRouter>
+        <RelatedEventsStrip
+          events={[makeEvent({ event_types: ["social", "concert"] })]}
+          city="boston"
+          hasStrictWindowEvents
+        />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText("Social · Concert")).toBeInTheDocument();
+  });
+
   it("renders up to three compact direct links with strict-window heading", () => {
     const first = makeEvent({ id: "first", title: "First Event" });
     const second = makeEvent({ id: "second", title: "Second Event" });

@@ -9,7 +9,9 @@ const baseProps = {
     { value: "class" as const, label: "Class", count: 1 },
     { value: "workshop" as const, label: "Workshop", count: 0 },
     { value: "live_music" as const, label: "Live Music", count: 1 },
+    { value: "concert" as const, label: "Concert", count: 1 },
   ],
+  totalCount: 4,
   typeFilter: "all" as const,
   onTypeFilterChange: vi.fn(),
   styleOptions: ["Bachata", "Salsa"],
@@ -32,6 +34,12 @@ describe("CalendarSidebar", () => {
     expect(screen.getByRole("button", { name: "Class 1" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Workshop 0" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Live Music 1" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Concert 1" })).toBeInTheDocument();
+  });
+
+  it("shows the distinct event total, not the sum of per-category counts", () => {
+    render(<CalendarSidebar {...baseProps} totalCount={3} />);
+    expect(screen.getByRole("button", { name: /All events/ })).toHaveTextContent("3");
   });
 
   it("marks only the selected type row pressed for a specific filter", () => {

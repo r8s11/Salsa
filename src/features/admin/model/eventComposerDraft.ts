@@ -2,6 +2,7 @@ import type { AdminEventForm } from "./adminEventForm";
 import { buildAdminFormFromEvent } from "./adminEventForm";
 import type { DatabaseEvent } from "../../events/model/types";
 import { readStoredEntityReview } from "../../entity-matching/entityReviewState";
+import { eventTypeFields, eventTypeFieldsFrom, selectedEventTypes } from "../../events/model/eventTypeSelection";
 
 export type ComposerIntent = "draft" | "save" | "publish";
 export type ComposerSaved = {
@@ -27,13 +28,18 @@ export function readComposerRecovery(
     if (value?.version !== 1 || !value.form || !Array.isArray(value.edited)) return null;
     const form = { ...initial };
     for (const key of Object.keys(initial) as (keyof AdminEventForm)[]) {
-      if (key === "entity_review") continue;
+      if (key === "entity_review" || key === "event_type" || key === "event_types") continue;
       const field = value.form[key];
       if (Array.isArray(initial[key])) {
         if (!Array.isArray(field) || !field.every((item) => typeof item === "string")) return null;
       } else if (typeof field !== typeof initial[key]) return null;
       Object.assign(form, { [key]: field });
     }
+    // Drafts saved before multi-select carry only the primary; a missing list is not corruption.
+    const { event_type, event_types } = value.form;
+    if (event_type !== undefined && typeof event_type !== "string") return null;
+    if (event_types !== undefined && !Array.isArray(event_types)) return null;
+    Object.assign(form, eventTypeFieldsFrom({ event_type, event_types }));
     const review = readStoredEntityReview(value.form.entity_review);
     if (review) form.entity_review = review;
     const saved =
@@ -48,7 +54,7 @@ export function readComposerRecovery(
       version: 1,
       form,
       saved,
-      edited: value.edited.filter((key: string) => key in initial),
+      edited: value.edited.filter((key: string) => key in initial || key === "event_types"),
     };
   } catch {
     return null;
@@ -93,6 +99,7 @@ export function applySeriesToComposer(
   }
   const next = { ...form, series_id: series.id };
   for (const key of Object.keys(defaults) as (keyof AdminEventForm)[]) {
+    if (key === "event_type" || key === "event_types") continue;
     if (preserveVenue && ["venue_id", "location", "address"].includes(key)) continue;
     if (
       ["event_date", "series_id", "recurrence", "submitter_name", "submitter_email"].includes(
@@ -104,5 +111,14 @@ export function applySeriesToComposer(
     const empty = !form[key] || (Array.isArray(form[key]) && form[key].length === 0);
     if (empty || key === "city") Object.assign(next, { [key]: defaults[key] });
   }
+  // The primary and the full selection travel together: a deliberate (even empty)
+  // selection is kept, otherwise the source occurrence supplies both.
+  const typesEdited = edited.has("event_type") || edited.has("event_types");
+  const ownTypes = selectedEventTypes(form);
+  const sourceTypes = previous ? selectedEventTypes(previous) : [];
+  Object.assign(
+    next,
+    eventTypeFields(!typesEdited && ownTypes.length === 0 ? sourceTypes : ownTypes)
+  );
   return next;
 }

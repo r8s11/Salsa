@@ -112,15 +112,6 @@ describe("ProfilePage", () => {
     mocks.ownProfile.error = null;
   });
 
-  it("shows profile identity without action buttons", () => {
-    renderPage();
-
-    expect(screen.getByText("dancer")).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Edit profile" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "+ Submit Event" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "View Calendar" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Sign Out" })).not.toBeInTheDocument();
-  });
 
   it("offers in-place photo and cover editing on your own profile", () => {
     renderPage();

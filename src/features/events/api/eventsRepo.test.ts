@@ -243,6 +243,7 @@ describe("eventsRepo user update", () => {
       title: "Updated Title",
       description: "Updated description",
       event_type: "workshop",
+      event_types: ["workshop", "concert"],
       city: "boston",
       event_date: "2026-08-20T20:00:00Z",
       event_time: "20:00",
@@ -259,6 +260,7 @@ describe("eventsRepo user update", () => {
       title: "Updated Title",
       description: "Updated description",
       event_type: "workshop",
+      event_types: ["workshop", "concert"],
       city: "boston",
       event_date: "2026-08-20T20:00:00Z",
       event_time: "20:00",
@@ -281,6 +283,7 @@ describe("eventsRepo user update", () => {
     await updateEventForUser("event-id", {
       title: "Updated",
       event_type: "social",
+      event_types: ["social"],
       city: "boston",
       event_date: "2026-08-20T20:00:00Z",
       dance_styles: [],
@@ -298,6 +301,7 @@ describe("eventsRepo user update", () => {
     expect(sentPayload).not.toHaveProperty("contact_email");
     expect(sentPayload).not.toHaveProperty("gallery");
     expect(sentPayload.image_url).toBe("https://storage.example.com/user-flyer.jpg");
+    expect(sentPayload.event_types).toEqual(["social"]);
   });
 
   it("throws the database error message when the update fails", async () => {
@@ -309,6 +313,7 @@ describe("eventsRepo user update", () => {
       updateEventForUser("event-id", {
         title: "Updated",
         event_type: "social",
+        event_types: ["social"],
         city: "boston",
         event_date: "2026-08-20T20:00:00Z",
         dance_styles: [],

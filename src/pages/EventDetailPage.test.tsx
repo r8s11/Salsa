@@ -92,6 +92,25 @@ describe("EventDetailPage", () => {
     vi.mocked(fetchApprovedEventById).mockResolvedValue(event);
     vi.mocked(fetchApprovedEvents).mockResolvedValue([event]);
   });
+  it.each([
+    { price_type: null, price_amount: null, expected: null },
+    { price_type: "paid" as const, price_amount: null, expected: null },
+    { price_type: "free" as const, price_amount: null, expected: "Free" },
+    { price_type: "paid" as const, price_amount: 0, expected: "$0" },
+    { price_type: "paid" as const, price_amount: 15, expected: "$15" },
+  ])("shows pricing only when available: $price_type / $price_amount", async ({ expected, ...pricing }) => {
+    vi.mocked(fetchApprovedEventById).mockResolvedValue({ ...event, ...pricing });
+    renderPage();
+    await screen.findByRole("heading", { name: "Havana Nights" });
+    if (expected === null) {
+      expect(document.querySelector(".event-page__strip-price")).not.toBeInTheDocument();
+    } else {
+      expect(screen.getByText(expected)).toBeInTheDocument();
+    }
+    expect(screen.queryByText("Pricing unavailable")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /add to calendar/i })).toBeInTheDocument();
+  });
+
   it("publishes event-specific metadata and structured data on the canonical host", async () => {
     window.history.replaceState({}, "", "/events/event-1");
     renderPage();
@@ -117,6 +136,17 @@ describe("EventDetailPage", () => {
     expect(JSON.parse(schema!.textContent!)).not.toHaveProperty("performer");
   });
 
+  it("shows every category as its own badge, Concert included", async () => {
+    vi.mocked(fetchApprovedEventById).mockResolvedValue({
+      ...event,
+      event_type: "social",
+      event_types: ["social", "concert"],
+    });
+    renderPage();
+    await screen.findByRole("heading", { name: "Havana Nights" });
+    expect(screen.getByText("Social")).toHaveClass("event-page__badge");
+    expect(screen.getByText("Concert")).toHaveClass("event-page__badge");
+  });
 
   it("renders the v2 cover, action strip, and sidebar cards", async () => {
     renderPage();

@@ -87,6 +87,13 @@ function desktopRowFor(title: string) {
 }
 
 describe("AdminEventsTable", () => {
+  it("lists every category of a multi-category event, Concert included", () => {
+    renderTable({
+      events: [{ ...baseEvent, event_type: "social", event_types: ["social", "concert"] }],
+    });
+    expect(screen.getAllByText(/Social, Concert/).length).toBeGreaterThan(0);
+  });
+
   it("renders the seven-column header", () => {
     renderTable();
     ["Event", "Date & Time", "Venue", "Organizer", "Source", "Status", "Actions"].forEach(

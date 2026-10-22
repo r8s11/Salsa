@@ -5,6 +5,8 @@ export type EventFormDraft = {
   title: string;
   description: string;
   event_type: EventType | "";
+  /** Full ordered selection; `event_type` is its first member. */
+  event_types?: EventType[];
   city: City;
   event_date: string;
   event_time: string;

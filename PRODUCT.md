@@ -34,6 +34,7 @@ Salsa Segura is a trusted local guide: public event listings are curated through
 ## Capabilities and Constraints
 
 - Public event discovery includes event cards, featured discovery, related-event strips, and a full calendar.
+- Events may have multiple categories: Social, Class, Workshop, Live Music and Concert. The first selected category determines the calendar color; category filters match any selection.
 - Public listings are restricted to approved events.
 - Submission, moderation, organizer, and administrative workflows are separate concerns.
 - Organizer actions must respect authenticated ownership and organizer memberships.

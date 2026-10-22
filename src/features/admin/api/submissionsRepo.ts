@@ -1,5 +1,6 @@
 import { supabase } from "../../../lib/supabase";
 import type { EventSubmission } from "../model/submissions";
+import type { EventType } from "../../events/model/types";
 import type { EntityReview } from "../../entity-matching/entityReview";
 
 export interface SubmissionUpdate {
@@ -19,6 +20,8 @@ export type SubmissionCreate = {
   title: string;
   description: string | null;
   event_type: string;
+  /** Full ordered selection; `event_type` is its first member. */
+  event_types: EventType[];
   city: string;
   event_date: string;
   event_time: string | null;

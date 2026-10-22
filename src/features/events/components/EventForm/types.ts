@@ -1,6 +1,7 @@
 import type { EntityReview } from "../../../entity-matching/entityReview";
 import type { City, EventType } from "../../model/types";
 import { toEventDateInstant } from "../../model/eventDateTime";
+import { eventTypePayload } from "../../model/eventTypeSelection";
 import { resolveEventTimeZone, type TimeZoneResolution } from "../../../../shared/utils/timezone";
 import type { SubmissionCreate } from "../../../admin/api/submissionsRepo";
 import type { AdminEventPayload, UserEventUpdatePayload } from "../../api/eventsRepo";
@@ -8,7 +9,10 @@ import type { AdminEventPayload, UserEventUpdatePayload } from "../../api/events
 export type EventFormDraft = {
   title: string;
   description: string;
+  /** Primary category: the first selected type, which colors the calendar. "" when none. */
   event_type: EventType | "";
+  /** Full ordered selection; `event_type` is always its first member. */
+  event_types?: EventType[];
   city: City;
   event_date: string;
   event_time: string;
@@ -140,7 +144,7 @@ export function draftToSubmission(draft: EventFormDraft, actor: Actor): Submissi
     submitter_name: actor?.name ?? (draft.submitter_name || null),
     title: draft.title,
     description: draft.description || null,
-    event_type: draft.event_type as EventType,
+    ...eventTypePayload(draft),
     city: draft.city,
     event_date: draftInstant(draft),
     event_time: draft.event_time || null,
@@ -159,7 +163,7 @@ export function draftToUserPayload(draft: EventFormDraft): UserEventUpdatePayloa
   return {
     title: draft.title,
     description: draft.description || null,
-    event_type: draft.event_type as EventType,
+    ...eventTypePayload(draft),
     city: draft.city,
     event_date: draftInstant(draft),
     event_time: draft.event_time || null,
@@ -178,7 +182,7 @@ export function draftToAdminPayload(draft: EventFormDraft): AdminEventPayload {
   return {
     title: draft.title,
     description: draft.description || null,
-    event_type: draft.event_type as EventType,
+    ...eventTypePayload(draft),
     city: draft.city,
     event_date: draftInstant(draft),
     event_time: draft.event_time || null,
@@ -218,7 +222,7 @@ export function draftToOrganizerUpdatePayload(draft: EventFormDraft): OrganizerU
   return {
     title: draft.title,
     description: draft.description || null,
-    event_type: draft.event_type as EventType,
+    ...eventTypePayload(draft),
     city: draft.city,
     event_date: draftInstant(draft),
     event_time: draft.event_time || null,
@@ -241,6 +245,7 @@ export type OrganizerUpdateDraftPayload = {
   title: string;
   description: string | null;
   event_type: string;
+  event_types: EventType[];
   city: string;
   event_date: string;
   event_time: string | null;

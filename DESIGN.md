@@ -521,6 +521,12 @@ runs dark (`isDark: true`), so each type carries only Schedule-X's
 | Class      | #7c93e9          | #2a3566 / #dfe3ff 9.21:1 | `blue-pale`    | `--text` on `blue-deep` 7.75:1 |
 | Workshop   | #e9c349          | #574500 / #fff0c2 8.20:1 | `gold-light`   | `on-secondary` on gold 7.74:1  |
 | Live Music | #ffb690          | #783200 / #ffdbca 7.20:1 | `tertiary`     | `--surface` on orange 10.09:1  |
+| Concert    | #ffb690          | #783200 / #ffdbca 7.20:1 | `tertiary`     | `--surface` on orange 10.09:1  |
+
+Concert reuses the Live Music palette; the system defines no further hue.
+An event may carry several categories (`event_types`). The first is the
+primary `event_type` and sets the single calendar colour; every category
+is shown as its own chip/badge and matched by the type filters.
 
 The main colour marks type as swatch and line: the sidebar's swatches and
 share rails, a list row's leading edge and type label (`--event-color`),
@@ -1634,3 +1640,22 @@ removed and selection changes land at once.
 - **Don't** show the Sleeve anywhere but the poster export and its
   thumbnail/preview inside the event modal.
 - **Don't** add a shadow anywhere on the poster; the Sleeve prints flat.
+
+### Profile edit access
+
+Public school, artist, venue, organizer and series pages expose a secondary
+Edit action beside the identity for platform admins, linking to the existing
+admin record editor. School, artist and venue owners/managers receive the
+same action linked to their workspace Profile editor; editors and unrelated
+visitors do not. The signed-in member's own `/profile` exposes Edit profile
+at the identity header, alongside the existing photo and cover controls.
+
+### Event detail refinements
+
+Unknown prices leave no placeholder on event pages. The action strip keeps
+address text flexible and reflows actions into full-width touch targets on
+phones. Event title and album headings follow the 32–48px and 24–32px ramps.
+Instagram Story help is a bordered, text-token tooltip above its trigger,
+revealed on pointer hover or keyboard focus rather than permanent body copy.
+It stays open while hovered, closes on pointer leave or blur, and Escape
+dismisses it without moving focus. Sharing and preview behavior are unchanged.

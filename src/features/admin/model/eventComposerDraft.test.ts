@@ -111,3 +111,113 @@ it("does not mix series venue links or addresses into a populated venue", () => 
   );
   expect(next).toMatchObject({ venue_id: "", location: "My venue", address: "" });
 });
+
+describe("composer event types", () => {
+  const multiSource: DatabaseEvent = {
+    ...source,
+    event_type: "live_music",
+    event_types: ["live_music", "concert"],
+  };
+
+  it("fills both type fields from the earlier occurrence without a mismatch", () => {
+    const next = applySeriesToComposer(
+      buildEmptyAdminForm("boston"),
+      { id: "series", name: "Series" },
+      multiSource,
+      new Set()
+    );
+    expect(next).toMatchObject({
+      event_type: "live_music",
+      event_types: ["live_music", "concert"],
+    });
+  });
+
+  it("keeps a deliberate selection, even when it only changed the list", () => {
+    const form = {
+      ...buildEmptyAdminForm("boston"),
+      event_type: "social" as const,
+      event_types: ["social" as const, "class" as const],
+    };
+    const next = applySeriesToComposer(
+      form,
+      { id: "series", name: "Series" },
+      multiSource,
+      new Set(["event_types"])
+    );
+    expect(next).toMatchObject({ event_type: "social", event_types: ["social", "class"] });
+  });
+
+  it("does not refill a selection the person deliberately cleared", () => {
+    const next = applySeriesToComposer(
+      buildEmptyAdminForm("boston"),
+      { id: "series", name: "Series" },
+      multiSource,
+      new Set(["event_type", "event_types"])
+    );
+    expect(next).toMatchObject({ event_type: "", event_types: [] });
+  });
+
+  it("completes a primary-only draft with a one-item list instead of the source list", () => {
+    const form = { ...buildEmptyAdminForm("boston"), event_type: "class" as const };
+    const next = applySeriesToComposer(form, { id: "series", name: "Series" }, multiSource, new Set());
+    expect(next).toMatchObject({ event_type: "class", event_types: ["class"] });
+  });
+
+  it("recovers a saved multi-type selection in order", () => {
+    const initial = buildEmptyAdminForm("boston");
+    const next = readComposerRecovery(
+      JSON.stringify({
+        version: 1,
+        form: { ...initial, event_type: "concert", event_types: ["concert", "workshop"] },
+        saved: null,
+        edited: ["event_types"],
+      }),
+      initial
+    );
+    expect(next?.form).toMatchObject({
+      event_type: "concert",
+      event_types: ["concert", "workshop"],
+    });
+    expect(next?.edited).toContain("event_types");
+  });
+
+  it("recovers a draft saved before multi-select from its primary type", () => {
+    const initial = buildEmptyAdminForm("boston");
+    const { event_types: _eventTypes, ...legacyForm } = initial;
+    const next = readComposerRecovery(
+      JSON.stringify({
+        version: 1,
+        form: { ...legacyForm, event_type: "class" },
+        saved: null,
+        edited: [],
+      }),
+      initial
+    );
+    expect(next?.form).toMatchObject({ event_type: "class", event_types: ["class"] });
+  });
+
+  it("recovers lists even when the initial form was built without the field", () => {
+    const { event_types: _eventTypes, ...initial } = buildEmptyAdminForm("boston");
+    const next = readComposerRecovery(
+      JSON.stringify({
+        version: 1,
+        form: { ...initial, event_type: "social", event_types: ["social", "concert"] },
+        saved: null,
+        edited: ["event_types"],
+      }),
+      initial
+    );
+    expect(next?.form).toMatchObject({ event_type: "social", event_types: ["social", "concert"] });
+    expect(next?.edited).toContain("event_types");
+  });
+
+  it("rejects a recovered list that is not an array", () => {
+    const initial = buildEmptyAdminForm("boston");
+    expect(
+      readComposerRecovery(
+        JSON.stringify({ version: 1, form: { ...initial, event_types: "social" }, edited: [] }),
+        initial
+      )
+    ).toBeNull();
+  });
+});

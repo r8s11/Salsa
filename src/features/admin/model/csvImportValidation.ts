@@ -1,4 +1,4 @@
-import type { EventTaxonomyTerm } from "../../events/model/types";
+import { EVENT_TYPES, isEventType, type EventTaxonomyTerm } from "../../events/model/types";
 import type { AdminEventForm } from "./adminEventForm";
 import { HOST_MAX_LENGTH, INSTAGRAM_MAX_LENGTH } from "./adminEventForm";
 import {
@@ -14,12 +14,6 @@ import { draftToAdminPayload } from "../../events/components/EventForm";
 // maximum length because it has no live character feedback.
 const IMAGE_URL_MAX_LENGTH = 2000;
 
-const EVENT_TYPES: Record<string, true> = {
-  social: true,
-  class: true,
-  workshop: true,
-  live_music: true,
-};
 const PRICE_TYPES: Record<string, true> = { free: true, paid: true, "": true };
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
@@ -111,6 +105,7 @@ export function validateCsvRow(
 
   const title = raw.title ?? "";
   const eventType = raw.event_type ?? "";
+  const eventTypes = [...new Set(splitList(eventType))];
   const eventDate = raw.event_date ?? "";
   const city = raw.city ?? "";
   const eventTime = raw.event_time ?? "";
@@ -132,11 +127,11 @@ export function validateCsvRow(
   else if (title.length > TITLE_MAX_LENGTH)
     errors.push({ field: "title", message: `Must be ${TITLE_MAX_LENGTH} characters or fewer.` });
 
-  if (!eventType) errors.push({ field: "event_type", message: "event_type is required." });
-  else if (!EVENT_TYPES[eventType])
+  if (!eventTypes.length) errors.push({ field: "event_type", message: "event_type is required." });
+  else if (!eventTypes.every(isEventType))
     errors.push({
       field: "event_type",
-      message: "Must be one of: social, class, workshop, live_music.",
+      message: `Use categories separated by semicolons: ${EVENT_TYPES.join(", ")}.`,
     });
 
   if (!city) errors.push({ field: "city", message: "city is required." });
@@ -252,7 +247,8 @@ export function validateCsvRow(
     const form: AdminEventForm = {
       title: title.trim(),
       description,
-      event_type: eventType as AdminEventForm["event_type"],
+      event_type: eventTypes[0] as AdminEventForm["event_type"],
+      event_types: eventTypes.filter(isEventType),
       city: city as AdminEventForm["city"],
       event_date: eventDate,
       event_time: eventTime,

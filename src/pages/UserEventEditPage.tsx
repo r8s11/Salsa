@@ -24,6 +24,7 @@ import EventForm, {
 import type { EventFormDraft } from "../features/events/components/EventForm";
 import EventFlyerField from "../features/events/components/EventFlyerField";
 import { fromEventDateInstant } from "../features/events/model/eventDateTime";
+import { eventTypeFieldsFrom } from "../features/events/model/eventTypeSelection";
 import { validateSubmitForm } from "../features/submit-event/model/validation";
 import { useMySubmissions } from "../features/account/hooks/useMySubmissions";
 import "../styles/forms.css";
@@ -35,7 +36,7 @@ function buildUserDraft(event: DatabaseEvent): EventFormDraft {
   return {
     title: event.title,
     description: event.description ?? "",
-    event_type: event.event_type,
+    ...eventTypeFieldsFrom(event),
     city: event.city,
     event_date: date,
     event_time: time,
@@ -183,6 +184,7 @@ export default function UserEventEditPage() {
       title: form.title,
       description: form.description,
       event_type: form.event_type,
+      event_types: form.event_types,
       city: form.city,
       event_date: form.event_date,
       event_time: form.event_time,

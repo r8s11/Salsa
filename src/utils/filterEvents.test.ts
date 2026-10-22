@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { filterEventsByType } from "./filterEvents";
 import { ScheduleXEvent } from "../types/events";
+import { CALENDARS_CONFIG } from "../features/events/model/calendarsConfig";
 
 const make = (id: number, calendarId: ScheduleXEvent["calendarId"]): ScheduleXEvent => ({
   id,
@@ -33,5 +34,21 @@ describe("filterEventsByType", () => {
 
   it("returns an empty array when nothing matches", () => {
     expect(filterEventsByType([make(1, "class")], "workshop")).toEqual([]);
+  });
+
+  it("matches a secondary category, not just the primary calendar colour", () => {
+    const multi: ScheduleXEvent = {
+      ...make(6, "social"),
+      eventTypes: ["social", "concert"],
+    };
+    const all = [...events, multi];
+    expect(filterEventsByType(all, "concert").map((event) => event.id)).toEqual([6]);
+    expect(filterEventsByType(all, "social").map((event) => event.id)).toEqual([1, 4, 6]);
+    expect(filterEventsByType(all, "live_music").map((event) => event.id)).toEqual([5]);
+  });
+
+  it("has a calendar colour for Concert alongside Live Music", () => {
+    expect(CALENDARS_CONFIG.concert.darkColors.main).toBe(CALENDARS_CONFIG.live_music.darkColors.main);
+    expect(filterEventsByType([make(7, "concert")], "concert")).toHaveLength(1);
   });
 });

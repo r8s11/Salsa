@@ -68,7 +68,8 @@
   color: var(--text);
   outline: 1px solid var(--border);
 }
-.related-events-strip__badge--live_music {
+.related-events-strip__badge--live_music,
+.related-events-strip__badge--concert {
   background-color: var(--tertiary);
   color: var(--on-tertiary);
 }
@@ -103,7 +104,8 @@
   white-space: nowrap;
 }
 
-.related-events-strip__time {
+.related-events-strip__time,
+.related-events-strip__types {
   font-size: 0.75rem;
   color: var(--text-muted);
 }

@@ -15,6 +15,8 @@ import {
 import { publicErrorMessage } from "../../../shared/forms/errorMessage";
 import { notifySubmissionReceived } from "../api/submissionNotification";
 import type { EventFormDraft } from "../../events/components/EventForm";
+import type { EventType } from "../../events/model/types";
+import { eventTypeFields } from "../../events/model/eventTypeSelection";
 import { draftToSubmission } from "../../events/components/EventForm";
 import type { EventFlyerStatus } from "../../events/components/EventFlyerField";
 import { extractEventFromFlyer } from "../../flyer-extraction/client";
@@ -148,10 +150,17 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
 
   const update = <K extends keyof EventFormDraft>(field: K, value: EventFormDraft[K]) => {
     if (field === "city") cityChosenRef.current = true;
+    // The primary and the full selection are one fact; never write just one of them.
+    const typeFields =
+      field === "event_types"
+        ? eventTypeFields((value as EventType[] | undefined) ?? [])
+        : field === "event_type"
+          ? eventTypeFields(value ? [value as EventType] : [])
+          : {};
     setForm((previous) =>
-      detachAutoVenueLink(previous, { ...previous, [field]: value } as EventFormDraft)
+      detachAutoVenueLink(previous, { ...previous, [field]: value, ...typeFields } as EventFormDraft)
     );
-    clearFieldError(field);
+    clearFieldError(field === "event_types" ? "event_type" : field);
   };
   // Applies a draft produced by extraction. Unlike `onChange` it is not the
   // person choosing a city, so it must not lock the city against later extractions.
@@ -365,6 +374,7 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
         title: form.title,
         description: form.description,
         event_type: form.event_type,
+        event_types: form.event_types,
         city: form.city,
         event_date: form.event_date,
         event_time: form.event_time,

@@ -5,6 +5,7 @@ import { canonicalUrl } from "../utils/seo";
 import { useEntityDetail } from "../features/entities/hooks/useEntityDetail";
 import { InstructorProfile } from "../features/entities/components/InstructorProfile";
 import { SchoolProfile } from "../features/entities/components/SchoolProfile";
+import { EntityEditButton } from "../features/entities/components/EntityEditButton";
 import { entityExternalLinks } from "../features/entities/externalLinks";
 import { entityLocation, formatEventDate } from "../features/entities/format";
 import {
@@ -117,6 +118,7 @@ export default function PublicEntityPage({ kind }: { kind: PublicEntityKind }) {
       )}
       <header className="public-entity-page__intro">
         <h1 id="public-entity-title">{entity.name}</h1>
+        <EntityEditButton kind={kind} id={entity.id} />
         <p className="public-entity-page__kind">{ENTITY_LABELS[kind]}</p>
         {location && <p className="public-entity-page__location">{location}</p>}
         {entity.description && (

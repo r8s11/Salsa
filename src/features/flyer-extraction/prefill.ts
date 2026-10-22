@@ -40,6 +40,8 @@ const EVENT_TYPE_ALIASES: Record<string, EventType> = {
   "live music": "live_music",
   "live-music": "live_music",
   live_music: "live_music",
+  concert: "concert",
+  concerts: "concert",
 };
 
 /** The slug-chips `EventForm` offers on the submit surface. */
@@ -69,8 +71,11 @@ function mapDanceStyles(values: string[]): string[] {
   );
 }
 
-function mapEventType(value: string): EventType | null {
-  return EVENT_TYPE_ALIASES[value.trim().toLowerCase()] ?? null;
+function mapEventTypes(value: string): EventType[] {
+  const mapped = value.split(/[,/+&]|\band\b/i).map(
+    (part) => EVENT_TYPE_ALIASES[part.trim().toLowerCase()]
+  );
+  return mapped.every(Boolean) ? [...new Set(mapped)] : [];
 }
 
 function mapCity(
@@ -130,11 +135,12 @@ export function applyExtractionToDraft(
   }
 
   if (extraction.event_type) {
-    const mapped = mapEventType(extraction.event_type);
-    if (mapped && !next.event_type) {
-      next.event_type = mapped;
+    const mapped = mapEventTypes(extraction.event_type);
+    if (mapped.length && !next.event_type && !next.event_types?.length) {
+      next.event_type = mapped[0];
+      next.event_types = mapped;
       filled.push("Event type");
-    } else if (!mapped) {
+    } else if (!mapped.length) {
       skipped.push("Event type");
     }
   }

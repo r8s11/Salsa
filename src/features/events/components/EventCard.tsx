@@ -4,15 +4,9 @@ import { entityHref } from "../../entities/model";
 import EventEntityLinks from "./EventEntityLinks";
 import type { ScheduleXEvent } from "../../../types/events";
 import { isRecentlyApproved } from "../model/recentlyApproved";
+import { eventTypeCardLabel, scheduleXEventTypes } from "../model/eventTypeDisplay";
 import { resolveEventFlyer } from "./event-modal/eventModalImage";
 import "./Events.css";
-
-const TYPE_LABELS: Record<string, string> = {
-  social: "Social Dance",
-  class: "Class",
-  workshop: "Workshop",
-  live_music: "Live Music",
-};
 
 export default function EventCard({
   event,
@@ -60,8 +54,12 @@ export default function EventCard({
               : undefined
           }
         />
-        <span className={`event-card-chip event-card-chip--${event.calendarId}`}>
-          {TYPE_LABELS[event.calendarId] ?? event.calendarId}
+        <span className="event-card-chips">
+          {scheduleXEventTypes(event).map((type) => (
+            <span key={type} className={`event-card-chip event-card-chip--${type}`}>
+              {eventTypeCardLabel(type)}
+            </span>
+          ))}
         </span>
         {showRecentlyApproved && <span className="recently-approved-badge">Just approved</span>}
         <div className="event-card-date-overlay">

@@ -306,18 +306,22 @@ describe("quick-look region", () => {
     // Date is shown without a year.
     expect(screen.getByText(/Monday, August 24/i)).toBeInTheDocument();
     expect(screen.queryByText(/Monday, August 24, 2026/i)).not.toBeInTheDocument();
-    expect(screen.getByText("class")).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: "Beginner Salsa Class", level: 2 })
     ).toBeInTheDocument();
     expect(screen.getByText(/7:00 PM - 11:00 PM/i)).toBeInTheDocument();
     expect(container.querySelector(".night-card__price-amount")).toHaveTextContent("Free");
   });
-  it("renders Live Music event type as a readable label", () => {
+
+  it("shows every selected category, with Concert as its own chip", () => {
     render(
-      <EventModal event={{ ...classEvent, calendarId: "live_music" }} onClose={vi.fn()} />
+      <EventModal
+        event={{ ...classEvent, calendarId: "social", eventTypes: ["social", "concert"] }}
+        onClose={vi.fn()}
+      />
     );
-    expect(screen.getByText("Live Music")).toBeInTheDocument();
+    expect(screen.getByText("Social")).toHaveClass("chip-social");
+    expect(screen.getByText("Concert")).toHaveClass("chip-concert");
   });
 
   it("does not invent class metadata that is absent from the event", () => {

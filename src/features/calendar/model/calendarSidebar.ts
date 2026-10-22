@@ -3,7 +3,8 @@
 // style filtering. No React, no Schedule-X dependency beyond ScheduleXEvent.
 
 import "temporal-polyfill/global";
-import { EventType, ScheduleXEvent } from "../../events/model/types";
+import { EVENT_TYPES, EventType, ScheduleXEvent } from "../../events/model/types";
+import { scheduleXEventTypes } from "../../events/model/eventTypeDisplay";
 
 export type CalendarSidebarView = "month-grid" | "week" | "list";
 
@@ -50,15 +51,14 @@ export function formatPeriodLabel(range: PeriodRange): string {
   return `${startMonth} ${start.day}, ${start.year} – ${endMonth} ${end.day}, ${end.year}`;
 }
 
+/** Counts events per category; an event with several categories counts once in each. */
 export function countEventsByType(events: ScheduleXEvent[]): Record<EventType, number> {
-  const counts: Record<EventType, number> = {
-    social: 0,
-    class: 0,
-    workshop: 0,
-    live_music: 0,
-  };
+  const counts = Object.fromEntries(EVENT_TYPES.map((type) => [type, 0])) as Record<
+    EventType,
+    number
+  >;
   for (const event of events) {
-    counts[event.calendarId] = (counts[event.calendarId] ?? 0) + 1;
+    for (const type of scheduleXEventTypes(event)) counts[type] += 1;
   }
   return counts;
 }

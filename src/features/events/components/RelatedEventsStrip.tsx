@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import type { City, DatabaseEvent } from "../model/types";
+import { getEventTypes, type City, type DatabaseEvent } from "../model/types";
+import { eventTypeLabels } from "../model/eventTypeDisplay";
 import { isRecentlyApproved } from "../model/recentlyApproved";
 import { resolveEventFlyer } from "./event-modal/eventModalImage";
 import { useMetroName } from "../../metros/hooks/useMetros";
@@ -33,6 +34,7 @@ export function RelatedEventsStrip({
       const valid = !Number.isNaN(date.getTime());
       return {
         event,
+        typeLabels: eventTypeLabels(getEventTypes(event)).join(" · "),
         weekday: valid ? dateFormatter.format(date) : "",
         day: valid ? dayFormatter.format(date) : "",
         month: valid ? monthFormatter.format(date) : "",
@@ -60,7 +62,7 @@ export function RelatedEventsStrip({
         {heading}
       </h2>
       <ul className="related-events-strip__list">
-        {cards.map(({ event, weekday, day, month, time, thumbSrc, showRecentlyApproved }) => (
+        {cards.map(({ event, typeLabels, weekday, day, month, time, thumbSrc, showRecentlyApproved }) => (
           <li key={event.id} className="related-events-strip__item">
             <Link
               to={`/events/${event.slug || event.id}`}
@@ -87,6 +89,7 @@ export function RelatedEventsStrip({
                   <span className="recently-approved-badge">Just approved</span>
                 )}
                 <span className="related-events-strip__title">{event.title}</span>
+                {typeLabels && <span className="related-events-strip__types">{typeLabels}</span>}
                 {time && <time className="related-events-strip__time">{time}</time>}
               </span>
             </Link>

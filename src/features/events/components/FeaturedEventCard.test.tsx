@@ -39,6 +39,12 @@ describe("FeaturedEventCard", () => {
     expect(screen.getByText(/rotating DJs/)).toBeInTheDocument();
   });
 
+  it("shows every selected category, Concert included", () => {
+    renderCard({ ...baseEvent, eventTypes: ["social", "concert"] });
+    expect(screen.getByText("Social Dance")).toBeInTheDocument();
+    expect(screen.getByText("Concert")).toHaveClass("event-type", "concert");
+  });
+
   it("shows the recently approved indicator for moderator-approved events", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-09-01T12:00:00Z"));

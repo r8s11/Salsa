@@ -1,5 +1,5 @@
 import { supabase } from "../../../lib/supabase";
-import type { DatabaseEvent } from "../../events/model/types";
+import type { DatabaseEvent, EventType } from "../../events/model/types";
 import { projectEventTaxonomy } from "../../events/api/eventsRepo";
 
 export type OrganizerMemberRole = "owner" | "manager" | "editor";
@@ -143,6 +143,8 @@ export type OrganizerEventUpdatePayload = {
   title?: string;
   description?: string | null;
   event_type?: string;
+  /** Full ordered selection; `event_type` is its first member. */
+  event_types?: EventType[];
   city?: string;
   event_date?: string;
   event_time?: string | null;

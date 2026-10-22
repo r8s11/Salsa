@@ -1,7 +1,29 @@
 import type { PublicEventEntities } from "../../entities/model";
 
 import type { EntityReview } from "../../entity-matching/entityReview";
-export type EventType = "social" | "class" | "workshop" | "live_music";
+export const EVENT_TYPES = ["social", "class", "workshop", "live_music", "concert"] as const;
+export type EventType = (typeof EVENT_TYPES)[number];
+export const EVENT_TYPE_LABELS: Record<EventType, string> = {
+  social: "Social",
+  class: "Class",
+  workshop: "Workshop",
+  live_music: "Live Music",
+  concert: "Concert",
+};
+
+export function isEventType(value: unknown): value is EventType {
+  return typeof value === "string" && EVENT_TYPES.some((type) => type === value);
+}
+
+/** The primary category also serves producers that only supply one category. */
+export function getEventTypes(event: {
+  event_type: EventType | "";
+  event_types?: readonly EventType[];
+}): EventType[] {
+  return event.event_types?.length
+    ? [...new Set(event.event_types)]
+    : event.event_type ? [event.event_type] : [];
+}
 /** Canonical metro slug (public.metros.slug), e.g. "new-york-city". */
 export type City = string;
 
@@ -21,6 +43,8 @@ export interface DatabaseEvent {
   title: string;
   description: string | null;
   event_type: EventType;
+  /** Ordered categories; the first determines the calendar color. */
+  event_types?: EventType[];
   event_date: string; //ISO timestamp from database
   event_time: string | null;
   location: string | null;
@@ -82,6 +106,7 @@ export interface ScheduleXEvent {
   start: string;
   end: string;
   calendarId: EventType;
+  eventTypes?: EventType[];
   location?: string;
   description?: string;
   address?: string;

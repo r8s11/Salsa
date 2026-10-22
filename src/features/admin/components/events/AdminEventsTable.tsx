@@ -24,7 +24,8 @@ import {
   ImagePlus,
   ImageOff,
 } from "lucide-react";
-import type { DatabaseEvent } from "../../../events/model/types";
+import { getEventTypes, type DatabaseEvent } from "../../../events/model/types";
+import { eventTypeLabels } from "../../../events/model/eventTypeDisplay";
 import { resolveEventFlyer } from "../../../events/components/event-modal/eventModalImage";
 import { fromEventDateInstant, formatTimeLabel } from "../../../events/model/eventDateTime";
 import { qualityIssues, QUALITY_ISSUE_LABEL } from "../../model/overviewMetrics";
@@ -96,9 +97,8 @@ const SOURCE_ICON: Record<DatabaseEvent["source_type"], typeof Shield> = {
   imported: Download,
 };
 
-function titleCase(value: string | null | undefined): string {
-  if (!value) return "Unknown";
-  return value.replace(/[-_]/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+function eventTypeSummary(event: DatabaseEvent): string {
+  return eventTypeLabels(getEventTypes(event)).join(", ") || "Unknown";
 }
 
 function formatDateLine(iso: string): { date: string; time: string } {
@@ -314,7 +314,7 @@ function EventCell({
           {event.title}
         </Link>
         <p className="admin-events-table__meta">
-          {titleCase(event.event_type)}
+          {eventTypeSummary(event)}
           {!hideCity && ` · ${metroName(event.city)}`}
         </p>
         <p className="admin-events-table__secondary-line">
@@ -645,7 +645,7 @@ export default function AdminEventsTable({
                     <AdminStatusBadge status={event.status} />
                   </div>
                   <p className="admin-events-table__meta">
-                    {titleCase(event.event_type)}
+                    {eventTypeSummary(event)}
                     {!hideCity && ` · ${metroName(event.city)}`}
                   </p>
                   <AdminQualityBadge

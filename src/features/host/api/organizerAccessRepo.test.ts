@@ -147,6 +147,24 @@ describe("createOrganizerEvent", () => {
       p_publish: true,
     });
   });
+
+  it("forwards the full event type list without stripping it", async () => {
+    mocks.rpc.mockResolvedValue({ data: "evt-new", error: null });
+    const payload = {
+      title: "Rumba Night",
+      event_type: "concert",
+      event_types: ["concert" as const, "live_music" as const],
+      dance_styles: [],
+    };
+
+    await createOrganizerEvent("org-1", payload, false);
+
+    expect(mocks.rpc).toHaveBeenCalledWith("organizer_create_event", {
+      p_organizer_id: "org-1",
+      p_payload: payload,
+      p_publish: false,
+    });
+  });
 });
 
 describe("deleteOrganizerEvent", () => {

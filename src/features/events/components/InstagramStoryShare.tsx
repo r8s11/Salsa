@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { Camera, Download, Link2, Share2, X } from "lucide-react";
 import { useEscapeKey } from "../../calendar/hooks/useEscapeKey";
 import { useShareablePoster } from "../../calendar/hooks/useShareablePoster";
@@ -40,6 +40,8 @@ export default function InstagramStoryShare({
   const [story, setStory] = useState<{ blob: Blob; previewUrl: string } | null>(null);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const previewUrlRef = useRef<string | null>(null);
+  const hintId = useId();
+  const [hintOpen, setHintOpen] = useState(false);
 
   const releasePreview = useCallback(() => {
     if (previewUrlRef.current) {
@@ -154,18 +156,33 @@ export default function InstagramStoryShare({
 
   return (
     <>
-      <button
-        type="button"
-        className="story-share__trigger"
-        onClick={handleGenerate}
-        disabled={isGenerating}
+      <div
+        className="story-share__help"
+        onMouseEnter={() => setHintOpen(true)}
+        onMouseLeave={() => setHintOpen(false)}
+        onFocus={() => setHintOpen(true)}
+        onBlur={() => setHintOpen(false)}
+        onKeyDown={(event) => {
+          if (event.key === "Escape") setHintOpen(false);
+        }}
       >
-        <Camera size={16} aria-hidden="true" />
-        {isGenerating ? "Creating Story…" : "Instagram Story"}
-      </button>
-      <p className="story-share__hint">
-        Creates a 9:16 Story image you can post from your phone's share sheet.
-      </p>
+        <button
+          type="button"
+          className="story-share__trigger"
+          onClick={() => {
+            setHintOpen(false);
+            void handleGenerate();
+          }}
+          disabled={isGenerating}
+          aria-describedby={hintId}
+        >
+          <Camera size={16} aria-hidden="true" />
+          {isGenerating ? "Creating Story…" : "Instagram Story"}
+        </button>
+        <p id={hintId} role="tooltip" className="story-share__hint" hidden={!hintOpen}>
+          Creates a 9:16 Story image you can post from your phone's share sheet.
+        </p>
+      </div>
       {feedback && (
         <p className="story-share__feedback" role={feedback.kind === "error" ? "alert" : "status"}>
           {feedback.message}

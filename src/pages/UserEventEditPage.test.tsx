@@ -148,6 +148,58 @@ describe("UserEventEditPage save flow", () => {
     expect(payloadArg).not.toHaveProperty("submitter_id");
   });
 
+  it("reloads every saved event type and saves edits to the selection", async () => {
+    mocks.useMySubmissions.mockReturnValue({
+      submissions: [{ ...pendingEvent, event_type: "concert", event_types: ["concert", "class"] }],
+      approvedEvents: [],
+      isLoading: false,
+      error: null,
+    });
+    mocks.updateEventForUser.mockResolvedValueOnce(undefined);
+
+    renderPage();
+
+    await screen.findByDisplayValue("Pending Event");
+    expect(screen.getByRole("button", { name: "Concert" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Class" })).toHaveAttribute("aria-pressed", "true");
+
+    fireEvent.click(screen.getByRole("button", { name: "Concert" }));
+    fireEvent.click(screen.getByRole("button", { name: "Workshop" }));
+    fireEvent.click(screen.getByRole("button", { name: /Save changes/i }));
+
+    await waitFor(() => expect(mocks.updateEventForUser).toHaveBeenCalledTimes(1));
+    expect(mocks.updateEventForUser.mock.calls[0][1]).toMatchObject({
+      event_type: "class",
+      event_types: ["class", "workshop"],
+    });
+  });
+
+  it("keeps the owner's selection on a moderation submission edit", async () => {
+    mocks.useMySubmissions.mockReturnValue({
+      submissions: [{ ...pendingSubmissionEvent, event_types: ["social", "live_music"] }],
+      approvedEvents: [],
+      isLoading: false,
+      error: null,
+    });
+    mocks.updateOwnEventSubmission.mockResolvedValueOnce(undefined);
+
+    renderPageFor("submission-id");
+
+    await screen.findByDisplayValue("Pending Event");
+    fireEvent.click(screen.getByRole("button", { name: "Concert" }));
+    fireEvent.click(screen.getByRole("button", { name: /Save changes/i }));
+
+    await waitFor(() => {
+      expect(mocks.updateOwnEventSubmission).toHaveBeenCalledWith(
+        "submission-id",
+        expect.objectContaining({
+          event_type: "social",
+          event_types: ["social", "live_music", "concert"],
+        })
+      );
+    });
+  });
+
   it("saves a projected moderation submission through edited_data, not canonical events", async () => {
     mocks.useMySubmissions.mockReturnValue({
       submissions: [pendingSubmissionEvent],

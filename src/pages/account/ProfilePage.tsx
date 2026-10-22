@@ -16,8 +16,10 @@ import {
   profileTagline,
 } from "../../features/account/model/publicProfile";
 import { DANCE_STYLES } from "../../features/admin/model/eventsQuery";
-import type { DatabaseEvent } from "../../features/events/model/types";
-import { ArrowRight, Camera } from "lucide-react";
+import { getEventTypes, type DatabaseEvent } from "../../features/events/model/types";
+import { eventTypeLabels } from "../../features/events/model/eventTypeDisplay";
+import { ArrowRight, Camera, Pencil } from "lucide-react";
+import ButtonLink from "../../components/ui/ButtonLink";
 import "./ProfilePage.css";
 
 function formatEventDate(isoDate: string): string {
@@ -44,21 +46,6 @@ function formatEventTime(event: DatabaseEvent): string {
   if (event.event_time) return event.event_time;
   const zdt = Temporal.Instant.from(event.event_date).toZonedDateTimeISO("America/New_York");
   return zdt.toLocaleString("en-US", { hour: "numeric", minute: "2-digit" });
-}
-
-function eventTypeLabel(type: DatabaseEvent["event_type"]): string {
-  switch (type) {
-    case "social":
-      return "Social";
-    case "class":
-      return "Class";
-    case "workshop":
-      return "Workshop";
-    case "live_music":
-      return "Live Music";
-    default:
-      return "Event";
-  }
 }
 
 /** Which audience's view of the activity numbers is on screen. */
@@ -228,6 +215,12 @@ export default function ProfilePage() {
           {identity?.usernameLine && <p className="profile-username">{identity.usernameLine}</p>}
           <p className="profile-member-since">{tagline}</p>
         </div>
+        {isOwnProfile && (
+          <ButtonLink to="/profile/edit" variant="secondary">
+            <Pencil size={16} aria-hidden="true" />
+            Edit profile
+          </ButtonLink>
+        )}
       </div>
 
       {styleLabels.length > 0 && (
@@ -384,7 +377,8 @@ export default function ProfilePage() {
                 <div className="profile-submission-info">
                   <h3 className="profile-submission-title">{event.title}</h3>
                   <p className="profile-submission-meta">
-                    {eventTypeLabel(event.event_type)} · {formatEventWeekday(event.event_date)},{" "}
+                    {eventTypeLabels(getEventTypes(event)).join(", ") || "Event"} ·{" "}
+                    {formatEventWeekday(event.event_date)},{" "}
                     {formatEventDate(event.event_date)} · {formatEventTime(event)}
                   </p>
                   <p className="profile-submission-location">

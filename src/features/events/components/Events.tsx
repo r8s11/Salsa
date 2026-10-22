@@ -14,15 +14,12 @@ import EventCard from "./EventCard";
 import FeaturedEventCard from "./FeaturedEventCard";
 import EventModal from "./event-modal/EventModal";
 import { filterEventsByType, TypeFilter } from "../../../utils/filterEvents";
-import type { ScheduleXEvent } from "../../../types/events";
+import { EVENT_TYPES, EVENT_TYPE_LABELS, type ScheduleXEvent } from "../model/types";
 import "./Events.css";
 
 const FILTER_OPTIONS: { value: TypeFilter; label: string }[] = [
   { value: "all", label: "All" },
-  { value: "social", label: "Social" },
-  { value: "class", label: "Class" },
-  { value: "workshop", label: "Workshop" },
-  { value: "live_music", label: "Live Music" },
+  ...EVENT_TYPES.map((type) => ({ value: type, label: EVENT_TYPE_LABELS[type] })),
 ];
 
 function Events() {

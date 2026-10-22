@@ -50,6 +50,17 @@ describe("CalendarListView", () => {
     expect(onSelect).toHaveBeenCalledWith(selectedEvent);
   });
 
+  it("labels every selected category and renders Concert without a colour lookup crash", () => {
+    const event: ScheduleXEvent = {
+      ...makeEvent("multi", "Concert night", "2026-09-15 20:00"),
+      calendarId: "concert",
+      eventTypes: ["concert", "social"],
+    };
+    render(<CalendarListView events={[event]} onSelect={vi.fn()} />);
+
+    expect(screen.getByText("Concert · Social")).toBeInTheDocument();
+  });
+
   it("shows an overnight event's full time range, description, and dance styles", () => {
     const event = {
       ...makeEvent("overnight", "Late social", "2026-09-15 22:00"),

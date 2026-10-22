@@ -2,11 +2,7 @@
   "permissions": {
     "allow": [
       "Bash(npx expo prebuild:*)",
-      "mcp__codegraph__*",
-      "Bash(graft:*)",
-      "Bash(npx graft:*)",
-      "Bash(graft-dev:*)",
-      "Bash(node dist/cli.js:*)"
+      "mcp__codegraph__*"
     ]
   },
   "hooks": {
@@ -18,37 +14,6 @@
             "command": "codegraph prompt-hook"
           }
         ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"${CLAUDE_PROJECT_DIR:-.}/.claude/helpers/graft-hooks.cjs\" prompt",
-            "timeout": 15000
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"${CLAUDE_PROJECT_DIR:-.}/.claude/helpers/graft-hooks.cjs\" post-edit",
-            "timeout": 10000
-          }
-        ]
-      },
-      {
-        "matcher": "Bash|mcp__graft__|Read|Grep|Glob",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"${CLAUDE_PROJECT_DIR:-.}/.claude/helpers/graft-hooks.cjs\" tool-savings",
-            "timeout": 8000
-          }
-        ]
       }
     ],
     "SessionStart": [
@@ -56,33 +21,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PROJECT_DIR:-.}/.claude/helpers/graft-hooks.cjs\" session-start",
-            "timeout": 8000
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"${CLAUDE_PROJECT_DIR:-.}/.claude/helpers/graft-hooks.cjs\" stop",
+            "command": "node \"${CLAUDE_PROJECT_DIR:-.}/.trail/hook.cjs\" session-start",
             "timeout": 8000
           }
         ]
       }
     ]
-  },
-  "statusLine": {
-    "type": "command",
-    "command": "node \"${CLAUDE_PROJECT_DIR:-.}/.claude/helpers/graft-statusline.cjs\""
-  },
-  "subagentStatusLine": {
-    "type": "command",
-    "command": "node \"${CLAUDE_PROJECT_DIR:-.}/.claude/helpers/graft-statusline.cjs\""
-  },
-  "footerLinksRegexes": [
-    "graft/[\\w./-]+\\.md"
-  ]
+  }
 }

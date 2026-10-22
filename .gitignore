@@ -72,8 +72,9 @@ typings/
 # dotenv environment variables file
 .env
 .env.test
-.env.local
+.env.local*
 .env.production*
+.env.todo
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -187,3 +188,6 @@ graphify-out/
 .pi
 /agent/
 /data/skills/
+/docs
+
+videos/

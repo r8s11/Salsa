@@ -1,7 +1,8 @@
 import "temporal-polyfill/global";
 import { describe, it, expect } from "vitest";
 import { databaseEventToScheduleX } from "./convert";
-import { DatabaseEvent } from "./types";
+import { DatabaseEvent, EventType } from "./types";
+import { CALENDARS_CONFIG } from "./calendarsConfig";
 
 const mockEvent = (overrides: Partial<DatabaseEvent> = {}): DatabaseEvent => ({
   id: "test-id",
@@ -197,5 +198,13 @@ describe("databaseEventToScheduleX time zone", () => {
   it("does not silently use UTC", () => {
     const result = databaseEventToScheduleX(mockEvent({ city: "los-angeles" }));
     expect(result.timeZone).not.toBe("UTC");
+  });
+  it("keeps every event on a calendar the views can colour, even an unknown type", () => {
+    // Production held approved rows typed "club/bar"; indexing CALENDARS_CONFIG
+    // with it crashed the whole calendar list view.
+    const unknown = databaseEventToScheduleX(mockEvent({ event_type: "club/bar" as EventType }));
+    expect(unknown.calendarId).toBe("social");
+    expect(CALENDARS_CONFIG[unknown.calendarId].darkColors.main).toBeTruthy();
+    expect(databaseEventToScheduleX(mockEvent({ event_type: "live_music" })).calendarId).toBe("live_music");
   });
 });

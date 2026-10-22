@@ -2,6 +2,7 @@
 import "temporal-polyfill/global";
 import type { DatabaseEvent, ScheduleXEvent } from "./types";
 import { timeZoneForDisplay } from "../../../shared/utils/timezone";
+import { CALENDARS_CONFIG } from "./calendarsConfig";
 
 const DEFAULT_DURATION_HOURS = 4;
 
@@ -30,7 +31,9 @@ export function databaseEventToScheduleX(event: DatabaseEvent): ScheduleXEvent {
     title: event.title,
     start,
     end,
-    calendarId: event.event_type,
+    // The database is not constrained to known types; an unknown one (seen:
+    // "club/bar") must not crash views that colour by calendar.
+    calendarId: event.event_type in CALENDARS_CONFIG ? event.event_type : "social",
     location: event.location ?? undefined,
     description: event.description ?? undefined,
     address: event.address ?? undefined,

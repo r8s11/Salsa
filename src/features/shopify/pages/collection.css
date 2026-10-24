@@ -409,7 +409,8 @@
   .shop-page .collection-hero__media--pair > span:last-child { translate: none; }
   .shop-page .shop-toolbar {
     position: sticky;
-    top: 68px;
+    top: var(--site-header-offset);
+    transition: top 0.32s var(--site-header-ease);
     z-index: 5;
     margin-inline: calc(-1 * var(--gutter));
     padding: 12px var(--gutter);
@@ -422,4 +423,8 @@
   .shop-page .collection-next ul { grid-template-columns: minmax(0, 1fr); }
   .shop-page .shop-sort > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
   .shop-page .shop-sort select { max-width: 150px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shop-page .shop-toolbar { transition: none; }
 }

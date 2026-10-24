@@ -894,6 +894,19 @@ past nights as plain, static images — no masonry, no video previews.
 
 #### Navigation
 
+**The bar condenses on scroll.** At the top of the page the public header is
+transparent with no rule beneath it, 68px tall (`--site-header-h`). Past 100px
+of scroll it turns to glass (`--header-bg`, `--glass-blur`, a `--border`
+rule) and condenses to 80% (54.4px, `--site-header-h-condensed`) over 320ms
+on `--site-header-ease`; scrolling back above 100px reverses it. A matching
+bottom margin keeps the bar's footprint constant, so content never jumps.
+Controls keep their 44px targets. While the mobile menu sheet is open the bar
+is glass at full height. Below 375px, where the bar can wrap to two rows, it
+turns to glass without condensing. Sticky UI that sits under the bar (the
+calendar sidebar, the shop's phone toolbar) offsets by
+`--site-header-offset`, which follows the condensed height. Reduced motion
+swaps states at once.
+
 ##### Desktop header
 
 Desktop navigation begins at 1024px. Between 1024px and 1279.98px, tighter
@@ -983,19 +996,6 @@ Light, grows the underline in, and slides the arrow up-right. Below 760px the
 pair stacks left. Contrast floors, 44px targets, the Gold focus ring and
 reduced motion (transition durations 0s) hold as elsewhere.
 
-### The Sleeve
-
-The one artifact that leaves the site: the shareable event poster,
-exported and sent to a friend's phone, pressed in its own printed world.
-It appears only as the poster export and as its thumbnail/preview inside
-the event modal.
-
-#### Poster
-
-**Measures.** The poster exports at two fixed pixel sizes, never
-responsive: a **story** (1080×1920) and a **feed** cut (1080×1350, 4:5; see
-Feed Cut). Both stack the same three prints top to bottom — a label
-**masthead**, the square **front cover**, and the cream **back cover**.
 **DJ profiles** (`/dj/:slug`, `DjProfile`) are portrait-led. Below 900px the
 4:5 portrait bleeds full-width behind the header, under a short top scrim
 that keeps the transparent bar legible over any photo, and fades to the
@@ -1012,6 +1012,19 @@ portrait sinks 12px and swells from 1.04 to 1.08 while the name rises 12px and
 settles to 0.98, on a CSS scroll timeline; reduced motion and unsupported
 browsers render it static. No portrait drops the bleed and opens on the name.
 
+### The Sleeve
+
+The one artifact that leaves the site: the shareable event poster,
+exported and sent to a friend's phone, pressed in its own printed world.
+It appears only as the poster export and as its thumbnail/preview inside
+the event modal.
+
+#### Poster
+
+**Measures.** The poster exports at two fixed pixel sizes, never
+responsive: a **story** (1080×1920) and a **feed** cut (1080×1350, 4:5; see
+Feed Cut). Both stack the same three prints top to bottom — a label
+**masthead**, the square **front cover**, and the cream **back cover**.
 
 **Masthead.** A label-style header carrying the "Salsa Segura" wordmark
 (set in Poster Condensed, not Great Vibes), the event type, and the

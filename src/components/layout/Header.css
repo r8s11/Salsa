@@ -1,3 +1,6 @@
+/* Transparent over the top of the page; past 100px of scroll the bar turns
+   to glass and condenses to 80% height. A matching bottom margin keeps the
+   bar's flow footprint constant, so the page never jumps under it. */
 .site-header {
   position: sticky;
   top: 0;
@@ -5,8 +8,22 @@
   width: 100%;
   padding: 0;
   color: var(--text);
-  background: var(--header-bg);
-  border-bottom: 1px solid var(--border);
+  background-color: transparent;
+  border-bottom: 1px solid transparent;
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  transition:
+    background-color 0.32s var(--site-header-ease),
+    border-color 0.32s var(--site-header-ease),
+    backdrop-filter 0.32s var(--site-header-ease),
+    -webkit-backdrop-filter 0.32s var(--site-header-ease),
+    margin-bottom 0.32s var(--site-header-ease);
+}
+
+/* Glass once scrolled, and always while the mobile menu sheet hangs from it. */
+.site-header[data-glass="true"] {
+  background-color: var(--header-bg);
+  border-bottom-color: var(--border);
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
 }
@@ -14,7 +31,29 @@
 .site-header nav {
   display: flex;
   align-items: center;
-  height: 68px;
+  height: var(--site-header-h);
+  transition:
+    height 0.32s var(--site-header-ease),
+    min-height 0.32s var(--site-header-ease);
+}
+
+/* Below 375px the bar can wrap to two rows of 44px targets, which leave no
+   20% to give; it keeps its height there and only turns to glass. */
+@media (min-width: 375px) {
+  .site-header[data-condensed="true"] {
+    margin-bottom: calc(var(--site-header-h) - var(--site-header-h-condensed));
+  }
+
+  .site-header[data-condensed="true"] nav {
+    height: var(--site-header-h-condensed);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-header,
+  .site-header nav {
+    transition: none;
+  }
 }
 
 a.logo {
@@ -622,11 +661,18 @@ a.logo:hover .ss-logo__wordmark-accent {
     height: 22px;
   }
 
+  /* The safe-area inset sits on top of the bar's height, so condensing
+     always gives up exactly 20% of the bar itself. */
   .site-header nav {
     gap: var(--space-sm);
     flex-wrap: wrap;
     height: auto;
-    min-height: 68px;
+    min-height: calc(var(--site-header-h) + env(safe-area-inset-top));
+  }
+
+  .site-header[data-condensed="true"] nav {
+    height: auto;
+    min-height: calc(var(--site-header-h-condensed) + env(safe-area-inset-top));
   }
 
   .metro-explorer--compact {

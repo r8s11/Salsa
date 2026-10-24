@@ -82,9 +82,10 @@
    and its "What's on" rows are the grid's colour legend. */
 .calendar-sidebar {
   position: sticky;
-  top: calc(68px + 24px);
+  top: calc(var(--site-header-offset) + 24px);
   align-self: start;
-  max-height: calc(100dvh - 68px - 48px);
+  max-height: calc(100dvh - var(--site-header-offset) - 48px);
+  transition: top 0.32s var(--site-header-ease), max-height 0.32s var(--site-header-ease);
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
@@ -975,4 +976,8 @@
   .calendar-search .liquid-metal-border {
     display: none;
   }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .calendar-sidebar { transition: none; }
 }

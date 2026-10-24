@@ -331,6 +331,36 @@ describe("Header", () => {
     );
   });
 
+  it("turns to condensed glass only past 100px of scroll, and keeps full height while the menu is open", async () => {
+    vi.mocked(useAuth).mockReturnValue(defaultAuth());
+    mockCityValue("boston");
+    const user = userEvent.setup();
+    const scrollTo = (y: number) => {
+      Object.defineProperty(window, "scrollY", { configurable: true, value: y });
+      fireEvent.scroll(window);
+    };
+    renderHeader();
+    const bar = screen.getByRole("banner");
+    expect(bar).toHaveAttribute("data-glass", "false");
+    expect(bar).toHaveAttribute("data-condensed", "false");
+
+    scrollTo(100);
+    expect(bar).toHaveAttribute("data-condensed", "false");
+    scrollTo(101);
+    expect(bar).toHaveAttribute("data-glass", "true");
+    expect(bar).toHaveAttribute("data-condensed", "true");
+
+    await user.click(screen.getByRole("button", { name: "Open menu" }));
+    const sheet = screen.getByRole("dialog", { name: "Site navigation" });
+    expect(sheet).toHaveAttribute("data-glass", "true");
+    expect(sheet).toHaveAttribute("data-condensed", "false");
+    await user.click(screen.getByRole("button", { name: "Close menu" }));
+
+    scrollTo(0);
+    expect(screen.getByRole("banner")).toHaveAttribute("data-glass", "false");
+    expect(screen.getByRole("banner")).toHaveAttribute("data-condensed", "false");
+  });
+
   it("closes the drawer after a guest action", async () => {
     vi.mocked(useAuth).mockReturnValue(defaultAuth());
     mockCityValue("boston");

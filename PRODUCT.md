@@ -10,7 +10,7 @@ web
 
 Primary users are dancers and attendees looking for current salsa and bachata events, classes, workshops, and live music in their city.
 
-Event organizers are a supported audience who submit and manage dance events. School owners, venue managers and artists (instructors) claim their listings and keep them current: schools manage a weekly class timetable, private-lesson offers and price plans. Moderators and administrators maintain the public directory and approve listing claims.
+Event organizers are a supported audience who submit and manage dance events. School owners, venue managers, artists (instructors) and DJs claim their listings and keep them current: schools manage a weekly class timetable, private-lesson offers and price plans. Moderators and administrators maintain the public directory, link DJs to the events they play, and approve listing claims.
 
 ## Product Purpose
 
@@ -27,7 +27,7 @@ Salsa Segura is a trusted local guide: public event listings are curated through
 - Dancers browse public events by city and event type.
 - People can submit event suggestions or event submissions through the public web experience.
 - Organizers manage events subject to authenticated ownership and active organization membership.
-- School, venue and artist managers act through `entity_members` (owner / manager / editor), granted by an admin-approved listing claim. A school's weekly timetable is separate from the events calendar.
+- School, venue, artist and DJ managers act through `entity_members` (owner / manager / editor), granted by an admin-approved listing claim. A school's weekly timetable is separate from the events calendar.
 - Moderators review submissions and approve or reject them before public publication.
 - Boston and New York City are explicit discovery contexts.
 

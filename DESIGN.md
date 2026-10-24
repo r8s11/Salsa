@@ -996,6 +996,22 @@ the event modal.
 responsive: a **story** (1080×1920) and a **feed** cut (1080×1350, 4:5; see
 Feed Cut). Both stack the same three prints top to bottom — a label
 **masthead**, the square **front cover**, and the cream **back cover**.
+**DJ profiles** (`/dj/:slug`, `DjProfile`) are portrait-led. Below 900px the
+4:5 portrait bleeds full-width behind the header, under a short top scrim
+that keeps the transparent bar legible over any photo, and fades to the
+ground; the name (Epilogue 900, 0.92 line-height) lifts over the fade, breaking
+before its last word, which takes Rose Bright. Its size fits the longest line
+to the column (capped at 6rem and 21vw, floor 2rem), so long names never
+overflow. Location, dance-style chips (Tertiary at 15%, 44px hit area) and one
+Rose Red "See next gig" action follow, then bio and gold Instagram/Website
+links. Upcoming gigs sit on a full-width `--surface` band; Venues and
+residencies (series labelled Residency, venues Venue, no schedule claimed) and
+Past gigs follow, side by side from 900px, where the portrait joins the copy in
+a two-column hero with a 16px radius. Over the first 400px of scroll the
+portrait sinks 12px and swells from 1.04 to 1.08 while the name rises 12px and
+settles to 0.98, on a CSS scroll timeline; reduced motion and unsupported
+browsers render it static. No portrait drops the bleed and opens on the name.
+
 
 **Masthead.** A label-style header carrying the "Salsa Segura" wordmark
 (set in Poster Condensed, not Great Vibes), the event type, and the
@@ -1257,10 +1273,10 @@ offset. Returning to desktop restores the chosen rail state.
 
 **Navigation is grouped by what it governs.** Admin sections are Desk
 (queues, including Listing Claims), Events, Directory (Schools, Venues,
-Artists, Organizers), People and Platform. Host navigation gives
+Artists, DJs, Organizers), People and Platform. Host navigation gives
 organizer tools their own Organization section, then one section per
 managed listing titled `{Kind} · {Name}`: a school carries Overview,
-Timetable, Privates, Prices, Profile and Team; a venue or artist carries
+Timetable, Privates, Prices, Profile and Team; a venue, artist or DJ carries
 Overview, Profile and Team. Profile appears only for owners and managers,
 Team only for owners. Inside a listing, the same pages repeat as in-page
 tabs so platform admins (who keep the admin sidebar) can move between them.

@@ -6,6 +6,7 @@ import { errorMessage, useSaveProfile } from "../hooks/useEntityWorkspace";
 import {
   canEditProfile,
   type EntityWorkspace,
+  type DjProfile,
   type InstructorProfile,
   type ManagedKind,
   type ProfilePatch,
@@ -51,9 +52,15 @@ const PROFILE_FIELDS: Record<ManagedKind, FieldSpec[]> = {
     INSTAGRAM,
     { key: "organization", label: "Organization" },
   ],
+  dj: [
+    { key: "description", label: "Bio", kind: "textarea" },
+    IMAGE,
+    WEBSITE,
+    INSTAGRAM,
+  ],
 };
 
-type ProfileEntity = SchoolProfile | VenueProfile | InstructorProfile;
+type ProfileEntity = SchoolProfile | VenueProfile | InstructorProfile | DjProfile;
 
 function readField(entity: ProfileEntity, key: string): string {
   const value = (entity as Record<string, unknown>)[key];

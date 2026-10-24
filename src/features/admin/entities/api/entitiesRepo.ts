@@ -1,5 +1,5 @@
 import { supabase } from "../../../../lib/supabase";
-import type { AdminEntityRow, EntityKind, EntityStatus } from "../model";
+import type { AdminDjEventCandidate, AdminEntityRow, EntityKind, EntityStatus } from "../model";
 
 export interface EntityDirectoryParams {
   kind: EntityKind;
@@ -57,4 +57,19 @@ export async function archiveAdminEntity(kind: EntityKind, id: string): Promise<
   const row = Array.isArray(data) ? data[0] : data;
   if (!row) throw new Error(`The ${kind} archive did not return a record.`);
   return row as unknown as AdminEntityRow;
+}
+
+export async function fetchAdminDjEventCandidates(query: string): Promise<AdminDjEventCandidate[]> {
+  const { data, error } = await supabase.rpc("admin_dj_event_candidates", { p_query: query });
+  if (error) throw new Error(`Failed to search events: ${error.message}`);
+  return (data ?? []) as unknown as AdminDjEventCandidate[];
+}
+
+export async function setAdminDjEvent(djId: string, eventId: string, linked: boolean): Promise<void> {
+  const { error } = await supabase.rpc("admin_dj_set_event", {
+    p_dj_id: djId,
+    p_event_id: eventId,
+    p_linked: linked,
+  });
+  if (error) throw new Error(`Failed to ${linked ? "link" : "unlink"} the event: ${error.message}`);
 }

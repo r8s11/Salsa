@@ -17,7 +17,7 @@ interface EntityClaimDialogProps {
   onClose: () => void;
 }
 
-const INSTRUCTOR_RELATIONSHIPS: readonly ClaimRelationship[] = ["self", "manager"];
+const PERSON_RELATIONSHIPS: readonly ClaimRelationship[] = ["self", "manager"];
 const ORGANIZATION_RELATIONSHIPS: readonly ClaimRelationship[] = ["owner", "manager", "staff"];
 
 export function EntityClaimDialog({
@@ -31,7 +31,8 @@ export function EntityClaimDialog({
   const messageId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
 
-  const initialRelationship: ClaimRelationship = kind === "instructor" ? "self" : "owner";
+  const isPerson = kind === "instructor" || kind === "dj";
+  const initialRelationship: ClaimRelationship = isPerson ? "self" : "owner";
   const [relationship, setRelationship] = useState<ClaimRelationship>(initialRelationship);
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -47,8 +48,7 @@ export function EntityClaimDialog({
 
   if (!isOpen) return null;
 
-  const availableRelationships =
-    kind === "instructor" ? INSTRUCTOR_RELATIONSHIPS : ORGANIZATION_RELATIONSHIPS;
+  const availableRelationships = isPerson ? PERSON_RELATIONSHIPS : ORGANIZATION_RELATIONSHIPS;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -84,7 +84,9 @@ export function EntityClaimDialog({
           <p className="entity-claim-dialog__subtitle">
             {kind === "instructor"
               ? "Verify your profile to manage your artist bio and schedule."
-              : `Submit a claim to manage this ${kind}'s profile, team, and offerings.`}
+              : kind === "dj"
+                ? "Verify your profile to manage your DJ bio and gigs."
+                : `Submit a claim to manage this ${kind}'s profile, team, and offerings.`}
           </p>
         </header>
 

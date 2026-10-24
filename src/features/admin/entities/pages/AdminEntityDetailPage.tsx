@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAccessibleDialog } from "../../../../shared/a11y/useAccessibleDialog";
 import { useMetros } from "../../../metros/hooks/useMetros";
 import AdminConfirmDialog from "../../components/common/AdminConfirmDialog";
+import AdminDjGigsSection from "../../components/entities/AdminDjGigsSection";
 import AdminEntityTeamSection from "../../components/entities/AdminEntityTeamSection";
 import { useAdminEntity, useAdminEntityActions, useAdminEntityDirectory, useAdminVenueOptions } from "../hooks/useAdminEntities";
 import {
@@ -117,7 +118,7 @@ export default function AdminEntityDetailPage({ kind, mode }: { kind: EntityKind
   if (!creating && !entity) return <div className="admin-entity-page"><h1>{labels.singular} not found</h1><Link to={basePath} className="admin-btn admin-btn--secondary">Back to {labels.plural.toLowerCase()}</Link></div>;
   const current = entity;
   const values = buildEntityForm(current);
-  const located = kind === "organizer" || kind === "school" || kind === "instructor";
+  const located = kind === "organizer" || kind === "school" || kind === "instructor" || kind === "dj";
   // Rows follow the edit form's field order so view and edit read the same way.
   const fields = ([
     { label: "City", value: values.city, as: "ident" },
@@ -155,7 +156,7 @@ export default function AdminEntityDetailPage({ kind, mode }: { kind: EntityKind
           <div className="admin-field"><label htmlFor="entity-status">Status</label><select id="entity-status" className="admin-select" value={form.status} onChange={(event) => update("status", event.target.value as EntityStatus)}><option value="active">Active</option><option value="needs_review">Needs review</option>{kind === "organizer" && <option value="suspended">Suspended</option>}<option value="archived">Archived</option></select></div>
           <div className="admin-field"><label htmlFor="entity-city">City</label><select id="entity-city" className="admin-select" value={form.city} onChange={(event) => update("city", event.target.value)}><option value="">No city</option>{unregisteredCity && <option value={form.city}>{form.city} (not registered)</option>}{cityOptions.map((metro) => <option key={metro.slug} value={metro.slug}>{metro.name}</option>)}</select></div>
           <div className="admin-field"><label htmlFor="entity-description">Description</label><textarea id="entity-description" className="admin-textarea" rows={4} value={form.description ?? ""} onChange={(event) => update("description", event.target.value)} /></div>
-          {(kind === "organizer" || kind === "school" || kind === "instructor") && <div className="admin-entity-page__form-row">
+          {located && <div className="admin-entity-page__form-row">
             <div className="admin-field"><label htmlFor="entity-state">State / region</label><input id="entity-state" className="admin-input" value={form.state_region} onChange={(event) => update("state_region", event.target.value)} /></div>
             <div className="admin-field"><label htmlFor="entity-country">Country</label><input id="entity-country" className="admin-input" value={form.country} onChange={(event) => update("country", event.target.value)} /></div>
           </div>}
@@ -190,14 +191,14 @@ export default function AdminEntityDetailPage({ kind, mode }: { kind: EntityKind
               {fields.map((field) => <div key={field.label} className="admin-entity-page__field"><dt>{field.label}</dt><dd><FieldValue field={field} /></dd></div>)}
             </dl>
           </section>
-          <section className="admin-card admin-entity-page__linked" aria-labelledby="entity-events-title">
+          {kind === "dj" && current.id ? <AdminDjGigsSection djId={current.id} linkedEvents={current.linked_events} /> : <section className="admin-card admin-entity-page__linked" aria-labelledby="entity-events-title">
             <h2 id="entity-events-title">Linked events <span>({current.linked_events.length})</span></h2>
             {current.linked_events.length ? <ul>{current.linked_events.map((event) => <li key={event.id}>
               <Link className="admin-entity-page__event" to={`/admin/events?edit=${event.id}`}>{event.title}</Link>
               <span className="admin-entity-page__event-meta"><time dateTime={event.event_date}>{eventDate.format(new Date(event.event_date))}</time><span className="admin-entity-page__event-status">{event.status.replace(/_/g, " ")}</span></span>
             </li>)}</ul> : <p className="admin-entity-page__quiet">No linked events.</p>}
-          </section>
-          {(kind === "school" || kind === "instructor") && current.id && <AdminEntityTeamSection kind={kind} id={current.id} />}
+          </section>}
+          {(kind === "school" || kind === "instructor" || kind === "dj") && current.id && <AdminEntityTeamSection kind={kind} id={current.id} />}
         </div>
       </div>}
       {pendingAction === "create" && <AdminConfirmDialog title={`Create ${labels.singular.toLowerCase()}?`} body={`Create “${form.name.trim()}” as an explicit ${labels.singular.toLowerCase()} record? No account or membership will be created.`} confirmLabel={`Create ${labels.singular.toLowerCase()}`} busyLabel="Creating…" isBusy={actions.isSaving} tone="neutral" error={actions.error} onConfirm={confirmAction} onCancel={() => setPendingAction(null)} />}

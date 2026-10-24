@@ -11,7 +11,7 @@ export default function EventEntityLinks({ entities, omit = [], onNavigate }: {
   if (!entities) return null;
   const refs = [entities.series, entities.organizer, entities.venue,
     ...(entities.schools ?? (entities.school ? [entities.school] : [])),
-    ...(entities.instructors ?? []), entities.city, ...(entities.styles ?? [])];
+    ...(entities.instructors ?? []), ...(entities.djs ?? []), entities.city, ...(entities.styles ?? [])];
   const seen = new Set<string>();
   const linked = refs.filter((ref): ref is PublicEntityRef => {
     if (!ref || !ref.slug || omit.includes(ref.kind)) return false;

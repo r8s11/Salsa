@@ -37,6 +37,7 @@ const SECTION_LABEL: Record<string, string> = {
   "/admin/venues": "Venues",
   "/admin/schools": "Schools",
   "/admin/instructors": "Artists",
+  "/admin/djs": "DJs",
   "/admin/organizers": "Organizers",
   "/admin/series": "Series",
   "/admin/tags": "Tags",
@@ -62,7 +63,7 @@ const HOST_EVENT_CHILD_LABEL: Record<string, string> = {
   "check-in": "Host · Check-in",
 };
 
-/** Trailing segment of /host/{schools|venues|instructors}/:id/<section>. */
+/** Trailing segment of /host/{schools|venues|instructors|djs}/:id/<section>. */
 const WORKSPACE_SECTION_LABEL: Record<string, string> = {
   timetable: "Timetable",
   privates: "Privates",

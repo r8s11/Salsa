@@ -3,7 +3,7 @@ import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import EventEntityLinks from "./EventEntityLinks";
 
-const ref = (kind: "venue" | "organizer" | "school" | "instructor" | "series" | "city" | "style", name: string, slug: string) => ({
+const ref = (kind: "venue" | "organizer" | "school" | "instructor" | "dj" | "series" | "city" | "style", name: string, slug: string) => ({
   kind, id: slug, name, slug, description: null, image_url: null, city: "boston",
 });
 
@@ -15,13 +15,14 @@ describe("event attribution", () => {
       school: ref("school", "Dance School", "dance-school"),
       schools: [ref("school", "Dance School", "dance-school")],
       instructors: [ref("instructor", "Ana", "ana")],
+      djs: [ref("dj", "DJ Coco", "dj-coco")],
       series: ref("series", "Friday Social", "friday-social"),
       city: ref("city", "Boston", "boston"),
       styles: [ref("style", "Salsa", "salsa")],
     }} /></MemoryRouter>);
     for (const [name, path] of [
       ["Dance Hall", "/v/dance-hall"], ["Dance Company", "/o/dance-company"],
-      ["Dance School", "/s/dance-school"], ["Ana", "/i/ana"],
+      ["Dance School", "/s/dance-school"], ["Ana", "/i/ana"], ["DJ Coco", "/dj/dj-coco"],
       ["Friday Social", "/series/friday-social"], ["Boston", "/cities/boston"],
       ["Salsa", "/styles/salsa"],
     ]) expect(screen.getByRole("link", { name })).toHaveAttribute("href", path);

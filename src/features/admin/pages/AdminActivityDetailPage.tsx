@@ -90,6 +90,9 @@ export default function AdminActivityDetailPage() {
       case "instructor":
         relatedRecordLink = { label: "View Instructor", href: `/admin/instructors/${entry.entity_id}` };
         break;
+      case "dj":
+        relatedRecordLink = { label: "View DJ", href: `/admin/djs/${entry.entity_id}` };
+        break;
       case "platform_settings":
         relatedRecordLink = { label: "View Settings", href: "/admin/settings" };
         break;

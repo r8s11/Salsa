@@ -1,12 +1,12 @@
 /**
- * Entity workspaces: the listings (schools, venues, instructors) a signed-in
+ * Entity workspaces: the listings (schools, venues, instructors, DJs) a signed-in
  * person manages, and the school offerings they keep current. Mirrors
  * supabase/migrations/20261008000000_entity_workspaces.sql — the RPCs there
  * are the source of truth for every permission named here.
  */
 
-export type ManagedKind = "school" | "venue" | "instructor";
-export const MANAGED_KINDS: readonly ManagedKind[] = ["school", "venue", "instructor"];
+export type ManagedKind = "school" | "venue" | "instructor" | "dj";
+export const MANAGED_KINDS: readonly ManagedKind[] = ["school", "venue", "instructor", "dj"];
 
 export type EntityMemberRole = "owner" | "manager" | "editor";
 /** The caller's standing on one listing; platform admins act as owner everywhere. */
@@ -17,6 +17,7 @@ export const MANAGED_KIND_LABELS: Record<ManagedKind, string> = {
   school: "School",
   venue: "Venue",
   instructor: "Artist",
+  dj: "DJ",
 };
 
 export const MEMBER_ROLE_LABELS: Record<EntityMemberRole, string> = {
@@ -30,6 +31,7 @@ export const WORKSPACE_SEGMENTS: Record<ManagedKind, string> = {
   school: "schools",
   venue: "venues",
   instructor: "instructors",
+  dj: "djs",
 };
 
 export type WorkspaceSection = "timetable" | "privates" | "prices" | "profile" | "team";
@@ -130,11 +132,26 @@ export type InstructorProfile = {
   image_url: string | null;
 };
 
+export type DjProfile = {
+  id: string;
+  name: string;
+  slug: string;
+  status: string;
+  city: string | null;
+  state_region: string | null;
+  country: string | null;
+  website: string | null;
+  instagram: string | null;
+  description: string | null;
+  image_url: string | null;
+};
+
 /** Fields entity_profile_save accepts per kind; name, slug, city and status stay admin-only. */
 export type ProfilePatch = {
   school: Partial<Pick<SchoolProfile, "description" | "image_url" | "website" | "instagram" | "phone" | "address_line1" | "postal_code">>;
   venue: Partial<Pick<VenueProfile, "website" | "instagram" | "phone" | "address_line1" | "address_line2" | "postal_code">>;
   instructor: Partial<Pick<InstructorProfile, "description" | "image_url" | "website" | "instagram" | "organization">>;
+  dj: Partial<Pick<DjProfile, "description" | "image_url" | "website" | "instagram">>;
 };
 
 export type ClassLevel = "all" | "beginner" | "improver" | "intermediate" | "advanced" | "open";
@@ -220,7 +237,8 @@ type WorkspaceBase = { role: WorkspaceRole; members: WorkspaceMember[]; upcoming
 export type EntityWorkspace =
   | (WorkspaceBase & { kind: "school"; entity: SchoolProfile; offerings: SchoolOfferings })
   | (WorkspaceBase & { kind: "venue"; entity: VenueProfile; offerings: null })
-  | (WorkspaceBase & { kind: "instructor"; entity: InstructorProfile; offerings: null });
+  | (WorkspaceBase & { kind: "instructor"; entity: InstructorProfile; offerings: null })
+  | (WorkspaceBase & { kind: "dj"; entity: DjProfile; offerings: null });
 
 /** Payloads school_offering_save accepts. `id` absent = create. */
 export type SchoolClassInput = Omit<SchoolClass, "id" | "style_name" | "instructor_slug">;

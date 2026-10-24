@@ -2,10 +2,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchVenueDirectory } from "../../api/venuesRepo";
 import {
   archiveAdminEntity,
+  fetchAdminDjEventCandidates,
   fetchAdminEntityDetail,
   fetchAdminEntityDirectory,
   mergeAdminEntities,
   saveAdminEntity,
+  setAdminDjEvent,
 } from "../api/entitiesRepo";
 import type { EntityKind, EntityStatus } from "../model";
 
@@ -91,3 +93,37 @@ export function useAdminEntityActions(kind: EntityKind) {
   };
 }
 
+/** Approved events matching `query`, for linking to a DJ. */
+export function useAdminDjEventCandidates(query: string) {
+  const result = useQuery({
+    queryKey: ["admin", "dj-event-candidates", query],
+    queryFn: () => fetchAdminDjEventCandidates(query),
+  });
+  return {
+    candidates: result.data ?? [],
+    isLoading: result.isPending,
+    error: result.error?.message ?? null,
+    refetch: result.refetch,
+  };
+}
+
+/** Links or unlinks one event for a DJ, then refreshes the DJ record so `linked_events` follows. */
+export function useAdminDjSetEvent(djId: string) {
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: ({ eventId, linked }: { eventId: string; linked: boolean }) =>
+      setAdminDjEvent(djId, eventId, linked),
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["admin", "entity", "dj", djId] }),
+        queryClient.invalidateQueries({ queryKey: ["admin", "entities", "dj"] }),
+      ]),
+  });
+  return {
+    setEvent: mutation.mutateAsync,
+    isPending: mutation.isPending,
+    pendingEventId: mutation.isPending ? mutation.variables.eventId : null,
+    error: mutation.error?.message ?? null,
+    reset: mutation.reset,
+  };
+}

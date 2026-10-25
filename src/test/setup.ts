@@ -1,4 +1,9 @@
 import "@testing-library/jest-dom/vitest";
+import { vi } from "vitest";
+
+// jsdom exposes scrollTo but does not implement viewport scrolling.
+// Keep this test-only; individual tests can assert or override the mock.
+window.scrollTo = vi.fn();
 
 // jsdom 28 + Node >=25 leaves window.localStorage/sessionStorage undefined
 // (Node's experimental webstorage requires --localstorage-file). Component

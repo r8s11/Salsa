@@ -6,7 +6,7 @@ import { useAuth } from "../../../contexts/useAuth";
 import { useOwnProfile } from "../../account/hooks/useOwnProfile";
 import { resolveIdentity } from "../../account/model/account";
 import EventForm, { CAPABILITIES } from "../../events/components/EventForm";
-import EventFlyerField from "../../events/components/EventFlyerField";
+import EventFlyersField from "../../events/components/EventFlyersField";
 import EntityReviewSection from "../../entity-matching/EntityReviewSection";
 import { useSubmissionAccess } from "../../submit-event/hooks/useSubmissionAccess";
 import { useSubmitEventForm } from "../../submit-event/hooks/useSubmitEventForm";
@@ -66,12 +66,11 @@ function CalendarSubmissionContent({
     serverError,
     failedAttempt,
     resetSubmitted,
-    flyerFile,
-    flyerStatus,
+    flyerItems,
     flyerError,
-    uploadedFlyerUrl,
-    handleFlyerChange,
+    handleFlyersAdd,
     handleFlyerRetry,
+    handleFlyerMove,
     handleFlyerRemove,
     entityReview,
     setEntityReview,
@@ -192,19 +191,20 @@ function CalendarSubmissionContent({
                 <summary className="calendar-sub-dialog__flyer-title">
                   Add a flyer <span className="calendar-sub-dialog__badge">Optional</span>
                 </summary>
-                <EventFlyerField
-                  currentUrl={uploadedFlyerUrl}
-                  onFileChange={handleFlyerChange}
+                <EventFlyersField
+                  items={flyerItems}
+                  onAddFiles={handleFlyersAdd}
                   onRemove={handleFlyerRemove}
+                  onMove={handleFlyerMove}
                   onRetry={handleFlyerRetry}
-                  status={flyerStatus}
-                  errorMessage={flyerError}
                   disabled={isSubmitting}
                   label="Event flyer"
-                  sizeCaption={
-                    flyerFile ? `${(flyerFile.size / (1024 * 1024)).toFixed(1)} MB` : null
-                  }
                 />
+                {flyerError && (
+                  <p role="alert" className="calendar-sub-dialog__flyer-hint">
+                    {flyerError}
+                  </p>
+                )}
               </details>
             </div>
 

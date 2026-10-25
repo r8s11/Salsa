@@ -32,16 +32,16 @@ vi.mock("../../events/api/eventsRepo", async (importOriginal) => ({
   updateEventFlyer,
 }));
 vi.mock("../../flyer-extraction/client", () => ({ extractEventFromFlyer }));
-vi.mock("../../events/components/EventFlyerField", () => ({
-  default: function MockEventFlyerField({
-    onFileChange,
+vi.mock("../../events/components/EventFlyersField", () => ({
+  default: function MockEventFlyersField({
+    onAddFiles,
   }: {
-    onFileChange: (file: File | null) => void;
+    onAddFiles: (files: File[]) => void;
   }) {
     return (
       <label>
-        Event flyer
-        <input type="file" onChange={(event) => onFileChange(event.target.files?.[0] ?? null)} />
+        Event flyers
+        <input type="file" multiple onChange={(event) => onAddFiles(Array.from(event.target.files ?? []))} />
       </label>
     );
   },
@@ -242,7 +242,7 @@ describe("AdminEventsPage", () => {
 
     expect(screen.getByRole("heading", { name: "Edit event" })).toBeInTheDocument();
     expect(screen.getByLabelText("Event Title *")).toHaveValue("Bachata Sensual Social");
-    expect(screen.getByLabelText("Event flyer")).toBeInTheDocument();
+    expect(screen.getByLabelText("Event flyers")).toBeInTheDocument();
   });
 
 
@@ -271,7 +271,7 @@ describe("AdminEventsPage", () => {
     renderPage();
     await user.click(screen.getByRole("button", { name: /Create Event/i }));
     await user.upload(
-      screen.getByLabelText("Event flyer"),
+      screen.getByLabelText("Event flyers"),
       new File(["png"], "flyer.png", { type: "image/png" })
     );
     await user.click(await screen.findByRole("button", { name: /Analyze flyer/i }));

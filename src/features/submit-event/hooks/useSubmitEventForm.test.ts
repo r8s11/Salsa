@@ -295,7 +295,7 @@ describe("useSubmitEventForm", () => {
     const { result } = renderHook(() => useSubmitEventForm());
 
     await act(async () => {
-      result.current.handleFlyerChange(pngFile());
+      result.current.handleFlyersAdd([pngFile()]);
     });
 
     expect(mockEventFlyers.uploadEventFlyer).toHaveBeenCalledTimes(1);
@@ -305,16 +305,16 @@ describe("useSubmitEventForm", () => {
         eventId: expect.stringMatching(/^submission-/),
       })
     );
-    expect(result.current.flyerStatus).toBe("uploaded");
+    expect(result.current.flyerItems[0]?.status).toBe("uploaded");
     expect(result.current.flyerReady).toBe(true);
-    expect(result.current.uploadedFlyerUrl).toBe(flyerUrl);
+    expect(result.current.flyerItems[0]?.url).toBe(flyerUrl);
   });
 
   it("never uploads a second time at submit — it reuses the persisted URL", async () => {
     const { result } = renderHook(() => useSubmitEventForm());
 
     await act(async () => {
-      result.current.handleFlyerChange(pngFile());
+      result.current.handleFlyersAdd([pngFile()]);
     });
     expect(mockEventFlyers.uploadEventFlyer).toHaveBeenCalledTimes(1);
 
@@ -332,7 +332,7 @@ describe("useSubmitEventForm", () => {
     expect(mockEventFlyers.uploadEventFlyer).toHaveBeenCalledTimes(1);
     expect(createSubmission).toHaveBeenCalledWith(
       expect.objectContaining({ title: "Test Event" }),
-      { image_url: flyerUrl }
+      { image_url: flyerUrl, image_urls: [flyerUrl] }
     );
   });
 
@@ -346,12 +346,12 @@ describe("useSubmitEventForm", () => {
     const { result } = renderHook(() => useSubmitEventForm());
 
     await act(async () => {
-      result.current.handleFlyerChange(pngFile());
+      result.current.handleFlyersAdd([pngFile()]);
       result.current.update("title", "Test Event");
       result.current.update("event_type", "social");
       result.current.update("event_date", "2026-08-20");
     });
-    expect(result.current.flyerStatus).toBe("uploading");
+    expect(result.current.flyerItems[0]?.status).toBe("uploading");
 
     let submitPromise!: Promise<void>;
     await act(async () => {
@@ -368,7 +368,7 @@ describe("useSubmitEventForm", () => {
     expect(mockEventFlyers.uploadEventFlyer).toHaveBeenCalledTimes(1);
     expect(createSubmission).toHaveBeenCalledWith(
       expect.objectContaining({ title: "Test Event" }),
-      { image_url: flyerUrl }
+      { image_url: flyerUrl, image_urls: [flyerUrl] }
     );
   });
 
@@ -415,7 +415,7 @@ describe("useSubmitEventForm", () => {
     const { result } = renderHook(() => useSubmitEventForm());
 
     await act(async () => {
-      result.current.handleFlyerChange(pngFile());
+      result.current.handleFlyersAdd([pngFile()]);
       result.current.update("title", "Test Event");
       result.current.update("event_type", "social");
       result.current.update("event_date", "2026-08-20");
@@ -445,7 +445,7 @@ describe("useSubmitEventForm", () => {
     expect(createSubmission).toHaveBeenCalledTimes(1);
     expect(createSubmission).toHaveBeenCalledWith(
       expect.objectContaining({ title: "Test Event" }),
-      { image_url: flyerUrl }
+      { image_url: flyerUrl, image_urls: [flyerUrl] }
     );
 
     await act(async () => {
@@ -461,21 +461,21 @@ describe("useSubmitEventForm", () => {
     const { result } = renderHook(() => useSubmitEventForm());
 
     await act(async () => {
-      result.current.handleFlyerChange(pngFile());
+      result.current.handleFlyersAdd([pngFile()]);
     });
 
-    expect(result.current.flyerStatus).toBe("upload-error");
-    expect(result.current.flyerError).toBe("storage down");
+    expect(result.current.flyerItems[0]?.status).toBe("upload-error");
+    expect(result.current.flyerItems[0]?.errorMessage).toBe("storage down");
     expect(result.current.flyerReady).toBe(false);
 
     await act(async () => {
-      result.current.handleFlyerRetry();
+      result.current.handleFlyerRetry(result.current.flyerItems[0].id);
     });
 
     expect(mockEventFlyers.uploadEventFlyer).toHaveBeenCalledTimes(2);
-    expect(result.current.flyerStatus).toBe("uploaded");
+    expect(result.current.flyerItems[0]?.status).toBe("uploaded");
     expect(result.current.flyerReady).toBe(true);
-    expect(result.current.uploadedFlyerUrl).toBe(flyerUrl);
+    expect(result.current.flyerItems[0]?.url).toBe(flyerUrl);
   });
 
   it("allows submission without a flyer when the upload fails (no false ready)", async () => {
@@ -483,7 +483,7 @@ describe("useSubmitEventForm", () => {
     const { result } = renderHook(() => useSubmitEventForm());
 
     await act(async () => {
-      result.current.handleFlyerChange(pngFile());
+      result.current.handleFlyersAdd([pngFile()]);
     });
     await act(async () => {
       result.current.update("title", "Test Event");
@@ -503,27 +503,74 @@ describe("useSubmitEventForm", () => {
     );
   });
 
-  it("removes the replaced flyer object when a new file replaces an uploaded one", async () => {
+  it("adds flyers without replacing or cleaning existing objects", async () => {
     const { result } = renderHook(() => useSubmitEventForm());
 
     await act(async () => {
-      result.current.handleFlyerChange(pngFile());
-    });
-    expect(result.current.uploadedFlyerUrl).toBe(flyerUrl);
-
-    await act(async () => {
-      result.current.handleFlyerChange(pngFile());
+      result.current.handleFlyersAdd([pngFile()]);
+      result.current.handleFlyersAdd([pngFile()]);
     });
 
-    expect(mockEventFlyers.removeEventFlyer).toHaveBeenCalledWith(flyerUrl);
+    expect(result.current.flyerItems).toHaveLength(2);
+    expect(mockEventFlyers.removeEventFlyer).not.toHaveBeenCalled();
   });
+  it("caps additions at five flyers", async () => {
+    const { result } = renderHook(() => useSubmitEventForm());
+    await act(async () => {
+      result.current.handleFlyersAdd(Array.from({ length: 6 }, () => pngFile()));
+    });
+
+    expect(result.current.flyerItems).toHaveLength(5);
+    expect(result.current.flyerError).toMatch(/up to 5/i);
+    expect(mockEventFlyers.uploadEventFlyer).toHaveBeenCalledTimes(5);
+  });
+
+  it("uses the reordered first flyer as the submission primary", async () => {
+    let index = 0;
+    mockEventFlyers.uploadEventFlyer.mockImplementation(async () => ({
+      path: `path-${index}`,
+      url: `https://project.supabase.co/${++index}.png`,
+    }));
+    const { result } = renderHook(() => useSubmitEventForm());
+    await act(async () => {
+      result.current.handleFlyersAdd([pngFile(), pngFile(), pngFile()]);
+    });
+    const secondId = result.current.flyerItems[1].id;
+    await act(async () => result.current.handleFlyerMove(secondId, "earlier"));
+    expect(result.current.flyerItems.map((item) => item.url)).toEqual([
+      "https://project.supabase.co/2.png",
+      "https://project.supabase.co/1.png",
+      "https://project.supabase.co/3.png",
+    ]);
+    await act(async () => {
+      result.current.update("title", "Test Event");
+      result.current.update("event_type", "social");
+      result.current.update("event_date", "2026-08-20");
+    });
+    await act(async () => {
+      await result.current.handleSubmit({ preventDefault: () => {} } as unknown as FormEvent);
+    });
+
+    expect(createSubmission).toHaveBeenCalledWith(
+      expect.anything(),
+      {
+        image_url: "https://project.supabase.co/2.png",
+        image_urls: [
+          "https://project.supabase.co/2.png",
+          "https://project.supabase.co/1.png",
+          "https://project.supabase.co/3.png",
+        ],
+      }
+    );
+  });
+
 
   it("cleans up the persisted flyer when a submission fails", async () => {
     vi.mocked(createSubmission).mockRejectedValueOnce(new Error("db down"));
     const { result } = renderHook(() => useSubmitEventForm());
 
     await act(async () => {
-      result.current.handleFlyerChange(pngFile());
+      result.current.handleFlyersAdd([pngFile()]);
     });
     await act(async () => {
       result.current.update("title", "Test Event");
@@ -546,7 +593,7 @@ describe("useSubmitEventForm", () => {
     const { result } = renderHook(() => useSubmitEventForm());
 
     await act(async () => {
-      result.current.handleFlyerChange(file);
+      result.current.handleFlyersAdd([file]);
     });
 
     expect(mockEventFlyers.uploadEventFlyer).toHaveBeenCalledWith({
@@ -572,7 +619,7 @@ describe("useSubmitEventForm", () => {
 
     expect(createSubmission).toHaveBeenCalledWith(
       expect.objectContaining({ submitter_id: null }),
-      { image_url: flyerUrl }
+      { image_url: flyerUrl, image_urls: [flyerUrl] }
     );
   });
 
@@ -580,16 +627,16 @@ describe("useSubmitEventForm", () => {
     const { result } = renderHook(() => useSubmitEventForm());
 
     await act(async () => {
-      result.current.handleFlyerChange(pngFile());
+      result.current.handleFlyersAdd([pngFile()]);
     });
 
     await act(async () => {
-      await result.current.handleFlyerRemove();
+      await result.current.handleFlyerRemove(result.current.flyerItems[0].id);
     });
 
     expect(mockEventFlyers.removeEventFlyer).toHaveBeenCalledWith(flyerUrl);
     expect(result.current.flyerReady).toBe(false);
-    expect(result.current.flyerStatus).toBe("empty");
+    expect(result.current.flyerItems).toHaveLength(0);
   });
 
   // ── Transactional email wiring ──
@@ -748,7 +795,7 @@ describe("useSubmitEventForm", () => {
       const { result } = renderHook(() => useSubmitEventForm());
 
       await act(async () => {
-        result.current.handleFlyerChange(pngFile());
+        result.current.handleFlyersAdd([pngFile()]);
       });
       expect(result.current.extractionStatus).toBe("idle");
 
@@ -761,6 +808,27 @@ describe("useSubmitEventForm", () => {
       expect(result.current.extractionResult).toEqual(extractionFixture);
       expect(result.current.extractionError).toBeNull();
     });
+    it("extracts from the first flyer after reordering", async () => {
+      let index = 0;
+      mockEventFlyers.uploadEventFlyer.mockImplementation(async () => ({
+        path: `path-${index}`,
+        url: `https://project.supabase.co/${++index}.png`,
+      }));
+      const { result } = renderHook(() => useSubmitEventForm());
+      await act(async () => {
+        result.current.handleFlyersAdd([pngFile(), pngFile()]);
+      });
+      const secondId = result.current.flyerItems[1].id;
+      await act(async () => result.current.handleFlyerMove(secondId, "earlier"));
+      mockFlyerExtraction.extractEventFromFlyer.mockResolvedValue(extractionFixture);
+
+      await act(async () => result.current.handleExtractFlyer());
+
+      expect(mockFlyerExtraction.extractEventFromFlyer).toHaveBeenCalledWith(
+        "https://project.supabase.co/2.png"
+      );
+    });
+
 
     it("enriches the form from an explicitly selected existing venue without setting venue_id", async () => {
       mockFlyerExtraction.extractEventFromFlyer.mockResolvedValue(extractionFixture);
@@ -771,7 +839,7 @@ describe("useSubmitEventForm", () => {
       );
       const { result } = renderHook(() => useSubmitEventForm());
       await act(async () => {
-        result.current.handleFlyerChange(pngFile());
+        result.current.handleFlyersAdd([pngFile()]);
       });
       await act(async () => {
         result.current.handleExtractFlyer();
@@ -798,7 +866,7 @@ describe("useSubmitEventForm", () => {
       });
       const { result } = renderHook(() => useSubmitEventForm());
       await act(async () => {
-        result.current.handleFlyerChange(pngFile());
+        result.current.handleFlyersAdd([pngFile()]);
       });
       await act(async () => {
         result.current.handleExtractFlyer();
@@ -816,7 +884,7 @@ describe("useSubmitEventForm", () => {
       mockReconciliation.reconcileEntities.mockResolvedValue(reviewWithVenue(venueItem()));
       const { result } = renderHook(() => useSubmitEventForm());
       await act(async () => {
-        result.current.handleFlyerChange(pngFile());
+        result.current.handleFlyersAdd([pngFile()]);
       });
       await act(async () => {
         result.current.handleExtractFlyer();
@@ -838,7 +906,7 @@ describe("useSubmitEventForm", () => {
       );
       const { result } = renderHook(() => useSubmitEventForm());
       await act(async () => {
-        result.current.handleFlyerChange(pngFile());
+        result.current.handleFlyersAdd([pngFile()]);
         result.current.update("location", "My Own Hall");
       });
       await act(async () => {
@@ -860,7 +928,7 @@ describe("useSubmitEventForm", () => {
       );
       const { result } = renderHook(() => useSubmitEventForm());
       await act(async () => {
-        result.current.handleFlyerChange(pngFile());
+        result.current.handleFlyersAdd([pngFile()]);
       });
       await act(async () => {
         result.current.handleExtractFlyer();
@@ -898,7 +966,7 @@ describe("useSubmitEventForm", () => {
       mockReconciliation.reconcileEntities.mockRejectedValue(new Error("We couldn't check."));
       const { result } = renderHook(() => useSubmitEventForm());
       await act(async () => {
-        result.current.handleFlyerChange(pngFile());
+        result.current.handleFlyersAdd([pngFile()]);
       });
       await act(async () => {
         result.current.handleExtractFlyer();
@@ -926,7 +994,7 @@ describe("useSubmitEventForm", () => {
       });
       const { result } = renderHook(() => useSubmitEventForm());
       await act(async () => {
-        result.current.handleFlyerChange(pngFile());
+        result.current.handleFlyersAdd([pngFile()]);
       });
       await act(async () => {
         result.current.handleExtractFlyer();
@@ -941,7 +1009,7 @@ describe("useSubmitEventForm", () => {
       mockReconciliation.reconcileEntities.mockResolvedValue(reviewWithVenue(venueItem()));
       const { result } = renderHook(() => useSubmitEventForm());
       await act(async () => {
-        result.current.handleFlyerChange(pngFile());
+        result.current.handleFlyersAdd([pngFile()]);
       });
       await act(async () => {
         result.current.handleExtractFlyer();
@@ -969,7 +1037,7 @@ describe("useSubmitEventForm", () => {
       mockReconciliation.reconcileEntities.mockReturnValue(pending.promise);
       const { result } = renderHook(() => useSubmitEventForm());
       await act(async () => {
-        result.current.handleFlyerChange(pngFile());
+        result.current.handleFlyersAdd([pngFile()]);
       });
       await act(async () => {
         result.current.handleExtractFlyer();
@@ -978,7 +1046,10 @@ describe("useSubmitEventForm", () => {
       const titleBefore = result.current.form.title;
 
       await act(async () => {
-        result.current.handleFlyerChange(pngFile());
+        result.current.handleFlyersAdd([pngFile(), pngFile()]);
+      });
+      await act(async () => {
+        result.current.handleFlyerMove(result.current.flyerItems[1].id, "earlier");
       });
       await act(async () => {
         pending.resolve(reviewWithVenue(venueItem()));
@@ -995,18 +1066,18 @@ describe("useSubmitEventForm", () => {
       mockReconciliation.reconcileEntities.mockResolvedValue(reviewWithVenue(venueItem()));
       const { result } = renderHook(() => useSubmitEventForm());
       await act(async () => {
-        result.current.handleFlyerChange(pngFile());
+        result.current.handleFlyersAdd([pngFile()]);
       });
       await act(async () => {
         result.current.handleExtractFlyer();
       });
       await act(async () => {
-        await result.current.handleFlyerRemove();
+        await result.current.handleFlyerRemove(result.current.flyerItems[0].id);
       });
       expect(result.current.entityReview).toBeNull();
 
       await act(async () => {
-        result.current.handleFlyerChange(pngFile());
+        result.current.handleFlyersAdd([pngFile()]);
       });
       await act(async () => {
         result.current.handleExtractFlyer();
@@ -1018,7 +1089,7 @@ describe("useSubmitEventForm", () => {
         });
       });
       await act(async () => {
-        await result.current.handleFlyerRemove();
+        await result.current.handleFlyerRemove(result.current.flyerItems[0].id);
       });
       expect(result.current.entityReview?.venue?.decision).toBe("new");
     });
@@ -1028,7 +1099,7 @@ describe("useSubmitEventForm", () => {
       mockReconciliation.reconcileEntities.mockResolvedValue(reviewWithVenue(venueItem()));
       const { result } = renderHook(() => useSubmitEventForm());
       await act(async () => {
-        result.current.handleFlyerChange(pngFile());
+        result.current.handleFlyersAdd([pngFile()]);
       });
       await act(async () => {
         result.current.handleExtractFlyer();
@@ -1062,7 +1133,7 @@ describe("useSubmitEventForm", () => {
       });
       const first = renderHook(() => useSubmitEventForm());
       await act(async () => {
-        first.result.current.handleFlyerChange(pngFile());
+        first.result.current.handleFlyersAdd([pngFile()]);
       });
       await act(async () => {
         first.result.current.handleExtractFlyer();
@@ -1072,7 +1143,7 @@ describe("useSubmitEventForm", () => {
       const second = renderHook(() => useSubmitEventForm());
       await act(async () => {
         second.result.current.update("city", "new-york-city");
-        second.result.current.handleFlyerChange(pngFile());
+        second.result.current.handleFlyersAdd([pngFile()]);
       });
       await act(async () => {
         second.result.current.handleExtractFlyer();
@@ -1097,7 +1168,7 @@ describe("useSubmitEventForm", () => {
       );
       const { result } = renderHook(() => useSubmitEventForm());
       await act(async () => {
-        result.current.handleFlyerChange(pngFile());
+        result.current.handleFlyersAdd([pngFile()]);
       });
 
       await act(async () => {
@@ -1127,7 +1198,7 @@ describe("useSubmitEventForm", () => {
       );
       const { result } = renderHook(() => useSubmitEventForm());
       await act(async () => {
-        result.current.handleFlyerChange(pngFile());
+        result.current.handleFlyersAdd([pngFile()]);
       });
 
       await act(async () => {
@@ -1149,7 +1220,7 @@ describe("useSubmitEventForm", () => {
       mockFlyerExtraction.extractEventFromFlyer.mockResolvedValue(extractionFixture);
       const { result } = renderHook(() => useSubmitEventForm());
       await act(async () => {
-        result.current.handleFlyerChange(pngFile());
+        result.current.handleFlyersAdd([pngFile()]);
       });
       await act(async () => {
         result.current.handleExtractFlyer();
@@ -1157,7 +1228,10 @@ describe("useSubmitEventForm", () => {
       expect(result.current.extractionStatus).toBe("success");
 
       await act(async () => {
-        result.current.handleFlyerChange(pngFile());
+        result.current.handleFlyersAdd([pngFile(), pngFile()]);
+      });
+      await act(async () => {
+        result.current.handleFlyerMove(result.current.flyerItems[1].id, "earlier");
       });
 
       expect(result.current.extractionStatus).toBe("idle");
@@ -1170,7 +1244,7 @@ describe("useSubmitEventForm", () => {
       mockFlyerExtraction.extractEventFromFlyer.mockResolvedValue(extractionFixture);
       const { result } = renderHook(() => useSubmitEventForm());
       await act(async () => {
-        result.current.handleFlyerChange(pngFile());
+        result.current.handleFlyersAdd([pngFile()]);
       });
       await act(async () => {
         result.current.handleExtractFlyer();
@@ -1178,7 +1252,7 @@ describe("useSubmitEventForm", () => {
       expect(result.current.extractionStatus).toBe("success");
 
       await act(async () => {
-        await result.current.handleFlyerRemove();
+        await result.current.handleFlyerRemove(result.current.flyerItems[0].id);
       });
 
       expect(result.current.extractionStatus).toBe("idle");
@@ -1196,7 +1270,7 @@ describe("useSubmitEventForm", () => {
       );
       const { result } = renderHook(() => useSubmitEventForm());
       await act(async () => {
-        result.current.handleFlyerChange(pngFile());
+        result.current.handleFlyersAdd([pngFile()]);
       });
 
       await act(async () => {
@@ -1207,7 +1281,10 @@ describe("useSubmitEventForm", () => {
       // The flyer is replaced while the first request is still pending —
       // this bumps the generation and must invalidate that request.
       await act(async () => {
-        result.current.handleFlyerChange(pngFile());
+        result.current.handleFlyersAdd([pngFile(), pngFile()]);
+      });
+      await act(async () => {
+        result.current.handleFlyerMove(result.current.flyerItems[1].id, "earlier");
       });
       expect(result.current.extractionStatus).toBe("idle");
 
@@ -1225,7 +1302,7 @@ describe("useSubmitEventForm", () => {
       const { result } = renderHook(() => useSubmitEventForm());
 
       await act(async () => {
-        result.current.handleFlyerChange(pngFile());
+        result.current.handleFlyersAdd([pngFile()]);
       });
       await act(async () => {
         result.current.handleExtractFlyer();
@@ -1248,7 +1325,7 @@ describe("useSubmitEventForm", () => {
         result.current.update("title", "My Own Title");
       });
       await act(async () => {
-        result.current.handleFlyerChange(pngFile());
+        result.current.handleFlyersAdd([pngFile()]);
       });
       await act(async () => {
         result.current.handleExtractFlyer();
@@ -1272,7 +1349,7 @@ describe("useSubmitEventForm", () => {
         result.current.update("city", "new-york-city");
       });
       await act(async () => {
-        result.current.handleFlyerChange(pngFile());
+        result.current.handleFlyersAdd([pngFile()]);
       });
       await act(async () => {
         result.current.handleExtractFlyer();
@@ -1287,7 +1364,7 @@ describe("useSubmitEventForm", () => {
       mockFlyerExtraction.extractEventFromFlyer.mockResolvedValue(extractionFixture);
       const { result } = renderHook(() => useSubmitEventForm());
       await act(async () => {
-        result.current.handleFlyerChange(pngFile());
+        result.current.handleFlyersAdd([pngFile()]);
       });
       await act(async () => {
         result.current.handleExtractFlyer();
@@ -1314,7 +1391,7 @@ describe("useSubmitEventForm", () => {
       );
       const { result } = renderHook(() => useSubmitEventForm());
       await act(async () => {
-        result.current.handleFlyerChange(pngFile());
+        result.current.handleFlyersAdd([pngFile()]);
       });
       await act(async () => {
         result.current.handleExtractFlyer();
@@ -1323,7 +1400,10 @@ describe("useSubmitEventForm", () => {
 
       // Replace the flyer while extraction A is still in flight.
       await act(async () => {
-        result.current.handleFlyerChange(pngFile());
+        result.current.handleFlyersAdd([pngFile(), pngFile()]);
+      });
+      await act(async () => {
+        result.current.handleFlyerMove(result.current.flyerItems[1].id, "earlier");
       });
       expect(result.current.extractionStatus).toBe("idle");
       expect(result.current.form.title).toBe("");
@@ -1346,7 +1426,7 @@ describe("useSubmitEventForm", () => {
         result.current.update("title", "Kept On Failure");
       });
       await act(async () => {
-        result.current.handleFlyerChange(pngFile());
+        result.current.handleFlyersAdd([pngFile()]);
       });
       await act(async () => {
         result.current.handleExtractFlyer();
@@ -1361,7 +1441,7 @@ describe("useSubmitEventForm", () => {
       mockFlyerExtraction.extractEventFromFlyer.mockRejectedValueOnce(new Error("read failed"));
       const { result } = renderHook(() => useSubmitEventForm());
       await act(async () => {
-        result.current.handleFlyerChange(pngFile());
+        result.current.handleFlyersAdd([pngFile()]);
       });
       await act(async () => {
         result.current.handleExtractFlyer();

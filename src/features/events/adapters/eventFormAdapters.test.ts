@@ -18,6 +18,7 @@ const baseDraft: EventFormDraft = {
   price_amount: "",
   rsvp_link: "https://example.com",
   image_url: "https://example.com/image.jpg",
+  image_urls: ["https://example.com/image.jpg", "https://example.com/second.jpg"],
   host: "Test Host",
   contact_email: "test@example.com",
   contact_instagram: "@test",
@@ -52,6 +53,16 @@ describe("eventFormAdapters", () => {
       expect(payload).not.toHaveProperty("venue_id");
       expect(payload).not.toHaveProperty("taxonomy_term_ids");
       expect(payload.title).toBe("Test Event");
+    });
+    it("emits the primary flyer and the ordered list", () => {
+      expect(draftToUserPayload(baseDraft)).toMatchObject({
+        image_url: "https://example.com/image.jpg",
+        image_urls: ["https://example.com/image.jpg", "https://example.com/second.jpg"],
+      });
+      expect(draftToAdminPayload(baseDraft)).toMatchObject({
+        image_url: "https://example.com/image.jpg",
+        image_urls: ["https://example.com/image.jpg", "https://example.com/second.jpg"],
+      });
     });
   });
 

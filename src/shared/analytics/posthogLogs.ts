@@ -9,6 +9,7 @@ type EventSubmissionLogAttributes = {
   city: string;
   event_type: string;
   has_flyer: boolean;
+  flyer_count?: number;
   is_authenticated: boolean;
 };
 
@@ -18,7 +19,9 @@ export const posthogSubmissionLogger = {
   submitted(attributes: EventSubmissionLogAttributes) {
     posthog.logger.info("event submission persisted", attributes);
   },
-  failed(attributes: Pick<EventSubmissionLogAttributes, "has_flyer" | "is_authenticated">) {
+  failed(
+    attributes: Pick<EventSubmissionLogAttributes, "has_flyer" | "flyer_count" | "is_authenticated">
+  ) {
     posthog.logger.warn("event submission failed", attributes);
   },
 };

@@ -38,7 +38,9 @@ import { scheduleXEventTypes } from "../../model/eventTypeDisplay";
 import { EVENT_TYPE_LABELS } from "../../model/types";
 import { POSTER_SIZE, type PosterFormat } from "./posterFormat";
 import { ensurePosterFonts } from "./posterFonts";
-import { resolveEventFlyer } from "./eventModalImage";
+import { resolveEventFlyer, resolveEventFlyers } from "./eventModalImage";
+import { FlyerPagerControls } from "./FlyerPager";
+import { useFlyerPager } from "./useFlyerPager";
 import Button from "../../../../components/ui/Button";
 import IconButton from "../../../../components/ui/IconButton";
 import ButtonLink from "../../../../components/ui/ButtonLink";
@@ -270,6 +272,13 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
   const galleryExtra = (event.gallery?.length ?? 0) - galleryThumbs.length;
   const coverUrl = resolveEventFlyer(event);
   const coverKind = event.imageUrl?.trim() ? "flyer" : "fallback";
+  // The sleeve thumbnail flips through every flyer; the poster stays on the primary.
+  const flyerPager = useFlyerPager({
+    flyers: resolveEventFlyers(event),
+    fallbackUrl: resolveEventFlyer({ ...event, imageUrl: undefined }),
+    artKind: coverKind,
+    resetKey: event.id,
+  });
   const shortUrl = buildShortEventUrl(String(event.id));
   const shortLabel = shortEventLabel(String(event.id));
 
@@ -530,10 +539,16 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
             type="button"
             className="night-card__sleeve"
             onClick={() => setView("poster")}
+            onKeyDown={flyerPager.onKeyDown}
             aria-label="Preview the poster your friends get"
           >
             <span className={`sleeve sleeve--thumb sleeve--${event.calendarId}`} aria-hidden="true">
-              <SleeveCover event={event} imageUrl={coverUrl} artKind={coverKind} />
+              <SleeveCover
+                event={event}
+                imageUrl={flyerPager.url}
+                artKind={flyerPager.artKind}
+                onImageError={flyerPager.onImageError}
+              />
             </span>
             <span className="night-card__sleeve-hint" aria-hidden="true">
               <Eye size={14} /> Preview poster
@@ -584,6 +599,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
               </li>
             </ul>
           </div>
+          <FlyerPagerControls pager={flyerPager} className="night-card__flyers" />
         </header>
 
         <h2 id="modal-title" className="night-card__title">

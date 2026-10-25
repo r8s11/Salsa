@@ -7,13 +7,13 @@ import {
   OTHER_TEXT_MAX_LENGTH,
   TITLE_MAX_LENGTH,
 } from "../../submit-event/model/validation";
+import type { AdminEventPayload } from "../../events/api/eventsRepo";
 import {
   NYC_CITY,
   NYC_SUBLOCATIONS,
   isSubLocation,
   type SubLocation,
 } from "../../metros/model/sublocation";
-import type { AdminEventPayload } from "../../events/api/eventsRepo";
 import { draftToAdminPayload } from "../../events/components/EventForm";
 
 // The manual editor validates image URLs inline; CSV import applies the same
@@ -284,6 +284,7 @@ export function validateCsvRow(
       dance_styles: [],
       host,
       image_url: imageUrl,
+      image_urls: imageUrl ? [imageUrl] : [],
       contact_email: contactEmail,
       contact_instagram: contactInstagram,
       contact_website: contactWebsite,

@@ -4,6 +4,7 @@ import posthog from "posthog-js";
 import { posthogSubmissionLogger } from "../../../shared/analytics/posthogLogs";
 import { createSubmission } from "../../admin/api/submissionsRepo";
 import { uploadEventFlyer, removeEventFlyer } from "../../events/api/eventFlyers";
+import { MAX_FLYERS_PER_EVENT, flyerPayload } from "../../events/model/eventFlyers";
 import { useCity } from "../../../contexts/useCity";
 import { useMetros } from "../../metros/hooks/useMetros";
 import { useAuth } from "../../../contexts/useAuth";
@@ -18,7 +19,7 @@ import type { EventFormDraft } from "../../events/components/EventForm";
 import type { EventType } from "../../events/model/types";
 import { eventTypeFields } from "../../events/model/eventTypeSelection";
 import { draftToSubmission } from "../../events/components/EventForm";
-import type { EventFlyerStatus } from "../../events/components/EventFlyerField";
+import type { FlyerItem as FlyerFieldItem } from "../../events/components/EventFlyersField";
 import { extractEventFromFlyer } from "../../flyer-extraction/client";
 import { applyExtractionToDraft, type PrefillResult } from "../../flyer-extraction/prefill";
 import type { ExtractedEvent, FlyerExtractionStatus } from "../../flyer-extraction/types";
@@ -46,12 +47,28 @@ type ReconciliationState = {
 
 const hasReviewEntries = (review: EntityReview) => listReviewEntries(review).length > 0;
 
+type FlyerItem = {
+  id: string;
+  file: File;
+  /** Public storage URL; set once the upload has persisted. */
+  url: string | null;
+  status: NonNullable<FlyerFieldItem["status"]>;
+  errorMessage: string | null;
+};
+
+/** The first item is primary; it is not ready for extraction until uploaded. */
+const primaryFlyer = (items: readonly FlyerItem[]) => items[0] ?? null;
+
+const persistedFlyerUrls = (items: readonly FlyerItem[]) =>
+  items.flatMap((item) => (item.url ? [item.url] : []));
+
 function buildSubmitDraft(city: EventFormDraft["city"]): EventFormDraft {
   return {
     ...buildInitialForm(city),
     sublocation: "",
     venue_id: "",
     image_url: "",
+    image_urls: [],
     host: "",
     contact_email: "",
     contact_instagram: "",
@@ -84,21 +101,20 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
   // `FormErrorSummary` re-focuses even when the error text is unchanged.
   const [failedAttempt, setFailedAttempt] = useState(0);
 
-  // ── Flyer (Phase 1): persist-before-ready ──
-  // The flyer is uploaded to Supabase Storage as soon as it is chosen — the
-  // "ready" state therefore always means the object exists in persistent
-  // storage, and submitting reuses that URL without a second upload. The
-  // canonical `events.image_url` is populated later by the approval RPC once
-  // the carry-through SQL (supabase/manual/flyer-automation/phase-1/002_update_submission_approval_image.sql)
-  // is applied in production.
-  const [flyerFile, setFlyerFile] = useState<File | null>(null);
-  const [flyerStatus, setFlyerStatus] = useState<EventFlyerStatus>("empty");
+  // ── Flyers: persist-before-ready, ordered, up to MAX_FLYERS_PER_EVENT ──
+  // Each flyer is uploaded to Supabase Storage as soon as it is chosen — an
+  // item is therefore "uploaded" only once its object exists in persistent
+  // storage, and submitting reuses those URLs without a second upload. The
+  // first persisted flyer is the primary (`events.image_url`); the whole
+  // ordered list travels as `image_urls`.
+  const [flyers, setFlyers] = useState<FlyerItem[]>([]);
+  // Mirrors `flyers` synchronously: upload callbacks and submit read the
+  // latest list, not the one captured by the render that started them.
+  const flyersRef = useRef<FlyerItem[]>([]);
   const [flyerError, setFlyerError] = useState<string | null>(null);
-  const [flyerPath, setFlyerPath] = useState<string | null>(null);
-  const [uploadedFlyerUrl, setUploadedFlyerUrl] = useState<string | null>(null);
-  // Tracks the in-flight upload so submit never starts a second one while one
-  // is already running. Resolves to the persisted URL or null on failure.
-  const flyerUploadPromise = useRef<Promise<string | null> | null>(null);
+  // In-flight uploads, so submit never starts a second upload for an item and
+  // can wait for the running ones. Each resolves to the URL or null on failure.
+  const flyerUploads = useRef(new Map<string, Promise<string | null>>());
 
   // ── Flyer extraction (Phase 3): review-only ──
   // One extraction attempt at a time, for the currently persisted flyer.
@@ -195,34 +211,6 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
     setForm((previous) => ({ ...previous, entity_review: review }));
   };
 
-  const uploadFlyerFile = (file: File): Promise<string | null> => {
-    setFlyerStatus("uploading");
-    setFlyerError(null);
-    const promise = uploadEventFlyer({
-      file,
-      ownerId: user?.id ?? "anonymous",
-      // No canonical event id yet. Authenticated paths remain owner-scoped;
-      // public submissions use the policy-limited anonymous namespace.
-      eventId: `submission-${crypto.randomUUID()}`,
-    })
-      .then((uploaded) => {
-        setUploadedFlyerUrl(uploaded.url);
-        setFlyerPath(uploaded.path);
-        setFlyerStatus("uploaded");
-        return uploaded.url;
-      })
-      .catch((uploadErr) => {
-        setFlyerStatus("upload-error");
-        setFlyerError(
-          uploadErr instanceof Error ? uploadErr.message : "We couldn't upload this flyer."
-        );
-        // The applicant can retry or continue manually — the submission is not
-        // blocked by a failed upload.
-        return null;
-      });
-    flyerUploadPromise.current = promise;
-    return promise;
-  };
   const resetExtraction = () => {
     extractionGeneration.current += 1;
     isExtracting.current = false;
@@ -242,66 +230,117 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
     });
   };
 
-  const handleFlyerChange = (file: File | null) => {
+  const commitFlyers = (next: FlyerItem[]) => {
+    const previousPrimaryId = primaryFlyer(flyersRef.current)?.id;
+    flyersRef.current = next;
+    setFlyers(next);
+    // Extraction results belong to the primary flyer; a different item
+    // (added, removed, or reordered) invalidates them even if URL mocks repeat.
+    if (previousPrimaryId !== primaryFlyer(next)?.id) resetExtraction();
+  };
+  const patchFlyer = (id: string, patch: Partial<FlyerItem>) =>
+    commitFlyers(flyersRef.current.map((item) => (item.id === id ? { ...item, ...patch } : item)));
+  const hasFlyer = (id: string) => flyersRef.current.some((item) => item.id === id);
+
+  const uploadFlyerItem = (item: FlyerItem): Promise<string | null> => {
+    const promise = uploadEventFlyer({
+      file: item.file,
+      ownerId: user?.id ?? "anonymous",
+      // No canonical event id yet. Authenticated paths remain owner-scoped;
+      // public submissions use the policy-limited anonymous namespace.
+      eventId: `submission-${crypto.randomUUID()}`,
+    })
+      .then((uploaded) => {
+        if (!hasFlyer(item.id)) {
+          // Removed while uploading: the object would be orphaned.
+          void removeEventFlyer(uploaded.url).catch(() => {
+            /* best-effort cleanup */
+          });
+          return null;
+        }
+        patchFlyer(item.id, { url: uploaded.url, status: "uploaded", errorMessage: null });
+        return uploaded.url;
+      })
+      .catch((uploadErr) => {
+        // The applicant can retry or continue manually — the submission is not
+        // blocked by a failed upload.
+        if (hasFlyer(item.id)) {
+          patchFlyer(item.id, {
+            status: "upload-error",
+            errorMessage:
+              uploadErr instanceof Error ? uploadErr.message : "We couldn't upload this flyer.",
+          });
+        }
+        return null;
+      })
+      .finally(() => {
+        flyerUploads.current.delete(item.id);
+      });
+    flyerUploads.current.set(item.id, promise);
+    return promise;
+  };
+
+  const handleFlyersAdd = (files: File[]) => {
+    const room = Math.max(0, MAX_FLYERS_PER_EVENT - flyersRef.current.length);
+    const accepted = files.slice(0, room);
+    setFlyerError(
+      accepted.length < files.length
+        ? `You can add up to ${MAX_FLYERS_PER_EVENT} flyers per event.`
+        : null
+    );
+    if (accepted.length === 0) return;
+    const added: FlyerItem[] = accepted.map((file) => ({
+      id: crypto.randomUUID(),
+      file,
+      url: null,
+      status: "uploading",
+      errorMessage: null,
+    }));
+    commitFlyers([...flyersRef.current, ...added]);
+    for (const item of added) void uploadFlyerItem(item);
+  };
+
+  const handleFlyerRetry = (id: string) => {
+    const item = flyersRef.current.find((candidate) => candidate.id === id);
+    if (!item || item.status !== "upload-error") return;
     setFlyerError(null);
-    resetExtraction();
-    if (!file) {
-      // Cleared selection: remove a previously persisted flyer (orphan safety).
-      const previousUrl = uploadedFlyerUrl;
-      setFlyerFile(null);
-      setFlyerStatus("empty");
-      setUploadedFlyerUrl(null);
-      setFlyerPath(null);
-      if (previousUrl) {
-        void removeEventFlyer(previousUrl).catch(() => {
-          /* best-effort cleanup */
-        });
-      }
+    patchFlyer(id, { status: "uploading", errorMessage: null });
+    void uploadFlyerItem(item);
+  };
+
+  const handleFlyerMove = (id: string, direction: "earlier" | "later") => {
+    const items = [...flyersRef.current];
+    const from = items.findIndex((item) => item.id === id);
+    const to = direction === "earlier" ? from - 1 : from + 1;
+    if (from < 0 || to < 0 || to >= items.length) return;
+    [items[from], items[to]] = [items[to], items[from]];
+    commitFlyers(items);
+  };
+
+  const handleFlyerRemove = async (id: string) => {
+    const item = flyersRef.current.find((candidate) => candidate.id === id);
+    if (!item) return;
+    setFlyerError(null);
+    if (!item.url) {
+      // Nothing persisted yet. An upload still in flight deletes its own object
+      // when it lands and finds the item gone.
+      commitFlyers(flyersRef.current.filter((candidate) => candidate.id !== id));
       return;
     }
-
-    // Replacing a previously persisted flyer: remove the old object first so we
-    // never leave an orphan sitting in storage.
-    const previousUrl = uploadedFlyerUrl;
-    setUploadedFlyerUrl(null);
-    setFlyerPath(null);
-    if (previousUrl) {
-      void removeEventFlyer(previousUrl).catch(() => {
-        /* best-effort cleanup */
-      });
-    }
-
-    setFlyerFile(file);
-    void uploadFlyerFile(file);
-  };
-
-  const handleFlyerRetry = () => {
-    setFlyerError(null);
-    if (flyerFile) {
-      void uploadFlyerFile(flyerFile);
-    }
-  };
-
-  const handleFlyerRemove = async () => {
-    resetExtraction();
-    setFlyerStatus("removing");
+    patchFlyer(id, { status: "removing" });
     try {
-      if (uploadedFlyerUrl) {
-        await removeEventFlyer(uploadedFlyerUrl);
-      }
-      setUploadedFlyerUrl(null);
-      setFlyerPath(null);
-      setFlyerFile(null);
-      flyerUploadPromise.current = null;
-      setFlyerStatus("empty");
+      await removeEventFlyer(item.url);
+      commitFlyers(flyersRef.current.filter((candidate) => candidate.id !== id));
     } catch {
       setFlyerError("We couldn't remove this flyer. Please try again.");
-      setFlyerStatus(uploadedFlyerUrl ? "uploaded" : "empty");
+      if (hasFlyer(id)) patchFlyer(id, { status: "uploaded" });
     }
   };
 
+  // Extraction reads the primary flyer only, whatever else is attached.
   const handleExtractFlyer = () => {
-    if (!uploadedFlyerUrl || isExtracting.current) return;
+    const flyerUrl = primaryFlyer(flyersRef.current)?.url ?? null;
+    if (!flyerUrl || isExtracting.current) return;
     if (extractionAttempts >= MAX_EXTRACTION_ATTEMPTS) return;
     setExtractionAttempts((attempt) => attempt + 1);
     isExtracting.current = true;
@@ -311,7 +350,7 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
     setExtractionError(null);
     void (async () => {
       try {
-        const result = await extractEventFromFlyer(uploadedFlyerUrl);
+        const result = await extractEventFromFlyer(flyerUrl);
         if (stale()) return;
         setExtractionResult(result);
         const candidates = extractionEntityCandidates(result);
@@ -408,16 +447,12 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
     submittingRef.current = true;
     setFieldErrors({});
 
-    // Reuse the URL already persisted for this flyer — submit never performs a
-    // second upload. If an upload is still in flight, wait for it to settle.
-    let persistedFlyerUrl: string | null = uploadedFlyerUrl;
-    if (!persistedFlyerUrl && flyerUploadPromise.current) {
-      try {
-        persistedFlyerUrl = await flyerUploadPromise.current;
-      } catch {
-        persistedFlyerUrl = null;
-      }
+    // Reuse the URLs already persisted for the flyers — submit never performs
+    // a second upload. If uploads are still in flight, wait for them to settle.
+    if (flyerUploads.current.size > 0) {
+      await Promise.allSettled([...flyerUploads.current.values()]);
     }
+    const flyerUrls = persistedFlyerUrls(flyersRef.current);
 
     setIsSubmitting(true);
     try {
@@ -429,7 +464,7 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
         submission,
         // Persist the uploaded flyer URL into submitted_data so the approval
         // carry-through (deferred SQL) can copy it to events.image_url.
-        persistedFlyerUrl ? { image_url: persistedFlyerUrl } : undefined
+        flyerUrls.length ? flyerPayload(flyerUrls) : undefined
       );
       // The submission is committed. Both emails (submitter confirmation +
       // moderator notification) are deliberately un-awaited: the row is the
@@ -440,24 +475,23 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
       const logAttributes = {
         city: form.city,
         event_type: form.event_type,
-        has_flyer: Boolean(persistedFlyerUrl),
+        has_flyer: flyerUrls.length > 0,
+        flyer_count: flyerUrls.length,
         is_authenticated: Boolean(user),
       };
       posthog.capture("event_submitted", logAttributes);
       posthogSubmissionLogger.submitted(logAttributes);
       setIsSubmitted(true);
       setForm(buildSubmitDraft(defaultCity ?? ""));
-      setFlyerFile(null);
-      setUploadedFlyerUrl(null);
-      setFlyerPath(null);
-      flyerUploadPromise.current = null;
-      setFlyerStatus("empty");
+      flyerUploads.current.clear();
+      commitFlyers([]);
       lastCandidatesRef.current = null;
       cityChosenRef.current = false;
       resetExtraction();
     } catch (err) {
       posthogSubmissionLogger.failed({
-        has_flyer: Boolean(persistedFlyerUrl),
+        has_flyer: flyerUrls.length > 0,
+        flyer_count: flyerUrls.length,
         is_authenticated: Boolean(user),
       });
       setServerError(
@@ -468,16 +502,9 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
       setFailedAttempt((attempt) => attempt + 1);
       // Clean up a flyer that was uploaded but whose submission failed, so we
       // don't leave an orphaned object.
-      if (persistedFlyerUrl) {
-        try {
-          await removeEventFlyer(persistedFlyerUrl);
-        } catch {
-          /* best-effort */
-        }
-        setUploadedFlyerUrl(null);
-        setFlyerPath(null);
-        flyerUploadPromise.current = null;
-        setFlyerStatus("empty");
+      if (flyerUrls.length > 0) {
+        await Promise.allSettled(flyerUrls.map((url) => removeEventFlyer(url)));
+        commitFlyers(flyersRef.current.filter((item) => !item.url));
       }
     } finally {
       submittingRef.current = false;
@@ -487,7 +514,14 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
 
   const resetSubmitted = () => setIsSubmitted(false);
 
-  const flyerReady = Boolean(uploadedFlyerUrl);
+  const flyerReady = Boolean(primaryFlyer(flyers)?.url);
+  const flyerItems = flyers.map((item) => ({
+    id: item.id,
+    url: item.url ?? "",
+    status: item.status,
+    errorMessage: item.errorMessage,
+    sizeCaption: `${(item.file.size / (1024 * 1024)).toFixed(1)} MB`,
+  }));
 
   return {
     form,
@@ -500,14 +534,12 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
     serverError,
     failedAttempt,
     resetSubmitted,
-    flyerFile,
-    flyerStatus,
+    flyerItems,
     flyerError,
-    flyerPath,
-    uploadedFlyerUrl,
     flyerReady,
-    handleFlyerChange,
+    handleFlyersAdd,
     handleFlyerRetry,
+    handleFlyerMove,
     handleFlyerRemove,
     extractionStatus,
     extractionResult,

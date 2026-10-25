@@ -3,6 +3,7 @@ import type { SubmissionCreate } from "../../admin/api/submissionsRepo";
 import type { UserEventUpdatePayload, AdminEventPayload } from "../api/eventsRepo";
 import { toEventDateInstant } from "../model/eventDateTime";
 import { eventTypePayload } from "../model/eventTypeSelection";
+import { flyerPayload } from "../model/eventFlyers";
 import { normalizeSubLocation } from "../../metros/model/sublocation";
 
 export function draftToSubmission(
@@ -50,7 +51,7 @@ export function draftToUserPayload(draft: EventFormDraft): UserEventUpdatePayloa
     recurrence: draft.recurrence || null,
     city: draft.city,
     sublocation: normalizeSubLocation(draft.city, draft.sublocation),
-    image_url: draft.image_url || null,
+    ...flyerPayload(draft.image_urls),
   };
 }
 
@@ -71,7 +72,7 @@ export function draftToAdminPayload(draft: EventFormDraft): AdminEventPayload {
     recurrence: draft.recurrence || null,
     city: draft.city,
     sublocation: normalizeSubLocation(draft.city, draft.sublocation),
-    image_url: draft.image_url || null,
+    ...flyerPayload(draft.image_urls),
     host: draft.host || null,
     contact_email: draft.contact_email || null,
     contact_instagram: draft.contact_instagram || null,

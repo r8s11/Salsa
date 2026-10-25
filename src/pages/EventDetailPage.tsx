@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import posthog from "posthog-js";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -32,7 +32,12 @@ import {
   buildPublicEventUrl,
 } from "../features/events/model/eventSharing";
 import { downloadIcs, mapsUrl } from "../utils/ics";
-import { resolveEventFlyer } from "../features/events/components/event-modal/eventModalImage";
+import {
+  resolveEventFlyer,
+  resolveEventFlyers,
+} from "../features/events/components/event-modal/eventModalImage";
+import { FlyerPagerControls } from "../features/events/components/event-modal/FlyerPager";
+import { useFlyerPager } from "../features/events/components/event-modal/useFlyerPager";
 import Button from "../components/ui/Button";
 import ButtonLink from "../components/ui/ButtonLink";
 import NotFoundPage from "./NotFoundPage";
@@ -108,6 +113,14 @@ export default function EventDetailPage() {
     return () => document.getElementById("event-detail-data")?.remove();
   }, [event]);
 
+  const scheduleEvent = useMemo(() => (event ? databaseEventToScheduleX(event) : null), [event]);
+  const flyerPager = useFlyerPager({
+    flyers: scheduleEvent ? resolveEventFlyers(scheduleEvent) : [],
+    fallbackUrl: scheduleEvent ? resolveEventFlyer({ ...scheduleEvent, imageUrl: undefined }) : "",
+    artKind: scheduleEvent?.imageUrl?.trim() ? "flyer" : "fallback",
+    resetKey: event?.id ?? "",
+  });
+
   const tabListId = useId();
   const aboutTabId = `${tabListId}-tab-about`;
   const albumTabId = `${tabListId}-tab-album`;
@@ -143,9 +156,8 @@ export default function EventDetailPage() {
       </div>
     );
   }
-  if (!event) return <NotFoundPage />;
+  if (!event || !scheduleEvent) return <NotFoundPage />;
 
-  const scheduleEvent = databaseEventToScheduleX(event);
   const relatedSelection = relatedEventsQuery.data
     ? selectRelatedEvents(event, relatedEventsQuery.data)
     : { events: [], hasStrictWindowEvents: false };
@@ -213,14 +225,33 @@ export default function EventDetailPage() {
 
   return (
     <div className="event-page">
-      <div className="event-page__cover">
-        <img className="event-page__cover-img" src={resolveEventFlyer(scheduleEvent)} alt="" />
+      <div
+        className="event-page__cover"
+        {...(flyerPager.count > 1 && {
+          role: "group",
+          "aria-roledescription": "carousel",
+          "aria-label": "Event cover",
+          tabIndex: 0,
+          onKeyDown: flyerPager.onKeyDown,
+        })}
+      >
+        <img
+          className="event-page__cover-img"
+          src={flyerPager.url}
+          alt=""
+          onError={flyerPager.onImageError}
+        />
         <div className="event-page__cover-art" />
         <div className="event-page__cover-bar">
           <Link to="/calendar" className="event-page__back">
             ← The calendar
           </Link>
         </div>
+        {flyerPager.count > 1 && (
+          <div className="event-page__cover-flyers">
+            <FlyerPagerControls pager={flyerPager} />
+          </div>
+        )}
         <div className="event-page__cover-body">
           <div className="event-page__chips">
             {getEventTypes(event).map((type) => (

@@ -26,7 +26,7 @@ import {
   removeItem,
 } from "../../../entity-matching/entityReviewState";
 import { venueDisplayAddress } from "../../model/venuesQuery";
-import EventFlyerField, { type EventFlyerStatus } from "../../../events/components/EventFlyerField";
+import EventFlyersField from "../../../events/components/EventFlyersField";
 import FlyerExtractionPanel from "../../../flyer-extraction/FlyerExtractionPanel";
 import { extractEventFromFlyer } from "../../../flyer-extraction/client";
 import { applyExtractionToDraft, type PrefillResult } from "../../../flyer-extraction/prefill";
@@ -49,6 +49,7 @@ import {
 } from "../../../entity-matching/entityReviewState";
 import type { ExtractedEvent, FlyerExtractionStatus } from "../../../flyer-extraction/types";
 import { useMetros } from "../../../metros/hooks/useMetros";
+import { eventFlyerList } from "../../../events/model/eventFlyers";
 import { removeEventFlyer, uploadEventFlyer } from "../../../events/api/eventFlyers";
 
 import "./AdminEventEditor.css";
@@ -123,15 +124,27 @@ export default function AdminEventEditor({
   }, [onSubmit]);
   const [selectedSeries, setSelectedSeries] = useState<ComposerEntity | null>(null);
   const seriesGeneration = useRef(0);
-  const uploadGeneration = useRef(0);
   const seriesRef = useRef<HTMLDivElement>(null);
   const artworkRef = useRef<HTMLDivElement>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
-  const [selectedFlyer, setSelectedFlyer] = useState<File | null>(null);
-  const [flyerStatus, setFlyerStatus] = useState<EventFlyerStatus>(
-    (recovery?.form.image_url ?? initial.image_url) ? "uploaded" : "empty"
-  );
-  const [flyerError, setFlyerError] = useState<string | null>(null);
+  // Flyers upload as soon as they are chosen, so none is ever staged for save;
+  // the `onSubmit(form, flyer, ...)` contract still carries this (always null) file.
+  const selectedFlyer: File | null = null;
+  const [pendingFlyers, setPendingFlyers] = useState<
+    { id: string; file: File; status: "uploading" | "upload-error"; errorMessage?: string }[]
+  >([]);
+  const flyerUploading = pendingFlyers.some((flyer) => flyer.status === "uploading");
+  const flyerUrls = form.image_urls?.length ? form.image_urls : eventFlyerList(form);
+  const flyerItems = [
+    ...flyerUrls.map((url) => ({ id: url, url, status: "uploaded" as const })),
+    ...pendingFlyers.map((flyer) => ({
+      id: flyer.id,
+      url: "",
+      status: flyer.status,
+      errorMessage: flyer.errorMessage,
+    })),
+  ];
+  const newFlyerUrls = useRef(new Set<string>());
 
   useEffect(() => {
     if (!form.series_id || selectedSeries?.id === form.series_id) return;
@@ -242,44 +255,94 @@ export default function AdminEventEditor({
     (term) => term.status !== "active" && form.taxonomy_term_ids.includes(term.id)
   );
 
-  const handleFlyerChange = async (file: File | null) => {
-    resetExtraction();
-    const generation = ++uploadGeneration.current;
-    setFlyerScope("event");
+  const updateFlyerUrls = (urls: string[]) => {
+    const next = [...new Set(urls.map((url) => url.trim()).filter(Boolean))].slice(0, 5);
+    const previousPrimary = formRef.current.image_urls?.[0] ?? formRef.current.image_url;
+    const nextPrimary = next[0] ?? "";
+    if (previousPrimary !== nextPrimary) resetExtraction();
     edited.current.add("image_url");
-    setFlyerError(null);
-    if (!file) {
-      setForm((current) => ({ ...current, image_url: "" }));
-      setSelectedFlyer(null);
-      setFlyerStatus("empty");
-      return;
-    }
+    edited.current.add("image_urls");
+    setForm((current) => ({ ...current, image_url: nextPrimary, image_urls: next }));
+  };
+  const handleAddFlyers = async (files: File[]) => {
+    setFlyerScope("event");
+    const ids = files.map(() => `pending-${crypto.randomUUID()}`);
+    setPendingFlyers((current) => [
+      ...current,
+      ...files.map((file, index) => ({ id: ids[index], file, status: "uploading" as const })),
+    ]);
     if (!flyerOwnerId) {
-      setFlyerStatus("upload-error");
-      setFlyerError("Your admin session is still loading. Try the flyer again in a moment.");
+      setPendingFlyers((current) =>
+        current.map((flyer) =>
+          ids.includes(flyer.id)
+            ? {
+                ...flyer,
+                status: "upload-error",
+                errorMessage: "Your admin session is still loading. Try the flyer again in a moment.",
+              }
+            : flyer
+        )
+      );
       return;
     }
-    setFlyerStatus("uploading");
-    setSelectedFlyer(null);
-    try {
-      const uploaded = await uploadEventFlyer({
-        file,
-        ownerId: flyerOwnerId,
-        eventId: saved?.id ?? "admin-draft-" + crypto.randomUUID(),
-      });
-      if (uploadGeneration.current !== generation) {
-        void removeEventFlyer(uploaded.url).catch(() => undefined);
-        return;
+    for (const [index, id] of ids.entries()) {
+      try {
+        const uploaded = await uploadEventFlyer({
+          file: files[index],
+          ownerId: flyerOwnerId,
+          eventId: saved?.id ?? "admin-draft-" + crypto.randomUUID(),
+        });
+        newFlyerUrls.current.add(uploaded.url);
+        setPendingFlyers((current) => current.filter((flyer) => flyer.id !== id));
+        edited.current.add("image_url");
+        edited.current.add("image_urls");
+        if (!formRef.current.image_url) resetExtraction();
+        setForm((current) => {
+          const next = [...new Set([...eventFlyerList(current), uploaded.url])].slice(0, 5);
+          return { ...current, image_url: next[0] ?? "", image_urls: next };
+        });
+      } catch (uploadError) {
+        setPendingFlyers((current) =>
+          current.map((flyer) =>
+            flyer.id === id
+              ? {
+                  ...flyer,
+                  status: "upload-error",
+                  errorMessage:
+                    uploadError instanceof Error ? uploadError.message : "Unable to upload this flyer.",
+                }
+              : flyer
+          )
+        );
       }
-      setForm((current) => ({ ...current, image_url: uploaded.url }));
-      setFlyerStatus("uploaded");
-    } catch (uploadError) {
-      if (uploadGeneration.current !== generation) return;
-      setFlyerStatus("upload-error");
-      setFlyerError(
-        uploadError instanceof Error ? uploadError.message : "Unable to upload this flyer."
-      );
     }
+  };
+  const removeFlyer = (id: string) => {
+    const pending = pendingFlyers.find((flyer) => flyer.id === id);
+    if (pending) {
+      setPendingFlyers((current) => current.filter((flyer) => flyer.id !== id));
+      return;
+    }
+    if (!flyerUrls.includes(id)) return;
+    updateFlyerUrls(flyerUrls.filter((url) => url !== id));
+    if (newFlyerUrls.current.has(id)) {
+      newFlyerUrls.current.delete(id);
+      void removeEventFlyer(id).catch(() => undefined);
+    }
+  };
+  const moveFlyer = (id: string, direction: "earlier" | "later") => {
+    const index = flyerUrls.indexOf(id);
+    const nextIndex = direction === "earlier" ? index - 1 : index + 1;
+    if (index < 0 || nextIndex < 0 || nextIndex >= flyerUrls.length) return;
+    const next = [...flyerUrls];
+    [next[index], next[nextIndex]] = [next[nextIndex], next[index]];
+    updateFlyerUrls(next);
+  };
+  const retryFlyer = (id: string) => {
+    const pending = pendingFlyers.find((flyer) => flyer.id === id);
+    if (!pending) return;
+    setPendingFlyers((current) => current.filter((flyer) => flyer.id !== id));
+    void handleAddFlyers([pending.file]);
   };
   const handleExtractFlyer = async () => {
     if (!form.image_url || isExtracting.current) return;
@@ -352,8 +415,7 @@ export default function AdminEventEditor({
     setExtractionError(null);
   };
   const persist = async (intent: ComposerIntent, automatic = false) => {
-    if (savingRef.current || isSaving || flyerStatus === "uploading" || isExtracting.current)
-      return;
+    if (savingRef.current || isSaving || flyerUploading || isExtracting.current) return;
     const snapshot = formRef.current;
     const errors = validateSubmitFormFields(snapshot);
     const nextError = Object.values(errors)[0] ?? validateAdminEventForm(snapshot);
@@ -399,6 +461,11 @@ export default function AdminEventEditor({
             setStorageError(
               "The event was saved to your account, but device recovery is unavailable."
             );
+          }
+        }
+        for (const url of eventFlyerList(initial)) {
+          if (!snapshot.image_urls?.includes(url)) {
+            void removeEventFlyer(url).catch(() => undefined);
           }
         }
       }
@@ -472,21 +539,21 @@ export default function AdminEventEditor({
 
   useEffect(() => {
     const beforeUnload = (event: BeforeUnloadEvent) => {
-      if (storageError || flyerStatus === "uploading" || busy) {
+      if (storageError || flyerUploading || busy) {
         event.preventDefault();
         event.returnValue = "";
       }
     };
     window.addEventListener("beforeunload", beforeUnload);
     return () => window.removeEventListener("beforeunload", beforeUnload);
-  }, [storageError, flyerStatus, busy]);
+  }, [storageError, flyerUploading, busy]);
 
   useEffect(() => {
     if (
       saved?.status === "approved" ||
       initialStatus !== "draft" ||
       isSaving ||
-      flyerStatus === "uploading" ||
+      flyerUploading ||
       JSON.stringify(form) === lastRemoteForm.current ||
       listReviewEntries(form.entity_review ?? emptyEntityReview()).some(
         ({ item }) => item.decision === "pending" || item.decision === "new"
@@ -497,7 +564,7 @@ export default function AdminEventEditor({
     return () => window.clearTimeout(timer);
     // Form revisions schedule autosave; callback identity must not restart it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form, saved?.status, initialStatus, isSaving, flyerStatus]);
+  }, [form, saved?.status, initialStatus, isSaving, flyerUploading]);
 
   // The banner sits above a long form and Save sits below it: bring the
   // message to the person instead of leaving it off-screen.
@@ -639,7 +706,7 @@ export default function AdminEventEditor({
         );
     }
   };
-  const locked = busy || isSaving || flyerStatus === "uploading";
+  const locked = busy || isSaving || flyerUploading;
   const suggestions = listReviewEntries(review).some(
     ({ item }) => item.decision === "pending" || item.decision === "new"
   );
@@ -777,12 +844,12 @@ export default function AdminEventEditor({
             )}
             renderFlyerField={() => (
               <div ref={artworkRef}>
-                <EventFlyerField
-                  currentUrl={form.image_url || null}
-                  onFileChange={(file) => void handleFlyerChange(file)}
-                  onRemove={() => void handleFlyerChange(null)}
-                  status={flyerStatus}
-                  errorMessage={flyerError}
+                <EventFlyersField
+                  items={flyerItems}
+                  onAddFiles={(files) => void handleAddFlyers(files)}
+                  onRemove={removeFlyer}
+                  onMove={moveFlyer}
+                  onRetry={retryFlyer}
                   disabled={locked}
                 />
                 {form.image_url && (
@@ -822,7 +889,7 @@ export default function AdminEventEditor({
                     type="button"
                     className="admin-btn admin-btn--secondary"
                     onClick={() => void handleExtractFlyer()}
-                    disabled={locked || flyerStatus !== "uploaded"}
+                    disabled={locked || !flyerUrls.length || flyerUploading}
                   >
                     <Sparkles size={16} aria-hidden /> Analyze flyer
                   </button>

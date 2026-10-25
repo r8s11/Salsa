@@ -136,14 +136,17 @@ function reconciledReview(overrides: Partial<EntityReview> = {}): EntityReview {
   };
 }
 
-function renderCreateEditor(flyerOwnerId: string | null = ADMIN_ID) {
+function renderCreateEditor(
+  flyerOwnerId: string | null = ADMIN_ID,
+  initial: AdminEventForm = buildEmptyAdminForm("boston")
+) {
   const onSubmit = vi
     .fn<(form: AdminEventForm, flyer: File | null) => Promise<void>>()
     .mockResolvedValue(undefined);
   render(
     <MemoryRouter>
       <AdminEventEditor
-        initial={buildEmptyAdminForm("boston")}
+        initial={initial}
         initialTaxonomyTerms={[]}
         heading="New event"
         isSaving={false}
@@ -156,31 +159,31 @@ function renderCreateEditor(flyerOwnerId: string | null = ADMIN_ID) {
   );
   return { onSubmit };
 }
-
 function flyerFile() {
   return new File(["flyer-bytes"], "flyer.png", { type: "image/png" });
 }
-
 const analyzeButton = () => screen.getByRole("button", { name: /Analyze flyer/i });
-
 async function uploadFlyer(user: UserEvent) {
-  await user.upload(screen.getByLabelText("Event flyer"), flyerFile());
+  await user.click(screen.getByRole("button", { name: "Upload Flyer" }));
+  await user.click(screen.getByRole("button", { name: "Add flyer" }));
+  await user.upload(screen.getByLabelText("Event flyers"), flyerFile());
   return waitFor(() => expect(analyzeButton()).toBeEnabled());
 }
-
 async function analyzeFlyer(user: UserEvent) {
   await uploadFlyer(user);
   await user.click(analyzeButton());
   await screen.findByText(/Flyer analyzed/i);
 }
-
 /** Replaces the uploaded flyer and waits until the new upload has settled. */
 async function replaceFlyer(user: UserEvent) {
   const uploads = uploadEventFlyer.mock.calls.length;
-  await user.upload(screen.getByLabelText("Event flyer"), flyerFile());
+  await user.click(screen.getByRole("button", { name: "Remove flyer 1" }));
+  await user.click(screen.getByRole("button", { name: "Add flyer" }));
+  await user.upload(screen.getByLabelText("Event flyers"), flyerFile());
   await waitFor(() => expect(uploadEventFlyer).toHaveBeenCalledTimes(uploads + 1));
   await waitFor(() => expect(analyzeButton()).toBeEnabled());
 }
+
 
 const group = (name: string | RegExp) => screen.getByRole("group", { name });
 const queryGroup = (name: string | RegExp) => screen.queryByRole("group", { name });
@@ -245,6 +248,19 @@ describe("Admin direct-create flyer analysis", () => {
     expect(screen.getByLabelText(/Event Title/i)).toHaveValue("Salsa Rooftop");
     expect(screen.getByLabelText("Date *")).toHaveValue("2026-10-01");
   });
+  it("analyzes only the primary flyer when an event has multiple flyers", async () => {
+    const user = userEvent.setup();
+    const primaryUrl = "https://example.com/primary.png";
+    renderCreateEditor(ADMIN_ID, {
+      ...buildEmptyAdminForm("boston"),
+      image_url: primaryUrl,
+      image_urls: [primaryUrl, "https://example.com/secondary.png"],
+    });
+
+    await user.click(analyzeButton());
+
+    expect(extractEventFromFlyer).toHaveBeenCalledWith(primaryUrl);
+  });
 
   it("keeps the applied fields editable by hand", async () => {
     const user = userEvent.setup();
@@ -281,7 +297,7 @@ describe("Admin direct-create flyer analysis", () => {
     const user = userEvent.setup();
     renderCreateEditor(null);
 
-    await user.upload(screen.getByLabelText("Event flyer"), flyerFile());
+    await user.upload(screen.getByLabelText("Event flyers"), flyerFile());
 
     expect(uploadEventFlyer).not.toHaveBeenCalled();
     expect(await screen.findByText(/admin session is still loading/i)).toBeInTheDocument();
@@ -595,7 +611,7 @@ describe("Admin flyer entity review", () => {
       await user.click(analyzeButton());
       expect(await screen.findByText("Analyzing your flyer…")).toBeInTheDocument();
 
-      await user.click(screen.getByRole("button", { name: "Remove" }));
+      await user.click(screen.getByRole("button", { name: "Remove flyer 1" }));
       await act(async () => {
         pending.resolve(flyerWithEntities());
       });
@@ -640,7 +656,7 @@ describe("Admin flyer entity review", () => {
       await user.click(analyzeButton());
       expect(await screen.findByText(CHECKING_BANNER)).toBeInTheDocument();
 
-      await user.click(screen.getByRole("button", { name: "Remove" }));
+      await user.click(screen.getByRole("button", { name: "Remove flyer 1" }));
       await act(async () => {
         pending.reject(new Error("rpc down"));
       });
@@ -661,7 +677,7 @@ describe("Admin flyer entity review", () => {
       await analyzeFlyer(user);
       expect(group("Venue: studio five")).toBeInTheDocument();
 
-      await user.click(screen.getByRole("button", { name: "Remove" }));
+      await user.click(screen.getByRole("button", { name: "Remove flyer 1" }));
 
       expect(queryGroup(/^Venue:/)).not.toBeInTheDocument();
       expect(queryGroup(/^Organizer:/)).not.toBeInTheDocument();
@@ -682,7 +698,7 @@ describe("Admin flyer entity review", () => {
         })
       );
 
-      await user.click(screen.getByRole("button", { name: "Remove" }));
+      await user.click(screen.getByRole("button", { name: "Remove flyer 1" }));
 
       await waitFor(() => expect(screen.queryByText(/Flyer analyzed/i)).not.toBeInTheDocument());
       expect(screen.getByRole("button", { name: "Remove venue" })).toBeInTheDocument();

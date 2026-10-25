@@ -53,6 +53,34 @@ export async function uploadEventFlyer({
   return { path, url: data.publicUrl };
 }
 
+export type UploadedEventFlyer = { path: string; url: string };
+
+/**
+ * Upload several flyers in order. All-or-nothing: if any upload fails, the ones
+ * already stored by this call are removed and the first error is thrown, so a
+ * failed save never leaves orphaned objects behind.
+ */
+export async function uploadEventFlyers({
+  files,
+  ownerId,
+  eventId,
+}: {
+  files: readonly File[];
+  ownerId: string;
+  eventId: string;
+}): Promise<UploadedEventFlyer[]> {
+  const uploaded: UploadedEventFlyer[] = [];
+  for (const file of files) {
+    try {
+      uploaded.push(await uploadEventFlyer({ file, ownerId, eventId }));
+    } catch (error) {
+      await Promise.allSettled(uploaded.map((flyer) => removeEventFlyerByPath(flyer.path)));
+      throw error;
+    }
+  }
+  return uploaded;
+}
+
 export async function removeEventFlyer(url: string): Promise<void> {
   const path = parseEventFlyerPath(url);
   if (!path) return;

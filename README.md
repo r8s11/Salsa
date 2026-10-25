@@ -210,12 +210,29 @@ icon-only labels; short touch-device landscape viewports also use the compact li
 
 Guests can submit without an account when public suggestions are enabled. Contact
 details and required event fields are validated; submissions enter the moderation
-queue as `pending` and do not appear publicly until approved. A flyer is optional.
-Events without one reuse the generated Sleeve cover and shareable poster system,
+queue as `pending` and do not appear publicly until approved. Flyers are optional,
+and an event can carry up to five.
+Events without a flyer reuse the generated Sleeve cover and shareable poster system,
 not an external image-generation service.
 
 The submission form locks its fields while saving. If the submission-access check fails,
 visitors can retry it in place without reloading the calendar.
+
+### Multiple flyers per event
+
+An event can have up to five flyers (JPEG, PNG, or WebP, 5 MB each). Submitters,
+hosts, and admins add, remove, and reorder them in the event form; the first is the
+**primary** flyer. `events.image_urls` holds the ordered list and `events.image_url`
+always equals `image_urls[1]`, kept in sync by the `events_sync_event_flyers`
+trigger, so older writers that only set `image_url` keep working. The calendar,
+cards, list rows, share image, and poster use the primary flyer only; the event
+modal and event page let visitors flip through all of them. Flyer analysis reads
+the primary flyer. Bulk flyer import and CSV import stay one flyer per event.
+
+Deploy migration `20261025000000_event_multiple_flyers.sql` before the frontend. It
+backfills `image_urls` from `image_url`, appends `image_urls` to `public_events`, and
+patches the host, admin, and submission-approval RPCs in place; it fails loudly if
+any of those definitions has drifted from the expected text.
 
 ### NYC boroughs
 
@@ -234,7 +251,7 @@ and organizer, user, and admin editing paths preserve it.
 
 CSV imports accept an optional `sublocation` column with the slugs above.
 Leave it blank for All NYC or any non-NYC city; other combinations are rejected.
-Deploy `20261025120000_nyc_event_sublocations.sql` after the event-types
+Deploy `20261025120000_nyc_event_sublocations.sql` after the multiple-flyer
 migration and before this frontend. It adds the public projection, validation,
 filter index, owner-update grant, and borough handling in the existing RPCs.
 Local rollback-only database verification:

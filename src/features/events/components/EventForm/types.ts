@@ -5,6 +5,7 @@ import { eventTypePayload } from "../../model/eventTypeSelection";
 import { resolveEventTimeZone, type TimeZoneResolution } from "../../../../shared/utils/timezone";
 import type { SubmissionCreate } from "../../../admin/api/submissionsRepo";
 import type { AdminEventPayload, UserEventUpdatePayload } from "../../api/eventsRepo";
+import { eventFlyerList, flyerPayload } from "../../model/eventFlyers";
 import { normalizeSubLocation, type SubLocation } from "../../../metros/model/sublocation";
 
 export type EventFormDraft = {
@@ -26,7 +27,10 @@ export type EventFormDraft = {
   price_type: "free" | "paid" | "";
   price_amount: string;
   rsvp_link: string;
+  /** Primary flyer. Always the first of `image_urls` (or the lone legacy URL). */
   image_url: string;
+  /** Ordered flyer list (max `MAX_FLYERS_PER_EVENT`); the first is the primary. */
+  image_urls: string[];
   host: string;
   contact_email: string;
   contact_instagram: string;
@@ -134,6 +138,11 @@ function draftInstant(draft: EventFormDraft): string {
   return toEventDateInstant(draft.event_date, draft.event_time, zone.timeZone);
 }
 
+/** Ordered flyers of a draft; a draft that only carries the legacy `image_url` yields that one. */
+export function draftFlyerUrls(draft: Pick<EventFormDraft, "image_url" | "image_urls">): string[] {
+  return eventFlyerList(draft);
+}
+
 /** The borough that may be persisted: only an NYC draft with a known borough keeps one. */
 export function draftSubLocation(draft: Pick<EventFormDraft, "city" | "sublocation">): SubLocation | null {
   return normalizeSubLocation(draft.city, draft.sublocation);
@@ -184,7 +193,7 @@ export function draftToUserPayload(draft: EventFormDraft): UserEventUpdatePayloa
     rsvp_link: draft.rsvp_link || null,
     recurrence: draft.recurrence || null,
     dance_styles: draft.dance_styles,
-    image_url: draft.image_url || null,
+    ...flyerPayload(draftFlyerUrls(draft)),
   };
 }
 
@@ -204,7 +213,7 @@ export function draftToAdminPayload(draft: EventFormDraft): AdminEventPayload {
     rsvp_link: draft.rsvp_link || null,
     recurrence: draft.recurrence || null,
     host: draft.host || null,
-    image_url: draft.image_url || null,
+    ...flyerPayload(draftFlyerUrls(draft)),
     contact_email: draft.contact_email || null,
     contact_instagram: draft.contact_instagram || null,
     contact_website: draft.contact_website || null,
@@ -245,7 +254,7 @@ export function draftToOrganizerUpdatePayload(draft: EventFormDraft): OrganizerU
     rsvp_link: draft.rsvp_link || null,
     recurrence: draft.recurrence || null,
     host: draft.host || null,
-    image_url: draft.image_url || null,
+    ...flyerPayload(draftFlyerUrls(draft)),
     contact_email: draft.contact_email || null,
     contact_instagram: draft.contact_instagram || null,
     contact_website: draft.contact_website || null,
@@ -270,6 +279,7 @@ export type OrganizerUpdateDraftPayload = {
   recurrence: "weekly" | null;
   host: string | null;
   image_url: string | null;
+  image_urls: string[] | null;
   contact_email: string | null;
   contact_instagram: string | null;
   contact_website: string | null;

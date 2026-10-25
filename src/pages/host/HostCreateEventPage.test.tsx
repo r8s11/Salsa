@@ -10,7 +10,7 @@ const mocks = vi.hoisted(() => ({
   useMyOrganizers: vi.fn(),
   createOrganizerEvent: vi.fn(),
   updateOrganizerEvent: vi.fn(),
-  uploadEventFlyer: vi.fn(),
+  uploadEventFlyers: vi.fn(),
   removeEventFlyer: vi.fn(),
 }));
 vi.mock("../../contexts/useAuth", () => ({ useAuth: mocks.useAuth }));
@@ -27,7 +27,7 @@ vi.mock("../../features/host/api/organizerAccessRepo", () => ({
   OrganizerAccessError: class OrganizerAccessError extends Error {},
 }));
 vi.mock("../../features/events/api/eventFlyers", () => ({
-  uploadEventFlyer: mocks.uploadEventFlyer,
+  uploadEventFlyers: mocks.uploadEventFlyers,
   removeEventFlyer: mocks.removeEventFlyer,
   validateEventFlyer: () => null,
 }));
@@ -249,7 +249,7 @@ describe("HostCreateEventPage", () => {
       error: null,
     });
     mocks.createOrganizerEvent.mockResolvedValue("evt-1");
-    mocks.uploadEventFlyer.mockResolvedValue({ url: "https://cdn.test/flyer.jpg", path: "x" });
+    mocks.uploadEventFlyers.mockResolvedValue([{ url: "https://cdn.test/flyer.jpg", path: "x" }]);
     mocks.updateOrganizerEvent.mockRejectedValue(new Error("temporary update failure"));
 
     const view = renderPage();
@@ -267,5 +267,50 @@ describe("HostCreateEventPage", () => {
     await waitFor(() => expect(mocks.updateOrganizerEvent).toHaveBeenCalledTimes(1));
     expect(mocks.removeEventFlyer).toHaveBeenCalledWith("https://cdn.test/flyer.jpg");
     expect(mocks.createOrganizerEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it("uploads every chosen flyer in order and sends the primary plus the full list", async () => {
+    const user = userEvent.setup();
+    mocks.useAuth.mockReturnValue({ user: { id: "user-1", email: "host@example.com" } });
+    mocks.useMyOrganizers.mockReturnValue({
+      data: [
+        {
+          organizerId: "org-1",
+          organizerName: "Boston Salsa Collective",
+          organizerStatus: "active",
+          memberRole: "owner",
+        },
+      ],
+      isLoading: false,
+      error: null,
+    });
+    mocks.createOrganizerEvent.mockResolvedValue("evt-1");
+    mocks.updateOrganizerEvent.mockResolvedValue(undefined);
+    mocks.uploadEventFlyers.mockResolvedValue([
+      { url: "https://cdn.test/a.jpg", path: "user-1/evt-1/a.jpg" },
+      { url: "https://cdn.test/b.jpg", path: "user-1/evt-1/b.jpg" },
+    ]);
+
+    const view = renderPage();
+    await user.type(screen.getByLabelText("Event Title *"), "Tuesday Social");
+    await user.click(screen.getByRole("button", { name: "Social" }));
+    await user.type(screen.getByLabelText("Date *"), "2099-10-24");
+    const input = view.container.querySelector('input[type="file"]') as HTMLInputElement;
+    const first = new File(["a"], "a.jpg", { type: "image/jpeg" });
+    const second = new File(["b"], "b.jpg", { type: "image/jpeg" });
+    await user.upload(input, [first, second]);
+    await user.click(screen.getByRole("button", { name: "Save Draft" }));
+
+    await waitFor(() => expect(mocks.updateOrganizerEvent).toHaveBeenCalledTimes(1));
+    expect(mocks.uploadEventFlyers).toHaveBeenCalledWith({
+      files: [first, second],
+      ownerId: "user-1",
+      eventId: "evt-1",
+    });
+    expect(mocks.updateOrganizerEvent).toHaveBeenCalledWith("evt-1", {
+      image_url: "https://cdn.test/a.jpg",
+      image_urls: ["https://cdn.test/a.jpg", "https://cdn.test/b.jpg"],
+    });
+    expect(mocks.removeEventFlyer).not.toHaveBeenCalled();
   });
 });

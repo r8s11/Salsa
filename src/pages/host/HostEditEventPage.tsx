@@ -16,8 +16,14 @@ import {
 } from "../../features/events/components/EventForm";
 import type { EventFormDraft } from "../../features/events/components/EventForm";
 import EventForm from "../../features/events/components/EventForm";
-import EventFlyerField from "../../features/events/components/EventFlyerField";
-import { removeEventFlyer, uploadEventFlyer } from "../../features/events/api/eventFlyers";
+import EventFlyersField from "../../features/events/components/EventFlyersField";
+import { removeEventFlyer, uploadEventFlyers } from "../../features/events/api/eventFlyers";
+import { eventFlyerList, flyerPayload } from "../../features/events/model/eventFlyers";
+import {
+  finalFlyerUrls,
+  storedFlyerUrls,
+  useHostFlyers,
+} from "../../features/host/hooks/useHostFlyers";
 import { validateAdminEventForm } from "../../features/admin/model/adminEventForm";
 import { fromEventDateInstant } from "../../features/events/model/eventDateTime";
 import { eventTypeFieldsFrom } from "../../features/events/model/eventTypeSelection";
@@ -42,7 +48,8 @@ function eventToDraft(event: DatabaseEvent): EventFormDraft {
     price_type: event.price_type ?? "",
     price_amount: event.price_amount != null ? String(event.price_amount) : "",
     rsvp_link: event.rsvp_link ?? "",
-    image_url: event.image_url ?? "",
+    image_url: eventFlyerList(event)[0] ?? "",
+    image_urls: eventFlyerList(event),
     host: event.host ?? "",
     contact_email: event.contact_email ?? "",
     contact_instagram: event.contact_instagram ?? "",
@@ -64,7 +71,7 @@ export default function HostEditEventPage() {
   const event = useMemo(() => events.find((e) => e.id === eventId) ?? null, [events, eventId]);
 
   const [form, setForm] = useState<EventFormDraft | null>(null);
-  const [flyer, setFlyer] = useState<File | null>(null);
+  const flyers = useHostFlyers();
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasWriteAccess, setHasWriteAccess] = useState(false);
@@ -80,6 +87,7 @@ export default function HostEditEventPage() {
   if (event && event.id !== prevEventId) {
     setPrevEventId(event.id);
     setForm(eventToDraft(event));
+    flyers.reset(eventFlyerList(event));
   }
 
   // Check write access for the event's organizer
@@ -111,28 +119,40 @@ export default function HostEditEventPage() {
 
     setIsSaving(true);
     try {
-      await updateOrganizerEvent(event.id, draftToOrganizerUpdatePayload(form));
+      // Persist the event with the stored flyers that remain, in their chosen order.
+      const kept = storedFlyerUrls(flyers.entries);
+      await updateOrganizerEvent(
+        event.id,
+        draftToOrganizerUpdatePayload({ ...form, image_url: kept[0] ?? "", image_urls: kept })
+      );
+
+      // Removed flyers leave storage only once the update that drops them has succeeded.
+      const removed = eventFlyerList(event).filter((url) => !kept.includes(url));
+      await Promise.allSettled(removed.map((url) => removeEventFlyer(url)));
 
       let flyerWarning: string | null = null;
-      if (flyer && user) {
+      const files = flyers.entries.flatMap((entry) => (entry.file ? [entry.file] : []));
+      if (files.length > 0 && user) {
         try {
-          const uploaded = await uploadEventFlyer({
-            file: flyer,
-            ownerId: user.id,
-            eventId: event.id,
-          });
+          const uploaded = await uploadEventFlyers({ files, ownerId: user.id, eventId: event.id });
+          const urls = uploaded.map((flyer) => flyer.url);
           try {
-            await updateOrganizerEvent(event.id, { image_url: uploaded.url });
+            await updateOrganizerEvent(
+              event.id,
+              flyerPayload(finalFlyerUrls(flyers.entries, urls))
+            );
           } catch {
-            try {
-              await removeEventFlyer(uploaded.url);
-            } catch {
-              // Best-effort cleanup
-            }
-            flyerWarning = "Event saved, but we couldn't attach the flyer. You can add it later.";
+            await Promise.allSettled(urls.map((url) => removeEventFlyer(url)));
+            flyerWarning =
+              files.length > 1
+                ? "Event saved, but we couldn't attach the new flyers. You can add them later."
+                : "Event saved, but we couldn't attach the flyer. You can add it later.";
           }
         } catch {
-          flyerWarning = "Event saved, but the flyer couldn't be uploaded. You can add it later.";
+          flyerWarning =
+            files.length > 1
+              ? "Event saved, but the new flyers couldn't be uploaded. You can add them later."
+              : "Event saved, but the flyer couldn't be uploaded. You can add it later.";
         }
       }
 
@@ -263,13 +283,12 @@ export default function HostEditEventPage() {
             onChange={setForm}
             capabilities={CAPABILITIES.organizerEdit}
             renderFlyerField={() => (
-              <EventFlyerField
-                currentUrl={event.image_url}
-                onFileChange={setFlyer}
+              <EventFlyersField
+                items={flyers.items}
+                onAddFiles={flyers.addFiles}
+                onRemove={flyers.remove}
+                onMove={flyers.move}
                 disabled={isSaving}
-                onRemove={() => {
-                  setForm((prev) => (prev ? { ...prev, image_url: "" } : prev));
-                }}
               />
             )}
           />

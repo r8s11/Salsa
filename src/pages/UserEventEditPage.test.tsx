@@ -12,7 +12,7 @@ const mocks = vi.hoisted(() => ({
   deleteEventForUser: vi.fn(),
   updateOwnEventSubmission: vi.fn(),
   withdrawOwnEventSubmission: vi.fn(),
-  uploadEventFlyer: vi.fn(),
+  uploadEventFlyers: vi.fn(),
   removeEventFlyer: vi.fn(),
   auth: {
     user: { id: "user-1", email: "dancer@example.com" } as { id: string; email: string } | null,
@@ -37,20 +37,45 @@ vi.mock("../contexts/useAuth", () => ({
 }));
 
 vi.mock("../features/events/api/eventFlyers", () => ({
-  uploadEventFlyer: mocks.uploadEventFlyer,
+  uploadEventFlyers: mocks.uploadEventFlyers,
   removeEventFlyer: mocks.removeEventFlyer,
 }));
-vi.mock("../features/events/components/EventFlyerField", () => ({
-  default: function MockEventFlyerField({
-    onFileChange,
+vi.mock("../features/events/components/EventFlyersField", () => ({
+  default: function MockEventFlyersField({
+    items,
+    onAddFiles,
+    onRemove,
+    onMove,
   }: {
-    onFileChange: (file: File | null) => void;
+    items: { id: string; url: string }[];
+    onAddFiles: (files: File[]) => void;
+    onRemove: (id: string) => void;
+    onMove: (id: string, direction: "earlier" | "later") => void;
   }) {
     return (
-      <label>
-        Event flyer
-        <input type="file" onChange={(event) => onFileChange(event.target.files?.[0] ?? null)} />
-      </label>
+      <div>
+        <label>
+          Event flyers
+          <input
+            type="file"
+            multiple
+            onChange={(event) => onAddFiles(Array.from(event.target.files ?? []))}
+          />
+        </label>
+        <ol aria-label="Flyer list">
+          {items.map((item, index) => (
+            <li key={item.id}>
+              <span>{item.url || `new-${index}`}</span>
+              <button type="button" onClick={() => onRemove(item.id)}>
+                Remove flyer {index + 1}
+              </button>
+              <button type="button" onClick={() => onMove(item.id, "earlier")}>
+                Move flyer {index + 1} earlier
+              </button>
+            </li>
+          ))}
+        </ol>
+      </div>
     );
   },
 }));
@@ -224,7 +249,63 @@ describe("UserEventEditPage save flow", () => {
       );
     });
     expect(mocks.updateEventForUser).not.toHaveBeenCalled();
-    expect(screen.queryByLabelText("Event flyer")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Event flyers")).not.toBeInTheDocument();
+    expect(mocks.updateOwnEventSubmission.mock.calls[0][1]).not.toHaveProperty("image_url");
+    expect(mocks.updateOwnEventSubmission.mock.calls[0][1]).not.toHaveProperty("image_urls");
+  });
+
+  it("loads the stored borough, saves a changed one, and clears it when the city changes", async () => {
+    mocks.useMySubmissions.mockReturnValue({
+      submissions: [{ ...pendingEvent, city: "new-york-city", sublocation: "brooklyn" }],
+      approvedEvents: [],
+      isLoading: false,
+      error: null,
+    });
+    mocks.updateEventForUser.mockResolvedValue(undefined);
+
+    renderPage();
+
+    const borough = await screen.findByLabelText("Borough");
+    expect(borough).toHaveValue("brooklyn");
+    fireEvent.change(borough, { target: { value: "queens" } });
+    fireEvent.click(screen.getByRole("button", { name: /Save changes/i }));
+    await waitFor(() => expect(mocks.updateEventForUser).toHaveBeenCalledTimes(1));
+    expect(mocks.updateEventForUser.mock.calls[0][1]).toMatchObject({
+      city: "new-york-city",
+      sublocation: "queens",
+    });
+
+    fireEvent.change(screen.getByLabelText("City *"), { target: { value: "boston" } });
+    expect(screen.queryByLabelText("Borough")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /Save changes/i }));
+    await waitFor(() => expect(mocks.updateEventForUser).toHaveBeenCalledTimes(2));
+    expect(mocks.updateEventForUser.mock.calls[1][1]).toMatchObject({
+      city: "boston",
+      sublocation: null,
+    });
+  });
+
+  it("sends the borough through edited_data on a moderation submission edit", async () => {
+    mocks.useMySubmissions.mockReturnValue({
+      submissions: [{ ...pendingSubmissionEvent, city: "new-york-city", sublocation: "bronx" }],
+      approvedEvents: [],
+      isLoading: false,
+      error: null,
+    });
+    mocks.updateOwnEventSubmission.mockResolvedValueOnce(undefined);
+
+    renderPageFor("submission-id");
+
+    expect(await screen.findByLabelText("Borough")).toHaveValue("bronx");
+    fireEvent.change(screen.getByLabelText("Borough"), { target: { value: "" } });
+    fireEvent.click(screen.getByRole("button", { name: /Save changes/i }));
+
+    await waitFor(() => {
+      expect(mocks.updateOwnEventSubmission).toHaveBeenCalledWith(
+        "submission-id",
+        expect.objectContaining({ city: "new-york-city", sublocation: null })
+      );
+    });
   });
 
   it("uses the reference authoring header and review guidance", async () => {
@@ -242,65 +323,189 @@ describe("UserEventEditPage save flow", () => {
     expect(screen.getByRole("heading", { name: "Artwork" })).toBeInTheDocument();
   });
 
-  it("uploads a selected flyer before persisting its URL", async () => {
+  const flyerA = "https://project.supabase.co/a.png";
+  const flyerB = "https://project.supabase.co/b.png";
+  const pngFile = (name: string) => new File(["png"], name, { type: "image/png" });
+  const eventWithFlyers = (...urls: string[]) => ({
+    ...pendingEvent,
+    image_url: urls[0] ?? null,
+    image_urls: urls,
+  });
+  const mockEvent = (event: DatabaseEvent) =>
     mocks.useMySubmissions.mockReturnValue({
-      submissions: [pendingEvent],
+      submissions: [event],
       approvedEvents: [],
       isLoading: false,
       error: null,
     });
-    mocks.uploadEventFlyer.mockResolvedValueOnce({
-      path: "user-1/pending-event-id/flyer.png",
-      url: "https://project.supabase.co/flyer.png",
-    });
+  const addFiles = (...files: File[]) =>
+    fireEvent.change(screen.getByLabelText("Event flyers"), { target: { files } });
+  const save = () => fireEvent.click(screen.getByRole("button", { name: /Save changes/i }));
+
+  it("uploads a selected flyer before persisting its URL", async () => {
+    mockEvent(pendingEvent);
+    mocks.uploadEventFlyers.mockResolvedValueOnce([
+      { path: "user-1/pending-event-id/flyer.png", url: "https://project.supabase.co/flyer.png" },
+    ]);
     mocks.updateEventForUser.mockResolvedValueOnce(undefined);
 
     renderPage();
 
     await screen.findByDisplayValue("Pending Event");
-    fireEvent.change(screen.getByLabelText("Event flyer"), {
-      target: { files: [new File(["png"], "flyer.png", { type: "image/png" })] },
-    });
-    fireEvent.click(screen.getByRole("button", { name: /Save changes/i }));
+    addFiles(pngFile("flyer.png"));
+    save();
 
     await waitFor(() => {
       expect(mocks.updateEventForUser).toHaveBeenCalledWith(
         "pending-event-id",
-        expect.objectContaining({ image_url: "https://project.supabase.co/flyer.png" })
+        expect.objectContaining({
+          image_url: "https://project.supabase.co/flyer.png",
+          image_urls: ["https://project.supabase.co/flyer.png"],
+        })
       );
     });
-    expect(mocks.uploadEventFlyer).toHaveBeenCalledWith(
+    expect(mocks.uploadEventFlyers).toHaveBeenCalledWith(
       expect.objectContaining({ ownerId: "user-1", eventId: "pending-event-id" })
     );
   });
 
+  it("seeds the list from image_urls, then saves new and kept flyers in the chosen order", async () => {
+    mockEvent(eventWithFlyers(flyerA, flyerB));
+    mocks.uploadEventFlyers.mockResolvedValueOnce([
+      { path: "user-1/pending-event-id/n.png", url: "https://project.supabase.co/n.png" },
+    ]);
+    mocks.updateEventForUser.mockResolvedValueOnce(undefined);
+
+    renderPage();
+
+    await screen.findByDisplayValue("Pending Event");
+    const list = screen.getByRole("list", { name: "Flyer list" });
+    expect(within(list).getAllByRole("listitem").map((item) => item.firstChild?.textContent)).toEqual([
+      flyerA,
+      flyerB,
+    ]);
+    addFiles(pngFile("n.png"));
+    fireEvent.click(screen.getByRole("button", { name: "Move flyer 3 earlier" }));
+    fireEvent.click(screen.getByRole("button", { name: "Move flyer 2 earlier" }));
+    save();
+
+    await waitFor(() => expect(mocks.updateEventForUser).toHaveBeenCalledTimes(1));
+    expect(mocks.updateEventForUser).toHaveBeenCalledWith(
+      "pending-event-id",
+      expect.objectContaining({
+        image_url: "https://project.supabase.co/n.png",
+        image_urls: ["https://project.supabase.co/n.png", flyerA, flyerB],
+      })
+    );
+    expect(mocks.uploadEventFlyers).toHaveBeenCalledWith(
+      expect.objectContaining({ files: [expect.objectContaining({ name: "n.png" })] })
+    );
+    expect(mocks.removeEventFlyer).not.toHaveBeenCalled();
+  });
+
+  it("deletes a removed flyer's object only after the update succeeds", async () => {
+    mockEvent(eventWithFlyers(flyerA, flyerB));
+    mocks.updateEventForUser.mockResolvedValueOnce(undefined);
+    mocks.removeEventFlyer.mockResolvedValue(undefined);
+
+    renderPage();
+
+    await screen.findByDisplayValue("Pending Event");
+    fireEvent.click(screen.getByRole("button", { name: "Remove flyer 1" }));
+    expect(mocks.removeEventFlyer).not.toHaveBeenCalled();
+    save();
+
+    await waitFor(() => expect(mocks.removeEventFlyer).toHaveBeenCalledWith(flyerA));
+    expect(mocks.updateEventForUser).toHaveBeenCalledWith(
+      "pending-event-id",
+      expect.objectContaining({ image_url: flyerB, image_urls: [flyerB] })
+    );
+    expect(mocks.updateEventForUser.mock.invocationCallOrder[0]).toBeLessThan(
+      mocks.removeEventFlyer.mock.invocationCallOrder[0]
+    );
+    expect(mocks.removeEventFlyer).toHaveBeenCalledTimes(1);
+  });
+
+  it("clears every flyer when the last one is removed", async () => {
+    mockEvent(eventWithFlyers(flyerA));
+    mocks.updateEventForUser.mockResolvedValueOnce(undefined);
+    mocks.removeEventFlyer.mockResolvedValue(undefined);
+
+    renderPage();
+
+    await screen.findByDisplayValue("Pending Event");
+    fireEvent.click(screen.getByRole("button", { name: "Remove flyer 1" }));
+    save();
+
+    await waitFor(() => expect(mocks.removeEventFlyer).toHaveBeenCalledWith(flyerA));
+    expect(mocks.updateEventForUser).toHaveBeenCalledWith(
+      "pending-event-id",
+      expect.objectContaining({ image_url: null, image_urls: null })
+    );
+  });
+
+  it("removes newly uploaded flyers and keeps the old ones when the update fails", async () => {
+    mockEvent(eventWithFlyers(flyerA));
+    mocks.uploadEventFlyers.mockResolvedValueOnce([
+      { path: "user-1/pending-event-id/n.png", url: "https://project.supabase.co/n.png" },
+    ]);
+    mocks.updateEventForUser.mockRejectedValueOnce(new Error("Permission denied"));
+    mocks.removeEventFlyer.mockResolvedValue(undefined);
+
+    renderPage();
+
+    await screen.findByDisplayValue("Pending Event");
+    fireEvent.click(screen.getByRole("button", { name: "Remove flyer 1" }));
+    addFiles(pngFile("n.png"));
+    save();
+
+    expect(await screen.findByText(/Permission denied/i)).toBeInTheDocument();
+    expect(mocks.removeEventFlyer).toHaveBeenCalledTimes(1);
+    expect(mocks.removeEventFlyer).toHaveBeenCalledWith("https://project.supabase.co/n.png");
+  });
+
+  it("caps the list at five flyers", async () => {
+    mockEvent(eventWithFlyers(flyerA, flyerB, "https://p/c.png", "https://p/d.png"));
+    mocks.uploadEventFlyers.mockResolvedValueOnce([
+      { path: "user-1/pending-event-id/e.png", url: "https://p/e.png" },
+    ]);
+    mocks.updateEventForUser.mockResolvedValueOnce(undefined);
+    mocks.removeEventFlyer.mockResolvedValue(undefined);
+
+    renderPage();
+
+    await screen.findByDisplayValue("Pending Event");
+    addFiles(pngFile("e.png"), pngFile("f.png"), pngFile("g.png"));
+    save();
+
+    await waitFor(() => expect(mocks.updateEventForUser).toHaveBeenCalledTimes(1));
+    expect(mocks.uploadEventFlyers).toHaveBeenCalledWith(
+      expect.objectContaining({ files: [expect.objectContaining({ name: "e.png" })] })
+    );
+    expect(mocks.updateEventForUser.mock.calls[0][1].image_urls).toHaveLength(5);
+  });
+
   it("keeps the new flyer when old-file cleanup fails after saving", async () => {
-    mocks.useMySubmissions.mockReturnValue({
-      submissions: [{ ...pendingEvent, image_url: "https://project.supabase.co/old-flyer.png" }],
-      approvedEvents: [],
-      isLoading: false,
-      error: null,
-    });
-    mocks.uploadEventFlyer.mockResolvedValueOnce({
-      path: "user-1/pending-event-id/new-flyer.png",
-      url: "https://project.supabase.co/new-flyer.png",
-    });
+    mockEvent({ ...pendingEvent, image_url: flyerA });
+    mocks.uploadEventFlyers.mockResolvedValueOnce([
+      {
+        path: "user-1/pending-event-id/new-flyer.png",
+        url: "https://project.supabase.co/new-flyer.png",
+      },
+    ]);
     mocks.updateEventForUser.mockResolvedValueOnce(undefined);
     mocks.removeEventFlyer.mockRejectedValueOnce(new Error("Old flyer removal failed"));
 
     renderPage();
 
     await screen.findByDisplayValue("Pending Event");
-    fireEvent.change(screen.getByLabelText("Event flyer"), {
-      target: { files: [new File(["png"], "new-flyer.png", { type: "image/png" })] },
-    });
-    fireEvent.click(screen.getByRole("button", { name: /Save changes/i }));
+    fireEvent.click(screen.getByRole("button", { name: "Remove flyer 1" }));
+    addFiles(pngFile("new-flyer.png"));
+    save();
 
     expect(await screen.findByRole("status")).toHaveTextContent("Changes saved.");
     expect(mocks.removeEventFlyer).toHaveBeenCalledTimes(1);
-    expect(mocks.removeEventFlyer).toHaveBeenCalledWith(
-      "https://project.supabase.co/old-flyer.png"
-    );
+    expect(mocks.removeEventFlyer).toHaveBeenCalledWith(flyerA);
     expect(screen.queryByText(/Old flyer removal failed/i)).not.toBeInTheDocument();
   });
 
@@ -337,60 +542,6 @@ describe("UserEventEditPage save flow", () => {
 
     expect(await screen.findByText("Profile page")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Save changes/i })).not.toBeInTheDocument();
-  });
-
-it("loads the stored borough, saves a changed one, and clears it when the city changes", async () => {
-    mocks.useMySubmissions.mockReturnValue({
-      submissions: [{ ...pendingEvent, city: "new-york-city", sublocation: "brooklyn" }],
-      approvedEvents: [],
-      isLoading: false,
-      error: null,
-    });
-    mocks.updateEventForUser.mockResolvedValue(undefined);
-
-    renderPage();
-
-    const borough = await screen.findByLabelText("Borough");
-    expect(borough).toHaveValue("brooklyn");
-    fireEvent.change(borough, { target: { value: "queens" } });
-    fireEvent.click(screen.getByRole("button", { name: /Save changes/i }));
-    await waitFor(() => expect(mocks.updateEventForUser).toHaveBeenCalledTimes(1));
-    expect(mocks.updateEventForUser.mock.calls[0][1]).toMatchObject({
-      city: "new-york-city",
-      sublocation: "queens",
-    });
-
-    fireEvent.change(screen.getByLabelText("City *"), { target: { value: "boston" } });
-    expect(screen.queryByLabelText("Borough")).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: /Save changes/i }));
-    await waitFor(() => expect(mocks.updateEventForUser).toHaveBeenCalledTimes(2));
-    expect(mocks.updateEventForUser.mock.calls[1][1]).toMatchObject({
-      city: "boston",
-      sublocation: null,
-    });
-  });
-
-it("sends the borough through edited_data on a moderation submission edit", async () => {
-    mocks.useMySubmissions.mockReturnValue({
-      submissions: [{ ...pendingSubmissionEvent, city: "new-york-city", sublocation: "bronx" }],
-      approvedEvents: [],
-      isLoading: false,
-      error: null,
-    });
-    mocks.updateOwnEventSubmission.mockResolvedValueOnce(undefined);
-
-    renderPageFor("submission-id");
-
-    expect(await screen.findByLabelText("Borough")).toHaveValue("bronx");
-    fireEvent.change(screen.getByLabelText("Borough"), { target: { value: "" } });
-    fireEvent.click(screen.getByRole("button", { name: /Save changes/i }));
-
-    await waitFor(() => {
-      expect(mocks.updateOwnEventSubmission).toHaveBeenCalledWith(
-        "submission-id",
-        expect.objectContaining({ city: "new-york-city", sublocation: null })
-      );
-    });
   });
 });
 

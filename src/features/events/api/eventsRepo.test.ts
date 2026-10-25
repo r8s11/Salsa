@@ -231,6 +231,7 @@ describe("fetchApprovedEventById", () => {
   });
 });
 
+
 describe("eventsRepo user update", () => {
   beforeEach(() => {
     mocks.update.mockReset();
@@ -304,6 +305,7 @@ describe("eventsRepo user update", () => {
     expect(sentPayload.image_url).toBe("https://storage.example.com/user-flyer.jpg");
     expect(sentPayload.event_types).toEqual(["social"]);
   });
+
 
   it("throws the database error message when the update fails", async () => {
     mocks.update.mockReturnValue({

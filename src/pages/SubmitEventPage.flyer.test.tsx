@@ -92,7 +92,7 @@ describe("SubmitEventPage flyer (Phase 1)", () => {
   it("leads with the flyer section and flows straight into the event form", () => {
     renderPage();
     expect(screen.getByRole("heading", { name: /Start with the flyer/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Choose Flyer/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Add flyer/i })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Continue manually/i })).not.toBeInTheDocument();
     expect(screen.getByLabelText(/Event Title \*/i)).toBeInTheDocument();
   });
@@ -244,7 +244,7 @@ describe("SubmitEventPage flyer (Phase 1)", () => {
     });
 
     const [, extra] = vi.mocked(submissionsRepo.createSubmission).mock.calls[0];
-    expect(extra).toEqual({ image_url: FLYER_URL });
+    expect(extra).toEqual({ image_url: FLYER_URL, image_urls: [FLYER_URL] });
     expect(mockEventFlyers.uploadEventFlyer).toHaveBeenCalledTimes(1);
     expect(await screen.findByText(/Event Submitted!/i)).toBeInTheDocument();
   });
@@ -265,7 +265,7 @@ describe("SubmitEventPage flyer (Phase 1)", () => {
       screen.queryByRole("button", { name: /Extract Event Details/i })
     ).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /Try Again/i }));
+    await user.click(screen.getByRole("button", { name: /Retry flyer 1/i }));
     expect(
       await screen.findByRole("button", { name: /Extract Event Details/i })
     ).toBeInTheDocument();

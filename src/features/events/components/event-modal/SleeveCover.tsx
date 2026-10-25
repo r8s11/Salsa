@@ -9,6 +9,8 @@ interface SleeveCoverProps {
   imageUrl: string;
   artKind: "flyer" | "fallback";
   format?: PosterFormat;
+  /** Cover art failed to load (multi-flyer pager drops it). */
+  onImageError?: () => void;
 }
 
 /** Size long titles to retain the full name inside the cover's title band. */
@@ -32,6 +34,7 @@ export default function SleeveCover({
   imageUrl,
   artKind,
   format = "story",
+  onImageError,
 }: SleeveCoverProps) {
   const titleStyle = { "--title-size": `${titleSize(event.title, format)}px` } as CSSProperties;
   const priceLabel = posterPriceLabel(event);
@@ -44,7 +47,7 @@ export default function SleeveCover({
   return (
     <div className="sleeve-cover">
       <div className={`sleeve-cover__art sleeve-cover__art--${artKind}`}>
-        <img src={imageUrl} alt="" />
+        <img src={imageUrl} alt="" onError={onImageError} />
       </div>
       <div className="sleeve-cover__band">
         <h1 className="sleeve-cover__title" style={titleStyle}>

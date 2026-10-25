@@ -45,4 +45,17 @@ describe("generateEventStructuredData", () => {
 
     expect(data).not.toHaveProperty("offers");
   });
+
+  it("lists every flyer, primary first, only when an event has more than one", () => {
+    const flyers = ["https://x.test/a.jpg", "https://x.test/b.jpg", "https://x.test/c.jpg"];
+    const many = JSON.parse(
+      generateEventStructuredData({ ...event, image_url: flyers[0], image_urls: flyers })
+    );
+    expect(many.image).toEqual(flyers);
+
+    const one = JSON.parse(
+      generateEventStructuredData({ ...event, image_url: flyers[0], image_urls: [flyers[0]] })
+    );
+    expect(one).not.toHaveProperty("image");
+  });
 });

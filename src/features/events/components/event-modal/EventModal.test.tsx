@@ -677,4 +677,65 @@ describe("demand telemetry", () => {
 
     expect(recordEventTouch).toHaveBeenCalledWith(String(baseEvent.id), "ticket_click");
   });
+
+  describe("multiple flyers", () => {
+    const flyers = ["https://x.test/a.jpg", "https://x.test/b.jpg", "https://x.test/c.jpg"];
+    const multi: ScheduleXEvent = { ...baseEvent, imageUrl: flyers[0], imageUrls: flyers };
+    const sleeveSrc = (container: HTMLElement) =>
+      container.querySelector(".night-card__sleeve img")!.getAttribute("src");
+
+    it("shows no pager for an event with one flyer", () => {
+      render(
+        <EventModal
+          event={{ ...baseEvent, imageUrl: flyers[0], imageUrls: [flyers[0]] }}
+          onClose={() => {}}
+        />
+      );
+      expect(screen.queryByRole("button", { name: "Next flyer" })).not.toBeInTheDocument();
+      expect(screen.queryByText(/Flyer \d of/)).not.toBeInTheDocument();
+    });
+
+    it("flips the sleeve cover through the flyers while the poster keeps the primary", async () => {
+      const { container } = render(<EventModal event={multi} onClose={() => {}} />);
+      expect(sleeveSrc(container)).toBe(flyers[0]);
+      expect(screen.getByText("Flyer 1 of 3")).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole("button", { name: "Next flyer" }));
+      expect(sleeveSrc(container)).toBe(flyers[1]);
+      expect(screen.getByText("Flyer 2 of 3")).toBeInTheDocument();
+
+      fireEvent.keyDown(container.querySelector(".night-card__sleeve")!, { key: "ArrowRight" });
+      expect(sleeveSrc(container)).toBe(flyers[2]);
+
+      fireEvent.click(container.querySelector(".night-card__sleeve")!);
+      await waitFor(() =>
+        expect(container.querySelector(".poster-preview img, .sleeve-front img")).toHaveAttribute(
+          "src",
+          flyers[0]
+        )
+      );
+    });
+
+    it("skips a non-primary flyer that fails to load", () => {
+      const { container } = render(<EventModal event={multi} onClose={() => {}} />);
+      fireEvent.click(screen.getByRole("button", { name: "Next flyer" }));
+      fireEvent.error(container.querySelector(".night-card__sleeve img")!);
+      expect(sleeveSrc(container)).toBe(flyers[2]);
+      expect(screen.getByText("Flyer 2 of 2")).toBeInTheDocument();
+    });
+
+    it("returns to the first flyer when it opens a different event", () => {
+      const { container, rerender } = render(<EventModal event={multi} onClose={() => {}} />);
+      fireEvent.click(screen.getByRole("button", { name: "Next flyer" }));
+      const other = ["https://x.test/y.jpg", "https://x.test/z.jpg"];
+      rerender(
+        <EventModal
+          event={{ ...multi, id: "2", imageUrl: other[0], imageUrls: other }}
+          onClose={() => {}}
+        />
+      );
+      expect(sleeveSrc(container)).toBe(other[0]);
+      expect(screen.getByText("Flyer 1 of 2")).toBeInTheDocument();
+    });
+  });
 });

@@ -19,6 +19,7 @@ const BASE_DRAFT: EventFormDraft = {
   price_amount: "",
   rsvp_link: "",
   image_url: "",
+  image_urls: [],
   host: "",
   contact_email: "",
   contact_instagram: "",
@@ -285,5 +286,22 @@ describe("applyExtractionToDraft manual city precedence", () => {
       applyExtractionToDraft({ ...BASE_EXTRACTION, city: "Brooklyn" }, BASE_DRAFT, METROS).draft
         .city
     ).toBe("new-york-city");
+  });
+
+  it("drops a borough when the flyer moves the event to another city", () => {
+    const nycDraft: EventFormDraft = { ...BASE_DRAFT, city: "new-york-city", sublocation: "queens" };
+    const { draft } = applyExtractionToDraft({ ...BASE_EXTRACTION, city: "Miami" }, nycDraft, METROS);
+    expect(draft.city).toBe("miami");
+    expect(draft.sublocation).toBe("");
+  });
+
+  it("keeps the borough while the city stays New York City", () => {
+    const nycDraft: EventFormDraft = { ...BASE_DRAFT, city: "new-york-city", sublocation: "queens" };
+    const { draft } = applyExtractionToDraft(
+      { ...BASE_EXTRACTION, city: "Brooklyn" },
+      nycDraft,
+      METROS
+    );
+    expect(draft.sublocation).toBe("queens");
   });
 });

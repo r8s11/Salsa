@@ -60,6 +60,7 @@ describe("Event Composer", () => {
         event_date: "2026-11-12",
         series_id: "series-1",
         image_url: "https://example.com/flyer.jpg",
+        image_urls: ["https://example.com/flyer.jpg", "https://example.com/flyer-2.jpg"],
       },
       onSubmit,
     });
@@ -67,10 +68,16 @@ describe("Event Composer", () => {
     if (scope === "series") await user.click(screen.getByRole("radio", { name: "Series default" }));
     await user.click(screen.getByRole("button", { name: "Save draft" }));
     await waitFor(() => expect(onSubmit).toHaveBeenCalled());
+    expect(onSubmit.mock.calls[0][0]).toMatchObject({
+      image_url: "https://example.com/flyer.jpg",
+      image_urls: ["https://example.com/flyer.jpg", "https://example.com/flyer-2.jpg"],
+    });
     if (scope === "series") {
-      await waitFor(() => expect(saveAdminEntity).toHaveBeenCalledWith("series", "series-1", {
-        image_url: "https://example.com/flyer.jpg",
-      }));
+      await waitFor(() =>
+        expect(saveAdminEntity).toHaveBeenCalledWith("series", "series-1", {
+          image_url: "https://example.com/flyer.jpg",
+        })
+      );
     } else {
       expect(saveAdminEntity).not.toHaveBeenCalled();
     }

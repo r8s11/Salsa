@@ -728,6 +728,14 @@ directly. The event modal places it inside a generated Sleeve — frame,
 title band, price sticker and track list — so every approved event still
 has shareable artwork.
 
+**Multiple flyers.** An event may carry up to five flyers; the first is the
+primary. Only the event modal's Sleeve thumbnail and the event page cover
+flip through them (`FlyerPager`): previous/next buttons, a 44px dot per flyer,
+a polite "Flyer 2 of 3" status, Left/Right on the focused cover, wrapping at
+both ends, no slide animation. A flyer that fails to load is skipped. Cards,
+list rows, month cells, the related strip, the poster and the share image
+use the primary flyer only; events with one or no flyer show no controls.
+
 **The Protected Submission Rule.** The New Event modal is a controlled,
 accessible Radix dialog with backdrop blur (`rgba(11, 19, 38, 0.78)` with
 8px blur), focus trapping, client-side validation error summaries,

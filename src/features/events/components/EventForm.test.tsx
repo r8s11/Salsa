@@ -31,6 +31,7 @@ const draft: EventFormDraft = {
   price_amount: "",
   rsvp_link: "",
   image_url: "",
+  image_urls: [],
   host: "",
   contact_email: "",
   contact_instagram: "",

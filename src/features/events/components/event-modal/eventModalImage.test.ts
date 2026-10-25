@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { resolveEventFlyer } from "./eventModalImage";
+import { resolveEventFlyer, resolveEventFlyers } from "./eventModalImage";
 
 const art = (name: string) => `/images/event-fallbacks/${name}.svg`;
 
@@ -30,5 +30,27 @@ describe("resolveEventFlyer", () => {
   it("falls back to the neutral brand flyer when the type is missing or unknown", () => {
     expect(resolveEventFlyer({ imageUrl: "  " })).toBe(art("salsa"));
     expect(resolveEventFlyer({ calendarId: "festival" })).toBe(art("salsa"));
+  });
+});
+
+describe("resolveEventFlyers", () => {
+  it("returns every flyer in order, primary first, without repeats", () => {
+    expect(
+      resolveEventFlyers({
+        imageUrl: "https://x.test/a.jpg",
+        imageUrls: ["https://x.test/a.jpg", "https://x.test/b.jpg", "https://x.test/c.jpg"],
+      })
+    ).toEqual(["https://x.test/a.jpg", "https://x.test/b.jpg", "https://x.test/c.jpg"]);
+  });
+
+  it("is just the primary or the typed fallback art when there are fewer than two", () => {
+    expect(resolveEventFlyers({ imageUrl: "https://x.test/a.jpg" })).toEqual(["https://x.test/a.jpg"]);
+    expect(resolveEventFlyers({ calendarId: "workshop" })).toEqual([art("workshop")]);
+    expect(resolveEventFlyers({ imageUrls: [] })).toEqual([art("salsa")]);
+  });
+
+  it("caps at five flyers", () => {
+    const urls = Array.from({ length: 8 }, (_, i) => `https://x.test/${i}.jpg`);
+    expect(resolveEventFlyers({ imageUrl: urls[0], imageUrls: urls })).toHaveLength(5);
   });
 });

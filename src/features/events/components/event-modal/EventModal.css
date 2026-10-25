@@ -72,6 +72,13 @@
   padding-right: 56px;
 }
 
+/* Flyer pager for events with several flyers: its own row under the sleeve
+   and facts, so the 44px targets never squeeze the thumbnail column. */
+.night-card__flyers {
+  grid-column: 1 / -1;
+  justify-self: center;
+}
+
 /* The sleeve: a printed square lifted off the table, not a glass card. */
 .night-card__sleeve {
   --thumb-size: 220px;

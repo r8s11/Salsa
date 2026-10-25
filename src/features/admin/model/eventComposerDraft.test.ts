@@ -48,9 +48,21 @@ describe("composer series reuse", () => {
       event_date: "",
       event_time: "20:00",
       image_url: "https://example.com/series.png",
+      image_urls: ["https://example.com/series.png"],
       series_id: "series",
       recurrence: "",
     });
+  });
+
+  it("copies every flyer of the earlier occurrence when the series has no artwork of its own", () => {
+    const next = applySeriesToComposer(
+      buildEmptyAdminForm("boston"),
+      { id: "series", name: "Thursdays" },
+      { ...source, image_urls: ["https://example.com/old.png", "https://example.com/old-2.png"] },
+      new Set()
+    );
+    expect(next.image_url).toBe("https://example.com/old.png");
+    expect(next.image_urls).toEqual(["https://example.com/old.png", "https://example.com/old-2.png"]);
   });
 
   it("preserves manually edited and deliberately cleared fields", () => {
@@ -91,6 +103,41 @@ describe("composer recovery", () => {
     expect(next?.form).toMatchObject({ title: "Unfinished", event_date: "" });
     expect(next?.saved).toEqual(saved);
     expect(next?.edited).toContain("description");
+  });
+
+  it("recovers the ordered flyer list, and derives it from a legacy draft that only has the primary", () => {
+    const initial = buildEmptyAdminForm("boston");
+    const withList = readComposerRecovery(
+      JSON.stringify({
+        version: 1,
+        form: {
+          ...initial,
+          image_url: "https://example.com/a.png",
+          image_urls: ["https://example.com/a.png", "https://example.com/b.png"],
+        },
+        saved: null,
+        edited: ["image_urls"],
+      }),
+      initial
+    );
+    expect(withList?.form.image_urls).toEqual([
+      "https://example.com/a.png",
+      "https://example.com/b.png",
+    ]);
+    expect(withList?.edited).toContain("image_urls");
+
+    const { image_urls: _omitted, ...legacyForm } = {
+      ...initial,
+      image_url: "https://example.com/a.png",
+    };
+    const legacy = readComposerRecovery(
+      JSON.stringify({ version: 1, form: legacyForm, saved: null, edited: [] }),
+      initial
+    );
+    expect(legacy?.form).toMatchObject({
+      image_url: "https://example.com/a.png",
+      image_urls: ["https://example.com/a.png"],
+    });
   });
 
   it("rejects malformed recovery without replacing the initial event", () => {

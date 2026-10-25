@@ -312,6 +312,11 @@ function EventCell({
           data-row-focus={hasDecision ? undefined : ""}
         >
           {event.title}
+        {(event.image_urls?.length ?? (event.image_url ? 1 : 0)) > 1 && (
+          <span className="admin-events-table__flyer-count">
+            +{(event.image_urls?.length ?? 1) - 1}
+          </span>
+        )}
         </Link>
         <p className="admin-events-table__meta">
           {eventTypeSummary(event)}

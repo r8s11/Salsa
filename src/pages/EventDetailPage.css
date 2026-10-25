@@ -43,6 +43,7 @@
 }
 
 .event-page__cover-bar,
+.event-page__cover-flyers,
 .event-page__cover-body {
   position: relative;
   z-index: 2;
@@ -55,6 +56,24 @@
 .event-page__cover-bar {
   padding-top: 22px;
   padding-bottom: 22px;
+}
+
+/* Flyer pager for events with several flyers; keeps clear of the bar and body. */
+.event-page__cover-flyers {
+  display: flex;
+  justify-content: flex-end;
+  color: var(--text);
+}
+
+.event-page__cover-flyers .flyer-pager {
+  padding: 0 8px 8px;
+  border-radius: var(--radius-sm);
+  background: rgba(11, 19, 38, 0.78);
+}
+
+.event-page__cover[tabindex]:focus-visible {
+  outline: 2px solid var(--red-bright);
+  outline-offset: -4px;
 }
 
 .event-page__cover-body {
@@ -464,6 +483,7 @@
   .event-page__cover-bar {
     padding: calc(16px + env(safe-area-inset-top)) 18px 16px;
   }
+  .event-page__cover-flyers,
   .event-page__cover-body,
   .event-page__body {
     padding-left: 18px;

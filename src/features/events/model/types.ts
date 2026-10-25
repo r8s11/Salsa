@@ -53,6 +53,8 @@ export interface DatabaseEvent {
   price_amount: number | null;
   rsvp_link: string | null;
   image_url: string | null;
+  /** Ordered flyer list (max 5). `image_url` is the primary and equals `image_urls[0]`. */
+  image_urls?: string[] | null;
   poster_image_url?: string | null;
   submitter_name?: string | null;
   submitter_email?: string | null;
@@ -121,6 +123,8 @@ export interface ScheduleXEvent {
   timeZone?: string;
   gallery?: string[];
   imageUrl?: string;
+  /** Ordered flyers; `imageUrl` is the first. */
+  imageUrls?: string[];
   posterImageUrl?: string;
   priceType?: "free" | "paid";
   priceAmount?: number;

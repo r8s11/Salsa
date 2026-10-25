@@ -3,6 +3,7 @@ import "temporal-polyfill/global";
 import { getEventTypes, type DatabaseEvent, type EventType, type ScheduleXEvent } from "./types";
 import { timeZoneForDisplay } from "../../../shared/utils/timezone";
 import { CALENDARS_CONFIG } from "./calendarsConfig";
+import { eventFlyerList } from "./eventFlyers";
 
 // The database has not always been constrained to known types (production
 // held "club/bar" rows); views colour by type, so unknown ones never leave here.
@@ -57,6 +58,7 @@ export function databaseEventToScheduleX(event: DatabaseEvent): ScheduleXEvent {
             .map((term) => term.name)
         : (event.dance_styles ?? []),
     imageUrl: event.image_url ?? undefined,
+    imageUrls: eventFlyerList(event),
     posterImageUrl: event.poster_image_url ?? undefined,
     priceType: event.price_type ?? undefined,
     priceAmount: event.price_amount ?? undefined,

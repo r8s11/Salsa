@@ -94,6 +94,32 @@ describe("AdminEventsTable", () => {
     });
     expect(screen.getAllByText(/Social, Concert/).length).toBeGreaterThan(0);
   });
+  it("shows an additional-flyer count without changing single-flyer display", () => {
+    renderTable({
+      events: [
+        {
+          ...baseEvent,
+          title: "Multiple flyers",
+          image_url: "https://example.com/primary.png",
+          image_urls: [
+            "https://example.com/primary.png",
+            "https://example.com/second.png",
+            "https://example.com/third.png",
+          ],
+        },
+        {
+          ...baseEvent,
+          id: "single-flyer",
+          title: "One flyer",
+          image_url: "https://example.com/only.png",
+          image_urls: ["https://example.com/only.png"],
+        },
+      ],
+    });
+
+    expect(screen.getAllByText("+2", { exact: true })).toHaveLength(1);
+    expect(screen.queryByText("+1", { exact: true })).not.toBeInTheDocument();
+  });
 
   it("renders the seven-column header", () => {
     renderTable();

@@ -1,5 +1,5 @@
 import type { AdminEventForm } from "./adminEventForm";
-import { buildAdminFormFromEvent } from "./adminEventForm";
+import { buildAdminFormFromEvent, withFlyerUrls } from "./adminEventForm";
 import { normalizeSubLocation } from "../../metros/model/sublocation";
 import type { DatabaseEvent } from "../../events/model/types";
 import { readStoredEntityReview } from "../../entity-matching/entityReviewState";
@@ -33,6 +33,7 @@ export function readComposerRecovery(
         key === "entity_review" ||
         key === "event_type" ||
         key === "event_types" ||
+        key === "image_urls" ||
         key === "sublocation"
       )
         continue;
@@ -51,6 +52,14 @@ export function readComposerRecovery(
     if (event_type !== undefined && typeof event_type !== "string") return null;
     if (event_types !== undefined && !Array.isArray(event_types)) return null;
     Object.assign(form, eventTypeFieldsFrom({ event_type, event_types }));
+    // Drafts saved before multiple flyers carry only the primary; a missing list is not corruption.
+    const { image_urls } = value.form;
+    if (
+      image_urls !== undefined &&
+      (!Array.isArray(image_urls) || !image_urls.every((item) => typeof item === "string"))
+    )
+      return null;
+    Object.assign(form, withFlyerUrls(form, image_urls ?? [form.image_url]));
     const review = readStoredEntityReview(value.form.entity_review);
     if (review) form.entity_review = review;
     const saved =
@@ -96,7 +105,10 @@ export function applySeriesToComposer(
     ...(previous ?? {}),
     title: previous?.title || series.name,
     description: series.description || previous?.description || "",
-    image_url: series.image_url || previous?.image_url || "",
+    // A series flyer is its single default; otherwise the source occurrence's flyers carry over.
+    ...(series.image_url
+      ? withFlyerUrls({ image_url: "", image_urls: [] }, [series.image_url])
+      : { image_url: previous?.image_url || "", image_urls: previous?.image_urls ?? [] }),
     city: series.city || previous?.city || form.city,
     venue_id: series.venue_id || previous?.venue_id || "",
     location: reuseSourceVenue ? previous?.location || "" : "",

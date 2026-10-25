@@ -1,3 +1,5 @@
+import { normalizeFlyerUrls } from "../../model/eventFlyers";
+
 const FALLBACK_DIR = "/images/event-fallbacks";
 
 // Fallback art names a kind of night, so it has to match the event: a class
@@ -18,4 +20,19 @@ export function resolveEventFlyer(event: {
     return `${FALLBACK_DIR}/${bachataOnly ? "bachata" : "social"}.svg`;
   }
   return `${FALLBACK_DIR}/salsa.svg`;
+}
+
+/**
+ * Every flyer for an event, primary first, for the cover pager. Events with
+ * zero or one flyer keep exactly what `resolveEventFlyer` gives them, so the
+ * fallback art guarantee holds and nothing changes for them.
+ */
+export function resolveEventFlyers(event: {
+  imageUrl?: string;
+  imageUrls?: string[];
+  calendarId?: string;
+  danceStyles?: string[];
+}): string[] {
+  const flyers = normalizeFlyerUrls([event.imageUrl, ...(event.imageUrls ?? [])]);
+  return flyers.length > 1 ? flyers : [resolveEventFlyer(event)];
 }

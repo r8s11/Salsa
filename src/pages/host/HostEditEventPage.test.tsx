@@ -14,8 +14,8 @@ const { assertOrganizerAccess } = vi.hoisted(() => ({
 const { updateOrganizerEvent } = vi.hoisted(() => ({
   updateOrganizerEvent: vi.fn(),
 }));
-const { uploadEventFlyer } = vi.hoisted(() => ({
-  uploadEventFlyer: vi.fn(),
+const { uploadEventFlyers } = vi.hoisted(() => ({
+  uploadEventFlyers: vi.fn(),
 }));
 const { removeEventFlyer } = vi.hoisted(() => ({
   removeEventFlyer: vi.fn(),
@@ -39,7 +39,7 @@ vi.mock("../../features/host/api/organizerAccessRepo", () => ({
   },
 }));
 vi.mock("../../features/events/api/eventFlyers", () => ({
-  uploadEventFlyer,
+  uploadEventFlyers,
   removeEventFlyer,
   validateEventFlyer,
 }));
@@ -57,6 +57,7 @@ const baseEvent: DatabaseEvent = {
   price_amount: 15,
   rsvp_link: "https://tickets.example.com/havana",
   image_url: "https://cdn.example.com/flyer.png",
+  image_urls: ["https://cdn.example.com/flyer.png"],
   submitter_name: "Carlos",
   submitter_email: "carlos@example.com",
   submitter_id: "user-1",
@@ -376,50 +377,126 @@ describe("HostEditEventPage", () => {
     expect(screen.getByRole("status")).toHaveTextContent(/loading/i);
   });
 
-  it("allows removing flyer", async () => {
+  it("allows removing flyer and deletes the stored object only after the update succeeds", async () => {
     const user = userEvent.setup();
     renderEdit();
 
     await screen.findByRole("heading", { name: "Edit event" });
 
-    const removeButton = screen.getByRole("button", { name: /Remove/i });
-    await user.click(removeButton);
-
+    await user.click(screen.getByRole("button", { name: /Remove flyer 1/i }));
     await user.click(screen.getByRole("button", { name: /Save Changes/i }));
 
     await waitFor(() => {
       expect(updateOrganizerEvent).toHaveBeenCalledWith(
         "event-1",
-        expect.objectContaining({ image_url: null })
+        expect.objectContaining({ image_url: null, image_urls: null })
       );
     });
+    await waitFor(() =>
+      expect(removeEventFlyer).toHaveBeenCalledWith("https://cdn.example.com/flyer.png")
+    );
+    expect(vi.mocked(updateOrganizerEvent).mock.invocationCallOrder[0]).toBeLessThan(
+      vi.mocked(removeEventFlyer).mock.invocationCallOrder[0]
+    );
   });
 
-  it("allows replacing flyer", async () => {
+  it("keeps stored flyers when the update fails", async () => {
+    const user = userEvent.setup();
+    vi.mocked(updateOrganizerEvent).mockRejectedValue(new Error("boom"));
+    renderEdit();
+
+    await screen.findByRole("heading", { name: "Edit event" });
+    await user.click(screen.getByRole("button", { name: /Remove flyer 1/i }));
+    await user.click(screen.getByRole("button", { name: /Save Changes/i }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/couldn't save/i);
+    expect(removeEventFlyer).not.toHaveBeenCalled();
+  });
+
+  it("reorders flyers so the moved one becomes the primary", async () => {
+    const user = userEvent.setup();
+    vi.mocked(useMyOrganizerEvents).mockReturnValue({
+      events: [
+        {
+          ...baseEvent,
+          image_url: "https://cdn.example.com/a.png",
+          image_urls: ["https://cdn.example.com/a.png", "https://cdn.example.com/b.png"],
+        },
+      ],
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+    renderEdit();
+
+    await screen.findByRole("heading", { name: "Edit event" });
+    await user.click(screen.getByRole("button", { name: /Move flyer 2 earlier/i }));
+    await user.click(screen.getByRole("button", { name: /Save Changes/i }));
+
+    await waitFor(() => expect(updateOrganizerEvent).toHaveBeenCalledTimes(1));
+    expect(updateOrganizerEvent).toHaveBeenCalledWith(
+      "event-1",
+      expect.objectContaining({
+        image_url: "https://cdn.example.com/b.png",
+        image_urls: ["https://cdn.example.com/b.png", "https://cdn.example.com/a.png"],
+      })
+    );
+    expect(removeEventFlyer).not.toHaveBeenCalled();
+    expect(uploadEventFlyers).not.toHaveBeenCalled();
+  });
+
+  it("adds a new flyer after the stored ones and persists the full order", async () => {
     const user = userEvent.setup();
     const file = new File(["test"], "test.png", { type: "image/png" });
-    vi.mocked(uploadEventFlyer).mockResolvedValue({
-      path: "user-1/event-1/test.png",
-      url: "https://cdn.example.com/new-flyer.png",
-    });
+    vi.mocked(uploadEventFlyers).mockResolvedValue([
+      { path: "user-1/event-1/test.png", url: "https://cdn.example.com/new-flyer.png" },
+    ]);
 
     renderEdit();
 
     await screen.findByRole("heading", { name: "Edit event" });
-
-    const input = screen.getByLabelText(/Event flyer/i);
-    await user.upload(input, file);
-
+    await user.upload(screen.getByLabelText(/Event flyers/i), file);
     await user.click(screen.getByRole("button", { name: /Save Changes/i }));
 
-    await waitFor(() => {
-      expect(updateOrganizerEvent).toHaveBeenCalled();
+    await waitFor(() => expect(updateOrganizerEvent).toHaveBeenCalledTimes(2));
+    expect(uploadEventFlyers).toHaveBeenCalledWith({
+      files: [file],
+      ownerId: "user-1",
+      eventId: "event-1",
+    });
+    expect(updateOrganizerEvent).toHaveBeenLastCalledWith("event-1", {
+      image_url: "https://cdn.example.com/flyer.png",
+      image_urls: ["https://cdn.example.com/flyer.png", "https://cdn.example.com/new-flyer.png"],
     });
   });
 
-  it("shows dropzone when no image_url", async () => {
+  it("removes new uploads when attaching them fails", async () => {
+    const user = userEvent.setup();
+    vi.mocked(uploadEventFlyers).mockResolvedValue([
+      { path: "user-1/event-1/test.png", url: "https://cdn.example.com/new-flyer.png" },
+    ]);
+    vi.mocked(updateOrganizerEvent)
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new Error("temporary"));
+
+    renderEdit();
+
+    await screen.findByRole("heading", { name: "Edit event" });
+    await user.upload(
+      screen.getByLabelText(/Event flyers/i),
+      new File(["test"], "test.png", { type: "image/png" })
+    );
+    await user.click(screen.getByRole("button", { name: /Save Changes/i }));
+
+    await waitFor(() =>
+      expect(removeEventFlyer).toHaveBeenCalledWith("https://cdn.example.com/new-flyer.png")
+    );
+    expect(removeEventFlyer).not.toHaveBeenCalledWith("https://cdn.example.com/flyer.png");
+  });
+
+  it("shows the empty dropzone when the event has no flyers", async () => {
     vi.mocked(useMyOrganizerEvents).mockReturnValue({
-      events: [{ ...baseEvent, image_url: null }],
+      events: [{ ...baseEvent, image_url: null, image_urls: null }],
       isLoading: false,
       error: null,
       refetch: vi.fn(),
@@ -427,9 +504,7 @@ describe("HostEditEventPage", () => {
 
     renderEdit();
 
-    expect(
-      await screen.findByRole("button", { name: /Choose a flyer image to upload/i })
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/Drop your flyers here/i)).toBeInTheDocument();
   });
 
   it("manager can edit event", async () => {

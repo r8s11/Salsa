@@ -6,7 +6,7 @@ import { ADMIN_EVENT_CREATE_PATH } from "../lib/eventCreateDestination";
 import { useOwnProfile } from "../features/account/hooks/useOwnProfile";
 import { resolveIdentity } from "../features/account/model/account";
 import EventForm, { CAPABILITIES } from "../features/events/components/EventForm";
-import EventFlyerField from "../features/events/components/EventFlyerField";
+import EventFlyersField from "../features/events/components/EventFlyersField";
 import FlyerExtractionPanel from "../features/flyer-extraction/FlyerExtractionPanel";
 import EntityReviewSection from "../features/entity-matching/EntityReviewSection";
 import SuccessCard from "../features/submit-event/components/SuccessCard";
@@ -64,13 +64,12 @@ export default function SubmitEventPage() {
     serverError,
     failedAttempt,
     resetSubmitted,
-    flyerFile,
-    flyerStatus,
+    flyerItems,
     flyerError,
-    uploadedFlyerUrl,
     flyerReady,
-    handleFlyerChange,
+    handleFlyersAdd,
     handleFlyerRetry,
+    handleFlyerMove,
     handleFlyerRemove,
     extractionStatus,
     extractionResult,
@@ -166,19 +165,20 @@ export default function SubmitEventPage() {
                 form below starts mostly filled in. Prefer to type? Skip straight to the details.
               </p>
 
-              <EventFlyerField
-                currentUrl={uploadedFlyerUrl}
-                onFileChange={handleFlyerChange}
+              <EventFlyersField
+                items={flyerItems}
+                onAddFiles={handleFlyersAdd}
                 onRemove={handleFlyerRemove}
+                onMove={handleFlyerMove}
                 onRetry={handleFlyerRetry}
-                status={flyerStatus}
-                errorMessage={flyerError}
                 disabled={isSubmitting}
                 label="Event flyer"
-                sizeCaption={
-                  flyerFile ? `${(flyerFile.size / (1024 * 1024)).toFixed(1)} MB` : null
-                }
               />
+              {flyerError && (
+                <p className="submit-flyer__notice" role="alert">
+                  {flyerError}
+                </p>
+              )}
 
               {flyerReady && extractionStatus === "idle" && (
                 <div className="submit-flyer__actions">

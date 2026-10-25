@@ -161,6 +161,8 @@ export type OrganizerEventUpdatePayload = {
   contact_instagram?: string | null;
   contact_website?: string | null;
   image_url?: string | null;
+  /** Ordered flyer list; the RPC derives `image_url` from its first entry. */
+  image_urls?: string[] | null;
   host?: string | null;
   dance_styles?: string[];
 };

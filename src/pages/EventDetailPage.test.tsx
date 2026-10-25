@@ -137,6 +137,41 @@ describe("EventDetailPage", () => {
     expect(JSON.parse(schema!.textContent!)).not.toHaveProperty("performer");
   });
 
+  it("pages through every flyer on the cover and lists them all in the structured data", async () => {
+    const flyers = ["https://x.test/a.jpg", "https://x.test/b.jpg", "https://x.test/c.jpg"];
+    vi.mocked(fetchApprovedEventById).mockResolvedValue({
+      ...event,
+      image_url: flyers[0],
+      image_urls: flyers,
+    });
+    renderPage();
+    await screen.findByRole("heading", { name: "Havana Nights" });
+    const cover = () => document.querySelector(".event-page__cover-img")!.getAttribute("src");
+
+    expect(cover()).toBe(flyers[0]);
+    expect(screen.getByText("Flyer 1 of 3")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Next flyer" }));
+    expect(cover()).toBe(flyers[1]);
+    await userEvent.click(screen.getByRole("button", { name: "Previous flyer" }));
+    await userEvent.click(screen.getByRole("button", { name: "Previous flyer" }));
+    expect(cover()).toBe(flyers[2]);
+
+    expect(JSON.parse(document.querySelector("#event-detail-data")!.textContent!).image).toEqual(flyers);
+  });
+
+  it("keeps a single-flyer event's cover free of pager controls", async () => {
+    vi.mocked(fetchApprovedEventById).mockResolvedValue({
+      ...event,
+      image_url: "https://x.test/a.jpg",
+      image_urls: ["https://x.test/a.jpg"],
+    });
+    renderPage();
+    await screen.findByRole("heading", { name: "Havana Nights" });
+    expect(document.querySelector(".event-page__cover-img")).toHaveAttribute("src", "https://x.test/a.jpg");
+    expect(screen.queryByRole("button", { name: "Next flyer" })).not.toBeInTheDocument();
+    expect(document.querySelector(".event-page__cover")).not.toHaveAttribute("tabindex");
+  });
+
   it("shows every category as its own badge, Concert included", async () => {
     vi.mocked(fetchApprovedEventById).mockResolvedValue({
       ...event,

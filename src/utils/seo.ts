@@ -1,5 +1,6 @@
 import type { DatabaseEvent } from "../features/events/model/types";
 import type { ScheduleXEvent } from "../types/events";
+import { eventFlyerList } from "../features/events/model/eventFlyers";
 export const CANONICAL_ORIGIN = "https://www.salsasegura.com";
 
 export function canonicalUrl(path: string): string {
@@ -13,7 +14,9 @@ export function canonicalUrl(path: string): string {
 export function generateEventStructuredData(event: Pick<
   DatabaseEvent,
   "id" | "slug" | "title" | "description" | "event_date" | "location" | "address" | "rsvp_link" | "price_type" | "price_amount"
->) {
+> &
+  Partial<Pick<DatabaseEvent, "image_url" | "image_urls">>) {
+  const flyers = eventFlyerList(event);
   const hasKnownPrice =
     event.price_type === "free" ||
     (event.price_type === "paid" && typeof event.price_amount === "number");
@@ -24,6 +27,8 @@ export function generateEventStructuredData(event: Pick<
     description: event.description || undefined,
     startDate: event.event_date,
     url: canonicalUrl(`/events/${event.slug || event.id}`),
+    // Several flyers are listed primary first; a single flyer adds nothing.
+    ...(flyers.length > 1 && { image: flyers }),
     eventStatus: "https://schema.org/EventScheduled",
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     location: event.location

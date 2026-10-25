@@ -99,7 +99,12 @@ export default function EventForm({
             name="image_url"
             type="url"
             value={draft.image_url}
-            onChange={(event) => update("image_url", event.target.value)}
+            onChange={(event) => {
+              // The typed URL replaces the primary flyer; any further flyers are kept.
+              const value = event.target.value;
+              const rest = draft.image_urls.slice(1);
+              onChange({ ...draft, image_url: value, image_urls: value ? [value, ...rest] : rest });
+            }}
           />
         </label>
       )}

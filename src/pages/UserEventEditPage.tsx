@@ -16,13 +16,18 @@ import {
   updateOwnEventSubmission,
   withdrawOwnEventSubmission,
 } from "../features/admin/api/submissionsRepo";
-import { removeEventFlyer, uploadEventFlyer } from "../features/events/api/eventFlyers";
+import { removeEventFlyer, uploadEventFlyers } from "../features/events/api/eventFlyers";
 import EventForm, {
   CAPABILITIES,
   draftToUserPayload,
 } from "../features/events/components/EventForm";
 import type { EventFormDraft } from "../features/events/components/EventForm";
-import EventFlyerField from "../features/events/components/EventFlyerField";
+import EventFlyersField from "../features/events/components/EventFlyersField";
+import {
+  MAX_FLYERS_PER_EVENT,
+  eventFlyerList,
+  flyerPayload,
+} from "../features/events/model/eventFlyers";
 import { fromEventDateInstant } from "../features/events/model/eventDateTime";
 import { eventTypeFieldsFrom } from "../features/events/model/eventTypeSelection";
 import { validateSubmitForm } from "../features/submit-event/model/validation";
@@ -50,6 +55,7 @@ function buildUserDraft(event: DatabaseEvent): EventFormDraft {
     price_amount: event.price_amount == null ? "" : String(event.price_amount),
     rsvp_link: event.rsvp_link ?? "",
     image_url: event.image_url ?? "",
+    image_urls: eventFlyerList(event),
     host: event.host ?? "",
     contact_email: event.contact_email ?? "",
     contact_instagram: event.contact_instagram ?? "",
@@ -85,9 +91,32 @@ function statusLabel(status: DatabaseEvent["status"]): string {
 }
 
 function submissionEditedData(payload: UserEventUpdatePayload): Record<string, unknown> {
-  const { image_url: _imageUrl, ...editedData } = payload;
+  // A moderation submission has no canonical event id, so its flyers are not
+  // editable here; the submitted flyers carry through approval untouched.
+  const { image_url: _imageUrl, image_urls: _imageUrls, ...editedData } = payload;
   return editedData;
 }
+
+/**
+ * One row of the edit page's flyer list: either an already-persisted flyer
+ * (`url`) or a freshly chosen file that uploads on save (`file`).
+ */
+type EditFlyer = {
+  id: string;
+  url: string | null;
+  file: File | null;
+  previewUrl: string;
+};
+
+const persistedEditFlyers = (urls: readonly string[]): EditFlyer[] =>
+  urls.map((url) => ({ id: url, url, file: null, previewUrl: url }));
+
+const createPreviewUrl = (file: File) =>
+  typeof URL.createObjectURL === "function" ? URL.createObjectURL(file) : "";
+
+const revokePreviewUrl = (flyer: EditFlyer) => {
+  if (flyer.file && flyer.previewUrl) URL.revokeObjectURL(flyer.previewUrl);
+};
 
 export default function UserEventEditPage() {
   const { user, isOrganizer } = useAuth();
@@ -105,8 +134,10 @@ export default function UserEventEditPage() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
   const [withdrawError, setWithdrawError] = useState<string | null>(null);
-  const [selectedFlyer, setSelectedFlyer] = useState<File | null>(null);
-  const [savedFlyerUrl, setSavedFlyerUrl] = useState<string | null>(null);
+  // Edited flyer lists per event id; absent until the person touches the flyers.
+  const [flyerDrafts, setFlyerDrafts] = useState<Record<string, EditFlyer[]>>({});
+  // Flyer URLs as last saved from this page, so later saves diff against them.
+  const [savedFlyerUrls, setSavedFlyerUrls] = useState<Record<string, string[]>>({});
   const [isSaving, setIsSaving] = useState(false);
   // Snapshot of the loaded (unedited) draft, captured once per event id via
   // the "adjust state during render" pattern (not an effect) — React's
@@ -118,9 +149,54 @@ export default function UserEventEditPage() {
     setPristineSnapshotId(editingEvent.id);
     setPristineSnapshot(JSON.stringify(buildUserDraft(editingEvent)));
   }
+  const baselineFlyerUrls = editingEvent
+    ? (savedFlyerUrls[editingEvent.id] ?? eventFlyerList(editingEvent))
+    : [];
+  const flyers = editingEvent
+    ? (flyerDrafts[editingEvent.id] ?? persistedEditFlyers(baselineFlyerUrls))
+    : [];
+  const flyersDirty =
+    flyers.length !== baselineFlyerUrls.length ||
+    flyers.some((flyer, index) => flyer.url !== baselineFlyerUrls[index]);
   const isDirty =
-    pristineSnapshot !== null &&
-    (JSON.stringify(form) !== pristineSnapshot || selectedFlyer !== null);
+    pristineSnapshot !== null && (JSON.stringify(form) !== pristineSnapshot || flyersDirty);
+
+  // Object-URL previews of unsaved files; released when the page goes away.
+  const flyerDraftsRef = useRef(flyerDrafts);
+  useEffect(() => {
+    flyerDraftsRef.current = flyerDrafts;
+  }, [flyerDrafts]);
+  useEffect(
+    () => () => Object.values(flyerDraftsRef.current).flat().forEach(revokePreviewUrl),
+    []
+  );
+  const setFlyers = (next: EditFlyer[]) => {
+    if (!editingEvent) return;
+    setFlyerDrafts((current) => ({ ...current, [editingEvent.id]: next }));
+  };
+  const handleFlyersAdd = (files: File[]) => {
+    const added = files.slice(0, Math.max(0, MAX_FLYERS_PER_EVENT - flyers.length)).map((file) => ({
+      id: crypto.randomUUID(),
+      url: null,
+      file,
+      previewUrl: createPreviewUrl(file),
+    }));
+    if (added.length > 0) setFlyers([...flyers, ...added]);
+  };
+  const handleFlyerRemove = (id: string) => {
+    // Stages a draft change only: persisted objects are deleted after a
+    // successful save, so an accidental Remove is undone by not saving.
+    flyers.filter((flyer) => flyer.id === id).forEach(revokePreviewUrl);
+    setFlyers(flyers.filter((flyer) => flyer.id !== id));
+  };
+  const handleFlyerMove = (id: string, direction: "earlier" | "later") => {
+    const next = [...flyers];
+    const from = next.findIndex((flyer) => flyer.id === id);
+    const to = direction === "earlier" ? from - 1 : from + 1;
+    if (from < 0 || to < 0 || to >= next.length) return;
+    [next[from], next[to]] = [next[to], next[from]];
+    setFlyers(next);
+  };
 
   useEffect(() => {
     if (!isLoading && eventId && submissions && !editingEvent) navigate(returnPath);
@@ -207,55 +283,58 @@ export default function UserEventEditPage() {
     }
 
     const supportsFlyer = !editingEvent.submission_id;
-    const previousFlyerUrl = savedFlyerUrl ?? editingEvent.image_url;
-    let uploadedFlyerUrl: string | null = null;
+    const submittedFlyers = flyers;
+    let uploadedFlyerUrls: string[] = [];
+    let finalFlyerUrls = baselineFlyerUrls;
     setIsSaving(true);
     try {
       const payload = draftToUserPayload(form);
-      if (selectedFlyer && supportsFlyer) {
-        const uploadedFlyer = await uploadEventFlyer({
-          file: selectedFlyer,
-          ownerId: user.id,
-          eventId: editingEvent.id,
-        });
-        uploadedFlyerUrl = uploadedFlyer.url;
-        payload.image_url = uploadedFlyer.url;
+      if (supportsFlyer) {
+        const newFiles = submittedFlyers.flatMap((flyer) => (flyer.file ? [flyer.file] : []));
+        const uploaded = newFiles.length
+          ? await uploadEventFlyers({
+              files: newFiles,
+              ownerId: user.id,
+              eventId: editingEvent.id,
+            })
+          : [];
+        uploadedFlyerUrls = uploaded.map((flyer) => flyer.url);
+        let nextUploaded = 0;
+        finalFlyerUrls = submittedFlyers.map((flyer) =>
+          flyer.file ? uploaded[nextUploaded++].url : (flyer.url as string)
+        );
+        Object.assign(payload, flyerPayload(finalFlyerUrls));
       }
       await saveMutation.mutateAsync({ event: editingEvent, payload });
     } catch (error) {
-      if (uploadedFlyerUrl) {
-        try {
-          await removeEventFlyer(uploadedFlyerUrl);
-        } catch {
-          /* Preserve the primary save or upload error. */
-        }
-      }
+      await Promise.allSettled(uploadedFlyerUrls.map((url) => removeEventFlyer(url)));
       setSaveError(error instanceof Error ? error.message : "Unknown error");
       return;
     } finally {
       setIsSaving(false);
     }
 
-    if (uploadedFlyerUrl) {
-      setSavedFlyerUrl(uploadedFlyerUrl);
-      setSelectedFlyer(null);
+    const removedFlyerUrls = baselineFlyerUrls.filter((url) => !finalFlyerUrls.includes(url));
+    if (supportsFlyer) {
+      submittedFlyers.forEach(revokePreviewUrl);
+      setSavedFlyerUrls((current) => ({ ...current, [editingEvent.id]: finalFlyerUrls }));
+      setFlyerDrafts((current) => ({
+        ...current,
+        [editingEvent.id]: persistedEditFlyers(finalFlyerUrls),
+      }));
     }
     posthog.capture("event_submission_updated", {
       event_status: editingEvent.status,
       is_organizer: isOrganizer,
-      flyer_updated: Boolean(uploadedFlyerUrl),
+      flyer_updated: supportsFlyer && flyersDirty,
+      flyer_count: supportsFlyer ? finalFlyerUrls.length : undefined,
     });
     setSaveSuccess("Changes saved.");
     // A successful save is the new "unsaved changes" baseline — clears the
     // beforeunload warning until the Host edits again.
     setPristineSnapshot(JSON.stringify(form));
-    if (uploadedFlyerUrl && previousFlyerUrl) {
-      try {
-        await removeEventFlyer(previousFlyerUrl);
-      } catch {
-        /* Stale-object cleanup is best effort. */
-      }
-    }
+    // Stale objects go only after the update committed; cleanup is best effort.
+    await Promise.allSettled(removedFlyerUrls.map((url) => removeEventFlyer(url)));
   };
 
   const handleWithdraw = async () => {
@@ -297,7 +376,6 @@ export default function UserEventEditPage() {
 
   const isEditable = editingEvent.status === "pending" || editingEvent.status === "rejected";
   const canWithdraw = editingEvent.status === "pending";
-  const flyerUrl = savedFlyerUrl ?? editingEvent.image_url;
   const organizerCopy = ORGANIZER_STATUS_COPY[editingEvent.status];
   return (
     <main className="user-edit-page">
@@ -362,14 +440,18 @@ export default function UserEventEditPage() {
               }
               renderFlyerField={() =>
                 !editingEvent.submission_id ? (
-                  <EventFlyerField
-                    key={flyerUrl}
-                    currentUrl={flyerUrl}
-                    onFileChange={setSelectedFlyer}
-                    onRemove={() => {
-                      setSelectedFlyer(null);
-                      setSavedFlyerUrl(null);
-                    }}
+                  <EventFlyersField
+                    items={flyers.map((flyer) => ({
+                      id: flyer.id,
+                      url: flyer.previewUrl,
+                      status: flyer.file ? undefined : "uploaded",
+                      sizeCaption: flyer.file
+                        ? `${(flyer.file.size / (1024 * 1024)).toFixed(1)} MB`
+                        : null,
+                    }))}
+                    onAddFiles={handleFlyersAdd}
+                    onRemove={handleFlyerRemove}
+                    onMove={handleFlyerMove}
                     disabled={isSaving}
                   />
                 ) : null

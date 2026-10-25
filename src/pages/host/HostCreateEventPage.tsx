@@ -15,8 +15,10 @@ import {
 } from "../../features/events/components/EventForm";
 import type { EventFormDraft } from "../../features/events/components/EventForm";
 import EventForm from "../../features/events/components/EventForm";
-import EventFlyerField from "../../features/events/components/EventFlyerField";
-import { removeEventFlyer, uploadEventFlyer } from "../../features/events/api/eventFlyers";
+import EventFlyersField from "../../features/events/components/EventFlyersField";
+import { removeEventFlyer, uploadEventFlyers } from "../../features/events/api/eventFlyers";
+import { flyerPayload } from "../../features/events/model/eventFlyers";
+import { useHostFlyers } from "../../features/host/hooks/useHostFlyers";
 import {
   buildEmptyAdminForm,
   validateAdminEventForm,
@@ -41,7 +43,7 @@ export default function HostCreateEventPage() {
   );
   const [form, setForm] = useState<EventFormDraft>(() => buildEmptyAdminForm(city ?? ""));
   const [organizerId, setOrganizerId] = useState("");
-  const [flyer, setFlyer] = useState<File | null>(null);
+  const flyers = useHostFlyers();
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -77,26 +79,31 @@ export default function HostCreateEventPage() {
         draftToOrganizerCreatePayload(form),
         shouldPublish
       );
+      const files = flyers.entries.flatMap((entry) => (entry.file ? [entry.file] : []));
       posthog.capture("host_event_created", {
         published: shouldPublish,
-        has_flyer: Boolean(flyer),
+        has_flyer: files.length > 0,
+        flyer_count: files.length,
       });
       let flyerWarning: string | null = null;
-      if (flyer) {
+      if (files.length > 0) {
         try {
-          const uploaded = await uploadEventFlyer({ file: flyer, ownerId: user.id, eventId });
+          const uploaded = await uploadEventFlyers({ files, ownerId: user.id, eventId });
+          const urls = uploaded.map((flyer) => flyer.url);
           try {
-            await updateOrganizerEvent(eventId, { image_url: uploaded.url });
+            await updateOrganizerEvent(eventId, flyerPayload(urls));
           } catch {
-            try {
-              await removeEventFlyer(uploaded.url);
-            } catch {
-              // Best-effort cleanup; the event itself remains safely created.
-            }
-            flyerWarning = "Event saved, but we couldn't attach the flyer. You can add it later.";
+            await Promise.allSettled(urls.map((url) => removeEventFlyer(url)));
+            flyerWarning =
+              files.length > 1
+                ? "Event saved, but we couldn't attach the flyers. You can add them later."
+                : "Event saved, but we couldn't attach the flyer. You can add it later.";
           }
         } catch {
-          flyerWarning = "Event saved, but the flyer couldn't be uploaded. You can add it later.";
+          flyerWarning =
+            files.length > 1
+              ? "Event saved, but the flyers couldn't be uploaded. You can add them later."
+              : "Event saved, but the flyer couldn't be uploaded. You can add it later.";
         }
       }
       navigate(`/host/events/${eventId}`, {
@@ -216,7 +223,13 @@ export default function HostCreateEventPage() {
           onChange={setForm}
           capabilities={CAPABILITIES.organizerCreate}
           renderFlyerField={() => (
-            <EventFlyerField currentUrl={null} onFileChange={setFlyer} disabled={isSaving} />
+            <EventFlyersField
+              items={flyers.items}
+              onAddFiles={flyers.addFiles}
+              onRemove={flyers.remove}
+              onMove={flyers.move}
+              disabled={isSaving}
+            />
           )}
         />
         <div className="host-create-event__actions">

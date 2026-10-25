@@ -28,7 +28,7 @@ function renderEditor(onCancel = vi.fn()) {
 }
 
 describe("AdminEventEditor", () => {
-  it("keeps one visible flyer preview while editing an event", () => {
+  it("shows the primary flyer and all additional flyers while editing an event", () => {
     render(
       <MemoryRouter>
         <AdminEventEditor
@@ -36,6 +36,7 @@ describe("AdminEventEditor", () => {
             ...buildEmptyAdminForm("boston"),
             title: "Salsa Tuesday",
             image_url: "https://example.com/flyer.png",
+            image_urls: ["https://example.com/flyer.png", "https://example.com/second.png"],
           }}
           initialTaxonomyTerms={[]}
           heading="Edit event"
@@ -47,7 +48,15 @@ describe("AdminEventEditor", () => {
         />
       </MemoryRouter>
     );
-    expect(screen.getAllByRole("img", { name: "Current event flyer" })).toHaveLength(1);
+    expect(screen.getByRole("img", { name: "Flyer 1" })).toHaveAttribute(
+      "src",
+      "https://example.com/flyer.png"
+    );
+    expect(screen.getByRole("img", { name: "Flyer 2" })).toHaveAttribute(
+      "src",
+      "https://example.com/second.png"
+    );
+    expect(screen.getByText("Primary")).toBeInTheDocument();
   });
 
   it("does not ask administrators to re-enter submitter identity", () => {

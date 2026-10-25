@@ -5,6 +5,7 @@ import { timeZoneForDisplay } from "../../../shared/utils/timezone";
 import { shortCodeIdRange } from "../model/shortLink";
 import { replaceEventTaxonomyTerms } from "../../admin/api/taxonomyRepo";
 import type { EntityReview } from "../../entity-matching/entityReview";
+import { flyerPayload } from "../model/eventFlyers";
 import type { SubLocation } from "../../metros/model/sublocation";
 
 export interface AdminEventPayload {
@@ -26,6 +27,7 @@ export interface AdminEventPayload {
   rsvp_link: string | null;
   host: string | null;
   image_url: string | null;
+  image_urls?: string[] | null;
   recurrence: "weekly" | null;
   contact_email: string | null;
   contact_instagram: string | null;
@@ -201,6 +203,22 @@ export async function updateEventFlyer(eventId: string, imageUrl: string | null)
   if (!data) throw new Error("Event not found or update denied by policy.");
 }
 
+/**
+ * Replace the full ordered flyer list for one event. `image_url` is derived
+ * from `image_urls[0]` by the database trigger. An empty list clears all flyers.
+ */
+export async function updateEventFlyers(eventId: string, imageUrls: readonly string[]): Promise<void> {
+  const { image_urls } = flyerPayload(imageUrls);
+  const { data, error } = await supabase
+    .from("events")
+    .update({ image_urls })
+    .eq("id", eventId)
+    .select("id, image_url, image_urls")
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Event not found or update denied by policy.");
+}
+
 // Fields a submitter may edit on their own pending/rejected event.
 // Everything excluded here (status, source_type, submitter_*, host,
 // contact_*, venue_id, gallery) is admin/moderator-only or immutable after
@@ -225,6 +243,7 @@ export type UserEventUpdatePayload = {
   recurrence?: "weekly" | null;
   dance_styles?: string[];
   image_url?: string | null;
+  image_urls?: string[] | null;
 };
 
 /**
@@ -258,6 +277,9 @@ export async function updateEventForUser(
   };
   if (payload.image_url !== undefined) {
     updatePayload.image_url = payload.image_url;
+  }
+  if (payload.image_urls !== undefined) {
+    updatePayload.image_urls = payload.image_urls;
   }
 
   const { error } = await supabase.from("events").update(updatePayload).eq("id", id);

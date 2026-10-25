@@ -378,7 +378,7 @@ describe("SubmitEventPage flyer extraction (Phase 3)", () => {
     // unrelated to this feature — remove-then-reupload is the UI path that
     // actually changes the flyer identity today, exercising the same
     // resetExtraction() call handleFlyerChange makes on a real replace.
-    await user.click(screen.getByRole("button", { name: /Remove/i }));
+    await user.click(screen.getByRole("button", { name: /Remove flyer 1/i }));
     expect(screen.queryByText(/Flyer analyzed/i)).not.toBeInTheDocument();
 
     await uploadFlyer(user);
@@ -394,7 +394,7 @@ describe("SubmitEventPage flyer extraction (Phase 3)", () => {
     await user.click(screen.getByRole("button", { name: /Extract Event Details/i }));
     expect(await screen.findByText(/Flyer analyzed/i)).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /Remove/i }));
+    await user.click(screen.getByRole("button", { name: /Remove flyer 1/i }));
 
     expect(screen.queryByText(/Flyer analyzed/i)).not.toBeInTheDocument();
     expect(
@@ -413,7 +413,7 @@ describe("SubmitEventPage flyer extraction (Phase 3)", () => {
     expect(screen.getByText(/Analyzing your flyer/i)).toBeInTheDocument();
 
     // Remove the flyer while extraction is still in flight.
-    await user.click(screen.getByRole("button", { name: /Remove/i }));
+    await user.click(screen.getByRole("button", { name: /Remove flyer 1/i }));
     expect(screen.queryByLabelText(/Event Title \*/i)).toHaveValue("");
 
     // The stale request now resolves — it must reach neither the panel nor
@@ -600,7 +600,7 @@ describe("SubmitEventPage flyer extraction (Phase 3)", () => {
       ).toBeInTheDocument();
 
       // Exact name: the review's own "Remove venue" buttons are different.
-      await user.click(screen.getByRole("button", { name: "Remove" }));
+      await user.click(screen.getByRole("button", { name: "Remove flyer 1" }));
       await act(async () => {
         reconcile.resolve(venueReview(venueItem()));
       });
@@ -627,7 +627,7 @@ describe("SubmitEventPage flyer extraction (Phase 3)", () => {
 
       // Remove-then-upload is the UI path that swaps the flyer (see the
       // flyer-identity test above for why "Replace" is not used).
-      await user.click(screen.getByRole("button", { name: "Remove" }));
+      await user.click(screen.getByRole("button", { name: "Remove flyer 1" }));
       await uploadFlyer(user);
       await act(async () => {
         reconcile.resolve(venueReview(venueItem()));
@@ -664,7 +664,7 @@ describe("SubmitEventPage flyer extraction (Phase 3)", () => {
         venueReview(venueItem({ decision: "new", selected_id: null }))
       );
       expect(submission.location).toBe("Havana Club");
-      expect(extra).toEqual({ image_url: FLYER_URL });
+      expect(extra).toEqual({ image_url: FLYER_URL, image_urls: [FLYER_URL] });
       expect(await screen.findByText(/Event Submitted!/i)).toBeInTheDocument();
     });
 

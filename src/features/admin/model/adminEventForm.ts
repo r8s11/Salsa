@@ -5,11 +5,21 @@ import { resolveDraftTimeZone } from "../../events/components/EventForm/types";
 import { fromEventDateInstant } from "../../events/model/eventDateTime";
 import { eventTypeFieldsFrom, selectedEventTypes } from "../../events/model/eventTypeSelection";
 import { timeZoneForDisplay } from "../../../shared/utils/timezone";
+import { eventFlyerList, normalizeFlyerUrls } from "../../events/model/eventFlyers";
 import { normalizeSubLocation } from "../../metros/model/sublocation";
 
 export type AdminEventForm = EventFormDraft;
 export const HOST_MAX_LENGTH = 300;
 export const INSTAGRAM_MAX_LENGTH = 100;
+
+/** Sets the ordered flyer list and keeps the primary `image_url` equal to its first entry. */
+export function withFlyerUrls<T extends { image_url: string; image_urls: string[] }>(
+  form: T,
+  urls: readonly string[]
+): T {
+  const list = normalizeFlyerUrls(urls);
+  return { ...form, image_url: list[0] ?? "", image_urls: list };
+}
 
 export function buildEmptyAdminForm(city: City): AdminEventForm {
   return {
@@ -18,6 +28,7 @@ export function buildEmptyAdminForm(city: City): AdminEventForm {
     venue_id: "",
     series_id: "",
     image_url: "",
+    image_urls: [],
     host: "",
     contact_email: "",
     contact_instagram: "",
@@ -54,7 +65,8 @@ export function buildAdminFormFromEvent(event: DatabaseEvent): AdminEventForm {
     price_type: event.price_type ?? "",
     price_amount: event.price_amount == null ? "" : String(event.price_amount),
     rsvp_link: event.rsvp_link ?? "",
-    image_url: event.image_url ?? "",
+    image_url: eventFlyerList(event)[0] ?? "",
+    image_urls: eventFlyerList(event),
     host: event.host ?? "",
     contact_email: event.contact_email ?? "",
     contact_instagram: event.contact_instagram ?? "",

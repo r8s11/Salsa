@@ -21,6 +21,8 @@ export type EventFormDraft = {
   price_amount: string;
   rsvp_link: string;
   image_url: string;
+  /** Ordered flyer list; `image_url` is its first member (the primary flyer). */
+  image_urls: string[];
   host: string;
   contact_email: string;
   contact_instagram: string;

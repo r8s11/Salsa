@@ -54,6 +54,7 @@ const bostonApproved: DatabaseEvent = {
   submitter_id: "user-1",
   status: "approved",
   city: "boston",
+  sublocation: null,
   created_at: "2026-08-01T00:00:00Z",
   host: null,
   recurrence: null,

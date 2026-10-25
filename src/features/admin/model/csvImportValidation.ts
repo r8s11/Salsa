@@ -7,6 +7,12 @@ import {
   OTHER_TEXT_MAX_LENGTH,
   TITLE_MAX_LENGTH,
 } from "../../submit-event/model/validation";
+import {
+  NYC_CITY,
+  NYC_SUBLOCATIONS,
+  isSubLocation,
+  type SubLocation,
+} from "../../metros/model/sublocation";
 import type { AdminEventPayload } from "../../events/api/eventsRepo";
 import { draftToAdminPayload } from "../../events/components/EventForm";
 
@@ -108,6 +114,7 @@ export function validateCsvRow(
   const eventTypes = [...new Set(splitList(eventType))];
   const eventDate = raw.event_date ?? "";
   const city = raw.city ?? "";
+  const sublocation = (raw.sublocation ?? "").trim().toLowerCase();
   const eventTime = raw.event_time ?? "";
   const description = raw.description ?? "";
   const location = raw.location ?? "";
@@ -142,6 +149,19 @@ export function validateCsvRow(
       field: "city",
       message: `Must be one of: ${[...metroSlugs].sort().join(", ")}.`,
     });
+
+  if (sublocation) {
+    if (city !== NYC_CITY)
+      errors.push({
+        field: "sublocation",
+        message: `Only valid when city is ${NYC_CITY}; leave blank for other cities.`,
+      });
+    else if (!isSubLocation(sublocation))
+      errors.push({
+        field: "sublocation",
+        message: `Must be one of: ${NYC_SUBLOCATIONS.map((borough) => borough.slug).join(", ")} (or blank for All NYC).`,
+      });
+  }
 
   if (!eventDate) errors.push({ field: "event_date", message: "event_date is required." });
   else if (!DATE_RE.test(eventDate))
@@ -250,6 +270,7 @@ export function validateCsvRow(
       event_type: eventTypes[0] as AdminEventForm["event_type"],
       event_types: eventTypes.filter(isEventType),
       city: city as AdminEventForm["city"],
+      sublocation: sublocation as SubLocation | "",
       event_date: eventDate,
       event_time: eventTime,
       location,

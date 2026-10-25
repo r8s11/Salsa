@@ -7,6 +7,7 @@ const baseDraft: EventFormDraft = {
   description: "Test Description",
   event_type: "social",
   city: "boston",
+  sublocation: "",
   event_date: "2026-09-01",
   event_time: "21:00",
   recurrence: "",
@@ -92,5 +93,20 @@ describe("eventFormAdapters", () => {
       event_type: "social",
       event_types: ["social"],
     });
+  });
+
+  it("persists an NYC borough through every legacy payload and drops it outside NYC", () => {
+    const nyc: EventFormDraft = { ...baseDraft, city: "new-york-city", sublocation: "brooklyn" };
+    const actor = { id: "u1", email: "u@example.com" };
+    expect(draftToSubmission(nyc, actor).sublocation).toBe("brooklyn");
+    expect(draftToUserPayload(nyc).sublocation).toBe("brooklyn");
+    expect(draftToAdminPayload(nyc).sublocation).toBe("brooklyn");
+
+    const moved: EventFormDraft = { ...nyc, city: "boston" };
+    expect(draftToSubmission(moved, actor).sublocation).toBeNull();
+    expect(draftToUserPayload(moved).sublocation).toBeNull();
+    expect(draftToAdminPayload(moved).sublocation).toBeNull();
+
+    expect(draftToAdminPayload({ ...nyc, sublocation: "" }).sublocation).toBeNull();
   });
 });

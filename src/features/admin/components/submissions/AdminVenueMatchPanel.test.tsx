@@ -50,6 +50,7 @@ const mockExistingEvent = {
   updated_at: "2026-08-20T10:00:00.000Z",
   cancellation_reason: null,
   city: "boston",
+  sublocation: null,
   created_at: "2026-08-20T10:00:00.000Z",
   host: null,
   recurrence: null,

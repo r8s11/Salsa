@@ -205,6 +205,52 @@
   color: var(--red-bright);
 }
 
+.metro-explorer__sublist {
+  display: grid;
+  gap: 2px;
+  margin: 2px 0 var(--space-xs) 18px;
+  padding: 0 0 0 10px;
+  list-style: none;
+  border-left: 1px solid var(--border);
+}
+
+.metro-explorer__sublocation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 12px;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.8125rem;
+  text-align: left;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  transition:
+    color 140ms ease-out,
+    background-color 140ms ease-out;
+}
+
+.metro-explorer__sublocation:hover {
+  color: var(--text);
+  background: var(--card-hover);
+}
+
+.metro-explorer__sublocation.is-current {
+  color: var(--text);
+  font-weight: 700;
+  background: var(--red-dim);
+}
+
+.metro-explorer__sublocation svg {
+  flex: none;
+  color: var(--red-bright);
+}
+
 .metro-explorer__footer {
   margin: var(--space-md) 0 0;
   padding: var(--space-sm) 12px 0;
@@ -222,6 +268,7 @@
 .metro-explorer__trigger:focus-visible,
 .metro-explorer__near:focus-visible,
 .metro-explorer__option:focus-visible,
+.metro-explorer__sublocation:focus-visible,
 .metro-explorer__footer a:focus-visible {
   outline: 2px solid var(--red-bright);
   outline-offset: 2px;

@@ -7,6 +7,7 @@ import { TIME_ZONE_OPTIONS } from "../../../../shared/utils/timezone";
 import type { SubmitFieldErrors } from "../../../submit-event/model/validation";
 import { useMetros } from "../../../metros/hooks/useMetros";
 import FormFieldError from "../../../../shared/forms/FormFieldError";
+import { isSubLocation, subLocationsForCity } from "../../../metros/model/sublocation";
 import { fieldErrorProps } from "../../../../shared/forms/fieldErrorProps";
 import "./EventForm.css";
 
@@ -66,6 +67,7 @@ export default function EventForm({
   const resolvedTimeZone = resolveDraftTimeZone(draft);
   const timeZoneError = resolvedTimeZone.ok ? undefined : resolvedTimeZone.message;
   const cityOptions = [...metros].sort((a, b) => a.name.localeCompare(b.name));
+  const nycBoroughs = subLocationsForCity(draft.city);
   const selectedTypes = selectedEventTypes(draft);
   const update = <K extends keyof EventFormDraft>(key: K, value: EventFormDraft[K]) =>
     onChange({ ...draft, [key]: value });
@@ -159,7 +161,8 @@ export default function EventForm({
           <select
             id="event-city"
             value={draft.city}
-            onChange={(event) => update("city", event.target.value)}
+            // A borough belongs to one city, so any city change drops it.
+            onChange={(event) => onChange({ ...draft, city: event.target.value, sublocation: "" })}
             required
             aria-required="true"
             {...fieldErrorProps("event-city-error", errors.city)}
@@ -175,6 +178,27 @@ export default function EventForm({
           </select>
           <FormFieldError id="event-city-error" message={errors.city} />
         </div>
+        {nycBoroughs.length > 0 && (
+          <div className="event-form__field">
+            <label htmlFor="event-sublocation">Borough</label>
+            <select
+              id="event-sublocation"
+              value={draft.sublocation}
+              onChange={(event) =>
+                update("sublocation", isSubLocation(event.target.value) ? event.target.value : "")
+              }
+              {...fieldErrorProps("event-sublocation-error", errors.sublocation)}
+            >
+              <option value="">All NYC</option>
+              {nycBoroughs.map((borough) => (
+                <option key={borough.slug} value={borough.slug}>
+                  {borough.name}
+                </option>
+              ))}
+            </select>
+            <FormFieldError id="event-sublocation-error" message={errors.sublocation} />
+          </div>
+        )}
         <div className="event-form__field">
           <label htmlFor="event-description">Description</label>
           <textarea

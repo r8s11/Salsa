@@ -51,6 +51,7 @@ function renderTabBar(initialEntry = "/", city: CityContextValue["city"] = "bost
   const setCartOpen = mockCart(cartQuantity);
   vi.mocked(useCity).mockReturnValue({
     city,
+    subLocation: null,
     source: "explicit",
     resolving: false,
     setCity: vi.fn(),

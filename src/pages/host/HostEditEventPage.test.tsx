@@ -68,6 +68,7 @@ const baseEvent: DatabaseEvent = {
   ],
   updated_at: "2026-08-25T00:00:00Z",
   cancellation_reason: null,
+  sublocation: null,
   city: "boston",
   created_at: "2026-08-20T00:00:00Z",
   host: "Boston Salsa Collective",
@@ -251,6 +252,53 @@ describe("HostEditEventPage", () => {
           event_type: "live_music",
           event_types: ["live_music", "concert"],
         })
+      );
+    });
+  });
+
+  it("saves a changed borough for a New York City event", async () => {
+    vi.mocked(useMyOrganizerEvents).mockReturnValue({
+      events: [{ ...baseEvent, city: "new-york-city", sublocation: "manhattan" }],
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+    const user = userEvent.setup();
+    renderEdit();
+
+    await screen.findByRole("heading", { name: "Edit event" });
+    const borough = screen.getByLabelText("Borough");
+    expect(borough).toHaveValue("manhattan");
+    await user.selectOptions(borough, "staten-island");
+    await user.click(screen.getByRole("button", { name: /Save Changes/i }));
+
+    await waitFor(() => {
+      expect(updateOrganizerEvent).toHaveBeenCalledWith(
+        "event-1",
+        expect.objectContaining({ city: "new-york-city", sublocation: "staten-island" })
+      );
+    });
+  });
+
+  it("sends a null borough when the city moves out of New York City", async () => {
+    vi.mocked(useMyOrganizerEvents).mockReturnValue({
+      events: [{ ...baseEvent, city: "new-york-city", sublocation: "manhattan" }],
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+    const user = userEvent.setup();
+    renderEdit();
+
+    await screen.findByRole("heading", { name: "Edit event" });
+    await user.selectOptions(screen.getByLabelText("City *"), "boston");
+    expect(screen.queryByLabelText("Borough")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /Save Changes/i }));
+
+    await waitFor(() => {
+      expect(updateOrganizerEvent).toHaveBeenCalledWith(
+        "event-1",
+        expect.objectContaining({ city: "boston", sublocation: null })
       );
     });
   });

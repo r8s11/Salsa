@@ -1,5 +1,6 @@
 import type { AdminEventForm } from "./adminEventForm";
 import { buildAdminFormFromEvent } from "./adminEventForm";
+import { normalizeSubLocation } from "../../metros/model/sublocation";
 import type { DatabaseEvent } from "../../events/model/types";
 import { readStoredEntityReview } from "../../entity-matching/entityReviewState";
 import { eventTypeFields, eventTypeFieldsFrom, selectedEventTypes } from "../../events/model/eventTypeSelection";
@@ -28,13 +29,23 @@ export function readComposerRecovery(
     if (value?.version !== 1 || !value.form || !Array.isArray(value.edited)) return null;
     const form = { ...initial };
     for (const key of Object.keys(initial) as (keyof AdminEventForm)[]) {
-      if (key === "entity_review" || key === "event_type" || key === "event_types") continue;
+      if (
+        key === "entity_review" ||
+        key === "event_type" ||
+        key === "event_types" ||
+        key === "sublocation"
+      )
+        continue;
       const field = value.form[key];
       if (Array.isArray(initial[key])) {
         if (!Array.isArray(field) || !field.every((item) => typeof item === "string")) return null;
       } else if (typeof field !== typeof initial[key]) return null;
       Object.assign(form, { [key]: field });
     }
+    // Drafts saved before boroughs existed have none; a stale or non-NYC borough is dropped.
+    const { sublocation } = value.form;
+    if (sublocation !== undefined && typeof sublocation !== "string") return null;
+    form.sublocation = normalizeSubLocation(form.city, sublocation) ?? "";
     // Drafts saved before multi-select carry only the primary; a missing list is not corruption.
     const { event_type, event_types } = value.form;
     if (event_type !== undefined && typeof event_type !== "string") return null;
@@ -111,6 +122,8 @@ export function applySeriesToComposer(
     const empty = !form[key] || (Array.isArray(form[key]) && form[key].length === 0);
     if (empty || key === "city") Object.assign(next, { [key]: defaults[key] });
   }
+  // A borough only survives while the resolved city is still NYC.
+  next.sublocation = normalizeSubLocation(next.city, next.sublocation) ?? "";
   // The primary and the full selection travel together: a deliberate (even empty)
   // selection is kept, otherwise the source occurrence supplies both.
   const typesEdited = edited.has("event_type") || edited.has("event_types");

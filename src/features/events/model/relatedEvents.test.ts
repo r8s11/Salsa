@@ -26,6 +26,7 @@ const makeEvent = (overrides: Partial<DatabaseEvent> = {}): DatabaseEvent => ({
   updated_at: "2026-08-24T12:00:00.000Z",
   cancellation_reason: null,
   city: "boston" as City,
+  sublocation: null,
   created_at: "2026-08-24T12:00:00.000Z",
   host: null,
   recurrence: null,

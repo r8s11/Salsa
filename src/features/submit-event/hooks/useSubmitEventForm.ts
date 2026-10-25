@@ -49,6 +49,7 @@ const hasReviewEntries = (review: EntityReview) => listReviewEntries(review).len
 function buildSubmitDraft(city: EventFormDraft["city"]): EventFormDraft {
   return {
     ...buildInitialForm(city),
+    sublocation: "",
     venue_id: "",
     image_url: "",
     host: "",
@@ -150,6 +151,8 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
 
   const update = <K extends keyof EventFormDraft>(field: K, value: EventFormDraft[K]) => {
     if (field === "city") cityChosenRef.current = true;
+    // A borough belongs to one city, so changing the city drops it.
+    const boroughFields = field === "city" ? { sublocation: "" } : {};
     // The primary and the full selection are one fact; never write just one of them.
     const typeFields =
       field === "event_types"
@@ -158,7 +161,10 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
           ? eventTypeFields(value ? [value as EventType] : [])
           : {};
     setForm((previous) =>
-      detachAutoVenueLink(previous, { ...previous, [field]: value, ...typeFields } as EventFormDraft)
+      detachAutoVenueLink(
+        previous,
+        { ...previous, [field]: value, ...typeFields, ...boroughFields } as EventFormDraft
+      )
     );
     clearFieldError(field === "event_types" ? "event_type" : field);
   };
@@ -376,6 +382,7 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
         event_type: form.event_type,
         event_types: form.event_types,
         city: form.city,
+        sublocation: form.sublocation,
         event_date: form.event_date,
         event_time: form.event_time,
         location: form.location,

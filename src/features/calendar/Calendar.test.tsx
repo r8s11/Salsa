@@ -80,6 +80,7 @@ function makeFeedEvents(city: DatabaseEvent["city"] = "boston"): DatabaseEvent[]
     submitter_id: null,
     status: "approved",
     city,
+    sublocation: null,
     created_at: "2026-10-01T00:00:00Z",
     host: null,
     recurrence: null,
@@ -141,7 +142,7 @@ describe("Calendar", () => {
       defaultOptions: { queries: { staleTime: Infinity, retry: false } },
     });
     const rows = makeFeedEvents();
-    client.setQueryData(["events", "boston"], rows);
+    client.setQueryData(["events", "boston", null], rows);
     useEvents.mockImplementation(function useQueryBackedEvents() {
       return useEventsQuery(city);
     });
@@ -164,7 +165,7 @@ describe("Calendar", () => {
       defaultOptions: { queries: { staleTime: Infinity, retry: false } },
     });
     const rows = makeFeedEvents();
-    client.setQueryData(["events", "boston"], rows);
+    client.setQueryData(["events", "boston", null], rows);
     let feed: ReturnType<typeof useEventsQuery> | undefined;
     useEvents.mockImplementation(function useQueryBackedEvents() {
       feed = useEventsQuery(city);
@@ -180,7 +181,7 @@ describe("Calendar", () => {
     fetchApprovedEvents.mockReturnValueOnce(pending.promise);
     let refreshing: Promise<void> | undefined;
     act(() => {
-      refreshing = client.refetchQueries({ queryKey: ["events", "boston"], exact: true });
+      refreshing = client.refetchQueries({ queryKey: ["events", "boston", null], exact: true });
     });
     await waitFor(() => expect(feed?.fetching).toBe(true));
     expect(expandedRow).toHaveFocus();
@@ -195,8 +196,8 @@ describe("Calendar", () => {
     const client = new QueryClient({
       defaultOptions: { queries: { staleTime: Infinity, retry: false } },
     });
-    client.setQueryData(["events", "boston"], makeFeedEvents());
-    client.setQueryData(["events", "new-york-city"], makeFeedEvents("new-york-city"));
+    client.setQueryData(["events", "boston", null], makeFeedEvents());
+    client.setQueryData(["events", "new-york-city", null], makeFeedEvents("new-york-city"));
     useEvents.mockImplementation(function useQueryBackedEvents() {
       return useEventsQuery(city);
     });

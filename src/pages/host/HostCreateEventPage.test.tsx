@@ -163,6 +163,48 @@ describe("HostCreateEventPage", () => {
     );
   });
 
+  it("creates a New York City event in the chosen borough, and without one outside NYC", async () => {
+    const user = userEvent.setup();
+    mocks.useAuth.mockReturnValue({ user: { id: "user-1", email: "host@example.com" } });
+    mocks.useMyOrganizers.mockReturnValue({
+      data: [
+        {
+          organizerId: "org-1",
+          organizerName: "NYC Dance Co",
+          organizerStatus: "active",
+          memberRole: "owner",
+        },
+      ],
+      isLoading: false,
+      error: null,
+    });
+    mocks.createOrganizerEvent.mockResolvedValue("evt-1");
+
+    renderPage();
+    await user.type(screen.getByLabelText("Event Title *"), "Rooftop Social");
+    await user.click(screen.getByRole("button", { name: "Social" }));
+    await user.type(screen.getByLabelText("Date *"), "2099-10-24");
+    await user.selectOptions(screen.getByLabelText("City *"), "new-york-city");
+    await user.selectOptions(screen.getByLabelText("Borough"), "brooklyn");
+    await user.click(screen.getByRole("button", { name: "Save Draft" }));
+
+    await waitFor(() => expect(mocks.createOrganizerEvent).toHaveBeenCalledTimes(1));
+    expect(mocks.createOrganizerEvent).toHaveBeenLastCalledWith(
+      "org-1",
+      expect.objectContaining({ city: "new-york-city", sublocation: "brooklyn" }),
+      false
+    );
+
+    await user.selectOptions(screen.getByLabelText("City *"), "boston");
+    await user.click(screen.getByRole("button", { name: "Save Draft" }));
+    await waitFor(() => expect(mocks.createOrganizerEvent).toHaveBeenCalledTimes(2));
+    expect(mocks.createOrganizerEvent).toHaveBeenLastCalledWith(
+      "org-1",
+      expect.objectContaining({ city: "boston", sublocation: null }),
+      false
+    );
+  });
+
   it("shows a safe access error and does not retry the mutation implicitly", async () => {
     const user = userEvent.setup();
     mocks.useAuth.mockReturnValue({ user: { id: "user-1", email: "host@example.com" } });

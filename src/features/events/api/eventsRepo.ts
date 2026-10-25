@@ -5,6 +5,7 @@ import { timeZoneForDisplay } from "../../../shared/utils/timezone";
 import { shortCodeIdRange } from "../model/shortLink";
 import { replaceEventTaxonomyTerms } from "../../admin/api/taxonomyRepo";
 import type { EntityReview } from "../../entity-matching/entityReview";
+import type { SubLocation } from "../../metros/model/sublocation";
 
 export interface AdminEventPayload {
   title: string;
@@ -14,6 +15,8 @@ export interface AdminEventPayload {
   /** Full ordered selection; `event_type` is its first member. */
   event_types?: EventType[];
   city: City;
+  /** Optional NYC borough; null clears it (All NYC). Omitted leaves the stored value alone. */
+  sublocation?: SubLocation | null;
   event_date: string;
   event_time: string | null;
   location: string | null;
@@ -54,15 +57,21 @@ export function projectEventTaxonomy(rows: EventWithTaxonomy[] | null): Database
   }));
 }
 
-export async function fetchApprovedEvents(city: City): Promise<DatabaseEvent[]> {
+export async function fetchApprovedEvents(
+  city: City,
+  subLocation: SubLocation | null = null
+): Promise<DatabaseEvent[]> {
   const today = new Date();
   today.setDate(today.getDate() - 1);
   const floorDate = today.toISOString();
-  const { data, error } = await supabase
+  let query = supabase
     .from("public_events")
     .select("*")
     .eq("status", "approved")
-    .eq("city", city)
+    .eq("city", city);
+  // NULL means "All NYC": no borough filter. A borough matches that exact borough only.
+  if (subLocation) query = query.eq("sublocation", subLocation);
+  const { data, error } = await query
     .gte("event_date", floorDate)
     .order("event_date", { ascending: true });
   if (error) throw new Error(error.message);
@@ -205,6 +214,7 @@ export type UserEventUpdatePayload = {
   /** Full ordered selection; `event_type` is its first member. */
   event_types: EventType[];
   city: City;
+  sublocation?: SubLocation | null;
   event_date: string;
   event_time?: string | null;
   location?: string | null;
@@ -234,6 +244,8 @@ export async function updateEventForUser(
     event_type: payload.event_type,
     event_types: payload.event_types,
     city: payload.city,
+    // Always written alongside city: a city change must clear a stale borough.
+    ...(payload.sublocation !== undefined ? { sublocation: payload.sublocation } : {}),
     event_date: payload.event_date,
     event_time: payload.event_time ?? null,
     location: payload.location ?? null,

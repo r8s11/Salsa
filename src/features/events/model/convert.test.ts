@@ -22,6 +22,7 @@ const mockEvent = (overrides: Partial<DatabaseEvent> = {}): DatabaseEvent => ({
   submitter_id: null,
   status: "approved",
   city: "boston",
+  sublocation: null,
   created_at: "2026-07-14T00:00:00Z",
   host: null,
   recurrence: null,

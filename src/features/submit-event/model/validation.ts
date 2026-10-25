@@ -1,4 +1,5 @@
 import type { EventType, City } from "../../../types/events";
+import { NYC_CITY, isSubLocation, type SubLocation } from "../../metros/model/sublocation";
 import { selectedEventTypes } from "../../events/model/eventTypeSelection";
 
 export type SubmitForm = {
@@ -8,6 +9,8 @@ export type SubmitForm = {
   /** Full ordered selection; `event_type` is its first member. At least one is required. */
   event_types?: EventType[];
   city: City;
+  /** Optional NYC borough slug; "" means All NYC. Only valid when `city` is New York City. */
+  sublocation?: SubLocation | "";
   event_date: string;
   event_time: string;
   location: string;
@@ -21,12 +24,21 @@ export type SubmitForm = {
   dance_styles: string[];
 };
 
+/** Borough rule shared by every writer: blank always passes; a value needs NYC and a known slug. */
+export function subLocationError(city: string, sublocation: string | null | undefined): string | null {
+  if (!sublocation) return null;
+  if (city !== NYC_CITY) return "Boroughs only apply to New York City events.";
+  if (!isSubLocation(sublocation)) return "Choose a borough from the list, or leave it as All NYC.";
+  return null;
+}
+
 export const buildInitialForm = (city: City): SubmitForm => ({
   title: "",
   description: "",
   event_type: "",
   event_types: [],
   city,
+  sublocation: "",
   event_date: "",
   event_time: "",
   location: "",
@@ -77,6 +89,9 @@ export function validateSubmitForm(form: SubmitForm, isAnonymous = false): strin
   }
 
   if (selectedEventTypes(form).length === 0) return "Choose an event type.";
+
+  const boroughError = subLocationError(form.city, form.sublocation);
+  if (boroughError) return boroughError;
 
   // Length caps (spam friction)
   if (form.title.length > TITLE_MAX_LENGTH) {
@@ -136,6 +151,7 @@ export type SubmitFieldName =
   | "title"
   | "event_type"
   | "city"
+  | "sublocation"
   | "event_date"
   | "description"
   | "location"
@@ -188,6 +204,9 @@ export function validateSubmitFormFields(form: SubmitForm, isAnonymous = false):
   if (!form.city) {
     errors.city = "Choose a city.";
   }
+
+  const boroughError = subLocationError(form.city, form.sublocation);
+  if (boroughError) errors.sublocation = boroughError;
 
   if (!form.event_date) {
     errors.event_date = "Choose an event date.";

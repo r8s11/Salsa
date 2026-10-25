@@ -161,3 +161,42 @@ describe("validateSubmitFormFields", () => {
     expect(validateSubmitFormFields(validForm(), false)).toEqual({});
   });
 });
+
+describe("NYC borough validation", () => {
+  const form = (overrides: Partial<SubmitForm>): SubmitForm => ({
+    ...buildInitialForm("new-york-city"),
+    title: "Test Event",
+    event_type: "social",
+    event_date: "2026-08-20",
+    ...overrides,
+  });
+
+  it("treats a blank borough as All NYC, in NYC and everywhere else", () => {
+    expect(validateSubmitForm(form({}))).toBeNull();
+    expect(validateSubmitForm(form({ city: "boston", sublocation: "" }))).toBeNull();
+    expect(validateSubmitFormFields(form({ sublocation: "" })).sublocation).toBeUndefined();
+  });
+
+  it("accepts a known borough on a New York City event", () => {
+    expect(validateSubmitForm(form({ sublocation: "bronx" }))).toBeNull();
+    expect(validateSubmitFormFields(form({ sublocation: "bronx" }))).toEqual({});
+  });
+
+  it("rejects a borough on a non-NYC event", () => {
+    const invalid = form({ city: "boston", sublocation: "brooklyn" });
+    expect(validateSubmitForm(invalid)).toBe("Boroughs only apply to New York City events.");
+    expect(validateSubmitFormFields(invalid).sublocation).toBe(
+      "Boroughs only apply to New York City events."
+    );
+  });
+
+  it("rejects an unknown borough slug on a New York City event", () => {
+    const invalid = form({ sublocation: "hoboken" as SubmitForm["sublocation"] });
+    expect(validateSubmitForm(invalid)).toBe(
+      "Choose a borough from the list, or leave it as All NYC."
+    );
+    expect(validateSubmitFormFields(invalid).sublocation).toBe(
+      "Choose a borough from the list, or leave it as All NYC."
+    );
+  });
+});

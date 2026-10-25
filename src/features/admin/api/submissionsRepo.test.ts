@@ -79,6 +79,7 @@ describe("submissionsRepo", () => {
       event_type: "social",
       event_types: ["social"],
       city: "boston",
+      sublocation: null,
       event_date: "2026-08-20T20:00:00Z",
       event_time: null,
       location: null,
@@ -99,6 +100,7 @@ describe("submissionsRepo", () => {
         submitted_data: expect.objectContaining({
           title: "Public Salsa Night",
           city: "boston",
+          sublocation: null,
         }),
       })
     );

@@ -38,6 +38,7 @@ function makeEvent(overrides: Partial<DatabaseEvent> = {}): DatabaseEvent {
     submitter_id: null,
     status: "approved",
     city: "boston",
+    sublocation: null,
     created_at: NOW.toISOString(),
     host: null,
     recurrence: null,

@@ -38,6 +38,7 @@ const baseEvent: DatabaseEvent = {
   submitter_email: null,
   submitter_id: null,
   cancellation_reason: null,
+  sublocation: null,
   venue_id: null,
 };
 
@@ -83,6 +84,42 @@ describe("adminEventForm model", () => {
     form.title = "Edited title";
 
     expect(draftToAdminPayload(form).entity_review).toEqual(entityReview);
+  });
+
+  describe("NYC borough", () => {
+    const nycEvent: DatabaseEvent = {
+      ...baseEvent,
+      city: "new-york-city",
+      sublocation: "brooklyn",
+    };
+
+    it("starts new forms on All NYC", () => {
+      expect(buildEmptyAdminForm("new-york-city").sublocation).toBe("");
+    });
+
+    it("loads the stored borough and saves it back unchanged", () => {
+      const form = buildAdminFormFromEvent(nycEvent);
+      expect(form.sublocation).toBe("brooklyn");
+      expect(draftToAdminPayload(form).sublocation).toBe("brooklyn");
+    });
+
+    it("loads a NULL NYC event as All NYC and saves an explicit null", () => {
+      const form = buildAdminFormFromEvent({ ...nycEvent, sublocation: null });
+      expect(form.sublocation).toBe("");
+      expect(draftToAdminPayload(form).sublocation).toBeNull();
+    });
+
+    it("does not load a stale borough onto a non-NYC event", () => {
+      expect(buildAdminFormFromEvent({ ...nycEvent, city: "boston" }).sublocation).toBe("");
+    });
+
+    it("validates the borough against the city", () => {
+      const form = buildAdminFormFromEvent(nycEvent);
+      expect(validateAdminEventForm(form)).toBeNull();
+      expect(validateAdminEventForm({ ...form, city: "boston" })).toBe(
+        "Boroughs only apply to New York City events."
+      );
+    });
   });
 });
 

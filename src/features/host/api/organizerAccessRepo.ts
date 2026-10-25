@@ -1,6 +1,7 @@
 import { supabase } from "../../../lib/supabase";
 import type { DatabaseEvent, EventType } from "../../events/model/types";
 import { projectEventTaxonomy } from "../../events/api/eventsRepo";
+import type { SubLocation } from "../../metros/model/sublocation";
 
 export type OrganizerMemberRole = "owner" | "manager" | "editor";
 
@@ -146,6 +147,8 @@ export type OrganizerEventUpdatePayload = {
   /** Full ordered selection; `event_type` is its first member. */
   event_types?: EventType[];
   city?: string;
+  /** Optional NYC borough; null clears it (All NYC). */
+  sublocation?: SubLocation | null;
   event_date?: string;
   event_time?: string | null;
   location?: string | null;

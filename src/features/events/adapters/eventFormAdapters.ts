@@ -3,6 +3,7 @@ import type { SubmissionCreate } from "../../admin/api/submissionsRepo";
 import type { UserEventUpdatePayload, AdminEventPayload } from "../api/eventsRepo";
 import { toEventDateInstant } from "../model/eventDateTime";
 import { eventTypePayload } from "../model/eventTypeSelection";
+import { normalizeSubLocation } from "../../metros/model/sublocation";
 
 export function draftToSubmission(
   draft: EventFormDraft,
@@ -27,6 +28,7 @@ export function draftToSubmission(
     dance_styles: draft.dance_styles,
     recurrence: draft.recurrence || null,
     city: draft.city,
+    sublocation: normalizeSubLocation(draft.city, draft.sublocation),
     ...(draft.entity_review ? { entity_review: draft.entity_review } : {}),
   };
 }
@@ -47,6 +49,7 @@ export function draftToUserPayload(draft: EventFormDraft): UserEventUpdatePayloa
     rsvp_link: draft.rsvp_link || null,
     recurrence: draft.recurrence || null,
     city: draft.city,
+    sublocation: normalizeSubLocation(draft.city, draft.sublocation),
     image_url: draft.image_url || null,
   };
 }
@@ -67,6 +70,7 @@ export function draftToAdminPayload(draft: EventFormDraft): AdminEventPayload {
     rsvp_link: draft.rsvp_link || null,
     recurrence: draft.recurrence || null,
     city: draft.city,
+    sublocation: normalizeSubLocation(draft.city, draft.sublocation),
     image_url: draft.image_url || null,
     host: draft.host || null,
     contact_email: draft.contact_email || null,

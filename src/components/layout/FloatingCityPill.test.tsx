@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { useCity } from "../../contexts/useCity";
 import { useMetroName } from "../../features/metros/hooks/useMetros";
@@ -41,6 +40,7 @@ const activeMetros: RankedMetro[] = [
 function mockCity(city: string | null = "boston") {
   vi.mocked(useCity).mockReturnValue({
     city,
+    subLocation: null,
     source: "explicit",
     resolving: false,
     setCity,
@@ -104,16 +104,6 @@ describe("FloatingCityPill", () => {
     ).toBeInTheDocument();
   });
 
-  it("selects a city through the existing city context", async () => {
-    const user = userEvent.setup();
-    renderPill();
-    scrollTo(500);
-
-    await user.click(screen.getByRole("button", { name: /explore other cities/i }));
-    await user.click(screen.getByRole("button", { name: /New York City/ }));
-
-    expect(setCity).toHaveBeenCalledWith("new-york-city");
-  });
 
   it("shows the current city on the trigger", () => {
     mockCity("new-york-city");

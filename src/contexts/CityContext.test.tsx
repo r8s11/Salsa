@@ -147,4 +147,56 @@ describe("CityProvider", () => {
     expect(result.current.source).toBe("location");
     expect(window.localStorage.getItem("salsa.metro")).toBeNull();
   });
+
+  it("restores a selected borough and clears it when choosing All NYC or another city", async () => {
+    mockGeolocation("prompt");
+    const first = renderCity();
+    await waitFor(() => expect(first.result.current.resolving).toBe(false));
+    act(() => first.result.current.setCity("new-york-city", "brooklyn"));
+    expect(first.result.current.subLocation).toBe("brooklyn");
+    expect(window.localStorage.getItem("salsa.sublocation")).toBe("brooklyn");
+    first.unmount();
+
+    const second = renderCity();
+    await waitFor(() => expect(second.result.current.resolving).toBe(false));
+    expect(second.result.current).toMatchObject({
+      city: "new-york-city", subLocation: "brooklyn", source: "stored",
+    });
+    act(() => second.result.current.setCity("new-york-city"));
+    expect(second.result.current.subLocation).toBeNull();
+    expect(window.localStorage.getItem("salsa.sublocation")).toBeNull();
+
+    act(() => second.result.current.setCity("new-york-city", "queens"));
+    act(() => second.result.current.setCity("boston"));
+    expect(second.result.current).toMatchObject({ city: "boston", subLocation: null });
+    expect(window.localStorage.getItem("salsa.sublocation")).toBeNull();
+  });
+
+  it("ignores invalid and non-NYC stored boroughs", async () => {
+    mockGeolocation("prompt");
+    window.localStorage.setItem("salsa.metro", "boston");
+    window.localStorage.setItem("salsa.sublocation", "brooklyn");
+    const first = renderCity();
+    await waitFor(() => expect(first.result.current.resolving).toBe(false));
+    expect(first.result.current).toMatchObject({ city: "boston", subLocation: null });
+    first.unmount();
+
+    window.localStorage.setItem("salsa.metro", "new-york-city");
+    window.localStorage.setItem("salsa.sublocation", "not-a-borough");
+    const second = renderCity();
+    await waitFor(() => expect(second.result.current.resolving).toBe(false));
+    expect(second.result.current).toMatchObject({ city: "new-york-city", subLocation: null });
+  });
+
+  it("clears the borough when returning to Events near me", async () => {
+    mockGeolocation("granted", NEAR_PHILLY);
+    window.localStorage.setItem("salsa.metro", "new-york-city");
+    window.localStorage.setItem("salsa.sublocation", "bronx");
+    const { result } = renderCity();
+    await waitFor(() => expect(result.current.subLocation).toBe("bronx"));
+    act(() => result.current.chooseNearMe());
+    await waitFor(() => expect(result.current.city).toBe("philadelphia"));
+    expect(result.current.subLocation).toBeNull();
+    expect(window.localStorage.getItem("salsa.sublocation")).toBeNull();
+  });
 });

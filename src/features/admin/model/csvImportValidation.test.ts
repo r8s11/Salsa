@@ -81,6 +81,48 @@ describe("validateCsvRow — required fields", () => {
     });
   });
 
+  describe("sublocation", () => {
+    it("leaves the borough empty when the column is absent or blank", () => {
+      expect(validate().payload?.sublocation).toBeNull();
+      expect(validate({ city: "new-york-city", sublocation: "" }).payload?.sublocation).toBeNull();
+    });
+
+    it.each(["manhattan", "brooklyn", "queens", "bronx", "staten-island"])(
+      "accepts %s for a New York City row and puts it on the payload",
+      (borough) => {
+        const result = validate({ city: "new-york-city", sublocation: borough });
+        expect(result.status).toBe("valid");
+        expect(result.payload?.sublocation).toBe(borough);
+      }
+    );
+
+    it("trims and lowercases the cell", () => {
+      const result = validate({ city: "new-york-city", sublocation: "  Brooklyn " });
+      expect(result.payload?.sublocation).toBe("brooklyn");
+    });
+
+    it("rejects an unknown borough for New York City", () => {
+      const result = validate({ city: "new-york-city", sublocation: "jersey-city" });
+      expect(result.status).toBe("invalid");
+      expect(result.payload).toBeNull();
+      expect(result.errors).toContainEqual({
+        field: "sublocation",
+        message:
+          "Must be one of: manhattan, brooklyn, queens, bronx, staten-island (or blank for All NYC).",
+      });
+    });
+
+    it("rejects any borough on a non-NYC row, even a valid borough slug", () => {
+      const result = validate({ city: "boston", sublocation: "brooklyn" });
+      expect(result.status).toBe("invalid");
+      expect(result.payload).toBeNull();
+      expect(result.errors).toContainEqual({
+        field: "sublocation",
+        message: "Only valid when city is new-york-city; leave blank for other cities.",
+      });
+    });
+  });
+
   it("does not reject every city while the metro list is still loading", () => {
     const result = validateCsvRow(row(), 0, [SALSA], [OUTDOOR], new Set());
     expect(result.errors).toContainEqual({

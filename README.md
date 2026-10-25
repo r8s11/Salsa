@@ -217,6 +217,29 @@ not an external image-generation service.
 The submission form locks its fields while saving. If the submission-access check fails,
 visitors can retry it in place without reloading the calendar.
 
+### NYC boroughs
+
+New York City has five optional event sublocations: Manhattan (`manhattan`),
+Brooklyn (`brooklyn`), Queens (`queens`), The Bronx (`bronx`), and Staten Island
+(`staten-island`). The city picker nests them under NYC, alongside **All NYC**.
+A borough selection filters approved events to that exact borough; All NYC
+includes both assigned and unassigned events. Existing events remain unassigned
+until an editor chooses a borough—addresses are not guessed.
+
+Selections persist in this browser and are shareable as
+`/events/new-york-city?borough=brooklyn`. Choosing another city or Events near me
+clears the borough. NYC event forms expose an optional Borough field; changing
+the event city clears it. Public submissions retain it through moderation,
+and organizer, user, and admin editing paths preserve it.
+
+CSV imports accept an optional `sublocation` column with the slugs above.
+Leave it blank for All NYC or any non-NYC city; other combinations are rejected.
+Deploy `20261025120000_nyc_event_sublocations.sql` after the event-types
+migration and before this frontend. It adds the public projection, validation,
+filter index, owner-update grant, and borough handling in the existing RPCs.
+Local rollback-only database verification:
+`{ printf 'begin;\n'; cat scripts/verify-nyc-sublocations.sql; } | docker exec -i supabase_db_Salsa psql -U postgres -d postgres -v ON_ERROR_STOP=1`.
+
 ### Component setup
 
 TypeScript and Tailwind CSS v4 are configured. `components.json` maps shadcn's

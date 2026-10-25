@@ -253,6 +253,33 @@ begin
   return replace(p_src, p_old, p_new);
 end $$;
 
+-- Same contract as patch_fn, for an anchor that exists in two layouts: the
+-- repo's definitions are single-line, production's organizer_update_event is
+-- reformatted one item per line. p_olds[i] is replaced by p_news[i]; exactly
+-- one layout must match, exactly once.
+create or replace function pg_temp.patch_one_of(p_src text, p_olds text[], p_news text[])
+returns text
+language plpgsql
+as $$
+declare
+  v_hit int;
+  v_hits int := 0;
+begin
+  if cardinality(p_olds) <> cardinality(p_news) then
+    raise exception 'event_types migration: patch_one_of needs one replacement per layout';
+  end if;
+  for i in 1 .. cardinality(p_olds) loop
+    if p_olds[i] <> '' and (length(p_src) - length(replace(p_src, p_olds[i], ''))) / length(p_olds[i]) = 1 then
+      v_hits := v_hits + 1;
+      v_hit := i;
+    end if;
+  end loop;
+  if v_hits <> 1 then
+    raise exception 'event_types migration: expected exactly one layout to match once, got % of: %', v_hits, p_olds;
+  end if;
+  return replace(p_src, p_olds[v_hit], p_news[v_hit]);
+end $$;
+
 do $patch$
 declare
   v text;
@@ -298,11 +325,18 @@ begin
 
   -- organizer_update_event (host edit)
   v := pg_get_functiondef('public.organizer_update_event(uuid,jsonb)'::regprocedure);
-  v := pg_temp.patch_fn(v, '''title'',''description'',''event_type'',''city'',', '''title'',''description'',''event_type'',''event_types'',''city'',');
-  v := pg_temp.patch_fn(v,
-    E'    event_type         = case when p_payload ? ''event_type''         then p_payload ->> ''event_type''         else e.event_type         end,\n',
-    E'    event_type         = case when p_payload ? ''event_types'' or p_payload ? ''event_type'' then (public.event_types_from_payload(p_payload))[1] else e.event_type end,\n'
-    '    event_types        = case when p_payload ? ''event_types'' or p_payload ? ''event_type'' then public.event_types_from_payload(p_payload) else e.event_types end,\n');
+  v := pg_temp.patch_one_of(v,
+    array['''title'',''description'',''event_type'',''city'',',
+          E'    ''event_type'',\n    ''city'','],
+    array['''title'',''description'',''event_type'',''event_types'',''city'',',
+          E'    ''event_type'',\n    ''event_types'',\n    ''city'',']);
+  v := pg_temp.patch_one_of(v,
+    array[E'    event_type         = case when p_payload ? ''event_type''         then p_payload ->> ''event_type''         else e.event_type         end,\n',
+          E'    event_type =\n      case\n        when p_payload ? ''event_type''\n        then p_payload ->> ''event_type''\n        else e.event_type\n      end,\n'],
+    array[E'    event_type         = case when p_payload ? ''event_types'' or p_payload ? ''event_type'' then (public.event_types_from_payload(p_payload))[1] else e.event_type end,\n'
+          '    event_types        = case when p_payload ? ''event_types'' or p_payload ? ''event_type'' then public.event_types_from_payload(p_payload) else e.event_types end,\n',
+          E'    event_type =\n      case\n        when p_payload ? ''event_types'' or p_payload ? ''event_type''\n        then (public.event_types_from_payload(p_payload))[1]\n        else e.event_type\n      end,\n'
+          '    event_types =\n      case\n        when p_payload ? ''event_types'' or p_payload ? ''event_type''\n        then public.event_types_from_payload(p_payload)\n        else e.event_types\n      end,\n']);
   execute v;
 end $patch$;
 

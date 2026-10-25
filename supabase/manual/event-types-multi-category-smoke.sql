@@ -3,7 +3,7 @@
 --   docker exec -i supabase_db_Salsa psql -U postgres -d postgres \
 --     -v ON_ERROR_STOP=1 -f - < supabase/manual/event-types-multi-category-smoke.sql
 --
--- Requires migration 20261017000000_event_types_multi_category.sql. Runs inside a
+-- Requires migration 20261024120000_event_types_multi_category.sql. Runs inside a
 -- transaction that is ROLLED BACK (auth users, events, submissions are fixtures).
 -- Success prints "EVENT TYPES SMOKE OK". Roles/JWTs are simulated the way
 -- PostgREST does it (request.jwt.claims + SET LOCAL ROLE), so RLS, grants and

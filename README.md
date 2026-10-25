@@ -4,6 +4,10 @@ Boston & NYC Latin dance events calendar — [salsasegura.com](https://www.salsa
 
 The site shows salsa fanatics where to go dancing and lets the community submit events, without needing social media.
 
+The city explorer keeps NYC boroughs in a collapsible list. Expand **NYC boroughs**
+to choose an area, or select the city row for all NYC events. A selected borough's
+list opens automatically when you reopen the explorer.
+
 ## Stack
 
 React 19 · TypeScript · Vite · React Router v7 · Supabase · Schedule-X calendar · temporal-polyfill

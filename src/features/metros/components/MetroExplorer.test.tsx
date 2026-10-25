@@ -44,6 +44,15 @@ describe("NYC borough explorer", () => {
     renderExplorer();
     const trigger = await screen.findByRole("button", { name: /Location: New York City/ });
     fireEvent.click(trigger);
+    const disclosure = screen.getByRole("button", { name: "NYC boroughs" });
+    expect(disclosure).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("button", { name: "Brooklyn" })).not.toBeInTheDocument();
+    fireEvent.click(disclosure);
+    expect(screen.getByTestId("location")).toHaveTextContent("new-york-city:all");
+    expect(screen.getByTestId("url").textContent).toBe("/");
+    fireEvent.click(disclosure);
+    expect(screen.queryByRole("button", { name: "Brooklyn" })).not.toBeInTheDocument();
+    fireEvent.click(disclosure);
     const boroughs = screen.getByRole("list", { name: "New York City boroughs" });
     for (const name of ["Manhattan", "Brooklyn", "Queens", "The Bronx", "Staten Island", "All NYC"]) {
       expect(within(boroughs).getByRole("button", { name })).toBeInTheDocument();
@@ -67,6 +76,7 @@ describe("NYC borough explorer", () => {
     renderExplorer("/calendar");
     const trigger = await screen.findByRole("button", { name: /Location: New York City/ });
     fireEvent.click(trigger);
+    fireEvent.click(screen.getByRole("button", { name: "NYC boroughs" }));
     fireEvent.click(screen.getByRole("button", { name: "Queens" }));
     expect(screen.getByTestId("location")).toHaveTextContent("new-york-city:queens");
     expect(screen.getByTestId("url").textContent).toBe("/calendar");
@@ -80,6 +90,7 @@ describe("NYC borough explorer", () => {
     renderExplorer();
     const trigger = await screen.findByRole("button", { name: /Location: New York City/ });
     fireEvent.click(trigger);
+    fireEvent.click(screen.getByRole("button", { name: "NYC boroughs" }));
     act(() => screen.getByRole("button", { name: "Staten Island" }).focus());
     fireEvent.keyDown(document, { key: "Escape" });
     await waitFor(() => expect(trigger).toHaveFocus());

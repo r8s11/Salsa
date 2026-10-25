@@ -211,6 +211,8 @@ function MetroOption({
 }) {
   const distance = formatDistance(metro.distanceKm);
   const allCurrent = current && !subLocation;
+  const [expanded, setExpanded] = useState(current && subLocation !== null);
+  const sublistId = useId();
   return (
     <li>
       <button
@@ -232,24 +234,38 @@ function MetroOption({
         {allCurrent && <Check size={16} aria-hidden="true" className="metro-explorer__check" />}
       </button>
       {metro.slug === NYC_CITY && (
-        <ul className="metro-explorer__sublist" aria-label="New York City boroughs">
-          <li>
-            <SubLocationOption
-              name="All NYC"
-              current={allCurrent}
-              onPick={() => onPick(metro.slug)}
-            />
-          </li>
-          {NYC_SUBLOCATIONS.map((location) => (
-            <li key={location.slug}>
-              <SubLocationOption
-                name={location.name}
-                current={current && subLocation === location.slug}
-                onPick={() => onPick(metro.slug, location.slug)}
-              />
-            </li>
-          ))}
-        </ul>
+        <>
+          <button
+            type="button"
+            className="metro-explorer__sublocation metro-explorer__disclosure"
+            aria-expanded={expanded}
+            aria-controls={sublistId}
+            onClick={() => setExpanded((value) => !value)}
+          >
+            <span>NYC boroughs</span>
+            <ChevronDown size={16} aria-hidden="true" />
+          </button>
+          {expanded && (
+            <ul id={sublistId} className="metro-explorer__sublist" aria-label="New York City boroughs">
+              <li>
+                <SubLocationOption
+                  name="All NYC"
+                  current={allCurrent}
+                  onPick={() => onPick(metro.slug)}
+                />
+              </li>
+              {NYC_SUBLOCATIONS.map((location) => (
+                <li key={location.slug}>
+                  <SubLocationOption
+                    name={location.name}
+                    current={current && subLocation === location.slug}
+                    onPick={() => onPick(metro.slug, location.slug)}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
       )}
     </li>
   );

@@ -251,6 +251,15 @@
   color: var(--red-bright);
 }
 
+.metro-explorer__disclosure {
+  width: calc(100% - 18px);
+  margin-left: 18px;
+}
+
+.metro-explorer__disclosure[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+
 .metro-explorer__footer {
   margin: var(--space-md) 0 0;
   padding: var(--space-sm) 12px 0;

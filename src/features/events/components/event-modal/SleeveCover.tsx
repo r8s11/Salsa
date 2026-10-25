@@ -1,0 +1,67 @@
+import type { CSSProperties } from "react";
+import type { ScheduleXEvent } from "../../../../types/events";
+import { posterPriceLabel, type PosterFormat } from "./posterFormat";
+import "./ShareableEventPoster.css";
+
+interface SleeveCoverProps {
+  event: ScheduleXEvent;
+  /** Cover art. A real flyer is shown whole; fallback art fills the square. */
+  imageUrl: string;
+  artKind: "flyer" | "fallback";
+  format?: PosterFormat;
+  /** Cover art failed to load (multi-flyer pager drops it). */
+  onImageError?: () => void;
+}
+
+/** Size long titles to retain the full name inside the cover's title band. */
+function titleSize(title: string, format: PosterFormat): number {
+  const n = title.length;
+  const size =
+    n <= 14 ? 128 : n <= 24 ? 104 : n <= 40 ? 84 : n <= 64 ? 68 : Math.max(24, Math.floor(4320 / n));
+  // The feed cover is 728px against the story's 968px.
+  return format === "feed" ? Math.round((size * 728) / 968) : size;
+}
+
+/**
+ * The square front cover: flyer art, the lettered title band and the price
+ * sticker. Used whole on the exported poster and as the thumbnail in the
+ * event modal, so what a dancer sees is what their friends receive. Kept
+ * apart from the full poster so the modal can show it without loading the
+ * QR encoder.
+ */
+export default function SleeveCover({
+  event,
+  imageUrl,
+  artKind,
+  format = "story",
+  onImageError,
+}: SleeveCoverProps) {
+  const titleStyle = { "--title-size": `${titleSize(event.title, format)}px` } as CSSProperties;
+  const priceLabel = posterPriceLabel(event);
+  const priceSize = format === "feed" ? 56 : 72;
+  const priceStyle = priceLabel
+    ? {
+        fontSize: `${Math.max(28, Math.min(priceSize, Math.floor((priceSize * 4) / priceLabel.length)))}px`,
+      }
+    : undefined;
+  return (
+    <div className="sleeve-cover">
+      <div className={`sleeve-cover__art sleeve-cover__art--${artKind}`}>
+        <img src={imageUrl} alt="" onError={onImageError} />
+      </div>
+      <div className="sleeve-cover__band">
+        <h1 className="sleeve-cover__title" style={titleStyle}>
+          {event.title}
+        </h1>
+      </div>
+      {priceLabel && (
+        <div className="sleeve-sticker">
+          <span className="sleeve-sticker__label">Entry</span>
+          <span className="sleeve-sticker__price" style={priceStyle}>
+            {priceLabel}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}

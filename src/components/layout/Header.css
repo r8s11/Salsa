@@ -1,0 +1,1139 @@
+/* Transparent over the top of the page; past 100px of scroll the bar turns
+   to glass and condenses to 80% height. A matching bottom margin keeps the
+   bar's flow footprint constant, so the page never jumps under it. */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  width: 100%;
+  padding: 0;
+  color: var(--text);
+  background-color: transparent;
+  border-bottom: 1px solid transparent;
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  transition:
+    background-color 0.32s var(--site-header-ease),
+    border-color 0.32s var(--site-header-ease),
+    backdrop-filter 0.32s var(--site-header-ease),
+    -webkit-backdrop-filter 0.32s var(--site-header-ease),
+    margin-bottom 0.32s var(--site-header-ease);
+}
+
+/* Glass once scrolled, and always while the mobile menu sheet hangs from it. */
+.site-header[data-glass="true"] {
+  background-color: var(--header-bg);
+  border-bottom-color: var(--border);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+}
+
+.site-header nav {
+  display: flex;
+  align-items: center;
+  height: var(--site-header-h);
+  transition:
+    height 0.32s var(--site-header-ease),
+    min-height 0.32s var(--site-header-ease);
+}
+
+/* Below 375px the bar can wrap to two rows of 44px targets, which leave no
+   20% to give; it keeps its height there and only turns to glass. */
+@media (min-width: 375px) {
+  .site-header[data-condensed="true"] {
+    margin-bottom: calc(var(--site-header-h) - var(--site-header-h-condensed));
+  }
+
+  .site-header[data-condensed="true"] nav {
+    height: var(--site-header-h-condensed);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-header,
+  .site-header nav {
+    transition: none;
+  }
+}
+
+a.logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-height: 44px;
+  color: var(--text);
+  font-family: var(--font-logo);
+  font-size: 2rem;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+}
+
+a.logo:hover .ss-logo__wordmark,
+a.logo:hover .ss-logo__wordmark-accent {
+  color: var(--gold-light);
+}
+
+/* Drawer-only ornaments: the numeral and the diamond marker exist for the
+   full-screen mobile sheet and never render in the desktop bar. */
+.nav-links__num,
+.nav-links__marker {
+  display: none;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-left: var(--space-xl);
+  list-style: none;
+}
+
+.nav-links a,
+.account-disclosure summary,
+.account-disclosure__menu a,
+.account-disclosure__menu button,
+.drawer-sign-out {
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition:
+    color 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.nav-links > li > a {
+  display: block;
+  position: relative;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+}
+
+.nav-links > li > a::after {
+  position: absolute;
+  right: 12px;
+  bottom: 0;
+  left: 12px;
+  height: 1px;
+  content: "";
+  background: var(--red);
+  transform: scaleX(0);
+  transition: transform 0.25s ease;
+}
+
+.nav-links > li > a:hover,
+.nav-links > li > a.active {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.nav-links > li > a:hover::after,
+.nav-links > li > a.active::after {
+  transform: scaleX(1);
+}
+
+.desktop-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-left: var(--space-sm);
+}
+
+/* The bar switch leads the right-hand cluster on desktop and sits beside
+   the hamburger below 1024px, so the city is one tap away at every width.
+   Metro names are data-driven and can be long: cap the compact switch so
+   the action buttons never get pushed past the viewport (the trigger text
+   already ellipsizes via .metro-explorer__trigger-text). */
+.metro-explorer--compact {
+  margin-left: auto;
+  max-width: min(16rem, 32vw);
+}
+
+.metro-explorer--compact .metro-explorer__trigger {
+  max-width: 100%;
+}
+
+/* Header-specific overrides for ui-button--compact (replaces old .auth-btn) */
+.site-header .ui-button--compact {
+  min-height: 44px;
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  white-space: nowrap;
+  background: var(--red-deep);
+  border: 1px solid var(--red-deep);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+}
+
+.site-header .ui-button--compact:hover {
+  color: var(--bg);
+  background: var(--red-bright);
+  border-color: var(--red-bright);
+}
+
+/* Equal specificity with the compact restatement above (0,2,0) — declared
+   later so demoted header/drawer actions (Sign In) keep the gold outline
+   instead of filling solid. */
+.site-header .ui-button--secondary {
+  background: transparent;
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.site-header .ui-button--secondary:hover:not(:disabled) {
+  background: var(--gold-dim);
+  color: var(--gold-light);
+}
+
+.account-disclosure {
+  position: relative;
+  margin-left: var(--space-sm);
+}
+
+.account-disclosure summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  cursor: pointer;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+}
+
+.account-disclosure summary::-webkit-details-marker {
+  display: none;
+}
+
+.account-avatar {
+  display: block;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.account-avatar--initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--red);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.9375rem;
+}
+
+.account-disclosure__menu {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  z-index: 1;
+  display: grid;
+  width: min(340px, calc(100vw - 32px));
+  max-height: calc(100dvh - 88px - env(safe-area-inset-bottom));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-lg) transparent;
+  background: var(--surface);
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius-lg);
+}
+
+.account-disclosure__dashboards {
+  display: grid;
+  gap: 2px;
+  margin-bottom: var(--space-sm);
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--border-md);
+}
+
+.account-disclosure__dashboards-label,
+.mobile-nav__dashboards-label {
+  padding: 0 var(--space-sm);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+}
+
+.mobile-nav__dashboards a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: var(--space-sm);
+  color: var(--text-muted);
+  text-align: left;
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  border-left: 3px solid transparent;
+}
+
+.mobile-nav__dashboards a:hover {
+  color: var(--text);
+  background: var(--card);
+}
+
+.mobile-nav__dashboards a.active {
+  border-left-color: var(--gold);
+  background: var(--gold-dim);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.mobile-nav__dashboards {
+  display: grid;
+  gap: 2px;
+  margin-bottom: var(--space-sm);
+}
+
+.account-disclosure__menu a,
+.account-disclosure__menu button,
+.drawer-sign-out {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: var(--space-sm);
+  color: var(--text-muted);
+  text-align: left;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+}
+
+.account-disclosure__menu a:hover,
+.account-disclosure__menu button:hover,
+.drawer-sign-out:hover {
+  color: var(--text);
+  background: var(--card);
+}
+
+.mobile-nav-actions {
+  display: none;
+}
+
+.hamburger {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+}
+
+.hamburger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--text);
+  border-radius: var(--radius-full);
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease,
+    color 0.25s ease;
+}
+
+.hamburger.active span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+.hamburger.active span:nth-child(2) {
+  opacity: 0;
+}
+.hamburger.active span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+.logo:focus-visible,
+.nav-links a:focus-visible,
+.site-header .ui-button:focus-visible,
+.account-disclosure summary:focus-visible,
+.account-disclosure__menu a:focus-visible,
+.account-disclosure__menu button:focus-visible,
+.account-disclosure__dashboards a:focus-visible,
+.mobile-nav__dashboards a:focus-visible,
+.drawer-sign-out:focus-visible,
+.hamburger:focus-visible {
+  outline: 2px solid var(--red-bright);
+  outline-offset: 2px;
+}
+
+@media (min-width: 1024px) {
+  .nav-links > li > a,
+  .site-header .ui-button,
+  .account-disclosure summary {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+}
+
+/* Keep every desktop destination visible before the full row has room.
+   Reuse the compact city code without changing its accessible full name. */
+@media (min-width: 1024px) and (max-width: 1279.98px) {
+  .site-header .nav-links {
+    margin-left: var(--space-md);
+  }
+
+  .site-header .nav-links > li > a {
+    padding-inline: 8px;
+  }
+
+}
+
+@media (max-width: 1023.98px) {
+  .site-header nav {
+    justify-content: space-between;
+  }
+  .desktop-nav-actions {
+    display: none;
+  }
+  /* One menu on mobile. The drawer already carries identity, dashboards,
+     account links and sign-out, so the avatar dropdown would be a second
+     menu covering the same ground. */
+  .account-disclosure {
+    display: none;
+  }
+  .hamburger {
+    display: flex;
+  }
+
+  /* Compact city trigger in the bar sits beside the hamburger below
+     1024px; MetroExplorer's own trigger already keeps a 44px target. */
+  .metro-explorer--compact {
+    margin-right: var(--space-xs);
+  }
+
+  /* ── Full-screen sheet ───────────────────────────────────────────
+     Sits under the sticky bar so the gold/rose logo and the X stay
+     visible while the sheet is open. */
+  .nav-links {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    height: calc(100dvh - 100%);
+    left: 0;
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    margin: 0;
+    padding: var(--space-lg) 20px calc(var(--space-xl) + env(safe-area-inset-bottom));
+    overflow-y: auto;
+    background:
+      radial-gradient(70% 50% at 0% 100%, rgba(233, 195, 73, 0.12), transparent 58%), var(--bg);
+  }
+
+  .nav-links.active {
+    display: flex;
+    animation: navSheetIn 0.22s cubic-bezier(0.22, 0.9, 0.3, 1) both;
+  }
+
+  /* Numbered destination list */
+  .nav-links > li > a {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    min-height: 60px;
+    padding: 12px 0;
+    border-radius: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-links > li > a::after {
+    right: 0;
+    left: 0;
+  }
+
+  .nav-links__num {
+    display: block;
+    width: 22px;
+    flex-shrink: 0;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.6875rem;
+    letter-spacing: 0.14em;
+    color: var(--red-bright);
+  }
+
+  .nav-links__label {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: clamp(1.6rem, 7.5vw, 2.15rem);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+
+  .nav-links__marker {
+    display: block;
+    margin-left: auto;
+    font-size: 0.875rem;
+    line-height: 1;
+    color: var(--gold);
+  }
+
+  .nav-links > li > a.active .nav-links__label {
+    color: var(--gold-light);
+  }
+
+  .mobile-nav-actions {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--space-lg);
+    margin-top: var(--space-lg);
+  }
+  .mobile-nav__context,
+  .mobile-nav__label {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.6875rem;
+    letter-spacing: 0.2em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+  .mobile-nav__context {
+    display: none;
+  }
+  .mobile-nav__city {
+    display: grid;
+    gap: var(--space-sm);
+  }
+
+  /* Full-width city trigger, styled like the old cards it replaces. */
+  .mobile-nav__city .metro-explorer--full {
+    display: flex;
+    width: 100%;
+  }
+
+  .mobile-nav__city .metro-explorer--full .metro-explorer__trigger {
+    width: 100%;
+    min-height: 52px;
+    justify-content: space-between;
+    padding: 0 16px;
+    border: 1px solid var(--border-md);
+    border-radius: var(--radius-lg);
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .mobile-nav__account {
+    display: grid;
+    gap: var(--space-sm);
+    /* Route to City to Account stack: the cluster follows the city block
+       at the shared 24px group gap instead of pinning to the sheet bottom,
+       so the break stays a fixed design value rather than whatever height
+       the viewport happens to leave over. */
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--border);
+  }
+  .nav-links > li > a,
+  .mobile-nav__account > a,
+  .drawer-sign-out {
+    min-height: 44px;
+  }
+  .mobile-nav__account > a:not(.ui-button):not(.mobile-nav__identity),
+  .drawer-sign-out {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: 46px;
+    text-align: left;
+    padding: var(--space-sm) var(--space-md);
+    color: var(--text-muted);
+    border: 1px solid var(--border-md);
+    border-radius: var(--radius-md);
+  }
+  .mobile-nav__account > a:not(.ui-button):hover,
+  .drawer-sign-out:hover {
+    color: var(--text);
+    background: var(--card);
+    border-color: var(--red);
+  }
+
+  /* Signed-in identity card */
+  .mobile-nav__identity {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    color: var(--text);
+  }
+
+  .mobile-nav__identity:hover {
+    border-color: var(--red-dim);
+  }
+
+  .mobile-nav__identity .account-avatar {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+  }
+
+  .mobile-nav__identity-text {
+    display: grid;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .mobile-nav__identity-name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.9375rem;
+    color: var(--text);
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .mobile-nav__identity-email {
+    overflow: hidden;
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  .mobile-nav__identity-cta {
+    flex-shrink: 0;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.6875rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .mobile-nav-actions .ui-button {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    min-height: 54px;
+    border-radius: var(--radius-full);
+  }
+
+  @keyframes navSheetIn {
+    from {
+      opacity: 0;
+      transform: translateY(14px) scale(0.985);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nav-links.active {
+      animation: none;
+    }
+  }
+}
+
+@media (max-width: 639.98px) {
+  .site-header nav {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  a.logo {
+    font-size: 1.375rem;
+  }
+
+  a.logo .ss-logo--lg .ss-logo__mark {
+    height: 22px;
+  }
+
+  /* The safe-area inset sits on top of the bar's height, so condensing
+     always gives up exactly 20% of the bar itself. */
+  .site-header nav {
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+    height: auto;
+    min-height: calc(var(--site-header-h) + env(safe-area-inset-top));
+  }
+
+  .site-header[data-condensed="true"] nav {
+    height: auto;
+    min-height: calc(var(--site-header-h-condensed) + env(safe-area-inset-top));
+  }
+
+  .metro-explorer--compact {
+    flex: none;
+    margin-left: auto;
+    margin-right: 0;
+  }
+
+  .metro-explorer--compact .metro-explorer__trigger {
+    gap: 6px;
+    padding: 0 10px;
+    letter-spacing: 0.08em;
+    background: transparent;
+    border-color: var(--border);
+  }
+
+  .metro-explorer--compact .metro-explorer__trigger svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .site-header .metro-explorer--compact .metro-explorer__panel {
+    position: fixed;
+    top: calc(100% + var(--space-sm));
+    right: var(--space-md);
+    left: auto;
+  }
+
+  .hamburger {
+    flex: none;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+  }
+}
+
+/* Smallest phones: the wordmark alone carries the brand so the city
+   toggle and the menu keep their full touch targets. */
+@media (max-width: 374.98px) {
+  a.logo .ss-logo__mark {
+    display: none;
+  }
+  .metro-explorer--compact .metro-explorer__trigger {
+    padding: 0 7px;
+  }
+}
+
+.account-disclosure summary:hover,
+.account-disclosure[open] summary {
+  border-color: var(--red-bright);
+  background: var(--surface-action);
+}
+
+.account-menu__identity {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  padding: 20px;
+  border-bottom: 1px solid var(--border);
+}
+.account-menu__identity .account-avatar {
+  flex: 0 0 auto;
+}
+.account-menu__identity-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.account-menu__name {
+  overflow: hidden;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.account-menu__email {
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.account-menu__role {
+  justify-self: start;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  color: var(--gold-light);
+  background: var(--gold-dim);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.account-disclosure__menu .account-disclosure__dashboards {
+  gap: 4px;
+  margin: 0;
+  padding: 12px 8px 8px;
+  border-bottom: 1px solid var(--border);
+}
+.account-disclosure__menu .account-disclosure__dashboards-label {
+  padding: 0 12px;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.account-menu__links,
+.account-menu__footer {
+  display: grid;
+  gap: 2px;
+  padding: 8px;
+}
+.account-menu__footer {
+  border-top: 1px solid var(--border);
+}
+.site-header .account-disclosure__menu .account-menu__row,
+.site-header .mobile-nav__account a.account-menu__row,
+.site-header .mobile-nav__account button.account-menu__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  min-height: 64px;
+  padding: 12px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  text-align: left;
+  text-decoration: none;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.account-menu__row > svg {
+  flex: 0 0 auto;
+  color: var(--text-muted);
+}
+.account-menu__row-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.account-menu__row-copy strong {
+  font-weight: 600;
+  line-height: 1.4;
+}
+.account-menu__row-copy small {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.account-menu__arrow {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+.account-menu__dashboard > svg:first-child {
+  color: var(--gold);
+}
+.site-header .account-menu__row:hover:not(:disabled),
+.site-header .account-menu__row.active {
+  color: var(--text);
+  background: var(--card);
+}
+.site-header .account-menu__row:focus-visible {
+  outline: 2px solid var(--red-bright);
+  outline-offset: -2px;
+}
+.site-header .account-menu__signout > svg:first-child {
+  color: var(--red-bright);
+}
+.site-header .account-menu__signout:hover:not(:disabled) {
+  background: var(--surface-action);
+}
+.site-header .account-menu__row:disabled {
+  cursor: progress;
+  color: var(--text-muted);
+}
+.account-menu__error {
+  margin: 0 8px 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--red-line);
+  border-radius: var(--radius-sm);
+  color: var(--red-error-strong);
+  background: var(--surface-action);
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.mobile-nav__dashboards a {
+  gap: 12px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .account-disclosure[open] .account-disclosure__menu {
+    animation: account-menu-reveal 160ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+@keyframes account-menu-reveal {
+  from {
+    opacity: 0.85;
+    clip-path: inset(0 0 10px round var(--radius-lg));
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0 round var(--radius-lg));
+  }
+}
+
+/* ── Shop disclosure ────────────────────────────────────────────────
+   One <li> serves both layouts: a hover/keyboard dropdown on the desktop
+   bar, and a static, always-open group inside the mobile sheet. */
+.nav-links__shop {
+  position: relative;
+}
+
+@media (min-width: 1024px) {
+  .nav-links__shop > a {
+    gap: 6px;
+  }
+}
+
+.nav-links__chevron {
+  flex: none;
+}
+
+.nav-links > li > a[aria-expanded="true"] .nav-links__chevron {
+  transform: rotate(180deg);
+}
+
+.shop-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: -12px;
+  z-index: 2;
+  width: 240px;
+  padding: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border-md);
+  border-radius: 12px;
+  box-shadow: 0 16px 32px -12px rgba(0, 0, 0, 0.6);
+  visibility: hidden;
+  opacity: 0;
+  translate: 0 -6px;
+}
+
+.shop-menu[data-open="true"] {
+  visibility: visible;
+  opacity: 1;
+  translate: 0 0;
+}
+
+/* Bridges the 8px gap so the pointer can travel from trigger to panel. */
+.shop-menu::before {
+  position: absolute;
+  top: -9px;
+  right: 0;
+  left: 0;
+  height: 9px;
+  content: "";
+}
+
+.shop-menu__list {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.site-header .shop-menu__link {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  width: 100%;
+  min-height: 52px;
+  padding: 8px 12px;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-align: left;
+  text-decoration: none;
+  text-transform: none;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.site-header .shop-menu__link:hover {
+  background: var(--card);
+}
+
+.site-header .shop-menu__link[aria-current="page"] .shop-menu__label {
+  color: var(--gold-light);
+}
+
+.shop-menu__hint {
+  color: var(--text-dim);
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.site-header .shop-menu__link:hover .shop-menu__hint {
+  color: var(--text-muted);
+}
+
+.shop-menu__divider {
+  height: 1px;
+  margin: 6px 4px;
+  background: var(--border-md);
+}
+
+.site-header .shop-menu__cart {
+  flex-direction: row;
+  align-items: center;
+  min-height: 44px;
+  gap: 10px;
+}
+
+.shop-menu__cart svg {
+  flex: none;
+  color: var(--text-muted);
+}
+
+.shop-menu__cart .shop-menu__hint {
+  margin-left: auto;
+}
+
+.site-header .shop-menu__link:focus-visible {
+  outline: 2px solid var(--red-bright);
+  outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .nav-links__chevron {
+    transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .shop-menu {
+    transition:
+      opacity 180ms cubic-bezier(0.16, 1, 0.3, 1),
+      translate 180ms cubic-bezier(0.16, 1, 0.3, 1),
+      visibility 0s linear 180ms;
+  }
+
+  .shop-menu[data-open="true"] {
+    transition-delay: 0s;
+  }
+}
+
+/* Mobile sheet: the panel is a collapsible group under the Shop row, indented
+   beneath a 1px rule that lines up with the destination label. The Shop link
+   still navigates; the chevron beside it shows or hides the collections. */
+@media (max-width: 1023.98px) {
+  .nav-links__shop {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-links > li.nav-links__shop > a {
+    border-bottom-color: transparent;
+  }
+
+  .nav-links__shop-toggle {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    border: 1px solid var(--border-md);
+    border-radius: var(--radius-full);
+    background: none;
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+
+  .nav-links__shop-toggle:hover,
+  .nav-links__shop-toggle[aria-expanded="true"] {
+    border-color: var(--border-lg);
+    color: var(--text);
+  }
+
+  .nav-links__shop-toggle[aria-expanded="true"] svg {
+    transform: rotate(180deg);
+  }
+
+  .nav-links__shop-toggle:focus-visible {
+    outline: 2px solid var(--red-bright);
+    outline-offset: 2px;
+  }
+
+  .nav-links__shop > .shop-menu {
+    grid-column: 1 / -1;
+  }
+
+  .nav-links__shop[data-mobile-open="false"] > .shop-menu {
+    display: none;
+  }
+
+  .nav-links__chevron,
+  .shop-menu__divider,
+  .site-header .shop-menu__cart {
+    display: none;
+  }
+
+  .site-header .shop-menu {
+    position: static;
+    width: auto;
+    margin: 0 0 var(--space-md) 36px;
+    padding: 0 0 0 var(--space-sm);
+    background: none;
+    border: 0;
+    border-left: 1px solid var(--border-md);
+    border-radius: 0;
+    box-shadow: none;
+    visibility: visible;
+    opacity: 1;
+    translate: none;
+    transition: none;
+  }
+
+  .shop-menu::before {
+    display: none;
+  }
+
+  .site-header .shop-menu__link {
+    min-height: 56px;
+  }
+}
+
+@media (max-width: 1023.98px) and (prefers-reduced-motion: no-preference) {
+  .nav-links__shop-toggle svg {
+    transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
+@media (min-width: 1024px) {
+  .nav-links__shop-toggle {
+    display: none;
+  }
+}

@@ -1,0 +1,65 @@
+DYNAMIC METROPOLITAN DISCOVERY
+WORKTREE
+Branch: feat/dynamic-metro-discovery
+Path: /home/r8s/code/salsasegura-metro-discovery
+
+PRODUCTION ACCESS
+Credential: SUPABASE_DEV_READONLY_DATABASE_URL is not configured. Operator chose to proceed without it.
+Read-only: NOT VERIFIED; provisioning SQL is authored locally, not executed.
+Write capability: NOT VERIFIED; no production database connection was made in this session.
+
+PRODUCTION DATA AUDIT
+Active cities: NOT VERIFIED against production with salsa_dev_readonly.
+Future event counts: NOT VERIFIED.
+Distinct event city values: NOT VERIFIED.
+Earliest/latest upcoming per city: NOT VERIFIED.
+City inconsistencies and aliases: NOT VERIFIED; application includes legacy NYC/Boston aliases, not audited against production.
+State/region coverage: NOT VERIFIED.
+Address coverage: NOT VERIFIED.
+Venue coverage: NOT VERIFIED.
+Timezone coverage: NOT VERIFIED.
+Coordinate coverage: NOT VERIFIED.
+Likely metro groupings: Candidate NYC boroughs/Jersey City/Newark and Boston/Cambridge/Somerville, pending inventory review.
+An earlier draft of this report claimed production counts from an anonymous REST query. Those claims cannot substitute for the required role-based audit and have been removed.
+
+ARCHITECTURE
+Current city model: events.city is a canonical slug, formerly constrained to NYC/Boston; public_events is anonymous discovery source. Profile and settings city checks also limited the vocabulary.
+Metro strategy: Locally authored small metros reference table and public_active_metros projection. Registered metros with no approved upcoming events stay out of discovery. Foreign keys keep existing city slugs as the event join key.
+New metros table required: NOT VERIFIED by the required production audit; migration remains local and must not be applied until audit and local database verification.
+Reason: Current slugs have no stored centroid, name, or extensible vocabulary; production data might change the appropriate grouping strategy.
+Active-metro query: public_active_metros groups public_events by metro slug with count and next date, filtered by event_date >= now(). Browser uses the normal Supabase client.
+Homepage selection priority: session explicit choice, profile city, locally saved choice, previously granted approximate position, nearest active metro within 150 km, inventory fallback. Out-of-range visitors see nearby suggestions instead of an unrelated city.
+Location/privacy behavior: No silent permission prompt; one reading on an explicit request or when already granted; coordinates rounded in memory, never persisted. Denial falls back.
+Manual override behavior: Selection persists in localStorage, and Events near me clears it and requests location.
+New-city activation behavior: A new registered slug plus an approved upcoming public event becomes active without frontend deployment. Admin must register the metro before event entry.
+Empty-area behavior: Explanation, nearby active metros, city explorer, and submission action.
+Canonical URLs: /events/:slug for registered metros, aliases redirect, UUID route remains event detail.
+
+CODE
+Files changed: Existing in-progress worktree changes in metro model/hooks, UI, contexts, forms, tests and local SQL; additional fixes in calendar, profile forms, admin city filter, event detail labels, location error handling, and audit script. See git status for exact files.
+Tests: Full suite PASS, 203 files and 1957 tests (`npx vitest run --maxWorkers=2 --testTimeout=10000 --reporter=dot --silent`). Tests use mock metro inventory; production data and SQL migration behavior are not covered by this pass.
+Lint: npm run lint PASS after fixture and config fixes.
+Build: TypeScript and Vite build PASS after fixture and config fixes.
+Diff-check: git diff --check PASS. Primary worktree's pre-existing opencode.json change was not touched.
+
+DATABASE
+Production reads performed: NONE in this session using salsa_dev_readonly.
+Production writes performed: NONE.
+Local migrations authored: supabase/migrations/20260925000000_dynamic_metros.sql (preexisting uncommitted worktree change). Local database application not verified.
+Production migrations applied: NONE.
+Read-only audit script: scripts/metro-audit.mjs now refuses to run without salsa_dev_readonly URL. Requires psql and provisioned verified grants.
+
+/caveman
+Invoked: Yes.
+Key findings: Existing city slug can remain the join key; one small reference table plus active-inventory projection is the proposed minimum. Audit still needed before approving schema.
+
+/graft
+Invoked: Yes; repo map and city/event query discovery.
+Patterns reused: CityContext, React Query event repositories, public_events, event cards, URL route, forms.
+Savings: See session summary; graft estimates are comparisons, not measured token costs.
+
+/impeccable
+Invoked: Yes; loaded product/design context and craft floor, ran design detector.
+UX/accessibility findings: City explorer remains visible; button has expanded state and Escape/focus handling; empty state retains explorer and submit CTA. Detector reports advisory overlay color in MetroExplorer.css. 375x812, 768x1024, and 1440x900 browser captures were not available and remain unverified.
+
+DYNAMIC METROPOLITAN DISCOVERY NOT YET VERIFIED

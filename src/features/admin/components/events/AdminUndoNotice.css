@@ -1,0 +1,80 @@
+/* Docked under the list: sticky so it is in view wherever the decision was made. */
+.admin-events-dock {
+  position: sticky;
+  bottom: 16px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+  pointer-events: none;
+}
+
+.admin-events-dock > * {
+  pointer-events: auto;
+}
+
+.admin-events-notice,
+.admin-events-bulkbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 8px 8px 16px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  background: var(--admin-surface-elevated);
+  color: var(--admin-text-primary);
+  font-size: 0.875rem;
+}
+
+.admin-events-notice__message {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+
+.admin-events-notice__undo {
+  min-height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--admin-text-strong);
+  border-radius: var(--admin-radius);
+  background: transparent;
+  color: var(--admin-text-strong);
+  font-family: var(--font-ui);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.admin-events-notice__undo:hover {
+  background: var(--admin-surface-secondary);
+}
+
+.admin-events-notice__undo:focus-visible {
+  outline: 2px solid var(--admin-brand);
+  outline-offset: 2px;
+}
+
+.admin-events-bulkbar {
+  flex-wrap: wrap;
+}
+
+.admin-events-bulkbar__count {
+  flex: 1 1 auto;
+  margin: 0;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-events-bulkbar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (pointer: coarse) {
+  .admin-events-notice__undo {
+    min-height: 44px;
+  }
+}

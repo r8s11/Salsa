@@ -1,0 +1,33 @@
+/* Hallmark · pre-emit critique: P4 H4 E5 S4 R5 V4 */
+/* Hallmark · component: field-error · genre: editorial (Ritmo Vivo, per DESIGN.md)
+ * theme: Salsa Segura Design System (DESIGN.md · src/styles/global.css tokens) · design-system: DESIGN.md
+ * states: passive — error (message present) / valid (renders nothing); hover · focus ·
+ *          active · disabled · loading · success do not apply to a status span
+ * contrast: pass (gates 40–41) — pairs verified in handoff
+ * mobile: pass (34, 49, 50–57) · slop: pass (universal subset)
+ */
+/* ========================================
+   Public form field error — shared primitive
+   ======================================== */
+
+.field-error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-top: var(--space-xs);
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--red-error); /* matches .error-banner text, AA on --bg and --surface */
+}
+
+/* Invalid controls in public forms get the same border treatment. */
+.form-group input[aria-invalid="true"],
+.form-group select[aria-invalid="true"],
+.form-group textarea[aria-invalid="true"],
+.submit-form .form-group input[aria-invalid="true"],
+.submit-form .form-group select[aria-invalid="true"],
+.submit-form .form-group textarea[aria-invalid="true"],
+.auth-form input[aria-invalid="true"] {
+  border-color: var(--red);
+}

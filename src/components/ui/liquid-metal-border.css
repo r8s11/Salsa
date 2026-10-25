@@ -1,0 +1,33 @@
+.liquid-metal-border {
+  position: absolute;
+  inset: -1px;
+  z-index: 1;
+  padding: 2px;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 180ms ease-out;
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+}
+.liquid-metal-border[data-active] {
+  opacity: 1;
+}
+.liquid-metal-border__material {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  background: linear-gradient(135deg, #77777b, #dedbd5 35%, #85858a 55%, #c5b89d);
+}
+@media (prefers-reduced-motion: reduce) {
+  .liquid-metal-border {
+    transition: none;
+  }
+}

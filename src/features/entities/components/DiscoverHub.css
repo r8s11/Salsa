@@ -1,0 +1,525 @@
+.discover-hub {
+  display: grid;
+  gap: clamp(3.5rem, 8vw, 6rem);
+  margin-top: clamp(2.5rem, 5vw, 3.75rem);
+}
+
+.discover-hub__empty {
+  margin: 2.5rem 0 0;
+  color: var(--text-muted);
+}
+.discover-hub__empty a { color: var(--gold); text-underline-offset: 0.2em; }
+
+.discover-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ── Scene header: the city is the headline ─────────────────────────── */
+
+.discover-scene { display: grid; gap: clamp(1.5rem, 3vw, 2rem); min-width: 0; }
+
+.discover-scene__head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 0.25rem 1.5rem;
+  padding-top: clamp(1.5rem, 3vw, 2.25rem);
+  border-top: 1px solid var(--border-md);
+}
+.discover-scene__eyebrow {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.discover-scene__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2.75rem, 8vw, 5.5rem);
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 0.95;
+  text-wrap: balance;
+}
+.discover-scene__nights {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 44px;
+  color: var(--gold);
+  font-family: var(--font-ui);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.discover-scene__nights:hover { text-decoration: underline; text-underline-offset: 0.25em; }
+
+.discover-scene__picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.discover-chip {
+  min-height: 44px;
+  padding: 0.5rem 1.05rem;
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 160ms ease, border-color 160ms ease, background-color 160ms ease;
+}
+.discover-chip:hover { border-color: var(--border-lg); color: var(--text); }
+.discover-chip[aria-pressed="true"] {
+  border-color: var(--gold);
+  background: var(--gold);
+  color: var(--on-gold);
+}
+
+.discover-scene__chapters {
+  display: grid;
+  gap: clamp(3rem, 7vw, 5rem);
+  margin-top: clamp(1rem, 3vw, 2rem);
+}
+
+/* ── Chapters ───────────────────────────────────────────────────────── */
+
+.discover-chapter { min-width: 0; }
+
+.discover-chapter__head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 0.3rem 1.25rem;
+  margin-bottom: clamp(1.25rem, 2.5vw, 1.75rem);
+}
+.discover-chapter__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--tertiary);
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.discover-chapter__eyebrow::before {
+  content: "";
+  width: 1.75rem;
+  height: 1px;
+  background: currentColor;
+}
+.discover-chapter__title {
+  grid-column: 1;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.875rem, 4vw, 2.75rem);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1;
+}
+.discover-chapter__note {
+  grid-column: 1;
+  margin: 0.2rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+}
+.discover-chapter__all {
+  display: inline-flex;
+  grid-column: 2;
+  grid-row: 2 / span 2;
+  align-self: end;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 44px;
+  color: var(--gold);
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.discover-chapter__all svg { transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1); }
+.discover-chapter__all:hover { text-decoration: underline; text-underline-offset: 0.25em; }
+
+.discover-chapter__state {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  min-height: 5.5rem;
+  padding: 1rem 1.25rem;
+  border: 1px dashed var(--border-md);
+  border-radius: var(--radius-lg);
+  color: var(--text-muted);
+}
+.discover-chapter__state p { margin: 0; }
+.discover-chapter__state button { min-height: 44px; }
+.discover-chapter__state--empty { min-height: 0; padding: 0.4rem 1rem; }
+
+.discover-schools,
+.discover-venues,
+.discover-artists,
+.discover-compact,
+.discover-pills,
+.discover-skeletons {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ── Schools: photo-led cards, text cards when no photo exists ──────── */
+
+.discover-schools {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+  gap: 2rem 1.25rem;
+}
+.discover-schools > li { min-width: 0; }
+
+.discover-school {
+  display: grid;
+  align-content: start;
+  gap: 0.3rem;
+  height: 100%;
+  color: var(--text);
+  text-decoration: none;
+}
+.discover-school__media {
+  display: block;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  margin-bottom: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+.discover-school__media img,
+.discover-artist__photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.discover-school__name {
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+.discover-school__where { color: var(--text-muted); font-size: 0.875rem; text-transform: capitalize; }
+.discover-school__desc {
+  display: -webkit-box;
+  overflow: hidden;
+  margin-top: 0.35rem;
+  color: var(--text-dim-glass);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.discover-school:hover .discover-school__name { text-decoration: underline; text-decoration-color: var(--border-lg); text-underline-offset: 0.2em; }
+
+.discover-school--text {
+  align-content: end;
+  min-height: 15rem;
+  padding: 1.35rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+.discover-school--text .discover-school__name { font-size: clamp(1.5rem, 2.4vw, 1.875rem); }
+.discover-school--text .discover-school__desc { -webkit-line-clamp: 3; }
+.discover-school--text:hover { border-color: var(--border-md); background: var(--surface-high); }
+
+/* ── Venues: a numbered list of rooms ───────────────────────────────── */
+
+.discover-venues {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: clamp(1.5rem, 4vw, 3rem);
+  counter-reset: venue;
+}
+.discover-venues > li {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  align-items: baseline;
+  border-top: 1px solid var(--border);
+  counter-increment: venue;
+}
+.discover-venues > li::before {
+  content: counter(venue, decimal-leading-zero);
+  content: counter(venue, decimal-leading-zero) / "";
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+.discover-venue {
+  position: relative;
+  display: grid;
+  gap: 0.2rem;
+  padding: 1.05rem 2.25rem 1.1rem 0;
+  color: var(--text);
+  text-decoration: none;
+}
+.discover-venue__name {
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 2.2vw, 1.625rem);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  transition: color 160ms ease;
+}
+.discover-venue__where { color: var(--text-muted); font-size: 0.875rem; text-transform: capitalize; }
+.discover-venue__arrow {
+  position: absolute;
+  top: 1.25rem;
+  right: 0;
+  color: var(--red-bright);
+  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.discover-venue:hover .discover-venue__name { color: var(--gold-light); }
+
+/* ── Artists: portraits where photos exist, typeset cards otherwise ─── */
+
+.discover-artists {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 12.5rem), 1fr));
+  gap: 1.75rem 1.1rem;
+}
+.discover-artists > li { min-width: 0; }
+
+.discover-artist {
+  display: grid;
+  align-content: start;
+  gap: 0.25rem;
+  height: 100%;
+  color: var(--text);
+  text-decoration: none;
+}
+.discover-artist__photo {
+  display: block;
+  overflow: hidden;
+  aspect-ratio: 4 / 5;
+  margin-bottom: 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+.discover-artist__name {
+  font-family: var(--font-display);
+  font-size: 1.1875rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+}
+.discover-artist__line {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--text-dim-glass);
+  font-size: 0.875rem;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.discover-artist__city { margin-top: 0.15rem; color: var(--text-muted); font-size: 0.8125rem; text-transform: capitalize; }
+.discover-artist:hover .discover-artist__name { text-decoration: underline; text-decoration-color: var(--border-lg); text-underline-offset: 0.2em; }
+
+.discover-artist--text {
+  align-content: end;
+  min-height: 12rem;
+  padding: 1.15rem 1.15rem 1.15rem 1.25rem;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--tertiary);
+  border-radius: var(--radius-lg);
+  background: var(--tertiary-dim);
+  transition: background-color 160ms ease;
+}
+.discover-artist--text .discover-artist__name { font-size: 1.375rem; }
+.discover-artist--text .discover-artist__line { -webkit-line-clamp: 4; color: var(--text); }
+.discover-artist--text:hover { background: rgba(255, 182, 144, 0.22); }
+
+/* ── Hosts: organizers and series side by side ──────────────────────── */
+
+.discover-scene__hosts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(3rem, 6vw, 4rem) clamp(1.5rem, 4vw, 3rem);
+}
+.discover-chapter--compact .discover-chapter__title { font-size: clamp(1.5rem, 3vw, 2rem); }
+.discover-compact { border-bottom: 1px solid var(--border); }
+.discover-compact > li { border-top: 1px solid var(--border); }
+.discover-compact__item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 52px;
+  padding: 0.8rem 0;
+  color: var(--text);
+  text-decoration: none;
+}
+.discover-compact__name { font-family: var(--font-display); font-size: 1.0625rem; font-weight: 700; line-height: 1.3; }
+.discover-compact__city { flex-shrink: 0; color: var(--text-muted); font-size: 0.8125rem; text-transform: capitalize; }
+.discover-compact__item:hover .discover-compact__name { color: var(--gold-light); }
+
+/* ── Styles ─────────────────────────────────────────────────────────── */
+
+.discover-styles {
+  padding-top: clamp(1.5rem, 3vw, 2.25rem);
+  border-top: 1px solid var(--border-md);
+}
+.discover-styles__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin-bottom: 1.15rem;
+}
+.discover-styles__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+.discover-pills { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.discover-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 46px;
+  padding: 0.5rem 1.2rem;
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius-full);
+  background: var(--tertiary-dim);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 1.5vw, 1.25rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+.discover-pill:hover { border-color: var(--tertiary); background: rgba(255, 182, 144, 0.24); }
+
+/* ── Focus ──────────────────────────────────────────────────────────── */
+
+.discover-chip:focus-visible,
+.discover-pill:focus-visible,
+.discover-scene__nights:focus-visible,
+.discover-chapter__all:focus-visible,
+.discover-chapter__state button:focus-visible,
+.discover-school--text:focus-visible,
+.discover-artist--text:focus-visible,
+.discover-venue:focus-visible,
+.discover-compact__item:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+.discover-school:not(.discover-school--text):focus-visible,
+.discover-artist:not(.discover-artist--text):focus-visible { outline: none; }
+.discover-school:focus-visible .discover-school__media,
+.discover-artist:focus-visible .discover-artist__photo { outline: 2px solid var(--gold); outline-offset: 3px; }
+
+/* ── Loading ────────────────────────────────────────────────────────── */
+
+.discover-skeletons { display: grid; gap: 1.25rem; }
+.discover-skeleton { border-radius: var(--radius-lg); background: var(--surface); }
+.discover-skeletons--schools { grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr)); }
+.discover-skeletons--schools .discover-skeleton { aspect-ratio: 4 / 3; }
+.discover-skeletons--venues { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem clamp(1.5rem, 4vw, 3rem); }
+.discover-skeletons--venues .discover-skeleton { height: 4.25rem; }
+.discover-skeletons--artists { grid-template-columns: repeat(auto-fill, minmax(min(100%, 12.5rem), 1fr)); }
+.discover-skeletons--artists .discover-skeleton { aspect-ratio: 4 / 5; }
+.discover-skeletons--compact { gap: 0.5rem; }
+.discover-skeletons--compact .discover-skeleton { height: 3rem; }
+.discover-skeletons--pills { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.discover-skeletons--pills .discover-skeleton { width: 7.5rem; height: 46px; border-radius: var(--radius-full); }
+
+/* ── Motion: CSS only; entries rise in when the scene changes ──────── */
+
+@keyframes discover-rise {
+  from { opacity: 0; transform: translateY(14px); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .discover-schools > li,
+  .discover-venues > li,
+  .discover-artists > li {
+    animation: discover-rise 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(min(var(--i, 0), 8) * 50ms);
+  }
+  .discover-school:hover .discover-school__media img,
+  .discover-artist:hover .discover-artist__photo img { transform: scale(1.04); }
+  .discover-chapter__all:hover svg,
+  .discover-venue:hover .discover-venue__arrow { transform: translate(3px, -1px); }
+  .discover-skeleton { animation: entity-directory-pulse 1.4s ease-in-out infinite; }
+}
+
+/* ── Small screens ──────────────────────────────────────────────────── */
+
+@media (max-width: 760px) {
+  .discover-venues,
+  .discover-skeletons--venues,
+  .discover-scene__hosts { grid-template-columns: minmax(0, 1fr); }
+  .discover-venues > li:last-child { border-bottom: 1px solid var(--border); }
+}
+
+@media (max-width: 680px) {
+  .discover-scene__head { grid-template-columns: minmax(0, 1fr); }
+  .discover-scene__picker {
+    flex-wrap: nowrap;
+    margin-inline: calc(-1 * var(--gutter));
+    padding: 0.15rem var(--gutter) 0.5rem;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+  .discover-chapter__head { grid-template-columns: minmax(0, 1fr); }
+  .discover-chapter__all { grid-column: 1; grid-row: auto; }
+
+  /* Schools become a swipeable strip so the next chapter stays in reach. */
+  .discover-schools,
+  .discover-skeletons--schools {
+    grid-auto-flow: column;
+    grid-auto-columns: 78vw;
+    grid-template-columns: none;
+    margin-inline: calc(-1 * var(--gutter));
+    padding: 0.25rem var(--gutter) 0.75rem;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--gutter);
+    scrollbar-width: none;
+  }
+  .discover-schools > li { scroll-snap-align: start; }
+
+  .discover-artists,
+  .discover-skeletons--artists { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem 0.85rem; }
+  .discover-artist--text { min-height: 10rem; padding: 1rem; }
+  .discover-artist--text .discover-artist__name { font-size: 1.1875rem; }
+}

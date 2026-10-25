@@ -1,0 +1,68 @@
+.profile-edit__title {
+  margin-top: 10px;
+}
+
+.profile-edit__identity {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.profile-edit__portrait {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 148px;
+  flex-shrink: 0;
+}
+
+.profile-edit__portrait-slot {
+  width: 148px;
+  height: 148px;
+  border-radius: 9999px;
+}
+
+.profile-edit__identity-fields {
+  flex: 1;
+  min-width: 240px;
+}
+
+.profile-edit__cover {
+  height: 140px;
+}
+
+.profile-edit__segmented {
+  display: flex;
+  gap: 3px;
+  padding: 3px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--ss-border-md);
+  border-radius: var(--ss-radius-sm);
+}
+
+.profile-edit__segmented-opt {
+  flex: 1;
+  font-family: var(--ss-font-display);
+  font-weight: 700;
+  font-size: 12px;
+  padding: 11px 8px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ss-text-muted);
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.profile-edit__segmented-opt[aria-pressed="true"] {
+  background: var(--ss-red);
+  color: #fff;
+}
+
+.profile-edit__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 18px 20px;
+}

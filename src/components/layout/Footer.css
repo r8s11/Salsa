@@ -1,0 +1,204 @@
+/* Hosting invitation: inherit the public palette, typography, and logo. */
+.site-footer {
+  background: var(--surface);
+  color: var(--text-muted);
+  border-top: 1px solid var(--border);
+  padding: clamp(1.75rem, 3.5vw, 2.5rem) var(--gutter) 1rem;
+}
+
+.site-footer .footer-content {
+  max-width: var(--container-max);
+  margin-inline: auto;
+}
+
+.site-footer .footer-invitation {
+  display: block;
+  margin-bottom: 1.25rem;
+}
+
+.site-footer .footer-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: var(--text);
+}
+
+.site-footer .footer-tagline {
+  margin-top: 0.25rem;
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.site-footer .footer-host {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: clamp(0.5rem, 1.5vw, 1rem);
+  min-height: 44px;
+  color: inherit;
+  text-decoration: none;
+  text-underline-offset: 0.12em;
+}
+
+.site-footer .footer-host-label {
+  min-width: 0;
+}
+
+.site-footer .footer-host-accent {
+  color: var(--red-bright);
+}
+
+.site-footer .footer-host:hover .footer-host-label {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+}
+
+.site-footer .footer-host svg {
+  flex-shrink: 0;
+  width: clamp(1.5rem, 3vw, 2.25rem);
+  height: auto;
+  color: var(--red-bright);
+}
+
+.site-footer .footer-details {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.site-footer .footer-brand {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-family: var(--font-logo);
+  font-size: 1.5rem;
+  text-decoration: none;
+}
+
+.site-footer .footer-location {
+  margin-top: 0.25rem;
+  font-size: 0.8125rem;
+}
+
+.site-footer .footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 1.5rem;
+}
+
+.site-footer .footer-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  min-width: 44px;
+  min-height: 44px;
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-decoration: none;
+  text-underline-offset: 5px;
+}
+
+.site-footer .footer-link:hover {
+  color: var(--text);
+  text-decoration: underline;
+}
+
+.site-footer .footer-support-title {
+  font-family: var(--font-ui);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.site-footer .footer-coffee {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  min-height: 44px;
+  margin-top: 0.375rem;
+  padding: 0.625rem 1rem;
+  border: 1px solid var(--border-lg);
+  border-radius: var(--radius-xl);
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.site-footer .footer-coffee:hover {
+  background: var(--red-dim);
+  border-color: var(--red-bright);
+}
+
+.site-footer a:focus-visible {
+  outline: 2px solid var(--red-bright);
+  outline-offset: 4px;
+}
+
+.site-footer .footer-bottom {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.75rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .site-footer .footer-host svg,
+  .site-footer .footer-coffee {
+    transition: transform 0.2s ease;
+  }
+
+  .site-footer .footer-host:hover svg {
+    transform: translate(3px, -3px);
+  }
+
+  .site-footer .footer-host:active svg,
+  .site-footer .footer-coffee:active {
+    transform: scale(0.97);
+  }
+}
+
+@media (max-width: 1023.98px) {
+  .site-footer .footer-details {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .site-footer .footer-support {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .site-footer .footer-title {
+    font-size: clamp(3rem, 10vw, 4.5rem);
+  }
+
+  .site-footer .footer-invitation {
+    margin-bottom: 2rem;
+  }
+
+  .site-footer .footer-details {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+    padding-top: 1.5rem;
+  }
+
+  .site-footer .footer-bottom {
+    margin-top: 1.5rem;
+  }
+}

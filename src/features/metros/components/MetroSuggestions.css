@@ -1,0 +1,45 @@
+.metro-suggestions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: var(--space-sm);
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.metro-suggestions__link {
+  display: grid;
+  gap: 2px;
+  min-height: 56px;
+  padding: 12px var(--space-md);
+  color: var(--text);
+  text-decoration: none;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  transition:
+    background-color 140ms ease-out,
+    border-color 140ms ease-out;
+}
+
+.metro-suggestions__link:hover {
+  background: var(--card-hover);
+  border-color: var(--border-lg);
+}
+
+.metro-suggestions__link:focus-visible {
+  outline: 2px solid var(--red-bright);
+  outline-offset: 2px;
+}
+
+.metro-suggestions__name {
+  font-family: var(--font-ui);
+  font-weight: 700;
+}
+
+.metro-suggestions__meta {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}

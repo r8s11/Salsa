@@ -1,0 +1,64 @@
+.app-error-page {
+  display: grid;
+  min-height: 100dvh;
+  padding: 24px;
+  place-items: center;
+  background: var(--bg, #0b1326);
+  color: var(--text, #dae2fd);
+}
+
+.app-error-card {
+  width: min(100%, 520px);
+  padding: clamp(24px, 7vw, 40px);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.12));
+  border-radius: var(--radius-lg, 16px);
+  background: var(--surface, #131b2e);
+  box-shadow: 0 20px 50px rgba(6, 14, 32, 0.35);
+  text-align: center;
+}
+
+.app-error-card__label {
+  margin: 0 0 12px;
+  color: var(--red-bright);
+  font-family: var(--font-display, sans-serif);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.app-error-card h1 {
+  margin: 0 0 12px;
+  color: inherit;
+  font-family: var(--font-display, sans-serif);
+  font-size: clamp(1.5rem, 8vw, 2rem);
+  line-height: 1.15;
+}
+
+.app-error-card p:not(.app-error-card__label) {
+  max-width: 38ch;
+  margin: 0 auto 24px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.app-error-card button {
+  min-width: 160px;
+  min-height: 44px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: var(--radius-md, 12px);
+  background: var(--red, #e11d48);
+  color: #fff;
+  font: 700 0.95rem/1 var(--font-ui, sans-serif);
+  cursor: pointer;
+}
+
+.app-error-card button:hover {
+  background: var(--red-bright);
+}
+
+.app-error-card button:focus-visible {
+  outline: 2px solid var(--gold-light, #ffe088);
+  outline-offset: 3px;
+}

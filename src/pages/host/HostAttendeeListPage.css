@@ -1,0 +1,342 @@
+.host-attendee-list {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.host-attendee-list__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: var(--admin-text-muted);
+  text-decoration: none;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+  transition: color 0.15s;
+}
+
+.host-attendee-list__back:hover {
+  color: var(--admin-text-primary);
+}
+
+.host-attendee-list__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--admin-text-primary);
+  margin: 0 0 0.25rem;
+}
+
+.host-attendee-list__subtitle {
+  font-size: 0.875rem;
+  color: var(--admin-text-muted);
+  margin: 0 0 1.5rem;
+}
+
+.host-attendee-list__status {
+  text-align: center;
+  color: var(--admin-text-muted);
+  padding: 2rem;
+}
+
+.host-attendee-list__empty {
+  text-align: center;
+  color: var(--admin-text-muted);
+  padding: 3rem 2rem;
+  background: var(--admin-surface-subtle);
+  border-radius: var(--admin-radius-lg);
+  border: 1px dashed var(--admin-border);
+}
+
+/* ── Add form ── */
+
+.attendee-form {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-lg);
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.attendee-form__title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--admin-text-primary);
+  margin: 0 0 1rem;
+}
+
+.attendee-form__row {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.attendee-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 140px;
+}
+
+.attendee-form__field--wide {
+  flex: 2;
+  min-width: 200px;
+}
+
+.attendee-form__label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--admin-text-muted);
+}
+
+.attendee-form__input,
+.attendee-form__select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  font-size: 0.875rem;
+  color: var(--admin-text-primary);
+  background: var(--admin-surface);
+  transition: border-color 0.15s;
+}
+
+.attendee-form__input:focus,
+.attendee-form__select:focus {
+  border-color: var(--admin-brand);
+}
+
+.attendee-form__input:focus-visible,
+.attendee-form__select:focus-visible {
+  outline: 2px solid var(--admin-brand);
+  outline-offset: 2px;
+  border-color: var(--admin-brand);
+}
+
+.attendee-form__error {
+  color: var(--admin-danger);
+  font-size: 0.8125rem;
+  margin: 0.5rem 0;
+}
+
+/* ── Table ── */
+
+.attendee-table-wrap {
+  overflow-x: auto;
+  border-radius: var(--admin-radius-lg);
+  border: 1px solid var(--admin-border);
+  background: var(--admin-surface);
+}
+
+.attendee-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.attendee-table th {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  color: var(--admin-text-muted);
+  background: var(--admin-surface-subtle);
+  border-bottom: 1px solid var(--admin-border);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.attendee-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--admin-surface-secondary);
+  color: var(--admin-text-primary);
+}
+
+.attendee-table tr:last-child td {
+  border-bottom: none;
+}
+
+.attendee-table tr:hover td {
+  background: var(--admin-surface-subtle);
+}
+
+.attendee-table__name {
+  font-weight: 500;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attendee-table__center {
+  text-align: center;
+}
+
+.attendee-table__muted {
+  color: var(--admin-text-subtle);
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attendee-table__actions-col,
+.attendee-table__actions {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.attendee-table__actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+/* ── Badges ── */
+
+.attendee-badge {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-full);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.badge--blue {
+  background: var(--admin-chip-blue-tint);
+  color: var(--admin-chip-blue-ink);
+}
+.badge--gray {
+  background: var(--admin-surface-secondary);
+  color: var(--admin-text-muted);
+}
+.badge--green {
+  background: var(--admin-chip-green-tint);
+  color: var(--admin-chip-green-ink);
+}
+.badge--yellow {
+  background: var(--admin-chip-yellow-tint);
+  color: var(--admin-chip-yellow-ink);
+}
+.badge--purple {
+  background: var(--admin-chip-purple-tint);
+  color: var(--admin-chip-purple-ink);
+}
+.badge--cyan {
+  background: var(--admin-chip-cyan-tint);
+  color: var(--admin-chip-cyan-ink);
+}
+.badge--orange {
+  background: var(--admin-chip-orange-tint);
+  color: var(--admin-chip-orange-ink);
+}
+
+/* ── Action buttons ── */
+
+.attendee-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  min-height: 34px;
+  border-radius: var(--admin-radius);
+  border: 1px solid var(--admin-border);
+  background: var(--admin-surface);
+  color: var(--admin-text-muted);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.15s;
+}
+
+.attendee-action-btn:hover {
+  background: var(--admin-surface-secondary);
+  color: var(--admin-text-primary);
+}
+
+.attendee-action-btn--danger:hover {
+  background: var(--admin-danger-tint);
+  color: var(--admin-danger);
+  border-color: var(--admin-danger-border);
+}
+
+@media (pointer: coarse) {
+  .attendee-action-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+.attendee-action-btn--danger {
+  width: 44px;
+  height: 44px;
+}
+
+/* ── Remove attendee confirmation dialog ── */
+
+.attendee-remove-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.55);
+}
+
+.attendee-remove-dialog {
+  width: 100%;
+  max-width: 420px;
+  padding: 24px;
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-lg);
+}
+
+.attendee-remove-dialog h2 {
+  margin: 0 0 8px;
+  font-size: 1.125rem;
+  color: var(--admin-text-primary);
+}
+
+.attendee-remove-dialog p {
+  margin: 0 0 20px;
+  color: var(--admin-text-muted);
+  font-size: 0.875rem;
+}
+
+.attendee-remove-dialog__error {
+  margin: -8px 0 20px;
+  color: var(--admin-danger);
+  font-size: 0.875rem;
+}
+
+.attendee-remove-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.attendee-remove-dialog__actions .admin-btn {
+  min-height: 44px;
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 639.98px) {
+  .attendee-form__row {
+    flex-direction: column;
+  }
+
+  .attendee-form__field {
+    min-width: 0;
+  }
+
+  .attendee-table__muted {
+    display: none;
+  }
+}

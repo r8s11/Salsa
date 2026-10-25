@@ -1,0 +1,2 @@
+/home/r8s/code/Salsa/src/assets/brand/mark-brand.png
+/home/r8s/code/Salsa/src/assets/brand/mark-white.png

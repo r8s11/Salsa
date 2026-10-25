@@ -1,0 +1,554 @@
+.admin-shell {
+  overflow-x: clip;
+}
+
+.admin-shell .skip-link {
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  background: var(--admin-surface);
+  color: var(--admin-text-primary);
+}
+
+.admin-main__inner {
+  min-width: 0;
+}
+
+/* Base (mobile-first): the fixed sidebar is desktop/tablet-only chrome —
+   below 768px navigation lives entirely in the drawer. */
+.admin-sidebar[data-variant="fixed"] {
+  display: none;
+}
+
+/* ----------------------------------------
+   Drawer (<768px)
+   ---------------------------------------- */
+.admin-drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: var(--admin-overlay);
+}
+
+.admin-drawer[data-open="false"] {
+  display: none;
+}
+
+.admin-drawer__panel {
+  position: relative;
+  z-index: 1;
+  width: min(300px, 84vw);
+  max-width: calc(100vw - env(safe-area-inset-left) - env(safe-area-inset-right));
+  height: 100dvh;
+  min-height: 0;
+  background: var(--admin-surface);
+  box-shadow: var(--admin-shadow-md);
+}
+
+.admin-drawer .admin-sidebar {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.admin-drawer .admin-sidebar__brand {
+  padding-right: 64px;
+}
+
+.admin-drawer .admin-sidebar__scroll {
+  min-height: 0;
+  overscroll-behavior: contain;
+}
+
+.admin-drawer__close {
+  position: absolute;
+  top: max(10px, env(safe-area-inset-top));
+  right: 10px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  border-radius: var(--admin-radius);
+  background: transparent;
+  color: var(--admin-text-primary);
+  cursor: pointer;
+}
+
+.admin-drawer__close:hover {
+  background: var(--admin-surface-secondary);
+}
+
+.admin-main {
+  padding: var(--admin-header-h) 16px 48px 16px;
+}
+
+.admin-main__inner {
+  max-width: var(--admin-content-max);
+  margin: 0 auto;
+}
+
+.admin-shell .admin-topbar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  width: auto;
+  height: var(--admin-header-h);
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 16px;
+  background: var(--admin-topbar-bg);
+  backdrop-filter: blur(12px);
+  border-bottom: 2px solid var(--admin-border);
+}
+
+.admin-topbar__left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.admin-topbar__burger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: var(--admin-radius);
+  background: transparent;
+  color: var(--admin-text-primary);
+  cursor: pointer;
+}
+
+.admin-topbar__burger:hover {
+  background: var(--admin-surface-secondary);
+}
+
+.admin-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  color: var(--admin-text-muted);
+  font-size: 0.875rem;
+}
+
+.admin-breadcrumbs__crumb {
+  white-space: nowrap;
+}
+
+.admin-breadcrumbs__current {
+  color: var(--admin-text-strong);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 639.98px) {
+  .admin-main {
+    padding-right: max(16px, env(safe-area-inset-right));
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-bottom: max(40px, env(safe-area-inset-bottom));
+  }
+
+  .admin-shell .admin-topbar {
+    padding-right: max(12px, env(safe-area-inset-right));
+    padding-left: max(12px, env(safe-area-inset-left));
+  }
+
+  .admin-breadcrumbs__crumb:not(.admin-breadcrumbs__current),
+  .admin-breadcrumbs__sep {
+    display: none;
+  }
+}
+
+/* Account disclosure — native <details>, same pattern as the public Header */
+.admin-account {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.admin-account__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  list-style: none;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
+
+.admin-account__trigger::-webkit-details-marker {
+  display: none;
+}
+
+.admin-account__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--admin-brand-tint);
+  color: var(--admin-brand-text);
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+.admin-account__avatar--large {
+  width: 48px;
+  height: 48px;
+  font-size: 1rem;
+}
+
+.admin-account__avatar .account-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  object-fit: cover;
+  color: var(--admin-brand-text);
+  background: var(--admin-brand-tint);
+  font: inherit;
+}
+
+.admin-account__menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: min(340px, calc(100vw - 32px));
+  max-height: calc(100dvh - var(--admin-header-h) - 24px);
+  overflow-y: auto;
+  padding: 0;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--admin-border-md) transparent;
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-lg);
+  z-index: 50;
+}
+
+.admin-account__email {
+  margin: 0;
+  color: var(--admin-text-secondary);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-account__menu .admin-account__row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  min-height: 64px;
+  min-width: 0;
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: var(--admin-radius);
+  background: transparent;
+  color: var(--admin-text-primary);
+  font-size: 0.875rem;
+  font-family: var(--font-body);
+  line-height: 1.4;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.admin-account__menu .admin-account__row:hover:not(:disabled) {
+  background: var(--admin-surface-secondary);
+}
+
+.admin-account__menu .admin-account__row:disabled {
+  cursor: wait;
+  color: var(--admin-text-muted);
+}
+
+.admin-account__error {
+  margin: 0 0 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--admin-danger-border);
+  border-radius: var(--admin-radius);
+  color: var(--admin-danger-strong);
+  background: var(--admin-danger-tint);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+/* ----------------------------------------
+   ≥768px — icon rail
+   ---------------------------------------- */
+@media (min-width: 768px) {
+  .admin-drawer {
+    display: none;
+  }
+
+  .admin-sidebar[data-variant="fixed"] {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: var(--admin-rail-w);
+    z-index: 30;
+  }
+
+  .admin-shell .admin-topbar {
+    left: var(--admin-rail-w);
+  }
+
+  .admin-main {
+    margin-left: var(--admin-rail-w);
+    padding: calc(var(--admin-header-h) + 40px) 24px 64px;
+  }
+
+  .admin-topbar__burger {
+    display: none;
+  }
+}
+
+/* ----------------------------------------
+   768–1023px — keep the labelled drawer instead of an icon-only rail,
+   for Admin and Host alike. A rail exposed destination names only
+   through `title`, which touch users never see.
+   ---------------------------------------- */
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  .admin-drawer[data-open="true"] {
+    display: block;
+  }
+
+  .admin-sidebar[data-variant="fixed"] {
+    display: none;
+  }
+
+  .admin-shell .admin-topbar {
+    left: 0;
+  }
+
+  .admin-main {
+    margin-left: 0;
+  }
+
+  .admin-topbar__burger {
+    display: inline-flex;
+  }
+}
+
+/* ----------------------------------------
+   ≥1024px — full sidebar
+   ---------------------------------------- */
+@media (min-width: 1024px) {
+  .admin-sidebar[data-variant="fixed"] {
+    width: var(--admin-sidebar-w);
+  }
+
+  .admin-shell .admin-topbar {
+    left: var(--admin-sidebar-w);
+  }
+
+  .admin-main {
+    margin-left: var(--admin-sidebar-w);
+  }
+}
+
+/* User-collapsed sidebar: the shell narrows to the rail width, so the
+   sidebar, topbar offset and main margin all follow one variable. */
+@media (min-width: 1024px) {
+  .admin-shell[data-collapsed="true"] {
+    --admin-sidebar-w: var(--admin-rail-w);
+  }
+}
+
+.admin-account__identity {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  padding: 20px;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.admin-account__appearance {
+  position: relative;
+}
+
+.admin-account__appearance summary::-webkit-details-marker {
+  display: none;
+}
+
+.admin-account__theme-options {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 12px 8px 24px;
+  border: none;
+  margin: 0;
+}
+
+.admin-account__theme-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 4px 0;
+  font-size: 0.875rem;
+  color: var(--admin-text-primary);
+  cursor: pointer;
+}
+
+.admin-account__identity-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.admin-account__name {
+  overflow: hidden;
+  color: var(--admin-text-primary);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-account__identity .admin-role {
+  justify-self: start;
+  margin-top: 2px;
+}
+
+.admin-account__links,
+.admin-account__preferences,
+.admin-account__footer {
+  display: grid;
+  gap: 2px;
+  padding: 8px;
+}
+
+.admin-account__preferences,
+.admin-account__footer {
+  border-top: 1px solid var(--admin-border);
+}
+
+.admin-account__row > svg {
+  flex: 0 0 auto;
+  color: var(--admin-text-secondary);
+}
+
+.admin-account__row-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.admin-account__row strong {
+  font-weight: 600;
+}
+
+.admin-account__row-copy small {
+  color: var(--admin-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.admin-account__arrow {
+  margin-left: auto;
+}
+
+.admin-account__appearance[open] .admin-account__arrow {
+  transform: rotate(90deg);
+}
+
+.admin-account__trigger:hover,
+.admin-account[open] > .admin-account__trigger {
+  border-color: var(--admin-border-md);
+  background: var(--admin-surface-secondary);
+}
+
+.admin-account__trigger:focus-visible,
+.admin-account__menu .admin-account__row:focus-visible {
+  outline: 2px solid var(--admin-brand);
+  outline-offset: -2px;
+}
+
+.admin-account__menu .admin-account__signout {
+  color: var(--admin-danger);
+}
+
+.admin-account__signout > svg {
+  color: inherit;
+}
+
+.admin-account__menu .admin-account__signout:hover:not(:disabled) {
+  background: var(--admin-danger-tint);
+}
+
+.admin-account__menu .admin-account__theme-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  min-width: 0;
+  padding: 4px 12px 12px;
+}
+
+.admin-account__menu .admin-account__theme-option {
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  min-height: 64px;
+  padding: 8px 4px;
+  border: 1px solid transparent;
+  border-radius: var(--admin-radius);
+  background: var(--admin-surface-subtle);
+  font-size: 0.75rem;
+}
+
+.admin-account__menu .admin-account__theme-option:hover {
+  background: var(--admin-surface-secondary);
+}
+
+.admin-account__menu .admin-account__theme-option:has(input:checked) {
+  border-color: var(--admin-brand-text);
+  color: var(--admin-brand-text);
+  background: var(--admin-brand-tint);
+}
+
+.admin-account__menu .admin-account__theme-option:has(input:focus-visible) {
+  outline: 2px solid var(--admin-brand);
+  outline-offset: 2px;
+}
+
+.admin-account__menu .admin-account__theme-option input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--admin-brand);
+}
+
+.admin-shell[data-theme="dark"] .admin-account__theme-options {
+  color-scheme: dark;
+}

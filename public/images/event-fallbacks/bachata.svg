@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3 4" role="img" aria-labelledby="title desc">
+  <title id="title">Bachata fallback flyer</title>
+  <desc id="desc">A warm orange and deep slate abstract bachata dance flyer.</desc>
+  <rect width="3" height="4" fill="#171f33"/>
+  <rect x=".2" y=".2" width="2.6" height="3.6" fill="none" stroke="#ffb690" stroke-width=".06"/>
+  <circle cx="2.55" cy=".5" r=".7" fill="#bf5300"/>
+  <circle cx=".42" cy="3.55" r=".85" fill="#e11d48" opacity=".8"/>
+  <path d="M.35 1.1h2.3M.35 1.3h1.55" stroke="#e9c349" stroke-width=".08"/>
+  <text x=".35" y="2.2" fill="#fffaf9" font-family="sans-serif" font-size=".27" font-weight="800" letter-spacing=".05">BACHATA</text>
+  <text x=".35" y="2.57" fill="#ffb690" font-family="sans-serif" font-size=".27" font-weight="800" letter-spacing=".05">NIGHTS</text>
+  <text x=".35" y="2.92" fill="#dae2fd" font-family="sans-serif" font-size=".11" letter-spacing=".07">FIND YOUR RHYTHM</text>
+</svg>

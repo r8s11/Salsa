@@ -1,0 +1,144 @@
+/* ========================================
+   About Page — Ritmo Vivo
+   ======================================== */
+
+.about-page {
+  background: var(--bg);
+  color: var(--text);
+  padding: 72px 0 100px;
+  min-height: calc(100dvh - 68px);
+}
+
+.about-page .container {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* ── Headings ── */
+.about-page h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.25rem, 5vw, 3.25rem);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  text-align: center;
+  margin-bottom: 0.5rem;
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.about-page h1::after {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 3px;
+  background: var(--red);
+  margin: 0.875rem auto 0;
+}
+
+/* ── Divider Rule ── */
+.about-rule {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 1.25rem auto 2.5rem;
+  max-width: 200px;
+}
+
+.about-rule-line {
+  flex: 1;
+  height: 1px;
+  background: var(--red);
+  opacity: 0.5;
+}
+
+.about-rule-diamond {
+  font-size: 0.55rem;
+  color: var(--red);
+  flex: none;
+}
+
+.about-page h2 {
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-top: 2.75rem;
+  margin-bottom: 1rem;
+}
+
+/* ── Content ── */
+.about-page p {
+  font-size: 1.05rem;
+  line-height: 1.8;
+  margin-bottom: 1.5rem;
+  color: rgba(245, 240, 232, 0.85);
+}
+
+/* ── Lists ── */
+.about-page ul {
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0 2rem;
+}
+
+.about-page li {
+  padding: 0.65rem 0 0.65rem 1.75rem;
+  font-size: 1rem;
+  line-height: 1.65;
+  color: rgba(245, 240, 232, 0.85);
+  position: relative;
+}
+
+.about-page li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  background: var(--red);
+  border-radius: 50%;
+}
+
+/* ── Content Sections (card blocks) ── */
+.about-page section {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 2rem;
+  margin: 2rem 0;
+  animation: fadeInUp 0.5s ease-out both;
+}
+
+.about-page section:nth-of-type(1) { animation-delay: 0.1s; }
+.about-page section:nth-of-type(2) { animation-delay: 0.2s; }
+.about-page section:nth-of-type(3) { animation-delay: 0.3s; }
+
+.about-page section h2 {
+  margin-top: 0;
+}
+
+/* ── Mobile ── */
+@media (max-width: 768px) {
+  .about-page {
+    padding: 48px 0 72px;
+  }
+
+  .about-page .container {
+    padding: 0 1rem;
+  }
+
+  .about-page h1 {
+    font-size: 2rem;
+  }
+
+  .about-page section {
+    padding: 1.5rem;
+  }
+}

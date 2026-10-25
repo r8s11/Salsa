@@ -158,6 +158,85 @@ describe("useSubmitEventForm", () => {
     );
   });
 
+  describe("NYC borough", () => {
+    const submitEvent = { preventDefault: () => {} } as unknown as FormEvent;
+
+    it("starts on All NYC and submits an explicit null borough by default", async () => {
+      const { result } = renderHook(() => useSubmitEventForm());
+      expect(result.current.form.sublocation).toBe("");
+
+      await act(async () => {
+        result.current.update("title", "Test Event");
+        result.current.update("event_type", "social");
+        result.current.update("event_date", "2026-08-20");
+      });
+      await act(async () => {
+        await result.current.handleSubmit(submitEvent);
+      });
+
+      expect(createSubmission).toHaveBeenCalledWith(
+        expect.objectContaining({ city: "boston", sublocation: null }),
+        undefined
+      );
+    });
+
+    it("submits the selected borough for a New York City event", async () => {
+      const { result } = renderHook(() => useSubmitEventForm());
+
+      await act(async () => {
+        result.current.update("title", "Test Event");
+        result.current.update("event_type", "social");
+        result.current.update("event_date", "2026-08-20");
+        result.current.update("city", "new-york-city");
+        result.current.update("sublocation", "queens");
+      });
+      await act(async () => {
+        await result.current.handleSubmit(submitEvent);
+      });
+
+      expect(createSubmission).toHaveBeenCalledWith(
+        expect.objectContaining({ city: "new-york-city", sublocation: "queens" }),
+        undefined
+      );
+    });
+
+    it("resets the borough after a successful submission", async () => {
+      const { result } = renderHook(() => useSubmitEventForm());
+
+      await act(async () => {
+        result.current.update("title", "Test Event");
+        result.current.update("event_type", "social");
+        result.current.update("event_date", "2026-08-20");
+        result.current.update("city", "new-york-city");
+        result.current.update("sublocation", "bronx");
+      });
+      await act(async () => {
+        await result.current.handleSubmit(submitEvent);
+      });
+
+      expect(result.current.form.sublocation).toBe("");
+    });
+
+    it("blocks submit and reports the borough when it does not belong to the city", async () => {
+      const { result } = renderHook(() => useSubmitEventForm());
+
+      await act(async () => {
+        result.current.update("title", "Test Event");
+        result.current.update("event_type", "social");
+        result.current.update("event_date", "2026-08-20");
+        result.current.update("sublocation", "brooklyn");
+      });
+      await act(async () => {
+        await result.current.handleSubmit(submitEvent);
+      });
+
+      expect(createSubmission).not.toHaveBeenCalled();
+      expect(result.current.fieldErrors.sublocation).toBe(
+        "Boroughs only apply to New York City events."
+      );
+    });
+  });
+
   it("blocks submit and reports the event type when the selection is emptied", async () => {
     const { result } = renderHook(() => useSubmitEventForm());
 

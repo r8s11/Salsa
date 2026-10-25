@@ -78,6 +78,7 @@ const pendingEvent: DatabaseEvent = {
   created_at: "2026-08-01T00:00:00Z",
   updated_at: "2026-08-01T00:00:00Z",
   cancellation_reason: null,
+  sublocation: null,
   city: "boston",
   host: null,
   recurrence: null,
@@ -336,6 +337,60 @@ describe("UserEventEditPage save flow", () => {
 
     expect(await screen.findByText("Profile page")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Save changes/i })).not.toBeInTheDocument();
+  });
+
+it("loads the stored borough, saves a changed one, and clears it when the city changes", async () => {
+    mocks.useMySubmissions.mockReturnValue({
+      submissions: [{ ...pendingEvent, city: "new-york-city", sublocation: "brooklyn" }],
+      approvedEvents: [],
+      isLoading: false,
+      error: null,
+    });
+    mocks.updateEventForUser.mockResolvedValue(undefined);
+
+    renderPage();
+
+    const borough = await screen.findByLabelText("Borough");
+    expect(borough).toHaveValue("brooklyn");
+    fireEvent.change(borough, { target: { value: "queens" } });
+    fireEvent.click(screen.getByRole("button", { name: /Save changes/i }));
+    await waitFor(() => expect(mocks.updateEventForUser).toHaveBeenCalledTimes(1));
+    expect(mocks.updateEventForUser.mock.calls[0][1]).toMatchObject({
+      city: "new-york-city",
+      sublocation: "queens",
+    });
+
+    fireEvent.change(screen.getByLabelText("City *"), { target: { value: "boston" } });
+    expect(screen.queryByLabelText("Borough")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /Save changes/i }));
+    await waitFor(() => expect(mocks.updateEventForUser).toHaveBeenCalledTimes(2));
+    expect(mocks.updateEventForUser.mock.calls[1][1]).toMatchObject({
+      city: "boston",
+      sublocation: null,
+    });
+  });
+
+it("sends the borough through edited_data on a moderation submission edit", async () => {
+    mocks.useMySubmissions.mockReturnValue({
+      submissions: [{ ...pendingSubmissionEvent, city: "new-york-city", sublocation: "bronx" }],
+      approvedEvents: [],
+      isLoading: false,
+      error: null,
+    });
+    mocks.updateOwnEventSubmission.mockResolvedValueOnce(undefined);
+
+    renderPageFor("submission-id");
+
+    expect(await screen.findByLabelText("Borough")).toHaveValue("bronx");
+    fireEvent.change(screen.getByLabelText("Borough"), { target: { value: "" } });
+    fireEvent.click(screen.getByRole("button", { name: /Save changes/i }));
+
+    await waitFor(() => {
+      expect(mocks.updateOwnEventSubmission).toHaveBeenCalledWith(
+        "submission-id",
+        expect.objectContaining({ city: "new-york-city", sublocation: null })
+      );
+    });
   });
 });
 

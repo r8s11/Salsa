@@ -29,6 +29,7 @@ function makeEvent(overrides: Partial<DatabaseEvent> = {}): DatabaseEvent {
     updated_at: "",
     cancellation_reason: null,
     city: "boston",
+    sublocation: null,
     created_at: "",
     host: null,
     recurrence: null,

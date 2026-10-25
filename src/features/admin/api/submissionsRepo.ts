@@ -23,6 +23,7 @@ export type SubmissionCreate = {
   /** Full ordered selection; `event_type` is its first member. */
   event_types: EventType[];
   city: string;
+  sublocation: string | null;
   event_date: string;
   event_time: string | null;
   location: string | null;

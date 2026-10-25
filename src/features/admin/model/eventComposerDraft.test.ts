@@ -21,6 +21,7 @@ const source: DatabaseEvent = {
   taxonomy_term_ids: ["salsa"],
   taxonomy_terms: [],
   city: "boston",
+  sublocation: null,
   created_at: "2026-10-01T00:00:00Z",
   updated_at: "2026-10-01T00:00:00Z",
   host: "Salsa crew",

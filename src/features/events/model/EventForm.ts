@@ -1,5 +1,6 @@
 import type { EntityReview } from "../../entity-matching/entityReview";
 import type { EventType, City } from "./types";
+import type { SubLocation } from "../../metros/model/sublocation";
 
 export type EventFormDraft = {
   title: string;
@@ -8,6 +9,8 @@ export type EventFormDraft = {
   /** Full ordered selection; `event_type` is its first member. */
   event_types?: EventType[];
   city: City;
+  /** Optional NYC borough; "" means All NYC. */
+  sublocation: SubLocation | "";
   event_date: string;
   event_time: string;
   recurrence: "weekly" | "";

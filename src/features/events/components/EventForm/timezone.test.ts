@@ -11,6 +11,7 @@ const draft = (overrides: Partial<EventFormDraft> = {}): EventFormDraft => ({
   description: "",
   event_type: "social",
   city: "new-york-city",
+  sublocation: "",
   event_date: "2026-07-18",
   event_time: "20:00",
   recurrence: "weekly",
@@ -38,6 +39,7 @@ const storedEvent = (overrides: Partial<DatabaseEvent> = {}): DatabaseEvent => (
   description: null,
   event_type: "social",
   city: "los-angeles",
+  sublocation: null,
   event_date: "2026-07-19T03:00:00Z", // 8pm in Los Angeles (PDT)
   event_time: "20:00",
   location: null,

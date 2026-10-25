@@ -21,6 +21,11 @@ export const CSV_COLUMNS: CsvColumnSpec[] = [
     help: "City slug as listed on the site, e.g. boston, new-york-city, miami, washington-dc.",
   },
   {
+    key: "sublocation",
+    required: false,
+    help: "NYC borough, only with city new-york-city: manhattan, brooklyn, queens, bronx, or staten-island. Leave blank for All NYC.",
+  },
+  {
     key: "event_time",
     required: false,
     help: "24-hour time, format HH:MM (e.g. 20:00). Leave blank if unknown.",
@@ -66,6 +71,7 @@ const EXAMPLE_ROW: Record<string, string> = {
   event_type: "social",
   event_date: "2026-09-15",
   city: "boston",
+  sublocation: "",
   event_time: "20:00",
   description: "A weekly social with live DJ.",
   venue_name: "The Dance Loft",

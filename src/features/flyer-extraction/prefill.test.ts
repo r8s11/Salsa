@@ -8,6 +8,7 @@ const BASE_DRAFT: EventFormDraft = {
   description: "",
   event_type: "",
   city: "boston",
+  sublocation: "",
   event_date: "",
   event_time: "",
   recurrence: "",

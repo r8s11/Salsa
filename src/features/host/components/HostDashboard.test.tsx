@@ -48,6 +48,7 @@ const baseEvent: DatabaseEvent = {
   updated_at: "2026-08-01T00:00:00Z",
   cancellation_reason: null,
   city: "boston",
+  sublocation: null,
   created_at: "2026-08-01T00:00:00Z",
   host: null,
   recurrence: null,

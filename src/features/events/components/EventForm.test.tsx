@@ -20,6 +20,7 @@ const draft: EventFormDraft = {
   description: "",
   event_type: "",
   city: "boston",
+  sublocation: "",
   event_date: "",
   event_time: "",
   recurrence: "",
@@ -237,6 +238,77 @@ describe("EventForm", () => {
       "Pricing & RSVP",
       "Host & contact",
     ]);
+  });
+});
+
+describe("EventForm borough", () => {
+  const nyc: EventFormDraft = { ...draft, city: "new-york-city" };
+
+  function Harness({ initial }: { initial: EventFormDraft }) {
+    const [value, setValue] = useState(initial);
+    return (
+      <>
+        <EventForm draft={value} onChange={setValue} capabilities={CAPABILITIES.submit} />
+        <output data-testid="state">{JSON.stringify([value.city, value.sublocation])}</output>
+      </>
+    );
+  }
+  const state = () => JSON.parse(screen.getByTestId("state").textContent ?? "null");
+
+  it("offers All NYC plus the five boroughs only for New York City", () => {
+    const { rerender } = render(
+      <EventForm draft={draft} onChange={vi.fn()} capabilities={CAPABILITIES.submit} />
+    );
+    expect(screen.queryByLabelText("Borough")).not.toBeInTheDocument();
+
+    rerender(<EventForm draft={nyc} onChange={vi.fn()} capabilities={CAPABILITIES.submit} />);
+    const select = screen.getByLabelText("Borough");
+    expect(select).toHaveValue("");
+    expect(Array.from(select.querySelectorAll("option")).map((option) => option.textContent)).toEqual([
+      "All NYC",
+      "Manhattan",
+      "Brooklyn",
+      "Queens",
+      "The Bronx",
+      "Staten Island",
+    ]);
+  });
+
+  it("writes the chosen borough slug onto the draft, and All NYC clears it", () => {
+    const onChange = vi.fn();
+    render(<EventForm draft={nyc} onChange={onChange} capabilities={CAPABILITIES.submit} />);
+
+    fireEvent.change(screen.getByLabelText("Borough"), { target: { value: "staten-island" } });
+    expect(onChange).toHaveBeenLastCalledWith({ ...nyc, sublocation: "staten-island" });
+
+    fireEvent.change(screen.getByLabelText("Borough"), { target: { value: "" } });
+    expect(onChange).toHaveBeenLastCalledWith({ ...nyc, sublocation: "" });
+  });
+
+  it("clears the borough whenever the city changes, so it cannot come back stale", () => {
+    render(<Harness initial={{ ...nyc, sublocation: "queens" }} />);
+    expect(state()).toEqual(["new-york-city", "queens"]);
+
+    fireEvent.change(screen.getByLabelText("City *"), { target: { value: "boston" } });
+    expect(state()).toEqual(["boston", ""]);
+    expect(screen.queryByLabelText("Borough")).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("City *"), { target: { value: "new-york-city" } });
+    expect(state()).toEqual(["new-york-city", ""]);
+    expect(screen.getByLabelText("Borough")).toHaveValue("");
+  });
+
+  it("shows the borough error beside the field", () => {
+    render(
+      <EventForm
+        draft={nyc}
+        onChange={vi.fn()}
+        capabilities={CAPABILITIES.submit}
+        errors={{ sublocation: "Choose a borough from the list, or leave it as All NYC." }}
+      />
+    );
+    expect(screen.getByLabelText("Borough")).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByText("Choose a borough from the list, or leave it as All NYC.")).toBeVisible();
   });
 });
 

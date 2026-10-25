@@ -14,6 +14,7 @@ const draft: EventFormDraft = {
   description: "Social dancing",
   event_type: "social",
   city: "new-york-city",
+  sublocation: "manhattan",
   event_date: "2026-10-24",
   event_time: "21:00",
   recurrence: "weekly",
@@ -54,6 +55,7 @@ describe("EventForm adapters", () => {
         "price_type",
         "recurrence",
         "rsvp_link",
+        "sublocation",
         "submitter_email",
         "submitter_id",
         "submitter_name",
@@ -83,6 +85,7 @@ describe("EventForm adapters", () => {
         "price_type",
         "recurrence",
         "rsvp_link",
+        "sublocation",
         "title",
       ].sort()
     );
@@ -112,6 +115,7 @@ describe("EventForm adapters", () => {
         "price_type",
         "recurrence",
         "rsvp_link",
+        "sublocation",
         "taxonomy_term_ids",
         "title",
         "venue_id",
@@ -168,6 +172,35 @@ describe("EventForm adapters", () => {
       const none: EventFormDraft = { ...draft, event_type: "", event_types: [] };
       expect(() => draftToSubmission(none, null)).toThrow("Choose at least one event type.");
       expect(() => draftToAdminPayload(none)).toThrow("Choose at least one event type.");
+    });
+  });
+
+describe("NYC borough", () => {
+    const actor = { id: "user-1", email: "account@example.com" };
+    const everyPayload = (value: EventFormDraft) => ({
+      submission: draftToSubmission(value, actor),
+      user: draftToUserPayload(value),
+      admin: draftToAdminPayload(value),
+      organizerCreate: draftToOrganizerCreatePayload(value),
+      organizerUpdate: draftToOrganizerUpdatePayload(value),
+    });
+
+    it("sends the selected borough through every payload", () => {
+      for (const payload of Object.values(everyPayload({ ...draft, sublocation: "staten-island" }))) {
+        expect(payload).toHaveProperty("sublocation", "staten-island");
+      }
+    });
+
+    it("sends an explicit null for All NYC so an edit clears the stored borough", () => {
+      for (const payload of Object.values(everyPayload({ ...draft, sublocation: "" }))) {
+        expect(payload).toHaveProperty("sublocation", null);
+      }
+    });
+
+    it("never serializes a borough for a non-NYC city", () => {
+      for (const payload of Object.values(everyPayload({ ...draft, city: "boston" }))) {
+        expect(payload).toHaveProperty("sublocation", null);
+      }
     });
   });
 });

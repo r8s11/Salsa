@@ -66,6 +66,7 @@ export interface DatabaseEvent {
   updated_at: string;
   cancellation_reason?: string | null;
   city: City;
+  sublocation: string | null;
   created_at: string;
   host: string | null;
   recurrence: string | null;
@@ -112,6 +113,8 @@ export interface ScheduleXEvent {
   address?: string;
   rsvpLink?: string;
   city?: City;
+  /** Optional NYC borough slug; absent means All NYC (or a non-NYC city). */
+  sublocation?: string;
   host?: string;
   recurrence?: string;
   /** Resolved IANA zone `start`/`end` are wall-clock in. */

@@ -28,6 +28,7 @@ const baseEvent: DatabaseEvent = {
   submitter_id: "user-1",
   status: "pending",
   city: "boston",
+  sublocation: null,
   created_at: "2026-08-01T00:00:00.000Z",
   host: "DJ Cocolo",
   recurrence: null,

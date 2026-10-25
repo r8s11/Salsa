@@ -40,6 +40,14 @@ describe("buildCsvTemplate", () => {
     expect(lines).toHaveLength(2);
   });
 
+  it("includes an optional, blank sublocation column", () => {
+    const [header, example] = buildCsvTemplate().trim().split("\n");
+    const keys = header.split(",");
+    expect(keys).toContain("sublocation");
+    expect(CSV_REQUIRED_KEYS).not.toContain("sublocation");
+    expect(example.split(",")[keys.indexOf("sublocation")]).toBe("");
+  });
+
   it("populates every required column in the example row", () => {
     const [header, example] = buildCsvTemplate().trim().split("\n");
     const keys = header.split(",");

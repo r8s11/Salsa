@@ -90,6 +90,7 @@ export function submissionToDatabaseEvent(submission: EventSubmission): Database
     updated_at: submission.updated_at,
     cancellation_reason: null,
     city: city(data),
+    sublocation: nullableString(data, "sublocation"),
     created_at: submission.created_at,
     host: null,
     recurrence: data.recurrence === "weekly" ? "weekly" : null,

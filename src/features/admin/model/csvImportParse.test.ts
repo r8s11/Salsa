@@ -83,6 +83,22 @@ describe("parseCsvFile — column detection", () => {
     expect(result.ok).toBe(true);
     expect(result.unexpectedColumns).toEqual(["surprise"]);
   });
+
+  it("treats sublocation as a known optional column, not required and not unexpected", async () => {
+    const withColumn = await parseCsvFile(
+      csvFile(
+        `${HEADER}\n${rowFor({ title: "Salsa", event_type: "social", event_date: "2026-09-15", city: "new-york-city", sublocation: "queens" })}\n`
+      )
+    );
+    expect(withColumn.ok).toBe(true);
+    expect(withColumn.unexpectedColumns).toEqual([]);
+    expect(withColumn.rows[0].sublocation).toBe("queens");
+
+    const withoutColumn = await parseCsvFile(
+      csvFile("title,event_type,event_date,city\nSalsa,social,2026-09-15,boston\n")
+    );
+    expect(withoutColumn.ok).toBe(true);
+  });
 });
 
 describe("parseCsvFile — CSV syntax handling", () => {

@@ -10,6 +10,12 @@ import {
   type MetroSlug,
   type RankedMetro,
 } from "../model/metro";
+import {
+  NYC_CITY,
+  NYC_SUBLOCATIONS,
+  subLocationLabel,
+  type SubLocation,
+} from "../model/sublocation";
 import "./MetroExplorer.css";
 
 /** Home and metro-home routes navigate on pick; every other page stays put. */
@@ -40,8 +46,16 @@ export default function MetroExplorer({
   className,
   onPicked,
 }: MetroExplorerProps) {
-  const { city, source, activeMetros, activeMetrosError, locationStatus, setCity, chooseNearMe } =
-    useCity();
+  const {
+    city,
+    subLocation,
+    source,
+    activeMetros,
+    activeMetrosError,
+    locationStatus,
+    setCity,
+    chooseNearMe,
+  } = useCity();
   const metroName = useMetroName();
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -72,9 +86,13 @@ export default function MetroExplorer({
     };
   }, [open, close]);
 
-  const pick = (slug: MetroSlug) => {
-    setCity(slug);
-    if (isDiscoveryPath(pathname)) navigate(`/events/${slug}`);
+  const pick = (slug: MetroSlug, nextSubLocation: SubLocation | null = null) => {
+    setCity(slug, nextSubLocation);
+    if (isDiscoveryPath(pathname)) {
+      navigate(
+        `/events/${slug}${nextSubLocation ? `?borough=${nextSubLocation}` : ""}`
+      );
+    }
     close(true);
     onPicked?.();
   };
@@ -99,7 +117,9 @@ export default function MetroExplorer({
             : "Uses your approximate area once. Nothing is stored.";
 
   const current = city ? metroName(city) : null;
-  const triggerText = label ?? current ?? "Choose a city";
+  const currentSubLocation = subLocationLabel(subLocation);
+  const currentLocation = currentSubLocation && current ? `${currentSubLocation}, ${current}` : current;
+  const triggerText = label ?? currentLocation ?? "Choose a city";
 
   return (
     <div
@@ -112,8 +132,8 @@ export default function MetroExplorer({
         className={`metro-explorer__trigger${label ? "" : " metro-explorer__trigger--code"}`}
         aria-expanded={open}
         aria-controls={panelId}
-        aria-label={label ? undefined : `City: ${current ?? "none chosen"}. Explore other cities`}
-        title={label ? undefined : (current ?? undefined)}
+        aria-label={label ? undefined : `Location: ${currentLocation ?? "none chosen"}. Explore other cities`}
+        title={label ? undefined : (currentLocation ?? undefined)}
         onClick={() => setOpen((value) => !value)}
       >
         <MapPin size={16} aria-hidden="true" />
@@ -159,6 +179,7 @@ export default function MetroExplorer({
                   key={metro.slug}
                   metro={metro}
                   current={metro.slug === city}
+                  subLocation={metro.slug === city ? subLocation : null}
                   onPick={pick}
                 />
               ))}
@@ -180,19 +201,22 @@ export default function MetroExplorer({
 function MetroOption({
   metro,
   current,
+  subLocation,
   onPick,
 }: {
   metro: RankedMetro;
   current: boolean;
-  onPick: (slug: MetroSlug) => void;
+  subLocation: SubLocation | null;
+  onPick: (slug: MetroSlug, subLocation?: SubLocation | null) => void;
 }) {
   const distance = formatDistance(metro.distanceKm);
+  const allCurrent = current && !subLocation;
   return (
     <li>
       <button
         type="button"
-        className={`metro-explorer__option${current ? " is-current" : ""}`}
-        aria-current={current ? "true" : undefined}
+        className={`metro-explorer__option${allCurrent ? " is-current" : ""}`}
+        aria-current={allCurrent ? "true" : undefined}
         onClick={() => onPick(metro.slug)}
       >
         <span className="metro-explorer__option-name">
@@ -205,8 +229,50 @@ function MetroOption({
           {eventCountLabel(metro.upcomingEventCount)}
           {distance && ` · ${distance}`}
         </span>
-        {current && <Check size={16} aria-hidden="true" className="metro-explorer__check" />}
+        {allCurrent && <Check size={16} aria-hidden="true" className="metro-explorer__check" />}
       </button>
+      {metro.slug === NYC_CITY && (
+        <ul className="metro-explorer__sublist" aria-label="New York City boroughs">
+          <li>
+            <SubLocationOption
+              name="All NYC"
+              current={allCurrent}
+              onPick={() => onPick(metro.slug)}
+            />
+          </li>
+          {NYC_SUBLOCATIONS.map((location) => (
+            <li key={location.slug}>
+              <SubLocationOption
+                name={location.name}
+                current={current && subLocation === location.slug}
+                onPick={() => onPick(metro.slug, location.slug)}
+              />
+            </li>
+          ))}
+        </ul>
+      )}
     </li>
+  );
+}
+
+function SubLocationOption({
+  name,
+  current,
+  onPick,
+}: {
+  name: string;
+  current: boolean;
+  onPick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      className={`metro-explorer__sublocation${current ? " is-current" : ""}`}
+      aria-current={current ? "true" : undefined}
+      onClick={onPick}
+    >
+      <span>{name}</span>
+      {current && <Check size={15} aria-hidden="true" />}
+    </button>
   );
 }

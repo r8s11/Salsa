@@ -79,6 +79,7 @@ function toHostPayload(row: CsvRowResult): OrganizerEventCreatePayload {
     event_type: p.event_type,
     event_types: p.event_types ?? [p.event_type],
     city: p.city,
+    sublocation: p.sublocation ?? null,
     event_date: p.event_date,
     event_time: p.event_time || null,
     location: p.location || null,

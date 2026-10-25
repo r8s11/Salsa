@@ -153,6 +153,7 @@ export function applyExtractionToDraft(
       skipped.push("City");
     } else if (!options.preserveCity && next.city !== mapped) {
       next.city = mapped;
+      next.sublocation = "";
       filled.push("City");
     }
   }

@@ -5,6 +5,7 @@ import { resolveDraftTimeZone } from "../../events/components/EventForm/types";
 import { fromEventDateInstant } from "../../events/model/eventDateTime";
 import { eventTypeFieldsFrom, selectedEventTypes } from "../../events/model/eventTypeSelection";
 import { timeZoneForDisplay } from "../../../shared/utils/timezone";
+import { normalizeSubLocation } from "../../metros/model/sublocation";
 
 export type AdminEventForm = EventFormDraft;
 export const HOST_MAX_LENGTH = 300;
@@ -13,6 +14,7 @@ export const INSTAGRAM_MAX_LENGTH = 100;
 export function buildEmptyAdminForm(city: City): AdminEventForm {
   return {
     ...buildInitialForm(city),
+    sublocation: "",
     venue_id: "",
     series_id: "",
     image_url: "",
@@ -37,6 +39,7 @@ export function buildAdminFormFromEvent(event: DatabaseEvent): AdminEventForm {
     description: event.description ?? "",
     ...eventTypeFieldsFrom(event),
     city: event.city,
+    sublocation: normalizeSubLocation(event.city, event.sublocation) ?? "",
     event_date: date,
     event_time: time,
     recurrence: event.recurrence === "weekly" ? "weekly" : "",
@@ -85,6 +88,7 @@ export function validateAdminEventForm(form: AdminEventForm): string | null {
     submitter_email: form.submitter_email,
     recurrence: form.recurrence,
     dance_styles: form.dance_styles,
+    sublocation: form.sublocation,
   });
   if (submitFormError) return submitFormError;
   const zone = resolveDraftTimeZone(form);

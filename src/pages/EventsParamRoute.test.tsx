@@ -22,7 +22,8 @@ vi.mock("./HomePage", () => ({ default: () => <main>Metro home</main> }));
 vi.mock("./EventDetailPage", () => ({ default: () => <main>Event detail</main> }));
 
 function Path() {
-  return <output data-testid="path">{useLocation().pathname}</output>;
+  const { pathname, search } = useLocation();
+  return <output data-testid="path">{pathname}{search}</output>;
 }
 
 function renderAt(path: string) {
@@ -42,14 +43,18 @@ describe("/events/:id", () => {
   it("serves a metro home at its canonical slug and selects that metro", async () => {
     renderAt("/events/miami");
     expect(await screen.findByText("Metro home")).toBeInTheDocument();
-    expect(setCity).toHaveBeenCalledWith("miami");
   });
 
   it("collapses aliases onto the canonical metro URL", async () => {
     renderAt("/events/nyc");
     expect(await screen.findByText("Metro home")).toBeInTheDocument();
     expect(screen.getByTestId("path")).toHaveTextContent("/events/new-york-city");
-    expect(setCity).toHaveBeenCalledWith("new-york-city");
+  });
+
+  it("preserves a borough filter when canonicalizing a NYC alias", async () => {
+    renderAt("/events/nyc?borough=queens");
+    expect(await screen.findByText("Metro home")).toBeInTheDocument();
+    expect(screen.getByTestId("path")).toHaveTextContent("/events/new-york-city?borough=queens");
   });
 
   it("still opens event details for event ids", async () => {

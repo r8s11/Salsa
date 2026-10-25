@@ -11,6 +11,7 @@ import { useNewYorkToday } from "../../features/events/hooks/useNewYorkToday";
 import { nightOf } from "../../features/events/model/night";
 import { useMetroName } from "../../features/metros/hooks/useMetros";
 import { metroShortCode } from "../../features/metros/model/metro";
+import { subLocationLabel } from "../../features/metros/model/sublocation";
 import MetroExplorer from "../../features/metros/components/MetroExplorer";
 import { useHeroMotion } from "./Hero.motion";
 
@@ -22,11 +23,12 @@ const wallKey = (dt: Temporal.PlainDateTime) =>
 
 function Hero() {
   const isMetroLanding = useLocation().pathname.startsWith("/events/");
-  const { city, source } = useCity();
+  const { city, subLocation, source } = useCity();
   const { events, loading, loadFailed } = useEvents();
   const metroName = useMetroName();
-  const cityLabel = city ? metroName(city) : null;
-  const cityShort = cityLabel ? metroShortCode(cityLabel) : null;
+  const metroLabel = city ? metroName(city) : null;
+  const cityLabel = subLocationLabel(subLocation) ?? metroLabel;
+  const cityShort = metroLabel ? metroShortCode(metroLabel) : null;
   // "Near" only when the visitor's area picked the metro; a person's own
   // choice (or the inventory fallback) is stated as "in".
   const nearby = source === "location";

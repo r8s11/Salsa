@@ -2,12 +2,13 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchApprovedEvents } from "../api/eventsRepo";
 import { City, databaseEventToScheduleX } from "../../../types/events";
+import type { SubLocation } from "../../metros/model/sublocation";
 
-/** Approved upcoming events for one metro; idle while no metro is chosen. */
-export function useEventsQuery(city: City | null) {
+/** Approved upcoming events for one metro or NYC borough; idle while no metro is chosen. */
+export function useEventsQuery(city: City | null, subLocation: SubLocation | null = null) {
   const { data, isLoading, isFetching, error, errorUpdatedAt, refetch } = useQuery({
-    queryKey: ["events", city],
-    queryFn: () => fetchApprovedEvents(city!),
+    queryKey: ["events", city, subLocation],
+    queryFn: () => fetchApprovedEvents(city!, subLocation),
     enabled: city !== null,
   });
   // Incidental renders must not look like a different list collection.

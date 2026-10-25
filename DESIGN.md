@@ -890,6 +890,17 @@ listings keeps cards at most 360px wide instead of stretching them.
 The card carries no purchase or RSVP button; decisions live on the night
 card in the event modal.
 
+`FeaturedEventCard` is the discovery lead: a balanced two-column composition
+with a 420px minimum height, 32–56px Epilogue title, and a large tabular date
+on an opaque navy marker. Gold marks the date labels, metadata icons and
+full-width View details row with a Lucide arrow. It keeps the existing glass
+surface and category colours; no additional palette or typeface is introduced.
+Below 768px the artwork stacks above the details. The image is explicitly
+bounded to the card width; date and approval badge occupy separate grid
+columns and reflow without overlap at enlarged text sizes. The title's
+stretched button still opens the modal, while entity links remain independent.
+Hover/focus fills the arrow in gold; reduced motion removes transitions.
+
 **Dance-style chips.** Small pills (`.style-chip`) name dance styles
 (On1, On2, Cuban, …) with a low-opacity Warm Orange background
 (`--tertiary-dim`) and white 0.6875rem uppercase text — legible but

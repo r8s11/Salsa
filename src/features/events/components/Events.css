@@ -61,7 +61,7 @@
 .featured-card {
   position: relative;
   display: grid;
-  grid-template-columns: 1.15fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
   border-radius: var(--radius-xl);
   overflow: hidden;
   border: 1px solid var(--border);
@@ -69,16 +69,23 @@
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
   cursor: pointer;
-  min-height: 340px;
-  transition: border-color 0.25s ease;
+  min-height: 420px;
+  transition: border-color 0.2s ease;
 }
 
 .featured-card:hover {
-  border-color: var(--red-dim);
+  border-color: var(--gold);
 }
 
 .featured-card-media {
   position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-content: start;
+  gap: 1rem;
+  min-width: 0;
+  width: 100%;
+  padding: 24px;
   min-height: 240px;
   background-size: cover;
   background-position: center;
@@ -99,87 +106,138 @@
 }
 
 .featured-card-date {
-  position: absolute;
-  top: 20px;
-  left: 20px;
+  grid-area: 1 / 1;
+  width: fit-content;
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: var(--red);
-  color: #fff;
+  gap: 4px;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border-lg);
   border-radius: var(--radius-md);
-  padding: 10px 16px;
-  /* Date sits over noisy flyer art: use directional depth, not a floating halo. */
-  box-shadow: 0 10px 22px rgba(104, 0, 26, 0.36);
+  padding: 14px 18px;
 }
 
 .featured-card-date span:first-child {
   font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 0.6875rem;
+  font-weight: 700;
+  font-size: 0.75rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  opacity: 0.85;
+  color: var(--gold-light);
 }
 
 .featured-card-date strong {
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: 2.1rem;
+  font-size: 4rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
   line-height: 1;
 }
 
 .featured-card-date span:last-child {
   font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 0.6875rem;
+  font-weight: 700;
+  font-size: 0.75rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+  color: var(--gold-light);
 }
 
 .featured-card-body {
-  padding: 2.25rem;
+  min-width: 0;
+  padding: clamp(1.5rem, 3.5vw, 3rem);
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
-  justify-content: center;
+  gap: 1.25rem;
 }
 
 .featured-card-body h3 {
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: clamp(1.6rem, 2.6vw, 2.2rem);
-  line-height: 1.05;
-  letter-spacing: -0.01em;
+  font-size: clamp(2rem, 3.7vw, 3.5rem);
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
   color: var(--text);
   margin: 0;
 }
 
 .featured-card-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.1rem;
+  display: grid;
+  gap: 0.375rem;
   font-family: var(--font-body);
   font-size: 0.875rem;
   color: var(--text-muted);
+}
+
+.featured-card-meta > span {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-width: 0;
+  min-height: 24px;
+}
+
+.featured-card-meta svg {
+  flex-shrink: 0;
+  color: var(--gold);
+}
+
+.featured-card .event-card-entity {
+  overflow-wrap: anywhere;
 }
 
 .featured-card-description {
   font-family: var(--font-body);
   font-size: 0.9375rem;
   line-height: 1.6;
-  color: var(--text-dim-glass);
+  color: var(--text-muted);
   max-width: 46ch;
   margin: 0;
 }
 
 .featured-card-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: auto;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border-md);
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--red-bright);
+  color: var(--gold-light);
+}
+
+.featured-card-arrow {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-full);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.featured-card:hover .featured-card-arrow,
+.featured-card:has(.event-card-open:focus-visible) .featured-card-arrow {
+  background: var(--gold);
+  color: var(--on-gold);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .featured-card,
+  .featured-card-arrow {
+    transition: none;
+  }
 }
 
 /* ── Feed Header ── */
@@ -447,16 +505,21 @@
   border: 1px solid rgba(233, 195, 73, 0.35);
 }
 
-.event-card-thumb > .recently-approved-badge,
-.featured-card-media > .recently-approved-badge {
+.event-card-thumb > .recently-approved-badge {
   position: absolute;
   top: 12px;
   right: 12px;
 }
 
 .featured-card-media > .recently-approved-badge {
-  top: 20px;
-  right: 20px;
+  position: static;
+  grid-area: 1 / 2;
+  justify-self: end;
+  align-self: start;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  background: var(--bg);
+  border-color: var(--gold);
 }
 
 .event-card-date-overlay {
@@ -667,12 +730,32 @@
 /* ── Mobile ── */
 @media (max-width: 767.98px) {
   .featured-card {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     min-height: unset;
   }
 
+  .featured-card-media {
+    min-height: 240px;
+    aspect-ratio: 4 / 3;
+    padding: 16px;
+  }
+
+  .featured-card-date {
+    min-width: 0;
+    padding: 12px 14px;
+  }
+
+  .featured-card-date strong {
+    font-size: 3rem;
+  }
+
+
+  .featured-card-body h3 {
+    font-size: clamp(1.75rem, 8.2vw, 2.5rem);
+  }
+
   .featured-card-body {
-    padding: 1.75rem 1.5rem;
+    padding: 28px clamp(20px, 6vw, 28px);
   }
 }
 

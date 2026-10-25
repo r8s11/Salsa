@@ -1,4 +1,4 @@
-import { Clock, MapPin } from "lucide-react";
+import { ArrowUpRight, Clock, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 import { entityHref } from "../../entities/model";
 import EventEntityLinks from "./EventEntityLinks";
@@ -77,7 +77,8 @@ export default function FeaturedEventCard({
         <EventEntityLinks entities={event.publicEntities} omit={["venue"]} />
         {event.description && <p className="featured-card-description">{event.description}</p>}
         <span className="featured-card-link" aria-hidden="true">
-          View details →
+          <span>View details</span>
+          <span className="featured-card-arrow"><ArrowUpRight size={24} strokeWidth={1.75} /></span>
         </span>
       </div>
     </article>

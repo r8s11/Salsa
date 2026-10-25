@@ -32,8 +32,12 @@ const PRIMARY_LINKS = [
   { to: "/shop", label: "Shop" },
 ] as const;
 
+/** Scroll distance after which the bar turns to glass and condenses. */
+const CONDENSE_AFTER_PX = 100;
+
 function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const [signOutPending, setSignOutPending] = useState(false);
   const [signOutError, setSignOutError] = useState<string | null>(null);
   const accountDisclosure = useRef<HTMLDetailsElement>(null);
@@ -116,6 +120,13 @@ function Header() {
     window.addEventListener("resize", closeOnDesktop);
     return () => window.removeEventListener("resize", closeOnDesktop);
   }, [closeNavigation]);
+
+  useEffect(() => {
+    const update = () => setScrolled(window.scrollY > CONDENSE_AFTER_PX);
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    return () => window.removeEventListener("scroll", update);
+  }, []);
 
   useEffect(() => {
     const dismissOutside = (event: PointerEvent | FocusEvent) => {
@@ -223,6 +234,9 @@ function Header() {
     <div
       ref={navigationRef}
       className="site-header"
+      // The open menu sheet hangs from the bar, so the bar stays full height and glass.
+      data-glass={scrolled || mobileOpen}
+      data-condensed={scrolled && !mobileOpen}
       role={mobileOpen ? "dialog" : "banner"}
       aria-modal={mobileOpen ? true : undefined}
       aria-label={mobileOpen ? "Site navigation" : undefined}

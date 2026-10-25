@@ -25,7 +25,7 @@ export function EntityClaimControl({ kind, entity }: EntityClaimControlProps) {
   // 1. Signed out
   if (!user) {
     const promptText =
-      kind === "instructor" ? "Is this you?" : `Run this ${kind}?`;
+      kind === "instructor" || kind === "dj" ? "Is this you?" : `Run this ${kind}?`;
 
     return (
       <div className="entity-claim-control" aria-label="Listing management">
@@ -83,7 +83,7 @@ export function EntityClaimControl({ kind, entity }: EntityClaimControlProps) {
   }
 
   const rejectedClaim = entityClaims.find((c) => c.status === "rejected");
-  const claimButtonLabel = `Claim this ${kind === "instructor" ? "profile" : kind}`;
+  const claimButtonLabel = `Claim this ${kind === "instructor" || kind === "dj" ? "profile" : kind}`;
 
   return (
     <div className="entity-claim-control" aria-label="Listing management">

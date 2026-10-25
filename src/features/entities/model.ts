@@ -5,6 +5,7 @@ export const PUBLIC_ENTITY_KINDS = [
   "venue",
   "school",
   "instructor",
+  "dj",
   "city",
   "style",
 ] as const;
@@ -51,6 +52,7 @@ export type PublicEventEntities = {
   organizer: PublicEntityRef | null;
   school: PublicEntityRef | null;
   instructors: PublicEntityRef[];
+  djs: PublicEntityRef[];
   schools: PublicEntityRef[];
   series: PublicEntityRef | null;
   city: PublicEntityRef | null;
@@ -64,6 +66,7 @@ export const ENTITY_LABELS: Record<PublicEntityKind, string> = {
   venue: "Venue",
   school: "School",
   instructor: "Instructor",
+  dj: "DJ",
   city: "City",
   style: "Dance style",
 };
@@ -75,6 +78,7 @@ const ENTITY_PATHS: Record<PublicEntityKind, string> = {
   venue: "/v",
   school: "/s",
   instructor: "/i",
+  dj: "/dj",
   city: "/cities",
   style: "/styles",
 };
@@ -90,6 +94,7 @@ export const ENTITY_DIRECTORY_PATHS: Record<PublicEntityKind, string> = {
   venue: "/venues",
   school: "/schools",
   instructor: "/instructors",
+  dj: "/djs",
   city: "/cities",
   style: "/styles",
 };
@@ -101,6 +106,7 @@ export const ENTITY_COLLECTIONS: Record<PublicEntityKind, string> = {
   venue: "venues",
   school: "schools",
   instructor: "instructors",
+  dj: "DJs",
   city: "cities",
   style: "dance styles",
 };

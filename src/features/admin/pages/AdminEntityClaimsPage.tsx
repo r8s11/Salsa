@@ -45,11 +45,12 @@ const STATUS_WORD: Record<ClaimStatus, string> = {
   withdrawn: "Withdrawn",
 };
 
-const PUBLIC_SEGMENT: Record<ManagedKind, string> = { school: "s", venue: "v", instructor: "i" };
+const PUBLIC_SEGMENT: Record<ManagedKind, string> = { school: "s", venue: "v", instructor: "i", dj: "dj" };
 const ADMIN_SEGMENT: Record<ManagedKind, string> = {
   school: "schools",
   venue: "venues",
   instructor: "instructors",
+  dj: "djs",
 };
 
 const dateFormat = new Intl.DateTimeFormat("en-US", { dateStyle: "medium" });

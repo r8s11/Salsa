@@ -17,6 +17,7 @@ const PUBLIC_URLS = [
   "/venues",
   "/schools",
   "/instructors",
+  "/djs",
   "/cities",
   "/styles",
 ];
@@ -36,7 +37,7 @@ export function buildSitemapXml(events, entities = []) {
     urls.set(path, `  <url><loc>${CANONICAL_ORIGIN}${path}</loc>${lastmod}</url>`);
   }
   const routes = { event: "events", series: "series", organizer: "o", venue: "v",
-    school: "s", instructor: "i", city: "cities", style: "styles" };
+    school: "s", instructor: "i", dj: "dj", city: "cities", style: "styles" };
   for (const entity of entities) {
     const route = routes[entity.kind];
     if (!route || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(entity.slug ?? "")) continue;

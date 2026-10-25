@@ -135,7 +135,14 @@ export function categoryOf(entry: ActivityAuditLog): ActivityCategory {
   if (entity_type === "event") return "events";
   if (entity_type === "event_submission") return "submissions";
   if (entity_type === "profile" || entity_type === "organizer") return "users";
-  if (entity_type === "venue" || entity_type === "school" || entity_type === "instructor") return "venues";
+  if (
+    entity_type === "venue" ||
+    entity_type === "school" ||
+    entity_type === "instructor" ||
+    entity_type === "dj"
+  ) {
+    return "venues";
+  }
   if (entity_type === "taxonomy_term") return "taxonomy";
   return "events";
 }
@@ -328,6 +335,7 @@ export function activityTargetLabel(
     venue: "Venue",
     school: "School",
     instructor: "Instructor",
+    dj: "DJ",
     taxonomy_term: "Taxonomy term",
     organizer: "Organizer",
     platform_settings: "Platform settings",

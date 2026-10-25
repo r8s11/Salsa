@@ -900,6 +900,19 @@ past nights as plain, static images — no masonry, no video previews.
 
 #### Navigation
 
+**The bar condenses on scroll.** At the top of the page the public header is
+transparent with no rule beneath it, 68px tall (`--site-header-h`). Past 100px
+of scroll it turns to glass (`--header-bg`, `--glass-blur`, a `--border`
+rule) and condenses to 80% (54.4px, `--site-header-h-condensed`) over 320ms
+on `--site-header-ease`; scrolling back above 100px reverses it. A matching
+bottom margin keeps the bar's footprint constant, so content never jumps.
+Controls keep their 44px targets. While the mobile menu sheet is open the bar
+is glass at full height. Below 375px, where the bar can wrap to two rows, it
+turns to glass without condensing. Sticky UI that sits under the bar (the
+calendar sidebar, the shop's phone toolbar) offsets by
+`--site-header-offset`, which follows the condensed height. Reduced motion
+swaps states at once.
+
 ##### Desktop header
 
 Desktop navigation begins at 1024px. Between 1024px and 1279.98px, tighter
@@ -988,6 +1001,22 @@ its own rule removed here so the band carries one. Hover lights the label Gold
 Light, grows the underline in, and slides the arrow up-right. Below 760px the
 pair stacks left. Contrast floors, 44px targets, the Gold focus ring and
 reduced motion (transition durations 0s) hold as elsewhere.
+
+**DJ profiles** (`/dj/:slug`, `DjProfile`) are portrait-led. Below 900px the
+4:5 portrait bleeds full-width behind the header, under a short top scrim
+that keeps the transparent bar legible over any photo, and fades to the
+ground; the name (Epilogue 900, 0.92 line-height) lifts over the fade, breaking
+before its last word, which takes Rose Bright. Its size fits the longest line
+to the column (capped at 6rem and 21vw, floor 2rem), so long names never
+overflow. Location, dance-style chips (Tertiary at 15%, 44px hit area) and one
+Rose Red "See next gig" action follow, then bio and gold Instagram/Website
+links. Upcoming gigs sit on a full-width `--surface` band; Venues and
+residencies (series labelled Residency, venues Venue, no schedule claimed) and
+Past gigs follow, side by side from 900px, where the portrait joins the copy in
+a two-column hero with a 16px radius. Over the first 400px of scroll the
+portrait sinks 12px and swells from 1.04 to 1.08 while the name rises 12px and
+settles to 0.98, on a CSS scroll timeline; reduced motion and unsupported
+browsers render it static. No portrait drops the bleed and opens on the name.
 
 ### The Sleeve
 
@@ -1263,10 +1292,10 @@ offset. Returning to desktop restores the chosen rail state.
 
 **Navigation is grouped by what it governs.** Admin sections are Desk
 (queues, including Listing Claims), Events, Directory (Schools, Venues,
-Artists, Organizers), People and Platform. Host navigation gives
+Artists, DJs, Organizers), People and Platform. Host navigation gives
 organizer tools their own Organization section, then one section per
 managed listing titled `{Kind} · {Name}`: a school carries Overview,
-Timetable, Privates, Prices, Profile and Team; a venue or artist carries
+Timetable, Privates, Prices, Profile and Team; a venue, artist or DJ carries
 Overview, Profile and Team. Profile appears only for owners and managers,
 Team only for owners. Inside a listing, the same pages repeat as in-page
 tabs so platform admins (who keep the admin sidebar) can move between them.

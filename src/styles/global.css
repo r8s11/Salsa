@@ -73,8 +73,14 @@
   --font-size-card-title: 1.4rem;
   --font-logo: "Great Vibes", cursive;
 
-  /* Header (glass) */
+  /* Header (glass). The public bar is 68px at the top of the page and
+     condenses to 80% once scrolled; --site-header-offset follows the bar
+     so sticky UI can sit flush beneath it. */
   --header-bg: rgba(11, 19, 38, 0.72);
+  --site-header-h: 68px;
+  --site-header-h-condensed: calc(var(--site-header-h) * 0.8);
+  --site-header-offset: var(--site-header-h);
+  --site-header-ease: cubic-bezier(0.22, 1, 0.36, 1);
 
   /* Space the fixed mobile tab bar occupies, including the bottom safe area.
      0 above its breakpoint so bottom-anchored UI can offset unconditionally.
@@ -109,6 +115,13 @@
 @media (max-width: 639.98px) {
   :root {
     --tab-bar-h: calc(78px + env(safe-area-inset-bottom));
+  }
+}
+
+/* The bar only condenses where its controls sit on one row (see Header.css). */
+@media (min-width: 375px) {
+  :root:has(.site-header[data-condensed="true"]) {
+    --site-header-offset: var(--site-header-h-condensed);
   }
 }
 

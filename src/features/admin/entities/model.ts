@@ -1,4 +1,4 @@
-export const ADMIN_ENTITY_KINDS = ["series", "organizer", "school", "instructor"] as const;
+export const ADMIN_ENTITY_KINDS = ["series", "organizer", "school", "instructor", "dj"] as const;
 export type EntityKind = (typeof ADMIN_ENTITY_KINDS)[number];
 export type EntityStatus = "active" | "needs_review" | "archived" | "suspended";
 
@@ -7,6 +7,14 @@ export interface AdminLinkedEvent {
   title: string;
   status: string;
   event_date: string;
+}
+
+/** An approved event an admin can link to a DJ (admin_dj_event_candidates). */
+export interface AdminDjEventCandidate {
+  id: string;
+  title: string;
+  event_date: string;
+  location: string | null;
 }
 
 export interface AdminEntityRow {
@@ -57,6 +65,7 @@ export const ENTITY_LABELS: Record<EntityKind, { singular: string; plural: strin
   organizer: { singular: "Organizer", plural: "Organizers" },
   school: { singular: "School", plural: "Schools" },
   instructor: { singular: "Instructor", plural: "Instructors" },
+  dj: { singular: "DJ", plural: "DJs" },
 };
 
 export const QUALITY_ISSUE_LABELS: Record<string, string> = {
@@ -136,6 +145,20 @@ export function entityPayload(kind: EntityKind, form: EntityForm): Record<string
       website: common.website,
       instagram: common.instagram,
       phone: form.phone.trim() || null,
+    };
+  }
+  if (kind === "dj") {
+    return {
+      name: common.name,
+      slug: common.slug,
+      status: common.status,
+      description: common.description,
+      image_url: common.image_url,
+      city: common.city,
+      state_region: form.state_region.trim() || null,
+      country: form.country.trim() || null,
+      website: common.website,
+      instagram: common.instagram,
     };
   }
   return {

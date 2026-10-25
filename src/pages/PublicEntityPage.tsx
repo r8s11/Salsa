@@ -4,6 +4,7 @@ import { useDocumentMeta } from "../shared/seo/useDocumentMeta";
 import { canonicalUrl } from "../utils/seo";
 import { useEntityDetail } from "../features/entities/hooks/useEntityDetail";
 import { InstructorProfile } from "../features/entities/components/InstructorProfile";
+import { DjProfile } from "../features/entities/components/DjProfile";
 import { SchoolProfile } from "../features/entities/components/SchoolProfile";
 import { EntityEditButton } from "../features/entities/components/EntityEditButton";
 import { entityExternalLinks } from "../features/entities/externalLinks";
@@ -107,6 +108,7 @@ export default function PublicEntityPage({ kind }: { kind: PublicEntityKind }) {
 
   if (kind === "school") return <SchoolProfile detail={data} />;
   if (kind === "instructor") return <InstructorProfile detail={data} />;
+  if (kind === "dj") return <DjProfile detail={data} />;
 
   const { website, instagram } = entityExternalLinks(entity);
   const location = entityLocation(entity);

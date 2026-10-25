@@ -41,6 +41,7 @@ const TARGET_TYPE_OPTIONS = [
   { value: "venue", label: "Venue" },
   { value: "school", label: "School" },
   { value: "instructor", label: "Instructor" },
+  { value: "dj", label: "DJ" },
   { value: "taxonomy_term", label: "Taxonomy term" },
   { value: "organizer", label: "Organizer" },
   { value: "platform_settings", label: "Platform settings" },

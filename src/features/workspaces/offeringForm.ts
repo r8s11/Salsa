@@ -50,7 +50,7 @@ export function formatTimeRange(start: string, durationMinutes: number): string 
   return `${formatClock(start)} – ${formatClock(endClock)}`;
 }
 
-export const PUBLIC_PATH_PREFIX = { school: "/s", venue: "/v", instructor: "/i" } as const;
+export const PUBLIC_PATH_PREFIX = { school: "/s", venue: "/v", instructor: "/i", dj: "/dj" } as const;
 
 const MIN_DURATION = 15;
 const MAX_DURATION = 480;

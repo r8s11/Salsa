@@ -40,7 +40,9 @@ export default function EntityDirectoryPage({ kind }: { kind?: PublicEntityKind 
             <p>
               {kind === "instructor"
                 ? "The teachers behind the classes, workshops, and socials."
-                : "Find the people and places shaping salsa, bachata, and Latin dance near you."}
+                : kind === "dj"
+                  ? "The DJs playing salsa and bachata socials near you."
+                  : "Find the people and places shaping salsa, bachata, and Latin dance near you."}
             </p>
           </>
         ) : (

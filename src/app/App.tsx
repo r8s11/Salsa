@@ -29,6 +29,7 @@ const AdminEntityDetailPage = lazy(
 );
 const Lessons = lazy(() => import("../pages/Lessons"));
 const Instructors = lazy(() => import("../pages/Instructors"));
+const Djs = lazy(() => import("../pages/Djs"));
 const Schools = lazy(() => import("../pages/Schools/Schools"));
 const NotFoundPage = lazy(() => import("../pages/NotFoundPage"));
 const AdminFounderRequestsPage = lazy(() => import("../features/admin/pages/AdminFounderRequestsPage"));
@@ -200,7 +201,7 @@ function App() {
                   </RequireAdmin>
                 }
               />
-              {(["series", "organizer", "school", "instructor"] as const).map((kind) => {
+              {(["series", "organizer", "school", "instructor", "dj"] as const).map((kind) => {
                 const path = kind === "series" ? "series" : `${kind}s`;
                 return (
                   <Route key={kind}>
@@ -302,6 +303,7 @@ function App() {
               <Route path="v/:slug" element={<PublicEntityPage kind="venue" />} />
               <Route path="o/:slug" element={<PublicEntityPage kind="organizer" />} />
               <Route path="i/:slug" element={<PublicEntityPage kind="instructor" />} />
+              <Route path="dj/:slug" element={<PublicEntityPage kind="dj" />} />
               <Route path="s/:slug" element={<PublicEntityPage kind="school" />} />
               <Route path="discover" element={<EntityDirectoryPage />} />
               <Route path="series" element={<EntityDirectoryPage kind="series" />} />
@@ -354,6 +356,7 @@ function App() {
               />
               <Route path="lessons" element={<Lessons />} />
               <Route path="instructors" element={<Instructors />} />
+              <Route path="djs" element={<Djs />} />
               <Route path="schools" element={<Schools />} />
               <Route path="*" element={<NotFoundPage />} />
             </Route>

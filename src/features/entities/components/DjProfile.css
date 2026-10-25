@@ -1,0 +1,323 @@
+/* DJ profile: Ritmo Vivo, portrait-led. Phones bleed the portrait behind the
+   glass header and lift the name over its fade; wider screens set portrait and
+   copy side by side. */
+.dj-profile {
+  --dj-measure: min(100% - 2 * var(--gutter), 72rem);
+  padding-bottom: clamp(2rem, 6vw, 5rem);
+  color: var(--text);
+  overflow-wrap: break-word;
+}
+
+.dj-profile__hero,
+.dj-profile__band,
+.dj-profile__body,
+.dj-profile__footer {
+  width: var(--dj-measure);
+  margin-inline: auto;
+}
+
+.dj-profile__hero {
+  display: grid;
+  grid-template-columns: minmax(0, 26rem) minmax(0, 1fr);
+  align-items: end;
+  gap: clamp(2rem, 5vw, 4.5rem);
+  padding-top: clamp(2rem, 6vw, 5rem);
+}
+.dj-profile:not(.dj-profile--portrait) .dj-profile__hero { grid-template-columns: minmax(0, 1fr); }
+
+.dj-profile__portrait {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 4 / 5;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+.dj-profile__portrait img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 55% 26%;
+}
+
+.dj-profile__intro { display: grid; justify-items: start; min-width: 0; container-type: inline-size; }
+
+.dj-profile__name {
+  max-width: 100%;
+  margin: 0;
+  font-family: var(--font-display);
+  /* Epilogue 900 sets about 0.66em per letter: the longest line always fits the column. */
+  font-size: max(2rem, min(6rem, 21vw, 100cqi / (var(--dj-name-chars, 6) * 0.66)));
+  font-weight: 900;
+  line-height: 0.92;
+  letter-spacing: -0.03em;
+  overflow-wrap: anywhere;
+  transform-origin: left bottom;
+}
+.dj-profile__name-line { display: block; }
+.dj-profile__name-accent { color: var(--red-bright); }
+
+.dj-profile__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+.dj-profile__location {
+  margin: 0 0.25rem 0 0;
+  color: var(--tertiary);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+.dj-profile__styles { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 0; padding: 0; list-style: none; }
+.dj-profile__style {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 12px;
+  border-radius: var(--radius-full, 9999px);
+  background: var(--tertiary-dim);
+  color: #fff;
+  font-family: var(--font-ui);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: background-color 160ms ease;
+}
+/* 44px hit area around the 28px chip. */
+.dj-profile__style::after { content: ""; position: absolute; inset: -8px -2px; }
+.dj-profile__style:hover { background: rgba(255, 182, 144, 0.26); }
+
+.dj-profile__next {
+  position: relative;
+  z-index: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 26rem;
+  min-height: 52px;
+  margin-top: 1.75rem;
+  padding: 0 1.5rem;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  background: var(--gradient-primary);
+  color: #fff;
+  font-family: var(--font-ui);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-decoration: none;
+  text-transform: uppercase;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  transition: box-shadow 0.25s ease;
+}
+.dj-profile__next::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--red-deep);
+  transform: translateX(-100%);
+  transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.dj-profile__next:hover { color: #fff; box-shadow: var(--glow-primary); }
+.dj-profile__next:hover::before { transform: translateX(0); }
+.dj-profile__next svg { flex: none; }
+
+.dj-profile__bio { max-width: 62ch; margin: 2rem 0 0; font-size: 1.125rem; line-height: 1.6; }
+.dj-profile__links { display: flex; flex-wrap: wrap; gap: 0.75rem; width: 100%; max-width: 26rem; margin-top: 1.5rem; }
+.dj-profile__links .ui-button { flex: 1 1 8rem; }
+
+.dj-profile h2 {
+  margin: 0 0 1.5rem;
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+.dj-profile__list { display: grid; gap: 0.75rem; margin: 0; padding: 0; list-style: none; }
+.dj-profile__empty { margin: 0; color: var(--text-muted); }
+
+/* The page's second beat: upcoming gigs on a full-width surface band. */
+.dj-profile__upcoming {
+  margin-top: clamp(3rem, 7vw, 5.5rem);
+  padding-block: clamp(2.5rem, 5vw, 4rem);
+  border-block: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.dj-profile__gig {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr);
+  align-items: center;
+  gap: 1rem;
+  min-height: 5.5rem;
+  padding: 0.75rem 1rem 0.75rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  color: var(--text);
+  text-decoration: none;
+  transition: background-color 160ms ease;
+}
+.dj-profile__gig:hover { color: var(--text); background: var(--card-hover); }
+.dj-profile__date {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  align-self: stretch;
+  border-radius: var(--radius-md);
+  background: var(--tertiary-dim);
+  color: var(--tertiary);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.dj-profile__day { font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; }
+.dj-profile__month { margin-top: 0.25rem; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+.dj-profile__gig-copy,
+.dj-profile__place-copy { display: grid; gap: 0.3rem; min-width: 0; }
+.dj-profile__gig-copy strong,
+.dj-profile__place-copy strong { font-family: var(--font-display); font-size: 1rem; font-weight: 700; line-height: 1.25; }
+.dj-profile__gig-copy span,
+.dj-profile__place-copy span { color: var(--text-muted); font-size: 0.875rem; font-variant-numeric: tabular-nums; }
+.dj-profile__place-copy span { text-transform: capitalize; }
+
+.dj-profile__past .dj-profile__gig { background: transparent; }
+.dj-profile__past .dj-profile__gig:hover { background: var(--card); }
+.dj-profile__past .dj-profile__date { background: var(--card); color: var(--text-muted); }
+
+.dj-profile__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.42fr);
+  align-items: start;
+  gap: clamp(3rem, 5vw, 4rem);
+  margin-top: clamp(3rem, 6vw, 5rem);
+}
+.dj-profile__past { grid-column: 1; grid-row: 1; }
+.dj-profile__places { grid-column: 2; grid-row: 1; }
+.dj-profile__body > :only-child { grid-column: 1 / -1; }
+
+.dj-profile__place {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 44px;
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  color: var(--text);
+  text-decoration: none;
+  transition: background-color 160ms ease;
+}
+.dj-profile__place:hover { color: var(--text); background: var(--card-hover); }
+.dj-profile__place-kind {
+  flex: none;
+  color: var(--tertiary);
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.dj-profile__footer { display: grid; justify-items: start; gap: 0.75rem; margin-top: clamp(2.5rem, 5vw, 3.5rem); }
+.dj-profile__footer .entity-claim-control { margin-top: 0; }
+.dj-profile__browse {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--gold);
+  text-underline-offset: 0.2em;
+}
+
+.dj-profile a:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+.dj-profile .dj-profile__next:focus-visible { outline-color: var(--red-bright); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .dj-profile__gig,
+  .dj-profile__place { transition: background-color 160ms ease, transform 240ms cubic-bezier(0.16, 1, 0.3, 1); }
+  .dj-profile__gig:hover,
+  .dj-profile__place:hover { transform: translateY(-2px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dj-profile__next::before { transition: none; }
+}
+
+/* Scroll-linked drift over the first 400px: the portrait sinks and swells
+   slightly while the name rises. Static where unsupported or reduced. */
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .dj-profile__portrait img,
+    .dj-profile--portrait .dj-profile__name {
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: scroll(root block);
+      animation-range: 0px 400px;
+    }
+    .dj-profile__portrait img { animation-name: dj-portrait-drift; }
+    .dj-profile--portrait .dj-profile__name { animation-name: dj-name-rise; }
+  }
+}
+@keyframes dj-portrait-drift {
+  from { transform: translateY(0) scale(1.04); }
+  to { transform: translateY(12px) scale(1.08); }
+}
+@keyframes dj-name-rise {
+  from { transform: translateY(0) scale(1); }
+  to { transform: translateY(-12px) scale(0.98); }
+}
+
+@media (max-width: 899.98px) {
+  .dj-profile__hero { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .dj-profile__body { grid-template-columns: minmax(0, 1fr); }
+  .dj-profile__past,
+  .dj-profile__places { grid-column: auto; grid-row: auto; }
+  .dj-profile__next,
+  .dj-profile__links { max-width: none; }
+
+  /* Full-bleed portrait under the header, which is transparent at the top of
+     the page: a short top scrim keeps the wordmark and controls legible over
+     any photo, and the fade resolves to the ground before the name's second line. */
+  .dj-profile--portrait .dj-profile__hero { width: 100%; padding-top: 0; }
+  .dj-profile__portrait {
+    margin-top: calc(-1 * var(--site-header-h));
+    border: 0;
+    border-radius: 0;
+  }
+  .dj-profile__portrait::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(to bottom, rgba(11, 19, 38, 0.6), rgba(11, 19, 38, 0) 22%),
+      linear-gradient(to bottom, rgba(11, 19, 38, 0) 34%, rgba(11, 19, 38, 0.78) 72%, var(--bg) 94%);
+    pointer-events: none;
+  }
+  .dj-profile--portrait .dj-profile__intro {
+    position: relative;
+    z-index: 1;
+    margin-top: -9.5rem;
+    padding-inline: var(--gutter);
+  }
+}
+
+@media (max-width: 420px) {
+  .dj-profile__gig { grid-template-columns: 3.75rem minmax(0, 1fr); gap: 0.75rem; }
+}
+@media (max-width: 359.98px) {
+  .dj-profile__next { padding: 0 1rem; letter-spacing: 0.06em; }
+  .dj-profile__next-verb { display: none; }
+}

@@ -12,9 +12,10 @@ const mocks = vi.hoisted(() => ({
   engagement: vi.fn(),
   entities: vi.fn(),
   operations: vi.fn(),
+  coverage: vi.fn(),
   auth: { user: { id: "admin-a" } as { id: string } | null, isAdmin: true, loading: false },
 }));
-vi.mock("../api/analyticsRepo", () => ({ fetchAnalytics: mocks.fetch, fetchAnalyticsTrends: mocks.trends, fetchEventEngagement: mocks.engagement, fetchEntityPerformance: mocks.entities, fetchOperations: mocks.operations }));
+vi.mock("../api/analyticsRepo", () => ({ fetchAnalytics: mocks.fetch, fetchAnalyticsTrends: mocks.trends, fetchEventEngagement: mocks.engagement, fetchEntityPerformance: mocks.entities, fetchOperations: mocks.operations, fetchCoverage: mocks.coverage }));
 vi.mock("../../../contexts/useAuth", () => ({ useAuth: () => mocks.auth }));
 const snapshot: AnalyticsData = {
   metrics: { total_events: 17, upcoming_events: 8, registered_users: 6, pending_submissions: 2, active_organizers: 3 },
@@ -51,6 +52,8 @@ beforeEach(() => {
     organizers: { total: 4, active: 1, created: 2, offset: 0, page_size: 25, rows: [] },
     venues: null, coverage: null, quality: null });
   mocks.operations.mockResolvedValue(parseOperations({ submissions: { pending: 4, average_hours: 78, oldest_hours: 192, over_24: 3, over_48: 2, over_7d: 1, under_24: 1, hours_24_48: 1, days_2_7: 1 } }));
+  mocks.coverage.mockResolvedValue({ asOf: "2026-10-28T16:00:00Z", lookbackDays: 28, horizonDays: 14, minimumOccurrences: 2,
+    tracked: 3, listed: 2, metros: [{ slug: "boston", name: "Boston", tracked: 3, listed: 2, gaps: [] }] });
 });
 
 describe("analytics query isolation", () => {
@@ -92,6 +95,7 @@ describe("analytics query isolation", () => {
     hook.rerender({ range: "30d" });
     expect(hook.result.current.metrics).toBeNull();
     expect(hook.result.current.cities).toBeNull();
+    expect(hook.result.current.coverage).toBeNull();
     expect(hook.result.current.isFetching).toBe(false);
   });
 });

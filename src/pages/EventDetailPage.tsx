@@ -95,7 +95,7 @@ export default function EventDetailPage() {
     enabled: Boolean(event?.city),
   });
 
-  useEventViewTouch(event?.id ?? null);
+  useEventViewTouch(event?.id ?? null, event?.city);
 
   useDocumentMeta({
     title: event?.title ?? (!isLoading && !error ? "Event not found" : "Dance event"),
@@ -183,7 +183,7 @@ export default function EventDetailPage() {
     failureMessage = "Could not copy event link.",
     track = true
   ) => {
-    if (track) void recordEventTouch(event.id, "share");
+    if (track) void recordEventTouch(event.id, "share", event.city);
     try {
       if (!navigator.clipboard?.writeText) throw new Error("Clipboard unavailable");
       await navigator.clipboard.writeText(shareUrl);
@@ -197,7 +197,7 @@ export default function EventDetailPage() {
   };
 
   const handleShare = async () => {
-    void recordEventTouch(event.id, "share");
+    void recordEventTouch(event.id, "share", event.city);
     setShareFeedback(null);
     if (!navigator.share) {
       await handleCopyLink("Event link copied. Paste it into Instagram.", "Could not copy event link.", false);
@@ -303,7 +303,7 @@ export default function EventDetailPage() {
                 href={event.rsvp_link}
                 external
                 onClick={() => {
-                  void recordEventTouch(event.id, event.price_type === "paid" ? "ticket_click" : "rsvp_click");
+                  void recordEventTouch(event.id, event.price_type === "paid" ? "ticket_click" : "rsvp_click", event.city);
                   posthog.capture("event_rsvp_clicked", {
                     ...eventProperties,
                     attendance_type: event.price_type === "paid" ? "ticket" : "rsvp",
@@ -455,7 +455,7 @@ export default function EventDetailPage() {
                     <Share2 size={14} aria-hidden="true" /> Share
                   </Button>
                   <ButtonLink href={whatsappHref} external variant="ghost" size="compact" onClick={() => {
-                    void recordEventTouch(event.id, "share");
+                    void recordEventTouch(event.id, "share", event.city);
                     captureShare("whatsapp");
                   }}>
                     <MessageCircle size={14} aria-hidden="true" /> WhatsApp
@@ -467,7 +467,7 @@ export default function EventDetailPage() {
                   cachedFlyerUrl={event.poster_image_url ?? null}
                   shareUrl={shareUrl}
                   onShareAction={() => {
-                    void recordEventTouch(event.id, "share");
+                    void recordEventTouch(event.id, "share", event.city);
                     captureShare("story");
                   }}
                 />

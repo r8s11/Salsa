@@ -19,8 +19,32 @@ if (!posthogHost && import.meta.env.DEV) {
   );
 }
 if (posthogKey && posthogHost) {
+  // Retire this project's old persisted identity before the memory-only SDK
+  // starts. Do not clear authentication storage or other projects' analytics.
+  const legacyName = `ph_${posthogKey}_posthog`;
+  try {
+    for (const key of Object.keys(localStorage)) {
+      if (key === legacyName || key.startsWith(`${legacyName}_`)) localStorage.removeItem(key);
+    }
+  } catch {
+    // Storage may be blocked; analytics must not prevent application startup.
+  }
+  const domains = location.hostname.split(".");
+  try {
+    document.cookie = `${legacyName}=; Max-Age=0; Path=/`;
+    while (domains.length > 1) {
+      document.cookie = `${legacyName}=; Max-Age=0; Path=/; Domain=${domains.join(".")}`;
+      domains.shift();
+    }
+  } catch {
+    // Sandboxed contexts may deny cookie access.
+  }
   posthog.init(posthogKey, {
     api_host: posthogHost,
+    // Cookieless: no cookie or localStorage ID. Anonymous identity lasts for
+    // this page only; existing signed-in identify calls still identify users.
+    // Anonymous repeat-visitor measurement lives in cookieless Umami.
+    persistence: "memory",
     capture_exceptions: true,
     logs: posthogLogsConfig,
   });

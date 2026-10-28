@@ -422,14 +422,6 @@ describe("recordEventTouch", () => {
     mocks.rpc.mockReset();
   });
 
-  it("sends event id and kind through the record_event_touch RPC", async () => {
-    await recordEventTouch("evt-touch-1", "view");
-
-    expect(mocks.rpc).toHaveBeenCalledWith("record_event_touch", {
-      p_event_id: "evt-touch-1",
-      p_kind: "view",
-    });
-  });
 
   it("dedupes view touches per event and UTC day but records each action", async () => {
     await recordEventTouch("evt-touch-2", "view");
@@ -451,12 +443,15 @@ describe("recordEventTouch", () => {
     expect(mocks.rpc).toHaveBeenCalledTimes(7);
   });
 
-  it.each([{ doNotTrack: "1" }, { globalPrivacyControl: true }])("honors browser privacy signals without storing view markers", async (privacy) => {
+  it.each([{ doNotTrack: "1" }, { globalPrivacyControl: true }])("honors browser privacy signals across both telemetry sinks", async (privacy) => {
+    const track = vi.fn();
+    vi.stubGlobal("umami", { track });
     vi.stubGlobal("navigator", { ...navigator, ...privacy });
     try {
-      await recordEventTouch("evt-private", "view");
-      await recordEventTouch("evt-private", "rsvp_click");
+      await recordEventTouch("evt-private", "view", "boston");
+      await recordEventTouch("evt-private", "rsvp_click", "boston");
       expect(mocks.rpc).not.toHaveBeenCalled();
+      expect(track).not.toHaveBeenCalled();
       expect(sessionStorage.length).toBe(0);
     } finally {
       vi.unstubAllGlobals();

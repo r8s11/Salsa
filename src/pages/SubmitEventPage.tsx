@@ -17,6 +17,7 @@ import FormErrorSummary from "../shared/forms/FormErrorSummary";
 import Button from "../components/ui/Button";
 import { useDocumentMeta } from "../shared/seo/useDocumentMeta";
 import { canonicalUrl } from "../utils/seo";
+import routeMeta from "../shared/seo/routeMeta.json";
 import "../styles/forms.css";
 import "./SubmitEventPage.css";
 
@@ -37,12 +38,7 @@ const FIELD_ORDER: { field: SubmitFieldName; id: string }[] = [
   { field: "submitter_email", id: "submitter-email" },
 ];
 export default function SubmitEventPage() {
-  useDocumentMeta({
-    title: "Submit a Dance Event",
-    description: "Share a salsa, bachata, or Latin dance event for review and listing on the Salsa Segura calendar.",
-    canonical: canonicalUrl("/submit"),
-    robots: "noindex, follow",
-  });
+  useDocumentMeta({ ...routeMeta.submit, canonical: canonicalUrl(routeMeta.submit.path) });
 
   const { user, isAdmin, isOrganizer } = useAuth();
   const { profile } = useOwnProfile(user?.id);

@@ -150,7 +150,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
   const copiedTimerRef = useRef<number | null>(null);
   const { createPoster, posterFilename, downloadPoster } = useShareablePoster();
 
-  useEventViewTouch(String(event.id));
+  useEventViewTouch(String(event.id), event.city);
 
   // The sleeve thumbnail and preview set the poster's own faces.
   useEffect(() => {
@@ -171,7 +171,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
     };
   }, []);
   const handleCopyLink = async (region: ActionRegion) => {
-    void recordEventTouch(String(event.id), "share");
+    void recordEventTouch(String(event.id), "share", event.city);
     try {
       if (!navigator.clipboard?.writeText) throw new Error("Clipboard unavailable");
       await navigator.clipboard.writeText(canonicalUrl);
@@ -328,7 +328,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
                 href={event.rsvpLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={() => void recordEventTouch(String(event.id), event.priceType === "paid" ? "ticket_click" : "rsvp_click")}
+                onClick={() => void recordEventTouch(String(event.id), event.priceType === "paid" ? "ticket_click" : "rsvp_click", event.city)}
               >
                 Reserve
               </a>
@@ -346,7 +346,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
   // Failures surface as visible feedback; a dismissed share sheet stays silent.
   const handleSharePoster = async (region: ActionRegion, posterFormat: PosterFormat) => {
     if (isSharing) return;
-    void recordEventTouch(String(event.id), "share");
+    void recordEventTouch(String(event.id), "share", event.city);
     setIsSharing(true);
     setFeedback(null);
     setShareFallback(null);
@@ -504,7 +504,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
           external
           variant="secondary"
           className="night-actions__rsvp"
-          onClick={() => void recordEventTouch(String(event.id), event.priceType === "paid" ? "ticket_click" : "rsvp_click")}
+          onClick={() => void recordEventTouch(String(event.id), event.priceType === "paid" ? "ticket_click" : "rsvp_click", event.city)}
         >
           {rsvpLabel}
         </ButtonLink>

@@ -1,6 +1,7 @@
 import type { DatabaseEvent } from "../features/events/model/types";
 import type { ScheduleXEvent } from "../types/events";
 import { eventFlyerList } from "../features/events/model/eventFlyers";
+import routeMeta from "../shared/seo/routeMeta.json";
 export const CANONICAL_ORIGIN = "https://www.salsasegura.com";
 
 export function canonicalUrl(path: string): string {
@@ -90,7 +91,7 @@ export function generateEventsListStructuredData(events: ScheduleXEvent[]) {
  * Update page title dynamically
  */
 export function updatePageTitle(title: string) {
-  document.title = `${title} | Salsa Segura`;
+  document.title = `${title}${routeMeta.titleSuffix}`;
 }
 
 /**

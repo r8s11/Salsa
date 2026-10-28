@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../../../contexts/useAuth";
-import { fetchAnalytics, fetchAnalyticsTrends, fetchEntityPerformance, fetchEventEngagement, fetchOperations } from "../api/analyticsRepo";
+import { fetchAnalytics, fetchAnalyticsTrends, fetchCoverage, fetchEntityPerformance, fetchEventEngagement, fetchOperations } from "../api/analyticsRepo";
 import { DEFAULT_ENTITY_OPTIONS, dateRangeFor, granularityFor, type EntityPerformanceOptions, type EngagementSort, type TimeRange } from "../model/analyticsQuery";
 import { INITIAL_OFFSETS, type OperationOffsets } from "../model/operationalAnalytics";
 
@@ -41,6 +41,12 @@ export function useAdminAnalytics(period: TimeRange, engagementSort: EngagementS
     enabled: authorized,
     staleTime: 5 * 60 * 1000,
   });
+  const coverageQuery = useQuery({
+    queryKey: ["admin", "analytics", "coverage", user?.id],
+    queryFn: fetchCoverage,
+    enabled: authorized,
+    staleTime: 5 * 60 * 1000,
+  });
   // Never present cached values as a successful refresh or under a different account.
   const data = authorized && !query.isError ? query.data : undefined;
   const insightData = authorized && !trends.isError ? trends.data : undefined;
@@ -63,8 +69,11 @@ export function useAdminAnalytics(period: TimeRange, engagementSort: EngagementS
     operations: authorized && !operationsQuery.isError ? operationsQuery.data ?? null : null,
     operationsLoading: authorized && operationsQuery.isPending,
     operationsError: authorized && operationsQuery.isError ? "Unable to load operational insights. Please try again." : null,
-    isFetching: authorized && (query.isFetching || trends.isFetching || engagementQuery.isFetching || entityQuery.isFetching || operationsQuery.isFetching),
+    coverage: authorized && !coverageQuery.isError ? coverageQuery.data ?? null : null,
+    coverageLoading: authorized && coverageQuery.isPending,
+    coverageError: authorized && coverageQuery.isError ? "Unable to load recurring coverage. Please try again." : null,
+    isFetching: authorized && (query.isFetching || trends.isFetching || engagementQuery.isFetching || entityQuery.isFetching || operationsQuery.isFetching || coverageQuery.isFetching),
     error: authorized && query.isError ? "Unable to load analytics. Please try again." : null,
-    refetch: () => Promise.all([query.refetch(), trends.refetch(), engagementQuery.refetch(), entityQuery.refetch(), operationsQuery.refetch()]),
+    refetch: () => Promise.all([query.refetch(), trends.refetch(), engagementQuery.refetch(), entityQuery.refetch(), operationsQuery.refetch(), coverageQuery.refetch()]),
   };
 }

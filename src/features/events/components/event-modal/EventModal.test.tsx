@@ -675,7 +675,7 @@ describe("demand telemetry", () => {
     const rsvpLinks = screen.getAllByRole("link", { name: /get tickets|RSVP · Free/i });
     fireEvent.click(rsvpLinks[0]);
 
-    expect(recordEventTouch).toHaveBeenCalledWith(String(baseEvent.id), "ticket_click");
+    expect(recordEventTouch).toHaveBeenCalledWith(String(baseEvent.id), "ticket_click", baseEvent.city);
   });
 
   describe("multiple flyers", () => {

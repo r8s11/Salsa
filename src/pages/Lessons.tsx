@@ -1,13 +1,9 @@
 import WorkInProgress from "../components/marketing/WorkInProgress";
 import { useDocumentMeta } from "../shared/seo/useDocumentMeta";
 import { canonicalUrl } from "../utils/seo";
+import routeMeta from "../shared/seo/routeMeta.json";
 
 export default function Lessons() {
-  useDocumentMeta({
-    title: "Dance Lessons",
-    description: "Dance lessons are not listed yet. Browse current salsa and bachata events on the Salsa Segura calendar.",
-    canonical: canonicalUrl("/lessons"),
-    robots: "noindex, follow",
-  });
+  useDocumentMeta({ ...routeMeta.lessons, canonical: canonicalUrl(routeMeta.lessons.path) });
   return <WorkInProgress />;
 }

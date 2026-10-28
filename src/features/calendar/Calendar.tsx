@@ -33,6 +33,7 @@ import {
   injectStructuredData,
 } from "../../utils/seo";
 import { useDocumentMeta } from "../../shared/seo/useDocumentMeta";
+import routeMeta from "../../shared/seo/routeMeta.json";
 import { useEventDeepLink } from "./hooks/useEventDeepLink";
 import { usePeriodTravel } from "./hooks/usePeriodTravel";
 import CalendarStatus from "./components/CalendarStatus";
@@ -280,12 +281,7 @@ export default function Calendar() {
     }
   };
 
-  useDocumentMeta({
-    title: "Dance Calendar — Salsa, Bachata & Latin Dance Events",
-    description:
-      "Browse upcoming salsa, bachata, and Latin dance socials, classes, and workshops across Greater Boston and New York City.",
-    canonical: canonicalUrl("/calendar"),
-  });
+  useDocumentMeta({ ...routeMeta.calendar, canonical: canonicalUrl(routeMeta.calendar.path) });
   useEventDeepLink(eventList, setSelectedEvent);
 
   const cityLabel = city ? metroName(city) : null;

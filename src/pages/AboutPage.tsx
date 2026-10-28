@@ -1,6 +1,7 @@
 import { useRef, type PointerEvent } from "react";
 import { useDocumentMeta } from "../shared/seo/useDocumentMeta";
 import { canonicalUrl } from "../utils/seo";
+import routeMeta from "../shared/seo/routeMeta.json";
 import ButtonLink from "../components/ui/ButtonLink";
 import { useAboutMotion } from "./AboutPage.motion";
 import "./AboutPage.css";
@@ -26,11 +27,7 @@ const PILLARS = [
 
 function AboutPage() {
   const rootRef = useRef<HTMLDivElement>(null);
-  useDocumentMeta({
-    title: "About Salsa Segura",
-    description: "Learn how Salsa Segura helps dancers find salsa, bachata, and Latin dance events across Greater Boston and New York City.",
-    canonical: canonicalUrl("/about"),
-  });
+  useDocumentMeta({ ...routeMeta.about, canonical: canonicalUrl(routeMeta.about.path) });
 
   useAboutMotion(rootRef);
 

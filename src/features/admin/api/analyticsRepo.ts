@@ -4,6 +4,7 @@ import { parseEntityPerformance, type EntityIntelligence, type EntityPerformance
 import { parseOperations, parseReport, type AnalyticsReport, type OperationOffsets, type Operations, type ReportKind } from "../model/operationalAnalytics";
 import { parseMonitoring, parsePreferences } from "../model/analyticsMonitoring";
 import type { AnalyticsPreferences, Monitoring } from "../model/analyticsMonitoring";
+import { parseCoverage, type Coverage } from "../model/coverage";
 
 /** One administrator-gated aggregation snapshot; no private rows reach the browser. */
 export async function fetchAnalytics(range: DateRange): Promise<AnalyticsData> {
@@ -88,6 +89,13 @@ export async function fetchAnalyticsMonitoring(): Promise<Monitoring> {
   const { data, error } = await supabase.rpc("admin_analytics_monitoring");
   if (error) throw new Error("Analytics monitoring is unavailable. Try again.");
   return parseMonitoring(data);
+}
+
+/** Current recurring-night coverage per metro; independent of the reporting period. */
+export async function fetchCoverage(): Promise<Coverage> {
+  const { data, error } = await supabase.rpc("admin_coverage_score");
+  if (error) throw new Error("Unable to load recurring coverage. Please try again.");
+  return parseCoverage(data);
 }
 
 export async function saveAnalyticsPreferences(preferences: AnalyticsPreferences): Promise<AnalyticsPreferences> {

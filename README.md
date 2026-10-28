@@ -55,16 +55,30 @@ imports. The `matchMedia` shim defaults to nonmatching queries and supports
 modern and legacy change listeners; media-sensitive tests supply their own matches.
 
 The site publishes `https://www.salsasegura.com` as its canonical host. After Vite
-builds, the sitemap generator queries approved events and the public entity
-directory RPC with the Supabase URL and publishable key. If public reads are
-unavailable, it retains the stable directory routes without inventing detail URLs.
-Azure Static Web Apps route
+builds, `scripts/generate-sitemap.mjs` and `scripts/prerender-routes.mjs` both take
+their route list from `scripts/public-routes.mjs`: the stable routes in
+`src/shared/seo/routeMeta.json` plus approved events (`public_events`) and public
+entities (`public_entity_directory`), read with the Supabase URL and publishable
+key. The sitemap warns and falls back to stable URLs if public reads fail; the
+prerender fails the build instead, and writes only stable routes when no Supabase
+credentials are configured. Azure Static Web Apps route
 rules are path-based, so redirecting the non-`www` hostname requires domain or
 edge configuration outside this repository.
 
-The frontend is still a client-rendered SPA: route metadata and event structured
-data update after JavaScript starts, while deep links initially receive the shared
-HTML shell. Route-specific server rendering or prerendering is not configured.
+Every public route is prerendered to `dist/<path>/index.html` with its own title,
+description, canonical, robots and social tags and real content in `#app` (event
+and entity pages also list their public details; event pages add `DanceEvent`
+JSON-LD). React replaces that markup when JavaScript starts. The public homepage
+in `dist/index.html` also remains the SPA fallback; it contains no private data.
+Hosts must serve a directory's `index.html` for `/path` (nginx `try_files $uri $uri/index.html`, Azure Static Web Apps).
+The pages are a build-time snapshot, so rebuild on a schedule or when events are
+approved to keep crawlable content fresh.
+For a no-JavaScript check, use the production nginx routing or request
+`/path/index.html` explicitly in `vite preview`; its SPA fallback does not
+resolve extensionless directory routes the same way as the production hosts.
+
+SEO regression checks:
+`npx vitest run src/shared/seo/useDocumentMeta.test.tsx src/utils/seo.test.ts scripts/generate-sitemap.test.mjs scripts/prerender-routes.test.mjs src/pages/EventsParamRoute.test.tsx src/pages/EventDetailPage.test.tsx`.
 
 Entity routes, migration prerequisites, privacy boundaries, local verification,
 and production acceptance steps are recorded in
@@ -73,6 +87,69 @@ Run `node scripts/entity-accessibility/verify.mjs` against the local Supabase
 stack for real anonymous/admin JWT and RLS checks. The verifier refuses hosted
 URLs; `--keep-fixtures` retains isolated browser fixtures, and
 `--cleanup <artifact-path>` removes only those recorded fixtures.
+
+## Analytics baseline
+
+Umami in `index.html` is the cookieless visit source. PostHog uses memory-only
+persistence for existing product events, exceptions and submission logs.
+Startup removes this project's legacy PostHog cookie/localStorage entries,
+without touching Supabase authentication. Anonymous PostHog identity does not
+survive reloads; existing signed-in `identify` calls still identify accounts.
+Cookieless is not a claim of complete anonymity or a substitute for a privacy review.
+
+Event detail pages and modals send metro-tagged Umami events through the existing
+`recordEventTouch` boundary:
+
+| Event | Meaning |
+| --- | --- |
+| `event-view:<metro>` | An event detail was opened |
+| `rsvp-click:<metro>` | Free-event registration link activated |
+| `ticket-click:<metro>` | Paid-event ticket link activated |
+| `event-share:<metro>` | A share action was activated, not proof the share completed |
+
+`<metro>` is the event's metro, not visitor geolocation; missing metros use `none`.
+Custom events honor Do Not Track and Global Privacy Control. Views retain the
+existing per-event/day session dedupe; actions count each activation. No visitor
+identifier is added to the first-party `event_touches` table. Blocked analytics,
+changing IP/browser inputs and multiple devices affect the visitor proxy.
+
+### Weekly returning dancers
+
+Run `node scripts/repeat-dancers.mjs <YYYY-MM> <metro-slug>` with a server-side
+`UMAMI_API_KEY` from the owner's Umami Cloud account. Do not prefix this key with
+`VITE_` or expose it in a browser. The site ID defaults to the existing HTML tag;
+`UMAMI_WEBSITE_ID` and `UMAMI_API_URL` optionally override the reporting target.
+
+A dancer is an anonymous Umami visitor who triggered `event-view:<metro>`.
+For a completed New York ISO week W, returning dancers were active in W and W−1.
+The returning share divides returning dancers by active dancers in W; it is not
+cohort retention against W−1's audience. Umami rotates anonymous identifiers
+monthly. The script assumes UTC salt-month boundaries, excludes cross-boundary
+or incomplete observation windows, and emits `null` rather than false zeroes for
+unavailable weeks. The Cloud rotation instant still needs owner verification.
+No persistent tracking ID is introduced to bridge months. Baseline collection
+starts when these custom events deploy; earlier periods cannot establish return rates.
+
+### Recurring coverage
+
+Apply `supabase/migrations/20261028000000_admin_coverage_score.sql` before deploying
+the new `/admin/analytics` coverage section. The admin-only RPC is independent of
+the reporting-period filter. Default score:
+
+**100 × tracked recurring nights with an approved listing in the next 14 New York
+calendar days / tracked recurring nights.**
+
+A tracked night occurred on at least two distinct dates in the previous 28 days.
+Identity uses an active linked series when available, otherwise normalized title,
+venue/location and New York weekday. Duplicate same-day records do not establish
+recurrence. Today is included in the forward window; its end is exclusive.
+Zero tracked nights means no score, not 0% or 100%. The UI exposes missing-night
+queues per metro. This measures continuity of known recurring listings, not total
+real-world market coverage; renamed events and unlinked venue aliases can split a night.
+
+Rollback-only local SQL verification:
+`docker exec -i supabase_db_Salsa psql -U postgres -d postgres -v ON_ERROR_STOP=1 -f - < supabase/manual/admin-coverage-smoke.sql`.
+
 
 ## Native Shopify shop
 

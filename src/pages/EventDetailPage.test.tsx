@@ -447,15 +447,15 @@ describe("EventDetailPage", () => {
     renderPage();
     await screen.findByRole("heading", { name: "Havana Nights" });
 
-    expect(recordEventTouch).toHaveBeenCalledWith("event-1", "view");
+    expect(recordEventTouch).toHaveBeenCalledWith("event-1", "view", event.city);
 
     const rsvpLink = screen.getByRole("link", { name: /RSVP/i });
     await user.click(rsvpLink);
     await user.click(rsvpLink);
 
     expect(recordEventTouch).toHaveBeenCalledTimes(3);
-    expect(recordEventTouch).toHaveBeenNthCalledWith(2, "event-1", "ticket_click");
-    expect(recordEventTouch).toHaveBeenNthCalledWith(3, "event-1", "ticket_click");
+    expect(recordEventTouch).toHaveBeenNthCalledWith(2, "event-1", "ticket_click", event.city);
+    expect(recordEventTouch).toHaveBeenNthCalledWith(3, "event-1", "ticket_click", event.city);
     expect(rsvpLink).toHaveAttribute("href", "https://example.com/rsvp");
   });
 
@@ -469,7 +469,7 @@ describe("EventDetailPage", () => {
     await user.click(screen.getByRole("button", { name: "Share" }));
 
     expect(share).toHaveBeenCalledOnce();
-    expect(recordEventTouch).toHaveBeenCalledWith("event-1", "share");
+    expect(recordEventTouch).toHaveBeenCalledWith("event-1", "share", event.city);
   });
 
   it("tracks copy and destination-share actions without treating poster generation as a share", async () => {
@@ -483,7 +483,7 @@ describe("EventDetailPage", () => {
     await user.click(screen.getByRole("link", { name: "WhatsApp" }));
     await user.click(screen.getByRole("button", { name: /Instagram story/i }));
 
-    expect(recordEventTouch).toHaveBeenCalledWith("event-1", "share");
+    expect(recordEventTouch).toHaveBeenCalledWith("event-1", "share", event.city);
     expect(vi.mocked(recordEventTouch).mock.calls.filter(([, kind]) => kind === "share")).toHaveLength(2);
   });
 
@@ -497,6 +497,6 @@ describe("EventDetailPage", () => {
     await screen.findByRole("heading", { name: "Havana Nights" });
     await user.click(screen.getByRole("link", { name: /RSVP/i }));
 
-    expect(recordEventTouch).toHaveBeenCalledWith("event-1", "rsvp_click");
+    expect(recordEventTouch).toHaveBeenCalledWith("event-1", "rsvp_click", event.city);
   });
 });

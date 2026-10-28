@@ -384,11 +384,26 @@ export async function duplicateEvent(
 export type EventTouchKind = "view" | "rsvp_click" | "ticket_click" | "share";
 
 /**
- * Sends only event id + allowlisted interaction kind. Detail views are
+ * Umami event names. The metro is part of the name (`event-view:boston`)
+ * because Umami's event-listing API filters by name but does not return event
+ * properties; `scripts/repeat-dancers.mjs` depends on this shape.
+ */
+const UMAMI_EVENT_NAMES: Record<EventTouchKind, string> = {
+  view: "event-view",
+  rsvp_click: "rsvp-click",
+  ticket_click: "ticket-click",
+  share: "event-share",
+};
+
+type UmamiWindow = Window & { umami?: { track: (name: string, data?: Record<string, string>) => Promise<unknown> | void } };
+
+/**
+ * Sends only event id + allowlisted interaction kind to the first-party
+ * counter, and the kind + event metro to cookieless Umami. Detail views are
  * session-deduped per event/day; explicit outbound/share actions count each
  * activation. Telemetry failures are swallowed and never gate navigation.
  */
-export async function recordEventTouch(eventId: string, kind: EventTouchKind): Promise<void> {
+export async function recordEventTouch(eventId: string, kind: EventTouchKind, metro?: string | null): Promise<void> {
   try {
     const privacy = navigator as Navigator & { globalPrivacyControl?: boolean };
     if (privacy.doNotTrack === "1" || privacy.globalPrivacyControl === true) return;
@@ -397,6 +412,12 @@ export async function recordEventTouch(eventId: string, kind: EventTouchKind): P
       const key = `salsasegura-touch:${kind}:${eventId}:${day}`;
       if (window.sessionStorage.getItem(key)) return;
       window.sessionStorage.setItem(key, day);
+    }
+    const metroTag = metro?.trim() || "none";
+    try {
+      void Promise.resolve((window as UmamiWindow).umami?.track(`${UMAMI_EVENT_NAMES[kind]}:${metroTag}`, { metro: metroTag })).catch(() => undefined);
+    } catch {
+      // A blocked analytics vendor must not suppress the first-party counter.
     }
     await supabase.rpc("record_event_touch", { p_event_id: eventId, p_kind: kind });
   } catch {

@@ -122,6 +122,32 @@ describe("validateCsvRow — required fields", () => {
       });
     });
   });
+  describe("neighborhood", () => {
+    it("accepts a curated neighborhood in its city and borough", () => {
+      const result = validate({
+        city: "new-york-city",
+        sublocation: "brooklyn",
+        neighborhood: "williamsburg",
+      });
+      expect(result.status).toBe("valid");
+      expect(result.payload?.neighborhood).toBe("williamsburg");
+    });
+
+    it("rejects a neighborhood from a different parent location", () => {
+      const result = validate({
+        city: "new-york-city",
+        sublocation: "brooklyn",
+        neighborhood: "astoria",
+      });
+      expect(result.status).toBe("invalid");
+      expect(result.payload).toBeNull();
+      expect(result.errors.some((issue) => issue.field === "neighborhood")).toBe(true);
+    });
+
+    it("normalizes blank neighborhood to null", () => {
+      expect(validate({ neighborhood: "  " }).payload?.neighborhood).toBeNull();
+    });
+  });
 
   it("does not reject every city while the metro list is still loading", () => {
     const result = validateCsvRow(row(), 0, [SALSA], [OUTDOOR], new Set());

@@ -55,4 +55,41 @@ describe("useDocumentMeta", () => {
     expect(document.querySelector('meta[property="og:url"]')).toBeNull();
     previous.remove();
   });
+  it("keeps a share image when navigating from a flyer page to a page without artwork", () => {
+    const { rerender, unmount } = renderHook(
+      ({ image }: { image?: string | null }) =>
+        useDocumentMeta({ title: "Dance events", description: "Local dance events.", image }),
+      { initialProps: { image: "https://images.example.com/flyer.jpg" } as { image?: string | null } }
+    );
+    rerender({ image: null });
+    expect(document.querySelector('meta[property="og:image"]')).toHaveAttribute(
+      "content", "https://www.salsasegura.com/og-image.jpg"
+    );
+    expect(document.querySelector('meta[name="twitter:image"]')).toHaveAttribute(
+      "content", "https://www.salsasegura.com/og-image.jpg"
+    );
+    expect(document.querySelector('meta[name="twitter:card"]')).toHaveAttribute(
+      "content", "summary_large_image"
+    );
+    unmount();
+    expect(document.querySelector('meta[property="og:image"]')).toBeNull();
+  });
+
+  it("applies noindex without a shell robots tag and restores it on navigation", () => {
+    expect(document.querySelector('meta[name="robots"]')).toBeNull();
+    const { rerender, unmount } = renderHook(
+      ({ robots }: { robots?: string }) =>
+        useDocumentMeta({ title: "Dance events", description: "Local dance events.", robots }),
+      { initialProps: { robots: "noindex, follow" } as { robots?: string } }
+    );
+    expect(document.querySelector('meta[name="robots"]')).toHaveAttribute(
+      "content", "noindex, follow"
+    );
+    rerender({});
+    expect(document.querySelector('meta[name="robots"]')).toHaveAttribute(
+      "content", "index, follow"
+    );
+    unmount();
+    expect(document.querySelector('meta[name="robots"]')).toBeNull();
+  });
 });

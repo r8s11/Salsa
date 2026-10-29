@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import "./AdminPageHeader.css";
 
 interface AdminPageHeaderProps {
   title: string;

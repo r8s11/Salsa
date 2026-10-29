@@ -28,8 +28,7 @@ export function generateEventStructuredData(event: Pick<
     description: event.description || undefined,
     startDate: event.event_date,
     url: canonicalUrl(`/events/${event.slug || event.id}`),
-    // Several flyers are listed primary first; a single flyer adds nothing.
-    ...(flyers.length > 1 && { image: flyers }),
+    ...(flyers.length > 0 && { image: flyers }),
     eventStatus: "https://schema.org/EventScheduled",
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     location: event.location

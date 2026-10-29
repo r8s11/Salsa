@@ -14,6 +14,7 @@ import {
   isSubLocation,
   type SubLocation,
 } from "../../metros/model/sublocation";
+import { normalizeNeighborhood } from "../../metros/model/neighborhood";
 import { draftToAdminPayload } from "../../events/components/EventForm";
 
 // The manual editor validates image URLs inline; CSV import applies the same
@@ -115,6 +116,7 @@ export function validateCsvRow(
   const eventDate = raw.event_date ?? "";
   const city = raw.city ?? "";
   const sublocation = (raw.sublocation ?? "").trim().toLowerCase();
+  const neighborhood = (raw.neighborhood ?? "").trim().toLowerCase();
   const eventTime = raw.event_time ?? "";
   const description = raw.description ?? "";
   const location = raw.location ?? "";
@@ -161,6 +163,19 @@ export function validateCsvRow(
         field: "sublocation",
         message: `Must be one of: ${NYC_SUBLOCATIONS.map((borough) => borough.slug).join(", ")} (or blank for All NYC).`,
       });
+  }
+  if (
+    neighborhood &&
+    normalizeNeighborhood(
+      city,
+      city === NYC_CITY && isSubLocation(sublocation) ? sublocation : null,
+      neighborhood
+    ) === null
+  ) {
+    errors.push({
+      field: "neighborhood",
+      message: "Must be a curated neighborhood for the selected city and borough.",
+    });
   }
 
   if (!eventDate) errors.push({ field: "event_date", message: "event_date is required." });
@@ -271,6 +286,7 @@ export function validateCsvRow(
       event_types: eventTypes.filter(isEventType),
       city: city as AdminEventForm["city"],
       sublocation: sublocation as SubLocation | "",
+      neighborhood: neighborhood || null,
       event_date: eventDate,
       event_time: eventTime,
       location,

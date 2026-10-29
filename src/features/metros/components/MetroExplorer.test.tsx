@@ -10,11 +10,11 @@ vi.mock("../../../contexts/useAuth", () => ({ useAuth: () => ({ user: null, load
 vi.mock("../hooks/useMetros", () => import("../../../test/mockMetros"));
 
 function LocationState() {
-  const { city, subLocation } = useCity();
+  const { city, subLocation, neighborhood } = useCity();
   const { pathname, search } = useLocation();
   const navigate = useNavigate();
   return <>
-    <output data-testid="location">{city}:{subLocation ?? "all"}</output>
+    <output data-testid="location">{city}:{subLocation ?? "all"}:{neighborhood ?? "all"}</output>
     <output data-testid="url">{pathname}{search}</output>
     <button onClick={() => navigate(-1)}>Back</button>
   </>;
@@ -84,6 +84,37 @@ describe("NYC borough explorer", () => {
     fireEvent.click(screen.getByRole("button", { name: /Boston, MA/ }));
     expect(screen.getByTestId("location")).toHaveTextContent("boston:all");
     expect(window.localStorage.getItem("salsa.sublocation")).toBeNull();
+  });
+
+  it("selects NYC and Boston neighborhoods, deep-links them, and clears children on a parent change", async () => {
+    renderExplorer();
+    const trigger = await screen.findByRole("button", { name: /Location: New York City/ });
+    fireEvent.click(trigger);
+    fireEvent.click(screen.getByRole("button", { name: "NYC boroughs" }));
+    fireEvent.click(screen.getByRole("button", { name: "Brooklyn neighborhoods" }));
+    fireEvent.click(screen.getByRole("button", { name: "Williamsburg" }));
+    expect(screen.getByTestId("location")).toHaveTextContent(
+      "new-york-city:brooklyn:williamsburg"
+    );
+    expect(screen.getByTestId("url").textContent).toBe(
+      "/events/new-york-city?borough=brooklyn&neighborhood=williamsburg"
+    );
+    expect(window.localStorage.getItem("salsa.neighborhood")).toBe("williamsburg");
+
+    // Selecting closes the panel; reopen it and move to a different metro, which clears the NYC child.
+    fireEvent.click(trigger);
+    fireEvent.click(screen.getByRole("button", { name: /Boston, MA/ }));
+    expect(screen.getByTestId("location")).toHaveTextContent("boston:all:all");
+    expect(window.localStorage.getItem("salsa.sublocation")).toBeNull();
+    expect(window.localStorage.getItem("salsa.neighborhood")).toBeNull();
+
+    fireEvent.click(trigger);
+    fireEvent.click(screen.getByRole("button", { name: "Boston neighborhoods" }));
+    fireEvent.click(screen.getByRole("button", { name: "Back Bay" }));
+    expect(screen.getByTestId("location")).toHaveTextContent("boston:all:back-bay");
+    expect(screen.getByTestId("url").textContent).toBe(
+      "/events/boston?neighborhood=back-bay"
+    );
   });
 
   it("dismisses with Escape and restores keyboard focus", async () => {

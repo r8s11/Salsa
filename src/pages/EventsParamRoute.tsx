@@ -5,6 +5,7 @@ import { useCity } from "../contexts/useCity";
 import { useMetros } from "../features/metros/hooks/useMetros";
 import { resolveMetroSlug } from "../features/metros/model/metro";
 import { normalizeSubLocation } from "../features/metros/model/sublocation";
+import { normalizeNeighborhood } from "../features/metros/model/neighborhood";
 
 const EventDetailPage = lazy(() => import("./EventDetailPage"));
 
@@ -37,12 +38,13 @@ function CanonicalMetroHome({ slug }: { slug: string }) {
   const { setCity } = useCity();
   const [searchParams] = useSearchParams();
   const subLocation = normalizeSubLocation(slug, searchParams.get("borough"));
+  const neighborhood = normalizeNeighborhood(slug, subLocation, searchParams.get("neighborhood"));
 
   // Visiting a metro URL is an explicit choice. Apply it before paint so the
   // previous metro's events never flash under this URL.
   useLayoutEffect(() => {
-    setCity(slug, subLocation);
-  }, [slug, subLocation, setCity]);
+    setCity(slug, subLocation, neighborhood);
+  }, [slug, subLocation, neighborhood, setCity]);
 
   return <HomePage />;
 }

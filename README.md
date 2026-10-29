@@ -4,9 +4,27 @@ Boston & NYC Latin dance events calendar — [salsasegura.com](https://www.salsa
 
 The site shows salsa fanatics where to go dancing and lets the community submit events, without needing social media.
 
-The city explorer keeps NYC boroughs in a collapsible list. Expand **NYC boroughs**
-to choose an area, or select the city row for all NYC events. A selected borough's
-list opens automatically when you reopen the explorer.
+Geography follows **City → Borough → Neighborhood** in NYC and
+**City → Neighborhood** elsewhere. The explorer keeps each level collapsible;
+selecting a city or borough includes all its neighborhoods. Selected geography
+persists locally and uses `?borough=` / `?neighborhood=` on city discovery URLs.
+Changing a parent clears its selected child.
+
+The curated starter catalog lives in
+`src/features/metros/model/neighborhood.ts` (51 neighborhoods across eight cities).
+Texas remains a regional metro without invented neighborhood assignments.
+Existing events remain unassigned until edited; addresses are not used to infer
+neighborhoods. Apply `supabase/migrations/20261028120200_event_neighborhoods.sql`
+(after the NYC borough migration `20261025120000_nyc_event_sublocations.sql`)
+before deploying neighborhood-aware clients. It validates parent-child
+relationships, preserves existing boroughs, patches the event-writing RPCs
+(admin/moderator save, submission approval, host create and edit) in place with
+exact-anchor assertions, and exposes neighborhood filtering through the public
+event projection. A direct city or borough change clears the previous child, and
+an explicit new neighborhood is accepted in the same write.
+
+Local persistence smoke (fixtures roll back):
+`docker exec -i supabase_db_Salsa psql -U postgres -d postgres -v ON_ERROR_STOP=1 -f - < supabase/manual/event-neighborhoods-smoke.sql`.
 
 ## Stack
 
@@ -77,6 +95,10 @@ For a no-JavaScript check, use the production nginx routing or request
 `/path/index.html` explicitly in `vite preview`; its SPA fallback does not
 resolve extensionless directory routes the same way as the production hosts.
 
+Route metadata retains the branded social image when no page artwork is supplied.
+Robots directives are created even when absent from the HTML shell and restored
+on navigation. Event JSON-LD includes every available flyer, including a single
+flyer; events without artwork do not receive invented event images.
 SEO regression checks:
 `npx vitest run src/shared/seo/useDocumentMeta.test.tsx src/utils/seo.test.ts scripts/generate-sitemap.test.mjs scripts/prerender-routes.test.mjs src/pages/EventsParamRoute.test.tsx src/pages/EventDetailPage.test.tsx`.
 
@@ -169,8 +191,9 @@ product data and uses a shared-image transition where supported; confirmed
 adds animate into the cart. Reduced motion retains the same purchase flow
 without either effect. The discarded Drop Grid and preview switcher are removed;
 `?variant=retail` or `?variant=drop` no longer selects another design.
-With JavaScript disabled, the app shell offers a static Salsa Segura shop
-message and a direct link to the public merchant storefront.
+With JavaScript disabled, the shared app shell explains the event guide and links
+to Boston/NYC events, the calendar, directories, and site information. It also
+retains the shop message and direct link to the public merchant storefront.
 
 Set these optional build-time values in `.env.local`:
 

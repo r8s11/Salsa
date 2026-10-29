@@ -167,9 +167,12 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
 
   const update = <K extends keyof EventFormDraft>(field: K, value: EventFormDraft[K]) => {
     if (field === "city") cityChosenRef.current = true;
-    // A borough belongs to one city, so changing the city drops it.
-    const boroughFields = field === "city" ? { sublocation: "" } : {};
-    // The primary and the full selection are one fact; never write just one of them.
+    const geographyFields =
+      field === "city"
+        ? { sublocation: "", neighborhood: null }
+        : field === "sublocation"
+          ? { neighborhood: null }
+          : {};
     const typeFields =
       field === "event_types"
         ? eventTypeFields((value as EventType[] | undefined) ?? [])
@@ -179,7 +182,7 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
     setForm((previous) =>
       detachAutoVenueLink(
         previous,
-        { ...previous, [field]: value, ...typeFields, ...boroughFields } as EventFormDraft
+        { ...previous, [field]: value, ...typeFields, ...geographyFields } as EventFormDraft
       )
     );
     clearFieldError(field === "event_types" ? "event_type" : field);
@@ -187,24 +190,39 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
   // Applies a draft produced by extraction. Unlike `onChange` it is not the
   // person choosing a city, so it must not lock the city against later extractions.
   const applyDraft = (draft: EventFormDraft, review: EntityReview) => {
-    setForm(() => ({ ...draft, entity_review: hasReviewEntries(review) ? review : undefined }));
+    setForm((previous) => ({
+      ...draft,
+      ...(draft.city !== previous.city
+        ? { sublocation: "", neighborhood: null }
+        : draft.sublocation !== previous.sublocation
+          ? { neighborhood: null }
+          : {}),
+      entity_review: hasReviewEntries(review) ? review : undefined,
+    }));
   };
   const onChange = (draft: EventFormDraft) => {
     if (draft.city !== formRef.current.city) cityChosenRef.current = true;
     setForm((previous) => {
+      const geographyFields =
+        draft.city !== previous.city
+          ? { sublocation: "" as const, neighborhood: null }
+          : draft.sublocation !== previous.sublocation
+            ? { neighborhood: null }
+            : {};
+      const nextDraft = { ...draft, ...geographyFields };
       setFieldErrors((previousErrors) => {
         if (Object.keys(previousErrors).length === 0) return previousErrors;
         const next = { ...previousErrors };
         let changed = false;
         for (const field of Object.keys(next) as (keyof EventFormDraft)[]) {
-          if (previous[field] !== draft[field]) {
+          if (previous[field] !== nextDraft[field]) {
             delete next[field as keyof SubmitFieldErrors];
             changed = true;
           }
         }
         return changed ? next : previousErrors;
       });
-      return detachAutoVenueLink(previous, draft);
+      return detachAutoVenueLink(previous, nextDraft);
     });
   };
   const setEntityReview = (review: EntityReview) => {

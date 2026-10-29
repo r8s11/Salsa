@@ -6,6 +6,7 @@ import { resolveEventTimeZone, type TimeZoneResolution } from "../../../../share
 import type { SubmissionCreate } from "../../../admin/api/submissionsRepo";
 import type { AdminEventPayload, UserEventUpdatePayload } from "../../api/eventsRepo";
 import { eventFlyerList, flyerPayload } from "../../model/eventFlyers";
+import { normalizeNeighborhood } from "../../../metros/model/neighborhood";
 import { normalizeSubLocation, type SubLocation } from "../../../metros/model/sublocation";
 
 export type EventFormDraft = {
@@ -16,6 +17,8 @@ export type EventFormDraft = {
   /** Full ordered selection; `event_type` is always its first member. */
   event_types?: EventType[];
   city: City;
+  /** Curated neighborhood slug; null means unassigned. */
+  neighborhood?: string | null;
   /** Optional NYC borough; "" means All NYC. Only meaningful while `city` is New York City. */
   sublocation: SubLocation | "";
   event_date: string;
@@ -147,6 +150,12 @@ export function draftFlyerUrls(draft: Pick<EventFormDraft, "image_url" | "image_
 export function draftSubLocation(draft: Pick<EventFormDraft, "city" | "sublocation">): SubLocation | null {
   return normalizeSubLocation(draft.city, draft.sublocation);
 }
+/** Only a catalog entry matching the draft's exact city and borough is persisted. */
+export function draftNeighborhood(
+  draft: Pick<EventFormDraft, "city" | "sublocation" | "neighborhood">
+): string | null {
+  return normalizeNeighborhood(draft.city, draftSubLocation(draft), draft.neighborhood);
+}
 
 function priceAmount(draft: EventFormDraft): number | null {
   if (draft.price_type !== "paid") return null;
@@ -164,6 +173,7 @@ export function draftToSubmission(draft: EventFormDraft, actor: Actor): Submissi
     ...eventTypePayload(draft),
     city: draft.city,
     sublocation: draftSubLocation(draft),
+    neighborhood: draftNeighborhood(draft),
     event_date: draftInstant(draft),
     event_time: draft.event_time || null,
     location: draft.location || null,
@@ -184,6 +194,7 @@ export function draftToUserPayload(draft: EventFormDraft): UserEventUpdatePayloa
     ...eventTypePayload(draft),
     city: draft.city,
     sublocation: draftSubLocation(draft),
+    neighborhood: draftNeighborhood(draft),
     event_date: draftInstant(draft),
     event_time: draft.event_time || null,
     location: draft.location || null,
@@ -204,6 +215,7 @@ export function draftToAdminPayload(draft: EventFormDraft): AdminEventPayload {
     ...eventTypePayload(draft),
     city: draft.city,
     sublocation: draftSubLocation(draft),
+    neighborhood: draftNeighborhood(draft),
     event_date: draftInstant(draft),
     event_time: draft.event_time || null,
     location: draft.location || null,
@@ -245,6 +257,7 @@ export function draftToOrganizerUpdatePayload(draft: EventFormDraft): OrganizerU
     ...eventTypePayload(draft),
     city: draft.city,
     sublocation: draftSubLocation(draft),
+    neighborhood: draftNeighborhood(draft),
     event_date: draftInstant(draft),
     event_time: draft.event_time || null,
     location: draft.location || null,
@@ -270,6 +283,7 @@ export type OrganizerUpdateDraftPayload = {
   city: string;
   event_date: string;
   sublocation: SubLocation | null;
+  neighborhood: string | null;
   event_time: string | null;
   location: string | null;
   address: string | null;

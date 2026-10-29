@@ -23,8 +23,10 @@
     display: flex;
     overflow-x: auto;
     scrollbar-width: thin;
-    gap: 2px;
+    gap: 0;
     position: relative;
+    border-bottom: 1px solid var(--admin-border);
+    scrollbar-color: var(--admin-border-md) transparent;
   }
 
   .admin-view-tabs__select-label,
@@ -35,11 +37,11 @@
   .admin-view-tabs__tab {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     flex-shrink: 0;
-    padding: 8px 12px;
+    padding: 10px 14px;
     border: none;
-    border-bottom: 2px solid transparent;
+    border-bottom: 3px solid transparent;
     background: transparent;
     color: var(--admin-text-muted);
     font-size: 0.875rem;
@@ -49,13 +51,15 @@
   }
 
   .admin-view-tabs__tab:hover {
-    color: var(--admin-text-primary);
+    background: var(--admin-surface-subtle);
+    color: var(--admin-text-strong);
   }
 
-  .admin-view-tabs__tab--active {
-    color: var(--admin-text-strong);
+  .admin-view-tabs__tab--active,
+  .admin-view-tabs__tab--active.admin-view-tabs__tab--empty {
+    color: var(--admin-brand-text);
     border-bottom-color: var(--admin-brand);
-    font-weight: 600;
+    font-weight: 700;
   }
 
   .admin-view-tabs__tab--empty {
@@ -63,16 +67,19 @@
   }
 
   .admin-view-tabs__count {
-    padding: 1px 7px;
+    min-width: 24px;
+    padding: 2px 7px;
     border-radius: var(--radius-full);
     background: var(--admin-surface-secondary);
-    color: var(--admin-text-muted);
+    color: var(--admin-text-secondary);
     font-size: 0.75rem;
-    font-weight: 600;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
   }
 
   .admin-view-tabs__tab--active .admin-view-tabs__count {
-    background: var(--admin-brand-ring);
-    color: var(--admin-text-strong);
+    background: var(--admin-brand);
+    color: var(--admin-text-on-brand);
   }
 }

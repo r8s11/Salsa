@@ -1,29 +1,41 @@
 .admin-duplicate-check-panel {
   padding: 1rem;
+  min-width: 0;
 }
 
 .admin-duplicate-check-panel__list {
   list-style: none;
   padding: 0;
-  margin: 1rem 0 0 0;
+  margin: 0.75rem 0 0;
+  border-top: 2px solid var(--admin-border-md);
 }
 
 .admin-duplicate-check-panel__item {
-  border: 1px solid var(--admin-border);
-  padding: 1rem;
-  margin-bottom: 0.5rem;
+  border-bottom: 1px solid var(--admin-border);
+  padding: 1rem 0;
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
+  gap: 0.75rem 1rem;
+}
+
+/* The title keeps a readable measure; the actions wrap beneath it when the row is narrow. */
+.admin-duplicate-check-panel__info {
+  flex: 1 1 14rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .admin-duplicate-check-panel__actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
 }
 
 .admin-duplicate-check-panel__signals {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.25rem;
   padding: 0;
   list-style: none;

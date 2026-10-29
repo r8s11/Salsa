@@ -49,20 +49,24 @@
 }
 
 .admin-nav__group {
-  margin: 16px 20px 4px;
+  margin: 20px 20px 6px;
+  padding-top: 12px;
+  border-top: 1px solid var(--admin-border);
   font-family: var(--font-display);
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 800;
   line-height: 1.2;
   text-transform: uppercase;
   letter-spacing: 0.14em;
-  color: var(--admin-text-muted);
+  color: var(--admin-text-secondary);
   /* Listing names are user data: let a long one wrap rather than clip. */
   overflow-wrap: anywhere;
 }
 
 .admin-nav__item-wrap:first-child .admin-nav__group {
   margin-top: 4px;
+  padding-top: 0;
+  border-top: 0;
 }
 
 .admin-nav__link {
@@ -70,7 +74,7 @@
   position: relative;
   align-items: center;
   gap: 12px;
-  padding: 10px 20px;
+  padding: 11px 20px;
   color: var(--admin-nav-text);
   font-size: 0.875rem;
   font-weight: 500;
@@ -111,17 +115,17 @@
   outline-offset: -2px;
 }
 
-/* Current page: a change of ground, heavier weight and a rose icon. No
+/* Current page: rose ink, a tinted ground and decisive weight. No
    bar, pill or shadow; the desk marks state with ground, not lift. */
 .admin-nav__link.admin-nav__link--active {
-  background:
-    linear-gradient(var(--admin-brand-tint), var(--admin-brand-tint)), var(--admin-border);
-  color: var(--admin-text-strong);
-  font-weight: 600;
+  background: var(--admin-brand-tint);
+  color: var(--admin-brand-text);
+  font-weight: 700;
 }
 
 .admin-nav__link--active svg {
-  color: var(--admin-brand);
+  color: var(--admin-brand-text);
+  stroke-width: 2.25;
 }
 
 .admin-nav__badge {

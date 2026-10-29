@@ -104,6 +104,65 @@ describe("composer recovery", () => {
     expect(next?.saved).toEqual(saved);
     expect(next?.edited).toContain("description");
   });
+  it("recovers only a neighborhood valid for its saved city and borough", () => {
+    const initial = buildEmptyAdminForm("new-york-city");
+    const valid = readComposerRecovery(
+      JSON.stringify({
+        version: 1,
+        form: { ...initial, sublocation: "brooklyn", neighborhood: "williamsburg" },
+        saved: null,
+        edited: ["neighborhood"],
+      }),
+      initial
+    );
+    expect(valid?.form.neighborhood).toBe("williamsburg");
+
+    const invalid = readComposerRecovery(
+      JSON.stringify({
+        version: 1,
+        form: { ...initial, sublocation: "brooklyn", neighborhood: "astoria" },
+        saved: null,
+        edited: ["neighborhood"],
+      }),
+      initial
+    );
+    expect(invalid?.form.neighborhood).toBeNull();
+  });
+
+  it("recovers the ordered flyer list, and derives it from a legacy draft that only has the primary", () => {
+    const initial = buildEmptyAdminForm("boston");
+    const withList = readComposerRecovery(
+      JSON.stringify({
+        version: 1,
+        form: {
+          ...initial,
+          image_url: "https://example.com/a.png",
+          image_urls: ["https://example.com/a.png", "https://example.com/b.png"],
+        },
+        saved: null,
+        edited: ["image_urls"],
+      }),
+      initial
+    );
+    expect(withList?.form.image_urls).toEqual([
+      "https://example.com/a.png",
+      "https://example.com/b.png",
+    ]);
+    expect(withList?.edited).toContain("image_urls");
+
+    const { image_urls: _omitted, ...legacyForm } = {
+      ...initial,
+      image_url: "https://example.com/a.png",
+    };
+    const legacy = readComposerRecovery(
+      JSON.stringify({ version: 1, form: legacyForm, saved: null, edited: [] }),
+      initial
+    );
+    expect(legacy?.form).toMatchObject({
+      image_url: "https://example.com/a.png",
+      image_urls: ["https://example.com/a.png"],
+    });
+  });
 
   it("recovers the ordered flyer list, and derives it from a legacy draft that only has the primary", () => {
     const initial = buildEmptyAdminForm("boston");

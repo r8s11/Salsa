@@ -46,16 +46,23 @@ describe("generateEventStructuredData", () => {
     expect(data).not.toHaveProperty("offers");
   });
 
-  it("lists every flyer, primary first, only when an event has more than one", () => {
-    const flyers = ["https://x.test/a.jpg", "https://x.test/b.jpg", "https://x.test/c.jpg"];
-    const many = JSON.parse(
-      generateEventStructuredData({ ...event, image_url: flyers[0], image_urls: flyers })
-    );
-    expect(many.image).toEqual(flyers);
+  it.each([
+    { image_url: "https://x.test/a.jpg" },
+    { image_urls: ["https://x.test/a.jpg"] },
+  ])("includes an event's only flyer in structured data: %j", (images) => {
+    const data = JSON.parse(generateEventStructuredData({ ...event, ...images }));
+    expect(data.image).toEqual(["https://x.test/a.jpg"]);
+  });
 
-    const one = JSON.parse(
-      generateEventStructuredData({ ...event, image_url: flyers[0], image_urls: [flyers[0]] })
-    );
-    expect(one).not.toHaveProperty("image");
+  it("preserves the ordered flyer gallery", () => {
+    const data = JSON.parse(generateEventStructuredData({
+      ...event,
+      image_urls: ["https://x.test/a.jpg", "https://x.test/b.jpg"],
+    }));
+    expect(data.image).toEqual(["https://x.test/a.jpg", "https://x.test/b.jpg"]);
+  });
+
+  it("does not invent artwork for an event without flyers", () => {
+    expect(JSON.parse(generateEventStructuredData(event))).not.toHaveProperty("image");
   });
 });

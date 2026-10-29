@@ -69,6 +69,7 @@ function mockCityValue(city: CityContextValue["city"] = "boston") {
   vi.mocked(useCity).mockReturnValue({
     city,
     subLocation: null,
+    neighborhood: null,
     source: "explicit",
     resolving: false,
     setCity,

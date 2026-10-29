@@ -5,6 +5,7 @@ import {
   deleteEventForUser,
   duplicateEvent,
   fetchApprovedEventById,
+  fetchApprovedEvents,
   recordEventTouch,
   updateEventFlyer,
   updateEventForUser,
@@ -26,6 +27,8 @@ const queryBuilder = {
   delete: mocks.delete,
   select: vi.fn().mockReturnThis(),
   eq: vi.fn().mockReturnThis(),
+  gte: vi.fn().mockReturnThis(),
+  order: vi.fn(),
   single: vi.fn(),
   maybeSingle: mocks.maybeSingle,
 };
@@ -230,6 +233,32 @@ describe("fetchApprovedEventById", () => {
     await expect(fetchApprovedEventById("missing")).resolves.toBeNull();
   });
 });
+describe("fetchApprovedEvents", () => {
+  beforeEach(() => {
+    mocks.from.mockClear();
+    queryBuilder.select.mockClear();
+    queryBuilder.eq.mockClear();
+    queryBuilder.gte.mockClear();
+    queryBuilder.order.mockReset();
+  });
+
+
+  it("rejects a neighborhood outside the selected borough before querying", async () => {
+    await expect(fetchApprovedEvents("new-york-city", "brooklyn", "harlem")).rejects.toThrow(
+      "Neighborhood does not belong to the selected city and borough."
+    );
+    expect(mocks.from).not.toHaveBeenCalled();
+  });
+  it("rejects an invalid borough before querying", async () => {
+    // URL parameters are untyped at runtime, so the guard must hold for any string.
+    await expect(fetchApprovedEvents("new-york-city", "not-a-borough" as never)).rejects.toThrow(
+      "Borough does not belong to the selected city."
+    );
+    expect(mocks.from).not.toHaveBeenCalled();
+  });
+});
+
+
 
 
 describe("eventsRepo user update", () => {
@@ -247,6 +276,7 @@ describe("eventsRepo user update", () => {
       event_type: "workshop",
       event_types: ["workshop", "concert"],
       city: "boston",
+      neighborhood: "back-bay",
       event_date: "2026-08-20T20:00:00Z",
       event_time: "20:00",
       location: "Venue",
@@ -264,6 +294,7 @@ describe("eventsRepo user update", () => {
       event_type: "workshop",
       event_types: ["workshop", "concert"],
       city: "boston",
+      neighborhood: "back-bay",
       event_date: "2026-08-20T20:00:00Z",
       event_time: "20:00",
       location: "Venue",

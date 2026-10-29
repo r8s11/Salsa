@@ -67,6 +67,32 @@ describe("event type selection", () => {
     expect(validateSubmitForm(form)).toBeNull();
   });
 });
+  it("rejects neighborhoods that do not belong to the selected city and borough", () => {
+    const nyc = {
+      ...buildInitialForm("new-york-city"),
+      title: "Test Event",
+      event_type: "social" as const,
+      event_date: "2026-08-20",
+      sublocation: "brooklyn" as const,
+      neighborhood: "astoria",
+    };
+
+    expect(validateSubmitForm(nyc)).toBe("Choose a neighborhood from the list for this city and borough.");
+    expect(validateSubmitFormFields(nyc).neighborhood).toBe(
+      "Choose a neighborhood from the list for this city and borough."
+    );
+  });
+  it("accepts blank neighborhood values as unassigned", () => {
+    const blank = {
+      ...buildInitialForm("boston"),
+      title: "Test Event",
+      event_type: "social" as const,
+      event_date: "2026-08-20",
+      neighborhood: "  ",
+    };
+    expect(validateSubmitForm(blank)).toBeNull();
+    expect(validateSubmitFormFields(blank).neighborhood).toBeUndefined();
+  });
 
 describe("validateSubmitFormFields", () => {
   const validForm = (): SubmitForm => ({

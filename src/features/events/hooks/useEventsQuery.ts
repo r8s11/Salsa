@@ -4,11 +4,11 @@ import { fetchApprovedEvents } from "../api/eventsRepo";
 import { City, databaseEventToScheduleX } from "../../../types/events";
 import type { SubLocation } from "../../metros/model/sublocation";
 
-/** Approved upcoming events for one metro or NYC borough; idle while no metro is chosen. */
-export function useEventsQuery(city: City | null, subLocation: SubLocation | null = null) {
+/** Approved events within the selected city, optional borough, and neighborhood. */
+export function useEventsQuery(city: City | null, subLocation: SubLocation | null = null, neighborhood: string | null = null) {
   const { data, isLoading, isFetching, error, errorUpdatedAt, refetch } = useQuery({
-    queryKey: ["events", city, subLocation],
-    queryFn: () => fetchApprovedEvents(city!, subLocation),
+    queryKey: neighborhood ? ["events", city, subLocation, neighborhood] : ["events", city, subLocation],
+    queryFn: () => fetchApprovedEvents(city!, subLocation, neighborhood),
     enabled: city !== null,
   });
   // Incidental renders must not look like a different list collection.

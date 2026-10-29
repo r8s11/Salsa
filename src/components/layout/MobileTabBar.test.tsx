@@ -52,6 +52,7 @@ function renderTabBar(initialEntry = "/", city: CityContextValue["city"] = "bost
   vi.mocked(useCity).mockReturnValue({
     city,
     subLocation: null,
+    neighborhood: null,
     source: "explicit",
     resolving: false,
     setCity: vi.fn(),

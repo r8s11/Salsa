@@ -69,6 +69,8 @@ export interface DatabaseEvent {
   cancellation_reason?: string | null;
   city: City;
   sublocation: string | null;
+  /** Curated city/borough-specific slug; NULL for legacy or unassigned areas. */
+  neighborhood?: string | null;
   created_at: string;
   host: string | null;
   recurrence: string | null;
@@ -117,6 +119,8 @@ export interface ScheduleXEvent {
   city?: City;
   /** Optional NYC borough slug; absent means All NYC (or a non-NYC city). */
   sublocation?: string;
+  /** Optional curated neighborhood slug; absent means unassigned. */
+  neighborhood?: string;
   host?: string;
   recurrence?: string;
   /** Resolved IANA zone `start`/`end` are wall-clock in. */

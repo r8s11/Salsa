@@ -6,7 +6,8 @@ import { shortCodeIdRange } from "../model/shortLink";
 import { replaceEventTaxonomyTerms } from "../../admin/api/taxonomyRepo";
 import type { EntityReview } from "../../entity-matching/entityReview";
 import { flyerPayload } from "../model/eventFlyers";
-import type { SubLocation } from "../../metros/model/sublocation";
+import { normalizeSubLocation, type SubLocation } from "../../metros/model/sublocation";
+import { normalizeNeighborhood } from "../../metros/model/neighborhood";
 
 export interface AdminEventPayload {
   title: string;
@@ -18,6 +19,8 @@ export interface AdminEventPayload {
   city: City;
   /** Optional NYC borough; null clears it (All NYC). Omitted leaves the stored value alone. */
   sublocation?: SubLocation | null;
+  /** Optional curated area; null clears it and omission preserves it unless its parent changes. */
+  neighborhood?: string | null;
   event_date: string;
   event_time: string | null;
   location: string | null;
@@ -61,8 +64,18 @@ export function projectEventTaxonomy(rows: EventWithTaxonomy[] | null): Database
 
 export async function fetchApprovedEvents(
   city: City,
-  subLocation: SubLocation | null = null
+  subLocation: SubLocation | null = null,
+  neighborhood: string | null = null
 ): Promise<DatabaseEvent[]> {
+  if (subLocation !== null && normalizeSubLocation(city, subLocation) !== subLocation) {
+    throw new Error("Borough does not belong to the selected city.");
+  }
+  if (
+    neighborhood !== null &&
+    normalizeNeighborhood(city, subLocation, neighborhood) !== neighborhood
+  ) {
+    throw new Error("Neighborhood does not belong to the selected city and borough.");
+  }
   const today = new Date();
   today.setDate(today.getDate() - 1);
   const floorDate = today.toISOString();
@@ -71,8 +84,9 @@ export async function fetchApprovedEvents(
     .select("*")
     .eq("status", "approved")
     .eq("city", city);
-  // NULL means "All NYC": no borough filter. A borough matches that exact borough only.
+  // NULL means all neighborhoods within the selected city/borough.
   if (subLocation) query = query.eq("sublocation", subLocation);
+  if (neighborhood) query = query.eq("neighborhood", neighborhood);
   const { data, error } = await query
     .gte("event_date", floorDate)
     .order("event_date", { ascending: true });
@@ -233,6 +247,7 @@ export type UserEventUpdatePayload = {
   event_types: EventType[];
   city: City;
   sublocation?: SubLocation | null;
+  neighborhood?: string | null;
   event_date: string;
   event_time?: string | null;
   location?: string | null;
@@ -265,6 +280,7 @@ export async function updateEventForUser(
     city: payload.city,
     // Always written alongside city: a city change must clear a stale borough.
     ...(payload.sublocation !== undefined ? { sublocation: payload.sublocation } : {}),
+    ...(payload.neighborhood !== undefined ? { neighborhood: payload.neighborhood } : {}),
     event_date: payload.event_date,
     event_time: payload.event_time ?? null,
     location: payload.location ?? null,

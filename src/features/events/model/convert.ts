@@ -44,6 +44,7 @@ export function databaseEventToScheduleX(event: DatabaseEvent): ScheduleXEvent {
     rsvpLink: event.rsvp_link ?? undefined,
     city: event.city,
     sublocation: event.sublocation ?? undefined,
+    neighborhood: event.neighborhood ?? undefined,
     host: event.host ?? undefined,
     recurrence: event.recurrence ?? undefined,
     timeZone,

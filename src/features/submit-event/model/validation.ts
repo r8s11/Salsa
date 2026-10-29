@@ -1,5 +1,6 @@
 import type { EventType, City } from "../../../types/events";
-import { NYC_CITY, isSubLocation, type SubLocation } from "../../metros/model/sublocation";
+import { NYC_CITY, isSubLocation, normalizeSubLocation, type SubLocation } from "../../metros/model/sublocation";
+import { normalizeNeighborhood } from "../../metros/model/neighborhood";
 import { selectedEventTypes } from "../../events/model/eventTypeSelection";
 
 export type SubmitForm = {
@@ -9,6 +10,8 @@ export type SubmitForm = {
   /** Full ordered selection; `event_type` is its first member. At least one is required. */
   event_types?: EventType[];
   city: City;
+  /** Curated neighborhood slug, if assigned. */
+  neighborhood?: string | null;
   /** Optional NYC borough slug; "" means All NYC. Only valid when `city` is New York City. */
   sublocation?: SubLocation | "";
   event_date: string;
@@ -39,6 +42,7 @@ export const buildInitialForm = (city: City): SubmitForm => ({
   event_types: [],
   city,
   sublocation: "",
+  neighborhood: null,
   event_date: "",
   event_time: "",
   location: "",
@@ -92,6 +96,16 @@ export function validateSubmitForm(form: SubmitForm, isAnonymous = false): strin
 
   const boroughError = subLocationError(form.city, form.sublocation);
   if (boroughError) return boroughError;
+  if (
+    form.neighborhood?.trim() &&
+    normalizeNeighborhood(
+      form.city,
+      normalizeSubLocation(form.city, form.sublocation),
+      form.neighborhood
+    ) === null
+  ) {
+    return "Choose a neighborhood from the list for this city and borough.";
+  }
 
   // Length caps (spam friction)
   if (form.title.length > TITLE_MAX_LENGTH) {
@@ -152,6 +166,7 @@ export type SubmitFieldName =
   | "event_type"
   | "city"
   | "sublocation"
+  | "neighborhood"
   | "event_date"
   | "description"
   | "location"
@@ -207,6 +222,16 @@ export function validateSubmitFormFields(form: SubmitForm, isAnonymous = false):
 
   const boroughError = subLocationError(form.city, form.sublocation);
   if (boroughError) errors.sublocation = boroughError;
+  if (
+    form.neighborhood?.trim() &&
+    normalizeNeighborhood(
+      form.city,
+      normalizeSubLocation(form.city, form.sublocation),
+      form.neighborhood
+    ) === null
+  ) {
+    errors.neighborhood = "Choose a neighborhood from the list for this city and borough.";
+  }
 
   if (!form.event_date) {
     errors.event_date = "Choose an event date.";

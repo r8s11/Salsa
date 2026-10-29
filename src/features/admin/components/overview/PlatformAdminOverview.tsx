@@ -4,6 +4,7 @@ import { useAdminUsers } from "../../hooks/useAdminUsers";
 import { useOrganizerRequests } from "../../hooks/useOrganizerRequests";
 import { deriveUpcomingEvents } from "../../model/overviewMetrics";
 import OperatorDesk from "../../../../components/desk/OperatorDesk";
+import "./OperatorOverview.css";
 
 export default function PlatformAdminOverview() {
   const { events: queried, isLoading, error, refetch } = useAdminEvents();
@@ -24,14 +25,16 @@ export default function PlatformAdminOverview() {
   );
 
   return (
-    <OperatorDesk
-      role="admin"
-      upcoming={upcoming}
-      organizerRequestCount={organizerPendingCount ?? 0}
-      flaggedUserCount={flaggedUserCount}
-      isLoading={isLoading || isUsersLoading}
-      error={error ?? usersError}
-      onRetry={refetch}
-    />
+    <div className="admin-overview">
+      <OperatorDesk
+        role="admin"
+        upcoming={upcoming}
+        organizerRequestCount={organizerPendingCount ?? 0}
+        flaggedUserCount={flaggedUserCount}
+        isLoading={isLoading || isUsersLoading}
+        error={error ?? usersError}
+        onRetry={refetch}
+      />
+    </div>
   );
 }

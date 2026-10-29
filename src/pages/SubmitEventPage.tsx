@@ -27,6 +27,7 @@ const FIELD_ORDER: { field: SubmitFieldName; id: string }[] = [
   { field: "event_type", id: "event-type" },
   { field: "city", id: "event-city" },
   { field: "sublocation", id: "event-sublocation" },
+  { field: "neighborhood", id: "event-neighborhood" },
   { field: "description", id: "event-description" },
   { field: "dance_styles", id: "event-dance-styles" },
   { field: "event_date", id: "event-date" },

@@ -31,6 +31,7 @@ import {
 import { fromEventDateInstant } from "../features/events/model/eventDateTime";
 import { eventTypeFieldsFrom } from "../features/events/model/eventTypeSelection";
 import { validateSubmitForm } from "../features/submit-event/model/validation";
+import { normalizeNeighborhood } from "../features/metros/model/neighborhood";
 import { normalizeSubLocation } from "../features/metros/model/sublocation";
 import { useMySubmissions } from "../features/account/hooks/useMySubmissions";
 import "../styles/forms.css";
@@ -45,6 +46,11 @@ function buildUserDraft(event: DatabaseEvent): EventFormDraft {
     ...eventTypeFieldsFrom(event),
     city: event.city,
     sublocation: normalizeSubLocation(event.city, event.sublocation) ?? "",
+    neighborhood: normalizeNeighborhood(
+      event.city,
+      normalizeSubLocation(event.city, event.sublocation),
+      event.neighborhood
+    ),
     event_date: date,
     event_time: time,
     recurrence: event.recurrence === "weekly" ? "weekly" : "",
@@ -265,6 +271,7 @@ export default function UserEventEditPage() {
       event_types: form.event_types,
       city: form.city,
       sublocation: form.sublocation,
+      neighborhood: form.neighborhood,
       event_date: form.event_date,
       event_time: form.event_time,
       location: form.location,

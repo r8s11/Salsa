@@ -10,6 +10,7 @@ import {
   normalizeSubLocation,
   type SubLocation,
 } from "../features/metros/model/sublocation";
+import { normalizeNeighborhood } from "../features/metros/model/neighborhood";
 
 export type { City };
 
@@ -18,6 +19,7 @@ export type { City };
 // nothing about what the visitor chose and is dropped.
 const STORAGE_KEY = "salsa.metro";
 const SUBLOCATION_STORAGE_KEY = "salsa.sublocation";
+const NEIGHBORHOOD_STORAGE_KEY = "salsa.neighborhood";
 const LEGACY_STORAGE_KEY = "salsa.city";
 
 function readStoredCity(): City | null {
@@ -28,7 +30,10 @@ function readStoredCity(): City | null {
 
 function readStoredSubLocation(): SubLocation | null {
   if (typeof window === "undefined") return null;
-  return normalizeSubLocation("new-york-city", window.localStorage.getItem(SUBLOCATION_STORAGE_KEY));
+  return normalizeSubLocation(
+    window.localStorage.getItem(STORAGE_KEY),
+    window.localStorage.getItem(SUBLOCATION_STORAGE_KEY)
+  );
 }
 
 export function CityProvider({ children }: { children: ReactNode }) {
@@ -39,9 +44,16 @@ export function CityProvider({ children }: { children: ReactNode }) {
 
   const [explicit, setExplicit] = useState<City | null>(null);
   const [explicitSubLocation, setExplicitSubLocation] = useState<SubLocation | null>(null);
+  const [explicitNeighborhood, setExplicitNeighborhood] = useState<string | null>(null);
   const [stored, setStored] = useState<City | null>(readStoredCity);
   const [storedSubLocation, setStoredSubLocation] = useState<SubLocation | null>(
     readStoredSubLocation
+  );
+  const [storedNeighborhood, setStoredNeighborhood] = useState<string | null>(() =>
+    typeof window === "undefined" ? null : normalizeNeighborhood(
+      stored, normalizeSubLocation(stored, storedSubLocation),
+      window.localStorage.getItem(NEIGHBORHOOD_STORAGE_KEY)
+    )
   );
   // "Events near me" outranks the profile city for the rest of the session.
   const [ignoreProfile, setIgnoreProfile] = useState(false);
@@ -79,6 +91,10 @@ export function CityProvider({ children }: { children: ReactNode }) {
     choice.slug,
     explicit ? explicitSubLocation : stored === choice.slug ? storedSubLocation : null
   );
+  const neighborhood = normalizeNeighborhood(
+    choice.slug, subLocation,
+    explicit ? explicitNeighborhood : stored === choice.slug ? storedNeighborhood : null
+  );
 
   useEffect(() => {
     if (stored) window.localStorage.setItem(STORAGE_KEY, stored);
@@ -88,14 +104,22 @@ export function CityProvider({ children }: { children: ReactNode }) {
     } else {
       window.localStorage.removeItem(SUBLOCATION_STORAGE_KEY);
     }
-  }, [stored, storedSubLocation]);
+    if (stored && storedNeighborhood) {
+      window.localStorage.setItem(NEIGHBORHOOD_STORAGE_KEY, storedNeighborhood);
+    } else {
+      window.localStorage.removeItem(NEIGHBORHOOD_STORAGE_KEY);
+    }
+  }, [stored, storedSubLocation, storedNeighborhood]);
 
-  const setCity = useCallback((next: City, nextSubLocation: SubLocation | null = null) => {
+  const setCity = useCallback((next: City, nextSubLocation: SubLocation | null = null, nextNeighborhood: string | null = null) => {
     const validSubLocation = normalizeSubLocation(next, nextSubLocation);
+    const validNeighborhood = normalizeNeighborhood(next, validSubLocation, nextNeighborhood);
     setExplicit(next);
     setExplicitSubLocation(validSubLocation);
     setStored(next);
     setStoredSubLocation(validSubLocation);
+    setExplicitNeighborhood(validNeighborhood);
+    setStoredNeighborhood(validNeighborhood);
   }, []);
 
   const requestLocation = location.request;
@@ -104,6 +128,8 @@ export function CityProvider({ children }: { children: ReactNode }) {
     setExplicitSubLocation(null);
     setStored(null);
     setStoredSubLocation(null);
+    setExplicitNeighborhood(null);
+    setStoredNeighborhood(null);
     setIgnoreProfile(true);
     requestLocation();
   }, [requestLocation]);
@@ -112,6 +138,7 @@ export function CityProvider({ children }: { children: ReactNode }) {
     () => ({
       city: resolving ? null : choice.slug,
       subLocation: resolving ? null : subLocation,
+      neighborhood: resolving ? null : neighborhood,
       source: choice.source,
       resolving,
       setCity,
@@ -124,6 +151,7 @@ export function CityProvider({ children }: { children: ReactNode }) {
       resolving,
       choice,
       subLocation,
+      neighborhood,
       setCity,
       chooseNearMe,
       ranked,

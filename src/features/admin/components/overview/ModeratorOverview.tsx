@@ -1,6 +1,7 @@
 import type { OverviewMetrics } from "../../model/overviewMetrics";
 import type { DatabaseEvent } from "../../../events/model/types";
 import OperatorDesk from "../../../../components/desk/OperatorDesk";
+import "./OperatorOverview.css";
 
 interface Props {
   isLoading: boolean;
@@ -27,14 +28,16 @@ export default function ModeratorOverview({
   refetch,
 }: Props) {
   return (
-    <OperatorDesk
-      role="moderator"
-      upcoming={upcoming}
-      organizerRequestCount={metrics.organizerRequestCount}
-      flaggedUserCount={metrics.flaggedUserCount}
-      isLoading={isLoading || isUsersLoading}
-      error={error ?? usersError}
-      onRetry={refetch}
-    />
+    <div className="admin-overview">
+      <OperatorDesk
+        role="moderator"
+        upcoming={upcoming}
+        organizerRequestCount={metrics.organizerRequestCount}
+        flaggedUserCount={metrics.flaggedUserCount}
+        isLoading={isLoading || isUsersLoading}
+        error={error ?? usersError}
+        onRetry={refetch}
+      />
+    </div>
   );
 }

@@ -26,7 +26,9 @@ export function useActiveMetros() {
   return {
     activeMetros: query.data ?? [],
     loading: query.isPending,
+    fetching: query.isFetching,
     error: query.error?.message ?? null,
+    loadFailed: query.data === undefined && query.errorUpdatedAt > 0,
     refetch: query.refetch,
   };
 }

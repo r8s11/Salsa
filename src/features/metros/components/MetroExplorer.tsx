@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import Button from "../../../components/ui/Button";
 import { Check, ChevronDown, LocateFixed, MapPin } from "lucide-react";
 import { useCity } from "../../../contexts/useCity";
 import { useMetroName } from "../hooks/useMetros";
@@ -54,6 +55,10 @@ export default function MetroExplorer({
     source,
     activeMetros,
     activeMetrosError,
+    activeMetrosLoadFailed,
+    activeMetrosLoading,
+    activeMetrosFetching,
+    refetchActiveMetros,
     locationStatus,
     setCity,
     chooseNearMe,
@@ -87,6 +92,25 @@ export default function MetroExplorer({
       document.removeEventListener("keydown", onKeyDown);
     };
   }, [open, close]);
+  const retryButtonRef = useRef<HTMLButtonElement>(null);
+  const emptyStateRef = useRef<HTMLParagraphElement>(null);
+  const retryPending = useRef(false);
+  useEffect(() => {
+    if (activeMetrosFetching || !retryPending.current) return;
+    retryPending.current = false;
+    if (activeMetrosLoadFailed || activeMetrosError) {
+      retryButtonRef.current?.focus();
+      return;
+    }
+    const firstCity = rootRef.current?.querySelector<HTMLButtonElement>(".metro-explorer__option");
+    (firstCity ?? emptyStateRef.current)?.focus();
+  }, [activeMetrosFetching, activeMetrosLoadFailed, activeMetrosError]);
+
+  const retryActiveMetros = () => {
+    retryPending.current = true;
+    void refetchActiveMetros();
+  };
+
 
   const pick = (slug: MetroSlug, nextSubLocation: SubLocation | null = null, nextNeighborhood: string | null = null) => {
     setCity(slug, nextSubLocation, nextNeighborhood);
@@ -171,23 +195,58 @@ export default function MetroExplorer({
             {nearMeHint}
           </p>
 
-          {activeMetrosError ? (
-            <p className="metro-explorer__hint" role="alert">
-              Cities didn&apos;t load. Try again in a moment.
-            </p>
+          {activeMetrosLoadFailed ? (
+            <div className="metro-explorer__error" role="alert">
+              <p>Cities didn&apos;t load. Try again to check current event listings.</p>
+              <Button
+                ref={retryButtonRef}
+                variant="secondary"
+                loading={activeMetrosFetching}
+                loadingLabel="Trying again…"
+                onClick={retryActiveMetros}
+              >
+                Try again
+              </Button>
+            </div>
           ) : (
-            <ul className="metro-explorer__list" aria-label="Cities with upcoming events">
-              {activeMetros.map((metro) => (
-                <MetroOption
-                  key={metro.slug}
-                  metro={metro}
-                  current={metro.slug === city}
-                  subLocation={metro.slug === city ? subLocation : null}
-                  neighborhood={metro.slug === city ? neighborhood : null}
-                  onPick={pick}
-                />
-              ))}
-            </ul>
+            <>
+              {activeMetrosLoading ? (
+                <p className="metro-explorer__hint" role="status">Loading cities…</p>
+              ) : activeMetrosError ? (
+                <div className="metro-explorer__error" role="status">
+                  <p>Couldn&apos;t refresh cities. Showing the last available list.</p>
+                  <Button
+                    ref={retryButtonRef}
+                    variant="secondary"
+                    loading={activeMetrosFetching}
+                    loadingLabel="Trying again…"
+                    onClick={retryActiveMetros}
+                  >
+                    Try again
+                  </Button>
+                </div>
+              ) : activeMetrosFetching ? (
+                <p className="metro-explorer__hint" role="status">Refreshing cities…</p>
+              ) : null}
+              {activeMetros.length > 0 ? (
+                <ul className="metro-explorer__list" aria-label="Cities with upcoming events">
+                  {activeMetros.map((metro) => (
+                    <MetroOption
+                      key={metro.slug}
+                      metro={metro}
+                      current={metro.slug === city}
+                      subLocation={metro.slug === city ? subLocation : null}
+                      neighborhood={metro.slug === city ? neighborhood : null}
+                      onPick={pick}
+                    />
+                  ))}
+                </ul>
+              ) : !activeMetrosLoading ? (
+                <p ref={emptyStateRef} className="metro-explorer__hint" role="status" tabIndex={-1}>
+                  No cities with upcoming events yet.
+                </p>
+              ) : null}
+            </>
           )}
 
           <p className="metro-explorer__footer">

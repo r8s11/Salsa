@@ -7,8 +7,6 @@ import { useMemo, useEffect, useRef, useState, type CSSProperties } from "react"
 import "./Hero.css";
 import { useEvents } from "../../features/events/hooks/useEvent";
 import { useCity } from "../../contexts/useCity";
-import { useNewYorkToday } from "../../features/events/hooks/useNewYorkToday";
-import { nightOf } from "../../features/events/model/night";
 import { metroLabelFromSlug, metroShortCode } from "../../features/metros/model/metro";
 import { subLocationLabel } from "../../features/metros/model/sublocation";
 import { neighborhoodLabel } from "../../features/metros/model/neighborhood";
@@ -31,7 +29,6 @@ function Hero() {
   // "Near" only when the visitor's area picked the metro; a person's own
   // choice (or the inventory fallback) is stated as "in".
   const nearby = source === "location";
-  const today = useNewYorkToday();
 
   // Text entrance is GSAP when motion is allowed (Hero.motion.ts). CSS does
   // not hide the copy, so the first frame stays complete with JavaScript off.
@@ -45,7 +42,7 @@ function Hero() {
   const nowKey = wallKey(now);
   const weekKey = wallKey(now.add({ days: 7 }));
 
-  const { featuredStart, eventsThisWeek, venueCount, tickerItems, labelArt } = useMemo(() => {
+  const { eventsThisWeek, venueCount, tickerItems, labelArt } = useMemo(() => {
     const upcoming = events
       .filter((e) => e.start >= nowKey)
       .sort((a, b) => (a.start < b.start ? -1 : a.start > b.start ? 1 : 0));
@@ -64,7 +61,6 @@ function Hero() {
       : null;
 
     return {
-      featuredStart: featured?.start ?? null,
       eventsThisWeek: thisWeek.length,
       venueCount: venues.size,
       tickerItems: upcoming.slice(0, 8).map((e) => e.title),
@@ -77,18 +73,6 @@ function Hero() {
     };
   }, [events, nowKey, weekKey]);
 
-  // Same rule as the featured card's heading: "Tonight" only when the next
-  // event is on New York's today. Until the feed has answered (loading or
-  // failed) nothing is claimed, and the button names the section it opens.
-  const featuredNight = featuredStart && !loadFailed ? nightOf(featuredStart, today) : null;
-  const floorLabel =
-    featuredNight?.kind === "tonight"
-      ? "Tonight on the floor"
-      : featuredNight?.kind === "today"
-        ? "Today on the floor"
-        : featuredNight?.kind === "later"
-          ? `Next up · ${featuredNight.label}`
-          : "This week's floor";
 
   // A failed load has no counts to report; a dash says "unknown" where a 0
   // would claim the floor is empty. It holds through a retry so the stats
@@ -325,7 +309,7 @@ function Hero() {
 
           <div className="hero-cta hero-enter" data-enter="cta">
             <a href="#events" className="ui-button ui-button--primary hero-btn hero-btn--primary">
-              {floorLabel}
+              See upcoming events
             </a>
             <ButtonLink to="/calendar" variant="secondary" className="hero-btn hero-btn--secondary">
               Full calendar

@@ -53,19 +53,16 @@ describe("Hero", () => {
     expect(screen.getByRole("button", { name: "Events near me" })).toBeInTheDocument();
   });
 
-  it("marks its mobile action hierarchy and compact stat rail explicitly", () => {
+  it("labels the full upcoming action and keeps the seven-day statistic explicit", () => {
     render(
       <MemoryRouter>
         <Hero />
       </MemoryRouter>
     );
 
-    // The only event is in 2099, so the primary action names that night
-    // rather than claiming tonight.
-    expect(screen.getByRole("link", { name: /^Next up · \w{3} 1 Jan$/ })).toHaveClass(
-      "hero-btn--primary"
-    );
-    expect(screen.queryByRole("link", { name: "Tonight on the floor" })).not.toBeInTheDocument();
+    const upcoming = screen.getByRole("link", { name: "See upcoming events" });
+    expect(upcoming).toHaveClass("hero-btn--primary");
+    expect(upcoming).toHaveAttribute("href", "#events");
     expect(screen.getByRole("link", { name: "Full calendar" })).toHaveClass("hero-btn--secondary");
     expect(screen.getByText("Events This Week").closest(".hero-stats")).toHaveClass(
       "hero-stats--compact"
@@ -144,7 +141,6 @@ describe("Hero", () => {
         </MemoryRouter>
       );
 
-      expect(screen.getByRole("link", { name: "Tonight on the floor" })).toBeInTheDocument();
       // Only the 23:45 night is still ahead: one event, one venue.
       expect(screen.getByText("Events This Week").previousSibling).toHaveTextContent("1");
       expect(screen.getByText("Venue").previousSibling).toHaveTextContent("1");

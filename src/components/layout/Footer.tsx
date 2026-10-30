@@ -26,9 +26,7 @@ function Footer() {
           defaults: { ease: "power3.out" },
           scrollTrigger: { trigger: footer, start: "top 92%", once: true },
         });
-        timeline
-          .from(".footer-host", { y: 20, duration: 0.7 })
-          .from(".footer-tagline, .footer-details", { y: 12, duration: 0.6, stagger: 0.1 }, 0.15);
+        timeline.from(".footer-tagline, .footer-details", { y: 12, duration: 0.6, stagger: 0.1 });
 
         let active = true;
         void document.fonts.ready.then(() => {
@@ -50,12 +48,14 @@ function Footer() {
           <h2 className="footer-title">
             <Link className="footer-host" to="/founders">
               <span className="footer-host-label">
-                Host an <span className="footer-host-accent">event</span>
+                Request host access
               </span>
-              <Icon icon={arrowRightUp} width={72} height={72} aria-hidden="true" />
+              <Icon icon={arrowRightUp} width={16} height={16} aria-hidden="true" />
             </Link>
           </h2>
-          <p className="footer-tagline">Passion For Dance</p>
+          <p className="footer-tagline">
+            For dance brands, venues, promoters, and event organizers.
+          </p>
         </div>
 
         <div className="footer-details">

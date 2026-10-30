@@ -140,7 +140,7 @@ export default function FoundersWelcomePage() {
           account, or start a new request.
         </p>
         <ButtonLink to="/founders" variant="secondary">
-          Request Founder access
+          Request host access
         </ButtonLink>
       </section>
     );

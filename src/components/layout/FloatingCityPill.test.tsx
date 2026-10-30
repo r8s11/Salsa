@@ -48,6 +48,10 @@ function mockCity(city: string | null = "boston") {
     chooseNearMe,
     activeMetros,
     activeMetrosError: null,
+    activeMetrosLoadFailed: false,
+    activeMetrosLoading: false,
+    activeMetrosFetching: false,
+    refetchActiveMetros: vi.fn(async () => undefined),
     locationStatus: "idle",
   });
 }

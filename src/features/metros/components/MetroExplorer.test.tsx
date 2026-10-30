@@ -1,3 +1,6 @@
+import { mockActiveMetroQuery } from "../../../test/mockMetros";
+import userEvent from "@testing-library/user-event";
+import type { ReactNode } from "react";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, useLocation, useNavigate } from "react-router-dom";
@@ -22,22 +25,30 @@ function LocationState() {
 
 function renderExplorer(path = "/") {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(
+  const wrapper = ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={client}>
       <CityProvider>
-        <MemoryRouter initialEntries={[path]}>
-          <MetroExplorer />
-          <LocationState />
-        </MemoryRouter>
+        <MemoryRouter initialEntries={[path]}>{children}</MemoryRouter>
       </CityProvider>
     </QueryClientProvider>
   );
+  return render(<><MetroExplorer /><LocationState /></>, { wrapper });
 }
 
 beforeEach(() => {
   window.localStorage.clear();
   window.localStorage.setItem("salsa.metro", "new-york-city");
+  mockActiveMetroQuery.activeMetros = successfulActiveMetros;
+  mockActiveMetroQuery.loading = false;
+  mockActiveMetroQuery.fetching = false;
+  mockActiveMetroQuery.error = null;
+  mockActiveMetroQuery.loadFailed = false;
+  mockActiveMetroQuery.refetch = refetchActiveMetros;
+  refetchActiveMetros.mockClear();
 });
+
+const successfulActiveMetros = mockActiveMetroQuery.activeMetros;
+const refetchActiveMetros = vi.fn(async () => undefined);
 
 describe("NYC borough explorer", () => {
   it("selects a borough, remembers it, and returns to All NYC", async () => {
@@ -126,5 +137,59 @@ describe("NYC borough explorer", () => {
     fireEvent.keyDown(document, { key: "Escape" });
     await waitFor(() => expect(trigger).toHaveFocus());
     expect(trigger).toHaveAttribute("aria-expanded", "false");
+  });
+  it("keeps a failed city lookup actionable through retry and separates it from an empty result", async () => {
+    mockActiveMetroQuery.activeMetros = [];
+    mockActiveMetroQuery.error = "offline";
+    mockActiveMetroQuery.loadFailed = true;
+    const user = userEvent.setup();
+    const view = renderExplorer();
+    const rerenderExplorer = () => view.rerender(<><MetroExplorer /><LocationState /></>);
+    const trigger = await screen.findByRole("button", { name: /Location: New York City/ });
+    await user.click(trigger);
+
+    const alert = screen.getByRole("alert");
+    expect(alert).toHaveTextContent("Cities didn't load.");
+    expect(screen.queryByRole("list", { name: "Cities with upcoming events" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Try again" }));
+    expect(refetchActiveMetros).toHaveBeenCalledOnce();
+
+    Object.assign(mockActiveMetroQuery, {
+      loading: true,
+      fetching: true,
+      error: null,
+      loadFailed: true,
+    });
+    rerenderExplorer();
+    expect(screen.getByRole("alert")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Trying again…" })).toHaveAttribute("aria-busy", "true");
+    expect(screen.getByRole("button", { name: "Trying again…" })).toBeDisabled();
+
+    Object.assign(mockActiveMetroQuery, { loading: false, fetching: false, error: "offline" });
+    rerenderExplorer();
+    await waitFor(() => expect(screen.getByRole("button", { name: "Try again" })).toHaveFocus());
+
+    await user.click(screen.getByRole("button", { name: "Try again" }));
+    Object.assign(mockActiveMetroQuery, {
+      loading: true,
+      fetching: true,
+      error: null,
+      loadFailed: true,
+    });
+    rerenderExplorer();
+    expect(screen.getByRole("alert")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Trying again…" })).toBeDisabled();
+
+    Object.assign(mockActiveMetroQuery, {
+      activeMetros: [],
+      loading: false,
+      fetching: false,
+      error: null,
+      loadFailed: false,
+    });
+    rerenderExplorer();
+    const empty = screen.getByText("No cities with upcoming events yet.");
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    await waitFor(() => expect(empty).toHaveFocus());
   });
 });

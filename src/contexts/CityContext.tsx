@@ -40,7 +40,14 @@ export function CityProvider({ children }: { children: ReactNode }) {
   const { user, loading: authLoading } = useAuth();
   const { profile, isLoading: profileLoading } = useOwnProfile(user?.id);
   const { metros, loading: metrosLoading } = useMetros();
-  const { activeMetros, loading: activeLoading, error: activeMetrosError } = useActiveMetros();
+  const {
+    activeMetros,
+    loading: activeLoading,
+    fetching: activeFetching,
+    loadFailed: activeLoadFailed,
+    error: activeMetrosError,
+    refetch: refetchActiveMetros,
+  } = useActiveMetros();
 
   const [explicit, setExplicit] = useState<City | null>(null);
   const [explicitSubLocation, setExplicitSubLocation] = useState<SubLocation | null>(null);
@@ -141,7 +148,11 @@ export function CityProvider({ children }: { children: ReactNode }) {
       neighborhood: resolving ? null : neighborhood,
       source: choice.source,
       resolving,
+      activeMetrosLoadFailed: activeLoadFailed,
+      activeMetrosLoading: activeLoading,
+      activeMetrosFetching: activeFetching,
       setCity,
+      refetchActiveMetros,
       chooseNearMe,
       activeMetros: ranked,
       activeMetrosError,
@@ -152,7 +163,11 @@ export function CityProvider({ children }: { children: ReactNode }) {
       choice,
       subLocation,
       neighborhood,
+      activeLoadFailed,
+      activeLoading,
+      activeFetching,
       setCity,
+      refetchActiveMetros,
       chooseNearMe,
       ranked,
       activeMetrosError,

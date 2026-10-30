@@ -12,13 +12,22 @@ const activeMetros = metros.map((metro) => ({
   nextEventAt: "2099-01-01T00:00:00Z",
   distanceKm: null,
 }));
+export const mockActiveMetroQuery = {
+  activeMetros,
+  loading: false,
+  fetching: false,
+  error: null as string | null,
+  loadFailed: false,
+  refetch: async () => undefined,
+};
+
 
 export function useMetros() {
   return { metros, loading: false, error: null };
 }
 
 export function useActiveMetros() {
-  return { activeMetros, loading: false, error: null, refetch: async () => undefined };
+  return mockActiveMetroQuery;
 }
 
 export function useMetroName() {

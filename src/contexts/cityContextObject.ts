@@ -21,7 +21,12 @@ export type CityContextValue = {
   chooseNearMe: () => void;
   /** Active metros, nearest first when the area is known, else by inventory. */
   activeMetros: RankedMetro[];
+  /** True while a failed first lookup is being retried or awaiting recovery. */
+  activeMetrosLoadFailed: boolean;
+  activeMetrosLoading: boolean;
+  activeMetrosFetching: boolean;
   activeMetrosError: string | null;
+  refetchActiveMetros: () => Promise<unknown>;
   locationStatus: LocationStatus;
 };
 

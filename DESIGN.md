@@ -828,6 +828,12 @@ The stage header pairs the Epilogue display title and balanced subtitle
 
 A failed first load names the city ("We couldn't load Boston's
 listings.") and never shows the raw driver error; its Try again button
+If city discovery fails before any inventory arrives, the homepage and city picker show a recoverable error, not the verified-empty state. Their retry controls remain visible and announce loading while the request runs; failure restores focus to Retry, success moves focus to the resulting empty message or city list.
+
+The homepage feed lists all future events. Its heading is “Upcoming on the floor,” and the hero’s primary action is “See upcoming events.” The separate “Events This Week” statistic covers the next seven days only. A filtered-empty message describes the selected event-type list, not a week-limited feed.
+
+
+
 stays in place while retrying and gets focus back if the retry fails. A
 failed background refresh keeps the last loaded events on screen. With no
 city chosen, the calendar asks for one rather than reporting an empty
@@ -951,8 +957,10 @@ Explicit labels such as “Explore other cities” remain unchanged.
 The full two-tone wordmark leads the bar. A compact city code and a 44px
 menu target share the trailing edge; the picker retains the full city
 name for assistive technology and shows the full name again in its city
-list. The picker panel stays inside the phone viewport, including at
-320px.
+list. At phone widths, the panel anchors to the header’s live bottom edge,
+including wrapped and condensed states, not to the viewport. Its height
+is limited to the remaining dynamic viewport above the bottom safe area;
+long city lists scroll inside the panel at 320px and 390px.
 
 While the public mobile menu is open, the header is a labelled modal
 navigation surface: focus stays among its visible controls, background
@@ -991,24 +999,26 @@ available.
 
 #### Footer
 
-The footer closes the public experience with hosting as its primary action.
-“Host an event” is a heading link with rose emphasis on “event” and a Solar
-directional arrow. Its desktop title is 2.25rem with -0.03em tracking;
-the mobile override below 768px remains `clamp(3rem, 10vw, 4.5rem)`.
+The homepage’s primary event-submission invitation lives in `HomeCta`
+(“Submit your event” routes public visitors to `/submit`). The footer offers
+the distinct, lower-emphasis organizer-access path: “Request host access” → `/founders`.
+Requests are reviewed; approved hosts can manage and promote events. The
+request page serves dance brands, venues, promoters, and event organizers.
+
+The footer link uses 0.875rem UI type, muted text, a 1rem Solar arrow, and a
+44px target. Hover adds an underline; the link is not a display-scale CTA.
 The compact desktop shell uses `clamp(1.75rem, 3.5vw, 2.5rem)` top padding.
-“Passion For Dance” supports the invitation in 0.875rem type.
+
 A separate utility tier holds the two-tone logo and service area, contact
 navigation, and native “Buy me a coffee” link. Icons are bundled through
 Iconify; no remote button image or decorative media is required. Destinations
 and copyright wording are unchanged.
 
 Below 1024px support moves beneath identity and navigation. Below 768px the
-utility groups stack and the invitation wraps naturally. All links retain at
-least 44px targets and visible keyboard focus. GSAP introduces the complete
-hosting link, supporting tagline, and utility tier once with small translations,
-never hidden content or individually animated link words. Reduced motion
-bypasses entrance and CSS transform feedback; scoped matchMedia cleanup reverts
-motion on preference changes or unmount.
+utility groups stack. All links retain at least 44px targets and visible
+keyboard focus. GSAP animates the supporting tagline and utility tier, not the
+organizer link. Reduced motion bypasses entrance and CSS transform feedback;
+scoped matchMedia cleanup reverts motion on preference changes or unmount.
 Existing route-owned Lenis remains the only
 smooth-scroll engine; the footer creates no scroll instance or WebGL surface.
 Styles stay scoped to `.site-footer`; the public layout owns mobile dock clearance.

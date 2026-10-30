@@ -59,6 +59,10 @@ function renderTabBar(initialEntry = "/", city: CityContextValue["city"] = "bost
     chooseNearMe: vi.fn(),
     activeMetros: [],
     activeMetrosError: null,
+    activeMetrosLoadFailed: false,
+    activeMetrosLoading: false,
+    activeMetrosFetching: false,
+    refetchActiveMetros: vi.fn(async () => undefined),
     locationStatus: "idle",
   });
   return {

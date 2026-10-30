@@ -687,6 +687,11 @@ and 12px of heading bottom padding. On hover-capable devices with motion
 enabled, hovering the heading lengthens the rule to 1.4× over 500ms with
 `cubic-bezier(0.22, 1, 0.36, 1)`. Reduced motion keeps the rule still.
 
+The hero reserves its stat rail while the event feed or city is pending;
+pending figures are hidden from sight and assistive technology. Its metro
+label comes from the selected slug, so directory loading cannot rename the
+heading after paint.
+
 
 #### Calendar
 

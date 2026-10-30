@@ -100,6 +100,19 @@ describe("Hero", () => {
     );
   });
 
+  it("keeps the metro heading stable when a directory name differs from its slug", () => {
+    mockUseCity.mockReturnValue({ ...mockCity("explicit"), city: "new-york-city" });
+    render(
+      <MemoryRouter initialEntries={["/events/new-york-city"]}>
+        <Hero />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+      "Salsa & Bachata in New York City"
+    );
+  });
+
   it("renders the decorative record as layered, non-announced background art", () => {
     const { container } = render(
       <MemoryRouter>

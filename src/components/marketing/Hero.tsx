@@ -9,8 +9,7 @@ import { useEvents } from "../../features/events/hooks/useEvent";
 import { useCity } from "../../contexts/useCity";
 import { useNewYorkToday } from "../../features/events/hooks/useNewYorkToday";
 import { nightOf } from "../../features/events/model/night";
-import { useMetroName } from "../../features/metros/hooks/useMetros";
-import { metroShortCode } from "../../features/metros/model/metro";
+import { metroLabelFromSlug, metroShortCode } from "../../features/metros/model/metro";
 import { subLocationLabel } from "../../features/metros/model/sublocation";
 import { neighborhoodLabel } from "../../features/metros/model/neighborhood";
 import MetroExplorer from "../../features/metros/components/MetroExplorer";
@@ -26,8 +25,7 @@ function Hero() {
   const isMetroLanding = useLocation().pathname.startsWith("/events/");
   const { city, subLocation, neighborhood, source } = useCity();
   const { events, loading, loadFailed } = useEvents();
-  const metroName = useMetroName();
-  const metroLabel = city ? metroName(city) : null;
+  const metroLabel = city ? metroLabelFromSlug(city) : null;
   const cityLabel = neighborhoodLabel(neighborhood) ?? subLocationLabel(subLocation) ?? metroLabel;
   const cityShort = metroLabel ? metroShortCode(metroLabel) : null;
   // "Near" only when the visitor's area picked the metro; a person's own
@@ -95,16 +93,11 @@ function Hero() {
   // A failed load has no counts to report; a dash says "unknown" where a 0
   // would claim the floor is empty. It holds through a retry so the stats
   // don't blink out and back.
-  const heroStats = useMemo(() =>
-    cityShort
-      ? [
-          { num: loadFailed ? null : eventsThisWeek, label: "Events This Week" },
-          { num: loadFailed ? null : venueCount, label: venueCount === 1 ? "Venue" : "Venues" },
-          { num: cityShort, label: "On The Floor" },
-        ]
-      : [],
-    [cityShort, loadFailed, eventsThisWeek, venueCount]
-  );
+  const heroStats = [
+    { num: loadFailed ? null : eventsThisWeek, label: "Events This Week" },
+    { num: loadFailed ? null : venueCount, label: venueCount === 1 ? "Venue" : "Venues" },
+    { num: cityShort, label: "On The Floor" },
+  ];
 
   const [tickerPaused, setTickerPaused] = useState(false);
 
@@ -339,28 +332,30 @@ function Hero() {
             </ButtonLink>
           </div>
 
-          {heroStats.length > 0 && (!loading || loadFailed) && (
-            <div className="hero-stats hero-stats--compact hero-enter" data-enter="stats">
-              {heroStats.map((stat) => (
+          <div
+            className={`hero-stats hero-stats--compact hero-enter${!cityShort || (loading && !loadFailed) ? " hero-stats--pending" : ""}`}
+            data-enter="stats"
+            aria-hidden={!cityShort || (loading && !loadFailed) || undefined}
+          >
+            {heroStats.map((stat) => (
+              <div
+                className="hero-stat"
+                key={stat.label}
+                role={stat.num === null ? "group" : undefined}
+                aria-label={stat.num === null ? `${stat.label}: not available` : undefined}
+              >
                 <div
-                  className="hero-stat"
-                  key={stat.label}
-                  role={stat.num === null ? "group" : undefined}
-                  aria-label={stat.num === null ? `${stat.label}: not available` : undefined}
+                  className={`hero-stat-num${stat.num === null ? " hero-stat-num--unavailable" : ""}`}
+                  aria-hidden={stat.num === null || undefined}
                 >
-                  <div
-                    className={`hero-stat-num${stat.num === null ? " hero-stat-num--unavailable" : ""}`}
-                    aria-hidden={stat.num === null || undefined}
-                  >
-                    {stat.num ?? "—"}
-                  </div>
-                  <div className="hero-stat-label" aria-hidden={stat.num === null || undefined}>
-                    {stat.label}
-                  </div>
+                  {stat.num ?? "—"}
                 </div>
-              ))}
-            </div>
-          )}
+                <div className="hero-stat-label" aria-hidden={stat.num === null || undefined}>
+                  {stat.label}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 

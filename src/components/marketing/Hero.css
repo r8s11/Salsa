@@ -605,6 +605,10 @@
   margin-top: 2.75rem;
 }
 
+.hero-stats--pending {
+  visibility: hidden;
+}
+
 .hero-stat-num {
   font-family: var(--font-display);
   font-weight: 900;

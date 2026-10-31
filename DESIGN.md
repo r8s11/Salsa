@@ -959,6 +959,18 @@ short code at every width (for example DC, NYC or BOS), retaining the full
 city in their accessible name, native title hint and selection list.
 Explicit labels such as “Explore other cities” remain unchanged.
 
+Public discovery offers only locations with approved upcoming events.
+Discover's scene chips use `public_active_metros`, not the complete metro
+registry. The city explorer loads shared `public_active_locations` inventory
+when opened and offers only populated boroughs and neighborhoods. A borough
+with upcoming events but no named neighborhood remains selectable; empty
+child disclosures do not render. Loading and failed lookups remain distinct
+from confirmed-empty inventory, with in-place retry and keyboard focus
+recovery. Direct links and stored selections remain valid even after their
+inventory empties, and “Every city” still browses the complete entity directory.
+Curated location definitions remain available for event entry and validation;
+they do not themselves make a location discoverable.
+
 ##### Mobile header
 
 The full two-tone wordmark leads the bar. A compact city code and a 44px

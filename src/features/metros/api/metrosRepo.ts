@@ -1,5 +1,6 @@
 import { supabase } from "../../../lib/supabase";
 import type { ActiveMetro, Metro } from "../model/metro";
+import type { ActiveLocation } from "../model/activeLocation";
 
 interface MetroRow {
   slug: string;
@@ -13,6 +14,13 @@ interface MetroRow {
 interface ActiveMetroRow extends MetroRow {
   upcoming_event_count: number;
   next_event_at: string;
+}
+
+interface ActiveLocationRow {
+  city: string;
+  sublocation: ActiveLocation["subLocation"];
+  neighborhood: string | null;
+  upcoming_event_count: number;
 }
 
 const METRO_COLUMNS = "slug, name, state_region, country_code, latitude, longitude";
@@ -46,5 +54,19 @@ export async function fetchActiveMetros(): Promise<ActiveMetro[]> {
     ...toMetro(row),
     upcomingEventCount: row.upcoming_event_count,
     nextEventAt: row.next_event_at,
+  }));
+}
+
+/** Shared borough/neighborhood inventory from the approved public projection. */
+export async function fetchActiveLocations(): Promise<ActiveLocation[]> {
+  const { data, error } = await supabase
+    .from("public_active_locations")
+    .select("city, sublocation, neighborhood, upcoming_event_count");
+  if (error) throw new Error(error.message);
+  return ((data ?? []) as ActiveLocationRow[]).map((row) => ({
+    city: row.city,
+    subLocation: row.sublocation,
+    neighborhood: row.neighborhood,
+    upcomingEventCount: row.upcoming_event_count,
   }));
 }

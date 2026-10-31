@@ -5,9 +5,13 @@ import { useCity } from "../../contexts/useCity";
 import { useMetroName } from "../../features/metros/hooks/useMetros";
 import type { RankedMetro } from "../../features/metros/model/metro";
 import FloatingCityPill from "./FloatingCityPill";
+import { mockActiveLocationQuery } from "../../test/mockMetros";
 
 vi.mock("../../contexts/useCity", () => ({ useCity: vi.fn() }));
-vi.mock("../../features/metros/hooks/useMetros", () => ({ useMetroName: vi.fn() }));
+vi.mock("../../features/metros/hooks/useMetros", () => ({
+  useActiveLocations: () => mockActiveLocationQuery,
+  useMetroName: vi.fn(),
+}));
 
 const setCity = vi.fn();
 const chooseNearMe = vi.fn();

@@ -1,9 +1,10 @@
 import { useQueries, type UseQueryResult } from "@tanstack/react-query";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
-import { useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Link } from "react-router-dom";
+import Button from "../../../components/ui/Button";
 import { useCity } from "../../../contexts/useCity";
-import { useMetros } from "../../metros/hooks/useMetros";
+import { useActiveMetros, useMetros } from "../../metros/hooks/useMetros";
 import { metroLabelFromSlug, resolveMetroSlug, type Metro } from "../../metros/model/metro";
 import { fetchEntityDirectory } from "../entitiesRepo";
 import { ENTITY_COLLECTIONS, ENTITY_DIRECTORY_PATHS, entityHref, type PublicEntityKind, type PublicEntityRef } from "../model";
@@ -189,9 +190,23 @@ function Chapter({ kind, eyebrow, title, note, layout, limit, shelf, metroName, 
 export function DiscoverHub() {
   const { city, resolving, setCity } = useCity();
   const { metros } = useMetros();
+  const activeCities = useActiveMetros();
   const [everywhereChosen, setEverywhereChosen] = useState(false);
   const metro = everywhereChosen ? null : city;
   const choosing = !everywhereChosen && resolving;
+  const cityRetryRef = useRef<HTMLButtonElement>(null);
+  const cityRetryPending = useRef(false);
+  const sceneHeadingRef = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    if (activeCities.fetching || !cityRetryPending.current) return;
+    cityRetryPending.current = false;
+    if (activeCities.error || activeCities.loadFailed) cityRetryRef.current?.focus();
+    else sceneHeadingRef.current?.focus();
+  }, [activeCities.fetching, activeCities.error, activeCities.loadFailed]);
+  const retryCities = () => {
+    cityRetryPending.current = true;
+    void activeCities.refetch();
+  };
 
   const everywhere = useQueries({ queries: EVERYWHERE_KINDS.map((kind) => directoryQuery(kind, null)) });
   const nearby = useQueries({ queries: metro ? SCENE_KINDS.map((kind) => directoryQuery(kind, metro)) : [] });
@@ -223,7 +238,7 @@ export function DiscoverHub() {
       <section className="discover-scene" aria-labelledby="discover-scene-title">
         <header className="discover-scene__head">
           <p className="discover-scene__eyebrow">The scene in</p>
-          <h2 id="discover-scene-title" className="discover-scene__title" aria-live="polite">
+          <h2 ref={sceneHeadingRef} tabIndex={-1} id="discover-scene-title" className="discover-scene__title" aria-live="polite">
             {choosing ? "Finding your city…" : (metroName ?? "Every city")}
           </h2>
           {metro && metroName && (
@@ -233,18 +248,28 @@ export function DiscoverHub() {
             </Link>
           )}
         </header>
-        {metros.length > 0 && (
-          <div className="discover-scene__picker" role="group" aria-label="Show the scene for a city">
-            {metros.map((entry) => (
-              <button key={entry.slug} type="button" className="discover-chip" aria-pressed={entry.slug === metro} onClick={() => chooseMetro(entry.slug)}>
-                {entry.name}
-              </button>
-            ))}
-            <button type="button" className="discover-chip" aria-pressed={!metro && !choosing} onClick={showEverywhere}>
-              Every city
+        <div className="discover-scene__picker" role="group" aria-label="Show the scene for a city">
+          {activeCities.activeMetros.map((entry) => (
+            <button key={entry.slug} type="button" className="discover-chip" aria-pressed={entry.slug === metro} onClick={() => chooseMetro(entry.slug)}>
+              {entry.name}
             </button>
+          ))}
+          <button type="button" className="discover-chip" aria-pressed={!metro && !choosing} onClick={showEverywhere}>
+            Every city
+          </button>
+        </div>
+        {(activeCities.error || activeCities.loadFailed) ? (
+          <div className="discover-chapter__state" role="alert">
+            <p>We couldn’t load cities with upcoming nights.</p>
+            <Button ref={cityRetryRef} variant="secondary" loading={activeCities.fetching} loadingLabel="Trying again…" onClick={retryCities}>
+              Try again
+            </Button>
           </div>
-        )}
+        ) : activeCities.loading ? (
+          <p role="status">Loading cities with upcoming nights…</p>
+        ) : activeCities.activeMetros.length === 0 ? (
+          <p role="status">No cities have upcoming nights right now. You can still browse the directory.</p>
+        ) : null}
 
         <div className="discover-scene__chapters" key={choosing ? "choosing" : (metro ?? "everywhere")}>
           <Chapter kind="school" eyebrow="Learn" title="Schools" note="Studios with classes, levels, and bootcamps." layout="schools" limit={6} shelf={shelves.school} {...shared}>

@@ -15,11 +15,15 @@ import type { CartState } from "../../features/shopify/cart/CartContext";
 import { SHOP_NAV } from "../../features/shopify/collections";
 import type { RankedMetro } from "../../features/metros/model/metro";
 import Header from "./Header";
+import { mockActiveLocationQuery } from "../../test/mockMetros";
 
 vi.mock("../../contexts/useAuth", () => ({ useAuth: vi.fn() }));
 vi.mock("../../contexts/useCity", () => ({ useCity: vi.fn() }));
 vi.mock("../../features/account/hooks/useOwnProfile", () => ({ useOwnProfile: vi.fn() }));
-vi.mock("../../features/metros/hooks/useMetros", () => ({ useMetroName: vi.fn() }));
+vi.mock("../../features/metros/hooks/useMetros", () => ({
+  useActiveLocations: () => mockActiveLocationQuery,
+  useMetroName: vi.fn(),
+}));
 vi.mock("../../features/shopify/cart/useCart", () => ({ useCart: vi.fn() }));
 
 afterEach(() => vi.unstubAllGlobals());

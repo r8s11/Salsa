@@ -1,10 +1,11 @@
 import { useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchActiveMetros, fetchMetros } from "../api/metrosRepo";
+import { fetchActiveLocations, fetchActiveMetros, fetchMetros } from "../api/metrosRepo";
 import { metroLabelFromSlug, type MetroSlug } from "../model/metro";
 
 export const METROS_QUERY_KEY = ["metros", "all"] as const;
 export const ACTIVE_METROS_QUERY_KEY = ["metros", "active"] as const;
+export const ACTIVE_LOCATIONS_QUERY_KEY = ["metros", "active-locations"] as const;
 
 /** Every registered metro. Changes rarely; cached for the session. */
 export function useMetros() {
@@ -29,6 +30,24 @@ export function useActiveMetros() {
     fetching: query.isFetching,
     error: query.error?.message ?? null,
     loadFailed: query.data === undefined && query.errorUpdatedAt > 0,
+    refetch: query.refetch,
+  };
+}
+
+/** One shared inventory request, enabled only while a location picker is open. */
+export function useActiveLocations(enabled: boolean) {
+  const query = useQuery({
+    queryKey: ACTIVE_LOCATIONS_QUERY_KEY,
+    queryFn: fetchActiveLocations,
+    enabled,
+  });
+  return {
+    activeLocations: query.data ?? [],
+    loading: query.isPending,
+    fetching: query.isFetching,
+    error: query.error?.message ?? null,
+    loadFailed: query.data === undefined && query.errorUpdatedAt > 0,
+    refreshFailed: query.isRefetchError,
     refetch: query.refetch,
   };
 }

@@ -4,6 +4,7 @@ import { MemoryRouter, useLocation } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ScheduleXEvent } from "../../../types/events";
 import Events from "./Events";
+import { mockActiveLocationQuery } from "../../../test/mockMetros";
 
 const defaultEvents: ScheduleXEvent[] = [
   {
@@ -68,6 +69,7 @@ vi.mock("../../../contexts/useCity", () => ({
   }),
 }));
 vi.mock("../../metros/hooks/useMetros", () => ({
+  useActiveLocations: () => mockActiveLocationQuery,
   useMetroName: () => (slug: string) => (slug === "boston" ? "Boston" : slug),
 }));
 vi.mock("./event-modal/EventModal", () => ({

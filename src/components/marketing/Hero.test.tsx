@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
 import Hero from "./Hero";
+import { mockActiveLocationQuery } from "../../test/mockMetros";
 
 const { mockUseCity } = vi.hoisted(() => ({ mockUseCity: vi.fn() }));
 
@@ -19,6 +20,7 @@ const mockCity = (source: "location" | "explicit" = "location") => ({
 });
 
 vi.mock("../../features/metros/hooks/useMetros", () => ({
+  useActiveLocations: () => mockActiveLocationQuery,
   useMetroName: () => () => "Boston",
 }));
 

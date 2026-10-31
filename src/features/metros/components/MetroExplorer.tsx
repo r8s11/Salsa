@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import Button from "../../../components/ui/Button";
 import { Check, ChevronDown, LocateFixed, MapPin } from "lucide-react";
 import { useCity } from "../../../contexts/useCity";
-import { useMetroName } from "../hooks/useMetros";
+import { useActiveLocations, useMetroName } from "../hooks/useMetros";
 import {
   eventCountLabel,
   formatDistance,
@@ -17,7 +17,8 @@ import {
   subLocationLabel,
   type SubLocation,
 } from "../model/sublocation";
-import { neighborhoodLabel, neighborhoodsForLocation } from "../model/neighborhood";
+import { neighborhoodLabel, neighborhoodsForLocation, type Neighborhood } from "../model/neighborhood";
+import type { ActiveLocation } from "../model/activeLocation";
 import "./MetroExplorer.css";
 
 /** Home and metro-home routes navigate on pick; every other page stays put. */
@@ -38,9 +39,9 @@ interface MetroExplorerProps {
 /**
  * "Explore other cities": a non-modal popover listing every metro with
  * approved upcoming events, nearest first when the visitor's approximate
- * area is known, plus an "Events near me" reset. Driven entirely by
- * public_active_metros — a new metro appears here as soon as it has an
- * approved upcoming event.
+ * area is known, plus an "Events near me" reset. public_active_metros and
+ * public_active_locations limit discovery choices to approved upcoming
+ * inventory without changing valid stored or linked selections.
  */
 export default function MetroExplorer({
   label,
@@ -67,10 +68,14 @@ export default function MetroExplorer({
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
+  const locations = useActiveLocations(open);
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelId = useId();
   const headingId = useId();
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const locationRetryRef = useRef<HTMLButtonElement>(null);
+  const locationRetryPending = useRef(false);
 
   const close = useCallback((restoreFocus: boolean) => {
     setOpen(false);
@@ -109,6 +114,22 @@ export default function MetroExplorer({
   const retryActiveMetros = () => {
     retryPending.current = true;
     void refetchActiveMetros();
+  };
+
+  useEffect(() => {
+    if (locations.fetching || !locationRetryPending.current) return;
+    locationRetryPending.current = false;
+    if (!open) return;
+    if (locations.loadFailed || locations.refreshFailed) {
+      locationRetryRef.current?.focus();
+    } else {
+      headingRef.current?.focus();
+    }
+  }, [locations.fetching, locations.loadFailed, locations.refreshFailed, open]);
+
+  const retryLocations = () => {
+    locationRetryPending.current = true;
+    void locations.refetch();
   };
 
 
@@ -177,7 +198,7 @@ export default function MetroExplorer({
 
       {open && (
         <div id={panelId} className="metro-explorer__panel" role="region" aria-labelledby={headingId}>
-          <h2 id={headingId} className="metro-explorer__heading">
+          <h2 ref={headingRef} id={headingId} className="metro-explorer__heading" tabIndex={-1}>
             Explore cities
           </h2>
 
@@ -228,6 +249,30 @@ export default function MetroExplorer({
               ) : activeMetrosFetching ? (
                 <p className="metro-explorer__hint" role="status">Refreshing cities…</p>
               ) : null}
+              {activeMetros.length > 0 && (
+                locations.loadFailed || locations.refreshFailed ? (
+                  <div className="metro-explorer__error" role={locations.loadFailed ? "alert" : "status"}>
+                    <p>
+                      {locations.loadFailed
+                        ? "Boroughs and neighborhoods didn't load. You can still choose a city."
+                        : "Couldn't refresh boroughs and neighborhoods. Showing the last available choices."}
+                    </p>
+                    <Button
+                      ref={locationRetryRef}
+                      variant="secondary"
+                      loading={locations.fetching}
+                      loadingLabel="Trying locations again…"
+                      onClick={retryLocations}
+                    >
+                      Retry locations
+                    </Button>
+                  </div>
+                ) : locations.loading ? (
+                  <p className="metro-explorer__hint" role="status">Loading boroughs and neighborhoods…</p>
+                ) : locations.fetching ? (
+                  <p className="metro-explorer__hint" role="status">Refreshing boroughs and neighborhoods…</p>
+                ) : null
+              )}
               {activeMetros.length > 0 ? (
                 <ul className="metro-explorer__list" aria-label="Cities with upcoming events">
                   {activeMetros.map((metro) => (
@@ -237,6 +282,7 @@ export default function MetroExplorer({
                       current={metro.slug === city}
                       subLocation={metro.slug === city ? subLocation : null}
                       neighborhood={metro.slug === city ? neighborhood : null}
+                      locations={locations.activeLocations}
                       onPick={pick}
                     />
                   ))}
@@ -264,12 +310,13 @@ export default function MetroExplorer({
 type PickLocation = (slug: MetroSlug, borough?: SubLocation | null, neighborhood?: string | null) => void;
 
 function MetroOption({
-  metro, current, subLocation, neighborhood, onPick,
+  metro, current, subLocation, neighborhood, locations, onPick,
 }: {
   metro: RankedMetro;
   current: boolean;
   subLocation: SubLocation | null;
   neighborhood: string | null;
+  locations: readonly ActiveLocation[];
   onPick: PickLocation;
 }) {
   const distance = formatDistance(metro.distanceKm);
@@ -277,7 +324,14 @@ function MetroOption({
   const [expanded, setExpanded] = useState(current && Boolean(subLocation || neighborhood));
   const sublistId = useId();
   const boroughs = metro.slug === NYC_CITY;
-  const hasChildren = boroughs || neighborhoodsForLocation(metro.slug, null).length > 0;
+  const cityLocations = locations.filter((location) => location.city === metro.slug && location.upcomingEventCount > 0);
+  const activeBoroughs = NYC_SUBLOCATIONS.filter((borough) =>
+    cityLocations.some((location) => location.subLocation === borough.slug)
+  );
+  const areas = neighborhoodsForLocation(metro.slug, null).filter((area) =>
+    cityLocations.some((location) => location.subLocation === null && location.neighborhood === area.slug)
+  );
+  const hasChildren = boroughs ? activeBoroughs.length > 0 : areas.length > 0;
   return (
     <li>
       <button
@@ -313,7 +367,7 @@ function MetroOption({
               <li>
                 <SubLocationOption name={`All ${metro.slug === NYC_CITY ? "NYC" : metro.name}`} current={allCurrent} onPick={() => onPick(metro.slug)} />
               </li>
-              {boroughs ? NYC_SUBLOCATIONS.map((location) => (
+              {boroughs ? activeBoroughs.map((location) => (
                 <BoroughOption
                   key={location.slug}
                   city={metro.slug}
@@ -321,9 +375,12 @@ function MetroOption({
                   current={current && subLocation === location.slug}
                   neighborhood={neighborhood}
                   onPick={onPick}
+                  areas={neighborhoodsForLocation(metro.slug, location.slug).filter((area) =>
+                    cityLocations.some((entry) => entry.subLocation === location.slug && entry.neighborhood === area.slug)
+                  )}
                 />
               )) : (
-                <NeighborhoodOptions city={metro.slug} borough={null} current={current ? neighborhood : null} onPick={onPick} />
+                <NeighborhoodOptions city={metro.slug} borough={null} areas={areas} current={current ? neighborhood : null} onPick={onPick} />
               )}
             </ul>
           )}
@@ -333,11 +390,12 @@ function MetroOption({
   );
 }
 
-function BoroughOption({ city, borough, current, neighborhood, onPick }: {
+function BoroughOption({ city, borough, current, neighborhood, areas, onPick }: {
   city: string;
   borough: { slug: SubLocation; name: string };
   current: boolean;
   neighborhood: string | null;
+  areas: readonly Neighborhood[];
   onPick: PickLocation;
 }) {
   const [expanded, setExpanded] = useState(current && Boolean(neighborhood));
@@ -345,7 +403,7 @@ function BoroughOption({ city, borough, current, neighborhood, onPick }: {
   return (
     <li>
       <SubLocationOption name={borough.name} current={current && !neighborhood} onPick={() => onPick(city, borough.slug)} />
-      <button
+      {areas.length > 0 && <button
         type="button"
         className="metro-explorer__sublocation metro-explorer__disclosure"
         aria-expanded={expanded}
@@ -354,26 +412,27 @@ function BoroughOption({ city, borough, current, neighborhood, onPick }: {
       >
         <span>{borough.name} neighborhoods</span>
         <ChevronDown size={16} aria-hidden="true" />
-      </button>
-      {expanded && (
+      </button>}
+      {areas.length > 0 && expanded && (
         <ul id={listId} className="metro-explorer__sublist" aria-label={`${borough.name} neighborhoods`}>
           <li>
             <SubLocationOption name={`All ${borough.name}`} current={current && !neighborhood} onPick={() => onPick(city, borough.slug)} />
           </li>
-          <NeighborhoodOptions city={city} borough={borough.slug} current={current ? neighborhood : null} onPick={onPick} />
+          <NeighborhoodOptions city={city} borough={borough.slug} areas={areas} current={current ? neighborhood : null} onPick={onPick} />
         </ul>
       )}
     </li>
   );
 }
 
-function NeighborhoodOptions({ city, borough, current, onPick }: {
+function NeighborhoodOptions({ city, borough, areas, current, onPick }: {
   city: string;
   borough: SubLocation | null;
   current: string | null;
+  areas: readonly Neighborhood[];
   onPick: PickLocation;
 }) {
-  return neighborhoodsForLocation(city, borough).map((area) => (
+  return areas.map((area) => (
     <li key={area.slug}>
       <SubLocationOption name={area.name} current={current === area.slug} onPick={() => onPick(city, borough, area.slug)} />
     </li>

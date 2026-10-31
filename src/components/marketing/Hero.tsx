@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import ButtonLink from "../ui/ButtonLink";
 import IconButton from "../ui/IconButton";
 import { Pause, Play } from "lucide-react";
-import { useMemo, useEffect, useRef, useState, type CSSProperties } from "react";
+import { Fragment, useMemo, useEffect, useRef, useState, type CSSProperties } from "react";
 import "./Hero.css";
 import { useEvents } from "../../features/events/hooks/useEvent";
 import { useCity } from "../../contexts/useCity";
@@ -11,6 +11,7 @@ import { metroLabelFromSlug, metroShortCode } from "../../features/metros/model/
 import { subLocationLabel } from "../../features/metros/model/sublocation";
 import { neighborhoodLabel } from "../../features/metros/model/neighborhood";
 import MetroExplorer from "../../features/metros/components/MetroExplorer";
+import { featuredEventOf } from "../../features/events/model/featured";
 import { useHeroMotion } from "./Hero.motion";
 
 const NEW_YORK = "America/New_York";
@@ -52,7 +53,7 @@ function Hero() {
 
     // The record's paper label carries the next event, printed on two arcs so
     // it reads the way a pressed label does — and it turns with the disc.
-    const featured = upcoming[0];
+    const featured = featuredEventOf(upcoming);
     const featuredTime = featured
       ? new Date(featured.start.replace(" ", "T")).toLocaleTimeString("en-US", {
           hour: "numeric",
@@ -84,6 +85,15 @@ function Hero() {
   ];
 
   const [tickerPaused, setTickerPaused] = useState(false);
+
+  // The heading's words never break, so its size is capped by the longest
+  // one: a long city name or 200% text zoom shrinks the type to fit the
+  // column instead of running a word past the clipped edge (Hero.css).
+  const headingWords =
+    cityLabel && isMetroLanding
+      ? ["Salsa", "&", "Bachata", "in", ...cityLabel.split(/\s+/)]
+      : ["Find", "Your", "Rhythm."];
+  const longestHeadingWord = Math.max(...headingWords.map((word) => word.length));
 
   const heroRef = useRef<HTMLDivElement>(null);
   useHeroMotion(heroRef, `${isMetroLanding ? "metro" : "home"}:${cityLabel ?? ""}`);
@@ -236,7 +246,12 @@ function Hero() {
             </span>
           </div>
 
-          <h1 className="hero-heading hero-enter" data-enter="heading" data-split-words>
+          <h1
+            className="hero-heading hero-enter"
+            data-enter="heading"
+            data-split-words
+            style={{ "--hero-word-ch": longestHeadingWord } as CSSProperties}
+          >
             <span className="hero-split-source">
               {cityLabel && isMetroLanding ? (
                 <>
@@ -263,17 +278,19 @@ function Hero() {
               {cityLabel && isMetroLanding ? (
                 <>
                   <span className="hero-heading-line" data-line="1">
-                    {["Salsa", "&", "Bachata"].map((word) => (
-                      <span className="hero-split-word" key={word}>
-                        {word}{" "}
-                      </span>
+                    {["Salsa", "&", "Bachata"].map((word, index) => (
+                      <Fragment key={word}>
+                        {index > 0 && " "}
+                        <span className="hero-split-word">{word}</span>
+                      </Fragment>
                     ))}
                   </span>
                   <span className="hero-heading-line" data-line="2">
-                    {["in", ...cityLabel.split(/\s+/).filter(Boolean)].map((word) => (
-                      <span className="hero-split-word hero-heading-accent" key={word}>
-                        {word}{" "}
-                      </span>
+                    {["in", ...cityLabel.split(/\s+/).filter(Boolean)].map((word, index) => (
+                      <Fragment key={`${word}-${index}`}>
+                        {index > 0 && " "}
+                        <span className="hero-split-word hero-heading-accent">{word}</span>
+                      </Fragment>
                     ))}
                   </span>
                 </>
@@ -350,7 +367,10 @@ function Hero() {
             aria-hidden="true"
           >
             {[...tickerItems, ...tickerItems].map((title, i) => (
-              <span className="hero-ticker-item" key={i}>
+              <span
+                className={`hero-ticker-item${i >= tickerItems.length ? " hero-ticker-item--echo" : ""}`}
+                key={i}
+              >
                 {title}
                 <span className="hero-ticker-dot">◆</span>
               </span>

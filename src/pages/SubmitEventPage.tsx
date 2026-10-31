@@ -9,6 +9,8 @@ import EventForm, { CAPABILITIES } from "../features/events/components/EventForm
 import EventFlyersField from "../features/events/components/EventFlyersField";
 import FlyerExtractionPanel from "../features/flyer-extraction/FlyerExtractionPanel";
 import EntityReviewSection from "../features/entity-matching/EntityReviewSection";
+import EntityLinkSummary from "../features/entity-matching/EntityLinkSummary";
+import { EntityFieldAssist } from "../features/entity-matching/EntityMatchAssist";
 import SuccessCard from "../features/submit-event/components/SuccessCard";
 import { useSubmissionAccess } from "../features/submit-event/hooks/useSubmissionAccess";
 import { useSubmitEventForm } from "../features/submit-event/hooks/useSubmitEventForm";
@@ -76,6 +78,11 @@ export default function SubmitEventPage() {
     reconciliation,
     entityReview,
     setEntityReview,
+    submittedReview,
+    linkVenue,
+    undoVenueLink,
+    acceptVenueValue,
+    venuePrefill,
     handleExtractFlyer,
     dismissExtractionError,
   } = useSubmitEventForm(authenticatedSubmitterName);
@@ -120,8 +127,12 @@ export default function SubmitEventPage() {
       <SuccessCard
         onReset={resetSubmitted}
         trackPath={user ? (isOrganizer ? "/host/events" : "/profile") : null}
+        links={submittedReview}
       />
     );
+
+  // Matching against listed records needs a signed-in session.
+  const canLink = Boolean(user);
 
   return (
     <section className="submit-event">
@@ -242,7 +253,7 @@ export default function SubmitEventPage() {
                 </>
               )}
 
-              {entityReview && (
+              {entityReview && flyerReady && extractionStatus !== "idle" && (
                 <EntityReviewSection
                   review={entityReview}
                   onChange={setEntityReview}
@@ -273,7 +284,36 @@ export default function SubmitEventPage() {
                   requireSubmitterContact={!user}
                   authenticatedSubmitterName={authenticatedSubmitterName}
                   errors={fieldErrors}
+                  renderFieldAssist={
+                    canLink
+                      ? (field) =>
+                          field === "location" && (
+                            <EntityFieldAssist
+                              kind="venue"
+                              text={form.location}
+                              fieldId="event-location"
+                              searchEnabled={entityReview?.venue?.decision !== "existing"}
+                              disabled={isSubmitting}
+                              onPick={linkVenue}
+                              prefill={venuePrefill}
+                              onUndo={undoVenueLink}
+                              onAcceptKept={acceptVenueValue}
+                            />
+                          )
+                      : undefined
+                  }
                 />
+                {canLink && (
+                  <EntityLinkSummary
+                    review={entityReview}
+                    mode="public"
+                    onChange={setEntityReview}
+                    typedVenue={form.location}
+                    addable
+                    disabled={isSubmitting}
+                    intro="Everything listed here is sent with your event. Listed records are linked once a moderator approves it; anything new is checked first."
+                  />
+                )}
               </div>
               <div className="submit-form__bar">
                 <Button type="submit" block loading={isSubmitting} loadingLabel="Submitting...">

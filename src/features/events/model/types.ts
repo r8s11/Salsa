@@ -88,6 +88,8 @@ export interface DatabaseEvent {
   contact_website?: string | null;
   venue_id: string | null;
   entity_review?: EntityReview | null;
+  /** When an admin or moderator featured this event on the homepage; NULL/absent means not featured. */
+  featured_at?: string | null;
 
   /**
    * Present only for organizer-owned events created via
@@ -138,4 +140,6 @@ export interface ScheduleXEvent {
   danceStyles?: string[];
   createdAt?: string;
   sourceType?: DatabaseEvent["source_type"];
+  /** An admin or moderator chose this event for the homepage spotlight. */
+  featured?: boolean;
 }

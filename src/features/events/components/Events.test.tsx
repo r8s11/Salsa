@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -31,6 +31,12 @@ const refetch = vi.fn();
 
 vi.mock("../hooks/useEvent", () => ({
   useEvents: () => ({ events: mockedEvents, refetch, ...mockedFeed }),
+}));
+
+// New York's date; null keeps today's real date (every fixture is in 2099).
+let mockedToday: string | null = null;
+vi.mock("../hooks/useNewYorkToday", () => ({
+  useNewYorkToday: () => mockedToday ?? new Date().toISOString().slice(0, 10),
 }));
 
 const nearbyMetros = [
@@ -104,6 +110,7 @@ describe("Events homepage modal", () => {
     mockedCity = { city: "boston", source: "explicit" };
     mockedActiveMetros = nearbyMetros;
     mockedMetroDiscovery = { loading: false, fetching: false, error: null, loadFailed: false };
+    mockedToday = null;
   });
 
   it("opens and closes event details without leaving the homepage", async () => {
@@ -184,6 +191,76 @@ describe("Events homepage modal", () => {
     ).toBeInTheDocument();
     expect(screen.getByText(/^Next up ·/)).toHaveTextContent(/Next up · \w{3} 1 Jan/);
     expect(screen.queryByText("Featured Tonight")).not.toBeInTheDocument();
+  });
+
+  describe("spotlight", () => {
+    const night = (id: string, title: string, day: string, featured?: boolean): ScheduleXEvent => ({
+      id,
+      title,
+      start: `2099-01-${day} 20:00`,
+      end: `2099-01-${day} 23:00`,
+      calendarId: "social",
+      featured,
+    });
+    const renderEvents = () =>
+      render(
+        <MemoryRouter>
+          <Events />
+        </MemoryRouter>
+      ).container;
+
+    it("spotlights the earliest featured event over the next one, which stays in the feed", () => {
+      mockedEvents = [
+        night("next", "Next Social", "01"),
+        night("pick", "Picked Social", "03", true),
+        night("later-pick", "Later Pick", "05", true),
+      ];
+      const container = renderEvents();
+
+      expect(container.querySelector(".featured-card")).toHaveTextContent("Picked Social");
+      // Not the next night, so it is called featured, never "Next up".
+      expect(screen.getByText(/^Featured ·/)).toHaveTextContent(/Featured · \w{3} 3 Jan/);
+      expect(screen.queryByText(/^Next up ·/)).not.toBeInTheDocument();
+      const feed = within(container.querySelector(".events-grid") as HTMLElement);
+      expect(feed.getByText("Next Social")).toBeInTheDocument();
+      expect(feed.getByText("Later Pick")).toBeInTheDocument();
+      expect(feed.queryByText("Picked Social")).not.toBeInTheDocument();
+    });
+
+    it("ignores a featured event that has already started and falls back to the next event", () => {
+      mockedEvents = [
+        { ...night("past-pick", "Past Pick", "01", true), start: "2000-01-01 20:00", end: "2000-01-01 23:00" },
+        night("next", "Next Social", "02"),
+      ];
+      const container = renderEvents();
+
+      expect(container.querySelector(".featured-card")).toHaveTextContent("Next Social");
+      expect(screen.getByText(/^Next up ·/)).toHaveTextContent(/Next up · \w{3} 2 Jan/);
+      expect(screen.queryByText("Past Pick")).not.toBeInTheDocument();
+    });
+
+    it("labels a featured event tonight as Featured Tonight", () => {
+      mockedToday = "2099-01-03";
+      mockedEvents = [night("pick", "Picked Social", "03", true), night("after", "After Social", "04")];
+      const container = renderEvents();
+
+      expect(screen.getByRole("heading", { name: "Featured Tonight" })).toBeInTheDocument();
+      expect(container.querySelector(".featured-card")).toHaveTextContent("Picked Social");
+    });
+
+    it("never claims a quiet night when a later featured event follows one tonight", () => {
+      mockedToday = "2099-01-01";
+      mockedEvents = [night("tonight", "Tonight Social", "01"), night("pick", "Picked Social", "03", true)];
+      const container = renderEvents();
+
+      expect(screen.queryByText(/Nothing on the floor tonight/)).not.toBeInTheDocument();
+      expect(screen.queryByText("Featured Tonight")).not.toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: /^Featured · \w{3} 3 Jan$/ })).toBeInTheDocument();
+      expect(container.querySelector(".featured-card")).toHaveTextContent("Picked Social");
+      expect(
+        within(container.querySelector(".events-grid") as HTMLElement).getByText("Tonight Social")
+      ).toBeInTheDocument();
+    });
   });
 
   it("turns an empty city feed into clear next steps", () => {

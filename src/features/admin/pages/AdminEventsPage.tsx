@@ -154,6 +154,10 @@ export default function AdminEventsPage() {
     duplicate,
     isDuplicating,
     duplicateError,
+    setFeatured,
+    featuringId,
+    featureErrorId,
+    featureError,
     actorId,
   } = useAdminEvents();
 
@@ -399,13 +403,21 @@ export default function AdminEventsPage() {
     flyerBusy ??
     (changingStatusId
       ? { id: changingStatusId, action: lastRowAction ?? "publish" }
-      : removingId
-        ? { id: removingId, action: "delete" as const }
-        : null);
-  const errorId = flyerError?.id ?? changeStatusErrorId ?? removeErrorId;
+      : featuringId
+        ? { id: featuringId, action: lastRowAction ?? "feature" }
+        : removingId
+          ? { id: removingId, action: "delete" as const }
+          : null);
+  const errorId = flyerError?.id ?? changeStatusErrorId ?? featureErrorId ?? removeErrorId;
   const rowError =
     flyerError?.message ??
-    (changeStatusErrorId ? changeStatusError : removeErrorId ? removeError : null);
+    (changeStatusErrorId
+      ? changeStatusError
+      : featureErrorId
+        ? featureError
+        : removeErrorId
+          ? removeError
+          : null);
 
   const closeEditor = () => {
     setFormView({ mode: "list" });
@@ -462,6 +474,29 @@ export default function AdminEventsPage() {
             undoStatuses([event], `“${event.title}” is back to ${STATUS_LABEL[event.status]}.`)
           );
           requestFocus([event.id, ...neighbours]);
+        },
+      }
+    );
+  };
+
+  // Featuring changes only the homepage spotlight, so the row stays put and
+  // keeps focus; the outcome is announced like every other row decision.
+  // Several events can be featured, so the copy says which one leads.
+  const applyFeatured = (event: DatabaseEvent, featured: boolean) => {
+    setFeatured(
+      { id: event.id, featured },
+      {
+        onSuccess: () => {
+          announce(
+            featured
+              ? `Featured “${event.title}”. The ${metroName(event.city)} homepage spotlights the earliest featured event.`
+              : `“${event.title}” is no longer featured.`,
+            () => {
+              setNotice(null);
+              applyFeatured(event, !featured);
+            }
+          );
+          requestFocus([event.id]);
         },
       }
     );
@@ -530,6 +565,10 @@ export default function AdminEventsPage() {
         break;
       case "delete":
         setPendingAction({ kind: "delete", event });
+        break;
+      case "feature":
+      case "unfeature":
+        applyFeatured(event, action === "feature");
         break;
       case "upload-flyer":
       case "replace-flyer":

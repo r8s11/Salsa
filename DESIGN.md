@@ -884,6 +884,20 @@ fails, the dialog offers an in-place retry. A success confirmation card
 offers "Done" (closing with focus restoration to the trigger button) or
 "Submit Another Event".
 
+On `/submit`, signed-in submitters see listed venues, organizers,
+instructors and schools as they type (one debounced lookup per pause, with
+retry when it fails). Choosing a listing fills only empty event fields; typed
+values are kept and the listing's alternative is offered explicitly. A notice
+names what was filled and offers undo; keyboard focus moves to that undo and
+returns to the edited field after undo. The **Linked to this event** summary
+renders the exact `entity_review` payload that is submitted: Existing — will
+be linked, Suggested new — moderator reviews, Not linked, or Needs your
+choice. Undecided items are flagged before submit; public submitters may still
+submit and moderators decide. The success card repeats the submitted links,
+and admin submission review distinguishes what the submitter chose from the
+links that will be applied on approval. Signed-out submitters do not trigger
+entity lookups because those RPCs require authentication.
+
 #### Event Cards
 
 `EventCard` is a glass card (`--card`, 12px blur, 1px `--border`,
@@ -918,6 +932,17 @@ bounded to the card width; date and approval badge occupy separate grid
 columns and reflow without overlap at enlarged text sizes. The title's
 stretched button still opens the modal, while entity links remain independent.
 Hover/focus fills the arrow in gold; reduced motion removes transitions.
+
+Featured selection is optional. Admins and moderators may feature an
+approved event that has not started from the admin events row menu; the row
+shows a Featured badge and offers Undo or **Stop featuring**. The homepage
+and hero record label spotlight the earliest upcoming featured event in the
+selected area; without one they keep the automatic next event. The label says
+Featured Tonight/Today only when true, Next up when the featured event is also
+next, and otherwise Featured with its date. The featured event is removed from
+the feed below, and the automatic next event remains in the feed. Writes go
+through `set_event_featured`; direct client writes and pre-featured inserts
+are blocked.
 
 **Dance-style chips.** Small pills (`.style-chip`) name dance styles
 (On1, On2, Cuban, …) with a low-opacity Warm Orange background
@@ -1156,11 +1181,13 @@ preview is a second view in the same dialog, not a new route.
 **Decisions.** Two equal-size decisions follow in a 1fr/1fr grid
 (`.night-actions`): **Send to friends** (primary) and the event's link —
 **RSVP · Free** or **Get Tickets** (secondary) when the event has an RSVP
-link, otherwise **Full details** (secondary). On mobile the decisions move
-to a separate action bar. Below them, ghost text-link
-utilities never compete with the two decisions: **Calendar** (when a
-calendar link can be built), **Copy link**, and **Full details** when it is
-not already a decision.
+link, otherwise **Send to friends** spans the row alone. On mobile the
+decisions move to a separate action bar. Directly after the title and its
+notes, an **Event shortcuts** group gives **Add to calendar**, **Copy link**
+and **View full details** equal raised tiles with gold icons and visible
+labels. The group appears in every modal state, with View full details
+appearing exactly once; tiles keep 44px targets and wrap under enlarged text
+rather than truncating labels.
 
 **The thumbnail.** The thumbnail reuses the front cover alone
 (`SleeveCover`), scaled down from its authored 968px art size (to 220px;

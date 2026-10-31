@@ -688,4 +688,99 @@ describe("SubmitEventPage flyer extraction (Phase 3)", () => {
       );
     });
   });
+
+  describe("linking typed venue and people", () => {
+    const linksSection = () => screen.getByRole("region", { name: "Linked to this event" });
+
+    it("offers listed venues for the typed name and fills only the empty address", async () => {
+      const user = userEvent.setup();
+      mockEntityReview.searchEntityMatches.mockResolvedValue([EXISTING_VENUE]);
+      renderPage();
+
+      await user.type(screen.getByLabelText("Venue Name"), "havana");
+      await user.click(
+        await screen.findByRole("button", { name: "Link Havana Club & Lounge as the venue" })
+      );
+
+      expect(mockEntityReview.searchEntityMatches).toHaveBeenCalledWith("venue", "havana");
+      expect(screen.getByLabelText("Venue Name")).toHaveValue("Havana Club & Lounge");
+      expect(eventAddress()).toHaveValue("290 Green Street");
+      expect(screen.getByText(/Filled venue name and address from the listing/)).toBeInTheDocument();
+      expect(within(linksSection()).getByText("Existing — will be linked")).toBeInTheDocument();
+
+      await user.click(screen.getByRole("button", { name: "Undo link and filled details" }));
+      expect(screen.getByLabelText("Venue Name")).toHaveValue("havana");
+      expect(eventAddress()).toHaveValue("");
+      expect(within(linksSection()).getByText("Typed only — not linked")).toBeInTheDocument();
+    });
+
+    it("keeps an address the submitter typed when they link a listed venue", async () => {
+      const user = userEvent.setup();
+      mockEntityReview.searchEntityMatches.mockResolvedValue([EXISTING_VENUE]);
+      renderPage();
+
+      fireEvent.change(eventAddress(), { target: { value: "Side door, 1 Elm St" } });
+      await user.type(screen.getByLabelText("Venue Name"), "havana");
+      await user.click(
+        await screen.findByRole("button", { name: "Link Havana Club & Lounge as the venue" })
+      );
+
+      expect(eventAddress()).toHaveValue("Side door, 1 Elm St");
+      expect(screen.getByText(/Kept your address/)).toBeInTheDocument();
+      await user.click(screen.getByRole("button", { name: "Use the listing’s address" }));
+      expect(eventAddress()).toHaveValue("290 Green Street");
+    });
+
+    it("submits exactly the links the summary shows and repeats them on success", async () => {
+      const user = userEvent.setup();
+      vi.mocked(submissionsRepo.createSubmission).mockResolvedValueOnce("submission-id");
+      mockEntityReview.searchEntityMatches.mockResolvedValue([]);
+      renderPage();
+
+      fireEvent.change(screen.getByLabelText(/Event Title \*/i), { target: { value: "Linked night" } });
+      await user.click(
+        within(screen.getByRole("group", { name: /^Event type/ })).getByRole("button", {
+          name: "Social",
+        })
+      );
+      fireEvent.change(screen.getByLabelText("City *"), { target: { value: "boston" } });
+      fireEvent.change(screen.getByLabelText("Date *"), { target: { value: "2026-11-20" } });
+      await user.type(within(linksSection()).getByLabelText("Organizer name"), "Casa Nueva");
+      await screen.findByText("No listed organizer matches “Casa Nueva”.");
+      await user.click(within(linksSection()).getByRole("button", { name: "Suggest as new" }));
+
+      expect(within(linksSection()).getByText("Suggested new — moderator reviews")).toBeInTheDocument();
+      await user.click(screen.getByRole("button", { name: "Submit Event" }));
+
+      await waitFor(() => expect(submissionsRepo.createSubmission).toHaveBeenCalledTimes(1));
+      const sent = vi.mocked(submissionsRepo.createSubmission).mock.calls[0][0].entity_review;
+      expect(sent).toEqual({
+        venue: null,
+        organizer: {
+          candidate: { name: "Casa Nueva" },
+          state: "NEW",
+          matches: [],
+          decision: "new",
+          selected_id: null,
+        },
+        instructors: [],
+        school: null,
+      });
+      const success = await screen.findByRole("region", { name: "Sent with your event" });
+      expect(within(success).getByText("Casa Nueva")).toBeInTheDocument();
+    });
+
+    it("offers no lookups to a signed-out visitor, who cannot search listed records", async () => {
+      const user = userEvent.setup();
+      mockAuth.user = null;
+      renderPage();
+      await user.type(screen.getByLabelText("Venue Name"), "havana");
+
+      expect(screen.queryByRole("region", { name: "Linked to this event" })).not.toBeInTheDocument();
+      const wait = Promise.withResolvers<void>();
+      setTimeout(wait.resolve, 400);
+      await wait.promise;
+      expect(mockEntityReview.searchEntityMatches).not.toHaveBeenCalled();
+    });
+  });
 });

@@ -1457,4 +1457,97 @@ describe("useSubmitEventForm", () => {
       expect(result.current.flyerReady).toBe(true);
     });
   });
+
+  describe("linking a listed venue picked under Venue Name", () => {
+    const LISTED = { id: CANONICAL.id, name: "Canonical Club", address: "1 Main" };
+
+    it("fills an empty address from the listing and reports it", async () => {
+      const { result } = renderHook(() => useSubmitEventForm());
+      await act(async () => {
+        result.current.update("location", "canonical");
+      });
+      await act(async () => {
+        result.current.linkVenue(LISTED);
+      });
+
+      expect(result.current.form.location).toBe("Canonical Club");
+      expect(result.current.form.address).toBe("1 Main");
+      expect(result.current.entityReview?.venue).toMatchObject({
+        decision: "existing",
+        selected_id: LISTED.id,
+        explicit: true,
+        candidate: { name: "canonical" },
+      });
+      expect(result.current.venuePrefill?.filled.map((change) => change.field)).toEqual([
+        "location",
+        "address",
+      ]);
+      expect(result.current.venuePrefill?.kept).toEqual([]);
+    });
+
+    it("never replaces an address the person typed; the listing's is offered instead", async () => {
+      const { result } = renderHook(() => useSubmitEventForm());
+      await act(async () => {
+        result.current.update("location", "Canonical");
+        result.current.update("address", "Back entrance, 3 Side St");
+      });
+      await act(async () => {
+        result.current.linkVenue(LISTED);
+      });
+
+      expect(result.current.form.address).toBe("Back entrance, 3 Side St");
+      expect(result.current.venuePrefill?.kept).toEqual([
+        { field: "address", label: "Address", previous: "Back entrance, 3 Side St", next: "1 Main" },
+      ]);
+
+      await act(async () => {
+        result.current.acceptVenueValue("address");
+      });
+      expect(result.current.form.address).toBe("1 Main");
+    });
+
+    it("undo puts back what was typed and unlinks, but keeps edits made since", async () => {
+      const { result } = renderHook(() => useSubmitEventForm());
+      await act(async () => {
+        result.current.update("location", "canonical");
+      });
+      await act(async () => {
+        result.current.linkVenue(LISTED);
+      });
+      await act(async () => {
+        result.current.update("address", "1 Main, Suite 2");
+      });
+      await act(async () => {
+        result.current.undoVenueLink();
+      });
+
+      expect(result.current.form.location).toBe("canonical");
+      expect(result.current.form.address).toBe("1 Main, Suite 2");
+      expect(result.current.entityReview).toBeNull();
+      expect(result.current.venuePrefill).toBeNull();
+    });
+
+    it("submits exactly the linked review and keeps it for the success screen", async () => {
+      const { result } = renderHook(() => useSubmitEventForm());
+      await act(async () => {
+        result.current.update("title", "Linked night");
+        result.current.update("event_type", "social");
+        result.current.update("event_date", "2026-11-20");
+        result.current.update("location", "canonical");
+      });
+      await act(async () => {
+        result.current.linkVenue(LISTED);
+      });
+      const shown = result.current.entityReview;
+
+      await act(async () => {
+        await result.current.handleSubmit({ preventDefault: () => {} } as unknown as FormEvent);
+      });
+
+      expect(vi.mocked(createSubmission).mock.calls[0][0].entity_review).toEqual(shown);
+      expect(result.current.isSubmitted).toBe(true);
+      expect(result.current.submittedReview).toEqual(shown);
+      expect(result.current.entityReview).toBeNull();
+    });
+  });
 });

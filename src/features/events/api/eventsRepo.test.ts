@@ -1,12 +1,14 @@
 import "temporal-polyfill/global";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DatabaseEvent } from "../model/types";
+import { databaseEventToScheduleX } from "../model/convert";
 import {
   deleteEventForUser,
   duplicateEvent,
   fetchApprovedEventById,
   fetchApprovedEvents,
   recordEventTouch,
+  setEventFeatured,
   updateEventFlyer,
   updateEventForUser,
 } from "./eventsRepo";
@@ -99,6 +101,15 @@ describe("eventsRepo taxonomy persistence", () => {
     expect(inserted).not.toHaveProperty("taxonomy_term_ids");
     expect(inserted).not.toHaveProperty("taxonomy_terms");
     expect(mocks.replaceEventTaxonomyTerms).toHaveBeenCalledWith("copy-id", ["salsa-id"]);
+  });
+
+  it("never carries the source's homepage feature onto the copy", async () => {
+    await duplicateEvent(
+      { ...source, featured_at: "2026-08-20T00:00:00Z" },
+      { date: "2026-09-08", time: "20:00", publish: true },
+      { id: "admin-id", email: "admin@example.com" }
+    );
+    expect(mocks.insert.mock.calls[0][0]).not.toHaveProperty("featured_at");
   });
 });
 
@@ -256,8 +267,54 @@ describe("fetchApprovedEvents", () => {
     );
     expect(mocks.from).not.toHaveBeenCalled();
   });
+
+  it("scopes the homepage feed, featured flag included, to the selected city", async () => {
+    queryBuilder.order.mockResolvedValue({
+      data: [{ ...source, featured_at: "2026-08-20T00:00:00Z", event_taxonomy_terms: [] }],
+      error: null,
+    });
+
+    const [event] = await fetchApprovedEvents("boston");
+
+    expect(mocks.from).toHaveBeenCalledWith("public_events");
+    expect(queryBuilder.eq).toHaveBeenCalledWith("city", "boston");
+    expect(databaseEventToScheduleX(event).featured).toBe(true);
+    expect(databaseEventToScheduleX({ ...event, featured_at: null }).featured).toBeUndefined();
+  });
 });
 
+describe("setEventFeatured", () => {
+  beforeEach(() => {
+    mocks.rpc.mockReset();
+  });
+
+  it("features through the audited RPC and returns the stored timestamp", async () => {
+    mocks.rpc.mockResolvedValue({ data: "2026-10-31T12:00:00Z", error: null });
+
+    await expect(setEventFeatured("event-id", true)).resolves.toBe("2026-10-31T12:00:00Z");
+    expect(mocks.rpc).toHaveBeenCalledWith("set_event_featured", {
+      p_event_id: "event-id",
+      p_featured: true,
+    });
+  });
+
+  it("resolves to null once unfeatured", async () => {
+    mocks.rpc.mockResolvedValue({ data: null, error: null });
+
+    await expect(setEventFeatured("event-id", false)).resolves.toBeNull();
+  });
+
+  it("surfaces the database refusal", async () => {
+    mocks.rpc.mockResolvedValue({
+      data: null,
+      error: { message: "Events that have already started cannot be featured" },
+    });
+
+    await expect(setEventFeatured("event-id", true)).rejects.toThrow(
+      "Events that have already started cannot be featured"
+    );
+  });
+});
 
 
 

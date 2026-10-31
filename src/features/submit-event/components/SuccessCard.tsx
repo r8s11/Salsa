@@ -1,6 +1,9 @@
 import { Link } from "react-router-dom";
 import { CheckCircle2 } from "lucide-react";
 import Button from "../../../components/ui/Button";
+import EntityLinkSummary from "../../entity-matching/EntityLinkSummary";
+import type { EntityReview } from "../../entity-matching/entityReview";
+import { listReviewEntries } from "../../entity-matching/entityReviewState";
 
 interface Props {
   onReset: () => void;
@@ -10,9 +13,12 @@ interface Props {
    * link is omitted rather than pointing at a view they cannot open.
    */
   trackPath?: string | null;
+  /** The venue, organizer, instructor and school links exactly as submitted. */
+  links?: EntityReview | null;
 }
 
-export default function SuccessCard({ onReset, trackPath = null }: Props) {
+export default function SuccessCard({ onReset, trackPath = null, links = null }: Props) {
+  const hasLinks = Boolean(links && listReviewEntries(links).length > 0);
   return (
     <section className="submit-event">
       <div className="container">
@@ -24,6 +30,15 @@ export default function SuccessCard({ onReset, trackPath = null }: Props) {
             Thank you for contributing to the dance community! Your event is now pending review and
             will appear on the calendar once approved.
           </p>
+          {hasLinks && (
+            <EntityLinkSummary
+              review={links}
+              mode="public"
+              heading="Sent with your event"
+              headingLevel={3}
+              pendingNote="A moderator decides what to link for these."
+            />
+          )}
           <Button onClick={onReset}>Submit Another Event</Button>
           {trackPath && (
             <p className="success-card__track">

@@ -18,6 +18,11 @@ type Props = {
   onChange: (draft: EventFormDraft) => void;
   renderVenueField?: () => ReactNode;
   renderFlyerField?: () => ReactNode;
+  /**
+   * Renders under a typed field that can name an existing record (venue name,
+   * host) so a surface can offer listed matches. Absent means plain text.
+   */
+  renderFieldAssist?: (field: "location" | "host") => ReactNode;
   taxonomyTerms?: {
     danceStyles: EventTaxonomyTerm[];
     attributes: EventTaxonomyTerm[];
@@ -58,6 +63,7 @@ export default function EventForm({
   onChange,
   renderVenueField,
   renderFlyerField,
+  renderFieldAssist,
   taxonomyTerms,
   requireSubmitterContact = false,
   authenticatedSubmitterName = null,
@@ -416,6 +422,7 @@ export default function EventForm({
             </div>
           </div>
         )}
+        {!renderVenueField && renderFieldAssist?.("location")}
       </section>
       <section className="event-form__section event-form__section--pricing">
         <h2>Pricing & RSVP</h2>
@@ -513,6 +520,7 @@ export default function EventForm({
               />
             </label>
           </div>
+          {renderFieldAssist?.("host")}
         </section>
       )}
       {capabilities.submitterInfo && (

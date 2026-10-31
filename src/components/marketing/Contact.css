@@ -208,6 +208,15 @@
   color: var(--text);
 }
 
+/* The address has no break opportunities. It may wrap only where it cannot
+   fit (narrow sidebar, large text zoom); the rest of the card keeps whole
+   words. This replaces a card-wide word-break: break-all, which split the
+   address — and under zoom the "Email" heading — mid-word at any edge. */
+.contact-card__email {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
 /* ── Mobile ── */
 @media (max-width: 767.98px) {
   .contact-grid {
@@ -225,7 +234,7 @@
   }
 
   .contact-card {
-    flex: 1;
-    min-width: 140px;
+    flex: 1 1 140px;
+    min-width: 0;
   }
 }

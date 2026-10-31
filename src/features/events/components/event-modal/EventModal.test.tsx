@@ -1,6 +1,6 @@
 import type { ReactElement } from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render as rtlRender, screen, fireEvent, waitFor, act } from "@testing-library/react";
+import { render as rtlRender, screen, fireEvent, waitFor, act, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import EventModal from "./EventModal";
 import { recordEventTouch } from "../../api/eventsRepo";
@@ -76,29 +76,47 @@ describe("EventModal", () => {
     const onClose = vi.fn();
     render(<EventModal event={baseEvent} onClose={onClose} />);
 
-    const details = screen.getAllByRole("link", { name: "Full details" })[0];
+    const details = screen.getByRole("link", { name: "View full details" });
     expect(details).toHaveAttribute("href", "/events/1");
     fireEvent.click(details);
     expect(onClose).toHaveBeenCalledOnce();
   });
 
-  it("renders Full details as a link (never a close button) regardless of origin", () => {
+  it("renders View full details as a link (never a close button) regardless of origin", () => {
     const onClose = vi.fn();
     render(<EventModal event={baseEvent} onClose={onClose} />);
-    const details = screen.getAllByRole("link", { name: "Full details" })[0];
+    const details = screen.getByRole("link", { name: "View full details" });
     expect(details).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Full details" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "View full details" })).not.toBeInTheDocument();
     fireEvent.click(details);
     expect(onClose).toHaveBeenCalledOnce();
   });
 
-  it("resolves Full details to this event's own id, not a fallback route", () => {
+  it("resolves View full details to this event's own id, not a fallback route", () => {
     const onClose = vi.fn();
     render(<EventModal event={{ ...baseEvent, id: "abc123" }} onClose={onClose} />);
-    const details = screen.getAllByRole("link", { name: "Full details" })[0];
+    const details = screen.getByRole("link", { name: "View full details" });
     expect(details).toHaveAttribute("href", "/events/abc123");
     expect(details).not.toHaveAttribute("href", "/calendar");
     expect(details).not.toHaveAttribute("href", "/");
+  });
+
+  it("keeps exactly one labeled set of shortcuts whether or not the event has an RSVP link", () => {
+    const { rerender } = render(<EventModal event={baseEvent} onClose={() => {}} />);
+    const expectShortcuts = () => {
+      const shortcuts = screen.getByRole("group", { name: "Event shortcuts" });
+      expect(within(shortcuts).getByRole("link", { name: /add to calendar/i })).toBeInTheDocument();
+      expect(within(shortcuts).getByRole("button", { name: "Copy link" })).toBeInTheDocument();
+      expect(within(shortcuts).getByRole("link", { name: "View full details" })).toBeInTheDocument();
+      expect(screen.getAllByRole("link", { name: /full details/i })).toHaveLength(1);
+    };
+    expectShortcuts();
+
+    rerender(<EventModal event={{ ...baseEvent, rsvpLink: undefined }} onClose={() => {}} />);
+    expectShortcuts();
+    // Without an RSVP link, sending stands alone in each decision region.
+    expect(screen.getAllByRole("button", { name: "Send to friends" })).toHaveLength(2);
+    expect(screen.queryByRole("link", { name: /get tickets|rsvp/i })).not.toBeInTheDocument();
   });
 
   it("shows 'Free' and 'RSVP · Free' for a free event", () => {

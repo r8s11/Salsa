@@ -441,11 +441,13 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
     const calUrl = googleCalendarUrl(event);
     return calUrl ? (
       <ButtonLink href={calUrl} external variant="ghost" className="night-utility">
-        <CalendarPlus size={16} aria-hidden /> Add to calendar
+        <CalendarPlus size={18} aria-hidden />
+        <span>Add to calendar</span>
       </ButtonLink>
     ) : (
       <Button variant="ghost" onClick={() => downloadIcs(event)} className="night-utility">
-        <CalendarPlus size={16} aria-hidden /> Add to calendar
+        <CalendarPlus size={18} aria-hidden />
+        <span>Add to calendar</span>
       </Button>
     );
   };
@@ -482,11 +484,15 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
     return null;
   };
 
-  // The two decisions, equal in size: bring friends, or commit. Rendered in
-  // the card on desktop and in the sheet's thumb-zone bar on mobile; CSS
-  // shows exactly one region per layout.
+  // The decisions: bring friends, or commit. With an RSVP link both sit side
+  // by side at equal size; without one, sending stands alone at full width
+  // (the detail page lives in the utilities row, never duplicated here).
+  // Rendered in the card on desktop and in the sheet's thumb-zone bar on
+  // mobile; CSS shows exactly one region per layout.
   const renderDecisions = (region: "card" | "bar") => (
-    <div className={`night-actions night-actions--${region}`}>
+    <div
+      className={`night-actions night-actions--${region}${event.rsvpLink ? "" : " night-actions--solo"}`}
+    >
       <Button
         variant="primary"
         className="night-actions__send"
@@ -498,7 +504,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
         <Share2 size={16} aria-hidden />
         Send to friends
       </Button>
-      {event.rsvpLink ? (
+      {event.rsvpLink && (
         <ButtonLink
           href={event.rsvpLink}
           external
@@ -507,16 +513,6 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
           onClick={() => void recordEventTouch(String(event.id), event.priceType === "paid" ? "ticket_click" : "rsvp_click", event.city)}
         >
           {rsvpLabel}
-        </ButtonLink>
-      ) : (
-        <ButtonLink
-          to={`/events/${event.slug || event.id}`}
-          variant="secondary"
-          className="night-actions__rsvp"
-          onClick={onClose}
-        >
-          <Eye size={16} aria-hidden />
-          Full details
         </ButtonLink>
       )}
       {renderFeedback(region)}
@@ -616,34 +612,35 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
             })}
           </div>
         )}
-        <EventEntityLinks entities={event.publicEntities} omit={["venue", "style"]} onNavigate={onClose} />
 
         {renderDecisions("card")}
         {renderReassurance()}
 
-        <div className="night-utilities">
+        {/* Utilities sit right under the title on mobile (the decisions move
+            to the bar), and directly under the decisions on desktop. */}
+        <div className="night-utilities" role="group" aria-label="Event shortcuts">
           {renderCalendarAction()}
           <Button
             variant="ghost"
             onClick={() => void handleCopyLink("utilities")}
             className="night-utility copy-link-btn"
           >
-            <Link2 size={16} aria-hidden />
-            {copied ? "Copied" : "Copy link"}
+            <Link2 size={18} aria-hidden />
+            <span>{copied ? "Copied" : "Copy link"}</span>
           </Button>
-          {event.rsvpLink && (
-            <ButtonLink
-              to={`/events/${event.slug || event.id}`}
-              variant="ghost"
-              className="night-utility"
-              onClick={onClose}
-            >
-              <Eye size={16} aria-hidden />
-              Full details
-            </ButtonLink>
-          )}
+          <ButtonLink
+            to={`/events/${event.slug || event.id}`}
+            variant="ghost"
+            className="night-utility"
+            onClick={onClose}
+          >
+            <Eye size={18} aria-hidden />
+            <span>View full details</span>
+          </ButtonLink>
         </div>
         {renderFeedback("utilities")}
+
+        <EventEntityLinks entities={event.publicEntities} omit={["venue", "style"]} onNavigate={onClose} />
 
         {hasDetails && (
           <section className="night-details" aria-labelledby="night-details-title">

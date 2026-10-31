@@ -31,13 +31,22 @@ import FlyerExtractionPanel from "../../../flyer-extraction/FlyerExtractionPanel
 import { extractEventFromFlyer } from "../../../flyer-extraction/client";
 import { applyExtractionToDraft, type PrefillResult } from "../../../flyer-extraction/prefill";
 import EntityReviewSection from "../../../entity-matching/EntityReviewSection";
+import EntityLinkSummary from "../../../entity-matching/EntityLinkSummary";
+import { EntityFieldAssist } from "../../../entity-matching/EntityMatchAssist";
 import { reconcileEntities } from "../../../entity-matching/entityReviewClient";
+import {
+  acceptKeptValue,
+  prefillFromRecord,
+  undoPrefill,
+  type RecordPrefill,
+} from "../../../entity-matching/entityPrefill";
 import {
   emptyEntityReview,
   extractionEntityCandidates,
   hasEntityCandidates,
   mergeEntityReview,
   type EntityCandidates,
+  type EntityMatch,
   type EntityReview,
 } from "../../../entity-matching/entityReview";
 import {
@@ -53,6 +62,9 @@ import { eventFlyerList } from "../../../events/model/eventFlyers";
 import { removeEventFlyer, uploadEventFlyer } from "../../../events/api/eventFlyers";
 
 import "./AdminEventEditor.css";
+
+type VenueField = "location" | "address";
+type HostField = "contact_website" | "contact_instagram";
 
 type Props = {
   initial: AdminEventForm;
@@ -213,6 +225,22 @@ export default function AdminEventEditor({
   const cityChosenRef = useRef(Boolean(_eventId || recovery));
   const [reconciliation, setReconciliation] = useState<{ status: "idle" | "loading" | "error" }>({
     status: "idle",
+  });
+  // The last venue / host-organizer link and what it filled, for the undo notice.
+  const [venueFill, setVenueFill] = useState<{
+    venueId: string;
+    prefill: RecordPrefill<VenueField>;
+    previous: { venue_id: string; venue_time_zone: string; venue: EntityReview["venue"] };
+  } | null>(null);
+  const [hostFill, setHostFill] = useState<{
+    organizerId: string;
+    prefill: RecordPrefill<HostField>;
+    previous: EntityReview["organizer"];
+  } | null>(null);
+  const pickToken = useRef(0);
+  const [venuePick, setVenuePick] = useState<{ loading: boolean; error: string | null }>({
+    loading: false,
+    error: null,
   });
   const handleFormChange = (draft: AdminEventForm) => {
     for (const key of Object.keys(draft) as (keyof AdminEventForm)[]) {
@@ -613,9 +641,8 @@ export default function AdminEventEditor({
   ) => {
     edited.current.add("entity_review");
     if (kind === "venue") {
-      edited.current.add("venue_id");
-      edited.current.add("location");
-      edited.current.add("address");
+      selectVenue(entity);
+      return;
     }
     setForm((current) => {
       const existing = current.entity_review ?? emptyEntityReview();
@@ -630,19 +657,151 @@ export default function AdminEventEditor({
         next.instructors = [...existing.instructors];
         if (item) next.instructors[index] = item;
       } else next[kind] = item;
-      return {
-        ...current,
-        entity_review: next,
-        ...(kind === "venue"
-          ? {
-              venue_id: entity?.id ?? "",
-              location: entity?.name ?? "",
-              address: entity?.address ?? "",
-              venue_time_zone: entity?.timezone ?? "",
-            }
-          : {}),
-      };
+      return { ...current, entity_review: next };
     });
+  };
+  // A chosen venue names the event's venue; its address only fills an empty
+  // address. What was filled is reported with undo (see EntityFieldAssist).
+  const selectVenue = (entity: ComposerEntity | null) => {
+    // Any typed-venue pick still loading is superseded by this choice.
+    pickToken.current += 1;
+    setVenuePick({ loading: false, error: null });
+    edited.current.add("entity_review");
+    edited.current.add("venue_id");
+    edited.current.add("location");
+    edited.current.add("address");
+    const current = formRef.current;
+    const review = current.entity_review ?? emptyEntityReview();
+    if (!entity) {
+      // Unlinking keeps what the admin typed; only text the link filled goes.
+      const reverted =
+        venueFill && venueFill.venueId === current.venue_id
+          ? undoPrefill<AdminEventForm, VenueField>(current, venueFill.prefill)
+          : current;
+      setForm({
+        ...reverted,
+        venue_id: "",
+        venue_time_zone: "",
+        entity_review: { ...review, venue: review.venue ? removeItem(review.venue) : null },
+      });
+      setVenueFill(null);
+      return;
+    }
+    const { draft, prefill } = prefillFromRecord<AdminEventForm, VenueField>(current, entity.name, [
+      { field: "location", label: "Venue name", value: entity.name, follows: true },
+      { field: "address", label: "Address", value: entity.address },
+    ]);
+    setForm({
+      ...draft,
+      venue_id: entity.id,
+      venue_time_zone: entity.timezone ?? "",
+      entity_review: {
+        ...review,
+        venue: chooseExisting(newReviewItem(entity.name), entity, { moderator: true }),
+      },
+    });
+    setVenueFill({
+      venueId: entity.id,
+      prefill,
+      previous: {
+        venue_id: current.venue_id,
+        venue_time_zone: current.venue_time_zone ?? "",
+        venue: review.venue,
+      },
+    });
+  };
+  const undoVenueFill = () => {
+    if (!venueFill) return;
+    const current = formRef.current;
+    if (current.venue_id === venueFill.venueId) {
+      const review = current.entity_review ?? emptyEntityReview();
+      setForm({
+        ...undoPrefill<AdminEventForm, VenueField>(current, venueFill.prefill),
+        venue_id: venueFill.previous.venue_id,
+        venue_time_zone: venueFill.previous.venue_time_zone,
+        entity_review: { ...review, venue: venueFill.previous.venue },
+      });
+    }
+    setVenueFill(null);
+  };
+  const acceptVenueValue = (field: VenueField) => {
+    if (!venueFill) return;
+    const { draft, prefill } = acceptKeptValue<AdminEventForm, VenueField>(
+      formRef.current,
+      venueFill.prefill,
+      field
+    );
+    edited.current.add(field);
+    setForm(draft);
+    setVenueFill({ ...venueFill, prefill });
+  };
+  // A venue picked under the typed venue name loads its record first so the
+  // event keeps the venue's own time zone, exactly as the venue search does.
+  const pickTypedVenue = async (match: EntityMatch) => {
+    const token = ++pickToken.current;
+    setVenuePick({ loading: true, error: null });
+    try {
+      const venue = await fetchVenueDetail(match.id);
+      if (token !== pickToken.current) return;
+      selectVenue({
+        id: venue.id,
+        name: venue.name,
+        address: venueDisplayAddress(venue) || match.address || null,
+        city: venue.city,
+        timezone: venue.timezone,
+      });
+    } catch {
+      if (token !== pickToken.current) return;
+      setVenuePick({
+        loading: false,
+        error: "We couldn’t load that venue. Try again, or use the venue search above.",
+      });
+    }
+  };
+  // Host text can name a listed organizer; linking it fills only empty contact fields.
+  const linkHostOrganizer = (match: EntityMatch) => {
+    edited.current.add("entity_review");
+    const current = formRef.current;
+    const review = current.entity_review ?? emptyEntityReview();
+    const { draft, prefill } = prefillFromRecord<AdminEventForm, HostField>(current, match.name, [
+      { field: "contact_website", label: "Website", value: match.website },
+      { field: "contact_instagram", label: "Instagram", value: match.instagram },
+    ]);
+    prefill.filled.forEach(({ field }) => edited.current.add(field));
+    setForm({
+      ...draft,
+      entity_review: {
+        ...review,
+        organizer: chooseExisting(newReviewItem(current.host.trim() || match.name), match, {
+          moderator: true,
+        }),
+      },
+    });
+    setHostFill({ organizerId: match.id, prefill, previous: review.organizer });
+  };
+  const undoHostFill = () => {
+    if (!hostFill) return;
+    const current = formRef.current;
+    const review = current.entity_review ?? emptyEntityReview();
+    setForm({
+      ...undoPrefill<AdminEventForm, HostField>(current, hostFill.prefill),
+      entity_review:
+        review.organizer?.selected_id === hostFill.organizerId
+          ? { ...review, organizer: hostFill.previous }
+          : review,
+    });
+    setHostFill(null);
+  };
+  const acceptHostValue = (field: HostField) => {
+    if (!hostFill) return;
+    const { draft, prefill } = acceptKeptValue<AdminEventForm, HostField>(
+      formRef.current,
+      hostFill.prefill,
+      field
+    );
+    edited.current.add(field);
+    setForm(draft);
+    setHostFill({ ...hostFill, prefill });
   };
   const selectSeries = async (entity: ComposerEntity | null) => {
     const generation = ++seriesGeneration.current;
@@ -811,6 +970,25 @@ export default function AdminEventEditor({
               archived,
             }}
             errors={fieldErrors}
+            renderFieldAssist={(field) =>
+              field === "host" && (
+                <EntityFieldAssist
+                  kind="organizer"
+                  text={form.host}
+                  fieldId="event-host"
+                  searchEnabled={review.organizer?.decision !== "existing"}
+                  disabled={locked}
+                  onPick={linkHostOrganizer}
+                  prefill={
+                    hostFill && review.organizer?.selected_id === hostFill.organizerId
+                      ? hostFill.prefill
+                      : null
+                  }
+                  onUndo={undoHostFill}
+                  onAcceptKept={acceptHostValue}
+                />
+              )
+            }
             renderVenueField={() => (
               <>
                 <ComposerEntitySelect
@@ -840,6 +1018,21 @@ export default function AdminEventEditor({
                     onChange={(event) => handleFormChange({ ...form, address: event.target.value })}
                   />
                 </label>
+                <EntityFieldAssist
+                  kind="venue"
+                  text={form.location}
+                  fieldId="event-location"
+                  searchEnabled={!form.venue_id}
+                  disabled={locked}
+                  onPick={(match) => void pickTypedVenue(match)}
+                  prefill={
+                    venueFill && form.venue_id === venueFill.venueId ? venueFill.prefill : null
+                  }
+                  onUndo={undoVenueFill}
+                  onAcceptKept={acceptVenueValue}
+                  picking={venuePick.loading}
+                  pickError={venuePick.error}
+                />
               </>
             )}
             renderFlyerField={() => (
@@ -1010,6 +1203,19 @@ export default function AdminEventEditor({
               />
             </details>
           )}
+          <EntityLinkSummary
+            review={form.entity_review}
+            mode="authorized"
+            directVenue={form.venue_id ? form.location || "Selected venue" : null}
+            typedVenue={form.location}
+            onChange={(next) => {
+              edited.current.add("entity_review");
+              setForm((current) => ({ ...current, entity_review: next }));
+            }}
+            disabled={locked}
+            pendingNote="Undecided items are not linked when you save, and Publish waits until each one is resolved or removed."
+            emptyText="No venue, organizer, instructor or school is linked yet."
+          />
         </fieldset>
         <div
           className={`admin-form__actions${saved?.status === "approved" ? " admin-form__actions--published" : ""}`}

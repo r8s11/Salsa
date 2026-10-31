@@ -6,6 +6,7 @@ import ButtonLink from "../../../components/ui/ButtonLink";
 import { useEvents } from "../hooks/useEvent";
 import { useNewYorkToday } from "../hooks/useNewYorkToday";
 import { nightOf } from "../model/night";
+import { featuredEventOf } from "../model/featured";
 import { useCity } from "../../../contexts/useCity";
 import { useMetroName } from "../../metros/hooks/useMetros";
 import MetroExplorer from "../../metros/components/MetroExplorer";
@@ -84,9 +85,18 @@ function Events() {
       );
   }, [allEvents]);
 
-  const featuredEvent = upcomingEvents[0] ?? null;
+  // An admin-featured event wins the spotlight; otherwise it is the next event.
+  const featuredEvent = featuredEventOf(upcomingEvents) ?? null;
   const featuredNight = featuredEvent ? nightOf(featuredEvent.start, today) : null;
-  const feedSource = featuredEvent ? upcomingEvents.slice(1) : upcomingEvents;
+  // A featured pick can sit after other nights, so "Next up" is said only of
+  // the true next event, and "nothing tonight" only when the whole feed agrees.
+  const featuredIsNext = featuredEvent === upcomingEvents[0];
+  const quietToday = upcomingEvents.length > 0 && nightOf(upcomingEvents[0].start, today).kind === "later";
+  const FeaturedLabel = quietToday ? "p" : "h2";
+  const feedSource = useMemo(
+    () => upcomingEvents.filter((event) => event !== featuredEvent),
+    [upcomingEvents, featuredEvent]
+  );
   const feedEvents = useMemo(
     () => filterEventsByType(feedSource, typeFilter).slice(0, 6),
     [feedSource, typeFilter]
@@ -227,10 +237,13 @@ function Events() {
             <div className="events-featured-wrap">
               {featuredNight.kind === "later" ? (
                 <>
-                  <h2 className="events-featured-quiet">Nothing on the floor tonight in {cityLabel}.</h2>
-                  <p className="events-eyebrow">
-                    Next up · <time dateTime={featuredNight.date}>{featuredNight.label}</time>
-                  </p>
+                  {quietToday && (
+                    <h2 className="events-featured-quiet">Nothing on the floor tonight in {cityLabel}.</h2>
+                  )}
+                  <FeaturedLabel className="events-eyebrow">
+                    {featuredIsNext ? "Next up" : "Featured"} ·{" "}
+                    <time dateTime={featuredNight.date}>{featuredNight.label}</time>
+                  </FeaturedLabel>
                 </>
               ) : (
                 <h2 className="events-eyebrow">

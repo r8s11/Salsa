@@ -65,6 +65,7 @@ export function databaseEventToScheduleX(event: DatabaseEvent): ScheduleXEvent {
     priceAmount: event.price_amount ?? undefined,
     createdAt: event.created_at,
     sourceType: event.source_type,
+    featured: event.featured_at ? true : undefined,
   };
 }
 

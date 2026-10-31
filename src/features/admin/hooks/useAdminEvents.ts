@@ -3,6 +3,7 @@ import {
   fetchAllEvents,
   setEventStatus,
   updateEvent,
+  setEventFeatured,
   deleteEvent,
   createEventAsAdmin,
   duplicateEvent,
@@ -78,6 +79,14 @@ export function useAdminEvents() {
     },
   });
 
+  // The homepage reads the same ["events", …] cache family, so one
+  // invalidation refreshes the admin list and the public spotlight.
+  const featureMutation = useMutation({
+    mutationFn: ({ id, featured }: { id: string; featured: boolean }) =>
+      setEventFeatured(id, featured),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["events"] }),
+  });
+
   return {
     actorId: user?.id ?? null,
     events: query.data,
@@ -114,5 +123,10 @@ export function useAdminEvents() {
     duplicate: duplicateMutation.mutate,
     isDuplicating: duplicateMutation.isPending,
     duplicateError: duplicateMutation.error ? duplicateMutation.error.message : null,
+
+    setFeatured: featureMutation.mutate,
+    featuringId: featureMutation.isPending ? (featureMutation.variables?.id ?? null) : null,
+    featureErrorId: featureMutation.isError ? (featureMutation.variables?.id ?? null) : null,
+    featureError: featureMutation.error ? featureMutation.error.message : null,
   };
 }

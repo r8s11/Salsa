@@ -1,0 +1,191 @@
+/* ========================================
+   Entity links — the "Linked to this event" summary and the match assist
+   under typed fields. Both sit inside `.entity-review` token scope (admin
+   tokens inside .admin-shell, public tokens elsewhere).
+   ======================================== */
+
+.entity-links__head h2,
+.entity-links__head h3 {
+  margin: 0;
+  font: 700 1.125rem/1.25 var(--font-display, inherit);
+  text-wrap: balance;
+}
+
+.entity-links__pending {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  max-width: 65ch;
+  font-size: 0.875rem;
+}
+
+.entity-links__pending svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--er-warn);
+}
+
+.entity-links__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--er-hairline);
+}
+
+.entity-links__row {
+  display: grid;
+  gap: 8px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--er-hairline);
+}
+
+.entity-links__summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 16px;
+}
+
+.entity-links__who {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.entity-links__kind {
+  margin: 0;
+  color: var(--er-muted);
+  font: 700 0.75rem/1.3 var(--font-ui, inherit);
+}
+
+.entity-links__name {
+  margin: 0;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.entity-links__row[data-decision="removed"] .entity-links__name {
+  color: var(--er-muted);
+  text-decoration: line-through;
+}
+
+.entity-links__from {
+  margin: 0;
+  color: var(--er-muted);
+  font-size: 0.8125rem;
+  overflow-wrap: anywhere;
+}
+
+/* Status is icon + words; the tint only reinforces. */
+.entity-links__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+.entity-links__status svg {
+  flex: none;
+}
+
+.entity-links__status[data-decision="existing"] svg {
+  color: var(--er-ok);
+}
+
+.entity-links__status[data-decision="pending"] svg {
+  color: var(--er-warn);
+}
+
+.entity-links__status[data-decision="new"] svg {
+  color: var(--er-info);
+}
+
+.entity-links__status[data-decision="removed"] svg,
+.entity-links__status[data-decision="typed"] svg {
+  color: var(--er-muted);
+}
+
+.entity-links__detail {
+  margin: 0;
+  max-width: 65ch;
+  color: var(--er-muted);
+  font-size: 0.8125rem;
+}
+
+.entity-links__empty {
+  margin: 0;
+  color: var(--er-muted);
+  font-size: 0.875rem;
+}
+
+.entity-links__add {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.entity-links__add legend {
+  margin-bottom: 4px;
+  padding: 0;
+}
+
+/* Assist under a typed field. */
+.entity-assist {
+  display: grid;
+  gap: 8px;
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.entity-assist--linked {
+  padding: 12px 0;
+  border-top: 1px solid var(--er-hairline);
+  border-bottom: 1px solid var(--er-hairline);
+}
+
+.entity-assist__line {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.entity-assist__line svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--er-ok);
+}
+
+.entity-assist__line strong {
+  overflow-wrap: anywhere;
+}
+
+.entity-assist__kept {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.entity-assist__kept p {
+  flex: 1 1 16rem;
+  margin: 0;
+  color: var(--er-muted);
+  font-size: 0.8125rem;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 599.98px) {
+  .entity-links__row .entity-review__btn,
+  .entity-assist .entity-review__btn {
+    flex: 1 1 100%;
+  }
+}

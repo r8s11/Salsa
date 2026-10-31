@@ -247,6 +247,26 @@
   margin-top: 8px;
 }
 
+.admin-events-cards__summary-body .admin-events-featured {
+  margin-top: 8px;
+}
+
+.admin-events-table__badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Featured (homepage spotlight): information hue and a star, so it never
+   reads as Published's green dot. */
+.admin-shell .admin-status.admin-events-featured {
+  background: var(--admin-information-tint);
+  color: var(--admin-information);
+  border-color: var(--admin-information-border);
+  white-space: nowrap;
+}
+
 .admin-events-cards__head {
   display: flex;
   align-items: flex-start;

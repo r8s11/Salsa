@@ -163,6 +163,10 @@ const defaultState = {
   duplicate: vi.fn(),
   isDuplicating: false,
   duplicateError: null,
+  setFeatured: vi.fn(),
+  featuringId: null,
+  featureErrorId: null,
+  featureError: null,
   // Flyer analysis only reads objects stored under the acting admin's own
   // user id, so the editor refuses to upload without one.
   actorId: "11111111-1111-4111-8111-111111111111",
@@ -838,6 +842,92 @@ describe("AdminEventsPage", () => {
           eventId: "event-noflyer",
         });
       });
+    });
+  });
+
+  describe("homepage featuring", () => {
+    it("features an upcoming published event, announces which event leads, and can undo", async () => {
+      const user = userEvent.setup();
+      const setFeatured = vi.fn((_variables: unknown, options?: { onSuccess?: () => void }) =>
+        options?.onSuccess?.()
+      );
+      vi.mocked(useAdminEvents).mockReturnValue({ ...defaultState, setFeatured });
+      renderAt("/admin/events?view=upcoming");
+
+      const menu = await openRowMenu(user, "Salsa Workshop NYC");
+      await user.click(within(menu).getByRole("menuitem", { name: "Feature on homepage" }));
+
+      expect(setFeatured).toHaveBeenCalledWith({ id: "event-2", featured: true }, expect.any(Object));
+      expect(
+        screen.getAllByText(
+          "Featured “Salsa Workshop NYC”. The New York City homepage spotlights the earliest featured event."
+        ).length
+      ).toBeGreaterThan(0);
+
+      await user.click(screen.getByRole("button", { name: "Undo" }));
+      expect(setFeatured).toHaveBeenLastCalledWith(
+        { id: "event-2", featured: false },
+        expect.any(Object)
+      );
+    });
+
+    it("marks a featured row and offers Stop featuring instead of Feature", async () => {
+      const user = userEvent.setup();
+      const setFeatured = vi.fn();
+      vi.mocked(useAdminEvents).mockReturnValue({
+        ...defaultState,
+        events: [{ ...approvedUpcoming, featured_at: "2026-10-30T12:00:00Z" }],
+        setFeatured,
+      });
+      renderAt("/admin/events?view=upcoming");
+
+      expect(desktopRowFor("Salsa Workshop NYC").getByText("Featured")).toBeInTheDocument();
+      const menu = await openRowMenu(user, "Salsa Workshop NYC");
+      expect(within(menu).queryByRole("menuitem", { name: "Feature on homepage" })).not.toBeInTheDocument();
+      await user.click(within(menu).getByRole("menuitem", { name: "Stop featuring" }));
+
+      expect(setFeatured).toHaveBeenCalledWith({ id: "event-2", featured: false }, expect.any(Object));
+    });
+
+    it("does not offer featuring for unpublished or already-started events", async () => {
+      const user = userEvent.setup();
+      const started: DatabaseEvent = {
+        ...approvedUpcoming,
+        id: "event-started",
+        title: "Started Social",
+        event_date: daysFromNow(-1),
+      };
+      vi.mocked(useAdminEvents).mockReturnValue({ ...defaultState, events: [baseEvent, started] });
+      renderAt("/admin/events?view=all");
+
+      let menu = await openRowMenu(user, "Started Social");
+      expect(within(menu).queryByRole("menuitem", { name: "Feature on homepage" })).not.toBeInTheDocument();
+      await user.keyboard("{Escape}");
+
+      menu = await openRowMenu(user, "Bachata Sensual Social");
+      expect(within(menu).queryByRole("menuitem", { name: "Feature on homepage" })).not.toBeInTheDocument();
+    });
+
+    it("shows the server's refusal on the row when featuring fails", () => {
+      vi.mocked(useAdminEvents).mockReturnValue({
+        ...defaultState,
+        featureErrorId: "event-2",
+        featureError: "Events that have already started cannot be featured",
+      });
+      renderAt("/admin/events?view=upcoming");
+
+      expect(
+        within(eventsTable()).getByRole("alert")
+      ).toHaveTextContent("Action failed: Events that have already started cannot be featured");
+    });
+
+    it("marks the row busy while the feature request runs", () => {
+      vi.mocked(useAdminEvents).mockReturnValue({ ...defaultState, featuringId: "event-2" });
+      renderAt("/admin/events?view=upcoming");
+
+      expect(
+        desktopRowFor("Salsa Workshop NYC").getByRole("button", { name: "Actions for Salsa Workshop NYC" })
+      ).toBeDisabled();
     });
   });
 });

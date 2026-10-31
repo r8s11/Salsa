@@ -173,8 +173,7 @@ describe("SubmitEventPage flyer (Phase 1)", () => {
     expect(screen.getByLabelText(/Event Title \*/i)).toHaveValue("Havana Friday Social");
     expect(screen.getByLabelText(/Date \*/i)).toHaveValue("2026-09-18");
     expect(screen.getByRole("combobox", { name: /City/i })).toHaveValue("new-york-city");
-    const notice = await screen.findByRole("status");
-    expect(notice).toHaveTextContent(/Filled .* from your flyer/i);
+    expect(await screen.findByText(/Filled .* from your flyer/i)).toBeInTheDocument();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
@@ -201,8 +200,7 @@ describe("SubmitEventPage flyer (Phase 1)", () => {
 
     expect(screen.getByLabelText(/Event Title \*/i)).toHaveValue("Warehouse Party");
     expect(screen.getByRole("combobox", { name: /City/i })).toHaveValue("boston");
-    const notice = await screen.findByRole("status");
-    expect(notice).toHaveTextContent(/Couldn't determine: city, price/i);
+    expect(await screen.findByText(/Couldn't determine: city, price/i)).toBeInTheDocument();
   });
 
   it("shows the extraction failure without touching the form", async () => {

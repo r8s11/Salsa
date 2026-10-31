@@ -191,6 +191,21 @@ export async function setEventStatus(
   }
 }
 
+/**
+ * Feature or unfeature one event on the homepage. The RPC is the only write
+ * path for `featured_at`: it requires an active admin or moderator, refuses to
+ * feature unpublished or already-started events, and audits the change.
+ * Resolves to the stored `featured_at` (null once unfeatured).
+ */
+export async function setEventFeatured(id: string, featured: boolean): Promise<string | null> {
+  const { data, error } = await supabase.rpc("set_event_featured", {
+    p_event_id: id,
+    p_featured: featured,
+  });
+  if (error) throw new Error(error.message);
+  return (data as string | null) ?? null;
+}
+
 export async function updateEvent(id: string, payload: AdminEventPayload): Promise<void> {
   const { error } = await supabase.rpc("save_event_with_entities", {
     p_event_id: id,
@@ -355,6 +370,8 @@ export async function duplicateEvent(
     status: _status,
     source_type: _sourceType,
     cancellation_reason: _cancellationReason,
+    // A copy starts unfeatured; featuring is its own audited action.
+    featured_at: _featuredAt,
     event_date: _eventDate,
     event_time: _eventTime,
     taxonomy_term_ids: taxonomyTermIds = [],

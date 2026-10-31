@@ -5,7 +5,6 @@ import {
   CheckCircle2,
   CircleHelp,
   Loader2,
-  Plus,
   PlusCircle,
   RefreshCw,
   Search,
@@ -14,6 +13,8 @@ import {
 } from "lucide-react";
 import type { EntityCandidates, EntityMatch, EntityReview, EntityReviewItem } from "./entityReview";
 import { reconcileEntities, searchEntityMatches } from "./entityReviewClient";
+import { matchContext, matchLabel } from "./entityMatchDisplay";
+import { EntityNameTypeahead } from "./EntityMatchAssist";
 import {
   CREATION_SIGNAL_HINT,
   FIELDS_BY_KIND,
@@ -35,7 +36,6 @@ import {
   removeItem,
   setReviewItem,
   type CandidateField,
-  type EntityKind,
   type EntitySlot,
   type EntityState,
   type ReviewEntry,
@@ -70,22 +70,6 @@ const STATE_ICON: Record<EntityState, typeof CheckCircle2> = {
 };
 
 const keyOf = (slot: EntitySlot, index: number) => `${slot}:${index}`;
-
-function matchContext(match: EntityMatch): string[] {
-  const place = [match.city, match.state_region].filter(Boolean).join(", ");
-  return [match.address, place, match.website, match.instagram].filter((part): part is string =>
-    Boolean(part)
-  );
-}
-
-/** Accessible name for a match button; adds place or address only when another match shares the name. */
-function matchLabel(match: EntityMatch, pool: EntityMatch[], noun: string, verb: string): string {
-  const shared = pool.some((other) => other.id !== match.id && other.name === match.name);
-  const context = shared
-    ? [match.city, match.state_region, match.address].filter(Boolean).join(", ")
-    : "";
-  return `${verb} ${match.name}${context ? ` (${context})` : ""} as the ${noun}`;
-}
 
 function candidatesFor(slot: EntitySlot, item: EntityReviewItem): EntityCandidates {
   const none: EntityCandidates = { venue: null, organizer: null, instructors: [], school: null };
@@ -159,6 +143,17 @@ export default function EntityReviewSection({
     commit(setReviewItem(reviewRef.current, slot, index, item));
     setAnnouncement(`Added ${item.candidate.name}. Checking against existing records.`);
     void recheck({ slot, index, kind, item });
+  };
+
+  const pick = (slot: EntitySlot, match: EntityMatch, typed: string) => {
+    const kind = SLOT_KIND[slot];
+    const index = slot === "instructors" ? reviewRef.current.instructors.length : 0;
+    const item: EntityReviewItem = {
+      ...chooseExisting(newReviewItem(typed || match.name), match, { moderator: !isPublic }),
+      state: "MATCHED",
+    };
+    commit(setReviewItem(reviewRef.current, slot, index, item));
+    setAnnouncement(`Using existing ${kind} ${match.name}.`);
   };
 
   const remove = ({ slot, index, kind }: ReviewEntry) =>
@@ -303,9 +298,12 @@ export default function EntityReviewSection({
                 </ul>
               )}
               {canAdd && (
-                <AddEntity
+                <EntityNameTypeahead
                   kind={kind}
-                  idBase={`${baseId}-add-${slot}`}
+                  label={`Add ${label.toLowerCase()} by name`}
+                  addLabel={`Add ${label.toLowerCase()}`}
+                  disabled={disabled}
+                  onPick={(match, typed) => pick(slot, match, typed)}
                   onAdd={(name) => add(slot, name)}
                 />
               )}
@@ -607,48 +605,6 @@ function CandidateInput({ id, label, value, required, onCommit }: CandidateInput
           A name is required. Without one, the last name is kept.
         </p>
       )}
-    </div>
-  );
-}
-
-type AddEntityProps = {
-  kind: EntityKind;
-  idBase: string;
-  onAdd: (name: string) => void;
-};
-
-function AddEntity({ kind, idBase, onAdd }: AddEntityProps) {
-  const noun = KIND_LABEL[kind].toLowerCase();
-  const [name, setName] = useState("");
-  const submit = () => {
-    const trimmed = name.trim();
-    if (!trimmed) return;
-    onAdd(trimmed);
-    setName("");
-  };
-  return (
-    <div className="entity-review__add">
-      <label htmlFor={idBase}>Add {noun} by name</label>
-      <div className="entity-review__search-row">
-        <input
-          id={idBase}
-          type="text"
-          value={name}
-          autoComplete="off"
-          placeholder={`Name of the ${noun}`}
-          onChange={(event) => setName(event.target.value)}
-          onKeyDown={(event) => swallowEnter(event, submit)}
-        />
-        <button
-          type="button"
-          className="entity-review__btn"
-          disabled={!name.trim()}
-          onClick={submit}
-        >
-          <Plus size={16} aria-hidden="true" />
-          Add {noun}
-        </button>
-      </div>
     </div>
   );
 }

@@ -828,16 +828,23 @@ The stage header pairs the Epilogue display title and balanced subtitle
 
 A failed first load names the city ("We couldn't load Boston's
 listings.") and never shows the raw driver error; its Try again button
-If city discovery fails before any inventory arrives, the homepage and city picker show a recoverable error, not the verified-empty state. Their retry controls remain visible and announce loading while the request runs; failure restores focus to Retry, success moves focus to the resulting empty message or city list.
-
-The homepage feed lists all future events. Its heading is “Upcoming on the floor,” and the hero’s primary action is “See upcoming events.” The separate “Events This Week” statistic covers the next seven days only. A filtered-empty message describes the selected event-type list, not a week-limited feed.
-
-
-
 stays in place while retrying and gets focus back if the retry fails. A
 failed background refresh keeps the last loaded events on screen. With no
 city chosen, the calendar asks for one rather than reporting an empty
 city.
+
+If city discovery fails before any inventory arrives, the homepage and city
+picker show a recoverable error, not the verified-empty state. Their retry
+controls remain visible and announce loading while the request runs; failure
+restores focus to Retry. Success focuses the resulting discovery heading or
+city list. Recovery headings use `tabIndex={-1}` so programmatic focus works
+without adding headings to the normal Tab order.
+
+The homepage feed lists all future events. Its heading is “Upcoming on the
+floor,” and the hero’s primary action is “See upcoming events.” The separate
+“Events This Week” statistic covers the next seven days only. A filtered-empty
+message describes the selected event-type list, not a week-limited feed.
+
 
 ##### List details
 

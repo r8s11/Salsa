@@ -99,7 +99,7 @@ function Events() {
         <div className="container">
           <div className="no-events no-events--all no-events--area" role="alert">
             <div>
-              <h2 ref={discoveryHeadingRef} className="no-events__title">
+              <h2 ref={discoveryHeadingRef} tabIndex={-1} className="no-events__title">
                 We couldn&apos;t check for dance events.
               </h2>
               <p>City listings didn&apos;t come through. Try again to check what&apos;s happening near you.</p>
@@ -138,7 +138,7 @@ function Events() {
       <section id="events" className="events">
         <div className="container">
           <div className="events-feed-header">
-            <h2 ref={discoveryHeadingRef} className="events-feed-title">Upcoming on the floor</h2>
+            <h2 ref={discoveryHeadingRef} tabIndex={-1} className="events-feed-title">Upcoming on the floor</h2>
           </div>
           <div className="events-grid events-skeleton" aria-live="polite" aria-busy="true">
             {[1, 2, 3].map((i) => (
@@ -155,7 +155,7 @@ function Events() {
       <section id="events" className="events">
         <div className="container">
           <div className="events-feed-header">
-            <h2 ref={discoveryHeadingRef} className="events-feed-title">Upcoming on the floor</h2>
+            <h2 ref={discoveryHeadingRef} tabIndex={-1} className="events-feed-title">Upcoming on the floor</h2>
           </div>
           <div className="no-events no-events--all" role="alert">
             <div>
@@ -192,7 +192,7 @@ function Events() {
         <div className="container">
           <div className="no-events no-events--all no-events--area" role="status">
             <div>
-              <h2 ref={discoveryHeadingRef} id="events-area-heading" className="no-events__title">
+              <h2 ref={discoveryHeadingRef} tabIndex={-1} id="events-area-heading" className="no-events__title">
                 {noneAnywhere
                   ? "No upcoming SalsaSegura events yet."
                   : source === "none-nearby"
@@ -242,7 +242,7 @@ function Events() {
           )}
 
           <div className="events-feed-header">
-            <h2 ref={discoveryHeadingRef} className="events-feed-title">Upcoming on the floor</h2>
+            <h2 ref={discoveryHeadingRef} tabIndex={-1} className="events-feed-title">Upcoming on the floor</h2>
             <div className="feed-filters" role="group" aria-label="Filter by event type">
               {FILTER_OPTIONS.map((opt) => (
                 <button

@@ -1,11 +1,11 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, useLocation } from "react-router-dom";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ScheduleXEvent } from "../../../types/events";
 import Events from "./Events";
 
-let mockedEvents: ScheduleXEvent[] = [
+const defaultEvents: ScheduleXEvent[] = [
   {
     id: "featured",
     title: "Featured Social",
@@ -21,6 +21,7 @@ let mockedEvents: ScheduleXEvent[] = [
     calendarId: "social",
   },
 ];
+let mockedEvents = defaultEvents;
 
 type FeedState = { loading: boolean; fetching: boolean; error: string | null; loadFailed: boolean };
 const loadedFeed: FeedState = { loading: false, fetching: false, error: null, loadFailed: false };
@@ -93,6 +94,16 @@ function LocationProbe() {
 }
 
 describe("Events homepage modal", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    vi.clearAllMocks();
+    mockedEvents = defaultEvents.map((event) => ({ ...event }));
+    mockedFeed = { ...loadedFeed };
+    mockedCity = { city: "boston", source: "explicit" };
+    mockedActiveMetros = nearbyMetros;
+    mockedMetroDiscovery = { loading: false, fetching: false, error: null, loadFailed: false };
+  });
+
   it("opens and closes event details without leaving the homepage", async () => {
     const user = userEvent.setup();
     render(
@@ -112,9 +123,6 @@ describe("Events homepage modal", () => {
   });
 
   it("labels the upcoming feed, includes events beyond seven days, and explains filtered empty results", async () => {
-    const previousEvents = mockedEvents;
-    const previousFeed = mockedFeed;
-    const previousCity = mockedCity;
     mockedEvents = [
       {
         id: "only-event",
@@ -159,10 +167,6 @@ describe("Events homepage modal", () => {
     );
     await user.click(screen.getByRole("button", { name: "All" }));
     expect(screen.getByText("Later Social")).toBeInTheDocument();
-
-    mockedEvents = previousEvents;
-    mockedFeed = previousFeed;
-    mockedCity = previousCity;
   });
 
   it("says there is nothing tonight and names the next night when the featured event is later", () => {
@@ -215,7 +219,6 @@ describe("Events homepage modal", () => {
     );
     expect(screen.getByRole("button", { name: "Explore other cities" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Submit an event" })).toHaveAttribute("href", "/submit");
-    mockedCity = { city: "boston", source: "explicit" };
   });
 
   it("keeps failed city discovery distinct from a confirmed empty inventory and retries in place", async () => {
@@ -224,7 +227,6 @@ describe("Events homepage modal", () => {
     mockedCity = { city: null, source: "none-nearby" };
     mockedActiveMetros = [];
     mockedMetroDiscovery = { loading: true, fetching: true, error: null, loadFailed: false };
-    refetchActiveMetros.mockClear();
     const user = userEvent.setup();
     const { rerender } = render(
       <MemoryRouter>
@@ -263,10 +265,37 @@ describe("Events homepage modal", () => {
     );
     expect(screen.getByRole("heading", { name: "No upcoming SalsaSegura events yet." })).toBeInTheDocument();
     await waitFor(() => expect(screen.getByRole("heading", { name: "No upcoming SalsaSegura events yet." })).toHaveFocus());
-    mockedCity = { city: "boston", source: "explicit" };
-    mockedMetroDiscovery = { loading: false, fetching: false, error: null, loadFailed: false };
-    mockedActiveMetros = nearbyMetros;
   });
+
+  it.each(["loading", "loaded", "failed"] as const)(
+    "focuses the feed after city discovery recovers while events are %s",
+    async (eventState) => {
+      mockedCity = { city: null, source: "none-nearby" };
+      mockedActiveMetros = [];
+      mockedMetroDiscovery = { loading: false, fetching: false, error: "offline", loadFailed: true };
+      const user = userEvent.setup();
+      const view = render(<MemoryRouter><Events /></MemoryRouter>);
+
+      await user.click(screen.getByRole("button", { name: "Try again" }));
+      mockedMetroDiscovery = { loading: true, fetching: true, error: null, loadFailed: true };
+      view.rerender(<MemoryRouter><Events /></MemoryRouter>);
+
+      mockedCity = { city: "boston", source: "explicit" };
+      mockedActiveMetros = nearbyMetros;
+      mockedMetroDiscovery = { loading: false, fetching: false, error: null, loadFailed: false };
+      mockedFeed = {
+        loading: eventState === "loading",
+        fetching: eventState === "loading",
+        error: eventState === "failed" ? "offline" : null,
+        loadFailed: eventState === "failed",
+      };
+      view.rerender(<MemoryRouter><Events /></MemoryRouter>);
+
+      await waitFor(() =>
+        expect(screen.getByRole("heading", { name: "Upcoming on the floor" })).toHaveFocus()
+      );
+    }
+  );
 
   it("names the city on a failed load, keeps the raw error out of the page, and retries in place", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
@@ -299,8 +328,5 @@ describe("Events homepage modal", () => {
     );
     expect(screen.getByRole("alert")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Trying again…" })).toHaveAttribute("aria-busy", "true");
-
-    mockedFeed = loadedFeed;
-    warn.mockRestore();
   });
 });

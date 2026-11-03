@@ -64,6 +64,8 @@ const AdminActivityPage = lazy(() => import("../features/admin/pages/AdminActivi
 const AdminActivityDetailPage = lazy(() => import("../features/admin/pages/AdminActivityDetailPage"));
 const AdminAnalyticsPage = lazy(() => import("../features/admin/pages/AdminAnalyticsPage"));
 const AdminItinerariesPage = lazy(() => import("../features/admin/pages/AdminItinerariesPage"));
+const AdminItineraryEditorPage = lazy(() => import("../features/admin/pages/AdminItineraryEditorPage"));
+const AdminItineraryPreviewPage = lazy(() => import("../features/admin/pages/AdminItineraryPreviewPage"));
 const ProfilePage = lazy(() => import("../pages/account/ProfilePage"));
 const ProfileEditPage = lazy(() => import("../pages/account/ProfileEditPage"));
 const AccountPage = lazy(() => import("../pages/account/AccountPage"));
@@ -129,6 +131,9 @@ function App() {
               <Route path="submissions" element={<AdminSubmissionsPage />} />
               <Route path="submissions/:id" element={<AdminSubmissionDetailPage />} />
               <Route path="itineraries" element={<AdminItinerariesPage />} />
+              <Route path="itineraries/new" element={<AdminItineraryEditorPage />} />
+              <Route path="itineraries/:id" element={<AdminItineraryEditorPage />} />
+              <Route path="itineraries/:id/preview" element={<AdminItineraryPreviewPage />} />
               <Route path="tags" element={<AdminTagsPage />} />
               <Route path="tags/new" element={<AdminTaxonomyNewPage />} />
               <Route path="tags/:id" element={<AdminTaxonomyDetailPage />} />

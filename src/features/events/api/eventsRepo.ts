@@ -111,6 +111,36 @@ export async function fetchApprovedEventById(id: string): Promise<DatabaseEvent 
   return projectEventTaxonomy(data ? [data as EventWithTaxonomy] : null)[0] ?? null;
 }
 
+/** Approved public events in one city starting in [startISO, endISO). */
+export async function fetchApprovedEventsBetween(
+  city: City,
+  startISO: string,
+  endISO: string
+): Promise<DatabaseEvent[]> {
+  const { data, error } = await supabase
+    .from("public_events")
+    .select("*")
+    .eq("status", "approved")
+    .eq("city", city)
+    .gte("event_date", startISO)
+    .lt("event_date", endISO)
+    .order("event_date", { ascending: true });
+  if (error) throw new Error(error.message);
+  return projectEventTaxonomy(data as EventWithTaxonomy[] | null);
+}
+
+export async function fetchApprovedEventsByIds(ids: string[]): Promise<DatabaseEvent[]> {
+  if (ids.length === 0) return [];
+  const { data, error } = await supabase
+    .from("public_events")
+    .select("*")
+    .eq("status", "approved")
+    .in("id", ids)
+    .order("event_date", { ascending: true });
+  if (error) throw new Error(error.message);
+  return projectEventTaxonomy(data as EventWithTaxonomy[] | null);
+}
+
 export interface ShortLinkMatch {
   id: string;
   title: string;

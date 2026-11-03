@@ -86,7 +86,10 @@ export default function ItineraryView({ itinerary, schedule, cityName, neighbour
         </nav>
       )}
 
-      {nights.map((night) => (
+      {nights.map((night) => {
+        // `entries` is chronological; `alternatives` is editorial rank. Display by start.
+        const alternatives = night.entries.filter((entry) => entry.item.role === "alternative");
+        return (
         <section key={night.date} id={`night-${night.date}`} className="itinerary-night">
           <h2>
             {Temporal.PlainDate.from(night.date).toLocaleString("en-US", { weekday: "long", month: "long", day: "numeric" })}
@@ -97,9 +100,9 @@ export default function ItineraryView({ itinerary, schedule, cityName, neighbour
               <CuratorNote entry={night.featured} />
             </div>
           )}
-          {night.alternatives.length > 0 && (
+          {alternatives.length > 0 && (
             <div className="itinerary-alternatives">
-              {night.alternatives.map((entry) => (
+              {alternatives.map((entry) => (
                 <div key={entry.event.id} className="itinerary-pick">
                   <EventCard event={databaseEventToScheduleX(entry.event)} onSelect={openEvent} />
                   <CuratorNote entry={entry} />
@@ -108,7 +111,8 @@ export default function ItineraryView({ itinerary, schedule, cityName, neighbour
             </div>
           )}
         </section>
-      ))}
+        );
+      })}
 
       {itinerary.recommendations && (
         <section className="itinerary-recommendations">

@@ -4,8 +4,15 @@
   margin: 0 auto;
   padding: var(--space-lg) var(--space-md) var(--space-xxl);
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-xl);
   color: var(--text);
+}
+
+/* Grid children default to min-content width; the strip would widen the page. */
+.itinerary > *,
+.itinerary-header > * {
+  min-width: 0;
 }
 
 .itinerary-status {
@@ -94,6 +101,7 @@
 
 .itinerary-strip a {
   display: grid;
+  align-content: start;
   gap: 2px;
   min-height: 44px;
   height: 100%;
@@ -126,6 +134,8 @@
 }
 
 .itinerary-strip__title {
+  align-self: start;
+  max-height: calc(2 * 1.25em);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -186,6 +196,49 @@
 .itinerary-note::after {
   content: "”";
   color: var(--red-bright);
+}
+
+/* Share controls render admin-btn classes for host pages; admin.css is not
+   loaded here, so give them the public secondary button (global .btn-secondary). */
+.itinerary .event-share-controls h2 {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+}
+
+.itinerary .event-share-controls .admin-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  min-height: 44px;
+  padding: 0.8rem 1.5rem;
+  background: transparent;
+  color: var(--gold);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-xl);
+  font-family: var(--font-ui);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.itinerary .event-share-controls .admin-btn:hover {
+  background: var(--gold-dim);
+  color: var(--gold-light);
+}
+
+.itinerary .event-share-controls .admin-btn:focus-visible,
+.itinerary .event-share-controls__destinations a:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
+.itinerary .event-share-controls__destinations a {
+  min-height: 44px;
+  font-size: 0.9375rem;
 }
 
 .itinerary-recommendations {

@@ -170,4 +170,25 @@ describe("ItineraryPage", () => {
 
     expect(writeText).toHaveBeenCalledWith("https://www.salsasegura.com/itineraries/new-york-city/2026-11-09");
   });
+
+  it("lists a night's alternatives by start time, not editorial rank", () => {
+    const week = weekFixture();
+    const late = event("late", "13", { title: "Late Salsa Practica", event_date: "2026-11-14T04:30:00Z" });
+    const early = event("early", "13", { title: "Early Bachata Class", event_date: "2026-11-14T00:00:00Z" });
+    usePublishedItinerary.mockReturnValue(
+      published(
+        [...week.events.values(), late, early],
+        [
+          ...week.items,
+          { eventId: "late", role: "alternative", position: 0, note: null },
+          { eventId: "early", role: "alternative", position: 1, note: null },
+        ]
+      )
+    );
+    renderAt("/itineraries/new-york-city/2026-11-09");
+
+    const friday = document.getElementById("night-2026-11-13")!;
+    const titles = Array.from(friday.querySelectorAll("h3")).map((h) => h.textContent);
+    expect(titles).toEqual(["Noche Latina", "Early Bachata Class", "Late Salsa Practica"]);
+  });
 });

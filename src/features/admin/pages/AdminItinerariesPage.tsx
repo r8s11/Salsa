@@ -15,10 +15,7 @@ import {
   setItineraryStatus,
   type AdminItineraryRow,
 } from "../../itineraries/api/itinerariesRepo";
-import {
-  fetchApprovedEventsBetween,
-  fetchApprovedEventsByIds,
-} from "../../events/api/eventsRepo";
+import { fetchApprovedEventsBetween, fetchApprovedEventsByIds } from "../../events/api/eventsRepo";
 import { matchNextWeek } from "../../itineraries/model/matchNextWeek";
 import { formatWeekRange, weekBounds } from "../../itineraries/model/week";
 import { buildPublicItineraryUrl } from "../../itineraries/model/itinerarySharing";
@@ -31,6 +28,9 @@ import AdminStatusBadge from "../components/common/AdminStatusBadge";
 import AdminActionMenu, { type ActionMenuItem } from "../components/common/AdminActionMenu";
 import AdminConfirmDialog from "../components/common/AdminConfirmDialog";
 import AdminToast from "../components/common/AdminToast";
+import AdminPagination from "../components/common/AdminPagination";
+import { useListState, usePageWindow } from "../hooks/useListState";
+import { enumParam, type ListDefinition } from "../model/listState";
 import "./AdminItinerariesPage.css";
 
 const VIEWS: { view: ItineraryStatus; label: string }[] = [
@@ -41,6 +41,16 @@ const VIEWS: { view: ItineraryStatus; label: string }[] = [
 
 const PANEL_ID = "admin-itineraries-tabpanel";
 
+const ITINERARIES_LIST: ListDefinition<ItineraryStatus, null, null> = {
+  view: enumParam(
+    "view",
+    VIEWS.map((entry) => entry.view),
+    "draft"
+  ),
+  filters: { parse: () => null, toParams: () => ({}) },
+  sort: { parse: () => null, toParams: () => ({}) },
+};
+
 type Toast = { message: string; tone: "success" | "error" };
 
 export default function AdminItinerariesPage() {
@@ -48,7 +58,8 @@ export default function AdminItinerariesPage() {
   const metroName = useMetroName();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [view, setView] = useState<ItineraryStatus>("draft");
+  const list = useListState(ITINERARIES_LIST);
+  const { view } = list.state;
   const [busyId, setBusyId] = useState<string | null>(null);
   const [toast, setToast] = useState<Toast | null>(null);
   const [archiving, setArchiving] = useState<AdminItineraryRow | null>(null);
@@ -59,10 +70,12 @@ export default function AdminItinerariesPage() {
     for (const itinerary of itineraries) result[itinerary.status] += 1;
     return result;
   }, [itineraries]);
-  const visible = useMemo(
+  const filtered = useMemo(
     () => itineraries.filter((itinerary) => itinerary.status === view),
     [itineraries, view]
   );
+  const pageBounds = usePageWindow(list, loading ? null : filtered.length);
+  const visible = filtered.slice(pageBounds.offset, pageBounds.offset + pageBounds.size);
 
   const refresh = () => queryClient.invalidateQueries({ queryKey: ADMIN_ITINERARIES_KEY });
 
@@ -100,7 +113,10 @@ export default function AdminItinerariesPage() {
       await navigator.clipboard.writeText(buildPublicItineraryUrl(row.city, row.weekStart));
       setToast({ message: "Link copied.", tone: "success" });
     } catch {
-      setToast({ message: "Couldn't copy the link. Copy it from the preview instead.", tone: "error" });
+      setToast({
+        message: "Couldn't copy the link. Copy it from the preview instead.",
+        tone: "error",
+      });
     }
   };
 
@@ -136,15 +152,21 @@ export default function AdminItinerariesPage() {
   };
 
   const actionsFor = (row: AdminItineraryRow): ActionMenuItem[] => {
-    const items: ActionMenuItem[] = [
-      { id: "edit", label: "Edit", icon: Pencil, onSelect: () => navigate(`/admin/itineraries/${row.id}`) },
-      {
-        id: "preview",
-        label: "Preview",
-        icon: Eye,
-        onSelect: () => navigate(`/admin/itineraries/${row.id}/preview`),
-      },
-    ];
+    const items: ActionMenuItem[] = [];
+    if (row.status !== "archived") {
+      items.push({
+        id: "edit",
+        label: "Edit",
+        icon: Pencil,
+        onSelect: () => navigate(`/admin/itineraries/${row.id}`),
+      });
+    }
+    items.push({
+      id: "preview",
+      label: "Preview",
+      icon: Eye,
+      onSelect: () => navigate(`/admin/itineraries/${row.id}/preview`),
+    });
     if (row.status === "draft") {
       items.push({
         id: "publish",
@@ -209,7 +231,7 @@ export default function AdminItinerariesPage() {
         ariaLabel="Itinerary views"
         selectId="admin-itineraries-view-select"
         selectLabel="Itinerary view"
-        onChange={setView}
+        onChange={(next) => list.change({ view: next })}
       />
 
       <div
@@ -231,58 +253,75 @@ export default function AdminItinerariesPage() {
             <p>No {activeLabel} itineraries.</p>
           </div>
         ) : (
-          <div className="admin-itineraries-page__scroll">
-            <table className="admin-itineraries-table">
-              <thead>
-                <tr>
-                  <th scope="col">Week</th>
-                  <th scope="col">City</th>
-                  <th scope="col">Title</th>
-                  <th scope="col">Status</th>
-                  <th scope="col" className="admin-itineraries-table__num">
-                    Events
-                  </th>
-                  <th scope="col">Updated</th>
-                  <th scope="col">
-                    <span className="admin-visually-hidden">Actions</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {visible.map((row) => (
-                  <tr key={row.id}>
-                    <td className="admin-itineraries-table__week">
-                      {`${formatWeekRange(row.weekStart)}, ${Temporal.PlainDate.from(row.weekStart).year}`}
-                    </td>
-                    <td>{metroName(row.city)}</td>
-                    <td>
-                      <Link to={`/admin/itineraries/${row.id}`} className="admin-itineraries-table__title">
-                        {row.title}
-                      </Link>
-                    </td>
-                    <td>
-                      <AdminStatusBadge status={row.status === "published" ? "approved" : row.status} />
-                    </td>
-                    <td className="admin-itineraries-table__num">{row.eventCount}</td>
-                    <td className="admin-itineraries-table__date">
-                      {new Intl.DateTimeFormat("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        timeZone: row.timeZone,
-                      }).format(new Date(row.updatedAt))}
-                    </td>
-                    <td className="admin-itineraries-table__actions">
-                      <AdminActionMenu
-                        label={`Actions for ${row.title}`}
-                        items={actionsFor(row)}
-                        disabled={busyId === row.id}
-                      />
-                    </td>
+          <>
+            <div className="admin-itineraries-page__scroll">
+              <table className="admin-itineraries-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Week</th>
+                    <th scope="col">City</th>
+                    <th scope="col">Title</th>
+                    <th scope="col">Status</th>
+                    <th scope="col" className="admin-itineraries-table__num">
+                      Events
+                    </th>
+                    <th scope="col">Updated</th>
+                    <th scope="col">
+                      <span className="admin-visually-hidden">Actions</span>
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {visible.map((row) => (
+                    <tr key={row.id}>
+                      <td className="admin-itineraries-table__week">
+                        {`${formatWeekRange(row.weekStart)}, ${Temporal.PlainDate.from(row.weekStart).year}`}
+                      </td>
+                      <td>{metroName(row.city)}</td>
+                      <td>
+                        <Link
+                          to={`/admin/itineraries/${row.id}${row.status === "archived" ? "/preview" : ""}`}
+                          className="admin-itineraries-table__title"
+                        >
+                          {row.title}
+                        </Link>
+                      </td>
+                      <td>
+                        <AdminStatusBadge
+                          status={row.status === "published" ? "approved" : row.status}
+                        />
+                      </td>
+                      <td className="admin-itineraries-table__num">{row.eventCount}</td>
+                      <td className="admin-itineraries-table__date">
+                        {new Intl.DateTimeFormat("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          timeZone: row.timeZone,
+                        }).format(new Date(row.updatedAt))}
+                      </td>
+                      <td className="admin-itineraries-table__actions">
+                        <AdminActionMenu
+                          label={`Actions for ${row.title}`}
+                          items={actionsFor(row)}
+                          disabled={busyId === row.id}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <AdminPagination
+              page={pageBounds.page}
+              pageCount={pageBounds.pageCount}
+              total={pageBounds.total}
+              from={pageBounds.from}
+              to={pageBounds.to}
+              size={pageBounds.size}
+              onPageChange={(page) => list.change({ page })}
+              onSizeChange={(size) => list.change({ size })}
+            />
+          </>
         )}
       </div>
 

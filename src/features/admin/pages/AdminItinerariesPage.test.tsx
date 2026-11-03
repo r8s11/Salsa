@@ -90,7 +90,12 @@ async function openActions(title: string) {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  useAdminItineraries.mockReturnValue({ itineraries: rows, loading: false, error: null, refetch: vi.fn() });
+  useAdminItineraries.mockReturnValue({
+    itineraries: rows,
+    loading: false,
+    error: null,
+    refetch: vi.fn(),
+  });
 });
 
 describe("AdminItinerariesPage", () => {
@@ -103,6 +108,33 @@ describe("AdminItinerariesPage", () => {
     expect(within(table).queryByText("Archived week")).not.toBeInTheDocument();
     expect(within(table).getByText("Nov 9–15, 2026")).toBeInTheDocument();
     expect(within(table).getByText("Boston")).toBeInTheDocument();
+  });
+
+  it("offers archived rows only Preview and Create next week", async () => {
+    renderPage();
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("tab", { name: "Archived 1" }));
+
+    await openActions("Archived week");
+    expect(screen.getAllByRole("menuitem").map((item) => item.textContent)).toEqual([
+      "Preview",
+      "Create next week",
+    ]);
+  });
+
+  it("pages long lists 25 rows at a time", async () => {
+    useAdminItineraries.mockReturnValue({
+      itineraries: Array.from({ length: 30 }, (_, i) => row({ id: `d${i}`, title: `Week ${i}` })),
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+    renderPage();
+
+    expect(within(screen.getByRole("table")).getAllByRole("row")).toHaveLength(26);
+    await userEvent.setup().click(screen.getByRole("button", { name: "Next page" }));
+    expect(within(screen.getByRole("table")).getAllByRole("row")).toHaveLength(6);
+    expect(screen.getByText("Week 29")).toBeInTheDocument();
   });
 
   it("navigates to the existing live week and never saves a copy", async () => {

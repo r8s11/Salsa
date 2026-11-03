@@ -1,8 +1,8 @@
 import { readFile } from "node:fs/promises";
 import { describe, expect, it, vi } from "vitest";
-import { createItineraryPage, itineraryPage } from "../functions/itineraryPage.mjs";
+import { createItineraryPage } from "./itineraryPageHandler.mjs";
 
-const shell = await readFile(new URL("../../../index.html", import.meta.url), "utf8");
+const shell = await readFile("index.html", "utf8");
 const origin = "https://www.salsasegura.com";
 const env = { SUPABASE_URL: "https://example.supabase.co", SUPABASE_ANON_KEY: "public-anon-key" };
 const row = {
@@ -39,10 +39,6 @@ function expectUnavailable(response, status) {
 }
 
 describe("itineraryPage", () => {
-  it("exports the directly invokable runtime handler", () => {
-    expect(typeof itineraryPage).toBe("function");
-  });
-
   it("returns escaped published metadata and the immutable JPEG without duplicated tags", async () => {
     const { handler, fetchImpl } = setup();
     const response = await handler(request(), { error: vi.fn() });

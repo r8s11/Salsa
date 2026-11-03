@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import aliases from "./metroAliases.json" with { type: "json" };
 import { escapeHtml, injectMeta, parseItineraryPath } from "./itineraryMeta.mjs";
 
-const shell = await readFile(new URL("../../../index.html", import.meta.url), "utf8");
+const shell = await readFile("index.html", "utf8");
 const parse = (html) => new DOMParser().parseFromString(html, "text/html");
 const meta = {
   title: 'Noche "Latina" <3 & más 💃',

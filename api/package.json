@@ -1,0 +1,11 @@
+{
+  "name": "salsa-segura-api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/functions/*.mjs",
+  "engines": { "node": ">=22" },
+  "dependencies": {
+    "@azure/functions": "^4.0.0"
+  }
+}

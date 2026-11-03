@@ -121,11 +121,42 @@ describe("public projection views", () => {
 
   it("keeps a published itinerary's place and contents intact on save", () => {
     const sql = itineraryMigration();
-    expect(sql).toMatch(
-      /time_zone\s+is\s+distinct\s+from\s+v_current\.time_zone\)\s+then\s+raise\s+exception\s+'Unpublish before changing the city or week'\s+using\s+errcode\s*=\s*'22023'/i
+    const start = sql.search(/create\s+or\s+replace\s+function\s+public\.save_itinerary\b/i);
+    const save = sql.slice(start, sql.indexOf("end $$", start));
+    expect(start).toBeGreaterThan(-1);
+    for (const column of ["city", "week_start", "time_zone"]) {
+      expect(save).toMatch(new RegExp(`is\\s+distinct\\s+from\\s+v_current\\.${column}\\b`, "i"));
+    }
+    expect(save).toMatch(/'Unpublish before changing the city or week'/);
+    expect(save).toMatch(/'Published itineraries need at least one event'/);
+  });
+
+  it("leaves the raw itinerary tables read-only for active curators", () => {
+    const sql = itineraryMigration();
+    expect(sql).not.toMatch(
+      /grant\s[^;]*\b(insert|update|delete|all)\b[^;]*\bon\s+table\s+public\.(itineraries|itinerary_items)\b/i
     );
-    expect(sql).toMatch(
-      /raise\s+exception\s+'Published itineraries need at least one event'\s+using\s+errcode\s*=\s*'22023'/i
-    );
+    const policies =
+      sql.match(
+        /create\s+policy\s+"[^"]+"\s+on\s+public\.(itineraries|itinerary_items)\b[^;]*;/gi
+      ) ?? [];
+    expect(policies).toHaveLength(2);
+    for (const policy of policies) {
+      expect(policy).toMatch(/for\s+select\b/i);
+      expect(policy).not.toMatch(/for\s+(all|insert|update|delete)\b/i);
+      expect(policy).toMatch(/public\.account_is_active\(auth\.uid\(\)\)/i);
+    }
+  });
+
+  it("lets only active curators write itinerary covers", () => {
+    const policies =
+      itineraryMigration().match(/create\s+policy\s+"[^"]+"\s+on\s+storage\.objects\b[^;]*;/gi) ??
+      [];
+    expect(policies.length).toBeGreaterThanOrEqual(3);
+    for (const policy of policies) {
+      expect(policy).toMatch(/bucket_id\s*=\s*'itinerary-covers'/i);
+      expect(policy).toMatch(/public\.is_moderator\(\)/i);
+      expect(policy).toMatch(/public\.account_is_active\(auth\.uid\(\)\)/i);
+    }
   });
 });

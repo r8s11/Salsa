@@ -2,8 +2,8 @@
 -- built only from approved events. Admins and moderators curate; the public
 -- reads published itineraries through two projection views only.
 --
--- Every write goes through the security-definer RPCs below. The RLS policies
--- on the raw tables are a second line of defence; anon has no access to them.
+-- Every write goes through the security-definer RPCs below; no client role
+-- holds a write grant on the raw tables, and anon cannot read them at all.
 
 -- 1. Dance-night helper -------------------------------------------------------
 
@@ -93,24 +93,25 @@ create trigger itineraries_set_updated_at
 alter table public.itineraries enable row level security;
 alter table public.itinerary_items enable row level security;
 
+-- Writes go only through the security-definer RPCs below, which run as the
+-- owner. Active curators may read the raw rows (drafts included); nobody
+-- else can see them.
 revoke all on table public.itineraries from public, anon, authenticated;
 revoke all on table public.itinerary_items from public, anon, authenticated;
-grant select, insert, update, delete on table public.itineraries to authenticated;
-grant select, insert, update, delete on table public.itinerary_items to authenticated;
+grant select on table public.itineraries to authenticated;
+grant select on table public.itinerary_items to authenticated;
 
-create policy "Moderators manage itineraries"
+create policy "Curators read itineraries"
   on public.itineraries
-  for all
+  for select
   to authenticated
-  using (public.is_moderator())
-  with check (public.is_moderator());
+  using (public.is_moderator() and public.account_is_active(auth.uid()));
 
-create policy "Moderators manage itinerary items"
+create policy "Curators read itinerary items"
   on public.itinerary_items
-  for all
+  for select
   to authenticated
-  using (public.is_moderator())
-  with check (public.is_moderator());
+  using (public.is_moderator() and public.account_is_active(auth.uid()));
 
 -- 5. Public projections -------------------------------------------------------
 
@@ -341,8 +342,8 @@ end $$;
 revoke all on function public.save_itinerary(uuid, jsonb) from public, anon, authenticated;
 grant execute on function public.save_itinerary(uuid, jsonb) to authenticated;
 
--- Records the link-preview card. The URL must point into this itinerary's
--- folder of the itinerary-covers bucket.
+-- Records the link-preview card (it becomes og:image). The URL must be an
+-- https Storage URL in this itinerary's folder of the itinerary-covers bucket.
 create or replace function public.set_itinerary_cover(p_id uuid, p_url text)
 returns timestamptz
 language plpgsql
@@ -362,9 +363,13 @@ begin
   if not found then
     raise exception 'Itinerary not found' using errcode = 'P0002';
   end if;
+  if v_current.status = 'archived' then
+    raise exception 'Archived itineraries cannot be edited' using errcode = '22023';
+  end if;
 
   if p_url is null
-     or p_url !~ ('/storage/v1/object/public/itinerary-covers/' || p_id || '/[0-9a-f]{8}\.jpg$') then
+     or p_url !~ ('^https://[^/\s"''<>]+/storage/v1/object/public/itinerary-covers/'
+                  || p_id || '/[0-9a-f]{8}\.jpg$') then
     raise exception 'Cover must be stored in this itinerary''s folder' using errcode = '22023';
   end if;
 
@@ -468,8 +473,8 @@ grant execute on function public.set_itinerary_status(uuid, text) to authenticat
 
 -- 8. Storage ------------------------------------------------------------------
 
--- Public-read link cards at <itinerary_id>/<sha8>.jpg. Only curators write,
--- and only into the folder of an existing itinerary. Curators may also read
+-- Public-read link cards at <itinerary_id>/<sha8>.jpg. Only active curators
+-- write, and only into the folder of a non-archived itinerary. Curators may also read
 -- object rows, which Storage needs for overwrite (upsert), update and delete.
 -- No public listing policy: object names would reveal draft itinerary ids.
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
@@ -493,6 +498,7 @@ to authenticated
 using (
   bucket_id = 'itinerary-covers'
   and public.is_moderator()
+  and public.account_is_active(auth.uid())
 );
 
 drop policy if exists "Curators insert itinerary covers" on storage.objects;
@@ -503,7 +509,10 @@ to authenticated
 with check (
   bucket_id = 'itinerary-covers'
   and public.is_moderator()
-  and (storage.foldername(name))[1] in (select itinerary.id::text from public.itineraries itinerary)
+  and public.account_is_active(auth.uid())
+  and (storage.foldername(name))[1] in (
+    select itinerary.id::text from public.itineraries itinerary where itinerary.status <> 'archived'
+  )
 );
 
 drop policy if exists "Curators update itinerary covers" on storage.objects;
@@ -514,12 +523,18 @@ to authenticated
 using (
   bucket_id = 'itinerary-covers'
   and public.is_moderator()
-  and (storage.foldername(name))[1] in (select itinerary.id::text from public.itineraries itinerary)
+  and public.account_is_active(auth.uid())
+  and (storage.foldername(name))[1] in (
+    select itinerary.id::text from public.itineraries itinerary where itinerary.status <> 'archived'
+  )
 )
 with check (
   bucket_id = 'itinerary-covers'
   and public.is_moderator()
-  and (storage.foldername(name))[1] in (select itinerary.id::text from public.itineraries itinerary)
+  and public.account_is_active(auth.uid())
+  and (storage.foldername(name))[1] in (
+    select itinerary.id::text from public.itineraries itinerary where itinerary.status <> 'archived'
+  )
 );
 
 drop policy if exists "Curators delete itinerary covers" on storage.objects;
@@ -530,7 +545,10 @@ to authenticated
 using (
   bucket_id = 'itinerary-covers'
   and public.is_moderator()
-  and (storage.foldername(name))[1] in (select itinerary.id::text from public.itineraries itinerary)
+  and public.account_is_active(auth.uid())
+  and (storage.foldername(name))[1] in (
+    select itinerary.id::text from public.itineraries itinerary where itinerary.status <> 'archived'
+  )
 );
 
 notify pgrst, 'reload schema';

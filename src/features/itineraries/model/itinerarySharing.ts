@@ -1,16 +1,13 @@
+import { CANONICAL_ORIGIN } from "../../../utils/seo";
 import type { ItineraryPosterFormat } from "./itineraryPoster";
 
-function origin(explicit?: string): string {
-  if (explicit) return explicit;
-  if (typeof window === "undefined") {
-    throw new Error("A public origin is required outside the browser.");
-  }
-  return window.location.origin;
-}
-
-/** The public itinerary page: `/itineraries/<city>/<weekStart>`. */
-export function buildPublicItineraryUrl(city: string, weekStart: string, explicitOrigin?: string): string {
-  return new URL(`/itineraries/${encodeURIComponent(city)}/${weekStart}`, origin(explicitOrigin)).toString();
+/**
+ * The public itinerary page: `/itineraries/<city>/<weekStart>`. Posters and
+ * the link card print and encode the canonical origin, never the origin
+ * they were rendered on.
+ */
+export function buildPublicItineraryUrl(city: string, weekStart: string, origin = CANONICAL_ORIGIN): string {
+  return new URL(`/itineraries/${encodeURIComponent(city)}/${weekStart}`, origin).toString();
 }
 
 /** The URL as printed on a poster: host and path, no scheme. */

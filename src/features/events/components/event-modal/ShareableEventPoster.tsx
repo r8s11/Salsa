@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { create as createQr } from "qrcode";
 import type { ScheduleXEvent } from "../../../../types/events";
-import { posterPriceLabel, type PosterFormat } from "./posterFormat";
+import { POSTER_CITY_CODES, posterPriceLabel, type PosterFormat } from "./posterFormat";
 import SleeveCover from "./SleeveCover";
 import { eventTypeLabels, scheduleXEventTypes } from "../../model/eventTypeDisplay";
 import "./ShareableEventPoster.css";
@@ -17,19 +17,6 @@ interface ShareableEventPosterProps {
   shortLabel: string;
   format?: PosterFormat;
 }
-
-const CITY_CODE: Record<string, string> = {
-  boston: "BOS",
-  "new-york-city": "NYC",
-  miami: "MIA",
-  orlando: "ORL",
-  "los-angeles": "LA",
-  atlanta: "ATL",
-  "washington-dc": "DC",
-  "san-francisco": "SF",
-  texas: "TX",
-};
-export { CITY_CODE as POSTER_CITY_CODES };
 
 const toDate = (val: unknown): Date => {
   if (typeof val === "string") return new Date(val.replace(" ", "T"));
@@ -90,7 +77,7 @@ export default function ShareableEventPoster({
     .join(" – ");
   const catalogue = `SS-${String(start.getMonth() + 1).padStart(2, "0")}${String(
     start.getDate()
-  ).padStart(2, "0")}${event.city ? ` · ${CITY_CODE[event.city] ?? ""}` : ""}`;
+  ).padStart(2, "0")}${event.city ? ` · ${POSTER_CITY_CODES[event.city] ?? ""}` : ""}`;
   const eventTypeLabel = eventTypeLabels(scheduleXEventTypes(event)).join(" · ");
   const styles = event.danceStyles?.length ? event.danceStyles.join(" · ") : eventTypeLabel;
   const priceLabel = posterPriceLabel(event);

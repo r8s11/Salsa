@@ -90,8 +90,10 @@ describe("buildItineraryPosterModel", () => {
     expect(story.catalogue).toBe("SS-W46 · NYC");
     expect(story.weekLabel).toBe("Nov 9–15");
     expect(story.cityName).toBe("New York City");
-    expect(story.urlLabel).toMatch(/\/itineraries\/new-york-city\/2026-11-09$/);
-    expect(story.url).toBe(`${window.location.origin}/itineraries/new-york-city/2026-11-09`);
+    // Printed and encoded on the canonical origin, whatever origin renders it.
+    expect(story.url.startsWith("https://www.salsasegura.com/itineraries/")).toBe(true);
+    expect(story.url).toBe("https://www.salsasegura.com/itineraries/new-york-city/2026-11-09");
+    expect(story.urlLabel).toBe("www.salsasegura.com/itineraries/new-york-city/2026-11-09");
   });
 
   it("frames each featured flyer in its own pressing, and falls back to type art without flyers", () => {

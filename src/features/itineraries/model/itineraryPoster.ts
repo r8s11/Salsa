@@ -3,8 +3,7 @@
 import "temporal-polyfill/global";
 import { databaseEventToScheduleX } from "../../events/model/convert";
 import { resolveEventFlyer } from "../../events/components/event-modal/eventModalImage";
-import { POSTER_SIZE } from "../../events/components/event-modal/posterFormat";
-import { POSTER_CITY_CODES } from "../../events/components/event-modal/ShareableEventPoster";
+import { POSTER_CITY_CODES, POSTER_SIZE } from "../../events/components/event-modal/posterFormat";
 import { spotlightNights, type ScheduledEntry, type ScheduleNight } from "./schedule";
 import type { Itinerary } from "./types";
 import { formatWeekRange, startTimeLabel } from "./week";

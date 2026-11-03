@@ -23,6 +23,7 @@ it("uses the wall-clock cutoff across DST transitions", () => {
   expect(danceNightOf("2027-03-14T09:30:00Z", NY).toString()).toBe("2027-03-14"); // 05:30 EDT
   expect(danceNightOf("2026-11-01T09:30:00Z", NY).toString()).toBe("2026-10-31"); // 04:30 EST
   expect(danceNightOf("2026-11-01T10:00:00Z", NY).toString()).toBe("2026-11-01"); // 05:00 EST
+  expect(danceNightOf("2026-11-01T10:30:00Z", NY).toString()).toBe("2026-11-01"); // 05:30 EST
 });
 it("bounds the week from Monday 05:00 to Monday 05:00 across DST", () => {
   expect(weekBounds("2026-11-09", NY)).toEqual({ startISO: "2026-11-09T10:00:00Z", endISO: "2026-11-16T10:00:00Z" });

@@ -3,17 +3,16 @@ import { ExternalLink, Link as LinkIcon, Share2 } from "lucide-react";
 import {
   buildEventPromoCaption,
   buildNativeSharePayload,
-  buildPublicEventUrl,
   buildShareDestinations,
 } from "../model/eventSharing";
 import "./EventShareControls.css";
 
 type EventShareControlsProps = {
-  eventId: string;
+  /** The public page being shared, e.g. `buildPublicEventUrl(id)`. */
+  url: string;
   title: string;
   dateLabel?: string | null;
   location?: string | null;
-  origin?: string;
   compact?: boolean;
 };
 
@@ -38,15 +37,13 @@ async function copyText(value: string): Promise<void> {
 }
 
 export default function EventShareControls({
-  eventId,
+  url: publicUrl,
   title,
   dateLabel,
   location,
-  origin,
   compact = false,
 }: EventShareControlsProps) {
   const [feedback, setFeedback] = useState<Feedback>(null);
-  const publicUrl = buildPublicEventUrl(eventId, origin);
   const input = { title, dateLabel, location, publicUrl };
   const destinations = buildShareDestinations(input);
   const nativeShareAvailable =
@@ -64,7 +61,7 @@ export default function EventShareControls({
 
   const handleShare = async () => {
     if (!nativeShareAvailable) {
-      await handleCopy(publicUrl, "Event link copied.", "Could not copy event link.");
+      await handleCopy(publicUrl, "Link copied.", "Could not copy link.");
       return;
     }
 
@@ -73,7 +70,7 @@ export default function EventShareControls({
       await navigator.share(buildNativeSharePayload(input));
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") return;
-      setFeedback({ kind: "error", message: "Could not share event." });
+      setFeedback({ kind: "error", message: "Could not share." });
     }
   };
 
@@ -83,15 +80,15 @@ export default function EventShareControls({
       <div className="event-share-controls__actions">
         <button type="button" className="admin-btn admin-btn--secondary" onClick={handleShare}>
           <Share2 size={15} aria-hidden="true" />
-          Share event
+          Share
         </button>
         <button
           type="button"
           className="admin-btn admin-btn--secondary"
-          onClick={() => handleCopy(publicUrl, "Event link copied.", "Could not copy event link.")}
+          onClick={() => handleCopy(publicUrl, "Link copied.", "Could not copy link.")}
         >
           <LinkIcon size={15} aria-hidden="true" />
-          Copy event link
+          Copy link
         </button>
         {!compact && (
           <button

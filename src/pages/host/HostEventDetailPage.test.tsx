@@ -467,7 +467,7 @@ describe("HostEventDetailPage — Operations Dashboard", () => {
 
     await screen.findByRole("heading", { name: "Havana Nights Social" });
     expect(screen.getByText("Share and promote")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Copy event link" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Copy link" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Edit Event/i })).toHaveAttribute(
       "href",
       "/host/events/approved-1/edit"

@@ -38,11 +38,11 @@ describe("EventShareControls", () => {
     render(<EventShareControls {...input} />);
 
     await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "Copy link" }));
+      fireEvent.click(screen.getByRole("button", { name: "Copy event link" }));
     });
 
     expect(writeText).toHaveBeenCalledWith("https://www.salsasegura.com/events/event-123");
-    expect(screen.getByRole("status")).toHaveTextContent("Link copied.");
+    expect(screen.getByRole("status")).toHaveTextContent("Event link copied.");
   });
 
   it("copies truthful promotional caption", async () => {
@@ -65,20 +65,20 @@ describe("EventShareControls", () => {
     render(<EventShareControls {...input} />);
 
     await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "Copy link" }));
+      fireEvent.click(screen.getByRole("button", { name: "Copy event link" }));
     });
 
-    expect(screen.getByRole("alert")).toHaveTextContent("Could not copy link.");
+    expect(screen.getByRole("alert")).toHaveTextContent("Could not copy event link.");
     expect(screen.queryByText(/backend detail/i)).not.toBeInTheDocument();
   });
 
-  it("keeps Share available as a copy-link fallback without native share", async () => {
+  it("keeps Share event available as a copy-link fallback without native share", async () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     mockClipboard(writeText);
     render(<EventShareControls {...input} compact />);
 
     await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "Share" }));
+      fireEvent.click(screen.getByRole("button", { name: "Share event" }));
     });
 
     expect(writeText).toHaveBeenCalledWith("https://www.salsasegura.com/events/event-123");
@@ -90,7 +90,7 @@ describe("EventShareControls", () => {
     const user = userEvent.setup();
     render(<EventShareControls {...input} />);
 
-    await user.click(screen.getByRole("button", { name: "Share" }));
+    await user.click(screen.getByRole("button", { name: "Share event" }));
 
     expect(share).toHaveBeenCalledWith({
       title: "Havana Nights Social",
@@ -104,7 +104,7 @@ describe("EventShareControls", () => {
     const user = userEvent.setup();
     render(<EventShareControls {...input} />);
 
-    await user.click(screen.getByRole("button", { name: "Share" }));
+    await user.click(screen.getByRole("button", { name: "Share event" }));
 
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
@@ -114,9 +114,9 @@ describe("EventShareControls", () => {
     const user = userEvent.setup();
     render(<EventShareControls {...input} />);
 
-    await user.click(screen.getByRole("button", { name: "Share" }));
+    await user.click(screen.getByRole("button", { name: "Share event" }));
 
-    expect(screen.getByRole("alert")).toHaveTextContent("Could not share.");
+    expect(screen.getByRole("alert")).toHaveTextContent("Could not share event.");
     expect(screen.queryByText(/sdk internals/i)).not.toBeInTheDocument();
   });
 
@@ -141,5 +141,21 @@ describe("EventShareControls", () => {
     render(<EventShareControls {...input} compact />);
 
     expect(screen.queryByRole("link", { name: "Share on WhatsApp" })).not.toBeInTheDocument();
+  });
+
+  it("relabels actions for a week and drops the event promo caption", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    mockClipboard(writeText);
+    render(<EventShareControls {...input} subject="week" />);
+
+    expect(screen.getByRole("button", { name: "Share this week" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Copy promotional text" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Share on WhatsApp" })).toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Copy week link" }));
+    });
+
+    expect(screen.getByRole("status")).toHaveTextContent("Week link copied.");
   });
 });

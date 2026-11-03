@@ -14,6 +14,25 @@ type EventShareControlsProps = {
   dateLabel?: string | null;
   location?: string | null;
   compact?: boolean;
+  /** "week" relabels the actions for an itinerary and drops the event promo caption. */
+  subject?: "event" | "week";
+};
+
+const LABELS = {
+  event: {
+    share: "Share event",
+    copy: "Copy event link",
+    copied: "Event link copied.",
+    copyFailed: "Could not copy event link.",
+    shareFailed: "Could not share event.",
+  },
+  week: {
+    share: "Share this week",
+    copy: "Copy week link",
+    copied: "Week link copied.",
+    copyFailed: "Could not copy week link.",
+    shareFailed: "Could not share this week.",
+  },
 };
 
 type Feedback = { kind: "status" | "error"; message: string } | null;
@@ -42,7 +61,9 @@ export default function EventShareControls({
   dateLabel,
   location,
   compact = false,
+  subject = "event",
 }: EventShareControlsProps) {
+  const labels = LABELS[subject];
   const [feedback, setFeedback] = useState<Feedback>(null);
   const input = { title, dateLabel, location, publicUrl };
   const destinations = buildShareDestinations(input);
@@ -61,7 +82,7 @@ export default function EventShareControls({
 
   const handleShare = async () => {
     if (!nativeShareAvailable) {
-      await handleCopy(publicUrl, "Link copied.", "Could not copy link.");
+      await handleCopy(publicUrl, labels.copied, labels.copyFailed);
       return;
     }
 
@@ -70,7 +91,7 @@ export default function EventShareControls({
       await navigator.share(buildNativeSharePayload(input));
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") return;
-      setFeedback({ kind: "error", message: "Could not share." });
+      setFeedback({ kind: "error", message: labels.shareFailed });
     }
   };
 
@@ -80,17 +101,17 @@ export default function EventShareControls({
       <div className="event-share-controls__actions">
         <button type="button" className="admin-btn admin-btn--secondary" onClick={handleShare}>
           <Share2 size={15} aria-hidden="true" />
-          Share
+          {labels.share}
         </button>
         <button
           type="button"
           className="admin-btn admin-btn--secondary"
-          onClick={() => handleCopy(publicUrl, "Link copied.", "Could not copy link.")}
+          onClick={() => handleCopy(publicUrl, labels.copied, labels.copyFailed)}
         >
           <LinkIcon size={15} aria-hidden="true" />
-          Copy link
+          {labels.copy}
         </button>
-        {!compact && (
+        {!compact && subject === "event" && (
           <button
             type="button"
             className="admin-btn admin-btn--ghost"

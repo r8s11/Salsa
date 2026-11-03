@@ -127,6 +127,7 @@ export default function ItineraryView({ itinerary, schedule, cityName, neighbour
           title={itinerary.title}
           dateLabel={weekLabel}
           location={cityName}
+          subject="week"
         />
       )}
 

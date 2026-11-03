@@ -165,7 +165,7 @@ describe("ItineraryPage", () => {
     renderAt("/itineraries/new-york-city/2026-11-09");
 
     await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "Copy link" }));
+      fireEvent.click(screen.getByRole("button", { name: "Copy week link" }));
     });
 
     expect(writeText).toHaveBeenCalledWith("https://www.salsasegura.com/itineraries/new-york-city/2026-11-09");

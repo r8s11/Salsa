@@ -172,7 +172,7 @@ export default function AdminItinerariesPage() {
         id: "publish",
         label: "Publish",
         icon: Send,
-        onSelect: () => void changeStatus(row, "published", `Published ${row.title}.`),
+        onSelect: () => navigate(`/admin/itineraries/${row.id}?publish=1`),
       });
     }
     if (row.status === "published") {

@@ -63,6 +63,7 @@ function LocationProbe() {
   return (
     <p data-testid="location">
       {location.pathname}
+      {location.search}
       {location.state ? JSON.stringify(location.state) : ""}
     </p>
   );
@@ -135,6 +136,16 @@ describe("AdminItinerariesPage", () => {
     await userEvent.setup().click(screen.getByRole("button", { name: "Next page" }));
     expect(within(screen.getByRole("table")).getAllByRole("row")).toHaveLength(6);
     expect(screen.getByText("Week 29")).toBeInTheDocument();
+  });
+
+  it("opens the editor's publish confirmation instead of publishing without a link card", async () => {
+    renderPage();
+    const user = await openActions("Draft week");
+
+    await user.click(screen.getByRole("menuitem", { name: "Publish" }));
+
+    expect(await screen.findByTestId("location")).toHaveTextContent("/admin/itineraries/d1?publish=1");
+    expect(repo.setItineraryStatus).not.toHaveBeenCalled();
   });
 
   it("navigates to the existing live week and never saves a copy", async () => {

@@ -29,7 +29,7 @@ import {
   itineraryTimeZone,
   weekStartFor,
 } from "../../itineraries/model/week";
-import { useActiveMetros, useMetroName } from "../../metros/hooks/useMetros";
+import { useMetros, useMetroName } from "../../metros/hooks/useMetros";
 import type { DatabaseEvent } from "../../../types/events";
 import AdminConfirmDialog from "../components/common/AdminConfirmDialog";
 import AdminToast from "../components/common/AdminToast";
@@ -187,7 +187,7 @@ function ItineraryEditor({ initial, itinerary }: { initial: ItineraryDraft; itin
   const location = useLocation();
   const queryClient = useQueryClient();
   const metroName = useMetroName();
-  const { activeMetros } = useActiveMetros();
+  const { metros } = useMetros();
   const { publish, refreshCard, status: publishStatus } = usePublishItinerary();
   const [{ draft, pristine }, dispatch] = useReducer(reducer, { draft: initial, pristine: initial });
   const [pane, setPane] = useState<"edit" | "preview">("edit");
@@ -197,6 +197,9 @@ function ItineraryEditor({ initial, itinerary }: { initial: ItineraryDraft; itin
     () => (location.state as { publishError?: string } | null)?.publishError ?? null
   );
   const [confirming, setConfirming] = useState(false);
+  const [publishRequested, setPublishRequested] = useState(
+    () => initial.id !== null && new URLSearchParams(location.search).get("publish") === "1"
+  );
   const [publishError, setPublishError] = useState<string | null>(null);
   const [cardFailed, setCardFailed] = useState(false);
   const [dropped, setDropped] = useState(
@@ -230,6 +233,9 @@ function ItineraryEditor({ initial, itinerary }: { initial: ItineraryDraft; itin
   const status = itinerary?.status ?? "draft";
   const published = status === "published";
   const cityName = metroName(draft.city);
+  const showPublishConfirmation =
+    confirming ||
+    (publishRequested && status === "draft" && !scheduleLoading && !blocked && draft.items.length > 0);
 
   const nightOf: NightOf = (eventId) => {
     const event = eventsById.get(eventId);
@@ -309,6 +315,7 @@ function ItineraryEditor({ initial, itinerary }: { initial: ItineraryDraft; itin
       await publish(savedId, inputs);
       await refresh();
       setConfirming(false);
+      setPublishRequested(false);
       setNotice({ message: `Published ${draft.title}.`, tone: "success" });
       if (!draft.id) navigate(`/admin/itineraries/${savedId}`, { replace: true });
     } catch (err) {
@@ -330,9 +337,9 @@ function ItineraryEditor({ initial, itinerary }: { initial: ItineraryDraft; itin
     setBusy(null);
   };
 
-  const cities = activeMetros.some((metro) => metro.slug === draft.city) || !draft.city
-    ? activeMetros
-    : [...activeMetros, { slug: draft.city, name: cityName }];
+  const cities = metros.some((metro) => metro.slug === draft.city) || !draft.city
+    ? metros
+    : [...metros, { slug: draft.city, name: cityName }];
   const publishLabel: Record<PublishItineraryStatus, string> = {
     idle: "Saving…",
     rendering: "Rendering link card…",
@@ -518,7 +525,7 @@ function ItineraryEditor({ initial, itinerary }: { initial: ItineraryDraft; itin
         </aside>
       </fieldset>
 
-      {confirming && (
+      {showPublishConfirmation && (
         <AdminConfirmDialog
           title={`Publish ${draft.title || "this itinerary"}?`}
           body={[
@@ -531,7 +538,10 @@ function ItineraryEditor({ initial, itinerary }: { initial: ItineraryDraft; itin
           isBusy={busy === "publish"}
           error={publishError}
           onConfirm={() => void confirmPublish()}
-          onCancel={() => setConfirming(false)}
+          onCancel={() => {
+            setConfirming(false);
+            setPublishRequested(false);
+          }}
         />
       )}
 

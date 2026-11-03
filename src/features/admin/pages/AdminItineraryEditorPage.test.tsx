@@ -1,7 +1,7 @@
 import "temporal-polyfill/global";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import type { DatabaseEvent } from "../../../types/events";
@@ -33,7 +33,15 @@ vi.mock("../../itineraries/hooks/usePublishItinerary", async (importOriginal) =>
 }));
 vi.mock("../../calendar/hooks/useShareablePoster", () => ({ useShareablePoster: () => poster }));
 vi.mock("../../metros/hooks/useMetros", () => ({
-  useActiveMetros: () => ({ activeMetros: [{ slug: "boston", name: "Boston" }], loading: false, error: null }),
+  useMetros: () => ({
+    metros: [
+      { slug: "boston", name: "Boston" },
+      { slug: "san-francisco", name: "San Francisco" },
+    ],
+    loading: false,
+    error: null,
+  }),
+  useActiveMetros: () => ({ activeMetros: [], loading: false, error: null }),
   useMetroName: () => (slug: string) => (slug === "boston" ? "Boston" : slug),
 }));
 vi.mock("../../../contexts/useCity", () => ({ useCity: () => ({ city: "boston" }) }));
@@ -151,6 +159,73 @@ beforeEach(() => {
 });
 
 describe("AdminItineraryEditorPage", () => {
+  it("offers supported cities with no upcoming events and saves an empty draft for one", async () => {
+    const user = userEvent.setup();
+    queries.useWeekEvents.mockReturnValue({ events: [], loading: false, error: null });
+    repo.saveItinerary.mockResolvedValue("it-sf");
+    renderAt("/admin/itineraries/new");
+
+    await user.selectOptions(screen.getByLabelText("City"), "san-francisco");
+    expect(screen.getByRole("option", { name: "San Francisco" })).toBeInTheDocument();
+    expect(screen.getByText("No approved events in this city this week.")).toBeInTheDocument();
+    await user.type(screen.getByLabelText("Title"), "San Francisco week");
+    await user.click(screen.getByRole("button", { name: "Save draft" }));
+
+    await waitFor(() =>
+      expect(repo.saveItinerary).toHaveBeenCalledWith(
+        expect.objectContaining({ city: "san-francisco", timeZone: "America/Los_Angeles", items: [] })
+      )
+    );
+  });
+
+  it("waits for picked events before opening a requested confirmation and publishes only on confirmation", async () => {
+    const user = userEvent.setup();
+    loadSaved(savedItinerary(), savedDraft([{ eventId: "ev-fri", role: "featured", position: 0, note: null }]));
+    let resolvePicked!: (value: DatabaseEvent[]) => void;
+    events.fetchApprovedEventsByIds.mockReturnValue(new Promise<DatabaseEvent[]>((resolve) => {
+      resolvePicked = resolve;
+    }));
+    publisher.publish.mockResolvedValue(undefined);
+    renderAt("/admin/itineraries/it-1?publish=1");
+
+    await waitFor(() => expect(events.fetchApprovedEventsByIds).toHaveBeenCalled());
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(publisher.publish).not.toHaveBeenCalled();
+    await act(async () => resolvePicked([friday]));
+
+    const dialog = await screen.findByRole("dialog", { name: "Publish Boston week?" });
+    expect(publisher.publish).not.toHaveBeenCalled();
+    await user.click(within(dialog).getByRole("button", { name: "Publish" }));
+
+    await waitFor(() => expect(publisher.publish).toHaveBeenCalledWith("it-1", expect.anything()));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  });
+
+  it("does not reopen a requested confirmation after the curator cancels", async () => {
+    const user = userEvent.setup();
+    loadSaved(savedItinerary(), savedDraft([{ eventId: "ev-fri", role: "featured", position: 0, note: null }]));
+    renderAt("/admin/itineraries/it-1?publish=1");
+    const dialog = await screen.findByRole("dialog", { name: "Publish Boston week?" });
+
+    await user.click(within(dialog).getByRole("button", { name: "Cancel" }));
+    await user.type(screen.getByLabelText("Title"), "!");
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(publisher.publish).not.toHaveBeenCalled();
+  });
+
+  it("shows blocking warnings instead of opening a requested confirmation for an invalid saved draft", async () => {
+    loadSaved(savedItinerary(), savedDraft([{ eventId: "ev-gone", role: "featured", position: 0, note: null }]));
+    renderAt("/admin/itineraries/it-1?publish=1");
+
+    const summary = await screen.findByRole("region", { name: "Warnings" });
+    expect(within(summary).getByText(/No longer public \(cancelled, unpublished or removed\)/)).toBeInTheDocument();
+    await waitFor(() => expect(events.fetchApprovedEventsByIds).toHaveBeenCalledWith(["ev-gone"]));
+    expect(screen.getByRole("button", { name: "Publish" })).toBeDisabled();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(publisher.publish).not.toHaveBeenCalled();
+  });
+
   it("demotes the earlier featured pick when a second event is featured on the same night", async () => {
     const user = userEvent.setup();
     const week = defaultWeekStart(Temporal.Now.instant(), ZONE);

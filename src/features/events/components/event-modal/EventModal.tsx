@@ -30,6 +30,7 @@ import { getUpcomingSeriesDates } from "../../../../utils/series";
 import { useShareablePoster } from "../../../calendar/hooks/useShareablePoster";
 import { buildPublicEventUrl } from "../../model/eventSharing";
 import { buildShortEventUrl, shortEventLabel } from "../../model/shortLink";
+import { sharePosterFile } from "../../model/sharePosterFile";
 import { useAccessibleDialog } from "../../../../shared/a11y/useAccessibleDialog";
 import { recordEventTouch } from "../../api/eventsRepo";
 import { useEventViewTouch } from "../../hooks/useEventViewTouch";
@@ -352,32 +353,26 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
     setShareFallback(null);
     try {
       const poster = await createPoster(event, posterFormat);
-      const file = new File([poster], posterFilename(event, posterFormat), { type: "image/png" });
-      const shareData = {
-        files: [file],
+      const outcome = await sharePosterFile({
+        blob: poster,
+        filename: posterFilename(event, posterFormat),
         title: event.title,
-        text: `${event.title} — ${canonicalUrl}`,
         url: canonicalUrl,
-      };
+      });
 
-      if (navigator.canShare?.(shareData)) {
-        try {
-          await navigator.share(shareData);
-        } catch (err) {
-          if (err instanceof DOMException && err.name === "AbortError") return;
-          const needsFreshActivation = err instanceof DOMException && err.name === "NotAllowedError";
-          if (needsFreshActivation) {
-            setShareFallback({ poster, format: posterFormat, region });
-          }
-          setFeedback({
-            kind: "error",
-            message: needsFreshActivation
+      if (outcome === "needs_fresh_tap" || outcome === "failed") {
+        if (outcome === "needs_fresh_tap") {
+          setShareFallback({ poster, format: posterFormat, region });
+        }
+        setFeedback({
+          kind: "error",
+          message:
+            outcome === "needs_fresh_tap"
               ? "Sharing needs a fresh tap. Download the poster instead."
               : "Sending the poster failed. Please try again.",
-            region,
-          });
-        }
-      } else {
+          region,
+        });
+      } else if (outcome === "unsupported") {
         downloadPoster(event, poster, posterFormat);
         setFeedback({
           kind: "status",

@@ -161,6 +161,32 @@
   font-variant-numeric: tabular-nums;
 }
 
+.itinerary-empty {
+  margin: 0;
+  max-width: 65ch;
+  color: var(--text-muted);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+}
+
+.itinerary-empty a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--gold);
+  font-weight: 700;
+  text-underline-offset: 3px;
+}
+
+.itinerary-empty a:hover {
+  color: var(--gold-light);
+}
+
+.itinerary-empty a:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
 .itinerary-night {
   display: grid;
   gap: var(--space-md);

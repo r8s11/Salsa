@@ -70,7 +70,7 @@ export default function ItineraryView({ itinerary, schedule, cityName, neighbour
         {itinerary.description && <p className="itinerary-intro">{itinerary.description}</p>}
       </header>
 
-      {nights.length > 0 && (
+      {nights.length > 0 ? (
         <nav className="itinerary-strip" aria-label="Nights this week">
           <ol>
             {schedule.nights.map((night) => {
@@ -100,6 +100,12 @@ export default function ItineraryView({ itinerary, schedule, cityName, neighbour
             })}
           </ol>
         </nav>
+      ) : (
+        // Publishing needs an item, so this only happens once every listed event has gone.
+        <p className="itinerary-empty">
+          Every event on this week&apos;s list has been cancelled or removed.{" "}
+          <Link to="/calendar">Check the calendar</Link> for what&apos;s on.
+        </p>
       )}
 
       {nights.map((night) => {

@@ -165,6 +165,22 @@ describe("ItineraryPage", () => {
     expect(cells[0].querySelector("a")).toBeNull();
   });
 
+  it("replaces the strip and nights with an empty state when every event has gone", () => {
+    usePublishedItinerary.mockReturnValue(
+      published([], [{ eventId: "gone", role: "featured", position: 0, note: null }])
+    );
+    renderAt("/itineraries/new-york-city/2026-11-09");
+
+    expect(screen.getByRole("heading", { level: 1, name: "Salsa week in New York" })).toBeInTheDocument();
+    expect(screen.getByText("Seven nights on the floor.")).toBeInTheDocument();
+    expect(screen.getByText(/Every event on this week's list has been cancelled or removed./)).toHaveTextContent(
+      "Every event on this week's list has been cancelled or removed. Check the calendar for what's on."
+    );
+    expect(screen.getByRole("link", { name: "Check the calendar" })).toHaveAttribute("href", "/calendar");
+    expect(screen.queryByRole("navigation", { name: "Nights this week" })).not.toBeInTheDocument();
+    expect(document.querySelector("[id^='night-']")).toBeNull();
+  });
+
   it("shows card times in the itinerary's zone, not the event's own", () => {
     usePublishedItinerary.mockReturnValue(weekFixture({ time_zone: "America/Los_Angeles" }));
     renderAt("/itineraries/new-york-city/2026-11-09");

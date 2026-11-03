@@ -29,6 +29,7 @@ const CITY_CODE: Record<string, string> = {
   "san-francisco": "SF",
   texas: "TX",
 };
+export { CITY_CODE as POSTER_CITY_CODES };
 
 const toDate = (val: unknown): Date => {
   if (typeof val === "string") return new Date(val.replace(" ", "T"));

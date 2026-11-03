@@ -14,8 +14,8 @@ export const ADMIN_ITINERARIES_KEY = ["admin", "itineraries"] as const;
 export const adminItineraryKey = (id: string) => [...ADMIN_ITINERARIES_KEY, id] as const;
 export const publicItineraryKey = (city: string, weekStart: string) =>
   ["itineraries", city, weekStart] as const;
-export const weekEventsKey = (city: string, weekStart: string) =>
-  ["events", "week", city, weekStart] as const;
+export const weekEventsKey = (city: string, weekStart: string, timeZone: string) =>
+  ["events", "week", city, weekStart, timeZone] as const;
 
 export function useAdminItineraries() {
   const { data, isLoading, error, refetch } = useQuery({
@@ -66,7 +66,8 @@ export function usePublishedItinerary(city: string, weekStart: string) {
     items: published.data?.items ?? [],
     events: eventsById,
     neighbours: neighbours.data ?? { previous: null, next: null },
-    loading: published.isLoading || (published.data != null && events.isLoading),
+    loading:
+      published.isLoading || neighbours.isLoading || (published.data != null && events.isLoading),
     error: error ? error.message : null,
   };
 }
@@ -74,7 +75,7 @@ export function usePublishedItinerary(city: string, weekStart: string) {
 /** Approved events whose start falls in the itinerary week. */
 export function useWeekEvents(city: City, weekStart: string, timeZone: string) {
   const { data, isLoading, error } = useQuery({
-    queryKey: weekEventsKey(city, weekStart),
+    queryKey: weekEventsKey(city, weekStart, timeZone),
     queryFn: () => {
       const { startISO, endISO } = weekBounds(weekStart, timeZone);
       return fetchApprovedEventsBetween(city, startISO, endISO);

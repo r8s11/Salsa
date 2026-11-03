@@ -129,10 +129,12 @@ function GatefoldCut({ model }: { model: ItineraryPosterModel }) {
       <div className="itinerary-panel">
         <header className="sleeve-masthead">
           <span className="sleeve-masthead__label">Salsa Segura</span>
-          <span className="sleeve-masthead__catalogue">{model.catalogue}</span>
+          <div className="sleeve-masthead__details">
+            <span className="sleeve-masthead__catalogue">{model.catalogue}</span>
+            <span className="sleeve-masthead__type">The Week</span>
+          </div>
         </header>
         <div className="itinerary-panel__week">
-          <p className="sleeve-back__side-label">The Week</p>
           <p className="itinerary-panel__city" style={{ fontSize: `${citySize}px` }}>
             {model.cityName}
           </p>
@@ -154,6 +156,7 @@ function GatefoldCut({ model }: { model: ItineraryPosterModel }) {
               {model.tracks.map((track) => (
                 <li key={track.code} className="sleeve-track">
                   <span className="sleeve-track__no">{track.day}</span>
+                  <span className="itinerary-track__sep"> · </span>
                   <span className="itinerary-track__title">{track.title}</span>
                 </li>
               ))}

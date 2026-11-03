@@ -237,17 +237,24 @@
   font-size: 26px;
 }
 
+/* Catalogue and "The Week" share one line, as on the story and feed
+   mastheads; they wrap rather than spill if a city code runs long. */
+.sleeve--compilation.sleeve--card .sleeve-masthead__details {
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+
 .sleeve--compilation.sleeve--card .sleeve-masthead__catalogue {
-  font-size: 20px;
+  font-size: 18px;
+}
+
+.sleeve--compilation.sleeve--card .sleeve-masthead__type {
+  font-size: 15px;
 }
 
 .itinerary-panel__week {
   display: grid;
   gap: 10px;
-}
-
-.itinerary-panel__week .sleeve-back__side-label {
-  margin: 0 0 4px;
 }
 
 .itinerary-panel__city,
@@ -269,9 +276,13 @@
 }
 
 .sleeve--compilation.sleeve--card .sleeve-track {
-  grid-template-columns: max-content minmax(0, 1fr);
-  gap: 0 10px;
+  grid-template-columns: max-content max-content minmax(0, 1fr);
+  gap: 0 8px;
   font-size: 25px;
+}
+
+.itinerary-track__sep {
+  font-weight: 600;
 }
 
 /* The card's 233px measure holds ~12 caps a line: one line would cut

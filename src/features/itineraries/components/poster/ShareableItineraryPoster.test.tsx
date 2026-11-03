@@ -83,7 +83,16 @@ describe("ShareableItineraryPoster", () => {
     expect(panels).toHaveLength(3);
     expect(panels[1]).toHaveClass("itinerary-cover");
     expect(container.querySelector(".sleeve-qr")).toBeNull();
-    expect(screen.getByText("The Week")).toBeInTheDocument();
-    expect(screen.getByText("FRI 13")).toBeInTheDocument();
+    // "The Week" is masthead metadata beside the catalogue, not a label over the city.
+    expect(screen.getByText("The Week")).toHaveClass("sleeve-masthead__type");
+    expect(screen.getByText("The Week").parentElement).toHaveTextContent("SS-W46 · NYC");
+    expect(container.querySelector(".itinerary-panel__week")).toHaveTextContent(/^New York CityNov 9–15$/);
+    const cardTracks = [...container.querySelectorAll(".sleeve-track")].map((track) => track.textContent);
+    expect(cardTracks).toEqual([
+      "MON 9 · Monday Mambo Social",
+      "THU 12 · On2 Shines Class",
+      "FRI 13 · Friday Night Live",
+      "SAT 14 · Late Social",
+    ]);
   });
 });

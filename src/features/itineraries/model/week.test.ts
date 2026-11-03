@@ -17,6 +17,13 @@ it("assigns after-midnight starts to the previous night", () => {
   expect(danceNightOf("2026-11-16T06:00:00Z", NY).toString()).toBe("2026-11-15"); // Mon 01:00 → Sun
   expect(danceNightOf("2026-11-14T10:00:00Z", NY).toString()).toBe("2026-11-14"); // 05:00 exactly → same day
 });
+it("uses the wall-clock cutoff across DST transitions", () => {
+  expect(danceNightOf("2027-03-14T08:30:00Z", NY).toString()).toBe("2027-03-13"); // 04:30 EDT
+  expect(danceNightOf("2027-03-14T09:00:00Z", NY).toString()).toBe("2027-03-14"); // 05:00 EDT
+  expect(danceNightOf("2027-03-14T09:30:00Z", NY).toString()).toBe("2027-03-14"); // 05:30 EDT
+  expect(danceNightOf("2026-11-01T09:30:00Z", NY).toString()).toBe("2026-10-31"); // 04:30 EST
+  expect(danceNightOf("2026-11-01T10:00:00Z", NY).toString()).toBe("2026-11-01"); // 05:00 EST
+});
 it("bounds the week from Monday 05:00 to Monday 05:00 across DST", () => {
   expect(weekBounds("2026-11-09", NY)).toEqual({ startISO: "2026-11-09T10:00:00Z", endISO: "2026-11-16T10:00:00Z" });
   expect(weekBounds("2026-10-26", NY)).toEqual({ startISO: "2026-10-26T09:00:00Z", endISO: "2026-11-02T10:00:00Z" });

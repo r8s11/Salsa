@@ -15,10 +15,9 @@ export function itineraryTimeZone(city: string): string {
 }
 
 export function danceNightOf(instantISO: string, timeZone: string): Temporal.PlainDate {
-  return Temporal.Instant.from(instantISO)
-    .toZonedDateTimeISO(timeZone)
-    .subtract({ hours: NIGHT_CUTOFF_HOUR })
-    .toPlainDate();
+  const zdt = Temporal.Instant.from(instantISO).toZonedDateTimeISO(timeZone);
+  const date = zdt.toPlainDate();
+  return zdt.hour < NIGHT_CUTOFF_HOUR ? date.subtract({ days: 1 }) : date;
 }
 
 export function nightWeekday(instantISO: string, timeZone: string): IsoWeekday {

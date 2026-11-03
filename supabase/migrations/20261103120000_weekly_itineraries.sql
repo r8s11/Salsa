@@ -242,6 +242,7 @@ declare
   v_id uuid;
   v_city text;
   v_week_start date;
+  v_time_zone text;
   v_title text;
   v_item_count integer;
 begin
@@ -255,6 +256,7 @@ begin
   v_city := p_payload ->> 'city';
   v_week_start := (p_payload ->> 'week_start')::date;
   v_title := p_payload ->> 'title';
+  v_time_zone := p_payload ->> 'time_zone';
 
   if p_id is null then
     insert into public.itineraries (
@@ -264,7 +266,7 @@ begin
     values (
       v_city,
       v_week_start,
-      p_payload ->> 'time_zone',
+      v_time_zone,
       v_title,
       p_payload ->> 'description',
       p_payload ->> 'recommendations',
@@ -283,14 +285,16 @@ begin
       raise exception 'Archived itineraries cannot be edited' using errcode = '22023';
     end if;
     if v_current.status = 'published'
-       and (v_city is distinct from v_current.city or v_week_start is distinct from v_current.week_start) then
+       and (v_city is distinct from v_current.city
+            or v_week_start is distinct from v_current.week_start
+            or v_time_zone is distinct from v_current.time_zone) then
       raise exception 'Unpublish before changing the city or week' using errcode = '22023';
     end if;
 
     update public.itineraries
     set city = v_city,
         week_start = v_week_start,
-        time_zone = p_payload ->> 'time_zone',
+        time_zone = v_time_zone,
         title = v_title,
         description = p_payload ->> 'description',
         recommendations = p_payload ->> 'recommendations',
@@ -309,6 +313,9 @@ begin
   from jsonb_to_recordset(coalesce(p_payload -> 'items', '[]'::jsonb))
     as item(event_id uuid, role text, position smallint, note text);
   get diagnostics v_item_count = row_count;
+  if v_current.status = 'published' and v_item_count = 0 then
+    raise exception 'Published itineraries need at least one event' using errcode = '22023';
+  end if;
 
   perform public.itinerary_validate_items(v_id);
 

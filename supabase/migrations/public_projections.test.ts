@@ -118,4 +118,14 @@ describe("public projection views", () => {
   it("assigns after-midnight starts to the previous dance night", () => {
     expect(itineraryMigration()).toMatch(/at time zone p_tz\)\s*-\s*interval '5 hours'\)::date/i);
   });
+
+  it("keeps a published itinerary's place and contents intact on save", () => {
+    const sql = itineraryMigration();
+    expect(sql).toMatch(
+      /time_zone\s+is\s+distinct\s+from\s+v_current\.time_zone\)\s+then\s+raise\s+exception\s+'Unpublish before changing the city or week'\s+using\s+errcode\s*=\s*'22023'/i
+    );
+    expect(sql).toMatch(
+      /raise\s+exception\s+'Published itineraries need at least one event'\s+using\s+errcode\s*=\s*'22023'/i
+    );
+  });
 });

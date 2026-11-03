@@ -13,11 +13,11 @@ import { formatWeekRange } from "../model/week";
 import "./ItineraryView.css";
 
 interface ItineraryViewProps {
-  itinerary: Itinerary;
+  itinerary: Pick<Itinerary, "city" | "weekStart" | "timeZone" | "title" | "description" | "recommendations">;
   schedule: Schedule;
   cityName: string;
   neighbours?: { previous: string | null; next: string | null };
-  /** Admin preview: shows the draft banner and hides sharing. */
+  /** Admin preview: draft banner, all seven nights, no public sharing. */
   draft?: boolean;
 }
 
@@ -40,7 +40,8 @@ function CuratorNote({ entry }: { entry: ScheduledEntry }) {
 export default function ItineraryView({ itinerary, schedule, cityName, neighbours, draft = false }: ItineraryViewProps) {
   const navigate = useNavigate();
   const weekLabel = formatWeekRange(itinerary.weekStart);
-  const nights = schedule.nights.filter((night) => night.entries.length > 0);
+  const hasEvents = schedule.nights.some((night) => night.entries.length > 0);
+  const nights = draft ? schedule.nights : schedule.nights.filter((night) => night.entries.length > 0);
   const admission = estimatedAdmission(schedule.nights);
   const badges = styleBadges(schedule);
   // Cards show times in the itinerary's zone so each sits under the night it belongs to.
@@ -69,6 +70,10 @@ export default function ItineraryView({ itinerary, schedule, cityName, neighbour
         )}
         {itinerary.description && <p className="itinerary-intro">{itinerary.description}</p>}
       </header>
+
+      {draft && !hasEvents && (
+        <p className="itinerary-empty">No events picked yet. Add approved events to build this week.</p>
+      )}
 
       {nights.length > 0 ? (
         <nav className="itinerary-strip" aria-label="Nights this week">
@@ -116,6 +121,7 @@ export default function ItineraryView({ itinerary, schedule, cityName, neighbour
           <h2>
             {Temporal.PlainDate.from(night.date).toLocaleString("en-US", { weekday: "long", month: "long", day: "numeric" })}
           </h2>
+          {draft && night.entries.length === 0 && <p className="itinerary-empty">No events picked.</p>}
           {night.featured && (
             <div className="itinerary-pick">
               <FeaturedEventCard event={databaseEventToScheduleX(night.featured.event, cardZone)} onSelect={openEvent} />

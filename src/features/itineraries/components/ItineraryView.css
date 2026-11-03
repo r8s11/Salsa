@@ -349,3 +349,79 @@
     transition: none;
   }
 }
+
+/* An actual public guide inside either admin theme. Scope public navy/ink
+   here only; the editor controls and poster actions retain admin tokens. */
+.itinerary-admin-preview {
+  --bg: #0b1326;
+  --surface: #131b2e;
+  --surface-high: #171f33;
+  --text: #dae2fd;
+  --text-muted: #e5bdbe;
+  --text-dim: #ac8889;
+  --border: rgba(255, 255, 255, 0.1);
+  --border-md: rgba(255, 255, 255, 0.16);
+  --gold: #e9c349;
+  --on-gold: #3c2f00;
+  background: var(--bg);
+  color: var(--text);
+  color-scheme: dark;
+}
+
+.itinerary-admin-preview .itinerary-header h1 {
+  overflow-wrap: anywhere;
+}
+
+.admin-shell .itinerary-admin-preview a:not([class]) {
+  color: var(--gold);
+  text-decoration-color: currentColor;
+}
+
+.admin-shell .itinerary-admin-preview button:focus-visible,
+.admin-shell .itinerary-admin-preview a:focus-visible {
+  outline-color: var(--red-bright);
+}
+
+/* The admin preview can be phone-width inside a desktop viewport. Use the
+   existing public phone geometry based on its container, not the window. */
+.itinerary-admin-preview {
+  container-type: inline-size;
+}
+
+@container (max-width: 767.98px) {
+  .itinerary-admin-preview .itinerary {
+    padding: var(--space-lg) var(--space-md) var(--space-xxl);
+  }
+
+  .itinerary-admin-preview .itinerary-alternatives,
+  .itinerary-admin-preview .featured-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .itinerary-admin-preview .featured-card {
+    min-height: unset;
+  }
+
+  .itinerary-admin-preview .featured-card-media {
+    min-height: 240px;
+    aspect-ratio: 4 / 3;
+    padding: 16px;
+  }
+
+  .itinerary-admin-preview .featured-card-date {
+    min-width: 0;
+    padding: 12px 14px;
+  }
+
+  .itinerary-admin-preview .featured-card-date strong {
+    font-size: 3rem;
+  }
+
+  .itinerary-admin-preview .featured-card-body {
+    padding: 28px clamp(20px, 6cqw, 28px);
+  }
+
+  .itinerary-admin-preview .featured-card-body h3 {
+    font-size: clamp(1.75rem, 8.2cqw, 2.5rem);
+  }
+}

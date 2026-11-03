@@ -9,6 +9,7 @@ import { itineraryErrorMessage, saveItinerary } from "../../itineraries/api/itin
 import ItineraryEventFinder from "../../itineraries/components/admin/ItineraryEventFinder";
 import ItinerarySchedule, { ItineraryWarningSummary } from "../../itineraries/components/admin/ItinerarySchedule";
 import ItinerarySharePanel from "../../itineraries/components/admin/ItinerarySharePanel";
+import ItineraryView from "../../itineraries/components/ItineraryView";
 import {
   ADMIN_ITINERARIES_KEY,
   adminItineraryKey,
@@ -191,6 +192,7 @@ function ItineraryEditor({ initial, itinerary }: { initial: ItineraryDraft; itin
   const { publish, refreshCard, status: publishStatus } = usePublishItinerary();
   const [{ draft, pristine }, dispatch] = useReducer(reducer, { draft: initial, pristine: initial });
   const [pane, setPane] = useState<"edit" | "preview">("edit");
+  const [previewTab, setPreviewTab] = useState<"guide" | "posters">("guide");
   const [busy, setBusy] = useState<"save" | "publish" | "regenerate" | null>(null);
   const [notice, setNotice] = useState<{ message: string; tone: "success" | "error" } | null>(null);
   const [saveError, setSaveError] = useState<string | null>(
@@ -233,9 +235,13 @@ function ItineraryEditor({ initial, itinerary }: { initial: ItineraryDraft; itin
   const status = itinerary?.status ?? "draft";
   const published = status === "published";
   const cityName = metroName(draft.city);
-  const showPublishConfirmation =
-    confirming ||
-    (publishRequested && status === "draft" && !scheduleLoading && !blocked && draft.items.length > 0);
+  const headerError = !draft.city.trim()
+    ? "Choose a city before saving or publishing."
+    : !draft.title.trim()
+      ? "Add a title before saving or publishing."
+      : null;
+  const canPublish = !headerError && !blocked && !scheduleLoading && draft.items.length > 0 && status === "draft";
+  const showPublishConfirmation = canPublish && (confirming || publishRequested);
 
   const nightOf: NightOf = (eventId) => {
     const event = eventsById.get(eventId);
@@ -286,8 +292,8 @@ function ItineraryEditor({ initial, itinerary }: { initial: ItineraryDraft; itin
   };
 
   const save = async () => {
-    if (!draft.city || !draft.title.trim()) {
-      setSaveError(draft.city ? "Add a title before saving." : "Choose a city before saving.");
+    if (headerError) {
+      setSaveError(headerError);
       return;
     }
     setBusy("save");
@@ -306,7 +312,7 @@ function ItineraryEditor({ initial, itinerary }: { initial: ItineraryDraft; itin
   };
 
   const confirmPublish = async () => {
-    if (blocked || scheduleLoading) return;
+    if (!canPublish) return;
     setBusy("publish");
     setPublishError(null);
     let savedId: string | null = null;
@@ -373,7 +379,7 @@ function ItineraryEditor({ initial, itinerary }: { initial: ItineraryDraft; itin
               <button
                 type="button"
                 className="admin-btn admin-btn--primary"
-                disabled={busy !== null || blocked || scheduleLoading || draft.items.length === 0 || status === "archived"}
+                disabled={busy !== null || !canPublish}
                 onClick={() => {
                   setPublishError(null);
                   setConfirming(true);
@@ -521,7 +527,36 @@ function ItineraryEditor({ initial, itinerary }: { initial: ItineraryDraft; itin
         </div>
 
         <aside className="itinerary-editor__aside" aria-label="Preview">
-          <ItinerarySharePanel inputs={inputs} published={published} />
+          <div className="itinerary-editor__preview-tabs" role="group" aria-label="Preview content">
+            {(["guide", "posters"] as const).map((option) => (
+              <button
+                key={option}
+                type="button"
+                aria-pressed={previewTab === option}
+                onClick={() => setPreviewTab(option)}
+              >
+                {option === "guide" ? "Guide" : "Posters"}
+              </button>
+            ))}
+          </div>
+          {previewTab === "guide" ? (
+            <div
+              className="itinerary-admin-preview itinerary-editor__guide"
+              role="region"
+              aria-label="Guide preview"
+            >
+              <ItineraryView itinerary={draft} schedule={schedule} cityName={cityName} draft />
+            </div>
+          ) : (
+            <div className="itinerary-editor__posters">
+              {published && dirty && (
+                <p className="admin-banner" role="status">
+                  Save changes to share updated words and picks. Posters use the saved week.
+                </p>
+              )}
+              <ItinerarySharePanel inputs={published ? savedInputs : inputs} published={published} />
+            </div>
+          )}
         </aside>
       </fieldset>
 

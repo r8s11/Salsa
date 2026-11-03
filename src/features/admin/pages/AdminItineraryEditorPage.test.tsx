@@ -1,7 +1,7 @@
 import "temporal-polyfill/global";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { act, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import type { DatabaseEvent } from "../../../types/events";
@@ -14,7 +14,12 @@ import AdminItineraryPreviewPage from "./AdminItineraryPreviewPage";
 const queries = vi.hoisted(() => ({ useItineraryDraft: vi.fn(), useWeekEvents: vi.fn() }));
 const repo = vi.hoisted(() => ({ saveItinerary: vi.fn(), setItineraryStatus: vi.fn() }));
 const events = vi.hoisted(() => ({ fetchApprovedEventsByIds: vi.fn() }));
-const publisher = vi.hoisted(() => ({ publish: vi.fn(), refreshCard: vi.fn() }));
+const publisher = vi.hoisted(() => ({
+  publish: vi.fn(),
+  refreshCard: vi.fn(),
+  loadItineraryPoster: vi.fn(),
+  sharePosterFile: vi.fn(),
+}));
 const poster = vi.hoisted(() => ({ capturePosterElement: vi.fn(), downloadBlob: vi.fn() }));
 
 vi.mock("../../itineraries/hooks/useItineraryQueries", () => ({
@@ -29,9 +34,11 @@ vi.mock("../../itineraries/api/itinerariesRepo", async (importOriginal) => ({
 vi.mock("../../events/api/eventsRepo", () => events);
 vi.mock("../../itineraries/hooks/usePublishItinerary", async (importOriginal) => ({
   ...(await importOriginal()),
+  loadItineraryPoster: publisher.loadItineraryPoster,
   usePublishItinerary: () => ({ ...publisher, status: "idle", error: null }),
 }));
 vi.mock("../../calendar/hooks/useShareablePoster", () => ({ useShareablePoster: () => poster }));
+vi.mock("../../events/model/sharePosterFile", () => ({ sharePosterFile: publisher.sharePosterFile }));
 vi.mock("../../metros/hooks/useMetros", () => ({
   useMetros: () => ({
     metros: [
@@ -151,6 +158,12 @@ function loadSaved(itinerary: Itinerary, draft: ItineraryDraft) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  publisher.loadItineraryPoster.mockResolvedValue(null);
+  publisher.sharePosterFile.mockResolvedValue("shared");
+  poster.capturePosterElement.mockImplementation(async (load: () => Promise<unknown>) => {
+    await load();
+    return new Blob(["poster"], { type: "image/png" });
+  });
   queries.useItineraryDraft.mockReturnValue({ itinerary: null, draft: null, loading: false, error: null });
   queries.useWeekEvents.mockReturnValue({ events: [friday, tuesday], loading: false, error: null });
   events.fetchApprovedEventsByIds.mockImplementation(async (ids: string[]) =>
@@ -159,6 +172,99 @@ beforeEach(() => {
 });
 
 describe("AdminItineraryEditorPage", () => {
+  it("previews current words, all seven nights, selections and removals without saving", async () => {
+    const user = userEvent.setup();
+    renderAt("/admin/itineraries/new");
+    fireEvent.change(screen.getByLabelText("Week of"), { target: { value: WEEK } });
+    await user.click(screen.getByRole("button", { name: "Preview" }));
+    let guide = screen.getByRole("region", { name: "Guide preview" });
+    expect(within(guide).getByText("Draft — not public")).toBeInTheDocument();
+    expect(within(guide).getByText("No events picked yet. Add approved events to build this week.")).toBeInTheDocument();
+    expect(within(guide).getAllByRole("heading", { level: 2 })).toHaveLength(7);
+
+    await user.click(screen.getByRole("button", { name: "Edit" }));
+    await user.type(screen.getByLabelText("Title"), "Fresh picks");
+    await user.type(screen.getByLabelText("Introduction"), "This is the introduction.");
+    await user.type(screen.getByLabelText("Recommendations"), "Bring dance shoes.");
+    const finder = screen.getByRole("region", { name: "Find events" });
+    await user.click(within(within(finder).getByRole("listitem", { name: "Friday Social" })).getByRole("button", { name: "Feature" }));
+    const row = await within(screen.getByRole("region", { name: "Schedule" })).findByRole("listitem", { name: "Friday Social" });
+    await user.type(within(row).getByLabelText(/Note/), "Arrive for the band.");
+
+    await user.click(screen.getByRole("button", { name: "Preview" }));
+    guide = screen.getByRole("region", { name: "Guide preview" });
+    expect(within(guide).getByRole("heading", { level: 1, name: "Fresh picks" })).toBeInTheDocument();
+    expect(within(guide).getByText("This is the introduction.")).toBeInTheDocument();
+    expect(within(guide).getByText("Bring dance shoes.")).toBeInTheDocument();
+    expect(within(guide).getByRole("button", { name: "Friday Social" })).toBeInTheDocument();
+    expect(within(guide).getByText("Arrive for the band.")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Edit" }));
+    await user.click(within(row).getByRole("button", { name: "Remove Friday Social" }));
+    await user.click(screen.getByRole("button", { name: "Preview" }));
+    guide = screen.getByRole("region", { name: "Guide preview" });
+    expect(within(guide).queryByRole("button", { name: "Friday Social" })).not.toBeInTheDocument();
+    expect(within(guide).getByText("No events picked yet. Add approved events to build this week.")).toBeInTheDocument();
+    expect(repo.saveItinerary).not.toHaveBeenCalled();
+  });
+
+  it("exports the saved published title and picks while its guide previews unsaved changes", async () => {
+    const user = userEvent.setup();
+    loadSaved(
+      savedItinerary({ status: "published", coverGeneratedAt: "2026-11-03T00:00:00.000Z" }),
+      savedDraft([{ eventId: "ev-fri", role: "featured", position: 0, note: null }])
+    );
+    renderAt("/admin/itineraries/it-1");
+    const schedule = screen.getByRole("region", { name: "Schedule" });
+    const row = await within(schedule).findByRole("listitem", { name: "Friday Social" });
+    await user.clear(screen.getByLabelText("Title"));
+    await user.type(screen.getByLabelText("Title"), "Unsaved edition");
+    await user.click(within(row).getByRole("button", { name: "Remove Friday Social" }));
+    const guide = screen.getByRole("region", { name: "Guide preview" });
+    expect(within(guide).getByRole("heading", { name: "Unsaved edition", level: 1 })).toBeInTheDocument();
+    expect(within(guide).queryByRole("button", { name: "Friday Social" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Posters" }));
+    expect(screen.getByText("Save changes to share updated words and picks. Posters use the saved week.")).toBeInTheDocument();
+    const panel = screen.getByRole("region", { name: "Share posters" });
+    await user.click(within(panel).getByRole("button", { name: "Download" }));
+    await waitFor(() => expect(poster.downloadBlob).toHaveBeenCalled());
+    expect(publisher.loadItineraryPoster).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        itinerary: expect.objectContaining({ title: "Boston week" }),
+        nights: expect.arrayContaining([
+          expect.objectContaining({ featured: expect.objectContaining({ event: expect.objectContaining({ id: "ev-fri" }) }) }),
+        ]),
+      }),
+      "story"
+    );
+    await user.click(within(panel).getByRole("button", { name: "Share" }));
+    await waitFor(() => expect(publisher.sharePosterFile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "Boston week",
+        url: "https://salsasegura.com/itineraries/boston/2026-11-09",
+      })
+    ));
+    expect(repo.saveItinerary).not.toHaveBeenCalled();
+  });
+
+  it("blocks publishing and saving a whitespace title, including a requested confirmation", async () => {
+    const user = userEvent.setup();
+    loadSaved(
+      savedItinerary({ title: "   " }),
+      { ...savedDraft([{ eventId: "ev-fri", role: "featured", position: 0, note: null }]), title: "   " }
+    );
+    renderAt("/admin/itineraries/it-1?publish=1");
+    await within(screen.getByRole("region", { name: "Schedule" })).findByRole("listitem", { name: "Friday Social" });
+
+    expect(screen.getByRole("button", { name: "Publish" })).toBeDisabled();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Save draft" }));
+    expect(screen.getByRole("alert")).toHaveTextContent("Add a title before saving or publishing.");
+    expect(repo.saveItinerary).not.toHaveBeenCalled();
+    expect(publisher.publish).not.toHaveBeenCalled();
+  });
+
   it("offers supported cities with no upcoming events and saves an empty draft for one", async () => {
     const user = userEvent.setup();
     queries.useWeekEvents.mockReturnValue({ events: [], loading: false, error: null });
@@ -359,6 +465,7 @@ describe("AdminItineraryEditorPage", () => {
   it("offers Share and Copy link only once the week is published", async () => {
     loadSaved(savedItinerary(), savedDraft([{ eventId: "ev-fri", role: "featured", position: 0, note: null }]));
     const { unmount } = renderAt("/admin/itineraries/it-1");
+    await userEvent.setup().click(screen.getByRole("button", { name: "Posters" }));
     const panel = await screen.findByRole("region", { name: "Share posters" });
     expect(within(panel).getByRole("button", { name: /Download/ })).toBeInTheDocument();
     expect(within(panel).queryByRole("button", { name: /Share/ })).not.toBeInTheDocument();
@@ -370,6 +477,7 @@ describe("AdminItineraryEditorPage", () => {
       savedDraft([{ eventId: "ev-fri", role: "featured", position: 0, note: null }])
     );
     renderAt("/admin/itineraries/it-1");
+    await userEvent.setup().click(screen.getByRole("button", { name: "Posters" }));
     const published = await screen.findByRole("region", { name: "Share posters" });
     expect(within(published).getByRole("button", { name: /Share/ })).toBeInTheDocument();
     expect(within(published).getByRole("button", { name: /Copy link/ })).toBeInTheDocument();
@@ -377,6 +485,15 @@ describe("AdminItineraryEditorPage", () => {
 });
 
 describe("AdminItineraryPreviewPage", () => {
+  it("gives an empty draft a build-this-week prompt rather than a removed-events message", async () => {
+    loadSaved(savedItinerary(), savedDraft([]));
+    renderAt("/admin/itineraries/it-1/preview");
+
+    expect(await screen.findByText("No events picked yet. Add approved events to build this week.")).toBeInTheDocument();
+    expect(screen.getAllByRole("heading", { level: 2 })).toHaveLength(7);
+    expect(screen.queryByText(/Every event on this week's list has been cancelled or removed/)).not.toBeInTheDocument();
+  });
+
   it("renders the public page with the draft banner", async () => {
     loadSaved(savedItinerary(), savedDraft([{ eventId: "ev-fri", role: "featured", position: 0, note: null }]));
 

@@ -49,12 +49,14 @@ export default function AdminItineraryPreviewPage() {
         <ArrowLeft size={16} aria-hidden="true" />
         {itinerary.status === "archived" ? "Back to itineraries" : "Back to the editor"}
       </Link>
-      <ItineraryView
-        itinerary={itinerary}
-        schedule={schedule}
-        cityName={metroName(itinerary.city)}
-        draft={itinerary.status !== "published"}
-      />
+      <div className="itinerary-admin-preview">
+        <ItineraryView
+          itinerary={itinerary}
+          schedule={schedule}
+          cityName={metroName(itinerary.city)}
+          draft={itinerary.status !== "published"}
+        />
+      </div>
     </div>
   );
 }

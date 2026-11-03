@@ -517,3 +517,50 @@
 .itinerary-share__feedback--error {
   color: var(--admin-danger-strong);
 }
+
+.itinerary-editor__aside,
+.itinerary-editor__posters {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.itinerary-editor__preview-tabs {
+  display: flex;
+  padding: 3px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  background: var(--admin-surface-subtle);
+}
+
+.itinerary-editor__preview-tabs button {
+  flex: 1;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: calc(var(--admin-radius) - 2px);
+  background: transparent;
+  color: var(--admin-text-muted);
+  font-family: var(--font-ui);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.itinerary-editor__preview-tabs button[aria-pressed="true"] {
+  background: var(--admin-surface);
+  color: var(--admin-text-strong);
+  box-shadow: inset 0 0 0 1px var(--admin-border);
+}
+
+.itinerary-editor__guide {
+  min-width: 0;
+  border-radius: var(--admin-radius-lg);
+  overflow: auto;
+}
+
+@media (min-width: 1024px) {
+  .itinerary-editor__guide {
+    max-height: calc(100dvh - var(--admin-header-h) - 100px);
+  }
+}

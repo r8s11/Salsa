@@ -9,6 +9,7 @@ import ItineraryView from "../components/ItineraryView";
 import { usePublishedItinerary } from "../hooks/useItineraryQueries";
 import { buildPublicItineraryUrl } from "../model/itinerarySharing";
 import { buildSchedule } from "../model/schedule";
+import type { Itinerary } from "../model/types";
 import { formatWeekRange, weekStartFor } from "../model/week";
 
 /**
@@ -45,7 +46,6 @@ function PublishedItinerary({ city, weekStart }: { city: string; weekStart: stri
   const metroName = useMetroName();
   const { itinerary, items, events, neighbours, loading, error } = usePublishedItinerary(city, weekStart);
   const cityName = metroName(city);
-  const weekLabel = formatWeekRange(weekStart);
   const schedule = useMemo(
     () => (itinerary ? buildSchedule({ ...itinerary, items }, events) : null),
     [itinerary, items, events]
@@ -56,16 +56,26 @@ function PublishedItinerary({ city, weekStart }: { city: string; weekStart: stri
     setCity(city);
   }, [city, setCity]);
 
-  useDocumentMeta({
-    title: itinerary?.title ?? `Dancing in ${cityName}, ${weekLabel}`,
-    description: itinerary?.description ?? `Where to dance in ${cityName}, ${weekLabel}.`,
-    canonical: buildPublicItineraryUrl(city, weekStart),
-    image: itinerary?.coverImageUrl ?? undefined,
-  });
-
   if (loading) return <Status role="status">Loading itinerary…</Status>;
   if (error) return <Status role="alert">We couldn&apos;t load this itinerary. Please try again.</Status>;
   if (!itinerary || !schedule) return <NotFoundPage />;
 
-  return <ItineraryView itinerary={itinerary} schedule={schedule} cityName={cityName} neighbours={neighbours} />;
+  return (
+    <>
+      <ItineraryMeta itinerary={itinerary} cityName={cityName} />
+      <ItineraryView itinerary={itinerary} schedule={schedule} cityName={cityName} neighbours={neighbours} />
+    </>
+  );
+}
+
+/** Mounted only for a published week, so NotFoundPage owns missing-week metadata. */
+function ItineraryMeta({ itinerary, cityName }: { itinerary: Itinerary; cityName: string }) {
+  useDocumentMeta({
+    title: itinerary.title,
+    description:
+      itinerary.description ?? `Where to dance in ${cityName}, ${formatWeekRange(itinerary.weekStart)}.`,
+    canonical: buildPublicItineraryUrl(itinerary.city, itinerary.weekStart),
+    image: itinerary.coverImageUrl ?? undefined,
+  });
+  return null;
 }

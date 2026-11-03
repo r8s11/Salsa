@@ -128,6 +128,50 @@ describe("ItineraryPage", () => {
     });
     renderAt("/itineraries/new-york-city/2026-11-09");
     expect(screen.getByRole("heading", { name: "Page Not Found" })).toBeInTheDocument();
+    expect(document.title).toContain("Page not found");
+    expect(document.querySelector('meta[name="robots"]')).toHaveAttribute("content", "noindex, follow");
+    expect(document.querySelector('link[rel="canonical"]')?.getAttribute("href") ?? "").not.toContain(
+      "/itineraries/"
+    );
+  });
+
+  it("sets the published week's metadata", () => {
+    renderAt("/itineraries/new-york-city/2026-11-09");
+    expect(document.title).toContain("Salsa week in New York");
+    expect(document.querySelector('link[rel="canonical"]')).toHaveAttribute(
+      "href",
+      "https://www.salsasegura.com/itineraries/new-york-city/2026-11-09"
+    );
+  });
+
+  it("keeps seven day cells when the week is sparse", () => {
+    const friday = event("friday", "13", { title: "Noche Latina" });
+    usePublishedItinerary.mockReturnValue(
+      published([friday], [{ eventId: "friday", role: "featured", position: 0, note: null }])
+    );
+    renderAt("/itineraries/new-york-city/2026-11-09");
+
+    const cells = screen.getByRole("navigation", { name: "Nights this week" }).querySelectorAll("li");
+    expect(Array.from(cells).map((li) => li.textContent)).toEqual([
+      "MonNo events",
+      "TueNo events",
+      "WedNo events",
+      "ThuNo events",
+      "FriNoche Latina9 PM",
+      "SatNo events",
+      "SunNo events",
+    ]);
+    expect(cells[4].querySelector("a")).toHaveAttribute("href", "#night-2026-11-13");
+    expect(cells[0].querySelector("a")).toBeNull();
+  });
+
+  it("shows card times in the itinerary's zone, not the event's own", () => {
+    usePublishedItinerary.mockReturnValue(weekFixture({ time_zone: "America/Los_Angeles" }));
+    renderAt("/itineraries/new-york-city/2026-11-09");
+
+    const friday = document.getElementById("night-2026-11-13")!;
+    expect(friday).toHaveTextContent("9:00 PM");
+    expect(friday).not.toHaveTextContent("6:00 PM");
   });
 
   it("renders the week strip and navigates to the featured event", () => {

@@ -12,7 +12,7 @@ export function useEventsQuery(city: City | null, subLocation: SubLocation | nul
     enabled: city !== null,
   });
   // Incidental renders must not look like a different list collection.
-  const events = useMemo(() => data ? data.map(databaseEventToScheduleX) : [], [data]);
+  const events = useMemo(() => data ? data.map((event) => databaseEventToScheduleX(event)) : [], [data]);
 
   return {
     events,

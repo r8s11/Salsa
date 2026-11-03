@@ -224,4 +224,17 @@ describe("databaseEventToScheduleX time zone", () => {
     const result = databaseEventToScheduleX(mockEvent({ city: "los-angeles" }));
     expect(result.timeZone).not.toBe("UTC");
   });
+
+  it("uses an explicit time zone over the event's own display zone", () => {
+    const result = databaseEventToScheduleX(
+      mockEvent({
+        city: "new-york-city",
+        event_date: "2026-07-19T03:00:00Z",
+        venue_time_zone: "America/Chicago",
+      }),
+      { timeZone: "America/New_York" }
+    );
+    expect(result.timeZone).toBe("America/New_York");
+    expect(result.start).toBe("2026-07-18 23:00");
+  });
 });

@@ -99,7 +99,8 @@
   scroll-snap-align: start;
 }
 
-.itinerary-strip a {
+.itinerary-strip a,
+.itinerary-strip__empty {
   display: grid;
   align-content: start;
   gap: 2px;
@@ -112,6 +113,16 @@
   color: var(--text);
   text-decoration: none;
   transition: border-color 160ms ease-out, background-color 160ms ease-out;
+}
+
+.itinerary-strip__empty {
+  border-style: dashed;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.itinerary-strip__empty .itinerary-strip__day {
+  color: var(--text-muted);
 }
 
 .itinerary-strip a:hover {

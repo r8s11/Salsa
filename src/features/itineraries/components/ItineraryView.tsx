@@ -22,6 +22,7 @@ interface ItineraryViewProps {
 }
 
 function styleBadges(schedule: Schedule): string[] {
+  // Styles don't depend on zone, so the default conversion is fine here.
   const seen = new Map<string, string>();
   for (const { event } of schedule.nights.flatMap((night) => night.entries)) {
     for (const style of databaseEventToScheduleX(event).danceStyles ?? []) {
@@ -42,6 +43,8 @@ export default function ItineraryView({ itinerary, schedule, cityName, neighbour
   const nights = schedule.nights.filter((night) => night.entries.length > 0);
   const admission = estimatedAdmission(schedule.nights);
   const badges = styleBadges(schedule);
+  // Cards show times in the itinerary's zone so each sits under the night it belongs to.
+  const cardZone = { timeZone: itinerary.timeZone };
   const openEvent = (event: ScheduleXEvent) => navigate(`/events/${event.slug ?? event.id}`);
 
   return (
@@ -70,15 +73,28 @@ export default function ItineraryView({ itinerary, schedule, cityName, neighbour
       {nights.length > 0 && (
         <nav className="itinerary-strip" aria-label="Nights this week">
           <ol>
-            {nights.map((night) => {
-              const lead = night.featured ?? night.alternatives[0] ?? night.entries[0];
+            {schedule.nights.map((night) => {
+              // Featured pick, else the earliest alternative (entries are chronological).
+              const lead = night.featured ?? night.entries.find((entry) => entry.item.role === "alternative");
+              const day = (
+                <span className="itinerary-strip__day">
+                  {Temporal.PlainDate.from(night.date).toLocaleString("en-US", { weekday: "short" })}
+                </span>
+              );
               return (
                 <li key={night.date}>
-                  <a href={`#night-${night.date}`}>
-                    <span className="itinerary-strip__day">{Temporal.PlainDate.from(night.date).toLocaleString("en-US", { weekday: "short" })}</span>
-                    <span className="itinerary-strip__title">{lead.event.title}</span>
-                    <span className="itinerary-strip__time">{lead.startLabel}</span>
-                  </a>
+                  {lead ? (
+                    <a href={`#night-${night.date}`}>
+                      {day}
+                      <span className="itinerary-strip__title">{lead.event.title}</span>
+                      <span className="itinerary-strip__time">{lead.startLabel}</span>
+                    </a>
+                  ) : (
+                    <div className="itinerary-strip__empty">
+                      {day}
+                      <span>No events</span>
+                    </div>
+                  )}
                 </li>
               );
             })}
@@ -96,7 +112,7 @@ export default function ItineraryView({ itinerary, schedule, cityName, neighbour
           </h2>
           {night.featured && (
             <div className="itinerary-pick">
-              <FeaturedEventCard event={databaseEventToScheduleX(night.featured.event)} onSelect={openEvent} />
+              <FeaturedEventCard event={databaseEventToScheduleX(night.featured.event, cardZone)} onSelect={openEvent} />
               <CuratorNote entry={night.featured} />
             </div>
           )}
@@ -104,7 +120,7 @@ export default function ItineraryView({ itinerary, schedule, cityName, neighbour
             <div className="itinerary-alternatives">
               {alternatives.map((entry) => (
                 <div key={entry.event.id} className="itinerary-pick">
-                  <EventCard event={databaseEventToScheduleX(entry.event)} onSelect={openEvent} />
+                  <EventCard event={databaseEventToScheduleX(entry.event, cardZone)} onSelect={openEvent} />
                   <CuratorNote entry={entry} />
                 </div>
               ))}

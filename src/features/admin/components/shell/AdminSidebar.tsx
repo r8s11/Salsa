@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   CalendarDays,
+  CalendarRange,
   CalendarPlus,
   Users,
   Disc3,
@@ -99,6 +100,12 @@ const ADMIN_NAV_SECTIONS: { title: string; roles: UserRole[]; items: AdminNavIte
         label: "Event Submissions",
         icon: ClipboardCheck,
         to: "/admin/submissions",
+        roles: ["admin", "moderator"],
+      },
+      {
+        label: "Weekly Itineraries",
+        icon: CalendarRange,
+        to: "/admin/itineraries",
         roles: ["admin", "moderator"],
       },
       {

@@ -63,6 +63,7 @@ const AdminSettingsPage = lazy(() => import("../features/admin/pages/AdminSettin
 const AdminActivityPage = lazy(() => import("../features/admin/pages/AdminActivityPage"));
 const AdminActivityDetailPage = lazy(() => import("../features/admin/pages/AdminActivityDetailPage"));
 const AdminAnalyticsPage = lazy(() => import("../features/admin/pages/AdminAnalyticsPage"));
+const AdminItinerariesPage = lazy(() => import("../features/admin/pages/AdminItinerariesPage"));
 const ProfilePage = lazy(() => import("../pages/account/ProfilePage"));
 const ProfileEditPage = lazy(() => import("../pages/account/ProfileEditPage"));
 const AccountPage = lazy(() => import("../pages/account/AccountPage"));
@@ -127,6 +128,7 @@ function App() {
               />
               <Route path="submissions" element={<AdminSubmissionsPage />} />
               <Route path="submissions/:id" element={<AdminSubmissionDetailPage />} />
+              <Route path="itineraries" element={<AdminItinerariesPage />} />
               <Route path="tags" element={<AdminTagsPage />} />
               <Route path="tags/new" element={<AdminTaxonomyNewPage />} />
               <Route path="tags/:id" element={<AdminTaxonomyDetailPage />} />

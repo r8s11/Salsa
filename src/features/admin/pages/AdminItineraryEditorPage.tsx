@@ -41,6 +41,7 @@ type NightOf = (eventId: string) => string | null;
 type Words = "title" | "description" | "recommendations";
 type Action =
   | { type: "saved"; id: string }
+  | { type: "hydrate"; draft: ItineraryDraft }
   | { type: "words"; field: Words; value: string }
   | { type: "city"; city: string }
   | { type: "week"; date: string }
@@ -124,6 +125,11 @@ function editItems(items: ItineraryItem[], action: Action): ItineraryItem[] {
 function reducer(state: EditorState, action: Action): EditorState {
   const draft = state.draft;
   switch (action.type) {
+    case "hydrate":
+      return {
+        draft: JSON.stringify(draft) === JSON.stringify(state.pristine) ? action.draft : draft,
+        pristine: action.draft,
+      };
     case "saved": {
       const saved = { ...draft, id: action.id };
       return { draft: saved, pristine: saved };
@@ -232,6 +238,10 @@ function ItineraryEditor({ initial, itinerary }: { initial: ItineraryDraft; itin
   const scheduleLoading = week.loading || picked.isLoading || picked.isPlaceholderData;
   const blocked = Boolean(picked.error || week.error) || warnings.some((warning) => warning.blocking);
   const dirty = JSON.stringify(draft) !== JSON.stringify(pristine);
+
+  useEffect(() => {
+    if (initial.id) dispatch({ type: "hydrate", draft: initial });
+  }, [initial]);
   const status = itinerary?.status ?? "draft";
   const published = status === "published";
   const cityName = metroName(draft.city);

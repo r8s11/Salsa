@@ -26,15 +26,18 @@ export function useAdminItineraries() {
 }
 
 export function useItineraryDraft(id: string | null) {
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, isFetching, isFetchedAfterMount, error } = useQuery({
     queryKey: adminItineraryKey(id ?? ""),
     queryFn: () => fetchItineraryDraft(id!),
     enabled: id !== null,
+    refetchOnMount: "always",
   });
   return {
     itinerary: data?.itinerary ?? null,
     draft: data?.draft ?? null,
-    loading: isLoading,
+    // Reopening must wait for this observer's fetch, not initialize from cached edits.
+    // Later background refreshes keep the mounted editor and its unsaved changes.
+    loading: isLoading || (isFetching && !isFetchedAfterMount),
     error: error ? error.message : null,
   };
 }

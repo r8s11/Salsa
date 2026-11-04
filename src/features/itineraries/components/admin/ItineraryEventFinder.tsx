@@ -17,11 +17,12 @@ const START_BANDS: { value: StartBand; label: string }[] = [
   { value: "late", label: "After 9 PM" },
 ];
 
-/** By local start hour; after-midnight starts belong to the night before, so they count as late. */
+/** Local wall-clock minutes; after midnight remains late, and the whole 9:00 minute is inclusive. */
 function startBand(instantISO: string, timeZone: string): StartBand {
-  const { hour } = Temporal.Instant.from(instantISO).toZonedDateTimeISO(timeZone);
-  if (hour < 5 || hour >= 21) return "late";
-  return hour < 18 ? "early" : "evening";
+  const { hour, minute } = Temporal.Instant.from(instantISO).toZonedDateTimeISO(timeZone);
+  const minutes = hour * 60 + minute;
+  if (minutes < 5 * 60 || minutes > 21 * 60) return "late";
+  return minutes < 18 * 60 ? "early" : "evening";
 }
 
 interface Filters {

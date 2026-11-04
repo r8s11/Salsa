@@ -21,6 +21,27 @@ function show(events: DatabaseEvent[]) {
 }
 
 describe("ItineraryEventFinder", () => {
+  it("includes the 9:00 PM minute in 6–9 PM and starts After 9 PM at 9:01", () => {
+    show([
+      { ...event("nine", "Exactly nine", []), event_date: "2026-11-14T02:00:00Z" },
+      { ...event("nine-seconds", "Nine with seconds", []), event_date: "2026-11-14T02:00:59Z" },
+      { ...event("after-nine", "One minute after nine", []), event_date: "2026-11-14T02:01:00Z" },
+      { ...event("midnight", "After midnight", []), event_date: "2026-11-14T05:30:00Z" },
+      { ...event("morning", "Five AM", []), event_date: "2026-11-14T10:00:00Z" },
+    ]);
+    fireEvent.change(screen.getByLabelText("Starts"), { target: { value: "evening" } });
+    expect(screen.getByRole("listitem", { name: "Exactly nine" })).toBeInTheDocument();
+    expect(screen.getByRole("listitem", { name: "Nine with seconds" })).toBeInTheDocument();
+    expect(screen.queryByRole("listitem", { name: "One minute after nine" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("listitem", { name: "After midnight" })).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Starts"), { target: { value: "late" } });
+    expect(screen.queryByRole("listitem", { name: "Exactly nine" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("listitem", { name: "Nine with seconds" })).not.toBeInTheDocument();
+    expect(screen.getByRole("listitem", { name: "One minute after nine" })).toBeInTheDocument();
+    expect(screen.getByRole("listitem", { name: "After midnight" })).toBeInTheDocument();
+    expect(screen.queryByRole("listitem", { name: "Five AM" })).not.toBeInTheDocument();
+  });
+
   it("filters real legacy dance styles when no taxonomy links exist", () => {
     show([event("salsa", "Salsa social", ["Salsa"]), event("bachata", "Bachata practice", ["Bachata"])]);
     fireEvent.change(screen.getByLabelText("Style"), { target: { value: "bachata" } });

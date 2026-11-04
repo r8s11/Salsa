@@ -8,11 +8,13 @@ import type { DatabaseEvent } from "../../../types/events";
 import type { Itinerary, ItineraryDraft } from "../../itineraries/model/types";
 import { itineraryWarnings } from "../../itineraries/model/schedule";
 import { defaultWeekStart } from "../../itineraries/model/week";
+import { adminItineraryKey } from "../../itineraries/hooks/useItineraryQueries";
+import type * as DraftQueries from "../../itineraries/hooks/useItineraryQueries";
 import AdminItineraryEditorPage from "./AdminItineraryEditorPage";
 import AdminItineraryPreviewPage from "./AdminItineraryPreviewPage";
 
 const queries = vi.hoisted(() => ({ useItineraryDraft: vi.fn(), useWeekEvents: vi.fn() }));
-const repo = vi.hoisted(() => ({ saveItinerary: vi.fn(), setItineraryStatus: vi.fn() }));
+const repo = vi.hoisted(() => ({ saveItinerary: vi.fn(), setItineraryStatus: vi.fn(), fetchItineraryDraft: vi.fn() }));
 const events = vi.hoisted(() => ({ fetchApprovedEventsByIds: vi.fn() }));
 const publisher = vi.hoisted(() => ({
   publish: vi.fn(),
@@ -134,8 +136,7 @@ function LocationProbe() {
   return <p data-testid="location">{useLocation().pathname}</p>;
 }
 
-function renderAt(path: string) {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+function renderAt(path: string, client = new QueryClient({ defaultOptions: { queries: { retry: false } } })) {
   return render(
     <QueryClientProvider client={client}>
       <MemoryRouter initialEntries={[path]}>
@@ -156,6 +157,13 @@ function loadSaved(itinerary: Itinerary, draft: ItineraryDraft) {
   );
 }
 
+async function enableRealDraftQuery() {
+  const actual = await vi.importActual<typeof DraftQueries>(
+    "../../itineraries/hooks/useItineraryQueries"
+  );
+  queries.useItineraryDraft.mockImplementation(actual.useItineraryDraft);
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   publisher.loadItineraryPoster.mockResolvedValue(null);
@@ -172,6 +180,116 @@ beforeEach(() => {
 });
 
 describe("AdminItineraryEditorPage", () => {
+  it("waits for fresh detail when reopening a cached draft, then saves its current title and picks", async () => {
+    await enableRealDraftQuery();
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Infinity } } });
+    client.setQueryData(adminItineraryKey("it-1"), {
+      itinerary: savedItinerary(),
+      draft: savedDraft([{ eventId: "ev-fri", role: "featured", position: 0, note: null }]),
+    });
+    const fresh = {
+      itinerary: savedItinerary({ title: "Another curator's week", updatedAt: "2026-11-03T12:00:00Z" }),
+      draft: { ...savedDraft([{ eventId: "ev-tue", role: "featured" as const, position: 0, note: null }]), title: "Another curator's week" },
+    };
+    let resolveDetail!: (value: typeof fresh) => void;
+    repo.fetchItineraryDraft.mockReturnValue(new Promise<typeof fresh>((resolve) => { resolveDetail = resolve; }));
+    repo.saveItinerary.mockResolvedValue("it-1");
+    renderAt("/admin/itineraries/it-1", client);
+
+    await waitFor(() => expect(repo.fetchItineraryDraft).toHaveBeenCalledWith("it-1"));
+    expect(screen.getByRole("status")).toHaveTextContent("Loading itinerary…");
+    expect(screen.queryByLabelText("Title")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Save draft" })).not.toBeInTheDocument();
+    await act(async () => resolveDetail(fresh));
+
+    expect(await screen.findByLabelText("Title")).toHaveValue("Another curator's week");
+    const schedule = screen.getByRole("region", { name: "Schedule" });
+    await within(schedule).findByRole("listitem", { name: "Tuesday Practica" });
+    expect(within(schedule).queryByRole("listitem", { name: "Friday Social" })).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Introduction"), { target: { value: "My addition" } });
+    await userEvent.setup().click(screen.getByRole("button", { name: "Save draft" }));
+    await waitFor(() => expect(repo.saveItinerary).toHaveBeenCalledWith({
+      ...fresh.draft,
+      description: "My addition",
+    }));
+  });
+
+  it("hydrates a later clean refresh without turning it into unsaved changes", async () => {
+    await enableRealDraftQuery();
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    repo.fetchItineraryDraft.mockResolvedValue({
+      itinerary: savedItinerary(),
+      draft: savedDraft([{ eventId: "ev-fri", role: "featured", position: 0, note: null }]),
+    });
+    renderAt("/admin/itineraries/it-1", client);
+    await screen.findByLabelText("Title");
+    await within(screen.getByRole("region", { name: "Schedule" })).findByRole("listitem", { name: "Friday Social" });
+
+    repo.fetchItineraryDraft.mockResolvedValue({
+      itinerary: savedItinerary({ title: "Refreshed week" }),
+      draft: { ...savedDraft([{ eventId: "ev-tue", role: "featured", position: 0, note: null }]), title: "Refreshed week" },
+    });
+    await act(async () => { await client.invalidateQueries({ queryKey: adminItineraryKey("it-1"), exact: true }); });
+
+    expect(screen.getByLabelText("Title")).toHaveValue("Refreshed week");
+    const schedule = screen.getByRole("region", { name: "Schedule" });
+    await within(schedule).findByRole("listitem", { name: "Tuesday Practica" });
+    expect(within(schedule).queryByRole("listitem", { name: "Friday Social" })).not.toBeInTheDocument();
+    const unload = new Event("beforeunload", { cancelable: true });
+    window.dispatchEvent(unload);
+    expect(unload.defaultPrevented).toBe(false);
+  });
+
+  it("preserves dirty words and picks during refresh while published exports use the refreshed saved snapshot", async () => {
+    await enableRealDraftQuery();
+    const user = userEvent.setup();
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    repo.fetchItineraryDraft.mockResolvedValue({
+      itinerary: savedItinerary({ status: "published" }),
+      draft: savedDraft([{ eventId: "ev-fri", role: "featured", position: 0, note: null }]),
+    });
+    renderAt("/admin/itineraries/it-1", client);
+    await screen.findByLabelText("Title");
+    const row = await within(screen.getByRole("region", { name: "Schedule" })).findByRole("listitem", { name: "Friday Social" });
+    fireEvent.change(screen.getByLabelText("Title"), { target: { value: "Unsaved local title" } });
+    await user.click(within(row).getByRole("button", { name: "Remove Friday Social" }));
+
+    let resolveDetail!: (value: { itinerary: Itinerary; draft: ItineraryDraft }) => void;
+    repo.fetchItineraryDraft.mockReturnValue(new Promise<{ itinerary: Itinerary; draft: ItineraryDraft }>((resolve) => { resolveDetail = resolve; }));
+    let refreshing!: Promise<void>;
+    act(() => { refreshing = client.invalidateQueries({ queryKey: adminItineraryKey("it-1"), exact: true }); });
+    await waitFor(() => expect(repo.fetchItineraryDraft).toHaveBeenCalledTimes(2));
+    expect(screen.getByLabelText("Title")).toHaveValue("Unsaved local title");
+    fireEvent.change(screen.getByLabelText("Title"), { target: { value: "Typed while refreshing" } });
+    await act(async () => {
+      resolveDetail({
+        itinerary: savedItinerary({ status: "published", title: "New saved week" }),
+        draft: { ...savedDraft([{ eventId: "ev-tue", role: "featured", position: 0, note: null }]), title: "New saved week" },
+      });
+      await refreshing;
+    });
+
+    expect(screen.getByLabelText("Title")).toHaveValue("Typed while refreshing");
+    expect(within(screen.getByRole("region", { name: "Schedule" })).queryAllByRole("listitem")).toHaveLength(0);
+    const guide = screen.getByRole("region", { name: "Guide preview" });
+    expect(within(guide).getByRole("heading", { level: 1, name: "Typed while refreshing" })).toBeInTheDocument();
+    const unload = new Event("beforeunload", { cancelable: true });
+    window.dispatchEvent(unload);
+    expect(unload.defaultPrevented).toBe(true);
+    await user.click(screen.getByRole("button", { name: "Posters" }));
+    await user.click(within(screen.getByRole("region", { name: "Share posters" })).getByRole("button", { name: "Download" }));
+    await waitFor(() => expect(publisher.loadItineraryPoster).toHaveBeenCalledWith(
+      expect.objectContaining({
+        itinerary: expect.objectContaining({ title: "New saved week" }),
+        nights: expect.arrayContaining([
+          expect.objectContaining({ featured: expect.objectContaining({ event: expect.objectContaining({ id: "ev-tue" }) }) }),
+        ]),
+      }),
+      "story"
+    ));
+    expect(repo.saveItinerary).not.toHaveBeenCalled();
+  });
+
   it("previews current words, all seven nights, selections and removals without saving", async () => {
     const user = userEvent.setup();
     renderAt("/admin/itineraries/new");

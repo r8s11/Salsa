@@ -231,7 +231,7 @@ describe("AdminItineraryEditorPage", () => {
     });
     await act(async () => { await client.invalidateQueries({ queryKey: adminItineraryKey("it-1"), exact: true }); });
 
-    expect(screen.getByLabelText("Title")).toHaveValue("Refreshed week");
+    await waitFor(() => expect(screen.getByLabelText("Title")).toHaveValue("Refreshed week"));
     const schedule = screen.getByRole("region", { name: "Schedule" });
     await within(schedule).findByRole("listitem", { name: "Tuesday Practica" });
     expect(within(schedule).queryByRole("listitem", { name: "Friday Social" })).not.toBeInTheDocument();

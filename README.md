@@ -26,6 +26,24 @@ an explicit new neighborhood is accepted in the same write.
 Local persistence smoke (fixtures roll back):
 `docker exec -i supabase_db_Salsa psql -U postgres -d postgres -v ON_ERROR_STOP=1 -f - < supabase/manual/event-neighborhoods-smoke.sql`.
 
+Weekly itinerary database behavior checks (after applying
+`supabase/migrations/20261103120000_weekly_itineraries.sql` to a disposable
+local/staging database):
+
+```sh
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/weekly_itineraries.sql
+```
+
+Run as `postgres` or an equivalent migration owner able to `SET ROLE anon`
+and `authenticated`. No pgTAP needed: the script asserts SQL behavior,
+catches exact expected SQLSTATEs, and rolls back its real auth, metro,
+event and itinerary fixtures. It covers public visibility, active-moderator
+RPC authority, validation, transitions, dance-night/DST boundaries and stale
+cover suppression. Do not reset or seed the hosted project for this check.
+Unavailable, cancelled, moved or deleted picks disappear from fresh public
+reads; stale stored card URLs are suppressed until the editor regenerates
+them. Already-shared JPEGs or messaging-app caches cannot be recalled.
+
 ## Stack
 
 React 19 · TypeScript · Vite · React Router v7 · Supabase · Schedule-X calendar · temporal-polyfill

@@ -4,7 +4,7 @@ name: Salsa Segura Design System
 description: >-
   Boston & NYC Latin dance events calendar. Three visual languages: Ritmo
   Vivo (public site and shop), The Listings Desk (operators), and The Sleeve
-  (the exported event poster).
+  (exported event and weekly compilation artwork).
 colors:
   # Public palette (Ritmo Vivo): the original Stitch export, a Material 3
   # dark scheme. In M3 dark, `primary` is the light tone (#ffb3b6) and the
@@ -427,8 +427,9 @@ room, while Ritmo Vivo is built to feel like a dark dance floor. The Sleeve
 exists because a poster is judged against other posters in a story or a
 group chat, not against the site around it.
 
-**The Boundary Rule.** The Sleeve never appears as site UI — only as the
-poster export itself and its thumbnail/preview inside the event modal.
+**The Boundary Rule.** The Sleeve never appears as site UI — only as
+event and itinerary poster exports, the itinerary link card, and their
+explicit thumbnail/preview surfaces in the event modal or itinerary editor.
 Ritmo Vivo's glassmorphism and glow never enter the poster, and the
 Sleeve's flat spot-colour fields never leak back into Ritmo Vivo. Do not
 apply glassmorphism, glow, or the dark slate ground to an operator surface;
@@ -1096,12 +1097,33 @@ portrait sinks 12px and swells from 1.04 to 1.08 while the name rises 12px and
 settles to 0.98, on a CSS scroll timeline; reduced motion and unsupported
 browsers render it static. No portrait drops the bleed and opens on the name.
 
+#### Weekly guides
+
+The public itinerary (`/itineraries/:city/:weekStart`) is a **Read** surface
+in Ritmo Vivo, not a Sleeve enlarged into a page. Its title, city and date
+range establish the edition; an introduction and jump-to-night week strip
+lead into the seven-night schedule. Featured picks carry the primary card
+weight, alternatives remain readable event cards, and curator notes sit
+with the night they explain. Event links resolve to the real event page.
+Recommendations, a complete featured-night admission estimate (only when
+every featured price is known), sharing and published neighboring weeks
+close the guide. Unknown prices leave no placeholder or partial total.
+
+**The Dance-Night Rule.** Starts before **05:00 local** belong to the
+previous night; 05:00 exactly begins the next. A Sunday 00:30 start reads
+as Saturday night, with its actual local start label retained. The week,
+jump strip, editor and printed tracks all use this same wall-clock rule,
+including daylight-saving changes. Sharing and QR codes use the canonical
+`https://www.salsasegura.com/itineraries/<metro-slug>/<Monday>` URL;
+aliases resolve to that edition rather than becoming separate share links.
+
+
 ### The Sleeve
 
-The one artifact that leaves the site: the shareable event poster,
-exported and sent to a friend's phone, pressed in its own printed world.
-It appears only as the poster export and as its thumbnail/preview inside
-the event modal.
+The artifacts that leave the site: shareable event posters and weekly
+compilation artwork, exported and sent to a friend's phone, pressed in
+their own printed world. Only explicit poster previews and thumbnails
+bring this world into the event modal or itinerary editor.
 
 #### Poster
 
@@ -1208,6 +1230,43 @@ can move another region. The feed cut omits the "Side A"/"Side B" labels
 (track numbers still print red), shortens the QR call to "Scan", and drops
 the address note. The story cut keeps wrapped values, the side labels and
 the address note.
+
+#### Compilation pressing
+
+The weekly itinerary is a **compilation LP**, extending the Sleeve rather
+than inventing a fourth identity. `ShareableItineraryPoster` and
+`ItineraryCover` retain flat print, cream stock, Shrikhand only in the
+title band, Barlow Condensed tabular tracks and red back-cover accents.
+The masthead reads "Salsa Segura" / "The Week", with catalogue
+`SS-W<ISO week> · <city code>` and a week-range sticker.
+
+**The Tile-Frames-Keep-Pressing Rule.** The cream cover holds up to four
+featured flyers in a mosaic; every tile retains its own event-type
+pressing frame. There is no invented week-wide event type. Fewer flyers
+use a smaller grid; an empty cover uses deterministic fallback art.
+Spotlight selection takes featured nights in **Fri, Sat, Thu, Sun, Wed,
+Tue, Mon** priority, then displays those selected nights in chronological
+week order, consistently across the mosaic and link-card tracks.
+
+**Three cuts, one edition.** Story is **1080×1920**: masthead, square
+compilation cover, then Side A (Mon–Thu), Side B (Fri–Sun), QR and the
+canonical itinerary link printed without its scheme. Each populated night
+prints its featured pick, otherwise its top-ranked alternative; empty
+nights are omitted. More than five populated nights invokes the dense
+story track treatment so a full week retains room for the cover and QR.
+Feed is **1080×1350**, preserving the 728px cover, 232px date-range spine
+and QR beneath the spine; tracks stay one line with ellipsis.
+
+The **1200×630 link card** is a dedicated gatefold: **285 / 630 / 285px**.
+The centre square keeps the same cover, title and week sticker so square
+crops retain the edition. The left cream panel carries the masthead,
+city and date range; the right lists up to four spotlight nights in week
+order. Card track titles may wrap to **three lines**, not forced single-line
+ellipsis. No QR: the card is already a link. It is stored as a JPEG at
+most 300KB for link previews, not offered as a third downloadable poster.
+Story/feed exports and the stored card all derive from the same edition
+and canonical URL; no client host or metro alias changes their destination.
+
 
 #### Pressings
 
@@ -1503,6 +1562,33 @@ level of `.admin-card`, and uses the Identifier face for anything read
 character by character. A decision the desk's galley can carry in place
 (approve, reject) never requires routing to a record page.
 
+#### Weekly itinerary curation
+
+The itinerary list and editor are **Operate** surfaces inside
+`.admin-shell`, available to active admins and moderators through the
+Desk navigation. Drafts / Published / Archived tabs, week/city/title/status/
+event-count/updated columns and ordinary record actions reuse the existing
+admin table, pagination and confirmation vocabulary, not public glass cards.
+Archive withdraws an edition; a published past week remains a public guide.
+
+The editor separates **Week & words**, approved city/week **Find events**,
+and the seven-night **Schedule**. Title, introduction and recommendations
+remain editable prose. Featured/alternative choice, within-night rank,
+notes, removal and deliberate "No featured pick" controls belong beside
+their night. Warnings remain inline and summarized; a missing, cancelled,
+private or out-of-week pick blocks publication rather than fabricating facts.
+Plain flyer thumbnails stay plain images, not mini Sleeves.
+
+Wide layouts pair editing with a sticky preview; narrow layouts use
+Edit/Preview tabs. The public guide preview is clearly labelled
+"Draft — not public"; poster preview is an explicit Sleeve boundary.
+Save is explicit with an unsaved-change guard. Publishing generates and
+uploads the gatefold before changing status; failures remain visible and
+retryable. After later event changes, public reads omit unavailable or
+out-of-city/week items and suppress stale covers until regeneration.
+No automatic server-side render or recall of already-shared files is implied.
+
+
 ### Retail / Shop
 
 The masthead reads “Shop” in Great Vibes 400, the same font as the Salsa
@@ -1746,8 +1832,8 @@ removed and selection changes land at once.
 - **Don't** let Ritmo Vivo's glassmorphism, glow or gradients reach the
   Sleeve, and don't let the Sleeve's flat fields leak back into Ritmo
   Vivo.
-- **Don't** show the Sleeve anywhere but the poster export and its
-  thumbnail/preview inside the event modal.
+- **Don't** show the Sleeve outside event/itinerary exports, the itinerary
+  link card, and their explicit modal/editor thumbnails or previews.
 - **Don't** add a shadow anywhere on the poster; the Sleeve prints flat.
 
 ### Profile edit access

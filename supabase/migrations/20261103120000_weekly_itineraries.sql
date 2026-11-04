@@ -28,7 +28,7 @@ create table public.itineraries (
   city               text not null references public.metros (slug) on update cascade,
   week_start         date not null check (extract(isodow from week_start) = 1),
   time_zone          text not null,
-  title              text not null check (char_length(title) between 1 and 120),
+  title              text not null check (char_length(btrim(title)) between 1 and 120),
   description        text check (char_length(description) <= 1000),
   recommendations    text check (char_length(recommendations) <= 2000),
   unfeatured_days    smallint[] not null default '{}'
@@ -88,6 +88,27 @@ create trigger itineraries_set_updated_at
   before update on public.itineraries
   for each row execute function public.set_updated_at();
 
+-- A hard-deleted event cascades to its items. Its old facts may still be
+-- printed in the stored JPEG, so stop referencing that cover on fresh reads.
+-- Full item replacement on save also invalidates the cover before regeneration.
+create or replace function public.itinerary_items_invalidate_cover()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+begin
+  update public.itineraries
+  set cover_image_url = null, cover_generated_at = null
+  where id = old.itinerary_id and cover_image_url is not null;
+  return old;
+end $$;
+revoke all on function public.itinerary_items_invalidate_cover() from public, anon, authenticated;
+
+create trigger itinerary_items_invalidate_cover
+  after delete on public.itinerary_items
+  for each row execute function public.itinerary_items_invalidate_cover();
+
 -- 4. RLS and grants -----------------------------------------------------------
 
 alter table public.itineraries enable row level security;
@@ -126,21 +147,35 @@ select
   description,
   recommendations,
   unfeatured_days,
-  cover_image_url,
+  case when cover_generated_at is not null and not exists (
+    select 1
+    from public.itinerary_items item
+    left join public.public_events event on event.id = item.event_id
+    where item.itinerary_id = itinerary.id
+      and (
+        event.id is null
+        or event.status is distinct from 'approved'
+        or event.city is distinct from itinerary.city
+        or public.itinerary_night(event.event_date, itinerary.time_zone)
+           not between itinerary.week_start and itinerary.week_start + 6
+        or (item.role = 'featured' and event.updated_at > itinerary.cover_generated_at)
+      )
+  ) then cover_image_url else null end as cover_image_url,
   published_at,
   updated_at
-from public.itineraries
+from public.itineraries itinerary
 where status = 'published';
 
 alter view public.public_itineraries set (security_invoker = false);
 
--- Revoke from every role first: this simple view is auto-updatable, so a
--- default write grant would let callers write raw rows as the view owner.
+-- Revoke from every role first. The stale-cover projection makes this view
+-- non-auto-updatable, and neither projection carries a write grant, so no
+-- caller can write raw rows through a public view at any privilege level.
 revoke all on table public.public_itineraries from public, anon, authenticated;
 grant select on table public.public_itineraries to anon, authenticated;
 
--- Inner joins: items of unpublished itineraries, and items whose event is no
--- longer public (cancelled, unpublished or deleted), disappear.
+-- Items disappear when their event is no longer public or moves outside the
+-- itinerary's city or dance week; stored editorial notes cannot leak either.
 create or replace view public.public_itinerary_items as
 select
   item.itinerary_id,
@@ -150,7 +185,11 @@ select
   item.note
 from public.itinerary_items item
 join public.public_itineraries itinerary on itinerary.id = item.itinerary_id
-join public.public_events event on event.id = item.event_id;
+join public.public_events event on event.id = item.event_id
+  and event.status = 'approved'
+  and event.city = itinerary.city
+  and public.itinerary_night(event.event_date, itinerary.time_zone)
+      between itinerary.week_start and itinerary.week_start + 6;
 
 alter view public.public_itinerary_items set (security_invoker = false);
 
@@ -368,7 +407,7 @@ begin
   end if;
 
   if p_url is null
-     or p_url !~ ('^https://[^/\s"''<>]+/storage/v1/object/public/itinerary-covers/'
+     or p_url !~ ('^https://[^/\s"''<>?#@]+/storage/v1/object/public/itinerary-covers/'
                   || p_id || '/[0-9a-f]{8}\.jpg$') then
     raise exception 'Cover must be stored in this itinerary''s folder' using errcode = '22023';
   end if;

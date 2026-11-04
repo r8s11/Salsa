@@ -50,9 +50,6 @@ function firstUseIndex(view: string): number {
   );
 }
 
-const itineraryMigration = () =>
-  migrations.find(({ name }) => name === "20261103120000_weekly_itineraries.sql")?.sql ?? "";
-
 describe("public projection views", () => {
   it("creates every projection the migrations alter or grant", () => {
     const missing = referencedProjections().filter((view) => creationIndex(view) === -1);
@@ -81,82 +78,5 @@ describe("public projection views", () => {
     const body = schema.slice(start, schema.indexOf(";", start));
     expect(body).not.toMatch(/submitter_email/);
     expect(body).not.toMatch(/submitter_name/);
-  });
-
-  it("publishes only published itineraries, without curator identity", () => {
-    const sql = itineraryMigration();
-    const start = sql.search(/create\s+or\s+replace\s+view\s+public\.public_itineraries\b/i);
-    const body = sql.slice(start, sql.indexOf(";", start));
-    expect(start).toBeGreaterThan(-1);
-    expect(body).toMatch(/where\s+status\s*=\s*'published'/i);
-    expect(body).not.toMatch(/created_by|updated_by|cover_generated_at/);
-  });
-
-  it("exposes itinerary items only for public events of published itineraries", () => {
-    const sql = itineraryMigration();
-    const start = sql.search(/create\s+or\s+replace\s+view\s+public\.public_itinerary_items\b/i);
-    const body = sql.slice(start, sql.indexOf(";", start));
-    expect(body).toMatch(/join\s+public\.public_itineraries\s+itinerary/i);
-    expect(body).toMatch(/join\s+public\.public_events\s+event/i);
-    expect(body).not.toMatch(/\bpublic\.events\b/);
-  });
-
-  it("gates every itinerary RPC on the moderator role", () => {
-    const sql = itineraryMigration();
-    for (const fn of ["save_itinerary", "set_itinerary_status", "set_itinerary_cover"]) {
-      expect(sql).toMatch(
-        new RegExp(
-          `revoke all on function public\\.${fn}\\([^)]*\\) from public, anon, authenticated`,
-          "i"
-        )
-      );
-    }
-    expect(sql.match(/not public\.is_moderator\(\)/gi)?.length).toBeGreaterThanOrEqual(3);
-    expect(sql).not.toMatch(/to\s+anon[^;]*itineraries\s/i);
-  });
-
-  it("assigns after-midnight starts to the previous dance night", () => {
-    expect(itineraryMigration()).toMatch(/at time zone p_tz\)\s*-\s*interval '5 hours'\)::date/i);
-  });
-
-  it("keeps a published itinerary's place and contents intact on save", () => {
-    const sql = itineraryMigration();
-    const start = sql.search(/create\s+or\s+replace\s+function\s+public\.save_itinerary\b/i);
-    const save = sql.slice(start, sql.indexOf("end $$", start));
-    expect(start).toBeGreaterThan(-1);
-    for (const column of ["city", "week_start", "time_zone"]) {
-      expect(save).toMatch(new RegExp(`is\\s+distinct\\s+from\\s+v_current\\.${column}\\b`, "i"));
-    }
-    expect(save).toMatch(/'Unpublish before changing the city or week'/);
-    expect(save).toMatch(/'Published itineraries need at least one event'/);
-  });
-
-  it("leaves the raw itinerary tables read-only for active curators", () => {
-    const sql = itineraryMigration();
-    expect(sql).not.toMatch(
-      /grant\s[^;]*\b(insert|update|delete|all)\b[^;]*\bon\s+table\s+public\.(itineraries|itinerary_items)\b/i
-    );
-    const policies =
-      sql.match(
-        /create\s+policy\s+"[^"]+"\s+on\s+public\.(itineraries|itinerary_items)\b[^;]*;/gi
-      ) ?? [];
-    expect(policies).toHaveLength(2);
-    for (const policy of policies) {
-      expect(policy).toMatch(/for\s+select\b/i);
-      expect(policy).not.toMatch(/for\s+(all|insert|update|delete)\b/i);
-      expect(policy).toMatch(/public\.account_is_active\(auth\.uid\(\)\)/i);
-    }
-  });
-
-  it("lets only active curators write itinerary covers", () => {
-    const policies =
-      itineraryMigration().match(/create\s+policy\s+"[^"]+"\s+on\s+storage\.objects\b[^;]*;/gi) ??
-      [];
-    expect(policies.length).toBeGreaterThanOrEqual(3);
-    for (const policy of policies) {
-      expect(policy).toMatch(/bucket_id\s*=\s*'itinerary-covers'/i);
-      expect(policy).toMatch(/public\.is_moderator\(\)/i);
-      expect(policy).toMatch(/public\.account_is_active\(auth\.uid\(\)\)/i);
-    }
   });
 });

@@ -15,7 +15,8 @@ export function parseItineraryPath(pathname, aliases) {
   const date = new Date(`${match[2]}T00:00:00.000Z`);
   if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0, 10) !== match[2]) return null;
   date.setUTCDate(date.getUTCDate() - (date.getUTCDay() + 6) % 7);
-  return { city, weekStart: date.toISOString().slice(0, 10) };
+  const weekStart = date.toISOString().slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(weekStart) ? { city, weekStart } : null;
 }
 
 export function escapeHtml(value) {

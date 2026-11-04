@@ -183,13 +183,13 @@ describe("AdminItineraryEditorPage", () => {
     expect(within(guide).getAllByRole("heading", { level: 2 })).toHaveLength(7);
 
     await user.click(screen.getByRole("button", { name: "Edit" }));
-    await user.type(screen.getByLabelText("Title"), "Fresh picks");
-    await user.type(screen.getByLabelText("Introduction"), "This is the introduction.");
-    await user.type(screen.getByLabelText("Recommendations"), "Bring dance shoes.");
+    fireEvent.change(screen.getByLabelText("Title"), { target: { value: "Fresh picks" } });
+    fireEvent.change(screen.getByLabelText("Introduction"), { target: { value: "This is the introduction." } });
+    fireEvent.change(screen.getByLabelText("Recommendations"), { target: { value: "Bring dance shoes." } });
     const finder = screen.getByRole("region", { name: "Find events" });
     await user.click(within(within(finder).getByRole("listitem", { name: "Friday Social" })).getByRole("button", { name: "Feature" }));
     const row = await within(screen.getByRole("region", { name: "Schedule" })).findByRole("listitem", { name: "Friday Social" });
-    await user.type(within(row).getByLabelText(/Note/), "Arrive for the band.");
+    fireEvent.change(within(row).getByLabelText(/Note/), { target: { value: "Arrive for the band." } });
 
     await user.click(screen.getByRole("button", { name: "Preview" }));
     guide = screen.getByRole("region", { name: "Guide preview" });
@@ -217,8 +217,7 @@ describe("AdminItineraryEditorPage", () => {
     renderAt("/admin/itineraries/it-1");
     const schedule = screen.getByRole("region", { name: "Schedule" });
     const row = await within(schedule).findByRole("listitem", { name: "Friday Social" });
-    await user.clear(screen.getByLabelText("Title"));
-    await user.type(screen.getByLabelText("Title"), "Unsaved edition");
+    fireEvent.change(screen.getByLabelText("Title"), { target: { value: "Unsaved edition" } });
     await user.click(within(row).getByRole("button", { name: "Remove Friday Social" }));
     const guide = screen.getByRole("region", { name: "Guide preview" });
     expect(within(guide).getByRole("heading", { name: "Unsaved edition", level: 1 })).toBeInTheDocument();
@@ -242,7 +241,7 @@ describe("AdminItineraryEditorPage", () => {
     await waitFor(() => expect(publisher.sharePosterFile).toHaveBeenCalledWith(
       expect.objectContaining({
         title: "Boston week",
-        url: "https://salsasegura.com/itineraries/boston/2026-11-09",
+        url: "https://www.salsasegura.com/itineraries/boston/2026-11-09",
       })
     ));
     expect(repo.saveItinerary).not.toHaveBeenCalled();

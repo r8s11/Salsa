@@ -4,6 +4,8 @@ import { Link, useNavigate } from "react-router-dom";
 import EventCard from "../../events/components/EventCard";
 import EventShareControls from "../../events/components/EventShareControls";
 import FeaturedEventCard from "../../events/components/FeaturedEventCard";
+import { posterPriceLabel } from "../../events/components/event-modal/posterFormat";
+import { neighborhoodLabel } from "../../metros/model/neighborhood";
 import { databaseEventToScheduleX } from "../../events/model/convert";
 import type { ScheduleXEvent } from "../../../types/events";
 import { buildPublicItineraryUrl } from "../model/itinerarySharing";
@@ -33,8 +35,45 @@ function styleBadges(schedule: Schedule): string[] {
   return [...seen.values()];
 }
 
-function CuratorNote({ entry }: { entry: ScheduledEntry }) {
-  return entry.item.note ? <blockquote className="itinerary-note">{entry.item.note}</blockquote> : null;
+/** Local guide facts supplement the shared cards without changing their UI. */
+function ItineraryPick({
+  entry,
+  timeZone,
+  onSelect,
+}: {
+  entry: ScheduledEntry;
+  timeZone: string;
+  onSelect: (event: ScheduleXEvent) => void;
+}) {
+  const event = databaseEventToScheduleX(entry.event, { timeZone });
+  const price = posterPriceLabel(event);
+  const neighborhood = neighborhoodLabel(event.neighborhood) ?? event.neighborhood;
+  const facts = [price, neighborhood, ...(event.danceStyles ?? [])].filter((fact): fact is string => Boolean(fact));
+
+  return (
+    <div className="itinerary-pick">
+      {entry.item.role === "featured" ? (
+        <FeaturedEventCard event={event} onSelect={onSelect} />
+      ) : (
+        <EventCard event={event} onSelect={onSelect} />
+      )}
+      <div className="itinerary-pick__facts" role="group" aria-label={`Details for ${event.title}`}>
+        {facts.length > 0 && (
+          <ul aria-label={`Facts for ${event.title}`}>
+            {facts.map((fact, index) => <li key={`${fact}-${index}`}>{fact}</li>)}
+          </ul>
+        )}
+        <Link
+          to={`/events/${event.slug ?? event.id}`}
+          className="itinerary-event-link"
+          aria-label={`Event details: ${event.title}`}
+        >
+          Event details
+        </Link>
+      </div>
+      {entry.item.note && <blockquote className="itinerary-note">{entry.item.note}</blockquote>}
+    </div>
+  );
 }
 
 export default function ItineraryView({ itinerary, schedule, cityName, neighbours, draft = false }: ItineraryViewProps) {
@@ -44,8 +83,6 @@ export default function ItineraryView({ itinerary, schedule, cityName, neighbour
   const nights = draft ? schedule.nights : schedule.nights.filter((night) => night.entries.length > 0);
   const admission = estimatedAdmission(schedule.nights);
   const badges = styleBadges(schedule);
-  // Cards show times in the itinerary's zone so each sits under the night it belongs to.
-  const cardZone = { timeZone: itinerary.timeZone };
   const openEvent = (event: ScheduleXEvent) => navigate(`/events/${event.slug ?? event.id}`);
 
   return (
@@ -123,18 +160,12 @@ export default function ItineraryView({ itinerary, schedule, cityName, neighbour
           </h2>
           {draft && night.entries.length === 0 && <p className="itinerary-empty">No events picked.</p>}
           {night.featured && (
-            <div className="itinerary-pick">
-              <FeaturedEventCard event={databaseEventToScheduleX(night.featured.event, cardZone)} onSelect={openEvent} />
-              <CuratorNote entry={night.featured} />
-            </div>
+            <ItineraryPick entry={night.featured} timeZone={itinerary.timeZone} onSelect={openEvent} />
           )}
           {alternatives.length > 0 && (
             <div className="itinerary-alternatives">
               {alternatives.map((entry) => (
-                <div key={entry.event.id} className="itinerary-pick">
-                  <EventCard event={databaseEventToScheduleX(entry.event, cardZone)} onSelect={openEvent} />
-                  <CuratorNote entry={entry} />
-                </div>
+                <ItineraryPick key={entry.event.id} entry={entry} timeZone={itinerary.timeZone} onSelect={openEvent} />
               ))}
             </div>
           )}

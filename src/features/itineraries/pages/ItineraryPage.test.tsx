@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DatabaseEvent } from "../../../types/events";
@@ -198,7 +198,8 @@ describe("ItineraryPage", () => {
     const anchors = Array.from(strip.querySelectorAll("a")).map((a) => a.getAttribute("href"));
     expect(anchors).toEqual(NIGHTS.map((day) => `#night-2026-11-${day}`));
     expect(screen.getByText("New York City · Nov 9–15")).toBeInTheDocument();
-    expect(screen.getAllByText(/^(Salsa|Bachata)$/i).map((n) => n.textContent?.toLowerCase())).toEqual([
+    const styles = screen.getByRole("list", { name: "Dance styles" });
+    expect(within(styles).getAllByRole("listitem").map((n) => n.textContent?.toLowerCase())).toEqual([
       "salsa",
       "bachata",
     ]);
@@ -250,5 +251,20 @@ describe("ItineraryPage", () => {
     const friday = document.getElementById("night-2026-11-13")!;
     const titles = Array.from(friday.querySelectorAll("h3")).map((h) => h.textContent);
     expect(titles).toEqual(["Noche Latina", "Early Bachata Class", "Late Salsa Practica"]);
+  });
+
+  it("shows known event admission and canonical links without inventing unknown prices", () => {
+    const free = event("free-night", "09", { title: "Free dance", price_type: "free", price_amount: null });
+    const paid = event("paid-night", "10", { title: "Band night", slug: "band-night", price_amount: 25 });
+    const unknown = event("unknown-night", "11", { title: "Open dance", price_type: null, price_amount: null });
+    usePublishedItinerary.mockReturnValue(published(
+      [free, paid, unknown],
+      [free, paid, unknown].map((entry) => ({ eventId: entry.id, role: "featured", position: 0, note: null }))
+    ));
+    renderAt("/itineraries/new-york-city/2026-11-09");
+    expect(within(screen.getByRole("group", { name: "Details for Free dance" })).getByText("Free")).toBeInTheDocument();
+    expect(within(screen.getByRole("group", { name: "Details for Band night" })).getByText("$25")).toBeInTheDocument();
+    expect(within(screen.getByRole("group", { name: "Details for Open dance" })).queryByText(/Free|\$/)).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Event details: Band night" })).toHaveAttribute("href", "/events/band-night");
   });
 });

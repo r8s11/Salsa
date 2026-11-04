@@ -54,7 +54,16 @@ function distinct(entries: Option[]): Option[] {
 }
 
 function styleTerms(event: DatabaseEvent) {
-  return event.taxonomy_terms.filter((term) => term.category === "dance_style");
+  const terms = event.taxonomy_terms.filter((term) => term.category === "dance_style");
+  return terms.length ? terms : (event.dance_styles ?? []).map((name) => ({ name, slug: name.trim().toLowerCase() }));
+}
+
+function venueName(event: DatabaseEvent): string {
+  return event.public_entities?.venue?.name.trim() || event.location?.trim() || "";
+}
+
+function organizerName(event: DatabaseEvent): string {
+  return event.public_entities?.organizer?.name.trim() || event.host?.trim() || "";
 }
 
 interface ItineraryEventFinderProps {
@@ -85,8 +94,8 @@ export default function ItineraryEventFinder({
   const options = useMemo(
     () => ({
       style: distinct(events.flatMap((e) => styleTerms(e).map((term) => ({ value: term.slug, label: term.name })))),
-      venue: distinct(events.flatMap((e) => (e.location?.trim() ? [{ value: e.location.trim(), label: e.location.trim() }] : []))),
-      organizer: distinct(events.flatMap((e) => (e.host?.trim() ? [{ value: e.host.trim(), label: e.host.trim() }] : []))),
+      venue: distinct(events.flatMap((e) => venueName(e) ? [{ value: venueName(e), label: venueName(e) }] : [])),
+      organizer: distinct(events.flatMap((e) => organizerName(e) ? [{ value: organizerName(e), label: organizerName(e) }] : [])),
       neighborhood: distinct(
         events.flatMap((e) => (e.neighborhood ? [{ value: e.neighborhood, label: neighborhoodLabel(e.neighborhood) ?? e.neighborhood }] : []))
       ),
@@ -98,10 +107,10 @@ export default function ItineraryEventFinder({
   const results = useMemo(() => {
     const query = filters.query.trim().toLowerCase();
     return events.filter((event) => {
-      if (query && ![event.title, event.location, event.host].some((field) => field?.toLowerCase().includes(query))) return false;
+      if (query && ![event.title, venueName(event), organizerName(event)].some((field) => field?.toLowerCase().includes(query))) return false;
       if (filters.style && !styleTerms(event).some((term) => term.slug === filters.style)) return false;
-      if (filters.venue && event.location?.trim() !== filters.venue) return false;
-      if (filters.organizer && event.host?.trim() !== filters.organizer) return false;
+      if (filters.venue && venueName(event) !== filters.venue) return false;
+      if (filters.organizer && organizerName(event) !== filters.organizer) return false;
       if (filters.neighborhood && event.neighborhood !== filters.neighborhood) return false;
       if (filters.type && !getEventTypes(event).some((type) => type === filters.type)) return false;
       if (filters.weekday && String(nightWeekday(event.event_date, timeZone)) !== filters.weekday) return false;
@@ -192,7 +201,7 @@ export default function ItineraryEventFinder({
             const weekday = nightWeekday(event.event_date, timeZone);
             const featured = nights.find((night) => night.weekday === weekday)?.featured ?? null;
             const item = picked.get(event.id);
-            const place = [event.location?.trim(), neighborhoodLabel(event.neighborhood)].filter(Boolean).join(" · ");
+            const place = [venueName(event), neighborhoodLabel(event.neighborhood)].filter(Boolean).join(" · ");
             return (
               <li key={event.id} className="itinerary-finder__result" aria-labelledby={titleId}>
                 <div className="itinerary-finder__when">

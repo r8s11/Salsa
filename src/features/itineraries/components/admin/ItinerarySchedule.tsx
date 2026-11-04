@@ -51,6 +51,7 @@ function NoteField({ item, title, onNote }: { item: ItineraryItem; title: string
       </label>
       <input
         id={id}
+        aria-label={`Note for ${title}`}
         className="admin-input"
         value={item.note ?? ""}
         maxLength={280}
@@ -62,7 +63,7 @@ function NoteField({ item, title, onNote }: { item: ItineraryItem; title: string
 
 function RemoveButton({ eventId, title, onRemove }: { eventId: string; title: string; onRemove: ScheduleActions["onRemove"] }) {
   return (
-    <button type="button" className="admin-btn admin-btn--ghost admin-btn--sm" onClick={() => onRemove(eventId)}>
+    <button type="button" className="admin-btn admin-btn--ghost admin-btn--sm" aria-label={`Remove ${title}`} onClick={() => onRemove(eventId)}>
       <Trash2 size={14} aria-hidden="true" />
       Remove<span className="admin-visually-hidden"> {title}</span>
     </button>
@@ -124,6 +125,7 @@ function EntryRow({
               type="button"
               className="admin-btn admin-btn--secondary admin-btn--sm"
               aria-pressed={featured}
+              aria-label={`Featured ${event.title}`}
               onClick={() => actions.onToggleFeatured(event.id)}
             >
               <Star size={14} aria-hidden="true" fill={featured ? "currentColor" : "none"} />

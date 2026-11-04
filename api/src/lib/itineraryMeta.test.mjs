@@ -27,6 +27,7 @@ describe("parseItineraryPath", () => {
     "/itineraries/boston/garbage", "/itineraries/boston/2026-02-29",
     "/itineraries/boston/2026-04-31", "/itineraries/boston/2026-13-01",
     "/itineraries/boston/2026-00-01", "/itineraries/boston/2026-11-00",
+    "/itineraries/boston/0000-01-01", "/itineraries/boston/0000-01-02",
     "/itineraries/boston/2026-11-09/extra", "/itineraries/%ZZ/2026-11-09",
     "/itineraries/%2F/2026-11-09", "/api/itinerary-page", "/itineraries//2026-11-09",
   ])("rejects invalid path %s", (path) => {

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ItineraryDraft } from "../model/types";
-import { itineraryErrorMessage, saveItinerary, uploadItineraryCover } from "./itinerariesRepo";
+import { itineraryErrorMessage, saveItinerary, setItineraryCover, uploadItineraryCover } from "./itinerariesRepo";
 
 const mocks = vi.hoisted(() => ({
   rpc: vi.fn(),
@@ -89,5 +89,22 @@ describe("itinerariesRepo", () => {
     expect(path).toMatch(/^itin-1\/[0-9a-f]{8}\.jpg$/);
     expect(options).toEqual({ upsert: true, contentType: "image/jpeg" });
     expect(url).toBe(`https://cdn/itinerary-covers/${path}`);
+  });
+
+  it("registers the render's source facts and preserves a stale-source regeneration error", async () => {
+    const snapshot = {
+      city: "boston", city_name: "Boston", week_start: draft.weekStart,
+      time_zone: draft.timeZone, title: draft.title, items: [],
+    };
+    mocks.rpc.mockResolvedValueOnce({ data: "2026-11-03T12:00Z", error: null });
+    await expect(setItineraryCover("itin-1", "https://cdn/cover.jpg", snapshot)).resolves.toBe("2026-11-03T12:00Z");
+    expect(mocks.rpc).toHaveBeenCalledWith("set_itinerary_cover", {
+      p_id: "itin-1", p_url: "https://cdn/cover.jpg", p_snapshot: snapshot,
+    });
+
+    const message = "The itinerary or its events changed. Reload and regenerate the link preview image.";
+    mocks.rpc.mockResolvedValueOnce({ data: null, error: { code: "22023", message } });
+    const error = await setItineraryCover("itin-1", "https://cdn/cover.jpg", snapshot).catch((e: unknown) => e);
+    expect(itineraryErrorMessage(error)).toBe(message);
   });
 });

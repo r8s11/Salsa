@@ -38,11 +38,18 @@ Run as `postgres` or an equivalent migration owner able to `SET ROLE anon`
 and `authenticated`. No pgTAP needed: the script asserts SQL behavior,
 catches exact expected SQLSTATEs, and rolls back its real auth, metro,
 event and itinerary fixtures. It covers public visibility, active-moderator
-RPC authority, validation, transitions, dance-night/DST boundaries and stale
-cover suppression. Do not reset or seed the hosted project for this check.
-Unavailable, cancelled, moved or deleted picks disappear from fresh public
-reads; stale stored card URLs are suppressed until the editor regenerates
-them. Already-shared JPEGs or messaging-app caches cannot be recalled.
+RPC authority, validation, transitions, dance-night/DST boundaries, stale
+render rejection and cover suppression. Do not reset or seed the hosted project
+for this check. Cover registration accepts the exact in-memory header and every
+selected item's public render facts (`set_itinerary_cover`'s `p_snapshot`), not
+an upload-completion timestamp. A changed/deleted event or changed header/item
+requires reloading and regenerating; publication rejects an obsolete source.
+Fresh public reads compare the retained source with current canonical public
+event facts, also closing concurrent edits after registration validation. This
+comparison excludes private event fields and ignores derived flyer-cache warming
+when its original artwork source is unchanged. Unavailable, cancelled, moved or
+deleted picks disappear from fresh public reads; stale card URLs are suppressed
+until regeneration. Already-shared JPEGs or messaging-app caches cannot be recalled.
 
 ## Stack
 

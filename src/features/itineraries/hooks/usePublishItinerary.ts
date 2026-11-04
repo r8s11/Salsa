@@ -8,9 +8,9 @@ import {
   uploadItineraryCover,
 } from "../api/itinerariesRepo";
 import ShareableItineraryPoster from "../components/poster/ShareableItineraryPoster";
-import { buildItineraryPosterModel, type ItineraryPosterFormat } from "../model/itineraryPoster";
+import { buildItineraryCoverSnapshot, buildItineraryPosterModel, type ItineraryPosterFormat } from "../model/itineraryPoster";
 import { encodeLinkCard } from "../model/linkCard";
-import type { ScheduleNight } from "../model/schedule";
+import { buildSchedule, type ScheduleNight } from "../model/schedule";
 import type { Itinerary } from "../model/types";
 
 export type PublishItineraryStatus = "idle" | "rendering" | "uploading" | "publishing" | "error";
@@ -64,12 +64,23 @@ export function usePublishItinerary() {
       setError(null);
       try {
         setStatus("rendering");
-        const element = await loadItineraryPoster(inputs, "card");
+        // Hold the exact facts throughout asynchronous flyer/capture/upload work.
+        const capturedInputs = structuredClone(inputs);
+        const entries = capturedInputs.nights.flatMap((night) => night.entries);
+        // Derive printed nights/picks from those captured facts too, rather than
+        // trusting precomputed grouping that might predate an event edit.
+        capturedInputs.nights = buildSchedule({
+          ...capturedInputs.itinerary,
+          items: entries.map((entry) => entry.item),
+          unfeaturedDays: capturedInputs.nights.filter((night) => night.unfeatured).map((night) => night.weekday),
+        }, new Map(entries.map((entry) => [entry.event.id, entry.event]))).nights;
+        const snapshot = buildItineraryCoverSnapshot(capturedInputs);
+        const element = await loadItineraryPoster(capturedInputs, "card");
         const png = await capturePosterElement(async () => element);
         const jpeg = await encodeLinkCard(png);
         setStatus("uploading");
         const url = await uploadItineraryCover(id, jpeg);
-        await setItineraryCover(id, url);
+        await setItineraryCover(id, url, snapshot);
         if (publish) {
           setStatus("publishing");
           await setItineraryStatus(id, "published");

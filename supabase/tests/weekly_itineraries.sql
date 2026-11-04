@@ -54,6 +54,7 @@ declare
   itinerary_id uuid;
   replacement_id uuid;
   payload jsonb;
+  captured_snapshot jsonb;
   cover_url text;
   first_published_at timestamptz;
   columns text[];
@@ -95,7 +96,11 @@ begin
   ) or not has_table_privilege('anon', 'public.public_itineraries', 'SELECT')
     or not has_table_privilege('anon', 'public.public_itinerary_items', 'SELECT')
     or has_table_privilege('anon', 'public.itineraries', 'SELECT')
-    or has_table_privilege('anon', 'public.itinerary_items', 'SELECT') then
+    or has_table_privilege('anon', 'public.itinerary_items', 'SELECT')
+    or has_table_privilege('anon', 'public.itinerary_cover_sources', 'SELECT')
+    or has_table_privilege('authenticated', 'public.itinerary_cover_sources', 'SELECT')
+    or has_function_privilege('anon', 'public.set_itinerary_cover(uuid,text,jsonb)', 'EXECUTE')
+    or not has_function_privilege('authenticated', 'public.set_itinerary_cover(uuid,text,jsonb)', 'EXECUTE') then
     raise exception 'Itinerary privilege boundary changed';
   end if;
 
@@ -123,11 +128,11 @@ begin
   on conflict (id) do update set status = excluded.status;
   insert into public.metros(slug,name) values (city,'Itinerary SQL check'),
     (other_city,'Other itinerary SQL check');
-  insert into public.events(id,title,city,event_date,status) values
-    (friday_id,'Friday fixture',city,'2026-11-14T02:00Z','approved'),
-    (same_night_id,'Friday alternative fixture',city,'2026-11-14T03:00Z','approved'),
-    (saturday_id,'Sunday 00:30 fixture',city,'2026-11-15T05:30Z','approved'),
-    (sunday_id,'Monday 01:00 fixture',city,'2026-11-16T06:00Z','approved');
+  insert into public.events(id,title,city,event_date,status,event_type) values
+    (friday_id,'Friday fixture',city,'2026-11-14T02:00Z','approved','social'),
+    (same_night_id,'Friday alternative fixture',city,'2026-11-14T03:00Z','approved','social'),
+    (saturday_id,'Sunday 00:30 fixture',city,'2026-11-15T05:30Z','approved','social'),
+    (sunday_id,'Monday 01:00 fixture',city,'2026-11-16T06:00Z','approved','social');
 
   payload := jsonb_build_object('city',city,'week_start','2026-11-09',
     'time_zone','America/New_York','title','SQL behavior week',
@@ -141,6 +146,7 @@ begin
   execute 'set local role anon';
   perform pg_temp.expect_sqlstate('select * from public.itineraries','42501');
   perform pg_temp.expect_sqlstate('select * from public.itinerary_items','42501');
+  perform pg_temp.expect_sqlstate('select * from public.itinerary_cover_sources','42501');
   perform pg_temp.expect_sqlstate('select public.save_itinerary(null,''{}''::jsonb)','42501');
   perform pg_temp.expect_refused('insert into public.public_itineraries(id) values (gen_random_uuid())','42501','0A000','42809','55000');
   perform pg_temp.expect_refused('delete from public.public_itinerary_items','42501','0A000','42809','55000');
@@ -150,16 +156,17 @@ begin
   perform set_config('request.jwt.claims',jsonb_build_object('sub',ordinary_id,
     'app_metadata',jsonb_build_object('role','user'))::text,true);
   perform pg_temp.expect_sqlstate(format('select public.save_itinerary(null,%L::jsonb)',payload),'42501');
-  perform pg_temp.expect_sqlstate('select public.set_itinerary_cover(gen_random_uuid(),''https://example.test/x'')','42501');
+  perform pg_temp.expect_sqlstate('select public.set_itinerary_cover(gen_random_uuid(),''https://example.test/x'',''{}''::jsonb)','42501');
   perform pg_temp.expect_sqlstate('select public.set_itinerary_status(gen_random_uuid(),''published'')','42501');
   perform set_config('request.jwt.claims',jsonb_build_object('sub',suspended_id,
     'app_metadata',jsonb_build_object('role','moderator'))::text,true);
   perform pg_temp.expect_sqlstate(format('select public.save_itinerary(null,%L::jsonb)',payload),'42501');
-  perform pg_temp.expect_sqlstate('select public.set_itinerary_cover(gen_random_uuid(),''https://example.test/x'')','42501');
+  perform pg_temp.expect_sqlstate('select public.set_itinerary_cover(gen_random_uuid(),''https://example.test/x'',''{}''::jsonb)','42501');
   perform pg_temp.expect_sqlstate('select public.set_itinerary_status(gen_random_uuid(),''published'')','42501');
 
   perform set_config('request.jwt.claims',jsonb_build_object('sub',moderator_id,
     'app_metadata',jsonb_build_object('role','moderator'))::text,true);
+  perform pg_temp.expect_sqlstate('select * from public.itinerary_cover_sources','42501');
   perform pg_temp.expect_sqlstate(format('select public.save_itinerary(null,%L::jsonb)',
     payload || jsonb_build_object('title','   ')),'23514');
   perform pg_temp.expect_sqlstate(format('select public.save_itinerary(null,%L::jsonb)',
@@ -190,16 +197,40 @@ begin
     raise exception 'Draft must be invisible anonymously';
   end if;
   execute 'reset role';
+  -- Independent consumer payload: same explicit keys/nulls/epoch milliseconds
+  -- as buildItineraryCoverSnapshot, not an implementation-produced revision.
+  select jsonb_build_object(
+    'city',city,'city_name','Itinerary SQL check','week_start','2026-11-09',
+    'time_zone','America/New_York','title','SQL behavior week',
+    'items',jsonb_agg(jsonb_build_object(
+      'event_id',render.id,'role',render.role,'position',render.position,'note',render.note,
+      'event',jsonb_build_object(
+        'id',render.id,'city',city,'status','approved','title',render.title,
+        'event_date_ms',floor(extract(epoch from render.starts_at) * 1000),
+        'event_type','social','location',null,'artwork_source',null,'dance_styles','[]'::jsonb
+      )
+    ) order by render.id)
+  ) into captured_snapshot
+  from (values
+    (friday_id,'featured',0,'Friday note','Friday fixture','2026-11-14T02:00Z'::timestamptz),
+    (same_night_id,'alternative',1,null,'Friday alternative fixture','2026-11-14T03:00Z'::timestamptz),
+    (saturday_id,'featured',0,null,'Sunday 00:30 fixture','2026-11-15T05:30Z'::timestamptz),
+    (sunday_id,'featured',0,null,'Monday 01:00 fixture','2026-11-16T06:00Z'::timestamptz)
+  ) render(id,role,position,note,title,starts_at);
+  if (select snapshot from public.itinerary_cover_sources where id = itinerary_id)
+     is distinct from captured_snapshot then
+    raise exception 'SQL render snapshot differs from the consumer contract';
+  end if;
 
   execute 'set local role authenticated';
   cover_url := 'https://arbitrary-host.example:443/storage/v1/object/public/itinerary-covers/' || itinerary_id || '/abcdef12.jpg';
   foreach changed in array array['http://example.test','https://evil?','https://evil#','https://evil@'] loop
-    perform pg_temp.expect_sqlstate(format('select public.set_itinerary_cover(%L,%L)',itinerary_id,
-      changed || '/storage/v1/object/public/itinerary-covers/' || itinerary_id || '/abcdef12.jpg'),'22023');
+    perform pg_temp.expect_sqlstate(format('select public.set_itinerary_cover(%L,%L,%L::jsonb)',itinerary_id,
+      changed || '/storage/v1/object/public/itinerary-covers/' || itinerary_id || '/abcdef12.jpg',captured_snapshot),'22023');
   end loop;
-  perform pg_temp.expect_sqlstate(format('select public.set_itinerary_cover(%L,%L)',itinerary_id,
-    'https://example.test/storage/v1/object/public/itinerary-covers/' || gen_random_uuid() || '/abcdef12.jpg'),'22023');
-  perform public.set_itinerary_cover(itinerary_id,cover_url);
+  perform pg_temp.expect_sqlstate(format('select public.set_itinerary_cover(%L,%L,%L::jsonb)',itinerary_id,
+    'https://example.test/storage/v1/object/public/itinerary-covers/' || gen_random_uuid() || '/abcdef12.jpg',captured_snapshot),'22023');
+  perform public.set_itinerary_cover(itinerary_id,cover_url,captured_snapshot);
   first_published_at := public.set_itinerary_status(itinerary_id,'published');
   if first_published_at is null then raise exception 'Publish must return published_at'; end if;
   perform pg_temp.expect_sqlstate(format('select public.set_itinerary_status(%L,''published'')',itinerary_id),'22023');
@@ -237,34 +268,79 @@ begin
     perform pg_temp.expect_sqlstate(format('select public.set_itinerary_status(%L,''published'')',itinerary_id),'22023');
     execute 'reset role';
     update public.events set status = 'approved', city = payload->>'city', event_date = '2026-11-14T02:00Z' where id = friday_id;
+    select snapshot into captured_snapshot from public.itinerary_cover_sources where id = itinerary_id;
     execute 'set local role authenticated';
-    perform public.set_itinerary_cover(itinerary_id,cover_url);
+    perform public.set_itinerary_cover(itinerary_id,cover_url,captured_snapshot);
     if public.set_itinerary_status(itinerary_id,'published') is distinct from first_published_at then
       raise exception 'Republish must retain original published_at';
     end if;
     execute 'reset role';
   end loop;
 
-  -- Use a deterministic older generation instant: now() is transaction-stable,
-  -- so sleeping would not test updated_at freshness in this rollback transaction.
-  update public.itineraries set cover_generated_at = now() - interval '1 day' where id = itinerary_id;
-  update public.events set title = 'Updated featured fixture' where id = friday_id;
+  -- Capture actual facts, then edit while the JPEG would be rendering/uploading.
+  -- now() is equal throughout this transaction: freshness cannot depend on >.
+  foreach changed in array array['title','time','image'] loop
+    select snapshot into captured_snapshot from public.itinerary_cover_sources where id = itinerary_id;
+    update public.events set
+      title = case when changed = 'title' then 'Updated featured fixture' else title end,
+      event_date = case when changed = 'time' then '2026-11-14T02:15Z'::timestamptz else event_date end,
+      image_url = case when changed = 'image' then 'https://example.test/new-flyer.jpg' else image_url end
+    where id = friday_id;
+    execute 'set local role anon';
+    if (select cover_image_url from public.public_itineraries where id = itinerary_id) is not null
+       or not exists (select 1 from public.public_itinerary_items where public_itinerary_items.itinerary_id = itinerary_id and event_id = friday_id) then
+      raise exception 'Changed % must suppress stale cover, not valid event data', changed;
+    end if;
+    execute 'reset role';
+    execute 'set local role authenticated';
+    perform pg_temp.expect_sqlstate(format('select public.set_itinerary_cover(%L,%L,%L::jsonb)',
+      itinerary_id,cover_url,captured_snapshot),'22023');
+    perform public.set_itinerary_status(itinerary_id,'draft');
+    perform pg_temp.expect_sqlstate(format('select public.set_itinerary_status(%L,''published'')',itinerary_id),'22023');
+    execute 'reset role';
+    select snapshot into captured_snapshot from public.itinerary_cover_sources where id = itinerary_id;
+    execute 'set local role authenticated';
+    perform public.set_itinerary_cover(itinerary_id,cover_url,captured_snapshot);
+    perform public.set_itinerary_status(itinerary_id,'published');
+    execute 'reset role';
+  end loop;
+
+  -- The renderer itself can normalize/cache an unchanged original flyer.
+  select snapshot into captured_snapshot from public.itinerary_cover_sources where id = itinerary_id;
+  update public.events set poster_image_url = 'https://example.test/derived-cache.jpg' where id = friday_id;
+  execute 'set local role authenticated';
+  perform public.set_itinerary_cover(itinerary_id,cover_url,captured_snapshot);
+  execute 'reset role';
   execute 'set local role anon';
-  if (select cover_image_url from public.public_itineraries where id = itinerary_id) is not null
-     or not exists (select 1 from public.public_itinerary_items where public_itinerary_items.itinerary_id = itinerary_id and event_id = friday_id) then
-    raise exception 'Featured fact change must suppress only stale cover, not valid item';
+  if (select cover_image_url from public.public_itineraries where id = itinerary_id) is distinct from cover_url then
+    raise exception 'Cache warming for the same original must not invalidate a current render';
   end if;
   execute 'reset role';
-  execute 'set local role authenticated';
-  perform public.set_itinerary_cover(itinerary_id,cover_url);
-  execute 'reset role';
+
+  -- Save replaces header/items while a capture holds the old semantic source.
+  foreach changed in array array['header','item'] loop
+    select snapshot into captured_snapshot from public.itinerary_cover_sources where id = itinerary_id;
+    payload := case when changed = 'header'
+      then jsonb_set(payload,'{title}','"Changed header"')
+      else jsonb_set(payload,'{items,1,note}','"Changed alternative note"') end;
+    execute 'set local role authenticated';
+    perform public.save_itinerary(itinerary_id,payload);
+    perform pg_temp.expect_sqlstate(format('select public.set_itinerary_cover(%L,%L,%L::jsonb)',
+      itinerary_id,cover_url,captured_snapshot),'22023');
+    execute 'reset role';
+    select snapshot into captured_snapshot from public.itinerary_cover_sources where id = itinerary_id;
+    execute 'set local role authenticated';
+    perform public.set_itinerary_cover(itinerary_id,cover_url,captured_snapshot);
+    execute 'reset role';
+  end loop;
 
   -- Hard delete cascades the item away: no remaining join can detect its old
   -- printed facts, so the delete trigger must clear the stored reference itself.
+  select snapshot into captured_snapshot from public.itinerary_cover_sources where id = itinerary_id;
   delete from public.events where id = saturday_id;
   if exists (select 1 from public.itinerary_items where event_id = saturday_id)
      or exists (select 1 from public.itineraries where id = itinerary_id
-       and (cover_image_url is not null or cover_generated_at is not null)) then
+       and (cover_image_url is not null or cover_generated_at is not null or cover_source_snapshot is not null)) then
     raise exception 'Hard-deleted item must invalidate parent cover and generation time';
   end if;
   execute 'set local role anon';
@@ -274,11 +350,16 @@ begin
     raise exception 'Deletion must remove only the deleted event and suppress cover';
   end if;
   execute 'reset role';
+  execute 'set local role authenticated';
+  perform pg_temp.expect_sqlstate(format('select public.set_itinerary_cover(%L,%L,%L::jsonb)',
+    itinerary_id,cover_url,captured_snapshot),'22023');
+  execute 'reset role';
+  select snapshot into captured_snapshot from public.itinerary_cover_sources where id = itinerary_id;
 
   execute 'set local role authenticated';
   -- Normal save replaces items; old cover must also be invalidated atomically.
   payload := jsonb_set(payload,'{items}',(payload->'items') - 2);
-  perform public.set_itinerary_cover(itinerary_id,cover_url);
+  perform public.set_itinerary_cover(itinerary_id,cover_url,captured_snapshot);
   perform public.save_itinerary(itinerary_id,payload);
   if exists (select 1 from public.itineraries where id = itinerary_id and cover_image_url is not null) then
     raise exception 'Full item replacement must invalidate old cover';
@@ -287,7 +368,7 @@ begin
   perform pg_temp.expect_sqlstate(format('select public.set_itinerary_status(%L,''draft'')',itinerary_id),'22023');
   perform pg_temp.expect_sqlstate(format('select public.set_itinerary_status(%L,''published'')',itinerary_id),'22023');
   perform pg_temp.expect_sqlstate(format('select public.save_itinerary(%L,%L::jsonb)',itinerary_id,payload),'22023');
-  perform pg_temp.expect_sqlstate(format('select public.set_itinerary_cover(%L,%L)',itinerary_id,cover_url),'22023');
+  perform pg_temp.expect_sqlstate(format('select public.set_itinerary_cover(%L,%L,%L::jsonb)',itinerary_id,cover_url,captured_snapshot),'22023');
   replacement_id := public.save_itinerary(null,payload);
   perform public.set_itinerary_status(replacement_id,'archived');
   execute 'reset role';

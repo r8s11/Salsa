@@ -37,6 +37,8 @@ create table public.itineraries (
                        check (status in ('draft', 'published', 'archived')),
   cover_image_url    text,
   cover_generated_at timestamptz,
+  -- Exact public render inputs, not an upload timestamp or private event row.
+  cover_source_snapshot jsonb,
   created_by         uuid references auth.users (id) on delete set null,
   updated_by         uuid references auth.users (id) on delete set null,
   published_at       timestamptz,
@@ -99,7 +101,7 @@ set search_path = public, pg_temp
 as $$
 begin
   update public.itineraries
-  set cover_image_url = null, cover_generated_at = null
+  set cover_image_url = null, cover_generated_at = null, cover_source_snapshot = null
   where id = old.itinerary_id and cover_image_url is not null;
   return old;
 end $$;
@@ -136,34 +138,76 @@ create policy "Curators read itinerary items"
 
 -- 5. Public projections -------------------------------------------------------
 
+-- Owner-only canonical render source. Every header/item/event fact comes from
+-- ONE statement snapshot. Keep this JSON contract in sync with
+-- buildItineraryCoverSnapshot; never add private raw-event columns here.
+-- Semantic item identity is event_id/role/position/note, not replacement row IDs.
+create view public.itinerary_cover_sources as
+select itinerary.id,
+  case when selected.valid then jsonb_build_object(
+    'city', itinerary.city,
+    'city_name', metro.name,
+    'week_start', itinerary.week_start,
+    'time_zone', itinerary.time_zone,
+    'title', itinerary.title,
+    'items', selected.items
+  ) end as snapshot
+from public.itineraries itinerary
+join public.metros metro on metro.slug = itinerary.city
+cross join lateral (
+  select
+    count(*) > 0 and bool_and(
+      event.id is not null and event.status = 'approved'
+      and event.city = itinerary.city
+      and public.itinerary_night(event.event_date, itinerary.time_zone)
+          between itinerary.week_start and itinerary.week_start + 6
+    ) as valid,
+    jsonb_agg(jsonb_build_object(
+      'event_id', item.event_id,
+      'role', item.role,
+      'position', item.position,
+      'note', item.note,
+      'event', jsonb_build_object(
+        'id', event.id,
+        'city', event.city,
+        'status', event.status,
+        'title', event.title,
+        'event_date_ms', floor(extract(epoch from event.event_date) * 1000),
+        'event_type', event.event_type,
+        'location', event.location,
+        -- Cache warming for an unchanged original is not a new artwork source.
+        'artwork_source', coalesce(event.image_url, event.image_urls[1], event.poster_image_url),
+        'dance_styles', case when jsonb_array_length(event.event_taxonomy_terms) > 0 then (
+          select coalesce(jsonb_agg(term.value->'taxonomy_terms'->'name' order by term.ordinality), '[]'::jsonb)
+          from jsonb_array_elements(event.event_taxonomy_terms) with ordinality term(value, ordinality)
+          where term.value->'taxonomy_terms'->>'category' = 'dance_style'
+        ) else to_jsonb(coalesce(event.dance_styles, '{}'::text[])) end
+      )
+    ) order by item.event_id) as items
+  from public.itinerary_items item
+  left join public.public_events event on event.id = item.event_id
+  where item.itinerary_id = itinerary.id
+) selected;
+alter view public.itinerary_cover_sources set (security_invoker = false);
+revoke all on table public.itinerary_cover_sources from public, anon, authenticated;
+
 -- Published rows only, with no curator identity or internal timestamps.
 create or replace view public.public_itineraries as
 select
-  id,
-  city,
-  week_start,
-  time_zone,
-  title,
-  description,
-  recommendations,
-  unfeatured_days,
-  case when cover_generated_at is not null and not exists (
-    select 1
-    from public.itinerary_items item
-    left join public.public_events event on event.id = item.event_id
-    where item.itinerary_id = itinerary.id
-      and (
-        event.id is null
-        or event.status is distinct from 'approved'
-        or event.city is distinct from itinerary.city
-        or public.itinerary_night(event.event_date, itinerary.time_zone)
-           not between itinerary.week_start and itinerary.week_start + 6
-        or (item.role = 'featured' and event.updated_at > itinerary.cover_generated_at)
-      )
-  ) then cover_image_url else null end as cover_image_url,
+  itinerary.id,
+  itinerary.city,
+  itinerary.week_start,
+  itinerary.time_zone,
+  itinerary.title,
+  itinerary.description,
+  itinerary.recommendations,
+  itinerary.unfeatured_days,
+  case when itinerary.cover_source_snapshot = source.snapshot
+    then itinerary.cover_image_url else null end as cover_image_url,
   published_at,
   updated_at
 from public.itineraries itinerary
+join public.itinerary_cover_sources source on source.id = itinerary.id
 where status = 'published';
 
 alter view public.public_itineraries set (security_invoker = false);
@@ -383,7 +427,7 @@ grant execute on function public.save_itinerary(uuid, jsonb) to authenticated;
 
 -- Records the link-preview card (it becomes og:image). The URL must be an
 -- https Storage URL in this itinerary's folder of the itinerary-covers bucket.
-create or replace function public.set_itinerary_cover(p_id uuid, p_url text)
+create or replace function public.set_itinerary_cover(p_id uuid, p_url text, p_snapshot jsonb)
 returns timestamptz
 language plpgsql
 security definer
@@ -412,12 +456,22 @@ begin
     raise exception 'Cover must be stored in this itinerary''s folder' using errcode = '22023';
   end if;
 
-  update public.itineraries
+  -- Compare and retain the same canonical source in one statement snapshot.
+  -- Later/older concurrent transactions cannot make a stale JPEG public:
+  -- public reads compare retained facts, never transaction timestamp ordering.
+  update public.itineraries itinerary
   set cover_image_url = p_url,
       cover_generated_at = now(),
+      cover_source_snapshot = source.snapshot,
       updated_by = v_uid
-  where id = p_id
-  returning cover_generated_at into v_generated_at;
+  from public.itinerary_cover_sources source
+  where itinerary.id = p_id and source.id = itinerary.id
+    and source.snapshot = p_snapshot
+  returning itinerary.cover_generated_at into v_generated_at;
+  if not found then
+    raise exception 'The itinerary or its events changed. Reload and regenerate the link preview image.'
+      using errcode = '22023';
+  end if;
 
   insert into public.audit_logs (actor_id, action, entity_type, entity_id, metadata, target_type, target_id, target_name)
   values (
@@ -433,8 +487,8 @@ begin
 
   return v_generated_at;
 end $$;
-revoke all on function public.set_itinerary_cover(uuid, text) from public, anon, authenticated;
-grant execute on function public.set_itinerary_cover(uuid, text) to authenticated;
+revoke all on function public.set_itinerary_cover(uuid, text, jsonb) from public, anon, authenticated;
+grant execute on function public.set_itinerary_cover(uuid, text, jsonb) to authenticated;
 
 -- draft -> published, published -> draft (unpublish), draft|published -> archived.
 -- Publishing re-runs the item validations and needs at least one event and a
@@ -474,6 +528,13 @@ begin
     perform public.itinerary_validate_items(p_id);
     if v_current.cover_image_url is null then
       raise exception 'Publishing needs a link preview image' using errcode = '22023';
+    end if;
+    if not exists (
+      select 1 from public.itinerary_cover_sources source
+      where source.id = p_id and source.snapshot = v_current.cover_source_snapshot
+    ) then
+      raise exception 'The itinerary or its events changed. Reload and regenerate the link preview image.'
+        using errcode = '22023';
     end if;
   end if;
 

@@ -121,3 +121,72 @@ export function buildItineraryPosterModel(input: {
     urlLabel: itineraryUrlLabel(url),
   };
 }
+
+/**
+ * Canonical cover registration contract, mirrored by itinerary_cover_sources.
+ * Build from the SAME inputs as the capture, never a freshly fetched revision:
+ * an already-stale in-memory event must not acquire a current server revision.
+ * Include every selected item, not only the four spotlight events.
+ */
+export function buildItineraryCoverSnapshot(input: {
+  itinerary: Pick<Itinerary, "city" | "weekStart" | "timeZone" | "title">;
+  cityName: string;
+  nights: ScheduleNight[];
+}): ItineraryCoverSnapshot {
+  return {
+    city: input.itinerary.city,
+    city_name: input.cityName,
+    week_start: input.itinerary.weekStart,
+    time_zone: input.itinerary.timeZone,
+    title: input.itinerary.title,
+    items: input.nights.flatMap((night) => night.entries)
+      .sort((a, b) => a.item.eventId < b.item.eventId ? -1 : a.item.eventId > b.item.eventId ? 1 : 0)
+      .map(({ item, event }) => ({
+        event_id: item.eventId,
+        role: item.role,
+        position: item.position,
+        note: item.note,
+        event: {
+          id: event.id,
+          city: event.city,
+          status: event.status,
+          title: event.title,
+          event_date_ms: Temporal.Instant.from(event.event_date).epochMilliseconds,
+          event_type: event.event_type,
+          location: event.location ?? null,
+          // Normalizing the same original flyer may warm poster_image_url.
+          // That derived cache write does not change the artwork's identity.
+          artwork_source: event.image_url ?? event.image_urls?.[0] ?? event.poster_image_url ?? null,
+          dance_styles: event.taxonomy_terms.length > 0
+            ? event.taxonomy_terms.filter((term) => term.category === "dance_style").map((term) => term.name)
+            : (event.dance_styles ?? []),
+        },
+      })),
+  };
+}
+
+/** Public render facts accepted by set_itinerary_cover(p_id, p_url, p_snapshot). */
+export interface ItineraryCoverSnapshot {
+  city: string;
+  city_name: string;
+  week_start: string;
+  time_zone: string;
+  title: string;
+  items: {
+    event_id: string;
+    role: "featured" | "alternative";
+    position: number;
+    note: string | null;
+    event: {
+      id: string;
+      city: string;
+      status: string;
+      title: string;
+      event_date_ms: number;
+      event_type: string;
+      location: string | null;
+      artwork_source: string | null;
+      dance_styles: string[];
+    };
+  }[];
+}

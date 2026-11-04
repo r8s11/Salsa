@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { DatabaseEvent } from "../../../types/events";
 import type { ItineraryItem } from "./types";
 import { buildSchedule } from "./schedule";
-import { buildItineraryPosterModel, ITINERARY_POSTER_SIZE, type ItineraryPosterFormat } from "./itineraryPoster";
+import { buildItineraryCoverSnapshot, buildItineraryPosterModel, ITINERARY_POSTER_SIZE, type ItineraryPosterFormat } from "./itineraryPoster";
 import { buildPublicItineraryUrl, itineraryPosterFilename, itineraryUrlLabel } from "./itinerarySharing";
 
 const TZ = "America/New_York";
@@ -26,6 +26,7 @@ function event(id: string, isoStart: string, extra: Partial<DatabaseEvent> = {})
     sublocation: null,
     created_at: "2026-11-01T00:00:00Z",
     host: null,
+    status: "approved",
     taxonomy_terms: [],
     ...extra,
   } as DatabaseEvent;
@@ -146,5 +147,60 @@ describe("itinerary sharing helpers", () => {
       feed: { width: 1080, height: 1350 },
       card: { width: 1200, height: 630 },
     });
+  });
+});
+
+describe("buildItineraryCoverSnapshot", () => {
+  const header = { city: "new-york-city", weekStart: WEEK, timeZone: TZ, title: "Your week in NYC" };
+  const snapshot = (events: DatabaseEvent[], items = events.map((e) => item(e.id))) => {
+    const { nights } = buildSchedule(
+      { weekStart: WEEK, timeZone: TZ, items, unfeaturedDays: [] },
+      new Map(events.map((e) => [e.id, e])),
+    );
+    return buildItineraryCoverSnapshot({ itinerary: header, cityName: "New York City", nights });
+  };
+
+  it("retains every selected item, including alternatives, in stable ID order without private facts", () => {
+    const alternative = event("alt", "2026-11-14T03:00:00Z", {
+      submitter_email: "private@example.test",
+      submitter_name: "Private submitter",
+    });
+    const source = snapshot([fri, alternative], [item("fri"), item("alt", "alternative", 1)]);
+    expect(source.items.map((entry) => entry.event_id)).toEqual(["alt", "fri"]);
+    expect(source.items[0]).toEqual({
+      event_id: "alt", role: "alternative", position: 1, note: null,
+      event: {
+        id: "alt", city: "new-york-city", status: "approved", title: "Title alt",
+        event_date_ms: Temporal.Instant.from("2026-11-14T03:00Z").epochMilliseconds,
+        event_type: "social", location: "Venue alt", artwork_source: "https://example.com/alt.jpg",
+        dance_styles: [],
+      },
+    });
+    expect(JSON.stringify(source)).not.toContain("private@example.test");
+    expect(JSON.stringify(source)).not.toContain("Private submitter");
+    expect(source).toMatchObject({
+      city: "new-york-city", city_name: "New York City", week_start: WEEK, time_zone: TZ,
+      title: "Your week in NYC",
+    });
+  });
+
+  it("normalizes equivalent instants and ignores cache warming for the same original artwork", () => {
+    const original = snapshot([fri]);
+    expect(snapshot([{ ...fri, event_date: "2026-11-13T21:00:00-05:00" }])).toEqual(original);
+    expect(snapshot([{ ...fri, poster_image_url: "https://example.com/normalized.jpg" }])).toEqual(original);
+    expect(snapshot([{ ...fri, image_url: "https://example.com/replacement.jpg" }])).not.toEqual(original);
+    expect(snapshot([{ ...fri, image_url: null, image_urls: ["https://example.com/first.jpg"] }]).items[0].event.artwork_source)
+      .toBe("https://example.com/first.jpg");
+    expect(snapshot([{ ...fri, image_url: null, poster_image_url: "https://example.com/cache-only.jpg" }]).items[0].event.artwork_source)
+      .toBe("https://example.com/cache-only.jpg");
+  });
+
+  it("changes the source for changed title/time/fallback style and semantic item replacement", () => {
+    const original = snapshot([fri]);
+    expect(snapshot([{ ...fri, title: "Changed" }])).not.toEqual(original);
+    expect(snapshot([{ ...fri, event_date: "2026-11-14T02:15Z" }])).not.toEqual(original);
+    expect(snapshot([{ ...fri, dance_styles: ["bachata"] }])).not.toEqual(original);
+    expect(snapshot([fri], [{ ...item("fri"), note: "New note" }])).not.toEqual(original);
+    expect(snapshot([fri], [item("fri", "alternative")])).not.toEqual(original);
   });
 });

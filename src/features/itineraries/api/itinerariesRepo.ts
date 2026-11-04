@@ -7,6 +7,7 @@ import type {
   ItineraryItemRole,
   ItineraryStatus,
 } from "../model/types";
+import type { ItineraryCoverSnapshot } from "../model/itineraryPoster";
 
 const COVER_BUCKET = "itinerary-covers";
 
@@ -224,9 +225,9 @@ export async function uploadItineraryCover(id: string, jpeg: Blob): Promise<stri
   return bucket.getPublicUrl(path).data.publicUrl;
 }
 
-/** Resolves to the stored cover_generated_at. */
-export async function setItineraryCover(id: string, url: string): Promise<string> {
-  const { data, error } = await supabase.rpc("set_itinerary_cover", { p_id: id, p_url: url });
+/** Registers only the exact facts rendered; resolves to cover_generated_at. */
+export async function setItineraryCover(id: string, url: string, snapshot: ItineraryCoverSnapshot): Promise<string> {
+  const { data, error } = await supabase.rpc("set_itinerary_cover", { p_id: id, p_url: url, p_snapshot: snapshot });
   if (error) fail(error);
   return data as string;
 }

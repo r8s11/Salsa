@@ -121,6 +121,31 @@ describe("adminEventForm model", () => {
       );
     });
   });
+  it("round-trips a neighborhood and rejects a parent mismatch", () => {
+    const event = {
+      ...baseEvent,
+      city: "new-york-city",
+      sublocation: "brooklyn",
+      neighborhood: "williamsburg",
+    };
+    const form = buildAdminFormFromEvent(event);
+    expect(form.neighborhood).toBe("williamsburg");
+    expect(draftToAdminPayload(form).neighborhood).toBe("williamsburg");
+    expect(validateAdminEventForm({ ...form, neighborhood: "astoria" })).toBe(
+      "Choose a neighborhood from the list for this city and borough."
+    );
+  });
+
+  it("drops a stored neighborhood when the event parent does not match", () => {
+    const form = buildAdminFormFromEvent({
+      ...baseEvent,
+      city: "new-york-city",
+      sublocation: "brooklyn",
+      neighborhood: "allston",
+    });
+    expect(form.neighborhood).toBeNull();
+    expect(draftToAdminPayload(form).neighborhood).toBeNull();
+  });
 });
 
 describe("adminEventForm event types", () => {

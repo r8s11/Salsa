@@ -1,6 +1,7 @@
 import type { DatabaseEvent } from "../features/events/model/types";
 import type { ScheduleXEvent } from "../types/events";
 import { eventFlyerList } from "../features/events/model/eventFlyers";
+import routeMeta from "../shared/seo/routeMeta.json";
 export const CANONICAL_ORIGIN = "https://www.salsasegura.com";
 
 export function canonicalUrl(path: string): string {
@@ -27,8 +28,7 @@ export function generateEventStructuredData(event: Pick<
     description: event.description || undefined,
     startDate: event.event_date,
     url: canonicalUrl(`/events/${event.slug || event.id}`),
-    // Several flyers are listed primary first; a single flyer adds nothing.
-    ...(flyers.length > 1 && { image: flyers }),
+    ...(flyers.length > 0 && { image: flyers }),
     eventStatus: "https://schema.org/EventScheduled",
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     location: event.location
@@ -90,7 +90,7 @@ export function generateEventsListStructuredData(events: ScheduleXEvent[]) {
  * Update page title dynamically
  */
 export function updatePageTitle(title: string) {
-  document.title = `${title} | Salsa Segura`;
+  document.title = `${title}${routeMeta.titleSuffix}`;
 }
 
 /**

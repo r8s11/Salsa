@@ -6,6 +6,7 @@ import { fromEventDateInstant } from "../../events/model/eventDateTime";
 import { eventTypeFieldsFrom, selectedEventTypes } from "../../events/model/eventTypeSelection";
 import { timeZoneForDisplay } from "../../../shared/utils/timezone";
 import { eventFlyerList, normalizeFlyerUrls } from "../../events/model/eventFlyers";
+import { normalizeNeighborhood } from "../../metros/model/neighborhood";
 import { normalizeSubLocation } from "../../metros/model/sublocation";
 
 export type AdminEventForm = EventFormDraft;
@@ -51,6 +52,11 @@ export function buildAdminFormFromEvent(event: DatabaseEvent): AdminEventForm {
     ...eventTypeFieldsFrom(event),
     city: event.city,
     sublocation: normalizeSubLocation(event.city, event.sublocation) ?? "",
+    neighborhood: normalizeNeighborhood(
+      event.city,
+      normalizeSubLocation(event.city, event.sublocation),
+      event.neighborhood
+    ),
     event_date: date,
     event_time: time,
     recurrence: event.recurrence === "weekly" ? "weekly" : "",
@@ -101,6 +107,7 @@ export function validateAdminEventForm(form: AdminEventForm): string | null {
     recurrence: form.recurrence,
     dance_styles: form.dance_styles,
     sublocation: form.sublocation,
+    neighborhood: form.neighborhood,
   });
   if (submitFormError) return submitFormError;
   const zone = resolveDraftTimeZone(form);

@@ -1,0 +1,86 @@
+.admin-itineraries-page__card {
+  margin: 12px 0 0;
+  overflow: hidden;
+}
+
+.admin-itineraries-page__scroll {
+  overflow-x: auto;
+}
+
+.admin-itineraries-page__error {
+  color: var(--admin-danger-strong);
+}
+
+.admin-itineraries-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-itineraries-table thead tr {
+  background: var(--admin-surface-subtle);
+  border-bottom: 1px solid var(--admin-border);
+}
+
+/* Desk label setting: Epilogue 700, 0.6875rem, 0.14em. */
+.admin-itineraries-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-family: var(--font-ui);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--admin-text-muted);
+  white-space: nowrap;
+}
+
+.admin-itineraries-table tbody tr {
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.admin-itineraries-table tbody tr:last-child {
+  border-bottom: 0;
+}
+
+.admin-itineraries-table tbody tr:hover {
+  background: var(--admin-surface-subtle);
+}
+
+.admin-itineraries-table td {
+  padding: 12px 16px;
+  vertical-align: middle;
+  font-size: 0.875rem;
+  color: var(--admin-text-primary);
+}
+
+/* Weeks, counts and dates are measurements: figures align down the column. */
+.admin-itineraries-table__week,
+.admin-itineraries-table__date,
+.admin-itineraries-table__num {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.admin-itineraries-table__num {
+  text-align: right;
+}
+
+.admin-itineraries-table th.admin-itineraries-table__num {
+  text-align: right;
+}
+
+.admin-itineraries-table__title {
+  font-weight: 600;
+  color: var(--admin-text-strong);
+  text-decoration: none;
+}
+
+.admin-itineraries-table__title:hover,
+.admin-itineraries-table__title:focus-visible {
+  text-decoration: underline;
+}
+
+.admin-itineraries-table__actions {
+  width: 1%;
+  text-align: right;
+}

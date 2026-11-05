@@ -1,11 +1,12 @@
 // Purpose: Display the home page event feed — a featured event plus a
-// filterable grid of the rest of this week's floor.
+// filterable grid of additional upcoming events.
 import { useEffect, useMemo, useRef, useState } from "react";
 import Button from "../../../components/ui/Button";
 import ButtonLink from "../../../components/ui/ButtonLink";
 import { useEvents } from "../hooks/useEvent";
 import { useNewYorkToday } from "../hooks/useNewYorkToday";
 import { nightOf } from "../model/night";
+import { featuredEventOf } from "../model/featured";
 import { useCity } from "../../../contexts/useCity";
 import { useMetroName } from "../../metros/hooks/useMetros";
 import MetroExplorer from "../../metros/components/MetroExplorer";
@@ -23,7 +24,15 @@ const FILTER_OPTIONS: { value: TypeFilter; label: string }[] = [
 ];
 
 function Events() {
-  const { city, source, activeMetros } = useCity();
+  const {
+    city,
+    source,
+    activeMetros,
+    activeMetrosLoading,
+    activeMetrosLoadFailed,
+    activeMetrosFetching,
+    refetchActiveMetros,
+  } = useCity();
   const { events: allEvents, loading, fetching, error, loadFailed, refetch } = useEvents();
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [selectedEvent, setSelectedEvent] = useState<ScheduleXEvent | null>(null);
@@ -46,6 +55,20 @@ function Events() {
     retryPending.current = false;
     retryButtonRef.current?.focus();
   }, [fetching]);
+  const metroRetryButtonRef = useRef<HTMLButtonElement>(null);
+  const metroRetryPending = useRef(false);
+  const discoveryHeadingRef = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    if (activeMetrosFetching || !metroRetryPending.current) return;
+    metroRetryPending.current = false;
+    if (activeMetrosLoadFailed) metroRetryButtonRef.current?.focus();
+    else discoveryHeadingRef.current?.focus();
+  }, [activeMetrosFetching, activeMetrosLoadFailed]);
+  const retryMetros = () => {
+    metroRetryPending.current = true;
+    void refetchActiveMetros();
+  };
+
   const retry = () => {
     retryPending.current = true;
     void refetch();
@@ -62,22 +85,70 @@ function Events() {
       );
   }, [allEvents]);
 
-  const featuredEvent = upcomingEvents[0] ?? null;
+  // An admin-featured event wins the spotlight; otherwise it is the next event.
+  const featuredEvent = featuredEventOf(upcomingEvents) ?? null;
   const featuredNight = featuredEvent ? nightOf(featuredEvent.start, today) : null;
-  const feedSource = featuredEvent ? upcomingEvents.slice(1) : upcomingEvents;
+  // A featured pick can sit after other nights, so "Next up" is said only of
+  // the true next event, and "nothing tonight" only when the whole feed agrees.
+  const featuredIsNext = featuredEvent === upcomingEvents[0];
+  const quietToday = upcomingEvents.length > 0 && nightOf(upcomingEvents[0].start, today).kind === "later";
+  const FeaturedLabel = quietToday ? "p" : "h2";
+  const feedSource = useMemo(
+    () => upcomingEvents.filter((event) => event !== featuredEvent),
+    [upcomingEvents, featuredEvent]
+  );
   const feedEvents = useMemo(
     () => filterEventsByType(feedSource, typeFilter).slice(0, 6),
     [feedSource, typeFilter]
   );
   const activeFilterLabel =
     FILTER_OPTIONS.find((o) => o.value === typeFilter)?.label.toLowerCase() ?? "";
+  if (!city && activeMetrosLoadFailed) {
+    return (
+      <section id="events" className="events">
+        <div className="container">
+          <div className="no-events no-events--all no-events--area" role="alert">
+            <div>
+              <h2 ref={discoveryHeadingRef} tabIndex={-1} className="no-events__title">
+                We couldn&apos;t check for dance events.
+              </h2>
+              <p>City listings didn&apos;t come through. Try again to check what&apos;s happening near you.</p>
+            </div>
+            <div className="no-events__actions">
+              <Button
+                ref={metroRetryButtonRef}
+                variant="primary"
+                loading={activeMetrosFetching}
+                loadingLabel="Checking cities…"
+                onClick={retryMetros}
+              >
+                Try again
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+  if (!city && activeMetrosLoading) {
+    return (
+      <section id="events" className="events">
+        <div className="container">
+          <div className="no-events no-events--all no-events--area" role="status">
+            <p>Checking for cities with upcoming events…</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
 
   if (loading && !loadFailed) {
     return (
       <section id="events" className="events">
         <div className="container">
           <div className="events-feed-header">
-            <h2 className="events-feed-title">This Week&apos;s Floor</h2>
+            <h2 ref={discoveryHeadingRef} tabIndex={-1} className="events-feed-title">Upcoming on the floor</h2>
           </div>
           <div className="events-grid events-skeleton" aria-live="polite" aria-busy="true">
             {[1, 2, 3].map((i) => (
@@ -94,7 +165,7 @@ function Events() {
       <section id="events" className="events">
         <div className="container">
           <div className="events-feed-header">
-            <h2 className="events-feed-title">This Week&apos;s Floor</h2>
+            <h2 ref={discoveryHeadingRef} tabIndex={-1} className="events-feed-title">Upcoming on the floor</h2>
           </div>
           <div className="no-events no-events--all" role="alert">
             <div>
@@ -131,7 +202,7 @@ function Events() {
         <div className="container">
           <div className="no-events no-events--all no-events--area" role="status">
             <div>
-              <h2 id="events-area-heading" className="no-events__title">
+              <h2 ref={discoveryHeadingRef} tabIndex={-1} id="events-area-heading" className="no-events__title">
                 {noneAnywhere
                   ? "No upcoming SalsaSegura events yet."
                   : source === "none-nearby"
@@ -166,10 +237,13 @@ function Events() {
             <div className="events-featured-wrap">
               {featuredNight.kind === "later" ? (
                 <>
-                  <h2 className="events-featured-quiet">Nothing on the floor tonight in {cityLabel}.</h2>
-                  <p className="events-eyebrow">
-                    Next up · <time dateTime={featuredNight.date}>{featuredNight.label}</time>
-                  </p>
+                  {quietToday && (
+                    <h2 className="events-featured-quiet">Nothing on the floor tonight in {cityLabel}.</h2>
+                  )}
+                  <FeaturedLabel className="events-eyebrow">
+                    {featuredIsNext ? "Next up" : "Featured"} ·{" "}
+                    <time dateTime={featuredNight.date}>{featuredNight.label}</time>
+                  </FeaturedLabel>
                 </>
               ) : (
                 <h2 className="events-eyebrow">
@@ -181,7 +255,7 @@ function Events() {
           )}
 
           <div className="events-feed-header">
-            <h2 className="events-feed-title">This Week&apos;s Floor</h2>
+            <h2 ref={discoveryHeadingRef} tabIndex={-1} className="events-feed-title">Upcoming on the floor</h2>
             <div className="feed-filters" role="group" aria-label="Filter by event type">
               {FILTER_OPTIONS.map((opt) => (
                 <button
@@ -221,7 +295,11 @@ function Events() {
             </div>
           ) : (
             <div className="no-events">
-              <p>No additional {activeFilterLabel} events this week. Try another filter.</p>
+              <p>
+                {typeFilter === "all"
+                  ? `The featured event is the only event coming up in ${cityLabel}.`
+                  : `No additional ${activeFilterLabel} events in this list. Try another event type.`}
+              </p>
             </div>
           )}
 

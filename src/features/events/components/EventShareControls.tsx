@@ -3,18 +3,36 @@ import { ExternalLink, Link as LinkIcon, Share2 } from "lucide-react";
 import {
   buildEventPromoCaption,
   buildNativeSharePayload,
-  buildPublicEventUrl,
   buildShareDestinations,
 } from "../model/eventSharing";
 import "./EventShareControls.css";
 
 type EventShareControlsProps = {
-  eventId: string;
+  /** The public page being shared, e.g. `buildPublicEventUrl(id)`. */
+  url: string;
   title: string;
   dateLabel?: string | null;
   location?: string | null;
-  origin?: string;
   compact?: boolean;
+  /** "week" relabels the actions for an itinerary and drops the event promo caption. */
+  subject?: "event" | "week";
+};
+
+const LABELS = {
+  event: {
+    share: "Share event",
+    copy: "Copy event link",
+    copied: "Event link copied.",
+    copyFailed: "Could not copy event link.",
+    shareFailed: "Could not share event.",
+  },
+  week: {
+    share: "Share this week",
+    copy: "Copy week link",
+    copied: "Week link copied.",
+    copyFailed: "Could not copy week link.",
+    shareFailed: "Could not share this week.",
+  },
 };
 
 type Feedback = { kind: "status" | "error"; message: string } | null;
@@ -38,15 +56,15 @@ async function copyText(value: string): Promise<void> {
 }
 
 export default function EventShareControls({
-  eventId,
+  url: publicUrl,
   title,
   dateLabel,
   location,
-  origin,
   compact = false,
+  subject = "event",
 }: EventShareControlsProps) {
+  const labels = LABELS[subject];
   const [feedback, setFeedback] = useState<Feedback>(null);
-  const publicUrl = buildPublicEventUrl(eventId, origin);
   const input = { title, dateLabel, location, publicUrl };
   const destinations = buildShareDestinations(input);
   const nativeShareAvailable =
@@ -64,7 +82,7 @@ export default function EventShareControls({
 
   const handleShare = async () => {
     if (!nativeShareAvailable) {
-      await handleCopy(publicUrl, "Event link copied.", "Could not copy event link.");
+      await handleCopy(publicUrl, labels.copied, labels.copyFailed);
       return;
     }
 
@@ -73,7 +91,7 @@ export default function EventShareControls({
       await navigator.share(buildNativeSharePayload(input));
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") return;
-      setFeedback({ kind: "error", message: "Could not share event." });
+      setFeedback({ kind: "error", message: labels.shareFailed });
     }
   };
 
@@ -83,17 +101,17 @@ export default function EventShareControls({
       <div className="event-share-controls__actions">
         <button type="button" className="admin-btn admin-btn--secondary" onClick={handleShare}>
           <Share2 size={15} aria-hidden="true" />
-          Share event
+          {labels.share}
         </button>
         <button
           type="button"
           className="admin-btn admin-btn--secondary"
-          onClick={() => handleCopy(publicUrl, "Event link copied.", "Could not copy event link.")}
+          onClick={() => handleCopy(publicUrl, labels.copied, labels.copyFailed)}
         >
           <LinkIcon size={15} aria-hidden="true" />
-          Copy event link
+          {labels.copy}
         </button>
-        {!compact && (
+        {!compact && subject === "event" && (
           <button
             type="button"
             className="admin-btn admin-btn--ghost"

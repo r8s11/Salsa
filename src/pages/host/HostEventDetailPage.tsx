@@ -23,6 +23,7 @@ import { eventTypeLabels } from "../../features/events/model/eventTypeDisplay";
 import { fromEventDateInstant, formatTimeLabel } from "../../features/events/model/eventDateTime";
 import AdminStatusBadge from "../../features/admin/components/common/AdminStatusBadge";
 import EventShareControls from "../../features/events/components/EventShareControls";
+import { buildPublicEventUrl } from "../../features/events/model/eventSharing";
 import { useEventAttendees } from "../../features/host/hooks/useEventAttendees";
 import { useEventCheckIns } from "../../features/host/hooks/useEventCheckIns";
 import AdminConfirmDialog from "../../features/admin/components/common/AdminConfirmDialog";
@@ -289,7 +290,7 @@ export default function HostEventDetailPage() {
       {isPublic && (
         <section className="admin-card host-event-detail__share">
           <EventShareControls
-            eventId={event.id}
+            url={buildPublicEventUrl(event.id)}
             title={event.title}
             dateLabel={row.dateLabel}
             location={event.location}

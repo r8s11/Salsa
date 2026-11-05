@@ -80,6 +80,7 @@ describe("submissionsRepo", () => {
       event_types: ["social"],
       city: "boston",
       sublocation: null,
+      neighborhood: null,
       event_date: "2026-08-20T20:00:00Z",
       event_time: null,
       location: null,
@@ -105,6 +106,38 @@ describe("submissionsRepo", () => {
       })
     );
     expect(queryBuilder.select).not.toHaveBeenCalled();
+  });
+
+  it("stores the NYC borough in submitted_data so approval can copy it to the event", async () => {
+    queryBuilder.insert.mockClear();
+
+    await createSubmission({
+      submitter_id: "user-1",
+      submitter_email: "user@example.com",
+      submitter_name: "Dancer",
+      title: "Brooklyn Social",
+      description: null,
+      event_type: "social",
+      event_types: ["social"],
+      city: "new-york-city",
+      sublocation: "brooklyn",
+      neighborhood: null,
+      event_date: "2026-08-20T20:00:00Z",
+      event_time: null,
+      location: null,
+      address: null,
+      price_type: null,
+      price_amount: null,
+      rsvp_link: null,
+      recurrence: null,
+      dance_styles: [],
+    });
+
+    expect(queryBuilder.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        submitted_data: expect.objectContaining({ city: "new-york-city", sublocation: "brooklyn" }),
+      })
+    );
   });
 
   it("approves through atomic taxonomy RPC", async () => {

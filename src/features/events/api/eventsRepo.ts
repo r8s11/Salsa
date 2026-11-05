@@ -6,7 +6,8 @@ import { shortCodeIdRange } from "../model/shortLink";
 import { replaceEventTaxonomyTerms } from "../../admin/api/taxonomyRepo";
 import type { EntityReview } from "../../entity-matching/entityReview";
 import { flyerPayload } from "../model/eventFlyers";
-import type { SubLocation } from "../../metros/model/sublocation";
+import { normalizeSubLocation, type SubLocation } from "../../metros/model/sublocation";
+import { normalizeNeighborhood } from "../../metros/model/neighborhood";
 
 export interface AdminEventPayload {
   title: string;
@@ -18,6 +19,8 @@ export interface AdminEventPayload {
   city: City;
   /** Optional NYC borough; null clears it (All NYC). Omitted leaves the stored value alone. */
   sublocation?: SubLocation | null;
+  /** Optional curated area; null clears it and omission preserves it unless its parent changes. */
+  neighborhood?: string | null;
   event_date: string;
   event_time: string | null;
   location: string | null;
@@ -61,8 +64,18 @@ export function projectEventTaxonomy(rows: EventWithTaxonomy[] | null): Database
 
 export async function fetchApprovedEvents(
   city: City,
-  subLocation: SubLocation | null = null
+  subLocation: SubLocation | null = null,
+  neighborhood: string | null = null
 ): Promise<DatabaseEvent[]> {
+  if (subLocation !== null && normalizeSubLocation(city, subLocation) !== subLocation) {
+    throw new Error("Borough does not belong to the selected city.");
+  }
+  if (
+    neighborhood !== null &&
+    normalizeNeighborhood(city, subLocation, neighborhood) !== neighborhood
+  ) {
+    throw new Error("Neighborhood does not belong to the selected city and borough.");
+  }
   const today = new Date();
   today.setDate(today.getDate() - 1);
   const floorDate = today.toISOString();
@@ -71,8 +84,9 @@ export async function fetchApprovedEvents(
     .select("*")
     .eq("status", "approved")
     .eq("city", city);
-  // NULL means "All NYC": no borough filter. A borough matches that exact borough only.
+  // NULL means all neighborhoods within the selected city/borough.
   if (subLocation) query = query.eq("sublocation", subLocation);
+  if (neighborhood) query = query.eq("neighborhood", neighborhood);
   const { data, error } = await query
     .gte("event_date", floorDate)
     .order("event_date", { ascending: true });
@@ -95,6 +109,36 @@ export async function fetchApprovedEventById(id: string): Promise<DatabaseEvent 
 
   if (error) throw new Error(error.message);
   return projectEventTaxonomy(data ? [data as EventWithTaxonomy] : null)[0] ?? null;
+}
+
+/** Approved public events in one city starting in [startISO, endISO). */
+export async function fetchApprovedEventsBetween(
+  city: City,
+  startISO: string,
+  endISO: string
+): Promise<DatabaseEvent[]> {
+  const { data, error } = await supabase
+    .from("public_events")
+    .select("*")
+    .eq("status", "approved")
+    .eq("city", city)
+    .gte("event_date", startISO)
+    .lt("event_date", endISO)
+    .order("event_date", { ascending: true });
+  if (error) throw new Error(error.message);
+  return projectEventTaxonomy(data as EventWithTaxonomy[] | null);
+}
+
+export async function fetchApprovedEventsByIds(ids: string[]): Promise<DatabaseEvent[]> {
+  if (ids.length === 0) return [];
+  const { data, error } = await supabase
+    .from("public_events")
+    .select("*")
+    .eq("status", "approved")
+    .in("id", ids)
+    .order("event_date", { ascending: true });
+  if (error) throw new Error(error.message);
+  return projectEventTaxonomy(data as EventWithTaxonomy[] | null);
 }
 
 export interface ShortLinkMatch {
@@ -177,6 +221,21 @@ export async function setEventStatus(
   }
 }
 
+/**
+ * Feature or unfeature one event on the homepage. The RPC is the only write
+ * path for `featured_at`: it requires an active admin or moderator, refuses to
+ * feature unpublished or already-started events, and audits the change.
+ * Resolves to the stored `featured_at` (null once unfeatured).
+ */
+export async function setEventFeatured(id: string, featured: boolean): Promise<string | null> {
+  const { data, error } = await supabase.rpc("set_event_featured", {
+    p_event_id: id,
+    p_featured: featured,
+  });
+  if (error) throw new Error(error.message);
+  return (data as string | null) ?? null;
+}
+
 export async function updateEvent(id: string, payload: AdminEventPayload): Promise<void> {
   const { error } = await supabase.rpc("save_event_with_entities", {
     p_event_id: id,
@@ -233,6 +292,7 @@ export type UserEventUpdatePayload = {
   event_types: EventType[];
   city: City;
   sublocation?: SubLocation | null;
+  neighborhood?: string | null;
   event_date: string;
   event_time?: string | null;
   location?: string | null;
@@ -265,6 +325,7 @@ export async function updateEventForUser(
     city: payload.city,
     // Always written alongside city: a city change must clear a stale borough.
     ...(payload.sublocation !== undefined ? { sublocation: payload.sublocation } : {}),
+    ...(payload.neighborhood !== undefined ? { neighborhood: payload.neighborhood } : {}),
     event_date: payload.event_date,
     event_time: payload.event_time ?? null,
     location: payload.location ?? null,
@@ -339,6 +400,8 @@ export async function duplicateEvent(
     status: _status,
     source_type: _sourceType,
     cancellation_reason: _cancellationReason,
+    // A copy starts unfeatured; featuring is its own audited action.
+    featured_at: _featuredAt,
     event_date: _eventDate,
     event_time: _eventTime,
     taxonomy_term_ids: taxonomyTermIds = [],
@@ -384,11 +447,26 @@ export async function duplicateEvent(
 export type EventTouchKind = "view" | "rsvp_click" | "ticket_click" | "share";
 
 /**
- * Sends only event id + allowlisted interaction kind. Detail views are
+ * Umami event names. The metro is part of the name (`event-view:boston`)
+ * because Umami's event-listing API filters by name but does not return event
+ * properties; `scripts/repeat-dancers.mjs` depends on this shape.
+ */
+const UMAMI_EVENT_NAMES: Record<EventTouchKind, string> = {
+  view: "event-view",
+  rsvp_click: "rsvp-click",
+  ticket_click: "ticket-click",
+  share: "event-share",
+};
+
+type UmamiWindow = Window & { umami?: { track: (name: string, data?: Record<string, string>) => Promise<unknown> | void } };
+
+/**
+ * Sends only event id + allowlisted interaction kind to the first-party
+ * counter, and the kind + event metro to cookieless Umami. Detail views are
  * session-deduped per event/day; explicit outbound/share actions count each
  * activation. Telemetry failures are swallowed and never gate navigation.
  */
-export async function recordEventTouch(eventId: string, kind: EventTouchKind): Promise<void> {
+export async function recordEventTouch(eventId: string, kind: EventTouchKind, metro?: string | null): Promise<void> {
   try {
     const privacy = navigator as Navigator & { globalPrivacyControl?: boolean };
     if (privacy.doNotTrack === "1" || privacy.globalPrivacyControl === true) return;
@@ -397,6 +475,12 @@ export async function recordEventTouch(eventId: string, kind: EventTouchKind): P
       const key = `salsasegura-touch:${kind}:${eventId}:${day}`;
       if (window.sessionStorage.getItem(key)) return;
       window.sessionStorage.setItem(key, day);
+    }
+    const metroTag = metro?.trim() || "none";
+    try {
+      void Promise.resolve((window as UmamiWindow).umami?.track(`${UMAMI_EVENT_NAMES[kind]}:${metroTag}`, { metro: metroTag })).catch(() => undefined);
+    } catch {
+      // A blocked analytics vendor must not suppress the first-party counter.
     }
     await supabase.rpc("record_event_touch", { p_event_id: eventId, p_kind: kind });
   } catch {

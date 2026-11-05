@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { updatePageTitle, updateMetaDescription, updateCanonicalUrl } from "../../utils/seo";
+import { canonicalUrl, updatePageTitle, updateMetaDescription, updateCanonicalUrl } from "../../utils/seo";
 
 interface DocumentMetaOptions {
   title: string;
@@ -29,17 +29,18 @@ export function useDocumentMeta({ title, description, canonical, robots, image }
     updatePageTitle(title);
     updateMetaDescription(description);
     if (canonical) updateCanonicalUrl(canonical);
-    if (robots && robotsEl) robotsEl.setAttribute("content", robots);
+    const socialImage = image?.trim() || canonicalUrl("/og-image.jpg");
     const socialValues = [
+      ["name", "robots", robots ?? previousRobots ?? "index, follow"],
       ["property", "og:title", document.title],
       ["property", "og:description", description],
       ["property", "og:url", canonical],
       ["property", "og:type", "website"],
-      ["property", "og:image", image],
-      ["name", "twitter:card", image ? "summary_large_image" : "summary"],
+      ["property", "og:image", socialImage],
+      ["name", "twitter:card", "summary_large_image"],
       ["name", "twitter:title", document.title],
       ["name", "twitter:description", description],
-      ["name", "twitter:image", image],
+      ["name", "twitter:image", socialImage],
     ] as const;
     const socialState = socialValues.map(([attribute, key, value]) => {
       const element = document.querySelector<HTMLMetaElement>(`meta[${attribute}="${key}"]`);
@@ -71,9 +72,6 @@ export function useDocumentMeta({ title, description, canonical, robots, image }
       if (canonical) {
         if (hadCanonical && previousCanonical !== null) updateCanonicalUrl(previousCanonical);
         else document.querySelector('link[rel="canonical"]')?.remove();
-      }
-      if (robots && robotsEl && previousRobots !== null) {
-        robotsEl.setAttribute("content", previousRobots);
       }
     };
   }, [title, description, canonical, robots, image]);

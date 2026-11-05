@@ -21,6 +21,7 @@ const draft: EventFormDraft = {
   event_type: "",
   city: "boston",
   sublocation: "",
+  neighborhood: null,
   event_date: "",
   event_time: "",
   recurrence: "",
@@ -108,10 +109,71 @@ describe("EventForm", () => {
       event_type: "class",
       event_types: ["class"],
     });
-    expect(onChange).toHaveBeenNthCalledWith(2, { ...draft, city: "new-york-city" });
+    expect(onChange).toHaveBeenNthCalledWith(2, {
+      ...draft,
+      city: "new-york-city",
+      sublocation: "",
+      neighborhood: null,
+    });
     expect(onChange).toHaveBeenNthCalledWith(3, { ...draft, price_type: "paid" });
   });
 
+  it("clears neighborhood when borough changes and clears borough and neighborhood when city changes", () => {
+    const onChange = vi.fn();
+    render(
+      <EventForm
+        draft={{ ...draft, city: "new-york-city", sublocation: "brooklyn", neighborhood: "williamsburg" }}
+        onChange={onChange}
+        capabilities={CAPABILITIES.submit}
+      />
+    );
+
+    fireEvent.change(screen.getByLabelText("Borough"), { target: { value: "queens" } });
+    expect(onChange).toHaveBeenCalledWith({
+      ...draft,
+      city: "new-york-city",
+      sublocation: "queens",
+      neighborhood: null,
+    });
+    onChange.mockClear();
+    fireEvent.change(screen.getByLabelText("City *"), { target: { value: "boston" } });
+    expect(onChange).toHaveBeenCalledWith({
+      ...draft,
+      city: "boston",
+      sublocation: "",
+      neighborhood: null,
+    });
+  });
+  it("lists curated neighborhoods for the selected parent and preserves a loaded selection", () => {
+    const onChange = vi.fn();
+    const bostonDraft = { ...draft, city: "boston", neighborhood: "back-bay" };
+    render(<EventForm draft={bostonDraft} onChange={onChange} capabilities={CAPABILITIES.submit} />);
+
+    const neighborhood = screen.getByLabelText("Neighborhood") as HTMLSelectElement;
+    expect(neighborhood.value).toBe("back-bay");
+    expect(screen.getByRole("option", { name: "Back Bay" })).toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: "Astoria" })).not.toBeInTheDocument();
+    fireEvent.change(neighborhood, { target: { value: "allston" } });
+    expect(onChange).toHaveBeenCalledWith({ ...bostonDraft, neighborhood: "allston" });
+  });
+  it("requires an NYC borough before neighborhood options are available", () => {
+    const onChange = vi.fn();
+    const props = { onChange, capabilities: CAPABILITIES.submit };
+    const { rerender } = render(
+      <EventForm draft={{ ...draft, city: "new-york-city" }} {...props} />
+    );
+    expect(screen.getByLabelText("Neighborhood")).toBeDisabled();
+    expect(screen.queryByRole("option", { name: "Williamsburg" })).not.toBeInTheDocument();
+
+    rerender(
+      <EventForm
+        draft={{ ...draft, city: "new-york-city", sublocation: "brooklyn" }}
+        {...props}
+      />
+    );
+    expect(screen.getByLabelText("Neighborhood")).toBeEnabled();
+    expect(screen.getByRole("option", { name: "Williamsburg" })).toBeInTheDocument();
+  });
   describe("event type multi-select", () => {
     const typeButton = (name: string) => screen.getByRole("button", { name });
 

@@ -5,7 +5,7 @@ import type { NativeEventSharePayload } from "../model/eventSharing";
 import EventShareControls from "./EventShareControls";
 
 const input = {
-  eventId: "event-123",
+  url: "https://www.salsasegura.com/events/event-123",
   title: "Havana Nights Social",
   dateLabel: "Friday, October 24 at 9:00 PM",
   location: "The Grand Ballroom",
@@ -35,7 +35,7 @@ describe("EventShareControls", () => {
   it("copies canonical public URL only after clipboard succeeds", async () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     mockClipboard(writeText);
-    render(<EventShareControls {...input} origin="https://www.salsasegura.com" />);
+    render(<EventShareControls {...input} />);
 
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: "Copy event link" }));
@@ -48,7 +48,7 @@ describe("EventShareControls", () => {
   it("copies truthful promotional caption", async () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     mockClipboard(writeText);
-    render(<EventShareControls {...input} origin="https://www.salsasegura.com" />);
+    render(<EventShareControls {...input} />);
 
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: "Copy promotional text" }));
@@ -62,7 +62,7 @@ describe("EventShareControls", () => {
 
   it("announces generic clipboard failure without raw internal error", async () => {
     mockClipboard(vi.fn().mockRejectedValue(new Error("permission backend detail")));
-    render(<EventShareControls {...input} origin="https://www.salsasegura.com" />);
+    render(<EventShareControls {...input} />);
 
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: "Copy event link" }));
@@ -75,7 +75,7 @@ describe("EventShareControls", () => {
   it("keeps Share event available as a copy-link fallback without native share", async () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     mockClipboard(writeText);
-    render(<EventShareControls {...input} origin="https://www.salsasegura.com" compact />);
+    render(<EventShareControls {...input} compact />);
 
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: "Share event" }));
@@ -88,7 +88,7 @@ describe("EventShareControls", () => {
     const share = vi.fn().mockResolvedValue(undefined);
     mockShare(share);
     const user = userEvent.setup();
-    render(<EventShareControls {...input} origin="https://www.salsasegura.com" />);
+    render(<EventShareControls {...input} />);
 
     await user.click(screen.getByRole("button", { name: "Share event" }));
 
@@ -102,7 +102,7 @@ describe("EventShareControls", () => {
   it("does not announce native share cancellation as failure", async () => {
     mockShare(vi.fn().mockRejectedValue(new DOMException("cancelled", "AbortError")));
     const user = userEvent.setup();
-    render(<EventShareControls {...input} origin="https://www.salsasegura.com" />);
+    render(<EventShareControls {...input} />);
 
     await user.click(screen.getByRole("button", { name: "Share event" }));
 
@@ -112,7 +112,7 @@ describe("EventShareControls", () => {
   it("shows generic native share failure", async () => {
     mockShare(vi.fn().mockRejectedValue(new Error("sdk internals")));
     const user = userEvent.setup();
-    render(<EventShareControls {...input} origin="https://www.salsasegura.com" />);
+    render(<EventShareControls {...input} />);
 
     await user.click(screen.getByRole("button", { name: "Share event" }));
 
@@ -121,7 +121,7 @@ describe("EventShareControls", () => {
   });
 
   it("renders encoded WhatsApp, email, Facebook links only in full mode", () => {
-    render(<EventShareControls {...input} origin="https://www.salsasegura.com" />);
+    render(<EventShareControls {...input} />);
 
     expect(screen.getByRole("link", { name: "Share on WhatsApp" })).toHaveAttribute(
       "target",
@@ -138,8 +138,24 @@ describe("EventShareControls", () => {
   });
 
   it("omits destination links in compact mode", () => {
-    render(<EventShareControls {...input} origin="https://www.salsasegura.com" compact />);
+    render(<EventShareControls {...input} compact />);
 
     expect(screen.queryByRole("link", { name: "Share on WhatsApp" })).not.toBeInTheDocument();
+  });
+
+  it("relabels actions for a week and drops the event promo caption", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    mockClipboard(writeText);
+    render(<EventShareControls {...input} subject="week" />);
+
+    expect(screen.getByRole("button", { name: "Share this week" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Copy promotional text" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Share on WhatsApp" })).toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Copy week link" }));
+    });
+
+    expect(screen.getByRole("status")).toHaveTextContent("Week link copied.");
   });
 });

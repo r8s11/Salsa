@@ -121,3 +121,21 @@ describe("eventFormAdapters", () => {
     expect(draftToAdminPayload({ ...nyc, sublocation: "" }).sublocation).toBeNull();
   });
 });
+  it("persists only a neighborhood valid for the selected city and borough", () => {
+    const actor = { id: "u1", email: "u@example.com" };
+    const brooklyn: EventFormDraft = {
+      ...baseDraft,
+      city: "new-york-city",
+      sublocation: "brooklyn",
+      neighborhood: "williamsburg",
+    };
+    expect(draftToSubmission(brooklyn, actor).neighborhood).toBe("williamsburg");
+    expect(draftToUserPayload(brooklyn).neighborhood).toBe("williamsburg");
+    expect(draftToAdminPayload(brooklyn).neighborhood).toBe("williamsburg");
+
+    const mismatch = { ...brooklyn, neighborhood: "astoria" };
+    expect(draftToSubmission(mismatch, actor).neighborhood).toBeNull();
+    expect(draftToUserPayload(mismatch).neighborhood).toBeNull();
+    expect(draftToAdminPayload(mismatch).neighborhood).toBeNull();
+    expect(draftToAdminPayload(baseDraft).neighborhood).toBeNull();
+  });

@@ -283,6 +283,10 @@
   grid-column: 1 / -1;
 }
 
+.night-actions--solo {
+  grid-template-columns: 1fr;
+}
+
 .night-actions--bar {
   display: none;
 }
@@ -294,20 +298,50 @@
   font-size: 0.8125rem;
 }
 
+/* Utilities: three labeled tiles on a raised surface, one consistent row.
+   Icon over label so long labels wrap inside their tile. The em-based track
+   minimum keeps three across from 320px up, and restacks the tiles under
+   large text zoom rather than breaking "calendar" mid-word. */
 .night-utilities {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 20px;
-  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 5.25em), 1fr));
+  gap: 8px;
+  margin-top: 16px;
 }
 
 .night-utilities .night-utility {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 44px;
-  padding-inline: 0;
-  font-size: 0.75rem;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 64px;
+  padding: 10px 6px;
+  border: 1px solid var(--border-lg);
+  border-radius: var(--radius-md);
+  background: var(--card);
+  color: var(--text);
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  line-height: 1.25;
+  text-align: center;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+.night-utilities .night-utility svg {
+  flex-shrink: 0;
+  color: var(--gold);
+}
+
+/* The tile carries its own border; the ghost underline sweep would
+   collide with the wrapped label. */
+.night-utilities .night-utility::after {
+  content: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .night-utilities .night-utility:hover {
+    background: var(--card-hover);
+    border-color: var(--gold);
+  }
 }
 
 /* ── Action feedback (share/copy outcomes) ── */
@@ -829,7 +863,7 @@
   }
 
   .night-utilities {
-    gap: 0 16px;
+    margin-top: 12px;
   }
 
   .night-details {

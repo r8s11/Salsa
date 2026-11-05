@@ -294,6 +294,51 @@ export function decisionSummary(item: EntityReviewItem, kind: EntityKind): strin
   }
 }
 
+/** `submitted`: a moderator reading what a public submitter chose. */
+export type LinkMode = "public" | "authorized" | "submitted";
+
+const SUBMITTED_STATUS: Record<EntityDecision, string> = {
+  existing: "Submitter picked a listed record",
+  new: "Submitter suggested it as new",
+  removed: "Submitter removed it",
+  pending: "Submitter left it undecided",
+};
+
+/**
+ * The short verdict for the "Linked to this event" summary. Public decisions
+ * are suggestions a moderator confirms; authorized decisions are applied when
+ * the event is saved or the submission approved.
+ */
+export function linkStatus(
+  item: EntityReviewItem,
+  mode: LinkMode
+): { label: string; detail: string } {
+  if (mode === "submitted") return { label: SUBMITTED_STATUS[item.decision], detail: "" };
+  const isPublic = mode === "public";
+  switch (item.decision) {
+    case "existing":
+      return {
+        label: "Existing — will be linked",
+        detail: isPublic
+          ? "Linked to the listed record once a moderator approves the event."
+          : "Linked to the listed record.",
+      };
+    case "new":
+      return isPublic
+        ? { label: "Suggested new — moderator reviews", detail: "A moderator checks it before it is added." }
+        : { label: "New — will be added", detail: "A new record is created from these details." };
+    case "removed":
+      return { label: "Not linked", detail: "Removed from this event." };
+    case "pending":
+      return {
+        label: "Needs your choice",
+        detail: isPublic
+          ? "Pick an existing record or suggest it as new. If you leave it, a moderator decides."
+          : "Pick an existing record or add it as new. Undecided items are not linked.",
+      };
+  }
+}
+
 /** A matched venue replaces the flyer's raw venue text, as exact matches always have. */
 export function enrichExtractionWithReview(
   extraction: ExtractedEvent,
@@ -420,4 +465,29 @@ export function moderatorStartingReview(
   return submitted
     ? { review: suggestionsToPending(submitted), demoted: true }
     : { review: null, demoted: false };
+}
+
+/**
+ * Who picked the listed record `id` as a `kind` in a stored submission. The
+ * moderator's saved edits replace the submitter's suggestion entirely, so a
+ * link the moderator removed reports nobody.
+ */
+export function submissionLinkSource(
+  submittedReview: unknown,
+  editedReview: unknown,
+  kind: EntityKind,
+  id: string
+): "moderator" | "submitter" | null {
+  const edited = readStoredEntityReview(editedReview);
+  const review = edited ?? readStoredEntityReview(submittedReview);
+  const picked =
+    review !== null &&
+    listReviewEntries(review).some(
+      (entry) =>
+        entry.kind === kind &&
+        entry.item.decision === "existing" &&
+        entry.item.selected_id === id.toLowerCase()
+    );
+  if (!picked) return null;
+  return edited ? "moderator" : "submitter";
 }

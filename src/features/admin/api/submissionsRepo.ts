@@ -24,6 +24,7 @@ export type SubmissionCreate = {
   event_types: EventType[];
   city: string;
   sublocation: string | null;
+  neighborhood: string | null;
   event_date: string;
   event_time: string | null;
   location: string | null;

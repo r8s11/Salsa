@@ -28,6 +28,7 @@ import { validateAdminEventForm } from "../../features/admin/model/adminEventFor
 import { fromEventDateInstant } from "../../features/events/model/eventDateTime";
 import { eventTypeFieldsFrom } from "../../features/events/model/eventTypeSelection";
 import type { DatabaseEvent } from "../../features/events/model/types";
+import { normalizeNeighborhood } from "../../features/metros/model/neighborhood";
 import { normalizeSubLocation } from "../../features/metros/model/sublocation";
 import "./HostEditEventPage.css";
 
@@ -39,6 +40,11 @@ function eventToDraft(event: DatabaseEvent): EventFormDraft {
     ...eventTypeFieldsFrom(event),
     city: event.city,
     sublocation: normalizeSubLocation(event.city, event.sublocation) ?? "",
+    neighborhood: normalizeNeighborhood(
+      event.city,
+      normalizeSubLocation(event.city, event.sublocation),
+      event.neighborhood
+    ),
     event_date: date,
     event_time: time,
     recurrence: event.recurrence === "weekly" ? "weekly" : "",

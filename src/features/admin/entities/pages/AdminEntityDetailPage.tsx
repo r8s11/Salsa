@@ -6,6 +6,7 @@ import { useMetros } from "../../../metros/hooks/useMetros";
 import AdminConfirmDialog from "../../components/common/AdminConfirmDialog";
 import AdminDjGigsSection from "../../components/entities/AdminDjGigsSection";
 import AdminEntityTeamSection from "../../components/entities/AdminEntityTeamSection";
+import AdminEntityPendingSubmissions from "./AdminEntityPendingSubmissions";
 import { useAdminEntity, useAdminEntityActions, useAdminEntityDirectory, useAdminVenueOptions } from "../hooks/useAdminEntities";
 import {
   buildEntityForm,
@@ -198,6 +199,7 @@ export default function AdminEntityDetailPage({ kind, mode }: { kind: EntityKind
               <span className="admin-entity-page__event-meta"><time dateTime={event.event_date}>{eventDate.format(new Date(event.event_date))}</time><span className="admin-entity-page__event-status">{event.status.replace(/_/g, " ")}</span></span>
             </li>)}</ul> : <p className="admin-entity-page__quiet">No linked events.</p>}
           </section>}
+          {(kind === "organizer" || kind === "school" || kind === "instructor") && current.id && <AdminEntityPendingSubmissions kind={kind} id={current.id} singular={labels.singular} />}
           {(kind === "school" || kind === "instructor" || kind === "dj") && current.id && <AdminEntityTeamSection kind={kind} id={current.id} />}
         </div>
       </div>}

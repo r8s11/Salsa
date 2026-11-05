@@ -1,0 +1,98 @@
+{
+  "titleSuffix": " | Salsa Segura",
+  "home": {
+    "path": "/",
+    "title": "Find Salsa & Bachata Events",
+    "description": "Find salsa, bachata, and Latin dance socials, classes, and workshops across Greater Boston and New York City."
+  },
+  "metroHome": {
+    "title": "Salsa & Bachata Events in {city}",
+    "description": "Find salsa, bachata, and Latin dance events in {city}. Browse local socials, classes, and workshops."
+  },
+  "calendar": {
+    "path": "/calendar",
+    "title": "Dance Calendar — Salsa, Bachata & Latin Dance Events",
+    "description": "Browse upcoming salsa, bachata, and Latin dance socials, classes, and workshops across Greater Boston and New York City."
+  },
+  "about": {
+    "path": "/about",
+    "title": "About Salsa Segura",
+    "description": "Learn how Salsa Segura helps dancers find salsa, bachata, and Latin dance events across Greater Boston and New York City."
+  },
+  "contact": {
+    "path": "/contact",
+    "title": "Contact Salsa Segura",
+    "description": "Get in touch with Salsa Segura about salsa and bachata event listings across Greater Boston and New York City."
+  },
+  "submit": {
+    "path": "/submit",
+    "title": "Submit a Dance Event",
+    "description": "Share a salsa, bachata, or Latin dance event for review and listing on the Salsa Segura calendar.",
+    "robots": "noindex, follow"
+  },
+  "lessons": {
+    "path": "/lessons",
+    "title": "Dance Lessons",
+    "description": "Dance lessons are not listed yet. Browse current salsa and bachata events on the Salsa Segura calendar.",
+    "robots": "noindex, follow"
+  },
+  "prerenderedMetros": [
+    { "slug": "boston", "name": "Boston" },
+    { "slug": "new-york-city", "name": "New York City" }
+  ],
+  "directories": [
+    {
+      "path": "/discover",
+      "title": "Discover dance communities",
+      "description": "Search approved dance events, series, organizers, venues, schools, instructors, cities, and styles."
+    },
+    {
+      "path": "/series",
+      "kind": "series",
+      "title": "Series directory",
+      "description": "Browse approved series across Boston, New York, and other dance communities."
+    },
+    {
+      "path": "/organizers",
+      "kind": "organizer",
+      "title": "Organizer directory",
+      "description": "Browse approved organizers across Boston, New York, and other dance communities."
+    },
+    {
+      "path": "/venues",
+      "kind": "venue",
+      "title": "Venue directory",
+      "description": "Browse approved venues across Boston, New York, and other dance communities."
+    },
+    {
+      "path": "/schools",
+      "kind": "school",
+      "title": "School directory",
+      "description": "Browse approved schools across Boston, New York, and other dance communities."
+    },
+    {
+      "path": "/instructors",
+      "kind": "instructor",
+      "title": "Instructor directory",
+      "description": "Browse approved instructors across Boston, New York, and other dance communities."
+    },
+    {
+      "path": "/djs",
+      "kind": "dj",
+      "title": "DJ directory",
+      "description": "Browse approved DJs across Boston, New York, and other dance communities."
+    },
+    {
+      "path": "/cities",
+      "kind": "city",
+      "title": "City directory",
+      "description": "Browse approved cities across Boston, New York, and other dance communities."
+    },
+    {
+      "path": "/styles",
+      "kind": "style",
+      "title": "Dance style directory",
+      "description": "Browse approved dance styles across Boston, New York, and other dance communities."
+    }
+  ]
+}

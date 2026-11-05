@@ -4,7 +4,15 @@ import type { UserEventUpdatePayload, AdminEventPayload } from "../api/eventsRep
 import { toEventDateInstant } from "../model/eventDateTime";
 import { eventTypePayload } from "../model/eventTypeSelection";
 import { flyerPayload } from "../model/eventFlyers";
+import { normalizeNeighborhood } from "../../metros/model/neighborhood";
 import { normalizeSubLocation } from "../../metros/model/sublocation";
+
+const normalizedNeighborhood = (draft: EventFormDraft) =>
+  normalizeNeighborhood(
+    draft.city,
+    normalizeSubLocation(draft.city, draft.sublocation),
+    draft.neighborhood
+  );
 
 export function draftToSubmission(
   draft: EventFormDraft,
@@ -30,6 +38,7 @@ export function draftToSubmission(
     recurrence: draft.recurrence || null,
     city: draft.city,
     sublocation: normalizeSubLocation(draft.city, draft.sublocation),
+    neighborhood: normalizedNeighborhood(draft),
     ...(draft.entity_review ? { entity_review: draft.entity_review } : {}),
   };
 }
@@ -51,6 +60,7 @@ export function draftToUserPayload(draft: EventFormDraft): UserEventUpdatePayloa
     recurrence: draft.recurrence || null,
     city: draft.city,
     sublocation: normalizeSubLocation(draft.city, draft.sublocation),
+    neighborhood: normalizedNeighborhood(draft),
     ...flyerPayload(draft.image_urls),
   };
 }
@@ -72,11 +82,12 @@ export function draftToAdminPayload(draft: EventFormDraft): AdminEventPayload {
     recurrence: draft.recurrence || null,
     city: draft.city,
     sublocation: normalizeSubLocation(draft.city, draft.sublocation),
+    neighborhood: normalizedNeighborhood(draft),
     ...flyerPayload(draft.image_urls),
-    host: draft.host || null,
     contact_email: draft.contact_email || null,
     contact_instagram: draft.contact_instagram || null,
     contact_website: draft.contact_website || null,
+    host: draft.host || null,
     venue_id: draft.venue_id || null,
     taxonomy_term_ids: draft.taxonomy_term_ids,
     ...(draft.entity_review ? { entity_review: draft.entity_review } : {}),

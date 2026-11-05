@@ -37,7 +37,7 @@ const draft: EventFormDraft = {
 };
 
 describe("EventForm adapters", () => {
-  it("uses the authenticated email and produces only SubmissionCreate keys", () => {
+  it("uses the authenticated email and produces a submission payload", () => {
     const result = draftToSubmission(draft, { id: "user-1", email: "account@example.com" });
     expect(result.submitter_email).toBe("account@example.com");
     expect(result.event_date).toBe("2026-10-25T01:00:00Z");
@@ -52,6 +52,7 @@ describe("EventForm adapters", () => {
         "event_type",
         "event_types",
         "location",
+        "neighborhood",
         "price_amount",
         "price_type",
         "recurrence",
@@ -65,11 +66,13 @@ describe("EventForm adapters", () => {
     );
   });
 
-  it("uses an anonymous form email and emits only permitted organizer fields", () => {
+  it("uses an anonymous form email and preserves permitted organizer fields", () => {
     const submission = draftToSubmission(draft, null);
     const user = draftToUserPayload(draft);
     expect(submission.submitter_email).toBe("form@example.com");
     expect(user.price_amount).toBe(15);
+    // updateEventForUser writes `event_time ?? null`: dropping it would wipe the time on every owner edit.
+    expect(user.event_time).toBe(draft.event_time || null);
     expect(Object.keys(user).sort()).toEqual(
       [
         "address",
@@ -83,6 +86,7 @@ describe("EventForm adapters", () => {
         "image_url",
         "image_urls",
         "location",
+        "neighborhood",
         "price_amount",
         "price_type",
         "recurrence",
@@ -93,7 +97,7 @@ describe("EventForm adapters", () => {
     );
   });
 
-  it("clears price amounts for free events and emits the full admin payload without gallery", () => {
+  it("clears price amounts for free events and emits admin fields without gallery", () => {
     const freeDraft = { ...draft, price_type: "free" as const, price_amount: "15" };
     expect(draftToUserPayload(freeDraft).price_amount).toBeNull();
     const admin = draftToAdminPayload(freeDraft);
@@ -114,6 +118,7 @@ describe("EventForm adapters", () => {
         "image_url",
         "image_urls",
         "location",
+        "neighborhood",
         "price_amount",
         "price_type",
         "recurrence",
@@ -166,6 +171,28 @@ describe("EventForm adapters", () => {
         expect(payload).toHaveProperty("sublocation", null);
       }
     });
+  });
+  it("persists and clears only neighborhoods valid for the selected borough", () => {
+    const actor = { id: "user-1", email: "account@example.com" };
+    const selected = {
+      ...draft,
+      sublocation: "manhattan" as const,
+      neighborhood: "harlem",
+    };
+    expect(draftToSubmission(selected, actor).neighborhood).toBe("harlem");
+    expect(draftToUserPayload(selected).neighborhood).toBe("harlem");
+    expect(draftToAdminPayload(selected).neighborhood).toBe("harlem");
+    expect(draftToOrganizerCreatePayload(selected).neighborhood).toBe("harlem");
+    expect(draftToOrganizerUpdatePayload(selected).neighborhood).toBe("harlem");
+
+    const mismatch = { ...selected, neighborhood: "astoria" };
+    expect(draftToAdminPayload(mismatch).neighborhood).toBeNull();
+    expect(draftToOrganizerUpdatePayload(mismatch).neighborhood).toBeNull();
+    const cleared = { ...selected, neighborhood: "" };
+    expect(draftToSubmission(cleared, actor).neighborhood).toBeNull();
+    expect(draftToUserPayload(cleared).neighborhood).toBeNull();
+    expect(draftToAdminPayload(cleared).neighborhood).toBeNull();
+    expect(draftToAdminPayload({ ...selected, neighborhood: null }).neighborhood).toBeNull();
   });
 
   it("maps organizer creation to canonical fields including slug-based styles", () => {

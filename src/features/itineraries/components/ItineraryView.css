@@ -1,0 +1,470 @@
+/* Weekly itinerary — Ritmo Vivo, Read mode. Mobile first. */
+.itinerary {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: var(--space-lg) var(--space-md) var(--space-xxl);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-xl);
+  color: var(--text);
+}
+
+/* Grid children default to min-content width; the strip would widen the page. */
+.itinerary > *,
+.itinerary-header > * {
+  min-width: 0;
+}
+
+.itinerary-status {
+  min-height: 60vh;
+  display: grid;
+  place-items: center;
+  padding: var(--space-xl);
+  color: var(--text-muted);
+}
+
+.itinerary-draft {
+  margin: 0;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius);
+  background: var(--gold);
+  color: var(--on-gold);
+  font-weight: 700;
+  text-align: center;
+}
+
+.itinerary-header {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.itinerary-header h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(2rem, 7vw, 3rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.itinerary-dateline {
+  margin: 0;
+  color: var(--gold);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.itinerary-styles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.itinerary-styles li {
+  padding: var(--space-xs) var(--space-md);
+  border: 1px solid var(--border-md);
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  text-transform: capitalize;
+}
+
+.itinerary-intro {
+  margin: 0;
+  max-width: 65ch;
+  color: var(--text-muted);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+/* Week strip: scrolls sideways on phones, seven columns on wide screens. */
+.itinerary-strip ol {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(132px, 1fr);
+  gap: var(--space-sm);
+  margin: 0;
+  padding: 0 0 var(--space-xs);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  list-style: none;
+}
+
+.itinerary-strip li {
+  scroll-snap-align: start;
+}
+
+.itinerary-strip a,
+.itinerary-strip__empty {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  min-height: 44px;
+  height: 100%;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  text-decoration: none;
+  transition: border-color 160ms ease-out, background-color 160ms ease-out;
+}
+
+.itinerary-strip__empty {
+  border-style: dashed;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.itinerary-strip__empty .itinerary-strip__day {
+  color: var(--text-muted);
+}
+
+.itinerary-strip a:hover {
+  border-color: var(--red-bright);
+  background: var(--surface-high);
+}
+
+.itinerary-strip a:focus-visible,
+.itinerary-weeks a:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
+.itinerary-strip__day {
+  color: var(--red-bright);
+  font-weight: 800;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.itinerary-strip__title {
+  align-self: start;
+  max-height: calc(2 * 1.25em);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.itinerary-strip__time {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.itinerary-empty {
+  margin: 0;
+  max-width: 65ch;
+  color: var(--text-muted);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+}
+
+.itinerary-empty a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--gold);
+  font-weight: 700;
+  text-underline-offset: 3px;
+}
+
+.itinerary-empty a:hover {
+  color: var(--gold-light);
+}
+
+.itinerary-empty a:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
+.itinerary-night {
+  display: grid;
+  gap: var(--space-md);
+  scroll-margin-top: var(--space-xxl);
+}
+
+.itinerary-night h2,
+.itinerary-recommendations h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.itinerary-pick {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.itinerary-alternatives {
+  display: grid;
+  gap: var(--space-md);
+}
+
+/* Curator notes read as editorial pull text, not as a callout box. */
+.itinerary-note {
+  margin: 0;
+  padding: 0 var(--space-md);
+  max-width: 60ch;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.itinerary-note::before {
+  content: "“";
+  color: var(--red-bright);
+}
+
+.itinerary-note::after {
+  content: "”";
+  color: var(--red-bright);
+}
+
+/* Share controls render admin-btn classes for host pages; admin.css is not
+   loaded here, so give them the public secondary button (global .btn-secondary). */
+.itinerary .event-share-controls h2 {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+}
+
+.itinerary .event-share-controls .admin-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  min-height: 44px;
+  padding: 0.8rem 1.5rem;
+  background: transparent;
+  color: var(--gold);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-xl);
+  font-family: var(--font-ui);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.itinerary .event-share-controls .admin-btn:hover {
+  background: var(--gold-dim);
+  color: var(--gold-light);
+}
+
+.itinerary .event-share-controls .admin-btn:focus-visible,
+.itinerary .event-share-controls__destinations a:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
+.itinerary .event-share-controls__destinations a {
+  min-height: 44px;
+  font-size: 0.9375rem;
+}
+
+.itinerary-recommendations {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.itinerary-recommendations p {
+  margin: 0;
+  max-width: 65ch;
+  color: var(--text-muted);
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+.itinerary-admission {
+  margin: 0;
+  color: var(--gold);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.itinerary-weeks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.itinerary-weeks a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-height: 44px;
+  color: var(--text);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.itinerary-weeks a:hover {
+  color: var(--red-bright);
+}
+
+.itinerary-weeks a span {
+  color: var(--text-muted);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+.itinerary-weeks__next {
+  margin-left: auto;
+}
+
+@media (min-width: 769px) {
+  .itinerary {
+    padding: var(--space-xl) var(--space-lg) var(--space-xxl);
+  }
+
+  .itinerary-strip ol {
+    grid-auto-columns: minmax(0, 1fr);
+    overflow: visible;
+  }
+
+  .itinerary-alternatives {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .itinerary-strip a {
+    transition: none;
+  }
+}
+
+/* An actual public guide inside either admin theme. Scope public navy/ink
+   here only; the editor controls and poster actions retain admin tokens. */
+.itinerary-admin-preview {
+  --bg: #0b1326;
+  --surface: #131b2e;
+  --surface-high: #171f33;
+  --text: #dae2fd;
+  --text-muted: #e5bdbe;
+  --text-dim: #ac8889;
+  --border: rgba(255, 255, 255, 0.1);
+  --border-md: rgba(255, 255, 255, 0.16);
+  --gold: #e9c349;
+  --on-gold: #3c2f00;
+  background: var(--bg);
+  color: var(--text);
+  color-scheme: dark;
+}
+
+.itinerary-admin-preview .itinerary-header h1 {
+  overflow-wrap: anywhere;
+}
+
+.admin-shell .itinerary-admin-preview a:not([class]) {
+  color: var(--gold);
+  text-decoration-color: currentColor;
+}
+
+.admin-shell .itinerary-admin-preview button:focus-visible,
+.admin-shell .itinerary-admin-preview a:focus-visible {
+  outline-color: var(--red-bright);
+}
+
+/* The admin preview can be phone-width inside a desktop viewport. Use the
+   existing public phone geometry based on its container, not the window. */
+.itinerary-admin-preview {
+  container-type: inline-size;
+}
+
+@container (max-width: 767.98px) {
+  .itinerary-admin-preview .itinerary {
+    padding: var(--space-lg) var(--space-md) var(--space-xxl);
+  }
+
+  .itinerary-admin-preview .itinerary-strip ol {
+    grid-auto-columns: minmax(132px, 1fr);
+    overflow-x: auto;
+  }
+
+  .itinerary-admin-preview .itinerary-alternatives,
+  .itinerary-admin-preview .featured-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .itinerary-admin-preview .featured-card {
+    min-height: unset;
+  }
+
+  .itinerary-admin-preview .featured-card-media {
+    min-height: 240px;
+    aspect-ratio: 4 / 3;
+    padding: 16px;
+  }
+
+  .itinerary-admin-preview .featured-card-date {
+    min-width: 0;
+    padding: 12px 14px;
+  }
+
+  .itinerary-admin-preview .featured-card-date strong {
+    font-size: 3rem;
+  }
+
+  .itinerary-admin-preview .featured-card-body {
+    padding: 28px clamp(20px, 6cqw, 28px);
+  }
+
+  .itinerary-admin-preview .featured-card-body h3 {
+    font-size: clamp(1.75rem, 8.2cqw, 2.5rem);
+  }
+}
+
+.itinerary-pick__facts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 16px;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.itinerary-pick__facts ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.itinerary-event-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 0;
+  color: var(--gold);
+  font-weight: 600;
+  text-underline-offset: 3px;
+}
+
+.itinerary-event-link:hover {
+  color: var(--gold-light);
+}
+
+.itinerary-event-link:focus-visible {
+  outline: 2px solid var(--red-bright);
+  outline-offset: 2px;
+}

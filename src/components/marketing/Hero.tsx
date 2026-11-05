@@ -3,16 +3,15 @@ import { useLocation } from "react-router-dom";
 import ButtonLink from "../ui/ButtonLink";
 import IconButton from "../ui/IconButton";
 import { Pause, Play } from "lucide-react";
-import { useMemo, useEffect, useRef, useState, type CSSProperties } from "react";
+import { Fragment, useMemo, useEffect, useRef, useState, type CSSProperties } from "react";
 import "./Hero.css";
 import { useEvents } from "../../features/events/hooks/useEvent";
 import { useCity } from "../../contexts/useCity";
-import { useNewYorkToday } from "../../features/events/hooks/useNewYorkToday";
-import { nightOf } from "../../features/events/model/night";
-import { useMetroName } from "../../features/metros/hooks/useMetros";
-import { metroShortCode } from "../../features/metros/model/metro";
+import { metroLabelFromSlug, metroShortCode } from "../../features/metros/model/metro";
 import { subLocationLabel } from "../../features/metros/model/sublocation";
+import { neighborhoodLabel } from "../../features/metros/model/neighborhood";
 import MetroExplorer from "../../features/metros/components/MetroExplorer";
+import { featuredEventOf } from "../../features/events/model/featured";
 import { useHeroMotion } from "./Hero.motion";
 
 const NEW_YORK = "America/New_York";
@@ -23,16 +22,14 @@ const wallKey = (dt: Temporal.PlainDateTime) =>
 
 function Hero() {
   const isMetroLanding = useLocation().pathname.startsWith("/events/");
-  const { city, subLocation, source } = useCity();
+  const { city, subLocation, neighborhood, source } = useCity();
   const { events, loading, loadFailed } = useEvents();
-  const metroName = useMetroName();
-  const metroLabel = city ? metroName(city) : null;
-  const cityLabel = subLocationLabel(subLocation) ?? metroLabel;
+  const metroLabel = city ? metroLabelFromSlug(city) : null;
+  const cityLabel = neighborhoodLabel(neighborhood) ?? subLocationLabel(subLocation) ?? metroLabel;
   const cityShort = metroLabel ? metroShortCode(metroLabel) : null;
   // "Near" only when the visitor's area picked the metro; a person's own
   // choice (or the inventory fallback) is stated as "in".
   const nearby = source === "location";
-  const today = useNewYorkToday();
 
   // Text entrance is GSAP when motion is allowed (Hero.motion.ts). CSS does
   // not hide the copy, so the first frame stays complete with JavaScript off.
@@ -46,7 +43,7 @@ function Hero() {
   const nowKey = wallKey(now);
   const weekKey = wallKey(now.add({ days: 7 }));
 
-  const { featuredStart, eventsThisWeek, venueCount, tickerItems, labelArt } = useMemo(() => {
+  const { eventsThisWeek, venueCount, tickerItems, labelArt } = useMemo(() => {
     const upcoming = events
       .filter((e) => e.start >= nowKey)
       .sort((a, b) => (a.start < b.start ? -1 : a.start > b.start ? 1 : 0));
@@ -56,7 +53,7 @@ function Hero() {
 
     // The record's paper label carries the next event, printed on two arcs so
     // it reads the way a pressed label does — and it turns with the disc.
-    const featured = upcoming[0];
+    const featured = featuredEventOf(upcoming);
     const featuredTime = featured
       ? new Date(featured.start.replace(" ", "T")).toLocaleTimeString("en-US", {
           hour: "numeric",
@@ -65,7 +62,6 @@ function Hero() {
       : null;
 
     return {
-      featuredStart: featured?.start ?? null,
       eventsThisWeek: thisWeek.length,
       venueCount: venues.size,
       tickerItems: upcoming.slice(0, 8).map((e) => e.title),
@@ -78,34 +74,26 @@ function Hero() {
     };
   }, [events, nowKey, weekKey]);
 
-  // Same rule as the featured card's heading: "Tonight" only when the next
-  // event is on New York's today. Until the feed has answered (loading or
-  // failed) nothing is claimed, and the button names the section it opens.
-  const featuredNight = featuredStart && !loadFailed ? nightOf(featuredStart, today) : null;
-  const floorLabel =
-    featuredNight?.kind === "tonight"
-      ? "Tonight on the floor"
-      : featuredNight?.kind === "today"
-        ? "Today on the floor"
-        : featuredNight?.kind === "later"
-          ? `Next up · ${featuredNight.label}`
-          : "This week's floor";
 
   // A failed load has no counts to report; a dash says "unknown" where a 0
   // would claim the floor is empty. It holds through a retry so the stats
   // don't blink out and back.
-  const heroStats = useMemo(() =>
-    cityShort
-      ? [
-          { num: loadFailed ? null : eventsThisWeek, label: "Events This Week" },
-          { num: loadFailed ? null : venueCount, label: venueCount === 1 ? "Venue" : "Venues" },
-          { num: cityShort, label: "On The Floor" },
-        ]
-      : [],
-    [cityShort, loadFailed, eventsThisWeek, venueCount]
-  );
+  const heroStats = [
+    { num: loadFailed ? null : eventsThisWeek, label: "Events This Week" },
+    { num: loadFailed ? null : venueCount, label: venueCount === 1 ? "Venue" : "Venues" },
+    { num: cityShort, label: "On The Floor" },
+  ];
 
   const [tickerPaused, setTickerPaused] = useState(false);
+
+  // The heading's words never break, so its size is capped by the longest
+  // one: a long city name or 200% text zoom shrinks the type to fit the
+  // column instead of running a word past the clipped edge (Hero.css).
+  const headingWords =
+    cityLabel && isMetroLanding
+      ? ["Salsa", "&", "Bachata", "in", ...cityLabel.split(/\s+/)]
+      : ["Find", "Your", "Rhythm."];
+  const longestHeadingWord = Math.max(...headingWords.map((word) => word.length));
 
   const heroRef = useRef<HTMLDivElement>(null);
   useHeroMotion(heroRef, `${isMetroLanding ? "metro" : "home"}:${cityLabel ?? ""}`);
@@ -258,7 +246,12 @@ function Hero() {
             </span>
           </div>
 
-          <h1 className="hero-heading hero-enter" data-enter="heading" data-split-words>
+          <h1
+            className="hero-heading hero-enter"
+            data-enter="heading"
+            data-split-words
+            style={{ "--hero-word-ch": longestHeadingWord } as CSSProperties}
+          >
             <span className="hero-split-source">
               {cityLabel && isMetroLanding ? (
                 <>
@@ -285,17 +278,19 @@ function Hero() {
               {cityLabel && isMetroLanding ? (
                 <>
                   <span className="hero-heading-line" data-line="1">
-                    {["Salsa", "&", "Bachata"].map((word) => (
-                      <span className="hero-split-word" key={word}>
-                        {word}{" "}
-                      </span>
+                    {["Salsa", "&", "Bachata"].map((word, index) => (
+                      <Fragment key={word}>
+                        {index > 0 && " "}
+                        <span className="hero-split-word">{word}</span>
+                      </Fragment>
                     ))}
                   </span>
                   <span className="hero-heading-line" data-line="2">
-                    {["in", ...cityLabel.split(/\s+/).filter(Boolean)].map((word) => (
-                      <span className="hero-split-word hero-heading-accent" key={word}>
-                        {word}{" "}
-                      </span>
+                    {["in", ...cityLabel.split(/\s+/).filter(Boolean)].map((word, index) => (
+                      <Fragment key={`${word}-${index}`}>
+                        {index > 0 && " "}
+                        <span className="hero-split-word hero-heading-accent">{word}</span>
+                      </Fragment>
                     ))}
                   </span>
                 </>
@@ -331,35 +326,37 @@ function Hero() {
 
           <div className="hero-cta hero-enter" data-enter="cta">
             <a href="#events" className="ui-button ui-button--primary hero-btn hero-btn--primary">
-              {floorLabel}
+              See upcoming events
             </a>
             <ButtonLink to="/calendar" variant="secondary" className="hero-btn hero-btn--secondary">
               Full calendar
             </ButtonLink>
           </div>
 
-          {heroStats.length > 0 && (!loading || loadFailed) && (
-            <div className="hero-stats hero-stats--compact hero-enter" data-enter="stats">
-              {heroStats.map((stat) => (
+          <div
+            className={`hero-stats hero-stats--compact hero-enter${!cityShort || (loading && !loadFailed) ? " hero-stats--pending" : ""}`}
+            data-enter="stats"
+            aria-hidden={!cityShort || (loading && !loadFailed) || undefined}
+          >
+            {heroStats.map((stat) => (
+              <div
+                className="hero-stat"
+                key={stat.label}
+                role={stat.num === null ? "group" : undefined}
+                aria-label={stat.num === null ? `${stat.label}: not available` : undefined}
+              >
                 <div
-                  className="hero-stat"
-                  key={stat.label}
-                  role={stat.num === null ? "group" : undefined}
-                  aria-label={stat.num === null ? `${stat.label}: not available` : undefined}
+                  className={`hero-stat-num${stat.num === null ? " hero-stat-num--unavailable" : ""}`}
+                  aria-hidden={stat.num === null || undefined}
                 >
-                  <div
-                    className={`hero-stat-num${stat.num === null ? " hero-stat-num--unavailable" : ""}`}
-                    aria-hidden={stat.num === null || undefined}
-                  >
-                    {stat.num ?? "—"}
-                  </div>
-                  <div className="hero-stat-label" aria-hidden={stat.num === null || undefined}>
-                    {stat.label}
-                  </div>
+                  {stat.num ?? "—"}
                 </div>
-              ))}
-            </div>
-          )}
+                <div className="hero-stat-label" aria-hidden={stat.num === null || undefined}>
+                  {stat.label}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -370,7 +367,10 @@ function Hero() {
             aria-hidden="true"
           >
             {[...tickerItems, ...tickerItems].map((title, i) => (
-              <span className="hero-ticker-item" key={i}>
+              <span
+                className={`hero-ticker-item${i >= tickerItems.length ? " hero-ticker-item--echo" : ""}`}
+                key={i}
+              >
                 {title}
                 <span className="hero-ticker-dot">◆</span>
               </span>

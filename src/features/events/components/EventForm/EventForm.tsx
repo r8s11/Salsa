@@ -6,8 +6,9 @@ import { resolveDraftTimeZone } from "./types";
 import { TIME_ZONE_OPTIONS } from "../../../../shared/utils/timezone";
 import type { SubmitFieldErrors } from "../../../submit-event/model/validation";
 import { useMetros } from "../../../metros/hooks/useMetros";
+import { NEIGHBORHOODS, neighborhoodsForLocation, normalizeNeighborhood } from "../../../metros/model/neighborhood";
 import FormFieldError from "../../../../shared/forms/FormFieldError";
-import { isSubLocation, subLocationsForCity } from "../../../metros/model/sublocation";
+import { isSubLocation, normalizeSubLocation, subLocationsForCity } from "../../../metros/model/sublocation";
 import { fieldErrorProps } from "../../../../shared/forms/fieldErrorProps";
 import "./EventForm.css";
 
@@ -17,6 +18,11 @@ type Props = {
   onChange: (draft: EventFormDraft) => void;
   renderVenueField?: () => ReactNode;
   renderFlyerField?: () => ReactNode;
+  /**
+   * Renders under a typed field that can name an existing record (venue name,
+   * host) so a surface can offer listed matches. Absent means plain text.
+   */
+  renderFieldAssist?: (field: "location" | "host") => ReactNode;
   taxonomyTerms?: {
     danceStyles: EventTaxonomyTerm[];
     attributes: EventTaxonomyTerm[];
@@ -57,6 +63,7 @@ export default function EventForm({
   onChange,
   renderVenueField,
   renderFlyerField,
+  renderFieldAssist,
   taxonomyTerms,
   requireSubmitterContact = false,
   authenticatedSubmitterName = null,
@@ -68,6 +75,9 @@ export default function EventForm({
   const timeZoneError = resolvedTimeZone.ok ? undefined : resolvedTimeZone.message;
   const cityOptions = [...metros].sort((a, b) => a.name.localeCompare(b.name));
   const nycBoroughs = subLocationsForCity(draft.city);
+  const borough = normalizeSubLocation(draft.city, draft.sublocation);
+  const neighborhoods = neighborhoodsForLocation(draft.city, borough);
+  const hasNeighborhoods = NEIGHBORHOODS.some((entry) => entry.city === draft.city);
   const selectedTypes = selectedEventTypes(draft);
   const update = <K extends keyof EventFormDraft>(key: K, value: EventFormDraft[K]) =>
     onChange({ ...draft, [key]: value });
@@ -166,8 +176,15 @@ export default function EventForm({
           <select
             id="event-city"
             value={draft.city}
-            // A borough belongs to one city, so any city change drops it.
-            onChange={(event) => onChange({ ...draft, city: event.target.value, sublocation: "" })}
+            // Parent changes drop dependent geography.
+            onChange={(event) =>
+              onChange({
+                ...draft,
+                city: event.target.value,
+                sublocation: "",
+                neighborhood: null,
+              })
+            }
             required
             aria-required="true"
             {...fieldErrorProps("event-city-error", errors.city)}
@@ -190,7 +207,11 @@ export default function EventForm({
               id="event-sublocation"
               value={draft.sublocation}
               onChange={(event) =>
-                update("sublocation", isSubLocation(event.target.value) ? event.target.value : "")
+                onChange({
+                  ...draft,
+                  sublocation: isSubLocation(event.target.value) ? event.target.value : "",
+                  neighborhood: null,
+                })
               }
               {...fieldErrorProps("event-sublocation-error", errors.sublocation)}
             >
@@ -202,6 +223,35 @@ export default function EventForm({
               ))}
             </select>
             <FormFieldError id="event-sublocation-error" message={errors.sublocation} />
+          </div>
+        )}
+        {hasNeighborhoods && (
+          <div className="event-form__field">
+            <label htmlFor="event-neighborhood">Neighborhood</label>
+            <select
+              id="event-neighborhood"
+              value={draft.neighborhood ?? ""}
+              disabled={nycBoroughs.length > 0 && !borough}
+              onChange={(event) =>
+                update(
+                  "neighborhood",
+                  normalizeNeighborhood(draft.city, borough, event.target.value)
+                )
+              }
+              {...fieldErrorProps("event-neighborhood-error", errors.neighborhood)}
+            >
+              <option value="">
+                {nycBoroughs.length > 0 && !borough
+                  ? "Choose a borough first"
+                  : "No neighborhood"}
+              </option>
+              {neighborhoods.map((neighborhood) => (
+                <option key={neighborhood.slug} value={neighborhood.slug}>
+                  {neighborhood.name}
+                </option>
+              ))}
+            </select>
+            <FormFieldError id="event-neighborhood-error" message={errors.neighborhood} />
           </div>
         )}
         <div className="event-form__field">
@@ -372,6 +422,7 @@ export default function EventForm({
             </div>
           </div>
         )}
+        {!renderVenueField && renderFieldAssist?.("location")}
       </section>
       <section className="event-form__section event-form__section--pricing">
         <h2>Pricing & RSVP</h2>
@@ -469,6 +520,7 @@ export default function EventForm({
               />
             </label>
           </div>
+          {renderFieldAssist?.("host")}
         </section>
       )}
       {capabilities.submitterInfo && (

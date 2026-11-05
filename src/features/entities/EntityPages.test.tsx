@@ -11,6 +11,14 @@ const rpc = vi.hoisted(() => vi.fn());
 vi.mock("../../lib/supabase", () => ({ supabase: { rpc } }));
 vi.mock("../metros/hooks/useMetros", () => ({
   useMetros: () => ({ metros: [{ slug: "boston", name: "Boston" }], loading: false, error: null }),
+  useActiveMetros: () => ({
+    activeMetros: [{ slug: "boston", name: "Boston" }],
+    loading: false,
+    fetching: false,
+    error: null,
+    loadFailed: false,
+    refetch: vi.fn(async () => undefined),
+  }),
 }));
 const scene = vi.hoisted(() => ({ city: null as string | null }));
 vi.mock("../../contexts/useCity", () => ({ useCity: () => ({ city: scene.city, resolving: false, setCity: vi.fn() }) }));

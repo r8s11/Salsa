@@ -1,5 +1,6 @@
 import type { AdminEventForm } from "./adminEventForm";
 import { buildAdminFormFromEvent, withFlyerUrls } from "./adminEventForm";
+import { normalizeNeighborhood } from "../../metros/model/neighborhood";
 import { normalizeSubLocation } from "../../metros/model/sublocation";
 import type { DatabaseEvent } from "../../events/model/types";
 import { readStoredEntityReview } from "../../entity-matching/entityReviewState";
@@ -34,7 +35,8 @@ export function readComposerRecovery(
         key === "event_type" ||
         key === "event_types" ||
         key === "image_urls" ||
-        key === "sublocation"
+        key === "sublocation" ||
+        key === "neighborhood"
       )
         continue;
       const field = value.form[key];
@@ -47,6 +49,14 @@ export function readComposerRecovery(
     const { sublocation } = value.form;
     if (sublocation !== undefined && typeof sublocation !== "string") return null;
     form.sublocation = normalizeSubLocation(form.city, sublocation) ?? "";
+    const { neighborhood } = value.form;
+    if (neighborhood !== undefined && neighborhood !== null && typeof neighborhood !== "string")
+      return null;
+    form.neighborhood = normalizeNeighborhood(
+      form.city,
+      normalizeSubLocation(form.city, form.sublocation),
+      neighborhood
+    );
     // Drafts saved before multi-select carry only the primary; a missing list is not corruption.
     const { event_type, event_types } = value.form;
     if (event_type !== undefined && typeof event_type !== "string") return null;
@@ -136,6 +146,11 @@ export function applySeriesToComposer(
   }
   // A borough only survives while the resolved city is still NYC.
   next.sublocation = normalizeSubLocation(next.city, next.sublocation) ?? "";
+  next.neighborhood = normalizeNeighborhood(
+    next.city,
+    normalizeSubLocation(next.city, next.sublocation),
+    next.neighborhood
+  );
   // The primary and the full selection travel together: a deliberate (even empty)
   // selection is kept, otherwise the source occurrence supplies both.
   const typesEdited = edited.has("event_type") || edited.has("event_types");

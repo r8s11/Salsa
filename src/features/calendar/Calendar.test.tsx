@@ -561,7 +561,7 @@ describe("Calendar", () => {
     });
 
     expect(screen.getByRole("dialog")).toHaveTextContent("Friday, August 21");
-    const fullLinks = screen.getAllByRole("link", { name: "Full details" });
+    const fullLinks = screen.getAllByRole("link", { name: "View full details" });
     expect(fullLinks.length).toBeGreaterThanOrEqual(1);
     expect(fullLinks[0]).toHaveAttribute("href", "/events/event-1");
   });

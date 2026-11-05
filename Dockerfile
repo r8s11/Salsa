@@ -25,7 +25,7 @@ RUN printf '%s\n' \
   '  index index.html;' \
   '  location /sw.js { add_header Cache-Control "no-store"; }' \
   '  location /assets/ { expires 1y; add_header Cache-Control "public, immutable"; }' \
-  '  location / { try_files $uri $uri/ /index.html; }' \
+  '  location / { try_files $uri $uri/index.html /index.html; }' \
   '}' > /etc/nginx/conf.d/default.conf
 
 COPY --from=build /app/dist /usr/share/nginx/html

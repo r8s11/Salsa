@@ -157,6 +157,24 @@
   font-size: 0.8125rem;
   line-height: 1.4;
 }
+.metro-explorer__error {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-sm);
+  margin: var(--space-sm) 0;
+  padding: var(--space-sm);
+  color: var(--red-error);
+  background: var(--red-dim);
+  border: 1px solid var(--red-line);
+  border-radius: var(--radius-md);
+}
+
+.metro-explorer__error p {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
 
 .metro-explorer__list {
   display: grid;

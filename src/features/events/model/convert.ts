@@ -12,15 +12,21 @@ const isKnownType = (type: string): type is EventType => type in CALENDARS_CONFI
 const DEFAULT_DURATION_HOURS = 4;
 
 // Convert database event to Schedule-X event
-export function databaseEventToScheduleX(event: DatabaseEvent): ScheduleXEvent {
+export function databaseEventToScheduleX(
+  event: DatabaseEvent,
+  options: { timeZone?: string } = {}
+): ScheduleXEvent {
   // Wall-clock in the event's own zone (event > series > venue > metro), never a
-  // blanket New York: a Los Angeles 8pm social must display as 8pm.
-  const timeZone = timeZoneForDisplay({
-    event: event.time_zone,
-    series: event.series_time_zone,
-    venue: event.venue_time_zone,
-    metro: event.city,
-  });
+  // blanket New York: a Los Angeles 8pm social must display as 8pm. Callers that
+  // group events into a fixed zone (itinerary nights) pass that zone instead.
+  const timeZone =
+    options.timeZone ??
+    timeZoneForDisplay({
+      event: event.time_zone,
+      series: event.series_time_zone,
+      venue: event.venue_time_zone,
+      metro: event.city,
+    });
   const zdt = Temporal.Instant.from(event.event_date).toZonedDateTimeISO(timeZone);
 
   const start = formatDateTime(zdt);
@@ -44,6 +50,7 @@ export function databaseEventToScheduleX(event: DatabaseEvent): ScheduleXEvent {
     rsvpLink: event.rsvp_link ?? undefined,
     city: event.city,
     sublocation: event.sublocation ?? undefined,
+    neighborhood: event.neighborhood ?? undefined,
     host: event.host ?? undefined,
     recurrence: event.recurrence ?? undefined,
     timeZone,
@@ -64,6 +71,7 @@ export function databaseEventToScheduleX(event: DatabaseEvent): ScheduleXEvent {
     priceAmount: event.price_amount ?? undefined,
     createdAt: event.created_at,
     sourceType: event.source_type,
+    featured: event.featured_at ? true : undefined,
   };
 }
 

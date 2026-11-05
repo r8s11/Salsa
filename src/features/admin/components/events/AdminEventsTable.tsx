@@ -23,6 +23,8 @@ import {
   X,
   ImagePlus,
   ImageOff,
+  Star,
+  StarOff,
 } from "lucide-react";
 import { getEventTypes, type DatabaseEvent } from "../../../events/model/types";
 import { eventTypeLabels } from "../../../events/model/eventTypeDisplay";
@@ -45,6 +47,8 @@ export type RowAction =
   | "upload-flyer"
   | "replace-flyer"
   | "remove-flyer"
+  | "feature"
+  | "unfeature"
   | "publish"
   | "unpublish"
   | "reject"
@@ -112,6 +116,16 @@ function formatDateLine(iso: string): { date: string; time: string } {
     }),
     time: formatTimeLabel(time),
   };
+}
+
+/** Homepage spotlight marker: state, so it reads as a badge like Status. */
+function FeaturedBadge() {
+  return (
+    <span className="admin-status admin-events-featured">
+      <Star size={12} aria-hidden="true" />
+      Featured
+    </span>
+  );
 }
 
 // Row action menu contents by status — this matrix is the contract. Order:
@@ -189,11 +203,19 @@ function rowActionItems(
           onSelect: () => onAction("upload-flyer", event),
         },
       ];
+  // Featuring needs a published event that has not started (the RPC enforces
+  // the same); a featured row of any status can always be cleared.
+  const featureItems: ActionMenuItem[] = event.featured_at
+    ? [{ id: "unfeature", label: "Stop featuring", icon: StarOff, onSelect: () => onAction("unfeature", event) }]
+    : event.status === "approved" && new Date(event.event_date).getTime() >= Date.now()
+      ? [{ id: "feature", label: "Feature on homepage", icon: Star, onSelect: () => onAction("feature", event) }]
+      : [];
 
   const withDecision = (item: ActionMenuItem): ActionMenuItem[] => [
     item,
     { ...edit, separatorBefore: true },
     duplicate,
+    ...featureItems,
     ...flyerItems,
   ];
 
@@ -203,7 +225,7 @@ function rowActionItems(
     case "cancelled":
       return [...withDecision(decision("publish", "Publish", Send)), archive, del];
     case "pending":
-      return [edit, duplicate, ...flyerItems, archive, del];
+      return [edit, duplicate, ...featureItems, ...flyerItems, archive, del];
     case "approved":
       return [...withDecision(decision("unpublish", "Unpublish", EyeOff)), archive, cancel, del];
     case "archived":
@@ -559,7 +581,10 @@ export default function AdminEventsTable({
                       </p>
                     </td>
                     <td>
-                      <AdminStatusBadge status={event.status} />
+                      <div className="admin-events-table__badges">
+                        <AdminStatusBadge status={event.status} />
+                        {event.featured_at && <FeaturedBadge />}
+                      </div>
                     </td>
                     <td className="admin-events-table__col--actions">
                       <div className="admin-events-table__actions">
@@ -653,6 +678,7 @@ export default function AdminEventsTable({
                     {eventTypeSummary(event)}
                     {!hideCity && ` · ${metroName(event.city)}`}
                   </p>
+                  {event.featured_at && <FeaturedBadge />}
                   <AdminQualityBadge
                     issues={issues}
                     labelFor={(issue) => QUALITY_ISSUE_LABEL[issue]}

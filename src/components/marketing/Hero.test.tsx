@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
 import Hero from "./Hero";
+import { mockActiveLocationQuery } from "../../test/mockMetros";
 
 const { mockUseCity } = vi.hoisted(() => ({ mockUseCity: vi.fn() }));
 
@@ -19,6 +20,7 @@ const mockCity = (source: "location" | "explicit" = "location") => ({
 });
 
 vi.mock("../../features/metros/hooks/useMetros", () => ({
+  useActiveLocations: () => mockActiveLocationQuery,
   useMetroName: () => () => "Boston",
 }));
 
@@ -53,19 +55,16 @@ describe("Hero", () => {
     expect(screen.getByRole("button", { name: "Events near me" })).toBeInTheDocument();
   });
 
-  it("marks its mobile action hierarchy and compact stat rail explicitly", () => {
+  it("labels the full upcoming action and keeps the seven-day statistic explicit", () => {
     render(
       <MemoryRouter>
         <Hero />
       </MemoryRouter>
     );
 
-    // The only event is in 2099, so the primary action names that night
-    // rather than claiming tonight.
-    expect(screen.getByRole("link", { name: /^Next up · \w{3} 1 Jan$/ })).toHaveClass(
-      "hero-btn--primary"
-    );
-    expect(screen.queryByRole("link", { name: "Tonight on the floor" })).not.toBeInTheDocument();
+    const upcoming = screen.getByRole("link", { name: "See upcoming events" });
+    expect(upcoming).toHaveClass("hero-btn--primary");
+    expect(upcoming).toHaveAttribute("href", "#events");
     expect(screen.getByRole("link", { name: "Full calendar" })).toHaveClass("hero-btn--secondary");
     expect(screen.getByText("Events This Week").closest(".hero-stats")).toHaveClass(
       "hero-stats--compact"
@@ -100,6 +99,19 @@ describe("Hero", () => {
     );
   });
 
+  it("keeps the metro heading stable when a directory name differs from its slug", () => {
+    mockUseCity.mockReturnValue({ ...mockCity("explicit"), city: "new-york-city" });
+    render(
+      <MemoryRouter initialEntries={["/events/new-york-city"]}>
+        <Hero />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+      "Salsa & Bachata in New York City"
+    );
+  });
+
   it("renders the decorative record as layered, non-announced background art", () => {
     const { container } = render(
       <MemoryRouter>
@@ -131,7 +143,6 @@ describe("Hero", () => {
         </MemoryRouter>
       );
 
-      expect(screen.getByRole("link", { name: "Tonight on the floor" })).toBeInTheDocument();
       // Only the 23:45 night is still ahead: one event, one venue.
       expect(screen.getByText("Events This Week").previousSibling).toHaveTextContent("1");
       expect(screen.getByText("Venue").previousSibling).toHaveTextContent("1");

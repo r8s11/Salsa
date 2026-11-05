@@ -8,8 +8,12 @@ import AdminRejectSubmissionDialog from "../components/submissions/AdminRejectSu
 import AdminSubmissionStatusBadge from "../components/submissions/AdminSubmissionStatusBadge";
 import { resolveEventFlyer } from "../../events/components/event-modal/eventModalImage";
 import EntityReviewSection from "../../entity-matching/EntityReviewSection";
+import EntityLinkSummary from "../../entity-matching/EntityLinkSummary";
 import type { EntityReview } from "../../entity-matching/entityReview";
-import { moderatorStartingReview } from "../../entity-matching/entityReviewState";
+import {
+  moderatorStartingReview,
+  readStoredEntityReview,
+} from "../../entity-matching/entityReviewState";
 import type { EventSubmission } from "../model/submissions";
 import {
   notifySubmissionApproved,
@@ -60,6 +64,11 @@ export default function AdminSubmissionDetailPage() {
         submission?.submitted_data.entity_review,
         submission?.edited_data?.entity_review
       ),
+    [submission]
+  );
+  // What the submitter sent, before the moderator's starting review demotes it.
+  const submittedReview = useMemo(
+    () => readStoredEntityReview(submission?.submitted_data.entity_review),
     [submission]
   );
   const [reviewEdit, setReviewEdit] = useState<EntityReview | null>(null);
@@ -276,6 +285,14 @@ export default function AdminSubmissionDetailPage() {
             className="admin-card admin-submission-detail-page__entities"
             aria-label="Venue, organizer, instructors and school"
           >
+            {submittedReview && (
+              <EntityLinkSummary
+                review={submittedReview}
+                mode="submitted"
+                heading="What the submitter linked"
+                intro="Their choices are suggestions. Confirm or change each one below; nothing is linked until you approve."
+              />
+            )}
             {submittedReviewDemoted && (
               <p className="admin-submission-detail-page__muted">
                 The submitter can only suggest records. Whatever they chose, an existing record or a
@@ -317,6 +334,19 @@ export default function AdminSubmissionDetailPage() {
             </div>
           )}
         </fieldset>
+
+        {review && (
+          <div className="admin-card admin-submission-detail-page__links">
+            <EntityLinkSummary
+              review={review}
+              mode="authorized"
+              onChange={setReviewEdit}
+              heading="Linked when you approve"
+              pendingNote="Undecided items are not linked when you approve. Use a listed record, add it as new, or choose Don’t link."
+              disabled={isApproving || isUpdating}
+            />
+          </div>
+        )}
 
         {(approveError || updateError) && (
           <p className="admin-submission-detail-page__error" role="alert">

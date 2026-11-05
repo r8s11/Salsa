@@ -694,11 +694,19 @@ a.logo:hover .ss-logo__wordmark-accent {
     height: 14px;
   }
 
+  .site-header .metro-explorer--compact {
+    position: static;
+  }
+
   .site-header .metro-explorer--compact .metro-explorer__panel {
-    position: fixed;
+    position: absolute;
     top: calc(100% + var(--space-sm));
     right: var(--space-md);
     left: auto;
+    max-height: min(
+      28rem,
+      calc(100dvh - 100% - env(safe-area-inset-bottom) - var(--space-md))
+    );
   }
 
   .hamburger {

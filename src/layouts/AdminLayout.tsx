@@ -31,6 +31,7 @@ const SECTION_LABEL: Record<string, string> = {
   "/admin/events/import-flyers": "Events · Import Flyers",
   "/admin/users": "Users",
   "/admin/submissions": "Event Submissions",
+  "/admin/itineraries": "Weekly Itineraries",
   "/admin/organizer-requests": "Organizer Requests",
   "/admin/founder-requests": "Founder Requests",
   "/admin/claims": "Listing Claims",

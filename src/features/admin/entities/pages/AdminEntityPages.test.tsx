@@ -17,6 +17,7 @@ const mocks = vi.hoisted(() => ({
   detail: null as AdminEntityRow | null,
   members: [] as WorkspaceMember[],
   membersFor: vi.fn(),
+  submissions: [] as unknown[],
 }));
 
 vi.mock("../api/entitiesRepo", () => ({
@@ -41,6 +42,10 @@ vi.mock("../../hooks/useAdminEntityClaims", () => ({
     mocks.membersFor(kind, id);
     return { members: mocks.members, isLoading: false, error: null, refetch: vi.fn() };
   },
+}));
+
+vi.mock("../../hooks/useAdminSubmissionList", () => ({
+  useAdminSubmissions: () => ({ submissions: mocks.submissions, isLoading: false, error: null }),
 }));
 
 vi.mock("../../../metros/hooks/useMetros", () => import("../../../../test/mockMetros"));
@@ -81,6 +86,7 @@ afterEach(() => {
   mocks.directory = [];
   mocks.detail = null;
   mocks.members = [];
+  mocks.submissions = [];
   mocks.membersFor.mockReset();
   mocks.fetchDirectory.mockReset();
   mocks.fetchDetail.mockReset();
@@ -210,5 +216,46 @@ describe("AdminEntityDetailPage", () => {
     mocks.detail = entity("organizer", { status: "active" });
     renderDetail("organizer", "organizer-1");
     expect(screen.queryByRole("region", { name: /Team/ })).not.toBeInTheDocument();
+  });
+
+  it("lists pending submissions whose review links this record, and not ones a moderator unlinked", () => {
+    const id = "6f1c2a3b-4d5e-4f60-8a7b-9c0d1e2f3a4b";
+    const organizerItem = (decision: "existing" | "removed") => ({
+      candidate: { name: "Boston Dance Collective" },
+      state: "MATCHED",
+      matches: [{ id, name: "Boston Dance Collective" }],
+      decision,
+      selected_id: decision === "existing" ? id : null,
+    });
+    const review = (decision: "existing" | "removed") => ({
+      venue: null,
+      organizer: organizerItem(decision),
+      instructors: [],
+      school: null,
+    });
+    mocks.submissions = [
+      {
+        id: "sub-suggested",
+        submitted_at: "2026-10-20T12:00:00Z",
+        submitted_data: { title: "Thursday Bachata", entity_review: review("existing") },
+        edited_data: null,
+      },
+      {
+        id: "sub-unlinked",
+        submitted_at: "2026-10-21T12:00:00Z",
+        submitted_data: { title: "Moderator said no", entity_review: review("existing") },
+        edited_data: { entity_review: review("removed") },
+      },
+    ];
+    mocks.detail = entity("organizer", { id, status: "active" });
+    renderDetail("organizer", id);
+
+    const section = screen.getByRole("region", { name: /Pending submissions linking it/ });
+    expect(within(section).getByRole("link", { name: "Thursday Bachata" })).toHaveAttribute(
+      "href",
+      "/admin/submissions/sub-suggested"
+    );
+    expect(within(section).getByText("Submitter suggested it")).toBeVisible();
+    expect(within(section).queryByText("Moderator said no")).not.toBeInTheDocument();
   });
 });

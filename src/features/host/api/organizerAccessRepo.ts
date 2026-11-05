@@ -149,6 +149,8 @@ export type OrganizerEventUpdatePayload = {
   city?: string;
   /** Optional NYC borough; null clears it (All NYC). */
   sublocation?: SubLocation | null;
+  /** Optional curated area; null clears it. */
+  neighborhood?: string | null;
   event_date?: string;
   event_time?: string | null;
   location?: string | null;

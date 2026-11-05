@@ -212,18 +212,12 @@ function Contact() {
           </div>
 
           <div className="contact-info-cards">
-            <div className="contact-card" style={{ wordBreak: "break-all" }}>
+            <div className="contact-card">
               <div className="contact-icon">
                 <Mail size={28} aria-hidden="true" />
               </div>
               <h2>Email</h2>
-              <a
-                href="mailto:info@SalsaSegura.com"
-                style={{
-                  maxWidth: "100%",
-                  overflowWrap: "break-word",
-                }}
-              >
+              <a href="mailto:info@SalsaSegura.com" className="contact-card__email">
                 info@SalsaSegura.com
               </a>
             </div>

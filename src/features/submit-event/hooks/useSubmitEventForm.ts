@@ -30,15 +30,34 @@ import {
   hasEntityCandidates,
   mergeEntityReview,
   type EntityCandidates,
+  type EntityMatch,
   type EntityReview,
 } from "../../entity-matching/entityReview";
 import {
+  acceptKeptValue,
+  prefillFromRecord,
+  undoPrefill,
+  type RecordPrefill,
+} from "../../entity-matching/entityPrefill";
+import {
+  chooseExisting,
   detachAutoVenueLink,
   enrichExtractionWithReview,
   suppressAutoVenueLink,
   listReviewEntries,
+  newReviewItem,
   reviewFromCandidates,
 } from "../../entity-matching/entityReviewState";
+
+type VenueField = "location" | "address";
+
+/** A venue the submitter picked from the listed matches under Venue Name. */
+type VenueLink = {
+  matchId: string;
+  prefill: RecordPrefill<VenueField>;
+  /** The review's venue before the pick, restored by undo. */
+  previousVenue: EntityReview["venue"];
+};
 
 type ReconciliationState = {
   status: "idle" | "loading" | "success" | "error";
@@ -93,6 +112,8 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
   }, [form]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  // The links exactly as submitted, for the success screen; the form resets.
+  const [submittedReview, setSubmittedReview] = useState<EntityReview | null>(null);
   // Per-field validation errors, keyed by `SubmitFieldName`.
   const [fieldErrors, setFieldErrors] = useState<SubmitFieldErrors>({});
   // Failure with no identifiable field — a rejected API call.
@@ -167,9 +188,12 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
 
   const update = <K extends keyof EventFormDraft>(field: K, value: EventFormDraft[K]) => {
     if (field === "city") cityChosenRef.current = true;
-    // A borough belongs to one city, so changing the city drops it.
-    const boroughFields = field === "city" ? { sublocation: "" } : {};
-    // The primary and the full selection are one fact; never write just one of them.
+    const geographyFields =
+      field === "city"
+        ? { sublocation: "", neighborhood: null }
+        : field === "sublocation"
+          ? { neighborhood: null }
+          : {};
     const typeFields =
       field === "event_types"
         ? eventTypeFields((value as EventType[] | undefined) ?? [])
@@ -179,7 +203,7 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
     setForm((previous) =>
       detachAutoVenueLink(
         previous,
-        { ...previous, [field]: value, ...typeFields, ...boroughFields } as EventFormDraft
+        { ...previous, [field]: value, ...typeFields, ...geographyFields } as EventFormDraft
       )
     );
     clearFieldError(field === "event_types" ? "event_type" : field);
@@ -187,29 +211,91 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
   // Applies a draft produced by extraction. Unlike `onChange` it is not the
   // person choosing a city, so it must not lock the city against later extractions.
   const applyDraft = (draft: EventFormDraft, review: EntityReview) => {
-    setForm(() => ({ ...draft, entity_review: hasReviewEntries(review) ? review : undefined }));
+    setForm((previous) => ({
+      ...draft,
+      ...(draft.city !== previous.city
+        ? { sublocation: "", neighborhood: null }
+        : draft.sublocation !== previous.sublocation
+          ? { neighborhood: null }
+          : {}),
+      entity_review: hasReviewEntries(review) ? review : undefined,
+    }));
   };
   const onChange = (draft: EventFormDraft) => {
     if (draft.city !== formRef.current.city) cityChosenRef.current = true;
     setForm((previous) => {
+      const geographyFields =
+        draft.city !== previous.city
+          ? { sublocation: "" as const, neighborhood: null }
+          : draft.sublocation !== previous.sublocation
+            ? { neighborhood: null }
+            : {};
+      const nextDraft = { ...draft, ...geographyFields };
       setFieldErrors((previousErrors) => {
         if (Object.keys(previousErrors).length === 0) return previousErrors;
         const next = { ...previousErrors };
         let changed = false;
         for (const field of Object.keys(next) as (keyof EventFormDraft)[]) {
-          if (previous[field] !== draft[field]) {
+          if (previous[field] !== nextDraft[field]) {
             delete next[field as keyof SubmitFieldErrors];
             changed = true;
           }
         }
         return changed ? next : previousErrors;
       });
-      return detachAutoVenueLink(previous, draft);
+      return detachAutoVenueLink(previous, nextDraft);
     });
   };
   const setEntityReview = (review: EntityReview) => {
     setForm((previous) => ({ ...previous, entity_review: review }));
   };
+
+  // ── Linking a listed venue picked under Venue Name ──
+  const [venueLink, setVenueLink] = useState<VenueLink | null>(null);
+  const linkVenue = (match: EntityMatch) => {
+    const current = formRef.current;
+    // The venue name follows the pick; the address is filled only when empty.
+    const { draft, prefill } = prefillFromRecord<EventFormDraft, VenueField>(current, match.name, [
+      { field: "location", label: "Venue name", value: match.name, follows: true },
+      { field: "address", label: "Address", value: match.address },
+    ]);
+    const venue = {
+      ...chooseExisting(newReviewItem(current.location.trim() || match.name), match),
+      state: "MATCHED" as const,
+    };
+    setForm({ ...draft, entity_review: { ...(current.entity_review ?? emptyEntityReview()), venue } });
+    prefill.filled.forEach(({ field }) => clearFieldError(field));
+    setVenueLink({ matchId: match.id, prefill, previousVenue: current.entity_review?.venue ?? null });
+  };
+  const undoVenueLink = () => {
+    if (!venueLink) return;
+    setForm((previous) => {
+      const reverted = undoPrefill<EventFormDraft, VenueField>(previous, venueLink.prefill);
+      const review = previous.entity_review;
+      // Only unlink if the venue is still the one this pick linked.
+      if (!review || review.venue?.selected_id !== venueLink.matchId) return reverted;
+      const restored = { ...review, venue: venueLink.previousVenue };
+      return { ...reverted, entity_review: hasReviewEntries(restored) ? restored : undefined };
+    });
+    setVenueLink(null);
+  };
+  const acceptVenueValue = (field: VenueField) => {
+    if (!venueLink) return;
+    const { draft, prefill } = acceptKeptValue<EventFormDraft, VenueField>(
+      formRef.current,
+      venueLink.prefill,
+      field
+    );
+    setForm(draft);
+    clearFieldError(field);
+    setVenueLink({ ...venueLink, prefill });
+  };
+  const linkedVenue = form.entity_review?.venue;
+  // The notice belongs to the pick only while that pick is still the venue link.
+  const venuePrefill =
+    venueLink && linkedVenue?.decision === "existing" && linkedVenue.selected_id === venueLink.matchId
+      ? venueLink.prefill
+      : null;
 
   const resetExtraction = () => {
     extractionGeneration.current += 1;
@@ -481,8 +567,10 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
       };
       posthog.capture("event_submitted", logAttributes);
       posthogSubmissionLogger.submitted(logAttributes);
+      setSubmittedReview(submission.entity_review ?? null);
       setIsSubmitted(true);
       setForm(buildSubmitDraft(defaultCity ?? ""));
+      setVenueLink(null);
       flyerUploads.current.clear();
       commitFlyers([]);
       lastCandidatesRef.current = null;
@@ -512,7 +600,10 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
     }
   };
 
-  const resetSubmitted = () => setIsSubmitted(false);
+  const resetSubmitted = () => {
+    setIsSubmitted(false);
+    setSubmittedReview(null);
+  };
 
   const flyerReady = Boolean(primaryFlyer(flyers)?.url);
   const flyerItems = flyers.map((item) => ({
@@ -549,6 +640,11 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
     reconciliation,
     entityReview: form.entity_review ?? null,
     setEntityReview,
+    submittedReview,
+    linkVenue,
+    undoVenueLink,
+    acceptVenueValue,
+    venuePrefill,
     handleExtractFlyer,
     dismissExtractionError,
   };

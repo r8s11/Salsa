@@ -47,6 +47,13 @@ describe("buildCsvTemplate", () => {
     expect(CSV_REQUIRED_KEYS).not.toContain("sublocation");
     expect(example.split(",")[keys.indexOf("sublocation")]).toBe("");
   });
+  it("includes an optional, blank neighborhood column", () => {
+    const [header, example] = buildCsvTemplate().trim().split("\n");
+    const keys = header.split(",");
+    expect(keys).toContain("neighborhood");
+    expect(CSV_REQUIRED_KEYS).not.toContain("neighborhood");
+    expect(example.split(",")[keys.indexOf("neighborhood")]).toBe("");
+  });
 
   it("populates every required column in the example row", () => {
     const [header, example] = buildCsvTemplate().trim().split("\n");

@@ -54,6 +54,19 @@ describe("submissionToDatabaseEvent", () => {
       ],
     });
   });
+  it("projects neighborhood from submission data into the owner event", () => {
+    const event = submissionToDatabaseEvent({
+      ...pendingSubmission,
+      submitted_data: {
+        ...pendingSubmission.submitted_data,
+        city: "new-york-city",
+        sublocation: "brooklyn",
+        neighborhood: "williamsburg",
+      },
+    });
+
+    expect(event?.neighborhood).toBe("williamsburg");
+  });
   it("preserves Live Music type when projecting an owner submission", () => {
     const event = submissionToDatabaseEvent({
       ...pendingSubmission,

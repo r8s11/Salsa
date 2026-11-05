@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, type ReactElement } from "react";
 import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
 import { ScheduleXEvent } from "../../../types/events";
@@ -145,34 +145,36 @@ export function useShareablePoster() {
   }, []);
 
   /**
+   * Saves a blob through a temporary download link.
+   */
+  const downloadBlob = useCallback((blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, []);
+
+  /**
    * Downloads the poster PNG using the shared filename convention.
    */
   const downloadPoster = useCallback(
     (event: ScheduleXEvent, poster: Blob, format: PosterFormat = "story") => {
-      const url = URL.createObjectURL(poster);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = posterFilename(event, format);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      downloadBlob(poster, posterFilename(event, format));
     },
-    [posterFilename]
+    [downloadBlob, posterFilename]
   );
 
-
   /**
-   * Renders the event's sleeve poster off-screen in the requested format and
-   * captures it. Cover art priority: the normalized flyer cache, then the
-   * event flyer, then the on-brand fallback art for its type.
+   * Renders the element returned by `load` off-screen and captures it as a
+   * PNG. Poster fonts load in parallel with `load`; `load` receives
+   * `assertActive` so it can stop early once the owner unmounts.
    */
-  const createPoster = useCallback(
-    async (
-      event: ScheduleXEvent,
-      format: PosterFormat,
-      sources: { sourceUrl?: string | null; cachedUrl?: string | null } = {}
-    ): Promise<Blob> => {
+  const capturePosterElement = useCallback(
+    async (load: (assertActive: () => void) => Promise<ReactElement>): Promise<Blob> => {
       const job: {
         cancelled: boolean;
         dispose?: () => void;
@@ -183,23 +185,12 @@ export function useShareablePoster() {
         if (job.cancelled) throw new Error("Poster export cancelled");
       };
       try {
-        const resolution = await resolvePosterImageForEvent({
-          eventId: String(event.id),
-          sourceUrl: sources.sourceUrl ?? event.imageUrl ?? null,
-          cachedUrl: sources.cachedUrl ?? event.posterImageUrl ?? null,
-        });
-        const flyer = resolution.status === "ready" ? resolution.dataUrl : null;
-
-        // The poster (and its QR encoder) loads only when a visitor shares.
-        const [{ default: ShareableEventPoster }] = await Promise.all([
-          import("../../events/components/event-modal/ShareableEventPoster"),
-          ensurePosterFonts(),
-        ]);
+        const [element] = await Promise.all([load(assertActive), ensurePosterFonts()]);
 
         assertActive();
 
         // Create an operation-local container to avoid concurrent capture conflicts.
-        // Each createPoster call gets its own container so concurrent calls don't
+        // Each capture gets its own container so concurrent calls don't
         // overwrite/remove each other's art.
         const container = document.createElement("div");
         container.className = "poster-render-target";
@@ -216,16 +207,7 @@ export function useShareablePoster() {
           container.remove();
         };
         flushSync(() => {
-          root.render(
-            <ShareableEventPoster
-              event={event}
-              format={format}
-              imageUrl={flyer ?? resolveEventFlyer({ ...event, imageUrl: undefined })}
-              artKind={flyer ? "flyer" : "fallback"}
-              shortUrl={buildShortEventUrl(String(event.id))}
-              shortLabel={shortEventLabel(String(event.id))}
-            />
-          );
+          root.render(element);
         });
         // Executor form: this project's tsconfig lib (ES2020) has no
         // Promise.withResolvers.
@@ -248,10 +230,50 @@ export function useShareablePoster() {
     [capturePoster]
   );
 
+  /**
+   * Renders the event's sleeve poster off-screen in the requested format and
+   * captures it. Cover art priority: the normalized flyer cache, then the
+   * event flyer, then the on-brand fallback art for its type.
+   */
+  const createPoster = useCallback(
+    (
+      event: ScheduleXEvent,
+      format: PosterFormat,
+      sources: { sourceUrl?: string | null; cachedUrl?: string | null } = {}
+    ): Promise<Blob> =>
+      capturePosterElement(async () => {
+        const resolution = await resolvePosterImageForEvent({
+          eventId: String(event.id),
+          sourceUrl: sources.sourceUrl ?? event.imageUrl ?? null,
+          cachedUrl: sources.cachedUrl ?? event.posterImageUrl ?? null,
+        });
+        const flyer = resolution.status === "ready" ? resolution.dataUrl : null;
+
+        // The poster (and its QR encoder) loads only when a visitor shares.
+        const { default: ShareableEventPoster } = await import(
+          "../../events/components/event-modal/ShareableEventPoster"
+        );
+
+        return (
+          <ShareableEventPoster
+            event={event}
+            format={format}
+            imageUrl={flyer ?? resolveEventFlyer({ ...event, imageUrl: undefined })}
+            artKind={flyer ? "flyer" : "fallback"}
+            shortUrl={buildShortEventUrl(String(event.id))}
+            shortLabel={shortEventLabel(String(event.id))}
+          />
+        );
+      }),
+    [capturePosterElement]
+  );
+
   return {
     capturePoster,
+    capturePosterElement,
     createPoster,
     posterFilename,
+    downloadBlob,
     downloadPoster,
     resolvePosterImage,
   };

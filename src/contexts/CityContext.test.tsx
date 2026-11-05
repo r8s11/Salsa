@@ -179,6 +179,7 @@ describe("CityProvider", () => {
     const first = renderCity();
     await waitFor(() => expect(first.result.current.resolving).toBe(false));
     expect(first.result.current).toMatchObject({ city: "boston", subLocation: null });
+    expect(window.localStorage.getItem("salsa.sublocation")).toBeNull();
     first.unmount();
 
     window.localStorage.setItem("salsa.metro", "new-york-city");
@@ -198,5 +199,27 @@ describe("CityProvider", () => {
     await waitFor(() => expect(result.current.city).toBe("philadelphia"));
     expect(result.current.subLocation).toBeNull();
     expect(window.localStorage.getItem("salsa.sublocation")).toBeNull();
+  });
+
+  it("restores valid neighborhoods and drops children when their parent changes", async () => {
+    mockGeolocation("prompt");
+    window.localStorage.setItem("salsa.metro", "new-york-city");
+    window.localStorage.setItem("salsa.sublocation", "brooklyn");
+    window.localStorage.setItem("salsa.neighborhood", "bushwick");
+    const first = renderCity();
+    await waitFor(() => expect(first.result.current.resolving).toBe(false));
+    expect(first.result.current).toMatchObject({ subLocation: "brooklyn", neighborhood: "bushwick" });
+    act(() => first.result.current.setCity("new-york-city", "queens", "bushwick"));
+    expect(first.result.current.neighborhood).toBeNull();
+    expect(window.localStorage.getItem("salsa.neighborhood")).toBeNull();
+    act(() => first.result.current.setCity("boston", null, "allston"));
+    expect(first.result.current).toMatchObject({ city: "boston", subLocation: null, neighborhood: "allston" });
+    first.unmount();
+    const second = renderCity();
+    await waitFor(() => expect(second.result.current.resolving).toBe(false));
+    expect(second.result.current.neighborhood).toBe("allston");
+    act(() => second.result.current.chooseNearMe());
+    expect(second.result.current.neighborhood).toBeNull();
+    expect(window.localStorage.getItem("salsa.neighborhood")).toBeNull();
   });
 });

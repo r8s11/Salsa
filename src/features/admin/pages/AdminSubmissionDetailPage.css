@@ -127,7 +127,8 @@
 }
 
 .admin-submission-detail-page__source,
-.admin-submission-detail-page__taxonomy {
+.admin-submission-detail-page__taxonomy,
+.admin-submission-detail-page__links {
   padding: 1.5rem;
 }
 
@@ -269,6 +270,7 @@
 
   .admin-submission-detail-page__source,
   .admin-submission-detail-page__taxonomy,
+  .admin-submission-detail-page__links,
   .admin-submission-detail-page__actions {
     padding: 1rem;
   }
@@ -290,4 +292,10 @@
 .admin-submission-detail-page__entities > .admin-submission-detail-page__muted {
   margin: 0;
   max-width: 65ch;
+}
+
+/* The submitter's own choices sit above the moderator's review, divided by a rule. */
+.admin-submission-detail-page__entities > .entity-links {
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--admin-border);
 }

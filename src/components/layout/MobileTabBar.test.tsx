@@ -52,12 +52,17 @@ function renderTabBar(initialEntry = "/", city: CityContextValue["city"] = "bost
   vi.mocked(useCity).mockReturnValue({
     city,
     subLocation: null,
+    neighborhood: null,
     source: "explicit",
     resolving: false,
     setCity: vi.fn(),
     chooseNearMe: vi.fn(),
     activeMetros: [],
     activeMetrosError: null,
+    activeMetrosLoadFailed: false,
+    activeMetrosLoading: false,
+    activeMetrosFetching: false,
+    refetchActiveMetros: vi.fn(async () => undefined),
     locationStatus: "idle",
   });
   return {

@@ -9,6 +9,7 @@ import EntityIntelligenceSection from "../components/analytics/EntityIntelligenc
 import OperationalInsights from "../components/analytics/OperationalInsights";
 import AnalyticsReporting from "../components/analytics/AnalyticsReporting";
 import AnalyticsMonitoring from "../components/analytics/AnalyticsMonitoring";
+import CoverageSection from "../components/analytics/CoverageSection";
 import { INITIAL_OFFSETS, type OperationOffsets } from "../model/operationalAnalytics";
 import { useAdminAnalytics } from "../hooks/useAdminAnalytics";
 import {
@@ -52,6 +53,9 @@ export default function AdminAnalyticsPage() {
     operations,
     operationsLoading,
     operationsError,
+    coverage,
+    coverageLoading,
+    coverageError,
   } = useAdminAnalytics(range, engagementSort, entityOptions, operationOffsets);
   let maxCityCount = 0;
   const cityNameCounts = new Map<string, number>();
@@ -96,6 +100,10 @@ export default function AdminAnalyticsPage() {
       <OperationalInsights
         data={operations ?? null} loading={Boolean(operationsLoading)} error={operationsError ?? null}
         offsets={operationOffsets} onOffsetsChange={(offsets) => setOperationPages({ range, offsets })}
+        retry={() => refetch()}
+      />
+      <CoverageSection
+        data={coverage ?? null} loading={Boolean(coverageLoading)} error={coverageError ?? null}
         retry={() => refetch()}
       />
 

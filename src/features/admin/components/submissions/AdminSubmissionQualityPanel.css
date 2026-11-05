@@ -16,15 +16,21 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
   margin: 0;
 }
 
 .admin-submission-quality__section {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+}
+
+.admin-submission-quality__section + .admin-submission-quality__section {
+  padding-top: 12px;
+  border-top: 1px solid var(--admin-border);
 }
 
 .admin-submission-quality__section-title {
@@ -75,10 +81,10 @@
 
 .admin-submission-quality__tier-badge {
   font-size: 0.6875rem;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 1px 6px;
+  letter-spacing: 0.06em;
+  padding: 2px 7px;
   border-radius: var(--radius-sm);
   flex-shrink: 0;
 }

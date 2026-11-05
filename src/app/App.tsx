@@ -19,6 +19,7 @@ const FoundersPage = lazy(() => import("../features/founder/pages/FoundersPage")
 const FoundersAcceptPage = lazy(() => import("../features/founder/pages/FoundersAcceptPage"));
 const FoundersWelcomePage = lazy(() => import("../features/founder/pages/FoundersWelcomePage"));
 const ShortEventLinkPage = lazy(() => import("../pages/ShortEventLinkPage"));
+const ItineraryPage = lazy(() => import("../features/itineraries/pages/ItineraryPage"));
 const PublicEntityPage = lazy(() => import("../pages/PublicEntityPage"));
 const EntityDirectoryPage = lazy(() => import("../features/entities/components/EntityDirectoryPage"));
 const AdminEntityDirectoryPage = lazy(
@@ -62,6 +63,9 @@ const AdminSettingsPage = lazy(() => import("../features/admin/pages/AdminSettin
 const AdminActivityPage = lazy(() => import("../features/admin/pages/AdminActivityPage"));
 const AdminActivityDetailPage = lazy(() => import("../features/admin/pages/AdminActivityDetailPage"));
 const AdminAnalyticsPage = lazy(() => import("../features/admin/pages/AdminAnalyticsPage"));
+const AdminItinerariesPage = lazy(() => import("../features/admin/pages/AdminItinerariesPage"));
+const AdminItineraryEditorPage = lazy(() => import("../features/admin/pages/AdminItineraryEditorPage"));
+const AdminItineraryPreviewPage = lazy(() => import("../features/admin/pages/AdminItineraryPreviewPage"));
 const ProfilePage = lazy(() => import("../pages/account/ProfilePage"));
 const ProfileEditPage = lazy(() => import("../pages/account/ProfileEditPage"));
 const AccountPage = lazy(() => import("../pages/account/AccountPage"));
@@ -126,6 +130,10 @@ function App() {
               />
               <Route path="submissions" element={<AdminSubmissionsPage />} />
               <Route path="submissions/:id" element={<AdminSubmissionDetailPage />} />
+              <Route path="itineraries" element={<AdminItinerariesPage />} />
+              <Route path="itineraries/new" element={<AdminItineraryEditorPage />} />
+              <Route path="itineraries/:id" element={<AdminItineraryEditorPage />} />
+              <Route path="itineraries/:id/preview" element={<AdminItineraryPreviewPage />} />
               <Route path="tags" element={<AdminTagsPage />} />
               <Route path="tags/new" element={<AdminTaxonomyNewPage />} />
               <Route path="tags/:id" element={<AdminTaxonomyDetailPage />} />
@@ -300,6 +308,7 @@ function App() {
               <Route path="shop/:collection" element={<CollectionPage />} />
               <Route path="events/:id" element={<EventsParamRoute />} />
               <Route path="e/:code" element={<ShortEventLinkPage />} />
+              <Route path="itineraries/:city/:weekStart" element={<ItineraryPage />} />
               <Route path="v/:slug" element={<PublicEntityPage kind="venue" />} />
               <Route path="o/:slug" element={<PublicEntityPage kind="organizer" />} />
               <Route path="i/:slug" element={<PublicEntityPage kind="instructor" />} />

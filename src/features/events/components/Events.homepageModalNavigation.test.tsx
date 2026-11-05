@@ -56,7 +56,7 @@ describe("Events homepage → EventModal Full Details navigation", () => {
 
     await user.click(screen.getByRole("button", { name: /Homepage Social/i }));
 
-    const detailsLink = screen.getAllByRole("link", { name: "Full details" })[0];
+    const detailsLink = screen.getByRole("link", { name: "View full details" });
     expect(detailsLink).toHaveAttribute("href", "/events/homepage-event");
 
     await user.click(detailsLink);

@@ -11,6 +11,7 @@ import type { DatabaseEvent } from "../../features/events/model/types";
 import AdminPageHeader from "../../features/admin/components/shell/AdminPageHeader";
 import AdminStatusBadge from "../../features/admin/components/common/AdminStatusBadge";
 import EventShareControls from "../../features/events/components/EventShareControls";
+import { buildPublicEventUrl } from "../../features/events/model/eventSharing";
 import { fromEventDateInstant, formatTimeLabel } from "../../features/events/model/eventDateTime";
 import "./HostMyEventsPage.css";
 
@@ -211,7 +212,7 @@ function EventCard({ event, attendeeCount, checkedInCount, canManage }: EventCar
           {event.status === "approved" && (
             <EventShareControls
               compact
-              eventId={event.id}
+              url={buildPublicEventUrl(event.id)}
               title={event.title}
               dateLabel={dateLabel}
               location={event.location}

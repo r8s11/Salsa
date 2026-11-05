@@ -1,3 +1,5 @@
+import type { ActiveLocation } from "../features/metros/model/activeLocation";
+
 // Shared registered inventory for legacy page tests. Dedicated CityContext
 // tests exercise real hooks against mocked repository responses instead.
 const metros = [
@@ -12,13 +14,40 @@ const activeMetros = metros.map((metro) => ({
   nextEventAt: "2099-01-01T00:00:00Z",
   distanceKm: null,
 }));
+export const mockActiveMetroQuery = {
+  activeMetros,
+  loading: false,
+  fetching: false,
+  error: null as string | null,
+  loadFailed: false,
+  refetch: async () => undefined,
+};
+
+export const mockActiveLocationQuery = {
+  activeLocations: [
+    { city: "new-york-city", subLocation: "brooklyn", neighborhood: "bushwick", upcomingEventCount: 1 },
+    { city: "new-york-city", subLocation: "queens", neighborhood: null, upcomingEventCount: 1 },
+    { city: "boston", subLocation: null, neighborhood: "allston", upcomingEventCount: 1 },
+  ] as ActiveLocation[],
+  loading: false,
+  fetching: false,
+  error: null as string | null,
+  loadFailed: false,
+  refreshFailed: false,
+  refetch: async () => undefined,
+};
+
 
 export function useMetros() {
   return { metros, loading: false, error: null };
 }
 
 export function useActiveMetros() {
-  return { activeMetros, loading: false, error: null, refetch: async () => undefined };
+  return mockActiveMetroQuery;
+}
+
+export function useActiveLocations() {
+  return mockActiveLocationQuery;
 }
 
 export function useMetroName() {

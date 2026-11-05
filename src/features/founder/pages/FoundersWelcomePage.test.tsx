@@ -87,7 +87,7 @@ describe("FoundersWelcomePage", () => {
     expect(
       screen.getByRole("heading", { name: /no founder invitation found/i })
     ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /request founder access/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /request host access/i })).toHaveAttribute(
       "href",
       "/founders"
     );

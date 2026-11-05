@@ -48,8 +48,8 @@ function SubmissionCell({ submission }: { submission: EventSubmission }) {
         })}
         alt=""
         loading="lazy"
-        width={48}
-        height={60}
+        width={56}
+        height={70}
       />
       <div className="admin-submissions-table__event-copy">
         <div className="admin-submissions-table__title">{title}</div>
@@ -161,7 +161,11 @@ export default function AdminSubmissionsTable({
         </thead>
         <tbody>
           {submissions.map((submission) => (
-            <tr key={submission.id} className={busy ? "admin-submissions-table__row--busy" : ""}>
+            <tr
+              key={submission.id}
+              data-status={submission.status}
+              className={busy ? "admin-submissions-table__row--busy" : ""}
+            >
               <td>
                 <SubmissionCell submission={submission} />
               </td>

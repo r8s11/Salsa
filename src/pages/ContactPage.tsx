@@ -1,12 +1,9 @@
 import Contact from "../components/marketing/Contact";
 import { useDocumentMeta } from "../shared/seo/useDocumentMeta";
 import { canonicalUrl } from "../utils/seo";
+import routeMeta from "../shared/seo/routeMeta.json";
 
 export default function ContactPage() {
-  useDocumentMeta({
-    title: "Contact Salsa Segura",
-    description: "Get in touch with Salsa Segura about salsa and bachata event listings across Greater Boston and New York City.",
-    canonical: canonicalUrl("/contact"),
-  });
+  useDocumentMeta({ ...routeMeta.contact, canonical: canonicalUrl(routeMeta.contact.path) });
   return <Contact />;
 }

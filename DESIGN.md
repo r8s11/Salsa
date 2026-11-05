@@ -4,7 +4,7 @@ name: Salsa Segura Design System
 description: >-
   Boston & NYC Latin dance events calendar. Three visual languages: Ritmo
   Vivo (public site and shop), The Listings Desk (operators), and The Sleeve
-  (the exported event poster).
+  (exported event and weekly compilation artwork).
 colors:
   # Public palette (Ritmo Vivo): the original Stitch export, a Material 3
   # dark scheme. In M3 dark, `primary` is the light tone (#ffb3b6) and the
@@ -427,8 +427,9 @@ room, while Ritmo Vivo is built to feel like a dark dance floor. The Sleeve
 exists because a poster is judged against other posters in a story or a
 group chat, not against the site around it.
 
-**The Boundary Rule.** The Sleeve never appears as site UI — only as the
-poster export itself and its thumbnail/preview inside the event modal.
+**The Boundary Rule.** The Sleeve never appears as site UI — only as
+event and itinerary poster exports, the itinerary link card, and their
+explicit thumbnail/preview surfaces in the event modal or itinerary editor.
 Ritmo Vivo's glassmorphism and glow never enter the poster, and the
 Sleeve's flat spot-colour fields never leak back into Ritmo Vivo. Do not
 apply glassmorphism, glow, or the dark slate ground to an operator surface;
@@ -687,6 +688,11 @@ and 12px of heading bottom padding. On hover-capable devices with motion
 enabled, hovering the heading lengthens the rule to 1.4× over 500ms with
 `cubic-bezier(0.22, 1, 0.36, 1)`. Reduced motion keeps the rule still.
 
+The hero reserves its stat rail while the event feed or city is pending;
+pending figures are hidden from sight and assistive technology. Its metro
+label comes from the selected slug, so directory loading cannot rename the
+heading after paint.
+
 
 #### Calendar
 
@@ -828,6 +834,19 @@ failed background refresh keeps the last loaded events on screen. With no
 city chosen, the calendar asks for one rather than reporting an empty
 city.
 
+If city discovery fails before any inventory arrives, the homepage and city
+picker show a recoverable error, not the verified-empty state. Their retry
+controls remain visible and announce loading while the request runs; failure
+restores focus to Retry. Success focuses the resulting discovery heading or
+city list. Recovery headings use `tabIndex={-1}` so programmatic focus works
+without adding headings to the normal Tab order.
+
+The homepage feed lists all future events. Its heading is “Upcoming on the
+floor,” and the hero’s primary action is “See upcoming events.” The separate
+“Events This Week” statistic covers the next seven days only. A filtered-empty
+message describes the selected event-type list, not a week-limited feed.
+
+
 ##### List details
 
 Date-grouped rows with 1px borders show the flyer thumbnail,
@@ -866,6 +885,20 @@ fails, the dialog offers an in-place retry. A success confirmation card
 offers "Done" (closing with focus restoration to the trigger button) or
 "Submit Another Event".
 
+On `/submit`, signed-in submitters see listed venues, organizers,
+instructors and schools as they type (one debounced lookup per pause, with
+retry when it fails). Choosing a listing fills only empty event fields; typed
+values are kept and the listing's alternative is offered explicitly. A notice
+names what was filled and offers undo; keyboard focus moves to that undo and
+returns to the edited field after undo. The **Linked to this event** summary
+renders the exact `entity_review` payload that is submitted: Existing — will
+be linked, Suggested new — moderator reviews, Not linked, or Needs your
+choice. Undecided items are flagged before submit; public submitters may still
+submit and moderators decide. The success card repeats the submitted links,
+and admin submission review distinguishes what the submitter chose from the
+links that will be applied on approval. Signed-out submitters do not trigger
+entity lookups because those RPCs require authentication.
+
 #### Event Cards
 
 `EventCard` is a glass card (`--card`, 12px blur, 1px `--border`,
@@ -900,6 +933,17 @@ bounded to the card width; date and approval badge occupy separate grid
 columns and reflow without overlap at enlarged text sizes. The title's
 stretched button still opens the modal, while entity links remain independent.
 Hover/focus fills the arrow in gold; reduced motion removes transitions.
+
+Featured selection is optional. Admins and moderators may feature an
+approved event that has not started from the admin events row menu; the row
+shows a Featured badge and offers Undo or **Stop featuring**. The homepage
+and hero record label spotlight the earliest upcoming featured event in the
+selected area; without one they keep the automatic next event. The label says
+Featured Tonight/Today only when true, Next up when the featured event is also
+next, and otherwise Featured with its date. The featured event is removed from
+the feed below, and the automatic next event remains in the feed. Writes go
+through `set_event_featured`; direct client writes and pre-featured inserts
+are blocked.
 
 **Dance-style chips.** Small pills (`.style-chip`) name dance styles
 (On1, On2, Cuban, …) with a low-opacity Warm Orange background
@@ -941,13 +985,27 @@ short code at every width (for example DC, NYC or BOS), retaining the full
 city in their accessible name, native title hint and selection list.
 Explicit labels such as “Explore other cities” remain unchanged.
 
+Public discovery offers only locations with approved upcoming events.
+Discover's scene chips use `public_active_metros`, not the complete metro
+registry. The city explorer loads shared `public_active_locations` inventory
+when opened and offers only populated boroughs and neighborhoods. A borough
+with upcoming events but no named neighborhood remains selectable; empty
+child disclosures do not render. Loading and failed lookups remain distinct
+from confirmed-empty inventory, with in-place retry and keyboard focus
+recovery. Direct links and stored selections remain valid even after their
+inventory empties, and “Every city” still browses the complete entity directory.
+Curated location definitions remain available for event entry and validation;
+they do not themselves make a location discoverable.
+
 ##### Mobile header
 
 The full two-tone wordmark leads the bar. A compact city code and a 44px
 menu target share the trailing edge; the picker retains the full city
 name for assistive technology and shows the full name again in its city
-list. The picker panel stays inside the phone viewport, including at
-320px.
+list. At phone widths, the panel anchors to the header’s live bottom edge,
+including wrapped and condensed states, not to the viewport. Its height
+is limited to the remaining dynamic viewport above the bottom safe area;
+long city lists scroll inside the panel at 320px and 390px.
 
 While the public mobile menu is open, the header is a labelled modal
 navigation surface: focus stays among its visible controls, background
@@ -986,24 +1044,26 @@ available.
 
 #### Footer
 
-The footer closes the public experience with hosting as its primary action.
-“Host an event” is a heading link with rose emphasis on “event” and a Solar
-directional arrow. Its desktop title is 2.25rem with -0.03em tracking;
-the mobile override below 768px remains `clamp(3rem, 10vw, 4.5rem)`.
+The homepage’s primary event-submission invitation lives in `HomeCta`
+(“Submit your event” routes public visitors to `/submit`). The footer offers
+the distinct, lower-emphasis organizer-access path: “Request host access” → `/founders`.
+Requests are reviewed; approved hosts can manage and promote events. The
+request page serves dance brands, venues, promoters, and event organizers.
+
+The footer link uses 0.875rem UI type, muted text, a 1rem Solar arrow, and a
+44px target. Hover adds an underline; the link is not a display-scale CTA.
 The compact desktop shell uses `clamp(1.75rem, 3.5vw, 2.5rem)` top padding.
-“Passion For Dance” supports the invitation in 0.875rem type.
+
 A separate utility tier holds the two-tone logo and service area, contact
 navigation, and native “Buy me a coffee” link. Icons are bundled through
 Iconify; no remote button image or decorative media is required. Destinations
 and copyright wording are unchanged.
 
 Below 1024px support moves beneath identity and navigation. Below 768px the
-utility groups stack and the invitation wraps naturally. All links retain at
-least 44px targets and visible keyboard focus. GSAP introduces the complete
-hosting link, supporting tagline, and utility tier once with small translations,
-never hidden content or individually animated link words. Reduced motion
-bypasses entrance and CSS transform feedback; scoped matchMedia cleanup reverts
-motion on preference changes or unmount.
+utility groups stack. All links retain at least 44px targets and visible
+keyboard focus. GSAP animates the supporting tagline and utility tier, not the
+organizer link. Reduced motion bypasses entrance and CSS transform feedback;
+scoped matchMedia cleanup reverts motion on preference changes or unmount.
 Existing route-owned Lenis remains the only
 smooth-scroll engine; the footer creates no scroll instance or WebGL surface.
 Styles stay scoped to `.site-footer`; the public layout owns mobile dock clearance.
@@ -1037,12 +1097,33 @@ portrait sinks 12px and swells from 1.04 to 1.08 while the name rises 12px and
 settles to 0.98, on a CSS scroll timeline; reduced motion and unsupported
 browsers render it static. No portrait drops the bleed and opens on the name.
 
+#### Weekly guides
+
+The public itinerary (`/itineraries/:city/:weekStart`) is a **Read** surface
+in Ritmo Vivo, not a Sleeve enlarged into a page. Its title, city and date
+range establish the edition; an introduction and jump-to-night week strip
+lead into the seven-night schedule. Featured picks carry the primary card
+weight, alternatives remain readable event cards, and curator notes sit
+with the night they explain. Event links resolve to the real event page.
+Recommendations, a complete featured-night admission estimate (only when
+every featured price is known), sharing and published neighboring weeks
+close the guide. Unknown prices leave no placeholder or partial total.
+
+**The Dance-Night Rule.** Starts before **05:00 local** belong to the
+previous night; 05:00 exactly begins the next. A Sunday 00:30 start reads
+as Saturday night, with its actual local start label retained. The week,
+jump strip, editor and printed tracks all use this same wall-clock rule,
+including daylight-saving changes. Sharing and QR codes use the canonical
+`https://www.salsasegura.com/itineraries/<metro-slug>/<Monday>` URL;
+aliases resolve to that edition rather than becoming separate share links.
+
+
 ### The Sleeve
 
-The one artifact that leaves the site: the shareable event poster,
-exported and sent to a friend's phone, pressed in its own printed world.
-It appears only as the poster export and as its thumbnail/preview inside
-the event modal.
+The artifacts that leave the site: shareable event posters and weekly
+compilation artwork, exported and sent to a friend's phone, pressed in
+their own printed world. Only explicit poster previews and thumbnails
+bring this world into the event modal or itinerary editor.
 
 #### Poster
 
@@ -1122,11 +1203,13 @@ preview is a second view in the same dialog, not a new route.
 **Decisions.** Two equal-size decisions follow in a 1fr/1fr grid
 (`.night-actions`): **Send to friends** (primary) and the event's link —
 **RSVP · Free** or **Get Tickets** (secondary) when the event has an RSVP
-link, otherwise **Full details** (secondary). On mobile the decisions move
-to a separate action bar. Below them, ghost text-link
-utilities never compete with the two decisions: **Calendar** (when a
-calendar link can be built), **Copy link**, and **Full details** when it is
-not already a decision.
+link, otherwise **Send to friends** spans the row alone. On mobile the
+decisions move to a separate action bar. Directly after the title and its
+notes, an **Event shortcuts** group gives **Add to calendar**, **Copy link**
+and **View full details** equal raised tiles with gold icons and visible
+labels. The group appears in every modal state, with View full details
+appearing exactly once; tiles keep 44px targets and wrap under enlarged text
+rather than truncating labels.
 
 **The thumbnail.** The thumbnail reuses the front cover alone
 (`SleeveCover`), scaled down from its authored 968px art size (to 220px;
@@ -1147,6 +1230,43 @@ can move another region. The feed cut omits the "Side A"/"Side B" labels
 (track numbers still print red), shortens the QR call to "Scan", and drops
 the address note. The story cut keeps wrapped values, the side labels and
 the address note.
+
+#### Compilation pressing
+
+The weekly itinerary is a **compilation LP**, extending the Sleeve rather
+than inventing a fourth identity. `ShareableItineraryPoster` and
+`ItineraryCover` retain flat print, cream stock, Shrikhand only in the
+title band, Barlow Condensed tabular tracks and red back-cover accents.
+The masthead reads "Salsa Segura" / "The Week", with catalogue
+`SS-W<ISO week> · <city code>` and a week-range sticker.
+
+**The Tile-Frames-Keep-Pressing Rule.** The cream cover holds up to four
+featured flyers in a mosaic; every tile retains its own event-type
+pressing frame. There is no invented week-wide event type. Fewer flyers
+use a smaller grid; an empty cover uses deterministic fallback art.
+Spotlight selection takes featured nights in **Fri, Sat, Thu, Sun, Wed,
+Tue, Mon** priority, then displays those selected nights in chronological
+week order, consistently across the mosaic and link-card tracks.
+
+**Three cuts, one edition.** Story is **1080×1920**: masthead, square
+compilation cover, then Side A (Mon–Thu), Side B (Fri–Sun), QR and the
+canonical itinerary link printed without its scheme. Each populated night
+prints its featured pick, otherwise its top-ranked alternative; empty
+nights are omitted. More than five populated nights invokes the dense
+story track treatment so a full week retains room for the cover and QR.
+Feed is **1080×1350**, preserving the 728px cover, 232px date-range spine
+and QR beneath the spine; tracks stay one line with ellipsis.
+
+The **1200×630 link card** is a dedicated gatefold: **285 / 630 / 285px**.
+The centre square keeps the same cover, title and week sticker so square
+crops retain the edition. The left cream panel carries the masthead,
+city and date range; the right lists up to four spotlight nights in week
+order. Card track titles may wrap to **three lines**, not forced single-line
+ellipsis. No QR: the card is already a link. It is stored as a JPEG at
+most 300KB for link previews, not offered as a third downloadable poster.
+Story/feed exports and the stored card all derive from the same edition
+and canonical URL; no client host or metro alias changes their destination.
+
 
 #### Pressings
 
@@ -1442,6 +1562,33 @@ level of `.admin-card`, and uses the Identifier face for anything read
 character by character. A decision the desk's galley can carry in place
 (approve, reject) never requires routing to a record page.
 
+#### Weekly itinerary curation
+
+The itinerary list and editor are **Operate** surfaces inside
+`.admin-shell`, available to active admins and moderators through the
+Desk navigation. Drafts / Published / Archived tabs, week/city/title/status/
+event-count/updated columns and ordinary record actions reuse the existing
+admin table, pagination and confirmation vocabulary, not public glass cards.
+Archive withdraws an edition; a published past week remains a public guide.
+
+The editor separates **Week & words**, approved city/week **Find events**,
+and the seven-night **Schedule**. Title, introduction and recommendations
+remain editable prose. Featured/alternative choice, within-night rank,
+notes, removal and deliberate "No featured pick" controls belong beside
+their night. Warnings remain inline and summarized; a missing, cancelled,
+private or out-of-week pick blocks publication rather than fabricating facts.
+Plain flyer thumbnails stay plain images, not mini Sleeves.
+
+Wide layouts pair editing with a sticky preview; narrow layouts use
+Edit/Preview tabs. The public guide preview is clearly labelled
+"Draft — not public"; poster preview is an explicit Sleeve boundary.
+Save is explicit with an unsaved-change guard. Publishing generates and
+uploads the gatefold before changing status; failures remain visible and
+retryable. After later event changes, public reads omit unavailable or
+out-of-city/week items and suppress stale covers until regeneration.
+No automatic server-side render or recall of already-shared files is implied.
+
+
 ### Retail / Shop
 
 The masthead reads “Shop” in Great Vibes 400, the same font as the Salsa
@@ -1685,8 +1832,8 @@ removed and selection changes land at once.
 - **Don't** let Ritmo Vivo's glassmorphism, glow or gradients reach the
   Sleeve, and don't let the Sleeve's flat fields leak back into Ritmo
   Vivo.
-- **Don't** show the Sleeve anywhere but the poster export and its
-  thumbnail/preview inside the event modal.
+- **Don't** show the Sleeve outside event/itinerary exports, the itinerary
+  link card, and their explicit modal/editor thumbnails or previews.
 - **Don't** add a shadow anywhere on the poster; the Sleeve prints flat.
 
 ### Profile edit access

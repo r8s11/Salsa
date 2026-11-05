@@ -9,6 +9,8 @@ export type EventFormDraft = {
   /** Full ordered selection; `event_type` is its first member. */
   event_types?: EventType[];
   city: City;
+  /** Curated neighborhood slug; null means unassigned. */
+  neighborhood?: string | null;
   /** Optional NYC borough; "" means All NYC. */
   sublocation: SubLocation | "";
   event_date: string;

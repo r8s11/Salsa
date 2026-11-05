@@ -30,6 +30,7 @@ import { getUpcomingSeriesDates } from "../../../../utils/series";
 import { useShareablePoster } from "../../../calendar/hooks/useShareablePoster";
 import { buildPublicEventUrl } from "../../model/eventSharing";
 import { buildShortEventUrl, shortEventLabel } from "../../model/shortLink";
+import { sharePosterFile } from "../../model/sharePosterFile";
 import { useAccessibleDialog } from "../../../../shared/a11y/useAccessibleDialog";
 import { recordEventTouch } from "../../api/eventsRepo";
 import { useEventViewTouch } from "../../hooks/useEventViewTouch";
@@ -150,7 +151,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
   const copiedTimerRef = useRef<number | null>(null);
   const { createPoster, posterFilename, downloadPoster } = useShareablePoster();
 
-  useEventViewTouch(String(event.id));
+  useEventViewTouch(String(event.id), event.city);
 
   // The sleeve thumbnail and preview set the poster's own faces.
   useEffect(() => {
@@ -171,7 +172,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
     };
   }, []);
   const handleCopyLink = async (region: ActionRegion) => {
-    void recordEventTouch(String(event.id), "share");
+    void recordEventTouch(String(event.id), "share", event.city);
     try {
       if (!navigator.clipboard?.writeText) throw new Error("Clipboard unavailable");
       await navigator.clipboard.writeText(canonicalUrl);
@@ -328,7 +329,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
                 href={event.rsvpLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={() => void recordEventTouch(String(event.id), event.priceType === "paid" ? "ticket_click" : "rsvp_click")}
+                onClick={() => void recordEventTouch(String(event.id), event.priceType === "paid" ? "ticket_click" : "rsvp_click", event.city)}
               >
                 Reserve
               </a>
@@ -346,38 +347,32 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
   // Failures surface as visible feedback; a dismissed share sheet stays silent.
   const handleSharePoster = async (region: ActionRegion, posterFormat: PosterFormat) => {
     if (isSharing) return;
-    void recordEventTouch(String(event.id), "share");
+    void recordEventTouch(String(event.id), "share", event.city);
     setIsSharing(true);
     setFeedback(null);
     setShareFallback(null);
     try {
       const poster = await createPoster(event, posterFormat);
-      const file = new File([poster], posterFilename(event, posterFormat), { type: "image/png" });
-      const shareData = {
-        files: [file],
+      const outcome = await sharePosterFile({
+        blob: poster,
+        filename: posterFilename(event, posterFormat),
         title: event.title,
-        text: `${event.title} — ${canonicalUrl}`,
         url: canonicalUrl,
-      };
+      });
 
-      if (navigator.canShare?.(shareData)) {
-        try {
-          await navigator.share(shareData);
-        } catch (err) {
-          if (err instanceof DOMException && err.name === "AbortError") return;
-          const needsFreshActivation = err instanceof DOMException && err.name === "NotAllowedError";
-          if (needsFreshActivation) {
-            setShareFallback({ poster, format: posterFormat, region });
-          }
-          setFeedback({
-            kind: "error",
-            message: needsFreshActivation
+      if (outcome === "needs_fresh_tap" || outcome === "failed") {
+        if (outcome === "needs_fresh_tap") {
+          setShareFallback({ poster, format: posterFormat, region });
+        }
+        setFeedback({
+          kind: "error",
+          message:
+            outcome === "needs_fresh_tap"
               ? "Sharing needs a fresh tap. Download the poster instead."
               : "Sending the poster failed. Please try again.",
-            region,
-          });
-        }
-      } else {
+          region,
+        });
+      } else if (outcome === "unsupported") {
         downloadPoster(event, poster, posterFormat);
         setFeedback({
           kind: "status",
@@ -441,11 +436,13 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
     const calUrl = googleCalendarUrl(event);
     return calUrl ? (
       <ButtonLink href={calUrl} external variant="ghost" className="night-utility">
-        <CalendarPlus size={16} aria-hidden /> Add to calendar
+        <CalendarPlus size={18} aria-hidden />
+        <span>Add to calendar</span>
       </ButtonLink>
     ) : (
       <Button variant="ghost" onClick={() => downloadIcs(event)} className="night-utility">
-        <CalendarPlus size={16} aria-hidden /> Add to calendar
+        <CalendarPlus size={18} aria-hidden />
+        <span>Add to calendar</span>
       </Button>
     );
   };
@@ -482,11 +479,15 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
     return null;
   };
 
-  // The two decisions, equal in size: bring friends, or commit. Rendered in
-  // the card on desktop and in the sheet's thumb-zone bar on mobile; CSS
-  // shows exactly one region per layout.
+  // The decisions: bring friends, or commit. With an RSVP link both sit side
+  // by side at equal size; without one, sending stands alone at full width
+  // (the detail page lives in the utilities row, never duplicated here).
+  // Rendered in the card on desktop and in the sheet's thumb-zone bar on
+  // mobile; CSS shows exactly one region per layout.
   const renderDecisions = (region: "card" | "bar") => (
-    <div className={`night-actions night-actions--${region}`}>
+    <div
+      className={`night-actions night-actions--${region}${event.rsvpLink ? "" : " night-actions--solo"}`}
+    >
       <Button
         variant="primary"
         className="night-actions__send"
@@ -498,25 +499,15 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
         <Share2 size={16} aria-hidden />
         Send to friends
       </Button>
-      {event.rsvpLink ? (
+      {event.rsvpLink && (
         <ButtonLink
           href={event.rsvpLink}
           external
           variant="secondary"
           className="night-actions__rsvp"
-          onClick={() => void recordEventTouch(String(event.id), event.priceType === "paid" ? "ticket_click" : "rsvp_click")}
+          onClick={() => void recordEventTouch(String(event.id), event.priceType === "paid" ? "ticket_click" : "rsvp_click", event.city)}
         >
           {rsvpLabel}
-        </ButtonLink>
-      ) : (
-        <ButtonLink
-          to={`/events/${event.slug || event.id}`}
-          variant="secondary"
-          className="night-actions__rsvp"
-          onClick={onClose}
-        >
-          <Eye size={16} aria-hidden />
-          Full details
         </ButtonLink>
       )}
       {renderFeedback(region)}
@@ -616,34 +607,35 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
             })}
           </div>
         )}
-        <EventEntityLinks entities={event.publicEntities} omit={["venue", "style"]} onNavigate={onClose} />
 
         {renderDecisions("card")}
         {renderReassurance()}
 
-        <div className="night-utilities">
+        {/* Utilities sit right under the title on mobile (the decisions move
+            to the bar), and directly under the decisions on desktop. */}
+        <div className="night-utilities" role="group" aria-label="Event shortcuts">
           {renderCalendarAction()}
           <Button
             variant="ghost"
             onClick={() => void handleCopyLink("utilities")}
             className="night-utility copy-link-btn"
           >
-            <Link2 size={16} aria-hidden />
-            {copied ? "Copied" : "Copy link"}
+            <Link2 size={18} aria-hidden />
+            <span>{copied ? "Copied" : "Copy link"}</span>
           </Button>
-          {event.rsvpLink && (
-            <ButtonLink
-              to={`/events/${event.slug || event.id}`}
-              variant="ghost"
-              className="night-utility"
-              onClick={onClose}
-            >
-              <Eye size={16} aria-hidden />
-              Full details
-            </ButtonLink>
-          )}
+          <ButtonLink
+            to={`/events/${event.slug || event.id}`}
+            variant="ghost"
+            className="night-utility"
+            onClick={onClose}
+          >
+            <Eye size={18} aria-hidden />
+            <span>View full details</span>
+          </ButtonLink>
         </div>
         {renderFeedback("utilities")}
+
+        <EventEntityLinks entities={event.publicEntities} omit={["venue", "style"]} onNavigate={onClose} />
 
         {hasDetails && (
           <section className="night-details" aria-labelledby="night-details-title">

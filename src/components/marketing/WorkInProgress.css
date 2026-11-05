@@ -2,6 +2,8 @@
    Work In Progress — Ritmo Vivo
    ======================================== */
 
+/* No overflow clip here: it would cut off the card's text whenever large
+   text zoom made it outgrow the viewport. The glow is sized to fit instead. */
 .wip-container {
   display: flex;
   justify-content: center;
@@ -12,7 +14,6 @@
   text-align: center;
   padding: 60px 20px;
   position: relative;
-  overflow: hidden;
 }
 
 /* Atmospheric glow */
@@ -22,8 +23,8 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -60%);
-  width: 600px;
-  height: 600px;
+  width: min(600px, 100%);
+  aspect-ratio: 1;
   background: radial-gradient(ellipse, rgba(196, 18, 48, 0.12) 0%, transparent 65%);
   pointer-events: none;
 }
@@ -34,6 +35,7 @@
   padding: 3.5rem 2.5rem;
   border-radius: var(--radius-lg);
   max-width: 560px;
+  min-width: 0;
   position: relative;
   z-index: 1;
 }
@@ -92,12 +94,16 @@
   margin-bottom: 0.875rem;
 }
 
+/* The address has no break opportunities; let it wrap only when it cannot
+   fit, rather than overflow the card. */
 .wip-container a {
   color: var(--gold-light);
   text-decoration: none;
   font-size: 0.875rem;
   font-weight: 600;
   display: inline-block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
   margin: 0.35rem 0;
   transition: color 0.2s ease;
 }

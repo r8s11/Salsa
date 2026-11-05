@@ -7,8 +7,8 @@ import AdminEventEditor from "./AdminEventEditor";
 import { buildEmptyAdminForm } from "../../model/adminEventForm";
 import { draftToAdminPayload } from "../../../events/components/EventForm";
 import { fetchAdminEntityDirectory, fetchAdminEntityDetail, saveAdminEntity } from "../../entities/api/entitiesRepo";
-import { fetchVenueDetail } from "../../api/venuesRepo";
-import type { VenueDetailRow } from "../../model/venuesQuery";
+import { fetchVenueDetail, searchVenues } from "../../api/venuesRepo";
+import type { VenueDetailRow, VenueRow } from "../../model/venuesQuery";
 
 vi.mock("../../../metros/hooks/useMetros", () => import("../../../../test/mockMetros"));
 vi.mock("../../hooks/useAdminTaxonomy", () => ({ useActiveTaxonomyTerms: () => ({ terms: [] }) }));
@@ -299,6 +299,34 @@ it("carries the series venue's time zone onto the draft so an LA venue saves as 
   expect(saved.venue_time_zone).toBe("America/Los_Angeles");
   // 8pm Pacific, not 8pm Eastern (which would be 00:00Z).
   expect(draftToAdminPayload(saved).event_date).toBe("2026-07-19T03:00:00Z");
+});
+
+it("links a picked venue without replacing the address the admin typed, and undo restores their text", async () => {
+  localStorage.clear();
+  const user = userEvent.setup();
+  vi.mocked(searchVenues).mockResolvedValue([
+    {
+      id: "venue-z",
+      name: "Zinc Hall",
+      address_line1: "9 Zinc St",
+      city: "Boston",
+      timezone: "America/New_York",
+    } as VenueRow,
+  ]);
+  editor();
+  await user.type(screen.getByLabelText("Venue name"), "zinc");
+  await user.type(screen.getByLabelText("Address", { exact: true }), "Rear door");
+  await user.type(screen.getByRole("combobox", { name: "Venue" }), "Zinc");
+  await user.click(await screen.findByRole("option", { name: /Zinc Hall/ }));
+
+  expect(screen.getByLabelText("Venue name")).toHaveValue("Zinc Hall");
+  expect(screen.getByLabelText("Address", { exact: true })).toHaveValue("Rear door");
+  expect(screen.getByText(/Kept your address/)).toBeInTheDocument();
+
+  await user.click(screen.getByRole("button", { name: "Undo link and filled details" }));
+  expect(screen.getByLabelText("Venue name")).toHaveValue("zinc");
+  expect(screen.getByLabelText("Address", { exact: true })).toHaveValue("Rear door");
+  vi.mocked(searchVenues).mockResolvedValue([]);
 });
 
 it("does not restore a discarded draft after the editor unmounts", async () => {

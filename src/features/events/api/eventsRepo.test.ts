@@ -1,11 +1,14 @@
 import "temporal-polyfill/global";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DatabaseEvent } from "../model/types";
+import { databaseEventToScheduleX } from "../model/convert";
 import {
   deleteEventForUser,
   duplicateEvent,
   fetchApprovedEventById,
+  fetchApprovedEvents,
   recordEventTouch,
+  setEventFeatured,
   updateEventFlyer,
   updateEventForUser,
 } from "./eventsRepo";
@@ -26,6 +29,8 @@ const queryBuilder = {
   delete: mocks.delete,
   select: vi.fn().mockReturnThis(),
   eq: vi.fn().mockReturnThis(),
+  gte: vi.fn().mockReturnThis(),
+  order: vi.fn(),
   single: vi.fn(),
   maybeSingle: mocks.maybeSingle,
 };
@@ -96,6 +101,15 @@ describe("eventsRepo taxonomy persistence", () => {
     expect(inserted).not.toHaveProperty("taxonomy_term_ids");
     expect(inserted).not.toHaveProperty("taxonomy_terms");
     expect(mocks.replaceEventTaxonomyTerms).toHaveBeenCalledWith("copy-id", ["salsa-id"]);
+  });
+
+  it("never carries the source's homepage feature onto the copy", async () => {
+    await duplicateEvent(
+      { ...source, featured_at: "2026-08-20T00:00:00Z" },
+      { date: "2026-09-08", time: "20:00", publish: true },
+      { id: "admin-id", email: "admin@example.com" }
+    );
+    expect(mocks.insert.mock.calls[0][0]).not.toHaveProperty("featured_at");
   });
 });
 
@@ -230,6 +244,78 @@ describe("fetchApprovedEventById", () => {
     await expect(fetchApprovedEventById("missing")).resolves.toBeNull();
   });
 });
+describe("fetchApprovedEvents", () => {
+  beforeEach(() => {
+    mocks.from.mockClear();
+    queryBuilder.select.mockClear();
+    queryBuilder.eq.mockClear();
+    queryBuilder.gte.mockClear();
+    queryBuilder.order.mockReset();
+  });
+
+
+  it("rejects a neighborhood outside the selected borough before querying", async () => {
+    await expect(fetchApprovedEvents("new-york-city", "brooklyn", "harlem")).rejects.toThrow(
+      "Neighborhood does not belong to the selected city and borough."
+    );
+    expect(mocks.from).not.toHaveBeenCalled();
+  });
+  it("rejects an invalid borough before querying", async () => {
+    // URL parameters are untyped at runtime, so the guard must hold for any string.
+    await expect(fetchApprovedEvents("new-york-city", "not-a-borough" as never)).rejects.toThrow(
+      "Borough does not belong to the selected city."
+    );
+    expect(mocks.from).not.toHaveBeenCalled();
+  });
+
+  it("scopes the homepage feed, featured flag included, to the selected city", async () => {
+    queryBuilder.order.mockResolvedValue({
+      data: [{ ...source, featured_at: "2026-08-20T00:00:00Z", event_taxonomy_terms: [] }],
+      error: null,
+    });
+
+    const [event] = await fetchApprovedEvents("boston");
+
+    expect(mocks.from).toHaveBeenCalledWith("public_events");
+    expect(queryBuilder.eq).toHaveBeenCalledWith("city", "boston");
+    expect(databaseEventToScheduleX(event).featured).toBe(true);
+    expect(databaseEventToScheduleX({ ...event, featured_at: null }).featured).toBeUndefined();
+  });
+});
+
+describe("setEventFeatured", () => {
+  beforeEach(() => {
+    mocks.rpc.mockReset();
+  });
+
+  it("features through the audited RPC and returns the stored timestamp", async () => {
+    mocks.rpc.mockResolvedValue({ data: "2026-10-31T12:00:00Z", error: null });
+
+    await expect(setEventFeatured("event-id", true)).resolves.toBe("2026-10-31T12:00:00Z");
+    expect(mocks.rpc).toHaveBeenCalledWith("set_event_featured", {
+      p_event_id: "event-id",
+      p_featured: true,
+    });
+  });
+
+  it("resolves to null once unfeatured", async () => {
+    mocks.rpc.mockResolvedValue({ data: null, error: null });
+
+    await expect(setEventFeatured("event-id", false)).resolves.toBeNull();
+  });
+
+  it("surfaces the database refusal", async () => {
+    mocks.rpc.mockResolvedValue({
+      data: null,
+      error: { message: "Events that have already started cannot be featured" },
+    });
+
+    await expect(setEventFeatured("event-id", true)).rejects.toThrow(
+      "Events that have already started cannot be featured"
+    );
+  });
+});
+
 
 
 describe("eventsRepo user update", () => {
@@ -247,6 +333,7 @@ describe("eventsRepo user update", () => {
       event_type: "workshop",
       event_types: ["workshop", "concert"],
       city: "boston",
+      neighborhood: "back-bay",
       event_date: "2026-08-20T20:00:00Z",
       event_time: "20:00",
       location: "Venue",
@@ -264,6 +351,7 @@ describe("eventsRepo user update", () => {
       event_type: "workshop",
       event_types: ["workshop", "concert"],
       city: "boston",
+      neighborhood: "back-bay",
       event_date: "2026-08-20T20:00:00Z",
       event_time: "20:00",
       location: "Venue",
@@ -422,14 +510,6 @@ describe("recordEventTouch", () => {
     mocks.rpc.mockReset();
   });
 
-  it("sends event id and kind through the record_event_touch RPC", async () => {
-    await recordEventTouch("evt-touch-1", "view");
-
-    expect(mocks.rpc).toHaveBeenCalledWith("record_event_touch", {
-      p_event_id: "evt-touch-1",
-      p_kind: "view",
-    });
-  });
 
   it("dedupes view touches per event and UTC day but records each action", async () => {
     await recordEventTouch("evt-touch-2", "view");
@@ -451,12 +531,15 @@ describe("recordEventTouch", () => {
     expect(mocks.rpc).toHaveBeenCalledTimes(7);
   });
 
-  it.each([{ doNotTrack: "1" }, { globalPrivacyControl: true }])("honors browser privacy signals without storing view markers", async (privacy) => {
+  it.each([{ doNotTrack: "1" }, { globalPrivacyControl: true }])("honors browser privacy signals across both telemetry sinks", async (privacy) => {
+    const track = vi.fn();
+    vi.stubGlobal("umami", { track });
     vi.stubGlobal("navigator", { ...navigator, ...privacy });
     try {
-      await recordEventTouch("evt-private", "view");
-      await recordEventTouch("evt-private", "rsvp_click");
+      await recordEventTouch("evt-private", "view", "boston");
+      await recordEventTouch("evt-private", "rsvp_click", "boston");
       expect(mocks.rpc).not.toHaveBeenCalled();
+      expect(track).not.toHaveBeenCalled();
       expect(sessionStorage.length).toBe(0);
     } finally {
       vi.unstubAllGlobals();

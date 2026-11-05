@@ -562,11 +562,22 @@ describe("AdminSidebar navigation groups", () => {
       null,
       "Dashboard",
       "Event Submissions",
+      "Weekly Itineraries",
       "Organizer Requests",
       "Founder Requests",
     ]);
     expect(screen.queryByRole("link", { name: /Listing Claims/ })).not.toBeInTheDocument();
     expect(groupLabels()).toEqual([]);
+  });
+
+  it("gives moderators the Weekly Itineraries desk link", () => {
+    mockRole("moderator");
+    renderSidebar();
+
+    expect(screen.getByRole("link", { name: "Weekly Itineraries" })).toHaveAttribute(
+      "href",
+      "/admin/itineraries"
+    );
   });
 
   it("does not label the Host navigation's single group", () => {

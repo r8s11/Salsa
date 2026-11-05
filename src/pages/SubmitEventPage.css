@@ -227,7 +227,7 @@
   flex-shrink: 0;
 }
 
-.submit-event .success-card p {
+.submit-event .success-card > p {
   color: var(--text-muted);
   margin-bottom: var(--space-xl);
   line-height: 1.7;
@@ -280,4 +280,15 @@
 
 .submit-flyer .entity-review {
   margin-top: var(--space-lg);
+}
+
+/* "Linked to this event" closes the form card, divided like its sections. */
+.submit-form__card > .entity-links {
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--border);
+}
+
+.submit-event .success-card .entity-links {
+  margin: 0 0 var(--space-xl);
+  text-align: left;
 }

@@ -91,6 +91,7 @@ export function submissionToDatabaseEvent(submission: EventSubmission): Database
     cancellation_reason: null,
     city: city(data),
     sublocation: nullableString(data, "sublocation"),
+    neighborhood: nullableString(data, "neighborhood"),
     created_at: submission.created_at,
     host: null,
     recurrence: data.recurrence === "weekly" ? "weekly" : null,

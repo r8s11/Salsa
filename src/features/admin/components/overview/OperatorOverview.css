@@ -1,0 +1,83 @@
+.admin-overview .desk {
+  --desk-thumb-w: 52px;
+  --desk-gutter: 16px;
+}
+
+.admin-overview .desk__rule {
+  padding-bottom: 18px;
+  border-bottom-width: 3px;
+}
+
+.admin-overview .desk__date {
+  font-size: 2.25rem;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.admin-overview .desk__dateline {
+  margin-top: 6px;
+  color: var(--admin-text-secondary);
+  font-weight: 700;
+}
+
+.admin-overview .desk__counts > li {
+  padding-inline: 20px;
+}
+
+.admin-overview .desk__count {
+  gap: 9px;
+  color: var(--admin-text-secondary);
+}
+
+.admin-overview .desk__count-figure {
+  font-size: 2rem;
+  letter-spacing: -0.035em;
+}
+
+.admin-overview .desk__measure-head {
+  min-height: 34px;
+  padding-bottom: 9px;
+  border-bottom-width: 2px;
+}
+
+.admin-overview .desk__measure-title {
+  color: var(--admin-text-strong);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.admin-overview .desk__entry {
+  padding-block: 12px;
+}
+
+.admin-overview .desk__entry-title {
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+.admin-overview .desk__division-day {
+  font-size: 0.75rem;
+}
+
+.admin-overview .desk__division-head {
+  padding-top: 18px;
+}
+
+@media (max-width: 639.98px) {
+  .admin-overview .desk__rule {
+    padding-bottom: 14px;
+  }
+
+  .admin-overview .desk__date {
+    font-size: 1.75rem;
+  }
+
+  .admin-overview .desk__count-figure {
+    font-size: 1.75rem;
+  }
+
+  .admin-overview .desk__counts > li {
+    padding: 10px 10px 0 0;
+  }
+}

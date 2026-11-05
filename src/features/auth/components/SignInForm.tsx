@@ -6,7 +6,10 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/useAuth";
 import { roleFromUser } from "../../../contexts/authContextObject";
 import { resolveAuthorizedDestination, isSafeInternalPath } from "../../../lib/authDestination";
-import { consumeAuthReturnDestination } from "../../../lib/authReturnDestination";
+import { consumeAuthReturnDestination, setAuthReturnDestination } from "../../../lib/authReturnDestination";
+import { getCallbackUrl } from "../../../lib/authCallbackUrl";
+import { setAuthIntent, consumeAuthIntent } from "../../../lib/authIntent";
+import { supabase } from "../../../lib/supabase";
 import FormFieldError from "../../../shared/forms/FormFieldError";
 import { fieldErrorProps } from "../../../shared/forms/fieldErrorProps";
 import Button from "../../../components/ui/Button";
@@ -14,6 +17,7 @@ import IconButton from "../../../components/ui/IconButton";
 import "./SignInForm.css";
 
 type Mode = "signin" | "signup" | "reset";
+type SocialProvider = "apple" | "google" | "facebook";
 
 import { friendlyAuthError, isUnconfirmedEmail } from "../model/authUtils";
 
@@ -29,6 +33,13 @@ export default function SignInForm() {
     typeof location.state?.email === "string" ? location.state.email : ""
   );
   const emailLocked = location.state?.lockedEmail === true;
+  const [socialLoading, setSocialLoading] = useState<SocialProvider | null>(null);
+  // Keep the buttons hidden until each external OAuth provider is configured.
+  const socialProviders = ([
+    { id: "apple", label: "Apple", enabled: import.meta.env.VITE_OAUTH_APPLE_ENABLED === "true" },
+    { id: "google", label: "Google", enabled: import.meta.env.VITE_OAUTH_GOOGLE_ENABLED === "true" },
+    { id: "facebook", label: "Facebook", enabled: import.meta.env.VITE_OAUTH_FACEBOOK_ENABLED === "true" },
+  ] as const).filter((provider) => provider.enabled);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -122,6 +133,32 @@ export default function SignInForm() {
     const destination =
       returnDestination ?? (isSafeInternalPath(from) ? from : resolveAuthorizedDestination(role));
     navigate(destination, { replace: true });
+  };
+
+  const handleSocialSignIn = async (provider: SocialProvider) => {
+    if (loading || socialLoading) return;
+    setErrorMsg(null);
+    setMessage(null);
+    setShowResend(false);
+
+    // OAuth leaves the SPA, so location.state cannot preserve the destination.
+    const from = location.state?.from;
+    if (isSafeInternalPath(from)) setAuthReturnDestination(from);
+    setAuthIntent("oauth");
+    setSocialLoading(provider);
+
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo: getCallbackUrl() },
+      });
+      if (error) throw error;
+      // Supabase navigates to the provider after a successful initiation.
+    } catch {
+      consumeAuthIntent();
+      setErrorMsg("We couldn't start social sign-in. Please try again.");
+      setSocialLoading(null);
+    }
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -273,6 +310,25 @@ export default function SignInForm() {
         <Button variant="ghost" type="button" onClick={handleResend} disabled={loading}>
           Resend confirmation email
         </Button>
+      )}
+
+      {mode !== "reset" && !emailLocked && socialProviders.length > 0 && (
+        <div className="social-auth" aria-label="Social sign-in options">
+          <div className="social-auth-buttons">
+            {socialProviders.map(({ id, label }) => (
+              <button
+                key={id}
+                type="button"
+                className="social-auth-button"
+                disabled={loading || socialLoading !== null}
+                onClick={() => void handleSocialSignIn(id)}
+              >
+                {socialLoading === id ? "Connecting…" : `Continue with ${label}`}
+              </button>
+            ))}
+          </div>
+          <div className="social-auth-divider"><span>or continue with email</span></div>
+        </div>
       )}
 
       {mode === "reset" ? (

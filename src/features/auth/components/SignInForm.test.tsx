@@ -62,7 +62,7 @@ describe("SignInForm", () => {
     await userEvent.setup().click(screen.getByRole("button", { name: "Continue with Google" }));
     await waitFor(() => expect(supabase.auth.signInWithOAuth).toHaveBeenCalledWith({
       provider: "google",
-      options: { redirectTo: /\/auth\/callback$/ },
+      options: { redirectTo: expect.stringMatching(/\/auth\/callback$/) },
     }));
     expect(window.sessionStorage.getItem("salsasegura-auth-return-destination")).toBe("/submit");
   });

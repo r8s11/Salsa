@@ -1,0 +1,64 @@
+{
+  "version": "1.0",
+  "stitch": {
+    "projectId": "13638791985041904672",
+    "referenceScreen": {
+      "id": "2234838486611923841",
+      "route": "/discover",
+      "title": "Discover",
+      "deviceType": "DESKTOP",
+      "extractedAt": "2026-10-17T03:51:54.325Z"
+    },
+    "referenceScreens": [
+      {
+        "id": "1208177964898603356",
+        "route": "/",
+        "title": "Home",
+        "deviceType": "DESKTOP",
+        "extractedAt": "2026-10-17T03:50:14.564Z"
+      },
+      {
+        "id": "17259498501391088153",
+        "route": "/events/:id",
+        "title": "Event Detail",
+        "deviceType": "DESKTOP",
+        "extractedAt": "2026-10-17T03:50:34.200Z"
+      },
+      {
+        "id": "2083108916999210011",
+        "route": "/v/:slug",
+        "title": "Venue",
+        "deviceType": "DESKTOP",
+        "extractedAt": "2026-10-17T03:50:54.997Z"
+      },
+      {
+        "id": "18091712313386074493",
+        "route": "/cities/:slug",
+        "title": "City",
+        "deviceType": "DESKTOP",
+        "extractedAt": "2026-10-17T03:51:23.775Z"
+      },
+      {
+        "id": "11737092874139302117",
+        "route": "/founders",
+        "title": "Host Request",
+        "deviceType": "DESKTOP",
+        "extractedAt": "2026-10-17T03:51:33.212Z"
+      },
+      {
+        "id": "6125701359549573805",
+        "route": "/calendar",
+        "title": "Calendar",
+        "deviceType": "DESKTOP",
+        "extractedAt": "2026-10-17T03:51:42.260Z"
+      },
+      {
+        "id": "2234838486611923841",
+        "route": "/discover",
+        "title": "Discover",
+        "deviceType": "DESKTOP",
+        "extractedAt": "2026-10-17T03:51:54.325Z"
+      }
+    ]
+  }
+}

@@ -159,7 +159,7 @@ export default function RetailCatalog({ featured, arrivals, tiles, children }: {
         <ul className="retail-catalog__community">
           <li><Link to="/calendar">Explore upcoming events <Icon icon={arrowIcon} aria-hidden="true" width={20} /></Link></li>
           <li><Link to="/discover">Find a class <Icon icon={arrowIcon} aria-hidden="true" width={20} /></Link></li>
-          <li><Link to="/founders">Host an event <Icon icon={arrowIcon} aria-hidden="true" width={20} /></Link></li>
+          <li><Link to="/founders">Request host access <Icon icon={arrowIcon} aria-hidden="true" width={20} /></Link></li>
         </ul>
       </aside>
       <p className="retail-catalog__credits">

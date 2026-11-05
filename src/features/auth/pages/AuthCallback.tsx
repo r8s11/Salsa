@@ -32,6 +32,10 @@ const ERROR_COPY: Record<CallbackError, { heading: string; message: string }> = 
     message:
       "This confirmation link is invalid, expired, or was already used. If you still want to change your account email, request the change again from your account page.",
   },
+  oauth: {
+    heading: "Social sign-in wasn't completed",
+    message: "The provider declined or canceled sign-in. Please try again or use your email.",
+  },
   invalid: {
     heading: "We couldn't complete your sign-in",
     message: "This authentication link is invalid or incomplete. Please try again or sign in.",
@@ -103,14 +107,9 @@ export default function AuthCallback() {
           hashParams.get("error");
         const code = params.get("code");
 
-        // DEBUG: Log what's received for troubleshooting
-        console.log("[AuthCallback] URL search:", location.search);
-        console.log("[AuthCallback] URL hash:", location.hash);
-        console.log("[AuthCallback] Parsed params - code:", code, "error:", errorParam);
-
         if (errorParam) {
           // e.g. expired or already-used confirmation/recovery link
-          console.warn("Auth callback returned an error:", errorParam);
+          console.warn("Auth callback returned an OAuth or email-link error.");
           fail(null);
           return;
         }

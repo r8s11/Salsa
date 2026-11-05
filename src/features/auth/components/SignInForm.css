@@ -232,3 +232,25 @@
   padding-top: var(--space-md);
   border-top: 1px solid var(--border);
 }
+
+/* Opt-in social providers: hidden until credentials and callbacks are ready. */
+.social-auth { display: grid; gap: var(--space-md); margin: 0 0 var(--space-lg); }
+.social-auth-buttons { display: grid; gap: var(--space-sm); }
+.social-auth-button {
+  min-height: 48px;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+.social-auth-button:hover:not(:disabled) { border-color: var(--gold-light); background: var(--surface-container); }
+.social-auth-button:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 3px; }
+.social-auth-button:disabled { opacity: 0.65; cursor: not-allowed; }
+.social-auth-divider { display: flex; align-items: center; gap: var(--space-sm); color: var(--text-muted); font-size: 0.8125rem; text-align: center; }
+.social-auth-divider::before, .social-auth-divider::after { content: ""; flex: 1; height: 1px; background: var(--border-md); }

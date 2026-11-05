@@ -53,11 +53,11 @@ export const SHOP_COLLECTIONS: ShopCollectionConfig[] = [
   {
     handle: "shoes",
     label: "Shoes",
-    hint: "Coming soon",
-    headline: "Footwear is coming",
-    description: "Dance sneakers, Latin heels and practice flats are in the works.",
-    emptyTitle: "No shoes in the shop yet",
-    emptyBody: "Nothing is on sale yet. While footwear is sourced, the rest of the gear is ready to go.",
+    hint: "Dance sneakers, heels & flats",
+    headline: "Shoes",
+    description: "Footwear for class, practice and socials. Sizes are listed exactly as the merchant supplies them.",
+    emptyTitle: "No shoes listed yet",
+    emptyBody: "Nothing is listed here yet. Everything we stock is in Shop all.",
   },
 ];
 

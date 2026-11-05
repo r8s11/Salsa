@@ -406,6 +406,7 @@ surfaces invite discovery; operator surfaces support deliberate work;
 the exported Sleeve belongs to printed matter.
 
 **Key Characteristics:**
+
 - Public navy grounds, warm stage-light accents, bold type and glass.
 - Operator state marks, agate rows and border-only record surfaces.
 - Flat, spot-colour poster artwork kept separate from interface chrome.
@@ -693,7 +694,6 @@ pending figures are hidden from sight and assistive technology. Its metro
 label comes from the selected slug, so directory loading cannot rename the
 heading after paint.
 
-
 #### Calendar
 
 The public calendar (`/calendar`) is a nightlife discovery stage and
@@ -845,7 +845,6 @@ The homepage feed lists all future events. Its heading is “Upcoming on the
 floor,” and the hero’s primary action is “See upcoming events.” The separate
 “Events This Week” statistic covers the next seven days only. A filtered-empty
 message describes the selected event-type list, not a week-limited feed.
-
 
 ##### List details
 
@@ -1117,7 +1116,6 @@ including daylight-saving changes. Sharing and QR codes use the canonical
 `https://www.salsasegura.com/itineraries/<metro-slug>/<Monday>` URL;
 aliases resolve to that edition rather than becoming separate share links.
 
-
 ### The Sleeve
 
 The artifacts that leave the site: shareable event posters and weekly
@@ -1266,7 +1264,6 @@ ellipsis. No QR: the card is already a link. It is stored as a JPEG at
 most 300KB for link previews, not offered as a third downloadable poster.
 Story/feed exports and the stored card all derive from the same edition
 and canonical URL; no client host or metro alias changes their destination.
-
 
 #### Pressings
 
@@ -1588,7 +1585,6 @@ retryable. After later event changes, public reads omit unavailable or
 out-of-city/week items and suppress stale covers until regeneration.
 No automatic server-side render or recall of already-shared files is implied.
 
-
 ### Retail / Shop
 
 The masthead reads “Shop” in Great Vibes 400, the same font as the Salsa
@@ -1641,6 +1637,7 @@ stays on screen under enlarged text.
 
 **Shopify is the catalog.** Collections are Shopify collections, resolved
 by handle; the frontend never lists product handles.
+
 - `/shop/all` is the one virtual handle: the whole catalog, Shopify's
   best-selling order by default.
 - `collections.ts` carries only route copy (label, headline, fallback
@@ -1667,9 +1664,14 @@ by handle; the frontend never lists product handles.
 Below 1100px the rail becomes a Radix bottom sheet whose foot reports
 the live result count. Facets come only from Shopify data, never from
 product titles:
+
 - Product type, grouped by a loose key because the merchant's types are
   free text.
 - The Size option, normalised (`xxl` becomes `2XL`) and ordered XS→5XL.
+  Numeric sizes (shoe sizes, e.g. 37, 8.5) sort by value ahead of letter
+  sizes, so a mixed footwear/apparel list reads by number. Unknown
+  spellings (e.g. "One Size") sort last. Chips read the merchant's own
+  spelling; matching and URL keys stay normalised.
 - The Color option, with merchant swatch colours when set and text chips
   otherwise. The group starts collapsed above ten colours.
 - A maximum price, and In stock only.
@@ -1682,8 +1684,9 @@ Product grids use three columns above 700px and two from 381px to 700px.
 The landing's New arrivals row uses four. At 380px and below the grid is
 one column. Card media is square, whole-product merchant photography with
 `object-fit: contain`. On fine pointers a second merchant image fades in
-on hover. Captions carry the real name, the Shopify starting price, a
-colour and size summary and an explicit View product action.
+on hover. Captions carry the real name, the Shopify price (exact when every
+variant costs the same, otherwise "From <lowest>"), a colour and size
+summary and an explicit View product action.
 
 Quick add appears on hover or keyboard focus with a fine pointer. It is
 offered only when size is the product's sole choice, so one click names

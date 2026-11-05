@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Icon } from "@iconify/react";
 import arrowIcon from "@iconify-icons/solar/arrow-right-up-linear";
-import { formatMoney } from "../money";
+import { productPrice } from "../money";
 import type { CatalogProduct } from "../api/types";
 import { useCart } from "../cart/useCart";
 import ProductImage from "./ProductImage";
@@ -12,12 +12,17 @@ export default function ProductCard({ product, eager = false }: { product: Catal
   const { addVariant, setOpen, isBusy } = useCart();
   const [adding, setAdding] = useState<string | null>(null);
   const quick = quickAddSizes(product);
-  const { colors, sizeCount } = variantSummary(product);
+  const { colors, sizeCount, availableSizeCount } = variantSummary(product);
   const alternate = product.images.find((image) => image.url !== product.featuredImage?.url);
   const swatches = colors.filter((color) => color.swatch);
+  const availability = availableSizeCount === null ? null
+    : availableSizeCount === 0 ? "None in stock"
+    : availableSizeCount < sizeCount ? `${availableSizeCount} of ${sizeCount} sizes in stock`
+    : null;
   const variantLine = [
     colors.length ? `${colors.length} colours` : null,
     sizeCount > 1 ? `${sizeCount} sizes` : sizeCount === 1 ? "One size" : null,
+    availability,
   ].filter(Boolean).join(" · ");
 
   const add = async (variantId: string) => {
@@ -40,7 +45,7 @@ export default function ProductCard({ product, eager = false }: { product: Catal
         </span>
         <span className="retail-card__caption">
           <span className="retail-card__name">{product.title}</span>
-          <span className="retail-card__price">From {formatMoney(product.priceRange.minVariantPrice)}</span>
+          <span className="retail-card__price">{productPrice(product)}</span>
           {variantLine && <span className="retail-card__variants">
             {swatches.length > 0 && <span className="retail-card__swatches" aria-hidden="true">
               {swatches.slice(0, 6).map((color) => <i key={color.name} style={{ background: color.swatch ?? undefined }} />)}

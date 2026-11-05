@@ -24,7 +24,7 @@ const front = { url: "https://images.example.test/front.jpg", altText: "Tee fron
 const back = { url: "https://images.example.test/back.jpg", altText: "Tee back", width: 720, height: 900 };
 const item: Product = {
   id: "product-1", handle: "dance-tee", title: "Dance Tee", description: "Cotton gear for dancing.",
-  featuredImage: front, images: { nodes: [front, back] }, priceRange: { minVariantPrice: money("28.00") },
+  featuredImage: front, images: { nodes: [front, back] }, priceRange: { minVariantPrice: money("28.00"), maxVariantPrice: money("28.00") },
   variants: { nodes: [
     { id: "small", title: "Opaque A", availableForSale: true, price: money("28.00"), compareAtPrice: money("32.00"), image: front, selectedOptions: [{ name: "Size", value: "S" }, { name: "Color", value: "Rose" }] },
     { id: "medium", title: "Opaque B", availableForSale: true, price: money("30.00"), compareAtPrice: null, image: back, selectedOptions: [{ name: "Size", value: "M" }, { name: "Color", value: "Navy" }] },

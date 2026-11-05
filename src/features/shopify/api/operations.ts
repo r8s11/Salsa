@@ -59,7 +59,7 @@ const CATALOG_PRODUCT_FIELDS = `
   availableForSale
   featuredImage { ${IMAGE_FIELDS} }
   images(first: 2) { nodes { ${IMAGE_FIELDS} } }
-  priceRange { minVariantPrice { ${MONEY_FIELDS} } }
+  priceRange { minVariantPrice { ${MONEY_FIELDS} } maxVariantPrice { ${MONEY_FIELDS} } }
   options { name optionValues { name swatch { color } } }
   variants(first: 100) {
     nodes { id availableForSale selectedOptions { name value } }
@@ -120,7 +120,7 @@ export const PRODUCT_BY_HANDLE_QUERY = `
         nodes { ${IMAGE_FIELDS} }
         pageInfo { hasNextPage endCursor }
       }
-      priceRange { minVariantPrice { ${MONEY_FIELDS} } }
+      priceRange { minVariantPrice { ${MONEY_FIELDS} } maxVariantPrice { ${MONEY_FIELDS} } }
       variants(first: $first) {
         nodes { ${VARIANT_FIELDS} }
         pageInfo { hasNextPage endCursor }

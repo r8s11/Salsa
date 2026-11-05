@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { storefront } from "../api/storefront";
 import type { ProductSummary, ProductVariant } from "../api/types";
-import { formatMoney } from "../money";
+import { productPriceAria } from "../money";
 
 let productModule: Promise<unknown> | undefined;
 
@@ -38,7 +38,12 @@ export default function ProductLink({ product, className, children }: {
   };
   const preload = () => preloaded.current ??= prepare();
   const openProduct = () => new Promise<void>((resolve) => {
+    const saveScroll = () => {
+      const key = (window.history.state as { key?: string } | null)?.key;
+      if (key) sessionStorage.setItem(`shop-scroll:${key}`, String(window.scrollY));
+    };
     const done = () => {
+      saveScroll();
       observer.disconnect();
       window.clearTimeout(timeout);
       const heading = document.querySelector<HTMLElement>(".shop-page--product #product-heading");
@@ -91,7 +96,7 @@ export default function ProductLink({ product, className, children }: {
     });
   };
 
-  return <Link to={href} className={className} aria-label={`${product.title}, starting at ${formatMoney(product.priceRange.minVariantPrice)}`} aria-busy={pending || undefined}
+  return <Link to={href} className={className} aria-label={`${product.title}, ${productPriceAria(product)}`} aria-busy={pending || undefined}
     onPointerEnter={() => { void preload().catch(() => undefined); }}
     onFocus={() => { void preload().catch(() => undefined); }}
     onClick={(event) => { void follow(event); }}>{children}</Link>;

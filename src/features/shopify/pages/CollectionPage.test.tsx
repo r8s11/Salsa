@@ -18,7 +18,7 @@ const money = (amount: string) => ({ amount, currencyCode: "USD" });
 const image = { url: "https://cdn.example.test/item.jpg", altText: null };
 function item(handle: string, title: string, productType: string, sizes: string[], price = "20.00"): CatalogProduct {
   return {
-    id: handle, handle, title, featuredImage: image, priceRange: { minVariantPrice: money(price) },
+    id: handle, handle, title, featuredImage: image, priceRange: { minVariantPrice: money(price), maxVariantPrice: money(price) },
     productType, createdAt: "2026-10-01T00:00:00Z", availableForSale: true, images: [image],
     options: [{ name: "Size", values: sizes.map((name) => ({ name, swatch: null })) }],
     variants: sizes.map((size) => ({ id: `${handle}-${size}`, availableForSale: true, selectedOptions: [{ name: "Size", value: size }] })),
@@ -72,8 +72,8 @@ describe("CollectionPage", () => {
     vi.mocked(storefront.getCollectionProducts).mockResolvedValue(null);
     renderCollection("/shop/shoes");
 
-    expect(await screen.findByRole("heading", { name: "No shoes in the shop yet" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 1, name: "Footwear is coming" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "No shoes listed yet" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Shoes" })).toBeInTheDocument();
     expect(screen.queryByRole("list", { name: /shoes products/i })).toBeNull();
     expect(screen.queryByRole("combobox", { name: "Sort" })).toBeNull();
   });
@@ -108,7 +108,7 @@ describe("CollectionPage", () => {
     renderCollection("/shop/women");
 
     await user.selectOptions(await screen.findByRole("combobox", { name: "Sort" }), "price-desc");
-    const names = within(screen.getByRole("list", { name: "Women products" })).getAllByRole("link", { name: /starting at/i }).map((link) => link.getAttribute("href"));
+    const names = within(screen.getByRole("list", { name: "Women products" })).getAllByRole("link", { name: /racerback tank|high-rise legging/i }).map((link) => link.getAttribute("href"));
     expect(names).toEqual(["/shop/products/legging", "/shop/products/tank"]);
     expect(screen.getByTestId("location")).toHaveTextContent("sort=price-desc");
   });

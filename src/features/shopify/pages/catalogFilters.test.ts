@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { CatalogProduct } from "../api/types";
-import { catalogFacets, filterProducts, quickAddSizes, readFilters, sortProducts } from "./catalogFilters";
+import { catalogFacets, filterProducts, quickAddSizes, readFilters, sortProducts, variantSummary } from "./catalogFilters";
 
 const money = (amount: string) => ({ amount, currencyCode: "USD" });
 function product(handle: string, overrides: Partial<CatalogProduct> = {}): CatalogProduct {
   return {
-    id: handle, handle, title: handle, featuredImage: null, priceRange: { minVariantPrice: money("20.00") },
+    id: handle, handle, title: handle, featuredImage: null, priceRange: { minVariantPrice: money("20.00"), maxVariantPrice: money("20.00") },
     productType: "", createdAt: "2026-10-01T00:00:00Z", availableForSale: true, images: [],
     options: [], variants: [], variantsComplete: true, ...overrides,
   };
@@ -59,8 +59,8 @@ describe("filterProducts", () => {
   });
 
   it("filters by type key and maximum starting price", () => {
-    const tee = product("tee", { productType: "tshirts", priceRange: { minVariantPrice: money("14.00") } });
-    const legging = product("legging", { productType: "Leggings", priceRange: { minVariantPrice: money("45.00") } });
+    const tee = product("tee", { productType: "tshirts", priceRange: { minVariantPrice: money("14.00"), maxVariantPrice: money("14.00") } });
+    const legging = product("legging", { productType: "Leggings", priceRange: { minVariantPrice: money("45.00"), maxVariantPrice: money("45.00") } });
     expect(filterProducts([tee, legging], filters("type=tshirt"))).toEqual([tee]);
     expect(filterProducts([tee, legging], filters("max=40"))).toEqual([tee]);
   });
@@ -75,8 +75,8 @@ describe("readFilters and sortProducts", () => {
   });
 
   it("keeps Shopify order for featured and reorders the rest", () => {
-    const older = product("older", { createdAt: "2026-01-01T00:00:00Z", priceRange: { minVariantPrice: money("40.00") } });
-    const newer = product("newer", { createdAt: "2026-06-01T00:00:00Z", priceRange: { minVariantPrice: money("15.00") } });
+    const older = product("older", { createdAt: "2026-01-01T00:00:00Z", priceRange: { minVariantPrice: money("40.00"), maxVariantPrice: money("40.00") } });
+    const newer = product("newer", { createdAt: "2026-06-01T00:00:00Z", priceRange: { minVariantPrice: money("15.00"), maxVariantPrice: money("15.00") } });
     expect(sortProducts([older, newer], "featured")).toEqual([older, newer]);
     expect(sortProducts([older, newer], "newest")).toEqual([newer, older]);
     expect(sortProducts([older, newer], "price-desc")).toEqual([older, newer]);
@@ -92,7 +92,7 @@ describe("quickAddSizes", () => {
     });
     expect(quickAddSizes(tee)).toEqual([
       { label: "S", variantId: "tee-s", available: true },
-      { label: "2XL", variantId: "tee-xxl", available: false },
+      { label: "xxl", variantId: "tee-xxl", available: false },
     ]);
   });
 
@@ -103,5 +103,46 @@ describe("quickAddSizes", () => {
     });
     expect(quickAddSizes(hoodie)).toEqual([]);
     expect(quickAddSizes({ ...hoodie, options: [option("Size", ["S", "M"])], variantsComplete: false })).toEqual([]);
+  });
+});
+
+describe("size ordering and labels", () => {
+  it("orders numeric sizes by value and keeps the merchant's spelling", () => {
+    const shoes = product("shoe", {
+      options: [option("Size", ["8.5", "37", "M", "8", "XS"])],
+      variants: ["8.5", "37", "M", "8", "XS"].map((size) => variant(`shoe-${size}`, { Size: size })),
+    });
+    expect(catalogFacets([shoes]).sizes.map((size) => size.label)).toEqual(["8", "8.5", "37", "XS", "M"]);
+  });
+
+  it("does not rewrite the merchant's size spelling", () => {
+    const tee = product("tee", {
+      options: [option("Size", ["xxl", "2XL"])],
+      variants: [variant("a", { Size: "xxl" }), variant("b", { Size: "2XL" })],
+    });
+    expect(catalogFacets([tee]).sizes.map((size) => size.label)).toEqual(["2XL"]);
+  });
+});
+
+describe("variantSummary", () => {
+  it("reports how many sizes can actually be bought", () => {
+    const tee = product("tee", {
+      options: [option("Size", ["S", "M", "L"])],
+      variants: [
+        variant("a", { Size: "S" }),
+        variant("b", { Size: "M" }, false),
+        variant("c", { Size: "L" }),
+      ],
+    });
+    expect(variantSummary(tee)).toEqual({ colors: [], sizeCount: 3, availableSizeCount: 2 });
+  });
+
+  it("returns null availability when Shopify has more variants than the page", () => {
+    const tee = product("tee", {
+      options: [option("Size", ["S", "M"])],
+      variants: [],
+      variantsComplete: false,
+    });
+    expect(variantSummary(tee).availableSizeCount).toBeNull();
   });
 });

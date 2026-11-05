@@ -15,7 +15,7 @@ export interface ProductSummary {
   handle: string;
   title: string;
   featuredImage: ShopifyImage | null;
-  priceRange: { minVariantPrice: Money };
+  priceRange: { minVariantPrice: Money; maxVariantPrice: Money };
 }
 
 export interface CatalogOption {

@@ -34,7 +34,7 @@ const product = (handle: string, title = handle): Product => ({
   description: "A comfortable shirt for dancing.",
   featuredImage: image,
   images: { nodes: [image] },
-  priceRange: { minVariantPrice: money("22.00") },
+  priceRange: { minVariantPrice: money("22.00"), maxVariantPrice: money("22.00") },
   variants: {
     nodes: [
       {
@@ -72,7 +72,7 @@ const catalogItem = (handle: string, title = handle): CatalogProduct => ({
   handle,
   title,
   featuredImage: image,
-  priceRange: { minVariantPrice: money("22.00") },
+  priceRange: { minVariantPrice: money("22.00"), maxVariantPrice: money("22.00") },
   productType: "T-shirt",
   createdAt: "2026-10-01T00:00:00Z",
   availableForSale: true,

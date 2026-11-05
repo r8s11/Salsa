@@ -5,7 +5,7 @@ import arrowIcon from "@iconify-icons/solar/arrow-right-up-linear";
 import nextIcon from "@iconify-icons/solar/arrow-right-linear";
 import "@fontsource/barlow-condensed/600.css";
 import "@fontsource/barlow-condensed/700.css";
-import { formatMoney } from "../money";
+import { productPrice } from "../money";
 import type { CatalogProduct, CollectionTile } from "../api/types";
 import { ALL_PRODUCTS_HANDLE, SHOP_COLLECTIONS, collectionPath } from "../collections";
 import ProductCard from "./ProductCard";
@@ -28,7 +28,7 @@ function SplitHeading({ id, text, tabIndex }: { id: string; text: string; tabInd
   );
 }
 
-function CategoryTiles({ tiles }: { tiles: CollectionTile[] | undefined }) {
+function CategoryTiles({ tiles, tilesError }: { tiles: CollectionTile[] | undefined; tilesError?: boolean }) {
   return (
     <ul className="retail-tiles" aria-label="Collections">
       {SHOP_COLLECTIONS.map((entry) => {
@@ -36,6 +36,7 @@ function CategoryTiles({ tiles }: { tiles: CollectionTile[] | undefined }) {
         const stocked = Boolean(tile && tile.productCount > 0);
         const image = tile?.image ?? tile?.coverImage ?? null;
         const count = tile ? `${tile.productCount}${tile.hasMoreProducts ? "+" : ""} ${tile.productCount === 1 && !tile.hasMoreProducts ? "piece" : "pieces"}` : "";
+        const label = tilesError ? "Unavailable" : tiles === undefined ? "\u00a0" : stocked ? count : "Coming soon";
         return (
           <li key={entry.handle}>
             <Link to={collectionPath(entry.handle)} className={`retail-tile${stocked && image ? "" : " retail-tile--soon"}`}>
@@ -44,7 +45,7 @@ function CategoryTiles({ tiles }: { tiles: CollectionTile[] | undefined }) {
               </span>
               <span className="retail-tile__label">
                 <strong>{entry.label}</strong>
-                <small>{tiles === undefined ? "\u00a0" : stocked ? count : "Coming soon"}</small>
+                <small>{label}</small>
               </span>
               <span className="retail-tile__arrow" aria-hidden="true"><Icon icon={nextIcon} width={18} /></span>
             </Link>
@@ -75,10 +76,13 @@ function ProductRow({ id, title, products, action, four = false }: {
   );
 }
 
-export default function RetailCatalog({ featured, arrivals, tiles, children }: {
+export default function RetailCatalog({ featured, arrivals, tiles, tilesError, children }: {
   featured: CatalogProduct[];
   arrivals: CatalogProduct[];
   tiles: CollectionTile[] | undefined;
+  /** True when the collection listing request failed; tiles show an
+    * unavailable state rather than pretending the collections are empty. */
+  tilesError?: boolean;
   /** Loading, error and empty states render in place of the product rows. */
   children?: ReactNode;
 }) {
@@ -115,7 +119,7 @@ export default function RetailCatalog({ featured, arrivals, tiles, children }: {
           </div>
           <ProductLink product={hero} className="retail-hero__tag">
             <span className="retail-hero__tag-name">{hero.title}</span>
-            <span className="retail-hero__tag-meta">From {formatMoney(hero.priceRange.minVariantPrice)} · View product</span>
+            <span className="retail-hero__tag-meta">{productPrice(hero)} · View product</span>
           </ProductLink>
         </figure>}
       </section>
@@ -124,7 +128,7 @@ export default function RetailCatalog({ featured, arrivals, tiles, children }: {
         <div className="retail-catalog__collection-heading">
           <h2 id="retail-collections-heading">Shop by collection</h2>
         </div>
-        <CategoryTiles tiles={tiles} />
+        <CategoryTiles tiles={tiles} tilesError={tilesError} />
       </section>
 
       {children}

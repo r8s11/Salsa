@@ -62,7 +62,7 @@ export default function ShopPage() {
 
   return (
     <section className="shop-page shop-page--catalog" aria-labelledby="shop-heading">
-      <RetailCatalog featured={featured} arrivals={arrivals} tiles={tilesQuery.data ?? (tilesQuery.isError ? [] : undefined)}>
+      <RetailCatalog featured={featured} arrivals={arrivals} tiles={tilesQuery.data} tilesError={tilesQuery.isError}>
         {cartError && <p className="shop-page__notice" role="alert">Your cart could not be updated. Please try again.</p>}
         {!configured ? (
           <div className="shop-state" role="status">

@@ -160,7 +160,7 @@ function parseProductSummary(value: unknown): ProductSummary {
     handle: requiredString(product.handle, "product.handle"),
     title: requiredString(product.title, "product.title"),
     featuredImage: parseImage(product.featuredImage, "product.featuredImage"),
-    priceRange: { minVariantPrice: parseMoney(priceRange.minVariantPrice, "product.priceRange.minVariantPrice") },
+    priceRange: { minVariantPrice: parseMoney(priceRange.minVariantPrice, "product.priceRange.minVariantPrice"), maxVariantPrice: parseMoney(priceRange.maxVariantPrice, "product.priceRange.maxVariantPrice") },
   };
 }
 

@@ -8,9 +8,11 @@ import "./styles/index.css";
 const posthogKey = import.meta.env.VITE_POSTHOG_KEY?.trim();
 const posthogHost = import.meta.env.VITE_POSTHOG_HOST?.trim();
 
-if (!posthogKey && import.meta.env.DEV) {
+// `phc_` is the only browser-safe PostHog key. `phs_` project-secret and `phx_`
+// personal keys grant private-data access and must never reach the bundle.
+if (posthogKey && !posthogKey.startsWith("phc_")) {
   throw new Error(
-    "VITE_POSTHOG_KEY variable required by PostHog is missing or un-configured, this causes events to be silently missed. This error stops appearing once VITE_POSTHOG_KEY is configured"
+    "VITE_POSTHOG_KEY must be the public project token (phc_…). Secret (phs_) and personal (phx_) keys are server credentials; rotate this one and use the Project API key from PostHog project settings."
   );
 }
 if (!posthogHost && import.meta.env.DEV) {

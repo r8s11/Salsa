@@ -17,9 +17,27 @@ export function normalizeSize(value: string): string {
   return SIZE_ALIASES[upper] ?? upper;
 }
 
+function numericSize(value: string): number | null {
+  const match = value.trim().match(/^(\d+(?:\.\d+)?)/);
+  return match ? Number(match[1]) : null;
+}
+
 function sizeRank(size: string): number {
+  // Known letter sizes keep their order even when they start with a digit
+  // ("2XL" is not a shoe size). Numeric sizes (shoe sizes, e.g. 37, 8.5)
+  // sort by value, ahead of letter sizes, so a mixed footwear/apparel list
+  // reads by number. Unknown spellings (e.g. "One Size") sort last.
   const index = SIZE_ORDER.indexOf(size);
-  return index === -1 ? SIZE_ORDER.length : index;
+  if (index !== -1) return 20_000 + index;
+  const numeric = numericSize(size);
+  if (numeric !== null) return 10_000 + numeric * 10;
+  return 20_000 + SIZE_ORDER.length + 100;
+}
+
+/** A size's chip reads the merchant's own spelling. Matching and URL keys stay
+  * normalised; labels are never rewritten. */
+export function sizeLabel(value: string): string {
+  return value.trim();
 }
 
 /** Shopify product types are free text ("T-SHIRT", "tshirts"); group them by a loose key. */
@@ -52,6 +70,7 @@ export interface CatalogFacets {
 export function catalogFacets(products: CatalogProduct[]): CatalogFacets {
   const types = new Map<string, { labels: Map<string, number>; count: number }>();
   const sizes = new Map<string, number>();
+  const sizeLabels = new Map<string, string>();
   const colors = new Map<string, Facet>();
   for (const product of products) {
     if (product.productType.trim()) {
@@ -61,8 +80,10 @@ export function catalogFacets(products: CatalogProduct[]): CatalogFacets {
       entry.labels.set(product.productType, (entry.labels.get(product.productType) ?? 0) + 1);
       types.set(key, entry);
     }
-    for (const size of new Set(optionValues(product, isSizeOption).map((value) => normalizeSize(value.name)))) {
-      sizes.set(size, (sizes.get(size) ?? 0) + 1);
+    for (const value of optionValues(product, isSizeOption)) {
+      const key = normalizeSize(value.name);
+      sizeLabels.set(key, sizeLabel(value.name));
+      sizes.set(key, (sizes.get(key) ?? 0) + 1);
     }
     const seen = new Set<string>();
     for (const value of optionValues(product, isColorOption)) {
@@ -88,7 +109,7 @@ export function catalogFacets(products: CatalogProduct[]): CatalogFacets {
       })
       .sort((a, b) => a.label.localeCompare(b.label)),
     sizes: [...sizes.entries()]
-      .map(([key, count]) => ({ key, label: key, count }))
+      .map(([key, count]) => ({ key, label: sizeLabels.get(key) ?? key, count }))
       .sort((a, b) => sizeRank(a.key) - sizeRank(b.key) || a.key.localeCompare(b.key)),
     colors: [...colors.values()].sort((a, b) => a.label.localeCompare(b.label)),
     priceCeiling: prices.length ? Math.ceil(Math.max(...prices)) : 0,
@@ -198,13 +219,22 @@ export function quickAddSizes(product: CatalogProduct): QuickSize[] {
   return sizeOption.values.flatMap((value) => {
     const variant = product.variants.find((candidate) =>
       candidate.selectedOptions.some((option) => isSizeOption(option.name) && option.value === value.name));
-    return variant ? [{ label: normalizeSize(value.name), variantId: variant.id, available: variant.availableForSale }] : [];
+    return variant ? [{ label: sizeLabel(value.name), variantId: variant.id, available: variant.availableForSale }] : [];
   });
 }
 
-/** Swatch colours and counts for the card's variant line. */
-export function variantSummary(product: CatalogProduct): { colors: Array<{ name: string; swatch: string | null }>; sizeCount: number } {
+/** Swatch colours and the sizes a card can actually buy. `availableSizeCount`
+ * is null when Shopify has more variants than one page carries, so the card
+ * never claims a count it cannot verify. */
+export function variantSummary(product: CatalogProduct): { colors: Array<{ name: string; swatch: string | null }>; sizeCount: number; availableSizeCount: number | null } {
   const colors = optionValues(product, isColorOption);
   const sizeCount = new Set(optionValues(product, isSizeOption).map((value) => normalizeSize(value.name))).size;
-  return { colors: colors.length > 1 ? colors : [], sizeCount };
+  const availableSizeCount = product.variantsComplete
+    ? new Set(
+        product.variants
+          .filter((variant) => variant.availableForSale)
+          .map((variant) => normalizeSize(variant.selectedOptions.find((option) => isSizeOption(option.name))?.value ?? "")),
+      ).size
+    : null;
+  return { colors: colors.length > 1 ? colors : [], sizeCount, availableSizeCount };
 }

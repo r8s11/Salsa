@@ -355,7 +355,7 @@ describe("Shopify Storefront client", () => {
     const node = (handle: string) => ({
       id: `gid://shopify/Product/${handle}`, handle, title: handle, productType: "T-SHIRT",
       createdAt: "2026-10-19T12:00:00Z", availableForSale: true, featuredImage: image,
-      images: { nodes: [image] }, priceRange: { minVariantPrice: money("14.00") },
+      images: { nodes: [image] }, priceRange: { minVariantPrice: money("14.00"), maxVariantPrice: money("14.00") },
       options: [{ name: "Size", optionValues: [{ name: "M", swatch: null }, { name: "L", swatch: { color: "#111111" } }] }],
       variants: { nodes: [{ id: `${handle}-m`, availableForSale: true, selectedOptions: [{ name: "Size", value: "M" }] }], pageInfo: { hasNextPage: true } },
     });
@@ -398,7 +398,7 @@ describe("Shopify Storefront client", () => {
               description: "A shirt",
               featuredImage: image,
               images: { nodes: [image], pageInfo: { hasNextPage: false, endCursor: null } },
-              priceRange: { minVariantPrice: money("8.00") },
+              priceRange: { minVariantPrice: money("8.00"), maxVariantPrice: money("8.00") },
               variants: {
                 nodes: [
                   {
@@ -545,7 +545,7 @@ describe("Shopify Storefront client", () => {
             title: "Dance shirt",
             description: "A shirt",
             featuredImage: image,
-            priceRange: { minVariantPrice: money("8.00") },
+            priceRange: { minVariantPrice: money("8.00"), maxVariantPrice: money("8.00") },
             variants: {
               nodes: [],
               pageInfo: { hasNextPage: true, endCursor: "same-cursor" },
@@ -723,7 +723,7 @@ describe("Shopify Storefront client", () => {
           title: "Dance shirt",
           description: "A shirt",
           featuredImage: image,
-          priceRange: { minVariantPrice: money("8.00") },
+          priceRange: { minVariantPrice: money("8.00"), maxVariantPrice: money("8.00") },
           variants: { nodes: [], pageInfo: { hasNextPage: true, endCursor: null } },
         },
       },
@@ -781,7 +781,7 @@ describe("Shopify Storefront client", () => {
     vi.mocked(fetch)
       .mockResolvedValueOnce(response({ data: { product: {
         id: "product-1", handle: "dance-shirt", title: "Dance shirt", description: "A shirt",
-        featuredImage: firstImage, priceRange: { minVariantPrice: money("8.00") },
+        featuredImage: firstImage, priceRange: { minVariantPrice: money("8.00"), maxVariantPrice: money("8.00") },
         variants: { nodes: [], pageInfo: { hasNextPage: false, endCursor: null } },
         images: { nodes: [firstImage], pageInfo: { hasNextPage: true, endCursor: "image-page" } },
       } } }))
@@ -799,7 +799,7 @@ describe("Shopify Storefront client", () => {
     vi.mocked(fetch)
       .mockResolvedValueOnce(response({ data: { product: {
         id: "product-1", handle: "dance-shirt", title: "Dance shirt", description: "A shirt",
-        featuredImage: image, priceRange: { minVariantPrice: money("8.00") },
+        featuredImage: image, priceRange: { minVariantPrice: money("8.00"), maxVariantPrice: money("8.00") },
         variants: { nodes: [], pageInfo: { hasNextPage: false, endCursor: null } },
         images: { nodes: [image], pageInfo: { hasNextPage: true, endCursor: "same" } },
       } } }))

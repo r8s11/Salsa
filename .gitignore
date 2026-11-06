@@ -212,3 +212,10 @@ videos/
 /.stitch/verify-capture.png
 /.hallmark/log.json
 /untitled.md
+
+# Runway marketing video scripts and renders (local only)
+marketing/video/
+
+# Local scratch output
+.superdesign/tmp/
+.vitest/

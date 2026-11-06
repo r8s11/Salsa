@@ -1,7 +1,21 @@
 # SalsaSegura social authentication — provider rollout
 
-Status: Frontend implementation prepared; **providers are not activated** until their
-OAuth applications are configured, secrets are stored in Supabase, and E2E testing passes.
+Status (2026-11-05):
+
+- **Google**: configured server-side. GCP project `salsa-segura`, OAuth client
+  "Salsa Segura web (Supabase)" (JS origins `https://www.salsasegura.com`,
+  `http://localhost:5173`, `http://localhost`; redirect = Supabase callback),
+  consent screen in **Testing** with home and `/privacy` links; Supabase Google
+  provider enabled. Only test users can sign in until the consent screen is
+  published (Audience > Publish app). The frontend uses Google's own button
+  (Google Identity Services + `signInWithIdToken` with a hashed nonce) when
+  `VITE_GOOGLE_CLIENT_ID` is set, so Google names the site instead of the
+  Supabase host; without it, or if Google's script fails to load, it falls
+  back to the redirect flow. Repo variable `VITE_GOOGLE_CLIENT_ID` is set.
+- **Apple**, **Facebook**: not configured (need Apple Developer Program /
+  Meta developer account).
+- Supabase Auth Site URL is `https://www.salsasegura.com`.
+- Public `/privacy` and `/data-deletion` pages exist for the provider consoles.
 
 ## Production auth URLs
 
@@ -62,7 +76,9 @@ Guide: https://supabase.com/docs/guides/auth/social-sign-in/auth-facebook
 
 ## 4. Enable one provider at a time
 
-Production build env flags:
+Production build flags come from GitHub **repository variables** (Settings >
+Secrets and variables > Actions > Variables), passed to the Azure build in
+`.github/workflows/azure-static-web-apps-lemon-stone-01afe980f.yml`:
 
 ```dotenv
 VITE_OAUTH_GOOGLE_ENABLED=false
@@ -70,8 +86,9 @@ VITE_OAUTH_APPLE_ENABLED=false
 VITE_OAUTH_FACEBOOK_ENABLED=false
 ```
 
-Switch each to `true` **only after** corresponding provider configuration
-and callback verification, then rebuild/redeploy the frontend. The flags are
+Unset means off. Set each to `true` **only after** corresponding provider
+configuration and callback verification, then redeploy the frontend
+(`gh variable set VITE_OAUTH_GOOGLE_ENABLED --body true`). The flags are
 **public UI switches**, not OAuth configuration and not secrets.
 
 Credentials (OAuth client secrets, Apple signing keys) belong in provider

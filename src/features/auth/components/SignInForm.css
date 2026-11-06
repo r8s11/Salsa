@@ -252,5 +252,7 @@
 .social-auth-button:hover:not(:disabled) { border-color: var(--gold-light); background: var(--surface-container); }
 .social-auth-button:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 3px; }
 .social-auth-button:disabled { opacity: 0.65; cursor: not-allowed; }
+/* Google renders its own button in an iframe; keep it centred at the column width. */
+.social-auth-google { display: flex; justify-content: center; min-height: 44px; }
 .social-auth-divider { display: flex; align-items: center; gap: var(--space-sm); color: var(--text-muted); font-size: 0.8125rem; text-align: center; }
 .social-auth-divider::before, .social-auth-divider::after { content: ""; flex: 1; height: 1px; background: var(--border-md); }

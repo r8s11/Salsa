@@ -9,6 +9,7 @@ interface ImportMetaEnv {
   readonly VITE_OAUTH_GOOGLE_ENABLED?: string;
   readonly VITE_OAUTH_APPLE_ENABLED?: string;
   readonly VITE_OAUTH_FACEBOOK_ENABLED?: string;
+  readonly VITE_GOOGLE_CLIENT_ID?: string;
 }
 
 interface ImportMeta {

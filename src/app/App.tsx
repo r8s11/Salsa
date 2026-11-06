@@ -9,6 +9,8 @@ import AppErrorBoundary from "../components/layout/AppErrorBoundary";
 // Lazy-loaded pages for better initial bundle size
 const AboutPage = lazy(() => import("../pages/AboutPage"));
 const ContactPage = lazy(() => import("../pages/ContactPage"));
+const PrivacyPage = lazy(() => import("../pages/PrivacyPage"));
+const DataDeletionPage = lazy(() => import("../pages/DataDeletionPage"));
 const CalendarPage = lazy(() => import("../pages/CalendarPage"));
 const SubmitEventPage = lazy(() => import("../pages/SubmitEventPage"));
 // Explicit route-level lazy loading keeps non-critical shop pages out of the entry bundle.
@@ -301,6 +303,8 @@ function App() {
               <Route index element={<HomePage />} />
               <Route path="about" element={<AboutPage />} />
               <Route path="contact" element={<ContactPage />} />
+              <Route path="privacy" element={<PrivacyPage />} />
+              <Route path="data-deletion" element={<DataDeletionPage />} />
               <Route path="calendar" element={<CalendarPage />} />
               <Route path="submit" element={<SubmitEventPage />} />
               <Route path="shop" element={<ShopPage />} />

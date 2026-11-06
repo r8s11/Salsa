@@ -1,6 +1,6 @@
 import type { CatalogProduct, Product } from "../api/types";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { Link, MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import ProductPage from "./ProductPage";
@@ -140,19 +140,50 @@ beforeEach(() => {
 });
 
 describe("ShopPage", () => {
-  it("features the merchant's Home page collection and lists new arrivals without repeating them", async () => {
+  it("leads the table with the merchant's Home page collection, fills it with the newest pieces, and lists the rest as new arrivals", async () => {
+    const newest = ["n1", "n2", "n3", "n4", "n5", "n6"].map((handle) => catalogItem(handle, `Piece ${handle}`));
     vi.mocked(storefront.getCollectionProducts).mockResolvedValue(frontpage([catalogItem("dance-shirt", "Dance Shirt")]));
-    vi.mocked(storefront.listProducts).mockResolvedValue(page([catalogItem("dance-shirt", "Dance Shirt"), catalogItem("new-tank", "New Tank")]));
+    vi.mocked(storefront.listProducts).mockResolvedValue(page([catalogItem("dance-shirt", "Dance Shirt"), ...newest]));
 
     renderShop();
 
-    const featured = await screen.findByRole("list", { name: "Featured" });
-    expect(within(featured).getByRole("link", { name: /dance shirt/i })).toHaveAttribute("href", "/shop/products/dance-shirt");
+    const table = await screen.findByRole("list", { name: "Featured and new" });
+    const tableLinks = within(table).getAllByRole("link");
+    expect(tableLinks[0]).toHaveAttribute("href", "/shop/products/dance-shirt");
+    expect(tableLinks.map((link) => link.getAttribute("href"))).toEqual(
+      ["dance-shirt", "n1", "n2", "n3", "n4"].map((handle) => `/shop/products/${handle}`));
     const arrivals = screen.getByRole("list", { name: "New arrivals" });
-    expect(within(arrivals).queryByRole("link", { name: /dance shirt/i })).toBeNull();
-    expect(within(arrivals).getByRole("link", { name: /new tank/i })).toHaveAttribute("href", "/shop/products/new-tank");
+    expect(within(arrivals).getAllByRole("link").map((link) => link.getAttribute("href"))).toEqual(
+      ["/shop/products/n5", "/shop/products/n6"]);
     expect(storefront.getCollectionProducts).toHaveBeenCalledWith("frontpage");
     expect(storefront.listProducts).toHaveBeenCalledWith(undefined, "newest", 8);
+  });
+
+  it("never picks a size on the table: Add asks for one, then adds exactly the chosen size", async () => {
+    const sized: CatalogProduct = {
+      ...catalogItem("dance-tee", "Dance Tee"),
+      options: [{ name: "Size", values: [{ name: "L", swatch: null }, { name: "S", swatch: null }] }],
+      variants: [
+        { id: "tee-l", availableForSale: true, selectedOptions: [{ name: "Size", value: "L" }] },
+        { id: "tee-s", availableForSale: true, selectedOptions: [{ name: "Size", value: "S" }] },
+      ],
+    };
+    const addVariant = cartHook();
+    vi.mocked(storefront.getCollectionProducts).mockResolvedValue(frontpage([sized]));
+    renderShop();
+
+    const sizes = await screen.findByRole("radiogroup", { name: "Size" });
+    expect(within(sizes).getAllByRole("radio").map((radio) => radio.textContent)).toEqual(["S", "L"]);
+    expect(within(sizes).getAllByRole("radio").every((radio) => radio.getAttribute("aria-checked") === "false")).toBe(true);
+
+    fireEvent.click(screen.getByRole("button", { name: "Add to cart" }));
+    expect(addVariant).not.toHaveBeenCalled();
+    expect(screen.getByText("Choose a size first.")).toHaveAttribute("role", "status");
+    expect(within(sizes).getByRole("radio", { name: "S" })).toHaveFocus();
+
+    fireEvent.click(within(sizes).getByRole("radio", { name: "L" }));
+    fireEvent.click(screen.getByRole("button", { name: "Add to cart" }));
+    await waitFor(() => expect(addVariant).toHaveBeenCalledWith("tee-l", 1));
   });
 
   it("shows stocked collections with their count and unstocked ones as coming soon", async () => {
@@ -201,13 +232,13 @@ describe("ProductPage", () => {
     expect(screen.getByRole("img", { name: "Dance shirt" })).toHaveAttribute("src", image.url);
     expect(screen.getByText("From $22.00", { selector: ".shop-product__price span" })).toBeInTheDocument();
     expect(screen.queryByText(/\$28\.00/)).toBeNull();
-    fireEvent.change(screen.getByRole("combobox", { name: "Size" }), { target: { value: "Small" } });
+    fireEvent.click(screen.getByRole("radio", { name: "Small" }));
     expect(screen.getByText(/was \$28\.00/i)).toBeInTheDocument();
     const breadcrumb = screen.getByRole("navigation", { name: "Breadcrumb" });
     expect(within(breadcrumb).getByRole("link", { name: "Shop" })).toHaveAttribute("href", "/shop");
     expect(within(breadcrumb).getByText("Dance Shirt")).toHaveAttribute("aria-current", "page");
 
-    expect(screen.getByRole("option", { name: /large.*sold out/i })).toBeDisabled();
+    expect(screen.getByRole("radio", { name: /large.*sold out/i })).toBeDisabled();
   });
 
   it("shows missing configuration without requesting a product", () => {
@@ -259,8 +290,8 @@ describe("ProductPage", () => {
 
     fireEvent.click(screen.getByRole("link", { name: "Open new product" }));
     expect(await screen.findByRole("heading", { name: "New product" })).toBeInTheDocument();
-    fireEvent.change(screen.getByRole("combobox", { name: "Size" }), { target: { value: "Medium" } });
-    expect(screen.getByRole("combobox", { name: "Size" })).toHaveValue("Medium");
+    fireEvent.click(screen.getByRole("radio", { name: "Medium" }));
+    expect(screen.getByRole("radio", { name: "Medium" })).toBeChecked();
 
     await act(async () => {
       resolveOld(product("old", "Old product"));
@@ -268,7 +299,7 @@ describe("ProductPage", () => {
     });
     expect(screen.queryByRole("heading", { name: "Old product" })).toBeNull();
     expect(screen.getByRole("heading", { name: "New product" })).toBeInTheDocument();
-    expect(screen.getByRole("combobox", { name: "Size" })).toHaveValue("Medium");
+    expect(screen.getByRole("radio", { name: "Medium" })).toBeChecked();
   });
 
   it("resets variant selection when the route handle changes", async () => {
@@ -295,11 +326,11 @@ describe("ProductPage", () => {
     );
 
     expect(await screen.findByRole("heading", { name: "Old product" })).toBeInTheDocument();
-    fireEvent.change(screen.getByRole("combobox", { name: "Size" }), { target: { value: "Medium" } });
-    expect(screen.getByRole("combobox", { name: "Size" })).toHaveValue("Medium");
+    fireEvent.click(screen.getByRole("radio", { name: "Medium" }));
+    expect(screen.getByRole("radio", { name: "Medium" })).toBeChecked();
 
     fireEvent.click(screen.getByRole("link", { name: "Open new product" }));
     expect(await screen.findByRole("heading", { name: "New product" })).toBeInTheDocument();
-    expect(screen.getByRole("combobox", { name: "Size" })).toHaveValue("");
+    expect(within(screen.getByRole("radiogroup", { name: "Size" })).queryByRole("radio", { checked: true })).toBeNull();
   });
 });

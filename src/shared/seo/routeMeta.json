@@ -24,6 +24,16 @@
     "title": "Contact Salsa Segura",
     "description": "Get in touch with Salsa Segura about salsa and bachata event listings across Greater Boston and New York City."
   },
+  "privacy": {
+    "path": "/privacy",
+    "title": "Privacy Policy",
+    "description": "How Salsa Segura collects, uses, and shares personal information, including sign-in with Apple, Google, and Facebook."
+  },
+  "dataDeletion": {
+    "path": "/data-deletion",
+    "title": "Delete Your Data",
+    "description": "How to delete your Salsa Segura account and personal data, including accounts created with Apple, Google, or Facebook sign-in."
+  },
   "submit": {
     "path": "/submit",
     "title": "Submit a Dance Event",

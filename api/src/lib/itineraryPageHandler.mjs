@@ -5,7 +5,7 @@ const DEFAULT_ORIGIN = "https://www.salsasegura.com";
 const headers = { "Content-Type": "text/html; charset=utf-8" };
 
 /** Dependencies are injectable for direct handler tests; only the public projection is read. */
-export function createItineraryPage({ fetchImpl = globalThis.fetch, env = process.env } = {}) {
+export function createItineraryPage({ fetchImpl = globalThis.fetch, env = process.env, logs = null } = {}) {
   let shellPromise;
   const siteUrl = new URL(env.ITINERARY_SITE_ORIGIN || DEFAULT_ORIGIN);
   if (!["http:", "https:"].includes(siteUrl.protocol)) throw new Error("ITINERARY_SITE_ORIGIN must be an HTTP(S) origin");
@@ -38,8 +38,9 @@ export function createItineraryPage({ fetchImpl = globalThis.fetch, env = proces
 
     try {
       shell = await getShell();
-    } catch {
+    } catch (error) {
       context?.error?.("Unable to fetch itinerary HTML shell");
+      await logs?.error("Unable to fetch itinerary HTML shell", error);
       return {
         status: 503,
         headers: { ...headers, "Cache-Control": "no-store", "X-Robots-Tag": "noindex, follow" },
@@ -90,8 +91,9 @@ export function createItineraryPage({ fetchImpl = globalThis.fetch, env = proces
           image: row.cover_image_url,
         }),
       };
-    } catch {
+    } catch (error) {
       context?.error?.("Unable to read published itinerary metadata");
+      await logs?.error("Unable to read published itinerary metadata", error, { city: path.city, week_start: path.weekStart });
       return unavailable(503);
     }
   };

@@ -25,7 +25,7 @@ export const ENTITY_KINDS = {
 
 const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const PAGE_KEYS = ["calendar", "about", "contact", "submit", "lessons"];
+const PAGE_KEYS = ["calendar", "about", "contact", "privacy", "dataDeletion", "submit", "lessons"];
 const ENV_FILES = [".env", ".env.local", ".env.production", ".env.production.local"];
 const EVENT_PAGE_SIZE = 200;
 const ENTITY_PAGE_SIZE = 100;

@@ -1,15 +1,181 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import SignInForm from "./SignInForm";
 import { useAuth } from "../../../contexts/useAuth";
+import { supabase } from "../../../lib/supabase";
 
 vi.mock("../../../contexts/useAuth", () => ({
   useAuth: vi.fn(),
 }));
 
+vi.mock("../../../lib/supabase", () => ({
+  supabase: { auth: { signInWithOAuth: vi.fn(), signInWithIdToken: vi.fn() } },
+}));
+
 describe("SignInForm", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.mocked(supabase.auth.signInWithOAuth).mockReset();
+    vi.mocked(supabase.auth.signInWithIdToken).mockReset();
+    vi.restoreAllMocks();
+    delete window.google;
+    window.sessionStorage.clear();
+  });
+
+  const mockSocialAuthContext = () => {
+    vi.mocked(useAuth).mockReturnValue({
+      user: null,
+      session: null,
+      loading: false,
+      isAdmin: false,
+      isModerator: false,
+      isOrganizer: false,
+      role: null,
+      signInWithPassword: vi.fn(),
+      resendConfirmation: vi.fn(),
+      requestPasswordReset: vi.fn(),
+      updateEmail: vi.fn(),
+      signUp: vi.fn(),
+      signOut: vi.fn(),
+      clearDeletedAccount: vi.fn(),
+    });
+  };
+
+  it("shows only enabled social providers and launches OAuth via the canonical callback", async () => {
+    vi.stubEnv("VITE_OAUTH_GOOGLE_ENABLED", "true");
+    vi.stubEnv("VITE_OAUTH_APPLE_ENABLED", "false");
+    vi.stubEnv("VITE_OAUTH_FACEBOOK_ENABLED", "false");
+    mockSocialAuthContext();
+    vi.mocked(supabase.auth.signInWithOAuth).mockResolvedValue({
+      data: { provider: "google", url: "https://accounts.google.com" },
+      error: null,
+    } as never);
+
+    render(
+      <MemoryRouter initialEntries={[{ pathname: "/signin", state: { from: "/submit" } }]}>
+        <SignInForm />
+      </MemoryRouter>
+    );
+    expect(screen.getByRole("button", { name: "Continue with Google" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Continue with Apple" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Continue with Facebook" })).not.toBeInTheDocument();
+
+    await userEvent.setup().click(screen.getByRole("button", { name: "Continue with Google" }));
+    await waitFor(() => expect(supabase.auth.signInWithOAuth).toHaveBeenCalledWith({
+      provider: "google",
+      options: { redirectTo: expect.stringMatching(/\/auth\/callback$/) },
+    }));
+    expect(window.sessionStorage.getItem("salsasegura-auth-return-destination")).toBe("/submit");
+  });
+
+  it("hides social sign-in when an invitation locks the recipient email", () => {
+    vi.stubEnv("VITE_OAUTH_GOOGLE_ENABLED", "true");
+    mockSocialAuthContext();
+    render(
+      <MemoryRouter initialEntries={[{ pathname: "/signin", state: { lockedEmail: true, email: "invited@example.com" } }]}>
+        <SignInForm />
+      </MemoryRouter>
+    );
+    expect(screen.queryByRole("button", { name: "Continue with Google" })).not.toBeInTheDocument();
+  });
+
+  it("reports OAuth initialization errors without exposing provider error details", async () => {
+    vi.stubEnv("VITE_OAUTH_GOOGLE_ENABLED", "true");
+    mockSocialAuthContext();
+    vi.mocked(supabase.auth.signInWithOAuth).mockResolvedValue({
+      data: { provider: "google", url: null },
+      error: new Error("upstream internal detail"),
+    } as never);
+
+    render(<MemoryRouter><SignInForm /></MemoryRouter>);
+    await userEvent.setup().click(screen.getByRole("button", { name: "Continue with Google" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("We couldn't start social sign-in");
+    expect(screen.queryByText(/upstream internal detail/i)).not.toBeInTheDocument();
+  });
+
+  describe("Google's own button", () => {
+    const hex = async (value: string) => Array.from(
+      new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value))),
+      (byte) => byte.toString(16).padStart(2, "0"),
+    ).join("");
+
+    /** Stands in for accounts.google.com/gsi/client: renders a button that returns an ID token. */
+    const installFakeGoogle = () => {
+      const init: { client_id?: string; nonce?: string; callback?: (r: { credential?: string }) => void } = {};
+      window.google = {
+        accounts: {
+          id: {
+            initialize: (options) => Object.assign(init, options),
+            renderButton: (parent) => {
+              const button = document.createElement("button");
+              button.textContent = "Google button";
+              button.onclick = () => init.callback?.({ credential: "google-id-token" });
+              parent.appendChild(button);
+            },
+          },
+        },
+      };
+      return init;
+    };
+
+    it("signs in with Google's ID token and the raw nonce whose hash Google received, then returns to the requested page", async () => {
+      vi.stubEnv("VITE_OAUTH_GOOGLE_ENABLED", "true");
+      vi.stubEnv("VITE_GOOGLE_CLIENT_ID", "client-123.apps.googleusercontent.com");
+      mockSocialAuthContext();
+      const init = installFakeGoogle();
+      vi.mocked(supabase.auth.signInWithIdToken).mockResolvedValue({ data: { user: null, session: null }, error: null } as never);
+
+      render(
+        <MemoryRouter initialEntries={[{ pathname: "/signin", state: { from: "/submit" } }]}>
+          <Routes>
+            <Route path="/signin" element={<SignInForm />} />
+            <Route path="/submit" element={<p>Submit page</p>} />
+          </Routes>
+        </MemoryRouter>
+      );
+      await userEvent.setup().click(await screen.findByRole("button", { name: "Google button" }));
+
+      await screen.findByText("Submit page");
+      expect(supabase.auth.signInWithOAuth).not.toHaveBeenCalled();
+      const [[call]] = vi.mocked(supabase.auth.signInWithIdToken).mock.calls;
+      expect(call).toMatchObject({ provider: "google", token: "google-id-token" });
+      expect(init.client_id).toBe("client-123.apps.googleusercontent.com");
+      const rawNonce = "nonce" in call ? call.nonce : undefined;
+      expect(rawNonce).toEqual(expect.any(String));
+      expect(init.nonce).toBe(await hex(String(rawNonce)));
+    });
+
+    it("reports a rejected Google token without provider details and stays on sign-in", async () => {
+      vi.stubEnv("VITE_OAUTH_GOOGLE_ENABLED", "true");
+      vi.stubEnv("VITE_GOOGLE_CLIENT_ID", "client-123");
+      mockSocialAuthContext();
+      installFakeGoogle();
+      vi.mocked(supabase.auth.signInWithIdToken).mockResolvedValue({ data: { user: null, session: null }, error: new Error("nonce mismatch detail") } as never);
+
+      render(<MemoryRouter><SignInForm /></MemoryRouter>);
+      await userEvent.setup().click(await screen.findByRole("button", { name: "Google button" }));
+      expect(await screen.findByRole("alert")).toHaveTextContent("We couldn't sign you in with Google");
+      expect(screen.queryByText(/nonce mismatch detail/)).not.toBeInTheDocument();
+    });
+
+    it("falls back to the redirect flow when Google's script cannot load", async () => {
+      vi.stubEnv("VITE_OAUTH_GOOGLE_ENABLED", "true");
+      vi.stubEnv("VITE_GOOGLE_CLIENT_ID", "client-123");
+      mockSocialAuthContext();
+      const append = document.head.appendChild.bind(document.head);
+      vi.spyOn(document.head, "appendChild").mockImplementation((node) => {
+        const added = append(node);
+        if (node instanceof HTMLScriptElement) queueMicrotask(() => node.onerror?.(new Event("error")));
+        return added;
+      });
+
+      render(<MemoryRouter><SignInForm /></MemoryRouter>);
+      expect(await screen.findByRole("button", { name: "Continue with Google" })).toBeInTheDocument();
+    });
+  });
+
   it("redirects to the requested page after successful sign-in", async () => {
     const signInWithPassword = vi.fn().mockResolvedValue({ error: null, user: null });
     vi.mocked(useAuth).mockReturnValue({

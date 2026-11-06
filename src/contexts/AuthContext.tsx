@@ -4,25 +4,9 @@ import posthog from "posthog-js";
 import type { User, Session } from "@supabase/supabase-js";
 import { supabase, supabaseAuthStorageKey } from "../lib/supabase";
 import { setAuthIntent } from "../lib/authIntent";
+import { getCallbackUrl } from "../lib/authCallbackUrl";
 import { AuthContext, roleFromUser } from "./authContextObject";
 import type { AuthContextValue, AuthSignOutScope } from "./authContextObject";
-
-// Production callback URL - explicit to ensure Supabase redirect matching.
-// Both www and non-www variants are supported in Supabase's allowed URLs.
-const PRODUCTION_ORIGIN = "https://www.salsasegura.com";
-const getCallbackUrl = () => {
-  // In production (non-localhost), prefer explicit production URL for consistency
-  const isLocal =
-    window.location.origin === "http://localhost:5173" ||
-    window.location.origin === "http://localhost:3000" ||
-    window.location.origin === "http://127.0.0.1:5173" ||
-    window.location.origin === "http://127.0.0.1:3000";
-  const url = isLocal
-    ? `${window.location.origin}/auth/callback`
-    : `${PRODUCTION_ORIGIN}/auth/callback`;
-  console.log("[Auth] getCallbackUrl:", { isLocal, windowOrigin: window.location.origin, url });
-  return url;
-};
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);

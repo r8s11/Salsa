@@ -64,6 +64,14 @@ function renderCallbackWithRoutes(
 }
 
 describe("AuthCallback", () => {
+  it("shows a social sign-in retry message on provider cancellation", async () => {
+    setAuthIntent("oauth");
+    renderCallback("/auth/callback?error=access_denied");
+    expect(await screen.findByRole("heading", { name: "Social sign-in wasn't completed" })).toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent("Please try again");
+  });
+
+
   beforeEach(() => {
     window.sessionStorage.clear();
     vi.mocked(supabase.auth.exchangeCodeForSession).mockReset();

@@ -19,7 +19,7 @@
 
 const INTENT_STORAGE_KEY = "salsasegura-auth-intent";
 
-export type AuthIntentKind = "signup" | "recovery" | "email_change";
+export type AuthIntentKind = "signup" | "recovery" | "email_change" | "oauth";
 
 export type AuthIntent = {
   kind: AuthIntentKind;
@@ -29,7 +29,7 @@ export type AuthIntent = {
 function isAuthIntent(value: unknown): value is AuthIntent {
   if (!value || typeof value !== "object") return false;
   if (!("kind" in value)) return false;
-  if (value.kind !== "signup" && value.kind !== "recovery" && value.kind !== "email_change")
+  if (value.kind !== "signup" && value.kind !== "recovery" && value.kind !== "email_change" && value.kind !== "oauth")
     return false;
   if ("email" in value && typeof value.email !== "string" && value.email !== undefined)
     return false;

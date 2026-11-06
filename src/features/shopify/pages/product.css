@@ -1,48 +1,39 @@
-.shop-page--product {
-  max-width: var(--container-max);
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-}
+/* The product page is one piece from the Merch Table, seen up close: the same
+   masthead and container as the landing and collections, the piece on a lit
+   table surface, and the price on its gold hang-tag. */
 
-.shop-page--product > .retail-catalog__header {
-  grid-column: 1 / -1;
-  margin-bottom: var(--space-md);
-}
-
-.shop-page--product > .shop-breadcrumb {
-  grid-column: 1 / -1;
-  margin-bottom: var(--space-lg);
-}
-
-.shop-page--product > .shop-state,
-.shop-page--product > .shop-page__notice,
-.shop-product {
-  grid-column: 1 / -1;
-}
+.shop-page--product .shop-breadcrumb { margin-block: 2px clamp(4px, 1.4vw, 18px); }
 
 .shop-product {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: clamp(1.5rem, 5vw, 4.5rem);
+  gap: clamp(1.25rem, 4vw, 4rem);
   align-items: start;
+  padding-top: clamp(8px, 1.6vw, 20px);
 }
 
+/* ---- Gallery: a white tile with the swept corner, on the table ---- */
+
 .shop-product__gallery {
+  position: relative;
+  isolation: isolate;
   display: grid;
-  gap: var(--space-md);
+  gap: 14px;
   min-width: 0;
+  padding: 0 clamp(16px, 2vw, 28px) clamp(20px, 2.4vw, 32px);
 }
 
 .shop-product__media {
+  position: relative;
   display: grid;
+  aspect-ratio: 1 / 1;
   min-width: 0;
-  aspect-ratio: 4 / 5;
-  max-height: min(55vh, 24rem);
   overflow: hidden;
   place-items: center;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--surface-high);
+  border-radius: var(--radius-sm);
+  border-top-right-radius: 64px;
+  background: #fff;
+  box-shadow: 0 18px 32px -18px rgb(2 6 18 / 0.9);
 }
 
 .shop-product__image {
@@ -57,40 +48,38 @@
   width: 100%;
   height: 100%;
   place-items: center;
-  color: var(--gold-light);
-  font-family: var(--font-display);
-  font-size: 1.5rem;
+  color: var(--surface-high);
+  font-family: "Barlow Condensed", var(--font-display);
+  font-size: 2rem;
   font-weight: 700;
-  letter-spacing: -0.04em;
 }
 
 .shop-product__thumbnails {
   display: flex;
-  gap: var(--space-sm);
+  gap: 10px;
   max-width: 100%;
   overflow-x: auto;
-  padding: 6px 6px var(--space-sm);
+  padding: 8px 8px 4px;
+  scrollbar-color: var(--gold) var(--surface);
 }
 
 .shop-product__thumbnail {
-  flex: 0 0 4.5rem;
-  width: 4.5rem;
-  height: 4.5rem;
-  padding: 0.2rem;
+  flex: 0 0 64px;
+  width: 64px;
+  height: 64px;
+  padding: 4px;
   border: 1px solid var(--border-md);
-  border-radius: var(--radius);
-  background: var(--surface);
+  border-radius: var(--radius-sm);
+  background: #fff;
   cursor: pointer;
+  transition: border-color 160ms ease;
 }
+
+.shop-product__thumbnail:hover { border-color: var(--gold); }
 
 .shop-product__thumbnail[aria-pressed="true"] {
+  padding: 3px;
   border: 2px solid var(--gold);
-}
-
-.shop-product__thumbnail:focus-visible,
-.shop-product__quantity button:focus-visible {
-  outline: 3px solid var(--gold);
-  outline-offset: 2px;
 }
 
 .shop-product__thumbnail img {
@@ -108,79 +97,182 @@
   background: var(--surface-high);
 }
 
+/* ---- Purchase column ---- */
+
 .shop-product__content {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
   align-content: start;
-  justify-items: start;
+  gap: 22px;
   min-width: 0;
   width: 100%;
-  gap: var(--space-md);
 }
 
-.shop-product h1 {
-  color: var(--text);
-  font-family: var(--font-display);
-  font-size: clamp(2rem, 4vw, 3rem);
+.shop-product__intro {
+  display: grid;
+  justify-items: start;
+  gap: 18px;
+  min-width: 0;
+}
+
+.shop-page .shop-product h1 {
+  margin: 0;
+  color: var(--shop-paper);
+  font-family: "Barlow Condensed", var(--font-display);
+  font-size: clamp(2.75rem, 4.2vw, 4.25rem);
   font-weight: 700;
-  letter-spacing: -0.03em;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
   overflow-wrap: anywhere;
-  line-height: 1.03;
+  text-wrap: balance;
 }
 
 .shop-product__price {
   display: flex;
-  align-items: baseline;
   flex-wrap: wrap;
-  gap: var(--space-md);
-  font-family: var(--font-display);
-  font-size: 1.35rem;
-  font-weight: 700;
+  align-items: center;
+  gap: 8px 20px;
+  margin-left: 6px;
+}
+
+/* The shared hang-tag, set in the flow instead of pinned to a corner. */
+.shop-page .shop-product__price .merch-tag {
+  position: relative;
+  inset: auto;
+  padding: 7px 14px 7px 12px;
+  font-size: clamp(1.75rem, 2.4vw, 2.375rem);
+  rotate: -2deg;
 }
 
 .shop-product__compare-at {
-  color: var(--text-muted);
-  font-family: var(--font-body);
-  font-size: 0.95rem;
-  font-weight: 400;
+  color: var(--shop-muted);
+  font-size: 0.9375rem;
   text-decoration: line-through;
 }
 
-.shop-product__description {
-  max-width: 42rem;
-  color: var(--text-muted);
-  line-height: 1.8;
-  white-space: pre-line;
+.shop-product__options {
+  display: grid;
+  gap: 22px;
+  min-width: 0;
 }
+
+.shop-product__option-field {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  min-width: 0;
+}
+
+.shop-product__option-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.shop-product__option-label,
+.shop-product__availability {
+  color: var(--shop-muted);
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.shop-product__option-selected {
+  color: var(--shop-paper);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.shop-product__option-value {
+  color: var(--shop-paper);
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+/* 44px target folded into the label row's height. */
+.shop-product__fit-link {
+  flex: none;
+  min-height: 44px;
+  margin: -14px -4px -8px auto;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--shop-paper);
+  cursor: pointer;
+  font: 600 0.875rem/1.2 var(--font-body);
+  text-decoration: underline;
+  text-decoration-color: var(--gold);
+  text-underline-offset: 0.3em;
+}
+.shop-product__fit-link:hover { color: var(--gold-light); }
+
+/* Chips are the landing's size chips, a little larger for the product page. */
+.shop-page .shop-product__chips { gap: 10px; }
+.shop-page .shop-product__chips button {
+  min-width: 48px;
+  min-height: 48px;
+  padding: 0 16px;
+  font-size: 0.9375rem;
+}
+
+.shop-page .shop-product__chips button.shop-product__swatch {
+  position: relative;
+  display: grid;
+  width: 48px;
+  padding: 0;
+  place-items: center;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  background: transparent;
+}
+.shop-page .shop-product__chips button.shop-product__swatch span {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.4);
+}
+.shop-page .shop-product__chips button.shop-product__swatch[aria-checked="true"] {
+  border-color: var(--gold);
+  background: transparent;
+}
+.shop-page .shop-product__chips button.shop-product__swatch:disabled { text-decoration: none; }
+.shop-page .shop-product__chips button.shop-product__swatch[data-sold-out]::after {
+  content: "";
+  position: absolute;
+  inset: 9px;
+  background: linear-gradient(to top right, transparent calc(50% - 1px), var(--shop-paper) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px));
+}
+
+.shop-product__option-notice {
+  margin: 0;
+  color: var(--gold-light);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+/* Stays rendered so the live region announces; the gap collapses. */
+.shop-product__option-notice:empty { margin-top: -10px; }
+
+.shop-product__availability {
+  margin: -6px 0 0;
+}
+.shop-product__availability--available { color: var(--shop-paper); }
 
 .shop-product__field-help,
 .shop-product__fine-print {
-  color: var(--text-muted);
-  font-size: 0.8rem;
+  margin: 0;
+  color: var(--shop-muted);
+  font-size: 0.8125rem;
   line-height: 1.6;
-}
-
-.shop-product__availability {
-  color: var(--text-muted);
-  font-size: 0.9rem;
-  font-weight: 700;
-}
-
-.shop-product__availability--available {
-  color: var(--text);
 }
 
 .shop-product__quantity {
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
-}
-
-.shop-product__quantity button {
-  width: 44px;
-  min-width: 44px;
-  min-height: 44px;
-  padding-inline: 0;
+  gap: 4px;
 }
 
 .shop-product__quantity output {
@@ -191,10 +283,12 @@
 
 .shop-product__feedback {
   width: 100%;
-  padding: var(--space-md);
+  margin: 0;
+  padding: 16px;
   border: 1px solid var(--border-md);
-  border-radius: var(--radius);
-  color: var(--text);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--shop-paper);
   line-height: 1.5;
 }
 
@@ -205,19 +299,21 @@
 }
 
 @media (min-width: 768px) {
-  .shop-product {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: clamp(1.5rem, 3vw, 3rem);
-  }
+  .shop-product { grid-template-columns: minmax(0, 1.15fr) minmax(20rem, 1fr); }
 
-  .shop-product__media {
-    max-height: min(78vh, 58rem);
+  .shop-product__content {
+    position: sticky;
+    top: 6rem;
+    align-self: start;
+    gap: 22px;
+    padding-top: 8px;
   }
+}
 
+@media (max-width: 700px) {
+  .shop-product__media { border-top-right-radius: 48px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .shop-product__thumbnail {
-    scroll-behavior: auto;
-  }
+  .shop-product__thumbnail { transition: none; scroll-behavior: auto; }
 }

@@ -1618,22 +1618,48 @@ shop's cart pill, and returns focus to itself on close. Submitting an event
 lives in the header drawer.
 
 Retail Edit is the shipping design for `/shop`, `/shop/:collection` and
-`/shop/products/:handle`, in Ritmo Vivo. Display type is self-hosted
-Barlow Condensed (`@fontsource`, weights 600/700), set in **sentence
-case** ("Wear the rhythm.", "Shop by collection"), never all caps. Gold
-marks wayfinding and catalog actions only: the primary action, cart
-count, View product, selected filters and the closing links. Headline
-words never take gold. On the product page, Add to cart is Rose Red
-(selected options are gold); in the cart drawer, Checkout is Rose Red.
-Rose is spent on actions only; supporting lines such as the hero note use
-Shop Muted ink. The hero and collection media carry one signature shape:
-a single swept top-right corner (64px on the landing hero, 48px on
-collection heroes and phone heroes) over 4px elsewhere. It is the one
-radius outside the scale, deliberate, and never applied to cards,
+`/shop/products/:handle`, in Ritmo Vivo, composed as **the Merch Table**:
+the shop is the table at the back of a social, real pieces laid on one lit
+navy surface, priced and buyable where they lie. Display type is
+self-hosted Barlow Condensed (`@fontsource`, weights 600/700), set in
+**sentence case** ("Wear the rhythm."), never all caps. Gold marks
+wayfinding and catalog actions only: price hang-tags, cart count, selected
+sizes and filters, Shop everything and the closing links. Headline words
+never take gold. Add to cart is Rose Red everywhere (the landing table,
+the product page) and Checkout is Rose Red in the cart drawer; rose is
+spent on actions only. The lead media carry one signature shape: a single
+swept top-right corner (64px on the table's lead piece and the product
+gallery, 48px on collection heroes and phones) over 4px elsewhere. It is
+the one radius outside the scale, deliberate, and never applied to cards,
 buttons or panels, which use `--radius-sm` (4px), `--radius` (8px) and
 `--radius-xl` (24px, the filter sheet's top corners). Lead paragraphs set
 1.125rem; the mobile hero heading is capped at 21vw so its longest word
 stays on screen under enlarged text.
+
+**The table** (`MerchTable.tsx`, `merch-table.css`). The surface is
+`--surface` lifted to `--surface-high` at its top edge, 8px radius, a 1px
+inner highlight and one soft offset shadow; it starts 44px below the
+pieces so they read as laid on it. One work light hangs over it: a radial
+of gold at 13% fading out, no new hue. Every product tile on a table is
+white with `object-fit: contain` and carries a **hang-tag**: gold fill,
+`on-secondary` ink, Barlow Condensed 700 price, a navy eyelet, tilted -4°
+(-3° on the lead), hanging off the tile's corner. Tags are the price's only
+visual form on grids; the link's accessible name carries the price. Grids
+that sit on the table (New arrivals, collection results) take
+`.retail-catalog__grid.merch-surface`.
+
+The landing's first viewport is the headline column (a third) beside the
+table (two thirds) with up to five pieces: the lead, 4:5 and largest, in
+the middle column, two either side with staggered offsets. The lead is
+the first piece one size choice can buy; it shows a Size radiogroup (no
+size checked) and Add to cart. Add with no size moves focus to the first
+size and says "Choose a size first."; a confirmed add opens the cart
+drawer. Below 700px the lead spans the row and the rest go two-up. The
+collections follow as the table's front edge: Men, Women, Accessories,
+Shoes in Barlow Condensed 700 at `clamp(2.5rem, 5vw, 4.5rem)`, each with
+its real count in gold (muted for Coming soon), underlined in gold on
+hover. On load the tags swing once on their eyelets and settle (GSAP,
+elastic ease); reduced motion renders them at rest.
 
 **Shopify is the catalog.** Collections are Shopify collections, resolved
 by handle; the frontend never lists product handles.
@@ -1647,16 +1673,14 @@ by handle; the frontend never lists product handles.
   heading, breadcrumb and tab title, with a single Shop all recovery and
   no Keep browsing row. An empty cart drawer's description is the
   first-dance line itself, not the review-your-items copy.
-- The landing's Featured row is Shopify's automatic `frontpage` (Home
-  page) collection. New arrivals is `CREATED_AT` descending, without
-  products already featured.
-- Category tiles show a real product count, or "Coming soon" when the
-  collection is missing or empty. The label sits on a solid navy strip
-  below a white image area, never on the photograph, so its contrast does
-  not depend on merchant imagery (15:1 name, 10:1 count). On two-column
-  phone tiles the label takes the strip's full width, the gold arrow moves
-  to the image corner, and the name scales `clamp(1.375rem, 7vw, 1.75rem)`
-  to stay on one line.
+- The table leads with Shopify's automatic `frontpage` (Home page)
+  collection and fills its five places with the newest pieces
+  (`CREATED_AT` descending, featured ones removed); its list is named
+  "Featured and new", or "New arrivals" when nothing is featured. The New
+  arrivals row below holds the next four newest.
+- Collections show a real product count, or "Coming soon" when the
+  collection is missing or empty, and "Unavailable" when the listing
+  request fails.
 - There are no Bestseller or New badges; sales data and arrival badges
   don't exist. Sold out is the only card badge.
 
@@ -1667,7 +1691,8 @@ product titles:
 
 - Product type, grouped by a loose key because the merchant's types are
   free text.
-- The Size option, normalised (`xxl` becomes `2XL`) and ordered XS→5XL.
+- The Size option (any option whose last word is Size, so "Shoe Size"
+  counts), normalised (`xxl` becomes `2XL`) and ordered XS→5XL.
   Numeric sizes (shoe sizes, e.g. 37, 8.5) sort by value ahead of letter
   sizes, so a mixed footwear/apparel list reads by number. Unknown
   spellings (e.g. "One Size") sort last. Chips read the merchant's own
@@ -1684,9 +1709,10 @@ Product grids use three columns above 700px and two from 381px to 700px.
 The landing's New arrivals row uses four. At 380px and below the grid is
 one column. Card media is square, whole-product merchant photography with
 `object-fit: contain`. On fine pointers a second merchant image fades in
-on hover. Captions carry the real name, the Shopify price (exact when every
-variant costs the same, otherwise "From <lowest>"), a colour and size
-summary and an explicit View product action.
+on hover. The price hangs on the tile as a tag (exact when every variant
+costs the same, otherwise "From <lowest>"); the caption carries the real
+name and a colour and size summary. The whole tile is the link; there is
+no separate View product action.
 
 Quick add appears on hover or keyboard focus with a fine pointer. It is
 offered only when size is the product's sole choice, so one click names
@@ -1705,28 +1731,40 @@ each shop page. They are the one place icons do not come from Lucide.
 The product page opens with the same masthead (wordmark, collection row and
 cart pill, which is also the add-to-cart flight target), then a breadcrumb:
 Shop › product title. Breadcrumb links keep 44px targets. Grid and editorial
-media are square to match the merchant photography. Beside the filter rail,
-card captions stack View product under the price, and active-filter chips are
+media are square to match the merchant photography. Active-filter chips are
 44px high.
 
-The product gallery sits beside a sticky purchase panel on desktop. Named
-native selectors separate Color, Size and other options instead of listing
-every variant combination. Selected values use gold ink; controls are at least
-48px high. Changes preserve the other selections when available, otherwise
-resolve to an available variant. Sold-out values stay labelled and disabled.
+The product page is one piece from the Merch Table seen up close, in the same
+`.retail-catalog` container and masthead as the landing and collections. The
+gallery's main image sits in a white tile (object-fit contain, swept 64px
+top-right corner, 48px on phones) on a lit `.merch-surface`; thumbnails stay
+keyboard-selectable on that surface. Beside it, a sticky purchase column runs
+title (Barlow Condensed 700, sentence case, `clamp(2.75rem, 4.2vw, 4.25rem)`,
+line-height 0.95, balanced), the price on a static gold `.merch-tag` hang-tag
+(its text is the accessible price), option groups, quantity and the purchase
+button, the Shopify checkout line and the Product details disclosure.
+Option groups are named chip radiogroups, not native selectors: each group is
+`role="radiogroup"` labelled by its micro-label, each value a `role="radio"`
+button with `aria-checked` and roving arrow-key focus (arrows move and choose;
+Tab reaches one chip per group). Chips are at least 48px; the checked chip is
+gold. Colour uses round swatches (named by `aria-label`, selected name shown
+beside the label) only when the merchant set a swatch colour for every value,
+otherwise text chips. Size chips follow the catalogue size order. Changes
+preserve the other selections when available, otherwise resolve to an
+available variant. Sold-out values stay visible, are named "…, sold out" and
+are disabled with a line-through.
 **Size is never chosen for the shopper.** When Size has more than one value
-it opens on a "Select size" placeholder (gold border, muted ink), the
-availability line is withheld, the price reads the lowest for the current
-colour ("From …" when sizes differ, compare-at hidden), and the purchase
-button reads "Choose size" and focuses the Size selector instead of adding.
-If a colour change can't keep the chosen size, the size returns to the
-placeholder and a status line under it says so ("M isn't available in
+no chip is checked, the availability line is withheld, the price reads the
+lowest for the current colour ("From …" when sizes differ, compare-at
+hidden), and the purchase button reads "Choose size" and focuses the first
+enabled Size chip instead of adding.
+If a colour change can't keep the chosen size, the size is cleared and a
+status line under the chips says so ("M isn't available in
 Rose. Choose another size.") — it is never swapped silently. "Fit & fabric"
 beside the Size label opens the merchant's Product details; no size chart
 is shown because the store supplies none.
 Option names are uppercase UI-face micro-labels (12px/700, 0.12em tracking);
-selected values read in 16px/600 body type, with read-only values given the
-same size and rhythm. Availability shares the micro-label voice.
+read-only values use 16px body type. Availability shares the micro-label voice.
 Product details live in a native disclosure. On phones the purchase bar is
 pinned above the public dock and safe area from first paint at normal text
 size: the product article, not the content column, bounds it. The dock
@@ -1738,7 +1776,7 @@ pinning and scrolls in flow, so it never covers the fields it points to;
 bar. Enlarged text lets the summary and purchase controls wrap into
 additional rows; the full button stays reachable by scrolling.
 Its first row restates what Add will buy (selected values in gold,
-the price, and a Change action that focuses the first option selector);
+the price, and a Change action that focuses the first option group's checked chip);
 cart feedback appears inside the bar, and the floating city pill is hidden
 on product pages below 768px. Wider and short landscape viewports use an
 in-flow bar without the summary row. The cart is

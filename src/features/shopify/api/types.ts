@@ -77,6 +77,8 @@ export interface ProductVariant {
 export interface Product extends ProductSummary {
   description: string;
   images: { nodes: ShopifyImage[] };
+  /** Merchant swatch colours per option value; absent when the response carries none. */
+  options?: CatalogOption[];
   variants: { nodes: ProductVariant[] };
 }
 

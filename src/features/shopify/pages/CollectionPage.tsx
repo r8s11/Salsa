@@ -196,7 +196,7 @@ export default function CollectionPage() {
               </div>
             </div>
           ) : (
-            <ul className="retail-catalog__grid" aria-label={`${title} products`} aria-busy={query.isFetching}>
+            <ul className="retail-catalog__grid merch-surface" aria-label={`${title} products`} aria-busy={query.isFetching}>
               {visible.map((product, index) => <ProductCard key={product.id} product={product} eager={index < 3} />)}
             </ul>
           )}

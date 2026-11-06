@@ -12,6 +12,7 @@ if (!supabaseURLValue || !supabaseDefaultKey) {
 }
 
 export const supabaseURL: string = supabaseURLValue;
+export const supabasePublishableKey: string = supabaseDefaultKey;
 // Match Supabase's default namespace explicitly so deleted-account cleanup can
 // remove only this app's persisted session without changing existing sessions.
 export const supabaseAuthStorageKey = `sb-${new URL(supabaseURL).hostname.split(".")[0]}-auth-token`;

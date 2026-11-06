@@ -1,9 +1,11 @@
 /* Legal reading pages (/privacy, /data-deletion): Ritmo Vivo read mode.
-   Navy ground, display headings, body copy, 65-75ch measure. No decoration. */
+   Navy ground, display headings at full strength, the hero's 72×2 Gold
+   rule, gold step numerals for ordered procedures, 65-75ch measure. */
 .legal-page {
   background: var(--bg);
   color: var(--text);
-  padding: 72px var(--space-lg, 1.5rem) 100px;
+  padding: clamp(2.5rem, 6vw, 4.5rem) var(--space-lg, 1.5rem)
+    calc(100px + env(safe-area-inset-bottom));
   min-height: calc(100dvh - 68px);
 }
 
@@ -13,19 +15,35 @@
 }
 
 .legal-page h1 {
-  font: 800 clamp(2rem, 4vw, 2.75rem) / 1.1 var(--font-display);
-  margin: 0 0 0.75rem;
+  font: 800 clamp(2.5rem, 6vw, 4rem) / 1.02 var(--font-display);
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+  margin: 0 0 1.25rem;
+  padding-bottom: 12px;
 }
 
-.legal-page__updated {
+/* Same closing rule as the homepage hero heading. */
+.legal-page h1::after {
+  content: "";
+  display: block;
+  width: 72px;
+  height: 2px;
+  margin-top: 18px;
+  background: var(--gold);
+}
+
+.legal-page .legal-page__updated {
   color: var(--text-muted);
   font: 400 0.9rem var(--font-body);
-  margin: 0 0 2.5rem;
+  font-variant-numeric: tabular-nums;
+  margin: 0 0 3rem;
 }
 
 .legal-page h2 {
-  font: 700 1.35rem / 1.25 var(--font-display);
-  margin: 2.5rem 0 0.75rem;
+  font: 800 clamp(1.4rem, 2.6vw, 1.75rem) / 1.2 var(--font-display);
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  margin: 3.25rem 0 0.875rem;
 }
 
 .legal-page p,
@@ -38,20 +56,67 @@
   margin: 0 0 1rem;
 }
 
-.legal-page ul,
-.legal-page ol {
+.legal-page ul {
   margin: 0 0 1rem;
   padding-left: 1.4rem;
 }
 
-.legal-page li {
+.legal-page ul li::marker {
+  color: var(--gold);
+}
+
+/* Ordered procedures: the sequence is the information, so the step numbers
+   get display weight in Gold on a hairline track. */
+.legal-page ol {
+  counter-reset: legal-step;
+  list-style: none;
+  margin: 0 0 1.5rem;
+  padding: 0;
+}
+
+.legal-page ol > li {
+  counter-increment: legal-step;
+  position: relative;
+  margin: 0;
+  padding: 0.85rem 0 0.85rem 2.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.legal-page ol > li:last-child {
+  border-bottom: 1px solid var(--border);
+}
+
+.legal-page ol > li::before {
+  content: counter(legal-step);
+  position: absolute;
+  top: 0.85rem;
+  left: 0;
+  color: var(--gold);
+  font: 800 1.5rem / 1.1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.legal-page ul li {
   margin-bottom: 0.4rem;
 }
 
 .legal-page a {
   color: var(--text);
   text-decoration: underline;
+  text-decoration-color: var(--gold);
+  text-decoration-thickness: 1px;
   text-underline-offset: 3px;
+  transition: text-decoration-thickness 0.2s ease;
+  overflow-wrap: anywhere;
+}
+
+.legal-page a:hover {
+  text-decoration-thickness: 2px;
+}
+
+.legal-page ::selection {
+  background: var(--gold);
+  color: var(--on-gold);
 }
 
 .legal-page a:focus-visible {

@@ -1,5 +1,7 @@
 .auth-card {
   width: 100%;
+  min-width: 0;
+  align-self: center;
   padding: var(--space-xl);
   background: var(--card);
   border: 1px solid var(--border-md);
@@ -18,14 +20,10 @@
   line-height: 1.15;
 }
 
-.auth-form .form-group {
-  margin-bottom: var(--space-md);
-}
-
 .auth-form .field-hint {
   margin: var(--space-xs) 0 0;
   font-size: 0.8125rem;
-  color: var(--text-dim);
+  color: var(--text-muted);
   line-height: 1.4;
 }
 
@@ -49,6 +47,7 @@
   background: var(--surface);
   color: var(--text);
   font: inherit;
+  caret-color: var(--gold-light);
 }
 
 .auth-form input:focus-visible,
@@ -73,13 +72,13 @@
 
 .password-toggle {
   position: absolute;
-  top: 50%;
+  inset-block: 0;
+  margin-block: auto;
   right: var(--space-sm);
   display: grid;
   width: 44px;
   height: 44px;
   place-items: center;
-  transform: translateY(-50%);
   border: 0;
   border-radius: var(--radius);
   background: transparent;
@@ -142,7 +141,7 @@
 }
 
 .forgot-password-row {
-  margin-top: var(--space-xs);
+  margin-top: calc(-1 * var(--space-sm));
   text-align: right;
 }
 
@@ -155,27 +154,10 @@
     padding: var(--space-lg);
   }
 }
-.auth-card {
-  align-self: center;
-}
-
-.auth-card-intro {
-  margin-bottom: var(--space-md);
-}
-
-.auth-card-kicker {
-  margin: 0 0 var(--space-sm);
-  color: var(--gold);
-  font-family: var(--font-ui);
-  font-size: 0.75rem;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
 
 .auth-card-description {
   max-width: 32rem;
-  margin: 0;
+  margin: calc(-1 * var(--space-sm)) 0 var(--space-lg);
   color: var(--text-muted);
   font-size: 1rem;
   line-height: 1.55;
@@ -188,6 +170,36 @@
 
 .auth-form .form-group {
   margin-bottom: 0;
+}
+
+/* Password reveal: collapses to nothing (its grid gap included) until an
+   email is entered, then opens with the hero's ease-out. */
+.auth-credentials {
+  display: grid;
+  grid-template-rows: 0fr;
+  margin-top: calc(-1 * var(--space-md));
+  opacity: 0;
+  transition:
+    grid-template-rows 360ms cubic-bezier(0.22, 1, 0.36, 1),
+    margin-top 360ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 240ms ease;
+}
+.auth-credentials[data-open="true"] {
+  grid-template-rows: 1fr;
+  margin-top: 0;
+  opacity: 1;
+}
+/* Padding/negative margin keep focus rings outside the clip. */
+.auth-credentials-inner {
+  display: grid;
+  gap: var(--space-md);
+  min-height: 0;
+  margin: -6px;
+  padding: 6px;
+  overflow: hidden;
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-credentials { transition: none; }
 }
 
 .auth-form input {
@@ -218,7 +230,7 @@
 
 .password-guidance {
   margin: var(--space-xs) 0 0;
-  color: var(--text-dim);
+  color: var(--text-muted);
   font-size: 0.75rem;
   line-height: 1.4;
 }
@@ -237,22 +249,29 @@
 .social-auth { display: grid; gap: var(--space-md); margin: 0 0 var(--space-lg); }
 .social-auth-buttons { display: grid; gap: var(--space-sm); }
 .social-auth-button {
-  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  min-height: 44px;
   width: 100%;
-  padding: 0.75rem 1rem;
+  padding: 0.5rem 1rem;
   border: 1px solid var(--border-md);
-  border-radius: var(--radius);
+  border-radius: var(--radius-xl);
   background: var(--surface);
   color: var(--text);
   font: inherit;
-  font-weight: 700;
+  font-size: 0.875rem;
+  font-weight: 600;
   cursor: pointer;
   transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 .social-auth-button:hover:not(:disabled) { border-color: var(--gold-light); background: var(--surface-container); }
 .social-auth-button:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 3px; }
 .social-auth-button:disabled { opacity: 0.65; cursor: not-allowed; }
-/* Google renders its own button in an iframe; keep it centred at the column width. */
-.social-auth-google { display: flex; justify-content: center; min-height: 44px; }
+.social-auth-logo { flex: none; width: 20px; height: 20px; }
+/* Google renders its own 40px pill in an iframe; centre it in a 44px row so
+   both providers share the same footprint. */
+.social-auth-google { display: flex; align-items: center; justify-content: center; min-height: 44px; }
 .social-auth-divider { display: flex; align-items: center; gap: var(--space-sm); color: var(--text-muted); font-size: 0.8125rem; text-align: center; }
 .social-auth-divider::before, .social-auth-divider::after { content: ""; flex: 1; height: 1px; background: var(--border-md); }

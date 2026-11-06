@@ -70,10 +70,7 @@ jobs:
           VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY }}
           VITE_SHOPIFY_STORE_DOMAIN: ${{ secrets.VITE_SHOPIFY_STORE_DOMAIN }}
           VITE_SHOPIFY_STOREFRONT_TOKEN: ${{ secrets.VITE_SHOPIFY_STOREFRONT_TOKEN }}
-          # Public UI switches (not secrets): set repo variables to "true" once each provider is configured in Supabase.
-          VITE_OAUTH_GOOGLE_ENABLED: ${{ vars.VITE_OAUTH_GOOGLE_ENABLED }}
-          VITE_OAUTH_APPLE_ENABLED: ${{ vars.VITE_OAUTH_APPLE_ENABLED }}
-          VITE_OAUTH_FACEBOOK_ENABLED: ${{ vars.VITE_OAUTH_FACEBOOK_ENABLED }}
+          # Public (not secret). Social buttons follow Supabase Auth's enabled providers at runtime.
           VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
 
   close_pull_request_job:

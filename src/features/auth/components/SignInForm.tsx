@@ -18,9 +18,10 @@ import "./SignInForm.css";
 import GoogleIdentityButton from "./GoogleIdentityButton";
 
 type Mode = "signin" | "signup" | "reset";
-type SocialProvider = "apple" | "google" | "facebook";
+
 
 import { friendlyAuthError, isUnconfirmedEmail } from "../model/authUtils";
+import { SOCIAL_PROVIDERS, useEnabledSocialProviders, type SocialProvider } from "../model/socialProviders";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -35,18 +36,16 @@ export default function SignInForm() {
   );
   const emailLocked = location.state?.lockedEmail === true;
   const [socialLoading, setSocialLoading] = useState<SocialProvider | null>(null);
-  // Keep the buttons hidden until each external OAuth provider is configured.
-  const socialProviders = ([
-    { id: "apple", label: "Apple", enabled: import.meta.env.VITE_OAUTH_APPLE_ENABLED === "true" },
-    { id: "google", label: "Google", enabled: import.meta.env.VITE_OAUTH_GOOGLE_ENABLED === "true" },
-    { id: "facebook", label: "Facebook", enabled: import.meta.env.VITE_OAUTH_FACEBOOK_ENABLED === "true" },
-  ] as const).filter((provider) => provider.enabled);
+  // Buttons follow the providers switched on in Supabase Auth (no rebuild needed).
+  const enabledProviders = useEnabledSocialProviders();
+  const socialProviders = SOCIAL_PROVIDERS.filter(({ id }) => enabledProviders.has(id));
   // Google's own button (Google names salsasegura.com, not the Supabase host) needs the
   // public client ID and its script; without either, Google uses the redirect flow.
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim() ?? "";
   const [googleScriptFailed, setGoogleScriptFailed] = useState(false);
   const useGoogleIdentity = Boolean(googleClientId) && !googleScriptFailed;
   const [password, setPassword] = useState("");
+  const revealPassword = email.trim() !== "" || password !== "";
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -301,15 +300,6 @@ export default function SignInForm() {
 
   return (
     <section className="auth-card">
-      {mode === "signup" && (
-        <div className="auth-card-intro">
-          <p className="auth-card-kicker">Join the dance floor</p>
-          <p className="auth-card-description">
-            Create your SalsaSegura account to discover events and stay connected to your local
-            dance community.
-          </p>
-        </div>
-      )}
       <h2>
         {mode === "reset"
           ? "Reset your password"
@@ -317,6 +307,12 @@ export default function SignInForm() {
             ? "Welcome back"
             : "Create your account"}
       </h2>
+      {mode === "signup" && (
+        <p className="auth-card-description">
+          Create your Salsa Segura account to discover events and stay connected to your local
+          dance community.
+        </p>
+      )}
 
       {errorMsg && (
         <div className="auth-error" id="auth-form-error" role="alert">
@@ -354,7 +350,19 @@ export default function SignInForm() {
                   disabled={loading || socialLoading !== null}
                   onClick={() => void handleSocialSignIn(id)}
                 >
-                  {socialLoading === id ? "Connecting…" : `Continue with ${label}`}
+                  {id === "facebook" && (
+                    <svg className="social-auth-logo" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                      <path
+                        fill="#0866FF"
+                        d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.1 24 18.1 24 12.07Z"
+                      />
+                      <path
+                        fill="#fff"
+                        d="m16.67 15.56.53-3.49h-3.33V9.81c0-.96.47-1.89 1.96-1.89h1.51V4.96s-1.37-.24-2.68-.24c-2.74 0-4.53 1.67-4.53 4.69v2.66H7.08v3.49h3.05V24a12.2 12.2 0 0 0 3.74 0v-8.44h2.8Z"
+                      />
+                    </svg>
+                  )}
+                  <span>{socialLoading === id ? "Connecting…" : `Continue with ${label}`}</span>
                 </button>
               ),
             )}
@@ -412,62 +420,68 @@ export default function SignInForm() {
             )}
             <FormFieldError id="email-error" message={emailError} />
           </div>
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <div className="password-field">
-              <input
-                id="password"
-                name="password"
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete={mode === "signin" ? "current-password" : "new-password"}
-                disabled={loading}
-                minLength={6}
-                ref={passwordRef}
-                {...fieldErrorProps("password-error", passwordError, passwordHintIds)}
-              />
-              <IconButton
-                onClick={() => setShowPassword((isVisible) => !isVisible)}
-                disabled={loading}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-              >
-                {showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
-              </IconButton>
-            </div>
-            {mode === "signup" && (
-              <p id="password-guidance" className="password-guidance">
-                Use at least 6 characters.
-              </p>
-            )}
-            <FormFieldError id="password-error" message={passwordError} />
-            {mode === "signin" && (
-              <div className="forgot-password-row">
-                <Button variant="ghost" type="button" onClick={openResetMode} disabled={loading}>
-                  Forgot password?
-                </Button>
+          {/* Password steps in once an email is typed (or a password manager fills one). */}
+          <div className="auth-credentials" data-open={revealPassword} inert={!revealPassword}>
+            <div className="auth-credentials-inner">
+              <div className="form-group">
+                <label htmlFor="password">Password</label>
+                <div className="password-field">
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                    disabled={loading}
+                    minLength={6}
+                    ref={passwordRef}
+                    {...fieldErrorProps("password-error", passwordError, passwordHintIds)}
+                  />
+                  <IconButton
+                    className="password-toggle"
+                    onClick={() => setShowPassword((isVisible) => !isVisible)}
+                    disabled={loading}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
+                  </IconButton>
+                </div>
+                {mode === "signup" && (
+                  <p id="password-guidance" className="password-guidance">
+                    Use at least 6 characters.
+                  </p>
+                )}
+                <FormFieldError id="password-error" message={passwordError} />
               </div>
-            )}
-          </div>
 
-          {mode === "signup" && (
-            <div className="form-group">
-              <label htmlFor="confirm-password">Confirm password</label>
-              <input
-                id="confirm-password"
-                name="confirm-password"
-                type={showPassword ? "text" : "password"}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                autoComplete="new-password"
-                disabled={loading}
-                minLength={6}
-                ref={confirmPasswordRef}
-                {...fieldErrorProps("confirm-password-error", confirmPasswordError)}
-              />
-              <FormFieldError id="confirm-password-error" message={confirmPasswordError} />
+              {mode === "signup" && (
+                <div className="form-group">
+                  <label htmlFor="confirm-password">Confirm password</label>
+                  <input
+                    id="confirm-password"
+                    name="confirm-password"
+                    type={showPassword ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    autoComplete="new-password"
+                    disabled={loading}
+                    minLength={6}
+                    ref={confirmPasswordRef}
+                    {...fieldErrorProps("confirm-password-error", confirmPasswordError)}
+                  />
+                  <FormFieldError id="confirm-password-error" message={confirmPasswordError} />
+                </div>
+              )}
+            </div>
+          </div>
+          {mode === "signin" && (
+            <div className="forgot-password-row">
+              <Button variant="ghost" type="button" onClick={openResetMode} disabled={loading}>
+                Forgot password?
+              </Button>
             </div>
           )}
 

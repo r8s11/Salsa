@@ -30,9 +30,10 @@ export function useCatalogMotion(rootRef: RefObject<HTMLElement | null>, product
 
       const context = gsap.context(() => {
         gsap.timeline({ defaults: { ease: "power3.out", duration: 0.8 } })
-          .from(".retail-hero h1 .retail-word", { y: 22, opacity: 0.75, stagger: 0.07 })
-          .from(".retail-hero__image", { scale: 1.035, duration: 1.1 }, 0)
-          .from(".retail-hero__copy > p, .retail-hero__copy > a", { y: 10, stagger: 0.06 }, 0.16);
+          .from(".merch-hero h1 .retail-word", { y: 22, opacity: 0.75, stagger: 0.07 })
+          .from(".merch-hero__copy > p, .merch-hero__copy > a", { y: 10, stagger: 0.06 }, 0.16)
+          // The tags swing on their eyelets, then settle at their CSS resting tilt.
+          .from(".merch-piece > .merch-tag", { rotation: -18, y: -6, duration: 1.1, ease: "elastic.out(1, 0.45)", stagger: 0.08 }, 0.25);
         root.querySelectorAll<HTMLElement>(".retail-catalog__collection, .retail-catalog__closing").forEach((section) => {
           gsap.from(section.querySelectorAll("h2 .retail-word"), {
             y: 14, opacity: 0.65, duration: 0.6, stagger: 0.035,

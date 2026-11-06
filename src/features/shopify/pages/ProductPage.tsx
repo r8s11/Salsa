@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Minus, Plus } from "lucide-react";
 import Button from "../../../components/ui/Button";
@@ -10,11 +10,13 @@ import { isShopifyConfigured, storefront } from "../api/storefront";
 import type { Money, ProductVariant, ShopifyImage } from "../api/types";
 import { useCart } from "../cart/useCart";
 import { formatMoney } from "../money";
+import "@fontsource/barlow-condensed/700.css";
 import "../shop.css";
+import "./merch-table.css";
 import "./product.css";
 import "./retail-purchase.css";
 import ShopMasthead from "./ShopMasthead";
-import { isSizeOption } from "./catalogFilters";
+import { isSizeOption, sortSizeValues } from "./catalogFilters";
 
 interface ProductFeedback {
   handle: string;
@@ -209,25 +211,36 @@ function ProductDetails({ handle }: { handle: string }) {
       .map(({ name }) => optionValue(selectedVariant, name))
       .join(" · ")
     : "";
-  const focusField = (field: HTMLSelectElement | null | undefined, openPicker = false) => {
-    if (!field) return;
-    field.scrollIntoView({ block: "center" });
-    field.focus({ preventScroll: true });
-    // Centering ignores the pinned bar; never leave the focused field under it.
+  const focusChip = (chip: HTMLElement | null | undefined) => {
+    if (!chip) return;
+    chip.scrollIntoView({ block: "center" });
+    chip.focus({ preventScroll: true });
+    // Centering ignores the pinned bar; never leave the focused chip under it.
     const bar = buyRef.current;
     if (bar && getComputedStyle(bar).position === "sticky") {
-      const overlap = field.getBoundingClientRect().bottom + 16 - bar.getBoundingClientRect().top;
+      const overlap = chip.getBoundingClientRect().bottom + 16 - bar.getBoundingClientRect().top;
       if (overlap > 0) window.scrollBy(0, overlap);
     }
-    if (!openPicker) return;
-    try {
-      (field as HTMLSelectElement & { showPicker?: () => void }).showPicker?.();
-    } catch {
-      // Unsupported or blocked: focus alone still lands the shopper on the choice.
-    }
   };
-  const sizeField = () => document.getElementById(sizeFieldId) as HTMLSelectElement | null;
-  const reviewOptions = () => focusField(sizePending ? sizeField() : optionsRef.current?.querySelector("select"));
+  const chipsIn = (group: Element | null | undefined) =>
+    Array.from(group?.querySelectorAll<HTMLButtonElement>('button[role="radio"]:not(:disabled)') ?? []);
+  const reviewOptions = () => {
+    if (sizePending) return focusChip(chipsIn(document.getElementById(sizeFieldId))[0]);
+    const chips = chipsIn(optionsRef.current?.querySelector('[role="radiogroup"]'));
+    focusChip(chips.find((chip) => chip.getAttribute("aria-checked") === "true") ?? chips[0]);
+  };
+  // Radio groups move with the arrows: the next chip takes focus and the choice.
+  const onChipKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+    const step = ({ ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 } as Record<string, number | undefined>)[event.key];
+    if (!step) return;
+    const chips = chipsIn(event.currentTarget.closest('[role="radiogroup"]'));
+    const index = chips.indexOf(event.currentTarget);
+    if (index < 0) return;
+    event.preventDefault();
+    const next = chips[(index + step + chips.length) % chips.length];
+    next.focus();
+    next.click();
+  };
   const openFitDetails = () => {
     const details = detailsRef.current;
     if (!details) return;
@@ -285,7 +298,7 @@ function ProductDetails({ handle }: { handle: string }) {
   const productIntro = product && <>
     <h1 id="product-heading" tabIndex={-1}>{product.title}</h1>
     <div className="shop-product__price" aria-live="polite">
-      {price && <span>{priceLabel}</span>}
+      {price && <span className="merch-tag">{priceLabel}</span>}
       {showCompareAt && compareAt && <span className="shop-product__compare-at">Was {formatMoney(compareAt)}</span>}
     </div>
   </>;
@@ -314,7 +327,8 @@ function ProductDetails({ handle }: { handle: string }) {
       </Button>
     </div>
     {sizePending ? (
-      <Button variant="primary" block disabled={isBusy || isCartLoading} onClick={() => focusField(sizeField(), true)}>
+      <Button variant="primary" block disabled={isBusy || isCartLoading}
+        onClick={() => focusChip(chipsIn(document.getElementById(sizeFieldId))[0])}>
         Choose size
       </Button>
     ) : (
@@ -336,6 +350,7 @@ function ProductDetails({ handle }: { handle: string }) {
 
   return (
     <section className="shop-page shop-page--product" aria-labelledby="product-heading">
+      <div className="retail-catalog">
       <ShopMasthead />
 
       <nav className="shop-breadcrumb" aria-label="Breadcrumb">
@@ -367,7 +382,7 @@ function ProductDetails({ handle }: { handle: string }) {
         </div>
       ) : (
         <article className="shop-product">
-          <div className="shop-product__gallery">
+          <div className="shop-product__gallery merch-surface">
             <div className="shop-product__media">
               {image && !failedImages.includes(image.url) ? (
                 <img
@@ -430,33 +445,58 @@ function ProductDetails({ handle }: { handle: string }) {
                   );
                   const isSize = name === sizeGroup?.name;
                   const id = isSize ? sizeFieldId : `${fieldId}-${index}`;
+                  const labelId = `${id}-label`;
                   const noticeId = `${id}-notice`;
+                  const checked = isSize && sizePending ? null : optionValue(selectedVariant, name);
+                  const isAvailable = (value: string) =>
+                    availableVariants.some((variant) => optionValue(variant, name) === value);
+                  const ordered = isSize || /size$/i.test(name.trim()) ? sortSizeValues(values) : values;
+                  const tabbable = ordered.find((value) => value === checked && isAvailable(value)) ?? ordered.find(isAvailable);
+                  const merchantValues = product.options?.find((option) => option.name === name)?.values;
+                  const swatchOf = (value: string) => merchantValues?.find((entry) => entry.name === value)?.swatch ?? null;
+                  const hasSwatches = !isSize && values.every((value) => swatchOf(value));
                   return (
                     <div className="shop-product__option-field" key={name}>
                       <div className="shop-product__option-head">
-                        <label className="shop-product__option-label" htmlFor={id}>{name}</label>
+                        <span className="shop-product__option-label" id={labelId}>{name}</span>
+                        {hasSwatches && checked && <span className="shop-product__option-selected">{checked}</span>}
                         {isSize && product.description && (
                           <button type="button" className="shop-product__fit-link" onClick={openFitDetails}>
                             Fit &amp; fabric
                           </button>
                         )}
                       </div>
-                      <select
-                        id={id}
-                        value={isSize && sizePending ? "" : optionValue(selectedVariant, name)}
-                        data-pending={isSize && sizePending ? "" : undefined}
+                      <div
+                        id={isSize ? sizeFieldId : undefined}
+                        className={`merch-buy__sizes shop-product__chips${hasSwatches ? " shop-product__chips--swatch" : ""}`}
+                        role="radiogroup"
+                        aria-labelledby={labelId}
                         aria-describedby={isSize && sizeNotice ? noticeId : undefined}
-                        disabled={isBusy || !availableVariants.length}
-                        onChange={(event) => selectOption(name, event.target.value)}
                       >
-                        {isSize && <option value="" disabled>Select size</option>}
-                        {values.map((value) => {
-                          const available = availableVariants.some((variant) => optionValue(variant, name) === value);
-                          return <option key={value} value={value} disabled={!available}>
-                            {value}{available ? "" : " — Sold out"}
-                          </option>;
+                        {ordered.map((value) => {
+                          const available = isAvailable(value);
+                          const swatch = hasSwatches ? swatchOf(value) : null;
+                          return (
+                            <button
+                              key={value}
+                              type="button"
+                              role="radio"
+                              className={swatch ? "shop-product__swatch" : undefined}
+                              aria-checked={checked === value}
+                              aria-label={available ? (swatch ? value : undefined) : `${value}, sold out`}
+                              disabled={!available}
+                              data-sold-out={!available || undefined}
+                              tabIndex={value === tabbable ? 0 : -1}
+                              onKeyDown={onChipKeyDown}
+                              onClick={() => {
+                                if (!isBusy && checked !== value) selectOption(name, value);
+                              }}
+                            >
+                              {swatch ? <span style={{ background: swatch }} aria-hidden="true" /> : value}
+                            </button>
+                          );
                         })}
-                      </select>
+                      </div>
                       {isSize && <p id={noticeId} className="shop-product__option-notice" role="status">{sizeNotice}</p>}
                     </div>
                   );
@@ -478,6 +518,7 @@ function ProductDetails({ handle }: { handle: string }) {
           </div>
         </article>
       )}
+      </div>
     </section>
   );
 }

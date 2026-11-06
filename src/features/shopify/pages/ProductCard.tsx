@@ -1,12 +1,11 @@
 import { useState } from "react";
-import { Icon } from "@iconify/react";
-import arrowIcon from "@iconify-icons/solar/arrow-right-up-linear";
 import { productPrice } from "../money";
 import type { CatalogProduct } from "../api/types";
 import { useCart } from "../cart/useCart";
 import ProductImage from "./ProductImage";
 import ProductLink from "./ProductLink";
 import { quickAddSizes, variantSummary } from "./catalogFilters";
+import "./merch-table.css";
 
 export default function ProductCard({ product, eager = false }: { product: CatalogProduct; eager?: boolean }) {
   const { addVariant, setOpen, isBusy } = useCart();
@@ -43,16 +42,15 @@ export default function ProductCard({ product, eager = false }: { product: Catal
             width={alternate.width || 720} height={alternate.height || 720} loading="lazy" aria-hidden="true" />}
           {!product.availableForSale && <span className="retail-card__badge">Sold out</span>}
         </span>
+        <span className="merch-tag" aria-hidden="true">{productPrice(product)}</span>
         <span className="retail-card__caption">
           <span className="retail-card__name">{product.title}</span>
-          <span className="retail-card__price">{productPrice(product)}</span>
           {variantLine && <span className="retail-card__variants">
             {swatches.length > 0 && <span className="retail-card__swatches" aria-hidden="true">
               {swatches.slice(0, 6).map((color) => <i key={color.name} style={{ background: color.swatch ?? undefined }} />)}
             </span>}
             {variantLine}
           </span>}
-          <span className="retail-card__view">View product <Icon icon={arrowIcon} aria-hidden="true" width={18} /></span>
         </span>
       </ProductLink>
       {quick.length > 0 && (

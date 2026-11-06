@@ -61,7 +61,7 @@ function renderStore(path = "/shop/products/dance-tee") {
 /** Product-page purchases need a size the shopper chose. */
 async function openTeeWithSize(size = "S") {
   await screen.findByRole("heading", { name: "Dance Tee" });
-  fireEvent.change(screen.getByRole("combobox", { name: "Size" }), { target: { value: size } });
+  fireEvent.click(screen.getByRole("radio", { name: size }));
 }
 beforeEach(() => {
   vi.resetAllMocks(); localStorage.clear();
@@ -94,24 +94,24 @@ describe("Storefront customer experience", () => {
   it("never chooses a size for the shopper and hands back a size the new colour lacks", async () => {
     const user = userEvent.setup();
     renderStore(); await screen.findByRole("heading", { name: "Dance Tee" });
-    const size = screen.getByRole("combobox", { name: "Size" });
-    const color = screen.getByRole("combobox", { name: "Color" });
-    expect(size).toHaveValue("");
-    expect(color).toHaveValue("Rose");
-    expect(within(size).getByRole("option", { name: /L.*sold out/i })).toBeDisabled();
+    const size = screen.getByRole("radiogroup", { name: "Size" });
+    const color = screen.getByRole("radiogroup", { name: "Color" });
+    expect(within(size).queryByRole("radio", { checked: true })).toBeNull();
+    expect(within(color).getByRole("radio", { name: "Rose" })).toBeChecked();
+    expect(within(size).getByRole("radio", { name: /L.*sold out/i })).toBeDisabled();
     expect(screen.queryByRole("button", { name: /^add to cart$/i })).toBeNull();
     expect(screen.queryByText("Available")).toBeNull();
 
-    await user.selectOptions(size, "M");
-    expect(color).toHaveValue("Navy");
+    await user.click(within(size).getByRole("radio", { name: "M" }));
+    expect(within(color).getByRole("radio", { name: "Navy" })).toBeChecked();
     expect(screen.getByRole("img", { name: "Tee back" })).toHaveAttribute("src", back.url);
     expect(screen.getByText("$30.00", { selector: ".shop-product__price span" })).toBeInTheDocument();
     expect(screen.getByText("$30.00", { selector: ".shop-product__buy-price" })).toBeInTheDocument();
     expect(document.querySelector(".shop-product__buy-choice")).toHaveTextContent(/Navy.*M|M.*Navy/);
     expect(screen.getByRole("button", { name: /^add to cart$/i })).toBeEnabled();
 
-    await user.selectOptions(color, "Rose");
-    expect(size).toHaveValue("");
+    await user.click(within(color).getByRole("radio", { name: "Rose" }));
+    expect(within(size).queryByRole("radio", { checked: true })).toBeNull();
     expect(screen.getByText("M isn't available in Rose. Choose another size.")).toBeInTheDocument();
     expect(size).toHaveAccessibleDescription("M isn't available in Rose. Choose another size.");
     expect(screen.getByRole("img", { name: "Tee front" })).toHaveAttribute("src", front.url);
@@ -123,10 +123,55 @@ describe("Storefront customer experience", () => {
     const user = userEvent.setup();
     renderStore(); await screen.findByRole("heading", { name: "Dance Tee" });
     await user.click(screen.getByRole("button", { name: /^choose size$/i }));
-    expect(screen.getByRole("combobox", { name: "Size" })).toHaveFocus();
+    expect(within(screen.getByRole("radiogroup", { name: "Size" })).getByRole("radio", { name: "S" })).toHaveFocus();
     expect(storefront.createCart).not.toHaveBeenCalled();
-    await user.selectOptions(screen.getByRole("combobox", { name: "Size" }), "S");
+    await user.click(screen.getByRole("radio", { name: "S" }));
     expect(screen.getByRole("button", { name: /^add to cart$/i })).toBeEnabled();
+  });
+  it("lists sizes in the catalogue's order, keeps arrows inside the group and tabs to one chip", async () => {
+    const sizes = ["XL", "S", "M"];
+    vi.mocked(storefront.getProduct).mockResolvedValue({
+      ...item,
+      variants: { nodes: sizes.map((value) => ({ ...item.variants.nodes[0], id: value, selectedOptions: [{ name: "Size", value }] })) },
+    });
+    const user = userEvent.setup();
+    renderStore(); await screen.findByRole("heading", { name: "Dance Tee" });
+    const group = screen.getByRole("radiogroup", { name: "Size" });
+    const chips = within(group).getAllByRole("radio");
+    expect(chips.map((chip) => chip.textContent)).toEqual(["S", "M", "XL"]);
+    expect(chips.map((chip) => chip.tabIndex)).toEqual([0, -1, -1]);
+    chips[0].focus();
+    await user.keyboard("{ArrowRight}");
+    expect(chips[1]).toHaveFocus();
+    expect(chips[1]).toBeChecked();
+    expect(chips.map((chip) => chip.tabIndex)).toEqual([-1, 0, -1]);
+    await user.keyboard("{ArrowLeft}{ArrowLeft}");
+    expect(chips[2]).toHaveFocus();
+    expect(chips[2]).toBeChecked();
+  });
+  it("names swatch chips and shows the chosen colour only when the merchant coloured every value", async () => {
+    const swatched = {
+      ...item,
+      options: [{ name: "Color", values: [{ name: "Rose", swatch: "#e11d48" }, { name: "Navy", swatch: "#0b1326" }] }],
+    };
+    vi.mocked(storefront.getProduct).mockResolvedValue(swatched);
+    const user = userEvent.setup();
+    const { unmount } = renderStore(); await screen.findByRole("heading", { name: "Dance Tee" });
+    const color = screen.getByRole("radiogroup", { name: "Color" });
+    expect(within(color).getByRole("radio", { name: "Rose" })).toBeChecked();
+    expect(within(color).getByRole("radio", { name: "Rose" }).textContent).toBe("");
+    expect(document.querySelector(".shop-product__option-selected")).toHaveTextContent("Rose");
+    await user.click(within(color).getByRole("radio", { name: "Navy" }));
+    expect(document.querySelector(".shop-product__option-selected")).toHaveTextContent("Navy");
+    unmount();
+
+    vi.mocked(storefront.getProduct).mockResolvedValue({
+      ...item,
+      options: [{ name: "Color", values: [{ name: "Rose", swatch: "#e11d48" }, { name: "Navy", swatch: null }] }],
+    });
+    renderStore(); await screen.findByRole("heading", { name: "Dance Tee" });
+    expect(screen.getByRole("radio", { name: "Rose" })).toHaveTextContent("Rose");
+    expect(document.querySelector(".shop-product__option-selected")).toBeNull();
   });
   it("quotes a from-price while sizes of the chosen colour cost different amounts", async () => {
     vi.mocked(storefront.getProduct).mockResolvedValue({
@@ -150,11 +195,11 @@ describe("Storefront customer experience", () => {
     });
     const user = userEvent.setup();
     renderStore(); await screen.findByRole("heading", { name: "Dance Tee" });
-    await user.selectOptions(screen.getByRole("combobox", { name: "Size" }), "M");
-    expect(screen.getByRole("combobox", { name: "Color" })).toHaveValue("Rose");
+    await user.click(screen.getByRole("radio", { name: "M" }));
+    expect(screen.getByRole("radio", { name: "Rose" })).toBeChecked();
     expect(screen.getByRole("img", { name: "Tee front" })).toHaveAttribute("src", front.url);
-    await user.selectOptions(screen.getByRole("combobox", { name: "Color" }), "Navy");
-    expect(screen.getByRole("combobox", { name: "Size" })).toHaveValue("M");
+    await user.click(screen.getByRole("radio", { name: "Navy" }));
+    expect(screen.getByRole("radio", { name: "M" })).toBeChecked();
     expect(screen.getByRole("img", { name: "Tee back" })).toHaveAttribute("src", back.url);
   });
   it("does not ask shoppers to choose Shopify's single default variant", async () => {
@@ -167,7 +212,7 @@ describe("Storefront customer experience", () => {
       }] },
     });
     renderStore(); await screen.findByRole("heading", { name: "Dance Tee" });
-    expect(screen.queryByRole("combobox")).toBeNull();
+    expect(screen.queryByRole("radiogroup")).toBeNull();
     expect(screen.queryByText("Default Title")).toBeNull();
     expect(screen.getByRole("button", { name: /^add to cart$/i })).toBeEnabled();
   });
@@ -185,9 +230,9 @@ describe("Storefront customer experience", () => {
     expect(screen.getByRole("button", { name: /open cart, 0 items/i })).toBeInTheDocument();
     expect(screen.queryByRole("status", { name: /cart feedback/i })).toBeNull();
     if (availability === "sold-out") {
-      for (const option of screen.getAllByRole("combobox")) expect(option).toBeDisabled();
+      for (const chip of screen.getAllByRole("radio")) expect(chip).toBeDisabled();
     } else {
-      expect(screen.queryByRole("combobox")).toBeNull();
+      expect(screen.queryByRole("radiogroup")).toBeNull();
       expect(screen.getByText(/no purchase options/i)).toBeInTheDocument();
     }
     await user.click(within(screen.getByRole("navigation", { name: "Breadcrumb" })).getByRole("link", { name: "Shop" }));
@@ -268,7 +313,7 @@ describe("Storefront customer experience", () => {
     renderStore(); await openTeeWithSize(); fireEvent.click(screen.getByRole("button", { name: /add to cart/i }));
     const dialog = await screen.findByRole("dialog");
     fireEvent.click(within(dialog).getByRole("button", { name: /close cart/i }));
-    fireEvent.change(screen.getByRole("combobox", { name: "Size" }), { target: { value: "M" } });
+    fireEvent.click(screen.getByRole("radio", { name: "M" }));
     expect(screen.queryByText(/added to cart/i)).toBeNull();
   });
   it("uses product metadata, query-free canonical and truthful Product data", async () => {

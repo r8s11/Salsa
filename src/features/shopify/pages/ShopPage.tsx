@@ -53,9 +53,9 @@ export default function ShopPage() {
     retry: false,
   });
 
-  const featured = (featuredQuery.data?.products ?? []).slice(0, 4);
+  const featured = (featuredQuery.data?.products ?? []).slice(0, 5);
   const featuredIds = new Set(featured.map((product) => product.id));
-  const arrivals = (arrivalsQuery.data?.nodes ?? []).filter((product) => !featuredIds.has(product.id)).slice(0, 4);
+  const arrivals = (arrivalsQuery.data?.nodes ?? []).filter((product) => !featuredIds.has(product.id));
   const loading = featuredQuery.isLoading || arrivalsQuery.isLoading;
   const failed = featuredQuery.isError && arrivalsQuery.isError;
   const retry = () => { void featuredQuery.refetch(); void arrivalsQuery.refetch(); void tilesQuery.refetch(); };

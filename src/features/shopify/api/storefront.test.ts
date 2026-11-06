@@ -456,6 +456,32 @@ describe("Shopify Storefront client", () => {
     await expect(storefront.getProduct("missing-product")).resolves.toBeNull();
   });
 
+  it("returns the merchant's option swatches with a product", async () => {
+    configureStorefront();
+    vi.mocked(fetch).mockResolvedValueOnce(
+      response({
+        data: {
+          product: {
+            id: "product-1",
+            handle: "dance-shirt",
+            title: "Dance shirt",
+            description: "A shirt",
+            featuredImage: image,
+            images: { nodes: [image], pageInfo: { hasNextPage: false, endCursor: null } },
+            options: [{ name: "Color", optionValues: [{ name: "Rose", swatch: { color: "#e11d48" } }, { name: "Navy", swatch: null }] }],
+            priceRange: { minVariantPrice: money("8.00"), maxVariantPrice: money("8.00") },
+            variants: { nodes: [], pageInfo: { hasNextPage: false, endCursor: null } },
+          },
+        },
+      })
+    );
+    const { storefront } = await loadClient();
+
+    await expect(storefront.getProduct("dance-shirt")).resolves.toMatchObject({
+      options: [{ name: "Color", values: [{ name: "Rose", swatch: "#e11d48" }, { name: "Navy", swatch: null }] }],
+    });
+  });
+
   it.each([
     ["missing cursor", null],
     ["repeated cursor", "same-cursor"],

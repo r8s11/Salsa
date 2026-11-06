@@ -16,6 +16,7 @@ import type {
   Cart,
   CartLine,
   CatalogProduct,
+  CatalogOption,
   CatalogSort,
   CollectionProducts,
   CollectionSummary,
@@ -164,6 +165,23 @@ function parseProductSummary(value: unknown): ProductSummary {
   };
 }
 
+function parseOptions(value: unknown): CatalogOption[] {
+  return list(value, "product.options").map((entry) => {
+    const option = record(entry, "product.options[]");
+    return {
+      name: requiredString(option.name, "product.options[].name"),
+      values: list(option.optionValues, "product.options[].optionValues").map((raw) => {
+        const optionValue = record(raw, "product.options[].optionValues[]");
+        const swatch = optionValue.swatch == null ? null : record(optionValue.swatch, "optionValue.swatch");
+        return {
+          name: requiredString(optionValue.name, "optionValue.name"),
+          swatch: swatch ? nullableString(swatch.color, "optionValue.swatch.color") : null,
+        };
+      }),
+    };
+  });
+}
+
 function parseCatalogProduct(value: unknown): CatalogProduct {
   const product = record(value, "product");
   const imagesConnection = record(product.images, "product.images");
@@ -178,20 +196,7 @@ function parseCatalogProduct(value: unknown): CatalogProduct {
       const image = parseImage(node, "product.images.node");
       return image ? [image] : [];
     }),
-    options: list(product.options, "product.options").map((entry) => {
-      const option = record(entry, "product.options[]");
-      return {
-        name: requiredString(option.name, "product.options[].name"),
-        values: list(option.optionValues, "product.options[].optionValues").map((raw) => {
-          const optionValue = record(raw, "product.options[].optionValues[]");
-          const swatch = optionValue.swatch == null ? null : record(optionValue.swatch, "optionValue.swatch");
-          return {
-            name: requiredString(optionValue.name, "optionValue.name"),
-            swatch: swatch ? nullableString(swatch.color, "optionValue.swatch.color") : null,
-          };
-        }),
-      };
-    }),
+    options: parseOptions(product.options),
     variants: list(variantsConnection.nodes, "product.variants.nodes").map((entry) => {
       const variant = record(entry, "product.variants[]");
       return {
@@ -616,6 +621,7 @@ async function getProduct(handle: string): Promise<Product | null> {
     ...summary,
     description: requiredString(product.description, "product.description"),
     images: { nodes: images },
+    ...(product.options === undefined ? {} : { options: parseOptions(product.options) }),
     variants: { nodes: variants },
   };
 }

@@ -8,7 +8,8 @@ import type { CatalogProduct } from "../api/types";
 const SIZE_ORDER = ["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"];
 const SIZE_ALIASES: Record<string, string> = { XXL: "2XL", XXXL: "3XL", XXXXL: "4XL" };
 
-export const isSizeOption = (name: string) => /^size$/i.test(name.trim());
+/** "Size", "Shoe Size", "US Size": any option whose last word is Size. */
+export const isSizeOption = (name: string) => /(?:^|\s)size$/i.test(name.trim());
 const isColorOption = (name: string) => /^colou?r$/i.test(name.trim());
 
 /** Blanks spell the same size differently ("xxl", "2XL"); compare one spelling. */
@@ -32,6 +33,11 @@ function sizeRank(size: string): number {
   const numeric = numericSize(size);
   if (numeric !== null) return 10_000 + numeric * 10;
   return 20_000 + SIZE_ORDER.length + 100;
+}
+
+/** Size values in the filter rail's order; spellings it doesn't know keep Shopify's order. */
+export function sortSizeValues(values: string[]): string[] {
+  return [...values].sort((a, b) => sizeRank(normalizeSize(a)) - sizeRank(normalizeSize(b)));
 }
 
 /** A size's chip reads the merchant's own spelling. Matching and URL keys stay
@@ -220,7 +226,7 @@ export function quickAddSizes(product: CatalogProduct): QuickSize[] {
     const variant = product.variants.find((candidate) =>
       candidate.selectedOptions.some((option) => isSizeOption(option.name) && option.value === value.name));
     return variant ? [{ label: sizeLabel(value.name), variantId: variant.id, available: variant.availableForSale }] : [];
-  });
+  }).sort((a, b) => sizeRank(normalizeSize(a.label)) - sizeRank(normalizeSize(b.label)));
 }
 
 /** Swatch colours and the sizes a card can actually buy. `availableSizeCount`

@@ -1,0 +1,60 @@
+/* Legal reading pages (/privacy, /data-deletion): Ritmo Vivo read mode.
+   Navy ground, display headings, body copy, 65-75ch measure. No decoration. */
+.legal-page {
+  background: var(--bg);
+  color: var(--text);
+  padding: 72px var(--space-lg, 1.5rem) 100px;
+  min-height: calc(100dvh - 68px);
+}
+
+.legal-page__inner {
+  max-width: 70ch;
+  margin-inline: auto;
+}
+
+.legal-page h1 {
+  font: 800 clamp(2rem, 4vw, 2.75rem) / 1.1 var(--font-display);
+  margin: 0 0 0.75rem;
+}
+
+.legal-page__updated {
+  color: var(--text-muted);
+  font: 400 0.9rem var(--font-body);
+  margin: 0 0 2.5rem;
+}
+
+.legal-page h2 {
+  font: 700 1.35rem / 1.25 var(--font-display);
+  margin: 2.5rem 0 0.75rem;
+}
+
+.legal-page p,
+.legal-page li {
+  font: 400 1rem / 1.65 var(--font-body);
+  color: var(--text);
+}
+
+.legal-page p {
+  margin: 0 0 1rem;
+}
+
+.legal-page ul,
+.legal-page ol {
+  margin: 0 0 1rem;
+  padding-left: 1.4rem;
+}
+
+.legal-page li {
+  margin-bottom: 0.4rem;
+}
+
+.legal-page a {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.legal-page a:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}

@@ -81,6 +81,12 @@ function Footer() {
             <a className="footer-link" href="tel:+19784440922">
               Call
             </a>
+            <Link className="footer-link" to="/privacy">
+              Privacy
+            </Link>
+            <Link className="footer-link" to="/data-deletion">
+              Delete data
+            </Link>
           </nav>
 
           <div className="footer-support">

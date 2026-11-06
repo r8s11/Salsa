@@ -12,8 +12,15 @@ Status (2026-11-05):
   `VITE_GOOGLE_CLIENT_ID` is set, so Google names the site instead of the
   Supabase host; without it, or if Google's script fails to load, it falls
   back to the redirect flow. Repo variable `VITE_GOOGLE_CLIENT_ID` is set.
-- **Apple**, **Facebook**: not configured (need Apple Developer Program /
-  Meta developer account).
+- **Facebook**: configured server-side. Meta app "Salsa Segura" (App ID
+  `1114366977663474`, no business portfolio), Facebook Login use case with
+  `email` + `public_profile`, valid OAuth redirect = Supabase callback, app
+  domain `salsasegura.com`, privacy and data-deletion URLs set, category
+  Lifestyle. Supabase Facebook provider enabled; live login verified from
+  localhost. App is **In development** (only app roles can log in). Before
+  going public: upload a 1024×1024 app icon, then Publish (Meta may require
+  business verification / App Review for the use case).
+- **Apple**: not configured (needs the paid Apple Developer Program).
 - Supabase Auth Site URL is `https://www.salsasegura.com`.
 - Public `/privacy` and `/data-deletion` pages exist for the provider consoles.
 

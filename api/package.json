@@ -6,6 +6,9 @@
   "main": "src/functions/*.mjs",
   "engines": { "node": ">=22" },
   "dependencies": {
-    "@azure/functions": "^4.0.0"
+    "@azure/functions": "^4.0.0",
+    "@opentelemetry/exporter-logs-otlp-http": "^0.300.0",
+    "@opentelemetry/resources": "^3.0.0",
+    "@opentelemetry/sdk-logs": "^3.0.0"
   }
 }

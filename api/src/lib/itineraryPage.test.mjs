@@ -16,14 +16,14 @@ const request = (path = "/api/itinerary-page", original = "/itineraries/nyc/2026
 });
 const parse = (html) => new DOMParser().parseFromString(html, "text/html");
 
-function setup({ rows = [row], failure, settings = {} } = {}) {
+function setup({ rows = [row], failure, settings = {}, logs } = {}) {
   const fetchImpl = vi.fn(async (input) => {
     const url = new URL(input);
     if (url.pathname === "/index.html") return { ok: true, text: async () => shell };
     if (failure === "network") throw new Error("Supabase offline");
     return { ok: !failure, status: failure ? 503 : 200, json: async () => rows };
   });
-  const handler = createItineraryPage({ fetchImpl, env: { ...env, ...settings } });
+  const handler = createItineraryPage({ fetchImpl, env: { ...env, ...settings }, logs });
   return { handler, fetchImpl };
 }
 
@@ -111,8 +111,11 @@ describe("itineraryPage", () => {
   );
 
   it.each(["http", "network"])("returns shell 503, not misleading metadata, on %s failure", async (failure) => {
-    const { handler } = setup({ failure });
+    const logs = { error: vi.fn() };
+    const { handler } = setup({ failure, logs });
     expectUnavailable(await handler(request(), { error: vi.fn() }), 503);
+    expect(logs.error).toHaveBeenCalledWith("Unable to read published itinerary metadata", expect.any(Error),
+      { city: "new-york-city", week_start: "2026-11-09" });
   });
 
   it("returns no-store 503 without a database read when runtime credentials are missing", async () => {
@@ -121,10 +124,13 @@ describe("itineraryPage", () => {
     expect(fetchImpl.mock.calls).toHaveLength(1);
   });
 
-  it("does not memoize shell failures", async () => {
-    const { handler, fetchImpl } = setup();
-    fetchImpl.mockRejectedValueOnce(new Error("Shell unavailable"));
+  it("does not memoize shell failures, and logs them", async () => {
+    const logs = { error: vi.fn() };
+    const { handler, fetchImpl } = setup({ logs });
+    const failure = new Error("Shell unavailable");
+    fetchImpl.mockRejectedValueOnce(failure);
     expect((await handler(request(), { error: vi.fn() })).status).toBe(503);
+    expect(logs.error).toHaveBeenCalledWith("Unable to fetch itinerary HTML shell", failure);
     expect((await handler(request())).status).toBe(200);
   });
 });

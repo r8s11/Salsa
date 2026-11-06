@@ -165,6 +165,11 @@ instance; request hosts never choose its origin. Optional
 `ITINERARY_SITE_ORIGIN` explicitly overrides that trusted origin for local or
 staging verification (including canonical URLs); omit it in production.
 
+Optional `POSTHOG_PROJECT_TOKEN` (the `phc_` project token, never a `phx_`/`phs_`
+key) sends function failures to [PostHog Logs](https://posthog.com/docs/logs/installation/nodejs)
+over OTLP as service `salsa-segura-api`; `POSTHOG_HOST` defaults to
+`https://us.i.posthog.com`. Unset → no log export.
+
 After the smoke, deploy frontend and `api/` together through the existing Azure
 Static Web Apps workflow (`api_location: "api"`); the first itinerary route rule
 rewrites requests to `/api/itinerary-page`. Azure preserves the original path in

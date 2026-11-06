@@ -25,7 +25,7 @@ export default function DataDeletionPage() {
         </p>
 
         <h2>Delete your account yourself</h2>
-        <ol>
+        <ol role="list">
           <li>
             <Link to="/signin">Sign in</Link> to your account.
           </li>

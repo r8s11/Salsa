@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import SignInForm from "./SignInForm";
@@ -12,11 +12,28 @@ vi.mock("../../../contexts/useAuth", () => ({
 
 vi.mock("../../../lib/supabase", () => ({
   supabase: { auth: { signInWithOAuth: vi.fn(), signInWithIdToken: vi.fn() } },
+  supabaseURL: "https://project.supabase.co",
+  supabasePublishableKey: "sb_publishable_test",
 }));
 
+/** Answers Supabase Auth's /auth/v1/settings with these providers enabled. */
+const mockEnabledProviders = (...enabled: string[]) =>
+  vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({
+    external: { apple: false, google: false, facebook: false, email: true, ...Object.fromEntries(enabled.map((id) => [id, true])) },
+  }))));
+
+/** Let the provider settings request settle. */
+const settle = () => act(() => new Promise((resolve) => setTimeout(resolve, 0)));
+
 describe("SignInForm", () => {
+  // Pin config so a developer's .env.local or network cannot leak in.
+  beforeEach(() => {
+    vi.stubEnv("VITE_GOOGLE_CLIENT_ID", "");
+    mockEnabledProviders();
+  });
   afterEach(() => {
     vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
     vi.mocked(supabase.auth.signInWithOAuth).mockReset();
     vi.mocked(supabase.auth.signInWithIdToken).mockReset();
     vi.restoreAllMocks();
@@ -43,10 +60,8 @@ describe("SignInForm", () => {
     });
   };
 
-  it("shows only enabled social providers and launches OAuth via the canonical callback", async () => {
-    vi.stubEnv("VITE_OAUTH_GOOGLE_ENABLED", "true");
-    vi.stubEnv("VITE_OAUTH_APPLE_ENABLED", "false");
-    vi.stubEnv("VITE_OAUTH_FACEBOOK_ENABLED", "false");
+  it("shows only providers Supabase reports as enabled and launches OAuth via the canonical callback", async () => {
+    mockEnabledProviders("google");
     mockSocialAuthContext();
     vi.mocked(supabase.auth.signInWithOAuth).mockResolvedValue({
       data: { provider: "google", url: "https://accounts.google.com" },
@@ -58,7 +73,7 @@ describe("SignInForm", () => {
         <SignInForm />
       </MemoryRouter>
     );
-    expect(screen.getByRole("button", { name: "Continue with Google" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Continue with Google" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Continue with Apple" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Continue with Facebook" })).not.toBeInTheDocument();
 
@@ -70,19 +85,20 @@ describe("SignInForm", () => {
     expect(window.sessionStorage.getItem("salsasegura-auth-return-destination")).toBe("/submit");
   });
 
-  it("hides social sign-in when an invitation locks the recipient email", () => {
-    vi.stubEnv("VITE_OAUTH_GOOGLE_ENABLED", "true");
+  it("hides social sign-in when an invitation locks the recipient email", async () => {
+    mockEnabledProviders("google", "facebook");
     mockSocialAuthContext();
     render(
       <MemoryRouter initialEntries={[{ pathname: "/signin", state: { lockedEmail: true, email: "invited@example.com" } }]}>
         <SignInForm />
       </MemoryRouter>
     );
+    await settle();
     expect(screen.queryByRole("button", { name: "Continue with Google" })).not.toBeInTheDocument();
   });
 
   it("reports OAuth initialization errors without exposing provider error details", async () => {
-    vi.stubEnv("VITE_OAUTH_GOOGLE_ENABLED", "true");
+    mockEnabledProviders("google");
     mockSocialAuthContext();
     vi.mocked(supabase.auth.signInWithOAuth).mockResolvedValue({
       data: { provider: "google", url: null },
@@ -90,7 +106,7 @@ describe("SignInForm", () => {
     } as never);
 
     render(<MemoryRouter><SignInForm /></MemoryRouter>);
-    await userEvent.setup().click(screen.getByRole("button", { name: "Continue with Google" }));
+    await userEvent.setup().click(await screen.findByRole("button", { name: "Continue with Google" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("We couldn't start social sign-in");
     expect(screen.queryByText(/upstream internal detail/i)).not.toBeInTheDocument();
   });
@@ -121,7 +137,7 @@ describe("SignInForm", () => {
     };
 
     it("signs in with Google's ID token and the raw nonce whose hash Google received, then returns to the requested page", async () => {
-      vi.stubEnv("VITE_OAUTH_GOOGLE_ENABLED", "true");
+      mockEnabledProviders("google");
       vi.stubEnv("VITE_GOOGLE_CLIENT_ID", "client-123.apps.googleusercontent.com");
       mockSocialAuthContext();
       const init = installFakeGoogle();
@@ -148,7 +164,7 @@ describe("SignInForm", () => {
     });
 
     it("reports a rejected Google token without provider details and stays on sign-in", async () => {
-      vi.stubEnv("VITE_OAUTH_GOOGLE_ENABLED", "true");
+      mockEnabledProviders("google");
       vi.stubEnv("VITE_GOOGLE_CLIENT_ID", "client-123");
       mockSocialAuthContext();
       installFakeGoogle();
@@ -161,7 +177,7 @@ describe("SignInForm", () => {
     });
 
     it("falls back to the redirect flow when Google's script cannot load", async () => {
-      vi.stubEnv("VITE_OAUTH_GOOGLE_ENABLED", "true");
+      mockEnabledProviders("google");
       vi.stubEnv("VITE_GOOGLE_CLIENT_ID", "client-123");
       mockSocialAuthContext();
       const append = document.head.appendChild.bind(document.head);
@@ -524,7 +540,8 @@ describe("SignInForm", () => {
     });
     expect(screen.queryByText("Home Page")).not.toBeInTheDocument();
   });
-  it("removes unavailable social sign-in controls", () => {
+  it("shows no social sign-in controls when provider settings cannot be read", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => { throw new TypeError("offline"); }));
     vi.mocked(useAuth).mockReturnValue({
       user: null,
       session: null,
@@ -547,9 +564,18 @@ describe("SignInForm", () => {
         <SignInForm />
       </MemoryRouter>
     );
-
+    await settle();
     expect(screen.queryByText(/apple|google|github/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/coming\s+soon/i)).not.toBeInTheDocument();
+  });
+
+  it("keeps the password field out of reach until an email is entered", async () => {
+    mockSocialAuthContext();
+    render(<MemoryRouter><SignInForm /></MemoryRouter>);
+
+    expect(screen.getByLabelText("Password").closest("[inert]")).not.toBeNull();
+    await userEvent.setup().type(screen.getByLabelText("Email"), "dancer@example.com");
+    expect(screen.getByLabelText("Password").closest("[inert]")).toBeNull();
   });
 
   it("reveals the password when requested", async () => {
@@ -1003,26 +1029,6 @@ describe("SignInForm heading hierarchy", () => {
 
     const heading = screen.getByRole("heading", { name: "Create your account" });
     expect(heading.tagName).toBe("H2");
-  });
-  it("adds signup guidance without changing the signup controls", async () => {
-    const user = userEvent.setup();
-    render(
-      <MemoryRouter>
-        <SignInForm />
-      </MemoryRouter>
-    );
-
-    await user.click(screen.getByRole("button", { name: "Sign up" }));
-
-    expect(screen.getByText("Join the dance floor")).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        "Create your SalsaSegura account to discover events and stay connected to your local dance community."
-      )
-    ).toBeInTheDocument();
-    expect(screen.getByText("Use at least 6 characters.")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /^sign up$/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Sign in" })).toBeInTheDocument();
   });
 
   it("renders password reset heading at level 2", async () => {

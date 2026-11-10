@@ -41,26 +41,15 @@ export type NotificationPrefs = Partial<Record<NotificationPrefKey, boolean>>;
 export type NotificationPrefKey = (typeof NOTIFICATION_PREFS)[number]["key"];
 
 /**
- * The notification toggles the editor renders, with the default applied when
- * a profile has never saved a value for that key. Unset means "on" for the
- * two event-relevant ones: a member who submits events expects to hear about
- * their own events without opting in first.
+ * Optional member email: opt-in only. send-member-digest honors this value.
+ * Keep "Not sending yet" until deployed delivery/unsubscribe verification.
+ * Submission decisions and account/security emails are separate, transactional.
  */
 export const NOTIFICATION_PREFS = [
-  {
-    key: "new_events_in_city",
-    label: "New events in my city",
-    default: true,
-  },
   {
     key: "weekly_digest",
     label: "Weekly digest of what's on",
     default: false,
-  },
-  {
-    key: "my_event_updates",
-    label: "Updates about events I submitted",
-    default: true,
   },
 ] as const;
 

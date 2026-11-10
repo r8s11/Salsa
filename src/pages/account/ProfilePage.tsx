@@ -116,13 +116,14 @@ export default function ProfilePage() {
   const showInstagram = /^https?:\/\//i.test(instagramUrl);
   const showWebsite = /^https?:\/\//i.test(websiteUrl);
 
-  // "Everyone" previews what other members see: with stats_public off, the
-  // numbers are hidden from them, so the preview hides them too.
-  const statsHiddenFromOthers = profile ? !profile.stats_public : false;
-  const statsVisible = statsAudience === "you" || !statsHiddenFromOthers;
+  // "Everyone" previews the public member page (/u/:username), which shows
+  // only the hosted count, and only when the profile and its numbers are public.
+  const statsHiddenFromOthers = profile ? !profile.public_profile || !profile.stats_public : false;
+  const previewingEveryone = statsAudience === "everyone";
+  const statsVisible = !previewingEveryone || !statsHiddenFromOthers;
   const statsVisibilityNote = statsHiddenFromOthers
     ? "Only you can see these"
-    : "Visible to members";
+    : "Events Hosted shows on your public profile";
 
   if (isLoading) {
     return (
@@ -284,18 +285,22 @@ export default function ProfilePage() {
               <span className="profile-stat-num">{stats.eventsHosted}</span>
               <span className="profile-stat-label">Events Hosted</span>
             </div>
-            <div className="profile-stat">
-              <span className="profile-stat-num">{stats.pendingSubmissions}</span>
-              <span className="profile-stat-label">Pending</span>
-            </div>
-            <div className="profile-stat">
-              <span className="profile-stat-num">{stats.total}</span>
-              <span className="profile-stat-label">Total Submissions</span>
-            </div>
+            {!previewingEveryone && (
+              <>
+                <div className="profile-stat">
+                  <span className="profile-stat-num">{stats.pendingSubmissions}</span>
+                  <span className="profile-stat-label">Pending</span>
+                </div>
+                <div className="profile-stat">
+                  <span className="profile-stat-num">{stats.total}</span>
+                  <span className="profile-stat-label">Total Submissions</span>
+                </div>
+              </>
+            )}
           </div>
         ) : (
           <p className="profile-numbers-hidden">
-            Members don't see your numbers. Turn stats back on in{" "}
+            Visitors don't see your numbers. Change this under Privacy in{" "}
             <Link to="/profile/edit">profile settings</Link>.
           </p>
         )}

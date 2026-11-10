@@ -386,6 +386,12 @@
   left: 21px;
 }
 
+.profile-edit-page__toggle-note {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
 .profile-edit-page__hint {
   font-family: var(--font-body);
   font-size: 0.75rem;

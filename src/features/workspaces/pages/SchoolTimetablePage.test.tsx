@@ -1,5 +1,5 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import userEvent, { type UserEvent } from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import SchoolTimetablePage from "./SchoolTimetablePage";
 import { renderWorkspacePage, schoolClass, schoolWorkspace } from "./workspaceTestKit";
@@ -16,11 +16,17 @@ vi.mock("../api/danceStylesRepo", () => ({
   ),
 }));
 
+const ARTISTS = [
+  { kind: "instructor", id: "artist-9", name: "Ana Rivera", slug: "ana-rivera", city: "Boston", state_region: "MA", description: null },
+  { kind: "instructor", id: "artist-8", name: "Ana Ríos", slug: "ana-rios", city: "Miami", state_region: "FL", description: null },
+];
+
 function serve(workspace: EntityWorkspace) {
   rpc.mockImplementation((fn: string) => {
     if (fn === "entity_workspace") return Promise.resolve({ data: workspace, error: null });
     if (fn === "school_offering_save") return Promise.resolve({ data: "new-class", error: null });
     if (fn === "school_offering_delete") return Promise.resolve({ data: null, error: null });
+    if (fn === "public_entity_directory") return Promise.resolve({ data: ARTISTS, error: null });
     return Promise.resolve({ data: null, error: null });
   });
 }
@@ -155,8 +161,86 @@ describe("SchoolTimetablePage", () => {
     await waitFor(() => expect(calls("school_offering_save")).toHaveLength(1));
     const args = calls("school_offering_save")[0][1];
     expect(args.p_id).toBe("class-1");
-    // The artist link survives while the instructor's name is untouched.
+    // The artist link survives an unrelated edit.
     expect(args.p_payload).toMatchObject({ room: "Studio C", instructor_id: "artist-1", drop_in_cents: 2000 });
+  });
+
+  describe("instructor", () => {
+    async function openEdit(user: UserEvent, entry = schoolClass({ instructor_id: "artist-1" })) {
+      serve(schoolWorkspace({ offerings: { classes: [entry] } }));
+      renderTimetable();
+      await user.click(await screen.findByRole("button", { name: "Edit Salsa On2 Fundamentals" }));
+      return screen.getByRole("form", { name: "Edit Salsa On2 Fundamentals" });
+    }
+
+    it("links the artist picked from the results", async () => {
+      const user = userEvent.setup();
+      serve(schoolWorkspace());
+      renderTimetable();
+
+      await user.click(await screen.findByRole("button", { name: "Add a class on Monday" }));
+      const form = screen.getByRole("form", { name: "New class on Monday" });
+      await user.type(within(form).getByLabelText("Title"), "Bachata Sensual");
+      await user.type(within(form).getByLabelText("Instructor"), "Ana");
+      await user.click(await within(form).findByRole("option", { name: /Ana Ríos.*Miami, FL/ }));
+      await user.click(within(form).getByRole("button", { name: "Add class" }));
+
+      await waitFor(() => expect(calls("school_offering_save")).toHaveLength(1));
+      expect(calls("school_offering_save")[0][1].p_payload).toMatchObject({
+        instructor_id: "artist-8",
+        instructor_name: "Ana Ríos",
+      });
+    });
+
+    it("saves a typed name as plain text without a link", async () => {
+      const user = userEvent.setup();
+      serve(schoolWorkspace());
+      renderTimetable();
+
+      await user.click(await screen.findByRole("button", { name: "Add a class on Monday" }));
+      const form = screen.getByRole("form", { name: "New class on Monday" });
+      await user.type(within(form).getByLabelText("Title"), "Bachata Sensual");
+      // Exactly the name of a listed artist, but never picked.
+      await user.type(within(form).getByLabelText("Instructor"), "Ana Rivera");
+      await within(form).findByRole("option", { name: /Ana Rivera/ });
+      await user.click(within(form).getByRole("button", { name: "Add class" }));
+
+      await waitFor(() => expect(calls("school_offering_save")).toHaveLength(1));
+      expect(calls("school_offering_save")[0][1].p_payload).toMatchObject({
+        instructor_id: null,
+        instructor_name: "Ana Rivera",
+      });
+    });
+
+    it("shows the existing link and unlinks it only on request", async () => {
+      const user = userEvent.setup();
+      const form = await openEdit(user);
+
+      expect(within(form).getByLabelText("Instructor")).toHaveValue("Ana Rivera");
+      await user.click(within(form).getByRole("button", { name: "Unlink Ana Rivera" }));
+      await user.click(within(form).getByRole("button", { name: "Save class" }));
+
+      await waitFor(() => expect(calls("school_offering_save")).toHaveLength(1));
+      expect(calls("school_offering_save")[0][1].p_payload).toMatchObject({
+        instructor_id: null,
+        instructor_name: "Ana Rivera",
+      });
+    });
+
+    it("surfaces a rejected instructor and keeps the form open", async () => {
+      const user = userEvent.setup();
+      const form = await openEdit(user);
+      rpc.mockImplementation((fn: string) =>
+        fn === "school_offering_save"
+          ? Promise.resolve({ data: null, error: { message: "Unknown instructor", code: "22023" } })
+          : Promise.resolve({ data: null, error: null })
+      );
+
+      await user.click(within(form).getByRole("button", { name: "Save class" }));
+
+      expect(await within(form).findByRole("alert")).toHaveTextContent("This linked artist is no longer active. Unlink them, then save again.");
+      expect(screen.getByRole("form", { name: "Edit Salsa On2 Fundamentals" })).toBeInTheDocument();
+    });
   });
 
   it("pauses a class with one press", async () => {

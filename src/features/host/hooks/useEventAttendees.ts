@@ -29,10 +29,11 @@ export function useEventAttendees(eventId: string | undefined) {
       updates,
     }: {
       attendeeId: string;
-      updates: Parameters<typeof updateEventAttendee>[1];
-    }) => updateEventAttendee(attendeeId, updates),
+      updates: Parameters<typeof updateEventAttendee>[2];
+    }) => updateEventAttendee(eventId!, attendeeId, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["event-attendees", eventId] });
+      queryClient.invalidateQueries({ queryKey: ["event-attendance-summaries"] });
     },
   });
 

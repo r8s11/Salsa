@@ -94,6 +94,33 @@ describe("PublicEntityPage", () => {
   });
 });
 
+describe("event rows use the event's own time zone", () => {
+  // 01:30 Oct 10 in New York is 10:30 PM Oct 9 in Los Angeles.
+  const laEvent = {
+    id: "event-la", slug: "la-social", title: "LA Social", event_date: "2026-10-10T05:30:00Z",
+    city: "los-angeles", location: "Studio", image_url: null,
+  };
+
+  it.each([
+    ["venue", "/v/ritmo-vivo", "/v/:slug", /Oct 9, 2026.*10:30\sPM/],
+    ["dj", "/dj/ritmo-vivo", "/dj/:slug", /Fri · 10:30\sPM/],
+    ["instructor", "/i/ritmo-vivo", "/i/:slug", /Fri · 10:30\sPM/],
+    ["school", "/s/ritmo-vivo", "/s/:slug", /10:30\sPM/],
+    ["event", "/events/la-social", "/events/:slug", /Oct 9, 2026.*10:30\sPM/],
+  ] as const)("shows the Los Angeles day and time on the %s page", async (kind, path, pattern, expected) => {
+    rpc.mockResolvedValueOnce({
+      data: { ...detail, entity: { ...detail.entity, kind }, upcoming: [laEvent], related: [] },
+      error: null,
+    });
+
+    renderRoute(<PublicEntityPage kind={kind} />, path, pattern);
+
+    const text = (await screen.findAllByRole("link", { name: /LA Social/ })).map((link) => link.textContent).join(" | ");
+    expect(text).toMatch(expected);
+    expect(text).not.toMatch(/Oct 10|Sat/);
+  });
+});
+
 describe("School profile", () => {
   // 2026-10-09 12:00 in New York; "Salsa Night" starts 22:00 the same evening.
   beforeEach(() => {

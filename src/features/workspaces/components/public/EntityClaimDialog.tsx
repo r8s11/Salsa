@@ -20,6 +20,16 @@ interface EntityClaimDialogProps {
 const PERSON_RELATIONSHIPS: readonly ClaimRelationship[] = ["self", "manager"];
 const ORGANIZATION_RELATIONSHIPS: readonly ClaimRelationship[] = ["owner", "manager", "staff"];
 
+/** What an approved claim unlocks today; keep in step with workspaceSections(). */
+const CLAIM_PROMISE: Record<ManagedKind, string> = {
+  instructor:
+    "Verify this is your profile to edit your artist bio and see the upcoming nights linked to you.",
+  dj: "Verify this is your profile to edit your DJ bio and see the upcoming nights linked to you.",
+  school: "Submit a claim to manage this school's profile, timetable, private lessons, and prices.",
+  venue:
+    "Submit a claim to edit this venue's profile and see the upcoming nights linked to it. Approval does not give access to organizers' events.",
+};
+
 export function EntityClaimDialog({
   kind,
   entity,
@@ -82,11 +92,8 @@ export function EntityClaimDialog({
         <header className="entity-claim-dialog__header">
           <h2 id={titleId}>Claim {entity.name}</h2>
           <p className="entity-claim-dialog__subtitle">
-            {kind === "instructor"
-              ? "Verify your profile to manage your artist bio and schedule."
-              : kind === "dj"
-                ? "Verify your profile to manage your DJ bio and gigs."
-                : `Submit a claim to manage this ${kind}'s profile, team, and offerings.`}
+            {CLAIM_PROMISE[kind]} A listing&rsquo;s first approved owner can also add team
+            members.
           </p>
         </header>
 

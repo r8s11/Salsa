@@ -16,14 +16,16 @@ export function useEventCheckIns(eventId: string | undefined) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["event-check-ins", eventId] });
       queryClient.invalidateQueries({ queryKey: ["event-attendees", eventId] });
+      queryClient.invalidateQueries({ queryKey: ["event-attendance-summaries"] });
     },
   });
 
   const reverseMutation = useMutation({
-    mutationFn: (input: ReverseCheckInInput) => reverseCheckIn(input),
+    mutationFn: (input: ReverseCheckInInput) => reverseCheckIn(eventId!, input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["event-check-ins", eventId] });
       queryClient.invalidateQueries({ queryKey: ["event-attendees", eventId] });
+      queryClient.invalidateQueries({ queryKey: ["event-attendance-summaries"] });
     },
   });
 

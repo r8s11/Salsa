@@ -1,0 +1,33 @@
+name: Member weekly digest (manual verification only)
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_send:
+        description: 'Send to ALL eligible opted-in members on the configured project'
+        type: boolean
+        required: true
+        default: false
+  # GATED: enable only after the operations verification checklist passes.
+  # schedule:
+  #   - cron: '0 14 * * 4'
+permissions:
+  contents: read
+concurrency:
+  group: member-weekly-digest
+  cancel-in-progress: false
+jobs:
+  digest:
+    if: ${{ github.event_name == 'schedule' || inputs.confirm_send }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: member-digest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Drain eligible recipient pages
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          MEMBER_DIGEST_SCHEDULER_SECRET: ${{ secrets.MEMBER_DIGEST_SCHEDULER_SECRET }}
+        run: node scripts/run-member-digest.mjs

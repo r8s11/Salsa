@@ -1,0 +1,75 @@
+.instructor-field {
+  display: grid;
+  gap: 6px;
+}
+
+.instructor-field__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.instructor-field__row .admin-input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.instructor-field__row .admin-input[readonly] {
+  background: var(--admin-surface-secondary);
+}
+
+.instructor-field__linked,
+.instructor-field__status {
+  margin: 0;
+  font-size: var(--desk-agate);
+  color: var(--admin-text-secondary);
+}
+
+.instructor-field__linked {
+  font-weight: 600;
+  color: var(--admin-text-primary);
+}
+
+.instructor-field__results {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--admin-border-md);
+  border-radius: 6px;
+  background: var(--admin-surface-elevated);
+  box-shadow: var(--admin-shadow-sm);
+  overflow: hidden;
+}
+
+.instructor-field__results[hidden] {
+  display: none;
+}
+
+.instructor-field__option {
+  display: grid;
+  gap: 2px;
+  padding: 8px 12px;
+  border-left: 3px solid transparent;
+  cursor: pointer;
+}
+
+.instructor-field__option + .instructor-field__option {
+  border-top: 1px solid var(--admin-border);
+}
+
+.instructor-field__option[aria-selected="true"],
+.instructor-field__option:hover {
+  background: var(--admin-surface-secondary);
+  border-left-color: var(--admin-text-primary);
+}
+
+.instructor-field__name {
+  font-weight: 600;
+  color: var(--admin-text-primary);
+}
+
+.instructor-field__meta {
+  font-size: var(--desk-agate);
+  color: var(--admin-text-secondary);
+  overflow-wrap: anywhere;
+}

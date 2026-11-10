@@ -435,6 +435,12 @@ export default function HostEventImportPage() {
             <li>{importResult.createdCount} created</li>
             <li>{importResult.failedCount} failed</li>
           </ul>
+          {importResult.createdCount > 0 && (
+            <p>
+              Imported events are saved as drafts. To publish one, open it from My Events, choose
+              Edit Event, then Publish Event.
+            </p>
+          )}
           {importResult.failedCount > 0 && (
             <div className="admin-banner admin-banner--error" role="alert">
               <p>The following rows failed to import:</p>

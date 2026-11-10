@@ -36,6 +36,8 @@ export type EventSummary = {
   title: string;
   event_date: string;
   city: string;
+  /** The linked venue's IANA zone, when it has one; the rest of the zone rule resolves from `city`. */
+  venue_time_zone?: string | null;
   location: string | null;
   image_url: string | null;
 };

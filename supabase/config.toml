@@ -493,3 +493,12 @@ verify_jwt = true
 # Scheduler-only: dedicated Vault/server secret is verified inside the handler.
 # No client JWT, recipient or report-window parameter is accepted.
 verify_jwt = false
+
+[functions.send-member-digest]
+# Scheduler-only. Dedicated secret checked by worker; body cannot select recipients.
+verify_jwt = false
+import_map = "./functions/deno.json"
+
+[functions.member-email-unsubscribe]
+# Public bearer-token opt-out; GET never changes consent.
+verify_jwt = false

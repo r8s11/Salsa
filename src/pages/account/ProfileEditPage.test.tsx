@@ -89,6 +89,7 @@ function baseProfile(overrides: Record<string, unknown> = {}) {
     public_profile: true,
     stats_public: true,
     notification_prefs: {},
+    onboarding_completed_at: "2026-01-15T00:00:00Z",
     ...overrides,
   };
 }
@@ -152,6 +153,43 @@ describe("ProfileEditPage", () => {
     });
     expect(hint).toBeInTheDocument();
   });
+  it("links the public profile address when the profile is public", async () => {
+    mocks.profile.profile = baseProfile();
+    renderPage();
+
+    const link = await screen.findByRole("link", { name: "salsasegura.com/u/mariasalsa" });
+    expect(link).toHaveAttribute("href", "/u/mariasalsa");
+  });
+
+  it("says the profile is private and shows no address when it is not public", async () => {
+    mocks.profile.profile = baseProfile({ public_profile: false });
+    renderPage();
+
+    const help = (await screen.findByLabelText(/username/i)).getAttribute("aria-describedby");
+    const hint = document.getElementById(help ?? "") as HTMLElement;
+    expect(hint.textContent).toMatch(/your profile is private/i);
+    expect(hint.textContent).not.toMatch(/salsasegura\.com\/u\//);
+    expect(screen.queryByRole("link", { name: /salsasegura\.com\/u\// })).not.toBeInTheDocument();
+  });
+
+  it("shows no address when no username is set", async () => {
+    mocks.profile.profile = baseProfile({ username: null });
+    renderPage();
+
+    const help = (await screen.findByLabelText(/username/i)).getAttribute("aria-describedby");
+    const hint = document.getElementById(help ?? "") as HTMLElement;
+    expect(hint.textContent).toMatch(/no username set yet/i);
+    expect(hint.textContent).not.toMatch(/salsasegura\.com\/u\//);
+  });
+
+  it("shows no address for an account that is not in good standing", async () => {
+    mocks.profile.profile = baseProfile({ status: "suspended" });
+    renderPage();
+
+    expect(await screen.findByText(/not available for this account/i)).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /salsasegura\.com\/u\// })).not.toBeInTheDocument();
+  });
+
   it("renders the initials avatar fallback when no avatar_url is set", async () => {
     mocks.profile.profile = baseProfile({ display_name: "Maria Santos", avatar_url: null });
     renderPage();
@@ -210,8 +248,19 @@ describe("ProfileEditPage", () => {
     expect(screen.getByRole("button", { name: "Save Changes" })).toBeDisabled();
   });
 
-  it("saves the notification and privacy toggles the owner flipped", async () => {
+  it("offers only an opt-in digest and discloses its unavailable delivery", async () => {
     mocks.profile.profile = baseProfile();
+    renderPage();
+    const section = await screen.findByRole("region", { name: "NOTIFICATIONS" });
+    const switches = within(section).getAllByRole("switch");
+    expect(switches).toHaveLength(1);
+    expect(switches[0]).toHaveAccessibleName("Weekly digest of what's on");
+    expect(switches[0]).toHaveAttribute("aria-checked", "false");
+    expect(within(section).getByText("Not sending yet")).toBeVisible();
+  });
+
+  it("saves the notification and privacy toggles the owner flipped", async () => {
+    mocks.profile.profile = baseProfile({ notification_prefs: { new_events_in_city: true } });
     mocks.update.update.mockResolvedValue(baseProfile());
     const user = userEvent.setup();
     renderPage();
@@ -226,11 +275,11 @@ describe("ProfileEditPage", () => {
     await waitFor(() => expect(mocks.update.update).toHaveBeenCalled());
     const [patch] = mocks.update.update.mock.calls[0];
     expect(patch.stats_public).toBe(false);
-    expect(patch.notification_prefs).toMatchObject({ weekly_digest: true });
+    expect(patch.notification_prefs).toEqual({ new_events_in_city: true, weekly_digest: true });
   });
 
-  it("never sends username, role, or status to the update hook", async () => {
-    mocks.profile.profile = baseProfile();
+  it("saves profile fields without overwriting untouched consent or protected identity", async () => {
+    mocks.profile.profile = baseProfile({ notification_prefs: { weekly_digest: true } });
     mocks.update.update.mockResolvedValue(baseProfile());
     const user = userEvent.setup();
     renderPage();
@@ -249,6 +298,8 @@ describe("ProfileEditPage", () => {
     expect(patch).not.toHaveProperty("username");
     expect(patch).not.toHaveProperty("role");
     expect(patch).not.toHaveProperty("status");
+    // A stale editor must not undo a later email-link unsubscribe on a name save.
+    expect(patch).not.toHaveProperty("notification_prefs");
   });
 
   it("ignores typing in the disabled username field — the value never changes", async () => {

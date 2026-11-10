@@ -9,9 +9,25 @@ import type { EntityWorkspace } from "../model";
 const rpc = vi.hoisted(() => vi.fn());
 vi.mock("../../../lib/supabase", () => ({ supabase: { rpc } }));
 
+const ARTIST = {
+  kind: "instructor",
+  id: "artist-9",
+  name: "Ana Rivera",
+  slug: "ana-rivera",
+  city: "Boston",
+  state_region: "MA",
+  description: null,
+};
+
 function serve(workspace: EntityWorkspace) {
   rpc.mockImplementation((fn: string) =>
-    Promise.resolve(fn === "entity_workspace" ? { data: workspace, error: null } : { data: "saved-id", error: null })
+    Promise.resolve(
+      fn === "entity_workspace"
+        ? { data: workspace, error: null }
+        : fn === "public_entity_directory"
+          ? { data: [ARTIST], error: null }
+          : { data: "saved-id", error: null }
+    )
   );
 }
 
@@ -80,6 +96,80 @@ describe("SchoolPrivatesPage", () => {
         status: "active",
       },
     });
+  });
+
+  it("links a picked artist to a new private lesson", async () => {
+    const user = userEvent.setup();
+    serve(schoolWorkspace());
+    renderPrivates();
+
+    await user.click(await screen.findByRole("button", { name: "Add private lesson" }));
+    const form = screen.getByRole("form", { name: "New private lesson" });
+    await user.type(within(form).getByLabelText("Title"), "Solo coaching");
+    await user.type(within(form).getByLabelText("Price (USD)"), "85");
+    await user.type(within(form).getByLabelText("Instructor"), "Ana");
+    await user.click(await within(form).findByRole("option", { name: /Ana Rivera.*Boston, MA/ }));
+    await user.click(within(form).getByRole("button", { name: "Add private lesson" }));
+
+    await waitFor(() => expect(saves()).toHaveLength(1));
+    expect(saves()[0].p_payload).toMatchObject({ instructor_id: "artist-9", instructor_name: "Ana Rivera" });
+  });
+
+  it("keeps a plain-text instructor unlinked", async () => {
+    const user = userEvent.setup();
+    serve(schoolWorkspace());
+    renderPrivates();
+
+    await user.click(await screen.findByRole("button", { name: "Add private lesson" }));
+    const form = screen.getByRole("form", { name: "New private lesson" });
+    await user.type(within(form).getByLabelText("Title"), "Solo coaching");
+    await user.type(within(form).getByLabelText("Price (USD)"), "85");
+    await user.type(within(form).getByLabelText("Instructor"), "Guest Teacher");
+    await user.click(within(form).getByRole("button", { name: "Add private lesson" }));
+
+    await waitFor(() => expect(saves()).toHaveLength(1));
+    expect(saves()[0].p_payload).toMatchObject({ instructor_id: null, instructor_name: "Guest Teacher" });
+  });
+
+  it("keeps an existing link when only the price changes, and unlinks only on request", async () => {
+    const user = userEvent.setup();
+    serve(schoolWorkspace({ offerings: { privates: [privateOffer({ instructor_id: "artist-1" })] } }));
+    renderPrivates();
+
+    await user.click(await screen.findByRole("button", { name: "Edit Solo coaching" }));
+    let form = screen.getByRole("form", { name: "Edit Solo coaching" });
+    const price = within(form).getByLabelText("Price (USD)");
+    await user.clear(price);
+    await user.type(price, "90");
+    await user.click(within(form).getByRole("button", { name: "Save private lesson" }));
+    await waitFor(() => expect(saves()).toHaveLength(1));
+    expect(saves()[0].p_payload).toMatchObject({ price_cents: 9000, instructor_id: "artist-1" });
+
+    await user.click(await screen.findByRole("button", { name: "Edit Solo coaching" }));
+    form = screen.getByRole("form", { name: "Edit Solo coaching" });
+    await user.click(within(form).getByRole("button", { name: "Unlink Ana Rivera" }));
+    await user.click(within(form).getByRole("button", { name: "Save private lesson" }));
+    await waitFor(() => expect(saves()).toHaveLength(2));
+    expect(saves()[1].p_payload).toMatchObject({ instructor_id: null, instructor_name: "Ana Rivera" });
+  });
+
+  it("shows a rejected instructor and keeps the form open", async () => {
+    const user = userEvent.setup();
+    serve(schoolWorkspace({ offerings: { privates: [privateOffer({ instructor_id: "artist-1" })] } }));
+    renderPrivates();
+
+    await user.click(await screen.findByRole("button", { name: "Edit Solo coaching" }));
+    const form = screen.getByRole("form", { name: "Edit Solo coaching" });
+    rpc.mockImplementation((fn: string) =>
+      Promise.resolve(
+        fn === "school_offering_save"
+          ? { data: null, error: { message: "Unknown instructor", code: "22023" } }
+          : { data: schoolWorkspace(), error: null }
+      )
+    );
+    await user.click(within(form).getByRole("button", { name: "Save private lesson" }));
+
+    expect(await within(form).findByRole("alert")).toHaveTextContent("This linked artist is no longer active. Unlink them, then save again.");
   });
 
   it("requires a price", async () => {

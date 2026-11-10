@@ -1,0 +1,39 @@
+/* Public member profile (/u/:username). Identity layout comes from
+   account/ProfilePage.css; this file only adds what is specific to the
+   public, read-only view. */
+
+.public-member-profile__kicker {
+  margin: 0 0 6px;
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.public-member-profile__notfound {
+  padding: var(--space-xxl) var(--gutter) 0;
+}
+
+.public-member-profile__notfound-copy {
+  margin: var(--space-sm) 0 var(--space-lg);
+  max-width: 52ch;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.public-member-profile__footer {
+  margin-top: var(--space-xl);
+  padding: 0 var(--gutter);
+  font-size: 0.875rem;
+}
+
+.public-member-profile__footer a {
+  color: var(--gold);
+  text-decoration: none;
+}
+
+.public-member-profile__footer a:hover {
+  color: var(--gold-light);
+}

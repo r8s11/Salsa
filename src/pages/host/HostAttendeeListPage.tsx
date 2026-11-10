@@ -2,20 +2,17 @@ import { useRef, useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, UserPlus, Trash2, Edit3 } from "lucide-react";
 import { useEventAttendees } from "../../features/host/hooks/useEventAttendees";
-import type { AttendeeCategory, HostAttendeeInput } from "../../features/host/model/attendance";
+import {
+  ATTENDEE_CATEGORY_OPTIONS,
+  ATTENDEE_LIMITS,
+  clampPartySize,
+  formatAttendeeCategory,
+  type AttendeeCategory,
+  type HostAttendeeInput,
+} from "../../features/host/model/attendance";
 import { useAccessibleDialog } from "../../shared/a11y/useAccessibleDialog";
 import "../../styles/admin.css";
 import "./HostAttendeeListPage.css";
-
-const CATEGORY_OPTIONS: { value: AttendeeCategory; label: string }[] = [
-  { value: "guest", label: "Guest" },
-  { value: "comp", label: "Comp" },
-  { value: "staff", label: "Staff" },
-  { value: "performer", label: "Performer" },
-  { value: "instructor", label: "Instructor" },
-  { value: "registered", label: "Registered" },
-  { value: "walk_in", label: "Walk-in" },
-];
 
 const CATEGORY_BADGE_CLASS: Record<AttendeeCategory, string> = {
   registered: "badge--blue",
@@ -26,10 +23,6 @@ const CATEGORY_BADGE_CLASS: Record<AttendeeCategory, string> = {
   instructor: "badge--cyan",
   walk_in: "badge--orange",
 };
-
-function formatCategory(c: AttendeeCategory): string {
-  return c.charAt(0).toUpperCase() + c.slice(1).replace("_", " ");
-}
 
 interface AddAttendeeFormProps {
   onAdd: (input: HostAttendeeInput) => Promise<unknown>;
@@ -81,7 +74,7 @@ function AddAttendeeForm({ onAdd, isAdding }: AddAttendeeFormProps) {
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            maxLength={120}
+            maxLength={ATTENDEE_LIMITS.nameMax}
             className="attendee-form__input"
             placeholder="Display name"
           />
@@ -93,7 +86,7 @@ function AddAttendeeForm({ onAdd, isAdding }: AddAttendeeFormProps) {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            maxLength={300}
+            maxLength={ATTENDEE_LIMITS.emailMax}
             className="attendee-form__input"
             placeholder="Optional"
           />
@@ -108,7 +101,7 @@ function AddAttendeeForm({ onAdd, isAdding }: AddAttendeeFormProps) {
             onChange={(e) => setCategory(e.target.value as AttendeeCategory)}
             className="attendee-form__select"
           >
-            {CATEGORY_OPTIONS.map((opt) => (
+            {ATTENDEE_CATEGORY_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
               </option>
@@ -121,9 +114,9 @@ function AddAttendeeForm({ onAdd, isAdding }: AddAttendeeFormProps) {
           <input
             type="number"
             value={partySize}
-            onChange={(e) => setPartySize(Math.max(1, Math.min(20, Number(e.target.value) || 1)))}
-            min={1}
-            max={20}
+            onChange={(e) => setPartySize(clampPartySize(Number(e.target.value)))}
+            min={ATTENDEE_LIMITS.partySizeMin}
+            max={ATTENDEE_LIMITS.partySizeMax}
             className="attendee-form__input"
           />
         </label>
@@ -134,7 +127,7 @@ function AddAttendeeForm({ onAdd, isAdding }: AddAttendeeFormProps) {
             type="text"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            maxLength={500}
+            maxLength={ATTENDEE_LIMITS.notesMax}
             className="attendee-form__input"
             placeholder="Optional"
           />
@@ -245,7 +238,7 @@ export default function HostAttendeeListPage() {
                     <td className="attendee-table__name">{attendee.displayName}</td>
                     <td>
                       <span className={`attendee-badge ${CATEGORY_BADGE_CLASS[attendee.category]}`}>
-                        {formatCategory(attendee.category)}
+                        {formatAttendeeCategory(attendee.category)}
                       </span>
                     </td>
                     <td className="attendee-table__center">{attendee.partySize}</td>

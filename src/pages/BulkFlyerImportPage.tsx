@@ -758,7 +758,9 @@ function FlyerDetail({
             <p>
               {row.savedAs === "publish"
                 ? "Published. It is live on the calendar."
-                : "Saved as a draft. Publish it from your events when it is ready."}
+                : mode === "host"
+                  ? "Saved as a draft. To publish it, open it from My Events, choose Edit Event, then Publish Event."
+                  : "Saved as a draft. Publish it from the admin events list when it is ready."}
             </p>
             {row.error && <p role="alert">{row.error}</p>}
           </div>

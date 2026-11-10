@@ -73,6 +73,24 @@
   margin-top: 18px;
 }
 
+.host-edit-event__published {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  border-radius: var(--admin-radius);
+  background: var(--admin-success-tint);
+  color: var(--admin-success);
+  font-size: 0.875rem;
+}
+
+.host-edit-event__published p {
+  margin: 0;
+}
+
 .host-edit-event__status {
   color: var(--admin-text-muted);
 }

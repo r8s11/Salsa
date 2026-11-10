@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { Plus } from "lucide-react";
 import AdminConfirmDialog from "../../admin/components/common/AdminConfirmDialog";
 import MarginMark from "../../../components/desk/MarginMark";
+import InstructorField from "../components/InstructorField";
 import OfferingActions from "../components/OfferingActions";
 import OfferingFormShell from "../components/OfferingFormShell";
 import WorkspaceField from "../components/WorkspaceField";
@@ -25,6 +26,7 @@ import {
   classFormFrom,
   classInputFrom,
   formatTimeRange,
+  withInstructorGuidance,
   type ClassField,
   type ClassForm,
   type FieldErrors,
@@ -49,7 +51,7 @@ export default function SchoolTimetablePage() {
 function TimetableBody({ workspace }: { workspace: Extract<EntityWorkspace, { kind: "school" }> }) {
   const schoolId = workspace.entity.id;
   const classes = workspace.offerings.classes;
-  const save = useSaveOffering(schoolId, "class");
+  const save = withInstructorGuidance(useSaveOffering(schoolId, "class"));
   const remove = useDeleteOffering(schoolId, "class");
 
   const [editing, setEditing] = useState<Editing | null>(null);
@@ -59,7 +61,7 @@ function TimetableBody({ workspace }: { workspace: Extract<EntityWorkspace, { ki
 
   const toggleStatus = async (entry: SchoolClass) => {
     const next: OfferingStatus = entry.status === "active" ? "paused" : "active";
-    const result = classInputFrom({ ...classFormFrom(entry), status: next }, entry);
+    const result = classInputFrom({ ...classFormFrom(entry), status: next });
     if ("errors" in result) {
       setRowError(`“${entry.title}” needs a correction before it can change: open it with Edit.`);
       return;
@@ -271,7 +273,7 @@ function ClassEditor({
   };
 
   const submit = async () => {
-    const result = classInputFrom(form, existing);
+    const result = classInputFrom(form);
     if ("errors" in result) {
       setErrors(result.errors);
       setAttempt((count) => count + 1);
@@ -396,16 +398,14 @@ function ClassEditor({
           </>
         )}
       </WorkspaceField>
-      <WorkspaceField label="Instructor" error={errors.instructor_name}>
-        {(control) => (
-          <input
-            {...control}
-            className="admin-input"
-            value={form.instructor_name}
-            onChange={(event) => set("instructor_name", event.target.value)}
-          />
-        )}
-      </WorkspaceField>
+      <InstructorField
+        value={{ id: form.instructor_id, name: form.instructor_name }}
+        error={errors.instructor_name}
+        onChange={({ id, name }) => {
+          set("instructor_id", id);
+          set("instructor_name", name);
+        }}
+      />
       <WorkspaceField label="Room" error={errors.room}>
         {(control) => (
           <input

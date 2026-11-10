@@ -1,4 +1,5 @@
 import { useParams } from "react-router-dom";
+import InstructorField from "../components/InstructorField";
 import OrderedOfferings, { type OrderedFieldsContext } from "../components/OrderedOfferings";
 import WorkspaceField from "../components/WorkspaceField";
 import WorkspaceFrame from "../components/WorkspaceFrame";
@@ -8,6 +9,7 @@ import {
   BLANK_PRIVATE_FORM,
   privateFormFrom,
   privateInputFrom,
+  withInstructorGuidance,
   type PrivateForm,
 } from "../offeringForm";
 
@@ -24,7 +26,7 @@ export default function SchoolPrivatesPage() {
 
 function PrivatesBody({ workspace }: { workspace: Extract<EntityWorkspace, { kind: "school" }> }) {
   const schoolId = workspace.entity.id;
-  const save = useSaveOffering(schoolId, "private");
+  const save = withInstructorGuidance(useSaveOffering(schoolId, "private"));
   const remover = useDeleteOffering(schoolId, "private");
 
   return (
@@ -97,16 +99,14 @@ function PrivateFields({ form, errors, set }: OrderedFieldsContext<PrivateForm>)
           />
         )}
       </WorkspaceField>
-      <WorkspaceField label="Instructor" error={errors.instructor_name}>
-        {(control) => (
-          <input
-            {...control}
-            className="admin-input"
-            value={form.instructor_name}
-            onChange={(event) => set("instructor_name", event.target.value)}
-          />
-        )}
-      </WorkspaceField>
+      <InstructorField
+        value={{ id: form.instructor_id, name: form.instructor_name }}
+        error={errors.instructor_name}
+        onChange={({ id, name }) => {
+          set("instructor_id", id);
+          set("instructor_name", name);
+        }}
+      />
       <WorkspaceField label="Status">
         {(control) => (
           <select

@@ -94,6 +94,14 @@ export async function fetchEventCheckIns(eventId: string): Promise<HostCheckIn[]
 
 /* ── Mutate ── */
 
+/** Maps database errors to messages a door worker can act on. */
+function attendanceError(error: { code?: string; message: string }, action: string): Error {
+  if (error.code === "42501") {
+    return new Error(`You do not have permission to ${action} for this event.`);
+  }
+  return new Error(error.message);
+}
+
 export async function addEventAttendee(
   eventId: string,
   input: HostAttendeeInput
@@ -111,11 +119,12 @@ export async function addEventAttendee(
     })
     .select()
     .single();
-  if (error) throw new Error(error.message);
+  if (error) throw attendanceError(error, "add this attendee");
   return projectAttendee(data as unknown as AttendeeRow);
 }
 
 export async function updateEventAttendee(
+  eventId: string,
   attendeeId: string,
   updates: Partial<
     Pick<HostAttendeeInput, "displayName" | "email" | "category" | "partySize" | "notes">
@@ -128,13 +137,20 @@ export async function updateEventAttendee(
   if (updates.partySize !== undefined) patch.party_size = updates.partySize;
   if (updates.notes !== undefined) patch.notes = updates.notes?.trim() || null;
 
+  // Scoped by event so an attendee id is never updated through another event's URL.
   const { data, error } = await supabase
     .from("event_attendees")
     .update(patch)
     .eq("id", attendeeId)
+    .eq("event_id", eventId)
     .select()
-    .single();
-  if (error) throw new Error(error.message);
+    .maybeSingle();
+  if (error) throw attendanceError(error, "update this attendee");
+  if (!data) {
+    throw new Error(
+      "Could not save changes. This attendee was not found on this event, or you do not have permission."
+    );
+  }
   return projectAttendee(data as unknown as AttendeeRow);
 }
 
@@ -144,6 +160,7 @@ export async function deleteEventAttendee(attendeeId: string): Promise<void> {
 }
 
 export async function checkInAttendee(eventId: string, input: CheckInInput): Promise<HostCheckIn> {
+  // checked_in_by is stamped from auth.uid() by the event_check_ins_set_actor trigger.
   const { data, error } = await supabase
     .from("event_check_ins")
     .insert({
@@ -153,11 +170,21 @@ export async function checkInAttendee(eventId: string, input: CheckInInput): Pro
     })
     .select()
     .single();
-  if (error) throw new Error(error.message);
+  if (error?.code === "23505") throw new Error("This attendee is already checked in.");
+  if (error) throw attendanceError(error, "check in this attendee");
   return projectCheckIn(data as unknown as CheckInRow);
 }
 
-export async function reverseCheckIn(input: ReverseCheckInInput): Promise<HostCheckIn> {
+/**
+ * Reverses an active check-in; the row stays as history. reversed_at/reversed_by are
+ * stamped server-side by the event_check_ins_set_actor trigger (the value sent here only
+ * marks the transition). A row that is missing, belongs to another event, is already
+ * reversed, or is not writable by the caller matches nothing and is reported as an error.
+ */
+export async function reverseCheckIn(
+  eventId: string,
+  input: ReverseCheckInInput
+): Promise<HostCheckIn> {
   const { data, error } = await supabase
     .from("event_check_ins")
     .update({
@@ -165,8 +192,15 @@ export async function reverseCheckIn(input: ReverseCheckInInput): Promise<HostCh
       reversal_reason: input.reversalReason?.trim() || null,
     })
     .eq("id", input.checkInId)
+    .eq("event_id", eventId)
+    .is("reversed_at", null)
     .select()
-    .single();
-  if (error) throw new Error(error.message);
+    .maybeSingle();
+  if (error) throw attendanceError(error, "undo this check-in");
+  if (!data) {
+    throw new Error(
+      "Could not undo this check-in. It may already be reversed, or you may not have permission."
+    );
+  }
   return projectCheckIn(data as unknown as CheckInRow);
 }

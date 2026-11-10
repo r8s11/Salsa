@@ -147,9 +147,7 @@ describe("HostEventImportPage — organizer access loading", () => {
     const user = userEvent.setup();
     const handleFile = vi.fn();
     const runImport = vi.fn();
-    (useHostEventImport as Mock).mockReturnValue(
-      hookState({ handleFile, runImport })
-    );
+    (useHostEventImport as Mock).mockReturnValue(hookState({ handleFile, runImport }));
 
     const page = renderPage();
     const organizerSelect = screen.getByLabelText("Import to:");
@@ -183,7 +181,6 @@ describe("HostEventImportPage — organizer access loading", () => {
     expect(runImport).toHaveBeenCalledWith("org-2");
   });
 
-
   it("shows the no-membership state only after organizer access finishes loading", () => {
     (useHostEventImport as Mock).mockReturnValue(hookState());
     (useMyOrganizers as Mock).mockReturnValue({
@@ -195,9 +192,7 @@ describe("HostEventImportPage — organizer access loading", () => {
 
     renderPage();
 
-    expect(
-      screen.getByText(/You need an active Owner or Manager membership/)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/You need an active Owner or Manager membership/)).toBeInTheDocument();
   });
 
   it("offers a retry when organizer access cannot be checked", async () => {

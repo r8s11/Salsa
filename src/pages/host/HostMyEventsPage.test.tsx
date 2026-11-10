@@ -466,7 +466,9 @@ describe("HostMyEventsPage", () => {
       "href",
       "/events/editor-event"
     );
-    expect(within(editorCard!).queryByRole("link", { name: "Manage Event" })).not.toBeInTheDocument();
+    expect(
+      within(editorCard!).queryByRole("link", { name: "Manage Event" })
+    ).not.toBeInTheDocument();
   });
 
   /* ── Organizer filter ── */

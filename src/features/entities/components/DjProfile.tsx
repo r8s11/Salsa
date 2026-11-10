@@ -4,13 +4,14 @@ import { ArrowRight } from "lucide-react";
 import { useDocumentMeta } from "../../../shared/seo/useDocumentMeta";
 import { canonicalUrl } from "../../../utils/seo";
 import { entityExternalLinks } from "../externalLinks";
-import { entityLocation, eventDateParts, formatEventDate } from "../format";
+import { entityLocation, eventDateParts, eventSummaryTimeZone, formatEventDate } from "../format";
 import { entityHref, type EntityDetail, type EventSummary, type PublicEntityRef } from "../model";
 import { EntityClaimControl } from "../../workspaces/components/public/EntityClaimControl";
 import "./DjProfile.css";
 
 function GigRow({ event }: { event: EventSummary }) {
-  const parts = eventDateParts(event.event_date);
+  const zone = eventSummaryTimeZone(event);
+  const parts = eventDateParts(event.event_date, zone);
   return (
     <Link className="dj-profile__gig" to={entityHref({ kind: "event", slug: event.slug })}>
       <span className="dj-profile__date" aria-hidden="true">
@@ -24,7 +25,7 @@ function GigRow({ event }: { event: EventSummary }) {
       <span className="dj-profile__gig-copy">
         <strong>{event.title}</strong>
         <span>
-          {parts ? `${parts.weekday} · ${parts.time}` : formatEventDate(event.event_date)}
+          {parts ? `${parts.weekday} · ${parts.time}` : formatEventDate(event.event_date, zone)}
           {event.location ? ` · ${event.location}` : ""}
         </span>
       </span>
@@ -50,8 +51,9 @@ function DjName({ name }: { name: string }) {
 }
 
 function NextGigLink({ event }: { event: EventSummary }) {
-  const parts = eventDateParts(event.event_date);
-  const when = parts ? `${parts.weekday} ${parts.day} ${parts.month}` : formatEventDate(event.event_date);
+  const zone = eventSummaryTimeZone(event);
+  const parts = eventDateParts(event.event_date, zone);
+  const when = parts ? `${parts.weekday} ${parts.day} ${parts.month}` : formatEventDate(event.event_date, zone);
   const label = `See next gig: ${event.title}, ${when}${event.location ? ` at ${event.location}` : ""}`;
   return (
     <Link className="dj-profile__next" to={entityHref({ kind: "event", slug: event.slug })} aria-label={label}>

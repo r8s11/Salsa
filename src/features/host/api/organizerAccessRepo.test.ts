@@ -5,6 +5,7 @@ import {
   deleteOrganizerEvent,
   fetchMyOrganizers,
   fetchOrganizerEvents,
+  publishOrganizerEvent,
   updateOrganizerEvent,
 } from "./organizerAccessRepo";
 
@@ -125,6 +126,37 @@ describe("updateOrganizerEvent", () => {
     await expect(updateOrganizerEvent("evt-2", { title: "x" })).rejects.toThrow(
       "active owner or manager membership required"
     );
+  });
+});
+
+describe("publishOrganizerEvent", () => {
+  beforeEach(() => mocks.rpc.mockReset());
+
+  it("calls organizer_publish_event with only the event id", async () => {
+    mocks.rpc.mockResolvedValue({ data: null, error: null });
+    await publishOrganizerEvent("evt-1");
+    expect(mocks.rpc).toHaveBeenCalledWith("organizer_publish_event", { p_event_id: "evt-1" });
+  });
+
+  it("maps 42501 denials to OrganizerAccessError", async () => {
+    mocks.rpc.mockResolvedValue({
+      data: null,
+      error: { message: "event is not organizer-owned", code: "42501" },
+    });
+    await expect(publishOrganizerEvent("evt-2")).rejects.toBeInstanceOf(OrganizerAccessError);
+  });
+
+  it("keeps other failures as plain errors, including non-draft events", async () => {
+    mocks.rpc.mockResolvedValue({
+      data: null,
+      error: {
+        message: "only a draft event can be published (current status: approved)",
+        code: "55000",
+      },
+    });
+    const failure = await publishOrganizerEvent("evt-3").catch((e: unknown) => e);
+    expect(failure).toBeInstanceOf(Error);
+    expect(failure).not.toBeInstanceOf(OrganizerAccessError);
   });
 });
 

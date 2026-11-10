@@ -313,21 +313,6 @@ describe("AccountPage", () => {
     );
   });
 
-  it("renders a truthful, non-interactive Email & notifications section", () => {
-    mocks.profile.profile = baseProfile();
-    renderPage();
-
-    expect(
-      screen.getByRole("heading", { level: 2, name: "Email & notifications" })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/required account and security emails are always sent/i)
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/optional email preferences aren.t available yet/i)
-    ).toBeInTheDocument();
-  });
-
   it("never renders a notification toggle, switch, or fake save affordance", () => {
     mocks.profile.profile = baseProfile();
     renderPage();

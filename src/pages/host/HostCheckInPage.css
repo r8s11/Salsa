@@ -165,7 +165,17 @@
 }
 
 .host-checkin__card-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
   flex-shrink: 0;
+}
+
+.host-checkin__undo-btn,
+.host-checkin__recheck-btn {
+  min-height: 44px;
+  font-size: 0.8125rem;
 }
 
 .host-checkin__checkin-btn {

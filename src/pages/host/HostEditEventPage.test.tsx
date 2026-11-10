@@ -14,6 +14,9 @@ const { assertOrganizerAccess } = vi.hoisted(() => ({
 const { updateOrganizerEvent } = vi.hoisted(() => ({
   updateOrganizerEvent: vi.fn(),
 }));
+const { publishOrganizerEvent } = vi.hoisted(() => ({
+  publishOrganizerEvent: vi.fn(),
+}));
 const { uploadEventFlyers } = vi.hoisted(() => ({
   uploadEventFlyers: vi.fn(),
 }));
@@ -31,6 +34,7 @@ vi.mock("../../features/host/hooks/useMyOrganizerEvents", () => ({ useMyOrganize
 vi.mock("../../features/host/api/organizerAccessRepo", () => ({
   assertOrganizerAccess,
   updateOrganizerEvent,
+  publishOrganizerEvent,
   OrganizerAccessError: class OrganizerAccessError extends Error {
     constructor(message: string) {
       super(message);
@@ -532,5 +536,110 @@ describe("HostEditEventPage", () => {
 
     expect(await screen.findByRole("heading", { name: "Edit event" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Save Changes/i })).toBeInTheDocument();
+  });
+
+  describe("publishing a draft", () => {
+    const draftEvent = { ...baseEvent, status: "draft" as const };
+
+    function useEvent(event: DatabaseEvent) {
+      vi.mocked(useMyOrganizerEvents).mockReturnValue({
+        events: [event],
+        isLoading: false,
+        error: null,
+        refetch: vi.fn(),
+      });
+    }
+
+    it("is not offered for an event that is already published", async () => {
+      renderEdit();
+      await screen.findByRole("heading", { name: "Edit event" });
+      expect(screen.queryByRole("button", { name: "Publish Event" })).not.toBeInTheDocument();
+    });
+
+    it("is not offered to a member without write access", async () => {
+      useEvent(draftEvent);
+      vi.mocked(assertOrganizerAccess).mockResolvedValue({
+        organizerId: "org-1",
+        organizerName: "Boston Salsa Collective",
+        organizerSlug: "boston-salsa",
+        organizerStatus: "active",
+        memberRole: "editor",
+      });
+      renderEdit();
+      await screen.findByRole("heading", { name: /don't have edit access/i });
+      expect(screen.queryByRole("button", { name: "Publish Event" })).not.toBeInTheDocument();
+    });
+
+    it("blocks publishing while there are unsaved edits", async () => {
+      useEvent(draftEvent);
+      const user = userEvent.setup();
+      renderEdit();
+      const title = await screen.findByDisplayValue("Havana Fridays");
+      await user.type(title, " Deluxe");
+      await user.click(screen.getByRole("button", { name: "Publish Event" }));
+
+      expect(await screen.findByRole("alert")).toHaveTextContent(/save your changes first/i);
+      expect(publishOrganizerEvent).not.toHaveBeenCalled();
+    });
+
+    it("publishes the draft without saving content, refreshes events, and links the public page", async () => {
+      const refetch = vi.fn();
+      vi.mocked(useMyOrganizerEvents).mockReturnValue({
+        events: [draftEvent],
+        isLoading: false,
+        error: null,
+        refetch,
+      });
+      publishOrganizerEvent.mockResolvedValue(undefined);
+      const user = userEvent.setup();
+      renderEdit();
+      await screen.findByDisplayValue("Havana Fridays");
+      await user.click(screen.getByRole("button", { name: "Publish Event" }));
+
+      expect(await screen.findByRole("status")).toHaveTextContent(/event published/i);
+      expect(publishOrganizerEvent).toHaveBeenCalledWith("event-1");
+      expect(updateOrganizerEvent).not.toHaveBeenCalled();
+      expect(refetch).toHaveBeenCalled();
+      expect(screen.getByRole("link", { name: "View public event" })).toHaveAttribute(
+        "href",
+        "/events/event-1"
+      );
+    });
+
+    it("saving changes never publishes", async () => {
+      useEvent(draftEvent);
+      const user = userEvent.setup();
+      renderEdit();
+      await screen.findByDisplayValue("Havana Fridays");
+      await user.click(screen.getByRole("button", { name: /Save Changes/i }));
+      await waitFor(() => expect(updateOrganizerEvent).toHaveBeenCalled());
+      expect(publishOrganizerEvent).not.toHaveBeenCalled();
+    });
+
+    it("shows the error and keeps the draft when publishing fails", async () => {
+      useEvent(draftEvent);
+      publishOrganizerEvent.mockRejectedValue(new Error("boom"));
+      const user = userEvent.setup();
+      renderEdit();
+      await screen.findByDisplayValue("Havana Fridays");
+      await user.click(screen.getByRole("button", { name: "Publish Event" }));
+
+      expect(await screen.findByRole("alert")).toHaveTextContent(/still a draft/i);
+      expect(screen.getByRole("button", { name: "Publish Event" })).toBeEnabled();
+      expect(screen.queryByRole("link", { name: "View public event" })).not.toBeInTheDocument();
+    });
+
+    it("explains a permission denial", async () => {
+      useEvent(draftEvent);
+      publishOrganizerEvent.mockRejectedValue(
+        new Error("active owner or manager membership required")
+      );
+      const user = userEvent.setup();
+      renderEdit();
+      await screen.findByDisplayValue("Havana Fridays");
+      await user.click(screen.getByRole("button", { name: "Publish Event" }));
+
+      expect(await screen.findByRole("alert")).toHaveTextContent(/permission to publish/i);
+    });
   });
 });

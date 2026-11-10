@@ -1,3 +1,4 @@
+import { matchesSecret } from "./schedulerSecret.ts";
 import { analyticsEmail } from "./analyticsEmail.ts";
 import { classifyResendFailure, type EmailContent, type ResendResult } from "./emailLayout.ts";
 export interface DeliveryClaim {admin_id:string;token:string;kind:"report"|"alert";payload:unknown;idempotency_key:string}
@@ -9,14 +10,6 @@ export interface WorkerDependencies {
  send:(email:EmailContent & {to:string;from:string},key:string)=>Promise<ResendResult>;
  finish:(id:string,token:string,status:"sent"|"failed"|"suppressed",error:string|null)=>Promise<boolean>;
  log:(message:string,details:Record<string,unknown>)=>void;
-}
-async function matchesSecret(actual:string, expected:string): Promise<boolean> {
- if(expected.length<32)return false;
- const encoder=new TextEncoder();
- const [a,b]=await Promise.all([crypto.subtle.digest("SHA-256",encoder.encode(actual)),crypto.subtle.digest("SHA-256",encoder.encode(expected))]);
- const x=new Uint8Array(a),y=new Uint8Array(b);let difference=0;
- for(let index=0;index<x.length;index++)difference|=x[index]^y[index];
- return difference===0;
 }
 export function createAnalyticsWorker(dependencies:WorkerDependencies) {
  return async(request:Request):Promise<Response>=>{

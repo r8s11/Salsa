@@ -7,6 +7,7 @@ import { useMyOrganizers } from "../../features/host/hooks/useMyOrganizers";
 import { useMyOrganizerEvents } from "../../features/host/hooks/useMyOrganizerEvents";
 import {
   updateOrganizerEvent,
+  publishOrganizerEvent,
   OrganizerAccessError,
 } from "../../features/host/api/organizerAccessRepo";
 import { assertOrganizerAccess } from "../../features/host/api/organizerAccessRepo";
@@ -71,7 +72,7 @@ export default function HostEditEventPage() {
   const { user } = useAuth();
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
-  const { events, isLoading: eventsLoading } = useMyOrganizerEvents();
+  const { events, isLoading: eventsLoading, refetch } = useMyOrganizerEvents();
   const { data: organizers = [], isLoading: organizersLoading } = useMyOrganizers();
 
   const event = useMemo(() => events.find((e) => e.id === eventId) ?? null, [events, eventId]);
@@ -81,6 +82,9 @@ export default function HostEditEventPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasWriteAccess, setHasWriteAccess] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [publishError, setPublishError] = useState<string | null>(null);
+  const [publishedEventId, setPublishedEventId] = useState<string | null>(null);
 
   const accessDenied = useMemo(() => {
     if (!event) return false;
@@ -180,6 +184,44 @@ export default function HostEditEventPage() {
     }
   };
 
+  const hasUnsavedChanges = () => {
+    if (!form || !event) return false;
+    if (JSON.stringify(form) !== JSON.stringify(eventToDraft(event))) return true;
+    if (flyers.entries.some((entry) => entry.file)) return true;
+    const kept = storedFlyerUrls(flyers.entries);
+    const stored = eventFlyerList(event);
+    return kept.length !== stored.length || kept.some((url, index) => url !== stored[index]);
+  };
+
+  const publish = async () => {
+    if (isPublishing || isSaving || !event || event.status !== "draft") return;
+    setPublishError(null);
+    if (hasUnsavedChanges()) {
+      setPublishError("You have unsaved changes. Save your changes first, then publish.");
+      return;
+    }
+    setIsPublishing(true);
+    try {
+      await publishOrganizerEvent(event.id);
+      setPublishedEventId(event.id);
+      void refetch();
+    } catch (publishFailure) {
+      if (
+        publishFailure instanceof OrganizerAccessError ||
+        (publishFailure instanceof Error &&
+          /permission|owner or manager|organizer access/i.test(publishFailure.message))
+      ) {
+        setPublishError("You don't have permission to publish this event.");
+      } else if (publishFailure instanceof Error && /only a draft/i.test(publishFailure.message)) {
+        setPublishError("This event is no longer a draft, so it can't be published here.");
+      } else {
+        setPublishError("We couldn't publish this event. It is still a draft. Please try again.");
+      }
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
   const isLoading = eventsLoading || organizersLoading;
 
   if (isLoading) {
@@ -265,6 +307,21 @@ export default function HostEditEventPage() {
         <p className="host-edit-event__event-title">{event.title}</p>
       </header>
 
+      {publishedEventId === event.id && (
+        <div className="host-edit-event__published" role="status">
+          <p>Event published. It is now live on SalsaSegura.</p>
+          <Link to={`/events/${event.id}`} className="admin-btn admin-btn--secondary">
+            View public event
+          </Link>
+        </div>
+      )}
+
+      {publishError && (
+        <div className="admin-banner admin-banner--error" role="alert">
+          {publishError}
+        </div>
+      )}
+
       <form onSubmit={submit}>
         {error && (
           <div className="admin-banner admin-banner--error" role="alert">
@@ -304,6 +361,16 @@ export default function HostEditEventPage() {
           <Link to={`/host/events/${event.id}`} className="admin-btn admin-btn--secondary">
             Cancel
           </Link>
+          {event.status === "draft" && (
+            <button
+              type="button"
+              className="admin-btn admin-btn--secondary"
+              onClick={() => void publish()}
+              disabled={isSaving || isPublishing}
+            >
+              {isPublishing ? "Publishing…" : "Publish Event"}
+            </button>
+          )}
           <button
             type="submit"
             className="admin-btn admin-btn--primary"

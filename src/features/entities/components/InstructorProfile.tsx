@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useDocumentMeta } from "../../../shared/seo/useDocumentMeta";
 import { canonicalUrl } from "../../../utils/seo";
 import { entityExternalLinks } from "../externalLinks";
-import { entityLocation, eventDateParts, formatEventDate } from "../format";
+import { entityLocation, eventDateParts, eventSummaryTimeZone, formatEventDate } from "../format";
 import { ENTITY_LABELS, entityHref, type EntityDetail, type EventSummary } from "../model";
 import { InstructorPortrait } from "./InstructorPortrait";
 import "./InstructorProfile.css";
@@ -10,7 +10,8 @@ import { EntityClaimControl } from "../../workspaces/components/public/EntityCla
 import { EntityEditButton } from "./EntityEditButton";
 
 function NightRow({ event }: { event: EventSummary }) {
-  const parts = eventDateParts(event.event_date);
+  const zone = eventSummaryTimeZone(event);
+  const parts = eventDateParts(event.event_date, zone);
   return (
     <Link className="instructor-profile__night" to={entityHref({ kind: "event", slug: event.slug })}>
       <span className="instructor-profile__date" aria-hidden="true">
@@ -24,7 +25,7 @@ function NightRow({ event }: { event: EventSummary }) {
       <span className="instructor-profile__night-copy">
         <strong>{event.title}</strong>
         <span>
-          {parts ? `${parts.weekday} · ${parts.time}` : formatEventDate(event.event_date)}
+          {parts ? `${parts.weekday} · ${parts.time}` : formatEventDate(event.event_date, zone)}
           {event.location ? ` · ${event.location}` : ""}
         </span>
       </span>

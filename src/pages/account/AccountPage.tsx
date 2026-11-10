@@ -537,7 +537,11 @@ export default function AccountPage() {
         >
           <h2 id="account-notifications-heading">Email &amp; notifications</h2>
           <p>Required account and security emails are always sent to your account email.</p>
-          <p>Optional email preferences aren&rsquo;t available yet.</p>
+          <p>
+            The optional weekly digest is not being sent yet. Save your choice under
+            Notifications in <Link to="/profile/edit">Edit profile</Link>; it applies when
+            the digest launches. Submission emails go to the address on the submission.
+          </p>
         </section>
       )}
 

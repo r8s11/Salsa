@@ -8,7 +8,7 @@ import { DjProfile } from "../features/entities/components/DjProfile";
 import { SchoolProfile } from "../features/entities/components/SchoolProfile";
 import { EntityEditButton } from "../features/entities/components/EntityEditButton";
 import { entityExternalLinks } from "../features/entities/externalLinks";
-import { entityLocation, formatEventDate } from "../features/entities/format";
+import { entityLocation, eventSummaryTimeZone, formatEventDate } from "../features/entities/format";
 import {
   ENTITY_LABELS,
   entityHref,
@@ -41,7 +41,7 @@ function EventList({ title, events }: { title: string; events: EventSummary[] })
                 {event.image_url && <img src={event.image_url} alt="" loading="lazy" />}
                 <span className="public-entity-page__event-copy">
                   <strong>{event.title}</strong>
-                  <span>{formatEventDate(event.event_date)}</span>
+                  <span>{formatEventDate(event.event_date, eventSummaryTimeZone(event))}</span>
                 </span>
               </Link>
             </li>

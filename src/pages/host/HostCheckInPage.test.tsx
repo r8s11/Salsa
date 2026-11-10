@@ -143,12 +143,23 @@ describe("HostCheckInPage", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("Network error");
   });
 
-  it("shows subtitle with counts", async () => {
+  it("labels roster entries and party headcount separately", () => {
+    // Ana is a party of 2 and checked in; Bob is a party of 1 and not.
     mockAttendees = [attendeeA, attendeeB];
     mockCheckIns = [checkInA];
     renderPage();
-    expect(await screen.findByText(/1 checked in/)).toBeInTheDocument();
-    expect(screen.getByText(/2 on roster/)).toBeInTheDocument();
+    expect(
+      screen.getByText("1 of 2 roster entries checked in · 2 of 3 headcount arrived")
+    ).toBeInTheDocument();
+  });
+
+  it("does not count reversed check-ins as arrivals", () => {
+    mockAttendees = [attendeeA, attendeeB];
+    mockCheckIns = [reversedCheckIn];
+    renderPage();
+    expect(
+      screen.getByText("0 of 2 roster entries checked in · 0 of 3 headcount arrived")
+    ).toBeInTheDocument();
   });
 
   it("shows empty state when no attendees", () => {
@@ -161,7 +172,8 @@ describe("HostCheckInPage", () => {
     renderPage();
     expect(screen.getByText("Ana Garcia")).toBeInTheDocument();
     expect(screen.getByText("Bob Smith")).toBeInTheDocument();
-    expect(screen.getAllByRole("button", { name: /check in/i }).length).toBe(2);
+    expect(screen.getByRole("button", { name: "Check in Ana Garcia" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Check in Bob Smith" })).toBeInTheDocument();
   });
 
   it("marks checked-in attendee with badge", () => {
@@ -178,7 +190,7 @@ describe("HostCheckInPage", () => {
     mockCheckIn.mockResolvedValue(undefined);
     renderPage();
 
-    await user.click(screen.getByRole("button", { name: /check in/i }));
+    await user.click(screen.getByRole("button", { name: "Check in Ana Garcia" }));
     expect(mockCheckIn).toHaveBeenCalledWith({ attendeeId: "att-1", method: "manual" });
   });
 
@@ -207,7 +219,7 @@ describe("HostCheckInPage", () => {
     renderPage();
 
     await user.click(screen.getByRole("button", { name: /door/i }));
-    await user.click(screen.getByRole("button", { name: /check in/i }));
+    await user.click(screen.getByRole("button", { name: "Check in Ana Garcia" }));
     expect(mockCheckIn).toHaveBeenCalledWith({ attendeeId: "att-1", method: "door" });
   });
 
@@ -217,5 +229,78 @@ describe("HostCheckInPage", () => {
     renderPage();
     expect(screen.getByText(/recent reversals/i)).toBeInTheDocument();
     expect(screen.getByText(/reversed at/i)).toBeInTheDocument();
+  });
+  it("offers Undo check-in on an active row and reverses that check-in", async () => {
+    const user = userEvent.setup();
+    mockAttendees = [attendeeA, attendeeB];
+    mockCheckIns = [checkInA];
+    mockReverseCheckIn.mockResolvedValue(undefined);
+    renderPage();
+
+    // Only the checked-in attendee gets Undo; the other keeps Check In.
+    expect(screen.getAllByRole("button", { name: /undo check-in/i })).toHaveLength(1);
+    await user.click(screen.getByRole("button", { name: "Undo check-in for Ana Garcia" }));
+
+    expect(mockReverseCheckIn).toHaveBeenCalledWith({ checkInId: "ci-1" });
+    expect(mockCheckIn).not.toHaveBeenCalled();
+  });
+
+  it("Re-check-in creates a new arrival instead of reapplying the reversal", async () => {
+    const user = userEvent.setup();
+    mockAttendees = [attendeeA, attendeeB];
+    mockCheckIns = [reversedCheckIn];
+    mockCheckIn.mockResolvedValue(undefined);
+    renderPage();
+
+    await user.click(screen.getByRole("button", { name: "Re-check-in Bob Smith" }));
+
+    expect(mockCheckIn).toHaveBeenCalledWith({ attendeeId: "att-2", method: "manual" });
+    expect(mockReverseCheckIn).not.toHaveBeenCalled();
+  });
+
+  it("never offers a second active arrival for an already checked-in attendee", () => {
+    // Bob has a reversal in history but is currently checked in again.
+    const activeAgain: HostCheckIn = {
+      ...reversedCheckIn,
+      id: "ci-3",
+      reversedAt: null,
+      reversedBy: null,
+      reversalReason: null,
+    };
+    mockAttendees = [attendeeB];
+    mockCheckIns = [activeAgain, reversedCheckIn];
+    renderPage();
+
+    expect(screen.queryByRole("button", { name: /^check in/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /re-check-in/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Undo check-in for Bob Smith" })).toBeInTheDocument();
+    // History stays visible.
+    expect(screen.getByText(/reversed at/i)).toBeInTheDocument();
+  });
+
+  it("shows a denied check-in as an error instead of failing silently", async () => {
+    const user = userEvent.setup();
+    mockAttendees = [attendeeA];
+    mockCheckIn.mockRejectedValue(
+      new Error("You do not have permission to check in this attendee for this event.")
+    );
+    renderPage();
+
+    await user.click(screen.getByRole("button", { name: "Check in Ana Garcia" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/do not have permission/i);
+    expect(mockRefetchCheckIns).toHaveBeenCalled();
+  });
+
+  it("shows a denied undo as an error", async () => {
+    const user = userEvent.setup();
+    mockAttendees = [attendeeA];
+    mockCheckIns = [checkInA];
+    mockReverseCheckIn.mockRejectedValue(new Error("Could not undo this check-in."));
+    renderPage();
+
+    await user.click(screen.getByRole("button", { name: "Undo check-in for Ana Garcia" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Could not undo this check-in.");
   });
 });

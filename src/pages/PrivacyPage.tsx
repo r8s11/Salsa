@@ -37,8 +37,9 @@ export default function PrivacyPage() {
         <p>
           <strong>Profile.</strong> Your display name, plus anything you choose to add: a photo,
           cover photo, bio, home city, dance styles, Instagram link, website link, notification
-          preferences, and two visibility settings (whether your profile is visible to other members
-          and whether your activity numbers are). Both visibility settings start switched on, and
+          preferences, and two visibility settings (whether your profile is public at its
+          salsasegura.com/u/ address, including to visitors who are not signed in, and whether your
+          activity numbers show on it). Both visibility settings start switched on, and
           you can change them under{" "}
           <Link to="/profile/edit">Edit profile</Link>.
         </p>

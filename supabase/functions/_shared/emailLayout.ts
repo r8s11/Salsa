@@ -37,6 +37,7 @@ export function layout(params: {
   heading: string;
   paragraphs: string[];
   rows?: Array<[string, string]>;
+  links?: Array<{ label: string; url: string }>;
   cta?: { label: string; url: string };
   footerLines: string[];
 }): string {
@@ -88,6 +89,9 @@ export function layout(params: {
         )}</p>`
     ),
     detailsBlock,
+    ...(params.links ?? []).map(({ label, url }) =>
+      `<p style="margin:0 0 16px;"><a href="${escapeHtml(url)}">${escapeHtml(label)}</a></p>`
+    ),
     ctaBlock,
     `</td></tr>`,
     `<tr><td style="padding:0 28px 28px;border-top:1px solid #ececec;">`,
@@ -107,6 +111,7 @@ export function plainText(params: {
   heading: string;
   paragraphs: string[];
   rows?: Array<[string, string]>;
+  links?: Array<{ label: string; url: string }>;
   cta?: { label: string; url: string };
   footerLines: string[];
 }): string {
@@ -114,6 +119,7 @@ export function plainText(params: {
   for (const [label, value] of params.rows ?? []) {
     blocks.push(`${label}: ${value}`);
   }
+  for (const link of params.links ?? []) blocks.push(`${link.label}: ${link.url}`);
   if (params.cta) blocks.push("", `${params.cta.label}: ${params.cta.url}`);
   blocks.push("", ...params.footerLines);
   return blocks.join("\n");

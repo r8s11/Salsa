@@ -115,6 +115,7 @@ export default function ProfileEditPage() {
   const instagramErrorId = useId();
   const websiteId = useId();
   const websiteErrorId = useId();
+  const notificationsHelpId = useId();
 
   const [form, setForm] = useState<FormState | null>(null);
   const [saved, setSaved] = useState<SavedNotice | null>(null);
@@ -159,6 +160,13 @@ export default function ProfileEditPage() {
   const identity = profile ? resolveIdentity(profile) : null;
   const initials = identity ? initialsFor(identity) : "·";
   const currentUsername = profile?.username ?? null;
+  // Mirrors public.public_member_profile: the address resolves only for a
+  // public profile of an onboarded account in good standing.
+  const profileAddressResolves =
+    currentUsername !== null &&
+    profile?.public_profile === true &&
+    profile.status === "active" &&
+    profile.onboarding_completed_at !== null;
 
   const trimmedAvatarUrl = form?.avatar_url.trim() ?? "";
   const trimmedCoverUrl = form?.cover_url.trim() ?? "";
@@ -172,6 +180,11 @@ export default function ProfileEditPage() {
 
   const instagramError = form ? instagramLinkError(form.instagram) : null;
   const websiteError = form ? linkError(form.website) : null;
+
+  const notificationPrefsChanged = Boolean(form && profile && NOTIFICATION_PREFS.some(
+    (pref) => notificationPrefEnabled(form.notification_prefs, pref.key) !==
+      notificationPrefEnabled(profile.notification_prefs, pref.key)
+  ));
 
   const dirty =
     form !== null &&
@@ -187,11 +200,7 @@ export default function ProfileEditPage() {
       form.stats_public !== profile.stats_public ||
       form.dance_styles.length !== (profile.dance_styles ?? []).length ||
       form.dance_styles.some((style) => !(profile.dance_styles ?? []).includes(style)) ||
-      NOTIFICATION_PREFS.some(
-        (pref) =>
-          notificationPrefEnabled(form.notification_prefs, pref.key) !==
-          notificationPrefEnabled(profile.notification_prefs, pref.key)
-      ));
+      notificationPrefsChanged);
 
   const canSave =
     !isSaving &&
@@ -232,7 +241,7 @@ export default function ProfileEditPage() {
         website: orNull(form.website),
         public_profile: form.public_profile,
         stats_public: form.stats_public,
-        notification_prefs: form.notification_prefs,
+        ...(notificationPrefsChanged ? { notification_prefs: form.notification_prefs } : {}),
       });
       setSaved({ kind: "success", message: "Saved. Your profile is up to date." });
     } catch {
@@ -641,9 +650,18 @@ export default function ProfileEditPage() {
                   placeholder="Not set"
                 />
                 <p id={usernameHelpId} className="profile-edit-page__hint">
-                  {currentUsername
-                    ? `salsasegura.com/u/${currentUsername}`
-                    : "No username set yet."}{" "}
+                  {!currentUsername ? (
+                    "No username set yet, so there is no profile address."
+                  ) : !profile?.public_profile ? (
+                    "Your profile is private, so your profile address is not shown to others."
+                  ) : !profileAddressResolves ? (
+                    "Your profile page is not available for this account right now."
+                  ) : (
+                    <>
+                      Your public profile:{" "}
+                      <Link to={`/u/${currentUsername}`}>salsasegura.com/u/{currentUsername}</Link>.
+                    </>
+                  )}{" "}
                   Username changes arrive in a later update.
                 </p>
               </div>
@@ -782,12 +800,20 @@ export default function ProfileEditPage() {
             >
               NOTIFICATIONS
             </h2>
+            <p id={notificationsHelpId} className="profile-edit-page__hint">
+              This email isn't being sent yet. Your choice is saved and applies when it launches.
+              Emails about an event you submit always go to the address on that submission,
+              and account and security emails always go to your account email.
+            </p>
             <div className="profile-edit-page__toggles">
               {NOTIFICATION_PREFS.map((pref) => {
                 const on = notificationPrefEnabled(form.notification_prefs, pref.key);
                 return (
                   <div key={pref.key} className="profile-edit-page__toggle-row">
-                    <span className="profile-edit-page__toggle-label">{pref.label}</span>
+                    <span className="profile-edit-page__toggle-label">
+                      {pref.label}{" "}
+                      <span className="profile-edit-page__toggle-note">Not sending yet</span>
+                    </span>
                     <button
                       type="button"
                       className={
@@ -798,6 +824,7 @@ export default function ProfileEditPage() {
                       role="switch"
                       aria-checked={on}
                       aria-label={pref.label}
+                      aria-describedby={notificationsHelpId}
                       onClick={() => toggleNotification(pref.key)}
                     >
                       <span className="profile-edit-page__switch-knob" aria-hidden="true" />
@@ -815,10 +842,14 @@ export default function ProfileEditPage() {
             <h2 id="profile-edit-privacy-heading" className="profile-edit-page__section-title">
               PRIVACY
             </h2>
+            <p className="profile-edit-page__hint">
+              A public profile can be opened by anyone with its address, including visitors who
+              are not signed in. Activity numbers appear only on a public profile.
+            </p>
             <div className="profile-edit-page__toggles">
               <div className="profile-edit-page__toggle-row">
                 <span className="profile-edit-page__toggle-label">
-                  Show my profile to other members
+                  Make my profile public
                 </span>
                 <button
                   type="button"
@@ -829,7 +860,7 @@ export default function ProfileEditPage() {
                   }
                   role="switch"
                   aria-checked={form.public_profile}
-                  aria-label="Show my profile to other members"
+                  aria-label="Make my profile public"
                   onClick={() => patchForm({ public_profile: !form.public_profile })}
                 >
                   <span className="profile-edit-page__switch-knob" aria-hidden="true" />

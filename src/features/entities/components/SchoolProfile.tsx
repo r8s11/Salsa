@@ -2,15 +2,13 @@ import "temporal-polyfill/global";
 import { Link } from "react-router-dom";
 import { ArrowUpRight, MapPin } from "lucide-react";
 import { entityExternalLinks } from "../externalLinks";
+import { eventSummaryTimeZone } from "../format";
 import { entityHref, type EntityDetail, type EventSummary, type PublicEntityRef } from "../model";
 import { EntityClaimControl } from "../../workspaces/components/public/EntityClaimControl";
 import { SchoolOfferingsSection } from "../../workspaces/components/public/SchoolOfferingsSection";
 import { EntityEditButton } from "./EntityEditButton";
 import "./SchoolProfile.css";
 
-// Every event time on the site is shown in New York time (see
-// events/model/convert.ts); the school page follows the same rule.
-const ZONE = "America/New_York";
 const PAST_LIMIT = 6;
 
 interface NightDate {
@@ -21,10 +19,15 @@ interface NightDate {
   time: string;
 }
 
-function nightDate(value: string, today: Temporal.PlainDate): NightDate | null {
+/**
+ * Date tile and label for a row, in the event's own zone (venue, then metro).
+ * "Tonight/Today/Tomorrow" count from today's date in that same zone, never the viewer's.
+ */
+function nightDate(event: EventSummary): NightDate | null {
   try {
-    const zoned = Temporal.Instant.from(value).toZonedDateTimeISO(ZONE);
-    const daysAway = today.until(zoned.toPlainDate(), { largestUnit: "days" }).days;
+    const zone = eventSummaryTimeZone(event);
+    const zoned = Temporal.Instant.from(event.event_date).toZonedDateTimeISO(zone);
+    const daysAway = Temporal.Now.plainDateISO(zone).until(zoned.toPlainDate(), { largestUnit: "days" }).days;
     const when =
       daysAway === 0
         ? zoned.hour >= 17
@@ -68,8 +71,8 @@ function DateTile({ date }: { date: NightDate | null }) {
   );
 }
 
-function NightRow({ event, today }: { event: EventSummary; today: Temporal.PlainDate }) {
-  const date = nightDate(event.event_date, today);
+function NightRow({ event }: { event: EventSummary }) {
+  const date = nightDate(event);
   return (
     <Link className="school-profile__night" to={entityHref({ kind: "event", slug: event.slug })}>
       <DateTile date={date} />
@@ -102,7 +105,6 @@ function RefList({ title, id, refs }: { title: string; id: string; refs: PublicE
 
 export function SchoolProfile({ detail }: { detail: EntityDetail }) {
   const { entity: school, upcoming, past, related } = detail;
-  const today = Temporal.Now.plainDateISO(ZONE);
   const { website, instagram } = entityExternalLinks(school);
 
   const town = [school.city, school.state_region].filter(Boolean).join(", ");
@@ -112,7 +114,7 @@ export function SchoolProfile({ detail }: { detail: EntityDetail }) {
     : null;
 
   const next = upcoming[0] ?? null;
-  const nextDate = next ? nightDate(next.event_date, today) : null;
+  const nextDate = next ? nightDate(next) : null;
   const byKind = (kind: PublicEntityRef["kind"]) => related.filter((ref) => ref.kind === kind);
   const instructors = byKind("instructor");
   const styles = byKind("style").filter((ref) => ref.category === "dance_style");
@@ -214,7 +216,7 @@ export function SchoolProfile({ detail }: { detail: EntityDetail }) {
               <ul className="school-profile__nights">
                 {upcoming.map((event) => (
                   <li key={event.id}>
-                    <NightRow event={event} today={today} />
+                    <NightRow event={event} />
                   </li>
                 ))}
               </ul>
@@ -226,7 +228,7 @@ export function SchoolProfile({ detail }: { detail: EntityDetail }) {
               <ul className="school-profile__nights">
                 {past.slice(0, PAST_LIMIT).map((event) => (
                   <li key={event.id}>
-                    <NightRow event={event} today={today} />
+                    <NightRow event={event} />
                   </li>
                 ))}
               </ul>

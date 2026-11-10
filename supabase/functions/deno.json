@@ -1,0 +1,5 @@
+{
+  "imports": {
+    "temporal-polyfill/global": "npm:temporal-polyfill@0.3.2/global"
+  }
+}

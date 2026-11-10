@@ -214,6 +214,16 @@ export async function updateOrganizerEvent(
 }
 
 /**
+ * Publishes an existing organizer draft through public.organizer_publish_event().
+ * The RPC applies the same active owner/manager gate as organizer creation,
+ * reads the organizer from the event row, and rejects non-draft events.
+ */
+export async function publishOrganizerEvent(eventId: string): Promise<void> {
+  const { error } = await supabase.rpc("organizer_publish_event", { p_event_id: eventId });
+  if (error) throw repositoryError(error);
+}
+
+/**
  * Fields an organizer owner/manager may edit through
  * public.organizer_update_profile(). Mirrors the RPC whitelist exactly.
  */

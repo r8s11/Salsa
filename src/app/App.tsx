@@ -23,6 +23,7 @@ const FoundersWelcomePage = lazy(() => import("../features/founder/pages/Founder
 const ShortEventLinkPage = lazy(() => import("../pages/ShortEventLinkPage"));
 const ItineraryPage = lazy(() => import("../features/itineraries/pages/ItineraryPage"));
 const PublicEntityPage = lazy(() => import("../pages/PublicEntityPage"));
+const PublicMemberProfilePage = lazy(() => import("../pages/PublicMemberProfilePage"));
 const EntityDirectoryPage = lazy(() => import("../features/entities/components/EntityDirectoryPage"));
 const AdminEntityDirectoryPage = lazy(
   () => import("../features/admin/entities/pages/AdminEntityDirectoryPage")
@@ -77,6 +78,7 @@ const HostEditEventPage = lazy(() => import("../pages/host/HostEditEventPage"));
 const HostDashboard = lazy(() => import("../features/host/components/HostDashboard"));
 const HostEventDetailPage = lazy(() => import("../pages/host/HostEventDetailPage"));
 const HostAttendeeListPage = lazy(() => import("../pages/host/HostAttendeeListPage"));
+const HostAttendeeEditPage = lazy(() => import("../pages/host/HostAttendeeEditPage"));
 const HostCheckInPage = lazy(() => import("../pages/host/HostCheckInPage"));
 const HostEventImportPage = lazy(() => import("../pages/host/HostEventImportPage"));
 const BulkFlyerImportPage = lazy(() => import("../pages/BulkFlyerImportPage"));
@@ -279,6 +281,10 @@ function App() {
               <Route path="events/:eventId" element={<HostEventDetailPage />} />
               <Route path="events/:eventId/edit" element={<HostEditEventPage />} />
               <Route path="events/:eventId/attendees" element={<HostAttendeeListPage />} />
+              <Route
+                path="events/:eventId/attendees/:attendeeId/edit"
+                element={<HostAttendeeEditPage />}
+              />
               <Route path="events/:eventId/check-in" element={<HostCheckInPage />} />
               {MANAGED_KINDS.map((kind) => (
                 <Route key={kind} path={`${WORKSPACE_SEGMENTS[kind]}/:id`}>
@@ -318,6 +324,7 @@ function App() {
               <Route path="i/:slug" element={<PublicEntityPage kind="instructor" />} />
               <Route path="dj/:slug" element={<PublicEntityPage kind="dj" />} />
               <Route path="s/:slug" element={<PublicEntityPage kind="school" />} />
+              <Route path="u/:username" element={<PublicMemberProfilePage />} />
               <Route path="discover" element={<EntityDirectoryPage />} />
               <Route path="series" element={<EntityDirectoryPage kind="series" />} />
               <Route path="organizers" element={<EntityDirectoryPage kind="organizer" />} />

@@ -1,9 +1,10 @@
 import { useState, useMemo } from "react";
 import posthog from "posthog-js";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Search, CheckCircle2, Undo2 } from "lucide-react";
+import { ArrowLeft, Search, CheckCircle2, Undo2, RotateCcw } from "lucide-react";
 import { useEventAttendees } from "../../features/host/hooks/useEventAttendees";
 import { useEventCheckIns } from "../../features/host/hooks/useEventCheckIns";
+import { summarizeAttendance } from "../../features/host/model/attendance";
 import "../../styles/admin.css";
 import "./HostCheckInPage.css";
 
@@ -36,13 +37,24 @@ export default function HostCheckInPage() {
 
   const [search, setSearch] = useState("");
   const [method, setMethod] = useState<"manual" | "door">("manual");
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const activeCheckIns = useMemo(() => checkIns.filter((c) => !c.reversedAt), [checkIns]);
 
-  const checkedInIds = useMemo(
-    () => new Set(activeCheckIns.map((c) => c.attendeeId)),
+  const activeByAttendee = useMemo(
+    () => new Map(activeCheckIns.map((c) => [c.attendeeId, c])),
     [activeCheckIns]
   );
+
+  const reversals = useMemo(
+    () =>
+      checkIns
+        .filter((c) => c.reversedAt)
+        .sort((a, b) => (b.reversedAt ?? "").localeCompare(a.reversedAt ?? "")),
+    [checkIns]
+  );
+
+  const counts = useMemo(() => summarizeAttendance(attendees, checkIns), [attendees, checkIns]);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return attendees;
@@ -55,20 +67,29 @@ export default function HostCheckInPage() {
   const isLoading = attendeesLoading || checkInsLoading;
   const error = attendeesError || checkInsError;
 
+  const isMutating = isCheckingIn || isReversing;
+
   async function handleCheckIn(attendeeId: string) {
+    // One active arrival per attendee; the database enforces this too.
+    if (activeByAttendee.has(attendeeId) || isMutating) return;
+    setActionError(null);
     try {
       await checkIn({ attendeeId, method });
       posthog.capture("attendee_checked_in", { method });
-    } catch {
-      // error surfaced by hook
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Could not check in this attendee.");
+      refetchCheckIns();
     }
   }
 
-  async function handleReverse(checkInId: string) {
+  async function handleUndo(checkInId: string) {
+    if (isMutating) return;
+    setActionError(null);
     try {
       await reverseCheckIn({ checkInId });
-    } catch {
-      // error surfaced by hook
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Could not undo this check-in.");
+      refetchCheckIns();
     }
   }
 
@@ -87,7 +108,9 @@ export default function HostCheckInPage() {
 
         <h1 className="host-checkin__title">Door Check-in</h1>
         <p className="host-checkin__subtitle">
-          {activeCheckIns.length} checked in · {attendees.length} on roster
+          {counts.checkedInEntries} of {counts.rosterEntries} roster{" "}
+          {counts.rosterEntries === 1 ? "entry" : "entries"} checked in ·{" "}
+          {counts.checkedInHeadcount} of {counts.headcount} headcount arrived
         </p>
 
         {isLoading && (
@@ -102,6 +125,12 @@ export default function HostCheckInPage() {
             <button type="button" className="admin-btn admin-btn--secondary" onClick={refetch}>
               Try Again
             </button>
+          </div>
+        )}
+
+        {actionError && (
+          <div className="admin-banner admin-banner--error" role="alert">
+            <p>{actionError}</p>
           </div>
         )}
 
@@ -147,11 +176,11 @@ export default function HostCheckInPage() {
             {filtered.length > 0 && (
               <div className="host-checkin__roster">
                 {filtered.map((attendee) => {
-                  const isCheckedIn = checkedInIds.has(attendee.id);
+                  const activeCheckIn = activeByAttendee.get(attendee.id);
                   return (
                     <div
                       key={attendee.id}
-                      className={`host-checkin__card ${isCheckedIn ? "host-checkin__card--checked-in" : ""}`}
+                      className={`host-checkin__card ${activeCheckIn ? "host-checkin__card--checked-in" : ""}`}
                     >
                       <div className="host-checkin__card-info">
                         <span className="host-checkin__card-name">{attendee.displayName}</span>
@@ -161,17 +190,30 @@ export default function HostCheckInPage() {
                         </span>
                       </div>
                       <div className="host-checkin__card-actions">
-                        {isCheckedIn ? (
-                          <span className="host-checkin__checked-badge">
-                            <CheckCircle2 size={14} aria-hidden="true" />
-                            Checked in
-                          </span>
+                        {activeCheckIn ? (
+                          <>
+                            <span className="host-checkin__checked-badge">
+                              <CheckCircle2 size={14} aria-hidden="true" />
+                              Checked in
+                            </span>
+                            <button
+                              type="button"
+                              className="admin-btn admin-btn--secondary host-checkin__undo-btn"
+                              onClick={() => handleUndo(activeCheckIn.id)}
+                              disabled={isMutating}
+                              aria-label={`Undo check-in for ${attendee.displayName}`}
+                            >
+                              <Undo2 size={14} aria-hidden="true" />
+                              Undo check-in
+                            </button>
+                          </>
                         ) : (
                           <button
                             type="button"
                             className="admin-btn admin-btn--primary host-checkin__checkin-btn"
                             onClick={() => handleCheckIn(attendee.id)}
-                            disabled={isCheckingIn}
+                            disabled={isMutating}
+                            aria-label={`Check in ${attendee.displayName}`}
                           >
                             Check In
                           </button>
@@ -184,34 +226,34 @@ export default function HostCheckInPage() {
             )}
 
             {/* ── Recent reversals ── */}
-            {checkIns.filter((c) => c.reversedAt).length > 0 && (
+            {reversals.length > 0 && (
               <section className="host-checkin__reversals">
                 <h2 className="host-checkin__reversals-title">Recent Reversals</h2>
-                {checkIns
-                  .filter((c) => c.reversedAt)
-                  .slice(0, 10)
-                  .map((c) => {
-                    const attendee = attendees.find((a) => a.id === c.attendeeId);
-                    return (
-                      <div key={c.id} className="host-checkin__reversal-row">
-                        <span className="host-checkin__reversal-name">
-                          {attendee?.displayName ?? "Unknown"}
-                        </span>
-                        <span className="host-checkin__reversal-time">
-                          Reversed at {formatTime(c.reversedAt!)}
-                        </span>
+                {reversals.slice(0, 10).map((c) => {
+                  const attendee = attendees.find((a) => a.id === c.attendeeId);
+                  return (
+                    <div key={c.id} className="host-checkin__reversal-row">
+                      <span className="host-checkin__reversal-name">
+                        {attendee?.displayName ?? "Unknown"}
+                      </span>
+                      <span className="host-checkin__reversal-time">
+                        Reversed at {formatTime(c.reversedAt!)}
+                      </span>
+                      {attendee && !activeByAttendee.has(attendee.id) && (
                         <button
                           type="button"
-                          className="attendee-action-btn"
-                          onClick={() => handleReverse(c.id)}
-                          disabled={isReversing}
-                          aria-label={`Re-check-in ${attendee?.displayName ?? "attendee"}`}
+                          className="admin-btn admin-btn--secondary host-checkin__recheck-btn"
+                          onClick={() => handleCheckIn(c.attendeeId)}
+                          disabled={isMutating}
+                          aria-label={`Re-check-in ${attendee.displayName}`}
                         >
-                          <Undo2 size={14} aria-hidden="true" />
+                          <RotateCcw size={14} aria-hidden="true" />
+                          Re-check-in
                         </button>
-                      </div>
-                    );
-                  })}
+                      )}
+                    </div>
+                  );
+                })}
               </section>
             )}
           </>

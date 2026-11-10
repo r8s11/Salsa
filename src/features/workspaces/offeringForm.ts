@@ -1,3 +1,4 @@
+import type { OfferingSaver } from "./hooks/useEntityWorkspace";
 import {
   formatClock,
   type ClassLevel,
@@ -14,6 +15,30 @@ import {
 
 /** Field-keyed messages; a key is present only while that field is invalid. */
 export type FieldErrors<K extends string> = Partial<Record<K, string>>;
+
+export const INACTIVE_INSTRUCTOR_MESSAGE = "This linked artist is no longer active. Unlink them, then save again.";
+
+/**
+ * Turns the database's bare 'Unknown instructor' into guidance when the payload
+ * carried a linked artist: the only fix is to unlink, so say so.
+ */
+export function withInstructorGuidance<Input extends { instructor_id: string | null }>(
+  save: OfferingSaver<Input>
+): OfferingSaver<Input> {
+  return {
+    isPending: save.isPending,
+    mutateAsync: async (args) => {
+      try {
+        return await save.mutateAsync(args);
+      } catch (error) {
+        if (args.input.instructor_id && error instanceof Error && error.message === "Unknown instructor") {
+          throw new Error(INACTIVE_INSTRUCTOR_MESSAGE, { cause: error });
+        }
+        throw error;
+      }
+    },
+  };
+}
 
 const DOLLARS = /^\$?\s*(\d{1,7})(?:\.(\d{1,2}))?$/;
 
@@ -89,6 +114,8 @@ export type ClassForm = {
   duration: string;
   level: ClassLevel;
   style_term_id: string;
+  /** The linked artist's id, or "" for none. Changes only when the user picks or unlinks. */
+  instructor_id: string;
   instructor_name: string;
   room: string;
   drop_in: string;
@@ -106,6 +133,7 @@ export function blankClassForm(weekday: Weekday): ClassForm {
     duration: "60",
     level: "all",
     style_term_id: "",
+    instructor_id: "",
     instructor_name: "",
     room: "",
     drop_in: "",
@@ -122,6 +150,7 @@ export function classFormFrom(entry: SchoolClass): ClassForm {
     duration: String(entry.duration_minutes),
     level: entry.level,
     style_term_id: entry.style_term_id ?? "",
+    instructor_id: entry.instructor_id ?? "",
     instructor_name: entry.instructor_name ?? "",
     room: entry.room ?? "",
     drop_in: dollarsFromCents(entry.drop_in_cents),
@@ -131,10 +160,7 @@ export function classFormFrom(entry: SchoolClass): ClassForm {
 }
 
 /** Either the payload school_offering_save takes, or the fields that need fixing. */
-export function classInputFrom(
-  form: ClassForm,
-  existing: SchoolClass | null
-): { input: SchoolClassInput } | { errors: FieldErrors<ClassField> } {
+export function classInputFrom(form: ClassForm): { input: SchoolClassInput } | { errors: FieldErrors<ClassField> } {
   const errors: FieldErrors<ClassField> = {};
   const title = validateTitle(form.title, "Title");
   if (title) errors.title = title;
@@ -161,11 +187,7 @@ export function classInputFrom(
       weekday: Number(form.weekday) as Weekday,
       start_time: form.start_time,
       duration_minutes: duration.minutes as number,
-      // The link to an artist listing survives only while the name still is theirs.
-      instructor_id:
-        existing && existing.instructor_id && existing.instructor_name === instructorName
-          ? existing.instructor_id
-          : null,
+      instructor_id: form.instructor_id || null,
       instructor_name: instructorName || null,
       room: form.room.trim() || null,
       drop_in_cents: price.cents as number | null,
@@ -181,6 +203,7 @@ export type PrivateForm = {
   title: string;
   duration: string;
   price: string;
+  instructor_id: string;
   instructor_name: string;
   notes: string;
   status: OfferingStatus;
@@ -192,6 +215,7 @@ export const BLANK_PRIVATE_FORM: PrivateForm = {
   title: "",
   duration: "60",
   price: "",
+  instructor_id: "",
   instructor_name: "",
   notes: "",
   status: "active",
@@ -202,16 +226,14 @@ export function privateFormFrom(offer: PrivateOffer): PrivateForm {
     title: offer.title,
     duration: String(offer.duration_minutes),
     price: dollarsFromCents(offer.price_cents),
+    instructor_id: offer.instructor_id ?? "",
     instructor_name: offer.instructor_name ?? "",
     notes: offer.notes ?? "",
     status: offer.status,
   };
 }
 
-export function privateInputFrom(
-  form: PrivateForm,
-  existing: PrivateOffer | null
-): { input: PrivateOfferInput } | { errors: FieldErrors<PrivateField> } {
+export function privateInputFrom(form: PrivateForm): { input: PrivateOfferInput } | { errors: FieldErrors<PrivateField> } {
   const errors: FieldErrors<PrivateField> = {};
   const title = validateTitle(form.title, "Title");
   if (title) errors.title = title;
@@ -231,10 +253,7 @@ export function privateInputFrom(
       title: form.title.trim(),
       duration_minutes: duration.minutes as number,
       price_cents: price.cents as number,
-      instructor_id:
-        existing && existing.instructor_id && existing.instructor_name === instructorName
-          ? existing.instructor_id
-          : null,
+      instructor_id: form.instructor_id || null,
       instructor_name: instructorName || null,
       notes: form.notes.trim() || null,
       status: form.status,

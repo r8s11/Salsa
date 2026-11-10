@@ -7,7 +7,9 @@ import { useEntityDirectory } from "../hooks/useEntityDirectory";
 import { DiscoverHub } from "./DiscoverHub";
 import { EntityDirectoryResults } from "./EntityDirectoryResults";
 import { EntityDirectorySearch } from "./EntityDirectorySearch";
+import { MANAGED_KINDS } from "../../workspaces/model";
 import "./EntityDirectoryPage.css";
+
 
 export default function EntityDirectoryPage({ kind }: { kind?: PublicEntityKind }) {
   const path = kind ? ENTITY_DIRECTORY_PATHS[kind] : "/discover";
@@ -69,6 +71,11 @@ export default function EntityDirectoryPage({ kind }: { kind?: PublicEntityKind 
         <DiscoverHub />
       )}
       {kind && <p className="entity-directory__all"><Link to="/discover">Search every category</Link></p>}
+      {(!kind || MANAGED_KINDS.some((managed) => managed === kind)) && (
+        <p className="entity-directory__all">
+          <Link to={kind ? `/request-listing?kind=${kind}` : "/request-listing"}>Not listed? Request a listing</Link>
+        </p>
+      )}
     </section>
   );
 }

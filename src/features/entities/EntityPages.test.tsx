@@ -323,6 +323,19 @@ describe("EntityDirectoryPage", () => {
     expect(await screen.findByText(/no instructors found/i)).toBeInTheDocument();
   });
 
+  it("points a missing listing to the request form, preselecting the kind where one can be requested", () => {
+    const { unmount } = renderRoute(<EntityDirectoryPage kind="dj" />, "/djs", "*");
+    expect(screen.getByRole("link", { name: "Not listed? Request a listing" })).toHaveAttribute("href", "/request-listing?kind=dj");
+    unmount();
+
+    const hub = renderRoute(<EntityDirectoryPage />, "/discover", "*");
+    expect(screen.getByRole("link", { name: "Not listed? Request a listing" })).toHaveAttribute("href", "/request-listing");
+    hub.unmount();
+
+    renderRoute(<EntityDirectoryPage kind="organizer" />, "/organizers", "*");
+    expect(screen.queryByRole("link", { name: "Not listed? Request a listing" })).not.toBeInTheDocument();
+  });
+
   it("offers a retry after the directory read fails", async () => {
     rpc.mockResolvedValueOnce({ data: null, error: { message: "offline" } });
     rpc.mockResolvedValueOnce({ data: [detail.entity], error: null });

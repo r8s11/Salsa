@@ -1,0 +1,130 @@
+.lrq-page {
+  width: min(100% - 2 * var(--gutter), 42rem);
+  margin-inline: auto;
+  padding-block: clamp(2.5rem, 7vw, 5rem);
+  color: var(--text);
+}
+.lrq-page__intro h1 {
+  margin: 0 0 0.75rem;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3rem);
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+.lrq-page__intro p {
+  max-width: 60ch;
+  margin: 0 0 2rem;
+  color: var(--text-muted);
+}
+.lrq-page__sent {
+  margin: 1rem 0 0;
+  font-weight: 600;
+  color: var(--gold);
+}
+.lrq-page__sent:empty {
+  margin: 0;
+}
+
+.lrq-form {
+  display: grid;
+  gap: 1.1rem;
+}
+.lrq-form__field {
+  display: grid;
+  gap: 0.4rem;
+  min-width: 0;
+}
+.lrq-form__field label {
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+.lrq-form__field input,
+.lrq-form__field select,
+.lrq-form__field textarea {
+  width: 100%;
+  min-height: 46px;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+.lrq-form__field textarea {
+  resize: vertical;
+  line-height: 1.5;
+}
+.lrq-form__field [aria-invalid="true"] {
+  border-color: var(--red);
+}
+.lrq-form__field input:focus-visible,
+.lrq-form__field select:focus-visible,
+.lrq-form__field textarea:focus-visible,
+.lrq-form__check input:focus-visible,
+.lrq-matches a:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+.lrq-form__error,
+.lrq-form__alert {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--red-error, #ff8080);
+}
+.lrq-form__alert {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid rgba(225, 29, 72, 0.35);
+  border-radius: var(--radius-sm);
+  background: rgba(225, 29, 72, 0.12);
+}
+.lrq-form__check {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 44px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.lrq-form__check input {
+  width: 1.15rem;
+  height: 1.15rem;
+  margin: 0;
+  accent-color: var(--red);
+}
+.lrq-form__actions button {
+  min-height: 46px;
+}
+
+.lrq-matches {
+  padding: 0.9rem 1rem;
+  border-radius: 12px;
+  background: var(--surface);
+  font-size: 0.9rem;
+}
+.lrq-matches__title {
+  margin: 0 0 0.4rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+.lrq-matches p {
+  margin: 0;
+  color: var(--text-muted);
+}
+.lrq-matches ul {
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.lrq-matches a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--gold);
+  text-underline-offset: 0.2em;
+  overflow-wrap: anywhere;
+}
+.lrq-matches__city {
+  color: var(--text-muted);
+}

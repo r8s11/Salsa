@@ -86,6 +86,7 @@ const HostOrganizationPage = lazy(() => import("../pages/host/HostOrganizationPa
 const UserEventEditPage = lazy(() => import("../pages/UserEventEditPage"));
 const OnboardingPage = lazy(() => import("../pages/account/OnboardingPage"));
 const AdminEntityClaimsPage = lazy(() => import("../features/admin/pages/AdminEntityClaimsPage"));
+const RequestListingPage = lazy(() => import("../features/listingRequests/pages/RequestListingPage"));
 const EntityWorkspaceOverviewPage = lazy(() => import("../features/workspaces/pages/EntityWorkspaceOverviewPage"));
 const EntityWorkspaceProfilePage = lazy(() => import("../features/workspaces/pages/EntityWorkspaceProfilePage"));
 const EntityWorkspaceTeamPage = lazy(() => import("../features/workspaces/pages/EntityWorkspaceTeamPage"));
@@ -313,6 +314,14 @@ function App() {
               <Route path="data-deletion" element={<DataDeletionPage />} />
               <Route path="calendar" element={<CalendarPage />} />
               <Route path="submit" element={<SubmitEventPage />} />
+              <Route
+                path="request-listing"
+                element={
+                  <RequireAuth>
+                    <RequestListingPage />
+                  </RequireAuth>
+                }
+              />
               <Route path="shop" element={<ShopPage />} />
               <Route path="shop/products/:handle" element={<ProductPage />} />
               <Route path="shop/:collection" element={<CollectionPage />} />

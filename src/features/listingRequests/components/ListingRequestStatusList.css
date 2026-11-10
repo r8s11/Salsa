@@ -1,0 +1,74 @@
+/* Shown on the public site and inside the workspace shell, so colors are
+   inherited from the surrounding theme rather than taken from either one. */
+.lrq-status {
+  margin-top: 2.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+}
+.lrq-status__heading {
+  margin: 0 0 0.75rem;
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+.lrq-status__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.lrq-status__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+}
+.lrq-status__row:last-child {
+  border-bottom: none;
+}
+.lrq-status__main {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+.lrq-status__headline {
+  margin: 0;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.lrq-status__meta,
+.lrq-status__details,
+.lrq-status__note {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  opacity: 0.82;
+  overflow-wrap: anywhere;
+}
+.lrq-status__details {
+  white-space: pre-line;
+}
+.lrq-status__word {
+  font-weight: 700;
+}
+.lrq-status__alert {
+  margin: 0 0 0.75rem;
+  padding: 0.5rem 0 0.5rem 0.75rem;
+  border-left: 3px solid currentColor;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.lrq-status__withdraw {
+  min-height: 44px;
+}
+.lrq-status a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+.lrq-status a:focus-visible,
+.lrq-status__withdraw:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}

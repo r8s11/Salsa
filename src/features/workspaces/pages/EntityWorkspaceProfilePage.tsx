@@ -5,6 +5,7 @@ import WorkspaceFrame from "../components/WorkspaceFrame";
 import { errorMessage, useSaveProfile } from "../hooks/useEntityWorkspace";
 import {
   canEditProfile,
+  workspacePath,
   type EntityWorkspace,
   type DjProfile,
   type InstructorProfile,
@@ -147,7 +148,13 @@ function ProfileBody({ workspace }: { workspace: EntityWorkspace }) {
       </dl>
       <p className="ws-note">
         The name, city and page address are set by Salsa Segura.{" "}
-        <Link to="/contact">Contact Salsa Segura</Link> to change them.
+        {editable ? (
+          <>
+            <Link to={workspacePath(kind, entity.id, "requests")}>Request a change</Link> if one is wrong.
+          </>
+        ) : (
+          "An owner or manager can request a change if one is wrong."
+        )}
       </p>
 
       {!editable ? (

@@ -38,6 +38,7 @@ describe("EntityWorkspaceProfilePage", () => {
     expect(screen.getByText("boston", { selector: "dd" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "/s/salsa-academy" })).toBeInTheDocument();
     expect(screen.getByText(/set by Salsa Segura/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Request a change" })).toHaveAttribute("href", "/host/schools/school-1/requests");
     expect(screen.queryByLabelText("Name")).not.toBeInTheDocument();
     expect(screen.queryByLabelText("City")).not.toBeInTheDocument();
   });

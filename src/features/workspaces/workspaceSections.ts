@@ -40,7 +40,10 @@ export function workspaceSections(
     );
   }
   if (canEditProfile(role)) {
-    sections.push({ key: "profile", label: "Profile", to: workspacePath(kind, id, "profile") });
+    sections.push(
+      { key: "profile", label: "Profile", to: workspacePath(kind, id, "profile") },
+      { key: "requests", label: "Requests", to: workspacePath(kind, id, "requests") }
+    );
   }
   if (canManageTeam(role)) {
     sections.push({ key: "team", label: "Team", to: workspacePath(kind, id, "team") });

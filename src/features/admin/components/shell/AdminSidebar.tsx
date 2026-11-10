@@ -24,6 +24,7 @@ import {
   UserRound,
   Tags,
   Pencil,
+  MessageSquarePlus,
   UsersRound,
 } from "lucide-react";
 import { useId, useState, type ComponentType } from "react";
@@ -221,6 +222,7 @@ const WORKSPACE_SECTION_ICON: Record<WorkspaceSectionLink["key"], NavItem["icon"
   privates: UserRound,
   prices: Tags,
   profile: Pencil,
+  requests: MessageSquarePlus,
   team: UsersRound,
 };
 

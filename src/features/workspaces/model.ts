@@ -34,7 +34,7 @@ export const WORKSPACE_SEGMENTS: Record<ManagedKind, string> = {
   dj: "djs",
 };
 
-export type WorkspaceSection = "timetable" | "privates" | "prices" | "profile" | "team";
+export type WorkspaceSection = "timetable" | "privates" | "prices" | "profile" | "requests" | "team";
 
 /** `/host/schools/:id`, `/host/schools/:id/timetable`, … */
 export function workspacePath(kind: ManagedKind, id: string, section?: WorkspaceSection): string {

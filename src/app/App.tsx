@@ -90,6 +90,7 @@ const RequestListingPage = lazy(() => import("../features/listingRequests/pages/
 const EntityWorkspaceOverviewPage = lazy(() => import("../features/workspaces/pages/EntityWorkspaceOverviewPage"));
 const EntityWorkspaceProfilePage = lazy(() => import("../features/workspaces/pages/EntityWorkspaceProfilePage"));
 const EntityWorkspaceTeamPage = lazy(() => import("../features/workspaces/pages/EntityWorkspaceTeamPage"));
+const EntityWorkspaceRequestsPage = lazy(() => import("../features/workspaces/pages/EntityWorkspaceRequestsPage"));
 const SchoolTimetablePage = lazy(() => import("../features/workspaces/pages/SchoolTimetablePage"));
 const SchoolPrivatesPage = lazy(() => import("../features/workspaces/pages/SchoolPrivatesPage"));
 const SchoolPricesPage = lazy(() => import("../features/workspaces/pages/SchoolPricesPage"));
@@ -291,6 +292,7 @@ function App() {
                 <Route key={kind} path={`${WORKSPACE_SEGMENTS[kind]}/:id`}>
                   <Route index element={<EntityWorkspaceOverviewPage kind={kind} />} />
                   <Route path="profile" element={<EntityWorkspaceProfilePage kind={kind} />} />
+                  <Route path="requests" element={<EntityWorkspaceRequestsPage kind={kind} />} />
                   <Route path="team" element={<EntityWorkspaceTeamPage kind={kind} />} />
                 </Route>
               ))}

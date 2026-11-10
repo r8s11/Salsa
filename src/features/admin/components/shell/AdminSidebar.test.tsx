@@ -662,6 +662,7 @@ describe("AdminSidebar listing workspaces", () => {
       "Privates",
       "Prices",
       "Profile",
+      "Requests",
       "Team",
     ]);
     expect(groupLabels()).toEqual(["Host", "School · Salsa Academy"]);
@@ -671,7 +672,7 @@ describe("AdminSidebar listing workspaces", () => {
     );
   });
 
-  it("hides Team for a manager and Profile for an editor", () => {
+  it("hides Team for a manager, and Profile and Requests for an editor", () => {
     mockListingMember(
       entityMembership({ id: "s-manager", name: "Manager School", member_role: "manager" }),
       entityMembership({ id: "s-editor", name: "Editor School", member_role: "editor" })
@@ -680,6 +681,7 @@ describe("AdminSidebar listing workspaces", () => {
 
     expect(screen.queryByRole("link", { name: "Team" })).not.toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: "Profile" })).toHaveLength(1);
+    expect(screen.getByRole("link", { name: "Requests" })).toHaveAttribute("href", "/host/schools/s-manager/requests");
     expect(screen.getByRole("link", { name: "Profile" })).toHaveAttribute(
       "href",
       "/host/schools/s-manager/profile"

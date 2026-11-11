@@ -44,6 +44,10 @@ vi.mock("../../hooks/useAdminEntityClaims", () => ({
   },
 }));
 
+vi.mock("../../hooks/useAdminListingRequests", () => ({
+  usePendingRequestsForListing: () => ({ count: 0 }),
+}));
+
 vi.mock("../../hooks/useAdminSubmissionList", () => ({
   useAdminSubmissions: () => ({ submissions: mocks.submissions, isLoading: false, error: null }),
 }));

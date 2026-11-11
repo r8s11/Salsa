@@ -126,6 +126,7 @@ describe("claim control on public pages", () => {
     expect(await screen.findByText("Run this school?")).toBeInTheDocument();
     const link = screen.getByRole("link", { name: "Sign in" });
     expect(link).toHaveAttribute("href", "/signin");
+    expect(screen.getByRole("link", { name: "Help with signing in" })).toHaveAttribute("href", "/help/dancers#create-an-account-or-sign-in");
     fireEvent.click(link);
     expect(returnDestination).toHaveBeenCalledWith("/s/ritmo-vivo");
   });
@@ -155,6 +156,8 @@ describe("claim control on public pages", () => {
 
     expect(await screen.findByText("Your claim is waiting for review.")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /claim this/i })).not.toBeInTheDocument();
+    expect(screen.getByText("A pending claim does not grant editing access.")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "What happens after a claim" })).toHaveAttribute("href", "/help/listing-access#after-review");
   });
 
   it("shows a rejection note and allows a new claim", async () => {
@@ -178,6 +181,7 @@ describe("claim control on public pages", () => {
     const dialog = screen.getByRole("dialog", { name: /claim ritmo vivo/i });
     expect(within(dialog).queryByRole("radio", { name: "This is me" })).not.toBeInTheDocument();
     expect(within(dialog).getByRole("radio", { name: "I own it" })).toBeChecked();
+    expect(within(dialog).getByRole("link", { name: "How to claim a listing" })).toHaveAttribute("href", "/help/listing-access#submit-a-claim");
 
     await user.click(within(dialog).getByRole("radio", { name: "I manage it" }));
     await user.type(within(dialog).getByLabelText(/message/i), "Front desk lead since 2019");
@@ -188,6 +192,7 @@ describe("claim control on public pages", () => {
     }));
     expect(await within(dialog).findByText("Your claim is waiting for review.")).toBeInTheDocument();
     expect(within(dialog).queryByRole("button", { name: "Submit claim" })).not.toBeInTheDocument();
+    expect(within(dialog).getByRole("link", { name: "What happens after a claim" })).toHaveAttribute("href", "/help/listing-access#after-review");
   });
 
   it("shows the RPC error inline and keeps the form", async () => {

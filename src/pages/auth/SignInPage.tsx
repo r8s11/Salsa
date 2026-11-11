@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import SignInForm from "../../features/auth/components/SignInForm";
 import SalsaSeguraLogo from "../../components/ui/SalsaSeguraLogo";
+import { ContextHelp } from "../../features/help/ContextHelp";
 import "./SignInPage.css";
 
 export default function SignInPage() {
@@ -15,6 +16,7 @@ export default function SignInPage() {
           <p>
             Sign in to submit events, track moderation status, and help keep the dance floor moving.
           </p>
+          <ContextHelp context={{ surface: "sign-in" }} />
         </section>
         <SignInForm />
       </div>

@@ -37,6 +37,8 @@ describe("EntityWorkspaceOverviewPage", () => {
     expect(screen.getByText("Published")).toBeInTheDocument();
     expect(screen.getByText("Your role: Manager")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /View public page/ })).toHaveAttribute("href", "/s/salsa-academy");
+    expect(screen.getByRole("link", { name: "School workspace guide" })).toHaveAttribute("href", "/help/schools");
+    expect(screen.getByText(/Your role is Manager, so Team is not shown/)).toBeInTheDocument();
   });
 
   it("links a venue and an artist to their own public pages", async () => {
@@ -66,6 +68,7 @@ describe("EntityWorkspaceOverviewPage", () => {
     renderWorkspacePage(<EntityWorkspaceOverviewPage kind="venue" />, "/host/venues/venue-1", "/host/venues/:id");
 
     expect(await screen.findByRole("link", { name: /View public page/ })).toHaveAttribute("href", "/v/havana-club");
+    expect(screen.getByRole("link", { name: "Venue workspace guide" })).toHaveAttribute("href", "/help/venues");
     // Venues carry no timetable.
     expect(screen.queryByText("The week's timetable")).not.toBeInTheDocument();
   });
@@ -135,6 +138,7 @@ describe("EntityWorkspaceOverviewPage", () => {
 
     expect(await screen.findByRole("heading", { name: "You can’t open this listing" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Back to Host" })).toHaveAttribute("href", "/host");
+    expect(screen.getByRole("link", { name: "How to claim a listing" })).toHaveAttribute("href", "/help/listing-access#submit-a-claim");
   });
 
   it("offers a retry when the read fails for another reason", async () => {
@@ -146,5 +150,71 @@ describe("EntityWorkspaceOverviewPage", () => {
     expect(alert).toHaveTextContent("network down");
     alert.querySelector("button")?.click();
     expect(await screen.findByRole("heading", { level: 1, name: "Salsa Academy" })).toBeInTheDocument();
+  });
+
+  it.each(["editor", "owner", "admin"] as const)("selects help for a school %s", async (role) => {
+    serve(schoolWorkspace({ role }));
+    renderWorkspacePage(<EntityWorkspaceOverviewPage kind="school" />, "/host/schools/school-1", "/host/schools/:id");
+    expect(await screen.findByRole("link", { name: "School workspace guide" })).toHaveAttribute("href", "/help/schools");
+    const help = screen.getByRole("complementary", { name: "Help for this page" });
+    expect(within(help).queryByText(/Profile, Requests and Team are not shown/)!==null).toBe(role==="editor");
+    expect(within(help).queryByText(/Only an Owner/)).not.toBeInTheDocument();
+  });
+
+  it("links an instructor workspace to the artist guide", async () => {
+    const instructor: EntityWorkspace = {
+      kind: "instructor",
+      role: "owner",
+      members: [member("owner")],
+      upcoming: [],
+      offerings: null,
+      entity: {
+        id: "instructor-1",
+        name: "Carla Reyes",
+        slug: "carla-reyes",
+        status: "active",
+        city: "boston",
+        state_region: null,
+        country: null,
+        organization: null,
+        website: null,
+        instagram: null,
+        description: null,
+        image_url: null,
+      },
+    };
+    serve(instructor);
+    renderWorkspacePage(<EntityWorkspaceOverviewPage kind="instructor" />, "/host/instructors/instructor-1", "/host/instructors/:id");
+
+    expect(await screen.findByRole("link", { name: /View public page/ })).toHaveAttribute("href", "/i/carla-reyes");
+    expect(screen.getByRole("link", { name: "Artist workspace guide" })).toHaveAttribute("href", "/help/artists");
+  });
+
+  it("links a dj workspace to the DJ guide", async () => {
+    const dj: EntityWorkspace = {
+      kind: "dj",
+      role: "owner",
+      members: [member("owner")],
+      upcoming: [],
+      offerings: null,
+      entity: {
+        id: "dj-1",
+        name: "DJ Ray",
+        slug: "dj-ray",
+        status: "active",
+        city: "boston",
+        state_region: null,
+        country: null,
+        website: null,
+        instagram: null,
+        description: null,
+        image_url: null,
+      },
+    };
+    serve(dj);
+    renderWorkspacePage(<EntityWorkspaceOverviewPage kind="dj" />, "/host/djs/dj-1", "/host/djs/:id");
+
+    expect(await screen.findByRole("link", { name: /View public page/ })).toHaveAttribute("href", "/dj/dj-ray");
+    expect(screen.getByRole("link", { name: "DJ workspace guide" })).toHaveAttribute("href", "/help/djs");
   });
 });

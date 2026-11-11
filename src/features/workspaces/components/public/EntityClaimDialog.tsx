@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useAccessibleDialog } from "../../../../shared/a11y/useAccessibleDialog";
 import { submitEntityClaim } from "../../api/workspacesRepo";
 import { MY_ENTITY_CLAIMS_KEY } from "../../hooks/useMyEntityMemberships";
+import { ContextHelp } from "../../../help/ContextHelp";
 import {
   CLAIM_RELATIONSHIP_LABELS,
   type ClaimRelationship,
@@ -103,6 +104,7 @@ export function EntityClaimDialog({
             <p className="entity-claim-dialog__success-message">
               Your claim is waiting for review.
             </p>
+            <ContextHelp context={{ surface: "claim", kind, claim: "pending" }} />
             <div className="entity-claim-dialog__actions">
               <button
                 type="button"
@@ -115,6 +117,7 @@ export function EntityClaimDialog({
           </div>
         ) : (
           <form className="entity-claim-dialog__form" onSubmit={handleSubmit}>
+            <ContextHelp context={{ surface: "claim", kind, claim: "none" }} />
             <fieldset className="entity-claim-dialog__fieldset" disabled={isSubmitting}>
               <legend className="entity-claim-dialog__legend">Your relationship</legend>
               <div className="entity-claim-dialog__radios">

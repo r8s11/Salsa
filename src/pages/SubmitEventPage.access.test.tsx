@@ -86,7 +86,17 @@ describe("SubmitEventPage anonymous access contract", () => {
     expect(screen.getByLabelText(/Your name/i)).toBeRequired();
     expect(screen.getByLabelText(/^Email$/i)).toBeRequired();
     expect(screen.queryByText(/Submitting as/i)).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Help with signing in" })).toHaveAttribute("href", "/help/dancers#create-an-account-or-sign-in");
+    expect(screen.getByRole("link", { name: "Help with event submissions" })).toHaveAttribute("href", "/help/dancers#suggest-an-event");
   });
+});
+
+it("explains closed submissions without offering an unavailable form", () => {
+  vi.mocked(useSubmissionAccess).mockReturnValue({ isLoading: false, canSubmit: false, error: null });
+  renderSubmission();
+  expect(screen.getByText("Event submissions are closed right now.")).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "Help with event submissions" })).toHaveAttribute("href", "/help/dancers#suggest-an-event");
+  expect(screen.queryByRole("button", { name: "Submit Event" })).not.toBeInTheDocument();
 });
 
 describe("SubmitEventPage authenticated access contract", () => {

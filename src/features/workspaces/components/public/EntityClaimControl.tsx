@@ -8,6 +8,7 @@ import {
 } from "../../hooks/useMyEntityMemberships";
 import { type ManagedKind, workspacePath } from "../../model";
 import { EntityClaimDialog } from "./EntityClaimDialog";
+import { ContextHelp } from "../../../help/ContextHelp";
 import "./EntityClaimControl.css";
 
 interface EntityClaimControlProps {
@@ -42,6 +43,7 @@ export function EntityClaimControl({ kind, entity }: EntityClaimControlProps) {
             Sign in
           </Link>
         </p>
+        <ContextHelp context={{ surface: "claim", kind, claim: "signed-out" }} />
       </div>
     );
   }
@@ -78,6 +80,7 @@ export function EntityClaimControl({ kind, entity }: EntityClaimControlProps) {
         <p className="entity-claim-control__status">
           Your claim is waiting for review.
         </p>
+        <ContextHelp context={{ surface: "claim", kind, claim: "pending" }} />
       </div>
     );
   }
@@ -114,6 +117,7 @@ export function EntityClaimControl({ kind, entity }: EntityClaimControlProps) {
           {claimButtonLabel}
         </button>
       )}
+      {rejectedClaim && <ContextHelp context={{ surface: "claim", kind, claim: "rejected" }} />}
 
       <EntityClaimDialog
         kind={kind}

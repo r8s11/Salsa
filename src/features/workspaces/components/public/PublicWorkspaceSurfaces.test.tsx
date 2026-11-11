@@ -155,6 +155,7 @@ describe("claim control on public pages", () => {
     renderPage();
 
     expect(await screen.findByText("Your claim is waiting for review.")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "See all your claims" })).toHaveAttribute("href", "/account/claims");
     expect(screen.queryByRole("button", { name: /claim this/i })).not.toBeInTheDocument();
     expect(screen.getByText("A pending claim does not grant editing access.")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "What happens after a claim" })).toHaveAttribute("href", "/help/listing-access#after-review");
@@ -167,6 +168,7 @@ describe("claim control on public pages", () => {
     renderPage();
 
     expect(await screen.findByText(/could not verify ownership/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "See all your claims" })).toHaveAttribute("href", "/account/claims");
     expect(screen.getByRole("button", { name: "Claim this school" })).toBeInTheDocument();
   });
 

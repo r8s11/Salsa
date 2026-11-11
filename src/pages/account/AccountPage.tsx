@@ -15,6 +15,7 @@ import {
   type AccountStatus,
 } from "../../features/account/model/account";
 import AccountDeletionDialog from "./AccountDeletionDialog";
+import AccountClaimsCard from "./AccountClaimsCard";
 import {
   checkAccountDeletionEligibility,
   deleteCurrentAccount,
@@ -528,6 +529,7 @@ export default function AccountPage() {
                 </div>
               </article>
             ))}
+            <AccountClaimsCard />
           </div>
         </section>
       )}

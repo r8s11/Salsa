@@ -80,6 +80,7 @@ export function EntityClaimControl({ kind, entity }: EntityClaimControlProps) {
         <p className="entity-claim-control__status">
           Your claim is waiting for review.
         </p>
+        <Link to="/account/claims" className="entity-claim-control__link">See all your claims</Link>
         <ContextHelp context={{ surface: "claim", kind, claim: "pending" }} />
       </div>
     );
@@ -107,6 +108,7 @@ export function EntityClaimControl({ kind, entity }: EntityClaimControlProps) {
           >
             {claimButtonLabel}
           </button>
+          <Link to="/account/claims" className="entity-claim-control__link">See all your claims</Link>
         </div>
       ) : (
         <button

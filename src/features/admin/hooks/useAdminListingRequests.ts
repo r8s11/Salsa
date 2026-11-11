@@ -31,12 +31,15 @@ export interface ReviewListingRequestParams {
   resultingEntityId?: string | null;
 }
 
+/** Narrows the queue to the requests about one listing. */
+export type ListingRequestScope = { kind: ManagedKind; id: string };
+
 /**
  * Every request is loaded once (the queue is small and the tabs need all the
- * counts); the tab only filters the cached list. "All" includes withdrawn
- * requests, which have no tab of their own.
+ * counts); the tab and the optional listing scope only filter the cached
+ * list. "All" includes withdrawn requests, which have no tab of their own.
  */
-export function useAdminListingRequests(view: ListingRequestView = "pending") {
+export function useAdminListingRequests(view: ListingRequestView = "pending", scope: ListingRequestScope | null = null) {
   const queryClient = useQueryClient();
 
   const query = useQuery({
@@ -45,7 +48,12 @@ export function useAdminListingRequests(view: ListingRequestView = "pending") {
     staleTime: 30_000,
   });
 
-  const all = useMemo<AdminListingRequest[]>(() => query.data ?? [], [query.data]);
+  const scopeKind = scope?.kind ?? null;
+  const scopeId = scope?.id ?? null;
+  const all = useMemo<AdminListingRequest[]>(() => {
+    const loaded = query.data ?? [];
+    return scopeId === null ? loaded : loaded.filter((request) => request.entity_kind === scopeKind && request.entity_id === scopeId);
+  }, [query.data, scopeKind, scopeId]);
 
   const counts = useMemo<Record<ListingRequestView, number>>(
     () => ({

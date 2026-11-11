@@ -36,6 +36,7 @@ import {
   usePendingOrganizerRequestCount,
 } from "../../hooks/usePendingRequestCounts";
 import { usePendingEntityClaimCount } from "../../hooks/useAdminEntityClaims";
+import { usePendingListingRequestCount } from "../../hooks/useAdminListingRequests";
 import { useHostCapabilities } from "../../../host/hooks/useHostCapabilities";
 import AdminThemeOptions from "./AdminThemeOptions";
 import type { HostCapabilities } from "../../../host/model/hostCapabilities";
@@ -84,6 +85,7 @@ type HostNavItem = NavItem & { capability: keyof Omit<HostCapabilities, "entityM
 const ORGANIZER_REQUESTS_PATH = "/admin/organizer-requests";
 const FOUNDER_REQUESTS_PATH = "/admin/founder-requests";
 const LISTING_CLAIMS_PATH = "/admin/claims";
+const LISTING_REQUESTS_PATH = "/admin/requests";
 
 const ADMIN_NAV_SECTIONS: { title: string; roles: UserRole[]; items: AdminNavItem[] }[] = [
   {
@@ -125,6 +127,12 @@ const ADMIN_NAV_SECTIONS: { title: string; roles: UserRole[]; items: AdminNavIte
         label: "Listing Claims",
         icon: BadgeCheck,
         to: LISTING_CLAIMS_PATH,
+        roles: ["admin"],
+      },
+      {
+        label: "Listing Requests",
+        icon: MessageSquarePlus,
+        to: LISTING_REQUESTS_PATH,
         roles: ["admin"],
       },
     ],
@@ -324,10 +332,12 @@ export default function AdminSidebar({
   const showsOrganizerQueue = items.some((item) => item.to === ORGANIZER_REQUESTS_PATH);
   const showsFounderQueue = items.some((item) => item.to === FOUNDER_REQUESTS_PATH);
   const showsClaimsQueue = items.some((item) => item.to === LISTING_CLAIMS_PATH);
+  const showsRequestsQueue = items.some((item) => item.to === LISTING_REQUESTS_PATH);
   const pendingByPath: Record<string, number> = {
     [ORGANIZER_REQUESTS_PATH]: usePendingOrganizerRequestCount(showsOrganizerQueue),
     [FOUNDER_REQUESTS_PATH]: usePendingFounderRequestCount(showsFounderQueue),
     [LISTING_CLAIMS_PATH]: usePendingEntityClaimCount(showsClaimsQueue),
+    [LISTING_REQUESTS_PATH]: usePendingListingRequestCount(showsRequestsQueue),
   };
 
   const handleSignOut = async () => {

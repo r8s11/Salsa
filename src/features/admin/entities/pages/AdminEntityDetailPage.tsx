@@ -6,6 +6,7 @@ import { useMetros } from "../../../metros/hooks/useMetros";
 import AdminConfirmDialog from "../../components/common/AdminConfirmDialog";
 import AdminDjGigsSection from "../../components/entities/AdminDjGigsSection";
 import AdminEntityTeamSection from "../../components/entities/AdminEntityTeamSection";
+import { AdminPendingListingRequestsNote } from "../../components/entities/AdminPendingListingRequestsNote";
 import AdminEntityPendingSubmissions from "./AdminEntityPendingSubmissions";
 import { useAdminEntity, useAdminEntityActions, useAdminEntityDirectory, useAdminVenueOptions } from "../hooks/useAdminEntities";
 import {
@@ -192,6 +193,7 @@ export default function AdminEntityDetailPage({ kind, mode }: { kind: EntityKind
               {fields.map((field) => <div key={field.label} className="admin-entity-page__field"><dt>{field.label}</dt><dd><FieldValue field={field} /></dd></div>)}
             </dl>
           </section>
+          {(kind === "instructor" || kind === "dj") && current.id && <AdminPendingListingRequestsNote kind={kind} id={current.id} />}
           {kind === "dj" && current.id ? <AdminDjGigsSection djId={current.id} linkedEvents={current.linked_events} /> : <section className="admin-card admin-entity-page__linked" aria-labelledby="entity-events-title">
             <h2 id="entity-events-title">Linked events <span>({current.linked_events.length})</span></h2>
             {current.linked_events.length ? <ul>{current.linked_events.map((event) => <li key={event.id}>

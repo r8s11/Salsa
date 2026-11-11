@@ -10,6 +10,7 @@ import {
   usePendingOrganizerRequestCount,
 } from "../../hooks/usePendingRequestCounts";
 import { usePendingEntityClaimCount } from "../../hooks/useAdminEntityClaims";
+import { usePendingListingRequestCount } from "../../hooks/useAdminListingRequests";
 import { useMyEntityMemberships } from "../../../workspaces/hooks/useMyEntityMemberships";
 import type { EntityMembership } from "../../../workspaces/model";
 
@@ -49,6 +50,9 @@ vi.mock("../../hooks/usePendingRequestCounts", () => ({
 }));
 vi.mock("../../hooks/useAdminEntityClaims", () => ({
   usePendingEntityClaimCount: vi.fn(() => 0),
+}));
+vi.mock("../../hooks/useAdminListingRequests", () => ({
+  usePendingListingRequestCount: vi.fn(() => 0),
 }));
 vi.mock("../../../workspaces/hooks/useMyEntityMemberships", () => ({
   useMyEntityMemberships: vi.fn(),
@@ -551,6 +555,21 @@ describe("AdminSidebar navigation groups", () => {
       "href",
       "/admin/claims"
     );
+  });
+
+  it("shows Listing Requests with the pending count to admins and hides it from moderators", () => {
+    mockRole("admin");
+    vi.mocked(usePendingListingRequestCount).mockReturnValue(3);
+    const { unmount } = renderSidebar();
+
+    expect(screen.getByRole("link", { name: /Listing Requests\s*\(3 pending\)/ })).toHaveAttribute("href", "/admin/requests");
+    expect(usePendingListingRequestCount).toHaveBeenLastCalledWith(true);
+    unmount();
+
+    mockRole("moderator");
+    renderSidebar();
+    expect(screen.queryByRole("link", { name: /Listing Requests/ })).not.toBeInTheDocument();
+    expect(usePendingListingRequestCount).toHaveBeenLastCalledWith(false);
   });
 
   it("shows a moderator only the Desk links, with no group label, no claims and no Tags", () => {

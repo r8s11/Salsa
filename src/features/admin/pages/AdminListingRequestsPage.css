@@ -1,0 +1,55 @@
+/* The requests galley rides the desk's agate rows (src/components/desk/desk.css);
+   this file only sets what a request carries that an event entry does not. */
+
+.admin-listing-requests__galley {
+  margin-top: 1rem;
+  border-top: 2px solid var(--desk-rule-strong, var(--admin-border-md));
+}
+
+/* A decision moves focus to the galley; the container itself carries no ring. */
+.admin-listing-requests__galley:focus {
+  outline: none;
+}
+
+.admin-listing-requests__scope {
+  margin: 0 0 0.75rem;
+  color: var(--admin-text-secondary);
+  font-size: var(--desk-agate, 0.8125rem);
+}
+
+.admin-listing-requests__scope a,
+.admin-listing-requests__link {
+  color: var(--admin-brand-text);
+}
+
+.admin-listing-requests__message {
+  margin: 6px 0 0;
+  padding-left: 10px;
+  border-left: 2px solid var(--desk-rule-strong, var(--admin-border-md));
+  color: var(--admin-text-primary);
+  font-size: var(--desk-agate, 0.8125rem);
+  line-height: var(--desk-agate-lh, 1.35);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.admin-listing-requests__error {
+  margin: 6px 0 0;
+  color: var(--desk-killed);
+  font-size: var(--desk-agate, 0.8125rem);
+  font-weight: 600;
+}
+
+.admin-listing-requests__created {
+  display: block;
+  width: min(100%, 24rem);
+  margin-top: 8px;
+}
+
+@media (max-width: 639.98px) {
+  .admin-listing-requests__scope a,
+  .admin-listing-requests__link {
+    display: inline-block;
+    padding-block: 10px;
+  }
+}

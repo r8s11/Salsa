@@ -86,6 +86,7 @@ const HostOrganizationPage = lazy(() => import("../pages/host/HostOrganizationPa
 const UserEventEditPage = lazy(() => import("../pages/UserEventEditPage"));
 const OnboardingPage = lazy(() => import("../pages/account/OnboardingPage"));
 const AdminEntityClaimsPage = lazy(() => import("../features/admin/pages/AdminEntityClaimsPage"));
+const AdminListingRequestsPage = lazy(() => import("../features/admin/pages/AdminListingRequestsPage"));
 const RequestListingPage = lazy(() => import("../features/listingRequests/pages/RequestListingPage"));
 const EntityWorkspaceOverviewPage = lazy(() => import("../features/workspaces/pages/EntityWorkspaceOverviewPage"));
 const EntityWorkspaceProfilePage = lazy(() => import("../features/workspaces/pages/EntityWorkspaceProfilePage"));
@@ -254,6 +255,14 @@ function App() {
                 element={
                   <RequireAdmin>
                     <AdminAnalyticsPage />
+                  </RequireAdmin>
+                }
+              />
+              <Route
+                path="requests"
+                element={
+                  <RequireAdmin>
+                    <AdminListingRequestsPage />
                   </RequireAdmin>
                 }
               />

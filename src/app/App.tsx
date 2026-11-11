@@ -74,6 +74,7 @@ const AdminItineraryPreviewPage = lazy(() => import("../features/admin/pages/Adm
 const ProfilePage = lazy(() => import("../pages/account/ProfilePage"));
 const ProfileEditPage = lazy(() => import("../pages/account/ProfileEditPage"));
 const AccountPage = lazy(() => import("../pages/account/AccountPage"));
+const MyClaimsPage = lazy(() => import("../features/workspaces/pages/MyClaimsPage"));
 const HostMyEventsPage = lazy(() => import("../pages/host/HostMyEventsPage"));
 const HostCreateEventPage = lazy(() => import("../pages/host/HostCreateEventPage"));
 const HostEditEventPage = lazy(() => import("../pages/host/HostEditEventPage"));
@@ -388,6 +389,7 @@ function App() {
                   </RequireAuth>
                 }
               />
+              <Route path="account/claims" element={<RequireAuth><RequireOnboarding><MyClaimsPage /></RequireOnboarding></RequireAuth>} />
               <Route
                 path="profile/edit/:eventId"
                 element={

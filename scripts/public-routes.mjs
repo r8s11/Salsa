@@ -10,6 +10,7 @@ import { resolve } from "node:path";
 export const CANONICAL_ORIGIN = "https://www.salsasegura.com";
 
 export const routeMeta = JSON.parse(readFileSync(resolve("src/shared/seo/routeMeta.json"), "utf8"));
+const helpGuides = JSON.parse(readFileSync(resolve("src/content/help/guides.json"), "utf8")).guides;
 
 /** Public entity kinds: URL prefix (mirrors ENTITY_PATHS in src/features/entities/model.ts) and display label. */
 export const ENTITY_KINDS = {
@@ -25,7 +26,7 @@ export const ENTITY_KINDS = {
 
 const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const PAGE_KEYS = ["calendar", "about", "contact", "privacy", "dataDeletion", "submit", "lessons"];
+const PAGE_KEYS = ["calendar", "about", "contact", "privacy", "dataDeletion", "help", "submit", "lessons"];
 const ENV_FILES = [".env", ".env.local", ".env.production", ".env.production.local"];
 const EVENT_PAGE_SIZE = 200;
 const ENTITY_PAGE_SIZE = 100;
@@ -50,6 +51,7 @@ export function publicRoutes(meta) {
   return [
     { ...meta.home, type: "home" },
     ...PAGE_KEYS.map((key) => ({ ...meta[key], type: key === "calendar" ? "calendar" : "page" })),
+    ...helpGuides.map(({ slug, title, description }) => ({ path: `/help/${slug}`, title, description, type: "page" })),
     ...meta.prerenderedMetros.map(({ slug, name }) => ({
       path: `/events/${slug}`,
       type: "metro",

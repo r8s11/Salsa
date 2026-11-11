@@ -15,7 +15,7 @@ export function guideBySlug(slug: string | undefined): GuideMeta | undefined {
 export function guidePath(slug?: GuideSlug, anchor?: string): string {
   return `/help${slug ? `/${slug}` : ''}${anchor ? `#${anchor}` : ''}`;
 }
-const sources = import.meta.glob<string>('/docs/user-guides/*.md', { query: '?raw', import: 'default' });
+const sources = import.meta.glob<string>('/docs/user-guides/{README,dancers,djs,venues,organizers,artists,schools,listing-access}.md', { query: '?raw', import: 'default' });
 
 export async function loadGuideSource(slug: GuideSlug | 'index'): Promise<string> {
   if (slug !== 'index' && !guideBySlug(slug)) throw new Error('Unknown help guide');
@@ -29,5 +29,6 @@ export async function loadGuideSource(slug: GuideSlug | 'index'): Promise<string
     .replace(/^The \[improvement tracker\][^\n]*\n?/mu, '')
     .replace(/\]\(https:\/\/www\.salsasegura\.com\/?([^)]*)\)/gu, '](/$1)')
     .replace(/\]\(README\.md\)/gu, '](/help)')
+    .replace(/^## Choose your guide\n[\s\S]*?(?=^## One account)/mu, '')
     .replace(/\]\((dancers|djs|venues|organizers|artists|schools|listing-access)\.md(#[^)]*)?\)/gu, '](/help/$1$2)');
 }

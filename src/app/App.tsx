@@ -11,6 +11,8 @@ const AboutPage = lazy(() => import("../pages/AboutPage"));
 const ContactPage = lazy(() => import("../pages/ContactPage"));
 const PrivacyPage = lazy(() => import("../pages/PrivacyPage"));
 const DataDeletionPage = lazy(() => import("../pages/DataDeletionPage"));
+const HelpIndexPage = lazy(() => import("../features/help/pages/HelpIndexPage"));
+const HelpGuidePage = lazy(() => import("../features/help/pages/HelpGuidePage"));
 const CalendarPage = lazy(() => import("../pages/CalendarPage"));
 const SubmitEventPage = lazy(() => import("../pages/SubmitEventPage"));
 // Explicit route-level lazy loading keeps non-critical shop pages out of the entry bundle.
@@ -323,6 +325,8 @@ function App() {
               <Route path="contact" element={<ContactPage />} />
               <Route path="privacy" element={<PrivacyPage />} />
               <Route path="data-deletion" element={<DataDeletionPage />} />
+              <Route path="help" element={<HelpIndexPage />} />
+              <Route path="help/:slug" element={<HelpGuidePage />} />
               <Route path="calendar" element={<CalendarPage />} />
               <Route path="submit" element={<SubmitEventPage />} />
               <Route

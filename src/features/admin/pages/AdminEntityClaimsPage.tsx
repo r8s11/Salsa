@@ -293,7 +293,7 @@ export default function AdminEntityClaimsPage() {
       {rejecting && (
         <AdminConfirmDialog
           title={`Reject ${claimantName(rejecting)}'s claim?`}
-          body={`They will not be able to manage ${rejecting.entity_name}. Any note below is kept on the claim record.`}
+          body={`They will not be able to manage ${rejecting.entity_name}. The claimant will see this note. It appears on their claims page and on the listing; keep it factual.`}
           confirmLabel="Reject claim"
           busyLabel="Rejecting…"
           isBusy={isReviewing}

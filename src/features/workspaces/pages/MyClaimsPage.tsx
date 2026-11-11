@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useClaimInbox } from "../hooks/useClaimInbox";
 import { CLAIM_RELATIONSHIP_LABELS, MANAGED_KIND_LABELS, publicEntityPath } from "../model";
+import "../../../components/ui/Button.css";
 import "./MyClaimsPage.css";
 
 const dateFormat = new Intl.DateTimeFormat("en-US", { dateStyle: "medium" });

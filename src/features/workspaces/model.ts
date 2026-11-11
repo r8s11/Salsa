@@ -121,6 +121,8 @@ export type VenueProfile = {
   website: string | null;
   instagram: string | null;
   phone: string | null;
+  description: string | null;
+  image_url: string | null;
 };
 
 export type InstructorProfile = {
@@ -155,7 +157,7 @@ export type DjProfile = {
 /** Fields entity_profile_save accepts per kind; name, slug, city and status stay admin-only. */
 export type ProfilePatch = {
   school: Partial<Pick<SchoolProfile, "description" | "image_url" | "website" | "instagram" | "phone" | "address_line1" | "postal_code">>;
-  venue: Partial<Pick<VenueProfile, "website" | "instagram" | "phone" | "address_line1" | "address_line2" | "postal_code">>;
+  venue: Partial<Pick<VenueProfile, "description" | "image_url" | "website" | "instagram" | "phone" | "address_line1" | "address_line2" | "postal_code">>;
   instructor: Partial<Pick<InstructorProfile, "description" | "image_url" | "website" | "instagram" | "organization">>;
   dj: Partial<Pick<DjProfile, "description" | "image_url" | "website" | "instagram">>;
 };

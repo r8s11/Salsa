@@ -62,6 +62,8 @@ describe("EntityWorkspaceOverviewPage", () => {
         website: null,
         instagram: null,
         phone: null,
+        description: null,
+        image_url: null,
       },
     };
     serve(venue);

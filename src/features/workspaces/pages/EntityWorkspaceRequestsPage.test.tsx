@@ -37,6 +37,7 @@ function venueWorkspace(): EntityWorkspace {
     entity: {
       id: "venue-1", name: "Havana Club", slug: "havana-club", status: "active", city: "boston", state_region: null,
       country: null, address_line1: null, address_line2: null, postal_code: null, website: null, instagram: null, phone: null,
+      description: null, image_url: null,
     },
   };
 }

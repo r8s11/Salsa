@@ -112,6 +112,20 @@ export function schoolWorkspace(
   };
 }
 
+export function venueWorkspace(
+  overrides: Partial<Omit<Extract<EntityWorkspace, { kind: "venue" }>, "kind" | "offerings">> = {},
+): Extract<EntityWorkspace, { kind: "venue" }> {
+  return {
+    kind: "venue", role: "owner", members: [member("owner")], upcoming: [], offerings: null,
+    entity: {
+      id: "venue-1", name: "Havana Club", slug: "havana-club", status: "active", city: "boston",
+      state_region: null, country: null, address_line1: "5 Main St", address_line2: null,
+      postal_code: null, website: null, instagram: null, phone: null, description: null, image_url: null,
+    },
+    ...overrides,
+  };
+}
+
 /** Renders `element` at `path`, matched by `pattern`, with a fresh query cache. */
 export function renderWorkspacePage(element: ReactElement, path: string, pattern: string) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });

@@ -1,8 +1,8 @@
-import { screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import EntityWorkspaceProfilePage from "./EntityWorkspaceProfilePage";
-import { renderWorkspacePage, schoolWorkspace } from "./workspaceTestKit";
+import { renderWorkspacePage, schoolWorkspace, venueWorkspace } from "./workspaceTestKit";
 import type { EntityWorkspace } from "../model";
 
 const rpc = vi.hoisted(() => vi.fn());
@@ -120,34 +120,64 @@ describe("EntityWorkspaceProfilePage", () => {
     expect(screen.queryByRole("form", { name: "Public profile" })).not.toBeInTheDocument();
   });
 
-  it("offers a venue its own field set", async () => {
-    const venue: EntityWorkspace = {
-      kind: "venue",
-      role: "owner",
-      members: [],
-      upcoming: [],
-      offerings: null,
-      entity: {
-        id: "venue-1",
-        name: "Havana Club",
-        slug: "havana-club",
-        status: "active",
-        city: "boston",
-        state_region: null,
-        country: null,
-        address_line1: "5 Main St",
-        address_line2: null,
-        postal_code: null,
-        website: null,
-        instagram: null,
-        phone: null,
-      },
-    };
-    serve(venue);
+  it("offers venue public and private fields with rights guidance", async () => {
+    serve(venueWorkspace());
     renderProfile("venue");
-
-    await waitFor(() => expect(screen.getByLabelText("Address line 2")).toBeInTheDocument());
+    const description = await screen.findByLabelText("Description");
+    expect(description).toHaveAttribute("maxlength", "1200");
+    expect(description).toHaveAccessibleDescription(/Shown on your public page/);
     expect(screen.getByLabelText("Street address")).toHaveValue("5 Main St");
-    expect(screen.queryByLabelText("Description")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Street address")).toHaveAccessibleDescription(/Shown on your public page/);
+    expect(screen.getByLabelText("Image link")).toHaveAccessibleDescription(/written permission to publish/);
+    for (const label of ["Phone", "Address line 2", "Postal code"]) {
+      expect(screen.getByLabelText(label)).toHaveAccessibleDescription(/Not shown on your public page/);
+    }
+    expect(screen.queryByLabelText("Name")).not.toBeInTheDocument();
+  });
+
+  it("saves the boundary description and HTTPS image in a venue patch", async () => {
+    serve(venueWorkspace());
+    renderProfile("venue");
+    fireEvent.change(await screen.findByLabelText("Description"), { target: { value: "x".repeat(1200) } });
+    fireEvent.change(screen.getByLabelText("Image link"), { target: { value: "https://img.example/club.jpg" } });
+    await userEvent.click(screen.getByRole("button", { name: "Save profile" }));
+    expect(await screen.findByText("Saved.")).toBeInTheDocument();
+    expect(rpc).toHaveBeenCalledWith("entity_profile_save", { p_kind: "venue", p_id: "venue-1", p_payload: expect.objectContaining({ description: "x".repeat(1200), image_url: "https://img.example/club.jpg" }) });
+  });
+
+  it.each(["http://img.example/a.jpg", "javascript:alert(1)", "data:image/png;base64,AAAA", "https://img.example/a b.jpg", "https://" + "x".repeat(2041)])("refuses unsafe venue image %s before saving", async (value) => {
+    serve(venueWorkspace());
+    renderProfile("venue");
+    fireEvent.change(await screen.findByLabelText("Image link"), { target: { value } });
+    await userEvent.click(screen.getByRole("button", { name: "Save profile" }));
+    expect(screen.getByText(/Image link must be a full link starting with https/)).toBeInTheDocument();
+    expect(screen.getByLabelText("Image link")).toHaveFocus();
+    expect(rpc.mock.calls.some(([name]) => name === "entity_profile_save")).toBe(false);
+  });
+
+  it("clears an existing venue image", async () => {
+    const workspace = venueWorkspace();
+    workspace.entity.image_url = "https://img.example/old.jpg";
+    serve(workspace);
+    renderProfile("venue");
+    fireEvent.change(await screen.findByLabelText("Image link"), { target: { value: "" } });
+    await userEvent.click(screen.getByRole("button", { name: "Save profile" }));
+    expect(await screen.findByText("Saved.")).toBeInTheDocument();
+    expect(rpc).toHaveBeenCalledWith("entity_profile_save", expect.objectContaining({ p_payload: expect.objectContaining({ image_url: "" }) }));
+  });
+
+  it("shows server refusals for venue edits", async () => {
+    serve(venueWorkspace(), { entity_profile_save: { data: null, error: { message: "Image link must be a full https:// link.", code: "22023" } } });
+    renderProfile("venue");
+    fireEvent.change(await screen.findByLabelText("Description"), { target: { value: "Friday nights" } });
+    await userEvent.click(screen.getByRole("button", { name: "Save profile" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Image link must be a full https:// link.");
+  });
+
+  it("keeps venue editors out of the profile form", async () => {
+    serve(venueWorkspace({ role: "editor" }));
+    renderProfile("venue");
+    expect(await screen.findByText(/only owners and managers change the public profile/)).toBeInTheDocument();
+    expect(screen.queryByRole("form", { name: "Public profile" })).not.toBeInTheDocument();
   });
 });

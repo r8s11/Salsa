@@ -83,20 +83,17 @@ Guide: https://supabase.com/docs/guides/auth/social-sign-in/auth-facebook
 
 ## 4. Enable one provider at a time
 
-Production build flags come from GitHub **repository variables** (Settings >
-Secrets and variables > Actions > Variables), passed to the Azure build in
-`.github/workflows/azure-static-web-apps-lemon-stone-01afe980f.yml`:
+The sign-in screen reads Supabase Auth's public settings endpoint
+(`GET /auth/v1/settings`, sent with the publishable key) on every visit and
+shows a button for each provider whose `external.<provider>` is `true`. Turning
+a provider on or off in **Supabase Auth > Providers** takes effect on the next
+page load, with no rebuild or redeploy. So enable a provider in Supabase only
+**after** its console setup and callback are verified. If the request fails, no
+social buttons are shown and email sign-in still works.
 
-```dotenv
-VITE_OAUTH_GOOGLE_ENABLED=false
-VITE_OAUTH_APPLE_ENABLED=false
-VITE_OAUTH_FACEBOOK_ENABLED=false
-```
-
-Unset means off. Set each to `true` **only after** corresponding provider
-configuration and callback verification, then redeploy the frontend
-(`gh variable set VITE_OAUTH_GOOGLE_ENABLED --body true`). The flags are
-**public UI switches**, not OAuth configuration and not secrets.
+`VITE_GOOGLE_CLIENT_ID` (a GitHub repository variable, passed to the Azure
+build) is still needed for Google's own button; without it Google uses the
+redirect flow.
 
 Credentials (OAuth client secrets, Apple signing keys) belong in provider
 consoles and Supabase Auth server-side settings. No provider secrets belong in
@@ -104,8 +101,9 @@ consoles and Supabase Auth server-side settings. No provider secrets belong in
 
 ## Existing app integration
 
-- `SignInForm.tsx`: gated provider buttons when sign-in/sign-up is offered;
-  no social controls for email-locked founder invite screens or password reset.
+- `SignInForm.tsx`: provider buttons for every provider Supabase reports as
+  enabled (`model/socialProviders.ts`) when sign-in/sign-up is offered; no
+  social controls for email-locked founder invite screens or password reset.
 - `src/lib/authCallbackUrl.ts`: shared canonical return URL.
 - `AuthCallback.tsx`: explicit PKCE `exchangeCodeForSession`; client intentionally
   disables automatic session exchange to avoid duplicate token consumption.

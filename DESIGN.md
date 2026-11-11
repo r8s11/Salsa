@@ -666,6 +666,28 @@ city switch, view switcher and sidebar use the neutral `--surface-high`.
 
 Everything a dancer sees outside the shop and the poster.
 
+#### Sign-in and legal reading
+
+Sign-in stays two-column above 960px. Below that, use one 480px-wide
+column with an unboxed, compact story so the form remains prominent.
+The small-screen story heading uses `clamp(1.75rem, 5vw, 2.25rem)` in
+Epilogue 800, an intentional surface-specific display size, not a new
+UI ramp step. No eyebrow precedes the story or account-mode heading;
+sign-up guidance follows its heading. The Gold rule remains the single
+decorative motion detail and stays static with reduced motion.
+
+The password visibility toggle sits inside the input with a 44px target;
+position it without a centering transform so the shared pressed scale
+cannot displace it. Password fields stay inert until email entry.
+Password recovery remains reachable even before that reveal.
+
+Privacy and data-deletion pages keep a 70ch reading measure, responsive
+top spacing and bottom safe-area clearance. Updated dates are muted
+0.9rem metadata, not body paragraphs. Deletion instructions retain list
+semantics alongside the Gold step numerals. Legal links keep Gold
+underlines, visible keyboard focus and wrapping for long addresses.
+
+
 #### Hero rhythm
 
 The homepage's visual “Rhythm” word is six independently scaled letters,

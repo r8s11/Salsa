@@ -109,20 +109,18 @@ The additive `my_entity_claims()` migration preserves caller-only access and ret
 
 Local-only plan: `docs/superpowers/plans/2026-11-09-claimant-review-inbox.md`. Production rollout requires a separately authorized live RPC definition/grant comparison and migration application.
 
+### 11. P3 — Broaden venue self-service profile editing
+
+**Implemented locally.** Owners and Managers can save a plain-text description (1,200 characters) and an `https://` image link from the venue Profile form, with image-rights guidance. Phone, Address line 2 and Postal code remain private on the public page; Website, Instagram and Street address remain public. Broken public hero images are hidden.
+
+Not included: photo upload, admin editing of the two new fields, moderation, or directory search on description. Before rollout, apply `20261109120000_venue_profile_description_image.sql` after comparing live function definitions; drift-safe patches preserve existing ACLs and fail on changed anchors. Local-only plan: `docs/superpowers/plans/2026-11-09-venue-profile-editing.md`.
+
 ### 12. P3 — Put audience help inside the product
 
 The [Help](https://www.salsasegura.com/help) surface renders the canonical `docs/user-guides/` Markdown at `/help` and `/help/<slug>` through a safe subset, with permission-aware contextual links on sign-in, submission, claims, workspaces, Host and account screens. Plan: `docs/superpowers/plans/2026-11-09-in-product-help.md`.
 
 The stale-help suite (`src/features/help/guideIntegrity.test.tsx`) fails when a guide link, route, anchor or documented control label no longer matches the rendered product. Screenshots of private attendee/account data remain deferred and are not published.
 
-## Planned, not implemented
-
-
-### 11. P3 — Broaden venue self-service profile editing
-
-Local-only implementation plan: `docs/superpowers/plans/2026-11-09-venue-profile-editing.md`.
-
-Recommended first scope: description plus an HTTPS image link, rights guidance and the existing Owner/Manager boundary. Audit found that website, Instagram and street address are public; saved phone, address line 2 and postal code are not currently exposed. The plan keeps that visibility unchanged unless explicitly approved. Image upload, new public contact fields and moderation are decisions, not implemented features.
 
 ## Verification and rollout
 

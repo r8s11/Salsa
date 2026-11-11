@@ -1,6 +1,6 @@
 # Venue owners and managers
 
-Maintain a venue listing and help dancers find the events linked to your location. Last checked November 6, 2026.
+Maintain a venue listing and help dancers find the events linked to your location. Last checked locally November 11, 2026.
 
 A venue listing and an organizer are different things. Access to your venue workspace does not give you control of every promoter's event at the venue.
 
@@ -9,7 +9,7 @@ A venue listing and an organizer are different things. Access to your venue work
 1. Open [Venues](https://www.salsasegura.com/venues), find your location, and check that it is the right listing.
 2. Sign in and select **Claim this venue** on its public page.
 3. Choose **I own it**, **I manage it**, or **I work there**. Add details that help verify your connection.
-4. Select **Submit claim** and check back on the page for its review status.
+4. Select **Submit claim** and follow its review status under **Account → Listing claims**.
 5. After approval, use **Open your workspace**, or find the venue under **Your listings** on the [Host desk](https://www.salsasegura.com/host).
 
 [Listing access and teams](listing-access.md) explains the full claim process and team permissions. If the venue is missing, search the directory first, then use **Not listed? Request a listing** at the bottom of it and enter the correct name, city, and website. [How listing requests work](listing-access.md#request-a-missing-listing). If it is duplicated, [contact Salsa Segura](https://www.salsasegura.com/contact).
@@ -19,12 +19,14 @@ A venue listing and an organizer are different things. Access to your venue work
 Owner and Manager members can update the venue's editable profile fields.
 
 1. In the venue workspace, open **Profile**.
-2. Check **Website**, **Instagram**, and **Phone**.
-3. Check **Street address**, **Address line 2**, and **Postal code**. Use address line 2 for a suite, floor, or other useful location detail.
+2. Add a plain-text **Description** (up to 1,200 characters) and an **Image link**.
+3. Check **Website**, **Instagram**, **Phone**, **Street address**, **Address line 2**, and **Postal code**.
 4. Select **Save profile** and wait for **Saved.**
 5. Open the public page and test its displayed contact links and location information.
 
-The current venue editor does not include a photo-upload or description field. Ask Salsa Segura for changes outside the fields shown in the form. Saved contact/address fields are not a guarantee that every field is displayed on the current public page.
+**Description**, **Image link**, **Website**, **Instagram**, **Street address**, and the read-only city appear publicly. **Phone**, **Address line 2**, and **Postal code** are not shown on your public page; Salsa Segura staff can see them.
+
+The image must be a full `https://` link to a photo of your venue that you took or have written permission to publish. Don't use another site's photo or a flyer, or a photo that identifies people who haven't agreed. There is no file upload. Saved changes go live immediately; a broken photo link is hidden while the rest of the page remains available.
 
 The **Name**, **City**, and public page address shown above the form are read-only. To correct them, select **Request a change**, or open **Requests** and use **Ask for a change to name, city or page address**; the request shows **Waiting for review**, then **Change made** once approved. Contact Salsa Segura about the listing's publication status. Changing a street address is not the same as changing the city.
 
@@ -67,7 +69,7 @@ Use the [shared team instructions](listing-access.md#add-a-teammate) for the exa
 | You can browse the venue but cannot edit it | Check that your claim was approved and that you are using the right account. |
 | Profile or Team is missing | Profile requires Owner or Manager access; Team requires Owner access. |
 | The name or city is wrong | Open **Requests** in the venue workspace and ask for the change. Nothing changes before Salsa Segura reviews it. |
-| A photo or description is wrong | Contact Salsa Segura with the venue link and the correct information. |
+| A photo or description is wrong | Owners and Managers can fix **Description** and **Image link** under **Profile**. Name and city changes still require Salsa Segura review. |
 | A night is missing, duplicated, or has the wrong venue | Send the event and venue links to Salsa Segura or the event's organizer. |
 | A save fails | Read the error, correct invalid links, and try again. Do not create another venue listing as a workaround. |
 

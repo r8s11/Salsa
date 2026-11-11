@@ -1,0 +1,202 @@
+[
+  {
+    "id": "signin-sign-in",
+    "guide": "dancers",
+    "anchor": "create-an-account-or-sign-in",
+    "route": "/signin",
+    "state": "signed-out visitor",
+    "control": { "role": "button", "name": "Sign In" },
+    "action": "enter an email address and password, then select Sign In",
+    "instruction": "Sign In"
+  },
+  {
+    "id": "signin-forgot-password",
+    "guide": "dancers",
+    "anchor": "create-an-account-or-sign-in",
+    "route": "/signin",
+    "state": "signed-out visitor",
+    "control": { "role": "button", "name": "Forgot password?" },
+    "action": "select Forgot password?, enter the account email, and request a reset link",
+    "instruction": "Forgot password?"
+  },
+  {
+    "id": "submit-event",
+    "guide": "dancers",
+    "anchor": "suggest-an-event",
+    "route": "/submit",
+    "state": "signed-in dancer while submissions are open",
+    "control": { "role": "button", "name": "Submit Event" },
+    "action": "complete the event title, type and date, then select Submit Event",
+    "instruction": "Submit Event"
+  },
+  {
+    "id": "claim-relationship",
+    "guide": "listing-access",
+    "anchor": "submit-a-claim",
+    "route": "/s/salsa-academy",
+    "state": "signed-in dancer on a claimable school listing",
+    "control": { "role": "radio", "name": "I manage it" },
+    "action": "under Your relationship, select the option that describes you",
+    "instruction": "I manage it"
+  },
+  {
+    "id": "claim-submit",
+    "guide": "listing-access",
+    "anchor": "submit-a-claim",
+    "route": "/s/salsa-academy",
+    "state": "signed-in dancer on a claimable school listing",
+    "control": { "role": "button", "name": "Submit claim" },
+    "action": "choose the relationship, add a verification message, then select Submit claim",
+    "instruction": "Submit claim"
+  },
+  {
+    "id": "request-listing-send",
+    "guide": "listing-access",
+    "anchor": "request-a-missing-listing",
+    "route": "/request-listing",
+    "state": "signed-in dancer whose listing is missing",
+    "control": { "role": "button", "name": "Send request" },
+    "action": "enter the listing details, tick I searched and this listing is not here, then select Send request",
+    "instruction": "Send request"
+  },
+  {
+    "id": "host-desk-create-event",
+    "guide": "organizers",
+    "anchor": "create-an-event",
+    "route": "/host",
+    "state": "organizer Owner on the Host desk",
+    "control": { "role": "link", "name": "Create event" },
+    "action": "select Create event from the Host desk",
+    "instruction": "Create event"
+  },
+  {
+    "id": "import-csv-template",
+    "guide": "organizers",
+    "anchor": "import-a-spreadsheet",
+    "route": "/host/events/import",
+    "state": "organizer Owner importing a spreadsheet",
+    "control": { "role": "button", "name": "Download CSV Template" },
+    "action": "select Download CSV Template",
+    "instruction": "Download CSV Template"
+  },
+  {
+    "id": "import-valid-events",
+    "guide": "organizers",
+    "anchor": "import-a-spreadsheet",
+    "route": "/host/events/import",
+    "state": "organizer Owner with one valid reviewed row",
+    "control": { "role": "button", "name": "Import Valid Events (1)" },
+    "action": "select Import Valid Events and review Import Complete",
+    "instruction": "Import Valid Events"
+  },
+  {
+    "id": "flyer-confirm-details",
+    "guide": "organizers",
+    "anchor": "import-flyers",
+    "route": "/host/events/import-flyers",
+    "state": "organizer Owner reviewing an extracted flyer",
+    "control": { "role": "button", "name": "Confirm details against flyer" },
+    "action": "add the flyer image, open it, and select Confirm details against flyer",
+    "instruction": "Confirm details against flyer"
+  },
+  {
+    "id": "attendee-add",
+    "guide": "organizers",
+    "anchor": "add-to-the-roster",
+    "route": "/host/events/evt-1/attendees",
+    "state": "organizer Owner on an event roster",
+    "control": { "role": "button", "name": "Add Attendee" },
+    "action": "enter the required name, then select Add Attendee",
+    "instruction": "Add Attendee"
+  },
+  {
+    "id": "attendee-edit",
+    "guide": "organizers",
+    "anchor": "add-to-the-roster",
+    "route": "/host/events/evt-1/attendees",
+    "state": "organizer Owner on an event roster",
+    "control": { "role": "link", "name": "Edit Ana Garcia" },
+    "action": "select Edit on its row",
+    "instruction": "Edit"
+  },
+  {
+    "id": "attendee-save-changes",
+    "guide": "organizers",
+    "anchor": "add-to-the-roster",
+    "route": "/host/events/evt-1/attendees/att-1/edit",
+    "state": "organizer Owner correcting a roster entry",
+    "control": { "role": "button", "name": "Save changes" },
+    "action": "change the name, then select Save changes",
+    "instruction": "Save changes"
+  },
+  {
+    "id": "checkin-check-in",
+    "guide": "organizers",
+    "anchor": "check-people-in",
+    "route": "/host/events/evt-1/check-in",
+    "state": "organizer Owner at the door with one attendee",
+    "control": { "role": "button", "name": "Check in Ana Garcia" },
+    "action": "select Check In on the correct row",
+    "instruction": "Check In"
+  },
+  {
+    "id": "checkin-undo",
+    "guide": "organizers",
+    "anchor": "check-people-in",
+    "route": "/host/events/evt-1/check-in",
+    "state": "organizer Owner after a mistaken check-in",
+    "control": { "role": "button", "name": "Undo check-in for Ana Garcia" },
+    "action": "select Undo check-in on that row",
+    "instruction": "Undo check-in"
+  },
+  {
+    "id": "organization-save-changes",
+    "guide": "organizers",
+    "anchor": "maintain-organizer-details",
+    "route": "/host/organization",
+    "state": "organizer Owner editing organizer details",
+    "control": { "role": "button", "name": "Save Changes" },
+    "action": "update the organization name, then select Save Changes",
+    "instruction": "Save Changes"
+  },
+  {
+    "id": "profile-notification-toggle",
+    "guide": "dancers",
+    "anchor": "privacy-and-preferences",
+    "route": "/profile/edit",
+    "state": "signed-in dancer editing their profile",
+    "control": { "role": "switch", "name": "Weekly digest of what's on" },
+    "action": "turn the optional notification on",
+    "instruction": "Weekly digest of what's on"
+  },
+  {
+    "id": "profile-save-changes",
+    "guide": "dancers",
+    "anchor": "update-your-personal-profile",
+    "route": "/profile/edit",
+    "state": "signed-in dancer editing their profile",
+    "control": { "role": "button", "name": "Save Changes" },
+    "action": "select Save Changes and check for the saved confirmation",
+    "instruction": "Save Changes"
+  },
+  {
+    "id": "team-add",
+    "guide": "listing-access",
+    "anchor": "add-a-teammate",
+    "route": "/host/schools/school-1/team",
+    "state": "school Owner managing the team",
+    "control": { "role": "button", "name": "Add to team" },
+    "action": "enter the email, choose a role, then select Add to team",
+    "instruction": "Add to team"
+  },
+  {
+    "id": "team-remove",
+    "guide": "listing-access",
+    "anchor": "change-or-remove-access",
+    "route": "/host/schools/school-1/team",
+    "state": "school Owner managing the team",
+    "control": { "role": "button", "name": "Remove from team" },
+    "action": "select Remove beside their name, then confirm Remove from team",
+    "instruction": "Remove from team"
+  }
+]

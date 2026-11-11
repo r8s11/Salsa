@@ -38,6 +38,7 @@ export function selectHelp(context:HelpContext):HelpItem[] {
         case 'pending': return [{topic:'claim-review',message:'A pending claim does not grant editing access.'}];
         case 'rejected': return [{topic:'claim-review',message:'Read the review note, then correct your explanation before claiming again.'}];
       }
+      break;
     case 'submit':
       if(!context.canSubmit) return [{topic:'submit-event',message:'Event submissions are closed right now.'}];
       if(context.isOrganizer) return [{topic:'event-workflow'}];

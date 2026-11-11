@@ -25,6 +25,7 @@ export function parseGuide(source: string): { tokens: Token[]; headings: GuideHe
     if (token.type === 'list_item' && (token as Tokens.ListItem).task) throw new UnsupportedMarkdownError('task', token.raw);
     if (token.type === 'link') {
       const href = (token as Tokens.Link).href;
+      // eslint-disable-next-line no-control-regex -- rejecting control characters in links is the sanitisation
       if (/[\s\\\u0000-\u001f\u007f]/u.test(href) || !/^(?:\/(?!\/)|https:\/\/[^/]|mailto:|#)/u.test(href)) {
         throw new UnsupportedMarkdownError('link', href);
       }

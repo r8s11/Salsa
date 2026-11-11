@@ -4,7 +4,7 @@ Boston & NYC Latin dance events calendar — [salsasegura.com](https://www.salsa
 
 The site shows salsa fanatics where to go dancing and lets the community submit events, without needing social media.
 
-Using the app? Start with the [user guides](docs/user-guides/README.md) for
+Using the app? Start with the in-product [Help](https://www.salsasegura.com/help) for
 dancers, DJs, venue owners/managers, organizers, artists, and school owners.
 
 Geography follows **City → Borough → Neighborhood** in NYC and
@@ -511,7 +511,7 @@ membership in that event's organizer. Other memberships show **View Event**.
 
 ## Documentation
 
-- [User guides](docs/user-guides/README.md) — task-based help for dancers and listing/event managers
+- [Help](https://www.salsasegura.com/help) — task-based guides for dancers and listing/event managers, rendered in the product
 - [Product improvement backlog](docs/user-guides/improvements.md) — evidence and proposals discovered while writing the guides
 - [docs/STATUS_SUMMARY.md](docs/STATUS_SUMMARY.md) — current project status
 - [docs/ROADMAP.md](docs/ROADMAP.md) — 52-week roadmap

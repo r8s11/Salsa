@@ -101,6 +101,12 @@ Organizer authority is unchanged. Venues and schools cannot request event links,
 - Verified: [SQL acceptance](../../supabase/tests/listing_requests.sql) on disposable Postgres (authority, privacy, limits, duplicates, state changes between submit and review, audit rows), TypeScript/lint, the full unit suite, and the three surfaces in a browser against local PostgREST at desktop and 390px.
 - Not included: unlink requests, venue/school event links, organizer sign-off, email or push on a decision.
 
+### 12. P3 — Put audience help inside the product
+
+The [Help](https://www.salsasegura.com/help) surface renders the canonical `docs/user-guides/` Markdown at `/help` and `/help/<slug>` through a safe subset, with permission-aware contextual links on sign-in, submission, claims, workspaces, Host and account screens. Plan: `docs/superpowers/plans/2026-11-09-in-product-help.md`.
+
+The stale-help suite (`src/features/help/guideIntegrity.test.tsx`) fails when a guide link, route, anchor or documented control label no longer matches the rendered product. Screenshots of private attendee/account data remain deferred and are not published.
+
 ## Planned, not implemented
 
 ### 10. P3 — Give claimants a clear review inbox
@@ -115,12 +121,6 @@ Local-only implementation plan: `docs/superpowers/plans/2026-11-09-venue-profile
 
 Recommended first scope: description plus an HTTPS image link, rights guidance and the existing Owner/Manager boundary. Audit found that website, Instagram and street address are public; saved phone, address line 2 and postal code are not currently exposed. The plan keeps that visibility unchanged unless explicitly approved. Image upload, new public contact fields and moderation are decisions, not implemented features.
 
-### 12. P3 — Put audience help inside the product
-
-Local-only implementation plan: `docs/superpowers/plans/2026-11-09-in-product-help.md`.
-
-Plan covers a maintained help index and guide routes for all six audiences, contextual links selected by task/permissions, and rendered-route/control checks for stale guidance. No screenshots of private attendee/account data. Publishing these Markdown guides in the repository does not implement in-app help routes or authorize publishing private data.
-
 ## Verification and rollout
 
 - TypeScript build and affected-module ESLint passed.
@@ -129,5 +129,6 @@ Plan covers a maintained help index and guide routes for all six audiences, cont
 - Browser verification used the actual app and local PostgREST/database, with a synthetic authenticated fixture session. Desktop and 390px mobile surfaces were inspected.
 - Apply migrations `20261109000000` through `20261109000300` before releasing the original frontend paths, and `20261110000000` before deploying the digest worker. Compare live function definitions before rollout, especially the anchored timezone patch. Local verification did not apply production migrations, send live email or activate the scheduler.
 - Apply `20261110000100_listing_requests.sql` before releasing the guided-request frontend. Guided listing requests were merged into `main` and pushed. The merged tree passed TypeScript and all 3,304 tests across 299 files. Production database migration and deployment were not verified by those checks.
+- In-product help: TypeScript, full ESLint and 3,422 tests across 307 files passed. The 49-check stale-help gate includes 20 rendered control scenarios; deliberate anchor and accessible-name mutations failed and were restored. Production build prerendered 774 routes, including the help index and seven guides, without an improvements/backlog chunk. Browser checks at 1280px and 390px covered guide navigation, deep anchors, sign-in contextual help, unknown-guide 404 and keyboard-scrollable tables. This branch has not been pushed or deployed.
 
-[User guide index](README.md)
+[Help](https://www.salsasegura.com/help)

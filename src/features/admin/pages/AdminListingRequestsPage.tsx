@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { Children, Fragment, useRef, useState, type ReactNode } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Desk, DeskEmpty, DeskError, DeskSkeleton } from "../../../components/desk/Desk";
 import MarginMark from "../../../components/desk/MarginMark";
@@ -220,41 +220,26 @@ export default function AdminListingRequestsPage() {
                       )}
 
                       {request.request_type === "missing_listing" && kind && (
-                        <p className="desk__entry-meta">
+                        <MetaLine>
                           {request.proposed_city && <span>{`City: ${request.proposed_city}`}</span>}
-                          {request.website && (
-                            <>
-                              <Sep />
-                              <span>{`Website: ${request.website}`}</span>
-                            </>
+                          {request.website && <span>{`Website: ${request.website}`}</span>}
+                          {request.instagram && <span>{`Instagram: ${request.instagram}`}</span>}
+                          {isPending && (
+                            <Link to={`/admin/${ADMIN_SEGMENT[kind]}/new`} className="admin-listing-requests__link">
+                              Create the listing
+                            </Link>
                           )}
-                          {request.instagram && (
-                            <>
-                              <Sep />
-                              <span>{`Instagram: ${request.instagram}`}</span>
-                            </>
-                          )}
-                          <Sep />
-                          <Link to={`/admin/${ADMIN_SEGMENT[kind]}/new`} className="admin-listing-requests__link">
-                            Create the listing
-                          </Link>
-                        </p>
+                        </MetaLine>
                       )}
 
                       {request.request_type === "profile_change" && kind && request.entity_id && (
-                        <p className="desk__entry-meta">
+                        <MetaLine>
                           {request.proposed_name && <span>{`New name: ${request.proposed_name}`}</span>}
-                          {request.proposed_city && (
-                            <>
-                              <Sep />
-                              <span>{`New city: ${request.proposed_city}`}</span>
-                            </>
-                          )}
-                          <Sep />
+                          {request.proposed_city && <span>{`New city: ${request.proposed_city}`}</span>}
                           <Link to={`/admin/${ADMIN_SEGMENT[kind]}/${request.entity_id}`} className="admin-listing-requests__link">
                             Open the listing
                           </Link>
-                        </p>
+                        </MetaLine>
                       )}
 
                       {request.details && <p className="admin-listing-requests__message">{request.details}</p>}
@@ -361,6 +346,22 @@ function Sep() {
     <span className="desk__entry-sep" aria-hidden>
       ·
     </span>
+  );
+}
+
+/** A meta line whose optional parts are separated, never led, by a dot. */
+function MetaLine({ children }: { children: ReactNode }) {
+  const parts = Children.toArray(children);
+  if (parts.length === 0) return null;
+  return (
+    <p className="desk__entry-meta">
+      {parts.map((part, index) => (
+        <Fragment key={index}>
+          {index > 0 && <Sep />}
+          {part}
+        </Fragment>
+      ))}
+    </p>
   );
 }
 

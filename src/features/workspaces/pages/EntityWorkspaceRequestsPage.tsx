@@ -45,6 +45,7 @@ function RequestsBody({ workspace }: { workspace: EntityWorkspace }) {
       <ListingRequestStatusList
         heading={`Requests for ${entity.name}`}
         emptyText="No requests have been sent for this listing."
+        actionClassName="desk__action"
         filter={(request) => request.entity_id === entity.id}
       />
     </div>

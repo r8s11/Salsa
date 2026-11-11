@@ -320,6 +320,7 @@ describe("AdminLayout", () => {
     ["/host/schools/s-1/prices", "School · Prices"],
     ["/host/venues/v-1/team", "Venue · Team"],
     ["/host/instructors/i-1/profile", "Artist · Profile"],
+    ["/host/djs/d-1/requests", "DJ · Requests"],
   ])("labels the Host location %s as %s", (path, expected) => {
     renderHostLayoutAt(path);
 
@@ -333,6 +334,14 @@ describe("AdminLayout", () => {
 
     expect(screen.getByRole("navigation", { name: "Breadcrumb" })).toHaveTextContent(
       "Listing Claims"
+    );
+  });
+
+  it("labels the listing requests queue", () => {
+    renderLayoutAt("/admin/requests");
+
+    expect(screen.getByRole("navigation", { name: "Breadcrumb" })).toHaveTextContent(
+      "Listing Requests"
     );
   });
 

@@ -35,6 +35,7 @@ const SECTION_LABEL: Record<string, string> = {
   "/admin/organizer-requests": "Organizer Requests",
   "/admin/founder-requests": "Founder Requests",
   "/admin/claims": "Listing Claims",
+  "/admin/requests": "Listing Requests",
   "/admin/venues": "Venues",
   "/admin/schools": "Schools",
   "/admin/instructors": "Artists",
@@ -70,6 +71,7 @@ const WORKSPACE_SECTION_LABEL: Record<string, string> = {
   privates: "Privates",
   prices: "Prices",
   profile: "Profile",
+  requests: "Requests",
   team: "Team",
 };
 

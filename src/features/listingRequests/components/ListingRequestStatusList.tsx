@@ -11,6 +11,8 @@ type ListingRequestStatusListProps = {
   filter?: (request: ListingRequest) => boolean;
   heading?: string;
   emptyText: string;
+  /** Button classes for Withdraw; the workspace shell passes its own desk action style. */
+  actionClassName?: string;
 };
 
 function submittedOn(iso: string): string {
@@ -18,7 +20,12 @@ function submittedOn(iso: string): string {
 }
 
 /** The signed-in person's own requests with their status; pending ones can be withdrawn. */
-export default function ListingRequestStatusList({ filter, heading = "Your requests", emptyText }: ListingRequestStatusListProps) {
+export default function ListingRequestStatusList({
+  filter,
+  heading = "Your requests",
+  emptyText,
+  actionClassName = "ui-button ui-button--secondary",
+}: ListingRequestStatusListProps) {
   const headingId = useId();
   const query = useMyListingRequests();
   const withdraw = useWithdrawListingRequest();
@@ -76,7 +83,7 @@ export default function ListingRequestStatusList({ filter, heading = "Your reque
                 {request.status === "pending" && (
                   <button
                     type="button"
-                    className="ui-button ui-button--secondary lrq-status__withdraw"
+                    className={`${actionClassName} lrq-status__withdraw`}
                     aria-label={`Withdraw request: ${headline}`}
                     disabled={withdraw.isPending}
                     onClick={() => withdraw.mutate(request.id)}

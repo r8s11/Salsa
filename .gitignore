@@ -188,7 +188,10 @@ graphify-out/
 .pi
 /agent/
 /data/skills/
-/docs/
+/docs/*
+!/docs/user-guides/
+/docs/user-guides/*
+!/docs/user-guides/*.md
 
 videos/
 

@@ -5,6 +5,7 @@ import { ArrowLeft, Search, CheckCircle2, Undo2, RotateCcw } from "lucide-react"
 import { useEventAttendees } from "../../features/host/hooks/useEventAttendees";
 import { useEventCheckIns } from "../../features/host/hooks/useEventCheckIns";
 import { summarizeAttendance } from "../../features/host/model/attendance";
+import { ContextHelp } from "../../features/help/ContextHelp";
 import "../../styles/admin.css";
 import "./HostCheckInPage.css";
 
@@ -107,6 +108,7 @@ export default function HostCheckInPage() {
         </Link>
 
         <h1 className="host-checkin__title">Door Check-in</h1>
+        <ContextHelp context={{ surface: "host-door" }} />
         <p className="host-checkin__subtitle">
           {counts.checkedInEntries} of {counts.rosterEntries} roster{" "}
           {counts.rosterEntries === 1 ? "entry" : "entries"} checked in ·{" "}

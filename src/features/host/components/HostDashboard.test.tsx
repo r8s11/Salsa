@@ -297,6 +297,9 @@ describe("HostDashboard organizer access foundation", () => {
     expect(organizerCard).not.toBeNull();
     expect(organizerCard).toHaveTextContent("Havana Club");
     expect(organizerCard).toHaveTextContent("Owner");
+    expect(screen.getByRole("link", { name: "Choose the right event workflow" })).toHaveAttribute(
+      "href", "/help/organizers#choose-the-right-event-workflow"
+    );
   });
 
   it("shows the access-request state for signed-in users without memberships", async () => {
@@ -304,6 +307,9 @@ describe("HostDashboard organizer access foundation", () => {
     renderDashboard();
 
     expect(await screen.findByText(/No organizer access yet/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "How to get organizer access" })).toHaveAttribute(
+      "href", "/help/organizers#get-organizer-access"
+    );
   });
 
   it("points platform roles at Admin instead of the request flow", async () => {

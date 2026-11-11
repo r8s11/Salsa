@@ -2,6 +2,7 @@ import { useRef, useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, UserPlus, Trash2, Edit3 } from "lucide-react";
 import { useEventAttendees } from "../../features/host/hooks/useEventAttendees";
+import { ContextHelp } from "../../features/help/ContextHelp";
 import {
   ATTENDEE_CATEGORY_OPTIONS,
   ATTENDEE_LIMITS,
@@ -187,6 +188,7 @@ export default function HostAttendeeListPage() {
         </Link>
 
         <h1 className="host-attendee-list__title">Event Attendees</h1>
+        <ContextHelp context={{ surface: "host-door" }} />
         <p className="host-attendee-list__subtitle">
           {attendees.length} {attendees.length === 1 ? "entry" : "entries"}
           {totalPartySize > 0 && ` · ${totalPartySize} total headcount`}

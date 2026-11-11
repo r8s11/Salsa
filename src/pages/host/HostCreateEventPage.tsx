@@ -4,6 +4,7 @@ import posthog from "posthog-js";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/useAuth";
 import { useMyOrganizers } from "../../features/host/hooks/useMyOrganizers";
+import { ContextHelp } from "../../features/help/ContextHelp";
 import {
   createOrganizerEvent,
   OrganizerAccessError,
@@ -167,6 +168,7 @@ export default function HostCreateEventPage() {
               ? "Only active Organizer owners and managers can create events. Ask an owner to update your access."
               : "You need an approved Organizer with owner or manager access before you can create events."}
           </p>
+          <ContextHelp context={{ surface: "host-events", hasOrganizerAccess: hasMembership, canCreateEvents: false }} />
           <Link to="/host/events" className="admin-btn admin-btn--primary">
             Back to My Events
           </Link>
@@ -185,6 +187,7 @@ export default function HostCreateEventPage() {
         <h1>Create an event</h1>
         <p>Add the details dancers need to discover and attend your event.</p>
       </header>
+      <ContextHelp context={{ surface: "host-events", hasOrganizerAccess: true, canCreateEvents: true }} />
 
       <form onSubmit={submit}>
         <section

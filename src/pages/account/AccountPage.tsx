@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { ContextHelp } from "../../features/help/ContextHelp";
 import { Flag, PauseCircle, Ban } from "lucide-react";
 import { useEscapeKey } from "../../features/calendar/hooks/useEscapeKey";
 import { useAuth } from "../../contexts/useAuth";
@@ -385,6 +386,7 @@ export default function AccountPage() {
         <h1 className="account-page__h1">Account</h1>
         <p className="account-page__lede">Your identity, account status, and profile access.</p>
       </div>
+      <ContextHelp context={{ surface: "account" }} />
 
       {statusMessage && (
         <div

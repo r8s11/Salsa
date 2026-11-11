@@ -103,6 +103,9 @@ describe("HostAttendeeListPage", () => {
   it("renders empty state when no attendees", async () => {
     renderPage();
     expect(await screen.findByText(/no attendees yet/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Help with attendees and check-in" })).toHaveAttribute(
+      "href", "/help/organizers#attendees-and-the-door"
+    );
   });
 
   it("displays attendee count and headcount", () => {

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { ContextHelp } from "../../features/help/ContextHelp";
 import { Calendar, ImageOff, MapPin, Search, Users, QrCode } from "lucide-react";
 import { useAuth } from "../../contexts/useAuth";
 import { useMySubmissions } from "../../features/account/hooks/useMySubmissions";
@@ -382,6 +383,7 @@ export default function HostMyEventsPage() {
           ) : undefined
         }
       />
+      <ContextHelp context={{ surface: "host-events", hasOrganizerAccess: organizers.length > 0, canCreateEvents: canCreate }} />
 
       {/* Error banner */}
       {hasError && (

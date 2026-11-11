@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type Ref } from "react";
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, ExternalLink, ImagePlus } from "lucide-react";
+import { ContextHelp } from "../features/help/ContextHelp";
 import AdminPageHeader from "../features/admin/components/shell/AdminPageHeader";
 import MarginMark from "../components/desk/MarginMark";
 import type { DeskState } from "../components/desk/deskModel";
@@ -418,7 +419,12 @@ export default function BulkFlyerImportPage({ mode }: Props) {
       </div>
     );
   if (mode === "host" && !manageable.length)
-    return <p>Only active organizer owners and managers can import flyers.</p>;
+    return (
+      <div>
+        <p>Only active organizer owners and managers can import flyers.</p>
+        <ContextHelp context={{ surface: "host-events", hasOrganizerAccess: organizers.length > 0, canCreateEvents: false }} />
+      </div>
+    );
 
   const selected =
     rows.find((row) => row.id === selectedId) ??
@@ -461,6 +467,7 @@ export default function BulkFlyerImportPage({ mode }: Props) {
           </Link>
         }
       />
+      {mode === "host" && <ContextHelp context={{ surface: "host-events", hasOrganizerAccess: true, canCreateEvents: true }} />}
       <section
         className={`admin-card bulk-flyers__intake${rows.length ? " is-compact" : ""}`}
         aria-label="Add flyers"

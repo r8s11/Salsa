@@ -313,4 +313,53 @@ describe("HostCreateEventPage", () => {
     });
     expect(mocks.removeEventFlyer).not.toHaveBeenCalled();
   });
+
+  it("shows the organizer-roles help message and link for an editor-only membership", () => {
+    mocks.useAuth.mockReturnValue({ user: { id: "user-1", email: "host@example.com" } });
+    mocks.useMyOrganizers.mockReturnValue({
+      data: [
+        {
+          organizerId: "org-1",
+          organizerName: "Editor Club",
+          organizerStatus: "active",
+          memberRole: "editor",
+        },
+      ],
+      isLoading: false,
+      error: null,
+    });
+
+    renderPage();
+
+    expect(
+      screen.getByText(
+        "Creating and importing events needs an active Owner or Manager role on an organizer."
+      )
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Understand organizer roles" })).toHaveAttribute(
+      "href",
+      "/help/organizers#what-each-organizer-role-can-do"
+    );
+  });
+
+  it("shows the organizer-access help link when there is no organizer membership", () => {
+    mocks.useAuth.mockReturnValue({ user: { id: "user-1", email: "host@example.com" } });
+    mocks.useMyOrganizers.mockReturnValue({
+      data: [],
+      isLoading: false,
+      error: null,
+    });
+
+    renderPage();
+
+    expect(
+      screen.getByText(
+        "Organizer access is granted by the Salsa Segura team once a request is approved."
+      )
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "How to get organizer access" })).toHaveAttribute(
+      "href",
+      "/help/organizers#get-organizer-access"
+    );
+  });
 });

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useId, useRef, useState, type FormEvent, type PointerEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { ContextHelp } from "../../features/help/ContextHelp";
 import { ArrowLeft, Camera } from "lucide-react";
 import { useAuth } from "../../contexts/useAuth";
 import { useOwnProfile } from "../../features/account/hooks/useOwnProfile";
@@ -399,6 +400,7 @@ export default function ProfileEditPage() {
         <h1 className="profile-edit-page__h1">Edit profile</h1>
         <p className="profile-edit-page__lede">Update how you appear across SalsaSegura.</p>
       </div>
+      <ContextHelp context={{ surface: "profile" }} />
 
       {isLoading && (
         <div className="profile-edit-page__card profile-edit-page__skeleton" aria-busy="true">

@@ -528,4 +528,34 @@ describe("HostMyEventsPage", () => {
     await user.click(screen.getByRole("button", { name: "Try Again" }));
     expect(refetch).toHaveBeenCalled();
   });
+
+  /* ── Context help ── */
+
+  it("shows event-workflow help for owner without the role-restriction message", () => {
+    renderPage();
+
+    expect(
+      screen.getByRole("link", { name: "Choose the right event workflow" })
+    ).toHaveAttribute("href", "/help/organizers#choose-the-right-event-workflow");
+    expect(
+      screen.queryByText(
+        "Creating and importing events needs an active Owner or Manager role on an organizer."
+      )
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows the organizer-roles help message and link for editor", () => {
+    mockOrganizerData("editor");
+    renderPage();
+
+    expect(
+      screen.getByText(
+        "Creating and importing events needs an active Owner or Manager role on an organizer."
+      )
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Understand organizer roles" })).toHaveAttribute(
+      "href",
+      "/help/organizers#what-each-organizer-role-can-do"
+    );
+  });
 });

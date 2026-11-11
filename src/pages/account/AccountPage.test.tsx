@@ -756,4 +756,14 @@ describe("AccountPage", () => {
     expect(mocks.auth.clearDeletedAccount).not.toHaveBeenCalled();
     expect(screen.queryByText("Signed out destination")).not.toBeInTheDocument();
   });
+
+  it("links account-security help", () => {
+    mocks.profile.profile = baseProfile();
+    renderPage();
+
+    expect(screen.getByRole("link", { name: "Help with account security" })).toHaveAttribute(
+      "href",
+      "/help/dancers#protect-your-account"
+    );
+  });
 });

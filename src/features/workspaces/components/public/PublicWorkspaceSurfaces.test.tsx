@@ -150,7 +150,7 @@ describe("claim control on public pages", () => {
 
   it("shows the waiting state for a pending claim", async () => {
     auth.user = { id: "user-1" };
-    mockRpc({ claims: [{ id: "claim-1", kind: "school", entity_id: "school-1", name: "Ritmo Vivo", slug: "ritmo-vivo", relationship: "owner", status: "pending", review_note: null, created_at: "2026-10-01T00:00:00Z", reviewed_at: null }] });
+    mockRpc({ claims: [{ id: "claim-1", kind: "school", entity_id: "school-1", name: "Ritmo Vivo", slug: "ritmo-vivo", relationship: "owner", status: "pending", review_note: null, created_at: "2026-10-01T00:00:00Z", reviewed_at: null, listing_status: "active", workspace_role: null }] });
 
     renderPage();
 
@@ -162,7 +162,7 @@ describe("claim control on public pages", () => {
 
   it("shows a rejection note and allows a new claim", async () => {
     auth.user = { id: "user-1" };
-    mockRpc({ claims: [{ id: "claim-1", kind: "school", entity_id: "school-1", name: "Ritmo Vivo", slug: "ritmo-vivo", relationship: "owner", status: "rejected", review_note: "Could not verify ownership", created_at: "2026-10-01T00:00:00Z", reviewed_at: "2026-10-02T00:00:00Z" }] });
+    mockRpc({ claims: [{ id: "claim-1", kind: "school", entity_id: "school-1", name: "Ritmo Vivo", slug: "ritmo-vivo", relationship: "owner", status: "rejected", review_note: "Could not verify ownership", created_at: "2026-10-01T00:00:00Z", reviewed_at: "2026-10-02T00:00:00Z", listing_status: "active", workspace_role: null }] });
 
     renderPage();
 

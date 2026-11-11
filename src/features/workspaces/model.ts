@@ -42,6 +42,12 @@ export function workspacePath(kind: ManagedKind, id: string, section?: Workspace
   return section ? `${base}/${section}` : base;
 }
 
+/** Public listing route shared by claimant and reviewer surfaces. */
+export function publicEntityPath(kind: ManagedKind, slug: string): string {
+  const segment = { school: "s", venue: "v", instructor: "i", dj: "dj" }[kind];
+  return `/${segment}/${slug}`;
+}
+
 /**
  * owner/manager (and admins) edit the public profile. Every role, editors
  * included, may edit school offerings — editors exist for front-desk upkeep.
@@ -274,6 +280,8 @@ export type EntityClaim = {
   review_note: string | null;
   created_at: string;
   reviewed_at: string | null;
+  listing_status: string;
+  workspace_role: WorkspaceRole | null;
 };
 
 export type AdminEntityClaim = {

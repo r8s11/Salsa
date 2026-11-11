@@ -101,6 +101,14 @@ Organizer authority is unchanged. Venues and schools cannot request event links,
 - Verified: [SQL acceptance](../../supabase/tests/listing_requests.sql) on disposable Postgres (authority, privacy, limits, duplicates, state changes between submit and review, audit rows), TypeScript/lint, the full unit suite, and the three surfaces in a browser against local PostgREST at desktop and 390px.
 - Not included: unlink requests, venue/school event links, organizer sign-off, email or push on a decision.
 
+### 10. P3 — Give claimants a clear review inbox
+
+Implemented locally at `/account/claims`, linked from Account when claims exist and from pending/rejected listing controls. Every claim shows its listing, state, appropriate review note, and permitted next action. Approvals open the actual workspace only with current access; removed access offers the listing's claim form. Archived listings and superseded claims offer no action. Membership refresh completes before workspace actions appear.
+
+The additive `my_entity_claims()` migration preserves caller-only access and returns listing state and effective workspace role. Decision email remains unimplemented and gated on provider/operator confirmation and real delivery verification. Pending-claim withdrawal is not implemented.
+
+Local-only plan: `docs/superpowers/plans/2026-11-09-claimant-review-inbox.md`. Production rollout requires a separately authorized live RPC definition/grant comparison and migration application.
+
 ### 12. P3 — Put audience help inside the product
 
 The [Help](https://www.salsasegura.com/help) surface renders the canonical `docs/user-guides/` Markdown at `/help` and `/help/<slug>` through a safe subset, with permission-aware contextual links on sign-in, submission, claims, workspaces, Host and account screens. Plan: `docs/superpowers/plans/2026-11-09-in-product-help.md`.
@@ -109,11 +117,6 @@ The stale-help suite (`src/features/help/guideIntegrity.test.tsx`) fails when a 
 
 ## Planned, not implemented
 
-### 10. P3 — Give claimants a clear review inbox
-
-Local-only implementation plan: `docs/superpowers/plans/2026-11-09-claimant-review-inbox.md`.
-
-Plan places the inbox at `/account/claims` so pending claimants do not need Host access. It shows listing, state, appropriate decision note and permitted next action; approvals link to the actual accessible workspace. Decisions include review-note visibility, history, withdrawal and whether to add transactional decision mail. Email work and email promises remain gated on explicit approval plus real delivery verification.
 
 ### 11. P3 — Broaden venue self-service profile editing
 

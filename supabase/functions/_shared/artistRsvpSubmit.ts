@@ -48,6 +48,7 @@ export function createArtistRsvpSubmit(deps: ArtistRsvpSubmitDependencies) {
     const value = body as Record<string, unknown>;
     if (Object.keys(value).some((key) => !["event_id", "name", "email", "role"].includes(key)) || typeof value.event_id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value.event_id) || typeof value.name !== "string" || typeof value.email !== "string" || typeof value.role !== "string") return respond({ error: "Enter valid RSVP details" }, 400);
     const input: GuestSubmitInput = { event_id: value.event_id, name: value.name.trim(), email: value.email.trim().toLowerCase(), role: value.role };
+    // eslint-disable-next-line no-control-regex -- reject control characters in guest contact details
     if (!input.name || [...input.name].length > 120 || [...input.email].length > 254 || /[\u0000-\u001f\u007f]/.test(input.name + input.email) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.email) || !["leader", "follower", "undecided"].includes(input.role)) return respond({ error: "Enter a valid name, email and dance role" }, 400);
     try {
       const key = await crypto.subtle.importKey("raw", encoder.encode(deps.secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);

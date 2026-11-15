@@ -1,11 +1,13 @@
 # Salsa Segura
 
-Boston & NYC Latin dance events calendar — [salsasegura.com](https://www.salsasegura.com)
+City-scoped salsa and bachata events, classes, and live music — [salsasegura.com](https://www.salsasegura.com)
 
 The site shows salsa fanatics where to go dancing and lets the community submit events, without needing social media.
 
 Using the app? Start with the in-product [Help](https://www.salsasegura.com/help) for
 dancers, DJs, venue owners/managers, organizers, artists, and school owners.
+
+Canonical [user manuals](docs/user-guides/README.md) include [guest artist-event signup](docs/user-guides/dancers.md#sign-up-for-an-artist-event), [artist event publishing and private rosters](docs/user-guides/artists.md#create-and-publish-an-artist-event), and [organizer publication acknowledgements](docs/user-guides/organizers.md#before-you-publish). These additions were verified locally; [artist RSVP rollout prerequisites](docs/operations/events-and-geography.md#artist-events-and-rsvp-rollout) distinguish implementation from production availability and live email.
 
 Geography follows **City → Borough → Neighborhood** in NYC and
 **City → Neighborhood** elsewhere. The explorer keeps each level collapsible;
@@ -13,46 +15,9 @@ selecting a city or borough includes all its neighborhoods. Selected geography
 persists locally and uses `?borough=` / `?neighborhood=` on city discovery URLs.
 Changing a parent clears its selected child.
 
-The curated starter catalog lives in
-`src/features/metros/model/neighborhood.ts` (51 neighborhoods across eight cities).
-Texas remains a regional metro without invented neighborhood assignments.
-Existing events remain unassigned until edited; addresses are not used to infer
-neighborhoods. Apply `supabase/migrations/20261028120200_event_neighborhoods.sql`
-(after the NYC borough migration `20261025120000_nyc_event_sublocations.sql`)
-before deploying neighborhood-aware clients. It validates parent-child
-relationships, preserves existing boroughs, patches the event-writing RPCs
-(admin/moderator save, submission approval, host create and edit) in place with
-exact-anchor assertions, and exposes neighborhood filtering through the public
-event projection. A direct city or borough change clears the previous child, and
-an explicit new neighborhood is accepted in the same write.
-
-Local persistence smoke (fixtures roll back):
-`docker exec -i supabase_db_Salsa psql -U postgres -d postgres -v ON_ERROR_STOP=1 -f - < supabase/manual/event-neighborhoods-smoke.sql`.
-
-Weekly itinerary database behavior checks (after applying
-`supabase/migrations/20261103120000_weekly_itineraries.sql` to a disposable
-local/staging database):
-
-```sh
-psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/weekly_itineraries.sql
-```
-
-Run as `postgres` or an equivalent migration owner able to `SET ROLE anon`
-and `authenticated`. No pgTAP needed: the script asserts SQL behavior,
-catches exact expected SQLSTATEs, and rolls back its real auth, metro,
-event and itinerary fixtures. It covers public visibility, active-moderator
-RPC authority, validation, transitions, dance-night/DST boundaries, stale
-render rejection and cover suppression. Do not reset or seed the hosted project
-for this check. Cover registration accepts the exact in-memory header and every
-selected item's public render facts (`set_itinerary_cover`'s `p_snapshot`), not
-an upload-completion timestamp. A changed/deleted event or changed header/item
-requires reloading and regenerating; publication rejects an obsolete source.
-Fresh public reads compare the retained source with current canonical public
-event facts, also closing concurrent edits after registration validation. This
-comparison excludes private event fields and ignores derived flyer-cache warming
-when its original artwork source is unchanged. Unavailable, cancelled, moved or
-deleted picks disappear from fresh public reads; stale card URLs are suppressed
-until regeneration. Already-shared JPEGs or messaging-app caches cannot be recalled.
+Deployment prerequisites and rollback-only database checks:
+[Events and geography](docs/operations/events-and-geography.md#neighborhoods) ·
+[Weekly itineraries](docs/operations/seo-and-itineraries.md#weekly-itinerary-database-verification).
 
 ## Stack
 
@@ -67,16 +32,29 @@ avoiding credential-cleanup permission errors after deployment.
 
 ## Getting started
 
+Use the Node version in `.nvmrc`, then install locked dependencies:
+
 ```bash
-npm install
-npm run dev
+npm ci
+cp -n .env.example .env.local  # Preserve an existing local configuration
 ```
 
-Requires a `.env` (or `.env.local`) with:
+Configure `.env.local`:
 
 ```ini
 VITE_SUPABASE_URL=...
 VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY=...
+VITE_POSTHOG_KEY=phc_...
+VITE_POSTHOG_HOST=https://us.i.posthog.com
+```
+
+PostHog requires a public project token (`phc_`), never a personal or secret API key.
+Shopify configuration is optional; see the [storefront runbook](docs/operations/shopify-storefront.md).
+
+Start the app after setting these values:
+
+```bash
+npm run dev
 ```
 
 ## Commands
@@ -85,8 +63,9 @@ VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY=...
 | ----------------------- | ------------------------------------ |
 | `npm run dev`           | Vite dev server                      |
 | `npm run build`         | TypeScript check + production build  |
-| `npm run test`          | Vitest test suite                    |
+| `npx vitest run`        | Vitest test suite, single pass       |
 | `npm run lint`          | ESLint                               |
+| `npm run check:docs`    | Offline Markdown and instruction checks |
 | `npm run format`        | Prettier                             |
 | `npm run import-events` | Import events from an ICS feed (dry run by default) |
 
@@ -100,405 +79,115 @@ Shared browser API shims live in `src/test/setup.ts` and run before component
 imports. The `matchMedia` shim defaults to nonmatching queries and supports
 modern and legacy change listeners; media-sensitive tests supply their own matches.
 
-The site publishes `https://www.salsasegura.com` as its canonical host. After Vite
-builds, `scripts/generate-sitemap.mjs` and `scripts/prerender-routes.mjs` both take
-their route list from `scripts/public-routes.mjs`: the stable routes in
-`src/shared/seo/routeMeta.json` plus approved events (`public_events`) and public
-entities (`public_entity_directory`), read with the Supabase URL and publishable
-key. The sitemap warns and falls back to stable URLs if public reads fail; the
-prerender fails the build instead, and writes only stable routes when no Supabase
-credentials are configured. Azure Static Web Apps route
-rules are path-based, so redirecting the non-`www` hostname requires domain or
-edge configuration outside this repository.
+### Documentation checks and protected instructions
 
-Every public route is prerendered to `dist/<path>/index.html` with its own title,
-description, canonical, robots and social tags and real content in `#app` (event
-and entity pages also list their public details; event pages add `DanceEvent`
-JSON-LD). React replaces that markup when JavaScript starts. The public homepage
-in `dist/index.html` also remains the SPA fallback; it contains no private data.
-Hosts must serve a directory's `index.html` for `/path` (nginx `try_files $uri $uri/index.html`, Azure Static Web Apps).
-The pages are a build-time snapshot, so rebuild on a schedule or when events are
-approved to keep crawlable content fresh.
-For a no-JavaScript check, use the production nginx routing or request
-`/path/index.html` explicitly in `vite preview`; its SPA fallback does not
-resolve extensionless directory routes the same way as the production hosts.
+Run `npm run check:docs` before submitting maintained documentation or shared-instruction
+changes. The read-only checker validates local Markdown links and heading fragments,
+canonical agent entry points, required headings, and protected Trail/Caveman blocks.
+It runs offline; external URLs are not fetched. CI runs it after dependency installation
+and before the existing lint, test, and build gates.
 
-Route metadata retains the branded social image when no page artwork is supplied.
-Robots directives are created even when absent from the HTML shell and restored
-on navigation. Event JSON-LD includes every available flyer, including a single
-flyer; events without artwork do not receive invented event images.
-SEO regression checks:
-`npx vitest run src/shared/seo/useDocumentMeta.test.tsx src/utils/seo.test.ts scripts/generate-sitemap.test.mjs scripts/prerender-routes.test.mjs src/pages/EventsParamRoute.test.tsx src/pages/EventDetailPage.test.tsx`.
+`scripts/docs-instructions.json` holds the reviewed required headings and SHA-256
+fingerprints of protected blocks in `AGENTS.md`. A failure is not permission to refresh
+the baseline. For an intentional protected-rule change:
+
+1. Review the exact instruction diff, including prohibitions, with the reviewer approving
+   the rule change. Preserve the block markers and required canonical headings.
+2. After reviewing the text, calculate candidate hashes with Node's built-in crypto.
+   This command normalizes CRLF to LF and hashes each complete block, including both
+   markers but excluding the newline after the closing marker. It prints candidates;
+   it does not update files.
+
+   ```bash
+   node --input-type=module <<'NODE'
+   import { readFileSync } from 'node:fs';
+   import { createHash } from 'node:crypto';
+
+   const text = readFileSync('AGENTS.md', 'utf8').replace(/\r\n/g, '\n');
+   const { blocks } = JSON.parse(readFileSync('scripts/docs-instructions.json', 'utf8'));
+   for (const { name, start, end } of blocks) {
+     const first = text.indexOf(start);
+     const last = text.indexOf(end);
+     if (first < 0 || last < first + start.length ||
+         text.indexOf(start, first + start.length) !== -1 ||
+         text.indexOf(end, last + end.length) !== -1) {
+       throw new Error(`Missing, duplicated, or misplaced markers: ${name}`);
+     }
+     const block = text.slice(first, last + end.length);
+     console.log(name, createHash('sha256').update(block).digest('hex'));
+   }
+   NODE
+   ```
+
+3. Manually replace only the affected `sha256` values in
+   `scripts/docs-instructions.json`. Include the instruction diff, baseline diff, and
+   reason for the change in the same review. Never auto-refresh hashes to silence failures.
+4. Run `npm run check:docs` and `npx vitest run scripts/check-docs.test.mjs` before
+   submitting the reviewed change.
+
+## SEO and prerendering
+
+Public routes receive build-time HTML; weekly itinerary previews use the Azure
+Functions handler in `api/`. Read the [SEO and itinerary runbook](docs/operations/seo-and-itineraries.md)
+for credentials, failure behavior, cache boundaries, deployment, and smoke checks.
 
 ### Weekly itinerary link previews
 
-`/itineraries/<metro>/<date>` is served dynamically by the anonymous Node 22
-Azure Functions v4 handler in `api/`, not by the build-time prerender. It resolves
-metro aliases and the week's Monday, then reads only `public_itineraries` using
-the anon key. Published responses contain the immutable 1200×630 JPEG card;
-`Cache-Control: no-cache` makes publishes and updates visible on the next request.
-Missing/draft/invalid routes return noindex 404s without an image and with
-`Cache-Control: no-store`; upstream failures return no-store 503s, not misleading
-successful cards. External messaging apps can still keep their own preview caches.
-
-Install API dependencies separately with `npm ci --prefix api`. Handler behavior
-and metadata regression checks: `npx vitest run api`. For a local routing smoke,
-build the SPA, then start the SWA CLI with Azure Functions Core Tools installed:
-
-```sh
-npm run build
-ITINERARY_SITE_ORIGIN=http://localhost:4280 \
-SUPABASE_URL=http://127.0.0.1:54321 SUPABASE_ANON_KEY='<local anon key>' \
-  npx @azure/static-web-apps-cli start dist --api-location api
-curl -i http://localhost:4280/itineraries/new-york-city/<published-Monday>
-curl -i -A 'WhatsApp/2' http://localhost:4280/itineraries/new-york-city/<published-Monday>
-```
-
-Use an existing published fixture: both requests should return 200, one `og:image`,
-its 1200×630 dimensions, and the canonical itinerary URL. Also request an invalid
-date and an unpublished week: both must return 404, `no-store`, `noindex`, and no
-social image. Publish/update that week and request again to confirm immediate
-metadata changes. These are operator smoke steps, not performed by the build.
-
-Before deployment, set **runtime application settings** on the Azure Static Web
-App: `SUPABASE_URL` and `SUPABASE_ANON_KEY`. Do not use a service-role key or rely
-on the frontend's `VITE_*` build settings for the function. The shell is fetched
-only from `https://www.salsasegura.com/index.html` and memoized per function
-instance; request hosts never choose its origin. Optional
-`ITINERARY_SITE_ORIGIN` explicitly overrides that trusted origin for local or
-staging verification (including canonical URLs); omit it in production.
-
-Optional `POSTHOG_PROJECT_TOKEN` (the `phc_` project token, never a `phx_`/`phs_`
-key) sends function failures to [PostHog Logs](https://posthog.com/docs/logs/installation/nodejs)
-over OTLP as service `salsa-segura-api`; `POSTHOG_HOST` defaults to
-`https://us.i.posthog.com`. Unset → no log export.
-
-After the smoke, deploy frontend and `api/` together through the existing Azure
-Static Web Apps workflow (`api_location: "api"`); the first itinerary route rule
-rewrites requests to `/api/itinerary-page`. Azure preserves the original path in
-[`x-ms-original-url`](https://github.com/Azure/static-web-apps/issues/580#issuecomment-957971855).
-The local SWA CLI can omit that header; the handler also accepts `request.url`
-when it already contains the itinerary route, never a client-supplied query path.
-
-Entity routes, migration prerequisites, privacy boundaries, local verification,
-and production acceptance steps are recorded in
-[`docs/entity-accessibility-completion.md`](docs/entity-accessibility-completion.md).
-Run `node scripts/entity-accessibility/verify.mjs` against the local Supabase
-stack for real anonymous/admin JWT and RLS checks. The verifier refuses hosted
-URLs; `--keep-fixtures` retains isolated browser fixtures, and
-`--cleanup <artifact-path>` removes only those recorded fixtures.
+Runtime settings and local routing verification:
+[Weekly itinerary link previews](docs/operations/seo-and-itineraries.md#weekly-itinerary-link-previews).
 
 ## Analytics baseline
 
-Umami in `index.html` is the cookieless visit source. PostHog uses memory-only
-persistence for existing product events, exceptions and submission logs.
-Startup removes this project's legacy PostHog cookie/localStorage entries,
-without touching Supabase authentication. Anonymous PostHog identity does not
-survive reloads; existing signed-in `identify` calls still identify accounts.
-Cookieless is not a claim of complete anonymity or a substitute for a privacy review.
-
-Event detail pages and modals send metro-tagged Umami events through the existing
-`recordEventTouch` boundary:
-
-| Event | Meaning |
-| --- | --- |
-| `event-view:<metro>` | An event detail was opened |
-| `rsvp-click:<metro>` | Free-event registration link activated |
-| `ticket-click:<metro>` | Paid-event ticket link activated |
-| `event-share:<metro>` | A share action was activated, not proof the share completed |
-
-`<metro>` is the event's metro, not visitor geolocation; missing metros use `none`.
-Custom events honor Do Not Track and Global Privacy Control. Views retain the
-existing per-event/day session dedupe; actions count each activation. No visitor
-identifier is added to the first-party `event_touches` table. Blocked analytics,
-changing IP/browser inputs and multiple devices affect the visitor proxy.
+Umami measures cookieless visits; PostHog uses memory-only persistence.
+See [Analytics](docs/operations/analytics.md) for privacy boundaries, event meanings,
+weekly returning-dancer reporting, and recurring-coverage verification.
 
 ### Weekly returning dancers
 
-Run `node scripts/repeat-dancers.mjs <YYYY-MM> <metro-slug>` with a server-side
-`UMAMI_API_KEY` from the owner's Umami Cloud account. Do not prefix this key with
-`VITE_` or expose it in a browser. The site ID defaults to the existing HTML tag;
-`UMAMI_WEBSITE_ID` and `UMAMI_API_URL` optionally override the reporting target.
-
-A dancer is an anonymous Umami visitor who triggered `event-view:<metro>`.
-For a completed New York ISO week W, returning dancers were active in W and W−1.
-The returning share divides returning dancers by active dancers in W; it is not
-cohort retention against W−1's audience. Umami rotates anonymous identifiers
-monthly. The script assumes UTC salt-month boundaries, excludes cross-boundary
-or incomplete observation windows, and emits `null` rather than false zeroes for
-unavailable weeks. The Cloud rotation instant still needs owner verification.
-No persistent tracking ID is introduced to bridge months. Baseline collection
-starts when these custom events deploy; earlier periods cannot establish return rates.
+Reporting command, observation windows, and identity limits:
+[Weekly returning dancers](docs/operations/analytics.md#weekly-returning-dancers).
 
 ### Recurring coverage
 
-Apply `supabase/migrations/20261028000000_admin_coverage_score.sql` before deploying
-the new `/admin/analytics` coverage section. The admin-only RPC is independent of
-the reporting-period filter. Default score:
-
-**100 × tracked recurring nights with an approved listing in the next 14 New York
-calendar days / tracked recurring nights.**
-
-A tracked night occurred on at least two distinct dates in the previous 28 days.
-Identity uses an active linked series when available, otherwise normalized title,
-venue/location and New York weekday. Duplicate same-day records do not establish
-recurrence. Today is included in the forward window; its end is exclusive.
-Zero tracked nights means no score, not 0% or 100%. The UI exposes missing-night
-queues per metro. This measures continuity of known recurring listings, not total
-real-world market coverage; renamed events and unlinked venue aliases can split a night.
-
-Rollback-only local SQL verification:
-`docker exec -i supabase_db_Salsa psql -U postgres -d postgres -v ON_ERROR_STOP=1 -f - < supabase/manual/admin-coverage-smoke.sql`.
-
+Score definition, deployment prerequisite, and database smoke:
+[Recurring coverage](docs/operations/analytics.md#recurring-coverage).
 
 ## Native Shopify shop
 
-Public routes `/shop` and `/shop/products/:handle` use the existing Salsa Segura
-layout. Shopify Storefront API `2026-10` owns products, variants, prices,
-availability, cart calculations, and checkout. Integration code lives in
-`src/features/shopify/`; the app never processes payments or stores card data.
-
-**Retail Edit is the production storefront**, not a development preview.
-The catalog pairs an editorial product-photo hero and condensed display type
-with whole-product photography, direct product links, checkout guidance and a
-calendar CTA. Page-scoped GSAP/Lenis motion respects reduced motion and native
-touch scrolling. Solar icons are bundled locally with attribution.
-Product pages use named option buttons, a gallery, a details disclosure and
-a mobile purchase bar above the public dock. Catalog navigation preloads
-product data and uses a shared-image transition where supported; confirmed
-adds animate into the cart. Reduced motion retains the same purchase flow
-without either effect. The discarded Drop Grid and preview switcher are removed;
-`?variant=retail` or `?variant=drop` no longer selects another design.
-With JavaScript disabled, the shared app shell explains the event guide and links
-to Boston/NYC events, the calendar, directories, and site information. It also
-retains the shop message and direct link to the public merchant storefront.
-
-Set these optional build-time values in `.env.local`:
-
-```ini
-VITE_SHOPIFY_STORE_DOMAIN=your-store.myshopify.com
-VITE_SHOPIFY_STOREFRONT_TOKEN=your-public-storefront-token
-```
-
-Use the canonical `*.myshopify.com` domain without a URL scheme/path and a
-**public Storefront access token** from Shopify's Headless sales channel.
-Never supply Admin API tokens, private Storefront tokens, or app secrets:
-Vite embeds `VITE_*` values in the browser bundle. Missing configuration leaves
-the rest of the app usable and displays a shop-unavailable state.
-
-Shell exports take precedence over `.env` and `.env.local`. After correcting the
-domain, update or unset a stale `VITE_SHOPIFY_STORE_DOMAIN` export before starting
-Vite or building; changing the file alone does not override an exported value.
-
-For local launches/builds that must use the values already in `.env.local`,
-clear inherited Shopify overrides for that process:
-
-```bash
-env -u VITE_SHOPIFY_STORE_DOMAIN -u VITE_SHOPIFY_STOREFRONT_TOKEN npm run dev
-env -u VITE_SHOPIFY_STORE_DOMAIN -u VITE_SHOPIFY_STOREFRONT_TOKEN npm run build
-```
-
-Do not use these commands in CI where the intended values come from secrets.
-No token or local environment-file change is required for the Retail Edit cutover.
-
-In Shopify, install/configure the Headless channel, enable product and cart/
-checkout Storefront access, and publish the intended products to that channel.
-Configure variant inventory, currency/markets, shipping, taxes, payments, and
-checkout branding in Shopify. Prices and availability are not duplicated locally.
-For Azure Static Web Apps, set the two same-named GitHub repository secrets;
-the existing workflow forwards them to both build steps. Rebuild/redeploy after
-changing them: Azure runtime application settings do not replace Vite build values.
-
-Current launch-blocker remediation and merchant-review policy drafts are in
-[`docs/shopify-phase-2-6-readiness.md`](docs/shopify-phase-2-6-readiness.md);
-the [Phase 2.5 report](docs/shopify-phase-2-5-readiness.md) is historical evidence.
-
-The cart provider stores only the Shopify cart ID at
-`salsasegura:shopify-cart-id`. It restores the cart on public-layout startup,
-removes IDs confirmed missing by Shopify, and retains IDs on network failures.
-Cart mutations display Shopify's returned quantities and totals. Warning-only
-responses with a valid cart are accepted, with a curated adjustment notice;
-Shopify user errors still report failure. Checkout follows Shopify's returned `checkoutUrl`.
-Keyboard mutations keep focus with the affected item while controls are locked,
-then restore an enabled action; removals focus a surviving item or Browse the shop.
-Escape restores the opener, and deliberate focus movement is not overridden.
-Mobile navigation retains its dialog semantics and focus handling; the header
-can wrap at enlarged text sizes without hiding the Shop destination or menu toggle.
-
-The catalog and product pages share the public site's navy, rose and gold UI.
-Product galleries use Shopify image dimensions when available; named options,
-sold-out choices and prices come from Shopify. Select a quantity before adding.
-An add stays on the product page and announces success; open the cart to review
-Shopify's returned quantities and estimated totals. Removing a line is separate
-from decreasing its quantity. Shipping and taxes are calculated at Shopify checkout.
-Changing products resets purchase options and quantity. Feedback from an in-flight
-add does not appear on a different product after navigation.
-
-Shop and product pages use the existing client-side metadata helpers with clean,
-query-free canonicals. Product JSON-LD includes only supplied product data and
-Shopify variant offers; it does not invent ratings, reviews or inventory counts.
-This is not SSR: client-side metadata does **not** provide true server-rendered
-product social previews to crawlers that do not execute JavaScript.
-
-Focused tests mock Shopify and never contact a production shop:
-
-```bash
-npm test -- --run src/features/shopify src/app/App.shopRoutes.test.tsx
-```
-
-All exported documents in `src/features/shopify/api/operations.ts` are validated
-offline against the credential-free
-[`2026-10` schema fixture](src/features/shopify/api/fixtures/storefront-2026-10.schema.json),
-retrieved from Shopify's public versioned introspection endpoint. The validation
-uses GraphQL.js `parse`, `buildClientSchema`, and `validate`; CI makes no Shopify
-request. Re-fetch and review the fixture only when intentionally updating the
-API version. The Storefront client remains pinned to `2026-10`.
-
-Run the schema check with:
-
-```bash
-npm test -- --run src/features/shopify/api/operations.schema.test.ts
-```
-
-The client distinguishes configuration, transport, HTTP, GraphQL, malformed
-response, mutation, pagination, and invalid-checkout failures. Product, variant,
-gallery-image and cart-line pages use Shopify cursors and fail rather than silently truncate.
-Money remains Shopify decimal strings. Cart mutations keep Shopify-returned
-quantities and totals; checkout accepts only Shopify-returned HTTPS URLs without
-rewriting them.
-
+Shopify owns products, prices, cart totals, and checkout. Retail Edit is the
+production storefront. See the [storefront runbook](docs/operations/shopify-storefront.md)
+for public-token setup, merchant prerequisites, cart behavior, and offline tests.
 
 ## Public calendar and event suggestions
 
-The calendar keeps Salsa Segura's dark nightlife identity. Desktop offers month,
-week, list, and cards; compact screens offer list and cards. Search event titles,
-venues, descriptions, and styles, then narrow by city, event type, or dance style.
-**New event** is the calendar's single submission action and opens the form in place.
-List view groups approved events by date in chronological batches of 50, with a
-keyboard-accessible “Show more events” control. Rows show descriptions, category/style
-labels, venue, and start–end times; multi-night events show their actual end date,
-overnight events show a next-day marker, and unavailable flyers use event-type artwork.
-The entire search bar uses a lazy-loaded `@paper-design/shaders` liquid-metal focus pulse:
-650ms of motion, then a static frame; blur disposes it. Reduced-motion and non-WebGL
-devices keep a static metal perimeter. Focus feedback stays around the whole bar
-while moving between its icon, input, and clear button, without an inner input outline.
-Clearing a search returns focus to the input.
-
-On phones, date navigation and List/Cards share a row; type/style filters live in
-a native **Filters** disclosure with an active-selection count. Selections persist
-when it closes or the view changes. The header city picker replaces duplicate
-calendar city controls. Narrow phones retain 44px view buttons with accessible
-icon-only labels; short touch-device landscape viewports also use the compact list.
-
-Guests can submit without an account when public suggestions are enabled. Contact
-details and required event fields are validated; submissions enter the moderation
-queue as `pending` and do not appear publicly until approved. Flyers are optional,
-and an event can carry up to five.
-Events without a flyer reuse the generated Sleeve cover and shareable poster system,
-not an external image-generation service.
-
-The submission form locks its fields while saving. If the submission-access check fails,
-visitors can retry it in place without reloading the calendar.
+The calendar shows approved events; public suggestions enter moderation.
+See [Events and geography](docs/operations/events-and-geography.md#public-calendar-and-event-suggestions)
+for calendar interactions and submission behavior.
 
 ### Multiple flyers per event
 
-An event can have up to five flyers (JPEG, PNG, or WebP, 5 MB each). Submitters,
-hosts, and admins add, remove, and reorder them in the event form; the first is the
-**primary** flyer. `events.image_urls` holds the ordered list and `events.image_url`
-always equals `image_urls[1]`, kept in sync by the `events_sync_event_flyers`
-trigger, so older writers that only set `image_url` keep working. The calendar,
-cards, list rows, share image, and poster use the primary flyer only; the event
-modal and event page let visitors flip through all of them. Flyer analysis reads
-the primary flyer. Bulk flyer import and CSV import stay one flyer per event.
-
-Deploy migration `20261025000000_event_multiple_flyers.sql` before the frontend. It
-backfills `image_urls` from `image_url`, appends `image_urls` to `public_events`, and
-patches the host, admin, and submission-approval RPCs in place; it fails loudly if
-any of those definitions has drifted from the expected text.
+Limits, primary-flyer behavior, and migration order:
+[Multiple flyers per event](docs/operations/events-and-geography.md#multiple-flyers-per-event).
 
 ### NYC boroughs
 
-New York City has five optional event sublocations: Manhattan (`manhattan`),
-Brooklyn (`brooklyn`), Queens (`queens`), The Bronx (`bronx`), and Staten Island
-(`staten-island`). The city picker nests them under NYC, alongside **All NYC**.
-A borough selection filters approved events to that exact borough; All NYC
-includes both assigned and unassigned events. Existing events remain unassigned
-until an editor chooses a borough—addresses are not guessed.
-
-Selections persist in this browser and are shareable as
-`/events/new-york-city?borough=brooklyn`. Choosing another city or Events near me
-clears the borough. NYC event forms expose an optional Borough field; changing
-the event city clears it. Public submissions retain it through moderation,
-and organizer, user, and admin editing paths preserve it.
-
-CSV imports accept an optional `sublocation` column with the slugs above.
-Leave it blank for All NYC or any non-NYC city; other combinations are rejected.
-Deploy `20261025120000_nyc_event_sublocations.sql` after the multiple-flyer
-migration and before this frontend. It adds the public projection, validation,
-filter index, owner-update grant, and borough handling in the existing RPCs.
-Local rollback-only database verification:
-`{ printf 'begin;\n'; cat scripts/verify-nyc-sublocations.sql; } | docker exec -i supabase_db_Salsa psql -U postgres -d postgres -v ON_ERROR_STOP=1`.
+Filtering, CSV import, and rollback-only database verification:
+[NYC boroughs](docs/operations/events-and-geography.md#nyc-boroughs).
 
 ### Component setup
 
-TypeScript and Tailwind CSS v4 are configured. `components.json` maps shadcn's
-`@/components/ui` alias to `src/components/ui/`, the reusable UI directory;
-`@/lib/utils` supplies `cn`. Keep shared primitives there rather than creating a
-second root-level `components/ui` tree. Global styles enter through
-`src/styles/index.css`; calendar and dialog styles remain with the feature.
-Tailwind utilities are enabled without Preflight so they do not reset existing
-site styling. Semantic shadcn colors map to the current brand tokens.
-
-`src/components/ui/event-manager.tsx` is a controlled calendar toolbar, not the
-attachment's local demo-event store. Schedule-X and approved Supabase events
-remain the source of truth. It reuses the existing `Button.tsx` and Radix Dialog;
-public visitors cannot drag, edit, or delete approved listings.
+Shared primitives, Tailwind, and calendar ownership:
+[Component setup](docs/operations/events-and-geography.md#component-setup).
 
 ## Bulk flyer import
 
-Organizer owners and managers can open **My Events → Import Flyers**; admins can open
-**Events → Import Flyers**. Select multiple JPEG, PNG, or WebP images (up to 5 MB
-each). The app uploads and analyzes each flyer, then shows its extracted details
-beside an editable event form. Review each row, correct any missing or inaccurate
-details, and skip flyers that should not be imported. Only reviewed, valid rows
-are eligible for **Save reviewed drafts** or **Publish reviewed events**.
-Failed rows remain visible so a successful row does not need to be imported again.
-If analysis fails after upload, retry analysis or continue with the retained flyer
-and enter details manually. If saving fails, the row keeps its image and draft;
-**Retry save** retries only that event with the original draft/publish choice.
-The queue also shows analyzed, reviewed, and failed counts. Selected event facts stay
-beside the flyer during editing; commit buttons show how many reviewed rows they will
-attempt to save or publish.
-Flyer analysis requires the configured `extract-flyer` Supabase Edge Function.
-
-Flyer extraction also returns separate venue, organizer, instructor, and school
-candidates, with contacts and geography only when printed. Review can reuse an
-existing record, search for alternatives, edit, mark a candidate new, or remove it.
-Automatic links require deterministic identity signals; ambiguous names remain
-unresolved. Manual event values and deliberate entity choices survive retries.
-Creation is optional: an event can be saved without resolving every candidate.
-
-Anonymous uploads and pending submissions never create canonical entities.
-Authenticated extraction runs server-side. Admin saves and moderator approval
-atomically resolve authorized choices, create unverified flyer-sourced records,
-and write explicit venue/organizer IDs plus instructor/school join rows. Host
-bulk imports retain suggestions only. Existing metro data drives event geography.
-Canonical public pages use `/v/:slug`, `/o/:slug`, `/i/:slug`, and `/s/:slug`;
-their public projection excludes email and phone.
-
-Deploy migration `20260929000000_flyer_entity_foundation.sql` after the existing
-dynamic-metros migration, then deploy the updated `extract-flyer` function and
-frontend together. The old venue-only `reconcile-flyer` function is retired;
-matching uses authenticated database RPCs. Local verification:
-`node scripts/verify-flyer-entities.mjs`, the rollback-only
-`supabase/manual/flyer-entity-foundation-smoke.sql`, and
-`bash supabase/manual/flyer-entity-foundation-concurrency.sh`.
-
+Review, retries, entity matching, and deployment:
+[Bulk flyer import](docs/operations/events-and-geography.md#bulk-flyer-import).
 
 ## Host event access
 
-Host event cards show **Manage Event** only when the user has active owner or manager
-membership in that event's organizer. Other memberships show **View Event**.
+Active organizer owners and managers can manage events; other memberships can only view them.
+See [Host event access](docs/operations/events-and-geography.md#host-event-access).
 
 ## Repository layout
 
@@ -511,10 +200,12 @@ membership in that event's organizer. Other memberships show **View Event**.
 
 ## Documentation
 
-- [Help](https://www.salsasegura.com/help) — task-based guides for dancers and listing/event managers, rendered in the product
-- [Product improvement backlog](docs/user-guides/improvements.md) — evidence and proposals discovered while writing the guides
-- [docs/STATUS_SUMMARY.md](docs/STATUS_SUMMARY.md) — current project status
-- [docs/ROADMAP.md](docs/ROADMAP.md) — 52-week roadmap
-- [DESIGN.md](DESIGN.md) — "Ritmo Vivo" design system
-- [docs/plans/MODERNIZATION_BLUEPRINT.md](docs/plans/MODERNIZATION_BLUEPRINT.md) — architecture audit & refactor plan
-- [CLAUDE.md](CLAUDE.md) — agent/contributor guide
+- [Help](https://www.salsasegura.com/help) — in-product guides; canonical Markdown lives in [docs/user-guides/](docs/user-guides/README.md)
+- [PRODUCT.md](PRODUCT.md) — product purpose, audiences, and constraints
+- [DESIGN.md](DESIGN.md) — visual authority and interaction contracts
+- [AGENTS.md](AGENTS.md) — shared coding-agent guidance; tool-specific entry points load this file
+- [Operations](docs/operations/) — deployment prerequisites, integrations, and verification runbooks
+- [Product improvement backlog](docs/user-guides/improvements.md) — guide-driven evidence and proposals
+- [Status snapshot](docs/STATUS_SUMMARY.md) · [Roadmap](docs/ROADMAP.md) — dated progress and planning records
+- [Modernization blueprint](docs/plans/MODERNIZATION_BLUEPRINT.md) · [Plans](docs/plans/) · [Audits](docs/audits/) — historical decisions and evidence; check dates before treating them as current
+- [Archive](docs/archive/) — superseded guides retained for reference

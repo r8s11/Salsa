@@ -98,6 +98,10 @@ const EntityWorkspaceRequestsPage = lazy(() => import("../features/workspaces/pa
 const SchoolTimetablePage = lazy(() => import("../features/workspaces/pages/SchoolTimetablePage"));
 const SchoolPrivatesPage = lazy(() => import("../features/workspaces/pages/SchoolPrivatesPage"));
 const SchoolPricesPage = lazy(() => import("../features/workspaces/pages/SchoolPricesPage"));
+const ArtistEventsPage = lazy(() => import("../features/artist-rsvp/pages/ArtistEventsPage"));
+const ArtistEventEditorPage = lazy(() => import("../features/artist-rsvp/pages/ArtistEventEditorPage"));
+const ArtistRsvpRosterPage = lazy(() => import("../features/artist-rsvp/pages/ArtistRsvpRosterPage"));
+const PublicArtistRsvpPage = lazy(() => import("../features/artist-rsvp/pages/PublicArtistRsvpPage"));
 import RequireAuth from "../features/auth/components/RequireAuth";
 import RequireAdmin from "../features/auth/components/RequireAdmin";
 import { MANAGED_KINDS, WORKSPACE_SEGMENTS } from "../features/workspaces/model";
@@ -311,6 +315,10 @@ function App() {
               <Route path="schools/:id/timetable" element={<SchoolTimetablePage />} />
               <Route path="schools/:id/privates" element={<SchoolPrivatesPage />} />
               <Route path="schools/:id/prices" element={<SchoolPricesPage />} />
+              <Route path="instructors/:id/events" element={<ArtistEventsPage />} />
+              <Route path="instructors/:id/events/new" element={<ArtistEventEditorPage />} />
+              <Route path="instructors/:id/events/:eventId" element={<ArtistEventEditorPage />} />
+              <Route path="instructors/:id/events/:eventId/rsvps" element={<ArtistRsvpRosterPage />} />
             </Route>
             <Route
               path="/onboarding"
@@ -342,6 +350,7 @@ function App() {
               <Route path="shop/products/:handle" element={<ProductPage />} />
               <Route path="shop/:collection" element={<CollectionPage />} />
               <Route path="events/:id" element={<EventsParamRoute />} />
+              <Route path="events/:id/rsvp" element={<PublicArtistRsvpPage />} />
               <Route path="e/:code" element={<ShortEventLinkPage />} />
               <Route path="itineraries/:city/:weekStart" element={<ItineraryPage />} />
               <Route path="v/:slug" element={<PublicEntityPage kind="venue" />} />

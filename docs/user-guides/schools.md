@@ -33,7 +33,7 @@ If your school is not in the directory, use **Not listed? Request a listing** at
 
 ## Maintain the weekly timetable
 
-A timetable class repeats each week. It does **not** create a dated event on the main calendar, reserve a student's place, or process payment. Use the [organizer guide](organizers.md) for dated workshops, socials, and other events when you have organizer access.
+A timetable class repeats each week. It does **not** create a dated event on the main calendar, reserve a student's place, or process payment. Use the [organizer guide](organizers.md) for organizer-owned dated workshops and socials. An active Owner or Manager of a separate artist listing can instead [create an artist-owned event and collect RSVPs](artists.md#create-and-publish-an-artist-event); school access alone does not grant that permission.
 
 ### Add a class
 

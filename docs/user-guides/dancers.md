@@ -18,13 +18,31 @@ If no results appear, clear your search and filters and check another date. An e
 
 From the event preview:
 
-- **Get Tickets** or **RSVP · Free**, when shown, opens the host's external page. Complete any reservation or purchase there. Opening a Salsa Segura listing is not a reservation or proof of admission.
+- **Get Tickets** or **RSVP · Free**, when shown for an ordinary external-link event, opens the host's external page. Artist events with website-managed RSVPs open a Salsa Segura signup form first; follow [the artist signup instructions](#sign-up-for-an-artist-event). Opening a listing is not a reservation or proof of admission.
 - **Add to calendar** opens a calendar action. It may open Google Calendar or download a calendar file, depending on the event. Confirm the details before saving; return to the listing for later changes.
 - **Copy link** copies the event address for a message or post.
 - **Send to friends** prepares the event poster for your device's share options. If sharing is unavailable, the app offers a download instead.
 - Open the flyer/poster preview to choose **Story · 9:16** or **Feed · 4:5**, then **Send this poster** or **Save image**.
 
 If an event has no ticket or RSVP link, check its contact details or contact the host. Do not assume it accepts walk-ins or is sold out. Confirm schedule and entry requirements with the host before travelling.
+
+## Sign up for an artist event
+
+Artist RSVP availability depends on rollout. If the event offers the signup form, follow these steps. A saved browser receipt alone is not proof that production email delivery is active.
+
+1. Open the event's RSVP action from its preview or full event page.
+2. Check the managing artist, date/time and signup guidance. The displayed count is main-list signups, not confirmed attendance or verified payments.
+3. Enter your name and email. Choose Leader, Follower or Undecided; Undecided is a valid default. No account or phone number is required.
+4. Read the disclosure: the artist's active Owners and Managers can see your contact details and dance role to manage this event and its notices.
+5. Select **Save my RSVP** once and wait. Your details must save before an artist payment or registration link appears.
+6. Read the saved message and check your email for main-list or waitlist status when delivery is active. The browser deliberately does not disclose placement or whether that email had already signed up.
+7. For paid events, **Continue to artist payment** opens the artist's site. Salsa Segura does not process or verify payment. If waitlisted or unsure, contact the artist before paying.
+
+Saving is not artist acceptance. Thirty unconfirmed main-list signups fill a limit of 30; overflow waits. Artist acceptance is a separate decision, and an external payment link does not confirm a place.
+
+If saving fails, your entered details remain available to correct or retry. For a rate limit, wait for the displayed retry period; repeatedly submitting will not bypass it. Closed or unavailable events do not accept new signups. Contact the artist about existing signups, corrections or admission questions.
+
+An acceptance notice records the artist's decision, not payment. A withdrawal supersedes prior acceptance without promising a refund. Date/time notices report the current schedule; check it before travelling. If email does not arrive, contact the artist rather than assuming acceptance.
 
 ## Discover the people and places behind the events
 

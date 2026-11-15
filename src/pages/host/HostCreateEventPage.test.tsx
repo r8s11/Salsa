@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { CityProvider } from "../../contexts/CityContext";
 import HostCreateEventPage from "./HostCreateEventPage";
+import { EVENT_RESPONSIBILITIES } from "../../features/events/model/eventResponsibility";
 
 const mocks = vi.hoisted(() => ({
   useAuth: vi.fn(),
@@ -45,6 +46,27 @@ function renderPage() {
 describe("HostCreateEventPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it("U4 responsibility checklist allows private drafts and requires every check for publication", async () => {
+    const user = userEvent.setup();
+    mocks.useAuth.mockReturnValue({ user: { id: "user-1", email: "host@example.com" } });
+    mocks.useMyOrganizers.mockReturnValue({ data: [{ organizerId: "org-1", organizerName: "Artist organizer", organizerStatus: "active", memberRole: "owner" }], isLoading: false });
+    mocks.createOrganizerEvent.mockResolvedValue("evt-1");
+    renderPage();
+    const publish = screen.getByRole("button", { name: "Publish Event" });
+    expect(publish).toBeDisabled();
+    for (const [,label] of EVENT_RESPONSIBILITIES) expect(screen.getByLabelText(label)).not.toBeChecked();
+    await user.type(screen.getByLabelText("Event Title *"), "Checklist social");
+    await user.click(screen.getByRole("button", { name: "Social" }));
+    await user.type(screen.getByLabelText("Date *"), "2099-10-24");
+    await user.click(screen.getByRole("button", { name: "Save Draft" }));
+    await waitFor(() => expect(mocks.createOrganizerEvent).toHaveBeenCalledWith("org-1", expect.not.objectContaining({ publication_ack: expect.anything() }), false));
+    for (const [,label] of EVENT_RESPONSIBILITIES.slice(0,2)) await user.click(screen.getByLabelText(label));
+    expect(publish).toBeDisabled();
+    await user.click(screen.getByLabelText(EVENT_RESPONSIBILITIES[2][1]));
+    await user.click(publish);
+    await waitFor(() => expect(mocks.createOrganizerEvent).toHaveBeenLastCalledWith("org-1", expect.objectContaining({ publication_ack: { admission_payments: true, signup_counts: true, guest_notices: true, version: "2026-11-14" } }), true));
   });
 
   it("uses the only active manageable organizer without showing a selector", async () => {

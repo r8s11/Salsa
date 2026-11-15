@@ -73,6 +73,7 @@ const WORKSPACE_SECTION_LABEL: Record<string, string> = {
   profile: "Profile",
   requests: "Requests",
   team: "Team",
+  events: "Events",
 };
 
 function sectionLabelFor(pathname: string): string {
@@ -84,6 +85,10 @@ function sectionLabelFor(pathname: string): string {
   const [, host, segment, , section] = pathname.split("/");
   const workspaceKind = MANAGED_KINDS.find((kind) => WORKSPACE_SEGMENTS[kind] === segment);
   if (host === "host" && workspaceKind) {
+    if (workspaceKind === "instructor" && section === "events") {
+      const [, , , , , eventId, action] = pathname.split("/");
+      return `Artist · ${action === "rsvps" ? "RSVP roster" : eventId === "new" ? "Create event" : eventId ? "Edit event" : "Events"}`;
+    }
     const sectionName = section ? WORKSPACE_SECTION_LABEL[section] : "Overview";
     return `${MANAGED_KIND_LABELS[workspaceKind]} · ${sectionName ?? "Overview"}`;
   }

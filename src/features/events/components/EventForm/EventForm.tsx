@@ -18,6 +18,7 @@ type Props = {
   onChange: (draft: EventFormDraft) => void;
   renderVenueField?: () => ReactNode;
   renderFlyerField?: () => ReactNode;
+  renderRsvpField?: () => ReactNode;
   /**
    * Renders under a typed field that can name an existing record (venue name,
    * host) so a surface can offer listed matches. Absent means plain text.
@@ -63,6 +64,7 @@ export default function EventForm({
   onChange,
   renderVenueField,
   renderFlyerField,
+  renderRsvpField,
   renderFieldAssist,
   taxonomyTerms,
   requireSubmitterContact = false,
@@ -361,6 +363,7 @@ export default function EventForm({
             />
           </div>
         </div>
+        {capabilities.recurrence !== false && (
         <label className="event-form__check">
           <input
             type="checkbox"
@@ -370,6 +373,7 @@ export default function EventForm({
           />
           Repeats weekly
         </label>
+        )}
         {capabilities.timeZone && (
           <div className="event-form__field">
             <label htmlFor="event-time-zone">Time zone</label>
@@ -463,7 +467,7 @@ export default function EventForm({
             </div>
           )}
         </div>
-        <div className="event-form__field">
+        {renderRsvpField ? renderRsvpField() : <div className="event-form__field">
           <label htmlFor="event-rsvp-link">RSVP link</label>
           <input
             id="event-rsvp-link"
@@ -473,7 +477,7 @@ export default function EventForm({
             {...fieldErrorProps("event-rsvp-link-error", errors.rsvp_link)}
           />
           <FormFieldError id="event-rsvp-link-error" message={errors.rsvp_link} />
-        </div>
+        </div>}
       </section>
       {!flyerFirst && artworkSection}
 

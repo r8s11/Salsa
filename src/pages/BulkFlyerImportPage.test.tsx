@@ -1,9 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import userEvent, { type UserEvent } from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import BulkFlyerImportPage from "./BulkFlyerImportPage";
+import { EVENT_RESPONSIBILITIES } from "../features/events/model/eventResponsibility";
+async function acknowledgeResponsibilities(user: UserEvent) {
+  for (const [,label] of EVENT_RESPONSIBILITIES) await user.click(screen.getByLabelText(label));
+}
 
 const mocks = vi.hoisted(() => ({
   useAuth: vi.fn(),
@@ -146,6 +150,7 @@ describe("BulkFlyerImportPage", () => {
     await user.click(screen.getByRole("button", { name: "Skip this flyer" }));
     await user.click(await frame("first.png"));
     await user.click(screen.getByRole("button", { name: "Confirm details against flyer" }));
+    await acknowledgeResponsibilities(user);
     await user.click(within(saveBar()).getByRole("button", { name: "Publish 1 event" }));
     await waitFor(() => expect(within(saveBar()).getByRole("status")).toHaveTextContent("1 published."));
     expect(mocks.createOrganizerEvent).toHaveBeenCalledOnce();
@@ -230,6 +235,7 @@ describe("BulkFlyerImportPage", () => {
       "Choose an event type."
     );
 
+    await acknowledgeResponsibilities(user);
     await user.click(within(saveBar()).getByRole("button", { name: "Publish 1 event" }));
     await waitFor(() => expect(within(saveBar()).getByRole("status")).toHaveTextContent("1 published."));
     expect(mocks.createOrganizerEvent).toHaveBeenCalledOnce();
@@ -251,6 +257,7 @@ describe("BulkFlyerImportPage", () => {
     ]);
     await user.click(await screen.findByRole("button", { name: "Confirm details against flyer" }));
     expect(await frame("second.png")).toHaveAccessibleName("second.png: Reading");
+    await acknowledgeResponsibilities(user);
     await user.click(within(saveBar()).getByRole("button", { name: "Publish 1 event" }));
     await waitFor(() => expect(mocks.createOrganizerEvent).toHaveBeenCalledOnce());
     pending.resolve(extracted("Second social"));
@@ -313,7 +320,7 @@ describe("BulkFlyerImportPage", () => {
     expect(await frame("first.png")).toHaveAccessibleName("first.png: Needs review");
   });
 
-  it("retries only a failed save without repeating a successful event", async () => {
+  it("U4 responsibility checklist retries only a failed publish without repeating successful events", async () => {
     const user = userEvent.setup();
     mocks.createOrganizerEvent
       .mockResolvedValueOnce("event-1")
@@ -327,6 +334,8 @@ describe("BulkFlyerImportPage", () => {
     await waitFor(() => expect(screen.getByLabelText("Flyer images")).toBeEnabled());
     await user.click(screen.getByRole("button", { name: "Confirm details against flyer" }));
     await user.click(screen.getByRole("button", { name: "Confirm details against flyer" }));
+    expect(within(saveBar()).getByRole("button", { name: "Publish 2 events" })).toBeDisabled();
+    await acknowledgeResponsibilities(user);
     await user.click(within(saveBar()).getByRole("button", { name: "Publish 2 events" }));
     await waitFor(() =>
       expect(within(saveBar()).getByRole("status")).toHaveTextContent("1 published · 1 failed.")
@@ -342,6 +351,7 @@ describe("BulkFlyerImportPage", () => {
       expect(await frame("second.png")).toHaveAccessibleName("second.png: Published")
     );
     expect(mocks.createOrganizerEvent).toHaveBeenCalledTimes(3);
+    for (const call of mocks.createOrganizerEvent.mock.calls) expect(call[1].publication_ack).toEqual({ admission_payments: true, signup_counts: true, guest_notices: true, version: "2026-11-14" });
     expect(mocks.createOrganizerEvent.mock.calls[2][1]).toEqual(
       expect.objectContaining({ title: "Second social" })
     );

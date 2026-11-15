@@ -82,6 +82,12 @@ const source: DatabaseEvent = {
   venue_id: null,
 };
 
+it("preserves artist collection metadata from the public projection for capture routing", async () => {
+  mocks.maybeSingle.mockResolvedValueOnce({ data: { ...source, source_type: "artist", artist_id: "artist", rsvp_enabled: true, rsvp_closed: false, rsvp_limit: 30, rsvp_link: null }, error: null });
+  const event = await fetchApprovedEventById("00000000-0000-4000-8000-000000000001");
+  expect(databaseEventToScheduleX(event!)).toMatchObject({ artistId: "artist", rsvpEnabled: true, rsvpLimit: 30 });
+  expect(event?.rsvp_link).toBeNull();
+});
 describe("eventsRepo taxonomy persistence", () => {
   beforeEach(() => {
     mocks.insert.mockReset();

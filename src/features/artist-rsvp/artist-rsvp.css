@@ -1,0 +1,58 @@
+.artist-rsvp-operator { color: var(--admin-text-primary); min-width: 0; }
+.artist-rsvp-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-block: 1.5rem; }
+.artist-rsvp-heading h2 { margin: 0 0 .5rem; font-family: var(--font-display); }
+.artist-rsvp-operator p { line-height: 1.6; }
+.artist-rsvp-operator input:not([type="checkbox"]), .artist-rsvp-operator select { display: block; width: 100%; min-width: 0; min-height: 44px; padding: .625rem; background: var(--admin-surface); color: var(--admin-text-primary); border: 1px solid var(--admin-border); border-radius: var(--radius-sm); font: inherit; }
+.admin-shell .artist-rsvp-operator .admin-btn { min-height: 44px; }
+.artist-rsvp-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
+.artist-rsvp-actions a { padding-block: .75rem; }
+.artist-event-list, .artist-roster-section ul { list-style: none; padding: 0; margin: 0; }
+.artist-event-list > li { display: flex; justify-content: space-between; gap: 1rem; padding-block: 1.25rem; border-bottom: 1px solid var(--admin-border); }
+.artist-event-list p { margin: .5rem 0 0; color: var(--admin-text-muted); }
+.artist-event-editor { padding: clamp(1rem, 3vw, 2rem); margin-bottom: 1.5rem; }
+.artist-rsvp-fields { min-width: 0; border: 0; padding: 0; margin: 0; }
+.artist-rsvp-settings { min-width: 0; margin: 1rem 0; padding: 1rem; border: 1px solid var(--admin-border); }
+.artist-rsvp-settings legend { font-weight: 700; }
+.artist-rsvp-settings p { color: var(--admin-text-muted); font-size: .875rem; }
+.artist-rsvp-settings > label:not(.artist-rsvp-check) { display: block; margin-top: 1rem; }
+.artist-rsvp-check { display: flex; align-items: center; gap: .625rem; min-height: 44px; cursor: pointer; }
+.artist-rsvp-check input { width: 1.125rem; height: 1.125rem; flex-shrink: 0; accent-color: var(--admin-brand); }
+.artist-roster-summary { border-block: 2px solid var(--admin-border); padding-block: 1rem; display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 2rem; margin-block: 1.5rem; font-variant-numeric: tabular-nums; }
+.artist-roster-summary p { flex-basis: 100%; margin: 0; color: var(--admin-text-muted); }
+.artist-roster-section { margin-block: 2rem; }
+.artist-roster-row { padding-block: 1.25rem; border-top: 1px solid var(--admin-border); overflow-wrap: anywhere; }
+.artist-roster-fields { display: grid; grid-template-columns: 1fr 1.4fr 1fr auto auto; gap: 1rem; align-items: end; }
+.artist-roster-fields label { min-width: 0; }
+.artist-roster-fields input, .artist-roster-fields select { margin-top: .375rem; }
+.artist-rsvp-operator :focus-visible { outline: 2px solid var(--admin-brand); outline-offset: 3px; }
+.artist-public-rsvp { width: min(1120px, 100%); margin: 0 auto; padding: clamp(2rem, 6vw, 5rem) clamp(1rem, 4vw, 2rem); color: var(--text); }
+.artist-public-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: clamp(2rem, 6vw, 5rem); align-items: start; }
+.artist-public-context h1 { font: 800 clamp(2rem, 4.5vw, 3.5rem)/1.1 var(--font-display); letter-spacing: -.04em; margin: 1.25rem 0; overflow-wrap: anywhere; }
+.artist-public-rsvp p { line-height: 1.65; }
+.artist-rsvp-eyebrow { color: var(--gold); font: 700 .75rem/1.5 var(--font-display); text-transform: uppercase; letter-spacing: .12em; }
+.artist-public-rsvp a:not(.btn-primary):not(.btn-secondary) { color: var(--gold); }
+.artist-public-meta { border-block: 1px solid var(--border); padding-block: 1rem; margin-block: 1.5rem; }
+.artist-public-meta p { margin: .5rem 0 0; }
+.artist-public-count { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: baseline; margin-block: 1.5rem; }
+.artist-public-count strong { font: 800 2rem/1.2 var(--font-display); font-variant-numeric: tabular-nums; }
+.artist-public-count span, .artist-rsvp-muted { color: var(--text-muted); font-size: .875rem; }
+.artist-public-form { min-width: 0; padding: clamp(1.25rem, 3vw, 2rem); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--card); }
+.artist-public-form h2 { font: 700 1.375rem/1.4 var(--font-display); margin: 0 0 .75rem; }
+.artist-public-form form > label { display: block; margin-top: 1.25rem; margin-bottom: .5rem; font-weight: 600; }
+.artist-public-form input:not([type="radio"]) { box-sizing: border-box; width: 100%; min-height: 48px; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: .75rem; font: inherit; }
+.artist-public-form input[aria-invalid="true"] { border-color: var(--red); }
+.artist-public-roles { display: flex; flex-wrap: wrap; min-width: 0; gap: .5rem; border: 0; padding: 0; margin: 1.5rem 0; }
+.artist-public-roles legend { font-weight: 600; margin-bottom: .5rem; }
+.artist-public-roles label { display: flex; align-items: center; justify-content: center; gap: .5rem; min-height: 44px; padding: .5rem .75rem; border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; flex: 1; }
+.artist-public-roles label:has(input:checked) { border-color: var(--gold); }
+.artist-public-roles input { accent-color: var(--gold); }
+.artist-rsvp-disclosure, .artist-rsvp-notice { padding: 1rem; background: var(--bg); border-left: 2px solid var(--gold); font-size: .875rem; }
+.artist-rsvp-notice { margin-block: 1.5rem; }
+.artist-rsvp-notice p { margin-bottom: 0; }
+.artist-rsvp-error { color: var(--text); padding: .75rem; border: 1px solid var(--red); }
+.artist-public-form .btn-primary { display: flex; width: 100%; min-height: 48px; align-items: center; justify-content: center; margin-top: 1.5rem; text-align: center; }
+.artist-public-form :focus-visible, .artist-public-context :focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+.artist-public-form :disabled { opacity: .55; cursor: not-allowed; }
+@media (max-width: 1023.98px) { .artist-roster-fields { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 767.98px) { .artist-public-grid { grid-template-columns: minmax(0, 1fr); } .artist-public-rsvp { padding-top: 2rem; } }
+@media (max-width: 639.98px) { .artist-rsvp-heading, .artist-event-list > li { flex-direction: column; } .artist-roster-fields { grid-template-columns: minmax(0, 1fr); gap: .75rem; } .artist-rsvp-actions > button { min-height: 44px; } .artist-public-roles label { padding-inline: .5rem; } }

@@ -50,6 +50,15 @@ const baseEvent: ScheduleXEvent = {
 };
 
 describe("EventModal", () => {
+  it("R4 artist capture route reaches one page from primary and series actions", () => {
+    render(<EventModal event={{ ...baseEvent, artistId: "artist", rsvpEnabled: true, rsvpLink: undefined, recurrence: "weekly" }} onClose={() => {}} />);
+    for (const link of screen.getAllByRole("link", { name: /RSVP on Salsa Segura|Reserve/ })) {
+      expect(link).toHaveAttribute("href", "/events/1/rsvp");
+      expect(link).not.toHaveAttribute("target", "_blank");
+    }
+    expect(screen.queryByRole("form")).not.toBeInTheDocument();
+    expect(screen.getByText(/Artist acceptance and external payment are separate/)).toBeInTheDocument();
+  });
   it("renders nothing when event is null", () => {
     const { container } = render(<EventModal event={null} onClose={() => {}} />);
     expect(container).toBeEmptyDOMElement();

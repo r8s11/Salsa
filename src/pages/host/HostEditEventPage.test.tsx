@@ -1,6 +1,10 @@
+import { EVENT_RESPONSIBILITIES } from "../../features/events/model/eventResponsibility";
+async function acknowledgeResponsibilities(user: UserEvent) {
+  for (const [,label] of EVENT_RESPONSIBILITIES) await user.click(screen.getByLabelText(label));
+}
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import userEvent, { type UserEvent } from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import type { DatabaseEvent } from "../../features/events/model/types";
 import HostEditEventPage from "./HostEditEventPage";
@@ -576,13 +580,14 @@ describe("HostEditEventPage", () => {
       renderEdit();
       const title = await screen.findByDisplayValue("Havana Fridays");
       await user.type(title, " Deluxe");
+      await acknowledgeResponsibilities(user);
       await user.click(screen.getByRole("button", { name: "Publish Event" }));
 
       expect(await screen.findByRole("alert")).toHaveTextContent(/save your changes first/i);
       expect(publishOrganizerEvent).not.toHaveBeenCalled();
     });
 
-    it("publishes the draft without saving content, refreshes events, and links the public page", async () => {
+    it("U4 responsibility checklist publishes the draft only after all checks", async () => {
       const refetch = vi.fn();
       vi.mocked(useMyOrganizerEvents).mockReturnValue({
         events: [draftEvent],
@@ -594,10 +599,13 @@ describe("HostEditEventPage", () => {
       const user = userEvent.setup();
       renderEdit();
       await screen.findByDisplayValue("Havana Fridays");
+      expect(screen.getByRole("button", { name: "Publish Event" })).toBeDisabled();
+      for (const [,label] of EVENT_RESPONSIBILITIES) expect(screen.getByLabelText(label)).not.toBeChecked();
+      await acknowledgeResponsibilities(user);
       await user.click(screen.getByRole("button", { name: "Publish Event" }));
 
       expect(await screen.findByRole("status")).toHaveTextContent(/event published/i);
-      expect(publishOrganizerEvent).toHaveBeenCalledWith("event-1");
+      expect(publishOrganizerEvent).toHaveBeenCalledWith("event-1", { admission_payments: true, signup_counts: true, guest_notices: true, version: "2026-11-14" });
       expect(updateOrganizerEvent).not.toHaveBeenCalled();
       expect(refetch).toHaveBeenCalled();
       expect(screen.getByRole("link", { name: "View public event" })).toHaveAttribute(
@@ -622,6 +630,7 @@ describe("HostEditEventPage", () => {
       const user = userEvent.setup();
       renderEdit();
       await screen.findByDisplayValue("Havana Fridays");
+      await acknowledgeResponsibilities(user);
       await user.click(screen.getByRole("button", { name: "Publish Event" }));
 
       expect(await screen.findByRole("alert")).toHaveTextContent(/still a draft/i);
@@ -637,6 +646,7 @@ describe("HostEditEventPage", () => {
       const user = userEvent.setup();
       renderEdit();
       await screen.findByDisplayValue("Havana Fridays");
+      await acknowledgeResponsibilities(user);
       await user.click(screen.getByRole("button", { name: "Publish Event" }));
 
       expect(await screen.findByRole("alert")).toHaveTextContent(/permission to publish/i);

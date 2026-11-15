@@ -2,7 +2,7 @@
 
 For school owners, venue owners and managers, artists, DJs, and the people who manage their listings. Last checked locally November 11, 2026.
 
-A listing workspace is separate from your personal profile and from organizer event access. For events, use the [organizer guide](organizers.md).
+A listing workspace is separate from your personal profile and organizer membership. For organizer-owned events, use the [organizer guide](organizers.md). Active artist Owners and Managers can also [publish their own artist events and manage private RSVPs](artists.md#create-and-publish-an-artist-event) without organizer membership; production availability depends on rollout.
 
 ## Find the right listing
 
@@ -74,6 +74,7 @@ These permissions apply to a school, venue, artist, or DJ listing—not to an or
 | Add people, change team roles, or remove people | Yes | No | No |
 | Ask for a change to the listing name, city, or public page address | Yes, under **Requests** | Yes, under **Requests** | No |
 | Ask for an event to be added to an artist or DJ profile | Yes, under **Requests** | Yes, under **Requests** | No |
+| Create/edit/publish events owned by this artist and manage their private RSVPs | Yes, artist listings only | Yes, artist listings only | No |
 | Change the listing's publication status | Contact Salsa Segura | Contact Salsa Segura | Contact Salsa Segura |
 
 Only schools have timetable, private-lesson, and price-plan sections. Editor access on a venue, DJ, or artist listing does not add an event editor or a booking tool.

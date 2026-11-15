@@ -708,7 +708,7 @@ describe("AdminSidebar listing workspaces", () => {
     expect(screen.getAllByRole("link", { name: "Timetable" })).toHaveLength(2);
   });
 
-  it("gives venues and artists only Overview, Profile and Team", () => {
+  it("adds artist Events without adding tools to venues", () => {
     mockListingMember(
       entityMembership({ kind: "venue", id: "v-1", name: "Havana Club" }),
       entityMembership({ kind: "instructor", id: "i-1", name: "Ana Rivera" })
@@ -717,10 +717,21 @@ describe("AdminSidebar listing workspaces", () => {
 
     expect(groupLabels()).toEqual(["Host", "Venue · Havana Club", "Artist · Ana Rivera"]);
     expect(screen.queryByRole("link", { name: "Timetable" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Events" })).toHaveAttribute("href", "/host/instructors/i-1/events");
     expect(screen.getAllByRole("link", { name: "Team" }).map((link) => link.getAttribute("href"))).toEqual([
       "/host/venues/v-1/team",
       "/host/instructors/i-1/team",
     ]);
+  });
+
+  it("offers artist Events only to actual owners and managers, never editors", () => {
+    mockListingMember(
+      entityMembership({ kind: "instructor", id: "owner-artist" }),
+      entityMembership({ kind: "instructor", id: "manager-artist", member_role: "manager" }),
+      entityMembership({ kind: "instructor", id: "editor-artist", member_role: "editor" })
+    );
+    renderSidebar({ mode: "host" });
+    expect(screen.getAllByRole("link", { name: "Events" }).map((link) => link.getAttribute("href"))).toEqual(["/host/instructors/owner-artist/events", "/host/instructors/manager-artist/events"]);
   });
 
   it("puts organizer links under Organization ahead of the listing sections", () => {

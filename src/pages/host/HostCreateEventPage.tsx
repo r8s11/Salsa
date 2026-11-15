@@ -26,6 +26,8 @@ import {
 } from "../../features/admin/model/adminEventForm";
 import { useCity } from "../../contexts/useCity";
 import "./HostCreateEventPage.css";
+import EventResponsibilityChecklist from "../../features/events/components/EventResponsibilityChecklist";
+import { emptyEventResponsibilityAck, hasEventResponsibilityAck } from "../../features/events/model/eventResponsibility";
 
 export default function HostCreateEventPage() {
   const { user } = useAuth();
@@ -47,6 +49,7 @@ export default function HostCreateEventPage() {
   const flyers = useHostFlyers();
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [acknowledgement, setAcknowledgement] = useState(emptyEventResponsibilityAck);
 
   const selectedOrganizerId =
     organizerId || (manageable.length === 1 ? manageable[0].organizerId : "");
@@ -57,6 +60,10 @@ export default function HostCreateEventPage() {
     const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
     const shouldPublish = submitter?.value === "publish";
     setError(null);
+    if (shouldPublish && !hasEventResponsibilityAck(acknowledgement)) {
+      setError("Complete all three responsibility acknowledgements before publishing.");
+      return;
+    }
     const validationError = validateAdminEventForm(form);
     if (validationError) {
       setError(validationError);
@@ -77,7 +84,7 @@ export default function HostCreateEventPage() {
     try {
       const eventId = await createOrganizerEvent(
         selectedOrganizerId,
-        draftToOrganizerCreatePayload(form),
+        { ...draftToOrganizerCreatePayload(form), ...(shouldPublish ? { publication_ack: acknowledgement } : {}) },
         shouldPublish
       );
       const files = flyers.entries.flatMap((entry) => (entry.file ? [entry.file] : []));
@@ -235,6 +242,7 @@ export default function HostCreateEventPage() {
             />
           )}
         />
+        <EventResponsibilityChecklist value={acknowledgement} onChange={setAcknowledgement} disabled={isSaving} />
         <div className="host-create-event__actions">
           <Link to="/host/events" className="admin-btn admin-btn--secondary">
             Cancel
@@ -251,7 +259,7 @@ export default function HostCreateEventPage() {
             type="submit"
             value="publish"
             className="admin-btn admin-btn--primary"
-            disabled={isSaving}
+            disabled={isSaving || !hasEventResponsibilityAck(acknowledgement)}
           >
             {isSaving ? "Publishing…" : "Publish Event"}
           </button>

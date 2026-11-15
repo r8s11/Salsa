@@ -73,6 +73,13 @@ const baseFilters: EventFilters = {
   submitter: null,
 };
 
+it("filters artist provenance without changing moderation status", () => {
+  const artist = makeEvent({ source_type: "artist", status: "approved" });
+  const pending = makeEvent({ source_type: "user_submission", status: "pending" });
+  expect(applyFilters([artist, pending], { ...baseFilters, source: "artist" }, NOW)).toEqual([artist]);
+  expect(pending.status).toBe("pending");
+});
+
 describe("taxonomy filtering", () => {
   it("filters event dance styles by canonical term slug", () => {
     const salsa = makeEvent();

@@ -864,6 +864,8 @@ const runs: Record<string, Run> = {
       }
       await user.click(locate());
       const saveBar = screen.getByRole('region', { name: 'Save confirmed flyers' });
+      expect(within(saveBar).getByRole('button', { name: 'Publish 1 event' })).toBeDisabled();
+      for (const checkbox of within(screen.getByRole('group', { name: 'Before you publish' })).getAllByRole('checkbox')) await user.click(checkbox);
       expect(await within(saveBar).findByRole('button', { name: 'Publish 1 event' })).toBeEnabled();
     },
   },

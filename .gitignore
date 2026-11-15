@@ -193,6 +193,18 @@ graphify-out/
 /docs/user-guides/*
 !/docs/user-guides/*.md
 
+# Curated runbooks and documentation-check requirements; other scratch docs stay local.
+!/docs/operations/
+/docs/operations/*
+!/docs/operations/events-and-geography.md
+!/docs/operations/seo-and-itineraries.md
+!/docs/operations/analytics.md
+!/docs/operations/shopify-storefront.md
+!/docs/operations/agent-measurement.md
+!/docs/plans/
+/docs/plans/*
+!/docs/plans/documentation-ci/
+
 videos/
 
 # Local SSH key files

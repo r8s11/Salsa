@@ -1,8 +1,8 @@
 # Improvements discovered while writing the user guides
 
-Updated November 10, 2026. Audience: the Salsa Segura product and engineering team.
+Updated November 15, 2026. Audience: the Salsa Segura product and engineering team.
 
-Items 1–9 are implemented and merged into `main`; items 10–12 remain plans, not implemented features. **Production rollout is not verified here.** Frontend-support and digest migrations must be applied before the corresponding release; guided requests add migration `20261110000100`. These user guides are published in the repository; other local planning and operations documentation remains gitignored.
+Items 1–9 were previously recorded as merged into `main`; items 10–12 and the artist RSVP addition below have local implementation evidence. **Production rollout is not verified here.** Frontend-support and digest migrations must be applied before the corresponding release; guided requests add migration `20261110000100`. Dated plans and earlier verification counts below are historical evidence, not claims about the current deployed product.
 
 ## Implemented locally
 
@@ -10,7 +10,7 @@ Items 1–9 are implemented and merged into `main`; items 10–12 remain plans, 
 
 The Host event editor now offers **Publish Event** for drafts, separately from **Save Changes**. Unsaved content or flyer changes block publication with instructions to save first. Success offers **View public event**; failure leaves the same event a draft. CSV and flyer-import completion instructions lead to that action instead of suggesting duplicate creation.
 
-`organizer_publish_event(uuid)` locks the existing event and applies the same active-account, active-organizer and Owner/Manager checks as organizer creation, including its platform-admin exemption. Editors and unrelated organizers cannot publish. Only a draft can transition to `approved`; publication writes an audit record.
+The original `organizer_publish_event(uuid)` transition was replaced by `organizer_publish_event(uuid,jsonb)` in `20261114235900_artist_workshop_rsvp.sql`. Publication now also requires all three current-version responsibility acknowledgements and records server actor/version/time. The acknowledgement-free overload is removed. Organizer authorization and draft-only publication remain enforced; artist roster access has no generic-admin override.
 
 - Code: [Host editor](../../src/pages/host/HostEditEventPage.tsx), [repository](../../src/features/host/api/organizerAccessRepo.ts).
 - Migration: [20261109000000_organizer_publish_event.sql](../../supabase/migrations/20261109000000_organizer_publish_event.sql).
@@ -122,6 +122,15 @@ The [Help](https://www.salsasegura.com/help) surface renders the canonical `docs
 The stale-help suite (`src/features/help/guideIntegrity.test.tsx`) fails when a guide link, route, anchor or documented control label no longer matches the rendered product. Screenshots of private attendee/account data remain deferred and are not published.
 
 
+## Artist events and workshop RSVPs — locally implemented
+
+Active artist Owners and Managers can publish single-dated events and manage separate private main-list/waitlist RSVPs without organizer membership. Workshops require capture; other artist events may enable it. Guests save name, email and role before any external artist payment handoff. Contacted, artist acceptance, payment and delivery status remain distinct.
+
+- User instructions: [artist events and roster](artists.md#create-and-publish-an-artist-event), [guest signup](dancers.md#sign-up-for-an-artist-event), and [publication acknowledgements](organizers.md#before-you-publish).
+- Migration: [20261114235900_artist_workshop_rsvp.sql](../../supabase/migrations/20261114235900_artist_workshop_rsvp.sql).
+- Local verification: 29 automated feature evals passed; the full suite passed 3,548 tests across 315 files, and the production build passed. Browser evidence covered draft/publication, free/paid capture, closed and throttled states, roster edits, stale conflicts, promotion/removal and session isolation. These counts describe that verification run, not a promise that future trees are verified.
+- Release blockers: deployed ingress/header trust, sender/quota, owned-inbox delivery/idempotency and scheduler activation/unscheduling proof; qualified responsibility-wording review; native screen-reader/200% text zoom and fresh independent review.
+
 ## Verification and rollout
 
 - TypeScript build and affected-module ESLint passed.
@@ -131,5 +140,6 @@ The stale-help suite (`src/features/help/guideIntegrity.test.tsx`) fails when a 
 - Apply migrations `20261109000000` through `20261109000300` before releasing the original frontend paths, and `20261110000000` before deploying the digest worker. Compare live function definitions before rollout, especially the anchored timezone patch. Local verification did not apply production migrations, send live email or activate the scheduler.
 - Apply `20261110000100_listing_requests.sql` before releasing the guided-request frontend. Guided listing requests were merged into `main` and pushed. The merged tree passed TypeScript and all 3,304 tests across 299 files. Production database migration and deployment were not verified by those checks.
 - In-product help: TypeScript, full ESLint and 3,422 tests across 307 files passed. The 49-check stale-help gate includes 20 rendered control scenarios; deliberate anchor and accessible-name mutations failed and were restored. Production build prerendered 774 routes, including the help index and seven guides, without an improvements/backlog chunk. Browser checks at 1280px and 390px covered guide navigation, deep anchors, sign-in contextual help, unknown-guide 404 and keyboard-scrollable tables. This branch has not been pushed or deployed.
+- Artist RSVP release requires `20261114235900_artist_workshop_rsvp.sql` before the dependent frontend, followed by separately authorized guest/worker deployment and configuration. The migration never starts mail. Keep the dedicated RSVP scheduler inactive until live release proof is complete. Rollback closes new signups and unschedules only that job; preserve contacts, acknowledgement stamps and delivery keys rather than dropping populated tables or restoring the unchecked publish API.
 
 [Help](https://www.salsasegura.com/help)

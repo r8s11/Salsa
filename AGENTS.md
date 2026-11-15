@@ -1,13 +1,34 @@
 # AGENTS.md
 
-Guidance for coding agents (Claude Code, Codex, Gemini, etc.) working in this repository.
-`CLAUDE.md` imports this file; edit this file, not that one.
+Shared guidance for coding agents working in this repository. `CLAUDE.md` imports
+this file; Gemini, Copilot, and OpenCode entry points direct agents here. Edit shared
+instructions here rather than copying them into tool-specific files.
 
-Salsa Segura is a city-scoped guide to salsa and bachata events, classes and live music, with
-community submission, moderation, host (organizer) and admin workflows, a public entity
-directory, and a Shopify-backed shop. Read `PRODUCT.md` for product context and `DESIGN.md`
-before any UI change: it is the visual authority (Ritmo Vivo public site, Listings Desk admin,
-The Sleeve poster) and documents most interaction contracts.
+Salsa Segura is a city-scoped guide to salsa and bachata events, classes and live music,
+with community submission, moderation, host (organizer) and admin workflows, a public
+entity directory, and a Shopify-backed shop.
+
+## Read by task
+
+- Start with [README.md](README.md) for local setup and documentation navigation;
+  read [PRODUCT.md](PRODUCT.md) when changing product behavior.
+- Before any UI change, read [DESIGN.md](DESIGN.md): the visual authority for Ritmo
+  Vivo (public), Listings Desk (admin), and The Sleeve (posters), including interaction contracts.
+- For calendar, flyer, geography, import, or host-access changes, read
+  [Events and geography](docs/operations/events-and-geography.md).
+- For metadata, public route builds, or itinerary deployment, read
+  [SEO and itineraries](docs/operations/seo-and-itineraries.md).
+- For tracking, returning-dancer reports, or coverage scores, read
+  [Analytics](docs/operations/analytics.md).
+- Before defining marketing, operational, or delivery KPIs, read
+  [Agent measurement](docs/operations/agent-measurement.md); use observed baselines
+  and owner-approved goals, not generic template percentages.
+- For storefront or checkout changes, read
+  [Shopify storefront](docs/operations/shopify-storefront.md).
+- Product help is rendered from `docs/user-guides/`; keep it the canonical Markdown
+  source. `improvements.md` is a backlog, not a published guide.
+- Plans, audits, status snapshots, and archived guides are dated evidence, not live
+  implementation contracts. Check the current code before following them.
 
 ## Commands
 
@@ -20,12 +41,18 @@ npx vitest run src/path/to/file.test.tsx   # Single file
 npm run lint              # ESLint, --max-warnings 0
 npm run format            # Prettier, src/**/*.{ts,tsx,css} only
 npm run import-events     # scripts/import-ics.mjs: dry run by default; --insert / --sql / --days=N
-npm run db:start | db:stop | db:reset      # Local Supabase stack (Docker)
+npm run db:start          # Local Supabase stack (Docker); db:stop stops it; db:reset resets local data
 npm run check:admin-tokens                 # scripts/check-admin-tokens.sh
+npm run check:docs                         # Offline maintained Markdown and instruction-preservation checks
 npm run verify:storage:no-docker           # bun scripts/storage-acceptance/verify.mjs
 ```
 
 Edge functions in `supabase/functions/` are Deno: test them with `deno test`, never Vitest.
+
+For documentation or shared-instruction changes, run `npm run check:docs`. Intentional
+protected-rule changes require explicit review and a manual baseline update in the same
+change; follow [the protected-instruction procedure](README.md#documentation-checks-and-protected-instructions).
+Keep product help Markdown canonical in `docs/user-guides/`.
 
 ## Environment
 
@@ -33,8 +60,9 @@ Edge functions in `supabase/functions/` are Deno: test them with `deno test`, ne
 
 - Required: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY`. `src/lib/supabase.ts`
   throws at startup without them.
-- `VITE_POSTHOG_KEY`, `VITE_POSTHOG_HOST`: read in `src/main.tsx`, which throws in dev when they
-  are missing. They are not in `.env.example`.
+- `VITE_POSTHOG_KEY`, `VITE_POSTHOG_HOST`: configure the commented examples in
+  `.env.example`. `src/main.tsx` validates them; use a public `phc_` project token,
+  never a personal (`phx_`) or secret (`phs_`) key.
 - Optional: `VITE_SHOPIFY_STORE_DOMAIN`, `VITE_SHOPIFY_STOREFRONT_TOKEN` (shop), `LINER_API_KEY`.
 - `postbuild` prerendering fails the build if Supabase is configured and a fetch fails; without
   Supabase config only stable routes are prerendered.
@@ -170,17 +198,6 @@ storage; `src/test/mockMetros.ts` provides metro fixtures). `fileParallelism` is
 Azure Static Web Apps (`staticwebapp.config.json`, `.github/workflows/`) and a Docker image
 (`Dockerfile`: Node build, then nginx serving on port 3001 with SPA fallback).
 
-<!-- CODEGRAPH_START -->
-## CodeGraph
-
-In repositories indexed by CodeGraph (a `.codegraph/` directory exists at the repo root), reach for it BEFORE grep/find or reading files when you need to understand or locate code:
-
-- **MCP tool** (when available): `codegraph_explore` answers most code questions in one call — the relevant symbols' verbatim source plus the call paths between them, including dynamic-dispatch hops grep can't follow. Name a file or symbol in the query to read its current line-numbered source. If it's listed but deferred, load it by name via tool search.
-- **Shell** (always works): `codegraph explore "<symbol names or question>"` prints the same output.
-
-If there is no `.codegraph/` directory, skip CodeGraph entirely — indexing is the user's decision.
-<!-- CODEGRAPH_END -->
-
 <!-- trail:start -->
 ## Trail — repo context graph
 
@@ -235,3 +252,26 @@ Rules:
 - If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
 - Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
 - After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
+
+<!-- caveman-begin -->
+Respond terse like smart caveman. All technical substance stay. Only fluff die.
+
+Rules:
+- Answer first: Answer, then reason, then next step.
+- Kill ceremony: No greeting, hedging, pleasantries, recap, or closer.
+- Short word: "fix" not "implement a solution for".
+- Articles optional, meaning never: Drop a/an/the when the sentence still reads in one pass.
+- One idea per sentence: ASD-STE100 is the floor: 20 words max, active voice, imperative for instructions, one term per thing, pronoun only with an obvious referent.
+- Payload verbatim: Code blocks unchanged.
+- Tool runs: bounded status: No text between routine calls.
+- User's language: Compress the style, not the language.
+- Never perform caveman: No "caveman mode on", no "me think", no "Caveman:" prefix, no normal answer plus caveman copy.
+
+Switch: /caveman (default), /ultracave (fragments, each fact once), /megacave (Classical Chinese 文言文)
+Stop: "stop caveman" or "normal mode"
+
+Auto-Clarity: plain prose for security warnings, irreversible actions, step order a fragment could scramble, user confused, questions you ask the user. Resume after.
+
+Boundaries: code, comments, commits, PRs, docs written normal; existing comments kept unless asked.
+Floor: code, commands, paths, numbers and error strings verbatim; never drop not/never/no/only.
+<!-- caveman-end -->

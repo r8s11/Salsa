@@ -60,7 +60,7 @@ export interface DatabaseEvent {
   submitter_email?: string | null;
   submitter_id?: string | null;
   status: "draft" | "pending" | "approved" | "rejected" | "cancelled" | "archived";
-  source_type: "admin" | "user_submission" | "organizer" | "moderator" | "imported";
+  source_type: "admin" | "user_submission" | "organizer" | "moderator" | "imported" | "artist";
   /** Legacy slug storage retained while taxonomy terms are progressively backfilled. */
   dance_styles?: string[];
   taxonomy_term_ids: string[];
@@ -97,6 +97,10 @@ export interface DatabaseEvent {
    * may not have this field.
    */
   organizer_id?: string | null;
+  artist_id?: string | null;
+  rsvp_enabled?: boolean;
+  rsvp_closed?: boolean;
+  rsvp_limit?: number | null;
 
   /**
    * Present only for a pending/rejected event_submission projected into the
@@ -140,6 +144,10 @@ export interface ScheduleXEvent {
   danceStyles?: string[];
   createdAt?: string;
   sourceType?: DatabaseEvent["source_type"];
+  artistId?: string;
+  rsvpEnabled?: boolean;
+  rsvpClosed?: boolean;
+  rsvpLimit?: number | null;
   /** An admin or moderator chose this event for the homepage spotlight. */
   featured?: boolean;
 }

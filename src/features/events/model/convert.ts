@@ -71,6 +71,10 @@ export function databaseEventToScheduleX(
     priceAmount: event.price_amount ?? undefined,
     createdAt: event.created_at,
     sourceType: event.source_type,
+    artistId: event.artist_id ?? undefined,
+    rsvpEnabled: event.rsvp_enabled,
+    rsvpClosed: event.rsvp_closed,
+    rsvpLimit: event.rsvp_limit,
     featured: event.featured_at ? true : undefined,
   };
 }

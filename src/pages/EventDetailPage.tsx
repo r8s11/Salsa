@@ -298,7 +298,9 @@ export default function EventDetailPage() {
             {event.address && <div className="event-page__muted">{event.address}</div>}
           </div>
           <div className="event-page__strip-actions">
-            {event.rsvp_link && (
+            {event.artist_id && event.rsvp_enabled ? (
+              <ButtonLink to={`/events/${event.id}/rsvp`}>RSVP on Salsa Segura</ButtonLink>
+            ) : event.rsvp_link && (
               <ButtonLink
                 href={event.rsvp_link}
                 external

@@ -502,3 +502,11 @@ import_map = "./functions/deno.json"
 [functions.member-email-unsubscribe]
 # Public bearer-token opt-out; GET never changes consent.
 verify_jwt = false
+
+[functions.artist-rsvp-submit]
+# Public guest endpoint; bounded validation, service-only RPC and atomic abuse counters.
+verify_jwt = false
+
+[functions.artist-rsvp-notifications]
+# Scheduler-only; dedicated x-rsvp-scheduler-secret is the sole invocation authority.
+verify_jwt = false

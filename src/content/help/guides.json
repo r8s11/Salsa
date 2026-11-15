@@ -1,0 +1,53 @@
+{
+  "guides": [
+    {
+      "slug": "dancers",
+      "title": "Dancers and general users",
+      "description": "Find events, share a night out, and manage your account.",
+      "audience": "Dancers and general users",
+      "lastReviewed": "2026-11-09"
+    },
+    {
+      "slug": "djs",
+      "title": "DJs",
+      "description": "Maintain your DJ profile and check linked gigs.",
+      "audience": "DJs",
+      "lastReviewed": "2026-11-10"
+    },
+    {
+      "slug": "venues",
+      "title": "Venue owners and managers",
+      "description": "Maintain venue details and understand listing access.",
+      "audience": "Venue owners and managers",
+      "lastReviewed": "2026-11-10"
+    },
+    {
+      "slug": "organizers",
+      "title": "Organizers",
+      "description": "Create and manage events, imports, attendees, and check-in.",
+      "audience": "Organizers",
+      "lastReviewed": "2026-11-09"
+    },
+    {
+      "slug": "artists",
+      "title": "Artists and instructors",
+      "description": "Maintain your artist profile and linked classes and events.",
+      "audience": "Artists and instructors",
+      "lastReviewed": "2026-11-10"
+    },
+    {
+      "slug": "schools",
+      "title": "School owners and managers",
+      "description": "Maintain your school profile, timetable, private lessons, and prices.",
+      "audience": "School owners and managers",
+      "lastReviewed": "2026-11-10"
+    },
+    {
+      "slug": "listing-access",
+      "title": "Claim a listing and manage its team",
+      "description": "Request or claim a listing and understand workspace permissions.",
+      "audience": "Claim a listing and manage its team",
+      "lastReviewed": "2026-11-10"
+    }
+  ]
+}

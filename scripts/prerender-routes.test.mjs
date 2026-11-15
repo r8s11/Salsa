@@ -13,6 +13,13 @@ const route = (path) => buildRouteTable(routeMeta).find((item) => item.path === 
 const render = (page) => renderPage(template, page, routeMeta.titleSuffix);
 const appContent = (html) => html.match(/<div id="app">([\s\S]*?)<\/div>\s*<noscript>/)?.[1] ?? "";
 
+it("prerenders a guide with its own heading and metadata", () => {
+  const page = buildPage(route("/help/schools"), data());
+  expect(page.title).toBe("School owners and managers");
+  expect(page.description).toContain("timetable");
+  expect(page.body).toContain("<h1>School owners and managers</h1>");
+});
+
 const event = {
   id: EVENT_ID,
   slug: "noche-latina",

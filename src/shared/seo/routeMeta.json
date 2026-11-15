@@ -1,5 +1,10 @@
 {
   "titleSuffix": " | Salsa Segura",
+  "help": {
+    "path": "/help",
+    "title": "Help",
+    "description": "Guides for dancers, DJs, venues, organizers, artists, and schools using Salsa Segura."
+  },
   "home": {
     "path": "/",
     "title": "Find Salsa & Bachata Events",

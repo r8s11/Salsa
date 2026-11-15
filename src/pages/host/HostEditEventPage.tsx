@@ -1,3 +1,5 @@
+import EventResponsibilityChecklist from "../../features/events/components/EventResponsibilityChecklist";
+import { emptyEventResponsibilityAck, hasEventResponsibilityAck } from "../../features/events/model/eventResponsibility";
 import { useState, useEffect, useMemo } from "react";
 import type { FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -85,6 +87,7 @@ export default function HostEditEventPage() {
   const [isPublishing, setIsPublishing] = useState(false);
   const [publishError, setPublishError] = useState<string | null>(null);
   const [publishedEventId, setPublishedEventId] = useState<string | null>(null);
+  const [acknowledgement, setAcknowledgement] = useState(emptyEventResponsibilityAck);
 
   const accessDenied = useMemo(() => {
     if (!event) return false;
@@ -97,6 +100,7 @@ export default function HostEditEventPage() {
   if (event && event.id !== prevEventId) {
     setPrevEventId(event.id);
     setForm(eventToDraft(event));
+    setAcknowledgement(emptyEventResponsibilityAck());
     flyers.reset(eventFlyerList(event));
   }
 
@@ -196,13 +200,17 @@ export default function HostEditEventPage() {
   const publish = async () => {
     if (isPublishing || isSaving || !event || event.status !== "draft") return;
     setPublishError(null);
+    if (!hasEventResponsibilityAck(acknowledgement)) {
+      setPublishError("Complete all three responsibility acknowledgements before publishing.");
+      return;
+    }
     if (hasUnsavedChanges()) {
       setPublishError("You have unsaved changes. Save your changes first, then publish.");
       return;
     }
     setIsPublishing(true);
     try {
-      await publishOrganizerEvent(event.id);
+      await publishOrganizerEvent(event.id, acknowledgement);
       setPublishedEventId(event.id);
       void refetch();
     } catch (publishFailure) {
@@ -356,6 +364,7 @@ export default function HostEditEventPage() {
             )}
           />
         )}
+        {event.status === "draft" && <EventResponsibilityChecklist value={acknowledgement} onChange={setAcknowledgement} disabled={isSaving || isPublishing} />}
 
         <div className="host-edit-event__actions">
           <Link to={`/host/events/${event.id}`} className="admin-btn admin-btn--secondary">
@@ -366,7 +375,7 @@ export default function HostEditEventPage() {
               type="button"
               className="admin-btn admin-btn--secondary"
               onClick={() => void publish()}
-              disabled={isSaving || isPublishing}
+              disabled={isSaving || isPublishing || !hasEventResponsibilityAck(acknowledgement)}
             >
               {isPublishing ? "Publishing…" : "Publish Event"}
             </button>

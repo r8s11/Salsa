@@ -32,6 +32,8 @@ A role label alone is not enough: access must belong to the organizer attached t
 
 The public submission form can say **Submit for review** for an organizer account. That is still the review workflow; it is not the same as **Publish Event** in the organizer creation screen.
 
+Artists managing events owned by their own listing use [Artist workspace → Events](artists.md#create-and-publish-an-artist-event), not organizer membership. Organizer attendance/check-in and artist website-managed RSVPs remain separate.
+
 ## Create an event
 
 1. Select **Create event** from the Host desk or open [Create event](https://www.salsasegura.com/host/events/new).
@@ -49,6 +51,20 @@ The public submission form can say **Submit for review** for an organizer accoun
 
 If the event saves but a flyer fails, read the warning. Open the saved event and add the flyer there; do not create a second event just to retry the image upload.
 
+### Before you publish
+
+Artist and organizer publication use the same three individually checked acknowledgements:
+
+- “I am responsible for admission decisions and any externally handled payments for this event.”
+- “I understand that Salsa Segura signup counts do not verify payment or acceptance and do not include unknown external sales.”
+- “For website-managed RSVPs, I understand that confirming or withdrawing acceptance and changing the date/time sends guest notices. I will keep records and event details current.”
+
+All start unchecked. Check each before publishing a new event or saved draft. You can save a private draft without checking them. In flyer import, the acknowledgement applies to the publish batch, while each flyer still requires its own review. Successful rows remain saved when you retry failed rows.
+
+These checks do not turn organizer attendees into artist RSVPs, verify external payments or replace event terms. Existing published-event edits do not invent a new publication acknowledgement. If an older browser cannot publish after the API update, refresh the page and complete the current checklist.
+
+The checklist requires the corresponding server update before release. If publication fails from an older browser, refresh and complete the current checks; contact Salsa Segura if it still fails.
+
 ### Publish a saved draft
 
 Saving or importing a draft does not publish it, and **Save Changes** never publishes. When a draft is ready:
@@ -56,7 +72,7 @@ Saving or importing a draft does not publish it, and **Save Changes** never publ
 1. Open [My Events](https://www.salsasegura.com/host/events) and open the draft.
 2. Select **Edit Event**.
 3. If you changed anything, select **Save Changes** first. Publishing is blocked while the form has unsaved changes.
-4. Select **Publish Event**.
+4. Complete all three **Before you publish** acknowledgements, then select **Publish Event**.
 5. Wait for **Event published. It is now live on SalsaSegura.**, then use **View public event** to check the result.
 
 **Publish Event** appears only on drafts, and only for active Owner or Manager members of the event's organizer. If publishing fails, the event stays a draft; read the message and try again. Do not create a duplicate live event.

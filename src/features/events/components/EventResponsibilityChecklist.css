@@ -1,0 +1,6 @@
+.event-responsibility { min-width: 0; margin: 24px 0 16px; padding: 16px; border: 1px solid var(--admin-border); border-radius: var(--admin-radius); background: var(--admin-surface); color: var(--admin-text-primary); }
+.event-responsibility legend { font-weight: 700; padding: 0 6px; }
+.event-responsibility__check { display: flex; align-items: flex-start; gap: 12px; min-height: 44px; padding: 10px 0; font-size: 0.875rem; line-height: 1.6; cursor: pointer; }
+.event-responsibility__check input { flex: 0 0 20px; width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--admin-brand); }
+.event-responsibility__check input:focus-visible { outline: 2px solid var(--admin-brand-text); outline-offset: 4px; }
+.event-responsibility p { margin: 12px 0 0; color: var(--admin-text-secondary); font-size: 0.8125rem; line-height: 1.6; }

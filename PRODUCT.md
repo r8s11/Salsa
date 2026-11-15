@@ -38,6 +38,11 @@ Salsa Segura is a trusted local guide: public event listings are curated through
 - Public listings are restricted to approved events.
 - Submission, moderation, organizer, and administrative workflows are separate concerns.
 - Organizer actions must respect authenticated ownership and organizer memberships.
+- Active artist owners and managers create and publish single-date events from their existing artist workspace without organizer membership. Drafts remain private; publication requires the current three-item responsibility acknowledgement for artists and organizers, including host bulk-flyer publishing.
+- Workshops require website-managed RSVPs; ordinary artist events default to collection off. Guests provide name, email and dance role without an account. Paid events expose the artist's external payment link only after the signup is saved.
+- Only actual active owners/managers of the managing artist can access its private main list and waitlist. Editors, unrelated teachers, organizer-only accounts and generic platform admins receive no roster override.
+- Optional limits count raw main-list signups before acceptance. Waiting guests retain priority, promotion is manual, and closing new signups leaves records editable. Contacted and artist-Confirmed remain independent; neither means Paid.
+- Signup, acceptance, withdrawal and schedule changes persist required email instructions atomically. Delivery failures do not erase saved records or decisions. Salsa Segura does not process or verify external payments, external sales, venue capacity or refunds.
 - City scope must remain explicit in discovery and related-event selection.
 - The product is a responsive web application, including mobile web behavior.
 
@@ -48,10 +53,11 @@ Salsa Segura is a trusted local guide: public event listings are curated through
 
 ## Evidence on Hand
 
-- Public event discovery and city selection: `src/components/Events/`, `src/components/Header/`, `src/components/Calendar/`.
+- Public event discovery and city selection: `src/features/events/`, `src/components/layout/`, `src/features/calendar/`.
 - Event submission and success workflow: `src/pages/SubmitEventPage.tsx`, `src/features/submit-event/`.
 - Organizer ownership and membership capabilities: `src/features/host/`.
 - Moderator approval and public event provenance: `sql/phase-10/002_create_event_taxonomy_terms.sql` and `src/features/events/api/eventsRepo.ts`.
+- Artist authoring, private rosters and public signup: `src/features/artist-rsvp/`; isolated database/API proof: `scripts/artist-rsvp-acceptance/`; release gates and inactive scheduler: `docs/plans/artist-workshop-rsvp-plan.md` and `supabase/manual/artist-rsvp-scheduler.sql`.
 - Existing visual system: `DESIGN.md`.
 - No testimonials, customer studies, or external performance claims are established in this product record.
 

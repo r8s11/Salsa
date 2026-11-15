@@ -1,4 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { emptyEventResponsibilityAck } from "../../events/model/eventResponsibility";
+const acknowledgement = { ...emptyEventResponsibilityAck(), admission_payments: true, signup_counts: true, guest_notices: true };
 import {
   OrganizerAccessError,
   createOrganizerEvent,
@@ -132,10 +134,10 @@ describe("updateOrganizerEvent", () => {
 describe("publishOrganizerEvent", () => {
   beforeEach(() => mocks.rpc.mockReset());
 
-  it("calls organizer_publish_event with only the event id", async () => {
+  it("passes the publication acknowledgement to organizer_publish_event", async () => {
     mocks.rpc.mockResolvedValue({ data: null, error: null });
-    await publishOrganizerEvent("evt-1");
-    expect(mocks.rpc).toHaveBeenCalledWith("organizer_publish_event", { p_event_id: "evt-1" });
+    await publishOrganizerEvent("evt-1", acknowledgement);
+    expect(mocks.rpc).toHaveBeenCalledWith("organizer_publish_event", { p_event_id: "evt-1", p_ack: acknowledgement });
   });
 
   it("maps 42501 denials to OrganizerAccessError", async () => {
@@ -143,7 +145,7 @@ describe("publishOrganizerEvent", () => {
       data: null,
       error: { message: "event is not organizer-owned", code: "42501" },
     });
-    await expect(publishOrganizerEvent("evt-2")).rejects.toBeInstanceOf(OrganizerAccessError);
+    await expect(publishOrganizerEvent("evt-2", acknowledgement)).rejects.toBeInstanceOf(OrganizerAccessError);
   });
 
   it("keeps other failures as plain errors, including non-draft events", async () => {
@@ -154,7 +156,7 @@ describe("publishOrganizerEvent", () => {
         code: "55000",
       },
     });
-    const failure = await publishOrganizerEvent("evt-3").catch((e: unknown) => e);
+    const failure = await publishOrganizerEvent("evt-3", acknowledgement).catch((e: unknown) => e);
     expect(failure).toBeInstanceOf(Error);
     expect(failure).not.toBeInstanceOf(OrganizerAccessError);
   });

@@ -64,6 +64,8 @@ If you are an Owner, use **Team** to add an existing Salsa Segura account. A Man
 
 Do not use Editor access when you expect someone to edit the DJ profile: Editors cannot change public profile fields. Claim approval does not grant organizer event access, and a DJ workspace is not a booking or payment system.
 
+If you also teach under a separate artist listing, that artist's active Owners and Managers may [publish artist-owned events and manage RSVPs](artists.md#create-and-publish-an-artist-event). DJ membership or being credited on an event does not grant that artist's private roster access.
+
 ## Before sharing your page
 
 - Check that the portrait loads on your phone and is yours to use.

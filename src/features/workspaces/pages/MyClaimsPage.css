@@ -1,0 +1,12 @@
+.claim-inbox { width: min(100%, 52rem); margin: 0 auto; padding: 2rem 1rem 4rem; }
+.claim-inbox h1, .claim-inbox h2, .claim-inbox h3 { text-wrap: balance; }
+.claim-inbox p { text-wrap: pretty; }
+.claim-inbox > a, .claim-inbox h3 a { color: var(--gold); text-underline-offset: 3px; }
+.claim-inbox section { margin-top: 2rem; }
+.claim-inbox__list { list-style: none; padding: 0; display: grid; gap: 1rem; }
+.claim-inbox__item { min-width: 0; padding: 1.25rem; background: var(--surface-high); border: 1px solid var(--border); border-radius: var(--radius-md); overflow-wrap: anywhere; }
+.claim-inbox__item h3 { margin-top: 0; }
+.claim-inbox__meta { color: var(--text-dim); font-size: .875rem; font-variant-numeric: tabular-nums; }
+.claim-inbox__state { font-weight: 600; }
+.claim-inbox__note { white-space: pre-wrap; overflow-wrap: anywhere; border-top: 1px solid var(--border); padding-top: 1rem; }
+.claim-inbox .ui-button { max-width: 100%; white-space: normal; }

@@ -6,6 +6,7 @@ import { useMySubmissions } from "../../account/hooks/useMySubmissions";
 import { useMyOrganizers } from "../hooks/useMyOrganizers";
 import { useMyOrganizerEvents } from "../hooks/useMyOrganizerEvents";
 import { useMyEntityMemberships } from "../../workspaces/hooks/useMyEntityMemberships";
+import { ContextHelp } from "../../help/ContextHelp";
 import { MANAGED_KIND_LABELS, MEMBER_ROLE_LABELS, workspacePath } from "../../workspaces/model";
 import type { OrganizerMemberRole } from "../api/organizerAccessRepo";
 import type { DatabaseEvent } from "../../events/model/types";
@@ -139,6 +140,14 @@ export default function HostDashboard() {
           </div>
         }
       />
+      {!organizersLoading && !membershipsLoading && !organizersError && !membershipsError && (
+        <ContextHelp context={{
+          surface: "host-desk",
+          hasOrganizerAccess: organizers.length > 0,
+          canCreateEvents: canCreate,
+          hasListings,
+        }} />
+      )}
 
       {dashboardError && <DeskError message="We couldn't load your events." onRetry={refetchAll} />}
 

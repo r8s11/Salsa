@@ -8,6 +8,7 @@ import { errorMessage, useEntityWorkspace } from "../hooks/useEntityWorkspace";
 import { MANAGED_KIND_LABELS, type EntityWorkspace, type ManagedKind } from "../model";
 import { PUBLIC_PATH_PREFIX } from "../offeringForm";
 import { WORKSPACE_ROLE_LABELS, workspaceSections } from "../workspaceSections";
+import { ContextHelp } from "../../help/ContextHelp";
 import "./workspace.css";
 
 type WorkspaceFrameProps = {
@@ -50,6 +51,7 @@ export default function WorkspaceFrame({ kind, id, section, children }: Workspac
           <Link to="/host" className="desk__action">
             Back to Host
           </Link>
+          <ContextHelp context={{ surface: "workspace-denied" }} />
         </section>
       </Desk>
     );
@@ -108,6 +110,7 @@ export default function WorkspaceFrame({ kind, id, section, children }: Workspac
             </NavLink>
           ))}
         </nav>
+        <ContextHelp context={{ surface: "workspace", kind, role, published: live }} />
 
         {children(workspace)}
       </div>

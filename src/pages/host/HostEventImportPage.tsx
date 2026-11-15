@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
+import { ContextHelp } from "../../features/help/ContextHelp";
 import AdminPageHeader from "../../features/admin/components/shell/AdminPageHeader";
 import AdminImportDropzone from "../../features/admin/components/import/AdminImportDropzone";
 import { useHostEventImport } from "../../features/host/hooks/useHostEventImport";
@@ -185,6 +186,7 @@ export default function HostEventImportPage() {
             </Link>
           }
         />
+        <ContextHelp context={{ surface: "host-events", hasOrganizerAccess: organizers.length > 0, canCreateEvents: false }} />
         <div className="admin-card host-import-page__no-organizer">
           <p>You need an active Owner or Manager membership to import events.</p>
           <Link to="/host/events" className="admin-btn admin-btn--primary">
@@ -215,6 +217,7 @@ export default function HostEventImportPage() {
           </>
         }
       />
+      <ContextHelp context={{ surface: "host-events", hasOrganizerAccess: true, canCreateEvents: true }} />
 
       <section className="admin-card host-import-page__instructions">
         <h2>How it works</h2>

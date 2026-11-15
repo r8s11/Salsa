@@ -232,6 +232,7 @@ const WORKSPACE_SECTION_ICON: Record<WorkspaceSectionLink["key"], NavItem["icon"
   profile: Pencil,
   requests: MessageSquarePlus,
   team: UsersRound,
+  events: CalendarDays,
 };
 
 /** One section per listing the caller manages; items follow the member's role. */

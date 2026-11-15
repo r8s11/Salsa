@@ -2,6 +2,7 @@ import { supabase } from "../../../lib/supabase";
 import type { DatabaseEvent, EventType } from "../../events/model/types";
 import { projectEventTaxonomy } from "../../events/api/eventsRepo";
 import type { SubLocation } from "../../metros/model/sublocation";
+import type { EventResponsibilityAck } from "../../events/model/eventResponsibility";
 
 export type OrganizerMemberRole = "owner" | "manager" | "editor";
 
@@ -172,6 +173,7 @@ export type OrganizerEventUpdatePayload = {
 export type OrganizerEventCreatePayload = Omit<OrganizerEventUpdatePayload, "dance_styles"> & {
   dance_styles: string[];
   venue_id?: string | null;
+  publication_ack?: EventResponsibilityAck;
 };
 
 export async function createOrganizerEvent(
@@ -218,8 +220,8 @@ export async function updateOrganizerEvent(
  * The RPC applies the same active owner/manager gate as organizer creation,
  * reads the organizer from the event row, and rejects non-draft events.
  */
-export async function publishOrganizerEvent(eventId: string): Promise<void> {
-  const { error } = await supabase.rpc("organizer_publish_event", { p_event_id: eventId });
+export async function publishOrganizerEvent(eventId: string, acknowledgement: EventResponsibilityAck): Promise<void> {
+  const { error } = await supabase.rpc("organizer_publish_event", { p_event_id: eventId, p_ack: acknowledgement });
   if (error) throw repositoryError(error);
 }
 

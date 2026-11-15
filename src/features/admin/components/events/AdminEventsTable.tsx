@@ -99,6 +99,7 @@ const SOURCE_ICON: Record<DatabaseEvent["source_type"], typeof Shield> = {
   organizer: Building2,
   moderator: ShieldCheck,
   imported: Download,
+  artist: UserRound,
 };
 
 function eventTypeSummary(event: DatabaseEvent): string {

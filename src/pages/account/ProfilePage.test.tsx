@@ -289,4 +289,14 @@ describe("ProfilePage", () => {
 
     expect(screen.getByText("dancer")).toBeInTheDocument();
   });
+
+  it("links personal-profile help on your own profile", () => {
+    mocks.ownProfile.profile = savedProfile();
+    renderPage();
+
+    expect(screen.getByRole("link", { name: "Help with your personal profile" })).toHaveAttribute(
+      "href",
+      "/help/dancers#update-your-personal-profile"
+    );
+  });
 });

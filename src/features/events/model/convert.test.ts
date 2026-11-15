@@ -40,6 +40,10 @@ const mockEvent = (overrides: Partial<DatabaseEvent> = {}): DatabaseEvent => ({
 });
 
 describe("databaseEventToScheduleX", () => {
+  it("carries public artist collection metadata without changing time conversion", () => {
+    const converted = databaseEventToScheduleX(mockEvent({ source_type: "artist", artist_id: "artist", rsvp_enabled: true, rsvp_closed: true, rsvp_limit: 30 }));
+    expect(converted).toMatchObject({ sourceType: "artist", artistId: "artist", rsvpEnabled: true, rsvpClosed: true, rsvpLimit: 30, start: "2026-07-01 08:00" });
+  });
   it("propagates the ordered categories while the primary stays the calendar id", () => {
     const result = databaseEventToScheduleX(
       mockEvent({ event_type: "social", event_types: ["social", "concert"] })

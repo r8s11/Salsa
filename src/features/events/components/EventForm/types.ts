@@ -61,6 +61,7 @@ export type EventFormCapabilities = {
   /** Shows the time-zone control; only surfaces that can persist an explicit zone. */
   timeZone: boolean;
   submitterInfo: boolean;
+  recurrence?: boolean;
 };
 
 export const CAPABILITIES: Record<

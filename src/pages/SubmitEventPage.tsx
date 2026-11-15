@@ -20,6 +20,7 @@ import Button from "../components/ui/Button";
 import { useDocumentMeta } from "../shared/seo/useDocumentMeta";
 import { canonicalUrl } from "../utils/seo";
 import routeMeta from "../shared/seo/routeMeta.json";
+import { ContextHelp } from "../features/help/ContextHelp";
 import "../styles/forms.css";
 import "./SubmitEventPage.css";
 
@@ -148,6 +149,9 @@ export default function SubmitEventPage() {
               : "Know about a salsa, bachata, or dance event near you? Share it with the community! All submissions are reviewed before appearing on the calendar."}
           </p>
         </header>
+        {!submissionAccess.isLoading && !submissionAccess.error && (
+          <ContextHelp context={{ surface: "submit", signedIn: Boolean(user), canSubmit: submissionAccess.canSubmit, isOrganizer }} />
+        )}
 
         {submissionAccess.isLoading ? (
           <p className="submit-event__status" role="status">

@@ -48,6 +48,15 @@ function sectionNames() {
 }
 
 describe("EventForm", () => {
+  it("keeps recurrence and external RSVP defaults while allowing the artist slot", () => {
+    const { rerender } = render(<EventForm draft={draft} onChange={vi.fn()} capabilities={CAPABILITIES.organizerCreate} />);
+    expect(screen.getByLabelText("Repeats weekly")).toBeInTheDocument();
+    expect(screen.getByLabelText("RSVP link")).toBeInTheDocument();
+    rerender(<EventForm draft={draft} onChange={vi.fn()} capabilities={{ ...CAPABILITIES.organizerCreate, recurrence: false }} renderRsvpField={() => <label>Artist capture<input name="artist-capture" /></label>} />);
+    expect(screen.queryByLabelText("Repeats weekly")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("RSVP link")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Artist capture")).toBeInTheDocument();
+  });
   it("renders submit sections in authoring order without admin fields", () => {
     render(<EventForm draft={draft} onChange={vi.fn()} capabilities={CAPABILITIES.submit} />);
     expect(sectionNames()).toEqual([

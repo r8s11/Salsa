@@ -687,6 +687,28 @@ top spacing and bottom safe-area clearance. Updated dates are muted
 semantics alongside the Gold step numerals. Legal links keep Gold
 underlines, visible keyboard focus and wrapping for long addresses.
 
+#### Help guides
+
+Help guides (`/help` and `/help/<slug>`) reuse the legal reading layout: the
+same 70ch measure, muted updated-date metadata and hairline rules. Guide copy
+is the canonical Markdown in `docs/user-guides/`; the loader strips
+repository metadata and rewrites internal links into app routes, and the safe
+Markdown subset rejects raw HTML, images and code blocks, so a guide cannot
+inject markup. Tables sit in labeled, keyboard-focusable scroll regions with
+a 36rem minimum table width, so narrow screens do not crush column labels or
+overflow the page. Screenshots remain deferred pending review; never publish
+private attendee or account data.
+
+`ContextHelp` is the inline form: a labeled `<aside>` ("Help for this page")
+of short permission-aware messages, each with one guide link, selected by
+`selectHelp` from the caller's task and permissions. It adds guide links and
+never replaces the screen's existing explanatory text.
+
+Authoring rules: links name `/help/<slug>#<heading-slug>` targets; labels the
+guides reference must match the accessible names of the controls they
+describe. `src/features/help/guideIntegrity.test.tsx` fails CI when a link,
+route, anchor or documented control label goes stale.
+
 
 #### Hero rhythm
 
@@ -970,6 +992,30 @@ are blocked.
 (On1, On2, Cuban, …) with a low-opacity Warm Orange background
 (`--tertiary-dim`) and white 0.6875rem uppercase text — legible but
 secondary to primary actions.
+
+#### Artist event RSVP surfaces
+
+`/events/:id/rsvp` uses the public navy/rose/gold tokens, Epilogue headings and
+Be Vietnam Pro body. Event, schedule, managing artist and raw main-list count
+lead a two-column desktop composition; phone widths stack the same content.
+No account or phone field is requested. Undecided starts selected. The named
+owner/manager disclosure appears before submission; external payment links appear
+only after persistence, with check-email, no-confirmed-place and contact-before-paying guidance.
+
+Artist Events lives in the existing workspace shell for actual owners/managers,
+not editors or generic admin overrides. Shared canonical authoring hides only
+recurrence and replaces only the RSVP field. Three separate, initially unchecked
+responsibility controls gate publication; private draft saves remain available.
+Organizer create, draft publish and host bulk publish share that same checklist.
+
+Private roster rows use operator neutral/state tokens, rule-separated main-list
+and waitlist sections, and separate raw and artist-confirmed role totals.
+Contacted, Confirmed and email delivery have distinct text labels; none says Paid.
+Rows stack on phones. Removal requires confirmation; promotion reminds the
+artist to contact the guest. Stale changes preserve local input until explicit
+refresh/review, while session loss or denied membership hides cached contacts.
+Public controls remain at least 44px, errors focus the first invalid field, and
+saved results receive focus without a nested signup dialog.
 
 #### Event Details
 

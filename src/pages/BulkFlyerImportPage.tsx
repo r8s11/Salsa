@@ -1,7 +1,10 @@
+import EventResponsibilityChecklist from "../features/events/components/EventResponsibilityChecklist";
+import { emptyEventResponsibilityAck, hasEventResponsibilityAck } from "../features/events/model/eventResponsibility";
 import { useEffect, useRef, useState, type Ref } from "react";
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, ExternalLink, ImagePlus } from "lucide-react";
+import { ContextHelp } from "../features/help/ContextHelp";
 import AdminPageHeader from "../features/admin/components/shell/AdminPageHeader";
 import MarginMark from "../components/desk/MarginMark";
 import type { DeskState } from "../components/desk/deskModel";
@@ -129,6 +132,7 @@ export default function BulkFlyerImportPage({ mode }: Props) {
   const saving = savingIntent !== null;
   const [error, setError] = useState<string | null>(null);
   const [summary, setSummary] = useState<string | null>(null);
+  const [acknowledgement, setAcknowledgement] = useState(emptyEventResponsibilityAck);
   const detailRef = useRef<HTMLElement>(null);
   const temporaryUrls = useRef(new Set<string>());
   const mounted = useRef(true);
@@ -337,6 +341,10 @@ export default function BulkFlyerImportPage({ mode }: Props) {
     if (saving || !user || organizerMissing || taxonomyLoading || taxonomyFailed) return;
     setError(null);
     setSummary(null);
+    if (mode === "host" && publish && !hasEventResponsibilityAck(acknowledgement)) {
+      setError("Complete all three responsibility acknowledgements before publishing.");
+      return;
+    }
     const candidates = retryRow
       ? [retryRow]
       : rows.filter((row) => row.state === "ready" && row.reviewed);
@@ -365,7 +373,7 @@ export default function BulkFlyerImportPage({ mode }: Props) {
         if (mode === "host") {
           await createOrganizerEvent(
             selectedOrganizerId,
-            draftToOrganizerCreatePayload(row.draft),
+            { ...draftToOrganizerCreatePayload(row.draft), ...(publish ? { publication_ack: acknowledgement } : {}) },
             publish
           );
         } else {
@@ -418,7 +426,12 @@ export default function BulkFlyerImportPage({ mode }: Props) {
       </div>
     );
   if (mode === "host" && !manageable.length)
-    return <p>Only active organizer owners and managers can import flyers.</p>;
+    return (
+      <div>
+        <p>Only active organizer owners and managers can import flyers.</p>
+        <ContextHelp context={{ surface: "host-events", hasOrganizerAccess: organizers.length > 0, canCreateEvents: false }} />
+      </div>
+    );
 
   const selected =
     rows.find((row) => row.id === selectedId) ??
@@ -461,6 +474,7 @@ export default function BulkFlyerImportPage({ mode }: Props) {
           </Link>
         }
       />
+      {mode === "host" && <ContextHelp context={{ surface: "host-events", hasOrganizerAccess: true, canCreateEvents: true }} />}
       <section
         className={`admin-card bulk-flyers__intake${rows.length ? " is-compact" : ""}`}
         aria-label="Add flyers"
@@ -608,6 +622,7 @@ export default function BulkFlyerImportPage({ mode }: Props) {
           }}
         />
       )}
+      {mode === "host" && rows.length > 0 && <EventResponsibilityChecklist value={acknowledgement} onChange={setAcknowledgement} disabled={saving} />}
 
       {rows.length > 0 && (
         <div className="bulk-flyers__bar" role="region" aria-label="Save confirmed flyers">
@@ -631,7 +646,7 @@ export default function BulkFlyerImportPage({ mode }: Props) {
             <button
               type="button"
               className="admin-btn admin-btn--primary"
-              disabled={saveBlocked || confirmedCount === 0}
+              disabled={saveBlocked || confirmedCount === 0 || (mode === "host" && !hasEventResponsibilityAck(acknowledgement))}
               onClick={() => void save(true)}
             >
               {savingIntent === "publish"

@@ -34,12 +34,18 @@ export const WORKSPACE_SEGMENTS: Record<ManagedKind, string> = {
   dj: "djs",
 };
 
-export type WorkspaceSection = "timetable" | "privates" | "prices" | "profile" | "requests" | "team";
+export type WorkspaceSection = "timetable" | "privates" | "prices" | "profile" | "requests" | "team" | "events";
 
 /** `/host/schools/:id`, `/host/schools/:id/timetable`, … */
 export function workspacePath(kind: ManagedKind, id: string, section?: WorkspaceSection): string {
   const base = `/host/${WORKSPACE_SEGMENTS[kind]}/${id}`;
   return section ? `${base}/${section}` : base;
+}
+
+/** Public listing route shared by claimant and reviewer surfaces. */
+export function publicEntityPath(kind: ManagedKind, slug: string): string {
+  const segment = { school: "s", venue: "v", instructor: "i", dj: "dj" }[kind];
+  return `/${segment}/${slug}`;
 }
 
 /**
@@ -115,6 +121,8 @@ export type VenueProfile = {
   website: string | null;
   instagram: string | null;
   phone: string | null;
+  description: string | null;
+  image_url: string | null;
 };
 
 export type InstructorProfile = {
@@ -149,7 +157,7 @@ export type DjProfile = {
 /** Fields entity_profile_save accepts per kind; name, slug, city and status stay admin-only. */
 export type ProfilePatch = {
   school: Partial<Pick<SchoolProfile, "description" | "image_url" | "website" | "instagram" | "phone" | "address_line1" | "postal_code">>;
-  venue: Partial<Pick<VenueProfile, "website" | "instagram" | "phone" | "address_line1" | "address_line2" | "postal_code">>;
+  venue: Partial<Pick<VenueProfile, "description" | "image_url" | "website" | "instagram" | "phone" | "address_line1" | "address_line2" | "postal_code">>;
   instructor: Partial<Pick<InstructorProfile, "description" | "image_url" | "website" | "instagram" | "organization">>;
   dj: Partial<Pick<DjProfile, "description" | "image_url" | "website" | "instagram">>;
 };
@@ -274,6 +282,8 @@ export type EntityClaim = {
   review_note: string | null;
   created_at: string;
   reviewed_at: string | null;
+  listing_status: string;
+  workspace_role: WorkspaceRole | null;
 };
 
 export type AdminEntityClaim = {

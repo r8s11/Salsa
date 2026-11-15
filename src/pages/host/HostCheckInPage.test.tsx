@@ -165,6 +165,9 @@ describe("HostCheckInPage", () => {
   it("shows empty state when no attendees", () => {
     renderPage();
     expect(screen.getByText(/no attendees on the roster/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Help with attendees and check-in" })).toHaveAttribute(
+      "href", "/help/organizers#attendees-and-the-door"
+    );
   });
 
   it("renders attendee cards with check-in button", () => {

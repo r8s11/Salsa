@@ -3,6 +3,7 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import AccountPage from "./AccountPage";
+vi.mock("./AccountClaimsCard", () => ({ default: () => null }));
 
 const mocks = vi.hoisted(() => ({
   auth: {
@@ -755,5 +756,15 @@ describe("AccountPage", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(mocks.auth.clearDeletedAccount).not.toHaveBeenCalled();
     expect(screen.queryByText("Signed out destination")).not.toBeInTheDocument();
+  });
+
+  it("links account-security help", () => {
+    mocks.profile.profile = baseProfile();
+    renderPage();
+
+    expect(screen.getByRole("link", { name: "Help with account security" })).toHaveAttribute(
+      "href",
+      "/help/dancers#protect-your-account"
+    );
   });
 });

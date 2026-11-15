@@ -12,6 +12,7 @@ const SOURCES: DatabaseEvent["source_type"][] = [
   "organizer",
   "moderator",
   "imported",
+  "artist",
 ];
 
 interface AdminEventsFilterDrawerProps {

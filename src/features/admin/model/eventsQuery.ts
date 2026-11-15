@@ -56,6 +56,7 @@ export const SOURCE_TYPE_LABEL: Record<DatabaseEvent["source_type"], string> = {
   organizer: "Organizer",
   moderator: "Moderator",
   imported: "Imported",
+  artist: "Artist",
 };
 
 // Names the write sites stamp instead of a real submitter — resolve to the
@@ -214,6 +215,7 @@ const EVENT_SOURCES: DatabaseEvent["source_type"][] = [
   "organizer",
   "moderator",
   "imported",
+  "artist",
 ];
 const SORT_KEYS: SortKey[] = ["event_date", "created_at", "updated_at", "title"];
 

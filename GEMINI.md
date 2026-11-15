@@ -1,3 +1,9 @@
+# Gemini project guidance
+
+Before any repository task, read and follow [AGENTS.md](AGENTS.md).
+It owns shared project instructions, task-specific documentation pointers, the
+Trail workflow, and response-style rules. Edit shared guidance there.
+
 <!-- trail:start -->
 ## Trail — repo context graph
 

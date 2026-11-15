@@ -1,8 +1,8 @@
 # Improvements discovered while writing the user guides
 
-Updated November 10, 2026. Audience: the Salsa Segura product and engineering team.
+Updated November 15, 2026. Audience: the Salsa Segura product and engineering team.
 
-Items 1–9 are implemented and merged into `main`; items 10–12 remain plans, not implemented features. **Production rollout is not verified here.** Frontend-support and digest migrations must be applied before the corresponding release; guided requests add migration `20261110000100`. These user guides are published in the repository; other local planning and operations documentation remains gitignored.
+Items 1–9 were previously recorded as merged into `main`; items 10–12 and the artist RSVP addition below have local implementation evidence. **Production rollout is not verified here.** Frontend-support and digest migrations must be applied before the corresponding release; guided requests add migration `20261110000100`. Dated plans and earlier verification counts below are historical evidence, not claims about the current deployed product.
 
 ## Implemented locally
 
@@ -10,7 +10,7 @@ Items 1–9 are implemented and merged into `main`; items 10–12 remain plans, 
 
 The Host event editor now offers **Publish Event** for drafts, separately from **Save Changes**. Unsaved content or flyer changes block publication with instructions to save first. Success offers **View public event**; failure leaves the same event a draft. CSV and flyer-import completion instructions lead to that action instead of suggesting duplicate creation.
 
-`organizer_publish_event(uuid)` locks the existing event and applies the same active-account, active-organizer and Owner/Manager checks as organizer creation, including its platform-admin exemption. Editors and unrelated organizers cannot publish. Only a draft can transition to `approved`; publication writes an audit record.
+The original `organizer_publish_event(uuid)` transition was replaced by `organizer_publish_event(uuid,jsonb)` in `20261114235900_artist_workshop_rsvp.sql`. Publication now also requires all three current-version responsibility acknowledgements and records server actor/version/time. The acknowledgement-free overload is removed. Organizer authorization and draft-only publication remain enforced; artist roster access has no generic-admin override.
 
 - Code: [Host editor](../../src/pages/host/HostEditEventPage.tsx), [repository](../../src/features/host/api/organizerAccessRepo.ts).
 - Migration: [20261109000000_organizer_publish_event.sql](../../supabase/migrations/20261109000000_organizer_publish_event.sql).
@@ -101,25 +101,35 @@ Organizer authority is unchanged. Venues and schools cannot request event links,
 - Verified: [SQL acceptance](../../supabase/tests/listing_requests.sql) on disposable Postgres (authority, privacy, limits, duplicates, state changes between submit and review, audit rows), TypeScript/lint, the full unit suite, and the three surfaces in a browser against local PostgREST at desktop and 390px.
 - Not included: unlink requests, venue/school event links, organizer sign-off, email or push on a decision.
 
-## Planned, not implemented
-
 ### 10. P3 — Give claimants a clear review inbox
 
-Local-only implementation plan: `docs/superpowers/plans/2026-11-09-claimant-review-inbox.md`.
+Implemented locally at `/account/claims`, linked from Account when claims exist and from pending/rejected listing controls. Every claim shows its listing, state, appropriate review note, and permitted next action. Approvals open the actual workspace only with current access; removed access offers the listing's claim form. Archived listings and superseded claims offer no action. Membership refresh completes before workspace actions appear.
 
-Plan places the inbox at `/account/claims` so pending claimants do not need Host access. It shows listing, state, appropriate decision note and permitted next action; approvals link to the actual accessible workspace. Decisions include review-note visibility, history, withdrawal and whether to add transactional decision mail. Email work and email promises remain gated on explicit approval plus real delivery verification.
+The additive `my_entity_claims()` migration preserves caller-only access and returns listing state and effective workspace role. Decision email remains unimplemented and gated on provider/operator confirmation and real delivery verification. Pending-claim withdrawal is not implemented.
+
+Local-only plan: `docs/superpowers/plans/2026-11-09-claimant-review-inbox.md`. Production rollout requires a separately authorized live RPC definition/grant comparison and migration application.
 
 ### 11. P3 — Broaden venue self-service profile editing
 
-Local-only implementation plan: `docs/superpowers/plans/2026-11-09-venue-profile-editing.md`.
+**Implemented locally.** Owners and Managers can save a plain-text description (1,200 characters) and an `https://` image link from the venue Profile form, with image-rights guidance. Phone, Address line 2 and Postal code remain private on the public page; Website, Instagram and Street address remain public. Broken public hero images are hidden.
 
-Recommended first scope: description plus an HTTPS image link, rights guidance and the existing Owner/Manager boundary. Audit found that website, Instagram and street address are public; saved phone, address line 2 and postal code are not currently exposed. The plan keeps that visibility unchanged unless explicitly approved. Image upload, new public contact fields and moderation are decisions, not implemented features.
+Not included: photo upload, admin editing of the two new fields, moderation, or directory search on description. Before rollout, apply `20261109120000_venue_profile_description_image.sql` after comparing live function definitions; drift-safe patches preserve existing ACLs and fail on changed anchors. Local-only plan: `docs/superpowers/plans/2026-11-09-venue-profile-editing.md`.
 
 ### 12. P3 — Put audience help inside the product
 
-Local-only implementation plan: `docs/superpowers/plans/2026-11-09-in-product-help.md`.
+The [Help](https://www.salsasegura.com/help) surface renders the canonical `docs/user-guides/` Markdown at `/help` and `/help/<slug>` through a safe subset, with permission-aware contextual links on sign-in, submission, claims, workspaces, Host and account screens. Plan: `docs/superpowers/plans/2026-11-09-in-product-help.md`.
 
-Plan covers a maintained help index and guide routes for all six audiences, contextual links selected by task/permissions, and rendered-route/control checks for stale guidance. No screenshots of private attendee/account data. Publishing these Markdown guides in the repository does not implement in-app help routes or authorize publishing private data.
+The stale-help suite (`src/features/help/guideIntegrity.test.tsx`) fails when a guide link, route, anchor or documented control label no longer matches the rendered product. Screenshots of private attendee/account data remain deferred and are not published.
+
+
+## Artist events and workshop RSVPs — locally implemented
+
+Active artist Owners and Managers can publish single-dated events and manage separate private main-list/waitlist RSVPs without organizer membership. Workshops require capture; other artist events may enable it. Guests save name, email and role before any external artist payment handoff. Contacted, artist acceptance, payment and delivery status remain distinct.
+
+- User instructions: [artist events and roster](artists.md#create-and-publish-an-artist-event), [guest signup](dancers.md#sign-up-for-an-artist-event), and [publication acknowledgements](organizers.md#before-you-publish).
+- Migration: [20261114235900_artist_workshop_rsvp.sql](../../supabase/migrations/20261114235900_artist_workshop_rsvp.sql).
+- Local verification: 29 automated feature evals passed; the full suite passed 3,548 tests across 315 files, and the production build passed. Browser evidence covered draft/publication, free/paid capture, closed and throttled states, roster edits, stale conflicts, promotion/removal and session isolation. These counts describe that verification run, not a promise that future trees are verified.
+- Release blockers: deployed ingress/header trust, sender/quota, owned-inbox delivery/idempotency and scheduler activation/unscheduling proof; qualified responsibility-wording review; native screen-reader/200% text zoom and fresh independent review.
 
 ## Verification and rollout
 
@@ -129,5 +139,7 @@ Plan covers a maintained help index and guide routes for all six audiences, cont
 - Browser verification used the actual app and local PostgREST/database, with a synthetic authenticated fixture session. Desktop and 390px mobile surfaces were inspected.
 - Apply migrations `20261109000000` through `20261109000300` before releasing the original frontend paths, and `20261110000000` before deploying the digest worker. Compare live function definitions before rollout, especially the anchored timezone patch. Local verification did not apply production migrations, send live email or activate the scheduler.
 - Apply `20261110000100_listing_requests.sql` before releasing the guided-request frontend. Guided listing requests were merged into `main` and pushed. The merged tree passed TypeScript and all 3,304 tests across 299 files. Production database migration and deployment were not verified by those checks.
+- In-product help: TypeScript, full ESLint and 3,422 tests across 307 files passed. The 49-check stale-help gate includes 20 rendered control scenarios; deliberate anchor and accessible-name mutations failed and were restored. Production build prerendered 774 routes, including the help index and seven guides, without an improvements/backlog chunk. Browser checks at 1280px and 390px covered guide navigation, deep anchors, sign-in contextual help, unknown-guide 404 and keyboard-scrollable tables. This branch has not been pushed or deployed.
+- Artist RSVP release requires `20261114235900_artist_workshop_rsvp.sql` before the dependent frontend, followed by separately authorized guest/worker deployment and configuration. The migration never starts mail. Keep the dedicated RSVP scheduler inactive until live release proof is complete. Rollback closes new signups and unschedules only that job; preserve contacts, acknowledgement stamps and delivery keys rather than dropping populated tables or restoring the unchecked publish API.
 
-[User guide index](README.md)
+[Help](https://www.salsasegura.com/help)

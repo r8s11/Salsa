@@ -267,7 +267,9 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
   // ── Shared facts and actions ──
   const isFree = event.priceType === "free" || event.priceAmount == null;
   const priceLabel = isFree ? "Free" : `$${event.priceAmount}`;
-  const rsvpLabel = isFree ? "RSVP · Free" : "Get Tickets";
+  const artistCapture = !!event.artistId && !!event.rsvpEnabled;
+  const rsvpTarget = artistCapture ? `/events/${event.id}/rsvp` : event.rsvpLink;
+  const rsvpLabel = artistCapture ? "RSVP on Salsa Segura" : isFree ? "RSVP · Free" : "Get Tickets";
   const seriesDates = event.recurrence === "weekly" ? getUpcomingSeriesDates(event.start) : [];
   const galleryThumbs = event.gallery?.slice(0, 4) ?? [];
   const galleryExtra = (event.gallery?.length ?? 0) - galleryThumbs.length;
@@ -324,11 +326,11 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
                 day: "numeric",
               })}
             </span>
-            {event.rsvpLink && (
+            {rsvpTarget && (
               <a
-                href={event.rsvpLink}
-                target="_blank"
-                rel="noopener noreferrer"
+                href={rsvpTarget}
+                target={artistCapture ? undefined : "_blank"}
+                rel={artistCapture ? undefined : "noopener noreferrer"}
                 onClick={() => void recordEventTouch(String(event.id), event.priceType === "paid" ? "ticket_click" : "rsvp_click", event.city)}
               >
                 Reserve
@@ -466,6 +468,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
   // RSVP link it only speaks when contact facts exist, and stays silent
   // otherwise. The contact block sits in the details below it.
   const renderReassurance = () => {
+    if (artistCapture) return <p className="reassurance">Save your signup first. Artist acceptance and external payment are separate.</p>;
     if (event.rsvpLink) {
       return (
         <p className="reassurance">
@@ -486,7 +489,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
   // mobile; CSS shows exactly one region per layout.
   const renderDecisions = (region: "card" | "bar") => (
     <div
-      className={`night-actions night-actions--${region}${event.rsvpLink ? "" : " night-actions--solo"}`}
+      className={`night-actions night-actions--${region}${rsvpTarget ? "" : " night-actions--solo"}`}
     >
       <Button
         variant="primary"
@@ -499,10 +502,9 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
         <Share2 size={16} aria-hidden />
         Send to friends
       </Button>
-      {event.rsvpLink && (
+      {rsvpTarget && (
         <ButtonLink
-          href={event.rsvpLink}
-          external
+          {...(artistCapture ? { to: rsvpTarget } : { href: rsvpTarget, external: true })}
           variant="secondary"
           className="night-actions__rsvp"
           onClick={() => void recordEventTouch(String(event.id), event.priceType === "paid" ? "ticket_click" : "rsvp_click", event.city)}

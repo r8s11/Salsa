@@ -126,6 +126,7 @@ describe("claim control on public pages", () => {
     expect(await screen.findByText("Run this school?")).toBeInTheDocument();
     const link = screen.getByRole("link", { name: "Sign in" });
     expect(link).toHaveAttribute("href", "/signin");
+    expect(screen.getByRole("link", { name: "Help with signing in" })).toHaveAttribute("href", "/help/dancers#create-an-account-or-sign-in");
     fireEvent.click(link);
     expect(returnDestination).toHaveBeenCalledWith("/s/ritmo-vivo");
   });
@@ -149,21 +150,25 @@ describe("claim control on public pages", () => {
 
   it("shows the waiting state for a pending claim", async () => {
     auth.user = { id: "user-1" };
-    mockRpc({ claims: [{ id: "claim-1", kind: "school", entity_id: "school-1", name: "Ritmo Vivo", slug: "ritmo-vivo", relationship: "owner", status: "pending", review_note: null, created_at: "2026-10-01T00:00:00Z", reviewed_at: null }] });
+    mockRpc({ claims: [{ id: "claim-1", kind: "school", entity_id: "school-1", name: "Ritmo Vivo", slug: "ritmo-vivo", relationship: "owner", status: "pending", review_note: null, created_at: "2026-10-01T00:00:00Z", reviewed_at: null, listing_status: "active", workspace_role: null }] });
 
     renderPage();
 
     expect(await screen.findByText("Your claim is waiting for review.")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "See all your claims" })).toHaveAttribute("href", "/account/claims");
     expect(screen.queryByRole("button", { name: /claim this/i })).not.toBeInTheDocument();
+    expect(screen.getByText("A pending claim does not grant editing access.")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "What happens after a claim" })).toHaveAttribute("href", "/help/listing-access#after-review");
   });
 
   it("shows a rejection note and allows a new claim", async () => {
     auth.user = { id: "user-1" };
-    mockRpc({ claims: [{ id: "claim-1", kind: "school", entity_id: "school-1", name: "Ritmo Vivo", slug: "ritmo-vivo", relationship: "owner", status: "rejected", review_note: "Could not verify ownership", created_at: "2026-10-01T00:00:00Z", reviewed_at: "2026-10-02T00:00:00Z" }] });
+    mockRpc({ claims: [{ id: "claim-1", kind: "school", entity_id: "school-1", name: "Ritmo Vivo", slug: "ritmo-vivo", relationship: "owner", status: "rejected", review_note: "Could not verify ownership", created_at: "2026-10-01T00:00:00Z", reviewed_at: "2026-10-02T00:00:00Z", listing_status: "active", workspace_role: null }] });
 
     renderPage();
 
     expect(await screen.findByText(/could not verify ownership/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "See all your claims" })).toHaveAttribute("href", "/account/claims");
     expect(screen.getByRole("button", { name: "Claim this school" })).toBeInTheDocument();
   });
 
@@ -178,6 +183,7 @@ describe("claim control on public pages", () => {
     const dialog = screen.getByRole("dialog", { name: /claim ritmo vivo/i });
     expect(within(dialog).queryByRole("radio", { name: "This is me" })).not.toBeInTheDocument();
     expect(within(dialog).getByRole("radio", { name: "I own it" })).toBeChecked();
+    expect(within(dialog).getByRole("link", { name: "How to claim a listing" })).toHaveAttribute("href", "/help/listing-access#submit-a-claim");
 
     await user.click(within(dialog).getByRole("radio", { name: "I manage it" }));
     await user.type(within(dialog).getByLabelText(/message/i), "Front desk lead since 2019");
@@ -188,6 +194,7 @@ describe("claim control on public pages", () => {
     }));
     expect(await within(dialog).findByText("Your claim is waiting for review.")).toBeInTheDocument();
     expect(within(dialog).queryByRole("button", { name: "Submit claim" })).not.toBeInTheDocument();
+    expect(within(dialog).getByRole("link", { name: "What happens after a claim" })).toHaveAttribute("href", "/help/listing-access#after-review");
   });
 
   it("shows the RPC error inline and keeps the form", async () => {

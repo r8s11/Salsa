@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import NotFoundPage from "./NotFoundPage";
 import { useDocumentMeta } from "../shared/seo/useDocumentMeta";
@@ -71,6 +72,7 @@ export default function PublicEntityPage({ kind }: { kind: PublicEntityKind }) {
   const { slug = "" } = useParams<{ slug: string }>();
   const { data, isPending, error, refetch } = useEntityDetail(kind, slug);
   const entity = data?.entity;
+  const [failedHero, setFailedHero] = useState<string | null>(null);
   useDocumentMeta({
     title: entity?.name ?? ENTITY_LABELS[kind],
     description:
@@ -115,8 +117,8 @@ export default function PublicEntityPage({ kind }: { kind: PublicEntityKind }) {
 
   return (
     <article className="public-entity-page" aria-labelledby="public-entity-title">
-      {entity.image_url && (
-        <img className="public-entity-page__hero" src={entity.image_url} alt="" />
+      {entity.image_url && entity.image_url !== failedHero && (
+        <img className="public-entity-page__hero" src={entity.image_url} alt="" onError={() => setFailedHero(entity.image_url ?? null)} />
       )}
       <header className="public-entity-page__intro">
         <h1 id="public-entity-title">{entity.name}</h1>

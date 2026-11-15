@@ -3,6 +3,12 @@ import { buildSitemapXml } from "./generate-sitemap.mjs";
 import { buildRouteTable, isIndexable, routeMeta } from "./public-routes.mjs";
 
 describe("buildSitemapXml", () => {
+  it("indexes the public help hub and all audience guides", () => {
+    const xml = buildSitemapXml([]);
+    for (const slug of ["", "/dancers", "/djs", "/venues", "/organizers", "/artists", "/schools", "/listing-access"]) {
+      expect(xml).toContain(`<loc>https://www.salsasegura.com/help${slug}</loc>`);
+    }
+  });
   it("includes approved event URLs with their actual update timestamp on the canonical host", () => {
     const xml = buildSitemapXml([
       { id: "123e4567-e89b-12d3-a456-426614174000", updated_at: "2026-08-25T11:32:00.000Z" },

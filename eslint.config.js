@@ -54,6 +54,7 @@ export default [
     languageOptions: {
       globals: {
         Deno: "readonly",
+        RequestInit: "readonly",
       },
     },
   },

@@ -1,6 +1,6 @@
 # Salsa Admin
 
-The admin area of Salsa Segura, where staff review and manage events, venues, users, organizer requests and activity.
+The Salsa Segura admin area, where staff review and manage events, venues, users, organizer requests, and activity.
 
 ## Language
 

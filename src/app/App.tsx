@@ -11,6 +11,8 @@ const AboutPage = lazy(() => import("../pages/AboutPage"));
 const ContactPage = lazy(() => import("../pages/ContactPage"));
 const PrivacyPage = lazy(() => import("../pages/PrivacyPage"));
 const DataDeletionPage = lazy(() => import("../pages/DataDeletionPage"));
+const HelpIndexPage = lazy(() => import("../features/help/pages/HelpIndexPage"));
+const HelpGuidePage = lazy(() => import("../features/help/pages/HelpGuidePage"));
 const CalendarPage = lazy(() => import("../pages/CalendarPage"));
 const SubmitEventPage = lazy(() => import("../pages/SubmitEventPage"));
 // Explicit route-level lazy loading keeps non-critical shop pages out of the entry bundle.
@@ -72,6 +74,7 @@ const AdminItineraryPreviewPage = lazy(() => import("../features/admin/pages/Adm
 const ProfilePage = lazy(() => import("../pages/account/ProfilePage"));
 const ProfileEditPage = lazy(() => import("../pages/account/ProfileEditPage"));
 const AccountPage = lazy(() => import("../pages/account/AccountPage"));
+const MyClaimsPage = lazy(() => import("../features/workspaces/pages/MyClaimsPage"));
 const HostMyEventsPage = lazy(() => import("../pages/host/HostMyEventsPage"));
 const HostCreateEventPage = lazy(() => import("../pages/host/HostCreateEventPage"));
 const HostEditEventPage = lazy(() => import("../pages/host/HostEditEventPage"));
@@ -95,6 +98,10 @@ const EntityWorkspaceRequestsPage = lazy(() => import("../features/workspaces/pa
 const SchoolTimetablePage = lazy(() => import("../features/workspaces/pages/SchoolTimetablePage"));
 const SchoolPrivatesPage = lazy(() => import("../features/workspaces/pages/SchoolPrivatesPage"));
 const SchoolPricesPage = lazy(() => import("../features/workspaces/pages/SchoolPricesPage"));
+const ArtistEventsPage = lazy(() => import("../features/artist-rsvp/pages/ArtistEventsPage"));
+const ArtistEventEditorPage = lazy(() => import("../features/artist-rsvp/pages/ArtistEventEditorPage"));
+const ArtistRsvpRosterPage = lazy(() => import("../features/artist-rsvp/pages/ArtistRsvpRosterPage"));
+const PublicArtistRsvpPage = lazy(() => import("../features/artist-rsvp/pages/PublicArtistRsvpPage"));
 import RequireAuth from "../features/auth/components/RequireAuth";
 import RequireAdmin from "../features/auth/components/RequireAdmin";
 import { MANAGED_KINDS, WORKSPACE_SEGMENTS } from "../features/workspaces/model";
@@ -308,6 +315,10 @@ function App() {
               <Route path="schools/:id/timetable" element={<SchoolTimetablePage />} />
               <Route path="schools/:id/privates" element={<SchoolPrivatesPage />} />
               <Route path="schools/:id/prices" element={<SchoolPricesPage />} />
+              <Route path="instructors/:id/events" element={<ArtistEventsPage />} />
+              <Route path="instructors/:id/events/new" element={<ArtistEventEditorPage />} />
+              <Route path="instructors/:id/events/:eventId" element={<ArtistEventEditorPage />} />
+              <Route path="instructors/:id/events/:eventId/rsvps" element={<ArtistRsvpRosterPage />} />
             </Route>
             <Route
               path="/onboarding"
@@ -323,6 +334,8 @@ function App() {
               <Route path="contact" element={<ContactPage />} />
               <Route path="privacy" element={<PrivacyPage />} />
               <Route path="data-deletion" element={<DataDeletionPage />} />
+              <Route path="help" element={<HelpIndexPage />} />
+              <Route path="help/:slug" element={<HelpGuidePage />} />
               <Route path="calendar" element={<CalendarPage />} />
               <Route path="submit" element={<SubmitEventPage />} />
               <Route
@@ -337,6 +350,7 @@ function App() {
               <Route path="shop/products/:handle" element={<ProductPage />} />
               <Route path="shop/:collection" element={<CollectionPage />} />
               <Route path="events/:id" element={<EventsParamRoute />} />
+              <Route path="events/:id/rsvp" element={<PublicArtistRsvpPage />} />
               <Route path="e/:code" element={<ShortEventLinkPage />} />
               <Route path="itineraries/:city/:weekStart" element={<ItineraryPage />} />
               <Route path="v/:slug" element={<PublicEntityPage kind="venue" />} />
@@ -384,6 +398,7 @@ function App() {
                   </RequireAuth>
                 }
               />
+              <Route path="account/claims" element={<RequireAuth><RequireOnboarding><MyClaimsPage /></RequireOnboarding></RequireAuth>} />
               <Route
                 path="profile/edit/:eventId"
                 element={

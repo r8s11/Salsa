@@ -1,6 +1,6 @@
 # Salsa Segura user guides
 
-Practical help for using the Salsa Segura web app. Guides include locally verified fixes through November 10, 2026. See [implementation status](improvements.md#verification-and-rollout) for database prerequisites and verification limits; production rollout is not verified here.
+Practical help for using the Salsa Segura web app. Artist RSVP and publication-checklist instructions include local verification through November 15, 2026; other guide sections retain their own verification dates. See [implementation status](improvements.md#verification-and-rollout) for database prerequisites and verification limits; production rollout is not verified here.
 
 Start at [Salsa Segura](https://www.salsasegura.com). You do not need an account to browse public events and listings. Sign in when you want to manage your profile, track your submissions, or manage a listing you represent.
 
@@ -8,11 +8,11 @@ Start at [Salsa Segura](https://www.salsasegura.com). You do not need an account
 
 | You want to… | Read |
 | --- | --- |
-| Find dancing, share events, submit an event, or manage your personal account | [Dancers and general users](dancers.md) |
+| Find dancing, sign up for artist events, share events, or manage your account | [Dancers and general users](dancers.md) |
 | Maintain a DJ profile and check listed gigs | [DJs](djs.md) |
 | Maintain a venue's contact and address details | [Venue owners and managers](venues.md) |
 | Create and manage events for an organizer | [Organizers](organizers.md) |
-| Maintain an artist or instructor profile | [Artists and instructors](artists.md) |
+| Maintain an artist profile, publish dated events, or manage private RSVPs | [Artists and instructors](artists.md) |
 | Maintain a school's profile, weekly classes, private lessons, and prices | [School owners and managers](schools.md) |
 | Claim a listing or give someone access to its workspace | [Listing access and teams](listing-access.md) |
 
@@ -23,6 +23,7 @@ The [improvement tracker](improvements.md) records locally implemented fixes, ro
 - **Your personal account** is your sign-in, profile, preferences, and submission history.
 - **A listing workspace** lets you manage a particular school, venue, artist, or DJ listing after a claim is approved or an owner adds you to its team.
 - **Organizer access** lets you work with a particular organizer's events. Creating or editing those events requires an active Owner or Manager membership for that organizer.
+- **Artist event access** lets active Owners and Managers create events owned by their artist listing and manage those events' private RSVPs without organizer membership.
 
 These are separate. Claiming a venue does not give you control of every event there. Managing a DJ or artist profile does not give you control of the events that mention that person. A school timetable does not automatically create events on the calendar.
 

@@ -39,6 +39,9 @@ export function workspaceSections(
       { key: "prices", label: "Prices", to: workspacePath(kind, id, "prices") }
     );
   }
+  if (kind === "instructor" && (role === "owner" || role === "manager")) {
+    sections.push({ key: "events", label: "Events", to: workspacePath(kind, id, "events") });
+  }
   if (canEditProfile(role)) {
     sections.push(
       { key: "profile", label: "Profile", to: workspacePath(kind, id, "profile") },

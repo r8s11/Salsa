@@ -1,8 +1,8 @@
 # Claim a listing and manage its team
 
-For school owners, venue owners and managers, artists, DJs, and the people who manage their listings. Last checked locally November 10, 2026.
+For school owners, venue owners and managers, artists, DJs, and the people who manage their listings. Last checked locally November 11, 2026.
 
-A listing workspace is separate from your personal profile and from organizer event access. For events, use the [organizer guide](organizers.md).
+A listing workspace is separate from your personal profile and organizer membership. For organizer-owned events, use the [organizer guide](organizers.md). Active artist Owners and Managers can also [publish their own artist events and manage private RSVPs](artists.md#create-and-publish-an-artist-event) without organizer membership; production availability depends on rollout.
 
 ## Find the right listing
 
@@ -48,13 +48,17 @@ An approved request shows **Listing added** with a **Claim it** link. Approval a
 
 The claim form states what approval unlocks: profile editing and a view of the upcoming nights linked to the listing, plus timetable, private lessons, and prices for a school. Approval does not give access to organizers' events.
 
-A pending claim does not grant editing access. Revisit the listing while signed in to check its state; do not assume an email will arrive.
+A pending claim does not grant editing access. Open **Account → Listing claims** (`/account/claims`), or **See all your claims** on the listing, to check every claim. Do not assume an email will arrive.
 
 ### After review
 
-- **Approved:** the listing offers **Open your workspace**. You can also find it under **Your listings** on the [Host desk](https://www.salsasegura.com/host).
-- **Rejected:** the listing says **Your previous claim was rejected.** Read any review note. Correct the explanation before submitting another claim, or contact Salsa Segura if you need clarification.
-- **Already on the team:** open the workspace rather than sending another claim.
+- **Waiting for review:** no action is needed yet.
+- **Approved:** select **Open workspace** to manage that listing. If access was later removed, the page explains that access changed and offers **View listing to claim again** instead.
+- **Not approved:** read the reviewer's note when shown, then use **View listing to claim again** to open the existing claim form. Correct your explanation before sending another claim.
+- **Withdrawn:** historical state only, with no note or next action. Withdrawing a pending claim is not currently available.
+- **Listing archived:** the listing is no longer listed; no claim or workspace action is offered.
+
+Claims appear newest first under **Waiting for review** and **Decided**. Approved and rejected claims show any reviewer's note as plain text. A newer waiting claim or accessible approval suppresses older actions for the same listing. If you already manage the listing, use its workspace instead of sending another claim.
 
 Approval normally grants Owner access if the listing has no active owner, or Manager access if it already has one. Selecting a relationship on the claim form is not a guarantee of a particular permission level.
 
@@ -70,6 +74,7 @@ These permissions apply to a school, venue, artist, or DJ listing—not to an or
 | Add people, change team roles, or remove people | Yes | No | No |
 | Ask for a change to the listing name, city, or public page address | Yes, under **Requests** | Yes, under **Requests** | No |
 | Ask for an event to be added to an artist or DJ profile | Yes, under **Requests** | Yes, under **Requests** | No |
+| Create/edit/publish events owned by this artist and manage their private RSVPs | Yes, artist listings only | Yes, artist listings only | No |
 | Change the listing's publication status | Contact Salsa Segura | Contact Salsa Segura | Contact Salsa Segura |
 
 Only schools have timetable, private-lesson, and price-plan sections. Editor access on a venue, DJ, or artist listing does not add an event editor or a booking tool.
@@ -121,7 +126,7 @@ You can have 10 requests waiting for review at a time. Withdraw one or wait for 
 | What you see | What to do |
 | --- | --- |
 | No claim button while signed out | Use **Sign in** on the listing, then return to it. |
-| A claim waiting for review | Wait for the review; revisit the same listing for its status. |
+| A claim waiting for review | Open **Account → Listing claims** to check its status. |
 | No Profile or Requests section | Check your role. Editors cannot change the public profile or send requests. |
 | No Team section | Only Owners manage listing teams. Ask an Owner to make the change. |
 | No listing under Your listings | Check that you used the correct account. If your claim is still pending, access has not been granted. |

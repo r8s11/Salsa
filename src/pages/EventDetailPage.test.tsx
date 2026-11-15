@@ -93,6 +93,13 @@ describe("EventDetailPage", () => {
     vi.mocked(fetchApprovedEventById).mockResolvedValue(event);
     vi.mocked(fetchApprovedEvents).mockResolvedValue([event]);
   });
+  it("R4 artist capture route replaces the external action without changing canonical sharing", async () => {
+    vi.mocked(fetchApprovedEventById).mockResolvedValue({ ...event, source_type: "artist", artist_id: "artist", rsvp_enabled: true, rsvp_link: null });
+    renderPage();
+    expect(await screen.findByRole("link", { name: "RSVP on Salsa Segura" })).toHaveAttribute("href", "/events/event-1/rsvp");
+    expect(document.querySelector('link[rel="canonical"]')).toHaveAttribute("href", "https://www.salsasegura.com/events/event-1");
+    expect(screen.queryByRole("link", { name: "RSVP" })).not.toBeInTheDocument();
+  });
   it.each([
     { price_type: null, price_amount: null, expected: null },
     { price_type: "paid" as const, price_amount: null, expected: null },

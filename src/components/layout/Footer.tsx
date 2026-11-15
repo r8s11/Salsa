@@ -87,6 +87,9 @@ function Footer() {
             <Link className="footer-link" to="/data-deletion">
               Delete data
             </Link>
+            <Link className="footer-link" to="/help">
+              Help
+            </Link>
           </nav>
 
           <div className="footer-support">

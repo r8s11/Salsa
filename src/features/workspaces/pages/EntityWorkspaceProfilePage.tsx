@@ -21,6 +21,8 @@ type FieldSpec = {
   label: string;
   kind?: "textarea" | "url" | "tel";
   hint?: string;
+  secureOnly?: boolean;
+  maxLength?: number;
 };
 
 const WEBSITE: FieldSpec = { key: "website", label: "Website", kind: "url", hint: "Start with https://" };
@@ -39,12 +41,14 @@ const PROFILE_FIELDS: Record<ManagedKind, FieldSpec[]> = {
     { key: "postal_code", label: "Postal code" },
   ],
   venue: [
+    { key: "description", label: "Description", kind: "textarea", maxLength: 1200, hint: "Shown on your public page. Plain text, up to 1,200 characters." },
+    { key: "image_url", label: "Image link", kind: "url", secureOnly: true, maxLength: 2048, hint: "A full https:// link to a photo of your venue that you took or have written permission to publish. Don't use another site's photo or a flyer, or a photo that identifies people who haven't agreed. Shown at the top of your public page." },
     WEBSITE,
     INSTAGRAM,
-    { key: "phone", label: "Phone", kind: "tel" },
-    { key: "address_line1", label: "Street address" },
-    { key: "address_line2", label: "Address line 2" },
-    { key: "postal_code", label: "Postal code" },
+    { key: "phone", label: "Phone", kind: "tel", hint: "Not shown on your public page. Salsa Segura staff can see it." },
+    { key: "address_line1", label: "Street address", hint: "Shown on your public page." },
+    { key: "address_line2", label: "Address line 2", hint: "Not shown on your public page. Salsa Segura staff can see it." },
+    { key: "postal_code", label: "Postal code", hint: "Not shown on your public page. Salsa Segura staff can see it." },
   ],
   instructor: [
     { key: "description", label: "Bio", kind: "textarea" },
@@ -68,10 +72,12 @@ function readField(entity: ProfileEntity, key: string): string {
   return typeof value === "string" ? value : "";
 }
 
-function isWebLink(value: string): boolean {
+function isWebLink(value: string, secureOnly = false): boolean {
   try {
     const url = new URL(value);
-    return url.protocol === "https:" || url.protocol === "http:";
+    return secureOnly
+      ? url.protocol === "https:" && !/\s/.test(value) && value.length <= 2048
+      : url.protocol === "https:" || url.protocol === "http:";
   } catch {
     return false;
   }
@@ -111,9 +117,9 @@ function ProfileBody({ workspace }: { workspace: EntityWorkspace }) {
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const found: Record<string, string> = {};
-    for (const { key, label, kind: type } of fields) {
+    for (const { key, label, kind: type, secureOnly } of fields) {
       const value = draft[key].trim();
-      if (type === "url" && value !== "" && !isWebLink(value)) {
+      if (type === "url" && value !== "" && !isWebLink(value, secureOnly)) {
         found[key] = `${label} must be a full link starting with https://`;
       }
     }
@@ -165,7 +171,7 @@ function ProfileBody({ workspace }: { workspace: EntityWorkspace }) {
       ) : (
         <form className="ws-form" aria-label="Public profile" noValidate onSubmit={submit}>
           <div className="ws-form__grid">
-            {fields.map(({ key, label, kind: type, hint }) => (
+            {fields.map(({ key, label, kind: type, hint, maxLength }) => (
               <WorkspaceField
                 key={key}
                 label={label}
@@ -180,6 +186,7 @@ function ProfileBody({ workspace }: { workspace: EntityWorkspace }) {
                       name={key}
                       className="admin-textarea"
                       rows={5}
+                      maxLength={maxLength}
                       value={draft[key]}
                       onChange={(event) => setField(key, event.target.value)}
                     />
@@ -189,6 +196,7 @@ function ProfileBody({ workspace }: { workspace: EntityWorkspace }) {
                       name={key}
                       className="admin-input"
                       type={type === "url" ? "url" : type === "tel" ? "tel" : "text"}
+                      maxLength={maxLength}
                       value={draft[key]}
                       onChange={(event) => setField(key, event.target.value)}
                     />

@@ -11,6 +11,7 @@ import {
   CLAIM_RELATIONSHIP_LABELS,
   MANAGED_KIND_LABELS,
   MEMBER_ROLE_LABELS,
+  publicEntityPath,
   type AdminEntityClaim,
   type ClaimStatus,
   type ManagedKind,
@@ -45,7 +46,6 @@ const STATUS_WORD: Record<ClaimStatus, string> = {
   withdrawn: "Withdrawn",
 };
 
-const PUBLIC_SEGMENT: Record<ManagedKind, string> = { school: "s", venue: "v", instructor: "i", dj: "dj" };
 const ADMIN_SEGMENT: Record<ManagedKind, string> = {
   school: "schools",
   venue: "venues",
@@ -174,7 +174,7 @@ export default function AdminEntityClaimsPage() {
                     </span>
                     <div className="desk__entry-body">
                       <h3 className="desk__entry-title">
-                        <Link to={`/${PUBLIC_SEGMENT[claim.kind]}/${claim.entity_slug}`}>
+                        <Link to={publicEntityPath(claim.kind, claim.entity_slug)}>
                           {claim.entity_name}
                         </Link>
                       </h3>
@@ -293,7 +293,7 @@ export default function AdminEntityClaimsPage() {
       {rejecting && (
         <AdminConfirmDialog
           title={`Reject ${claimantName(rejecting)}'s claim?`}
-          body={`They will not be able to manage ${rejecting.entity_name}. Any note below is kept on the claim record.`}
+          body={`They will not be able to manage ${rejecting.entity_name}. The claimant will see this note. It appears on their claims page and on the listing; keep it factual.`}
           confirmLabel="Reject claim"
           busyLabel="Rejecting…"
           isBusy={isReviewing}

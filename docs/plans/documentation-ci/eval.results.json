@@ -1,0 +1,97 @@
+{
+  "feature": "Markdown link and instruction-preservation CI guard",
+  "evalHash": "2a34f2b7105c1b68",
+  "cases": {
+    "U2": {
+      "status": "pass",
+      "kind": "manual",
+      "workspace": "c835e37e2f4df897",
+      "at": "2026-11-14T19:06:35.065Z",
+      "evidence": "Workflow lines22-44: documentation command after both dependency installs, before lint/test/build; deploy still needs quality; no external workflow dispatched."
+    },
+    "R4": {
+      "status": "pass",
+      "kind": "manual",
+      "workspace": "c835e37e2f4df897",
+      "at": "2026-11-14T19:06:42.988Z",
+      "evidence": "Ignore check: five curated runbooks and both review documents visible; local Claude profile and unrelated scratch path remain ignored. Contributor command and manual reviewed fingerprint procedure documented. Existing CI configuration retained."
+    },
+    "U1": {
+      "status": "pass",
+      "kind": "auto",
+      "workspace": "83b838b468b484ca",
+      "at": "2026-11-15T09:21:58.381Z",
+      "output": "\n> salsa-segura@1.0.0 check:docs\n> node scripts/check-docs.mjs\n\nDocumentation checks passed.\n\n> salsa-segura@1.0.0 check:docs\n> node scripts/check-docs.mjs\n\nDocumentation checks passed.\nnpm warn Unknown user config \"allow-scripts\". This will stop working in the next major version of npm.\nnpm warn Unknown user config \"allow-scripts\". This will stop working in the next major version of npm.\n"
+    },
+    "U3": {
+      "status": "pass",
+      "kind": "auto",
+      "workspace": "83b838b468b484ca",
+      "at": "2026-11-15T09:21:59.790Z",
+      "output": "\n RUN  v5.0.4 /Volumes/SANDISK USB/work/Salsa\n\n\n Test Files  1 passed (1)\n      Tests  3 passed | 71 skipped (74)\n   Start at  04:21:59\n   Duration  575ms (environment 45%, setup 28%, tests 21%, import 3%, transform 2%, worker 1%)\n\nnpm warn Unknown user config \"allow-scripts\". This will stop working in the next major version of npm.\n"
+    },
+    "F1": {
+      "status": "pass",
+      "kind": "auto",
+      "workspace": "83b838b468b484ca",
+      "at": "2026-11-15T09:22:01.794Z",
+      "output": "\n RUN  v5.0.4 /Volumes/SANDISK USB/work/Salsa\n\n\n Test Files  1 passed (1)\n      Tests  4 passed | 70 skipped (74)\n   Start at  04:22:00\n   Duration  1.62s (tests 76%, environment 20%, setup 2%, import 1%, transform 1%)\n\nnpm warn Unknown user config \"allow-scripts\". This will stop working in the next major version of npm.\n"
+    },
+    "F2": {
+      "status": "pass",
+      "kind": "auto",
+      "workspace": "83b838b468b484ca",
+      "at": "2026-11-15T09:22:02.502Z",
+      "output": "\n RUN  v5.0.4 /Volumes/SANDISK USB/work/Salsa\n\n\n Test Files  1 passed (1)\n      Tests  9 passed | 65 skipped (74)\n   Start at  04:22:02\n   Duration  371ms (environment 66%, tests 18%, setup 9%, import 4%, transform 2%, worker 1%)\n\nnpm warn Unknown user config \"allow-scripts\". This will stop working in the next major version of npm.\n"
+    },
+    "F3": {
+      "status": "pass",
+      "kind": "auto",
+      "workspace": "83b838b468b484ca",
+      "at": "2026-11-15T09:22:03.233Z",
+      "output": "\n RUN  v5.0.4 /Volumes/SANDISK USB/work/Salsa\n\n\n Test Files  1 passed (1)\n      Tests  17 passed | 57 skipped (74)\n   Start at  04:22:02\n   Duration  399ms (environment 61%, tests 25%, setup 8%, import 4%, transform 1%, worker 1%)\n\nnpm warn Unknown user config \"allow-scripts\". This will stop working in the next major version of npm.\n"
+    },
+    "F4": {
+      "status": "pass",
+      "kind": "auto",
+      "workspace": "83b838b468b484ca",
+      "at": "2026-11-15T09:22:03.942Z",
+      "output": "\n RUN  v5.0.4 /Volumes/SANDISK USB/work/Salsa\n\n\n Test Files  1 passed (1)\n      Tests  12 passed | 62 skipped (74)\n   Start at  04:22:03\n   Duration  375ms (environment 65%, tests 19%, setup 9%, import 4%, transform 2%, worker 1%)\n\nnpm warn Unknown user config \"allow-scripts\". This will stop working in the next major version of npm.\n"
+    },
+    "F5": {
+      "status": "pass",
+      "kind": "auto",
+      "workspace": "83b838b468b484ca",
+      "at": "2026-11-15T09:22:05.024Z",
+      "output": "\n RUN  v5.0.4 /Volumes/SANDISK USB/work/Salsa\n\n\n Test Files  1 passed (1)\n      Tests  28 passed | 46 skipped (74)\n   Start at  04:22:04\n   Duration  741ms (tests 62%, environment 30%, setup 4%, import 2%, transform 1%)\n\nnpm warn Unknown user config \"allow-scripts\". This will stop working in the next major version of npm.\n"
+    },
+    "F6": {
+      "status": "pass",
+      "kind": "auto",
+      "workspace": "83b838b468b484ca",
+      "at": "2026-11-15T09:22:05.703Z",
+      "output": "\n RUN  v5.0.4 /Volumes/SANDISK USB/work/Salsa\n\n\n Test Files  1 passed (1)\n      Tests  1 passed | 73 skipped (74)\n   Start at  04:22:05\n   Duration  337ms (environment 73%, setup 10%, tests 9%, import 5%, transform 2%, worker 1%)\n\nnpm warn Unknown user config \"allow-scripts\". This will stop working in the next major version of npm.\n"
+    },
+    "R1": {
+      "status": "pass",
+      "kind": "auto",
+      "workspace": "83b838b468b484ca",
+      "at": "2026-11-15T09:25:26.519Z",
+      "output": "\n RUN  v5.0.4 /Volumes/SANDISK USB/work/Salsa\n\n\n Test Files  315 passed (315)\n      Tests  3548 passed (3548)\n   Start at  04:22:06\n   Duration  200.45s (tests 48%, environment 36%, import 9%, setup 5%, transform 1%)\n\nEnvironment  jsdom was created 315 times · 66.78s total, 36% of tracked time\n             create it once per worker with pool: 'vmThreads' (keeps per-file isolation) or isolate: false (shares it across files)\n             learn more: https://vitest.dev/guide/improving-performance#test-environments\n\nnpm warn Unknown user config \"allow-scripts\". This will stop working in the next major version of npm.\nNot implemented: navigation to another Document\nNot implemented: navigation to another Document\nNot implemented: navigation to another Document\n"
+    },
+    "R2": {
+      "status": "pass",
+      "kind": "auto",
+      "workspace": "83b838b468b484ca",
+      "at": "2026-11-15T09:25:38.966Z",
+      "output": "     21.98 kB │ gzip:   5.86 kB\ndist/assets/browser-Cy7mrDLB.js                                       23.46 kB │ gzip:   8.86 kB\ndist/assets/AdminUsersPage-BohysEJ4.js                                26.21 kB │ gzip:   6.95 kB\ndist/assets/dist-BP6ddEBx.js                                          29.56 kB │ gzip:   8.94 kB\ndist/assets/csvImportDuplicates-B6xHrVrg.js                           30.00 kB │ gzip:  11.01 kB\ndist/assets/PublicEntityPage-B0en5wZB.js                              33.77 kB │ gzip:   7.90 kB\ndist/assets/AdminItineraryEditorPage-CWCGCgOM.js                      39.87 kB │ gzip:  11.75 kB\ndist/assets/chunk-OB3PAWPO-DY3VecOX.js                                40.64 kB │ gzip:  14.59 kB\ndist/assets/MarkdownBlocks-rEFhO5TY.js                                51.90 kB │ gzip:  15.88 kB\ndist/assets/classApi-C7im5fsn.js                                      57.02 kB │ gzip:  20.55 kB\ndist/assets/AdminEventsPage-Bt-5CkMV.js                               81.87 kB │ gzip:  23.29 kB\ndist/assets/AdminAnalyticsPage-D-w9L53F.js                            98.41 kB │ gzip:  23.81 kB\ndist/assets/supabase-BnUkL6C2.js                                     214.48 kB │ gzip:  55.20 kB\ndist/assets/CalendarPage-Bo7rtQVy.js                                 249.91 kB │ gzip:  69.73 kB\ndist/assets/index-ChAd8W_f.js                                      1,108.66 kB │ gzip: 365.05 kB\n\n✓ built in 1.59s\n\n> salsa-segura@1.0.0 postbuild\n> node scripts/generate-sitemap.mjs && node scripts/prerender-routes.mjs\n\nPrerendered 56 routes.\nnpm warn Unknown user config \"allow-scripts\". This will stop working in the next major version of npm.\n[plugin builtin:vite-reporter] \n(!) Some chunks are larger than 500 kB after minification. Consider:\n- Using dynamic import() to code-split the application\n- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting\n- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.\n"
+    },
+    "R3": {
+      "status": "pass",
+      "kind": "auto",
+      "workspace": "83b838b468b484ca",
+      "at": "2026-11-15T09:25:48.320Z",
+      "output": "\n RUN  v5.0.4 /Volumes/SANDISK USB/work/Salsa\n\n\n Test Files  7 passed (7)\n      Tests  103 passed (103)\n   Start at  04:25:39\n   Duration  8.79s (tests 60%, environment 26%, import 7%, setup 4%, transform 3%)\n\nEnvironment  jsdom was created 7 times · 2.15s total, 26% of tracked time\n             create it once per worker with pool: 'vmThreads' (keeps per-file isolation) or isolate: false (shares it across files)\n             learn more: https://vitest.dev/guide/improving-performance#test-environments\n\nnpm warn Unknown user config \"allow-scripts\". This will stop working in the next major version of npm.\nNot implemented: navigation to another Document\n"
+    }
+  }
+}

@@ -100,6 +100,8 @@ function renderHostLayoutAt(path: string) {
             <Route path="organization" element={<p>Host organization</p>} />
             <Route path=":segment/:id" element={<p>Host listing</p>} />
             <Route path=":segment/:id/:section" element={<p>Host listing section</p>} />
+            <Route path="instructors/:id/events/:eventId" element={<p>Artist event editor</p>} />
+            <Route path="instructors/:id/events/:eventId/rsvps" element={<p>Artist roster</p>} />
           </Route>
         </Routes>
       </MemoryRouter>
@@ -320,6 +322,10 @@ describe("AdminLayout", () => {
     ["/host/schools/s-1/prices", "School · Prices"],
     ["/host/venues/v-1/team", "Venue · Team"],
     ["/host/instructors/i-1/profile", "Artist · Profile"],
+    ["/host/instructors/i-1/events", "Artist · Events"],
+    ["/host/instructors/i-1/events/new", "Artist · Create event"],
+    ["/host/instructors/i-1/events/event-1", "Artist · Edit event"],
+    ["/host/instructors/i-1/events/event-1/rsvps", "Artist · RSVP roster"],
     ["/host/djs/d-1/requests", "DJ · Requests"],
   ])("labels the Host location %s as %s", (path, expected) => {
     renderHostLayoutAt(path);

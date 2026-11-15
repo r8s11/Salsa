@@ -16,6 +16,7 @@ import {
   ORGANIZER_TYPE_LABEL,
   type OrganizerType,
 } from "../../features/admin/model/organizerRequestsQuery";
+import { ContextHelp } from "../../features/help/ContextHelp";
 import AdminPageHeader from "../../features/admin/components/shell/AdminPageHeader";
 import FormFieldError from "../../shared/forms/FormFieldError";
 import { fieldErrorProps } from "../../shared/forms/fieldErrorProps";
@@ -264,6 +265,7 @@ export default function HostOrganizationPage() {
           title="Organization"
           description="View and manage your organizer identity."
         />
+        <ContextHelp context={{ surface: "host-events", hasOrganizerAccess: false, canCreateEvents: false }} />
         <div className="admin-card host-org__empty">
           <p>You don&apos;t have access to any organizations yet.</p>
           <Link to="/host" className="admin-btn admin-btn--primary">
@@ -289,6 +291,7 @@ export default function HostOrganizationPage() {
           </Link>
         }
       />
+      <ContextHelp context={{ surface: "host-events", hasOrganizerAccess: true, canCreateEvents: activeOrganizers.some((membership) => membership.organizerStatus === "active" && (membership.memberRole === "owner" || membership.memberRole === "manager")) }} />
 
       {activeOrganizers.length > 1 && (
         <div className="admin-card host-org__selector">

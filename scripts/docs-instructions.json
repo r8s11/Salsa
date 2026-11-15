@@ -1,0 +1,35 @@
+{
+  "requiredHeadings": [
+    "Read by task",
+    "Commands",
+    "Environment",
+    "Stack",
+    "Layout",
+    "Routing",
+    "Events",
+    "Metros and locations",
+    "Time",
+    "Submission",
+    "Database changes",
+    "SEO and prerendering",
+    "Styling",
+    "Testing",
+    "Deployment",
+    "Trail — repo context graph",
+    "graphify"
+  ],
+  "blocks": [
+    {
+      "name": "Trail",
+      "start": "<!-- trail:start -->",
+      "end": "<!-- trail:end -->",
+      "sha256": "abd2f22729dd329ae1ccd0fac2712a86e07fd99a7ab09ee18975820d1709a7f9"
+    },
+    {
+      "name": "Caveman",
+      "start": "<!-- caveman-begin -->",
+      "end": "<!-- caveman-end -->",
+      "sha256": "673046e2531319d71ade9ee763e9cffbeabe32211ec5a7712c4c5bbe0bb35560"
+    }
+  ]
+}

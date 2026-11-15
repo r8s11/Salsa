@@ -65,6 +65,32 @@ describe("PublicEntityPage", () => {
     expect(screen.getByText(/no past events listed/i)).toBeInTheDocument();
   });
 
+  it("shows a venue's description, photo and only its public contact fields", async () => {
+    rpc.mockResolvedValueOnce({ data: { ...detail, entity: {
+      ...detail.entity, kind: "venue", name: "Havana Club", description: "Latin nights since 1998",
+      image_url: "https://img.example/club.jpg", address: "5 Main St",
+      website: "https://havana.example", instagram: "@havanaclub",
+      phone: "617-555-0100", postal_code: "02110", address_line2: "Suite 2",
+    } }, error: null });
+    renderRoute(<PublicEntityPage kind="venue" />, "/v/havana-club", "/v/:slug");
+    expect(await screen.findByText("Latin nights since 1998")).toBeInTheDocument();
+    expect(document.querySelector("img.public-entity-page__hero")).toHaveAttribute("src", "https://img.example/club.jpg");
+    expect(screen.getByText("5 Main St, boston, MA, US")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Website" })).toHaveAttribute("href", "https://havana.example");
+    expect(screen.getByRole("link", { name: "Instagram" })).toHaveAttribute("href", "https://www.instagram.com/havanaclub/");
+    expect(screen.queryByText(/617-555-0100|02110|Suite 2/)).not.toBeInTheDocument();
+  });
+
+  it("drops a hero photo that fails to load", async () => {
+    rpc.mockResolvedValueOnce({ data: { ...detail, entity: { ...detail.entity, kind: "venue", image_url: "https://img.example/gone.jpg" } }, error: null });
+    renderRoute(<PublicEntityPage kind="venue" />, "/v/ritmo-vivo", "/v/:slug");
+    expect(await screen.findByRole("heading", { name: "Ritmo Vivo" })).toBeInTheDocument();
+    fireEvent.error(document.querySelector("img.public-entity-page__hero")!);
+    expect(document.querySelector("img.public-entity-page__hero")).toBeNull();
+    expect(screen.getByText("Community dance school")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Ritmo Vivo" })).toBeInTheDocument();
+  });
+
   it("shows a loading announcement while detail data is pending", async () => {
     const result = Promise.withResolvers<{ data: typeof detail; error: null }>();
     rpc.mockReturnValueOnce(result.promise);

@@ -23,6 +23,8 @@ jobs:
         run: npm ci
       - name: Install API dependencies
         run: npm ci --prefix api
+      - name: Check documentation
+        run: npm run check:docs
       - name: Lint
         run: npm run lint
       - name: Test

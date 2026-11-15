@@ -1,6 +1,7 @@
 import "temporal-polyfill/global";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { ContextHelp } from "../../features/help/ContextHelp";
 import { useAuth } from "../../contexts/useAuth";
 import { useMySubmissions } from "../../features/account/hooks/useMySubmissions";
 import { useOwnProfile } from "../../features/account/hooks/useOwnProfile";
@@ -223,6 +224,7 @@ export default function ProfilePage() {
           </ButtonLink>
         )}
       </div>
+      {isOwnProfile && <ContextHelp context={{ surface: "profile" }} />}
 
       {styleLabels.length > 0 && (
         <ul className="profile-style-chips" aria-label="Dance styles">

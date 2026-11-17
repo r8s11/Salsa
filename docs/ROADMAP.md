@@ -2,6 +2,8 @@
 
 > Boston's Premier Salsa Events Calendar - 52-Week Development Plan
 
+> **2026-11-17:** `docs/archive/` and the Modernization/admin phase plans cited below were removed as stale; retrieve them from git history.
+
 **Philosophy:** Launch minimal, iterate based on real user feedback
 **URL:** www.salsasegura.com
 **Status:** Live · Week 28 of 52 · calendar + submissions + local dev stack + auth shipped. The full `/admin` dashboard (Phases 1-14 — events, users, submissions, organizer requests, venues, taxonomy, settings, audit log, analytics) shipped and **closed out Aug 17, 2026**, well beyond this 52-week plan's original "moderation dashboard" (Week 6) scope — see `docs/STATUS_SUMMARY.md` and `docs/archive/admin-closeout.md`.
@@ -154,7 +156,6 @@
 
 - [Status Summary](STATUS_SUMMARY.md) - Current project snapshot
 - [52-Week Plan](salsa_52week_plan.md) - Detailed weekly breakdown
-- [Modernization Blueprint](plans/MODERNIZATION_BLUEPRINT.md) - Architecture audit & refactor plan
 - [Feature Requests](Feedback.md) - Community feedback
 
 ---

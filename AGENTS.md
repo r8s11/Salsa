@@ -1,8 +1,10 @@
 # AGENTS.md
 
 Shared guidance for coding agents working in this repository. `CLAUDE.md` imports
-this file; Gemini, Copilot, and OpenCode entry points direct agents here. Edit shared
-instructions here rather than copying them into tool-specific files.
+this file; Copilot and OpenCode entry points direct agents here. Supported harnesses:
+Oh My Pi, Claude Code, ChatGPT/Codex, OpenCode, GitHub Copilot, Pi and Hermes; do not
+add configuration for other agent tools. Edit shared instructions here rather than
+copying them into tool-specific files.
 
 Salsa Segura is a city-scoped guide to salsa and bachata events, classes and live music,
 with community submission, moderation, host (organizer) and admin workflows, a public

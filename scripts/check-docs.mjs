@@ -7,7 +7,7 @@ import { JSDOM } from 'jsdom';
 
 const markdown = new Marked();
 const entityDecoder = JSDOM.fragment('<textarea></textarea>').firstChild;
-const instructions = ['AGENTS.md', 'CLAUDE.md', 'GEMINI.md', '.github/copilot-instructions.md', '.opencode/AGENTS.md'];
+const instructions = ['AGENTS.md', 'CLAUDE.md', '.github/copilot-instructions.md', '.opencode/AGENTS.md'];
 const maintained = [
   'README.md', ...instructions, 'PRODUCT.md', 'GLOSSARY.md', 'docs/DASHBOARD.md',
   ...['events-and-geography', 'seo-and-itineraries', 'analytics', 'shopify-storefront', 'agent-measurement']

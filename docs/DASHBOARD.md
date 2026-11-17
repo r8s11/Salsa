@@ -82,7 +82,7 @@ is historical completion evidence, not an unfinished current workstream.
 
 #### Next Checks
 - [ ] Collect measured, dated baselines and owner-approved goals using the [agent measurement contract](operations/agent-measurement.md); generic template targets are not agreed KPIs.
-- [ ] Review [documentation CI acceptance criteria](plans/documentation-ci/eval.md) before implementing the new guard.
+- [x] Documentation CI guard implemented as `npm run check:docs` and run in the deploy workflow ([acceptance criteria](plans/documentation-ci/eval.md)).
 - [ ] Revalidate map-view scope and remaining closeout follow-ups before scheduling them; their last status in the August snapshot is not proof of current implementation.
 
 ---
@@ -142,7 +142,7 @@ Use this every week before and after working:
 | [Feedback.md](Feedback.md)                                 | Community feature requests           |
 | [MOBILE_APP_PLAN.md](MOBILE_APP_PLAN.md)                   | Mobile app development plan          |
 | [operations/agent-measurement.md](operations/agent-measurement.md) | Metric definitions, baseline evidence, and target approval |
-| [plans/documentation-ci/eval.md](plans/documentation-ci/eval.md) | Proposed documentation CI acceptance criteria |
+| [plans/documentation-ci/eval.md](plans/documentation-ci/eval.md) | Documentation CI acceptance criteria (implemented as `npm run check:docs`) |
 
 ---
 

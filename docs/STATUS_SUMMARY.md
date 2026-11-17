@@ -1,6 +1,8 @@
 # SalsaSegura.com - Project Status Summary
 
 > Generated: July 15, 2026 (previous snapshot: February 10, 2026) · Updated: August 20, 2026 (Admin Dashboard Phases 1-14 closed out; docs reconciled with `main`; redesign scope documented)
+>
+> **2026-11-17:** `docs/archive/`, the Modernization/Redesign plans, admin phase plans, and pre-November `docs/superpowers/` specs/plans cited below were removed as stale. Retrieve them from git history; do not treat their follow-up lists as current work.
 
 ---
 

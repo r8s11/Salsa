@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Salsa Segura — benefits carousel (1080×1350, 4:5)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Epilogue:wght@700;800;900&family=Be+Vietnam+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Ritmo Vivo palette from DESIGN.md / src/styles/global.css */
+  :root { --surface:#0b1326; --low:#131b2e; --high:#222a3d; --on:#dae2fd; --muted:#e5bdbe;
+          --red:#e11d48; --red-bright:#ff5874; --pink:#ffb3b6; --gold:#e9c349; --gold-light:#ffe088; --orange:#ffb690; }
+  body { margin:0; background:#000; display:flex; flex-direction:column; align-items:center; gap:40px; padding:40px 0; }
+
+  .slide { --i:0; --g1:rgba(225,29,72,.38); --g2:rgba(255,182,144,.16); --p1:85% 8%; --p2:10% 92%;
+           width:1080px; height:1350px; box-sizing:border-box; padding:104px 96px 100px; position:relative; overflow:hidden; isolation:isolate;
+           background:radial-gradient(circle at var(--p1), var(--g1), transparent 46%),
+                      radial-gradient(circle at var(--p2), var(--g2), transparent 42%), var(--surface);
+           color:var(--on); font:400 32px/1.42 'Be Vietnam Pro', sans-serif; display:flex; flex-direction:column; }
+  /* One 8640px ribbon strip shared by all slides, offset per slide so the sweep continues across swipes. */
+  .slide::before { content:""; position:absolute; inset:0; z-index:-1; pointer-events:none;
+                   background:url(assets/ribbons.svg) calc(var(--i) * -1080px) 0 / 8640px 1350px no-repeat; }
+
+  /* Logo lockup */
+  .logo { display:inline-flex; align-items:center; gap:.28em; line-height:1; white-space:nowrap; font-family:'Great Vibes', cursive; color:var(--gold); }
+  .logo img { display:block; height:1.35em; width:auto; filter:drop-shadow(0 4px 14px rgba(225,29,72,.45)); }
+  .logo span span { color:var(--red-bright); }
+  .logo.sm { font-size:50px; }
+  .logo.lg { font-size:112px; }
+
+  .top { display:flex; align-items:center; justify-content:space-between; min-height:80px; }
+  h1 { font:900 120px/.95 'Epilogue', sans-serif; margin:0; letter-spacing:-.025em; }
+  h2 { font:900 92px/.98 'Epilogue', sans-serif; margin:76px 0 0; letter-spacing:-.02em; }
+  h1 em, h2 em { font-style:normal; color:var(--hue-text); }
+  b { font:800 1em 'Epilogue', sans-serif; color:var(--pink); }
+  .card b, .panel b, .s1 .list b { color:var(--box-lead); }
+
+  .numeral { position:absolute; z-index:-1; font:900 380px/.8 'Epilogue', sans-serif; letter-spacing:-.04em; color:transparent;
+             -webkit-text-stroke:3px color-mix(in srgb, var(--hue-text) 42%, transparent); }
+  .sticker { position:absolute; z-index:3; font:900 30px/1 'Epilogue', sans-serif; letter-spacing:.08em; text-transform:uppercase;
+             background:var(--stk-bg); color:var(--stk-ink); padding:16px 26px 14px; border-radius:12px;
+             box-shadow:0 14px 34px rgba(0,0,0,.5); }
+  .beat { font:800 30px 'Epilogue', sans-serif; letter-spacing:.32em; }
+  .beat .a { color:var(--red-bright); }
+  .beat i { font-style:normal; color:var(--orange); }
+  .beat .b { color:var(--gold-light); }
+
+  .card { box-sizing:border-box; background:var(--box); color:var(--box-ink); border-radius:20px; padding:26px 34px; box-shadow:0 20px 44px rgba(0,0,0,.42); }
+  .cards { display:grid; gap:26px; margin:0; padding:0; list-style:none; }
+  p, li { text-wrap:pretty; }
+  .foot { margin-top:auto; display:flex; justify-content:space-between; align-items:center; font:700 26px 'Epilogue', sans-serif; color:var(--muted); }
+  .swipe { color:var(--gold); }
+  .icon { width:72px; height:72px; flex:none; border-radius:50%; display:grid; place-items:center; background:rgba(6,14,32,.38); color:var(--box-lead); }
+  .icon svg { width:38px; height:38px; fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+
+  /* 1 · cover */
+  .s1 { --i:0; --g1:rgba(225,29,72,.45); --p1:88% 12%; --g2:rgba(233,195,73,.14); --p2:0% 100%; }
+  .s1 h1 { margin-top:64px; font-size:128px; }
+  .s1 .beat { margin:38px 0 34px; }
+  .s1 .list { display:grid; gap:18px; margin:0 -96px; padding:38px 96px 40px; background:var(--box); color:var(--box-ink); font-size:30px; }
+  .s1 .list p { margin:0; }
+  .s1 .sticker { top:600px; right:110px; transform:rotate(-8deg); }
+
+  /* 2 · dancers: staircase */
+  .s2 { --i:1; --g1:rgba(255,182,144,.28); --p1:100% 0%; --g2:rgba(225,29,72,.28); --p2:0% 70%; }
+  .s2 .numeral { top:150px; right:-30px; }
+  .s2 .cards { margin-top:62px; }
+  .s2 .card { width:700px; }
+  .s2 .card:nth-child(1) { transform:rotate(-1.2deg); }
+  .s2 .card:nth-child(2) { margin-left:94px; transform:rotate(.9deg); }
+  .s2 .card:nth-child(3) { margin-left:188px; transform:rotate(-.6deg); }
+  .s2 .sticker { top:470px; right:96px; transform:rotate(-7deg); }
+
+  /* 3 · plan it: action panel */
+  .s3 { --i:2; --g1:rgba(233,195,73,.22); --p1:10% 6%; --g2:rgba(225,29,72,.34); --p2:100% 85%; }
+  .s3 .numeral { bottom:150px; left:-24px; }
+  .s3 .panel { margin-top:60px; background:var(--box); color:var(--box-ink); border-radius:28px; padding:16px 34px;
+               transform:rotate(1.4deg); box-shadow:0 24px 60px rgba(0,0,0,.45); }
+  .s3 .row { display:flex; gap:28px; align-items:center; padding:26px 0; }
+  .s3 .row + .row { border-top:2px dashed rgba(229,189,190,.22); }
+  .s3 .row p { margin:0; }
+  .s3 .row:nth-child(3) .icon { background:var(--red); color:#fffaf9; }
+  .s3 .sticker { top:236px; right:96px; transform:rotate(6deg); }
+
+  /* 4 · share: poster mock */
+  .s4 { --i:3; --g1:rgba(225,29,72,.42); --p1:20% 40%; --g2:rgba(255,224,136,.14); --p2:95% 95%; }
+  .s4 .numeral { top:96px; right:-40px; }
+  .s4 .split { display:grid; grid-template-columns:290px 1fr; gap:60px; margin-top:56px; align-items:start; }
+  .s4 .chips { display:flex; gap:10px; margin-bottom:22px; }
+  .s4 .chip { font:800 22px 'Epilogue', sans-serif; padding:10px 16px; border-radius:999px; border:2px solid var(--gold); color:var(--gold); }
+  .s4 .chip.on { background:var(--gold); color:var(--surface); }
+  .s4 .poster { width:290px; height:516px; border-radius:26px; position:relative; overflow:hidden; transform:rotate(-4deg); transform-origin:50% 0;
+                background:radial-gradient(circle at 70% 20%, rgba(255,88,116,.9), transparent 55%),
+                           radial-gradient(circle at 10% 90%, rgba(233,195,73,.6), transparent 50%), #1b1030;
+                box-shadow:0 30px 70px rgba(0,0,0,.55), 0 0 0 2px rgba(255,255,255,.08) inset;
+                display:flex; flex-direction:column; justify-content:space-between; padding:30px 26px; box-sizing:border-box; }
+  .s4 .poster .logo { font-size:30px; }
+  .s4 .poster .beat { font-size:44px; line-height:1.05; letter-spacing:.12em; color:#fff6e8; }
+  .s4 .poster .beat i { color:var(--gold-light); }
+  .s4 .share { position:absolute; right:22px; bottom:24px; width:64px; height:64px; border-radius:50%; background:#fffaf9; color:var(--red); display:grid; place-items:center; }
+  .s4 .share svg { width:32px; height:32px; fill:none; stroke:currentColor; stroke-width:2.6; stroke-linecap:round; stroke-linejoin:round; }
+  .s4 .cards { gap:22px; padding-top:70px; }
+  .s4 .card { padding:22px 26px; font-size:30px; }
+  .s4 .sticker { top:486px; right:110px; transform:rotate(7deg); }
+
+  /* 5 · discover: profile cards */
+  .s5 { --i:4; --g1:rgba(255,88,116,.3); --p1:95% 30%; --g2:rgba(233,195,73,.2); --p2:5% 15%; }
+  .s5 .numeral { bottom:150px; right:-30px; }
+  .s5 .cards { margin-top:60px; gap:24px; }
+  .s5 .card { display:flex; gap:28px; align-items:center; }
+  .s5 .card p { margin:0; }
+  .s5 .card:nth-child(1) { transform:rotate(-1deg); margin-right:60px; }
+  .s5 .card:nth-child(2) { transform:rotate(.8deg); margin-left:60px; }
+  .s5 .card:nth-child(3) { transform:rotate(-.5deg); margin-right:30px; }
+  .s5 .card:nth-child(1) .icon { background:var(--red); color:#fffaf9; }
+  .s5 .card:nth-child(2) .icon { background:var(--orange); color:var(--surface); }
+  .s5 .card:nth-child(3) .icon { background:var(--gold); color:var(--surface); }
+  .s5 .sticker { top:1060px; right:110px; transform:rotate(-6deg); }
+
+  /* 6 · hosts: desk grid */
+  .s6 { --i:5; --g1:rgba(233,195,73,.26); --p1:90% 90%; --g2:rgba(225,29,72,.34); --p2:0% 25%; }
+  .s6 .numeral { top:120px; right:-36px; }
+  .s6 .desk { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:62px; transform:rotate(-1deg); }
+  .s6 .card { display:flex; flex-direction:column; gap:18px; padding:30px 32px; }
+  .s6 .card p { margin:0; }
+  .s6 .card.wide { grid-column:1 / -1; flex-direction:row; align-items:center; gap:28px; }
+  .s6 .sticker { top:396px; right:110px; transform:rotate(8deg); }
+
+  /* 7 · listing: claim track */
+  .s7 { --i:6; --g1:rgba(225,29,72,.38); --p1:10% 50%; --g2:rgba(255,182,144,.22); --p2:100% 10%; }
+  .s7 .numeral { top:110px; right:-20px; }
+  .s7 .cards { margin-top:56px; gap:22px; }
+  .s7 .card:nth-child(odd) { transform:rotate(-.8deg); }
+  .s7 .card:nth-child(even) { transform:rotate(.8deg); margin-left:40px; }
+  .s7 .track { margin-top:auto; display:grid; grid-template-columns:repeat(3, 1fr); position:relative; padding-top:6px; }
+  .s7 .track::before { content:""; position:absolute; top:22px; left:16.6%; right:16.6%; height:4px; background:linear-gradient(90deg, var(--red), var(--orange), var(--gold)); }
+  .s7 .step { display:flex; flex-direction:column; align-items:center; gap:14px; font:800 28px 'Epilogue', sans-serif; color:var(--on); position:relative; }
+  .s7 .step::before { content:""; width:28px; height:28px; border-radius:50%; background:var(--surface); border:5px solid var(--red-bright); }
+  .s7 .step:nth-child(2)::before { border-color:var(--orange); }
+  .s7 .step:nth-child(3)::before { border-color:var(--gold); background:var(--gold); }
+  .s7 .foot { margin-top:26px; justify-content:flex-end; }
+  .s7 .sticker { top:250px; right:96px; transform:rotate(-8deg); }
+
+  /* 8 · closing: centered */
+  .s8 { --i:7; --g1:rgba(225,29,72,.5); --p1:50% 38%; --g2:rgba(233,195,73,.22); --p2:50% 100%; text-align:center; align-items:center; }
+  .s8 h1 { margin-top:80px; font-size:132px; }
+  .s8 .list { display:grid; gap:12px; margin:44px 0 0; font-size:29px; }
+  .s8 .list p { text-wrap:balance; }
+  .s8 .list p { margin:0; }
+  .s8 .cta { display:inline-block; margin-top:48px; background:var(--red); color:#fffaf9; font:900 50px 'Epilogue', sans-serif; padding:30px 58px;
+             border-radius:999px; box-shadow:0 16px 30px rgba(0,0,0,.45), 0 30px 70px rgba(225,29,72,.5); transform:rotate(-2deg); }
+  .s8 .beat { margin-top:46px; }
+  .s8 .foot { justify-content:center; }
+  .s8 .sticker { top:268px; left:96px; transform:rotate(-9deg); }
+
+  /* Stage-light hue per slide: rose → orange → gold, so each swipe changes temperature.
+     Box/ink pairs are the event-type container pairs from DESIGN.md (≥7.2:1). */
+  .rose   { --hue-text:var(--red-bright); --box:#7a0a26; --box-ink:#ffd9df; --box-lead:var(--gold-light); --stk-bg:var(--gold); --stk-ink:#3c2f00; --g1:rgba(225,29,72,.58); }
+  .orange { --hue-text:var(--orange);     --box:#783200; --box-ink:#ffdbca; --box-lead:var(--gold-light); --stk-bg:var(--gold); --stk-ink:#3c2f00; --g1:rgba(255,140,80,.45); }
+  .gold   { --hue-text:var(--gold-light); --box:#574500; --box-ink:#fff0c2; --box-lead:#ffffff;          --stk-bg:var(--red);  --stk-ink:#fffaf9; --g1:rgba(233,195,73,.4); }
+  .s1 { --g2:rgba(255,140,80,.3); }
+</style>
+</head>
+<body>
+
+<!-- 1 · Cover -->
+<section class="slide s1 rose" aria-label="Dark navy slide under a rose stage light. Large white headline asks where the dancing is tonight, with &quot;dancing&quot; in rose, above a deep rose band of three benefits.">
+  <span class="logo lg"><img src="assets/mark-brand.png" alt=""><span>Salsa <span>Segura</span></span></span>
+  <span class="sticker">Tonight</span>
+  <h1>Where's the <em>dancing</em> tonight?</h1>
+  <div class="beat" aria-hidden="true"><span class="a">1 2 3</span> <i>·</i> <span class="b">5 6 7</span></div>
+  <div class="list">
+    <p><b>Browse with no login.</b> Public calendar and listings need no account.</p>
+    <p><b>Find the people.</b> Schools, artists, DJs and venues under Discover.</p>
+    <p><b>Claim your page.</b> Organizers and listing teams manage their own pages.</p>
+  </div>
+  <div class="foot"><span>salsasegura.com</span><span class="swipe">Swipe →</span></div>
+</section>
+
+<!-- 2 · For dancers -->
+<section class="slide s2 orange" aria-label="Dark slide under an orange glow with three burnt-orange cards, each showing one search step for finding an event.">
+  <span class="numeral" aria-hidden="true">02</span>
+  <div class="top"><span class="logo sm"><img src="assets/mark-brand.png" alt=""><span>Salsa <span>Segura</span></span></span></div>
+  <span class="sticker">Filter</span>
+  <h2>Find your <em>night out</em> fast</h2>
+  <ul class="cards">
+    <li class="card"><b>Pick your city.</b> Then move to the date or period you want.</li>
+    <li class="card"><b>Filter fast.</b> Event-type and dance-style filters; tap Filters on phones.</li>
+    <li class="card"><b>Check details first.</b> Date, time, location, price and host information.</li>
+  </ul>
+  <div class="foot"><span>No account needed to browse</span><span class="swipe">→</span></div>
+</section>
+
+<!-- 3 · Plan it -->
+<section class="slide s3 gold" aria-label="Dark slide under a gold glow with an olive-gold panel of calendar, link and ticket actions.">
+  <span class="numeral" aria-hidden="true">03</span>
+  <div class="top"><span class="logo sm"><img src="assets/mark-brand.png" alt=""><span>Salsa <span>Segura</span></span></span></div>
+  <span class="sticker">Save</span>
+  <h2>Never miss<br>the <em>social</em></h2>
+  <div class="panel">
+    <div class="row"><span class="icon"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span>
+      <p><b>Add to calendar.</b> Confirm the details before you save.</p></div>
+    <div class="row"><span class="icon"><svg viewBox="0 0 24 24"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg></span>
+      <p><b>Copy link.</b> Paste the event address into a message or post.</p></div>
+    <div class="row"><span class="icon"><svg viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 0 2-2h14a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H5a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4z"/><path d="M14 6v12" stroke-dasharray="2 2.5"/></svg></span>
+      <p><b>Get tickets.</b> Opens the host's external ticket page.</p></div>
+  </div>
+  <div class="foot"><span>salsasegura.com/calendar</span><span class="swipe">→</span></div>
+</section>
+
+<!-- 4 · Bring the crew -->
+<section class="slide s4 rose" aria-label="Dark slide with a phone-sized poster mock showing Story and Feed format chips and a share icon beside deep rose cards.">
+  <span class="numeral" aria-hidden="true">04</span>
+  <div class="top"><span class="logo sm"><img src="assets/mark-brand.png" alt=""><span>Salsa <span>Segura</span></span></span></div>
+  <h2>Share the <em>flyer</em>, not a screenshot</h2>
+  <div class="split">
+    <div>
+      <div class="chips"><span class="chip on">Story 9:16</span><span class="chip">Feed 4:5</span></div>
+      <div class="poster" aria-hidden="true">
+        <span class="logo"><img src="assets/mark-brand.png" alt=""><span>Salsa <span>Segura</span></span></span>
+        <div class="beat">1 2 3<br><i>·</i><br>5 6 7</div>
+        <span class="share"><svg viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg></span>
+      </div>
+    </div>
+    <ul class="cards">
+      <li class="card"><b>Pick a format.</b> Story 9:16 or Feed 4:5 from the preview.</li>
+      <li class="card"><b>Send to friends.</b> Uses your phone's share options; download if unavailable.</li>
+      <li class="card"><b>Save image.</b> Keep the poster to post later.</li>
+    </ul>
+  </div>
+  <span class="sticker">Share</span>
+  <div class="foot"><span>Send this poster or Save image</span><span class="swipe">→</span></div>
+</section>
+
+<!-- 5 · Discover -->
+<section class="slide s5 orange" aria-label="Dark slide with three burnt-orange profile cards for schools, artists and DJs/venues.">
+  <span class="numeral" aria-hidden="true">05</span>
+  <div class="top"><span class="logo sm"><img src="assets/mark-brand.png" alt=""><span>Salsa <span>Segura</span></span></span></div>
+  <span class="sticker">Teachers</span>
+  <h2>Meet the <em>people</em><br>behind the floor</h2>
+  <ul class="cards">
+    <li class="card"><span class="icon"><svg viewBox="0 0 24 24"><path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c2 2 10 2 12 0v-5M22 9v6"/></svg></span>
+      <p><b>Schools.</b> Weekly classes, private lessons and prices.</p></li>
+    <li class="card"><span class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span>
+      <p><b>Artists &amp; instructors.</b> Teachers link to their artist page.</p></li>
+    <li class="card"><span class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 3a9 9 0 0 1 9 9"/></svg></span>
+      <p><b>DJs &amp; venues.</b> Browse DJ and venue pages from Discover.</p></li>
+  </ul>
+  <div class="foot"><span>salsasegura.com/discover</span><span class="swipe">→</span></div>
+</section>
+
+<!-- 6 · For hosts -->
+<section class="slide s6 gold" aria-label="Dark slide with three olive-gold host-tool cards for publishing, importing and check-in above a Host desk footer.">
+  <span class="numeral" aria-hidden="true">06</span>
+  <div class="top"><span class="logo sm"><img src="assets/mark-brand.png" alt=""><span>Salsa <span>Segura</span></span></span></div>
+  <span class="sticker">Hosts</span>
+  <h2>Run your events from <em>one desk</em></h2>
+  <div class="desk">
+    <div class="card wide"><span class="icon"><svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg></span>
+      <p><b>Save or publish.</b> For organizers you manage, after the checks.</p></div>
+    <div class="card"><span class="icon"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg></span>
+      <p><b>Import events.</b> Spreadsheet or flyers; CSV rows start as drafts.</p></div>
+    <div class="card"><span class="icon"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 9l2 2 4-4M8 16h8"/></svg></span>
+      <p><b>Track attendees.</b> Check people in at the door.</p></div>
+  </div>
+  <div class="foot"><span>The Host desk</span><span class="swipe">→</span></div>
+</section>
+
+<!-- 7 · Own your listing -->
+<section class="slide s7 rose" aria-label="Dark slide with three deep rose profile-management cards and a three-step claim flow along the bottom.">
+  <span class="numeral" aria-hidden="true">07</span>
+  <div class="top"><span class="logo sm"><img src="assets/mark-brand.png" alt=""><span>Salsa <span>Segura</span></span></span></div>
+  <span class="sticker">Claim</span>
+  <h2>Your profile,<br><em>your</em> way</h2>
+  <ul class="cards">
+    <li class="card"><b>Claim.</b> Your school, venue, artist or DJ page.</li>
+    <li class="card"><b>Keep details current.</b> School timetable, prices and website links.</li>
+    <li class="card"><b>Add teammates.</b> Owners add existing accounts with a role.</li>
+  </ul>
+  <div class="track" aria-label="Claim, then review, then workspace"><span class="step">Claim</span><span class="step">Review</span><span class="step">Workspace</span></div>
+  <div class="foot"><span class="swipe">→</span></div>
+</section>
+
+<!-- 8 · Closing -->
+<section class="slide s8 rose" aria-label="Dark closing slide with a large red CTA pill reading salsasegura.com and a short line asking viewers to find tonight's dancing.">
+  <span class="logo lg"><img src="assets/mark-brand.png" alt=""><span>Salsa <span>Segura</span></span></span>
+  <span class="sticker">Dance</span>
+  <h1>See you on<br>the <em>floor</em>.</h1>
+  <div class="list">
+    <p><b>Find tonight's dancing.</b> Browse the calendar; no account needed.</p>
+    <p><b>Add it or send it.</b> Calendar, copy link and poster share.</p>
+    <p><b>Request a missing listing.</b> Use the request form if it's not listed.</p>
+  </div>
+  <span class="cta">salsasegura.com</span>
+  <div class="beat" aria-hidden="true"><span class="a">1 2 3</span> <i>·</i> <span class="b">5 6 7</span></div>
+  <div class="foot"><span>Save this · Send it to your dance partner</span></div>
+</section>
+
+</body>
+</html>

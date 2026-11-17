@@ -26,7 +26,7 @@ const protectedBlocks = [
     body: "Never omit security warnings.\nKeep technical payloads unchanged.",
   },
 ];
-const adapters = ["CLAUDE.md", "GEMINI.md", ".github/copilot-instructions.md", ".opencode/AGENTS.md"];
+const adapters = ["CLAUDE.md", ".github/copilot-instructions.md", ".opencode/AGENTS.md"];
 const runbooks = [
   "events-and-geography.md", "seo-and-itineraries.md", "analytics.md",
   "shopify-storefront.md", "agent-measurement.md",
@@ -75,7 +75,6 @@ function fixture({ maintained = false } = {}) {
   put(root, "README.md", "# Readme\n");
   put(root, "AGENTS.md", canonicalInstructions);
   put(root, "CLAUDE.md", "@AGENTS.md\n");
-  put(root, "GEMINI.md", "Follow [canonical instructions](AGENTS.md).\n");
   put(root, ".github/copilot-instructions.md", "Follow [canonical instructions](../AGENTS.md).\n");
   put(root, ".opencode/AGENTS.md", "Follow [canonical instructions](../AGENTS.md).\n");
   put(root, "scripts/docs-instructions.json", `${JSON.stringify(baseline, null, 2)}\n`);

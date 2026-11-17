@@ -71,8 +71,8 @@ npm run dev
 
 Vitest runs application test files serially to avoid CPU/memory contention
 between DOM-heavy integration suites; test timeouts remain unchanged. Tests
-under `.grok/skills/`, `.kiro/skills/`, `.vibe/skills/`, `.windsurf/skills/`, and
-`data/skills/` are agent-skill `node:test` suites, not application tests, and
+under `.claude/`, `.agents/`, and `data/skills/` are agent-skill `node:test` suites,
+not application tests, and
 are excluded from Vitest discovery. Application `src/**` discovery is unchanged.
 
 Shared browser API shims live in `src/test/setup.ts` and run before component
@@ -207,5 +207,4 @@ See [Host event access](docs/operations/events-and-geography.md#host-event-acces
 - [Operations](docs/operations/) — deployment prerequisites, integrations, and verification runbooks
 - [Product improvement backlog](docs/user-guides/improvements.md) — guide-driven evidence and proposals
 - [Status snapshot](docs/STATUS_SUMMARY.md) · [Roadmap](docs/ROADMAP.md) — dated progress and planning records
-- [Modernization blueprint](docs/plans/MODERNIZATION_BLUEPRINT.md) · [Plans](docs/plans/) · [Audits](docs/audits/) — historical decisions and evidence; check dates before treating them as current
-- [Archive](docs/archive/) — superseded guides retained for reference
+- [Plans](docs/plans/) · [Audits](docs/audits/) — historical decisions and evidence; check dates before treating them as current

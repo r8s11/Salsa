@@ -110,9 +110,8 @@ Local Auth also allowlists `http://localhost:5173/auth/invite`. These settings d
 ## 8. Release readiness report (as of 2026-08-26)
 
 This section records the actual, evidence-backed status of the organizer email invitations feature
-at the end of implementation (Tasks 1–9 of `docs/superpowers/plans/2026-08-26-organizer-email-invitations.md`,
-full history in `.superpowers/sdd/2026-08-26-organizer-email-invitations/progress.md` and the
-per-task `task-N-report.md` files). It supersedes nothing above — Sections 1–7 remain the exact
+at the end of implementation (Tasks 1–9 of the 2026-08-26 organizer-email-invitations plan, since removed;
+retrieve it from git history if needed). It supersedes nothing above — Sections 1–7 remain the exact
 manual steps a human operator must still perform.
 
 ### 8.1 Root cause and implementation shape: old flow vs. new flow

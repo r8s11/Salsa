@@ -1,5 +1,7 @@
 # Documentation CI guard
 
+> **2026-11-17:** `GEMINI.md` and the Gemini adapter were removed; Gemini is no longer a supported harness. References below are historical.
+
 ## User request
 
 > - Reconcile docs/DASHBOARD.md with newer status records; July snapshot still lists shipped work as pending.

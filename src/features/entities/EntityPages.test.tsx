@@ -314,7 +314,7 @@ describe("EntityDirectoryPage", () => {
 
     expect(await screen.findByText(/nothing is listed in the directory yet/i)).toBeInTheDocument();
     fireEvent.change(screen.getByRole("searchbox", { name: /search/i }), { target: { value: "Ritmo" } });
-    fireEvent.change(screen.getByRole("combobox", { name: /city/i }), { target: { value: "boston" } });
+    fireEvent.change(screen.getByRole("combobox", { name: /metropolitan area/i }), { target: { value: "boston" } });
     fireEvent.click(screen.getByRole("button", { name: /^search$/i }));
 
     expect(await screen.findByRole("link", { name: /Ritmo Vivo/i })).toHaveAttribute("href", "/s/ritmo-vivo");

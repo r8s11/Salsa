@@ -15,6 +15,29 @@ The migration creates durable notification intent but never activates delivery. 
 Rollback closes new artist signups and unschedules only the RSVP job. Preserve contacts, server acknowledgement stamps and delivery keys; do not drop populated tables or restore the old unchecked publication API. Local PostgreSQL/PostgREST tests do not establish GoTrue, Edge ingress, storage, Realtime or live-provider readiness.
 
 
+## School geography: metro, address locality, NYC borough
+
+Schools use **three independent geographic concepts**: `schools.metro_slug` for
+discovery (e.g. `new-york-city` or `boston`), `schools.city` for the physical
+address locality (e.g. `Brooklyn`, `Long Island City`, `Cambridge`), and
+`schools.borough` for the optional NYC grouping. `borough` is null outside
+NYC; Jersey City schools belong to the NYC metro but **not** to any NYC borough.
+
+Migrations `20261119202419_separate_school_metro_borough_from_address_city.sql`
+and `20261119203154_school_geography_admin_edit_and_public_reference.sql`
+must precede the admin and public directory frontend. Existing school slugs,
+approval statuses, membership, and event links remain unchanged. The backfill
+assigns only conservative geographic matches from locality or ZIP, leaving
+ambiguous cases unassigned for manual review. It never promotes a
+`needs_review` school to `active`.
+
+The admin school form edits metro, address city, and NYC borough separately.
+Public `public_schools` remains allowlisted and active-only; borough filtering
+queries this projection. The public NYC picker always includes all five boroughs,
+even if a borough has no approved upcoming events; only neighborhood choices
+require event inventory. Review school location corrections separately from
+the listing's broader completeness and publication checks.
+
 ## Neighborhoods
 
 The curated starter catalog lives in

@@ -220,7 +220,17 @@ videos/
 # Machine-installed skill aliases (targets live under ignored .agents/)
 /.minimax/skills/
 /.ona/skills/
-/.windsurf/skills/
+# Unsupported agent harnesses (see AGENTS.md)
+.windsurf/
+.cursor/
+.gemini/
+GEMINI.md
+.qwen/
+.clinerules/
+.poolside/
+.vibe/
+.dsh/
+.zcode/
 
 # Local browser captures, run history, and scratch notes
 /.stitch/*.html

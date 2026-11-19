@@ -21,7 +21,7 @@ function HomeCta() {
         </p>
         <div className="home-cta__actions">
           <ButtonLink to={submitTo} variant="primary" className="home-cta__btn">
-            Submit your event
+            Submit an event
           </ButtonLink>
           <ButtonLink to="/contact" variant="ghost" className="home-cta__aside">
             Questions first? Get in touch

@@ -67,9 +67,9 @@ function scrollTo(value: number) {
   });
 }
 
-function renderPill(withFooter = false) {
+function renderPill(withFooter = false, path = "/discover") {
   return render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={[path]}>
       {withFooter && (
         <div className="app-layout">
           <footer><a href="mailto:info@SalsaSegura.com">Email</a></footer>
@@ -101,6 +101,13 @@ describe("FloatingCityPill", () => {
     expect(
       screen.queryByRole("button", { name: /explore other cities/i })
     ).not.toBeInTheDocument();
+  });
+
+  it.each(["/", "/shop", "/shop/products/tee"])("never covers content on %s", (path) => {
+    renderPill(false, path);
+    scrollTo(500);
+
+    expect(screen.queryByRole("button", { name: /explore other cities/i })).not.toBeInTheDocument();
   });
 
   it("appears after scrolling past the threshold", () => {

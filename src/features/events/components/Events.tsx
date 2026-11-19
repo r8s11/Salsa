@@ -183,7 +183,7 @@ function Events() {
                 Try again
               </Button>
               <ButtonLink to="/calendar" variant="secondary">
-                View Full Calendar
+                Full calendar
               </ButtonLink>
             </div>
           </div>
@@ -204,9 +204,9 @@ function Events() {
             <div>
               <h2 ref={discoveryHeadingRef} tabIndex={-1} id="events-area-heading" className="no-events__title">
                 {noneAnywhere
-                  ? "No upcoming SalsaSegura events yet."
+                  ? "No upcoming Salsa Segura events yet."
                   : source === "none-nearby"
-                    ? "No SalsaSegura events near you yet."
+                    ? "No Salsa Segura events near you yet."
                     : "Choose a city to see its events."}
               </h2>
               <p>
@@ -298,7 +298,7 @@ function Events() {
               <p>
                 {typeFilter === "all"
                   ? `The featured event is the only event coming up in ${cityLabel}.`
-                  : `No additional ${activeFilterLabel} events in this list. Try another event type.`}
+                  : `No more ${activeFilterLabel} events in this list. Try another event type.`}
               </p>
             </div>
           )}
@@ -306,7 +306,7 @@ function Events() {
           {upcomingEvents.length > 0 && (
             <div className="events-footer">
               <ButtonLink to="/calendar" variant="secondary">
-                View Full Calendar
+                Full calendar
               </ButtonLink>
             </div>
           )}

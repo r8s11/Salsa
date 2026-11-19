@@ -53,7 +53,7 @@ function MobileTabBar() {
       <span className="mobile-tab-bar__city" aria-hidden="true">
         {cityShort}
       </span>
-      <GlassSurface className="mobile-tab-bar__glass" height={70} backgroundOpacity={0.56}>
+      <GlassSurface className="mobile-tab-bar__glass" height={70} backgroundOpacity={0.9}>
         <Dock items={tabs} activeValue={activeValue} />
       </GlassSurface>
     </nav>

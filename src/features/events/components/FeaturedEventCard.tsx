@@ -74,7 +74,7 @@ export default function FeaturedEventCard({
             </span>
           )}
         </div>
-        <EventEntityLinks entities={event.publicEntities} omit={["venue"]} />
+        <EventEntityLinks entities={event.publicEntities} omit={["venue", "city"]} />
         {event.description && <p className="featured-card-description">{event.description}</p>}
         <span className="featured-card-link" aria-hidden="true">
           <span>View details</span>

@@ -47,7 +47,7 @@ import {
   countEventsInRange,
   eventCountLabel as formatEventCountLabel,
 } from "./model/calendarSidebar";
-import { clampEndToStartDay } from "./model/eventSpan";
+import { clampEndToStartDay, monthGridEventHtml } from "./model/eventSpan";
 import { sortCalendarEvents } from "./model/calendarEvents";
 
 const TYPE_OPTIONS: { value: TypeFilter; label: string }[] = [
@@ -239,10 +239,12 @@ export default function Calendar() {
         const zone = timeZoneForDisplay({ event: event.timeZone });
         const start = Temporal.PlainDateTime.from(event.start.replace(" ", "T"));
         const end = Temporal.PlainDateTime.from(event.end.replace(" ", "T"));
+        const zonedStart = start.toZonedDateTime(zone);
         return {
           ...event,
-          start: start.toZonedDateTime(zone),
+          start: zonedStart,
           end: clampEndToStartDay(start, end).toZonedDateTime(zone),
+          _customContent: { monthGrid: monthGridEventHtml(event.title, zonedStart) },
         };
       })
     );
@@ -333,7 +335,7 @@ export default function Calendar() {
             <h1 className="stage-title">
               Dance calendar<span className="calendar-title-dot">.</span>
             </h1>
-            <p className="stage-accent">salsa &amp; bachata, hasta la madrugada</p>
+            <p className="stage-accent">salsa &amp; bachata, <span lang="es">hasta la madrugada</span></p>
           </div>
           <div className="stage-controls">
             <RubberSegment

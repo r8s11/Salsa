@@ -17,8 +17,8 @@
     width: 100%;
   }
 
-  /* The SVG backdrop filter brightens underlying cards; keep this dock's
-     glass legible while letting the page show through the lighter tint. */
+  /* The SVG backdrop filter brightens underlying cards; a 90% navy fill keeps
+     the labels legible over light photos and white product tiles. */
   .mobile-tab-bar__glass.glass-surface--svg {
     backdrop-filter: blur(20px) saturate(var(--glass-saturation));
     -webkit-backdrop-filter: blur(20px) saturate(var(--glass-saturation));

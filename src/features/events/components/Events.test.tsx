@@ -156,7 +156,7 @@ describe("Events homepage modal", () => {
     ).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Class" }));
     expect(
-      screen.getByText("No additional class events in this list. Try another event type.")
+      screen.getByText("No more class events in this list. Try another event type.")
     ).toBeInTheDocument();
 
     mockedEvents = [
@@ -290,7 +290,7 @@ describe("Events homepage modal", () => {
     );
 
     expect(
-      screen.getByRole("heading", { name: "No SalsaSegura events near you yet." })
+      screen.getByRole("heading", { name: "No Salsa Segura events near you yet." })
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /New York City/ })).toHaveAttribute(
       "href",
@@ -313,7 +313,7 @@ describe("Events homepage modal", () => {
       </MemoryRouter>
     );
     expect(screen.getByRole("status")).toHaveTextContent("Checking for cities with upcoming events…");
-    expect(screen.queryByRole("heading", { name: "No upcoming SalsaSegura events yet." })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "No upcoming Salsa Segura events yet." })).not.toBeInTheDocument();
 
     mockedMetroDiscovery = { loading: false, fetching: false, error: "offline", loadFailed: true };
     rerender(
@@ -323,7 +323,7 @@ describe("Events homepage modal", () => {
     );
     const alert = screen.getByRole("alert");
     expect(alert).toHaveTextContent("City listings didn't come through.");
-    expect(screen.queryByRole("heading", { name: "No SalsaSegura events near you yet." })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "No Salsa Segura events near you yet." })).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Try again" }));
     expect(refetchActiveMetros).toHaveBeenCalledOnce();
 
@@ -342,8 +342,8 @@ describe("Events homepage modal", () => {
         <Events />
       </MemoryRouter>
     );
-    expect(screen.getByRole("heading", { name: "No upcoming SalsaSegura events yet." })).toBeInTheDocument();
-    await waitFor(() => expect(screen.getByRole("heading", { name: "No upcoming SalsaSegura events yet." })).toHaveFocus());
+    expect(screen.getByRole("heading", { name: "No upcoming Salsa Segura events yet." })).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole("heading", { name: "No upcoming Salsa Segura events yet." })).toHaveFocus());
   });
 
   it.each(["loading", "loaded", "failed"] as const)(
@@ -392,7 +392,7 @@ describe("Events homepage modal", () => {
     expect(alert).toHaveTextContent("We couldn't load Boston's listings.");
     expect(alert).not.toHaveTextContent("relation public_events");
     expect(warn).toHaveBeenCalledWith(expect.any(String), "relation public_events does not exist");
-    expect(screen.getByRole("link", { name: "View Full Calendar" })).toHaveAttribute("href", "/calendar");
+    expect(screen.getByRole("link", { name: "Full calendar" })).toHaveAttribute("href", "/calendar");
 
     await user.click(screen.getByRole("button", { name: "Try again" }));
     expect(refetch).toHaveBeenCalledOnce();

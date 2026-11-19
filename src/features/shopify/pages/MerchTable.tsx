@@ -4,6 +4,7 @@ import type { CatalogProduct } from "../api/types";
 import { useCart } from "../cart/useCart";
 import { quickAddSizes } from "./catalogFilters";
 import ProductImage from "./ProductImage";
+import { onRadioChipKeyDown } from "./radioChips";
 import ProductLink from "./ProductLink";
 
 /** Gold hang-tag carrying the Shopify price. Decorative twin of the link's accessible price. */
@@ -20,6 +21,7 @@ function TableBuy({ product }: { product: CatalogProduct }) {
   const [adding, setAdding] = useState(false);
   const group = useRef<HTMLDivElement>(null);
   const labelId = useId();
+  const tabbable = chosen ?? sizes.find((size) => size.available)?.variantId;
 
   const add = async () => {
     if (!chosen) {
@@ -45,6 +47,7 @@ function TableBuy({ product }: { product: CatalogProduct }) {
           <button key={size.variantId} type="button" role="radio" aria-checked={chosen === size.variantId}
             disabled={!size.available} data-sold-out={!size.available || undefined}
             aria-label={size.available ? size.label : `${size.label}, sold out`}
+            tabIndex={size.variantId === tabbable ? 0 : -1} onKeyDown={onRadioChipKeyDown}
             onClick={() => { setChosen(size.variantId); setStatus(""); }}>
             {size.label}
           </button>
@@ -74,7 +77,7 @@ export default function MerchTable({ products, label }: { products: CatalogProdu
           <li key={product.id} className={`merch-piece${index === 0 ? " merch-piece--lead" : ""}`}>
             <ProductLink product={product} className="merch-piece__link">
               <span className="merch-piece__media">
-                <ProductImage product={product} className="merch-piece__image" eager={index < 3} />
+                <ProductImage product={product} className="merch-piece__image" eager={index === 0} />
                 {!product.availableForSale && <span className="retail-card__badge">Sold out</span>}
               </span>
               <span className="merch-piece__name">{product.title}</span>

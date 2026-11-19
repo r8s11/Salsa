@@ -91,7 +91,8 @@ export default function EventCard({
             </span>
           )}
         </div>
-        <EventEntityLinks entities={event.publicEntities} omit={["venue"]} />
+        {/* Card feeds are already city-scoped; the city link only repeats the feed. */}
+        <EventEntityLinks entities={event.publicEntities} omit={["venue", "city"]} />
       </div>
     </article>
   );

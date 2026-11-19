@@ -3,6 +3,7 @@ import { productPrice } from "../money";
 import type { CatalogProduct } from "../api/types";
 import { useCart } from "../cart/useCart";
 import ProductImage from "./ProductImage";
+import { shopifySrcSet } from "./shopImage";
 import ProductLink from "./ProductLink";
 import { quickAddSizes, variantSummary } from "./catalogFilters";
 import "./merch-table.css";
@@ -37,8 +38,9 @@ export default function ProductCard({ product, eager = false }: { product: Catal
     <li className={`retail-card${alternate ? " retail-card--alternate" : ""}`}>
       <ProductLink product={product} className="retail-card__link">
         <span className="retail-card__media">
-          <ProductImage product={product} className="retail-card__image" eager={eager} />
-          {alternate && <img className="retail-card__image retail-card__image--alternate" src={alternate.url} alt=""
+          <ProductImage product={product} className="retail-card__image" eager={eager} sizes="(max-width: 639px) 50vw, 33vw" />
+          {alternate && <img className="retail-card__image retail-card__image--alternate" src={alternate.url}
+            srcSet={shopifySrcSet(alternate.url, alternate.width)} sizes="(max-width: 639px) 50vw, 33vw" alt=""
             width={alternate.width || 720} height={alternate.height || 720} loading="lazy" aria-hidden="true" />}
           {!product.availableForSale && <span className="retail-card__badge">Sold out</span>}
         </span>

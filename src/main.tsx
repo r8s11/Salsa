@@ -1,5 +1,5 @@
 import ReactDOM from "react-dom/client";
-import posthog from "posthog-js";
+import { disablePostHog, startPostHog } from "./shared/analytics/posthog";
 import App from "./app/App";
 import { Providers } from "./app/providers";
 import { posthogLogsConfig } from "./shared/analytics/posthogLogs";
@@ -41,7 +41,7 @@ if (posthogKey && posthogHost) {
   } catch {
     // Sandboxed contexts may deny cookie access.
   }
-  posthog.init(posthogKey, {
+  startPostHog((client) => client.init(posthogKey, {
     api_host: posthogHost,
     // Cookieless: no cookie or localStorage ID. Anonymous identity lasts for
     // this page only; existing signed-in identify calls still identify users.
@@ -49,7 +49,9 @@ if (posthogKey && posthogHost) {
     persistence: "memory",
     capture_exceptions: true,
     logs: posthogLogsConfig,
-  });
+  }));
+} else {
+  disablePostHog();
 }
 
 ReactDOM.createRoot(document.getElementById("app")!).render(

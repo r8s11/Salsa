@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Minus, Plus } from "lucide-react";
 import Button from "../../../components/ui/Button";
@@ -17,6 +17,8 @@ import "./product.css";
 import "./retail-purchase.css";
 import ShopMasthead from "./ShopMasthead";
 import { isSizeOption, sortSizeValues } from "./catalogFilters";
+import { productAlt } from "./shopImage";
+import { chipsIn, onRadioChipKeyDown } from "./radioChips";
 
 interface ProductFeedback {
   handle: string;
@@ -222,24 +224,10 @@ function ProductDetails({ handle }: { handle: string }) {
       if (overlap > 0) window.scrollBy(0, overlap);
     }
   };
-  const chipsIn = (group: Element | null | undefined) =>
-    Array.from(group?.querySelectorAll<HTMLButtonElement>('button[role="radio"]:not(:disabled)') ?? []);
   const reviewOptions = () => {
     if (sizePending) return focusChip(chipsIn(document.getElementById(sizeFieldId))[0]);
     const chips = chipsIn(optionsRef.current?.querySelector('[role="radiogroup"]'));
     focusChip(chips.find((chip) => chip.getAttribute("aria-checked") === "true") ?? chips[0]);
-  };
-  // Radio groups move with the arrows: the next chip takes focus and the choice.
-  const onChipKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
-    const step = ({ ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 } as Record<string, number | undefined>)[event.key];
-    if (!step) return;
-    const chips = chipsIn(event.currentTarget.closest('[role="radiogroup"]'));
-    const index = chips.indexOf(event.currentTarget);
-    if (index < 0) return;
-    event.preventDefault();
-    const next = chips[(index + step + chips.length) % chips.length];
-    next.focus();
-    next.click();
   };
   const openFitDetails = () => {
     const details = detailsRef.current;
@@ -389,7 +377,7 @@ function ProductDetails({ handle }: { handle: string }) {
                   className="shop-product__image"
                   style={{ viewTransitionName: "shop-product" }}
                   src={image.url}
-                  alt={image.altText ?? product.title}
+                  alt={productAlt(image.altText, product.title)}
                   width={image.width ?? 720}
                   height={image.height ?? 900}
                   fetchPriority="high"
@@ -487,7 +475,7 @@ function ProductDetails({ handle }: { handle: string }) {
                               disabled={!available}
                               data-sold-out={!available || undefined}
                               tabIndex={value === tabbable ? 0 : -1}
-                              onKeyDown={onChipKeyDown}
+                              onKeyDown={onRadioChipKeyDown}
                               onClick={() => {
                                 if (!isBusy && checked !== value) selectOption(name, value);
                               }}

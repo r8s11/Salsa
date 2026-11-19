@@ -2,13 +2,9 @@ import { useEffect, useRef } from "react";
 import { Icon } from "@iconify/react";
 import arrowRightUp from "@iconify-icons/solar/arrow-right-up-bold-duotone";
 import cupHot from "@iconify-icons/solar/cup-hot-bold-duotone";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Link } from "react-router-dom";
 import SalsaSeguraLogo from "../ui/SalsaSeguraLogo";
 import "./Footer.css";
-
-gsap.registerPlugin(ScrollTrigger);
 
 function Footer() {
   const currentYear = new Date().getFullYear();
@@ -17,28 +13,39 @@ function Footer() {
   useEffect(() => {
     const footer = footerRef.current;
     if (!footer) return;
-    const media = gsap.matchMedia();
-    media.add(
-      "(prefers-reduced-motion: no-preference)",
-      () => {
-        // Translate only: the complete closing message stays readable before entry.
-        const timeline = gsap.timeline({
-          defaults: { ease: "power3.out" },
-          scrollTrigger: { trigger: footer, start: "top 92%", once: true },
-        });
-        timeline.from(".footer-tagline, .footer-details", { y: 12, duration: 0.6, stagger: 0.1 });
+    let disposed = false;
+    let revert: (() => void) | undefined;
+    // Below the fold and scroll-triggered: load the animation code after first paint.
+    void Promise.all([import("gsap"), import("gsap/ScrollTrigger")]).then(([{ default: gsap }, { ScrollTrigger }]) => {
+      if (disposed) return;
+      gsap.registerPlugin(ScrollTrigger);
+      const media = gsap.matchMedia();
+      media.add(
+        "(prefers-reduced-motion: no-preference)",
+        () => {
+          // Translate only: the complete closing message stays readable before entry.
+          const timeline = gsap.timeline({
+            defaults: { ease: "power3.out" },
+            scrollTrigger: { trigger: footer, start: "top 92%", once: true },
+          });
+          timeline.from(".footer-tagline, .footer-details", { y: 12, duration: 0.6, stagger: 0.1 });
 
-        let active = true;
-        void document.fonts.ready.then(() => {
-          if (active) timeline.scrollTrigger?.refresh();
-        });
-        return () => {
-          active = false;
-        };
-      },
-      footer
-    );
-    return () => media.revert();
+          let active = true;
+          void document.fonts.ready.then(() => {
+            if (active) timeline.scrollTrigger?.refresh();
+          });
+          return () => {
+            active = false;
+          };
+        },
+        footer
+      );
+      revert = () => media.revert();
+    });
+    return () => {
+      disposed = true;
+      revert?.();
+    };
   }, []);
 
   return (

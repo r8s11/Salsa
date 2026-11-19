@@ -36,6 +36,9 @@ describe("entityPayload", () => {
   it("maps school and instructor description and image metadata", () => {
     const school = entityPayload("school", {
       ...buildEntityForm(baseRow("school")),
+      city: "Brooklyn",
+      metro_slug: "new-york-city",
+      borough: "brooklyn",
       address: "10 Main St",
       phone: "555-0100",
       description: "Weekly classes",
@@ -52,6 +55,9 @@ describe("entityPayload", () => {
       phone: "555-0100",
       description: "Weekly classes",
       image_url: "https://example.test/school.png",
+      city: "Brooklyn",
+      metro_slug: "new-york-city",
+      borough: "brooklyn",
     });
     expect(instructor).toMatchObject({
       organization: "Salsa Lab",

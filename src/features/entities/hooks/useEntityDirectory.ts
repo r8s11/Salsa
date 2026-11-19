@@ -5,7 +5,7 @@ import type { PublicEntityKind } from "../model";
 
 export const ENTITY_DIRECTORY_PAGE_SIZE = 24;
 
-export type DirectorySearch = { query: string; city: string; kind?: PublicEntityKind };
+export type DirectorySearch = { query: string; city: string; borough?: string; kind?: PublicEntityKind };
 
 export function useEntityDirectory(kind?: PublicEntityKind) {
   const [search, setSearch] = useState<DirectorySearch>({ query: "", city: "", kind });
@@ -14,13 +14,14 @@ export function useEntityDirectory(kind?: PublicEntityKind) {
   const limit = ENTITY_DIRECTORY_PAGE_SIZE;
   const active = Boolean(kind) || searched;
   const { data = [], isPending, error, refetch } = useQuery({
-    queryKey: ["public-entity-directory", search.kind ?? null, search.query, search.city || null, limit, offset],
+    queryKey: ["public-entity-directory", search.kind ?? null, search.query, search.city || null, search.borough || null, limit, offset],
     queryFn: () => fetchEntityDirectory({ ...search, limit, offset }),
     enabled: active,
   });
 
   return {
     active,
+    search,
     entities: data,
     isPending,
     error,

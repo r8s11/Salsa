@@ -97,7 +97,9 @@ export default function AdminEntityDetailPage({ kind, mode }: { kind: EntityKind
     }
     // The save RPC rejects any city that is not a metros.slug ("Unknown city"); catch legacy free-text values here, by name.
     if (unregisteredCity) {
-      setValidationError(`“${unregisteredCity}” is not a registered metropolitan area. Choose an available metro or leave it unassigned.`);
+      setValidationError(kind === "school"
+        ? `“${unregisteredCity}” is not a registered metropolitan area. Choose an available metro or leave it unassigned.`
+        : `“${unregisteredCity}” is not a registered city. Choose one from the list or No city.`);
       return;
     }
     setValidationError(null);
@@ -184,7 +186,7 @@ export default function AdminEntityDetailPage({ kind, mode }: { kind: EntityKind
               )}
             </>
           ) : (
-            <div className="admin-field"><label htmlFor="entity-city">City / metropolitan area</label><select id="entity-city" className="admin-select" value={form.city} onChange={(event) => update("city", event.target.value)}><option value="">No metro</option>{unregisteredCity && <option value={form.city}>{form.city} (not registered)</option>}{cityOptions.map((metro) => <option key={metro.slug} value={metro.slug}>{metro.name}</option>)}</select></div>
+            <div className="admin-field"><label htmlFor="entity-city">City</label><select id="entity-city" className="admin-select" value={form.city} onChange={(event) => update("city", event.target.value)}><option value="">No metro</option>{unregisteredCity && <option value={form.city}>{form.city} (not registered)</option>}{cityOptions.map((metro) => <option key={metro.slug} value={metro.slug}>{metro.name}</option>)}</select></div>
           )}
           <div className="admin-field"><label htmlFor="entity-description">Description</label><textarea id="entity-description" className="admin-textarea" rows={4} value={form.description ?? ""} onChange={(event) => update("description", event.target.value)} /></div>
           {located && <div className="admin-entity-page__form-row">

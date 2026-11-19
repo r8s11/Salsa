@@ -44,8 +44,8 @@ export async function fetchEntityDirectory(params: EntityDirectoryParams): Promi
       .order("name")
       .range(safeOffset(params.offset), safeOffset(params.offset) + safePageSize(params.limit) - 1);
     if (params.query?.trim()) {
-      query = query.ilike("name", `%${params.query.trim().replace(/[\\%_]/g, "\\export async function fetchEntityDirectory(params: EntityDirectoryParams): Promise<PublicEntityRef[]> {
-  const { data, error } = await supabase.rpc("public_entity_directory", {")}%`);
+      const nameSearch = params.query.trim().replace(/[%_]/g, "");
+      if (nameSearch) query = query.ilike("name", `%${nameSearch}%`);
     }
     const { data, error } = await query;
     if (error) throw new Error(error.message);

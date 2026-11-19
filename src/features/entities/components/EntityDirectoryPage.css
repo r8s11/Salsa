@@ -140,3 +140,12 @@
 .entity-directory__back { margin: 1.5rem 0 1rem; }
 .entity-directory__back button { min-height: 44px; padding-inline: 0; }
 .entity-directory__back button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+
+/* Keep NYC school groups readable without changing the base directory card layout. */
+.entity-directory__borough-groups { display: grid; gap: clamp(1.75rem, 4vw, 3rem); }
+.entity-directory__borough-groups section > h2 {
+  margin: 0 0 0.85rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 2.5vw, 1.7rem);
+  color: var(--text);
+}

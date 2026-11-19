@@ -325,13 +325,12 @@ function MetroOption({
   const sublistId = useId();
   const boroughs = metro.slug === NYC_CITY;
   const cityLocations = locations.filter((location) => location.city === metro.slug && location.upcomingEventCount > 0);
-  const activeBoroughs = NYC_SUBLOCATIONS.filter((borough) =>
-    cityLocations.some((location) => location.subLocation === borough.slug)
-  );
+  // All five NYC boroughs remain navigable even when a borough has no upcoming events.
+  const activeBoroughs = NYC_SUBLOCATIONS;
   const areas = neighborhoodsForLocation(metro.slug, null).filter((area) =>
     cityLocations.some((location) => location.subLocation === null && location.neighborhood === area.slug)
   );
-  const hasChildren = boroughs ? activeBoroughs.length > 0 : areas.length > 0;
+  const hasChildren = boroughs || areas.length > 0;
   return (
     <li>
       <button

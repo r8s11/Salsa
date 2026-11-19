@@ -1051,12 +1051,11 @@ short code at every width (e.g. DC, NYC or BOS), retaining full
 city in accessible name, native title hint and selection list.
 Explicit labels like “Explore other cities” remain unchanged.
 
-Public discovery offers only locations with approved upcoming events.
-Discover's scene chips use `public_active_metros`, not complete metro
-registry. City explorer loads shared `public_active_locations` inventory
-when opened, offers only populated boroughs and neighborhoods. Borough
-with upcoming events but no named neighborhood remains selectable; empty
-child disclosures do not render. Loading and failed lookups remain distinct
+Public discovery offers metropolitan areas with approved upcoming events.
+Discover's scene chips use `public_active_metros`, not the complete metro
+registry. City explorer always shows all five NYC boroughs, including those
+without upcoming event inventory; it uses `public_active_locations` for
+populated neighborhood choices. Empty neighborhood disclosures do not render. Loading and failed lookups remain distinct
 from confirmed-empty inventory, with in-place retry and keyboard focus
 recovery. Direct links and stored selections remain valid even after their
 inventory empties; “Every city” still browses complete entity directory.

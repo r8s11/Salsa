@@ -82,7 +82,7 @@ describe("NYC borough explorer", () => {
       expect(within(boroughs).getByRole("button", { name })).toBeInTheDocument();
     }
     for (const name of ["Manhattan", "The Bronx", "Staten Island"]) {
-      expect(within(boroughs).queryByRole("button", { name })).not.toBeInTheDocument();
+      expect(within(boroughs).getByRole("button", { name })).toBeInTheDocument();
     }
     fireEvent.click(within(boroughs).getByRole("button", { name: "Brooklyn" }));
     expect(screen.getByTestId("location")).toHaveTextContent("new-york-city:brooklyn");
@@ -178,12 +178,14 @@ describe("NYC borough explorer", () => {
     expect(screen.queryByRole("button", { name: "Miami neighborhoods" })).not.toBeInTheDocument();
   });
 
-  it("keeps city selection available without disclosure when nested inventory is verified empty", async () => {
+  it("keeps all NYC boroughs available even when there are no upcoming events", async () => {
     mockActiveLocationQuery.activeLocations = [];
     renderExplorer();
     fireEvent.click(await screen.findByRole("button", { name: /Location: New York City/ }));
-    expect(screen.queryByRole("button", { name: "NYC boroughs" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "NYC boroughs" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Boston neighborhoods" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "NYC boroughs" }));
+    expect(screen.getByRole("button", { name: "Staten Island" })).toBeInTheDocument();
     expect(screen.queryByText("Loading boroughs and neighborhoods…")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Retry locations" })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /Boston, MA/ }));
@@ -201,7 +203,7 @@ describe("NYC borough explorer", () => {
     expect(screen.getByTestId("location")).toHaveTextContent("new-york-city:brooklyn");
     expect(screen.getByTestId("neighborhood")).toHaveTextContent("bushwick");
     expect(window.localStorage.getItem("salsa.neighborhood")).toBe("bushwick");
-    expect(screen.queryByRole("button", { name: "NYC boroughs" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "NYC boroughs" })).toBeInTheDocument();
     fireEvent.keyDown(document, { key: "Escape" });
     expect(trigger).toHaveFocus();
   });
@@ -212,7 +214,7 @@ describe("NYC borough explorer", () => {
     const rerenderExplorer = () => view.rerender(<><MetroExplorer /><LocationState /></>);
     fireEvent.click(await screen.findByRole("button", { name: /Location: New York City/ }));
     expect(screen.getByText("Loading boroughs and neighborhoods…")).toHaveAttribute("role", "status");
-    expect(screen.queryByRole("button", { name: "NYC boroughs" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "NYC boroughs" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Boston, MA/ })).toBeInTheDocument();
 
     Object.assign(mockActiveLocationQuery, { loading: false, fetching: false, error: "offline", loadFailed: true });
@@ -225,7 +227,7 @@ describe("NYC borough explorer", () => {
     rerenderExplorer();
     expect(screen.getByRole("button", { name: "Trying locations again…" })).toBe(retry);
     expect(retry).toBeDisabled();
-    expect(screen.queryByRole("button", { name: "NYC boroughs" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "NYC boroughs" })).toBeInTheDocument();
 
     Object.assign(mockActiveLocationQuery, { loading: false, fetching: false, error: "offline" });
     rerenderExplorer();
@@ -237,7 +239,7 @@ describe("NYC borough explorer", () => {
     rerenderExplorer();
     await waitFor(() => expect(screen.getByRole("heading", { name: "Explore cities" })).toHaveFocus());
     expect(screen.queryByRole("button", { name: "Retry locations" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "NYC boroughs" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "NYC boroughs" })).toBeInTheDocument();
   });
 
   it("retains cached populated choices after a nested inventory refresh failure", async () => {

@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import type { EntityDirectory } from "../hooks/useEntityDirectory";
 import { ENTITY_LABELS, entityHref, type PublicEntityRef } from "../model";
 import { InstructorPortrait } from "./InstructorPortrait";
+import { NYC_SUBLOCATIONS, subLocationLabel } from "../../metros/model/sublocation";
 
 function InstructorCard({ entity }: { entity: PublicEntityRef }) {
   return (
@@ -20,6 +21,7 @@ function EntityCard({ entity }: { entity: PublicEntityRef }) {
       <span className="entity-directory__result-copy">
         <span className="entity-directory__result-kind">{ENTITY_LABELS[entity.kind]}</span>
         <h2 className="entity-directory__result-name">{entity.name}</h2>
+        {entity.kind === "school" && entity.borough && <span className="entity-directory__result-city">NYC · {subLocationLabel(entity.borough)}</span>}
         {entity.city && <span className="entity-directory__result-city">{entity.city.replace(/-/g, " ")}</span>}
         {entity.description && <span className="entity-directory__result-description">{entity.description}</span>}
       </span>
@@ -36,6 +38,11 @@ type Props = {
 export function EntityDirectoryResults({ label, resultLabel, directory }: Props) {
   const { entities: data, isPending, error, offset, pageSize, retry, setOffset } = directory;
   const roster = data.length > 0 && data.every((entity) => entity.kind === "instructor");
+  const groupNYCSchools = directory.search.kind === "school" && directory.search.city === "new-york-city" && !directory.search.borough;
+  const groups = groupNYCSchools
+    ? [...NYC_SUBLOCATIONS.map((borough) => ({ key: borough.slug, label: borough.name, rows: data.filter((entity) => entity.borough === borough.slug) })),
+       { key: "unassigned", label: "Borough not assigned", rows: data.filter((entity) => !entity.borough) }].filter((group) => group.rows.length > 0)
+    : [];
   return (
     <section className="entity-directory__results" aria-label={label} aria-live="polite" aria-busy={isPending}>
       {isPending ? (
@@ -54,11 +61,24 @@ export function EntityDirectoryResults({ label, resultLabel, directory }: Props)
         <p className="entity-directory__state">No {resultLabel} found. Try another name or city.</p>
       ) : (
         <>
-          <ul className={roster ? "entity-directory__roster" : "entity-directory__grid"}>
-            {data.map((entity) => (
-              <li key={`${entity.kind}:${entity.id}`}>{roster ? <InstructorCard entity={entity} /> : <EntityCard entity={entity} />}</li>
-            ))}
-          </ul>
+          {groupNYCSchools ? (
+            <div className="entity-directory__borough-groups">
+              {groups.map((group) => (
+                <section key={group.key} aria-label={group.label}>
+                  <h2>{group.label}</h2>
+                  <ul className="entity-directory__grid">
+                    {group.rows.map((entity) => <li key={entity.id}><EntityCard entity={entity} /></li>)}
+                  </ul>
+                </section>
+              ))}
+            </div>
+          ) : (
+            <ul className={roster ? "entity-directory__roster" : "entity-directory__grid"}>
+              {data.map((entity) => (
+                <li key={`${entity.kind}:${entity.id}`}>{roster ? <InstructorCard entity={entity} /> : <EntityCard entity={entity} />}</li>
+              ))}
+            </ul>
+          )}
           <nav className="entity-directory__pagination" aria-label="Directory pages">
             <button type="button" className="ui-button ui-button--secondary" disabled={offset === 0} onClick={() => setOffset(Math.max(0, offset - pageSize))}>Previous</button>
             <span>Showing {offset + 1}–{offset + data.length}</span>

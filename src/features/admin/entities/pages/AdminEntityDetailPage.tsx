@@ -3,6 +3,7 @@ import type { FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAccessibleDialog } from "../../../../shared/a11y/useAccessibleDialog";
 import { useMetros } from "../../../metros/hooks/useMetros";
+import { NYC_SUBLOCATIONS } from "../../../metros/model/sublocation";
 import AdminConfirmDialog from "../../components/common/AdminConfirmDialog";
 import AdminDjGigsSection from "../../components/entities/AdminDjGigsSection";
 import AdminEntityTeamSection from "../../components/entities/AdminEntityTeamSection";
@@ -76,8 +77,9 @@ export default function AdminEntityDetailPage({ kind, mode }: { kind: EntityKind
   });
   const labels = ENTITY_LABELS[kind];
   const basePath = pluralPath(kind);
-  // A legacy free-text city that matches no metro. Unknown until metros load, so the server stays the backstop meanwhile.
-  const unregisteredCity = form.city.trim() && metros.length > 0 && !metros.some((metro) => metro.slug === form.city.trim()) ? form.city.trim() : null;
+  // Physical school address localities are free text; only metro selection requires a registered metro slug.
+  const metroValue = kind === "school" ? form.metro_slug?.trim() ?? "" : form.city.trim();
+  const unregisteredCity = metroValue && metros.length > 0 && !metros.some((metro) => metro.slug === metroValue) ? metroValue : null;
 
   const beginEdit = () => {
     setForm(buildEntityForm(entity));
@@ -95,7 +97,7 @@ export default function AdminEntityDetailPage({ kind, mode }: { kind: EntityKind
     }
     // The save RPC rejects any city that is not a metros.slug ("Unknown city"); catch legacy free-text values here, by name.
     if (unregisteredCity) {
-      setValidationError(`“${unregisteredCity}” is not a registered city. Choose one from the list or No city.`);
+      setValidationError(`“${unregisteredCity}” is not a registered metropolitan area. Choose an available metro or leave it unassigned.`);
       return;
     }
     setValidationError(null);
@@ -123,7 +125,9 @@ export default function AdminEntityDetailPage({ kind, mode }: { kind: EntityKind
   const located = kind === "organizer" || kind === "school" || kind === "instructor" || kind === "dj";
   // Rows follow the edit form's field order so view and edit read the same way.
   const fields = ([
-    { label: "City", value: values.city, as: "ident" },
+    { label: kind === "school" ? "Address city / locality" : "City", value: values.city, as: "ident" },
+    kind === "school" && { label: "Metropolitan area", value: metros.find((metro) => metro.slug === values.metro_slug)?.name ?? values.metro_slug ?? "" },
+    kind === "school" && { label: "NYC borough", value: NYC_SUBLOCATIONS.find((item) => item.slug === values.borough)?.name ?? "" },
     { label: "Description", value: values.description, as: "prose" },
     located && { label: "State / region", value: values.state_region },
     located && { label: "Country", value: values.country },
@@ -156,7 +160,32 @@ export default function AdminEntityDetailPage({ kind, mode }: { kind: EntityKind
           <div className="admin-field"><label htmlFor="entity-name">Name</label><input id="entity-name" className="admin-input" value={form.name} onChange={(event) => update("name", event.target.value)} required /></div>
           <div className="admin-field"><label htmlFor="entity-slug">Public URL slug</label><input id="entity-slug" className="admin-input" value={form.slug ?? ""} onChange={(event) => update("slug", event.target.value)} readOnly={!creating && Boolean(current?.slug)} /><p className="admin-form__helper">{!creating && current?.slug ? "This existing public URL is stable and cannot be changed." : "Leave blank to generate a URL slug from the name."}</p></div>
           <div className="admin-field"><label htmlFor="entity-status">Status</label><select id="entity-status" className="admin-select" value={form.status} onChange={(event) => update("status", event.target.value as EntityStatus)}><option value="active">Active</option><option value="needs_review">Needs review</option>{kind === "organizer" && <option value="suspended">Suspended</option>}<option value="archived">Archived</option></select></div>
-          <div className="admin-field"><label htmlFor="entity-city">City</label><select id="entity-city" className="admin-select" value={form.city} onChange={(event) => update("city", event.target.value)}><option value="">No city</option>{unregisteredCity && <option value={form.city}>{form.city} (not registered)</option>}{cityOptions.map((metro) => <option key={metro.slug} value={metro.slug}>{metro.name}</option>)}</select></div>
+          {kind === "school" ? (
+            <>
+              <div className="admin-field">
+                <label htmlFor="entity-metro">Metropolitan area</label>
+                <select id="entity-metro" className="admin-select" value={form.metro_slug ?? ""} onChange={(event) => setForm((current) => ({ ...current, metro_slug: event.target.value, borough: event.target.value === "new-york-city" ? current.borough ?? "" : "" }))}>
+                  <option value="">Unassigned metropolitan area</option>
+                  {unregisteredCity && <option value={form.metro_slug}>{form.metro_slug} (not registered)</option>}
+                  {cityOptions.map((metro) => <option key={metro.slug} value={metro.slug}>{metro.name}</option>)}
+                </select>
+                <p className="admin-form__helper">Used for discovery and filtering. It is separate from the physical address.</p>
+              </div>
+              <div className="admin-field"><label htmlFor="entity-city">Address city / locality</label><input id="entity-city" className="admin-input" value={form.city} onChange={(event) => update("city", event.target.value)} placeholder="Brooklyn, Cambridge, Long Island City…" /></div>
+              {form.metro_slug === "new-york-city" && (
+                <div className="admin-field">
+                  <label htmlFor="entity-borough">NYC borough</label>
+                  <select id="entity-borough" className="admin-select" value={form.borough ?? ""} onChange={(event) => update("borough", event.target.value)}>
+                    <option value="">Borough unassigned</option>
+                    {NYC_SUBLOCATIONS.map((borough) => <option key={borough.slug} value={borough.slug}>{borough.name}</option>)}
+                  </select>
+                  <p className="admin-form__helper">Choose the borough of the school's actual address, not its broader audience.</p>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="admin-field"><label htmlFor="entity-city">City / metropolitan area</label><select id="entity-city" className="admin-select" value={form.city} onChange={(event) => update("city", event.target.value)}><option value="">No metro</option>{unregisteredCity && <option value={form.city}>{form.city} (not registered)</option>}{cityOptions.map((metro) => <option key={metro.slug} value={metro.slug}>{metro.name}</option>)}</select></div>
+          )}
           <div className="admin-field"><label htmlFor="entity-description">Description</label><textarea id="entity-description" className="admin-textarea" rows={4} value={form.description ?? ""} onChange={(event) => update("description", event.target.value)} /></div>
           {located && <div className="admin-entity-page__form-row">
             <div className="admin-field"><label htmlFor="entity-state">State / region</label><input id="entity-state" className="admin-input" value={form.state_region} onChange={(event) => update("state_region", event.target.value)} /></div>

@@ -26,6 +26,8 @@ export interface AdminEntityRow {
   description: string | null;
   image_url: string | null;
   city: string | null;
+  metro_slug?: string | null;
+  borough?: string | null;
   website: string | null;
   instagram: string | null;
   address?: string | null;
@@ -48,6 +50,8 @@ export type EntityForm = {
   description: string;
   image_url: string;
   city: string;
+  metro_slug?: string;
+  borough?: string;
   website: string;
   instagram: string;
   state_region: string;
@@ -92,6 +96,8 @@ export function buildEntityForm(row?: AdminEntityRow | null): EntityForm {
     description: row?.description ?? "",
     image_url: row?.image_url ?? "",
     city: row?.city ?? "",
+    metro_slug: row?.metro_slug ?? "",
+    borough: row?.borough ?? "",
     website: row?.website ?? "",
     instagram: row?.instagram ?? "",
     state_region: row?.state_region ?? "",
@@ -139,6 +145,8 @@ export function entityPayload(kind: EntityKind, form: EntityForm): Record<string
       description: common.description,
       image_url: common.image_url,
       city: common.city,
+      metro_slug: form.metro_slug?.trim() || null,
+      borough: form.metro_slug === "new-york-city" ? form.borough?.trim() || null : null,
       state_region: form.state_region.trim() || null,
       country: form.country.trim() || null,
       address: form.address.trim() || null,

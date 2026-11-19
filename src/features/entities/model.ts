@@ -20,6 +20,8 @@ export type PublicEntityRef = {
   description: string | null;
   image_url: string | null;
   city: string | null;
+  metro_slug?: string | null;
+  borough?: string | null;
   state_region?: string | null;
   country?: string | null;
   address?: string | null;
@@ -54,6 +56,7 @@ export type PublicEventEntities = {
   organizer: PublicEntityRef | null;
   school: PublicEntityRef | null;
   instructors: PublicEntityRef[];
+  artists?: PublicEntityRef[];
   djs: PublicEntityRef[];
   schools: PublicEntityRef[];
   series: PublicEntityRef | null;

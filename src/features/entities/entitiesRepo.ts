@@ -8,6 +8,7 @@ export type EntityDirectoryParams = {
   kind?: PublicEntityKind;
   query?: string;
   city?: string;
+  borough?: string;
   limit?: number;
   offset?: number;
 };
@@ -32,6 +33,24 @@ export async function fetchEntityDetail(kind: PublicEntityKind, slug: string): P
 }
 
 export async function fetchEntityDirectory(params: EntityDirectoryParams): Promise<PublicEntityRef[]> {
+  if (params.kind === "school" && params.borough) {
+    // The public school projection explicitly separates metro and physical borough.
+    // Query the read-only allowlisted view instead of filtering a paginated cross-kind RPC client-side.
+    let query = supabase
+      .from("public_schools")
+      .select("kind,id,name,slug,description,image_url,city,state_region,country,address,website,instagram,metro_slug,borough")
+      .eq("metro_slug", params.city || "new-york-city")
+      .eq("borough", params.borough)
+      .order("name")
+      .range(safeOffset(params.offset), safeOffset(params.offset) + safePageSize(params.limit) - 1);
+    if (params.query?.trim()) {
+      const nameSearch = params.query.trim().replace(/[%_]/g, "");
+      if (nameSearch) query = query.ilike("name", `%${nameSearch}%`);
+    }
+    const { data, error } = await query;
+    if (error) throw new Error(error.message);
+    return (data as PublicEntityRef[] | null) ?? [];
+  }
   const { data, error } = await supabase.rpc("public_entity_directory", {
     p_kind: params.kind ?? null,
     p_query: params.query?.trim() ?? "",

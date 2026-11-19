@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import Button from "../../../components/ui/Button";
 import { useCity } from "../../../contexts/useCity";
 import { useActiveMetros, useMetros } from "../../metros/hooks/useMetros";
+import { subLocationLabel } from "../../metros/model/sublocation";
 import { metroLabelFromSlug, resolveMetroSlug, type Metro } from "../../metros/model/metro";
 import { fetchEntityDirectory } from "../entitiesRepo";
 import { ENTITY_COLLECTIONS, ENTITY_DIRECTORY_PATHS, entityHref, type PublicEntityKind, type PublicEntityRef } from "../model";
@@ -74,7 +75,7 @@ function usePhoto(url: string | null) {
 
 function SchoolCard({ entity }: { entity: PublicEntityRef }) {
   const photo = usePhoto(entity.image_url);
-  const where = [entity.address, cityName(entity.city)].filter(Boolean).join(" · ");
+  const where = [entity.borough ? subLocationLabel(entity.borough) : null, entity.address, cityName(entity.city)].filter(Boolean).join(" · ");
   return (
     <Link className={photo.src ? "discover-school" : "discover-school discover-school--text"} to={entityHref(entity)}>
       {photo.src && (

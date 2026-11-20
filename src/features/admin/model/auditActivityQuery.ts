@@ -196,6 +196,10 @@ export function activityActionLabel(entry: ActivityAuditLog): string {
       return "Event archived";
     case "event.restored":
       return "Event restored";
+    case "event.organizer_changed":
+      return "Event organizer changed";
+    case "organizer.member_assigned":
+      return "Organizer team member assigned";
 
     // ---- Submissions ----
     case "submission.created":

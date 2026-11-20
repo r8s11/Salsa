@@ -4,6 +4,9 @@ import { Link } from "react-router-dom";
 import { ArrowLeft, CalendarDays, FilePlus2, ImageUp, Sparkles } from "lucide-react";
 import AdminConfirmDialog from "../common/AdminConfirmDialog";
 import ComposerEntitySelect from "./ComposerEntitySelect";
+import EventOrganizerPanel from "./EventOrganizerPanel";
+import { setEventOrganizer } from "../../api/organizerAssignmentRepo";
+import { organizerAccessErrorMessage } from "../../model/organizerAccess";
 import type { ComposerEntity, ComposerEntityKind } from "./ComposerEntitySelect";
 import { fetchAdminEntityDetail, saveAdminEntity } from "../../entities/api/entitiesRepo";
 import { fetchVenueDetail } from "../../api/venuesRepo";
@@ -660,6 +663,39 @@ export default function AdminEventEditor({
       return { ...current, entity_review: next };
     });
   };
+  // Organizer changes on a saved event apply through the audited admin RPC and
+  // ask for confirmation first when the event already belongs to someone else.
+  const [organizerChange, setOrganizerChange] = useState<{
+    entity: ComposerEntity | null;
+  } | null>(null);
+  const [organizerBusy, setOrganizerBusy] = useState(false);
+  const [organizerError, setOrganizerError] = useState<string | null>(null);
+  const applyOrganizer = async (entity: ComposerEntity | null, confirmed: boolean) => {
+    setOrganizerError(null);
+    if (saved?.id && entity) {
+      setOrganizerBusy(true);
+      try {
+        await setEventOrganizer(saved.id, entity.id, confirmed);
+        setSaveMessage(`Organizer set to ${entity.name}. Saved.`);
+      } catch (error) {
+        setOrganizerError(organizerAccessErrorMessage(error));
+        setOrganizerBusy(false);
+        return;
+      }
+      setOrganizerBusy(false);
+    }
+    setOrganizerChange(null);
+    selectEntity("organizer", entity);
+  };
+  const requestOrganizer = (entity: ComposerEntity | null) => {
+    const current = entityValue("organizer");
+    if (current && entity?.id !== current.id) setOrganizerChange({ entity });
+    else void applyOrganizer(entity, false);
+  };
+  const chooseOrganizer = () =>
+    document
+      .querySelector<HTMLElement>("#composer-organized-by input, #composer-organized-by button")
+      ?.focus();
   // A chosen venue names the event's venue; its address only fills an empty
   // address. What was filled is reported with undo (see EntityFieldAssist).
   const selectVenue = (entity: ComposerEntity | null) => {
@@ -1139,13 +1175,21 @@ export default function AdminEventEditor({
             <h2>People & organizations</h2>
             <p>Link existing listings or create a missing one without leaving this event.</p>
             <div className="composer-relationships__grid">
-              <ComposerEntitySelect
-                kind="organizer"
-                value={entityValue("organizer")}
-                city={form.city}
-                disabled={locked}
-                onSelect={(entity) => selectEntity("organizer", entity)}
-              />
+              <div id="composer-organized-by">
+                <ComposerEntitySelect
+                  kind="organizer"
+                  label="Organized By"
+                  value={entityValue("organizer")}
+                  city={form.city}
+                  disabled={locked || organizerBusy}
+                  onSelect={requestOrganizer}
+                />
+                {organizerError && (
+                  <p role="alert" className="admin-field__error">
+                    {organizerError}
+                  </p>
+                )}
+              </div>
               <ComposerEntitySelect
                 kind="school"
                 value={entityValue("school")}
@@ -1188,6 +1232,7 @@ export default function AdminEventEditor({
                 />
               )}
             </div>
+            <EventOrganizerPanel organizer={entityValue("organizer")} onChoose={chooseOrganizer} />
           </section>
           {suggestions && (
             <details className="composer-suggestions" open>
@@ -1276,6 +1321,30 @@ export default function AdminEventEditor({
           )}
         </div>
       </form>
+      {organizerChange && (
+        <AdminConfirmDialog
+          title={
+            organizerChange.entity
+              ? `Change organizer to ${organizerChange.entity.name}?`
+              : "Remove the organizer?"
+          }
+          body={`This event currently belongs to ${entityValue("organizer")?.name ?? "another organizer"}. ${
+            organizerChange.entity
+              ? `Its team will lose access to this event and ${organizerChange.entity.name}'s team will gain it.`
+              : "Its team will lose access to this event."
+          } Status, schedule and other links stay the same.`}
+          confirmLabel={organizerChange.entity ? "Change organizer" : "Remove organizer"}
+          tone="neutral"
+          initialFocus="cancel"
+          isBusy={organizerBusy}
+          error={organizerError}
+          onConfirm={() => void applyOrganizer(organizerChange.entity, true)}
+          onCancel={() => {
+            setOrganizerChange(null);
+            setOrganizerError(null);
+          }}
+        />
+      )}
       {previewOpen && <ComposerPreview form={form} onClose={() => setPreviewOpen(false)} />}
       {discardOpen && (
         <AdminConfirmDialog

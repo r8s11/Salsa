@@ -187,3 +187,24 @@ matching uses authenticated database RPCs. Local verification:
 
 Host event cards show **Manage Event** only when the user has active owner or manager
 membership in that event's organizer. Other memberships show **View Event**.
+
+### Assigning organizers (admin)
+
+Changing a user's platform role never creates an organizer membership. Admins grant
+event access explicitly:
+
+- **User detail → Assign to Organizer** finds or creates an organizer, picks Owner,
+  Manager or Editor, and confirms through `admin_assign_organizer_member` (one
+  transaction; creating the organizer reuses `admin_entity_save`, so duplicate
+  organizers are refused).
+- **Event editor → Organized By** links the event to an organizer. On a saved event the
+  link goes through `admin_set_event_organizer`; replacing an existing organizer needs
+  confirmation. The panel below lists that organizer's **Team Members** (users who may
+  manage its events) and can add more.
+- Archived or suspended organizers cannot receive events or team members. A trigger on
+  `events.organizer_id` enforces this on every write path and records
+  `event.organizer_changed` in `audit_logs`; assignments record
+  `organizer.member_assigned`.
+- Owner and Manager edit events; Editor stays view-only (`organizer_update_event`).
+
+DB checks: `psql "$LOCAL_DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/admin_organizer_assignment.sql`.

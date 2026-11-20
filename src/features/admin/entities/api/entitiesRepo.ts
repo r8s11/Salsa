@@ -31,6 +31,12 @@ export async function saveAdminEntity(kind: EntityKind, id: string | null, paylo
     p_id: id,
     p_payload: payload,
   });
+  if (error?.code === "23505" && kind === "organizer") {
+    const name = typeof payload.name === "string" ? payload.name.trim() : "";
+    throw new Error(
+      `An organizer${name ? ` named ${name}` : " with this name"} already exists. Assign to it instead of creating another.`
+    );
+  }
   if (error) throw new Error(`Failed to save ${kind}: ${error.message}`);
   const row = Array.isArray(data) ? data[0] : data;
   if (!row) throw new Error(`The ${kind} save did not return a record.`);

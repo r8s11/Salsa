@@ -34,6 +34,7 @@ const {
 vi.mock("../../entities/api/entitiesRepo", () => ({ fetchAdminEntityDirectory }));
 
 vi.mock("../../hooks/useAdminTaxonomy", () => ({ useActiveTaxonomyTerms }));
+vi.mock("./EventOrganizerPanel", () => ({ default: () => null }));
 vi.mock("../../../metros/hooks/useMetros", () => import("../../../../test/mockMetros"));
 vi.mock("../../hooks/useVenueCombobox", () => ({ useVenueCombobox }));
 vi.mock("../../../events/api/eventFlyers", async (importOriginal) => ({
@@ -1040,7 +1041,7 @@ describe("Admin flyer entity review", () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByRole("button", { name: "Remove organizer" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Remove organized by" })).toBeInTheDocument();
     expect(screen.getByLabelText(/Event Title/i)).toHaveValue("Existing event");
     await user.clear(screen.getByLabelText(/Event Title/i));
     await user.type(screen.getByLabelText(/Event Title/i), "Edited event");

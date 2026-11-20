@@ -14,6 +14,19 @@ vi.mock("../../../contexts/useAuth", () => ({
   useAuth: () => ({ user: { id: "self-1" }, isAdmin: true }),
 }));
 
+const { useUserOrganizerMemberships } = vi.hoisted(() => ({
+  useUserOrganizerMemberships: vi.fn(),
+}));
+vi.mock("../hooks/useOrganizerAccess", () => ({
+  useUserOrganizerMemberships,
+  useAssignOrganizerMember: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+    error: null,
+    reset: vi.fn(),
+  }),
+}));
+
 const { useUserAuditLog } = vi.hoisted(() => ({ useUserAuditLog: vi.fn() }));
 vi.mock("../hooks/useUserAuditLog", () => ({ useUserAuditLog }));
 
@@ -161,6 +174,11 @@ describe("AdminUserDetailPage", () => {
     vi.mocked(useAdminUsers).mockReturnValue({ ...defaultState });
     vi.mocked(useAdminEvents).mockReturnValue({ ...eventsDefaultState });
     vi.mocked(useUserAuditLog).mockReturnValue({ ...auditDefaultState });
+    vi.mocked(useUserOrganizerMemberships).mockReturnValue({
+      data: [],
+      isPending: false,
+      isError: false,
+    });
     vi.mocked(useResendOrganizerInvitation).mockReturnValue({ ...resendDefaultState });
   });
 
@@ -283,14 +301,13 @@ describe("AdminUserDetailPage", () => {
     );
   });
 
-  it("shows the Organizer section only for organizer-role users", () => {
+  it("shows organizer access only for organizer-role users", () => {
     const first = renderAt("organizer-1");
-    expect(screen.getAllByText("Organizer").length).toBeGreaterThan(0); // role badge, already asserted elsewhere too
-    expect(screen.getByRole("link", { name: "View Events" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Organizer access" })).toBeInTheDocument();
     first.unmount();
 
     renderAt("guest:vince@salsa.test");
-    expect(screen.queryByRole("link", { name: "View Events" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Organizer access" })).not.toBeInTheDocument();
   });
 
   it("renders audit log entries newest-first with an actor label", () => {

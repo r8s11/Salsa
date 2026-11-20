@@ -21,6 +21,7 @@ import AdminStatusBadge from "../components/common/AdminStatusBadge";
 import AdminRoleChangeDialog from "../components/users/AdminRoleChangeDialog";
 import AdminFlagUserDialog from "../components/users/AdminFlagUserDialog";
 import AdminConfirmDialog from "../components/common/AdminConfirmDialog";
+import UserOrganizerAccessPanel from "../components/organizers/UserOrganizerAccessPanel";
 import { useResendOrganizerInvitation } from "../hooks/useResendOrganizerInvitation";
 import "./AdminUserDetailPage.css";
 
@@ -107,13 +108,6 @@ export default function AdminUserDetailPage() {
       .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at))
       .slice(0, 5);
   }, [events, submitterValue]);
-
-  const upcomingOrganizerEvents = useMemo(
-    () =>
-      userEvents.filter((event) => new Date(event.event_date).getTime() >= new Date().getTime())
-        .length,
-    [userEvents]
-  );
 
   const handleAction = (action: UserRowAction, targetUser = user) => {
     if (!targetUser) return;
@@ -328,17 +322,7 @@ export default function AdminUserDetailPage() {
             )}
           </section>
 
-          {user.role === "organizer" && (
-            <section className="admin-card admin-user-detail-page__organizer">
-              <h2>Organizer</h2>
-              <p>
-                {displayNameFor(user)} · {upcomingOrganizerEvents} upcoming events
-              </p>
-              <Link to={`/admin/events?submitter=${encodeURIComponent(submitterValue!)}`}>
-                View Events
-              </Link>
-            </section>
-          )}
+          <UserOrganizerAccessPanel user={user} isAdmin={isAdmin} />
 
           {/* An organizer whose email is still unconfirmed has never accepted
               their invitation — the only state where a resend is meaningful. */}

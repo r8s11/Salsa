@@ -1,0 +1,15 @@
+# Salsa Segura
+
+> A city-by-city guide to salsa and bachata events, classes, workshops, and live music.
+
+## Find events
+
+- [Dance calendar](https://www.salsasegura.com/calendar): Browse dance events by date and city.
+- [Boston events](https://www.salsasegura.com/events/boston): Find salsa and bachata events in the Boston area.
+- [New York City events](https://www.salsasegura.com/events/new-york-city): Find salsa and bachata events across New York City.
+
+## Explore and learn
+
+- [Discover dance communities](https://www.salsasegura.com/discover): Explore dance venues, organizers, schools, instructors, DJs, and styles.
+- [About Salsa Segura](https://www.salsasegura.com/about): Learn what Salsa Segura is and why it exists.
+- [Help](https://www.salsasegura.com/help): Find guides for dancers, DJs, venues, organizers, artists, and schools.

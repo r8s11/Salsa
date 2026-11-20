@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import posthog from "posthog-js";
+import { posthog } from "../../shared/analytics/posthog";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, Search, CheckCircle2, Undo2, RotateCcw } from "lucide-react";
 import { useEventAttendees } from "../../features/host/hooks/useEventAttendees";
@@ -76,7 +76,7 @@ export default function HostCheckInPage() {
     setActionError(null);
     try {
       await checkIn({ attendeeId, method });
-      posthog.capture("attendee_checked_in", { method });
+      posthog.capture("attendee_checked_in", { event_id: eventId, method });
     } catch (err) {
       setActionError(err instanceof Error ? err.message : "Could not check in this attendee.");
       refetchCheckIns();

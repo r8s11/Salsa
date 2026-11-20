@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import posthog from "posthog-js";
+import { posthog } from "../shared/analytics/posthog";
+import { firstTouchProperties, getFirstTouch, type FirstTouch } from "../shared/analytics/attribution";
+import { recordOwnFirstTouch } from "../features/account/api/accountRepo";
 import type { User, Session } from "@supabase/supabase-js";
 import { supabase, supabaseAuthStorageKey } from "../lib/supabase";
 import { setAuthIntent } from "../lib/authIntent";
@@ -27,10 +29,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (previousUserId && previousUserId !== user.id) posthog.reset();
     if (previousUserId !== user.id) {
-      posthog.identify(user.id, {
-        ...(user.email ? { email: user.email } : {}),
-        ...(role ? { role } : {}),
-      });
+      // This tab's landing visit, or the one saved at signup when the email
+      // confirmation link opened a new tab.
+      const savedTouch = user.user_metadata?.first_touch;
+      const firstTouch =
+        getFirstTouch() ??
+        (savedTouch && typeof savedTouch === "object" ? (savedTouch as FirstTouch) : null);
+      posthog.identify(
+        user.id,
+        {
+          ...(user.email ? { email: user.email } : {}),
+          ...(role ? { role } : {}),
+        },
+        firstTouchProperties(firstTouch)
+      );
+      if (firstTouch) {
+        // Attribution is best effort; it must never block authentication.
+        recordOwnFirstTouch(firstTouch).catch(() => {});
+      }
       identifiedUserId.current = user.id;
     }
   }, [role, user]);
@@ -74,6 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUp = useCallback(async (email: string, password: string) => {
     setLoading(true);
     setAuthIntent("signup", email);
+    const firstTouch = getFirstTouch();
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -81,6 +98,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         options: {
           // Confirmation emails return to the app's own callback route.
           emailRedirectTo: getCallbackUrl(),
+          // Kept on the auth user so a confirmation link opened in a new tab
+          // can still record how the account arrived.
+          ...(firstTouch ? { data: { first_touch: firstTouch } } : {}),
         },
       });
       const freshUser = data.session?.user ?? null;

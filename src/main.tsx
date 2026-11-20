@@ -1,9 +1,14 @@
 import ReactDOM from "react-dom/client";
-import { disablePostHog, startPostHog } from "./shared/analytics/posthog";
+import { captureFirstTouch, firstTouchProperties } from "./shared/analytics/attribution";
+import { disablePostHog, posthog, startPostHog } from "./shared/analytics/posthog";
+import { hasPrivacySignal } from "./shared/analytics/privacySignal";
 import App from "./app/App";
 import { Providers } from "./app/providers";
 import { posthogLogsConfig } from "./shared/analytics/posthogLogs";
 import "./styles/index.css";
+
+// Read campaign parameters before routing can rewrite the landing URL.
+const firstTouch = captureFirstTouch();
 
 const posthogKey = import.meta.env.VITE_POSTHOG_KEY?.trim();
 const posthogHost = import.meta.env.VITE_POSTHOG_HOST?.trim();
@@ -20,7 +25,8 @@ if (!posthogHost && import.meta.env.DEV) {
     "VITE_POSTHOG_HOST variable required by PostHog is missing or un-configured, this causes events to be silently missed. This error stops appearing once VITE_POSTHOG_HOST is configured"
   );
 }
-if (posthogKey && posthogHost) {
+// Do Not Track / Global Privacy Control: PostHog is not loaded at all.
+if (posthogKey && posthogHost && !hasPrivacySignal()) {
   // Retire this project's old persisted identity before the memory-only SDK
   // starts. Do not clear authentication storage or other projects' analytics.
   const legacyName = `ph_${posthogKey}_posthog`;
@@ -47,9 +53,13 @@ if (posthogKey && posthogHost) {
     // this page only; existing signed-in identify calls still identify users.
     // Anonymous repeat-visitor measurement lives in cookieless Umami.
     persistence: "memory",
+    // SPA route changes emit $pageview; the landing UTMs ride along as
+    // session-entry properties for the rest of this page load.
+    capture_pageview: "history_change",
     capture_exceptions: true,
     logs: posthogLogsConfig,
   }));
+  posthog.register(firstTouchProperties(firstTouch));
 } else {
   disablePostHog();
 }

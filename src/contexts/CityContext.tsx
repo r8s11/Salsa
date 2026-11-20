@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react
 import type { City } from "../types/events";
 import { CityContext } from "./cityContextObject";
 import { useAuth } from "./useAuth";
+import { posthog } from "../shared/analytics/posthog";
 import { useOwnProfile } from "../features/account/hooks/useOwnProfile";
 import { useActiveMetros, useMetros } from "../features/metros/hooks/useMetros";
 import { useApproximateLocation } from "../features/metros/hooks/useApproximateLocation";
@@ -102,6 +103,12 @@ export function CityProvider({ children }: { children: ReactNode }) {
     choice.slug, subLocation,
     explicit ? explicitNeighborhood : stored === choice.slug ? storedNeighborhood : null
   );
+
+  // Every PostHog event carries the visitor's current metro.
+  const resolvedCity = resolving ? null : choice.slug;
+  useEffect(() => {
+    if (resolvedCity) posthog.register({ metro: resolvedCity });
+  }, [resolvedCity]);
 
   useEffect(() => {
     if (stored) window.localStorage.setItem(STORAGE_KEY, stored);

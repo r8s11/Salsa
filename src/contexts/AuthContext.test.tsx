@@ -17,8 +17,22 @@ vi.mock("../lib/supabase", () => ({
       resend: vi.fn(),
       resetPasswordForEmail: vi.fn(),
     },
+    rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
   },
   supabaseAuthStorageKey: "sb-salsa-test-auth-token",
+}));
+
+const analytics = vi.hoisted(() => ({
+  identify: vi.fn(),
+  reset: vi.fn(),
+  firstTouch: null as null | Record<string, string>,
+}));
+vi.mock("../shared/analytics/posthog", () => ({
+  posthog: { identify: analytics.identify, reset: analytics.reset },
+}));
+vi.mock("../shared/analytics/attribution", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../shared/analytics/attribution")>()),
+  getFirstTouch: () => analytics.firstTouch,
 }));
 
 import { supabase, supabaseAuthStorageKey } from "../lib/supabase";
@@ -371,5 +385,82 @@ describe("AuthContext password recovery", () => {
     });
 
     expect(screen.getByTestId("reset-error")).toHaveTextContent("Too many requests");
+  });
+});
+
+describe("AuthContext first-touch attribution", () => {
+  const touch = {
+    utm_source: "instagram",
+    utm_medium: "organic_social",
+    landing_path: "/submit",
+    captured_at: "2026-05-01T12:00:00.000Z",
+  };
+
+  beforeEach(() => {
+    analytics.identify.mockClear();
+    analytics.firstTouch = null;
+    vi.mocked(supabase.rpc).mockClear();
+    vi.mocked(supabase.auth.signUp).mockReset();
+    vi.mocked(supabase.auth.getSession).mockResolvedValue({ data: { session: null } } as never);
+  });
+
+  function renderSignUp() {
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <AuthProvider>
+          <SignUpTrigger />
+        </AuthProvider>
+      </QueryClientProvider>
+    );
+  }
+
+  it("stores the tab's first touch in signup metadata so email confirmation keeps it", async () => {
+    analytics.firstTouch = touch;
+    vi.mocked(supabase.auth.signUp).mockResolvedValue({ data: { user: null, session: null }, error: null } as never);
+    renderSignUp();
+    await act(async () => {
+      screen.getByText("sign up").click();
+    });
+    expect(supabase.auth.signUp).toHaveBeenCalledWith(
+      expect.objectContaining({ options: expect.objectContaining({ data: { first_touch: touch } }) })
+    );
+  });
+
+  it("omits signup metadata on a direct visit", async () => {
+    vi.mocked(supabase.auth.signUp).mockResolvedValue({ data: { user: null, session: null }, error: null } as never);
+    renderSignUp();
+    await act(async () => {
+      screen.getByText("sign up").click();
+    });
+    expect(vi.mocked(supabase.auth.signUp).mock.calls[0][0].options).not.toHaveProperty("data");
+  });
+
+  it("records the first touch on the profile and as set-once person properties", async () => {
+    analytics.firstTouch = touch;
+    const user = makeUser("user");
+    vi.mocked(supabase.auth.getSession).mockResolvedValue({ data: { session: makeSession(user) } } as never);
+    renderSignUp();
+    await waitFor(() => expect(analytics.identify).toHaveBeenCalled());
+    expect(analytics.identify).toHaveBeenCalledWith(
+      user.id,
+      expect.any(Object),
+      expect.objectContaining({ first_utm_source: "instagram", first_landing_path: "/submit" })
+    );
+    expect(supabase.rpc).toHaveBeenCalledWith("record_profile_first_touch", { p_first_touch: touch });
+  });
+
+  it("falls back to the first touch saved in signup metadata after email confirmation", async () => {
+    const user = { ...makeUser("user"), user_metadata: { first_touch: touch } } as User;
+    vi.mocked(supabase.auth.getSession).mockResolvedValue({ data: { session: makeSession(user) } } as never);
+    renderSignUp();
+    await waitFor(() => expect(supabase.rpc).toHaveBeenCalled());
+    expect(supabase.rpc).toHaveBeenCalledWith("record_profile_first_touch", { p_first_touch: touch });
+  });
+
+  it("does not call the profile RPC without a first touch", async () => {
+    vi.mocked(supabase.auth.getSession).mockResolvedValue({ data: { session: makeSession(makeUser("user")) } } as never);
+    renderSignUp();
+    await waitFor(() => expect(analytics.identify).toHaveBeenCalled());
+    expect(supabase.rpc).not.toHaveBeenCalled();
   });
 });

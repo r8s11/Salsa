@@ -11,6 +11,9 @@ import {
   recordEventTouch,
 } from "../features/events/api/eventsRepo";
 import EventDetailPage from "./EventDetailPage";
+import { posthog } from "../shared/analytics/posthog";
+
+vi.mock("../shared/analytics/posthog", () => ({ posthog: { capture: vi.fn() } }));
 
 vi.mock("../features/events/api/eventsRepo", () => ({
   fetchApprovedEventById: vi.fn(),
@@ -300,6 +303,35 @@ describe("EventDetailPage", () => {
     await screen.findByRole("heading", { name: "Havana Nights" });
     expect(screen.queryByRole("region", { name: /more/i })).not.toBeInTheDocument();
   });
+  it("sends PostHog view and RSVP events with event, city and organizer ids", async () => {
+    const user = userEvent.setup();
+    vi.mocked(posthog.capture).mockClear();
+    vi.mocked(fetchApprovedEventById).mockResolvedValue({
+      ...event,
+      public_entities: {
+        venue: null,
+        organizer: { kind: "organizer", id: "org-9", name: "Carlos", slug: "carlos", description: null, image_url: null, city: "boston" },
+        school: null,
+        instructors: [],
+        djs: [],
+        schools: [],
+        series: null,
+        city: null,
+        styles: [],
+      },
+    });
+    renderPage();
+    await screen.findByRole("heading", { name: "Havana Nights" });
+
+    const ids = { event_id: "event-1", city: "boston", organizer_id: "org-9" };
+    expect(posthog.capture).toHaveBeenCalledWith("event_viewed", expect.objectContaining(ids));
+    await user.click(screen.getByRole("link", { name: /RSVP/ }));
+    expect(posthog.capture).toHaveBeenCalledWith(
+      "event_rsvp_clicked",
+      expect.objectContaining({ ...ids, attendance_type: "ticket" })
+    );
+  });
+
   it("shares the selected event through the native share sheet with its canonical event URL", async () => {
     const user = userEvent.setup();
     const share = vi.fn().mockResolvedValue(undefined);

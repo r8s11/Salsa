@@ -1,5 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import posthog from "posthog-js";
+import { posthog } from "../shared/analytics/posthog";
 import { useQuery } from "@tanstack/react-query";
 import {
   CalendarPlus,
@@ -95,7 +95,7 @@ export default function EventDetailPage() {
     enabled: Boolean(event?.city),
   });
 
-  useEventViewTouch(event?.id ?? null, event?.city);
+  useEventViewTouch(event?.id ?? null, event?.city, event?.public_entities?.organizer?.id);
 
   useDocumentMeta({
     title: event?.title ?? (!isLoading && !error ? "Event not found" : "Dance event"),
@@ -174,7 +174,12 @@ export default function EventDetailPage() {
   const { weekday, day, month } = chipParts(scheduleEvent.start);
   const shareUrl = buildPublicEventUrl(event.slug || event.id);
   const whatsappHref = `https://wa.me/?text=${encodeURIComponent(`${event.title} — ${shareUrl}`)}`;
-  const eventProperties = { city: event.city, event_type: event.event_type };
+  const eventProperties = {
+    event_id: event.id,
+    city: event.city,
+    event_type: event.event_type,
+    organizer_id: event.public_entities?.organizer?.id ?? null,
+  };
   const captureShare = (method: "copy_link" | "native_share" | "whatsapp" | "story") =>
     posthog.capture("event_shared", { ...eventProperties, method });
 

@@ -7,6 +7,8 @@ import { useCity } from "./useCity";
 import type { ActiveMetro } from "../features/metros/model/metro";
 
 vi.mock("./useAuth", () => ({ useAuth: () => ({ user: null, loading: false }) }));
+const { register } = vi.hoisted(() => ({ register: vi.fn() }));
+vi.mock("../shared/analytics/posthog", () => ({ posthog: { register } }));
 
 const active: ActiveMetro[] = [
   {
@@ -89,6 +91,15 @@ afterEach(() => {
 });
 
 describe("CityProvider", () => {
+  it("tags every PostHog event with the resolved metro", async () => {
+    register.mockClear();
+    mockGeolocation("granted", NEAR_PHILLY);
+    const { result } = renderCity();
+    await waitFor(() => expect(result.current.city).toBe("philadelphia"));
+    expect(register).toHaveBeenLastCalledWith({ metro: "philadelphia" });
+    expect(register).not.toHaveBeenCalledWith({ metro: null });
+  });
+
   it("uses an already-granted approximate location to pick the nearest active metro", async () => {
     mockGeolocation("granted", NEAR_PHILLY);
     const { result } = renderCity();

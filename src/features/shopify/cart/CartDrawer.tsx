@@ -1,6 +1,6 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { useLayoutEffect, useRef } from "react";
-import posthog from "posthog-js";
+import { posthog } from "../../../shared/analytics/posthog";
 import { Link } from "react-router-dom";
 import { Minus, Plus } from "lucide-react";
 import Button from "../../../components/ui/Button";

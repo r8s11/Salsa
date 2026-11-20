@@ -8,8 +8,35 @@ Umami in `index.html` is the cookieless visit source. PostHog uses memory-only
 persistence for existing product events, exceptions and submission logs.
 Startup removes this project's legacy PostHog cookie/localStorage entries,
 without touching Supabase authentication. Anonymous PostHog identity does not
-survive reloads; existing signed-in `identify` calls still identify accounts.
+survive reloads; signed-in `identify` calls still identify accounts.
 Cookieless is not a claim of complete anonymity or a substitute for a privacy review.
+
+All PostHog calls go through `src/shared/analytics/posthog.ts`, which queues
+calls made before the lazily loaded SDK initializes; ESLint rejects direct
+`posthog-js` imports. Do Not Track or Global Privacy Control skips PostHog and
+attribution entirely (`src/shared/analytics/privacySignal.ts`).
+
+First-touch attribution (`src/shared/analytics/attribution.ts`): the landing
+URL's `utm_*` parameters, external referrer host and landing path are held in
+memory for the tab and registered as `first_*` PostHog super properties.
+`createSubmission()` stores them in `event_submissions.first_touch`; signup
+stores them in auth `user_metadata.first_touch` (survives a confirmation link
+opened in a new tab), and the next signed-in load copies them to
+`profiles.first_touch` through the set-once `record_profile_first_touch` RPC
+(accounts under 7 days old only) and to PostHog person properties via
+`$set_once`. OAuth redirects start a new page load, so OAuth signups lose the
+landing UTMs. `metro` is registered on every event from `useCity()`. Apply
+`supabase/migrations/20261121000000_first_touch_attribution.sql` before
+deploying the frontend that writes these columns.
+
+PostHog product events: `$pageview` (SPA history changes), `event_viewed`,
+`event_rsvp_clicked`, `event_shared`, `event_calendar_downloaded` (all with
+`event_id`, `city`, `organizer_id`), `event_submitted` (`submission_id`,
+`city`), `event_submission_approved|rejected` (`submission_id`, `city`),
+`event_submission_updated|withdrawn` (`event_id`), `host_event_created`
+(`event_id`, `organizer_id`, `city`), `attendee_checked_in` (`event_id`),
+`onboarding_completed`, `product_added_to_cart`, `checkout_started`. Funnel
+and dashboard definitions: `docs/analytics/posthog-setup-proposal.md`.
 
 Event detail pages and modals send metro-tagged Umami events through the existing
 `recordEventTouch` boundary:

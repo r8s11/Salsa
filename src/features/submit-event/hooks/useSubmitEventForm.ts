@@ -1,6 +1,6 @@
 import type { FormEvent } from "react";
 import { useEffect, useRef, useState } from "react";
-import posthog from "posthog-js";
+import { posthog } from "../../../shared/analytics/posthog";
 import { posthogSubmissionLogger } from "../../../shared/analytics/posthogLogs";
 import { createSubmission } from "../../admin/api/submissionsRepo";
 import { uploadEventFlyer, removeEventFlyer } from "../../events/api/eventFlyers";
@@ -565,7 +565,7 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
         flyer_count: flyerUrls.length,
         is_authenticated: Boolean(user),
       };
-      posthog.capture("event_submitted", logAttributes);
+      posthog.capture("event_submitted", { ...logAttributes, submission_id: submissionId });
       posthogSubmissionLogger.submitted(logAttributes);
       setSubmittedReview(submission.entity_review ?? null);
       setIsSubmitted(true);

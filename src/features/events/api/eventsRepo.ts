@@ -1,4 +1,5 @@
 import { supabase } from "../../../lib/supabase";
+import { hasPrivacySignal } from "../../../shared/analytics/privacySignal";
 import { DatabaseEvent, City, EventType } from "../../../types/events";
 import { toEventDateInstant, formatTimeLabel } from "../model/eventDateTime";
 import { timeZoneForDisplay } from "../../../shared/utils/timezone";
@@ -468,8 +469,7 @@ type UmamiWindow = Window & { umami?: { track: (name: string, data?: Record<stri
  */
 export async function recordEventTouch(eventId: string, kind: EventTouchKind, metro?: string | null): Promise<void> {
   try {
-    const privacy = navigator as Navigator & { globalPrivacyControl?: boolean };
-    if (privacy.doNotTrack === "1" || privacy.globalPrivacyControl === true) return;
+    if (hasPrivacySignal()) return;
     if (kind === "view") {
       const day = new Date().toISOString().slice(0, 10);
       const key = `salsasegura-touch:${kind}:${eventId}:${day}`;

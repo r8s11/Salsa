@@ -236,8 +236,8 @@ vi.mock('../../features/entity-matching/entityReviewClient', async (importOrigin
   };
 });
 vi.mock('../../features/host/api/attendanceRepo', () => h.attendanceRepo);
-vi.mock('posthog-js', () => ({
-  default: { capture: vi.fn(), logger: { warn: vi.fn(), info: vi.fn(), error: vi.fn() } },
+vi.mock('../../shared/analytics/posthog', () => ({
+  posthog: { capture: vi.fn(), register: vi.fn(), identify: vi.fn(), reset: vi.fn(), logger: { warn: vi.fn(), info: vi.fn() } },
 }));
 
 /* ───────────────────── shared fixtures and helpers ───────────────────── */

@@ -17,7 +17,7 @@ const db = vi.hoisted(() => ({
   seq: 0,
 }));
 
-vi.mock("posthog-js", () => ({ default: { capture: vi.fn() } }));
+vi.mock("../../shared/analytics/posthog", () => ({ posthog: { capture: vi.fn() } }));
 
 vi.mock("../../features/host/api/attendanceRepo", () => ({
   fetchEventAttendees: async () => structuredClone(db.attendees),

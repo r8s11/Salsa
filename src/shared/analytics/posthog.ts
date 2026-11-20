@@ -33,6 +33,7 @@ export const posthog = {
   capture: (...args: Parameters<PostHog["capture"]>) => run((c) => { c.capture(...args); }),
   identify: (...args: Parameters<PostHog["identify"]>) => run((c) => c.identify(...args)),
   reset: (...args: Parameters<PostHog["reset"]>) => run((c) => c.reset(...args)),
+  register: (...args: Parameters<PostHog["register"]>) => run((c) => c.register(...args)),
   logger: {
     info: (...args: Parameters<PostHog["logger"]["info"]>) => run((c) => c.logger.info(...args)),
     warn: (...args: Parameters<PostHog["logger"]["warn"]>) => run((c) => c.logger.warn(...args)),

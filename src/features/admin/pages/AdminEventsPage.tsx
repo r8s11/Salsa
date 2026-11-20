@@ -10,7 +10,7 @@ import {
   uploadEventFlyer,
   validateEventFlyer,
 } from "../../events/api/eventFlyers";
-import { updateEventFlyer } from "../../events/api/eventsRepo";
+import { takeDownEvent, updateEventFlyer } from "../../events/api/eventsRepo";
 import { useCity } from "../../../contexts/useCity";
 import { useMetros, useMetroName } from "../../metros/hooks/useMetros";
 import { usePlatformSettings } from "../hooks/usePlatformSettings";
@@ -54,7 +54,7 @@ import "./AdminEventsPage.css";
 type AdminEventsView =
   { mode: "list" } | { mode: "create" } | { mode: "edit"; event: DatabaseEvent };
 type PendingAction = {
-  kind: "reject" | "cancel" | "archive" | "delete";
+  kind: "reject" | "cancel" | "archive" | "delete" | "take-down";
   event: DatabaseEvent;
 } | null;
 
@@ -66,6 +66,7 @@ const VIEW_LABEL: Record<EventView, string> = {
   published: "Published",
   cancelled: "Cancelled",
   archived: "Archived",
+  "auto-published": "Auto-published (7 days)",
 };
 
 const STATUS_LABEL: Record<DatabaseEvent["status"], string> = {
@@ -167,6 +168,8 @@ export default function AdminEventsPage() {
     searchParams.get("new") === "1" ? { mode: "create" } : { mode: "list" }
   );
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
+  const [takeDownBusy, setTakeDownBusy] = useState(false);
+  const [takeDownError, setTakeDownError] = useState<string | null>(null);
   const [duplicatingEvent, setDuplicatingEvent] = useState<DatabaseEvent | null>(null);
   const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
   const [lastRowAction, setLastRowAction] = useState<RowAction | null>(null);
@@ -401,6 +404,9 @@ export default function AdminEventsPage() {
 
   const busy =
     flyerBusy ??
+    (takeDownBusy && pendingAction
+      ? { id: pendingAction.event.id, action: "take-down" as const }
+      : null) ??
     (changingStatusId
       ? { id: changingStatusId, action: lastRowAction ?? "publish" }
       : featuringId
@@ -560,6 +566,10 @@ export default function AdminEventsPage() {
       case "cancel":
         setPendingAction({ kind: "cancel", event });
         break;
+      case "take-down":
+        setTakeDownError(null);
+        setPendingAction({ kind: "take-down", event });
+        break;
       case "archive":
         setPendingAction({ kind: "archive", event });
         break;
@@ -578,8 +588,38 @@ export default function AdminEventsPage() {
     }
   };
 
+  const applyTakeDown = async (event: DatabaseEvent, reason?: string) => {
+    const trimmed = reason?.trim() ?? "";
+    if (trimmed.length < 3 || trimmed.length > 500) {
+      setTakeDownError("Reason must be 3–500 characters.");
+      return;
+    }
+    if (takeDownBusy) return;
+    setTakeDownError(null);
+    setTakeDownBusy(true);
+    const index = pagedEvents.findIndex((candidate) => candidate.id === event.id);
+    const neighbours = [pagedEvents[index + 1]?.id, pagedEvents[index - 1]?.id].filter(
+      (id): id is string => Boolean(id)
+    );
+    try {
+      await takeDownEvent(event.id, trimmed);
+      await queryClient.invalidateQueries({ queryKey: ["events"] });
+      setPendingAction(null);
+      announce(`Took down “${event.title}”. It is archived and hidden from the public.`, null);
+      requestFocus([event.id, ...neighbours]);
+    } catch (error) {
+      setTakeDownError(error instanceof Error ? error.message : "Unable to take down event.");
+    } finally {
+      setTakeDownBusy(false);
+    }
+  };
+
   const confirmPendingAction = (reason?: string) => {
     if (!pendingAction) return;
+    if (pendingAction.kind === "take-down") {
+      void applyTakeDown(pendingAction.event, reason);
+      return;
+    }
     switch (pendingAction.kind) {
       case "reject":
         applyStatus("reject", pendingAction.event);
@@ -703,9 +743,11 @@ export default function AdminEventsPage() {
   // --- End quick flyer actions ---
 
   const isPendingActionBusy =
-    pendingAction?.kind === "delete"
-      ? removingId === pendingAction.event.id
-      : changingStatusId === pendingAction?.event.id;
+    pendingAction?.kind === "take-down"
+      ? takeDownBusy
+      : pendingAction?.kind === "delete"
+        ? removingId === pendingAction.event.id
+        : changingStatusId === pendingAction?.event.id;
 
   const submitForm = async (
     form: AdminEventFormValues,
@@ -1037,7 +1079,9 @@ export default function AdminEventsPage() {
       {pendingAction && (
         <AdminConfirmDialog
           title={
-            pendingAction.kind === "reject"
+            pendingAction.kind === "take-down"
+              ? "Take down this event?"
+              : pendingAction.kind === "reject"
               ? "Reject this event?"
               : pendingAction.kind === "cancel"
                 ? "Cancel this event?"
@@ -1046,7 +1090,9 @@ export default function AdminEventsPage() {
                   : "Delete this event?"
           }
           body={
-            pendingAction.kind === "reject"
+            pendingAction.kind === "take-down"
+              ? `"${pendingAction.event.title}" will be archived and hidden from the public. Your reason is recorded in the audit log and is not shown to the submitter.`
+              : pendingAction.kind === "reject"
               ? `"${pendingAction.event.title}" will be hidden from the public calendar. You can approve it again later.`
               : pendingAction.kind === "cancel"
                 ? `"${pendingAction.event.title}" will be marked cancelled. It stays visible in the admin list and is removed from the public calendar.`
@@ -1055,7 +1101,9 @@ export default function AdminEventsPage() {
                   : `"${pendingAction.event.title}" will be permanently deleted. This cannot be undone.`
           }
           confirmLabel={
-            pendingAction.kind === "reject"
+            pendingAction.kind === "take-down"
+              ? "Take down"
+              : pendingAction.kind === "reject"
               ? "Reject event"
               : pendingAction.kind === "cancel"
                 ? "Cancel event"
@@ -1066,10 +1114,13 @@ export default function AdminEventsPage() {
           tone={pendingAction.kind === "archive" ? "neutral" : "danger"}
           cancelLabel={pendingAction.kind === "cancel" ? "Keep event" : undefined}
           reasonField={
-            pendingAction.kind === "cancel"
+            pendingAction.kind === "take-down"
+              ? { label: "Reason for taking this down", required: true }
+              : pendingAction.kind === "cancel"
               ? { label: "Reason (optional)", required: false }
               : undefined
           }
+          error={pendingAction.kind === "take-down" ? takeDownError : undefined}
           isBusy={isPendingActionBusy}
           onConfirm={confirmPendingAction}
           onCancel={() => setPendingAction(null)}

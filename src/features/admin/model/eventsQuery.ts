@@ -6,7 +6,7 @@ import { qualityIssues } from "./overviewMetrics";
 import { parseCsvParam, type ListDefinition, type SortDir } from "./listState";
 
 export type EventView =
-  "all" | "upcoming" | "drafts" | "pending" | "published" | "cancelled" | "archived";
+  "all" | "upcoming" | "drafts" | "pending" | "published" | "cancelled" | "archived" | "auto-published";
 export type SortKey = "event_date" | "created_at" | "updated_at" | "title";
 export interface EventSort {
   key: SortKey;
@@ -36,6 +36,7 @@ export const EVENT_VIEWS: { view: EventView; label: string }[] = [
   { view: "published", label: "Published" },
   { view: "cancelled", label: "Cancelled" },
   { view: "archived", label: "Archived" },
+  { view: "auto-published", label: "Auto-published (7 days)" },
 ];
 
 // The seven fixed dance-style filter values, in the order the migration's
@@ -86,7 +87,7 @@ function startOfTodayMs(now: Date): number {
     .toInstant().epochMilliseconds;
 }
 
-const VIEW_PREDICATES: Record<EventView, (event: DatabaseEvent, startOfToday: number) => boolean> =
+const VIEW_PREDICATES: Record<EventView, (event: DatabaseEvent, startOfToday: number, now: number) => boolean> =
   {
     all: (event) => event.status !== "archived",
     upcoming: (event, startOfToday) =>
@@ -100,12 +101,17 @@ const VIEW_PREDICATES: Record<EventView, (event: DatabaseEvent, startOfToday: nu
     published: (event) => event.status === "approved",
     cancelled: (event) => event.status === "cancelled",
     archived: (event) => event.status === "archived",
+    "auto-published": (event, _startOfToday, now) =>
+      event.source_type === "user_submission" &&
+      event.status === "approved" &&
+      Date.parse(event.created_at) >= now - 7 * 24 * 60 * 60 * 1000 &&
+      Date.parse(event.created_at) <= now,
   };
 
 export function applyView(events: DatabaseEvent[], view: EventView, now: Date): DatabaseEvent[] {
   const startOfToday = startOfTodayMs(now);
   const predicate = VIEW_PREDICATES[view];
-  return events.filter((event) => predicate(event, startOfToday));
+  return events.filter((event) => predicate(event, startOfToday, now.getTime()));
 }
 
 export function applyFilters(
@@ -186,6 +192,7 @@ export function applySort(events: DatabaseEvent[], key: SortKey, dir: SortDir): 
 }
 
 export function defaultSortFor(view: EventView): EventSort {
+  if (view === "auto-published") return { key: "created_at", dir: "desc" };
   return view === "upcoming"
     ? { key: "event_date", dir: "asc" }
     : { key: "event_date", dir: "desc" };
@@ -196,7 +203,7 @@ export function viewCounts(events: DatabaseEvent[], now: Date): Record<EventView
   const counts = {} as Record<EventView, number>;
   (Object.keys(VIEW_PREDICATES) as EventView[]).forEach((view) => {
     const predicate = VIEW_PREDICATES[view];
-    counts[view] = events.filter((event) => predicate(event, startOfToday)).length;
+    counts[view] = events.filter((event) => predicate(event, startOfToday, now.getTime())).length;
   });
   return counts;
 }

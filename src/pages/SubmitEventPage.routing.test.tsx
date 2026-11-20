@@ -16,7 +16,13 @@ const { useAuth, useSubmissionAccess, useOwnProfile } = vi.hoisted(() => ({
 vi.mock("../contexts/useAuth", () => ({ useAuth }));
 vi.mock("../features/account/hooks/useOwnProfile", () => ({ useOwnProfile }));
 vi.mock("../features/submit-event/hooks/useSubmissionAccess", () => ({ useSubmissionAccess }));
-vi.mock("../features/admin/api/submissionsRepo", () => ({ createSubmission: vi.fn() }));
+vi.mock("../features/admin/api/submissionsRepo", () => ({
+  createSubmission: vi.fn(),
+  publishOwnSubmission: vi.fn(async () => ({ published: false, reason: "disabled" })),
+}));
+vi.mock("../features/submit-event/hooks/useAutoPublishEligibility", () => ({
+  useAutoPublishEligibility: () => ({ willPublish: false, blockReason: "disabled" }),
+}));
 vi.mock("../features/submit-event/api/submissionNotification", () => ({
   notifySubmissionReceived: vi.fn(),
 }));

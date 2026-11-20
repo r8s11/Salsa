@@ -102,6 +102,24 @@ describe("taxonomy filtering", () => {
 });
 
 describe("applyView", () => {
+  it("auto-published shows only approved user submissions from the rolling last seven days", () => {
+    const fresh = makeEvent({ source_type: "user_submission", created_at: NOW.toISOString() });
+    const boundary = { ...fresh, id: "boundary", created_at: "2026-08-04T16:00:00.000Z" };
+    const excluded = [
+      { ...fresh, source_type: "moderator" as const },
+      { ...fresh, status: "archived" as const },
+      { ...fresh, status: "pending" as const },
+      { ...fresh, created_at: "2026-08-04T15:59:59.999Z" },
+      { ...fresh, created_at: "2026-08-11T16:00:00.001Z" },
+    ];
+    const events = [boundary, ...excluded, fresh];
+    expect(applyView(events, "auto-published", NOW)).toEqual([boundary, fresh]);
+    expect(viewCounts(events, NOW)["auto-published"]).toBe(2);
+    const sort = defaultSortFor("auto-published");
+    expect(sort).toEqual({ key: "created_at", dir: "desc" });
+    expect(applySort([boundary, fresh], sort.key, sort.dir)).toEqual([fresh, boundary]);
+  });
+
   it("all excludes archived but includes cancelled", () => {
     const archived = makeEvent({ status: "archived" });
     const cancelled = makeEvent({ status: "cancelled" });
@@ -298,6 +316,13 @@ describe("viewCounts", () => {
 describe("eventsListDefinition", () => {
   const definition = eventsListDefinition(new Set(["boston", "new-york-city"]), "upcoming");
   const parse = (query: string) => parseListState(definition, new URLSearchParams(query));
+
+  it("round-trips auto-published through the URL with publication-time sorting", () => {
+    const params = applyListChange(definition, new URLSearchParams(), { view: "auto-published" });
+    expect(params.get("view")).toBe("auto-published");
+    expect(parse(params.toString()).view).toBe("auto-published");
+    expect(parse(params.toString()).sort).toEqual({ key: "created_at", dir: "desc" });
+  });
 
   it("reads legacy ?flag=upcoming as the Upcoming view, but an explicit ?view= wins", () => {
     const pendingDefault = eventsListDefinition(new Set(), "pending");

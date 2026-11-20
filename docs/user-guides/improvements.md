@@ -121,6 +121,15 @@ The [Help](https://www.salsasegura.com/help) surface renders the canonical `docs
 
 The stale-help suite (`src/features/help/guideIntegrity.test.tsx`) fails when a guide link, route, anchor or documented control label no longer matches the rendered product. Screenshots of private attendee/account data remain deferred and are not published.
 
+### 13. P2 — Let signed-in members publish their own events
+
+Signed-in members with an active account and a confirmed email can have a single event go live from [Submit an event](https://www.salsasegura.com/submit) without moderator review, up to 3 successful auto-publishes per rolling 24 hours (takedowns do not restore quota). The button stays **Submit Event**; success says **Event Published!** with **View your event**. Guests, unconfirmed or suspended accounts, repeating events, members over the cap, and submissions with a past date, a non-http(s) link or missing fields stay pending, and the confirmation says why. A lost publish response is resolved by reading the saved status, never by resubmitting. The admin switch **Publish members' events without review** in Admin → Settings is off by default. Moderators use Admin → Events → **Auto-published (7 days)** and **Take down**, which archives the event (hidden from the public) and records the reason. Submitter-suggested venue, organizer, artist and school links are never applied automatically. User guides and the guides carousel change only after the switch is on in production.
+
+- Plan: [registered-event-auto-publish.md](../plans/registered-event-auto-publish.md).
+- Migration: [20261120120000_registered_event_auto_publish.sql](../../supabase/migrations/20261120120000_registered_event_auto_publish.sql). It moves the body of `approve_event_submission` into the internal `materialize_event_submission`; later changes to the submission-to-event mapping must patch that function.
+- Email: `send-submission-email` gains `published` (submitter) and `auto_published` (moderator FYI). Apply `sql/submission-emails/004_auto_published_emails.sql` before deploying the function.
+- Verified locally: SQL acceptance `supabase/tests/registered_event_auto_publish.sql` on a disposable Supabase Postgres with the full migration chain; two-session checks at the quota boundary (one of two concurrent publishes succeeds) and for moderator approval racing self-publish (one event); browser publish, takedown and switch-off paths through local PostgREST with a synthetic session.
+
 
 ## Artist events and workshop RSVPs — locally implemented
 
@@ -141,5 +150,6 @@ Active artist Owners and Managers can publish single-dated events and manage sep
 - Apply `20261110000100_listing_requests.sql` before releasing the guided-request frontend. Guided listing requests were merged into `main` and pushed. The merged tree passed TypeScript and all 3,304 tests across 299 files. Production database migration and deployment were not verified by those checks.
 - In-product help: TypeScript, full ESLint and 3,422 tests across 307 files passed. The 49-check stale-help gate includes 20 rendered control scenarios; deliberate anchor and accessible-name mutations failed and were restored. Production build prerendered 774 routes, including the help index and seven guides, without an improvements/backlog chunk. Browser checks at 1280px and 390px covered guide navigation, deep anchors, sign-in contextual help, unknown-guide 404 and keyboard-scrollable tables. This branch has not been pushed or deployed.
 - Artist RSVP release requires `20261114235900_artist_workshop_rsvp.sql` before the dependent frontend, followed by separately authorized guest/worker deployment and configuration. The migration never starts mail. Keep the dedicated RSVP scheduler inactive until live release proof is complete. Rollback closes new signups and unschedules only that job; preserve contacts, acknowledgement stamps and delivery keys rather than dropping populated tables or restoring the unchecked publish API.
+- Member publishing requires `20261120120000_registered_event_auto_publish.sql` before the frontend, then `sql/submission-emails/004_auto_published_emails.sql` and the `send-submission-email` deploy. The switch ships off; turn it on in Admin → Settings only after those are live and the takedown check passes in production.
 
 [Help](https://www.salsasegura.com/help)

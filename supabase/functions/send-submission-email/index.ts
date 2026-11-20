@@ -6,6 +6,8 @@ import {
   submissionAwaitingReviewEmail,
   submissionApprovedEmail,
   submissionRejectedEmail,
+  submissionPublishedEmail,
+  submissionAutoPublishedEmail,
   type SubmissionEmailContent,
   type SubmissionEventFacts,
 } from "../_shared/submissionEmail.ts";
@@ -13,10 +15,10 @@ import { classifyResendFailure } from "../_shared/emailLayout.ts";
 
 /**
  * POST /functions/v1/send-submission-email
- * Body: { submissionId: uuid, event: "received"|"awaiting_review"|"approved"|"rejected" }
+ * Body: { submissionId: uuid, event: "received"|"awaiting_review"|"approved"|"rejected"|"published"|"auto_published" }
  *
- * The four transactional emails for the existing anonymous Event Submission
- * workflow. This function replaces the previous `send-email` function, which
+ * Six transactional emails for anonymous and signed-in Event Submission
+ * workflows. This function replaces the previous `send-email` function, which
  * accepted caller-supplied `from`/`to`/`subject`/`html` and was therefore an
  * open relay reachable by anyone holding the publishable key.
  *
@@ -33,6 +35,9 @@ import { classifyResendFailure } from "../_shared/emailLayout.ts";
  *     SUBMISSION_FRESHNESS_MS, and each (submission, event) pair can only
  *     succeed once (unique index on the attempts table). Replaying an old or
  *     invented id sends nothing.
+ *   published / auto_published — no user session required. The submission must
+ *     be approved, link to its public event, and have been reviewed by its own
+ *     submitter inside SUBMISSION_FRESHNESS_MS. Each pair can only succeed once.
  *   approved / rejected — requires a Bearer JWT whose `app_metadata.role` is
  *     admin or moderator, AND the submission must actually already be in that
  *     terminal state. The email can never claim an outcome the database
@@ -50,7 +55,9 @@ const SUBMISSION_FRESHNESS_MS = 15 * 60 * 1000;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_BODY_BYTES = 2_048;
 
-const EMAIL_EVENTS = ["received", "awaiting_review", "approved", "rejected"] as const;
+const EMAIL_EVENTS = [
+  "received", "awaiting_review", "approved", "rejected", "published", "auto_published",
+] as const;
 export type SubmissionEmailEvent = (typeof EMAIL_EVENTS)[number];
 
 const MODERATOR_ROLES: Record<string, true> = { admin: true, moderator: true };
@@ -85,6 +92,9 @@ type SubmissionRow = {
   status: string;
   submitter_email: string | null;
   submitter_name: string | null;
+  submitter_id: string | null;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
   submitted_data: Record<string, unknown> | null;
   edited_data: Record<string, unknown> | null;
   rejection_message: string | null;
@@ -261,13 +271,13 @@ export function createSendSubmissionEmailHandler(dependencies: SendSubmissionEma
       typeof emailEventValue !== "string" ||
       !(EMAIL_EVENTS as readonly string[]).includes(emailEventValue)
     ) {
-      return errorResponse("event must be one of: received, awaiting_review, approved, rejected", 400);
+      return errorResponse(`event must be one of: ${EMAIL_EVENTS.join(", ")}`, 400);
     }
     const emailEvent = emailEventValue as SubmissionEmailEvent;
     const isModeratorEvent = emailEvent === "approved" || emailEvent === "rejected";
 
     // Moderator gate — enforced before any read, for the two events a
-    // moderator triggers. The anonymous events are gated by row state below.
+    // moderator triggers. The sessionless events are gated by row state below.
     if (isModeratorEvent) {
       const authorization = request.headers.get("authorization");
       if (!authorization || !/^Bearer\s+\S+$/i.test(authorization)) {
@@ -305,9 +315,7 @@ export function createSendSubmissionEmailHandler(dependencies: SendSubmissionEma
     // generic 404 keeps the endpoint from confirming which ids exist.
     if (!submission) return errorResponse("Submission not found", 404);
 
-    // State gate. The email must describe reality, and for the anonymous
-    // events it also bounds replay: only a still-pending, freshly created
-    // submission can trigger mail.
+    // State gates also bound replay for events that require no user session.
     if (emailEvent === "received" || emailEvent === "awaiting_review") {
       if (submission.status !== "pending") {
         return errorResponse("Submission is no longer pending", 409);
@@ -318,6 +326,18 @@ export function createSendSubmissionEmailHandler(dependencies: SendSubmissionEma
         dependencies.now() - submittedAt > SUBMISSION_FRESHNESS_MS
       ) {
         return errorResponse("Submission is not eligible for this notification", 409);
+      }
+    } else if (emailEvent === "published" || emailEvent === "auto_published") {
+      const reviewedAt = Date.parse(submission.reviewed_at ?? "");
+      if (
+        submission.status !== "approved" ||
+        !submission.approved_event_id ||
+        !submission.reviewed_by ||
+        submission.reviewed_by !== submission.submitter_id ||
+        !Number.isFinite(reviewedAt) ||
+        Math.abs(dependencies.now() - reviewedAt) > SUBMISSION_FRESHNESS_MS
+      ) {
+        return errorResponse("Submission is not a freshly self-published event", 409);
       }
     } else if (emailEvent === "approved") {
       if (submission.status !== "approved") {
@@ -348,7 +368,7 @@ export function createSendSubmissionEmailHandler(dependencies: SendSubmissionEma
     // could have set to anything, so it is regex-validated and length-capped
     // here rather than assumed deliverable.
     const recipientKind: "submitter" | "moderator" =
-      emailEvent === "awaiting_review" ? "moderator" : "submitter";
+      emailEvent === "awaiting_review" || emailEvent === "auto_published" ? "moderator" : "submitter";
 
     const submitterEmail = normalizedRecipient(submission.submitter_email);
     const submitterName = boundedString(submission.submitter_name, MAX_NAME);
@@ -421,6 +441,24 @@ export function createSendSubmissionEmailHandler(dependencies: SendSubmissionEma
       });
       // Replying to the moderator notification reaches the submitter, which is
       // the useful default for a review queue.
+      if (submitterEmail) replyTo = submitterEmail;
+    } else if (emailEvent === "published") {
+      content = submissionPublishedEmail({
+        platformName: settings.platform_name,
+        supportEmail: settings.support_email,
+        facts,
+        eventUrl: origin ? `${origin}/events/${submission.approved_event_id}` : null,
+      });
+      replyTo = settings.support_email;
+    } else if (emailEvent === "auto_published") {
+      content = submissionAutoPublishedEmail({
+        platformName: settings.platform_name,
+        facts,
+        submitterName,
+        submitterEmail,
+        submissionId: submission.id,
+        eventUrl: origin ? `${origin}/events/${submission.approved_event_id}` : null,
+      });
       if (submitterEmail) replyTo = submitterEmail;
     } else if (emailEvent === "approved") {
       content = submissionApprovedEmail({
@@ -544,7 +582,7 @@ function runtimeDependencies(): SendSubmissionEmailDependencies {
         .select(
           // internal_note is deliberately NOT selected. It never enters this
           // function's memory, so it cannot reach a submitter-facing template.
-          "id,status,submitter_email,submitter_name,submitted_data,edited_data,rejection_message,approved_event_id,submitted_at"
+          "id,status,submitter_email,submitter_name,submitter_id,reviewed_by,reviewed_at,submitted_data,edited_data,rejection_message,approved_event_id,submitted_at"
         )
         .eq("id", id)
         .maybeSingle();

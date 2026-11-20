@@ -1,7 +1,7 @@
 /**
- * Event-submission transactional email content — the four content builders
- * (received / awaiting_review / approved / rejected). The shared HTML/text
- * layout, escaping, and Resend-failure classification live in
+ * Event-submission transactional email content — six content builders
+ * (received / awaiting_review / approved / rejected / published / auto_published).
+ * The shared HTML/text layout, escaping, and Resend-failure classification live in
  * `_shared/emailLayout.ts` (originally defined here, extracted when
  * `founderWelcomeEmail.ts` needed the identical layout).
  *
@@ -130,8 +130,8 @@ export function submissionReceivedEmail(params: {
 // ── B. New Event Awaiting Review ───────────────────────────────────────────
 
 /**
- * Notifies the moderation destination. This is the only builder that shows
- * submitter contact details, and it goes exclusively to the configured
+ * Notifies the moderation destination with submitter contact details. Like the
+ * auto-published notification, it goes exclusively to the configured
  * `platform_settings.support_email` — never to an address from the caller.
  */
 export function submissionAwaitingReviewEmail(params: {
@@ -229,6 +229,69 @@ export function submissionRejectedEmail(params: {
 
   return {
     subject: `Update on your ${params.platformName} event submission`,
+    html: layout(parts),
+    text: plainText(parts),
+  };
+}
+
+// ── E. Event Published by Member ────────────────────────────────────────────
+
+export function submissionPublishedEmail(params: {
+  platformName: string;
+  supportEmail: string;
+  facts: SubmissionEventFacts;
+  eventUrl: string | null;
+}): SubmissionEmailContent {
+  const parts = {
+    platformName: params.platformName,
+    heading: "Your event is live",
+    paragraphs: [
+      "Your event was published straight away because you submitted while signed in. It's now listed on the calendar.",
+    ],
+    rows: eventRows(params.facts),
+    ...(params.eventUrl ? { cta: { label: "View event", url: params.eventUrl } } : {}),
+    footerLines: [
+      `Need a correction? Reply to this email or write to ${params.supportEmail}.`,
+      `${params.platformName} — Latin dance events in Boston and New York City.`,
+    ],
+  };
+
+  return {
+    subject: `Your event is live — ${params.platformName}`,
+    html: layout(parts),
+    text: plainText(parts),
+  };
+}
+
+// ── F. Member Published an Event ────────────────────────────────────────────
+
+export function submissionAutoPublishedEmail(params: {
+  platformName: string;
+  facts: SubmissionEventFacts;
+  submitterName: string | null;
+  submitterEmail: string | null;
+  submissionId: string;
+  eventUrl: string | null;
+}): SubmissionEmailContent {
+  const rows = eventRows(params.facts);
+  rows.push(["Submitter", params.submitterName ?? "(not provided)"]);
+  rows.push(["Submitter email", params.submitterEmail ?? "(not provided)"]);
+  rows.push(["Submission ID", params.submissionId]);
+
+  const parts = {
+    platformName: params.platformName,
+    heading: "Member published an event",
+    paragraphs: [
+      "A signed-in member published an event without moderator review.",
+      "If it breaks the rules, archive it from Admin → Events (Source: User Submission).",
+    ],
+    rows,
+    ...(params.eventUrl ? { cta: { label: "View event", url: params.eventUrl } } : {}),
+    footerLines: [`Sent automatically by ${params.platformName}.`],
+  };
+
+  return {
+    subject: `Member published an event — ${params.platformName}`,
     html: layout(parts),
     text: plainText(parts),
   };

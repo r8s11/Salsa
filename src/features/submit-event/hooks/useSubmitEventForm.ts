@@ -2,7 +2,12 @@ import type { FormEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { posthog } from "../../../shared/analytics/posthog";
 import { posthogSubmissionLogger } from "../../../shared/analytics/posthogLogs";
-import { createSubmission } from "../../admin/api/submissionsRepo";
+import {
+  createSubmission,
+  publishOwnSubmission,
+  readOwnSubmissionOutcome,
+  type PublishOwnSubmissionResult,
+} from "../../admin/api/submissionsRepo";
 import { uploadEventFlyer, removeEventFlyer } from "../../events/api/eventFlyers";
 import { MAX_FLYERS_PER_EVENT, flyerPayload } from "../../events/model/eventFlyers";
 import { useCity } from "../../../contexts/useCity";
@@ -14,7 +19,7 @@ import {
   type SubmitFieldErrors,
 } from "../model/validation";
 import { publicErrorMessage } from "../../../shared/forms/errorMessage";
-import { notifySubmissionReceived } from "../api/submissionNotification";
+import { notifySubmissionPublished, notifySubmissionReceived } from "../api/submissionNotification";
 import type { EventFormDraft } from "../../events/components/EventForm";
 import type { EventType } from "../../events/model/types";
 import { eventTypeFields } from "../../events/model/eventTypeSelection";
@@ -114,6 +119,8 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
   const [isSubmitted, setIsSubmitted] = useState(false);
   // The links exactly as submitted, for the success screen; the form resets.
   const [submittedReview, setSubmittedReview] = useState<EntityReview | null>(null);
+  // Signed-in submissions only: whether it went live straight away, and why not.
+  const [publishOutcome, setPublishOutcome] = useState<PublishOwnSubmissionResult | null>(null);
   // Per-field validation errors, keyed by `SubmitFieldName`.
   const [fieldErrors, setFieldErrors] = useState<SubmitFieldErrors>({});
   // Failure with no identifiable field — a rejected API call.
@@ -552,12 +559,32 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
         // carry-through (deferred SQL) can copy it to events.image_url.
         flyerUrls.length ? flyerPayload(flyerUrls) : undefined
       );
-      // The submission is committed. Both emails (submitter confirmation +
-      // moderator notification) are deliberately un-awaited: the row is the
-      // source of truth, so a mail failure must never turn a successful
-      // submission into a visible error. The Edge Function records failures
-      // in event_submission_email_attempts for diagnosis.
-      void notifySubmissionReceived(submissionId);
+      // The submission is committed. A signed-in member's submission then
+      // tries to publish itself; the server decides eligibility and leaves it
+      // pending when not allowed. A lost response is resolved by reading the
+      // saved status, never by submitting again, and must not fall into the
+      // catch below, which would discard the flyers of a submission that exists.
+      let outcome: PublishOwnSubmissionResult | null = null;
+      if (user) {
+        try {
+          outcome = await publishOwnSubmission(submissionId);
+        } catch {
+          outcome = await readOwnSubmissionOutcome(submissionId);
+        }
+      }
+      // Emails are deliberately un-awaited: the row is the source of truth,
+      // so a mail failure must never turn a successful submission into a
+      // visible error. The Edge Function records failures in
+      // event_submission_email_attempts for diagnosis, sends only the email
+      // that matches the saved state, and never sends one twice.
+      if (outcome?.published === true) {
+        void notifySubmissionPublished(submissionId);
+      } else if (outcome?.published === "unconfirmed") {
+        void notifySubmissionPublished(submissionId);
+        void notifySubmissionReceived(submissionId);
+      } else {
+        void notifySubmissionReceived(submissionId);
+      }
       const logAttributes = {
         city: form.city,
         event_type: form.event_type,
@@ -568,6 +595,7 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
       posthog.capture("event_submitted", { ...logAttributes, submission_id: submissionId });
       posthogSubmissionLogger.submitted(logAttributes);
       setSubmittedReview(submission.entity_review ?? null);
+      setPublishOutcome(outcome);
       setIsSubmitted(true);
       setForm(buildSubmitDraft(defaultCity ?? ""));
       setVenueLink(null);
@@ -603,6 +631,7 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
   const resetSubmitted = () => {
     setIsSubmitted(false);
     setSubmittedReview(null);
+    setPublishOutcome(null);
   };
 
   const flyerReady = Boolean(primaryFlyer(flyers)?.url);
@@ -641,6 +670,7 @@ export function useSubmitEventForm(authenticatedSubmitterName: string | null = n
     entityReview: form.entity_review ?? null,
     setEntityReview,
     submittedReview,
+    publishOutcome,
     linkVenue,
     undoVenueLink,
     acceptVenueValue,

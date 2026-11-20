@@ -31,7 +31,13 @@ import { supabase } from "../../../lib/supabase";
  * convenience, not the diagnostic record.
  */
 
-export type SubmissionEmailEvent = "received" | "awaiting_review" | "approved" | "rejected";
+export type SubmissionEmailEvent =
+  | "received"
+  | "awaiting_review"
+  | "approved"
+  | "rejected"
+  | "published"
+  | "auto_published";
 
 export interface SubmissionEmailOutcome {
   success: boolean;
@@ -72,6 +78,17 @@ export async function notifySubmissionReceived(submissionId: string): Promise<vo
   await Promise.allSettled([
     requestSubmissionEmail(submissionId, "received"),
     requestSubmissionEmail(submissionId, "awaiting_review"),
+  ]);
+}
+
+/**
+ * A2. "Your event is live" to the submitter + B2. FYI to the moderation
+ * queue. Called only after publish_own_event_submission() published it.
+ */
+export async function notifySubmissionPublished(submissionId: string): Promise<void> {
+  await Promise.allSettled([
+    requestSubmissionEmail(submissionId, "published"),
+    requestSubmissionEmail(submissionId, "auto_published"),
   ]);
 }
 

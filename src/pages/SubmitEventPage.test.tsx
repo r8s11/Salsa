@@ -7,18 +7,22 @@ import { CityProvider } from "../contexts/CityContext";
 const { useSubmissionAccess } = vi.hoisted(() => ({ useSubmissionAccess: vi.fn() }));
 const { useAuth } = vi.hoisted(() => ({ useAuth: vi.fn() }));
 const { useOwnProfile } = vi.hoisted(() => ({ useOwnProfile: vi.fn() }));
+const { useAutoPublishEligibility } = vi.hoisted(() => ({ useAutoPublishEligibility: vi.fn() }));
 
 vi.mock("../features/events/api/eventsRepo", () => ({}));
 vi.mock("../features/metros/hooks/useMetros", () => import("../test/mockMetros"));
 
 vi.mock("../features/admin/api/submissionsRepo", () => ({
   createSubmission: vi.fn(),
+  publishOwnSubmission: vi.fn(async () => ({ published: false, reason: "disabled" })),
 }));
+vi.mock("../features/submit-event/hooks/useAutoPublishEligibility", () => ({ useAutoPublishEligibility }));
 
 // The submit path fires the transactional emails fire-and-forget. Mocked so
 // the normal test suite can never reach the Edge Function or Resend.
 vi.mock("../features/submit-event/api/submissionNotification", () => ({
   notifySubmissionReceived: vi.fn(),
+  notifySubmissionPublished: vi.fn(),
 }));
 
 vi.mock("../features/submit-event/hooks/useSubmissionAccess", () => ({ useSubmissionAccess }));
@@ -47,6 +51,7 @@ describe("SubmitEventPage", () => {
       error: null,
       refetch: vi.fn(),
     });
+    vi.mocked(useAutoPublishEligibility).mockReturnValue({ willPublish: false, blockReason: "disabled" });
     vi.mocked(useSubmissionAccess).mockReturnValue({
       isLoading: false,
       canSubmit: true,
@@ -156,6 +161,51 @@ describe("SubmitEventPage", () => {
     );
 
     expect(await screen.findByText(/Event Submitted!/i)).toBeInTheDocument();
+  });
+
+  it("publishes straight away for an eligible member and links to the live event", async () => {
+    vi.mocked(useAutoPublishEligibility).mockReturnValue({ willPublish: true, blockReason: null });
+    vi.mocked(submissionsRepo.createSubmission).mockResolvedValueOnce("submission-id");
+    vi.mocked(submissionsRepo.publishOwnSubmission).mockResolvedValueOnce({
+      published: true,
+      eventId: "11111111-2222-4333-8444-555555555555",
+    });
+
+    renderSubmitEventPage();
+    expect(screen.getByText(/goes live on the calendar as soon as you submit it/i)).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText(/Event Title \*/i), {
+      target: { value: "Saturday Bachata Night" },
+    });
+    chooseEventType("Social");
+    fireEvent.change(screen.getByLabelText(/Date \*/i), { target: { value: "2026-08-15" } });
+    fireEvent.click(screen.getByRole("button", { name: /Submit Event/i }));
+
+    expect(await screen.findByText(/Event Published!/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /View your event/i })).toHaveAttribute(
+      "href",
+      "/events/11111111-2222-4333-8444-555555555555"
+    );
+  });
+
+  it("explains why an eligible-looking member's event still went to review", async () => {
+    vi.mocked(useAutoPublishEligibility).mockReturnValue({ willPublish: true, blockReason: null });
+    vi.mocked(submissionsRepo.createSubmission).mockResolvedValueOnce("submission-id");
+    vi.mocked(submissionsRepo.publishOwnSubmission).mockResolvedValueOnce({
+      published: false,
+      reason: "daily_limit",
+    });
+
+    renderSubmitEventPage();
+    fireEvent.change(screen.getByLabelText(/Event Title \*/i), {
+      target: { value: "Saturday Bachata Night" },
+    });
+    chooseEventType("Social");
+    fireEvent.change(screen.getByLabelText(/Date \*/i), { target: { value: "2026-08-15" } });
+    fireEvent.click(screen.getByRole("button", { name: /Submit Event/i }));
+
+    expect(await screen.findByText(/Event Submitted!/i)).toBeInTheDocument();
+    expect(screen.getByText(/reached today's limit/i)).toBeInTheDocument();
   });
 
   it("submits every selected type and keeps the first as the primary", async () => {

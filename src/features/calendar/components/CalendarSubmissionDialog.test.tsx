@@ -24,6 +24,10 @@ HTMLElement.prototype.hasPointerCapture = HTMLElement.prototype.hasPointerCaptur
 
 vi.mock("../../admin/api/submissionsRepo", () => ({
   createSubmission: vi.fn(),
+  publishOwnSubmission: vi.fn(async () => ({ published: false, reason: "disabled" })),
+}));
+vi.mock("../../submit-event/hooks/useAutoPublishEligibility", () => ({
+  useAutoPublishEligibility: () => ({ willPublish: false, blockReason: "disabled" }),
 }));
 vi.mock("../../metros/hooks/useMetros", () => import("../../../test/mockMetros"));
 vi.mock("../../submit-event/api/submissionNotification", () => ({

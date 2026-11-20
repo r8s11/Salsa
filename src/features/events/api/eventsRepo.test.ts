@@ -9,6 +9,7 @@ import {
   fetchApprovedEvents,
   recordEventTouch,
   setEventFeatured,
+  takeDownEvent,
   updateEventFlyer,
   updateEventForUser,
 } from "./eventsRepo";
@@ -45,6 +46,22 @@ vi.mock("../../../lib/supabase", () => ({
 vi.mock("../../admin/api/taxonomyRepo", () => ({
   replaceEventTaxonomyTerms: mocks.replaceEventTaxonomyTerms,
 }));
+
+describe("takeDownEvent", () => {
+  it("calls the audited takedown RPC and returns the archived status", async () => {
+    mocks.rpc.mockResolvedValueOnce({ data: "archived", error: null });
+    await expect(takeDownEvent("event-id", "Misleading listing")).resolves.toBe("archived");
+    expect(mocks.rpc).toHaveBeenCalledWith("admin_take_down_event", {
+      p_event_id: "event-id",
+      p_reason: "Misleading listing",
+    });
+  });
+
+  it("surfaces RPC errors", async () => {
+    mocks.rpc.mockResolvedValueOnce({ data: null, error: { message: "Admin role required" } });
+    await expect(takeDownEvent("event-id", "Misleading listing")).rejects.toThrow("Admin role required");
+  });
+});
 
 const source: DatabaseEvent = {
   id: "source-id",

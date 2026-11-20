@@ -16,8 +16,9 @@ const { uploadEventFlyer, removeEventFlyer, validateEventFlyer } = vi.hoisted(()
   removeEventFlyer: vi.fn(),
   validateEventFlyer: vi.fn(),
 }));
-const { updateEventFlyer } = vi.hoisted(() => ({
+const { updateEventFlyer, takeDownEvent } = vi.hoisted(() => ({
   updateEventFlyer: vi.fn(),
+  takeDownEvent: vi.fn(),
 }));
 
 vi.mock("../hooks/useAdminEvents", () => ({ useAdminEvents }));
@@ -30,6 +31,7 @@ vi.mock("../../events/api/eventFlyers", () => ({
 vi.mock("../../events/api/eventsRepo", async (importOriginal) => ({
   ...(await importOriginal()),
   updateEventFlyer,
+  takeDownEvent,
 }));
 vi.mock("../../flyer-extraction/client", () => ({ extractEventFromFlyer }));
 vi.mock("../../events/components/EventFlyersField", () => ({
@@ -178,9 +180,10 @@ function renderPage() {
 
 function renderAt(path: string) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(<AdminEventsPage />, {
+  const result = render(<AdminEventsPage />, {
     wrapper: ({ children }) => <QueryClientProvider client={client}><MemoryRouter initialEntries={[path]}>{children}</MemoryRouter></QueryClientProvider>,
   });
+  return { ...result, client };
 }
 
 function eventsTable() {
@@ -202,6 +205,7 @@ async function openRowMenu(user: ReturnType<typeof userEvent.setup>, title: stri
 describe("AdminEventsPage", () => {
   beforeEach(() => {
     localStorage.clear();
+    takeDownEvent.mockReset();
     vi.mocked(useAdminEvents).mockReturnValue({ ...defaultState });
     vi.mocked(usePlatformSettings).mockReturnValue({
       settings: null,
@@ -425,8 +429,12 @@ describe("AdminEventsPage", () => {
     expect(eventHeader).toHaveAttribute("aria-sort", "descending");
   });
 
-  it("published event's row menu offers Unpublish/Cancel/Archive, not Publish", async () => {
+  it("moderator-published event's row menu keeps Unpublish/Cancel/Archive, not Publish", async () => {
     const user = userEvent.setup();
+    vi.mocked(useAdminEvents).mockReturnValue({
+      ...defaultState,
+      events: [{ ...approvedUpcoming, source_type: "moderator" }],
+    });
     renderAt("/admin/events?view=upcoming");
 
     const menu = await openRowMenu(user, "Salsa Workshop NYC");
@@ -434,6 +442,67 @@ describe("AdminEventsPage", () => {
     expect(within(menu).getByRole("menuitem", { name: "Cancel Event" })).toBeInTheDocument();
     expect(within(menu).getByRole("menuitem", { name: "Archive" })).toBeInTheDocument();
     expect(within(menu).queryByRole("menuitem", { name: "Publish" })).not.toBeInTheDocument();
+  });
+
+  it("opens the auto-published queue from its URL", () => {
+    const fresh = { ...approvedUpcoming, created_at: new Date().toISOString() };
+    vi.mocked(useAdminEvents).mockReturnValue({ ...defaultState, events: [baseEvent, fresh] });
+    renderAt("/admin/events?view=auto-published");
+    expect(screen.getByRole("tab", { name: /Auto-published \(7 days\)/ })).toHaveAttribute(
+      "aria-selected", "true"
+    );
+    expect(within(eventsTable()).getByText(fresh.title)).toBeInTheDocument();
+    expect(within(eventsTable()).queryByText(baseEvent.title)).not.toBeInTheDocument();
+  });
+
+  it("takes down a user-published event only with a trimmed 3–500 character reason", async () => {
+    const user = userEvent.setup();
+    takeDownEvent.mockResolvedValue("archived");
+    const { client } = renderAt("/admin/events?view=upcoming");
+    const invalidate = vi.spyOn(client, "invalidateQueries");
+    const menu = await openRowMenu(user, approvedUpcoming.title);
+    expect(within(menu).queryByRole("menuitem", { name: "Archive" })).not.toBeInTheDocument();
+    await user.click(within(menu).getByRole("menuitem", { name: "Take down" }));
+    const dialog = screen.getByRole("dialog");
+    const reason = within(dialog).getByLabelText("Reason for taking this down");
+    const confirm = within(dialog).getByRole("button", { name: "Take down" });
+    expect(reason).toBeRequired();
+    await user.click(confirm);
+    expect(within(dialog).getByText("A reason is required.")).toBeInTheDocument();
+    expect(takeDownEvent).not.toHaveBeenCalled();
+    for (const invalid of ["  ab  ", "x".repeat(501)]) {
+      await user.clear(reason);
+      await user.click(reason);
+      await user.paste(invalid);
+      await user.click(confirm);
+      expect(within(dialog).getByText("Reason must be 3–500 characters.")).toBeInTheDocument();
+      expect(takeDownEvent).not.toHaveBeenCalled();
+    }
+    await user.clear(reason);
+    await user.type(reason, "  Misleading event listing  ");
+    await user.click(confirm);
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(takeDownEvent).toHaveBeenCalledWith("event-2", "Misleading event listing");
+    expect(screen.getByText(
+      `Took down “${approvedUpcoming.title}”. It is archived and hidden from the public.`,
+      { selector: '[role="status"]' }
+    )).toBeInTheDocument();
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["events"] });
+  });
+
+  it("keeps the takedown dialog and reason after a server error", async () => {
+    const user = userEvent.setup();
+    takeDownEvent.mockRejectedValue(new Error("Takedown unavailable"));
+    renderAt("/admin/events?view=upcoming");
+    const menu = await openRowMenu(user, approvedUpcoming.title);
+    await user.click(within(menu).getByRole("menuitem", { name: "Take down" }));
+    const dialog = screen.getByRole("dialog");
+    const reason = within(dialog).getByLabelText("Reason for taking this down");
+    await user.type(reason, "Duplicate spam");
+    await user.click(within(dialog).getByRole("button", { name: "Take down" }));
+    expect(await within(dialog).findByRole("alert")).toHaveTextContent("Takedown unavailable");
+    expect(reason).toHaveValue("Duplicate spam");
+    expect(screen.getByRole("dialog")).toBe(dialog);
   });
 
   it("archived event's row menu offers Restore, not Archive", async () => {

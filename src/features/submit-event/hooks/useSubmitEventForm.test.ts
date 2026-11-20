@@ -1,8 +1,12 @@
 import type { FormEvent } from "react";
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createSubmission } from "../../admin/api/submissionsRepo";
-import { notifySubmissionReceived } from "../api/submissionNotification";
+import {
+  createSubmission,
+  publishOwnSubmission,
+  readOwnSubmissionOutcome,
+} from "../../admin/api/submissionsRepo";
+import { notifySubmissionPublished, notifySubmissionReceived } from "../api/submissionNotification";
 import { useSubmitEventForm } from "./useSubmitEventForm";
 import type { EntityReview, EntityReviewItem } from "../../entity-matching/entityReview";
 
@@ -29,11 +33,14 @@ const reviewWithVenue = (venue: EntityReviewItem): EntityReview => ({
 
 vi.mock("../../admin/api/submissionsRepo", () => ({
   createSubmission: vi.fn(),
+  publishOwnSubmission: vi.fn(),
+  readOwnSubmissionOutcome: vi.fn(),
 }));
 vi.mock("../../metros/hooks/useMetros", () => import("../../../test/mockMetros"));
 
 vi.mock("../api/submissionNotification", () => ({
   notifySubmissionReceived: vi.fn(),
+  notifySubmissionPublished: vi.fn(),
 }));
 
 const mockEventFlyers = vi.hoisted(() => ({
@@ -96,6 +103,7 @@ describe("useSubmitEventForm", () => {
     });
     mockEventFlyers.removeEventFlyer.mockResolvedValue(undefined);
     vi.mocked(createSubmission).mockResolvedValue("submission-abc");
+    vi.mocked(publishOwnSubmission).mockResolvedValue({ published: false, reason: "disabled" });
     mockReconciliation.reconcileEntities.mockResolvedValue({
       venue: null,
       organizer: null,
@@ -289,6 +297,87 @@ describe("useSubmitEventForm", () => {
       }),
       undefined
     );
+  });
+
+  describe("signed-in self-publish", () => {
+    // Renders the hook, optionally adds a flyer or guest contact, then submits a valid event.
+    const renderAndSubmit = async (options: { flyer?: boolean; guest?: boolean } = {}) => {
+      const { result } = renderHook(() => useSubmitEventForm());
+      if (options.flyer) {
+        await act(async () => {
+          result.current.handleFlyersAdd([pngFile()]);
+        });
+      }
+      await act(async () => {
+        result.current.update("title", "Member Night");
+        result.current.update("event_type", "social");
+        result.current.update("event_date", "2026-08-20");
+        if (options.guest) {
+          result.current.update("submitter_name", "Guest");
+          result.current.update("submitter_email", "guest@example.com");
+        }
+      });
+      await act(async () => {
+        await result.current.handleSubmit({ preventDefault: () => {} } as unknown as FormEvent);
+      });
+      return result;
+    };
+
+    it("publishes an eligible member's submission and sends the published emails", async () => {
+      vi.mocked(publishOwnSubmission).mockResolvedValue({ published: true, eventId: "event-1" });
+      const result = await renderAndSubmit();
+
+      expect(publishOwnSubmission).toHaveBeenCalledWith("submission-abc");
+      expect(notifySubmissionPublished).toHaveBeenCalledWith("submission-abc");
+      expect(notifySubmissionReceived).not.toHaveBeenCalled();
+      expect(result.current.isSubmitted).toBe(true);
+      expect(result.current.publishOutcome).toEqual({ published: true, eventId: "event-1" });
+    });
+
+    it("keeps an ineligible member's submission in review with the reason", async () => {
+      vi.mocked(publishOwnSubmission).mockResolvedValue({ published: false, reason: "daily_limit" });
+      const result = await renderAndSubmit();
+
+      expect(notifySubmissionReceived).toHaveBeenCalledWith("submission-abc");
+      expect(notifySubmissionPublished).not.toHaveBeenCalled();
+      expect(result.current.publishOutcome).toEqual({ published: false, reason: "daily_limit" });
+    });
+
+    it("resolves a lost publish response from the saved status, keeping the flyer and never resubmitting", async () => {
+      vi.mocked(publishOwnSubmission).mockRejectedValue(new Error("network down"));
+      vi.mocked(readOwnSubmissionOutcome).mockResolvedValue({ published: true, eventId: "event-9" });
+      const result = await renderAndSubmit({ flyer: true });
+
+      expect(readOwnSubmissionOutcome).toHaveBeenCalledWith("submission-abc");
+      expect(createSubmission).toHaveBeenCalledTimes(1);
+      expect(result.current.isSubmitted).toBe(true);
+      expect(result.current.serverError).toBeNull();
+      expect(mockEventFlyers.removeEventFlyer).not.toHaveBeenCalled();
+      expect(notifySubmissionPublished).toHaveBeenCalledWith("submission-abc");
+      expect(notifySubmissionReceived).not.toHaveBeenCalled();
+      expect(result.current.publishOutcome).toEqual({ published: true, eventId: "event-9" });
+    });
+
+    it("does not claim an outcome it could not confirm", async () => {
+      vi.mocked(publishOwnSubmission).mockRejectedValue(new Error("network down"));
+      vi.mocked(readOwnSubmissionOutcome).mockResolvedValue({ published: "unconfirmed" });
+      const result = await renderAndSubmit();
+
+      expect(result.current.publishOutcome).toEqual({ published: "unconfirmed" });
+      expect(createSubmission).toHaveBeenCalledTimes(1);
+      // The server sends only the email matching the saved state.
+      expect(notifySubmissionPublished).toHaveBeenCalledWith("submission-abc");
+      expect(notifySubmissionReceived).toHaveBeenCalledWith("submission-abc");
+    });
+
+    it("never tries to publish a guest submission", async () => {
+      mockAuth.user = null;
+      const result = await renderAndSubmit({ guest: true });
+
+      expect(createSubmission).toHaveBeenCalled();
+      expect(publishOwnSubmission).not.toHaveBeenCalled();
+      expect(result.current.publishOutcome).toBeNull();
+    });
   });
 
   it("uploads the flyer as soon as it is chosen (persist-before-ready)", async () => {

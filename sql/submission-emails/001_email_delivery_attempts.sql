@@ -26,6 +26,7 @@
 --   1. THIS FILE (001_email_delivery_attempts.sql)          — required
 --   2. 002_anon_submitter_contact_required.sql               — recommended
 --   3. 003_postcheck.sql                                     — verification
+--   4. 004_auto_published_emails.sql                         — required before updated function deploy
 --
 --   Depends on: public.event_submissions (20260817000000), public.is_moderator()
 --   (same migration), public.audit_logs (20260813000100).

@@ -52,6 +52,14 @@ const events: DatabaseEvent[] = [
     title: "Approved Workshop",
     event_type: "workshop",
     status: "approved",
+    source_type: "moderator",
+  },
+  {
+    ...baseEvent,
+    id: "event-4",
+    title: "Member Night",
+    status: "approved",
+    source_type: "user_submission",
   },
   { ...baseEvent, id: "event-3", title: "Archived Class", event_type: "class", status: "archived" },
 ];
@@ -256,6 +264,18 @@ describe("AdminEventsTable", () => {
         "unpublish",
         expect.objectContaining({ id: "event-2" })
       );
+    });
+
+    it("routes a member-published event's removal through Take down only", async () => {
+      const user = userEvent.setup();
+      const props = renderTable();
+      const row = desktopRowFor("Member Night");
+      await user.click(within(row).getByRole("button", { name: "Actions for Member Night" }));
+      const menu = screen.getByRole("menu");
+      expect(within(menu).queryByRole("menuitem", { name: "Unpublish" })).not.toBeInTheDocument();
+      expect(within(menu).queryByRole("menuitem", { name: "Archive" })).not.toBeInTheDocument();
+      await user.click(within(menu).getByRole("menuitem", { name: "Take down" }));
+      expect(props.onAction).toHaveBeenCalledWith("take-down", expect.objectContaining({ id: "event-4" }));
     });
   });
 

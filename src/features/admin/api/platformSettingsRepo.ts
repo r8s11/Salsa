@@ -11,6 +11,7 @@ export type PlatformSettingsUpdate = Partial<
     | "default_event_duration_minutes"
     | "allow_public_event_suggestions"
     | "allow_registered_user_submissions"
+    | "registered_auto_publish_enabled"
   >
 >;
 

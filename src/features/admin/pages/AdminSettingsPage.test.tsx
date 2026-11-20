@@ -21,6 +21,7 @@ const settings = {
   default_event_duration_minutes: 180,
   allow_public_event_suggestions: true,
   allow_registered_user_submissions: true,
+  registered_auto_publish_enabled: false,
   updated_by: null,
   updated_at: "2026-08-15T00:00:00.000Z",
 };
@@ -90,6 +91,34 @@ describe("AdminSettingsPage", () => {
     await user.click(screen.getByRole("button", { name: "Disable public suggestions" }));
 
     expect(mutateAsync).toHaveBeenCalledWith({ allow_public_event_suggestions: false });
+  });
+
+  it("confirms before enabling member publishing without review", async () => {
+    const user = userEvent.setup();
+    renderSettingsPage();
+
+    await user.click(screen.getByRole("switch", { name: "Publish members' events without review" }));
+    expect(mutateAsync).not.toHaveBeenCalled();
+    expect(screen.getByRole("dialog")).toHaveTextContent(
+      "Anyone with an account and a confirmed email can publish events without review."
+    );
+    await user.click(screen.getByRole("button", { name: "Enable member publishing without review" }));
+
+    expect(mutateAsync).toHaveBeenCalledWith({ registered_auto_publish_enabled: true });
+  });
+
+  it("disables member publishing while registered submissions are off", () => {
+    vi.mocked(usePlatformSettings).mockReturnValue({
+      settings: { ...settings, allow_registered_user_submissions: false },
+      isLoading: false,
+      error: null,
+      update: { mutateAsync, isPending: false, error: null },
+      refetch,
+    });
+    renderSettingsPage();
+
+    expect(screen.getByRole("switch", { name: "Publish members' events without review" })).toBeDisabled();
+    expect(screen.getByText(/Enable registered-user submissions first/)).toBeInTheDocument();
   });
 
   it("shows a retry action instead of an endless skeleton when loading settings fails", () => {

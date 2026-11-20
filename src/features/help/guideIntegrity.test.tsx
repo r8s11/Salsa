@@ -192,7 +192,11 @@ vi.mock('../../features/metros/hooks/useMetros', () => import('../../test/mockMe
 vi.mock('../../features/account/hooks/useOwnProfile', () => ({ useOwnProfile: h.hooks.useOwnProfile }));
 vi.mock('../../features/account/hooks/useUpdateOwnProfile', () => ({ useUpdateOwnProfile: h.hooks.useUpdateOwnProfile }));
 vi.mock('../../features/submit-event/hooks/useSubmissionAccess', () => ({ useSubmissionAccess: h.hooks.useSubmissionAccess }));
-vi.mock('../../features/admin/api/submissionsRepo', () => ({ createSubmission: h.createSubmission }));
+vi.mock('../../features/admin/api/submissionsRepo', () => ({
+  createSubmission: h.createSubmission,
+  publishOwnSubmission: async () => ({ published: false, reason: 'disabled' }),
+  fetchMyAutoPublishBlockReason: async () => 'disabled',
+}));
 vi.mock('../../features/submit-event/api/submissionNotification', () => ({ notifySubmissionReceived: vi.fn() }));
 vi.mock('../../features/host/hooks/useMyOrganizers', () => ({ useMyOrganizers: h.hooks.useMyOrganizers }));
 vi.mock('../../features/host/hooks/useMyOrganizerEvents', () => ({ useMyOrganizerEvents: h.hooks.useMyOrganizerEvents }));

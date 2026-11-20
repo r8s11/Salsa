@@ -13,6 +13,7 @@ import EntityLinkSummary from "../features/entity-matching/EntityLinkSummary";
 import { EntityFieldAssist } from "../features/entity-matching/EntityMatchAssist";
 import SuccessCard from "../features/submit-event/components/SuccessCard";
 import { useSubmissionAccess } from "../features/submit-event/hooks/useSubmissionAccess";
+import { useAutoPublishEligibility } from "../features/submit-event/hooks/useAutoPublishEligibility";
 import { useSubmitEventForm } from "../features/submit-event/hooks/useSubmitEventForm";
 import type { SubmitFieldName } from "../features/submit-event/model/validation";
 import FormErrorSummary from "../shared/forms/FormErrorSummary";
@@ -80,6 +81,7 @@ export default function SubmitEventPage() {
     entityReview,
     setEntityReview,
     submittedReview,
+    publishOutcome,
     linkVenue,
     undoVenueLink,
     acceptVenueValue,
@@ -88,6 +90,7 @@ export default function SubmitEventPage() {
     dismissExtractionError,
   } = useSubmitEventForm(authenticatedSubmitterName);
   const submissionAccess = useSubmissionAccess(Boolean(user));
+  const { willPublish } = useAutoPublishEligibility(Boolean(user));
   const [pristineForm] = useState(form);
   const isDirty = JSON.stringify(form) !== JSON.stringify(pristineForm);
 
@@ -129,6 +132,7 @@ export default function SubmitEventPage() {
         onReset={resetSubmitted}
         trackPath={user ? (isOrganizer ? "/host/events" : "/profile") : null}
         links={submittedReview}
+        outcome={publishOutcome}
       />
     );
 
@@ -144,9 +148,11 @@ export default function SubmitEventPage() {
             {isOrganizer ? "Create a new event" : "Submit an Event"}
           </h1>
           <p className="submit-event__intro">
-            {isOrganizer
-              ? "Add the details dancers need to discover and attend your event. It goes through moderation review before it appears on the calendar."
-              : "Know about a salsa, bachata, or dance event near you? Share it with the community! All submissions are reviewed before appearing on the calendar."}
+            {willPublish
+              ? "Add the details dancers need to find and attend your event. Because you're signed in, a single event goes live on the calendar as soon as you submit it; repeating events are reviewed first."
+              : isOrganizer
+                ? "Add the details dancers need to discover and attend your event. It goes through moderation review before it appears on the calendar."
+                : "Know about a salsa, bachata, or dance event near you? Share it with the community! All submissions are reviewed before appearing on the calendar."}
           </p>
         </header>
         {!submissionAccess.isLoading && !submissionAccess.error && (
@@ -315,13 +321,17 @@ export default function SubmitEventPage() {
                     typedVenue={form.location}
                     addable
                     disabled={isSubmitting}
-                    intro="Everything listed here is sent with your event. Listed records are linked once a moderator approves it; anything new is checked first."
+                    intro={
+                      willPublish
+                        ? "Everything listed here is sent with your event. Your event publishes straight away without these links; a moderator can add them afterwards."
+                        : "Everything listed here is sent with your event. Listed records are linked once a moderator approves it; anything new is checked first."
+                    }
                   />
                 )}
               </div>
               <div className="submit-form__bar">
                 <Button type="submit" block loading={isSubmitting} loadingLabel="Submitting...">
-                  {isOrganizer ? "Submit for review" : "Submit Event"}
+                  {isOrganizer && !willPublish ? "Submit for review" : "Submit Event"}
                 </Button>
               </div>
             </form>

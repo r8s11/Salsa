@@ -89,6 +89,67 @@ export async function createSubmission(
   return id;
 }
 
+/** Why a signed-in member's submission went to review instead of publishing. */
+export type AutoPublishBlockReason =
+  | "disabled"
+  | "inactive"
+  | "email_unverified"
+  | "daily_limit"
+  | "recurring"
+  | "not_pending"
+  | "needs_review";
+
+/**
+ * `unconfirmed`: the submission is saved but neither the publish response nor
+ * a follow-up status read arrived, so the outcome must not be claimed.
+ */
+export type PublishOwnSubmissionResult =
+  | { published: true; eventId: string }
+  | { published: false; reason: AutoPublishBlockReason }
+  | { published: "unconfirmed" };
+
+/**
+ * Publishes the caller's own pending submission when they are eligible.
+ * The server decides eligibility; an ineligible or incomplete submission
+ * stays pending for moderator review and the reason comes back.
+ */
+export async function publishOwnSubmission(id: string): Promise<PublishOwnSubmissionResult> {
+  const { data, error } = await supabase.rpc("publish_own_event_submission", {
+    p_submission_id: id,
+  });
+  if (error) throw new Error(`Failed to publish submission: ${error.message}`);
+  const result = data as { published: boolean; event_id?: string; reason?: AutoPublishBlockReason };
+  return result.published && result.event_id
+    ? { published: true, eventId: result.event_id }
+    : { published: false, reason: result.reason ?? "needs_review" };
+}
+
+/**
+ * After a lost publish response: what actually happened to the caller's own
+ * submission. Never throws; an unreadable status is `unconfirmed`.
+ */
+export async function readOwnSubmissionOutcome(id: string): Promise<PublishOwnSubmissionResult> {
+  const { data, error } = await supabase
+    .from("event_submissions")
+    .select("status, approved_event_id")
+    .eq("id", id)
+    .maybeSingle();
+  if (error || !data) return { published: "unconfirmed" };
+  if (data.status === "approved" && data.approved_event_id) {
+    return { published: true, eventId: data.approved_event_id as string };
+  }
+  return data.status === "pending"
+    ? { published: false, reason: "needs_review" }
+    : { published: "unconfirmed" };
+}
+
+/** The caller's current block reason, or null when their next submission publishes straight away. */
+export async function fetchMyAutoPublishBlockReason(): Promise<AutoPublishBlockReason | null> {
+  const { data, error } = await supabase.rpc("my_auto_publish_block_reason");
+  if (error) throw new Error(`Failed to check publishing access: ${error.message}`);
+  return (data as AutoPublishBlockReason | null) ?? null;
+}
+
 /**
  * Owner-visible moderation records that can still be edited. RLS remains the
  * authority; the explicit user filter documents the intended lifecycle and

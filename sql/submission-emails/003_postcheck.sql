@@ -10,6 +10,7 @@
 --   1. 001_email_delivery_attempts.sql                      — required
 --   2. 002_anon_submitter_contact_required.sql              — recommended
 --   3. THIS FILE (003_postcheck.sql)                        — verification
+--   4. 004_auto_published_emails.sql                        — required before updated function deploy
 --
 -- Expected results are stated above each query.
 -- ============================================================================

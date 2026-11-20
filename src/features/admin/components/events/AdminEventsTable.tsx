@@ -54,6 +54,7 @@ export type RowAction =
   | "reject"
   | "cancel"
   | "archive"
+  | "take-down"
   | "restore"
   | "delete";
 
@@ -228,7 +229,19 @@ function rowActionItems(
     case "pending":
       return [edit, duplicate, ...featureItems, ...flyerItems, archive, del];
     case "approved":
-      return [...withDecision(decision("unpublish", "Unpublish", EyeOff)), archive, cancel, del];
+      // A member-published event leaves the public calendar only through the
+      // reasoned, audited takedown; Unpublish and Archive would skip the reason.
+      return event.source_type === "user_submission"
+        ? [
+            edit,
+            duplicate,
+            ...featureItems,
+            ...flyerItems,
+            { ...decision("take-down", "Take down", EyeOff), tone: "danger", separatorBefore: true },
+            cancel,
+            del,
+          ]
+        : [...withDecision(decision("unpublish", "Unpublish", EyeOff)), archive, cancel, del];
     case "archived":
       return [...withDecision(decision("restore", "Restore as draft", ArchiveRestore)), { ...del }];
   }

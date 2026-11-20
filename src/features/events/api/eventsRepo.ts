@@ -222,6 +222,16 @@ export async function setEventStatus(
   }
 }
 
+/** Archive a user-published event with an admin-only, audited moderation reason. */
+export async function takeDownEvent(eventId: string, reason: string): Promise<string> {
+  const { data, error } = await supabase.rpc("admin_take_down_event", {
+    p_event_id: eventId,
+    p_reason: reason,
+  });
+  if (error) throw new Error(error.message);
+  return data as string;
+}
+
 /**
  * Feature or unfeature one event on the homepage. The RPC is the only write
  * path for `featured_at`: it requires an active admin or moderator, refuses to

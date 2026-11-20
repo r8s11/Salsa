@@ -35,6 +35,10 @@ vi.mock("../features/submit-event/hooks/useSubmissionAccess", () => ({
 }));
 vi.mock("../features/admin/api/submissionsRepo", () => ({
   createSubmission: vi.fn(),
+  publishOwnSubmission: vi.fn(async () => ({ published: false, reason: "disabled" })),
+}));
+vi.mock("../features/submit-event/hooks/useAutoPublishEligibility", () => ({
+  useAutoPublishEligibility: () => ({ willPublish: false, blockReason: "disabled" }),
 }));
 // Mocked so the normal test suite can never reach the Edge Function/Resend.
 vi.mock("../features/submit-event/api/submissionNotification", () => ({

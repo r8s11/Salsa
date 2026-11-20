@@ -6,6 +6,8 @@ import {
 } from "./index.ts";
 
 const SUBMISSION_ID = "3f1c8d9e-4b2a-4c7d-9e8f-1a2b3c4d5e6f";
+const MEMBER_ID = "bbbbbbbb-cccc-4ddd-8eee-ffffffffffff";
+const EVENT_ID = "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee";
 const NOW = Date.parse("2026-09-01T12:00:00.000Z");
 const FRESH = "2026-09-01T11:58:00.000Z";
 const STALE = "2026-09-01T11:00:00.000Z";
@@ -48,6 +50,9 @@ function submissionRow(overrides: Record<string, unknown> = {}) {
     status: "pending",
     submitter_email: "submitter@example.com",
     submitter_name: "Anon Dancer",
+    submitter_id: null,
+    reviewed_by: null,
+    reviewed_at: null,
     submitted_data: {
       title: "Salsa Social at The Anchor",
       event_date: "2026-09-06T23:30:00.000Z",
@@ -61,6 +66,17 @@ function submissionRow(overrides: Record<string, unknown> = {}) {
     submitted_at: FRESH,
     ...overrides,
   };
+}
+
+function publishedRow(overrides: Record<string, unknown> = {}) {
+  return submissionRow({
+    status: "approved",
+    approved_event_id: EVENT_ID,
+    submitter_id: MEMBER_ID,
+    reviewed_by: MEMBER_ID,
+    reviewed_at: FRESH,
+    ...overrides,
+  });
 }
 
 function harness(
@@ -381,6 +397,30 @@ Deno.test("refuses a submission with no usable title", async () => {
   assertEquals(sent.length, 0);
 });
 
+for (const event of ["published", "auto_published"] as const) {
+  for (const [reason, overrides] of [
+    ["moderator reviewed it", { reviewed_by: "moderator-id" }],
+    ["no reviewer", { reviewed_by: null }],
+    ["no submitter", { submitter_id: null, reviewed_by: null }],
+    ["not approved", { status: "pending" }],
+    ["no approved event", { approved_event_id: null }],
+    ["stale review", { reviewed_at: STALE }],
+    ["no review date", { reviewed_at: null }],
+    ["invalid review date", { reviewed_at: "not-a-date" }],
+    ["future review", { reviewed_at: "2026-09-01T13:00:00.000Z" }],
+  ] as const) {
+    Deno.test(`${event} refuses a self-publish notification when ${reason}`, async () => {
+      const { handler, sent, claims } = harness({ row: publishedRow(overrides) });
+      const response = await handler(
+        request({ submissionId: SUBMISSION_ID, event }, { authorization: null })
+      );
+      assertEquals(response.status, 409);
+      assertEquals(sent.length, 0);
+      assertEquals(claims.length, 0);
+    });
+  }
+}
+
 // ── Idempotency: claim BEFORE send ─────────────────────────────────────────
 
 Deno.test("claims the attempt before calling the provider", async () => {
@@ -459,6 +499,22 @@ Deno.test("different events for the same submission are not deduplicated against
     request({ submissionId: SUBMISSION_ID, event: "awaiting_review" }, { authorization: null })
   );
   assertEquals(h.sent.length, 2);
+});
+
+Deno.test("published/auto_published send nothing when the claim returns null", async () => {
+  for (const event of ["published", "auto_published"] as const) {
+    const { handler, sent, completions } = harness({
+      row: publishedRow(),
+      claimAttempt: () => Promise.resolve({ attemptId: null, error: null }),
+    });
+    const response = await handler(
+      request({ submissionId: SUBMISSION_ID, event }, { authorization: null })
+    );
+    assertEquals(response.status, 200);
+    assertEquals(await response.json(), { success: true, deduplicated: true, event });
+    assertEquals(sent.length, 0);
+    assertEquals(completions.length, 0);
+  }
 });
 
 // ── Failure handling: database state is never rolled back ──────────────────
@@ -587,6 +643,82 @@ Deno.test("rejects a header-injection attempt in the stored address", async () =
 });
 
 // ── Content correctness ────────────────────────────────────────────────────
+
+Deno.test("published notifies the submitter without a session and links to their live event", async () => {
+  const { handler, sent, claims } = harness({ row: publishedRow(), role: null });
+  const response = await handler(
+    request({
+      submissionId: SUBMISSION_ID,
+      event: "published",
+      to: "attacker@evil.example.com",
+    }, { authorization: null })
+  );
+  assertEquals(response.status, 200);
+  assertEquals(sent.length, 1);
+  assertEquals(sent[0].to, "submitter@example.com");
+  assertEquals(sent[0].replyTo, "info@salsasegura.com");
+  assertStringIncludes(sent[0].subject, "Your event is live");
+  assertStringIncludes(sent[0].html, `https://www.salsasegura.com/events/${EVENT_ID}`);
+  assertStringIncludes(sent[0].text, `https://www.salsasegura.com/events/${EVENT_ID}`);
+  assertStringIncludes(sent[0].text, "submitted while signed in");
+  assertStringIncludes(sent[0].text, "correction");
+  assertEquals(sent[0].text.includes("moderator approved"), false);
+  assertEquals(claims[0].recipientKind, "submitter");
+});
+
+Deno.test("auto_published notifies support without a session and includes moderator context", async () => {
+  const { handler, sent, claims } = harness({ row: publishedRow(), role: null });
+  const response = await handler(
+    request({
+      submissionId: SUBMISSION_ID,
+      event: "auto_published",
+      to: "attacker@evil.example.com",
+    }, { authorization: null })
+  );
+  assertEquals(response.status, 200);
+  assertEquals(sent.length, 1);
+  assertEquals(sent[0].to, "info@salsasegura.com");
+  assertEquals(sent[0].replyTo, "submitter@example.com");
+  assertStringIncludes(sent[0].subject, "Member published an event");
+  assertStringIncludes(sent[0].html, `https://www.salsasegura.com/events/${EVENT_ID}`);
+  assertStringIncludes(sent[0].text, "Anon Dancer");
+  assertStringIncludes(sent[0].text, "submitter@example.com");
+  assertStringIncludes(sent[0].text, SUBMISSION_ID);
+  assertStringIncludes(sent[0].text, "Admin → Events (Source: User Submission)");
+  assertEquals(claims[0].recipientKind, "moderator");
+});
+
+Deno.test("auto_published omits an invalid submitter reply-to address", async () => {
+  const { handler, sent } = harness({
+    row: publishedRow({ submitter_email: "not-an-address" }),
+  });
+  const response = await handler(
+    request({ submissionId: SUBMISSION_ID, event: "auto_published" }, { authorization: null })
+  );
+  assertEquals(response.status, 200);
+  assertEquals(sent[0].replyTo, undefined);
+  assertEquals(sent[0].text.includes("not-an-address"), false);
+});
+
+Deno.test("published/auto_published omit public links when the origin is unsafe", async () => {
+  for (const event of ["published", "auto_published"] as const) {
+    const { handler, sent } = harness({
+      row: publishedRow(),
+      settings: {
+        platform_name: "SalsaSegura",
+        public_site_url: "javascript:alert(1)",
+        support_email: "info@salsasegura.com",
+      },
+    });
+    const response = await handler(
+      request({ submissionId: SUBMISSION_ID, event }, { authorization: null })
+    );
+    assertEquals(response.status, 200);
+    assertEquals(sent[0].html.includes("View event"), false);
+    assertEquals(sent[0].html.includes("javascript:"), false);
+    assertEquals(sent[0].text.includes("/events/"), false);
+  }
+});
 
 Deno.test("internal_note can never reach the submitter", async () => {
   // The column is not selected by readSubmission and is not a parameter of

@@ -220,7 +220,6 @@ export default function AdminSettingsPage() {
       setCardSaving("defaults", false);
     }
   };
-
   const confirmSubmissionChange = async () => {
     if (!pendingSubmissionChange) return;
     const changes: PlatformSettingsUpdate = {
@@ -504,6 +503,20 @@ export default function AdminSettingsPage() {
             setPendingSubmissionChange({ field: "allow_registered_user_submissions", value })
           }
         />
+        <SubmissionSwitch
+          label="Publish members' events without review"
+          description={
+            "Signed-in members with a confirmed email publish straight away, up to 3 events per rolling 24 hours; guests are still reviewed. Moderators can archive auto-published events from Admin → Events (Source: User Submission)." +
+            (!registeredSubmissionsEnabled
+              ? " Enable registered-user submissions first."
+              : "")
+          }
+          checked={settings.registered_auto_publish_enabled}
+          disabled={isSavingSubmissions || !registeredSubmissionsEnabled}
+          onChange={(value) =>
+            setPendingSubmissionChange({ field: "registered_auto_publish_enabled", value })
+          }
+        />
         {submissionSaveError && (
           <p className="admin-field__error" role="alert">
             {submissionSaveError}
@@ -534,7 +547,9 @@ export default function AdminSettingsPage() {
 
       {pendingSubmissionChange && (
         <AdminConfirmDialog
-          title={`${pendingSubmissionChange.value ? "Enable" : "Disable"} ${pendingSubmissionChange.field === "allow_public_event_suggestions" ? "public event suggestions" : "registered-user submissions"}?`}
+          title={pendingSubmissionChange.field === "registered_auto_publish_enabled"
+            ? `${submissionConfirmLabel(pendingSubmissionChange)}?`
+            : `${pendingSubmissionChange.value ? "Enable" : "Disable"} ${pendingSubmissionChange.field === "allow_public_event_suggestions" ? "public event suggestions" : "registered-user submissions"}?`}
           body={submissionConfirmationBody(
             pendingSubmissionChange,
             publicSuggestionsEnabled,
@@ -665,7 +680,9 @@ function submissionConfirmLabel(change: NonNullable<PendingSubmissionChange>) {
   const audience =
     change.field === "allow_public_event_suggestions"
       ? "public suggestions"
-      : "registered-user submissions";
+      : change.field === "registered_auto_publish_enabled"
+        ? "member publishing without review"
+        : "registered-user submissions";
   return `${change.value ? "Enable" : "Disable"} ${audience}`;
 }
 
@@ -674,6 +691,11 @@ function submissionConfirmationBody(
   publicEnabled: boolean,
   registeredEnabled: boolean
 ) {
+  if (change.field === "registered_auto_publish_enabled") {
+    return change.value
+      ? "Anyone with an account and a confirmed email can publish events without review. Each member can publish up to 3 events per rolling 24 hours. Guests are still reviewed. Moderators can archive auto-published events from Admin → Events (Source: User Submission)."
+      : "Members' events will require moderator review before publication. Existing published events remain public.";
+  }
   const otherPathEnabled =
     change.field === "allow_public_event_suggestions" ? registeredEnabled : publicEnabled;
   const audience =

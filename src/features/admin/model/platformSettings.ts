@@ -13,6 +13,7 @@ export type PlatformSettings = {
   default_event_duration_minutes: number;
   allow_public_event_suggestions: boolean;
   allow_registered_user_submissions: boolean;
+  registered_auto_publish_enabled: boolean;
   updated_by: string | null;
   updated_at: string;
 };
@@ -29,7 +30,9 @@ export type EventDefaultsForm = Pick<
 
 export type SubmissionAccessForm = Pick<
   PlatformSettings,
-  "allow_public_event_suggestions" | "allow_registered_user_submissions"
+  | "allow_public_event_suggestions"
+  | "allow_registered_user_submissions"
+  | "registered_auto_publish_enabled"
 >;
 
 export type FieldErrors<T extends object> = Partial<Record<keyof T, string>>;

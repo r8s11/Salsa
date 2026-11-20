@@ -165,6 +165,35 @@ begin
   perform oa_test.ok(jsonb_array_length(res) = 2, 'membership read model');
   -- The unrelated organizer's event and membership are untouched throughout.
   perform oa_test.ok((select organizer_id = other_org and status = 'draft' from public.events where id = ev2), 'unrelated event changed');
+
+  -- Duplicate guard: normalized name, city and website, regardless of status.
+  perform oa_test.fails('authenticated', admin_u, true, format('select public.admin_assign_organizer_member(%L, null, ''owner'', %L::jsonb)::text', mgr, jsonb_build_object('name', '  BRAND   new org ' || tag || ' ')), '23505', 'case/whitespace duplicate via RPC');
+  begin
+    perform oa_test.run('authenticated', admin_u, true, format('select public.admin_assign_organizer_member(%L, null, ''owner'', %L::jsonb)::text', mgr, jsonb_build_object('name', 'Brand New Org ' || tag)));
+    raise exception 'FAILED: duplicate create accepted';
+  exception when unique_violation then
+    perform oa_test.ok(sqlerrm like 'An organizer named Brand New Org % already exists. Assign the user to it instead.', 'duplicate message not actionable: ' || sqlerrm);
+  end;
+  perform oa_test.ok(not exists (select 1 from public.organizer_members where user_id = mgr and organizer_id <> new_org), 'rejected duplicate left a membership');
+  begin
+    insert into public.organizers (name, status) values (' brand NEW org ' || tag, 'active');
+    raise exception 'FAILED: direct duplicate insert accepted';
+  exception when unique_violation then null; end;
+  begin
+    insert into public.organizers (name, status, primary_city) values ('Brand New Org ' || tag, 'active', 'boston');
+    insert into public.organizers (name, status, primary_city) values ('Brand New Org ' || tag, 'needs_review', 'boston');
+    raise exception 'FAILED: duplicate in same city accepted';
+  exception when unique_violation then null; end;
+  begin
+    insert into public.organizers (name, status, website) values ('Brand New Org ' || tag, 'archived', '');
+    raise exception 'FAILED: archived duplicate with empty website accepted';
+  exception when unique_violation then null; end;
+  -- Same name in a different city or with a distinct website remains valid.
+  insert into public.organizers (name, status, primary_city) values ('Brand New Org ' || tag, 'active', 'chicago');
+  insert into public.organizers (name, status, website) values ('Brand New Org ' || tag, 'active', 'https://distinct.example.test');
+  insert into public.organizers (name, status) values ('Brand New Org 2 ' || tag, 'active');
+  perform oa_test.ok((select count(*) from public.organizers where name = 'Brand New Org ' || tag) = 3, 'distinct organizers affected');
+  perform oa_test.ok(exists (select 1 from public.organizers where id = org and name = 'Existing Org ' || tag), 'existing organizer changed');
 end $$;
 rollback;
 \echo 'PASS admin organizer assignment: authority, hierarchy, audit, archived guard and data preservation'

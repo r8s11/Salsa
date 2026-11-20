@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import posthog from "posthog-js";
+import { posthog } from "../../shared/analytics/posthog";
 import { Camera } from "lucide-react";
 import { useAuth } from "../../contexts/useAuth";
 import { useOwnProfile } from "../../features/account/hooks/useOwnProfile";

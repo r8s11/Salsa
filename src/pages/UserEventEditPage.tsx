@@ -1,6 +1,6 @@
 import type { FormEvent } from "react";
 import { useEffect, useRef, useState } from "react";
-import posthog from "posthog-js";
+import { posthog } from "../shared/analytics/posthog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { XCircle } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -331,6 +331,8 @@ export default function UserEventEditPage() {
       }));
     }
     posthog.capture("event_submission_updated", {
+      event_id: editingEvent.id,
+      city: form.city,
       event_status: editingEvent.status,
       is_organizer: isOrganizer,
       flyer_updated: supportsFlyer && flyersDirty,
@@ -349,7 +351,11 @@ export default function UserEventEditPage() {
     setWithdrawError(null);
     try {
       await withdrawMutation.mutateAsync(editingEvent);
-      posthog.capture("event_submission_withdrawn", { is_organizer: isOrganizer });
+      posthog.capture("event_submission_withdrawn", {
+        event_id: editingEvent.id,
+        city: editingEvent.city,
+        is_organizer: isOrganizer,
+      });
     } catch (error) {
       setWithdrawError(error instanceof Error ? error.message : "Unknown error");
     }

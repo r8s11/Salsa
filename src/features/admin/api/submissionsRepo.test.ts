@@ -28,6 +28,9 @@ vi.mock("../../../lib/supabase", () => ({
   },
 }));
 
+const { firstTouch } = vi.hoisted(() => ({ firstTouch: { current: null as null | Record<string, string> } }));
+vi.mock("../../../shared/analytics/attribution", () => ({ getFirstTouch: () => firstTouch.current }));
+
 describe("submissionsRepo", () => {
   it("fetches pending submissions", async () => {
     await submissionsRepo.getPendingSubmissions();
@@ -106,6 +109,41 @@ describe("submissionsRepo", () => {
       })
     );
     expect(queryBuilder.select).not.toHaveBeenCalled();
+  });
+
+  it("stores the tab's first-touch attribution with the submission", async () => {
+    queryBuilder.insert.mockClear();
+    firstTouch.current = { utm_source: "tiktok", landing_path: "/submit", captured_at: "2026-05-01T12:00:00.000Z" };
+    try {
+      await createSubmission({
+        submitter_id: null,
+        submitter_email: null,
+        submitter_name: null,
+        title: "Organic Night",
+        description: null,
+        event_type: "social",
+        event_types: ["social"],
+        city: "boston",
+        sublocation: null,
+        neighborhood: null,
+        event_date: "2026-08-20T20:00:00Z",
+        event_time: null,
+        location: null,
+        address: null,
+        price_type: null,
+        price_amount: null,
+        rsvp_link: null,
+        recurrence: null,
+        dance_styles: [],
+      });
+    } finally {
+      firstTouch.current = null;
+    }
+    expect(queryBuilder.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        first_touch: { utm_source: "tiktok", landing_path: "/submit", captured_at: "2026-05-01T12:00:00.000Z" },
+      })
+    );
   });
 
   it("stores the NYC borough in submitted_data so approval can copy it to the event", async () => {

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import posthog from "posthog-js";
+import { posthog } from "../../../shared/analytics/posthog";
 import { isShopifyConfigured, storefront, StorefrontError } from "../api/storefront";
 import type { Cart } from "../api/types";
 import { CartContext } from "./CartContext";

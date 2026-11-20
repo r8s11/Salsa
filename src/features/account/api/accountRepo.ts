@@ -1,6 +1,7 @@
 import { supabase } from "../../../lib/supabase";
 import type { City } from "../../events/model/types";
 import type { NotificationPrefs, OwnProfile } from "../model/account";
+import type { FirstTouch } from "../../../shared/analytics/attribution";
 
 // Every column the profile screens read. Kept in one place so the fetch and
 // the update round-trip cannot drift apart.
@@ -135,4 +136,13 @@ export async function checkUsernameAvailable(username: string): Promise<boolean>
   });
   if (error) throw new Error(error.message);
   return data as boolean;
+}
+
+/**
+ * Save the visit that brought the caller to the site. Set-once and limited to
+ * new accounts by the record_profile_first_touch RPC; repeat calls are no-ops.
+ */
+export async function recordOwnFirstTouch(firstTouch: FirstTouch): Promise<void> {
+  const { error } = await supabase.rpc("record_profile_first_touch", { p_first_touch: firstTouch });
+  if (error) throw new Error(error.message);
 }

@@ -39,6 +39,20 @@ export default [
       ...reactHooks.configs.recommended.rules,
       ...prettier.rules,
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
+      // posthog-js loads lazily after first render; the wrapper queues calls made
+      // before init. A direct import bypasses the queue and drops early calls.
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "posthog-js",
+              message: "Import { posthog } from src/shared/analytics/posthog instead.",
+              allowTypeImports: true,
+            },
+          ],
+        },
+      ],
       "@typescript-eslint/no-unused-vars": [
         "warn",
         {

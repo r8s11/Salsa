@@ -32,6 +32,7 @@ import { buildPublicEventUrl } from "../../model/eventSharing";
 import { buildShortEventUrl, shortEventLabel } from "../../model/shortLink";
 import { sharePosterFile } from "../../model/sharePosterFile";
 import { useAccessibleDialog } from "../../../../shared/a11y/useAccessibleDialog";
+import { posthog } from "../../../../shared/analytics/posthog";
 import { recordEventTouch } from "../../api/eventsRepo";
 import { useEventViewTouch } from "../../hooks/useEventViewTouch";
 import SleeveCover from "./SleeveCover";
@@ -151,7 +152,20 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
   const copiedTimerRef = useRef<number | null>(null);
   const { createPoster, posterFilename, downloadPoster } = useShareablePoster();
 
-  useEventViewTouch(String(event.id), event.city);
+  useEventViewTouch(String(event.id), event.city, event.publicEntities?.organizer?.id);
+  const analyticsProperties = {
+    event_id: String(event.id),
+    city: event.city ?? null,
+    event_type: event.calendarId,
+    organizer_id: event.publicEntities?.organizer?.id ?? null,
+  };
+  const trackAttendanceClick = () => {
+    void recordEventTouch(String(event.id), event.priceType === "paid" ? "ticket_click" : "rsvp_click", event.city);
+    posthog.capture("event_rsvp_clicked", {
+      ...analyticsProperties,
+      attendance_type: event.priceType === "paid" ? "ticket" : "rsvp",
+    });
+  };
 
   // The sleeve thumbnail and preview set the poster's own faces.
   useEffect(() => {
@@ -173,6 +187,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
   }, []);
   const handleCopyLink = async (region: ActionRegion) => {
     void recordEventTouch(String(event.id), "share", event.city);
+    posthog.capture("event_shared", { ...analyticsProperties, method: "copy_link" });
     try {
       if (!navigator.clipboard?.writeText) throw new Error("Clipboard unavailable");
       await navigator.clipboard.writeText(canonicalUrl);
@@ -331,7 +346,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
                 href={rsvpTarget}
                 target={artistCapture ? undefined : "_blank"}
                 rel={artistCapture ? undefined : "noopener noreferrer"}
-                onClick={() => void recordEventTouch(String(event.id), event.priceType === "paid" ? "ticket_click" : "rsvp_click", event.city)}
+                onClick={trackAttendanceClick}
               >
                 Reserve
               </a>
@@ -350,6 +365,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
   const handleSharePoster = async (region: ActionRegion, posterFormat: PosterFormat) => {
     if (isSharing) return;
     void recordEventTouch(String(event.id), "share", event.city);
+    posthog.capture("event_shared", { ...analyticsProperties, method: "poster" });
     setIsSharing(true);
     setFeedback(null);
     setShareFallback(null);
@@ -507,7 +523,7 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
           {...(artistCapture ? { to: rsvpTarget } : { href: rsvpTarget, external: true })}
           variant="secondary"
           className="night-actions__rsvp"
-          onClick={() => void recordEventTouch(String(event.id), event.priceType === "paid" ? "ticket_click" : "rsvp_click", event.city)}
+          onClick={trackAttendanceClick}
         >
           {rsvpLabel}
         </ButtonLink>

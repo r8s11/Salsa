@@ -4,6 +4,7 @@ import { render as rtlRender, screen, fireEvent, waitFor, act, within } from "@t
 import { MemoryRouter } from "react-router-dom";
 import EventModal from "./EventModal";
 import { recordEventTouch } from "../../api/eventsRepo";
+import { posthog } from "../../../../shared/analytics/posthog";
 
 import { ScheduleXEvent } from "../../../../types/events";
 
@@ -30,6 +31,8 @@ vi.mock("./posterFonts", () => ({
   ensurePosterFonts: vi.fn().mockResolvedValue(undefined),
   posterFontEmbedCss: vi.fn().mockResolvedValue(""),
 }));
+
+vi.mock("../../../../shared/analytics/posthog", () => ({ posthog: { capture: vi.fn() } }));
 
 vi.mock("../../api/eventsRepo", () => ({
   recordEventTouch: vi.fn(),
@@ -703,6 +706,22 @@ describe("demand telemetry", () => {
     fireEvent.click(rsvpLinks[0]);
 
     expect(recordEventTouch).toHaveBeenCalledWith(String(baseEvent.id), "ticket_click", baseEvent.city);
+  });
+
+  it("sends PostHog view and RSVP events with event and city ids from the calendar modal", () => {
+    vi.mocked(posthog.capture).mockClear();
+    render(<EventModal event={{ ...baseEvent, city: "boston" }} onClose={() => {}} />);
+    expect(posthog.capture).toHaveBeenCalledWith(
+      "event_viewed",
+      expect.objectContaining({ event_id: "1", city: "boston" })
+    );
+
+    fireEvent.click(screen.getAllByRole("link", { name: /get tickets|RSVP · Free/i })[0]);
+
+    expect(posthog.capture).toHaveBeenCalledWith(
+      "event_rsvp_clicked",
+      expect.objectContaining({ event_id: "1", city: "boston", event_type: "social", attendance_type: "ticket" })
+    );
   });
 
   describe("multiple flyers", () => {

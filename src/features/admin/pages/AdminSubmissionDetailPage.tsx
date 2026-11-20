@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import posthog from "posthog-js";
+import { posthog } from "../../../shared/analytics/posthog";
 import { useParams, useNavigate } from "react-router-dom";
 import { CalendarDays, Clock3, FileText, MapPin, UserRound } from "lucide-react";
 import { useActiveTaxonomyTerms } from "../hooks/useAdminTaxonomy";
@@ -118,6 +118,8 @@ export default function AdminSubmissionDetailPage() {
         onSuccess: () => {
           void notifySubmissionApproved(submission.id);
           posthog.capture("event_submission_approved", {
+            submission_id: submission.id,
+            city: typeof submission.submitted_data.city === "string" ? submission.submitted_data.city : null,
             taxonomy_term_count: taxonomyTermIds.length,
             entity_review_updated: Boolean(reviewEdit),
           });
@@ -140,7 +142,11 @@ export default function AdminSubmissionDetailPage() {
       {
         onSuccess: () => {
           void notifySubmissionRejected(submission.id);
-          posthog.capture("event_submission_rejected");
+          posthog.capture("event_submission_rejected", {
+            submission_id: submission.id,
+            city: typeof submission.submitted_data.city === "string" ? submission.submitted_data.city : null,
+            rejection_reason: reason,
+          });
           navigate("/admin/submissions");
         },
       }

@@ -1,4 +1,5 @@
 import { supabase } from "../../../lib/supabase";
+import { getFirstTouch } from "../../../shared/analytics/attribution";
 import type { EventSubmission } from "../model/submissions";
 import type { EventType } from "../../events/model/types";
 import type { EntityReview } from "../../entity-matching/entityReview";
@@ -80,6 +81,8 @@ export async function createSubmission(
     duplicate_of_event_id: null,
     dismissed_duplicate_ids: [],
     approved_event_id: null,
+    // How this tab arrived (UTM/referrer host), or null for a direct visit.
+    first_touch: getFirstTouch(),
   });
 
   if (error) throw error;

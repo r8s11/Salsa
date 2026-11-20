@@ -13,7 +13,7 @@ export default function PrivacyPage() {
     <main className="legal-page">
       <article className="legal-page__inner">
         <h1>Privacy Policy</h1>
-        <p className="legal-page__updated">Last updated: November 5, 2026</p>
+        <p className="legal-page__updated">Last updated: November 20, 2026</p>
 
         <h2>Who we are</h2>
         <p>
@@ -46,7 +46,8 @@ export default function PrivacyPage() {
         <p>
           <strong>Event submissions.</strong> Event details you submit or edit, any flyer images you
           upload, and the submitter and contact email addresses attached to the listing. Listings
-          are reviewed before they appear.
+          are reviewed before they appear. We also store how you reached the site, described under
+          &ldquo;How you found us&rdquo; below.
         </p>
         <p>
           <strong>Contact form.</strong> The name, email, area of interest, and message you type
@@ -107,15 +108,28 @@ export default function PrivacyPage() {
         <h2>Analytics</h2>
         <p>
           PostHog is set up without cookies or browser storage: an anonymous identifier lasts only
-          for the current page view. When you are signed in, activity can be associated with your
-          account. PostHog receives error reports, a small number of named events (for example
-          adding to the cart or starting checkout), and logs about whether an event submission
-          succeeded.
+          until you reload or close the page. When you are signed in, activity can be associated
+          with your account. PostHog receives the pages you open on the site, error reports, a
+          small number of named events (for example viewing an event, clicking its RSVP link, or
+          starting checkout) with the event&rsquo;s ID, organizer and city, and logs about whether
+          an event submission succeeded. Each of these also carries the city you have selected and
+          how you reached the site.
         </p>
         <p>
           Umami also runs without cookies and counts visits to the site. When you view, share, or
           click through from an event, we record that interaction with the event&rsquo;s ID and
           city in Umami and in our own database, without recording who you are.
+        </p>
+
+        <h2>How you found us</h2>
+        <p>
+          When you arrive from a link that includes campaign tags (for example a link in one of
+          our Instagram or TikTok posts), or from another website, we note the campaign tags, the
+          name of the referring website (not the full address of the page), and the page you
+          landed on. This note is kept only in the open page, not in a cookie or browser storage.
+          If you submit an event or create an account during that visit, we save it with the
+          submission or with your account so we can tell which posts and campaigns bring dancers
+          and organizers to the site. We do not record it for direct visits.
         </p>
 
         <h2>Flyer reading with OpenAI</h2>
@@ -141,8 +155,9 @@ export default function PrivacyPage() {
         <h2>Your choices</h2>
         <ul>
           <li>
-            If your browser sends Do Not Track or Global Privacy Control, we do not record event
-            view, share, or click-through interactions.
+            If your browser sends Do Not Track or Global Privacy Control, we do not load PostHog,
+            do not note how you found us, and do not record event view, share, or click-through
+            interactions.
           </li>
           <li>
             Edit or remove most profile details, and change your visibility settings, under{" "}

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
-import posthog from "posthog-js";
+import { posthog } from "../../shared/analytics/posthog";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/useAuth";
 import { useMyOrganizers } from "../../features/host/hooks/useMyOrganizers";
@@ -89,6 +89,9 @@ export default function HostCreateEventPage() {
       );
       const files = flyers.entries.flatMap((entry) => (entry.file ? [entry.file] : []));
       posthog.capture("host_event_created", {
+        event_id: eventId,
+        organizer_id: selectedOrganizerId,
+        city: form.city,
         published: shouldPublish,
         has_flyer: files.length > 0,
         flyer_count: files.length,

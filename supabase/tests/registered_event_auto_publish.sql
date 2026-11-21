@@ -201,7 +201,10 @@ begin
 
   -- A withdrawn submission is not publishable.
   sub2 := ap_test.submit(stranger, 'Withdrawn ' || tag);
-  update public.event_submissions set status = 'withdrawn' where id = sub2;
+  -- The owner withdraws it; the submitter guard rejects JWT-less fixture updates.
+  perform ap_test.ok(ap_test.run('authenticated', stranger, false,
+    format('update public.event_submissions set status = ''withdrawn'' where id = %L returning status', sub2)) = 'withdrawn',
+    'owner can withdraw a pending submission');
   result := ap_test.publish(stranger, sub2);
   perform ap_test.ok(result = '{"published": false, "reason": "not_pending"}', 'withdrawn -> not_pending: ' || result::text);
 

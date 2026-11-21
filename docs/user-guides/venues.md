@@ -49,7 +49,7 @@ If you also run the events, follow the [organizer guide](organizers.md). You nee
 
 An artist may also manage a dated event through their own [artist workspace](artists.md#create-and-publish-an-artist-event). Venue membership does not grant access to that artist's guest contacts. Public signup counts are not venue-capacity or verified-admission figures; coordinate actual capacity and entry arrangements directly with the event host.
 
-For events run by an outside promoter, ask the promoter to maintain the event listing. You can suggest a missing event through [Submit an event](https://www.salsasegura.com/submit), but submitting it does not make you its organizer or bypass review.
+For events run by an outside promoter, ask the promoter to maintain the event listing. You can suggest a missing event through [Submit an event](https://www.salsasegura.com/submit), but submitting it does not make you its organizer. A single event from a signed-in account with a confirmed email goes live straight away; others are reviewed first.
 
 The venue workspace does not provide room reservations, venue booking, ticket sales, or a direct editor for every event held there.
 

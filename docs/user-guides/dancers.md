@@ -98,9 +98,11 @@ The personal profile page shows your own account and submission activity. It is 
 4. Complete the event fields and fix any highlighted errors. Choose the correct event types and dance styles. If you select multiple event types, the first is the primary type.
 5. Review any suggested venue, organizer, artist, or school matches. A suggested match is not a claim of ownership.
 6. Select **Submit Event**, or **Submit for review** if that is the label shown for your account.
-7. Wait for the submission confirmation. Submitting is not the same as publication.
+7. Wait for the confirmation. **Event Published!** means your event is already live; use **View your event** to check it. **Event Submitted!** means it is waiting for review, and the confirmation says why when it could not go live straight away.
 
-You may be able to submit as a guest when submissions are open. Guests supply contact details, but signing in before submitting makes it possible to track submissions from the same account.
+If you are signed in with a confirmed email, a single event goes live as soon as you submit it, up to 3 events in 24 hours. Repeating events, events dated in the past, and anything over the limit are reviewed first. Venue, organizer, artist, and school matches are not linked to an event that goes live straight away; a moderator can add them later and can remove an event that breaks the rules.
+
+You may be able to submit as a guest when submissions are open. Guest submissions are always reviewed. Guests supply contact details, but signing in before submitting makes it possible to track submissions from the same account.
 
 ### Track or correct your submission
 
@@ -110,7 +112,7 @@ Open [your profile](https://www.salsasegura.com/profile), then **My submissions*
 | --- | --- |
 | Pending | Waiting for review. Use **Edit** if you need to correct it. |
 | Rejected | Not approved. Use **Edit** to revise it and follow the form's instructions. |
-| Approved | Published. Use its public-event link to check the result. For changes not offered on your account, contact Salsa Segura. |
+| Approved | Published, either straight away or after review. Use its public-event link to check the result. For changes not offered on your account, contact Salsa Segura. |
 
 Check whether an event already exists before submitting it again. If you submitted while signed out and it does not appear on your profile, contact Salsa Segura with the event details and the email used for the submission.
 

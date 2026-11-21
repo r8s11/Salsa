@@ -25,12 +25,12 @@ A role label alone is not enough: access must belong to the organizer attached t
 
 | Your task | Use | What happens |
 | --- | --- | --- |
-| Suggest an event for moderation | [Submit an event](https://www.salsasegura.com/submit) | A submission waits for review; it is not immediately published. |
+| Suggest an event | [Submit an event](https://www.salsasegura.com/submit) | Signed in with a confirmed email, a single event goes live straight away as a member submission (up to 3 in 24 hours). Guest, repeating, and over-limit submissions wait for review. |
 | Create an event for an organizer you actively own or manage | [Create event](https://www.salsasegura.com/host/events/new) | You choose Save Draft or Publish Event. |
 | Add a batch from a spreadsheet | [Import CSV](https://www.salsasegura.com/host/events/import) | Valid selected rows create drafts. |
 | Add a batch from flyers | [Import Flyers](https://www.salsasegura.com/host/events/import-flyers) | Review and confirm each flyer, then save drafts or publish. |
 
-The public submission form can say **Submit for review** for an organizer account. That is still the review workflow; it is not the same as **Publish Event** in the organizer creation screen.
+The public submission form can say **Submit for review** for an organizer account. An event that goes live from that form is a member submission: it is not attached to your organizer and does not appear among your organizer's events. Use **Publish Event** in the organizer creation screen for events your organizer owns.
 
 Artists managing events owned by their own listing use [Artist workspace → Events](artists.md#create-and-publish-an-artist-event), not organizer membership. Organizer attendance/check-in and artist website-managed RSVPs remain separate.
 

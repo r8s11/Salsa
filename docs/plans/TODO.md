@@ -1,13 +1,5 @@
 # TODO
 
-## Pending: enable member auto-publish, then update guides and carousel
-
-**Added:** 2026-11-20. **Plan:** [registered-event-auto-publish.md](registered-event-auto-publish.md). **Built locally** 2026-11-20; switch off by default.
-
-1. Deploy migration `20261120120000_registered_event_auto_publish.sql`, then the frontend, then `sql/submission-emails/004_auto_published_emails.sql` and `send-submission-email`.
-2. In production, check a takedown hides the event from search, calendars and its detail page, then turn on **Publish members' events without review** in Admin → Settings.
-3. After it is on: update `docs/user-guides/dancers.md` (Suggest an event, status table), `organizers.md` (Choose the right event workflow), `venues.md` (Promote events you organize), and the guides carousel (`marketing/instagram/guides-carousel/`, slides 3 and 8 plus `caption.md`), then re-export the slides.
-
 ## Blocked: `temporal-polyfill` 0.3.x → 1.x bump (Step 14, Dependency modernization pass)
 
 **Status:** Attempted and reverted. `package.json` remains pinned at `^0.3.0`.

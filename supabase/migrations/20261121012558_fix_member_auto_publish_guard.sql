@@ -1,6 +1,9 @@
 -- Fix authenticated member auto-publishing blocked by the legacy submission update guard.
 -- Internal transaction-scoped authorization gate; direct member UPDATE remains restricted.
 -- This is the migration applied to production as 20261121012558_fix_member_auto_publish_guard.
+-- Fresh Supabase databases may not have an application-private schema yet.
+CREATE SCHEMA IF NOT EXISTS private;
+
 CREATE TABLE private.member_publish_approval_gate (
   submission_id uuid PRIMARY KEY,
   event_id uuid NOT NULL,

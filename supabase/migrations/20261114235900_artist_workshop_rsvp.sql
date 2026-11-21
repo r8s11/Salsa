@@ -119,12 +119,22 @@ begin
   execute v;
   v:=pg_get_functiondef('public.organizer_update_event(uuid,jsonb)'::regprocedure);
   v:=pg_temp.artist_patch(v,'public.organizer_update_event(', 'public.artist_event_update_canonical(');
-  a:=strpos(v,'  if not public.is_admin() then'); b:=strpos(v,'  update public.events e set');
+  -- Production's writer splits "update public.events e" and "set" across lines and
+  -- already whitelists sublocation; accept either layout of the same composed writer.
+  a:=strpos(v,'  if not public.is_admin() then'); b:=regexp_instr(v,' {2}update public\.events e\s+set');
   if a=0 or b<=a then raise exception 'Artist canonical update authority anchor drift'; end if;
   v:=substring(v from 1 for a-1)||E'  perform public.artist_event_require(v_event.artist_id);\n'||substring(v from b);
-  v:=pg_temp.artist_patch(v,'any(v_allowed || array[''sublocation'',''neighborhood''])',
-    'any(v_allowed || array[''sublocation'',''neighborhood'',''rsvp_enabled'',''rsvp_closed'',''rsvp_limit''])');
-  v:=pg_temp.artist_patch(v,'  update public.events e set',
+  if strpos(v,'any(v_allowed || array[''sublocation'',''neighborhood''])')>0 then
+    v:=pg_temp.artist_patch(v,'any(v_allowed || array[''sublocation'',''neighborhood''])',
+      'any(v_allowed || array[''sublocation'',''neighborhood'',''rsvp_enabled'',''rsvp_closed'',''rsvp_limit''])');
+  else
+    v:=pg_temp.artist_patch(v,'any(v_allowed || array[''neighborhood''])',
+      'any(v_allowed || array[''neighborhood'',''rsvp_enabled'',''rsvp_closed'',''rsvp_limit''])');
+  end if;
+  if regexp_count(v,' {2}update public\.events e\s+set')<>1 then
+    raise exception 'Artist RSVP migration: canonical writer anchor drift: update set';
+  end if;
+  v:=regexp_replace(v,' {2}update public\.events e\s+set',
     '  update public.events e set rsvp_enabled=case when p_payload?''rsvp_enabled'' then (p_payload->>''rsvp_enabled'')::boolean else e.rsvp_enabled end,'
     || ' rsvp_closed=case when p_payload?''rsvp_closed'' then (p_payload->>''rsvp_closed'')::boolean else e.rsvp_closed end,'
     || ' rsvp_limit=case when p_payload?''rsvp_limit'' then (p_payload->>''rsvp_limit'')::integer else e.rsvp_limit end,');

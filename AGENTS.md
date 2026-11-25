@@ -92,6 +92,11 @@ Iconify Solar and Lucide icons, PostHog analytics, Shopify Storefront API.
 - `src/types/events.ts` is a re-export shim; new code imports from `src/features/events/model/*`.
 - `supabase/migrations/`: SQL migrations; `supabase/functions/`: edge functions; `scripts/`:
   build, prerender, import and verification scripts; `docs/`: plans and audits.
+- Marketing assets never go in this repo: no carousels, social posts, ad creative, campaign
+  copy, exported images or their source HTML. Put them in the parent folder at
+  `../marketing/Salsasegura/` (relative to the repo root). App UI in `src/components/marketing/`
+  is code, not marketing assets, and stays. Follow `../marketing/Salsasegura/AGENTS.md` for
+  marketing work (motion videos open and close on the logo card).
 
 ## Routing
 

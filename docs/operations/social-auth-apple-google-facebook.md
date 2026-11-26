@@ -4,6 +4,7 @@ Status (2026-11-05):
 
 - **Google**: configured server-side. GCP project `salsa-segura`, OAuth client
   "Salsa Segura web (Supabase)" (JS origins `https://www.salsasegura.com`,
+  `https://salsasegura.com` (added 2026-11-25 after apex `origin_mismatch`),
   `http://localhost:5173`, `http://localhost`; redirect = Supabase callback),
   consent screen in **Testing** with home and `/privacy` links; Supabase Google
   provider enabled. Only test users can sign in until the consent screen is
@@ -23,6 +24,8 @@ Status (2026-11-05):
 - **Apple**: not configured (needs the paid Apple Developer Program).
 - Supabase Auth Site URL is `https://www.salsasegura.com`.
 - Public `/privacy` and `/data-deletion` pages exist for the provider consoles.
+- Azure Static Web App "Salsa" default custom domain is `www.salsasegura.com` (set 2026-11-25);
+  `salsasegura.com` returns 301 to the same path on www.
 
 ## Production auth URLs
 

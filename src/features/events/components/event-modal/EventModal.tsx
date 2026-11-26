@@ -11,9 +11,11 @@ import {
 import {
   ArrowLeft,
   CalendarPlus,
+  ChevronDown,
   Clock,
   Download,
   Eye,
+  Flag,
   Link2,
   MapPin,
   Repeat,
@@ -88,6 +90,17 @@ const formatTime = (startVal: unknown, endVal: unknown) => {
   };
   return `${startDate.toLocaleTimeString("en-US", opts)} - ${endDate.toLocaleTimeString("en-US", opts)}`;
 };
+
+// Issue reasons a dancer can flag; each opens a prefilled email so the
+// report arrives with the listing it is about.
+const REPORT_ADDRESS = "info@SalsaSegura.com";
+const REPORT_REASONS = [
+  "Wrong date or time",
+  "Wrong venue or address",
+  "Cancelled or postponed",
+  "Broken ticket or RSVP link",
+  "Something else",
+] as const;
 
 /**
  * Closed state renders nothing and — critically — mounts none of the dialog
@@ -303,6 +316,24 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
   const hasContacts = !!(event.contactEmail || event.contactInstagram || event.contactWebsite);
   const locationLabel = `${event.location}${event.address ? ` · ${event.address}` : ""}`;
   const locationUrl = mapsUrl(event);
+
+  // Reports are for nights still ahead; a recurring series stays reportable.
+  // The clock is read once when the sheet opens, keeping render pure.
+  const [openedAt] = useState(() => Date.now());
+  const isUpcoming = Boolean(event.recurrence) || toDate(event.end).getTime() > openedAt;
+  const reportHref = (reason: string) => {
+    const subject = `Event issue: ${reason} — ${event.title}`;
+    const body = [
+      `Event: ${event.title}`,
+      `When: ${formatDate(event.start)}, ${formatTime(event.start, event.end)}`,
+      `Link: ${canonicalUrl}`,
+      `Issue: ${reason}`,
+      "",
+      "What should it say instead?",
+      "",
+    ].join("\r\n");
+    return `mailto:${REPORT_ADDRESS}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  };
 
   // Contact block, in the side column of "About the night"
   const renderContactBlock = () =>
@@ -703,6 +734,28 @@ function EventModalDialog({ event, onClose }: { event: ScheduleXEvent; onClose: 
               )}
             </div>
           </section>
+        )}
+
+        {isUpcoming && (
+          <details className="night-report">
+            <summary className="night-report__summary">
+              <Flag size={16} aria-hidden />
+              <span>Report an issue with this listing</span>
+              <ChevronDown size={16} aria-hidden className="night-report__chevron" />
+            </summary>
+            <p className="night-report__prompt">
+              Pick what&apos;s off. Your email app opens with this event&apos;s details filled in.
+            </p>
+            <ul className="night-report__reasons">
+              {REPORT_REASONS.map((reason) => (
+                <li key={reason}>
+                  <a className="night-report__reason" href={reportHref(reason)}>
+                    {reason}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </details>
         )}
       </div>
 

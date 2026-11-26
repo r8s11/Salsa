@@ -785,3 +785,23 @@ describe("demand telemetry", () => {
     });
   });
 });
+
+describe("report an issue", () => {
+  const upcoming = { ...baseEvent, start: "2099-07-18 20:00", end: "2099-07-19 00:00" };
+
+  it("offers prefilled email reports that carry the reason and the listing", () => {
+    render(<EventModal event={upcoming} onClose={() => {}} />);
+    const link = screen.getByRole("link", { name: "Wrong venue or address" });
+    const href = decodeURIComponent(link.getAttribute("href") ?? "");
+    expect(href.startsWith("mailto:info@SalsaSegura.com?subject=Event issue: Wrong venue or address — Test Social")).toBe(true);
+    expect(href).toContain("Link: ");
+    expect(href).toContain("/events/1");
+  });
+
+  it("hides the report for a one-off event that has ended, but keeps it for a running series", () => {
+    const { rerender } = render(<EventModal event={baseEvent} onClose={() => {}} />);
+    expect(screen.queryByText(/Report an issue/)).not.toBeInTheDocument();
+    rerender(<EventModal event={{ ...baseEvent, recurrence: "weekly" }} onClose={() => {}} />);
+    expect(screen.getByText(/Report an issue/)).toBeInTheDocument();
+  });
+});

@@ -1275,6 +1275,14 @@ labels. Group appears in every modal state, with View full details
 appearing exactly once; tiles keep 44px targets, wrap under enlarged text
 rather than truncating labels.
 
+**Report an issue.** Last line of night sheet, below a hairline rule, for
+upcoming one-off events and recurring series only: native `<details>` with
+muted Flag summary and chevron, opening (280ms, same size-keyword rule as
+calendar Filters) onto 44px reason pills — Wrong date or time, Wrong venue
+or address, Cancelled or postponed, Broken ticket or RSVP link, Something
+else. Each pill is a `mailto:info@SalsaSegura.com` link prefilled with
+reason, title, date/time and canonical event URL. No backend queue.
+
 **The thumbnail.** Thumbnail reuses front cover alone
 (`SleeveCover`), scaled down from authored 968px art size (to 220px;
 124px on mobile; 104px below 380px). Same component as

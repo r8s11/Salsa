@@ -16,6 +16,8 @@ entity directory, and a Shopify-backed shop.
   read [PRODUCT.md](PRODUCT.md) when changing product behavior.
 - Before any UI change, read [DESIGN.md](DESIGN.md): the visual authority for Ritmo
   Vivo (public), Listings Desk (admin), and The Sleeve (posters), including interaction contracts.
+- Before building a UI component, check [design/components/](design/components/README.md):
+  reference copies of reusable components with props, call sites, and design rules.
 - For calendar, flyer, geography, import, or host-access changes, read
   [Events and geography](docs/operations/events-and-geography.md).
 - For metadata, public route builds, or itinerary deployment, read

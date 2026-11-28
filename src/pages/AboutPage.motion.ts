@@ -139,18 +139,6 @@ export function useAboutMotion(rootRef: RefObject<HTMLElement | null>) {
           }
         );
       }
-
-      const pillars = root.querySelectorAll(".about-pillars__item");
-      if (pillars.length) {
-        gsap.from(pillars, {
-          opacity: 0,
-          y: 26,
-          duration: 0.55,
-          ease: "power2.out",
-          stagger: 0.09,
-          scrollTrigger: { trigger: ".about-pillars", start: "top 78%" },
-        });
-      }
     }, root);
 
     return () => {

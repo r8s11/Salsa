@@ -74,6 +74,9 @@ function Footer() {
           </div>
 
           <nav className="footer-links" aria-label="Footer">
+            <Link className="footer-link" to="/community-voice">
+              Community Voice
+            </Link>
             <a
               className="footer-link"
               href="https://www.instagram.com/SalsaSegura"

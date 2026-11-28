@@ -1,3 +1,5 @@
+import { LayoutGrid } from "lucide-react";
+import { ENTITY_GLYPHS } from "../entityGlyphs";
 import { useState, type FormEvent } from "react";
 import { useMetros } from "../../metros/hooks/useMetros";
 import { NYC_SUBLOCATIONS } from "../../metros/model/sublocation";
@@ -6,14 +8,16 @@ import { ENTITY_LABELS, PUBLIC_ENTITY_KINDS, type PublicEntityKind } from "../mo
 
 type Props = {
   kind?: PublicEntityKind;
+  /** Restores the fields when the form remounts after a search changed outside it. */
+  initial?: DirectorySearch;
   onSearch: (search: DirectorySearch) => void;
 };
 
-export function EntityDirectorySearch({ kind, onSearch }: Props) {
-  const [draftQuery, setDraftQuery] = useState("");
-  const [draftCity, setDraftCity] = useState("");
-  const [draftBorough, setDraftBorough] = useState("");
-  const [draftKind, setDraftKind] = useState<PublicEntityKind | "">(kind ?? "");
+export function EntityDirectorySearch({ kind, initial, onSearch }: Props) {
+  const [draftQuery, setDraftQuery] = useState(initial?.query ?? "");
+  const [draftCity, setDraftCity] = useState(initial?.city ?? "");
+  const [draftBorough, setDraftBorough] = useState(initial?.borough ?? "");
+  const [draftKind, setDraftKind] = useState<PublicEntityKind | "">(kind ?? initial?.kind ?? "");
   const { metros } = useMetros();
 
   function submit(event: FormEvent<HTMLFormElement>) {
@@ -34,13 +38,19 @@ export function EntityDirectorySearch({ kind, onSearch }: Props) {
         />
       </label>
       {!kind && (
-        <label>
-          <span>Type</span>
-          <select aria-label="Type" value={draftKind} onChange={(event) => setDraftKind(event.target.value as PublicEntityKind | "")}>
-            <option value="">All kinds</option>
-            {PUBLIC_ENTITY_KINDS.map((entityKind) => <option key={entityKind} value={entityKind}>{ENTITY_LABELS[entityKind]}</option>)}
-          </select>
-        </label>
+        <fieldset className="ss-kinds">
+          <legend className="ss-sr">Type</legend>
+          {[["", "All kinds"], ...PUBLIC_ENTITY_KINDS.map((entityKind) => [entityKind, ENTITY_LABELS[entityKind]])].map(([value, label]) => {
+            const Glyph = value ? ENTITY_GLYPHS[value as PublicEntityKind] : LayoutGrid;
+            return (
+              <label key={value} className="ss-chip" title={label}>
+                <input type="radio" name="entity-kind" value={value} checked={draftKind === value} onChange={() => setDraftKind(value as PublicEntityKind | "")} />
+                <Glyph size={16} aria-hidden="true" />
+                <span>{label}</span>
+              </label>
+            );
+          })}
+        </fieldset>
       )}
       <label>
         <span>Metropolitan area</span>

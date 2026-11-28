@@ -164,6 +164,29 @@
   margin: 0;
 }
 
+/* Title words rise into place from behind a clip edge, once, on first paint. */
+.featured-card-word-mask {
+  display: inline-block;
+  overflow: clip;
+  vertical-align: top;
+  padding-block: 0.1em;
+  margin-block: -0.1em;
+}
+
+.featured-card-word {
+  display: inline-block;
+}
+
+@keyframes featured-card-word-rise {
+  from { transform: translateY(105%); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .featured-card-word {
+    animation: featured-card-word-rise 760ms cubic-bezier(0.16, 1, 0.3, 1) calc(var(--i) * 100ms) both;
+  }
+}
+
 .featured-card-meta {
   display: grid;
   gap: 0.375rem;
@@ -187,6 +210,11 @@
 
 .featured-card .event-card-entity {
   overflow-wrap: anywhere;
+}
+
+/* The body gap already spaces this row; pull it toward the meta above. */
+.featured-card-body > .event-entity-links {
+  margin-block: -0.5rem;
 }
 
 .featured-card-description {
@@ -373,10 +401,21 @@
   z-index: 2;
   display: inline-flex;
   align-items: center;
-  min-height: 44px;
+  min-width: 0;
+  min-height: 24px;
   color: inherit;
   text-decoration: underline;
   text-underline-offset: 0.2em;
+}
+
+/* Visible box stays one text line; the invisible pad keeps a 44px target. */
+.event-card-entity::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: 44px;
+  translate: 0 -50%;
 }
 
 .event-card-entity:focus-visible {
@@ -579,9 +618,23 @@
 }
 
 .event-card-location {
-  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.event-card-location svg {
+  flex: none;
+}
+
+/* Ellipsis sits on the name, not the row, so the venue link's hit pad
+   is not clipped. */
+.event-card-location-name {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Event type badge — shared by featured card; several categories sit side by

@@ -16,7 +16,8 @@ export function useEntityDirectory(kind?: PublicEntityKind) {
   const { data = [], isPending, error, refetch } = useQuery({
     queryKey: ["public-entity-directory", search.kind ?? null, search.query, search.city || null, search.borough || null, limit, offset],
     queryFn: () => fetchEntityDirectory({ ...search, limit, offset }),
-    enabled: active,
+    // An "All kinds" search renders per-kind sections that fetch on their own.
+    enabled: active && Boolean(search.kind),
   });
 
   return {

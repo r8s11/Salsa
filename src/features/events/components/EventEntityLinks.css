@@ -1,8 +1,8 @@
 .event-entity-links {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem 1rem;
-  margin-block: 1rem;
+  gap: 0.5rem 1.25rem;
+  margin-block: 0.5rem;
   color: var(--text, var(--color-on-surface));
   font-size: 0.875rem;
 }
@@ -11,11 +11,38 @@
   z-index: 2;
   display: inline-flex;
   align-items: center;
-  min-height: 44px;
+  gap: 0.45em;
+  min-height: 24px;
   color: inherit;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+/* The link box stays one text line; this invisible pad keeps the 44px target
+   without stacking 44px of air under every wrapped row. */
+.event-entity-links a::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: 44px;
+  translate: 0 -50%;
+}
+/* The glyph shows the kind; the kind's name stays for screen readers only. */
+.event-entity-links__glyph {
+  flex: none;
+  color: var(--text-muted, currentColor);
+}
+.event-entity-links__kind {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.event-entity-links__name {
   text-decoration: underline;
   text-underline-offset: 0.2em;
-  overflow-wrap: anywhere;
 }
 .event-entity-links a:hover { color: var(--red-bright, var(--color-primary)); }
 .event-entity-links a:focus-visible {

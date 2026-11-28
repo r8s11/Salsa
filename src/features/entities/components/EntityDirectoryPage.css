@@ -53,6 +53,73 @@
 }
 .entity-directory__search button { min-height: 46px; white-space: nowrap; }
 
+/* Kind chips: a full-width row of glyph pills under the fields. */
+@keyframes ss-glyph-pop {
+  from { transform: scale(0.6) rotate(-14deg); opacity: 0.4; }
+}
+@media (min-width: 861px) {
+  .entity-directory__search {
+    grid-template-columns: minmax(14rem, 1.4fr) minmax(10rem, 0.6fr) minmax(10rem, 0.6fr) auto;
+  }
+  .entity-directory__search .ss-kinds { grid-row: 2; }
+}
+.entity-directory__search .ss-kinds {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.entity-directory__search .ss-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.entity-directory__search .ss-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 44px;
+  padding: 0.4rem 0.95rem;
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius-full);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+.entity-directory__search .ss-chip > span { font-size: 0.875rem; font-weight: 600; }
+.entity-directory__search .ss-chip svg { flex: none; color: var(--text-muted); }
+.entity-directory__search .ss-chip:hover { background: var(--card-hover); }
+.entity-directory__search .ss-chip input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.entity-directory__search .ss-chip:has(input:checked) {
+  border-color: var(--red-bright);
+  background: var(--red-dim);
+}
+.entity-directory__search .ss-chip:has(input:checked) svg { color: var(--red-bright); }
+.entity-directory__search .ss-chip:has(input:focus-visible) { outline: 2px solid var(--gold); outline-offset: 3px; }
+@media (prefers-reduced-motion: no-preference) {
+  .entity-directory__search .ss-chip:has(input:checked) svg { animation: ss-glyph-pop 380ms cubic-bezier(0.16, 1, 0.3, 1); }
+}
+
 .entity-directory__grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -143,9 +210,29 @@
 
 /* Keep NYC school groups readable without changing the base directory card layout. */
 .entity-directory__borough-groups { display: grid; gap: clamp(1.75rem, 4vw, 3rem); }
-.entity-directory__borough-groups section > h2 {
+.entity-directory__borough-groups section > h2,
+.entity-directory__section-head h2 {
   margin: 0 0 0.85rem;
   font-family: var(--font-display);
   font-size: clamp(1.25rem, 2.5vw, 1.7rem);
   color: var(--text);
+}
+.entity-directory__section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  margin-bottom: 0.85rem;
+}
+.entity-directory__kind-groups .entity-directory__section-head h2 { margin: 0; }
+/* Under a kind heading each card's own kind tag only repeats the heading. */
+.entity-directory__kind-groups .entity-directory__result-kind { display: none; }
+.entity-directory__result-date {
+  color: var(--gold-light);
+  font-family: var(--font-ui);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
 }

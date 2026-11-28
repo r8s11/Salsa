@@ -1,15 +1,16 @@
 import "temporal-polyfill/global";
 import { Link } from "react-router-dom";
-import { ArrowUpRight, MapPin } from "lucide-react";
 import { entityExternalLinks } from "../externalLinks";
 import { eventSummaryTimeZone } from "../format";
-import { entityHref, type EntityDetail, type EventSummary, type PublicEntityRef } from "../model";
+import { entityHref, profileMedia, type EntityDetail, type EventSummary, type PublicEntityRef } from "../model";
 import { EntityClaimControl } from "../../workspaces/components/public/EntityClaimControl";
 import { SchoolOfferingsSection } from "../../workspaces/components/public/SchoolOfferingsSection";
 import { EntityEditButton } from "./EntityEditButton";
-import "./SchoolProfile.css";
+import VenueMapCard from "../../events/components/VenueMapCard";
+import { ProfileLinks, ProfileNight, ProfileShell } from "./ProfileShell";
 
 const PAST_LIMIT = 6;
+const SIDE_LIMIT = 3;
 
 interface NightDate {
   day: string;
@@ -58,32 +59,16 @@ function initials(name: string): string {
     .join("");
 }
 
-function DateTile({ date }: { date: NightDate | null }) {
-  return (
-    <span className="school-profile__date" aria-hidden="true">
-      {date && (
-        <>
-          <span className="school-profile__date-day">{date.day}</span>
-          <span className="school-profile__date-month">{date.month}</span>
-        </>
-      )}
-    </span>
-  );
-}
-
 function NightRow({ event }: { event: EventSummary }) {
   const date = nightDate(event);
   return (
-    <Link className="school-profile__night" to={entityHref({ kind: "event", slug: event.slug })}>
-      <DateTile date={date} />
-      <span className="school-profile__night-copy">
-        <strong>{event.title}</strong>
-        <span>
-          {date ? `${date.when} · ${date.time}` : event.event_date}
-          {event.location ? ` · ${event.location}` : ""}
-        </span>
-      </span>
-    </Link>
+    <ProfileNight
+      to={entityHref({ kind: "event", slug: event.slug })}
+      day={date?.day}
+      month={date?.month}
+      title={event.title}
+      meta={`${date ? `${date.when} · ${date.time}` : event.event_date}${event.location ? ` · ${event.location}` : ""}`}
+    />
   );
 }
 
@@ -92,7 +77,7 @@ function RefList({ title, id, refs }: { title: string; id: string; refs: PublicE
   return (
     <section aria-labelledby={id}>
       <h2 id={id}>{title}</h2>
-      <ul className="school-profile__refs">
+      <ul className="profile__refs">
         {refs.map((ref) => (
           <li key={`${ref.kind}:${ref.id}`}>
             <Link to={entityHref(ref)}>{ref.name}</Link>
@@ -113,8 +98,6 @@ export function SchoolProfile({ detail }: { detail: EntityDetail }) {
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${school.name}, ${addressQuery}`)}`
     : null;
 
-  const next = upcoming[0] ?? null;
-  const nextDate = next ? nightDate(next) : null;
   const byKind = (kind: PublicEntityRef["kind"]) => related.filter((ref) => ref.kind === kind);
   const instructors = byKind("instructor");
   const styles = byKind("style").filter((ref) => ref.category === "dance_style");
@@ -125,107 +108,63 @@ export function SchoolProfile({ detail }: { detail: EntityDetail }) {
   const metro = byKind("city")[0] ?? null;
 
   return (
-    <article className="school-profile" aria-labelledby="school-profile-title">
-      <header className="school-profile__hero">
-        <div className="school-profile__intro">
-          <h1 id="school-profile-title">{school.name}</h1>
-          <EntityEditButton kind="school" id={school.id} />
-          <p className="school-profile__where">{town ? `Dance school in ${town}` : "Dance school"}</p>
-          {school.description && <p className="school-profile__about">{school.description}</p>}
+    <ProfileShell
+      variant="school"
+      titleId="school-profile-title"
+      crumb={{ label: "Schools", to: "/schools" }}
+      name={school.name}
+      where={town ? `Dance school in ${town}` : "Dance school"}
+      imageUrl={school.image_url}
+      media={profileMedia(detail)}
+      adminSlot={<EntityEditButton kind="school" id={school.id} />}
+      main={
+        <>
+          {school.description && (
+            <section className="profile__about" aria-labelledby="school-about">
+              <h2 id="school-about">About the school</h2>
+              <p>{school.description}</p>
+            </section>
+          )}
           {styles.length > 0 && (
-            <ul className="school-profile__styles" aria-label="Dance styles taught">
-              {styles.map((style) => (
-                <li key={style.id}>
-                  <Link className="style-chip" to={entityHref(style)}>
-                    {style.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        <aside className="school-profile__door" aria-label={`Visiting ${school.name}`}>
-          {school.image_url && (
-            <img className="school-profile__photo" src={school.image_url} alt="" />
-          )}
-          <div className="school-profile__door-body">
-            {next ? (
-              <Link
-                className="school-profile__next"
-                to={entityHref({ kind: "event", slug: next.slug })}
-              >
-                <DateTile date={nextDate} />
-                <span className="school-profile__next-copy">
-                  <span className="school-profile__next-label">
-                    Next up{nextDate ? ` · ${nextDate.when}, ${nextDate.time}` : ""}
-                  </span>
-                  <strong>{next.title}</strong>
-                  {next.location && <span>{next.location}</span>}
-                </span>
-                <ArrowUpRight className="school-profile__next-arrow" size={20} aria-hidden="true" />
-              </Link>
-            ) : (
-              <p className="school-profile__no-next">No classes on the calendar right now.</p>
-            )}
-
-            {(school.address || town) && (
-              <div className="school-profile__address">
-                <MapPin size={18} aria-hidden="true" />
-                <address>
-                  {school.address && <span>{school.address}</span>}
-                  {town && <span>{town}</span>}
-                </address>
-              </div>
-            )}
-
-            {(directions || instagram || website) && (
-              <nav className="school-profile__links" aria-label={`${school.name} links`}>
-                {directions && (
-                  <a href={directions} target="_blank" rel="noopener noreferrer">
-                    Directions <ArrowUpRight size={14} aria-hidden="true" />
-                  </a>
-                )}
-                {instagram && (
-                  <a href={instagram} target="_blank" rel="noopener noreferrer">
-                    Instagram <ArrowUpRight size={14} aria-hidden="true" />
-                  </a>
-                )}
-                {website && (
-                  <a href={website} target="_blank" rel="noopener noreferrer">
-                    Website <ArrowUpRight size={14} aria-hidden="true" />
-                  </a>
-                )}
-              </nav>
-            )}
-          </div>
-        </aside>
-      </header>
-
-      <div className="school-profile__body">
-        <div className="school-profile__schedule">
-          <SchoolOfferingsSection slug={school.slug} />
-          <section aria-labelledby="school-upcoming">
-            <h2 id="school-upcoming">On the calendar</h2>
-            {upcoming.length === 0 ? (
-              <p className="school-profile__empty">
-                Nothing listed yet.
-                {(instagram || website) && " The school's own pages may have their current schedule."}
-              </p>
-            ) : (
-              <ul className="school-profile__nights">
-                {upcoming.map((event) => (
-                  <li key={event.id}>
-                    <NightRow event={event} />
+            <section aria-labelledby="school-styles">
+              <h2 id="school-styles">Styles &amp; levels</h2>
+              <ul className="profile__styles" aria-label="Dance styles taught">
+                {styles.map((style) => (
+                  <li key={style.id}>
+                    <Link className="style-chip" to={entityHref(style)}>
+                      {style.name}
+                    </Link>
                   </li>
                 ))}
               </ul>
-            )}
-          </section>
+            </section>
+          )}
+          <SchoolOfferingsSection slug={school.slug} />
+          {instructors.length > 0 && (
+            <section aria-labelledby="school-instructors">
+              <h2 id="school-instructors">Instructors at this school</h2>
+              <ul className="profile__people">
+                {instructors.map((person) => (
+                  <li key={person.id}>
+                    <Link className="profile__person" to={entityHref(person)}>
+                      {person.image_url ? (
+                        <img src={person.image_url} alt="" loading="lazy" />
+                      ) : (
+                        <span className="profile__person-initials" aria-hidden="true">
+                          {initials(person.name)}
+                        </span>
+                      )}
+                      <span>{person.name}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
           {past.length > 0 && (
-            <section className="school-profile__past" aria-labelledby="school-past">
+            <section className="profile__past" aria-labelledby="school-past">
               <h2 id="school-past">Past nights</h2>
-              <ul className="school-profile__nights">
+              <ul className="profile__nights">
                 {past.slice(0, PAST_LIMIT).map((event) => (
                   <li key={event.id}>
                     <NightRow event={event} />
@@ -234,44 +173,65 @@ export function SchoolProfile({ detail }: { detail: EntityDetail }) {
               </ul>
             </section>
           )}
-        </div>
-
-        {(instructors.length > 0 || venues.length > 0 || listedWith.length > 0) && (
-          <aside className="school-profile__side" aria-label={`More about ${school.name}`}>
-            {instructors.length > 0 && (
-              <section aria-labelledby="school-instructors">
-                <h2 id="school-instructors">Teaches here</h2>
-                <ul className="school-profile__people">
-                  {instructors.map((person) => (
-                    <li key={person.id}>
-                      <Link to={entityHref(person)}>
-                        {person.image_url ? (
-                          <img src={person.image_url} alt="" loading="lazy" />
-                        ) : (
-                          <span className="school-profile__initials" aria-hidden="true">
-                            {initials(person.name)}
-                          </span>
-                        )}
-                        <span>{person.name}</span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </section>
+        </>
+      }
+      side={
+        <>
+          <section className="profile__card" aria-labelledby="school-upcoming">
+            <h2 id="school-upcoming">Upcoming classes</h2>
+            {upcoming.length === 0 ? (
+              <p className="profile__empty">No classes on the calendar right now.</p>
+            ) : (
+              <ul className="profile__nights">
+                {upcoming.slice(0, SIDE_LIMIT).map((event) => (
+                  <li key={event.id}>
+                    <NightRow event={event} />
+                  </li>
+                ))}
+              </ul>
             )}
-            <RefList title="Where classes meet" id="school-venues" refs={venues} />
-            <RefList title="Listed with" id="school-listed-with" refs={listedWith} />
-          </aside>
-        )}
-      </div>
-
-      <nav className="school-profile__more" aria-label="More schools">
-        <Link to="/schools">All schools</Link>
-        {metro && <Link to={entityHref(metro)}>More dancing in {metro.name}</Link>}
-      </nav>
-      <footer className="school-profile__claim">
-        <EntityClaimControl kind="school" entity={school} />
-      </footer>
-    </article>
+            {upcoming.length > SIDE_LIMIT && (
+              <Link className="profile__card-link" to="/calendar">Full calendar →</Link>
+            )}
+          </section>
+          {addressQuery && (
+            <VenueMapCard
+              venueName={school.name}
+              streetAddress={school.address ?? null}
+              cityLabel={town || null}
+              directionsHref={directions}
+            />
+          )}
+          {(instagram || website) && (
+            <section className="profile__card" aria-labelledby="school-contact">
+              <h2 id="school-contact">Contact &amp; socials</h2>
+              <ProfileLinks
+                name={school.name}
+                links={[
+                  ...(instagram ? [{ label: "Instagram", href: instagram }] : []),
+                  ...(website ? [{ label: "Website", href: website }] : []),
+                ]}
+              />
+            </section>
+          )}
+          {(venues.length > 0 || listedWith.length > 0) && (
+            <aside className="profile__card" aria-label={`More about ${school.name}`}>
+              <RefList title="Where classes meet" id="school-venues" refs={venues} />
+              <RefList title="Listed with" id="school-listed-with" refs={listedWith} />
+            </aside>
+          )}
+        </>
+      }
+      footer={
+        <>
+          <EntityClaimControl kind="school" entity={school} />
+          {metro && (
+            <nav className="profile__more" aria-label="More dancing nearby">
+              <Link to={entityHref(metro)}>More dancing in {metro.name}</Link>
+            </nav>
+          )}
+        </>
+      }
+    />
   );
 }

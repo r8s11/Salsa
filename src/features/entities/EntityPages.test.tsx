@@ -172,29 +172,32 @@ describe("School profile", () => {
     ],
   };
 
-  it("leads with the next night, in New York time, and where the door is", async () => {
+  it("leads with upcoming classes, the location, and the school's own links", async () => {
     rpc.mockResolvedValueOnce({ data: school, error: null });
 
     renderRoute(<PublicEntityPage kind="school" />);
 
     expect(await screen.findByRole("heading", { level: 1, name: "Ritmo Vivo" })).toBeInTheDocument();
     expect(screen.getByText("Dance school in Boston, MA")).toBeInTheDocument();
-    const door = screen.getByRole("complementary", { name: "Visiting Ritmo Vivo" });
-    const next = within(door).getByRole("link", { name: /Next up · Tonight, 10:00 PM/ });
+    const classes = screen.getByRole("heading", { name: "Upcoming classes" }).closest("section")!;
+    const next = within(classes).getByRole("link", { name: /Salsa Night.*Tonight · 10:00 PM/ });
     expect(next).toHaveAttribute("href", "/events/salsa-night");
-    expect(within(door).getByText("1 Main St")).toBeInTheDocument();
-    const directions = within(door).getByRole("link", { name: /Directions/ });
+    const location = screen.getByRole("region", { name: "Where" });
+    expect(within(location).getByText("1 Main St")).toBeInTheDocument();
+    const directions = within(location).getByRole("link", { name: "Get directions" });
     expect(directions.getAttribute("href")).toContain(encodeURIComponent("Ritmo Vivo, 1 Main St, Boston, MA"));
-    expect(within(door).getByRole("link", { name: /Instagram/ })).toHaveAttribute("href", "https://www.instagram.com/ritmo.vivo/");
+    expect(screen.getByRole("link", { name: /Instagram/ })).toHaveAttribute("href", "https://www.instagram.com/ritmo.vivo/");
   });
 
-  it("lists the calendar with relative days and links the people and styles around it", async () => {
+  it("lists upcoming classes with relative days and links the people and styles around them", async () => {
     rpc.mockResolvedValueOnce({ data: school, error: null });
 
     renderRoute(<PublicEntityPage kind="school" />);
 
-    const calendar = (await screen.findByRole("heading", { name: "On the calendar" })).closest("section")!;
-    expect(within(calendar).getByRole("link", { name: /On2 Level 1.*Tuesday · 7:30 PM/ })).toHaveAttribute("href", "/events/on2-level-1");
+    expect(await screen.findByRole("heading", { name: "About the school" })).toBeInTheDocument();
+    expect(screen.getByText("Community dance school")).toBeInTheDocument();
+    const classes = screen.getByRole("heading", { name: "Upcoming classes" }).closest("section")!;
+    expect(within(classes).getByRole("link", { name: /On2 Level 1.*Tuesday · 7:30 PM/ })).toHaveAttribute("href", "/events/on2-level-1");
     expect(screen.getByRole("link", { name: "Ana Ferrer" })).toHaveAttribute("href", "/i/ana-ferrer");
     expect(screen.getByRole("link", { name: "Salsa" })).toHaveAttribute("href", "/styles/salsa");
     expect(screen.getByRole("link", { name: "Salsa Circle" })).toHaveAttribute("href", "/o/salsa-circle");
@@ -214,7 +217,8 @@ describe("School profile", () => {
 
     expect(await screen.findByText("Dance school")).toBeInTheDocument();
     expect(screen.getByText("No classes on the calendar right now.")).toBeInTheDocument();
-    expect(screen.getByText("Nothing listed yet.")).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "About the school" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Where" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /Directions|Instagram|Website/ })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Past nights" })).not.toBeInTheDocument();
   });
@@ -226,7 +230,7 @@ describe("instructor surfaces", () => {
     description: "On2 teacher", instagram: "@anarivera", website: "https://ana.example",
   };
 
-  it("renders a portrait-led profile with initial fallback, links, and nights", async () => {
+  it("renders a photo-led profile with links, the next night in the door, and nights", async () => {
     rpc.mockResolvedValueOnce({ data: { ...detail, entity: teacher }, error: null });
 
     renderRoute(<PublicEntityPage kind="instructor" />, "/i/ana-rivera", "/i/:slug");
@@ -235,7 +239,10 @@ describe("instructor surfaces", () => {
     expect(screen.getByRole("link", { name: "Instagram" })).toHaveAttribute("href", "https://www.instagram.com/anarivera/");
     expect(screen.getByRole("link", { name: "Website" })).toHaveAttribute("href", "https://ana.example");
     expect(screen.getByRole("heading", { name: "Teaching next" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Salsa Night/ })).toHaveAttribute("href", "/events/salsa-night");
+    const door = screen.getByRole("complementary", { name: "Visiting Ana Rivera" });
+    expect(within(door).getByRole("link", { name: /Next up.*Salsa Night/ })).toHaveAttribute("href", "/events/salsa-night");
+    const teaching = screen.getByRole("heading", { name: "Teaching next" }).closest("section")!;
+    expect(within(teaching).getByRole("link", { name: /Salsa Night/ })).toHaveAttribute("href", "/events/salsa-night");
     expect(screen.getByRole("link", { name: /Salsa Circle/ })).toHaveAttribute("href", "/o/salsa-circle");
   });
 
@@ -305,10 +312,9 @@ describe("EntityDirectoryPage", () => {
   });
 
   it("filters the cross-kind directory by query and canonical metro city", async () => {
-    rpc.mockImplementation((_name: string, args: { p_kind: string | null; p_query: string; p_city: string | null }) => {
-      if (args.p_kind) return Promise.resolve({ data: [], error: null });
-      return Promise.resolve({ data: args.p_query === "Ritmo" && args.p_city === "boston" ? [detail.entity] : [], error: null });
-    });
+    // "All kinds" searches each kind separately; only the school query matches.
+    rpc.mockImplementation((_name: string, args: { p_kind: string | null; p_query: string; p_city: string | null }) =>
+      Promise.resolve({ data: args.p_kind === "school" && args.p_query === "Ritmo" && args.p_city === "boston" ? [detail.entity] : [], error: null }));
 
     renderRoute(<EntityDirectoryPage />, "/discover", "*");
 

@@ -92,6 +92,25 @@ export function entityHref(entity: Pick<PublicEntityRef, "kind" | "slug">): stri
   return `${ENTITY_PATHS[entity.kind]}/${encodeURIComponent(entity.slug)}`;
 }
 
+export type ProfileMedia = { src: string; alt: string; to?: string };
+
+const STRIP_LIMIT = 5;
+
+/**
+ * Flyers from the entity's own nights, newest-upcoming first, one tile per distinct
+ * image. The entity photo is left out: it already fills the hero.
+ */
+export function profileMedia({ entity, upcoming, past }: EntityDetail): ProfileMedia[] {
+  const seen = new Set<string>(entity.image_url ? [entity.image_url] : []);
+  const media: ProfileMedia[] = [];
+  for (const event of [...upcoming, ...past]) {
+    if (!event.image_url || seen.has(event.image_url)) continue;
+    seen.add(event.image_url);
+    media.push({ src: event.image_url, alt: `${event.title} flyer`, to: entityHref({ kind: "event", slug: event.slug }) });
+    if (media.length === STRIP_LIMIT) break;
+  }
+  return media;
+}
 export const ENTITY_DIRECTORY_PATHS: Record<PublicEntityKind, string> = {
   event: "/calendar",
   series: "/series",

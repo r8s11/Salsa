@@ -4,23 +4,24 @@ import { ENTITY_LABELS, entityHref, type PublicEntityRef } from "../model";
 import { InstructorPortrait } from "./InstructorPortrait";
 import { NYC_SUBLOCATIONS, subLocationLabel } from "../../metros/model/sublocation";
 
-function InstructorCard({ entity }: { entity: PublicEntityRef }) {
+export function InstructorCard({ entity, heading: Heading = "h2" }: { entity: PublicEntityRef; heading?: "h2" | "h3" }) {
   return (
     <Link className="entity-directory__teacher" to={entityHref(entity)}>
       <InstructorPortrait name={entity.name} imageUrl={entity.image_url} />
-      <h2 className="entity-directory__teacher-name">{entity.name}</h2>
+      <Heading className="entity-directory__teacher-name">{entity.name}</Heading>
       {entity.city && <span className="entity-directory__teacher-city">{entity.city.replace(/-/g, " ")}</span>}
     </Link>
   );
 }
 
-function EntityCard({ entity }: { entity: PublicEntityRef }) {
+export function EntityCard({ entity, heading: Heading = "h2" }: { entity: PublicEntityRef; heading?: "h2" | "h3" }) {
   return (
     <Link className="entity-directory__result-link" to={entityHref(entity)}>
       {entity.image_url && <img src={entity.image_url} alt="" loading="lazy" />}
       <span className="entity-directory__result-copy">
         <span className="entity-directory__result-kind">{ENTITY_LABELS[entity.kind]}</span>
-        <h2 className="entity-directory__result-name">{entity.name}</h2>
+        <Heading className="entity-directory__result-name">{entity.name}</Heading>
+        {entity.kind === "event" && entity.event_date && <span className="entity-directory__result-date">{new Date(entity.event_date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}</span>}
         {entity.kind === "school" && entity.borough && <span className="entity-directory__result-city">NYC · {subLocationLabel(entity.borough)}</span>}
         {entity.city && <span className="entity-directory__result-city">{entity.city.replace(/-/g, " ")}</span>}
         {entity.description && <span className="entity-directory__result-description">{entity.description}</span>}
@@ -67,7 +68,7 @@ export function EntityDirectoryResults({ label, resultLabel, directory }: Props)
                 <section key={group.key} aria-label={group.label}>
                   <h2>{group.label}</h2>
                   <ul className="entity-directory__grid">
-                    {group.rows.map((entity) => <li key={entity.id}><EntityCard entity={entity} /></li>)}
+                    {group.rows.map((entity) => <li key={entity.id}><EntityCard entity={entity} heading="h3" /></li>)}
                   </ul>
                 </section>
               ))}

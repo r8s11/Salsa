@@ -123,3 +123,20 @@
   outline: 2px solid var(--gold);
   outline-offset: 3px;
 }
+
+/* Primary action on a reading page (/community-voice): Gold fill, 44px target. */
+.legal-page a.legal-page__cta {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.6rem 1.4rem;
+  border-radius: 999px;
+  background: var(--gold);
+  color: var(--on-gold);
+  font: 700 1rem / 1.2 var(--font-body);
+  text-decoration: none;
+}
+
+.legal-page a.legal-page__cta:hover {
+  filter: brightness(1.08);
+}

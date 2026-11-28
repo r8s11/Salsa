@@ -49,46 +49,37 @@ export default function VenueMapCard({
 
   return (
     <section className="venue-card" aria-labelledby="venue-card-label">
-      <div className="venue-card__preview">
-        <div className="venue-card__grid" aria-hidden="true" />
-        <span className="venue-card__pin" aria-hidden="true">
-          <MapPin size={26} />
-        </span>
-        <span className="venue-card__preview-label">Map preview</span>
-      </div>
-
-      <div className="venue-card__body">
-        <h2 className="venue-card__label" id="venue-card-label">
-          Where
-        </h2>
-        {venueName && <p className="venue-card__venue">
-          {venuePageHref ? <Link to={venuePageHref}>{venueName}</Link> : venueName}
-        </p>}
-        {streetAddress && <p className="venue-card__address">{streetAddress}</p>}
-        {city && <p className="venue-card__address">
-          {cityPageHref ? <Link to={cityPageHref}>{city}</Link> : city}
-        </p>}
-
-        {(venuePageHref || directionsHref) && (
-          <div className="venue-card__actions">
-            {venuePageHref && (
-              <Link className="venue-card__cta" to={venuePageHref}>
-                Venue page <ArrowRight size={14} aria-hidden="true" />
-              </Link>
-            )}
-            {directionsHref && (
-              <a
-                className="venue-card__cta"
-                href={directionsHref}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Get directions <ArrowRight size={14} aria-hidden="true" />
-              </a>
+          <div className="venue-card__preview">
+            <div className="venue-card__grid" aria-hidden="true" />
+            <span className="venue-card__pin" aria-hidden="true">
+              <MapPin size={26} />
+            </span>
+            <span className="venue-card__preview-label">Map preview</span>
+          </div>
+          <div className="venue-card__body">
+            <h2 className="venue-card__label" id="venue-card-label">Where</h2>
+            {venueName && <p className="venue-card__venue">
+              {venuePageHref ? <Link to={venuePageHref}>{venueName}</Link> : venueName}
+            </p>}
+            {streetAddress && <p className="venue-card__address">{streetAddress}</p>}
+            {city && <p className="venue-card__address">
+              {cityPageHref ? <Link to={cityPageHref}>{city}</Link> : city}
+            </p>}
+            {(venuePageHref || directionsHref) && (
+              <div className="venue-card__actions">
+                {venuePageHref && (
+                  <Link className="venue-card__cta" to={venuePageHref}>
+                    Venue page <ArrowRight size={14} aria-hidden="true" />
+                  </Link>
+                )}
+                {directionsHref && (
+                  <a className="venue-card__cta" href={directionsHref} target="_blank" rel="noopener noreferrer">
+                    Get directions <ArrowRight size={14} aria-hidden="true" />
+                  </a>
+                )}
+              </div>
             )}
           </div>
-        )}
-      </div>
     </section>
   );
 }

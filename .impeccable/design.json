@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-28T01:32:22Z",
+  "title": "Design System: Salsa Segura",
+  "extensions": {
+    "shadows": [{ "name": "glow-primary", "value": "var(--glow-primary)", "purpose": "Primary action hover in Ritmo Vivo." }],
+    "motion": [{ "name": "button-reveal", "value": "cubic-bezier(0.23, 1, 0.32, 1)", "purpose": "Shared button fill and underline transitions." }]
+  },
+  "components": [
+    {
+      "name": "Primary action",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The highest-priority public action.",
+      "html": "<button class=\"ds-primary\" type=\"button\">Browse events</button>",
+      "css": ".ds-primary{min-height:44px;padding:.8rem 1.75rem;border:0;border-radius:var(--radius-xl,24px);background:var(--gradient-primary,#e11d48);color:#fff;font:700 .8125rem var(--font-ui,Epilogue,sans-serif);text-transform:uppercase}.ds-primary:hover{background:var(--red-deep,#be123c);box-shadow:var(--glow-primary,none)}.ds-primary:focus-visible{outline:2px solid var(--red-bright,#ff5874);outline-offset:2px}"
+    },
+    {
+      "name": "Secondary action",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "An outlined alternative to the main public action.",
+      "html": "<button class=\"ds-secondary\" type=\"button\">Submit an event</button>",
+      "css": ".ds-secondary{min-height:44px;padding:.8rem 1.75rem;border:1px solid var(--gold,#e9c349);border-radius:var(--radius-xl,24px);background:transparent;color:var(--gold,#e9c349);font:700 .8125rem var(--font-ui,Epilogue,sans-serif);text-transform:uppercase}.ds-secondary:focus-visible{outline:2px solid var(--red-bright,#ff5874);outline-offset:2px}"
+    },
+    {
+      "name": "Ghost action",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "A low-emphasis public action without a filled surface.",
+      "html": "<button class=\"ds-ghost\" type=\"button\">List your night</button>",
+      "css": ".ds-ghost{min-height:44px;padding:.8rem .5rem;border:0;background:none;color:var(--text,#dae2fd);font:700 .8125rem var(--font-ui,Epilogue,sans-serif);text-transform:uppercase}.ds-ghost:hover{text-decoration:underline;text-decoration-color:var(--red-bright,#ff5874);text-underline-offset:.35rem}.ds-ghost:focus-visible{outline:2px solid var(--red-bright,#ff5874);outline-offset:2px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Three worlds, one dance publication",
+    "overview": "Ritmo Vivo serves dancers in the public guide and shop. The Listings Desk is the work surface for operators. The Sleeve is exported artwork, not a site UI theme."
+  }
+}

@@ -20,6 +20,7 @@ beforeEach(() => {
 describe.each([
   ["/privacy", "Privacy Policy"],
   ["/data-deletion", "Delete your data"],
+  ["/community-voice", "Community Voice · Voz de la Comunidad"],
 ])("public %s route", (path, heading) => {
   it("renders for an anonymous visitor without redirecting", async () => {
     window.history.replaceState({}, "", path);

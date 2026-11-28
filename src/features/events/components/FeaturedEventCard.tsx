@@ -1,3 +1,4 @@
+import { Fragment, type CSSProperties } from "react";
 import { ArrowUpRight, Clock, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 import { entityHref } from "../../entities/model";
@@ -58,7 +59,14 @@ export default function FeaturedEventCard({
         </span>
         <h3>
           <button type="button" className="event-card-open" onClick={openDetail}>
-            {event.title}
+            {event.title.split(" ").map((word, i) => (
+              <Fragment key={i}>
+                {i > 0 && " "}
+                <span className="featured-card-word-mask">
+                  <span className="featured-card-word" style={{ "--i": i } as CSSProperties}>{word}</span>
+                </span>
+              </Fragment>
+            ))}
           </button>
         </h3>
         <div className="featured-card-meta">

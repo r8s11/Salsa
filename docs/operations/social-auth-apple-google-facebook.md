@@ -1,14 +1,14 @@
 # SalsaSegura social authentication — provider rollout
 
-Status (2026-11-05):
+Status (2026-11-24):
 
 - **Google**: configured server-side. GCP project `salsa-segura`, OAuth client
   "Salsa Segura web (Supabase)" (JS origins `https://www.salsasegura.com`,
   `https://salsasegura.com` (added 2026-11-25 after apex `origin_mismatch`),
   `http://localhost:5173`, `http://localhost`; redirect = Supabase callback),
-  consent screen in **Testing** with home and `/privacy` links; Supabase Google
-  provider enabled. Only test users can sign in until the consent screen is
-  published (Audience > Publish app). The frontend uses Google's own button
+  consent screen **In production** (published 2026-11-24; scopes are the
+  default non-sensitive openid/email/profile, so no verification is needed)
+  with home and `/privacy` links; Supabase Google provider enabled. The frontend uses Google's own button
   (Google Identity Services + `signInWithIdToken` with a hashed nonce) when
   `VITE_GOOGLE_CLIENT_ID` is set, so Google names the site instead of the
   Supabase host; without it, or if Google's script fails to load, it falls

@@ -176,7 +176,9 @@ graphify-out/
 /graft/
 
 # Local agent/editor state
-.impeccable/
+.impeccable/*
+!/.impeccable/design-full.md
+!/.impeccable/design.json
 /opencode.json
 
 .agent/

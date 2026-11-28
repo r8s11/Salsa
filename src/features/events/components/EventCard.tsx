@@ -84,10 +84,10 @@ export default function EventCard({
           </span>
           {event.location && (
             <span className="event-card-location">
-              <MapPin size={13} aria-hidden="true" />{" "}
+              <MapPin size={13} aria-hidden="true" />
               {event.publicEntities?.venue
-                ? <Link className="event-card-entity" to={entityHref(event.publicEntities.venue)}>{event.publicEntities.venue.name}</Link>
-                : event.location}
+                ? <Link className="event-card-entity" to={entityHref(event.publicEntities.venue)}><span className="event-card-location-name">{event.publicEntities.venue.name}</span></Link>
+                : <span className="event-card-location-name">{event.location}</span>}
             </span>
           )}
         </div>

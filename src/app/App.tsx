@@ -11,6 +11,7 @@ const AboutPage = lazy(() => import("../pages/AboutPage"));
 const ContactPage = lazy(() => import("../pages/ContactPage"));
 const PrivacyPage = lazy(() => import("../pages/PrivacyPage"));
 const DataDeletionPage = lazy(() => import("../pages/DataDeletionPage"));
+const CommunityVoicePage = lazy(() => import("../pages/CommunityVoicePage"));
 const HelpIndexPage = lazy(() => import("../features/help/pages/HelpIndexPage"));
 const HelpGuidePage = lazy(() => import("../features/help/pages/HelpGuidePage"));
 const CalendarPage = lazy(() => import("../pages/CalendarPage"));
@@ -334,6 +335,7 @@ function App() {
               <Route path="contact" element={<ContactPage />} />
               <Route path="privacy" element={<PrivacyPage />} />
               <Route path="data-deletion" element={<DataDeletionPage />} />
+              <Route path="community-voice" element={<CommunityVoicePage />} />
               <Route path="help" element={<HelpIndexPage />} />
               <Route path="help/:slug" element={<HelpGuidePage />} />
               <Route path="calendar" element={<CalendarPage />} />

@@ -18,8 +18,8 @@
   justify-content: center;
   height: 148px;
   background:
-    radial-gradient(120px 90px at 50% 45%, var(--red-dim), transparent 70%),
-    linear-gradient(160deg, var(--surface-high), #1b2440 60%, var(--surface));
+    radial-gradient(140px 100px at 50% 45%, color-mix(in srgb, var(--red) 23%, transparent), transparent 72%),
+    linear-gradient(160deg, color-mix(in srgb, var(--red) 8%, var(--surface-high)), var(--surface));
   border-bottom: 1px solid var(--border-md);
 }
 
@@ -27,8 +27,8 @@
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(to right, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+    linear-gradient(to right, color-mix(in srgb, var(--red-bright) 13%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--red-bright) 13%, transparent) 1px, transparent 1px);
   background-size: 34px 34px;
   mask-image: radial-gradient(circle at 50% 45%, #000 55%, transparent 100%);
   -webkit-mask-image: radial-gradient(circle at 50% 45%, #000 55%, transparent 100%);
@@ -56,10 +56,8 @@
   font-size: 0.6875rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--text-dim);
+  color: var(--text-muted);
 }
-
-/* ── Venue information ── */
 
 .venue-card__body {
   padding: 18px 20px 20px;

@@ -25,7 +25,22 @@ describe("event attribution", () => {
       ["Dance School", "/s/dance-school"], ["Ana", "/i/ana"], ["DJ Coco", "/dj/dj-coco"],
       ["Friday Social", "/series/friday-social"], ["Boston", "/cities/boston"],
       ["Salsa", "/styles/salsa"],
-    ]) expect(screen.getByRole("link", { name })).toHaveAttribute("href", path);
-    expect(screen.getAllByRole("link", { name: "Dance School" })).toHaveLength(1);
+    ]) expect(screen.getByRole("link", { name: new RegExp(`${name}$`) })).toHaveAttribute("href", path);
+    expect(screen.getAllByRole("link", { name: "School Dance School" })).toHaveLength(1);
+  });
+});
+
+describe("same-name listings", () => {
+  it("keeps a venue, organizer and school sharing one name as three labeled links", () => {
+    render(<MemoryRouter><EventEntityLinks entities={{
+      venue: ref("venue", "ABC Studio", "abc-venue"),
+      organizer: ref("organizer", "ABC Studio", "abc-org"),
+      school: null,
+      schools: [ref("school", "ABC Studio", "abc-school")],
+      instructors: [], djs: [], series: null, city: null, styles: [],
+    }} /></MemoryRouter>);
+    expect(screen.getByRole("link", { name: "Venue ABC Studio" })).toHaveAttribute("href", "/v/abc-venue");
+    expect(screen.getByRole("link", { name: "Organizer ABC Studio" })).toHaveAttribute("href", "/o/abc-org");
+    expect(screen.getByRole("link", { name: "School ABC Studio" })).toHaveAttribute("href", "/s/abc-school");
   });
 });

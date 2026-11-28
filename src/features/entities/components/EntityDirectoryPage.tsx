@@ -7,6 +7,7 @@ import { useEntityDirectory } from "../hooks/useEntityDirectory";
 import { DiscoverHub } from "./DiscoverHub";
 import { EntityDirectoryResults } from "./EntityDirectoryResults";
 import { EntityDirectorySearch } from "./EntityDirectorySearch";
+import { EntityDirectorySections } from "./EntityDirectorySections";
 import { MANAGED_KINDS } from "../../workspaces/model";
 import "./EntityDirectoryPage.css";
 
@@ -33,6 +34,13 @@ export default function EntityDirectoryPage({ kind }: { kind?: PublicEntityKind 
     requestAnimationFrame(() => sectionRef.current?.querySelector<HTMLInputElement>("input[type=search]")?.focus());
   }
 
+  // "See all venues" narrows the same search to that kind, form included.
+  function seeAll(nextKind: PublicEntityKind) {
+    directory.submitSearch({ ...directory.search, kind: nextKind });
+    setSearchKey((key) => key + 1);
+    requestAnimationFrame(() => sectionRef.current?.querySelector(".entity-directory__results")?.scrollIntoView({ block: "start" }));
+  }
+
   return (
     <section ref={sectionRef} className={kind ? "entity-directory" : "entity-directory entity-directory--main"} aria-labelledby="entity-directory-title">
       <header className="entity-directory__intro">
@@ -57,7 +65,7 @@ export default function EntityDirectoryPage({ kind }: { kind?: PublicEntityKind 
           </>
         )}
       </header>
-      <EntityDirectorySearch key={searchKey} kind={kind} onSearch={directory.submitSearch} />
+      <EntityDirectorySearch key={searchKey} kind={kind} initial={directory.search} onSearch={directory.submitSearch} />
       {directory.active ? (
         <>
           {!kind && (
@@ -65,7 +73,9 @@ export default function EntityDirectoryPage({ kind }: { kind?: PublicEntityKind 
               <button type="button" className="ui-button ui-button--ghost" onClick={backToHub}>Back to every directory</button>
             </p>
           )}
-          <EntityDirectoryResults label={label} resultLabel={resultLabel} directory={directory} />
+          {directory.search.kind
+            ? <EntityDirectoryResults label={label} resultLabel={resultLabel} directory={directory} />
+            : <EntityDirectorySections label={label} search={directory.search} onSeeAll={seeAll} />}
         </>
       ) : (
         <DiscoverHub />

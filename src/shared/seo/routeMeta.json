@@ -39,6 +39,11 @@
     "title": "Delete Your Data",
     "description": "How to delete your Salsa Segura account and personal data, including accounts created with Apple, Google, or Facebook sign-in."
   },
+  "communityVoice": {
+    "path": "/community-voice",
+    "title": "Community Voice · Voz de la Comunidad",
+    "description": "Help shape Salsa Segura: take the 3–5 minute community survey for dancers, promoters, DJs, venues, schools and teachers."
+  },
   "submit": {
     "path": "/submit",
     "title": "Submit a Dance Event",
